@@ -111,7 +111,9 @@ public slots:
     bool        refresh(double delay = 0.0);
     bool        refreshNow();
     bool        refreshNow(QEvent *event);
+#ifndef CFG_NOGIT
     void        commitSuccess(QString id, QString msg);
+#endif
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
     void        colorRejected();
@@ -186,8 +188,10 @@ public:
     bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);
     bool        doSave(ulonglong tick);
+#ifndef CFG_NOGIT
     bool        doPull(ulonglong tick);
     bool        doCommit(ulonglong tick);
+#endif
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "group,shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
@@ -333,7 +337,9 @@ public:
     Integer_p   yearDay(Tree_p self, double t);
     Integer_p   month(Tree_p self, double t);
     Integer_p   year(Tree_p self, double t);
+#ifndef CFG_NOSRCEDIT
     Name_p      showSource(Tree_p self, bool show);
+#endif
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      slideShow(XL::Tree_p self, bool ss);
@@ -364,8 +370,10 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+#ifndef CFG_NOSTEREO
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Name_p      setStereoPlanes(Tree_p self, uint planes);
+#endif
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
@@ -638,6 +646,7 @@ public:
     Tree_p      chooserBranches(Tree_p self, Name_p prefix, text label);
     Tree_p      chooserCommits(Tree_p self, text branch, Name_p prefix, text label);
     Tree_p      checkout(Tree_p self, text what);
+    Name_p      currentRepository(Tree_p self);
     Tree_p      closeCurrentDocument(Tree_p self);
     Tree_p      quitTao(Tree_p self);
 
@@ -671,6 +680,7 @@ public:
     Real_p      fromPx(Tree_p self, double px);
 
     Tree_p      constant(Tree_p self, Tree_p tree);
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -684,7 +694,7 @@ public:
     Name_p      ungroupSelection(Tree_p self);
 
     //Documentation
-    Text_p generateDoc(Tree_p self, Tree_p tree);
+    Text_p generateDoc(Tree_p self, Tree_p tree, text defGrp = "");
     Text_p generateAllDoc(Tree_p self, text filename);
 
 private:
@@ -785,7 +795,10 @@ private:
     QTime                 stats_start;
     int                   stats_interval;
     frame_times           stats;
-    ulonglong             nextSave, nextCommit, nextSync, nextPull;
+    ulonglong             nextSave, nextSync;
+#ifndef CFG_NOGIT
+    ulonglong             nextCommit, nextPull;
+#endif
 
     // Printing
     double                pagePrintTime;
@@ -828,6 +841,7 @@ private:
     double                CurrentTime();
     double                trueCurrentTime();
     void                  setCurrentTime();
+    bool inDraw;
 };
 
 

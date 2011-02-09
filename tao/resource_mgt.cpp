@@ -209,9 +209,11 @@ text ResourceMgt::integrateFile(QFileInfo info, QString prefix)
                 << +(newName.canonicalFilePath()) << std::endl;
     }
 
+#ifndef CFG_NOGIT
     Repository * repo = ((Window*)widget->parent())->repository();
     if (repo)
         repo->add(relName);
+#endif
 
     return relName;
 }

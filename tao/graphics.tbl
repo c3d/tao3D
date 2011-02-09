@@ -261,6 +261,13 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
+PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
+       PARM(name, symbol, "The name of the feature to test"),
+       RTAO(taoFeatureAvailable(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a functionality is available")
+       DESCRIPTION("Check if a specific Tao feature is available with the current version of the program")
+       RETURNS( boolean, "True if the feature is compiled in, false otherwise.") )
 
 
 
@@ -447,6 +454,7 @@ PREFIX(DefaultRefresh, tree, "default_refresh",
        DESCRIPTION("Set the documents refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
+#ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),
        RTAO(showSource(self, flag)),
@@ -457,6 +465,7 @@ PREFIX(ShowSource, boolean, "show_source",
        RETURNS(boolean,
                "The previous visibility state of the "
                "source code panel."))
+#endif
 PREFIX(FullScreen, boolean, "full_screen",
        PARM(flag, boolean, "Flag controlling full-screen mode"),
        RTAO(fullScreen(self, flag)),
@@ -601,6 +610,7 @@ PREFIX(EnableAnimations,  boolean,  "enable_animations",
        SYNOPSIS("Enable or disable animations")
        DESCRIPTION("Enable or disable animations")
        RETURNS(boolean, "True if previous state was on."))
+#ifndef CFG_NOSTEREO
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off"),
        RTAO(enableStereoscopy(self, mode)),
@@ -613,6 +623,7 @@ PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer, "on or of
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
        RETURNS(boolean, "True if previous state was on."))
+#endif
 PREFIX(EyeDistance,  boolean,  "eye_distance",
        PARM(e, real, ),
        RTAO(setEyeDistance(self, e)),
@@ -1480,9 +1491,7 @@ PREFIX(TableCell,  tree,  "table_cell",
        GROUP(table)
        SYNOPSIS("Define a free-size cell in the table")
        DESCRIPTION("Define a cell in the context of the table. Short name 'cell' can be used with both syntaxes.")
-       RETURNS(tree, "body evaluation result")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "body evaluation result"))
 PREFIX(TableMargins2,  tree,  "table_cell_margins",
        PARM(w, real, )
        PARM(h, real, ),
@@ -1498,29 +1507,25 @@ PREFIX(TableMargins,  tree,  "table_cell_margins",
        RTAO(tableMargins(self, x, y, w, h)),
        GROUP(table)
        SYNOPSIS("Set the margin rectangle for the table.")
-       DESCRIPTION("Set the margin rectangle for the table. The short name of the function is margins. It can be used with both syntaxes.")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       DESCRIPTION("Set the margin rectangle for the table. The short name of the function is margins. "\
+                    "It can be used with both syntaxes."))
 PREFIX(TableFill,  tree,  "table_cell_fill",
        PARM(b, code, "fill code body."),
        RTAO(tableFill(self, b)),
        GROUP(table)
        SYNOPSIS("fill of the cell")
-       DESCRIPTION("Define the fill code for cells")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       DESCRIPTION("Define the fill code for cells"))
 PREFIX(TableBorder,  tree,  "table_cell_border",
        PARM(b, code, "border code body."),
        RTAO(tableBorder(self, b)),
        GROUP(table)
        SYNOPSIS("Define the border code for cells")
-       DESCRIPTION("Define the border code for cells. The short name is border.")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       DESCRIPTION("Define the border code for cells. The short name is border."))
 PREFIX(TableCellX,  tree,  "table_cell_x", , RTAO(tableCellX(self)),
        GROUP(table)
        SYNOPSIS("x-ccordinate of the cell center")
        DESCRIPTION("Get the horizontal center of the current table cell")
-       RETURNS(tree, "The coordinate of the center of the current cell on x-axis")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "The coordinate of the center of the current cell on x-axis"))
 PREFIX(TableCellY,  tree,  "table_cell_y", , RTAO(tableCellY(self)),
        GROUP(table)
        SYNOPSIS("y-ccordinate of the cell center")
@@ -1535,37 +1540,27 @@ PREFIX(TableCellH,  tree,  "table_cell_h", , RTAO(tableCellH(self)),
        GROUP(table)
        SYNOPSIS("Height of the cell.")
        DESCRIPTION("Get the vertical size of the current table cell")
-       RETURNS(tree, "The size of the current cell along the y-axis")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "The size of the current cell along the y-axis"))
 PREFIX(TableRow,  tree,  "table_cell_row", , RTAO(tableRow(self)),
        GROUP(table)
        SYNOPSIS("Return the current row")
        DESCRIPTION("Return the current row index")
-       RETURNS(tree, "the row index")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "the row index"))
 PREFIX(TableColumn,  tree,  "table_cell_column", , RTAO(tableColumn(self)),
        GROUP(table)
        SYNOPSIS("Return the current column")
        DESCRIPTION("Return the current column index.")
-       RETURNS(tree, "The column index.")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "The column index."))
 PREFIX(TableRows,  tree,  "table_rows", , RTAO(tableRows(self)),
        GROUP(table)
        SYNOPSIS("number of rows in the current table")
        DESCRIPTION("Return the number of rows in the current table")
-       RETURNS(tree, "Number of rows in the table")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "Number of rows in the table"))
 PREFIX(TableColumns,  tree,  "table_columns", , RTAO(tableColumns(self)),
        GROUP(table)
        SYNOPSIS("number of columns in the current table")
        DESCRIPTION("Return the number of columns in the current table")
-       RETURNS(tree, "number of columns in the table")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "number of columns in the table"))
 
 
 
@@ -2154,6 +2149,11 @@ PREFIX(Checkout,  tree,  "checkout",
        GROUP(code:checkout)
        SYNOPSIS("")
        DESCRIPTION("Checkout a branch or a commit"))
+PREFIX(CurrentRepository,  boolean,  "current_repository",,
+       RTAO(currentRepository(self)),
+       GROUP(code:checkout)
+       SYNOPSIS("Return true if we use a git repository with the current document")
+       DESCRIPTION("Return true if the current document is stored in a repository, Git functionality is compiled in, and not disabled on the command line"))
 PREFIX(ChooserCloseDocument, tree, "chooser_command_Close_current_document",
        /* No param */,
        RTAO(closeCurrentDocument(self)),
@@ -2389,18 +2389,19 @@ PREFIX(Constant,  tree,  "constant",
        DESCRIPTION("A tree that cannot be modify.")
        RETURNS(tree, "the tree"))
 
-PREFIX(Exit, integer, "exit",, exit(0);,
+PREFIX(Exit, integer, "exit",
+       PARM(n, integer, "exit parameter"), exit(n.value);,
        GROUP(code)
        SYNOPSIS("Exit from Tao")
-       DESCRIPTION("Exit from Tao"))
+       DESCRIPTION("Exit from Tao with the given value"))
 
 PREFIX(GenDoc,  text,  "generate_doc",
        PARM(t, tree, "The tree from wich extracting the documentation"),
-       RTAO(generateDoc(self, t)),
+       RTAO(generateDoc(self, t, "XL")),
        GROUP(documentation)
        SYNOPSIS("generate the doc for the specified tree ")
        DESCRIPTION("Extract the documentation from the specified tree. ")
-       RETURNS(tree, "The Text contains the documentation, ready to be parsed. "))
+       RETURNS(text, "The Text contains the documentation, ready to be parsed. "))
 
 PREFIX(GenAllDoc,  tree,  "generate_all_doc",
        PARM(filename, text, "File name for the documentation"),
@@ -2419,7 +2420,7 @@ PREFIX(ListFiles, tree, "list_files", PARM(pat, tree, ""),
        RTAO(listFiles(context, self, pat)),
        GROUP(misc)
        SYNOPSIS("")
-       DESCRIPTION("")
+       DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
        RETURNS(tree, ""))
 
 

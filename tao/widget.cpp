@@ -41,7 +41,9 @@
 #include "drag.h"
 #include "manipulator.h"
 #include "menuinfo.h"
+#ifndef CFG_NOGIT
 #include "repository.h"
+#endif
 #include "application.h"
 #include "tao_utf8.h"
 #include "layout.h"
@@ -73,6 +75,7 @@
 #include "context.h"
 #include "tree-walk.h"
 #include "raster_text.h"
+#include "dir.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -157,8 +160,11 @@ Widget::Widget(Window *parent, SourceFile *sf)
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
-      nextSave(now()), nextCommit(nextSave),
-      nextSync(nextSave), nextPull(nextSave),
+      nextSave(now()), nextSync(nextSave),
+#ifndef CFG_NOGIT
+      nextCommit(nextSave),
+      nextPull(nextSave),
+#endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
       zNear(1000.0), zFar(56000.0),
@@ -166,7 +172,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false), offlineRenderingTime(-1)
+      renderFramesCanceled(false), offlineRenderingTime(-1), inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -281,6 +287,7 @@ void Widget::dawdle()
         doSave(tick);
     }
 
+#ifndef CFG_NOGIT
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
     if (repo && commitDelay < 0 &&
@@ -297,6 +304,7 @@ void Widget::dawdle()
     {
         doPull(tick);
     }
+#endif
 
     // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
@@ -341,8 +349,10 @@ void Widget::draw()
     }
 
     // Recursive drawing may occur with video widgets, and it's bad
-    if (current)
+    if (inDraw)
         return;
+
+    XL::Save<bool> drawing(inDraw, true);
 
     TaoSave saveCurrent(current, this);
 
@@ -1591,8 +1601,12 @@ void Widget::saveAndCommit()
 // ----------------------------------------------------------------------------
 {
     ulonglong tick = now();
+#ifdef CFG_NOGIT
+    doSave(tick);
+#else
     if (doSave(tick))
         doCommit(tick);
+#endif
 }
 
 
@@ -1626,17 +1640,6 @@ bool Widget::refresh(double delay)
     double end = CurrentTime() + delay;
     return refreshOn(QEvent::Timer, end);
 }
-
-
-void Widget::commitSuccess(QString id, QString msg)
-// ----------------------------------------------------------------------------
-//   Document was succesfully committed to repository (see doCommit())
-// ----------------------------------------------------------------------------
-{
-    Window *window = (Window *) parentWidget();
-    window->undoStack->push(new UndoCommand(repository(), id, msg));
-}
-
 
 
 // ============================================================================
@@ -1821,15 +1824,15 @@ void Widget::setupStereoStencil(double w, double h)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-	// Prepare to draw in stencil buffer
-	glDrawBuffer(GL_BACK);
+        // Prepare to draw in stencil buffer
+        glDrawBuffer(GL_BACK);
         glEnable(GL_STENCIL_TEST);
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+        glClearStencil(0);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
 
         // Line properties
-	glColor4f(1.0, 1.0, 1.0, 1.0);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
         glDisable(GL_LINE_STIPPLE);
@@ -2809,10 +2812,12 @@ void Widget::updateProgramSource()
 //   Update the contents of the program source window
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
     if (window->src->isHidden())
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
+#endif
 }
 
 
@@ -3078,6 +3083,46 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
+#ifndef CFG_NOGIT
+
+void Widget::commitSuccess(QString id, QString msg)
+// ----------------------------------------------------------------------------
+//   Document was succesfully committed to repository (see doCommit())
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->undoStack->push(new UndoCommand(repository(), id, msg));
+}
+
+bool Widget::doCommit(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Commit files previously written to repository and reset next commit time
+// ----------------------------------------------------------------------------
+{
+    Repository * repo = repository();
+    if (!repo)
+        return false;
+    if (repo->state == Repository::RS_Clean)
+        return false;
+
+    IFTRACE(filesync)
+            std::cerr << "Commit\n";
+    bool done;
+    done = repo->commit();
+    if (done)
+    {
+        XL::Main *xlr = XL::MAIN;
+        nextCommit = tick + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
+        return true;
+    }
+    return false;
+}
+
+
 bool Widget::doPull(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Pull from remote repository and reset next pull time
@@ -3089,6 +3134,7 @@ bool Widget::doPull(ulonglong tick)
     return ok;
 }
 
+#endif
 
 bool Widget::setDragging(bool on)
 // ----------------------------------------------------------------------------
@@ -3122,35 +3168,6 @@ bool Widget::doSave(ulonglong tick)
     // Record when we will save file again
     nextSave = tick + xlr->options.save_interval * 1000;
     return changed;
-}
-
-
-bool Widget::doCommit(ulonglong tick)
-// ----------------------------------------------------------------------------
-//   Commit files previously written to repository and reset next commit time
-// ----------------------------------------------------------------------------
-{
-    Repository * repo = repository();
-    if (!repo)
-        return false;
-    if (repo->state == Repository::RS_Clean)
-        return false;
-
-    IFTRACE(filesync)
-            std::cerr << "Commit\n";
-    bool done;
-    done = repo->commit();
-    if (done)
-    {
-        XL::Main *xlr = XL::MAIN;
-        nextCommit = tick + xlr->options.commit_interval * 1000;
-
-        Window *window = (Window *) parentWidget();
-        window->markChanged(false);
-
-        return true;
-    }
-    return false;
 }
 
 
@@ -4572,6 +4589,7 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     return new XL::Real(prev);
 }
 
+#ifndef CFG_NOSRCEDIT
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
 // ----------------------------------------------------------------------------
@@ -4583,6 +4601,7 @@ XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
     return old ? XL::xl_true : XL::xl_false;
 }
 
+#endif
 
 XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
@@ -4918,6 +4937,8 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
+#ifndef CFG_NOSTEREO
+
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Enable or disable stereoscopie mode
@@ -5012,6 +5033,8 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
     }
     return XL::xl_true;
 }
+
+#endif
 
 
 XL::Integer_p  Widget::polygonOffset(Tree_p self,
@@ -5411,17 +5434,65 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
 }
 
 
+static void list_files(Context *context, Dir &current, Tree *patterns,
+                       Tree_p *&parent)
+// ----------------------------------------------------------------------------
+//   Append files matching patterns (relative to directory current) to parent
+// ----------------------------------------------------------------------------
+{
+    if (Block *block = patterns->AsBlock())
+    {
+        list_files(context, current, block->child, parent);
+        return;
+    }
+    if (Infix *infix = patterns->AsInfix())
+    {
+        if (infix->name == "," || infix->name == ";" || infix->name == "\n")
+        {
+            list_files(context, current, infix->left, parent);
+            list_files(context, current, infix->right, parent);
+            return;
+        }
+    }
+
+    patterns = context->Evaluate(patterns);
+    if (Text *glob = patterns->AsText())
+    {
+        QString filter = +glob->value;
+        QStringList files = current.entryList(QStringList() << filter);
+        foreach (QString file, files)
+        {
+            Text *listed = new Text(+file);
+            if (*parent)
+            {
+                Infix *added = new Infix(",", *parent, listed);
+                *parent = added;
+                parent = &added->right;
+            }
+            else
+            {
+                *parent = listed;
+            }
+        }
+        return;
+    }
+    Ooops("Malformed files list $1", patterns);
+}
+
+
 Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
 // ----------------------------------------------------------------------------
 //   List files, current directory is the document directory
 // ----------------------------------------------------------------------------
 {
-    QString savePath = QDir::currentPath();
+    Tree_p result = NULL;
+    Tree_p *parent = &result;
     Window *window = (Window *) parentWidget();
-    QDir::setCurrent(window->currentProjectFolderPath());
-    Tree_p ret = XL::xl_list_files(context, pattern);
-    QDir::setCurrent(savePath);
-    return ret;
+    Dir current(window->currentProjectFolderPath());
+    list_files(context, current, pattern, parent);
+    if (!result)
+        result = XL::xl_nil;
+    return result;
 }
 
 
@@ -6474,7 +6545,7 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
         if (path)
             TextValue(value, this).Draw(*path, layout);
         else
-            layout->Add(new TextValue(value, this));        
+            layout->Add(new TextValue(value, this));
     }
     else
     {
@@ -7752,6 +7823,9 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
     fileDialog->setObjectName("fileDialog");
+    // To be able to set the selectFileName programmatically.
+    // Can be revisited when tests will be integrated in new module fmw.
+    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
@@ -8183,6 +8257,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
 //   Add a list of branches to the chooser
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
@@ -8195,6 +8270,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         }
         return XL::xl_true;
     }
+#endif
     return XL::xl_false;
 }
 
@@ -8205,6 +8281,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
 //   Add a list of commits to the chooser
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
@@ -8220,6 +8297,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
         }
         return XL::xl_true;
     }
+#endif
     return XL::xl_false;
 }
 
@@ -8229,9 +8307,25 @@ Tree_p Widget::checkout(Tree_p self, text what)
 //   Checkout a branch or a commit. Called by chooser.
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     if (repo && repo->checkout(what))
         return XL::xl_true;
+#endif
+    return XL::xl_false;
+}
+
+
+Name_p Widget::currentRepository(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we use a git repository with the current document
+// ----------------------------------------------------------------------------
+{
+#ifndef CFG_NOGIT
+    Repository *repo = repository();
+    if (repo)
+        return XL::xl_true;
+#endif
     return XL::xl_false;
 }
 
@@ -8275,9 +8369,11 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
     if (current)
     {
         current->inError = true;             // Stop refreshing
+#ifndef CFG_NOSRCEDIT
         Window *window = (Window *) current->parentWidget();
         QString fname = +(current->xlProgram->name);
         window->loadFileIntoSourceFileView(fname); // Load source as plain text
+#endif
     }
     return formulaRuntimeError(self, msg, arg);
 }
@@ -8523,9 +8619,13 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         }
         else
         {
+#ifndef CFG_NOGIT
             if (par == currentMenuBar)
                 before = ((Window*)parent())->shareMenu->menuAction();
-
+#else
+            if (par == currentMenuBar)
+                before = ((Window*)parent())->helpMenu->menuAction();
+#endif
 //            par->addAction(currentMenu->menuAction());
         }
         par->insertAction(before, currentMenu->menuAction());
@@ -8874,7 +8974,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
                                                     document()->toPlainText(),
                                                     "<<", ">>" ));
         XL::Infix *lf = new XL::Infix("\n", attribute,
-                                      new XL::Infix("\n", p, XL::xl_empty));
+                                      new XL::Infix("\n", p, XL::xl_nil));
 
         // Current selected text must be erased because it will be re-inserted
         // with new formating
@@ -9194,6 +9294,23 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 }
 
 
+Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
+// ----------------------------------------------------------------------------
+//   Check if a compile-time option is enabled
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_NOGIT
+    if (name->value == "git")
+        return XL::xl_false;
+#endif
+#ifdef CFG_NOSTEREO
+    if (name->value == "stereoscopy")
+        return XL::xl_false;
+#endif
+    return XL::xl_true;
+}
+
+
 
 // ============================================================================
 //
@@ -9201,15 +9318,19 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //
 // ============================================================================
 
-Text_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+Text_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree, text defGrp)
 // ----------------------------------------------------------------------------
 //   Generate documentation for a given tree
 // ----------------------------------------------------------------------------
 {
-    ExtractDoc doc;
-    Tree_p documentation = tree->Do(doc);
-    Text_p text = documentation->AsText();
-    return text;
+    if (defGrp.empty())
+    {
+        ExtractComment com;
+        return tree->Do(com)->AsText();
+    }
+
+    ExtractDoc doc(defGrp);
+    return tree->Do(doc)->AsText();
 }
 
 
@@ -9244,7 +9365,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
 {
     XL::Main *xlr = XL::MAIN;
     text      com = "";
-    Tree     *t   = NULL;
+    Text     *t   = NULL;
 
     // Documentation from the context files (*.xl)
     XL::source_files::iterator couple;
@@ -9252,8 +9373,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
-        t = generateDoc(self, src.tree);
-        com += t->AsText()->value;
+        QFileInfo fi(+src.name);
+        t = generateDoc(self, src.tree, +fi.baseName());
+        com += t->value;
     }
 
     // Documentation from the primitives files (*.tbl)
@@ -9273,11 +9395,12 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
             file.write(com.c_str());
         file.close();
     }
-    std::cerr
-        << "\n"
-        << "=========================================================\n"
-        << com << std::endl
-        << "=========================================================\n";
+
+//    std::cerr
+//        << "\n"
+//        << "=========================================================\n"
+//        << com << std::endl
+//        << "=========================================================\n";
 
     return new Text(com, "", "");
 }

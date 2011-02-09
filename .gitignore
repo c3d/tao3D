@@ -2,6 +2,7 @@ moc_*.cpp
 qrc_*.cpp
 debug/
 release/
+install/
 *.pro.user
 *.o
 ui_*.h
@@ -17,3 +18,8 @@ cscope.out
 tao/[a-z]
 libxlr/xlr.app
 modules/canitao
+tests/*/*_diff*.png
+tests/*/*_played*.png
+tests/results.ddd
+tests/runTests.ddd
+tests/Makefile

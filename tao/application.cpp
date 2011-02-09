@@ -25,7 +25,6 @@
 #include "application.h"
 #include "widget.h"
 #include "repository.h"
-#include "git_backend.h"
 #include "tao.h"
 #include "tao_utf8.h"
 #include "tao_main.h"
@@ -90,6 +89,9 @@ Application::Application(int & argc, char ** argv)
     bool showSplash = true;
     if (arguments().contains("-nosplash") || arguments().contains("-h"))
         showSplash = false;
+
+    if (arguments().contains("-norepo"))
+        RepositoryFactory::no_repo = true;
 
     // Show splash screen
     if (showSplash)

@@ -36,7 +36,8 @@ TAO_BEGIN
 
 QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
-struct Repository::Commit Repository::HeadCommit = Repository::Commit("HEAD");
+bool              RepositoryFactory::no_repo      = false;
+struct Repository::Commit Repository::HeadCommit  = Repository::Commit("HEAD");
 
 Repository::Repository(const QString &path): path(path),
                                      pullInterval(XL::MAIN->options
@@ -117,7 +118,7 @@ bool Repository::write(text fileName, XL::Tree *tree)
     text backup = full + ".bak";
     if (ok)
         ok = std::rename(full.c_str(), backup.c_str()) == 0;
-    if (ok)        
+    if (ok)
         ok = std::rename(copy.c_str(), full.c_str()) == 0;
     if (ok)
         ok = std::remove(backup.c_str()) == 0;
@@ -383,6 +384,7 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
 //    Create the right repository object kind for a directory
 // ----------------------------------------------------------------------------
 {
+    if (no_repo) return NULL;
     // Try a Git repository first
     Repository *git = new GitRepository(path);
     if (git->valid())

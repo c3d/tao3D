@@ -24,9 +24,10 @@
 #include "window.h"
 #include "widget.h"
 #include "apply_changes.h"
-#include "git_backend.h"
 #include "application.h"
 #include "tao_utf8.h"
+#ifndef CFG_NOGIT
+#include "git_backend.h"
 #include "pull_from_dialog.h"
 #include "push_dialog.h"
 #include "fetch_dialog.h"
@@ -37,10 +38,11 @@
 #include "diff_dialog.h"
 #include "git_toolbar.h"
 #include "undo.h"
+#include "open_uri_dialog.h"
+#endif
 #include "resource_mgt.h"
 #include "splash_screen.h"
 #include "uri.h"
-#include "open_uri_dialog.h"
 #include "new_document_wizard.h"
 #include "preferences_dialog.h"
 #include "tool_window.h"
@@ -76,8 +78,11 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     : isUntitled(sourceFile.isEmpty()), isReadOnly(ro),
       loadInProgress(false),
       contextFileNames(context), xlRuntime(xlr),
-      repo(NULL), srcEdit(NULL), errorMessages(NULL),
-      src(NULL), errorDock(NULL),
+      repo(NULL),
+      errorMessages(NULL), errorDock(NULL),
+#ifndef CFG_NOSRCEDIT
+      srcEdit(NULL), src(NULL),
+#endif
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       unifiedTitleAndToolBarOnMac(false), // see #678 below
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
@@ -86,6 +91,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Define the icon
     setWindowIcon(QIcon(":/images/tao.png"));
 
+#ifndef CFG_NOSRCEDIT
     // Create source editor window
     src = new ToolWindow(tr("Document Source"), this, "Tao::Window::src");
     srcEdit = new XLSourceEdit(src);
@@ -96,6 +102,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     src->setVisible(src->createVisible());
     connect(src, SIGNAL(visibilityChanged(bool)),
             this, SLOT(sourceViewBecameVisible(bool)));
+#endif
 
     // Create the error reporting widget
     errorDock = new QDockWidget(tr("Errors"));
@@ -118,9 +125,11 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     createActions();
     createMenus();
     createToolBars();
+#ifndef CFG_NOSRCEDIT
     connect(srcEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
     statusBar()->show();
+#endif
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
@@ -174,6 +183,67 @@ Window::~Window()
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
 }
+
+
+#ifndef CFG_NOSRCEDIT
+
+bool Window::showSourceView(bool show)
+// ----------------------------------------------------------------------------
+//   Show or hide source view
+// ----------------------------------------------------------------------------
+{
+    bool old = src->isVisible();
+    src->setVisible(show);
+    src->toggleViewAction()->setChecked(show);
+    return old;
+}
+
+
+void Window::sourceViewBecameVisible(bool visible)
+// ----------------------------------------------------------------------------
+//   Source code view is shown or hidden
+// ----------------------------------------------------------------------------
+{
+    if (visible)
+    {
+        bool modified = srcEdit->document()->isModified();
+        if (!taoWidget->inError)
+            taoWidget->updateProgramSource();
+        else
+            loadFileIntoSourceFileView(curFile);
+        markChanged(modified);
+    }
+}
+
+
+bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
+// ----------------------------------------------------------------------------
+//    Update the source file view with the plain contents of a specific file
+// ----------------------------------------------------------------------------
+{
+    QFile file(fileName);
+    if (!file.open(QFile::ReadOnly | QFile::Text))
+    {
+        if (box)
+            QMessageBox::warning(this, tr("Cannot read file"),
+                                 tr("Cannot read file %1:\n%2.")
+                                 .arg(fileName)
+                                 .arg(file.errorString()));
+        srcEdit->clear();
+        return false;
+    }
+
+    QTextStream in(&file);
+    QApplication::setOverrideCursor(Qt::WaitCursor);
+    loadInProgress = true;
+    srcEdit->setPlainText(in.readAll());
+    loadInProgress = false;
+    QApplication::restoreOverrideCursor();
+    markChanged(false);
+    return true;
+}
+
+#endif
 
 
 void Window::addError(QString txt)
@@ -248,23 +318,6 @@ void Window::toggleStereoscopy()
 }
 
 
-void Window::sourceViewBecameVisible(bool visible)
-// ----------------------------------------------------------------------------
-//   Source code view is shown or hidden
-// ----------------------------------------------------------------------------
-{
-    if (visible)
-    {
-        bool modified = srcEdit->document()->isModified();
-        if (!taoWidget->inError)
-            taoWidget->updateProgramSource();
-        else
-            loadFileIntoSourceFileView(curFile);
-        markChanged(modified);
-    }
-}
-
-
 void Window::newDocument()
 // ----------------------------------------------------------------------------
 //   Create, save and open a new document from a wizard
@@ -287,7 +340,9 @@ void Window::newFile()
         isUntitled = true;
         isReadOnly = false;
         setCurrentFile(fileName);
+#ifndef CFG_NOSRCEDIT
         srcEdit->clear();
+#endif
         markChanged(false);
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
@@ -313,6 +368,7 @@ int Window::open(QString fileName, bool readOnly)
     QString dir = currentProjectFolderPath();
     if (!fileName.isEmpty())
     {
+#ifndef CFG_NOGIT
         bool fileExists = QFileInfo(fileName).exists();
         if (!fileExists && fileName.contains("://"))
         {
@@ -332,6 +388,7 @@ int Window::open(QString fileName, bool readOnly)
                 return 2;
             }
         }
+#endif
         if (QFileInfo(fileName).isDir())
         {
             isDir = true;
@@ -422,46 +479,6 @@ void Window::pageSetup()
 }
 
 
-void Window::onUriGetFailed()
-// ----------------------------------------------------------------------------
-//    Called asynchronously when open() failed to open an URI
-// ----------------------------------------------------------------------------
-{
-    if (deleteOnOpenFailed)
-        deleteLater();
-    emit openFinished(false);
-}
-
-
-void Window::onDocReady(QString path)
-// ----------------------------------------------------------------------------
-//    Called asynchronously when URI resolution is sucessful
-// ----------------------------------------------------------------------------
-{
-    int st = open(path);
-    bool ok = (st == 1);
-    if (ok)
-        show();
-    emit openFinished(ok);
-}
-
-
-void Window::openUri()
-// ----------------------------------------------------------------------------
-//    Show a dialog box to enter URI and open it
-// ----------------------------------------------------------------------------
-{
-    OpenUriDialog dialog(this);
-    int ret = dialog.exec();
-    if (ret != QDialog::Accepted)
-        return;
-    QString uri = dialog.uri;
-    if (uri.isEmpty())
-        return;
-    open(uri);
-}
-
-
 void Window::removeSplashScreen()
 // ----------------------------------------------------------------------------
 //    Do not use the splash screen anymore
@@ -526,9 +543,11 @@ again:
 
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
+#ifndef CFG_NOGIT
     if (XL::MAIN->options.enable_git)
         if (!openProject(projpath, fileNameOnly, false))
             return false;
+#endif
     updateContext(projpath);
 
     return saveFile(fileName);
@@ -669,8 +688,10 @@ void Window::cut()
 //    Cut the current selection into the clipboard
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (srcEdit->hasFocus())
         return srcEdit->cut();
+#endif
 
     if (taoWidget->hasFocus())
         return taoWidget->cut();
@@ -682,8 +703,10 @@ void Window::copy()
 //    Copy the current selection to the clipboard
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (srcEdit->hasFocus())
         return srcEdit->copy();
+#endif
 
     if (taoWidget->hasFocus())
         return taoWidget->copy();
@@ -696,8 +719,10 @@ void Window::paste()
 //    Paste the clipboard content into the current document or source
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (srcEdit->hasFocus())
         return srcEdit->paste();
+#endif
 
     if (taoWidget->hasFocus())
         return taoWidget->paste();
@@ -710,9 +735,12 @@ void Window::onFocusWidgetChanged(QWidget */*old*/, QWidget *now)
 // ----------------------------------------------------------------------------
 {
     bool enable;
+#ifndef CFG_NOSRCEDIT
     if (now == srcEdit)
         enable = srcEdit->textCursor().hasSelection();
-    else if (now == taoWidget)
+    else
+#endif
+    if (now == taoWidget)
         enable = taoWidget->hasSelection();
     else
         return;
@@ -730,14 +758,35 @@ void Window::checkClipboard()
 {
     QWidget *now = QApplication::focusWidget();
     bool enable;
+#ifndef CFG_NOSRCEDIT
     if (now == srcEdit)
         enable = srcEdit->canPaste();
-    else if (now == taoWidget)
+    else
+#endif
+    if (now == taoWidget)
         enable = taoWidget->canPaste();
     else
         return;
 
     pasteAct->setEnabled(enable);
+}
+
+
+#ifndef CFG_NOGIT
+
+void Window::openUri()
+// ----------------------------------------------------------------------------
+//    Show a dialog box to enter URI and open it
+// ----------------------------------------------------------------------------
+{
+    OpenUriDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString uri = dialog.uri;
+    if (uri.isEmpty())
+        return;
+    open(uri);
 }
 
 
@@ -866,6 +915,78 @@ void Window::clone()
 }
 
 
+void Window::checkDetachedHead()
+// ----------------------------------------------------------------------------
+//    Prevent document changes when current head is detached
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return;
+    setReadOnly(repo->branch() == "");
+}
+
+
+void Window::onUriGetFailed()
+// ----------------------------------------------------------------------------
+//    Called asynchronously when open() failed to open an URI
+// ----------------------------------------------------------------------------
+{
+    if (deleteOnOpenFailed)
+        deleteLater();
+    emit openFinished(false);
+}
+
+
+void Window::onDocReady(QString path)
+// ----------------------------------------------------------------------------
+//    Called asynchronously when URI resolution is sucessful
+// ----------------------------------------------------------------------------
+{
+    int st = open(path);
+    bool ok = (st == 1);
+    if (ok)
+        show();
+    emit openFinished(ok);
+}
+
+void Window::reloadCurrentFile()
+// ----------------------------------------------------------------------------
+//    Reload the current document when user has switched branches
+// ----------------------------------------------------------------------------
+{
+    loadFile(curFile, false);
+}
+
+
+bool Window::populateUndoStack()
+// ----------------------------------------------------------------------------
+//    Fill the undo stack with the latest commits from the project
+// ----------------------------------------------------------------------------
+{
+    if (!repo)
+        return false;
+
+    QList<Repository::Commit>         commits = repo->history();
+    QListIterator<Repository::Commit> it(commits);
+    while (it.hasNext())
+    {
+        Repository::Commit c = it.next();
+        undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
+    }
+    return true;
+}
+
+
+void Window::clearUndoStack()
+// ----------------------------------------------------------------------------
+//    Clear the undo stack
+// ----------------------------------------------------------------------------
+{
+    undoStack->clear();
+}
+
+#endif // CFG_NOGIT
+
 void Window::about()
 // ----------------------------------------------------------------------------
 //    About Box
@@ -938,10 +1059,12 @@ void Window::createActions()
     openAct->setObjectName("open");
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
+#ifndef CFG_NOGIT
     openUriAct = new QAction(tr("Open &URI..."), this);
     openUriAct->setStatusTip(tr("Open an URI"));
     openUriAct->setObjectName("openURI");
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
+#endif
 
     saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
@@ -1032,6 +1155,7 @@ void Window::createActions()
     pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
 
+#ifndef CFG_NOGIT
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
@@ -1088,6 +1212,7 @@ void Window::createActions()
     diffAct->setEnabled(false);
     diffAct->setObjectName("diff");
     connect(diffAct, SIGNAL(triggered()), this, SLOT(diff()));
+#endif
 
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
@@ -1127,8 +1252,10 @@ void Window::createActions()
 
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
+#ifndef CFG_NOSRCEDIT
     connect(srcEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
+#endif
     connect(taoWidget, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
 
@@ -1168,7 +1295,9 @@ void Window::createMenus()
     fileMenu->addAction(newDocAct);
     fileMenu->addAction(newAct);
     fileMenu->addAction(openAct);
+#ifndef CFG_NOGIT
     fileMenu->addAction(openUriAct);
+#endif
     openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
@@ -1198,6 +1327,7 @@ void Window::createMenus()
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
 
+#ifndef CFG_NOGIT
     shareMenu = menuBar()->addMenu(tr("&Share"));
     shareMenu->setObjectName(SHARE_MENU_NAME);
     shareMenu->addAction(cloneAct);
@@ -1208,9 +1338,12 @@ void Window::createMenus()
     shareMenu->addAction(checkoutAct);
     shareMenu->addAction(selectiveUndoAct);
     shareMenu->addAction(diffAct);
+#endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
+#ifndef CFG_NOSRCEDIT
     viewMenu->addAction(src->toggleViewAction());
+#endif
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(slideShowAct);
@@ -1262,6 +1395,7 @@ void Window::createToolBars()
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
+#ifndef CFG_NOGIT
     gitToolBar = new GitToolBar(tr("Git Tools"), this);
     gitToolBar->setObjectName("gitToolbar");
     connect(this, SIGNAL(projectChanged(Repository*)),
@@ -1276,6 +1410,7 @@ void Window::createToolBars()
     gitToolBar->hide();
     if (view)
         view->addAction(gitToolBar->toggleViewAction());
+#endif
 }
 
 
@@ -1347,6 +1482,7 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     if (srcEdit->document()->isModified())
     {
         QMessageBox::StandardButton ret;
@@ -1360,6 +1496,7 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
+#endif
     return true;
 }
 
@@ -1396,10 +1533,14 @@ void Window::setReadOnly(bool ro)
 // ----------------------------------------------------------------------------
 {
     isReadOnly = ro;
+#ifndef CFG_NOSRCEDIT
     srcEdit->setReadOnly(ro);
+#endif
+#ifndef CFG_NOGIT
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
+#endif
 }
 
 
@@ -1433,10 +1574,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 
     QString docPath = QFileInfo(fileName).canonicalPath();
+#ifndef CFG_NOGIT
     if (XL::MAIN->options.enable_git && openProj &&
         !openProject(docPath,
                      QFileInfo(fileName).fileName()))
         return false;
+#endif
 
     QApplication::setOverrideCursor(Qt::WaitCursor);
 
@@ -1465,7 +1608,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // to load a file from the project's directory.
     updateContext(docPath);
     bool hadError = updateProgram(fileName);
+#ifndef CFG_NOSRCEDIT
     srcEdit->setXLNames(taoWidget->listNames());
+#endif
 
     QApplication::restoreOverrideCursor();
 
@@ -1473,9 +1618,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     {
         // File not found, or parse error
         showMessage(tr("Load error"), 2000);
+#ifndef CFG_NOSRCEDIT
         // Try to show source as plain text
         if (!loadFileIntoSourceFileView(fileName, openProj))
             return false;
+#endif
     }
     else
     if (taoWidget->inError)
@@ -1489,9 +1636,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(msg.arg(tr("Caching code")));
         taoWidget->preloadSelectionCode();
 
+#ifndef CFG_NOSRCEDIT
         loadInProgress = true;
         taoWidget->updateProgramSource();
         loadInProgress = false;
+#endif
         taoWidget->refreshNow();
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
@@ -1551,34 +1700,6 @@ void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
         show();
     }
 #endif
-}
-
-
-bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
-// ----------------------------------------------------------------------------
-//    Update the source file view with the plain contents of a specific file
-// ----------------------------------------------------------------------------
-{
-    QFile file(fileName);
-    if (!file.open(QFile::ReadOnly | QFile::Text))
-    {
-        if (box)
-            QMessageBox::warning(this, tr("Cannot read file"),
-                                 tr("Cannot read file %1:\n%2.")
-                                 .arg(fileName)
-                                 .arg(file.errorString()));
-        srcEdit->clear();
-        return false;
-    }
-
-    QTextStream in(&file);
-    QApplication::setOverrideCursor(Qt::WaitCursor);
-    loadInProgress = true;
-    srcEdit->setPlainText(in.readAll());
-    loadInProgress = false;
-    QApplication::restoreOverrideCursor();
-    markChanged(false);
-    return true;
 }
 
 
@@ -1665,7 +1786,16 @@ bool Window::saveFile(const QString &fileName)
     {
         QTextStream out(&file);
         QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CFG_NOSRCEDIT
         out << srcEdit->toPlainText();
+#else
+        if (Tree *prog = taoWidget->xlProgram->tree)
+        {
+            std::ostringstream renderOut;
+            renderOut << prog;
+            out << +renderOut.str();
+        }
+#endif
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -1674,10 +1804,13 @@ bool Window::saveFile(const QString &fileName)
     xlRuntime->LoadFile(fn);
 
     updateProgram(fileName);
+#ifndef CFG_NOSRCEDIT
     srcEdit->setXLNames(taoWidget->listNames());
+#endif
     taoWidget->refreshNow();
     isReadOnly = false;
 
+#ifndef CFG_NOGIT
     if (repo)
     {
         // Trigger immediate commit to repository
@@ -1689,6 +1822,7 @@ bool Window::saveFile(const QString &fileName)
         taoWidget->doCommit(true);
         sf.changed = false;
     }
+#endif
     markChanged(false);
     showMessage(tr("File saved"), 2000);
 
@@ -1701,11 +1835,14 @@ void Window::markChanged(bool changed)
 //   Someone else tells us that the window is changed or not
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     srcEdit->document()->setModified(changed);
+#endif
     setWindowModified(changed);
 }
 
 
+#ifndef CFG_NOGIT
 void Window::enableProjectSharingMenus()
 // ----------------------------------------------------------------------------
 //   Activate the Git-related actions
@@ -1719,7 +1856,6 @@ void Window::enableProjectSharingMenus()
     selectiveUndoAct->setEnabled(true);
     diffAct->setEnabled(true);
 }
-
 
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
@@ -1742,6 +1878,9 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
     {
+        if (RepositoryFactory::no_repo)
+            return true;
+
         bool docreate = !confirm;
         if (confirm)
         {
@@ -1839,6 +1978,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
 
     return true;
 }
+#endif
 
 
 void Window::updateContext(QString docPath)
@@ -1958,18 +2098,6 @@ void Window::switchToFullScreen(bool fs)
         restoreState(savedState.state);
     }
     slideShowAct->setChecked(fs);
-}
-
-
-bool Window::showSourceView(bool show)
-// ----------------------------------------------------------------------------
-//   Show or hide source view
-// ----------------------------------------------------------------------------
-{
-    bool old = src->isVisible();
-    src->setVisible(show);
-    src->toggleViewAction()->setChecked(show);
-    return old;
 }
 
 
@@ -2155,54 +2283,6 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return NULL;
-}
-
-
-bool Window::populateUndoStack()
-// ----------------------------------------------------------------------------
-//    Fill the undo stack with the latest commits from the project
-// ----------------------------------------------------------------------------
-{
-    if (!repo)
-        return false;
-
-    QList<Repository::Commit>         commits = repo->history();
-    QListIterator<Repository::Commit> it(commits);
-    while (it.hasNext())
-    {
-        Repository::Commit c = it.next();
-        undoStack->push(new UndoCommand(repo.data(), c.id, c.msg));
-    }
-    return true;
-}
-
-
-void Window::clearUndoStack()
-// ----------------------------------------------------------------------------
-//    Clear the undo stack
-// ----------------------------------------------------------------------------
-{
-    undoStack->clear();
-}
-
-
-void Window::reloadCurrentFile()
-// ----------------------------------------------------------------------------
-//    Reload the current document when user has switched branches
-// ----------------------------------------------------------------------------
-{
-    loadFile(curFile, false);
-}
-
-
-void Window::checkDetachedHead()
-// ----------------------------------------------------------------------------
-//    Prevent document changes when current head is detached
-// ----------------------------------------------------------------------------
-{
-    if (!repo)
-        return;
-    setReadOnly(repo->branch() == "");
 }
 
 TAO_END

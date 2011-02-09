@@ -200,6 +200,9 @@ bool ModuleManager::init()
     if (!checkNew())
         return false;
 
+    if (!cleanConfig())
+        return false;
+
     IFTRACE(modules)
     {
         debug() << "Updated module list before load\n";
@@ -329,6 +332,20 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
     IFTRACE(modules)
         debug() << "Module added\n";
 
+    return true;
+}
+
+
+bool ModuleManager::cleanConfig()
+// ----------------------------------------------------------------------------
+//   Check current module list, remove invalid modules, save config to disk
+// ----------------------------------------------------------------------------
+{
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        if (m.path == "" || m.id == "0")
+            removeFromConfig(m);
+    }
     return true;
 }
 

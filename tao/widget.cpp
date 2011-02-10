@@ -172,7 +172,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false), offlineRenderingTime(-1), inDraw(false)
+      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -342,7 +342,7 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 {
     // In offline renderin mode, just keep the widget clear
-    if (offlineRenderingTime != -1)
+    if (inOfflineRendering)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
@@ -738,6 +738,9 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
 {
     bool changed = false;
 
+    if (inOfflineRendering)
+        return false;
+
     if (!layout)
         return false;
 
@@ -1028,13 +1031,14 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     GLAllStateKeeper saveGL;
     XL::Save<double> saveScaling(scaling, scaling);
 
+    inOfflineRendering = true;
     offlineRenderingWidth = w;
     offlineRenderingHeight = h;
 
     // Select page, if not current
     if (page != -1)
     {
-        offlineRenderingTime = start_time;
+        currentTime = start_time;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
@@ -1066,7 +1070,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Set time and run program
         XL::Save<page_list> savePageNames(pageNames, pageNames);
         setupPage();
-        offlineRenderingTime = t;
+        currentTime = t;
         runProgram();
 
         // Draw the layout in the frame context
@@ -1089,7 +1093,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     }
 
     // Done with offline rendering
-    offlineRenderingTime = -1;
+    inOfflineRendering = false;
     emit renderFramesDone();
     QApplication::processEvents();
 }
@@ -2700,6 +2704,8 @@ void Widget::setCurrentTime()
 //    Update cached current time value
 // ----------------------------------------------------------------------------
 {
+    if (inOfflineRendering)
+        return;
     currentTime = trueCurrentTime();
 }
 
@@ -4016,7 +4022,7 @@ int Widget::width()
 //   Return the width of the drawing widget in px
 // ----------------------------------------------------------------------------
 {
-    if (offlineRenderingTime != -1)
+    if (inOfflineRendering)
         return offlineRenderingWidth;
     return QWidget::width();
 }
@@ -4027,7 +4033,7 @@ int Widget::height()
 //   Return the height of the drawing widget in px
 // ----------------------------------------------------------------------------
 {
-    if (offlineRenderingTime != -1)
+    if (inOfflineRendering)
         return offlineRenderingHeight;
     return QWidget::height();
 }
@@ -7284,7 +7290,7 @@ Name_p Widget::offlineRendering(Tree_p self)
 //   Return true if we are currently rendering offline
 // ----------------------------------------------------------------------------
 {
-    return (offlineRenderingTime == -1) ? XL::xl_true : XL::xl_false;
+    return inOfflineRendering ? XL::xl_true : XL::xl_false;
 }
 
 

@@ -818,7 +818,7 @@ private:
     bool                  bAutoHideCursor;
     bool                  bShowStatistics;
     bool                  renderFramesCanceled;
-    double                offlineRenderingTime;
+    bool                  inOfflineRendering;
     int                   offlineRenderingWidth;
     int                   offlineRenderingHeight;
 

@@ -33,10 +33,10 @@ OTHER_SUBDIRS = taoTester
     options = $$modules
     RESULT = $$SUBDIRS
     for(opt, options) {
-        contains(opt, "all") {
+        equals(opt, "all") {
             RESULT = $$SUBDIRS $$OTHER_SUBDIRS
         }
-        contains(opt, "none") {
+        equals(opt, "none") {
             RESULT =
         }
         remove = $$find(opt, ^-.*)
@@ -57,4 +57,8 @@ OTHER_SUBDIRS = taoTester
     SUBDIRS = $$RESULT
 }
 
-message(Modules to build: $$SUBDIRS)
+isEmpty(SUBDIRS) {
+    message(Modules to build: (none))
+} else {
+    message(Modules to build: $$SUBDIRS)
+}

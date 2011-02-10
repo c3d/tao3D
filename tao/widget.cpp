@@ -2566,6 +2566,8 @@ void Widget::updateProgramSource()
     Window *window = (Window *) parentWidget();
     if (window->dock->isHidden())
         return;
+    if (!xlProgram)
+        return;
     if (Tree *prog = xlProgram->tree)
     {
         text txt = "";

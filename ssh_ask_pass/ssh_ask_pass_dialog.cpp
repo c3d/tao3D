@@ -8,6 +8,7 @@ SshAskPassDialog::SshAskPassDialog(QString text, QWidget *parent) :
 {
     ui->setupUi(this);
     ui->label->setText(text);
+    ui->label->adjustSize();
     connect(ui->buttonBox, SIGNAL(rejected()),
             this, SLOT(reject()));
     connect(ui->buttonBox, SIGNAL(accepted()),

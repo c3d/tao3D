@@ -118,6 +118,10 @@ Application::Application(int & argc, char ** argv)
     xlr->context = new Context(xlr->context, NULL);
     EnterGraphics();
 
+    // Activate basic compilation
+    xlr->options.optimize_level = 1;
+    xlr->SetupCompiler();
+
     // Load settings
     loadDebugTraceSettings();
 

@@ -34,5 +34,10 @@ OPTION(fs, "Open document in slide show (full screen) mode",
 OPTVAR(printResolution, uint, 300)
 OPTION(print_resolution, "Set printer resolution in DPI",
        printResolution = INTEGER(72, 3600))
+OPTVAR(rendering_options, text, "-")
+OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder. "
+               "Render frames and exit. Single document only.",
+       rendering_options = STRING)
+
 
 OPTION(norepo, "Disable GIT repository", ;)

@@ -182,7 +182,9 @@ public:
     QDockWidget      *dock;
 private:
     QDockWidget      *errorDock;
+public:
     Widget           *taoWidget;
+private:
     QString           curFile;
     Uri              *uri;
     bool              slideShowMode;

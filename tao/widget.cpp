@@ -68,6 +68,8 @@
 #include "documentation.h"
 #include "formulas.h"
 #include "portability.h"
+#include "tool_window.h"
+#include "raster_text.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -150,7 +152,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
       pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
-      tmin(~0ULL), tmax(0), tsum(0), tcount(0),
+      stats_interval(5000),
       nextSave(now()), nextCommit(nextSave),
       nextSync(nextSave), nextPull(nextSave),
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
@@ -160,8 +162,8 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false),
-      renderFramesCanceled(false), inDraw(false)
+      dragging(false), bAutoHideCursor(false), bShowStatistics(false),
+      renderFramesCanceled(false), offlineRenderingTime(-1), inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -338,6 +340,13 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+    // In offline renderin mode, just keep the widget clear
+    if (offlineRenderingTime != -1)
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        return;
+    }
+
     // Recursive drawing may occur with video widgets, and it's bad
     if (inDraw)
         return;
@@ -345,9 +354,6 @@ void Widget::draw()
     XL::LocalSave<bool> drawing(inDraw, true);
 
     TaoSave saveCurrent(current, this);
-
-    // Timing
-    ulonglong before = now();
 
     // Setup the initial drawing environment
     uint w = width(), h = height();
@@ -483,6 +489,10 @@ void Widget::draw()
             glUseProgram(0);
         }
 
+        // Show FPS as text overlay
+        if (bShowStatistics)
+            printStatistics();
+
         id = idDepth = 0;
         selectionTrees.clear();
         space->offset.Set(0,0,0);
@@ -585,6 +595,9 @@ void Widget::draw()
     }
 
 
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -594,23 +607,11 @@ void Widget::draw()
     checkCopyAvailable();
 
     // Check if we want to refresh something
-    ulonglong after = now();
     double remaining = pageRefresh - CurrentTime();
     if (remaining < 0.001)
         remaining = 0.001;
     timer.setSingleShot(true);
     timer.start(1000 * remaining);
-
-    // Timing
-    elapsed(before, after);
-
-    // Update page count for next run
-    pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
-    if (pageFound)
-        pageShown = pageFound;
-    else
-        pageName = "";
 
     // If we must update dialogs, do it now
     if (mustUpdateDialogs)
@@ -689,6 +690,25 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
+
+    // Update page count for next run
+    pageNames = newPageNames;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = "";
+
+    // Check if program asked to change page for the next run
+    if (gotoPageName != "")
+    {
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+    }
 }
 
 
@@ -796,7 +816,7 @@ void Widget::print(QPrinter *prt)
 
 
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps)
+                          QString dir, double fps, int page)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
@@ -809,18 +829,31 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     TaoSave saveCurrent(current, this);
 
-    // Create a GL frame to render into
-    FrameInfo frame(w, h);
-
     // Set the initial time we want to set and freeze animations
-    XL::LocalSave<bool> disableAnimations(animated, false);
     XL::LocalSave<double> setPageTime(pageStartTime, start_time);
     XL::LocalSave<double> setFrozenTime(frozenTime, start_time);
     XL::LocalSave<double> saveStartTime(startTime, start_time);
 
-    scale s = qMin((double)w / width(), (double)h / height());
+    GLAllStateKeeper saveGL;
+    XL::LocalSave<double> saveScaling(scaling, scaling);
+
+    offlineRenderingWidth = w;
+    offlineRenderingHeight = h;
+
+    // Select page, if not current
+    if (page != -1)
+    {
+        offlineRenderingTime = start_time;
+        runProgram();
+        gotoPage(NULL, pageNameAtIndex(NULL, page));
+    }
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
+
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int percent, prevPercent = 0;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
         if (renderFramesCanceled)
@@ -829,16 +862,20 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             break;
         }
 
-        // Center display on screen
-        GLAllStateKeeper saveGL;
-        XL::LocalSave<double> saveScaling(scaling, scaling * s);
-
         // Show progress information
-        emit renderFramesProgress(100*currentFrame++/frameCount);
+        percent = 100*currentFrame++/frameCount;
+        if (percent != prevPercent)
+        {
+            prevPercent = percent;
+            emit renderFramesProgress(percent);
+        }
+
         QApplication::processEvents();
 
         // Set time and run program
-        frozenTime = t;
+        XL::LocalSave<page_list> savePageNames(pageNames, pageNames);
+        setupPage();
+        offlineRenderingTime = t;
         runProgram();
 
         // Draw the layout in the frame context
@@ -851,6 +888,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         space->Draw(NULL);
         frame.end();
 
+        QApplication::processEvents();
+
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
@@ -858,7 +897,10 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
     }
 
+    // Done with offline rendering
+    offlineRenderingTime = -1;
     emit renderFramesDone();
+    QApplication::processEvents();
 }
 
 
@@ -1440,9 +1482,8 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    tmax = tsum = tcount = 0;
-    tmin = ~tmax;
-
+    stats.clear();
+    stats_start.start();
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -3144,39 +3185,35 @@ ulonglong Widget::now()
 }
 
 
-ulonglong Widget::elapsed(ulonglong since, ulonglong until,
-                          bool stats, bool show)
+void Widget::printStatistics()
 // ----------------------------------------------------------------------------
-//    Record how much time passed since last measurement
+//    Print current rendering statistics
 // ----------------------------------------------------------------------------
 {
-    ulonglong t = until - since;
-    if (t == 0)
-        t = 1; // Because Windows lies
-
-    if (stats)
+    char fps[6] = "---.-";
+    int elapsed = stats_start.elapsed();
+    if (elapsed >= stats_interval)
     {
-        if (tmin > t) tmin = t;
-        if (tmax < t) tmax = t;
-        tsum += t;
-        tcount++;
+        double n = (double)stats.size() * 1000 / stats_interval;
+        snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    GLint vp[4], vx, vy, vw, vh;
+    glGetIntegerv(GL_VIEWPORT, vp);
+    vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
+    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+}
 
-    if (show && (tcount & 15) == 0)
-    {
-        char buffer[80];
-        snprintf(buffer, sizeof(buffer),
-                 "Duration=" CONFIG_UHUGE_FORMAT "-" CONFIG_UHUGE_FORMAT
-                 " (~%f) %5.2f-%5.2f FPS (~%5.2f)",
-                 tmin, tmax, double(tsum )/ tcount,
-                 (100000000ULL / tmax)*0.01,
-                 (100000000ULL / tmin)*0.01,
-                 (100000000ULL * tcount / tsum) * 0.01);
-        Window *window = (Window *) parentWidget();
-        window->statusBar()->showMessage(QString(buffer));
-    }
 
-    return t;
+void Widget::updateStatistics()
+// ----------------------------------------------------------------------------
+//    Update statistics when a frame has been drawn
+// ----------------------------------------------------------------------------
+{
+    int now = stats_start.elapsed();
+    stats.push_back(now);
+    while (now - stats.front() > stats_interval)
+        stats.pop_front();
 }
 
 
@@ -3610,11 +3647,9 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     selectionTrees.clear();
     delete textSelection();
     delete drag();
-    pageStartTime = startTime = frozenTime = CurrentTime();
     refresh(0);
 
-    pageName = page;
-    refresh();
+    gotoPageName = page;
     return new Text(old);
 }
 
@@ -3702,6 +3737,28 @@ XL::Real_p Widget::frameDepth(Tree_p self)
 }
 
 
+int Widget::width()
+// ----------------------------------------------------------------------------
+//   Return the width of the drawing widget in px
+// ----------------------------------------------------------------------------
+{
+    if (offlineRenderingTime != -1)
+        return offlineRenderingWidth;
+    return QWidget::width();
+}
+
+
+int Widget::height()
+// ----------------------------------------------------------------------------
+//   Return the height of the drawing widget in px
+// ----------------------------------------------------------------------------
+{
+    if (offlineRenderingTime != -1)
+        return offlineRenderingHeight;
+    return QWidget::height();
+}
+
+
 XL::Real_p Widget::windowWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the window in which we display
@@ -3719,6 +3776,101 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 {
     double h = printer ? printer->paperRect().height() : height();
     return new Real(h);
+}
+
+
+Integer_p Widget::seconds(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the second for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    int second = fmod(tm, 60);
+    return new XL::Integer(second);
+}
+
+
+Integer_p Widget::minutes(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the minute for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int minute = now.time().minute();
+    return new XL::Integer(minute);
+}
+
+
+Integer_p Widget::hours(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the localtime hour for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int hour = now.time().hour();
+    return new XL::Integer(hour);
+}
+
+
+Integer_p Widget::day(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the day (1-31) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().day();
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::weekDay(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the week day (1-7) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().dayOfWeek();
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::yearDay(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the year day (1-365) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().dayOfYear();
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::month(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the month for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int month = now.date().month();
+    return new XL::Integer(month);
+}
+
+
+Integer_p Widget::year(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the year for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int year = now.date().year();
+    return new XL::Integer(year);
 }
 
 
@@ -4130,6 +4282,28 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
     if (ah)
         QTimer::singleShot(2000, this, SLOT(hideCursor()));
     return oldAutoHide ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::showStatistics(Tree_p self, bool ss)
+// ----------------------------------------------------------------------------
+//   Display or hide performance statistics (frames per second)
+// ----------------------------------------------------------------------------
+{
+    bool prev = bShowStatistics;
+    bShowStatistics = ss;
+    if (ss)
+        stats_start.start();
+    return prev ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleShowStatistics(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle display of statistics
+// ----------------------------------------------------------------------------
+{
+    return showStatistics(self, !bShowStatistics);
 }
 
 
@@ -6656,7 +6830,7 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, double interval, text page)
         layout = NULL;
 
         // Update refresh time
-        frame.refreshTime = fmod(CurrentTime() + interval, 86400.0);
+        frame.refreshTime = CurrentTime() + interval;
     }
 
     // Bind the resulting texture
@@ -6665,6 +6839,15 @@ Tree_p Widget::thumbnail(Tree_p self, scale s, double interval, text page)
     layout->hasAttributes = true;
 
     return XL::xl_true;
+}
+
+
+Name_p Widget::offlineRendering(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we are currently rendering offline
+// ----------------------------------------------------------------------------
+{
+    return (offlineRenderingTime == -1) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -7670,13 +7853,17 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
+        int pnum = 1;
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
         {
             text name = *p;
             Tree *action = new Prefix(prefix, new Text(name));
             action->SetSymbols(self->Symbols());
-            chooser->AddItem(label + name, action);
+            std::ostringstream os;
+            os << label << pnum++ << " " << name;
+            std::string txt(os.str());
+            chooser->AddItem(txt, action);
         }
         return XL::xl_true;
     }
@@ -7750,6 +7937,9 @@ Tree_p Widget::closeCurrentDocument(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     Window *window = (Window *) current->parentWidget();
+    // Make sure we are not full screen, because closing window saves the
+    // current geometry
+    window->switchToFullScreen(false);
     if (window->close())
         return XL::xl_true;
     return XL::xl_false;

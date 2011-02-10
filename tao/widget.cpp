@@ -1364,7 +1364,10 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
+
+    XL::Symbols *symbols = (*top)->Symbols();
     *top = new XL::Infix("\n", select, *top);
+    (*top)->SetSymbols(symbols);
 
     // Reload the program and mark the changes
     reloadProgram();
@@ -2739,6 +2742,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     {
         Renormalize renorm(this);
         xlProgram->tree = prog->Do(renorm);
+        xlProgram->tree->SetSymbols(source->symbols);
     }
     refreshProgram();
     inError = false;
@@ -2759,6 +2763,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
         {
             Renormalize renorm(this);
             newProg = prog->Do(renorm);
+            newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
         }
     }
@@ -2768,8 +2773,11 @@ void Widget::reloadProgram(XL::Tree *newProg)
     {
         ApplyChanges changes(newProg);
         if (!prog->Do(changes))
+        {
             // Need a big hammer, i.e. reload the complete program
+            newProg->SetSymbols(prog->Symbols());
             xlProgram->tree = newProg;
+        }
     }
     inError = false;
 
@@ -4116,6 +4124,8 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 // ----------------------------------------------------------------------------
 {
     actionMap[name][layout->id] = action;
+    if (!action->Symbols())
+        action->SetSymbols(self->Symbols());
     return XL::xl_true;
 }
 
@@ -6769,6 +6779,8 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
         replacer["column"]  = "table_cell_column";
         replacer["rows"]    = "table_rows";
         replacer["columns"] = "table_columns";
+        if (!prefix->right->Symbols())
+            prefix->right->SetSymbols(self->Symbols());
         Tree *tablified = replacer.Replace(prefix->right);
         if (replacer.replaced)
         {
@@ -6790,6 +6802,8 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
 {
     if (!table)
         return Ooops("Table cell '$1' outside of any table", self);
+    if (!body->Symbols())
+        body->SetSymbols(self->Symbols());
 
     // Define a new text layout
     PageLayout *tbox = new PageLayout(this);
@@ -6811,6 +6825,8 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
 {
     if (!table)
         return Ooops("Table cell '$1' outside of any table", self);
+    if (!body->Symbols())
+        body->SetSymbols(self->Symbols());
 
     // Define a new text layout
     Layout *tbox = new Layout(this);
@@ -6855,6 +6871,8 @@ Tree_p Widget::tableFill(Tree_p self, Tree_p code)
 {
     if (!table)
         return Ooops("Table fill '$1' outside of any table", self);
+    if (!code->Symbols())
+        code->SetSymbols(self->Symbols());
     table->fill = code;
     return XL::xl_true;
 }
@@ -6867,6 +6885,8 @@ Tree_p Widget::tableBorder(Tree_p self, Tree_p code)
 {
     if (!table)
         return Ooops("Table border '$1' outside of any table", self);
+    if (!code->Symbols())
+        code->SetSymbols(self->Symbols());
     table->border = code;
     return XL::xl_true;
 }
@@ -7445,8 +7465,10 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     ColorTreeClone replacer(col);
-    XL::Tree *toBeEvaluated = colorAction;
+    Tree *toBeEvaluated = colorAction;
+    XL::Symbols *symbols = toBeEvaluated->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(symbols);
 
     // Evaluate the input tree
     assert(!current); // Recursive evaluation due to events is bad...
@@ -7512,6 +7534,8 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
 
     fontDialog->show();
     fontAction = action;
+    if (!fontAction->Symbols())
+        fontAction->SetSymbols(self->Symbols());
 
     return XL::xl_true;
 }
@@ -7699,6 +7723,8 @@ void Widget::updateFileDialog(Tree *properties, Tree *context)
     map["label"]     = "file_chooser_label";
     map["filter"]    = "file_chooser_filter";
 
+    if (!properties->Symbols())
+        properties->SetSymbols(context->Symbols());
     XL::Tree *toBeEvaluated = map.Replace(properties);
     XL::MAIN->context->Evaluate(toBeEvaluated);
 
@@ -8078,11 +8104,16 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
+        int pnum = 1;
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
         {
             text name = *p;
             Tree *action = new Prefix(prefix, new Text(name));
+            action->SetSymbols(self->Symbols());
+            std::ostringstream os;
+            os << label << pnum++ << " " << name;
+            std::string txt(os.str());
             chooser->AddItem(label + name, action);
         }
         return XL::xl_true;
@@ -8104,6 +8135,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         foreach (QString branch, branches)
         {
             Tree *action = new Prefix(prefix, new Text(+branch));
+            action->SetSymbols(self->Symbols());
             chooser->AddItem(label + +branch + "...", action);
         }
         return XL::xl_true;
@@ -8129,6 +8161,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
             Repository::Commit c = commits[n];
             text ctext = +c.toString();
             Tree *action = new Prefix(prefix, new Text(+c.id));
+            action->SetSymbols(self->Symbols());
             chooser->AddItem(label + ctext, action);
         }
         return XL::xl_true;
@@ -8683,6 +8716,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
     if (!program)
     {
         *top = toInsert;
+        toInsert->SetSymbols(xlProgram->symbols);
     }
     else
     {
@@ -8695,7 +8729,9 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 
         // Append at end of the statements
         Tree_p *what = parent ? &parent->right : top;
+        XL::Symbols *symbols = (*what)->Symbols();
         *what = new XL::Infix("\n", *what, toInsert);
+        (*what)->SetSymbols(symbols);
     }
 
     // Reload the program and mark the changes
@@ -9224,7 +9260,9 @@ XL::Tree *  NameToNameReplacement::Replace(XL::Tree *original)
 // ----------------------------------------------------------------------------
 {
     XL::Tree *copy = original;
+    XL::Symbols *symbols = original->Symbols();
     copy = original->Do(*this);
+    copy->SetSymbols(symbols);
     return copy;
 }
 

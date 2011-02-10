@@ -427,7 +427,9 @@ void AbstractButtonSurface::toggled(bool checked)
     // REVISIT: Replace with a declaration of "checked" in the tree
     ToggleTreeClone replacer(checked);
     XL::Tree *toBeEvaluated = action;
+    XL::Symbols *symbols = toBeEvaluated->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(symbols);
 
     // Evaluate the input tree
     XL::MAIN->context->Evaluate(toBeEvaluated);
@@ -490,7 +492,9 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     // REVISIT: Perform actual definitions of these variables
     ColorTreeClone replacer(col);
     XL::Tree *toBeEvaluated = action;
+    XL::Symbols *symbols = toBeEvaluated->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(symbols);
 
     // Evaluate the input tree
     XL::MAIN->context->Evaluate(toBeEvaluated);
@@ -547,7 +551,9 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     // Replace the various keywords
     FontTreeClone replacer(ft);
     XL::Tree *toBeEvaluated = action;
+    XL::Symbols *symbols = toBeEvaluated->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(symbols);
 
     // Evaluate the input tree
     XL::MAIN->context->Evaluate(toBeEvaluated);

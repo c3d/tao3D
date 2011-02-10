@@ -58,6 +58,8 @@ template <typename mode> struct TaoCloneTemplate
         widget->reselect(from, to);
         if (XL::CommentsInfo *cinfo = from->GetInfo<XL::CommentsInfo>())
             to->SetInfo<XL::CommentsInfo> (new XL::CommentsInfo(*cinfo));
+        if (XL::Symbols *symbols = from->Symbols())
+            to->SetSymbols(symbols);
         return to;
     }
 
@@ -143,7 +145,7 @@ Tree *TaoCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *)
 
 typedef struct TaoCloneTemplate<DeepCopyCloneMode>   TaoTreeClone;
 typedef struct TaoCloneTemplate<ShallowCopyCloneMode>TaoShallowCopyTreeClone;
-typedef struct TaoCloneTemplate<NodeOnlyCloneMode>    TaoNodeOnlyTreeClone;
+typedef struct TaoCloneTemplate<NodeOnlyCloneMode>   TaoNodeOnlyTreeClone;
 
 
 struct CopySelection

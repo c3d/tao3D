@@ -1076,6 +1076,8 @@ void Widget::paste()
                 std::cerr << "Clipboard: pasting HTML:\n";
                 std::cerr << +mimeData->html() <<std::endl;
             }
+            sel->replacement = "";
+            sel->replace = true;
             sel->replacement_tree = portability().fromHTML(mimeData->html());
 
             refresh();

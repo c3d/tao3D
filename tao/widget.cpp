@@ -125,6 +125,8 @@ static inline QGLFormat TaoGLFormat()
          QGL::AccumBuffer       |
          QGL::StereoBuffers);
     QGLFormat format(options);
+    // Enable VSync by default
+    format.setSwapInterval(1);
     return format;
 }
 
@@ -235,8 +237,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
-
-    enableVSync(NULL, true);
 }
 
 
@@ -5070,9 +5070,30 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
 #if defined(Q_OS_MACX)
     GLint old = 0;
     CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
-    const GLint swapInterval = enable ? 1 : 0;
-    CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
-    return old ? XL::xl_true : XL::xl_false;
+    bool prev = (old != 0);
+    if (enable != prev)
+    {
+        const GLint swapInterval = enable ? 1 : 0;
+        CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
+    }
+    return prev ? XL::xl_true : XL::xl_false;
+#elif defined(Q_OS_WIN)
+    typedef BOOL (*set_fn_t) (int interval);
+    typedef int  (*get_fn_t) (void);
+    set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
+    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
+    int old = 0;
+    if (set_fn && get_fn) {
+        old = get_fn();
+        bool prev = (old != 0);
+        if (enable != prev)
+        {
+            int swapInterval = enable ? 1 : 0;
+            set_fn(swapInterval);
+        }
+        return prev ? XL::xl_true : XL::xl_false;
+    }
+    return XL::xl_false;
 #else
     // Command not supported, but do it silently
     return XL::xl_false;

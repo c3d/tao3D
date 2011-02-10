@@ -6931,7 +6931,7 @@ Name_p Widget::offlineRendering(Tree_p self)
 //   Return true if we are currently rendering offline
 // ----------------------------------------------------------------------------
 {
-    return (offlineRenderingTime == -1) ? XL::xl_true : XL::xl_false;
+    return (offlineRenderingTime != -1) ? XL::xl_true : XL::xl_false;
 }
 
 

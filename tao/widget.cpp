@@ -367,6 +367,9 @@ void Widget::draw()
         sel->cursor.removeSelectedText();
     }
 
+    //Clean actionMap
+    actionMap.clear();
+
     // If there is a program, we need to run it
     pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();

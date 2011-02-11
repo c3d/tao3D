@@ -146,6 +146,8 @@ void DebugPage::disableAllTraces()
     toggleAllTraces(false);
 }
 
+#ifndef CFG_NOMODPREF
+
 // ============================================================================
 //
 //   The modules page shows all modules and allow some operations on them
@@ -345,5 +347,7 @@ void ModulesPage::onUpdateOneComplete()
     up->deleteLater();
     updateTable();
 }
+
+#endif // !CFG_NOMODPREF
 
 }

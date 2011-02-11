@@ -28,6 +28,8 @@
 #     Build without support for stereoscopic displays
 #   DEFINES+=CFG_NOSRCEDIT
 #     Build without document source editor
+#   DEFINES+=CFG_NOMODPREF
+#     Do not include the module page in the preference dialog
 #
 #   modules=none
 #     Do not build any Tao module

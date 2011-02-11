@@ -112,6 +112,7 @@ public slots:
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
     void renderToFile();
+    void adjustToScreenResolution(int screen);
 
 signals:
 #ifndef CFG_NOGIT

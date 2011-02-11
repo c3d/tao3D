@@ -186,6 +186,8 @@ void XLSourceEdit::keyPressEvent(QKeyEvent *e)
 //   Editor receives key press
 // ----------------------------------------------------------------------------
 {
+    if (e->key() == Qt::Key_Escape)
+        return;
     if (highlighter->hasSelectedObjects())
         highlighter->clearSelectedRanges();
     QTextEdit::keyPressEvent(e);

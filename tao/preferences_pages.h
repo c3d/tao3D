@@ -56,6 +56,7 @@ private slots:
 };
 
 
+#ifndef CFG_NOMODPREF
 class ModulesPage : public QWidget
 // ----------------------------------------------------------------------------
 //   Show all configured Tao modules and allow some operations
@@ -86,6 +87,7 @@ private:
     QProgressBar *                    pb;
     bool                              findUpdatesInProgress;
 };
+#endif // !CFG_NOMODPREF
 
 }
 

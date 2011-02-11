@@ -874,7 +874,7 @@ void Widget::runProgram()
     if (pageFound)
         pageShown = pageFound;
     else
-        pageName = "";
+        pageName = pageNameAtIndex(NULL, pageShown)->value;
 
     // Check if program asked to change page for the next run
     if (gotoPageName != "")
@@ -3967,7 +3967,7 @@ XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
 // ----------------------------------------------------------------------------
 {
     index--;
-    text name = index < pageNames.size() ? pageNames[index] : pageName;
+    text name = index < pageNames.size() ? pageNames[index] : "";
     return new Text(name);
 }
 

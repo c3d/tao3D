@@ -1346,7 +1346,6 @@ void Window::createMenus()
 #endif
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(slideShowAct);
-    viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
         viewMenu->addAction(viewStereoscopyAct);

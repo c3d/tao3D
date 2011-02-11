@@ -173,6 +173,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+
+    // Adapt to screen resolution changes
+    connect(QApplication::desktop(), SIGNAL(resized(int)),
+            this, SLOT(adjustToScreenResolution(int)));
 }
 
 
@@ -182,6 +186,25 @@ Window::~Window()
 // ----------------------------------------------------------------------------
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
+}
+
+
+void Window::adjustToScreenResolution(int screen)
+// ----------------------------------------------------------------------------
+//   Adjust size of window when screen resolution changes
+// ----------------------------------------------------------------------------
+{
+    QDesktopWidget *dw = QApplication::desktop();
+    if (screen == dw->screenNumber(this))
+    {
+        if (isMaximized() || isFullScreen())
+        {
+            QRect geom = dw->screenGeometry(this);
+            resize(geom.size());
+        }
+        if (isMaximized())
+            showMaximized();
+    }
 }
 
 

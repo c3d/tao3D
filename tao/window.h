@@ -114,6 +114,7 @@ public slots:
     void setReadOnly(bool ro);
     void clearErrors();
     void renderToFile();
+    void adjustToScreenResolution(int screen);
 
 signals:
 #ifndef CFG_NOGIT

@@ -1551,8 +1551,11 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
+    if (isWindowModified()
 #ifndef CFG_NOSRCEDIT
-    if (textEdit->document()->isModified())
+        || textEdit->document()->isModified()
+#endif
+       )
     {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning
@@ -1565,7 +1568,6 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
-#endif
     return true;
 }
 

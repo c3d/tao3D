@@ -356,7 +356,11 @@ void Window::newFile()
 //   Create a new file (either in a new window or in the current one)
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_MDI
     if (!needNewWindow())
+#else
+    if (maybeSave())
+#endif
     {
         QString fileName = findUnusedUntitledFile();
         XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
@@ -370,12 +374,14 @@ void Window::newFile()
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
     }
+#ifdef CFG_MDI
     else
     {
         Window *other = new Window(xlRuntime, contextFileNames);
         other->move(x() + 40, y() + 40);
         other->show();
     }
+#endif
 }
 
 
@@ -447,7 +453,11 @@ int Window::open(QString fileName, bool readOnly)
                              tr("%1: File not found").arg(fileName));
         return 0;
     }
+#ifdef CFG_MDI
     if (!needNewWindow())
+#else
+    if (maybeSave())
+#endif
     {
         if (readOnly)
             isReadOnly = true;
@@ -457,6 +467,7 @@ int Window::open(QString fileName, bool readOnly)
         if (!loadFile(fileName, !isReadOnly))
             return 0;
     }
+#ifdef CFG_MDI
     else
     {
         Window *other = new Window(xlRuntime, contextFileNames, "",
@@ -472,6 +483,7 @@ int Window::open(QString fileName, bool readOnly)
         }
         return 0;
     }
+#endif
     deleteOnOpenFailed = 0;
     return 1;
 }
@@ -1504,8 +1516,11 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
+    if (isWindowModified()
 #ifndef CFG_NOSRCEDIT
-    if (srcEdit->document()->isModified())
+        || srcEdit->document()->isModified()
+#endif
+       )
     {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning
@@ -1518,7 +1533,6 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
-#endif
     return true;
 }
 

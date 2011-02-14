@@ -128,15 +128,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
 
-                    // module_description <indent block> evaluates as nil
-                    Name *n = new Name("module_description");
-                    Block *b = new Block(new Name("x"), XL::Block::indent,
-                                         XL::Block::unindent);
-                    Prefix *from = new Prefix(n, b);
-                    Name *to = new Name("nil");
-                    context->Define(from, to);
-
-                    XL::xl_import(XL::MAIN->context/*context*/, +xlPath);
+                    XL::xl_import(context->stack, +xlPath);
                 }
             }
         }

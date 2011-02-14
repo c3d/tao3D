@@ -375,6 +375,9 @@ void Widget::draw()
         sel->cursor.removeSelectedText();
     }
 
+    //Clean actionMap
+    actionMap.clear();
+
     // If there is a program, we need to run it
     pageRefresh = CurrentTime() + 86400;        // 24 hours
     runProgram();
@@ -407,7 +410,7 @@ void Widget::draw()
             "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
             "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
             "}";
-        
+
         if (!depthMapper)
         {
             QGLShaderProgram *pgm = new QGLShaderProgram();
@@ -1126,6 +1129,8 @@ void Widget::paste()
                 std::cerr << "Clipboard: pasting HTML:\n";
                 std::cerr << +mimeData->html() <<std::endl;
             }
+            sel->replacement = "";
+            sel->replace = true;
             sel->replacement_tree = portability().fromHTML(mimeData->html());
 
             refresh();
@@ -2564,7 +2569,7 @@ void Widget::updateProgramSource()
 {
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
-    if (window->dock->isHidden())
+    if (window->dock->isHidden() || ! xlProgram)
         return;
     if (!xlProgram)
         return;

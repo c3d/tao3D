@@ -106,8 +106,10 @@ HEADERS += widget.h \
     tao_main.h \
     tool_window.h \
     render_to_file_dialog.h \
+    inspectordialog.h \
     raster_text.h \
     dir.h
+
 SOURCES += tao_main.cpp \
     coords.cpp \
     coords3d.cpp \
@@ -160,6 +162,7 @@ SOURCES += tao_main.cpp \
     portability.cpp \
     tool_window.cpp \
     render_to_file_dialog.cpp \
+    inspectordialog.cpp \
     raster_text.cpp \
     dir.cpp
 
@@ -238,7 +241,6 @@ contains(DEFINES, CFG_NOSRCEDIT) {
     message("Document source editor is disabled")
 }
 
-
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -277,8 +279,10 @@ OTHER_FILES += xl.syntax \
 xlr_support.path = $${DESTDIR}/$${XLRDIR}
 xlr_support.files += $${OTHER_FILES}
 QMAKE_BUNDLE_DATA += xlr_support
+
 FORMS += error_message_dialog.ui \
-    render_to_file_dialog.ui
+    render_to_file_dialog.ui \
+    inspectordialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h
@@ -317,7 +321,7 @@ macx {
 doc.depends = documentation
 
 documentation.target = $$APPINST/all_documentation.xl
-documentation.commands = (cd $$APPINST; echo \"generate_all_doc \\\"./all_documentation.xl\\\"; exit \" > genDoc.ddd; DYLD_LIBRARY_PATH=../Frameworks ./Tao -norepo -nosplash genDoc.ddd)
+documentation.commands = (cd $$APPINST; echo \"generate_all_doc \\\"./all_documentation.xl\\\"; exit 0 \" > genDoc.ddd; DYLD_LIBRARY_PATH=../Frameworks ./Tao -norepo -nosplash genDoc.ddd)
 documentation.depends = $$APPINST/Tao
 
 QMAKE_EXTRA_TARGETS += doc documentation

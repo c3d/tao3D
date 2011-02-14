@@ -323,7 +323,7 @@ selection_color ->
 
 selection_rectangle_color ->
     color 70%, 90%, 80%, 40%
-    line_color 0.4 * sin seconds, 0.9 * sin (2*seconds), 0.8 * sin(3 * seconds), 0.8
+    line_color 0.4 * sin time , 0.9 * sin (2.0*time ), 0.8 * sin(3.0 * time ), 0.8
     line_width 1
 
 open_group_color ->
@@ -536,23 +536,23 @@ menu_item "menu:insert > text box", "Text Box", do
             font "default"
             text_box 0, 0, 100, 100, do
                 text "Text"
-submenu   "menu:insert > shape", "Shape"
+submenu   "menu:insert > shape", "2D Shape"
 menu_item "menu:insert > shape > line ---", "Line", do
     insert "Insert line",
         shape
-            color "line"
-            //line_color "line"
+            //color "line"
+            line_color "line"
             line 50, -50, -50, 50
 menu_item "menu:insert > shape > line -->", "Line with Arrowhead", do
     insert "Insert line with arrowhead",
         shape
-            color "line"
-            //line_color "line"
+            //color "line"
+            line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
 menu_item "menu:insert > shape > line <->", "Line with Two Arrowheads", do
     insert "Insert line with two arroheads",
         shape
-            color "line"
+            //color "line"
             line_color "line"
             line_arrow 50, -50, arrowhead, -50, 50, arrowhead
 menu_item "menu:insert > shape > rectangle", "Rectangle", do
@@ -564,6 +564,8 @@ menu_item "menu:insert > shape > rectangle", "Rectangle", do
 menu_item "menu:insert > shape > rounded rectangle", "Rounded Rectangle", do
     insert "Insert rounded rectangle",
         shape
+            color "fill"
+            line_color "fill"
             rounded_rectangle 0, 0, 100, 100, 15
 menu_item "menu:insert > shape > oval", "Oval", do
     insert "Insert oval",
@@ -627,12 +629,59 @@ menu_item "menu:insert > shape > polygon", "Polygon", do
             polygon 0, 0, 100, 100, 5
 
 menu      "menu:insert", ""
+submenu   "menu:insert > 3Dshape", "3D Shape"
+menu_item "menu:insert > 3Dshape > sphere", "Spere", do
+    insert "Insert sphere",
+        shape
+            color "fill"
+            line_color "fill"
+            sphere 0, 0, 0, 100, 100, 100, 25, 25
+
+menu_item "menu:insert > 3Dshape > cube", "Cube", do
+    insert "Insert cube",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            cube 0, 0, 0, 100, 100, 100
+
+menu_item "menu:insert > 3Dshape > cone", "Cone", do
+    insert "Insert cone",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            cone 0, 0, 0, 100, 100, 100
+
+menu_item "menu:insert > 3Dshape > cylinder", "Cylinder", do
+    insert "Insert cylinder",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            cylinder 0, 0, 0, 100, 100, 100
+
+menu_item "menu:insert > 3Dshape > truncated cone", "Truncated cone", do
+    insert "Insert truncated cone",
+        shape
+            rotatex -50
+            rotatey -50
+            color "fill"
+            line_color "fill"
+            truncated_cone 0, 0, 0, 100, 100, 100, 0.5
+
+
+
+menu      "menu:insert", ""
 menu_item "menu:insert > table", "Table", do
     insert "Insert table",
         shape
             color "font"
             line_color "font"
-            table 3, 3, do
+            table 0, 0, 3, 3, do
                 table_cell_fill
                     color 0%,0%,0%,20%
                     line_color 0%, 0%, 100%, 80%
@@ -679,6 +728,16 @@ menu_item "menu:insert > image...", "Image...", file_chooser
             shape
                 color 100%,100%,100%,100%
                 image 0, 0, 100%, 100%, rel_file_path
+
+menu_item "menu:insert > 3D object...", "3D object...", file_chooser
+    filter "All object formats (*.obj *.3ds );;" &
+           "OBJ - object??? (*.obj);;" &
+           "3DS - 3D Studio (*.3ds);;"
+    action do
+        insert "Insert 3D object",
+            shape
+                color 100%,100%,100%,100%
+                object 0, 0, 0, 100, 100, 100, rel_file_path
 }
 
 

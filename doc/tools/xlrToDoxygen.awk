@@ -1,9 +1,10 @@
 BEGIN { 
-    RS = ";"
     previous_syntaxes = ""
-    filename = sprintf("%s.c",FAMILYNAME)
+    filename = sprintf("c_files/%s.c",FAMILYNAME)
     printf "/**\n * @file %s\n * File detailed description for family %s\n */\n", filename, FAMILYNAME > filename
     OK = 0
+    inLongText = 0
+    lastLongText = ""
 } 
 function extractStr(s){
     if (match( s, "<<[^>]*>>") > 0)
@@ -15,9 +16,30 @@ function extractStr(s){
     {
         return substr( s, RSTART+1, RLENGTH-2)
     }
+    if (match( s, "<<[^>]*") > 0)
+    {
+        inLongText = 1
+        return substr( s, RSTART+2, RLENGTH-2)
+    }
+    if (match( s, "[^>]*>>") > 0)
+    {
+        inLongText = 0
+        return substr( s, RSTART, RLENGTH-2)
+    }
 
     return s
 }
+# matches every entry
+{
+    if (inLongText == 1)
+    {
+        desc = extractStr($0)
+        gsub("\n","<BR>\n",desc)
+        printf " * %s\n", desc >> filename
+        next
+    }
+}
+
 /(docname )/ {
 #    printf "DEB: NR = %i, NF = %i  matches docname\n|%s|\n\n", NR, NF, $0
     # closes the previous definition
@@ -70,7 +92,7 @@ function extractStr(s){
 #    printf "DEB: NR = %i, NF = %i matches description \n|%s|\n\n", NR, NF, $0
     desc = extractStr($0)
     gsub("\n","<BR>\n",desc)
-    printf " *\n * %s\n *\n", desc >> filename
+    printf " *\n * %s\n", desc >> filename
 }
 
 /(parameters)/ {

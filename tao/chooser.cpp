@@ -38,11 +38,11 @@ TAO_BEGIN
 using namespace XL;
 
 
-Chooser::Chooser(Context *context, text name, Widget *w)
+Chooser::Chooser(SourceFile *program, text name, Widget *w)
 // ----------------------------------------------------------------------------
 //   Chooser constructor
 // ----------------------------------------------------------------------------
-    : Activity(name, w), context(context),
+    : Activity(name, w), xlProgram(program),
       keystrokes(""), item(0), firstItem(0), selected(NULL)
 {
     // Force an immediate widget refresh
@@ -104,11 +104,8 @@ Activity *Chooser::Display(void)
 //    Display the chooser
 // ----------------------------------------------------------------------------
 {
-    // Symbols where we execute stuff
-    Context *context = widget->context();
-
     // Select the chooser font
-    XLCall("chooser_title_font") (context);
+    XLCall("chooser_title_font") (xlProgram);
     QFont titleFont = widget->currentFont();
     QFontMetricsF titleFM(titleFont);
     coord mtlh = titleFM.height();
@@ -126,7 +123,7 @@ Activity *Chooser::Display(void)
     selected = NULL;
 
     // Select the chooser item font
-    XLCall("chooser_item_font")(context);
+    XLCall("chooser_item_font")(xlProgram);
     QFont itemFont = widget->currentFont();
     QFontMetricsF itemFM(itemFont);
     coord milh = itemFM.height();
@@ -293,7 +290,7 @@ Activity *Chooser::Key(text key)
     {
         if (selected)
         {
-            context->Evaluate(selected);
+            xl_evaluate(xlProgram->context, selected);
             delete this;
         }
     }

@@ -45,7 +45,7 @@ struct Chooser : Activity
 //  A chooser shows a selection among the possible commands
 // ----------------------------------------------------------------------------
 {
-    Chooser(Context *c, text name, Widget *w);
+    Chooser(SourceFile *program, text name, Widget *w);
     virtual ~Chooser();
 
     // Callbacks, return true if this activity 'handled' the event
@@ -60,7 +60,7 @@ struct Chooser : Activity
     void                AddCommands(Context *ctx ,text prefix, text label);
 
 public:
-    Context_p    context;
+    SourceFile * xlProgram;
     text         keystrokes;
     int          item;
     int          firstItem;

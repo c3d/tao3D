@@ -898,7 +898,7 @@ bool ModuleManager::unloadNative(Context *context, const ModuleInfoPrivate &m)
 }
 
 
-bool ModuleManager::unloadXL(Context *context, const ModuleInfoPrivate &m)
+bool ModuleManager::unloadXL(Context *, const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Unload the XL code of a module
 // ----------------------------------------------------------------------------
@@ -917,13 +917,11 @@ bool ModuleManager::unloadXL(Context *context, const ModuleInfoPrivate &m)
     if (it != end)
     {
         XL::SourceFile &sf = (*it).second;
-        Context *moduleContext = sf.context;
-
-        if (context->Bound(new XL::Name("module_exit")))
+        if (sf.context->Bound(new XL::Name("module_exit")))
         {
             IFTRACE(modules)
                 debug() << "    Calling XL module_exit\n";
-            XL::XLCall("module_exit")(moduleContext);
+            XL::XLCall("module_exit")(&sf);
         }
     }
 

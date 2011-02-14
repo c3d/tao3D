@@ -203,8 +203,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
     toDialogLabel["Reject"]   = (QFileDialog::DialogLabel)QFileDialog::Reject;
 
     // Connect the symbol table for formulas
-    formulas = new Context(NULL, NULL);
-    TaoFormulas::EnterFormulas(formulas);
+    // REVISIT : Temporarily disabled with new old compiler
+    // formulas = new Context(NULL, NULL);
+    // TaoFormulas::EnterFormulas(formulas);
 
     // Prepare activity to process mouse events even when no click is made
     // (but for performance reasons, mouse tracking is enabled only when program
@@ -2351,7 +2352,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
 
     // If the key was not handled by any activity, forward to document
     if (!handled)
-        (XL::XLCall ("key"), key) (xlProgram->context);
+        (XL::XLCall ("key"), key) (xlProgram);
 }
 
 
@@ -2370,7 +2371,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
 
     // Now call "key" in the current context with the ~ prefix
     text name = "~" + keyName(event);
-    (XL::XLCall ("key"), name) (xlProgram->context);
+    (XL::XLCall ("key"), name) (xlProgram);
 }
 
 
@@ -2554,7 +2555,7 @@ void Widget::wheelEvent(QWheelEvent *event)
     Qt::Orientation orientation = event->orientation();
     longlong dx = orientation == Qt::Horizontal ? d : 0;
     longlong dy = orientation == Qt::Vertical   ? d : 0;
-    (XL::XLCall("wheel_event"), dx, dy)(xlProgram->context);
+    (XL::XLCall("wheel_event"), dx, dy)(xlProgram);
     do
     {
         TaoSave saveCurrent(current, NULL);
@@ -3689,9 +3690,6 @@ void Widget::drawSelection(Layout *where,
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
-    // Symbols where we will find the selection code
-    Context *context = xlProgram->context;
-
     Box3 bounds(bnds);
     bounds.Normalize();
 
@@ -3713,9 +3711,9 @@ void Widget::drawSelection(Layout *where,
     saveSelectionColorAndFont(where);
     glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
-        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (context);
+        (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
     else
-        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (context);
+        (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (xlProgram);
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
@@ -3727,9 +3725,6 @@ void Widget::drawHandle(Layout *where,
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
 {
-    // Symbols where we will find the selection code
-    Context *context = xlProgram->context;
-
     SpaceLayout selectionSpace(this);
 
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
@@ -3738,7 +3733,7 @@ void Widget::drawHandle(Layout *where,
     glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
-    (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (context);
+    (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
@@ -3768,7 +3763,6 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 // ----------------------------------------------------------------------------
 {
     // Symbols where we will find the selection code
-    Context *context = xlProgram->context;
     SpaceLayout selectionSpace(this);
 
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
@@ -3777,7 +3771,7 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     glDisable(GL_DEPTH_TEST);
-    call(context);
+    call(xlProgram);
     selectionSpace.Draw(where);
     glEnable(GL_DEPTH_TEST);
 }
@@ -8057,14 +8051,13 @@ Tree_p Widget::chooser(Context *context, Tree_p self, text caption)
 //   Create a chooser with the given caption
 // ----------------------------------------------------------------------------
 //   Note: the current implementation doesn't prevent hierarchical choosers.
-//   It's by design, I see only good reasons to allow it...
+//   It's by design, I see only good reasons to disallow such hierarchies...
 {
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser)
         if (chooser->name == caption)
             return XL::xl_false;
-
-    chooser = new Chooser(context, caption, this);
+    chooser = new Chooser(xlProgram, caption, this);
     return XL::xl_true;
 }
 

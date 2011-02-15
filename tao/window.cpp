@@ -1913,7 +1913,7 @@ void Window::markChanged(bool changed)
 //   Someone else tells us that the window is changed or not
 // ----------------------------------------------------------------------------
 {
-#ifndef CFG_NOGIT
+#ifndef CFG_NOSRCEDIT
     textEdit->document()->setModified(changed);
 #endif
     setWindowModified(changed);

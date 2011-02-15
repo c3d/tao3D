@@ -5058,6 +5058,39 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
 }
 
 
+Tree_p Widget::imagePx(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                       text filename)
+//----------------------------------------------------------------------------
+//  Make an image
+//----------------------------------------------------------------------------
+{
+    Infix_p resolution = imageSize(self, filename);
+    Integer_p ww = resolution->left->AsInteger();
+    Integer_p hh = resolution->right->AsInteger();
+    double sx = (double)w / (double)ww;
+    double sy = (double)h / (double)hh;
+
+    return image(self, x, y, new Real(sx), new Real(sy), filename);
+}
+
+
+Infix_p Widget::imageSize(Tree_p self, text filename)
+//----------------------------------------------------------------------------
+//  Return the width and height of an image
+//----------------------------------------------------------------------------
+{
+    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
+    if (!rinfo)
+    {
+        rinfo = new ImageTextureInfo();
+        self->SetInfo<ImageTextureInfo>(rinfo);
+    }
+    ImageTextureInfo::Texture t = rinfo->load(filename);
+
+    return new Infix(",", new Integer(t.width), new Integer(t.height));
+}
+
+
 static void list_files(Dir &current, Tree *patterns,
                        Tree_p *&parent)
 // ----------------------------------------------------------------------------

@@ -802,6 +802,23 @@ PREFIX(ImageB,  tree, "image",
        GROUP(graph)
        SYNOPSIS("Make an image")
        DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))
+PREFIX(ImagePx,  tree, "image_px",
+       PARM(x, real, "X coordinate of image center")
+       PARM(y, real, "Y coordinate of image center")
+       PARM(w, real, "Image width in pixels")
+       PARM(h, real, "Image height in pixels")
+       PARM(img, text, "File path"),
+       RTAO(imagePx(self, x, y, w, h, img)),
+       GROUP()
+       SYNOPSIS("Insert an image")
+       DESCRIPTION(""))
+PREFIX(ImageSize,  infix, "image_size",
+       PARM(img, text, "File path"),
+       RTAO(imageSize(self, img)),
+       GROUP()
+       SYNOPSIS("Get the size of an image")
+       DESCRIPTION("")
+       RETURNS(infix, "Two integer values: w,h"))
 PREFIX(TextureWrap,  tree,  "texture_wrap",
        PARM(s, boolean, "[TODO]")
        PARM(t, boolean, "[TODO]"),

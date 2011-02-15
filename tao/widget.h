@@ -624,6 +624,9 @@ public:
     Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
     Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
+    Tree_p      imagePx(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                        text filename);
+    Infix_p     imageSize(Tree_p self, text filename);
     Tree_p      listFiles(Tree_p self, Tree_p pattern);
 
     // Menus and widgets

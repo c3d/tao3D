@@ -5415,23 +5415,27 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 }
 
 
-Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
+Tree_p Widget::image(Context *context,
+                     Tree_p self, Real_p x, Real_p y, text filename)
 //----------------------------------------------------------------------------
 //  Make an image with default size
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
-    return image(self, x, y, NULL, NULL, filename);
+    return image(context, self, x, y, NULL, NULL, filename);
 }
 
 
-Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
+Tree_p Widget::image(Context *context,
+                     Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
                      text filename)
 //----------------------------------------------------------------------------
 //  Make an image
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
+    filename = context->stack->ResolvePrefixedPath(filename);
+
     GLuint texId = 0;
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     double sx = sxp.Pointer() ? (double) sxp : 1.0;

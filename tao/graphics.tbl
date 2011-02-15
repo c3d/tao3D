@@ -835,7 +835,7 @@ PREFIX(ImageA,  tree, "image",
        PARM(w, real, )
        PARM(h, real, )
        PARM(img, text, ),
-       RTAO(image(self, x, y, w, h, img)),
+       RTAO(image(context, self, x, y, w, h, img)),
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
@@ -843,7 +843,7 @@ PREFIX(ImageB,  tree, "image",
        PARM(x, real, "x-coordinate of the image")
        PARM(y, real, "y-coordinate of the image")
        PARM(img, text, "width of the image"),
-       RTAO(image(self, x, y, img)),
+       RTAO(image(context, self, x, y, img)),
        GROUP(graph)
        SYNOPSIS("Make an image")
        DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))

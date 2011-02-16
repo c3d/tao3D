@@ -128,6 +128,7 @@ again:
 
     IFTRACE(process)
         std::cerr << "No valid git command found\n";
+    RepositoryFactory::no_repo = true;
     return false;
 }
 

@@ -252,7 +252,8 @@ CXXTBL_SOURCES += graphics.cpp \
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
-        ApplicationServices
+        ApplicationServices \
+        -Wl,-macosx_version_min,10.5,-rpath,@executable_path/../Frameworks
 }
 RESOURCES += tao.qrc
 

@@ -38,6 +38,9 @@ QMAKE_CXXFLAGS_RELEASE += -g \
 macx {
     XLRDIR = Contents/MacOS
     ICON = tao.icns
+    FILETYPES.files = tao-doc.icns
+    FILETYPES.path = Contents/Resources
+    QMAKE_BUNDLE_DATA += FILETYPES
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }

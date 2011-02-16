@@ -12,9 +12,9 @@
 #requires -v FAMILYNAME="aFamily"
 BEGIN { 
     previous_syntaxes = ""
-    system("mkdir -p c_files")
+    #system("mkdir -p c_files")
     filename = sprintf("c_files/%s.c",FAMILYNAME)
-    printf "/**\n * @addtogroup %s\n * Detailed description for group %s\n *"  FAMILYNAME, FAMILYNAME > filename
+    printf "/**\n * @addtogroup %s\n * Detailed description for group %s\n *", FAMILYNAME, FAMILYNAME > filename
     printf "\n * For more information see <a href=\"%s_doc.html\">%s_doc</a>\n * @{\n */\n", FAMILYNAME, FAMILYNAME >> filename
     OK = 0
     inLongText = 0

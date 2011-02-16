@@ -3159,7 +3159,10 @@ const char *MemberDef::typeString() const
 const char *MemberDef::argsString() const
 {
   makeResident();
-  char *tmp = strdup(strchr(m_impl->args, '(')+1); //It leaks...
+  if ( ! m_impl->args )  return m_impl->args;
+  char *p   = strchr(m_impl->args, '(');
+  if (!p) return m_impl->args;
+  char *tmp = strdup(p+1); //It leaks...
   char *end = strchr(tmp, ')');
   *end = '\0';
   return tmp;//m_impl->args;

@@ -1,5 +1,15 @@
-// Theme for TAO documentation
-//load "doc_style.xl"
+// ******************************************************************************
+//  theme.xl                                                         Tao project
+// ******************************************************************************
+// File Description:
+// Theme for Tao documentation
+// ******************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+// (C) 2011 Catherine Burvelle <catherine@taodyne.com>
+// (C) 2011 Taodyne SAS
+// ******************************************************************************
+
 font "Title" -> font "Helvetica Neue", 24, slant 0% , weight 80% , stretch 100% 
 font "Footer" -> font "Andika Basic", 12 
 font "Text" -> font "Helvetica Neue", 18, slant 0% , weight 50% , stretch 100% 

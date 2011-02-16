@@ -128,17 +128,11 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NOSRCEDIT
     connect(srcEdit->document(), SIGNAL(contentsChanged()),
             this, SLOT(documentWasModified()));
-    statusBar()->show();
 #endif
 
     // Set the window attributes
     setAttribute(Qt::WA_DeleteOnClose);
     readSettings();
-    // Don't restore error dock
-    errorDock->hide();
-    // Show status bar immediately avoids later resize of widget
-    statusBar()->show();
-
     // Don't restore error dock
     errorDock->hide();
     // Show status bar immediately avoids later resize of widget

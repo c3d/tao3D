@@ -28,7 +28,7 @@ groupname familyName:text ->
     page familyName, do 
         color 100% , 100% , 100% , 100% 
         shape 
-            url -152, -4, 1113, 1022, "/Users/cathy/Work/tao.git/tao/doc/src/" & familyName & ".html" 
+            url -152, -4, 1113, 1022, "../src/" & familyName & ".html" 
     import "all_documentation.xl" 
 
 docname fname:text, families:text, t:tree -> 

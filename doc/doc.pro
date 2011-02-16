@@ -43,11 +43,11 @@ tao_theme.files = tools/theme.xl
 tao_theme.depends = doc_tao
 
 tao_html.path = $$DOCDIR
-tao_html.files = tao_doc/html
+tao_html.files = tao_doc/html src
 tao_html.depends = doc_html
 
 INSTALLS += tao_theme tao_html
 
 QMAKE_DISTCLEAN +=  $$TAODIR/all_documentation.xl  $$TAODIR/tao_doc.ddd
 
-clean.commands = /bin/rm -r c_files/ ; (cd doxygen-1.7.1 && make clean)
+clean.commands = /bin/rm -r c_files/ tao_doc/; (cd doxygen-1.7.1 && make clean)

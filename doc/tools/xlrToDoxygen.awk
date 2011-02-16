@@ -15,7 +15,7 @@ BEGIN {
     #system("mkdir -p c_files")
     filename = sprintf("c_files/%s.c",FAMILYNAME)
     printf "/**\n * @addtogroup %s\n * Detailed description for group %s\n *", FAMILYNAME, FAMILYNAME > filename
-    printf "\n * For more information see <a href=\"%s_doc.html\">%s_doc</a>\n * @{\n */\n", FAMILYNAME, FAMILYNAME >> filename
+    printf "\n * For more information see <a href=\"../src/%s.html\">%s_doc</a>\n * @{\n */\n", FAMILYNAME, FAMILYNAME >> filename
     OK = 0
     inLongText = 0
     lastLongText = ""

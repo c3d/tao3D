@@ -18,4 +18,5 @@ tests/Makefile
 doc/Makefile
 doc/c_files
 doc/tao_doc
-doc/doxygen-1.7.1/bin/*
+doc/doxygen-1.7.1/bin
+doc/doxygen-1.7.1/lib

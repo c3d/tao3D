@@ -252,7 +252,6 @@ bool Application::processCommandLine()
             this, SLOT(checkOfflineRendering()));
 
     // Create the windows for each file or URI on the command line
-    hadWin = false;
     XL::source_names &names = xlr->file_names;
     XL::source_names::iterator it;
     for (it = names.begin(); it != names.end(); it++)

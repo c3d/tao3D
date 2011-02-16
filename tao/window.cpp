@@ -442,6 +442,12 @@ int Window::open(QString fileName, bool readOnly)
     QString dir = currentProjectFolderPath();
     if (!fileName.isEmpty())
     {
+        // Process 'file://' like a regular path because: (1) it is simpler,
+        // and (2) we want to be able to open 'file://' even if CFG_NOGIT is
+        // defined (MacOSX uses 'file://' when a file is double clicked)
+        if (fileName.startsWith("file://"))
+            fileName = fileName.mid(7);
+
 #ifndef CFG_NOGIT
         bool fileExists = QFileInfo(fileName).exists();
         if (!fileExists && fileName.contains("://"))

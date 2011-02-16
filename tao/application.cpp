@@ -283,6 +283,7 @@ bool Application::processCommandLine()
         connect(window, SIGNAL(openFinished(bool)),
                 this, SLOT(onOpenFinished(bool)));
         int st = window->open(sourceFile);
+        window->markChanged(false);
         switch (st)
         {
         case 0:
@@ -370,12 +371,31 @@ void Application::loadUri(QString uri)
         window = new Tao::Window (xlr, contextFiles);
         window->deleteOnOpenFailed = true;
     }
+
+    connect(window, SIGNAL(openFinished(bool)),
+            this, SLOT(onOpenFinished(bool)));
     int st = window->open(uri);
-    if (st == 0)
+    window->markChanged(false);
+    switch (st)
+    {
+    case 0:
         QMessageBox::warning(window, tr("Error"),
-                             tr("Could not open %1.\n"
-                                "Please check the address.\n").arg(uri));
-    pendingOpen++;
+                             tr("Could not open %1.\n").arg(uri));
+        break;
+    case 1:
+        window->show();
+        hadWin = true;
+        break;
+    case 2:
+        window->show();
+        if (splash)
+            splash->raise();
+        pendingOpen++;
+        break;
+    default:
+        Q_ASSERT(!"Unexpected return value");
+        break;
+    }
 }
 
 
@@ -387,7 +407,9 @@ void Application::onOpenFinished(bool ok)
     if (ok)
         hadWin = true;
 
-    if (--pendingOpen == 0 && splash)
+    if (pendingOpen)
+        pendingOpen--;
+    if (pendingOpen == 0 && splash)
     {
         splash->close();
         splash->deleteLater();

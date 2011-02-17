@@ -98,10 +98,13 @@ Section "Start Menu Shortcuts"
 SectionEnd
 
 ; Optional
-Section "Register tao: links"
+Section "Register tao: links and .ddd files"
 
   push "tao"
   call RegisterURIScheme
+  push ".ddd"
+  call RegisterFileExtension
+  call RefreshShellIcons
 
 SectionEnd
 
@@ -113,7 +116,7 @@ Function RegisterURIScheme
   DeleteRegKey HKCR "$0"
   WriteRegStr HKCR "$0" "" "URL:Tao link ($0:)"
   WriteRegStr HKCR "$0" "URL Protocol" ""
-  WriteRegStr HKCR "$0\DefaultIcon" "" "$INSTDIR\Tao.exe"
+  WriteRegStr HKCR "$0\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
   WriteRegStr HKCR "$0\shell" "" ""
   WriteRegStr HKCR "$0\shell\Open" "" ""
   WriteRegStr HKCR "$0\shell\Open\command" "" "$INSTDIR\Tao.exe $\"%1$\""
@@ -121,6 +124,31 @@ Function RegisterURIScheme
 
 FunctionEnd
 
+
+Function RegisterFileExtension
+
+  Exch $0
+  DetailPrint "Registering $0 files"
+  DeleteRegKey HKCR "$0"
+  WriteRegStr HKCR "$0" "" "TaoPresentations.Document"
+  DeleteRegKey HKCR "TaoPresentations.Document"
+  WriteRegStr HKCR "TaoPresentations.Document" "" "Tao Presentations Document"
+  WriteRegStr HKCR "TaoPresentations.Document\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
+  WriteRegStr HKCR "TaoPresentations.Document\shell" "" ""
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open" "" ""
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\command" "" "$INSTDIR\Tao.exe $\"%1$\""
+  Pop $R0
+
+FunctionEnd
+
+
+!define SHCNE_ASSOCCHANGED 0x08000000
+!define SHCNF_IDLIST 0
+
+Function RefreshShellIcons
+  System::Call 'shell32.dll::SHChangeNotify(i, i, i, i) v \
+    (${SHCNE_ASSOCCHANGED}, ${SHCNF_IDLIST}, 0, 0)'
+FunctionEnd
 
 ;--------------------------------
 
@@ -131,6 +159,12 @@ Section "Uninstall"
   ; Unregister Tao URIs
   push "tao"
   call un.UnregisterURIScheme
+
+  ; Unregister .ddd files
+  push ".ddd"
+  call un.UnregisterFileExtension
+
+  call un.RefreshShellIcons
 
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao"
@@ -165,4 +199,18 @@ Function un.UnregisterUriScheme
   DeleteRegKey HKCR "$0"
   Pop $0
 
+FunctionEnd
+
+Function un.UnregisterFileExtension
+
+  Exch $0
+  DetailPrint "Unregistering $0 file extension"
+  DeleteRegKey HKCR "$0"
+  Pop $0
+
+FunctionEnd
+
+Function un.RefreshShellIcons
+  System::Call 'shell32.dll::SHChangeNotify(i, i, i, i) v \
+    (${SHCNE_ASSOCCHANGED}, ${SHCNF_IDLIST}, 0, 0)'
 FunctionEnd

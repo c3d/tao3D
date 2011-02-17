@@ -25,7 +25,7 @@ VS_VERSION_INFO VERSIONINFO
                         BEGIN
                                 VALUE "CompanyName", "Taodyne SAS\0"
                                 VALUE "FileDescription", "Tao Presentations\0"
-                                VALUE "FileVersion",  "0.0.3.0\0"
+                                VALUE "FileVersion", "0.0.3.0\0"
                                 VALUE "LegalCopyright", "\0"
                                 VALUE "OriginalFilename", "Tao.exe\0"
                                 VALUE "ProductName", "Tao Presentations\0"
@@ -35,3 +35,4 @@ VS_VERSION_INFO VERSIONINFO
 /* End of Version info */
 
 IDI_ICON1 ICON DISCARDABLE "tao.ico"
+IDI_ICON2 ICON DISCARDABLE "tao-doc.ico"

@@ -184,6 +184,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
     table->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
+    table->setIconSize(QSize(32, 32));
     updateTable();
     vbLayout->addWidget(table);
     gb->setLayout(vbLayout);

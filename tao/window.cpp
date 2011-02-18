@@ -401,7 +401,11 @@ void Window::newFile()
 //   Create a new file (either in a new window or in the current one)
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_MDI
     if (!needNewWindow())
+#else
+    if (maybeSave())
+#endif
     {
         QString fileName = findUnusedUntitledFile();
         XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
@@ -415,12 +419,14 @@ void Window::newFile()
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
     }
+#ifdef CFG_MDI
     else
     {
         Window *other = new Window(xlRuntime, contextFileNames);
         other->move(x() + 40, y() + 40);
         other->show();
     }
+#endif
 }
 
 
@@ -436,6 +442,12 @@ int Window::open(QString fileName, bool readOnly)
     QString dir = currentProjectFolderPath();
     if (!fileName.isEmpty())
     {
+        // Process 'file://' like a regular path because: (1) it is simpler,
+        // and (2) we want to be able to open 'file://' even if CFG_NOGIT is
+        // defined (MacOSX uses 'file://' when a file is double clicked)
+        if (fileName.startsWith("file://"))
+            fileName = fileName.mid(7);
+
 #ifndef CFG_NOGIT
         bool fileExists = QFileInfo(fileName).exists();
         if (!fileExists && fileName.contains("://"))
@@ -492,7 +504,11 @@ int Window::open(QString fileName, bool readOnly)
                              tr("%1: File not found").arg(fileName));
         return 0;
     }
+#ifdef CFG_MDI
     if (!needNewWindow())
+#else
+    if (maybeSave())
+#endif
     {
         if (readOnly)
             isReadOnly = true;
@@ -504,6 +520,7 @@ int Window::open(QString fileName, bool readOnly)
 
         taoWidget->refresh();
     }
+#ifdef CFG_MDI
     else
     {
         Window *other = new Window(xlRuntime, contextFileNames, "",
@@ -519,6 +536,7 @@ int Window::open(QString fileName, bool readOnly)
         }
         return 0;
     }
+#endif
     deleteOnOpenFailed = 0;
     return 1;
 }
@@ -1551,8 +1569,11 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
+    if (isWindowModified()
 #ifndef CFG_NOSRCEDIT
-    if (textEdit->document()->isModified())
+        || textEdit->document()->isModified()
+#endif
+       )
     {
         QMessageBox::StandardButton ret;
         ret = QMessageBox::warning
@@ -1565,7 +1586,6 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
-#endif
     return true;
 }
 
@@ -1899,7 +1919,7 @@ void Window::markChanged(bool changed)
 //   Someone else tells us that the window is changed or not
 // ----------------------------------------------------------------------------
 {
-#ifndef CFG_NOGIT
+#ifndef CFG_NOSRCEDIT
     textEdit->document()->setModified(changed);
 #endif
     setWindowModified(changed);

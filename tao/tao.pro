@@ -17,7 +17,17 @@ include(../main.pri)
 
 TEMPLATE = app
 TARGET = Tao
-VERSION = "0.0.3"    # Windows: version is in tao.rc
+# Version: 3 integers >= 0
+# MacOSX: the CFBundleVersion and CFBundleShortVersionString keys in Info.plist
+# take the value of $$VERSION as is
+# Windows: FILEVERSION, PRODUCTVERSION, and FileVersion are built using
+# $$MAJOR, $$MINOR and $$RELEASE
+VERSION = "0.0.3"
+message(Version is $$VERSION)
+MAJOR = $$replace(VERSION, "\\.[0-9]+\\.[0-9]+\$", "")
+MINOR = $$replace(VERSION, "^[0-9]+\\.", "")
+MINOR = $$replace(MINOR, "\\.[0-9]+\$", "")
+RELEASE = $$replace(VERSION, "^[0-9]+\\.[0-9]+\\.", "")
 DEPENDPATH += . \
     xlr/xlr/include
 INCLUDEPATH += . \
@@ -38,10 +48,17 @@ QMAKE_CXXFLAGS_RELEASE += -g \
 macx {
     XLRDIR = Contents/MacOS
     ICON = tao.icns
+    FILETYPES.files = tao-doc.icns
+    FILETYPES.path = Contents/Resources
+    QMAKE_BUNDLE_DATA += FILETYPES
+    QMAKE_SUBSTITUTES += Info.plist.in
     QMAKE_INFO_PLIST = Info.plist
+    QMAKE_DISTCLEAN += Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
+    QMAKE_SUBSTITUTES += tao.rc.in
 win32 {
+    QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc
 }
 linux-g++* {
@@ -254,7 +271,8 @@ CXXTBL_SOURCES += graphics.cpp \
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
-        ApplicationServices
+        ApplicationServices \
+        -Wl,-macosx_version_min,10.5,-rpath,@executable_path/../Frameworks
 }
 RESOURCES += tao.qrc
 
@@ -273,7 +291,8 @@ OTHER_FILES += xl.syntax \
     srcview.css \
     traces.tbl \
     nocomment.stylesheet \
-    graphics.tbl
+    graphics.tbl \
+    Info.plist.in
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

@@ -28,6 +28,9 @@
 #     Build without document source editor
 #   DEFINES+=CFG_NOMODPREF
 #     Do not include the module page in the preference dialog
+#   DEFINES+=CFG_MDI
+#     Allow several documents to be open simultaneously (Multiple Document
+#     Interface)
 #
 #   modules=none
 #     Do not build any Tao module

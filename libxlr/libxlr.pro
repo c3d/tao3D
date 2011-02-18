@@ -110,3 +110,5 @@ DEFINES += $$LLVM_DEF
 
 target.path = $$LIBINST
 INSTALLS    = target
+
+macx:QMAKE_LFLAGS_SONAME = -install_name$${LITERAL_WHITESPACE}@rpath/

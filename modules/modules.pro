@@ -16,7 +16,7 @@
 
 TEMPLATE = subdirs
 # Modules built by default
-SUBDIRS  = lorem_ipsum object_loader tao_visuals
+SUBDIRS  = lorem_ipsum object_loader tao_visuals digital_clock
 # Optional modules, built with qmake modules=all
 OTHER_SUBDIRS = hello_world taoTester
 

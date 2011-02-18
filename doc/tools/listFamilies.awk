@@ -30,12 +30,17 @@ function extractStr(s){
 }
 
 function genToc(f, Nb){
-    toc = sprintf( "%s\n%s%s%s%s%s%s%i%s%s%s%s", 
+    if (Nb % 2) 
+       x = -150
+    else
+       x = 200
+
+    toc = sprintf( "%s\n%s%s%s%s%s%i%s%s%i%s%s%s%s", 
                    toc,
                    "    active_widget\n",
                    "        on_click\n",
                    "            goto_page \"",f,"\"\n",
-                   "        text_box 0, 500 - 25*",Nb,", 300, 25, do\n",
+                   "        text_box ",x,", 500 - 30*",Nb/2,", 300, 25, do\n",
                    "            text \"",f,"\"")
 
 }

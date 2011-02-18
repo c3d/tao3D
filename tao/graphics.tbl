@@ -77,7 +77,7 @@ PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
        DESCRIPTION("Return the number of pages in the current document")
        RETURNS(   integer, "Return the number of pages in the current document"))
 PREFIX(PageName,    text,   "page_name",
-       PARM(n, integer, "Index of page, starting at 0"), 
+       PARM(n, integer, "Index of page, starting at 0"),
        RTAO(pageNameAtIndex(self, n)),
        GROUP(page)
        SYNOPSIS("The name of the nth page.")
@@ -648,7 +648,7 @@ PREFIX(MotionBlur, tree, "motion_blur",
        PARM(f, real, "Amount of blur, between 0 and 1"),
        RTAO(motionBlur(self, f)),
        GROUP(page)
-       SYNOPSIS("Set the motion blur factor"))       
+       SYNOPSIS("Set the motion blur factor"))
 PREFIX(LineColorName,  tree,  "line_color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),
@@ -1157,8 +1157,8 @@ PREFIX(Cylinder,  tree,  "cylinder",
        PARM(d, real, "depth"),
        RTAO(cone(self, x, y, z, w, h, d, 1.0)),
        GROUP(graph)
-       SYNOPSIS("cone")
-       DESCRIPTION("cone[TODO]"))
+       SYNOPSIS("cylinder")
+       DESCRIPTION("cylinder[TODO]"))
 PREFIX(TruncatedCone,  tree,  "truncated_cone",
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
@@ -1166,11 +1166,11 @@ PREFIX(TruncatedCone,  tree,  "truncated_cone",
        PARM(w, real, "width")
        PARM(h, real, "height")
        PARM(d, real, "depth")
-       PARM(r, real, ),
+       PARM(r, real, "percentage of basis : 0.0 is a cone; 1.0 is a cylinder."),
        RTAO(cone(self, x, y, z, w, h, d, r)),
        GROUP(graph)
-       SYNOPSIS("cone")
-       DESCRIPTION("cone[TODO]"))
+       SYNOPSIS("truncated cone")
+       DESCRIPTION("truncated cone[TODO]"))
 PREFIX(Object3D,  tree,  "object",
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")

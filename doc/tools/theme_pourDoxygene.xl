@@ -21,7 +21,7 @@ docname fname:text, family:text, t:tree ->
         parameter "tree", "t", "The rest of the description."
 |*/
   if family = family_list then
-    setText fn_syntax, ""
+    setTextfn_syntax, ""
     writeln "/** "
     do t
     writeln "*/"

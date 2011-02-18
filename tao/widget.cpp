@@ -1604,6 +1604,7 @@ void Widget::setupGL()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_MULTISAMPLE);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glEnable(GL_POLYGON_OFFSET_LINE);
     glEnable(GL_POLYGON_OFFSET_POINT);
@@ -1656,7 +1657,7 @@ void Widget::setupStereoStencil(double w, double h)
         glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
-        glDisable(GL_LINE_STIPPLE);
+        glDisable(GL_MULTISAMPLE);
 
         uint numLines = 0;
         switch(stereoMode)

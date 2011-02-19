@@ -327,7 +327,6 @@ void TextSpan::DrawSelection(Layout *where)
     uint        first        = start;
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
-    bool        charSelected = false;
     uint        charId       = ~0U;
     scale       ascent       = glyphs.Ascent(font);
     scale       descent      = glyphs.Descent(font);
@@ -360,27 +359,25 @@ void TextSpan::DrawSelection(Layout *where)
         if (sel && canSel)
         {
             // Mark characters in selection range
-            charSelected = (sel->replaceInProgress ||
-                            (charId >= sel->start() && charId <= sel->end()));
             sel->inSelection = (charId >= sel->start() && charId <= sel->end());
             // Check up and down keys
-            if (charSelected || sel->needsPositions())
+            if (sel->inSelection || sel->needsPositions())
             {
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
 
-                sel->processChar(charId, charX, charSelected, unicode);
+                sel->processChar(charId, charX, sel->inSelection, unicode);
 
-                if (charSelected)
+                if (sel->inSelection)
                 {
                     // Edit text in place if we have an editing request
                     if (sel->replace)
                     {
-                        if (PerformEditOperation(widget, i, next) == 0)
-                        {
+                        if ( PerformEditOperation(widget, i) < 0)
                             next = i;
-                            max--;
-                        }
+                        // Soure->value has changed so reset local variables
+                        str = source->value;
+                        max = str.length();
                     }
                     scale sd = glyph.scalingFactor * descent;
                     scale sh = glyph.scalingFactor * height;
@@ -388,14 +385,14 @@ void TextSpan::DrawSelection(Layout *where)
 
                     // add the char to the selected text
                     if (charId != sel->end())
-                        selectedText.append(str[i]);
+                        selectedText.append(QChar(unicode));
 
                     // Insert a tree from the clipboard if any
                     if (sel->replacement_tree && sel->point == charId)
                         PerformInsertOperation(where, widget, i);
 
-                } // if(charSelected)
-            } // if (charSelected || upDown)
+                } // if(sel->inSelection)
+            } // if (sel->inSelection || upDown)
 
             // Check if we are in a formula, if so display formula box
             if (sel->formulaMode)
@@ -449,18 +446,17 @@ void TextSpan::DrawSelection(Layout *where)
         if (max <= end)
         {
             charId++;
-            if (sel->replaceInProgress ||
-                (charId >= sel->start() && charId <= sel->end()))
+            if (charId >= sel->start() && charId <= sel->end())
             {
                 if ((sel->replace) && (sel->mark == sel->point))
-                    PerformEditOperation(widget, i, next);
+                    PerformEditOperation(widget, i);
                 scale sd = glyph.scalingFactor * descent;
                 scale sh = glyph.scalingFactor * height;
                 sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
             }
         }
 
-        sel->last = charId;
+        sel->last = charId; // Est-ce encore utile ??? // CaB
     }
 
     where->offset = Point3(x, y, z);
@@ -833,45 +829,77 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 }
 
 
-uint TextSpan::PerformEditOperation(Widget *widget, uint i, uint next)
+int TextSpan::PerformEditOperation(Widget *widget, uint i)
 // ----------------------------------------------------------------------------
 //   Perform text editing operations (insert, replace, ...)
 // ----------------------------------------------------------------------------
+//   Returns the difference of source's length between entry and exit time.
 {
     TextSelect *sel           = widget->textSelection();
     text        rpl           = sel->replacement;
     uint        length        = XL::Utf8Length(rpl);
-    kstring     commitMessage = length ? "Inserted text" : "Deleted text";
+    kstring     commitMessage = "";
     uint        eos           = i;
+    text        str           = source->value;
+    uint        entryLen      = str.length();
 
-    // Move the cursor to take into account this specific character
-    if (sel->point != sel->mark)
-    {
-        if (length)
-            commitMessage = "Replaced text";
-        eos = next;
-        if (sel->point > sel->mark)
-            sel->point--;
-        else
-            sel->mark--;
-
-        // Indicate that a text replacement is in progress
-        sel->replaceInProgress = true;
-    }
-
-    // Replace the text and move the cursor accordingly
-    source->value.replace(i, eos-i, rpl);
-    sel->replacement = "";
-    sel->point += length;
-    sel->mark += length;
-    if (sel->point == sel->mark)
+    if (! sel->length() && ! length)
     {
         sel->replace = false;
-        sel->replaceInProgress = false;
-        widget->markChanged(commitMessage);
+        return 0; // Nothing to do
     }
 
-    return length;
+    if (length && sel->length())
+        commitMessage = "Replaced text";
+    else if (length && !sel->length())
+        commitMessage = "Inserted text";
+    else if (sel->length() && ! length)
+        commitMessage = "Deleted text";
+
+    // Compute the end of selection Id based on the selection length
+    // and move the cursor accordingly
+    uint tmp = eos;
+    uint originalSelectionLength = sel->length();
+    for ( uint l = 0; l < originalSelectionLength; l++)
+    {
+        tmp = XL::Utf8Next(str, eos);
+        if (tmp == eos)
+        {
+            // End of current text span is reached,
+            // the selection continues on next text span.
+            break;
+        }
+        if (sel->mark > sel->point)
+            sel->point++;
+        else
+            sel->mark++;
+        eos = tmp;
+    }
+
+    // Replace the text
+    source->value.replace(i, eos-i, rpl);
+
+    // Reset replacement data
+    sel->replacement = "";
+    int deltaSelection = length - (originalSelectionLength - sel->length());
+
+    // Edition completed when selection mark and point are equal
+    if (sel->mark == sel->point)
+    {
+        // Move the cursor
+        sel->moveTo(sel->mark + deltaSelection);
+        // Mark the changes with commit message.
+        widget->markChanged(commitMessage);
+        // Reset replacement data
+        sel->replace = false;
+    }
+    else
+    {
+        sel->mark  += deltaSelection;
+        sel->point += deltaSelection;
+    }
+    uint exitLen = source->value.length();
+    return exitLen - entryLen;
 
 }
 
@@ -974,9 +1002,11 @@ void TextSpan::PerformInsertOperation(Layout * l,
                 post->right = head;
             std::cerr << post << std::endl;
         }
+
+        sel->moveTo( sel->start() );
         // Reload the program and mark the changes
-        widget->reloadProgram();
         widget->markChanged("Clipboard content pasted");
+        widget->reloadProgram(NULL);
         widget->refreshNow();
 
     }
@@ -1360,7 +1390,7 @@ TextSelect::TextSelect(Widget *w)
     : Identify("Text selection", w),
       mark(0), point(0), previous(0), last(0), textBoxId(0),
       direction(None), targetX(0),
-      replacement(""), replace(false), replaceInProgress(false),
+      replacement(""), replace(false),
       textMode(false),
       pickingLineEnds(false), pickingUpDown(false), movePointOnly(false),
       formulaMode(false),cursor(QTextCursor(new QTextDocument(""))),

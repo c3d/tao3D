@@ -64,6 +64,7 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tests
+
 win32:SUBDIRS += detach
 
 tao.depends = libxlr

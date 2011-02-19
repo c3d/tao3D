@@ -42,11 +42,12 @@ namespace TaoFormulas
 #include "formulas.tbl"
 
 
-void EnterFormulas(XL::Context *context)
+void EnterFormulas(XL::Context *context, XL::Symbols *globals)
 // ----------------------------------------------------------------------------
 //   Enter all the operations defined in formulas.tbl
 // ----------------------------------------------------------------------------
 {
+    XL::Save<XL::Symbols_p> saveGlobals(MAIN->globals, globals);
 #include "opcodes_define.h"
 #include "formulas.tbl"
 }

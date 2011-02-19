@@ -115,11 +115,10 @@ Application::Application(int & argc, char ** argv)
                               +builtins.canonicalFilePath());
 
     // Initialize the graphics just below contents of basics.tbl
-    xlr->context = new Context(xlr->context, NULL);
+    xlr->CreateScope();
     EnterGraphics();
 
     // Activate basic compilation
-    xlr->options.optimize_level = 1;
     xlr->SetupCompiler();
 
     // Load settings

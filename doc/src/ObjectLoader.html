@@ -1,0 +1,54 @@
+<HTML>
+<head>
+<link href="doxygen.css" rel="stylesheet" type="text/css"/>
+</head>
+<title>The ObjectLoader module</title>
+<BODY>
+<div class="contents">
+<H1>The ObjectLoader module</H1>
+<H2>Description</H2>
+Using the ObjectLoader module, you can import 3D models exported from many popular 3D software packages.
+Supported formats include:
+<UL>
+<LI>OBJ (*.obj)
+<LI>3DS (*.3ds)
+<LI>Collada V1.4 (*.dae)
+<LI>3DXML ASCII V3 and V4 (*.3dxml)
+<LI>STL (ASCII and binary) (*.stl)
+<LI>OFF and COFF (*.off)
+</UL>
+<H2>Usage</H2>
+To use the module, add the following import to your document:
+<pre>
+import ObjectLoader "0.2"
+</pre>
+<h2>Example</h2>
+The following Tao document will load a 3D model from file conestoga.3ds, and show it rotating around the z axis.
+<pre>
+import ObjectLoader "0.2"
+
+the_light x, y, z ->
+    light 0
+    light_ambient 0.4, 0.4, 0.4, 1.0
+    light_diffuse 0.4, 0.4, 0.4, 1.0
+    light_specular 0.8, 0.8, 0.8, 1.0
+    light_attenuation 1.0, 0.0, 0.0
+    light_position x, y, z
+
+rotating_obj f ->
+    locally
+        rotatex -70
+        rotatez 8 * time
+        object 0, 0, 0, 400, 400, 400, f
+
+the_light 300, 300, 300
+rotating_obj "conestoga.3ds"
+</pre>
+Here is a screen capture:
+<center>
+<img src="conestoga.png"/>
+</center>
+(3D model by Helmut Schaub &mdash; http://www.3dxtra.net, http://www.3d-xtra.bravepages.com)
+</div>
+</BODY>
+</HTML>

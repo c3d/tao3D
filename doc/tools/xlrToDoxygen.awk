@@ -14,8 +14,19 @@ BEGIN {
     previous_syntaxes = ""
     #system("mkdir -p c_files")
     filename = sprintf("c_files/%s.c",FAMILYNAME)
-    printf "/**\n * @addtogroup %s\n * Detailed description for group %s\n *", FAMILYNAME, FAMILYNAME > filename
-    printf "\n * For more information see <a href=\"../src/%s.html\">%s_doc</a>\n * @{\n */\n", FAMILYNAME, FAMILYNAME >> filename
+    if (match(FAMILYNAME, "^module\."))
+    {
+        printf "/** @addtogroup Modules */\n" > filename
+        printf "/** @ingroup Modules\n" >> filename
+        FAMILYNAME=substr(FAMILYNAME, RLENGTH+1)
+    }
+    else
+    {
+        printf "/** @addtogroup Builtins */\n" > filename
+        printf "/** @ingroup Builtins\n" >> filename
+    }
+    printf "* @addtogroup %s\n * See <a href=\"%s.html\">%s description</a>.\n", FAMILYNAME, FAMILYNAME, FAMILYNAME >> filename
+    printf "* @{\n */\n" >> filename
     OK = 0
     inLongText = 0
     lastLongText = ""
@@ -24,7 +35,6 @@ function extractStr(s){
     if (match( s, "<<[^>]*>>") > 0)
     {
         s = substr( s, RSTART+2, RLENGTH-4)
-        gsub("\n","<BR>\n",s)
         return s
     }
 
@@ -37,7 +47,7 @@ function extractStr(s){
     #printf "DEB: extractString enters long string\n"
         inLongText = 1
         s = substr( s, RSTART+2, RLENGTH-2)
-        s= sprintf("%s<BR>",s)
+        s= sprintf("%s",s)
         return s
     }
     if (match( s, "[^>]*>>") > 0)
@@ -48,7 +58,7 @@ function extractStr(s){
         return s
     }
     #printf "DEB: extractString returns full string\n"
-    s = sprintf("%s<BR>",s)
+    s = sprintf("%s",s)
     return s
 }
 # matches every entry

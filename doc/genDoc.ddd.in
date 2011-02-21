@@ -1,0 +1,4 @@
+$$IMPORT_OBJECTLOADER
+generate_all_doc \"$$ABSOLU_TAODIR/all_documentation.xl\"
+exit 0
+

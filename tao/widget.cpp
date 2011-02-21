@@ -5122,10 +5122,10 @@ static void list_files(Dir &current, Tree *patterns,
     if (Text *glob = patterns->AsText())
     {
         QString filter = +glob->value;
-        QStringList files = current.entryList(QStringList() << filter);
-        foreach (QString file, files)
+        QFileInfoList files = current.entryInfoGlobList(filter);
+        foreach (QFileInfo file, files)
         {
-            Text *listed = new Text(+file);
+            Text *listed = new Text(+file.absoluteFilePath());
             if (*parent)
             {
                 Infix *added = new Infix(",", *parent, listed);

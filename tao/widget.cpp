@@ -718,6 +718,7 @@ void Widget::runProgram()
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
         gotoPageName = "";
+        refresh();
     }
 }
 

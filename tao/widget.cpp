@@ -154,7 +154,7 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       timer(this), idleTimer(this),
-      pageStartTime(1e6), pageRefresh(1e6), frozenTime(1e6), startTime(1e6),
+      pageStartTime(0), pageRefresh(0), frozenTime(0), startTime(0),
       stats_interval(5000),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
@@ -224,6 +224,9 @@ Widget::Widget(Window *parent, XL::SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
+
+    // Initialize page times
+    pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();
 }
 
 
@@ -251,10 +254,6 @@ void Widget::dawdle()
 {
     if (!xlProgram)
         return;
-
-    // Check if this is the first time we go idle or if time wrapped up
-    if (pageStartTime > CurrentTime())
-        pageRefresh = pageStartTime = startTime = frozenTime = CurrentTime();
 
     // Run all activities, which will get them a chance to update refresh
     for (Activity *a = activities; a; a = a->Idle()) ;

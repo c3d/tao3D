@@ -205,6 +205,12 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
     QList<int> ids;
     QString fontPath = FontPathFor(docPath);
     QDir fontDir(fontPath);
+    QDir appFontDir(Application::defaultTaoFontsFolderPath());
+    if (fontDir.canonicalPath() == appFontDir.canonicalPath())
+    {
+        // Application fonts, already loaded
+        return ids;
+    }
     QFileInfoList contents = fontDir.entryInfoList(fontFileFilter);
     QTime time;
     int count = 0;

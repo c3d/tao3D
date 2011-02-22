@@ -35,7 +35,7 @@ BEGIN {
     }
     printf "/**\n * @addtogroup %s %s\n */\n", PARENTGROUPN, PARENTGROUPT >> filename
     printf "/**\n * @addtogroup %s\n * @ingroup %s\n", GROUPN, PARENTGROUPN >> filename
-    printf " * See <a href=\"%s.html\">%s description</a>.\n", FAMILYNAME, FAMILYNAME >> filename
+    printf " * See <a href=\"%s.html\">%s description</a>.\n", FAMILYNAME, GROUPN >> filename
     printf " * @{\n */\n" >> filename
     OK = 0
     inLongText = 0

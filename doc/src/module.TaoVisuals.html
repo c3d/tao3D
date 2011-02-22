@@ -1,0 +1,35 @@
+<HTML>
+<head>
+<link href="doxygen.css" rel="stylesheet" type="text/css"/>
+</head>
+<title>The TaoVisuals module</title>
+<BODY>
+<div class="contents">
+<H1>The TaoVisuals module</H1>
+<H2>Description</H2>
+TaoVisuals is a collection of graphic elements related to Tao Presentations
+and Taodyne. The module provides ready to use Tao functions, such as
+tv_taodyne_logo. Logos are configurable: they are provided in several
+versions, so you can choose whether you want to show the tagline or not, and
+also in which language to display the logo (english or french).
+<H2>Usage</H2>
+To use the module, add the following import to your document:
+<pre>
+import TaoVisuals "0.1"
+</pre>
+<h2>Example</h2>
+<pre>
+import TaoVisuals "0.1"
+
+tv_taodyne_logo 0, 80, 200, 100
+tv_language := "fr"
+tv_tagline := "dev"
+tv_taodyne_logo 0, -80, 200, 100
+</pre>
+Here is a screen capture:
+<center>
+<img src="taovisuals.png"/>
+</center>
+</div>
+</BODY>
+</HTML>

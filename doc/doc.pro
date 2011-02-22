@@ -25,7 +25,10 @@ macx {
   QMAKE_SUBSTITUTES = genDoc.ddd.in
 
   include (../modules/module_list.pri)
-  contains(MODULES, object_loader):IMPORT_OBJECTLOADER="import ObjectLoader \"0.2\""
+  contains(MODULES, object_loader):IMPORTS += "import ObjectLoader \"0.2\""
+  contains(MODULES, lorem_ipsum):IMPORTS +="import LoremIpsum \"0.1\""
+  contains(MODULES, tao_visuals):IMPORTS +="import TaoVisuals \"0.1\""
+  IMPORTS=$$join(IMPORTS, $$escape_expand(\\n))
 
   doc_xl.commands = (cd $$APPINST; DYLD_LIBRARY_PATH=../Frameworks ./Tao -norepo -nosplash $$PWD/genDoc.ddd)
   doc_xl.depends = $$APPINST/Tao create_dirs genDoc.ddd

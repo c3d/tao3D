@@ -14,19 +14,29 @@ BEGIN {
     previous_syntaxes = ""
     #system("mkdir -p c_files")
     filename = sprintf("c_files/%s.c",FAMILYNAME)
-    if (match(FAMILYNAME, "^module\."))
+    if (match(FAMILYNAME, "^module\\."))
     {
-        printf "/** @addtogroup Modules */\n" > filename
-        printf "/** @ingroup Modules\n" >> filename
-        FAMILYNAME=substr(FAMILYNAME, RLENGTH+1)
+        GROUPN=substr(FAMILYNAME, RLENGTH+1)
+        PARENTGROUPN = "grpTPModules"
+        PARENTGROUPT = "Tao Presentations Modules"
+    }
+    else
+    if (FAMILYNAME == "basics")
+    {
+        GROUPN=FAMILYNAME
+        PARENTGROUPN = "grpXLRBuiltins"
+        PARENTGROUPT = "XLR Language Builtins"
     }
     else
     {
-        printf "/** @addtogroup Builtins */\n" > filename
-        printf "/** @ingroup Builtins\n" >> filename
+        GROUPN=FAMILYNAME
+        PARENTGROUPN = "grpTPBuiltins"
+        PARENTGROUPT = "Tao Presentations Builtins"
     }
-    printf "* @addtogroup %s\n * See <a href=\"%s.html\">%s description</a>.\n", FAMILYNAME, FAMILYNAME, FAMILYNAME >> filename
-    printf "* @{\n */\n" >> filename
+    printf "/**\n * @addtogroup %s %s\n */\n", PARENTGROUPN, PARENTGROUPT >> filename
+    printf "/**\n * @addtogroup %s\n * @ingroup %s\n", GROUPN, PARENTGROUPN >> filename
+    printf " * See <a href=\"%s.html\">%s description</a>.\n", FAMILYNAME, FAMILYNAME >> filename
+    printf " * @{\n */\n" >> filename
     OK = 0
     inLongText = 0
     lastLongText = ""
@@ -81,7 +91,7 @@ function extractStr(s){
     }
     # Check if new definition is in the FAMILY
     fn_families = extractStr($3)
-    OK = index(fn_families, FAMILYNAME) 
+    OK = (fn_families == FAMILYNAME)
     if (OK > 0)
     {
         # start new definition

@@ -28,6 +28,7 @@ macx {
   contains(MODULES, object_loader):IMPORTS += "import ObjectLoader \"0.2\""
   contains(MODULES, lorem_ipsum):IMPORTS +="import LoremIpsum \"0.1\""
   contains(MODULES, tao_visuals):IMPORTS +="import TaoVisuals \"0.1\""
+  contains(MODULES, digital_clock):IMPORTS +="import DigitalClock \"0.1\""
   IMPORTS=$$join(IMPORTS, $$escape_expand(\\n))
 
   doc_xl.commands = (cd $$APPINST; DYLD_LIBRARY_PATH=../Frameworks ./Tao -norepo -nosplash $$PWD/genDoc.ddd)

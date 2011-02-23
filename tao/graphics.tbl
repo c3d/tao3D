@@ -1246,6 +1246,12 @@ PREFIX(Font,  tree,  "font",
        GROUP(text:font)
        SYNOPSIS("Select a font family")
        DESCRIPTION("Select a font family"))
+PREFIX(FontFamily,  tree,  "font",
+       PARM(f, text, "The font family, and optionally, font style after a slash"),
+       RTAO(fontFamily(self, f)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
 PREFIX(FontSize,  tree,  "font_size",
        PARM(s, real, "The font size."),
        RTAO(fontSize(self, s)),

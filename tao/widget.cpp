@@ -6254,6 +6254,15 @@ Tree_p Widget::font(Tree_p self, Tree_p description)
 }
 
 
+Tree_p Widget::fontFamily(Tree_p self, text family)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    return font(self, new XL::Text(family));
+}
+
+
 Tree_p Widget::fontSize(Tree_p self, double size)
 // ----------------------------------------------------------------------------
 //   Select a font size

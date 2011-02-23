@@ -21,20 +21,22 @@
 // ****************************************************************************
 
 #include "dir.h"
+#include "tao_utf8.h"
+#include <iostream>
 
 TAO_BEGIN
 
-QStringList Dir::entryList(QString pattern)
+QFileInfoList Dir::entryInfoGlobList(QString pattern)
 // ----------------------------------------------------------------------------
 //   Enumerate files that match pattern relative to the current directory
 // ----------------------------------------------------------------------------
 {
-    QStringList result;
+    QFileInfoList result;
     if (pattern.startsWith("/"))
     {
         while (pattern.startsWith("/"))
             pattern.remove(0, 1);
-        result << Dir("/").entryList(QStringList() << pattern);
+        result << Dir("/").entryInfoGlobList(pattern);
     }
     else
     {
@@ -47,26 +49,19 @@ QStringList Dir::entryList(QString pattern)
                 rem.remove(1, 1);
             QFileInfoList elements = entryInfoList(QStringList() << top);
             foreach (QFileInfo elem, elements)
+            {
                 if (elem.isDir())
-                    result << Dir(elem.absoluteFilePath()).entryList(rem);
+                {
+                    Dir dir(elem.absoluteFilePath());
+                    result << dir.entryInfoGlobList(rem);
+                }
+            }
         }
         else
         {
-            result << QDir::entryList(QStringList() << pattern, QDir::Files);
+            result << entryInfoList(QStringList()<<pattern, QDir::Files);
         }
     }
-    return result;
-}
-
-
-QStringList Dir::entryList(const QStringList &nameFilters)
-// ----------------------------------------------------------------------------
-//   Like QDir::entryList(), but support patterns with subdirectories
-// ----------------------------------------------------------------------------
-{
-    QStringList result;
-    foreach (QString pattern, nameFilters)
-        result << entryList(pattern);
     return result;
 }
 

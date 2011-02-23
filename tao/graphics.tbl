@@ -2399,7 +2399,13 @@ PREFIX(GenAllDoc,  tree,  "generate_all_doc",
                "The Text contains the documentation, "
                "ready to be parsed. "))
 
-PREFIX(ListFiles2, tree, "list_files", PARM(pat, tree, ""),
+PREFIX(ListFiles2, tree, "files", PARM(pat, tree, ""),
+       RTAO(listFiles(self, pat)),
+       GROUP(misc)
+       SYNOPSIS("")
+       DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
+       RETURNS(tree, ""))
+PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
        RTAO(listFiles(self, pat)),
        GROUP(misc)
        SYNOPSIS("")

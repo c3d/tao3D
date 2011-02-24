@@ -56,6 +56,9 @@
 #include <bfs.h>
 #include <QList>
 #include <QRegExp>
+#ifndef Q_OS_MACX
+#include <QFSFileEngine>
+#endif
 
 #ifdef Q_OS_WIN
 #include <windows.h>
@@ -1855,7 +1858,6 @@ bool Window::saveFile(const QString &fileName)
     }
 
     isUntitled = false;
-    setCurrentFile(fileName);
     statusBar()->showMessage(tr("Saving..."));
     // FIXME: can't call processEvent here, or the "Save with fonts..."
     // function fails to save all the fonts of a multi-page doc
@@ -1886,6 +1888,9 @@ bool Window::saveFile(const QString &fileName)
 #endif
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
+
+    // Will update recent file list since file now exists
+    setCurrentFile(fileName);
 
     text fn = +fileName;
 
@@ -2252,8 +2257,7 @@ void Window::setCurrentFile(const QString &fileName)
 //   Set the current file name, create one for empty documents
 // ----------------------------------------------------------------------------
 {
-    QString name = fileName;
-    QFileInfo fi(name);
+    QFileInfo fi(fileName);
     curFile = fi.absoluteFilePath();
     if (fi.exists())
         isReadOnly |= !fi.isWritable();
@@ -2262,15 +2266,25 @@ void Window::setCurrentFile(const QString &fileName)
     setWindowFilePath(curFile);
 
     // Update the recent file list
-    if (!isUntitled && !isTutorial(curFile))
+    if (!isUntitled && !isTutorial(curFile) && fi.exists())
     {
         IFTRACE(settings)
-            std::cerr << "Adding " << +fileName << " to recent file list\n";
+            std::cerr << "Adding " << +curFile << " to recent file list\n";
 
         QSettings settings;
         QStringList files = settings.value("recentFileList").toStringList();
-        files.removeAll(fileName);
-        files.prepend(fileName);
+        Qt::CaseSensitivity cs = Qt::CaseInsensitive;
+#ifndef Q_OS_MACX
+        // If file system is case sensitive, we want to keep paths that
+        // differ only in character case
+        // NOTE: caseSensitive() wrongly returns true on MacOSX
+        if (QFSFileEngine(curFile).caseSensitive())
+            cs = Qt::CaseSensitive;
+#endif
+        foreach (QString f, files)
+            if (f.compare(curFile, cs) == 0)
+                files.removeOne(f);
+        files.prepend(curFile);
         while (files.size() > MaxRecentFiles)
             files.removeLast();
         settings.setValue("recentFileList", files);

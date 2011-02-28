@@ -3,3 +3,5 @@
 /Makefile.Release
 /Tao.app/
 /version.h
+/Info.plist
+/tao.rc

@@ -41,7 +41,9 @@
 #include "drag.h"
 #include "manipulator.h"
 #include "menuinfo.h"
+#ifndef CFG_NOGIT
 #include "repository.h"
+#endif
 #include "application.h"
 #include "tao_utf8.h"
 #include "layout.h"
@@ -73,6 +75,7 @@
 #include "context.h"
 #include "tree-walk.h"
 #include "raster_text.h"
+#include "dir.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -122,6 +125,8 @@ static inline QGLFormat TaoGLFormat()
          QGL::AccumBuffer       |
          QGL::StereoBuffers);
     QGLFormat format(options);
+    // Enable VSync by default
+    format.setSwapInterval(1);
     return format;
 }
 
@@ -157,8 +162,11 @@ Widget::Widget(Window *parent, SourceFile *sf)
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
-      nextSave(now()), nextCommit(nextSave),
-      nextSync(nextSave), nextPull(nextSave),
+      nextSave(now()), nextSync(nextSave),
+#ifndef CFG_NOGIT
+      nextCommit(nextSave),
+      nextPull(nextSave),
+#endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
       zNear(1000.0), zFar(56000.0),
@@ -166,7 +174,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false)
+      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -230,8 +238,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
-
-    enableVSync(NULL, true);
 }
 
 
@@ -282,6 +288,7 @@ void Widget::dawdle()
         doSave(tick);
     }
 
+#ifndef CFG_NOGIT
     // Check if it's time to commit
     longlong commitDelay = longlong (nextCommit - tick);
     if (repo && commitDelay < 0 &&
@@ -298,6 +305,7 @@ void Widget::dawdle()
     {
         doPull(tick);
     }
+#endif
 
     // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
@@ -334,9 +342,18 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    // Recursive drawing may occur with video widgets, and it's bad
-    if (current)
+    // In offline renderin mode, just keep the widget clear
+    if (inOfflineRendering)
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
+    }
+
+    // Recursive drawing may occur with video widgets, and it's bad
+    if (inDraw)
+        return;
+
+    XL::Save<bool> drawing(inDraw, true);
 
     TaoSave saveCurrent(current, this);
 
@@ -351,6 +368,9 @@ void Widget::draw()
         sel->cursor.select(QTextCursor::Document);
         sel->cursor.removeSelectedText();
     }
+
+    //Clean actionMap
+    actionMap.clear();
 
     // Make sure program has been run at least once
     if (runOnNextDraw)
@@ -387,7 +407,7 @@ void Widget::draw()
             "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
             "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
             "}";
-        
+
         if (!depthMapper)
         {
             QGLShaderProgram *pgm = new QGLShaderProgram();
@@ -506,7 +526,7 @@ void Widget::draw()
             id = idDepth = 0;
             depthMapper->bind();
             XL::Save<uint> setPgmId(Layout::globalProgramId,
-                                         depthMapper->programId());
+                                    depthMapper->programId());
             glScissor(w/2, 0, w/2, h);
             glEnable(GL_SCISSOR_TEST);
             selectionSpace.Draw(NULL);
@@ -599,14 +619,6 @@ void Widget::draw()
 
     // Clipboard management
     checkCopyAvailable();
-
-    // Update page count for next run
-    pageNames = newPageNames;
-    pageTotal = pageId ? pageId : 1;
-    if (pageFound)
-        pageShown = pageFound;
-    else
-        pageName = "";
 
     // If we must update dialogs, do it now
     if (mustUpdateDialogs)
@@ -729,6 +741,9 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+
+    if (inOfflineRendering)
+        return false;
 
     if (!layout)
         return false;
@@ -856,6 +871,26 @@ void Widget::runProgram()
     currentMenu    = NULL;
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
+
+    // Update page count for next run
+    pageNames = newPageNames;
+    pageTotal = pageId ? pageId : 1;
+    if (pageFound)
+        pageShown = pageFound;
+    else
+        pageName = pageNameAtIndex(NULL, pageShown)->value;
+
+    // Check if program asked to change page for the next run
+    if (gotoPageName != "")
+    {
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+        refresh();
+    }
 
     processProgramEvents();
 }
@@ -993,23 +1028,28 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     TaoSave saveCurrent(current, this);
 
-    // Create a GL frame to render into
-    FrameInfo frame(w, h);
-
     // Set the initial time we want to set and freeze animations
-    XL::Save<bool> disableAnimations(animated, false);
     XL::Save<double> setPageTime(pageStartTime, start_time);
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
 
-    scale s = qMin((double)w / width(), (double)h / height());
+    GLAllStateKeeper saveGL;
+    XL::Save<double> saveScaling(scaling, scaling);
+
+    inOfflineRendering = true;
+    offlineRenderingWidth = w;
+    offlineRenderingHeight = h;
 
     // Select page, if not current
     if (page != -1)
     {
+        currentTime = start_time;
         runProgram();
         gotoPage(NULL, pageNameAtIndex(NULL, page));
     }
+
+    // Create a GL frame to render into
+    FrameInfo frame(w, h);
 
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
@@ -1022,21 +1062,20 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             break;
         }
 
-        GLAllStateKeeper saveGL;
-        XL::Save<double> saveScaling(scaling, scaling * s);
-
         // Show progress information
         percent = 100*currentFrame++/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;
             emit renderFramesProgress(percent);
-            QApplication::processEvents();
         }
 
+        QApplication::processEvents();
+
         // Set time and run program
-        // REVISIT: use refreshNow() to avoid full program execution?
-        frozenTime = t;
+        XL::Save<page_list> savePageNames(pageNames, pageNames);
+        setupPage();
+        currentTime = t;
         runProgram();
 
         // Draw the layout in the frame context
@@ -1049,6 +1088,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         space->Draw(NULL);
         frame.end();
 
+        QApplication::processEvents();
+
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
@@ -1056,6 +1097,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
     }
 
+    // Done with offline rendering
+    inOfflineRendering = false;
     emit renderFramesDone();
     QApplication::processEvents();
 }
@@ -1275,6 +1318,8 @@ void Widget::paste()
                 std::cerr << "Clipboard: pasting HTML:\n";
                 std::cerr << +mimeData->html() <<std::endl;
             }
+            sel->replacement = "";
+            sel->replace = true;
             sel->replacement_tree = portability().fromHTML(mimeData->html());
 
             updateGL();
@@ -1570,8 +1615,12 @@ void Widget::saveAndCommit()
 // ----------------------------------------------------------------------------
 {
     ulonglong tick = now();
+#ifdef CFG_NOGIT
+    doSave(tick);
+#else
     if (doSave(tick))
         doCommit(tick);
+#endif
 }
 
 
@@ -1606,17 +1655,6 @@ bool Widget::refresh(double delay)
     double end = CurrentTime() + delay;
     return refreshOn(QEvent::Timer, end);
 }
-
-
-void Widget::commitSuccess(QString id, QString msg)
-// ----------------------------------------------------------------------------
-//   Document was succesfully committed to repository (see doCommit())
-// ----------------------------------------------------------------------------
-{
-    Window *window = (Window *) parentWidget();
-    window->undoStack->push(new UndoCommand(repository(), id, msg));
-}
-
 
 
 // ============================================================================
@@ -1760,6 +1798,7 @@ void Widget::setupGL()
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
     glEnable(GL_POINT_SMOOTH);
+    glEnable(GL_MULTISAMPLE);
     glEnable(GL_POLYGON_OFFSET_FILL);
     glEnable(GL_POLYGON_OFFSET_LINE);
     glEnable(GL_POLYGON_OFFSET_POINT);
@@ -1801,18 +1840,18 @@ void Widget::setupStereoStencil(double w, double h)
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
-	// Prepare to draw in stencil buffer
-	glDrawBuffer(GL_BACK);
+        // Prepare to draw in stencil buffer
+        glDrawBuffer(GL_BACK);
         glEnable(GL_STENCIL_TEST);
-	glClearStencil(0);
-	glClear(GL_STENCIL_BUFFER_BIT);
-	glDisable(GL_DEPTH_TEST);
+        glClearStencil(0);
+        glClear(GL_STENCIL_BUFFER_BIT);
+        glDisable(GL_DEPTH_TEST);
 
         // Line properties
-	glColor4f(1.0, 1.0, 1.0, 1.0);
+        glColor4f(1.0, 1.0, 1.0, 1.0);
         glLineWidth(1);
         glDisable(GL_LINE_SMOOTH);
-        glDisable(GL_LINE_STIPPLE);
+        glDisable(GL_MULTISAMPLE);
 
         uint numLines = 0;
         switch(stereoMode)
@@ -2677,6 +2716,8 @@ void Widget::setCurrentTime()
 //    Update cached current time value
 // ----------------------------------------------------------------------------
 {
+    if (inOfflineRendering)
+        return;
     currentTime = trueCurrentTime();
 }
 
@@ -2795,10 +2836,12 @@ void Widget::updateProgramSource()
 //   Update the contents of the program source window
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
-    if (window->src->isHidden())
+    if (window->src->isHidden() || ! xlProgram)
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
+#endif
 }
 
 
@@ -3064,6 +3107,46 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
 }
 
 
+#ifndef CFG_NOGIT
+
+void Widget::commitSuccess(QString id, QString msg)
+// ----------------------------------------------------------------------------
+//   Document was succesfully committed to repository (see doCommit())
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->undoStack->push(new UndoCommand(repository(), id, msg));
+}
+
+bool Widget::doCommit(ulonglong tick)
+// ----------------------------------------------------------------------------
+//   Commit files previously written to repository and reset next commit time
+// ----------------------------------------------------------------------------
+{
+    Repository * repo = repository();
+    if (!repo)
+        return false;
+    if (repo->state == Repository::RS_Clean)
+        return false;
+
+    IFTRACE(filesync)
+            std::cerr << "Commit\n";
+    bool done;
+    done = repo->commit();
+    if (done)
+    {
+        XL::Main *xlr = XL::MAIN;
+        nextCommit = tick + xlr->options.commit_interval * 1000;
+
+        Window *window = (Window *) parentWidget();
+        window->markChanged(false);
+
+        return true;
+    }
+    return false;
+}
+
+
 bool Widget::doPull(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Pull from remote repository and reset next pull time
@@ -3075,6 +3158,7 @@ bool Widget::doPull(ulonglong tick)
     return ok;
 }
 
+#endif
 
 bool Widget::setDragging(bool on)
 // ----------------------------------------------------------------------------
@@ -3108,35 +3192,6 @@ bool Widget::doSave(ulonglong tick)
     // Record when we will save file again
     nextSave = tick + xlr->options.save_interval * 1000;
     return changed;
-}
-
-
-bool Widget::doCommit(ulonglong tick)
-// ----------------------------------------------------------------------------
-//   Commit files previously written to repository and reset next commit time
-// ----------------------------------------------------------------------------
-{
-    Repository * repo = repository();
-    if (!repo)
-        return false;
-    if (repo->state == Repository::RS_Clean)
-        return false;
-
-    IFTRACE(filesync)
-            std::cerr << "Commit\n";
-    bool done;
-    done = repo->commit();
-    if (done)
-    {
-        XL::Main *xlr = XL::MAIN;
-        nextCommit = tick + xlr->options.commit_interval * 1000;
-
-        Window *window = (Window *) parentWidget();
-        window->markChanged(false);
-
-        return true;
-    }
-    return false;
 }
 
 
@@ -3882,18 +3937,14 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
-    lastMouseButtons = 0;
     text old = pageName;
-
     lastMouseButtons = 0;
     selection.clear();
     selectionTrees.clear();
     delete textSelection();
     delete drag();
-    pageStartTime = startTime = frozenTime = CurrentTime();
-    pageName = page;
+    gotoPageName = page;
     refreshNow();
-
     return new Text(old);
 }
 
@@ -3931,7 +3982,7 @@ XL::Text_p Widget::pageNameAtIndex(Tree_p self, uint index)
 // ----------------------------------------------------------------------------
 {
     index--;
-    text name = index < pageNames.size() ? pageNames[index] : pageName;
+    text name = index < pageNames.size() ? pageNames[index] : "";
     return new Text(name);
 }
 
@@ -3981,6 +4032,28 @@ XL::Real_p Widget::frameDepth(Tree_p self)
 }
 
 
+int Widget::width()
+// ----------------------------------------------------------------------------
+//   Return the width of the drawing widget in px
+// ----------------------------------------------------------------------------
+{
+    if (inOfflineRendering)
+        return offlineRenderingWidth;
+    return QWidget::width();
+}
+
+
+int Widget::height()
+// ----------------------------------------------------------------------------
+//   Return the height of the drawing widget in px
+// ----------------------------------------------------------------------------
+{
+    if (inOfflineRendering)
+        return offlineRenderingHeight;
+    return QWidget::height();
+}
+
+
 XL::Real_p Widget::windowWidth(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the width of the window in which we display
@@ -4000,6 +4073,153 @@ XL::Real_p Widget::windowHeight(Tree_p self)
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
     return new Real(h);
+}
+
+
+Integer_p Widget::seconds(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the second for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    int second = fmod(tm, 60);
+    if (t < 0)
+    {
+        double refresh = (double)(int)tm + 1.0;
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(second);
+}
+
+
+Integer_p Widget::minutes(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the minute for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int minute = now.time().minute();
+    if (t < 0)
+    {
+        QTime t = now.time();
+        t = t.addMSecs(-t.msec());
+        t.setHMS(t.hour(), t.minute(), 0);
+        QDateTime next(now);
+        next.setTime(t);
+        next = next.addSecs(60);
+        double refresh = toSecsSinceEpoch(next);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(minute);
+}
+
+
+Integer_p Widget::hours(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the localtime hour for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int hour = now.time().hour();
+    if (t < 0)
+    {
+        QTime t = now.time();
+        t = t.addMSecs(-t.msec());
+        t.setHMS(t.hour(), 0, 0);
+        QDateTime next(now);
+        next.setTime(t);
+        next = next.addSecs(3600);
+        double refresh = toSecsSinceEpoch(next);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(hour);
+}
+
+
+Integer_p Widget::day(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the day (1-31) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().day();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::weekDay(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the week day (1-7) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().dayOfWeek();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::yearDay(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the year day (1-365) for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int day = now.date().dayOfYear();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(day);
+}
+
+
+Integer_p Widget::month(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the month for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int month = now.date().month();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(month);
+}
+
+
+Integer_p Widget::year(Tree_p self, double t)
+// ----------------------------------------------------------------------------
+//    Return the year for time t or the current time if t < 0
+// ----------------------------------------------------------------------------
+{
+    double tm = (t < 0) ? CurrentTime() : t;
+    QDateTime now = fromSecsSinceEpoch(tm);
+    int year = now.date().year();
+    if (t < 0)
+    {
+        double refresh = nextDay(now);
+        refreshOn(QEvent::Timer, refresh);
+    }
+    return new XL::Integer(year);
 }
 
 
@@ -4392,122 +4612,7 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     return new XL::Real(prev);
 }
 
-
-Integer_p Widget::seconds(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current second, schedule refresh on next second
-// ----------------------------------------------------------------------------
-{
-    double now = CurrentTime();
-    int second = fmod(now, 60);
-    double refresh = (double)(int)now + 1.0;
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(second);
-}
-
-
-Integer_p Widget::minutes(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current minute, schedule refresh on next minute
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int minute = now.time().minute();
-    QTime t = now.time();
-    t = t.addMSecs(-t.msec());
-    t.setHMS(t.hour(), t.minute(), 0);
-    QDateTime next(now);
-    next.setTime(t);
-    next = next.addSecs(60);
-    double refresh = toSecsSinceEpoch(next);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(minute);
-}
-
-
-Integer_p Widget::hours(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current hour, schedule refresh on next hour
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int hour = now.time().hour();
-    QTime t = now.time();
-    t = t.addMSecs(-t.msec());
-    t.setHMS(t.hour(), 0, 0);
-    QDateTime next(now);
-    next.setTime(t);
-    next = next.addSecs(3600);
-    double refresh = toSecsSinceEpoch(next);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(hour);
-}
-
-
-Integer_p Widget::day(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current day, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int day = now.date().day();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(day);
-}
-
-
-Integer_p Widget::weekDay(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current week day, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int day = now.date().dayOfWeek();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(day);
-}
-
-
-Integer_p Widget::yearDay(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current week day, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int day = now.date().dayOfYear();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(day);
-}
-
-
-Integer_p Widget::month(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current month, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int month = now.date().month();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(month);
-}
-
-
-Integer_p Widget::year(Tree_p self)
-// ----------------------------------------------------------------------------
-//    Return the current year, schedule refresh on next day
-// ----------------------------------------------------------------------------
-{
-    QDateTime now = fromSecsSinceEpoch(CurrentTime());
-    int year = now.date().year();
-    double refresh = nextDay(now);
-    refreshOn(QEvent::Timer, refresh);
-    return new XL::Integer(year);
-}
-
+#ifndef CFG_NOSRCEDIT
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
 // ----------------------------------------------------------------------------
@@ -4519,6 +4624,7 @@ XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
     return old ? XL::xl_true : XL::xl_false;
 }
 
+#endif
 
 XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
@@ -4854,6 +4960,8 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
+#ifndef CFG_NOSTEREO
+
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Enable or disable stereoscopie mode
@@ -4949,6 +5057,8 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
     return XL::xl_true;
 }
 
+#endif
+
 
 XL::Integer_p  Widget::polygonOffset(Tree_p self,
                                     double f0, double f1,
@@ -4977,9 +5087,30 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
 #if defined(Q_OS_MACX)
     GLint old = 0;
     CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
-    const GLint swapInterval = enable ? 1 : 0;
-    CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
-    return old ? XL::xl_true : XL::xl_false;
+    bool prev = (old != 0);
+    if (enable != prev)
+    {
+        const GLint swapInterval = enable ? 1 : 0;
+        CGLSetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &swapInterval);
+    }
+    return prev ? XL::xl_true : XL::xl_false;
+#elif defined(Q_OS_WIN)
+    typedef BOOL (*set_fn_t) (int interval);
+    typedef int  (*get_fn_t) (void);
+    set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
+    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
+    int old = 0;
+    if (set_fn && get_fn) {
+        old = get_fn();
+        bool prev = (old != 0);
+        if (enable != prev)
+        {
+            int swapInterval = enable ? 1 : 0;
+            set_fn(swapInterval);
+        }
+        return prev ? XL::xl_true : XL::xl_false;
+    }
+    return XL::xl_false;
 #else
     // Command not supported, but do it silently
     return XL::xl_false;
@@ -5301,23 +5432,27 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 }
 
 
-Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, text filename)
+Tree_p Widget::image(Context *context,
+                     Tree_p self, Real_p x, Real_p y, text filename)
 //----------------------------------------------------------------------------
 //  Make an image with default size
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
-    return image(self, x, y, NULL, NULL, filename);
+    return image(context, self, x, y, NULL, NULL, filename);
 }
 
 
-Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
+Tree_p Widget::image(Context *context,
+                     Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
                      text filename)
 //----------------------------------------------------------------------------
 //  Make an image
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
+    filename = context->stack->ResolvePrefixedPath(filename);
+
     GLuint texId = 0;
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     double sx = sxp.Pointer() ? (double) sxp : 1.0;
@@ -5347,17 +5482,99 @@ Tree_p Widget::image(Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
 }
 
 
+Tree_p Widget::imagePx(Context *context,
+                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                       text filename)
+//----------------------------------------------------------------------------
+//  Make an image
+//----------------------------------------------------------------------------
+{
+    Infix_p resolution = imageSize(self, filename);
+    Integer_p ww = resolution->left->AsInteger();
+    Integer_p hh = resolution->right->AsInteger();
+    double sx = (double)w / (double)ww;
+    double sy = (double)h / (double)hh;
+
+    return image(context, self, x, y, new Real(sx), new Real(sy), filename);
+}
+
+
+Infix_p Widget::imageSize(Tree_p self, text filename)
+//----------------------------------------------------------------------------
+//  Return the width and height of an image
+//----------------------------------------------------------------------------
+{
+    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
+    if (!rinfo)
+    {
+        rinfo = new ImageTextureInfo();
+        self->SetInfo<ImageTextureInfo>(rinfo);
+    }
+    ImageTextureInfo::Texture t = rinfo->load(filename);
+
+    return new Infix(",", new Integer(t.width), new Integer(t.height));
+}
+
+
+static void list_files(Context *context, Dir &current, Tree *patterns,
+                       Tree_p *&parent)
+// ----------------------------------------------------------------------------
+//   Append files matching patterns (relative to directory current) to parent
+// ----------------------------------------------------------------------------
+{
+    if (Block *block = patterns->AsBlock())
+    {
+        list_files(context, current, block->child, parent);
+        return;
+    }
+    if (Infix *infix = patterns->AsInfix())
+    {
+        if (infix->name == "," || infix->name == ";" || infix->name == "\n")
+        {
+            list_files(context, current, infix->left, parent);
+            list_files(context, current, infix->right, parent);
+            return;
+        }
+    }
+
+    patterns = context->Evaluate(patterns);
+    if (Text *glob = patterns->AsText())
+    {
+        QString filter = +glob->value;
+        QFileInfoList files = current.entryInfoGlobList(filter);
+        foreach (QFileInfo file, files)
+        {
+            Text *listed = new Text(+file.absoluteFilePath());
+            if (*parent)
+            {
+                Infix *added = new Infix(",", *parent, listed);
+                *parent = added;
+                parent = &added->right;
+            }
+            else
+            {
+                *parent = listed;
+            }
+        }
+        return;
+    }
+    Ooops("Malformed files list $1", patterns);
+}
+
+
 Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
 // ----------------------------------------------------------------------------
 //   List files, current directory is the document directory
 // ----------------------------------------------------------------------------
 {
-    QString savePath = QDir::currentPath();
+    Tree_p result = NULL;
+    Tree_p *parent = &result;
     Window *window = (Window *) parentWidget();
-    QDir::setCurrent(window->currentProjectFolderPath());
-    Tree_p ret = XL::xl_list_files(context, pattern);
-    QDir::setCurrent(savePath);
-    return ret;
+    Dir current(window->currentProjectFolderPath());
+    list_files(context, current, pattern, parent);
+    if (!result)
+        result = XL::xl_nil;
+    return result;
 }
 
 
@@ -6410,7 +6627,7 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
         if (path)
             TextValue(value, this).Draw(*path, layout);
         else
-            layout->Add(new TextValue(value, this));        
+            layout->Add(new TextValue(value, this));
     }
     else
     {
@@ -6436,6 +6653,15 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
     if (fontFileMgr)
         fontFileMgr->AddFontFiles(layout->font);
     return XL::xl_true;
+}
+
+
+Tree_p Widget::fontFamily(Context *context, Tree_p self, text family)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    return font(context, self, new XL::Text(family));
 }
 
 
@@ -7142,7 +7368,7 @@ Tree_p Widget::thumbnail(Context *context,
         layout = NULL;
 
         // Update refresh time
-        frame.refreshTime = fmod(CurrentTime() + interval, 86400.0);
+        frame.refreshTime = CurrentTime() + interval;
     }
 
     // Bind the resulting texture
@@ -7151,6 +7377,15 @@ Tree_p Widget::thumbnail(Context *context,
     layout->hasAttributes = true;
 
     return XL::xl_true;
+}
+
+
+Name_p Widget::offlineRendering(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we are currently rendering offline
+// ----------------------------------------------------------------------------
+{
+    return inOfflineRendering ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -7693,6 +7928,9 @@ Tree_p Widget::fileChooser(Tree_p self, Tree_p properties)
     // Setup the color dialog
     fileDialog = new QFileDialog(this);
     fileDialog->setObjectName("fileDialog");
+    // To be able to set the selectFileName programmatically.
+    // Can be revisited when tests will be integrated in new module fmw.
+    fileDialog->setOption(QFileDialog::DontUseNativeDialog, true);
     currentFileDialog = fileDialog;
     fileDialog->setModal(false);
 
@@ -8126,6 +8364,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
 //   Add a list of branches to the chooser
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
@@ -8139,6 +8378,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         }
         return XL::xl_true;
     }
+#endif
     return XL::xl_false;
 }
 
@@ -8149,6 +8389,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
 //   Add a list of commits to the chooser
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
@@ -8165,6 +8406,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
         }
         return XL::xl_true;
     }
+#endif
     return XL::xl_false;
 }
 
@@ -8174,9 +8416,25 @@ Tree_p Widget::checkout(Tree_p self, text what)
 //   Checkout a branch or a commit. Called by chooser.
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOGIT
     Repository *repo = repository();
     if (repo && repo->checkout(what))
         return XL::xl_true;
+#endif
+    return XL::xl_false;
+}
+
+
+Name_p Widget::currentRepository(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return true if we use a git repository with the current document
+// ----------------------------------------------------------------------------
+{
+#ifndef CFG_NOGIT
+    Repository *repo = repository();
+    if (repo)
+        return XL::xl_true;
+#endif
     return XL::xl_false;
 }
 
@@ -8220,9 +8478,11 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
     if (current)
     {
         current->inError = true;             // Stop refreshing
+#ifndef CFG_NOSRCEDIT
         Window *window = (Window *) current->parentWidget();
         QString fname = +(current->xlProgram->name);
         window->loadFileIntoSourceFileView(fname); // Load source as plain text
+#endif
     }
     return formulaRuntimeError(self, msg, arg);
 }
@@ -8468,9 +8728,13 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         }
         else
         {
+#ifndef CFG_NOGIT
             if (par == currentMenuBar)
                 before = ((Window*)parent())->shareMenu->menuAction();
-
+#else
+            if (par == currentMenuBar)
+                before = ((Window*)parent())->helpMenu->menuAction();
+#endif
 //            par->addAction(currentMenu->menuAction());
         }
         par->insertAction(before, currentMenu->menuAction());
@@ -8822,7 +9086,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
                                                     document()->toPlainText(),
                                                     "<<", ">>" ));
         XL::Infix *lf = new XL::Infix("\n", attribute,
-                                      new XL::Infix("\n", p, XL::xl_empty));
+                                      new XL::Infix("\n", p, XL::xl_nil));
 
         // Current selected text must be erased because it will be re-inserted
         // with new formating
@@ -9142,6 +9406,23 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 }
 
 
+Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
+// ----------------------------------------------------------------------------
+//   Check if a compile-time option is enabled
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_NOGIT
+    if (name->value == "git")
+        return XL::xl_false;
+#endif
+#ifdef CFG_NOSTEREO
+    if (name->value == "stereoscopy")
+        return XL::xl_false;
+#endif
+    return XL::xl_true;
+}
+
+
 
 // ============================================================================
 //
@@ -9149,15 +9430,19 @@ Tree_p Widget::constant(Tree_p self, Tree_p tree)
 //
 // ============================================================================
 
-Text_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree)
+Text_p Widget::generateDoc(Tree_p /*self*/, Tree_p tree, text defGrp)
 // ----------------------------------------------------------------------------
 //   Generate documentation for a given tree
 // ----------------------------------------------------------------------------
 {
-    ExtractDoc doc;
-    Tree_p documentation = tree->Do(doc);
-    Text_p text = documentation->AsText();
-    return text;
+    if (defGrp.empty())
+    {
+        ExtractComment com;
+        return tree->Do(com)->AsText();
+    }
+
+    ExtractDoc doc(defGrp);
+    return tree->Do(doc)->AsText();
 }
 
 
@@ -9192,7 +9477,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
 {
     XL::Main *xlr = XL::MAIN;
     text      com = "";
-    Tree     *t   = NULL;
+    Text     *t   = NULL;
 
     // Documentation from the context files (*.xl)
     XL::source_files::iterator couple;
@@ -9200,8 +9485,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;
-        t = generateDoc(self, src.tree);
-        com += t->AsText()->value;
+        QFileInfo fi(+src.name);
+        t = generateDoc(self, src.tree, +fi.baseName());
+        com += t->value;
     }
 
     // Documentation from the primitives files (*.tbl)
@@ -9221,11 +9507,12 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
             file.write(com.c_str());
         file.close();
     }
-    std::cerr
-        << "\n"
-        << "=========================================================\n"
-        << com << std::endl
-        << "=========================================================\n";
+
+//    std::cerr
+//        << "\n"
+//        << "=========================================================\n"
+//        << com << std::endl
+//        << "=========================================================\n";
 
     return new Text(com, "", "");
 }

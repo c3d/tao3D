@@ -29,7 +29,9 @@
 #include <QUndoView>
 #include "main.h"
 #include "tao.h"
+#ifndef CFG_NOGIT
 #include "repository.h"
+#endif
 
 QT_BEGIN_NAMESPACE
 class QAction;
@@ -47,6 +49,7 @@ class GitToolBar;
 class Uri;
 class ToolWindow;
 class XLSourceEdit;
+class Repository;
 
 
 class Window : public QMainWindow
@@ -65,13 +68,20 @@ public:
     ~Window();
 
     void addError(QString txt);
+#ifndef CFG_NOGIT
     bool openProject(QString path, QString filename, bool confirm = true);
     Repository * repository() { return repo.data(); }
+#else
+    Repository * repository() { return NULL; }
+#endif
     void switchToFullScreen(bool fs = true);
     bool switchToSlideShow(bool ss = true);
     void setWindowAlwaysOnTop(bool alwaysOnTop);
+#ifndef CFG_NOSRCEDIT
+    void setHtml(QString txt);
     bool showSourceView(bool fs);
     bool loadFileIntoSourceFileView(const QString &fileName, bool box=false);
+#endif
     QString  currentProjectFolderPath();
     bool     needNewWindow();
 
@@ -89,9 +99,13 @@ public slots:
     void toggleAnimations();
     void toggleStereoscopy();
     bool toggleSlideShow();
+#ifndef CFG_NOSRCEDIT
     void sourceViewBecameVisible(bool visible);
+#endif
     int  open(QString fileName = "", bool readOnly = false);
+#ifndef CFG_NOGIT
     void openUri();
+#endif
     void pageSetup();
     void print();
     void removeSplashScreen();
@@ -100,9 +114,12 @@ public slots:
     void setReadOnly(bool ro);
     void clearErrors();
     void renderToFile();
+    void adjustToScreenResolution(int screen);
 
 signals:
+#ifndef CFG_NOGIT
     void projectUrlChanged(QString url);
+#endif
     void projectChanged(Repository *repo);
     void openFinished(bool success);
 
@@ -123,7 +140,7 @@ private slots:
     void paste();
     void onFocusWidgetChanged(QWidget *old, QWidget *now);
     void checkClipboard();
-
+#ifndef CFG_NOGIT
     void setPullUrl();
     void fetch();
     void push();
@@ -132,15 +149,16 @@ private slots:
     void checkout();
     void selectiveUndo();
     void clone();
+    void onDocReady(QString path);
+    void onUriGetFailed();
+    void checkDetachedHead();
+    void reloadCurrentFile();
+    void clearUndoStack();
+#endif
     void about();
     void preferences();
     void documentWasModified();
     void checkFiles();
-    void clearUndoStack();
-    void reloadCurrentFile();
-    void onUriGetFailed();
-    void onDocReady(QString path);
-    void checkDetachedHead();
 
 private:
     void     createActions();
@@ -160,9 +178,11 @@ private:
     Window  *findWindow(const QString &fileName);
     bool     updateProgram(const QString &filename);
     void     resetTaoMenus();
+#ifndef CFG_NOGIT
     bool     populateUndoStack();
     void     warnNoRepo();
     void     enableProjectSharingMenus();
+#endif
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     showMessage(QString message, int timeout);
@@ -173,18 +193,15 @@ private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
     QList<int>        appFontIds;
-
-public:
-    XLSourceEdit     *srcEdit;
-private:
-    QTextEdit        *errorMessages;
     // currentProjectFolder : Used if repo is not used.
     QString          currentProjectFolder;
-public:
-    ToolWindow       *src;
-private:
+    QTextEdit        *errorMessages;
     QDockWidget      *errorDock;
 public:
+#ifndef CFG_NOSRCEDIT
+    XLSourceEdit     *srcEdit;
+    ToolWindow       *src;
+#endif
     Widget           *taoWidget;
 private:
     QString           curFile;
@@ -197,7 +214,6 @@ private:
     QMenu            *openRecentMenu;
     QMenu            *editMenu;
     QMenu            *viewMenu;
-    QMenu            *helpMenu;
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
@@ -205,7 +221,6 @@ private:
     QAction          *newDocAct;
     QAction          *newAct;
     QAction          *openAct;
-    QAction          *openUriAct;
     QAction          *saveAct;
     QAction          *saveAsAct;
     QAction          *consolidateAct;
@@ -218,6 +233,8 @@ private:
     QAction          *cutAct;
     QAction          *copyAct;
     QAction          *pasteAct;
+#ifndef CFG_NOGIT
+    QAction          *openUriAct;
     QAction          *setPullUrlAct;
     QAction          *pushAct;
     QAction          *fetchAct;
@@ -226,6 +243,7 @@ private:
     QAction          *checkoutAct;
     QAction          *selectiveUndoAct;
     QAction          *diffAct;
+#endif
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *aboutQtAct;
@@ -255,7 +273,10 @@ private:
 
 public:
     QPrinter         *printer;
+#ifndef CFG_NOGIT
     QMenu            *shareMenu;
+#endif
+    QMenu            *helpMenu;
     SplashScreen     *splashScreen;
     SplashScreen     *aboutSplash;
     bool              deleteOnOpenFailed;

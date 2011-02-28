@@ -1,0 +1,10 @@
+
+page "fontTextured", do 
+    color "white" 
+    texture "tao_icon.png" 
+    font "Arial", 100, weight 100% 
+    shape 
+        text_box 0, 0, 1557, 1032, do 
+            text <<hello World, The weather is sunny.
+            >> 
+            text lorem_ipsum 50

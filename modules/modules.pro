@@ -10,15 +10,21 @@
 # (C) 2010 Taodyne SAS
 # ******************************************************************************
 
-# The modules listed here are packaged with Tao and installed at the same time
-# as the application ; they are not managed by Git (and therefore, each module
-# MUST have its own version attribute in module.xl).
 
 TEMPLATE = subdirs
-SUBDIRS  = hello_world lorem_ipsum taoTester object_loader
+
+include(module_list.pri)
+SUBDIRS  = $$MODULES
 
 !exists(../main.pro) {
     # We're building inside the Tao SDK
     # SUBDIR should contain the example modules packaged with the Tao SDK
     SUBDIRS = object_loader
+    OTHER_SUBDIRS =
+}
+
+isEmpty(SUBDIRS) {
+    message(Modules to build: (none))
+} else {
+    message(Modules to build: $$SUBDIRS)
 }

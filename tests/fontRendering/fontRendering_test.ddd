@@ -1,0 +1,39 @@
+fontRendering_test -> test_definition "fontRendering", 0,  <<Testing the font rendering in small and huge sizes.>>, 1920, 1106, 0.5, do 
+    test_add_check 0, 1811
+    test_add_mouse_move 0, 0, 431, 5, 264
+    test_add_mouse_move 0, 0, 439, 13, 16
+    test_add_mouse_move 0, 0, 442, 16, 17
+    test_add_mouse_move 0, 0, 445, 19, 17
+    test_add_mouse_move 0, 0, 451, 23, 17
+    test_add_mouse_move 0, 0, 456, 26, 16
+    test_add_mouse_move 0, 0, 456, 29, 17
+    test_add_mouse_move 0, 0, 457, 31, 69
+    test_add_mouse_move 0, 0, 459, 31, 98
+    test_add_mouse_move 0, 0, 461, 31, 16
+    test_add_mouse_move 0, 0, 467, 32, 17
+    test_add_key_press 16777239, 0, 617 // 
+    test_add_key_release 16777239, 0, 48 // 
+    test_add_mouse_move 0, 0, 472, 29, 736
+    test_add_mouse_move 0, 0, 472, 19, 17
+    test_add_mouse_move 0, 0, 472, 10, 17
+    test_add_check 1, 1848
+    test_add_mouse_move 0, 0, 455, 32, 70
+    test_add_key_press 16777239, 0, 824 // 
+    test_add_key_release 16777239, 0, 624 // 
+    test_add_mouse_move 0, 0, 501, 116, 854
+    test_add_mouse_move 0, 0, 503, 116, 16
+    test_add_mouse_move 0, 0, 505, 116, 34
+    test_add_mouse_move 0, 0, 509, 109, 17
+    test_add_mouse_move 0, 0, 515, 100, 16
+    test_add_mouse_move 0, 0, 519, 91, 17
+    test_add_mouse_move 0, 0, 520, 80, 17
+    test_add_mouse_move 0, 0, 520, 67, 16
+    test_add_mouse_move 0, 0, 520, 56, 17
+    test_add_mouse_move 0, 0, 520, 45, 17
+    test_add_mouse_move 0, 0, 522, 36, 16
+    test_add_mouse_move 0, 0, 524, 27, 17
+    test_add_mouse_move 0, 0, 526, 20, 17
+    test_add_mouse_move 0, 0, 526, 18, 16
+    test_add_mouse_move 0, 0, 526, 16, 50
+    test_add_mouse_move 0, 0, 528, 11, 17
+    test_add_mouse_move 0, 0, 527, 0, 17

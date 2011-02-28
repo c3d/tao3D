@@ -382,6 +382,7 @@ private:
     bool                loadConfig();
     bool                removeFromConfig(const ModuleInfoPrivate &m);
     bool                addToConfig(const ModuleInfoPrivate &m);
+    bool                cleanConfig();
 
     bool                checkNew();
     bool                checkNew(QString parentDir);

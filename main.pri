@@ -37,3 +37,5 @@ QMAKE_EXTRA_COMPILERS += c++tbl
 
 # No -p by default on Windows-mingw. Our make install needs -p.
 win32:QMAKE_MKDIR = mkdir -p
+
+QMAKE_EXTRA_TARGETS += doc

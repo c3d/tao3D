@@ -15,7 +15,7 @@ private:
 public:
     // Commands for toolbar
     Tree_p startRecTest(Tree_p self);
-    Tree_p stopRecTest(Tree_p self);
+    Tree_p stop(Tree_p self);
     Tree_p playTest(Tree_p self);
     Tree_p saveTest(Tree_p self);
     Tree_p resetTest(Tree_p self);
@@ -23,8 +23,8 @@ public:
 
     // Definition of events to be load
     Tree_p testDef(Context *,
-                   Tree_p self, Text_p name, Integer_p fId,
-                   Text_p desc, Tree_p body, Real_p thr);
+                   Tree_p self, Text_p name, Integer_p fId, Text_p desc, Tree_p body,
+                   Real_p thr, Integer_p width, Integer_p height);
     Tree_p testAddKeyPress(Tree_p self, Integer_p key,
                            Integer_p modifiers, Integer_p delay );
     Tree_p testAddKeyRelease(Tree_p self, Integer_p key,
@@ -41,6 +41,7 @@ public:
     Tree_p testAddAction(Tree_p self, Text_p name, Integer_p delay);
     Tree_p testAddCheck(Tree_p self, Integer_p num, Integer_p delay );
     Tree_p testAddFont(Tree_p self, Text_p diagname, Text_p ftname, Integer_p delay);
+    Tree_p testAddFile(Tree_p self, Text_p diagname, Text_p filename, Integer_p delay);
     Tree_p testAddColor(Tree_p self, Text_p diagname, Text_p colname, Integer_p delay);
     Tree_p testAddCloseDialog(Tree_p self, Text_p diagname,
                               Integer_p result, Integer_p delay);

@@ -1,25 +1,88 @@
+# ******************************************************************************
+# xlrToDoxygen.awk                                                   Tao project
+# ******************************************************************************
+# File Description:
+# Awk script that generates c files to feed doxygen.
+# ******************************************************************************
+# This document is released under the GNU General Public License.
+# See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+# (C) 2011 Catherine Burvelle <cathy@taodyne.com>
+# (C) 2011 Taodyne SAS
+# ******************************************************************************
+#requires -v FAMILYNAME="aFamily"
 BEGIN { 
-    RS = ";"
     previous_syntaxes = ""
-    filename = sprintf("%s.c",FAMILYNAME)
-    printf "/**\n * @file %s\n * File detailed description for family %s\n */\n", filename, FAMILYNAME > filename
+    #system("mkdir -p c_files")
+    filename = sprintf("c_files/%s.c",FAMILYNAME)
+    if (match(FAMILYNAME, "^module\\."))
+    {
+        GROUPN=substr(FAMILYNAME, RLENGTH+1)
+        PARENTGROUPN = "grpTPModules"
+        PARENTGROUPT = "Tao Presentations Modules"
+    }
+    else
+    if (FAMILYNAME == "basics")
+    {
+        GROUPN=FAMILYNAME
+        PARENTGROUPN = "grpXLRBuiltins"
+        PARENTGROUPT = "XLR Language Builtins"
+    }
+    else
+    {
+        GROUPN=FAMILYNAME
+        PARENTGROUPN = "grpTPBuiltins"
+        PARENTGROUPT = "Tao Presentations Builtins"
+    }
+    printf "/**\n * @addtogroup %s %s\n */\n", PARENTGROUPN, PARENTGROUPT >> filename
+    printf "/**\n * @addtogroup %s\n * @ingroup %s\n", GROUPN, PARENTGROUPN >> filename
+    printf " * See <a href=\"%s.html\">%s description</a>.\n", FAMILYNAME, GROUPN >> filename
+    printf " * @{\n */\n" >> filename
     OK = 0
+    inLongText = 0
+    lastLongText = ""
 } 
 function extractStr(s){
     if (match( s, "<<[^>]*>>") > 0)
     {
-        return substr( s, RSTART+2, RLENGTH-4)
+        s = substr( s, RSTART+2, RLENGTH-4)
+        return s
     }
 
     if (match( s, "\"[^\"]*\"") > 0)
     {
         return substr( s, RSTART+1, RLENGTH-2)
     }
-
+    if (match( s, "<<[^>]*") > 0)
+    {
+    #printf "DEB: extractString enters long string\n"
+        inLongText = 1
+        s = substr( s, RSTART+2, RLENGTH-2)
+        s= sprintf("%s",s)
+        return s
+    }
+    if (match( s, "[^>]*>>") > 0)
+    {
+    #printf "DEB: extractString leaves long string\n"
+        inLongText = 0
+        s = substr( s, RSTART, RLENGTH-2)
+        return s
+    }
+    #printf "DEB: extractString returns full string\n"
+    s = sprintf("%s",s)
     return s
 }
+# matches every entry
+{
+    if (inLongText == 1)
+    {
+        desc = extractStr($0)
+        printf " * %s\n", desc >> filename
+        next
+    }
+}
+
 /(docname )/ {
-#    printf "DEB: NR = %i, NF = %i  matches docname\n|%s|\n\n", NR, NF, $0
+    #printf "DEB: NR = %i, NF = %i  matches docname\n|%s|\n\n", NR, NF, $0
     # closes the previous definition
     if ( OK > 0)
     {
@@ -28,7 +91,7 @@ function extractStr(s){
     }
     # Check if new definition is in the FAMILY
     fn_families = extractStr($3)
-    OK = index(fn_families, FAMILYNAME) 
+    OK = (fn_families == FAMILYNAME)
     if (OK > 0)
     {
         # start new definition
@@ -39,7 +102,7 @@ function extractStr(s){
 
 /(dsyntax )/ { 
     if (OK <=0 ) next
-#    printf "DEB: NR = %i, NF = %i  matches dsyntax\n|%s|\n\n", NR, NF, $0
+    #printf "DEB: NR = %i, NF = %i  matches dsyntax\n|%s|\n\n", NR, NF, $0
     # dsyntax is not seperated from the docname with a ; so substract the dsyntax line
     i = index( $0, "dsyntax")
     synt = substr( $0, i, length - i +1 )
@@ -61,16 +124,15 @@ function extractStr(s){
 /(synopsis )/ {
     if (OK <=0 ) next
     syno = extractStr($0)
-#    printf "DEB: NR = %i, NF = %i  matches synopsis\n|%s|\n\n", NR, NF, $0
+    #printf "DEB: NR = %i, NF = %i  matches synopsis\n|%s|\n\n", NR, NF, $0
     printf " * @brief %s\n", syno >> filename
 }
 
 /(description )/ {
     if (OK <=0 ) next
-#    printf "DEB: NR = %i, NF = %i matches description \n|%s|\n\n", NR, NF, $0
+    #printf "DEB: NR = %i, NF = %i matches description \n|%s|\n\n", NR, NF, $0
     desc = extractStr($0)
-    gsub("\n","<BR>\n",desc)
-    printf " *\n * %s\n *\n", desc >> filename
+    printf " *\n * %s\n", desc >> filename
 }
 
 /(parameters)/ {
@@ -80,11 +142,15 @@ function extractStr(s){
 
 /(parameter )/ {
     if (OK <=0 ) next
-#    printf "DEB: %s %s %s %s\n", $1, $2, $3, $4
+    #printf "DEB: NR = %i, NF = %i matches parameter \n|%s|\n", NR, NF, $0
+    #printf "DEB: %s %s %s %s\n", $1, $2, $3, $4
     param_name = extractStr($3)
     param_type = extractStr($2)
     split ($0, val, ",")
-    param_desc = extractStr(val[3])
+   # printf "length %i\n", length(val)
+    for ( i = 3; i <= length(val); i++)
+        param_desc = sprintf("%s%s", param_desc, val[i])
+    param_desc = extractStr(param_desc)
     printf " * @param %s [%s] %s\n", param_name, param_type, param_desc >> filename
 }
 
@@ -109,5 +175,6 @@ END {
     {
         printf " */\n%s\n", previous_syntaxes >> filename
     }
+    printf "/** @} */\n" >> filename
 #print "BYE "
 }

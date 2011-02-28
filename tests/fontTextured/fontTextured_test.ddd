@@ -1,0 +1,2 @@
+fontTextured_test -> test_definition "fontTextured", 0,  <<test a text with an image as a texture.>>, 1920, 1106, 0.005, do
+    nil

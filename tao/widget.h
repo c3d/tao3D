@@ -111,7 +111,9 @@ public slots:
     bool        refresh(double delay = 0.0);
     bool        refreshNow();
     bool        refreshNow(QEvent *event);
+#ifndef CFG_NOGIT
     void        commitSuccess(QString id, QString msg);
+#endif
     void        colorChosen(const QColor &);
     void        colorChanged(const QColor &);
     void        colorRejected();
@@ -187,8 +189,10 @@ public:
     bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);
     bool        doSave(ulonglong tick);
+#ifndef CFG_NOGIT
     bool        doPull(ulonglong tick);
     bool        doCommit(ulonglong tick);
+#endif
     Repository *repository();
     Tree *      get(Tree *shape, text name, text sh = "group,shape");
     bool        set(Tree *shape, text n, Tree *value, text sh = "group,shape");
@@ -287,6 +291,8 @@ public:
     Real_p      frameWidth(Tree_p self);
     Real_p      frameHeight(Tree_p self);
     Real_p      frameDepth(Tree_p self);
+    int         width();
+    int         height();
     Real_p      windowWidth(Tree_p self);
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
@@ -324,15 +330,17 @@ public:
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
-    Integer_p   seconds(Tree_p self);
-    Integer_p   minutes(Tree_p self);
-    Integer_p   hours(Tree_p self);
-    Integer_p   day(Tree_p self);
-    Integer_p   weekDay(Tree_p self);
-    Integer_p   yearDay(Tree_p self);
-    Integer_p   month(Tree_p self);
-    Integer_p   year(Tree_p self);
+    Integer_p   seconds(Tree_p self, double t);
+    Integer_p   minutes(Tree_p self, double t);
+    Integer_p   hours(Tree_p self, double t);
+    Integer_p   day(Tree_p self, double t);
+    Integer_p   weekDay(Tree_p self, double t);
+    Integer_p   yearDay(Tree_p self, double t);
+    Integer_p   month(Tree_p self, double t);
+    Integer_p   year(Tree_p self, double t);
+#ifndef CFG_NOSRCEDIT
     Name_p      showSource(Tree_p self, bool show);
+#endif
     Name_p      fullScreen(Tree_p self, bool fs);
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      slideShow(XL::Tree_p self, bool ss);
@@ -363,8 +371,10 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+#ifndef CFG_NOSTEREO
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Name_p      setStereoPlanes(Tree_p self, uint planes);
+#endif
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
@@ -491,6 +501,7 @@ public:
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
     Tree_p      font(Context *context, Tree_p self, Tree_p descr);
+    Tree_p      fontFamily(Context *, Tree_p self, text family);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
@@ -547,6 +558,7 @@ public:
     Tree_p      frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog);
     Tree_p      thumbnail(Context *, Tree_p self, scale s, double i, text page);
+    Name_p      offlineRendering(Tree_p self);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);
@@ -623,10 +635,16 @@ public:
 
     Tree_p      movieTexture(Tree_p self, Text_p url);
 
-    Tree_p      image(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+    Tree_p      image(Context *context,
+                      Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
-    Tree_p      image(Tree_p self, Real_p x, Real_p y, text filename);
+    Tree_p      image(Context *context,
+                      Tree_p self, Real_p x, Real_p y, text filename);
     Tree_p      listFiles(Context *context, Tree_p self, Tree_p pattern);
+    Tree_p      imagePx(Context *context,
+                        Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                        text filename);
+    Infix_p     imageSize(Tree_p self, text filename);
 
     // Menus and widgets
     Tree_p      chooser(Context *, Tree_p self, text caption);
@@ -636,6 +654,7 @@ public:
     Tree_p      chooserBranches(Tree_p self, Name_p prefix, text label);
     Tree_p      chooserCommits(Tree_p self, text branch, Name_p prefix, text label);
     Tree_p      checkout(Tree_p self, text what);
+    Name_p      currentRepository(Tree_p self);
     Tree_p      closeCurrentDocument(Tree_p self);
     Tree_p      quitTao(Tree_p self);
 
@@ -669,6 +688,7 @@ public:
     Real_p      fromPx(Tree_p self, double px);
 
     Tree_p      constant(Tree_p self, Tree_p tree);
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -682,7 +702,7 @@ public:
     Name_p      ungroupSelection(Tree_p self);
 
     //Documentation
-    Text_p generateDoc(Tree_p self, Tree_p tree);
+    Text_p generateDoc(Tree_p self, Tree_p tree, text defGrp = "");
     Text_p generateAllDoc(Tree_p self, text filename);
 
 private:
@@ -728,7 +748,7 @@ private:
     scale                 pageW, pageH, blurFactor;
     text                  flowName;
     flow_map              flows;
-    text                  pageName, lastPageName;
+    text                  pageName, lastPageName, gotoPageName;
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
@@ -783,7 +803,10 @@ private:
     QTime                 stats_start;
     int                   stats_interval;
     frame_times           stats;
-    ulonglong             nextSave, nextCommit, nextSync, nextPull;
+    ulonglong             nextSave, nextSync;
+#ifndef CFG_NOGIT
+    ulonglong             nextCommit, nextPull;
+#endif
 
     // Printing
     double                pagePrintTime;
@@ -803,6 +826,9 @@ private:
     bool                  bAutoHideCursor;
     bool                  bShowStatistics;
     bool                  renderFramesCanceled;
+    bool                  inOfflineRendering;
+    int                   offlineRenderingWidth;
+    int                   offlineRenderingHeight;
 
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
@@ -823,6 +849,7 @@ private:
     double                CurrentTime();
     double                trueCurrentTime();
     void                  setCurrentTime();
+    bool inDraw;
 };
 
 
@@ -857,7 +884,6 @@ inline void glShowErrors()
 {
     TAO(showGlErrors());
 }
-
 
 
 // ============================================================================

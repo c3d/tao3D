@@ -283,6 +283,7 @@ public:
 
 public:
     static QString          errors;
+    static bool             no_repo;
 
 protected:
     static Repository *     newRepository(QString path, Mode mode);

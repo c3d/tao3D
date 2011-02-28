@@ -44,7 +44,9 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     contentsWidget->setSpacing(12);
 
     pagesWidget = new QStackedWidget;
+#ifndef CFG_NOMODPREF
     pagesWidget->addWidget(new ModulesPage);
+#endif
 #ifdef DEBUG
     pagesWidget->addWidget(new DebugPage);
 #endif
@@ -80,6 +82,7 @@ void PreferencesDialog::createIcons()
 //   Add one icon per preference page
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NOMODPREF
     // modules.png downloaded from:
     // http://www.iconfinder.com/icondetails/17854/128/cubes_modules_icon
     // Author: Everaldo Coelho (Crystal Project)
@@ -89,6 +92,7 @@ void PreferencesDialog::createIcons()
     modulesButton->setText(tr("Module options"));
     modulesButton->setTextAlignment(Qt::AlignHCenter);
     modulesButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+#endif
 
 #ifdef DEBUG
     // bug.png downloaded from:

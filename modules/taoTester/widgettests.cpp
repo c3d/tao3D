@@ -22,44 +22,32 @@
 #include "widgettests.h"
 
 #include <QFileInfo>
-#include <QMainWindow>
-#include "qtestevent.h"
+#include <QDir>
+#include <QStatusBar>
+#include <QTestEvent>
+#include <QTextStream>
+//#include "qtestevent.h"
 
-//#include "application.h"
-//#include "widget.h"
-//#include "window.h"
 #include "save_test_dialog.h"
 
 #include "taotester.h"
 
-
-
-
-WidgetTests::WidgetTests(QGLWidget *widget, text name, text description) :
+WidgetTests::WidgetTests(QGLWidget *glw, text name, text description) :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
-    widget(widget), name(+name), description(+description),
-    featureId(0), folder("./"), threshold(0.0)
+    widget(glw), name(+name), description(+description),
+    featureId(0), folder("./"), threshold(0.0), win(NULL), logfile(NULL),
+    state(stopped), playingList(NULL)
 {
-//    folder = ((Window*)(widget->window()))->currentProjectFolderPath().append("/");
+    QStringList dirList = QDir::searchPaths("image");
+    folder = dirList.at(1) + '/' + this->name;
 
-    if ( !widget )
-    {
+    if ( ! glw )
         foreach (QWidget *w, QApplication::topLevelWidgets())
-        {
-            QMainWindow * win = NULL;
-            QGLWidget * qglwid = NULL;
             if ((win = dynamic_cast<QMainWindow*>(w)) != NULL)
-            {
-                if ((qglwid = dynamic_cast<QGLWidget *>(win->centralWidget()) ) != NULL)
-                {
-                    this->widget = qglwid;
+                if ((widget = dynamic_cast<QGLWidget *>(win->centralWidget()) ) != NULL)
                     break;
-                }
-            }
-        }
-    }
 }
 
 
@@ -69,10 +57,10 @@ text WidgetTests::toString()
 // ----------------------------------------------------------------------------
 {
     QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
-                              " <<%3>>, %5, do \n%4")
+                              " <<%3>>, %6, %7, %5, do \n%4\n")
             .arg(name).arg(featureId)
-            .arg(description).arg(taoCmd.isEmpty() ? "    empty" : taoCmd)
-            .arg(threshold);
+            .arg(description).arg(taoCmd.isEmpty() ? "    nil" : taoCmd)
+            .arg(threshold).arg(winSize.width()).arg(winSize.height());
     return +testDoc;
 
 }
@@ -82,9 +70,12 @@ void WidgetTests::startRecord()
 //   Start recording a sequence of events
 // ----------------------------------------------------------------------------
 {
+    state = recording;
     // clear lists
     testList.clear();
     checkPointList.clear();
+    win->statusBar()->showMessage("Start recording new test.");
+    winSize = win->size();
 
     //photo
     before = widget->grabFrameBuffer(true);
@@ -115,6 +106,8 @@ void WidgetTests::stopRecord()
                    this, SLOT(recordAction(bool)));
     }
     widget->removeEventFilter(this);
+    win->statusBar()->showMessage("End recording.");
+    state = stopped;
 }
 
 
@@ -165,6 +158,20 @@ void WidgetTests::recordFont(QFont font)
     taoCmd.append(evt->toTaoCmd());
 }
 
+void WidgetTests::recordFile(QString file)
+// ----------------------------------------------------------------------------
+//   Record the font change event.
+// ----------------------------------------------------------------------------
+{
+    if (file.isEmpty()) return;
+
+    TestFileActionEvent * evt =
+            new TestFileActionEvent(QObject::sender()->objectName(),
+                                    file, startTime.restart());
+    testList.append(evt);
+    taoCmd.append(evt->toTaoCmd());
+}
+
 
 void WidgetTests::finishedDialog(int result)
 // ----------------------------------------------------------------------------
@@ -179,8 +186,11 @@ void WidgetTests::finishedDialog(int result)
         {
             disconnect(dialog, 0, this, 0);
         }
-        testList.append(new TestDialogActionEvent(sender->objectName(),
-                                                  result, startTime.restart()));
+        TestDialogActionEvent* evt =
+                new TestDialogActionEvent(sender->objectName(),
+                                          result, startTime.restart());
+        testList.append(evt);
+        taoCmd.append(evt->toTaoCmd());
     }
 }
 
@@ -290,6 +300,15 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
                 connect(diag, SIGNAL(finished(int)),
                         this, SLOT(finishedDialog(int)));
             }
+            else if (childName.contains("fileDialog") ||
+                     childName.contains("QFileDialog"))
+            {
+                QFileDialog *diag = (QFileDialog*)e->child();
+                connect(diag, SIGNAL(fileSelected(QString)),
+                        this, SLOT(recordFile(QString)));
+//                connect(diag, SIGNAL(finished(int)),
+//                        this, SLOT(finishedDialog(int)));
+            }
         }
     default:
         break;
@@ -299,13 +318,18 @@ bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
 
 }
 
-
-bool WidgetTests::play()
+bool WidgetTests::startPlay()
 // ----------------------------------------------------------------------------
 //   Replay the test
 // ----------------------------------------------------------------------------
 {
+    state = playing;
+    win->resize(winSize);
+    win->statusBar()->showMessage("Playing Test " + name);
     nbChkPtKO = 0;
+    logOpen();
+    QCoreApplication::processEvents();
+    QTest::qWait(1000);
 
     if (! before.isNull())
     {
@@ -313,7 +337,8 @@ bool WidgetTests::play()
         playedBefore = widget->grabFrameBuffer(true);
 
         // save the image
-        QString playedBeforeName = QString(folder).append(name).append("_playedBefore.png");
+        QString playedBeforeName =
+                QString(folder).append(name).append("_playedBefore.png");
         playedBefore.save(playedBeforeName, "PNG");
 
         // Compute the diff between reference and played image
@@ -321,24 +346,29 @@ bool WidgetTests::play()
         double diffVal = diff(before, playedBefore, diffBeforeName);
 
         if (diffVal > threshold)
-        {
-            text t = +name;
-            qWarning("Test %s: image before test is not equal to reference in %f%%",
-                     t.c_str(), diffVal);
-        }
+            nbChkPtKO++;
+
+        log(BEFORE, diffVal <= threshold, diffVal);
     }
 
     // Copy the list as the original one can be modified by a reload during simulate
     QTestEventList tempoList = QTestEventList(testList);
+    playingList = &tempoList;
     tempoList.simulate(widget);
+    playingList = NULL;
+
+    QCoreApplication::processEvents();
 
     if ( ! after.isNull() )
     {
+        if (tempoList.isEmpty())
+            QTest::qWait(800);
         // snap shot the widget
         playedAfter = widget->grabFrameBuffer(true);
 
         // save the image
-        QString playedAfterName = QString(folder).append(name).append("_playedAfter.png");
+        QString playedAfterName =
+                QString(folder).append(name).append("_playedAfter.png");
         playedAfter.save(playedAfterName, "PNG");
 
         // Compute the diff between reference and played image
@@ -346,17 +376,37 @@ bool WidgetTests::play()
         double diffVal = diff(after, playedAfter, diffAfterName);
 
         if (diffVal > threshold)
-        {
             nbChkPtKO++;
-            text t = +name;
-            qWarning("Test %s: image after test is not equal to reference in %f%%",
-                     t.c_str(), diffVal);
-        }
+
+        log(AFTER, diffVal <= threshold, diffVal);
     }
+
+    win->statusBar()->showMessage("Test " + name +
+                                  (nbChkPtKO > 0 ? " failed" : " is successful"));
+    logClose(nbChkPtKO <= 0);
+    QTest::qWait(1000);
 
     return nbChkPtKO > 0;
 }
 
+void WidgetTests::stopPlay()
+{
+    std::cerr << "\n\n STOP demande \n\n";
+    if (playingList)
+    {
+        playingList->clear();
+        state = stopped;
+    }
+}
+
+void WidgetTests::stop()
+{
+    switch (state) {
+        case playing : stopPlay(); return;
+        case recording : stopRecord(); return;
+        default : return;
+    }
+}
 
 void WidgetTests::save()
 // ----------------------------------------------------------------------------
@@ -403,7 +453,8 @@ void WidgetTests::save()
 }
 
 
-void WidgetTests::reset(text newName, int feature, text desc, text dir, double thr)
+void WidgetTests::reset(text newName, int feature, text desc, text dir, double thr,
+                        int width, int height)
 // ----------------------------------------------------------------------------
 //   Reset the test
 // ----------------------------------------------------------------------------
@@ -415,6 +466,9 @@ void WidgetTests::reset(text newName, int feature, text desc, text dir, double t
     name = +newName;
     featureId = feature;
     threshold = thr;
+    winSize.setWidth(width);
+    winSize.setHeight(height);
+    win->statusBar()->showMessage("Loading test " + name);
 
     description = +desc;
     folder = +dir;
@@ -427,8 +481,8 @@ void WidgetTests::reset(text newName, int feature, text desc, text dir, double t
     }
     else
     {
-        before = QImage(QString("image:").append(name).append("_before.png"));
-        after = QImage(QString("image:").append(name).append("_after.png"));
+        before = QImage(QString("image:").append(name).append('/').append(name).append("_before.png"));
+        after = QImage(QString("image:").append(name).append('/').append(name).append("_after.png"));
     }
 }
 
@@ -546,6 +600,15 @@ void WidgetTests::addFont(QString diagName, QString ftName, int delay)
 }
 
 
+void WidgetTests::addFile(QString diagName, QString fileName, int delay)
+// ----------------------------------------------------------------------------
+// Add an action to be replayed.
+// ----------------------------------------------------------------------------
+{
+    testList.append(new TestFileActionEvent(diagName, fileName, delay));
+}
+
+
 void WidgetTests::addDialogClose(QString objName, int result,  int delay)
 // ----------------------------------------------------------------------------
 // Add an action to be replayed.
@@ -562,9 +625,12 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
 {
     if (ref.size() != played.size())
     {
-        std::cerr << "Image size differs: ref is (" << ref.size().width() << " x " <<
-                ref.size().height() << ") and played is (" << played.size().width()
-                << " x "  << played.size().height() << ")\n";
+       QString msg = QString("Image size differs: reference is (%1 x %2) and played is (%3 x %4).").
+               arg(ref.size().width()).
+               arg(ref.size().height()).
+               arg(played.size().width()).
+               arg(played.size().height());
+        log(msg);
         return 100.0;
     }
 
@@ -585,7 +651,7 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
         }
     }
 
-    double res = (nbDiff * 100.0)/ref.byteCount();
+    double res = (nbDiff * 100.0)/(ref.width()* ref.height());
 
     if (!filename.isEmpty() && (res > threshold || forceSave))
         imgDiff.save(filename, "PNG");
@@ -593,6 +659,42 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
     return res;
 }
 
+#define INDENT1 "  "
+#define INDENT2 "    "
+
+// ============================================================================
+//
+//   Log facilities
+//
+// ============================================================================
+void WidgetTests::logOpen()
+{
+    logfile  = new QFile(folder+"../results.ddd");
+    logfile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
+
+    QTextStream resFile(logfile);
+    resFile << INDENT1 << "result \"" << name << "\", <<" << description << ">>, "
+            << featureId << ", " << threshold << ", {";
+}
+void WidgetTests::logClose(bool result)
+{
+    QTextStream resFile(logfile);
+    resFile << "}, " << (result ? "true" : "false") << "\n\n";
+    resFile.flush();
+    logfile->close();
+}
+void WidgetTests::log(int No, bool isOK, double Tx)
+{
+    QTextStream resFile(logfile);
+    resFile << "\n" << INDENT2 << "check " << No << ", "
+            << (isOK ? "true": "false") << ", " << Tx;
+}
+void WidgetTests::log(QString msg)
+{
+    QTextStream resFile(logfile);
+    resFile << "\n" << INDENT2 << "paragraph_break\n"<<
+            INDENT2 << "text <<Next check reports: "<< msg << ">>";
+}
 
 // ============================================================================
 //
@@ -608,7 +710,7 @@ void TestCheckEvent::simulate(QWidget *w)
 {
     QGLWidget * widget = (QGLWidget *)w;
     QString testName = taoTester::tester()->currentTest()->name;
-    QFileInfo refFile(QString("image:%1_%2.png").arg(testName).arg(number));
+    QFileInfo refFile(QString("image:%1/%1_%2.png").arg(testName).arg(number));
     QImage ref(refFile.canonicalFilePath());
     QImage shot = widget->grabFrameBuffer(true);
 
@@ -620,14 +722,15 @@ void TestCheckEvent::simulate(QWidget *w)
     double resDiff = taoTester::tester()->currentTest()->diff(ref, shot, diffFilename);
 
     std::cerr << +testName <<  "\t Intermediate check " << number ;
-    if (resDiff > taoTester::tester()->currentTest()->threshold)
+    bool inError = resDiff > taoTester::tester()->currentTest()->threshold;
+    if (inError)
     {
-        std::cerr<< " fails by " << resDiff << "%\n";
+        std::cerr<< " fails. Diff is " << resDiff << "%\n";
         taoTester::tester()->currentTest()->nbChkPtKO++;
     }
     else
-        std::cerr<< " succeeds by " << resDiff << "%\n";
-
+        std::cerr<< " succeeds. Diff is " << resDiff << "%\n";
+    taoTester::tester()->currentTest()->log(number, !inError, resDiff);
 }
 
 
@@ -694,6 +797,34 @@ QString TestFontActionEvent::toTaoCmd()
 }
 
 
+void TestFileActionEvent::simulate(QWidget *w)
+// ----------------------------------------------------------------------------
+//  Set the current font of the QFontDialog box.
+// ----------------------------------------------------------------------------
+{
+    QFileDialog* diag = w->findChild<QFileDialog*>(objName);
+    if (diag )
+    {
+        QTest::qWait(delay);
+        diag->setVisible(false);
+        diag->selectFile(fileName);
+        QDialog *d = (QDialog *) diag;
+        d->accept();
+    }
+}
+
+
+QString TestFileActionEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_add_file \"%1\", \"%2\", %3\n")
+                  .arg(objName).arg(fileName).arg(delay);
+    return cmd;
+}
+
+
 void TestDialogActionEvent::simulate(QWidget *w)
 // ----------------------------------------------------------------------------
 //  Set the result of the dialog (Accepted or Rejected) and close it.
@@ -709,3 +840,12 @@ void TestDialogActionEvent::simulate(QWidget *w)
 
 }
 
+QString TestDialogActionEvent::toTaoCmd()
+// ----------------------------------------------------------------------------
+//  Return a command line for Tao.
+// ----------------------------------------------------------------------------
+{
+    QString cmd = QString("    test_dialog_action \"%1\", \"%2\", %3\n")
+                  .arg(objName).arg(result).arg(delay);
+    return cmd;
+}

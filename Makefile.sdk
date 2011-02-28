@@ -23,6 +23,7 @@ FILES_COMMON = \
 	modules/modules.pro \
 	modules/modules.pri \
 	modules/modules_defs.pri \
+	modules/module_list.pri \
 	modules/tbl_wrap \
 	$(OBJECT_LOADER_FILES) \
 	tao \

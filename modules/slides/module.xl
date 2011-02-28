@@ -1,0 +1,628 @@
+// Slides module definition
+//
+// Copyright 20010-2011 Taodyne
+
+module_description
+    id "70C61E75-4CE2-4020-9E76-797763482B56"
+    name "Slides"
+    description "Commands and themes for slides: "
+                "definitions that can be used to write presentations. " &
+                "Several graphical themes are defined, and can be further " &
+                "customized (colors, background, layout)."
+    import_name "Slides"
+    version "0.1"
+
+
+// Adding this module's images/ directory to the image: search path
+// for the current document
+add_search_path "image:", module_dir & "/images"
+
+
+// ============================================================================
+//
+//    Themes
+//
+// ============================================================================
+
+// WhiteOnBlack
+
+background        "WhiteOnBlack"                -> clear_color 0, 0, 0, 1
+bullet_color      "WhiteOnBlack", Level:integer -> color "white"
+bullet_line_color "WhiteOnBlack", Level:integer -> line_color "white"
+title_color       "WhiteOnBlack"                -> color "white"
+story_color       "WhiteOnBlack", Level:integer -> color "white"
+bullet_text_color "WhiteOnBlack"                -> color "white"
+
+
+// WhiteOnGray
+
+background        "WhiteOnGray"                -> clear_color 0.5, 0.5, 0.5, 1
+bullet_color      "WhiteOnGray", Level:integer -> color "white"
+bullet_line_color "WhiteOnGray", Level:integer -> line_color "white"
+title_color       "WhiteOnGray"                -> color "white"
+story_color       "WhiteOnGray", Level:integer -> color "white"
+bullet_text_color "WhiteOnGray"                -> color "white"
+
+
+// Rounded
+
+title_font_weight "Rounded" -> plain
+
+title_bg_rect "Rounded" ->
+    rx -> title_bg_rect_x "Rounded"
+    ry -> title_bg_rect_y "Rounded"
+    rw -> title_bg_rect_w "Rounded"
+    rh -> title_bg_rect_h "Rounded"
+    locally
+        line_width 1
+        color 0, 0, 0, 0
+        line_color "black"
+        rounded_rectangle rx, ry, rw, rh, 10
+
+story_bg_rect "Rounded" ->
+    rx -> story_bg_rect_x "Rounded"
+    ry -> story_bg_rect_y "Rounded"
+    rw -> story_bg_rect_w "Rounded"
+    rh -> story_bg_rect_h "Rounded"
+    locally
+        line_width 1
+        color 0, 0, 0, 0
+        line_color "black"
+        rounded_rectangle rx, ry, rw, rh, 10
+
+title_story_bg_rect "Rounded" ->
+    rx -> title_story_bg_rect_x "Rounded"
+    ry -> title_story_bg_rect_y "Rounded"
+    rw -> title_story_bg_rect_w "Rounded"
+    rh -> title_story_bg_rect_h "Rounded"
+    locally
+        line_width 1
+        color 0, 0, 0, 0
+        line_color "black"
+        rounded_rectangle rx, ry, rw, rh, 10
+
+
+// Keyboard
+
+background "Keyboard" ->
+    show_picture_background "image:keyboard.jpg"
+
+title_bg_rect "Keyboard" ->
+    rx -> title_bg_rect_x "Rounded"
+    ry -> title_bg_rect_y "Rounded"
+    rw -> title_bg_rect_w "Rounded"
+    rh -> title_bg_rect_h "Rounded"
+    locally
+        line_width 0
+        color 1.0, 1.0, 1.0, 0.5
+        line_color "black"
+        rounded_rectangle rx, ry, rw, rh, 10
+
+story_bg_rect "Keyboard" ->
+    rx -> story_bg_rect_x "Rounded"
+    ry -> story_bg_rect_y "Rounded"
+    rw -> story_bg_rect_w "Rounded"
+    rh -> story_bg_rect_h "Rounded"
+    locally
+        line_width 0
+        color 1.0, 1.0, 1.0, 0.5
+        line_color "black"
+        rounded_rectangle rx, ry, rw, rh, 10
+
+title_story_bg_rect "Keyboard" ->
+    rx -> title_story_bg_rect_x "Rounded"
+    ry -> title_story_bg_rect_y "Rounded"
+    rw -> title_story_bg_rect_w "Rounded"
+    rh -> title_story_bg_rect_h "Rounded"
+    locally
+        line_width 0
+        color 1.0, 1.0, 1.0, 0.5
+        line_color "black"
+        rounded_rectangle rx, ry, rw, rh, 10
+
+keyboard_theme_gray -> "#303030"
+bullet_color      "Keyboard", Level:integer -> color keyboard_theme_gray
+bullet_line_color "Keyboard", Level:integer -> line_color keyboard_theme_gray
+title_color       "Keyboard"                -> color keyboard_theme_gray
+story_color       "Keyboard", Level:integer -> color keyboard_theme_gray
+bullet_text_color "Keyboard"                -> color keyboard_theme_gray
+
+title_font_size "Keyboard" -> font_size 72 * font_scaling
+
+
+// Seyes
+
+background "Seyes" ->
+    show_picture_background "image:seyes.jpg"
+    locally
+        color 1.0, 1.0, 1.0, 0.4
+        rectangle 0, 0, window_width * 1.1, window_height * 1.1
+
+title_font_family       "Seyes" -> font "Dancing Script"
+story_font_family       "Seyes" -> font "Dancing Script"
+bullet_text_font_family "Seyes", Level:integer -> font "Dancing Script"
+
+seyes_theme_purple -> "#261060"
+bullet_color      "Seyes", Level:integer -> color seyes_theme_purple
+bullet_line_color "Seyes", Level:integer -> line_color seyes_theme_purple
+title_color       "Seyes"                -> color seyes_theme_purple
+story_color       "Seyes", Level:integer -> color seyes_theme_purple
+bullet_text_color "Seyes"                -> color seyes_theme_purple
+
+story_bg_rect_w "Seyes" -> (22.0/28.0) * window_width
+
+story_bg_rect_x "Seyes" -> ( 2.0/28.0) * window_width
+
+title_bg_rect "Seyes" ->
+// ----------------------------------------------------------------------------
+//   Underline the title
+// ----------------------------------------------------------------------------
+    rx -> title_bg_rect_x "Seyes"
+    ry -> title_bg_rect_y "Seyes"
+    Lw -> title_bg_rect_w "Seyes"
+    lw -> 0.8 * Lw
+    rh -> 1.1 * title_bg_rect_h "Seyes"
+    locally
+        line_color seyes_theme_purple
+        line_width 5
+        path
+            move_to rx-lw/2, ry-rh/2, 0
+            line_to rx+lw/2, ry-rh/2, 0
+        line_width 1
+        path
+            move_to rx-Lw/2, ry-rh/2-5, 0
+            line_to rx+Lw/2, ry-rh/2-5, 0
+
+
+
+// ============================================================================
+//
+//    Slide structure, default theme
+//
+// ============================================================================
+
+
+theme := ""
+
+
+font_scaling ->
+// ----------------------------------------------------------------------------
+//   Default font scaling factor. Applied to font size for 768 px height.
+// ----------------------------------------------------------------------------
+     K -> integer (7 * window_height / 768)
+     K / 7.0
+
+
+title_color Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default color for titles
+// ----------------------------------------------------------------------------
+    color "black"
+
+
+title_font_size Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default font size for titles
+// ----------------------------------------------------------------------------
+    font_size 84 * font_scaling
+
+
+title_font_weight Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default font weight for titles
+// ----------------------------------------------------------------------------
+    bold
+
+
+title_font_family Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default font family for titles
+// ----------------------------------------------------------------------------
+    font "Ubuntu"
+
+
+title_text_style Theme:text ->
+// ----------------------------------------------------------------------------
+//   Set text style (font, color, alignment) for titles
+// ----------------------------------------------------------------------------
+    plain
+    title_font_size Theme
+    title_font_weight Theme
+    title_font_family Theme
+    title_color Theme
+    align 0.5
+    vertical_align 0.5
+
+
+title_story_text_style Theme:text ->
+// ----------------------------------------------------------------------------
+//   Set text style (font, color, alignment) for title slide
+// ----------------------------------------------------------------------------
+    title_text_style Theme
+
+
+story_color Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//   Default color for story text
+// ----------------------------------------------------------------------------
+    color "black"
+
+
+story_font_size Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default font size for story text
+// ----------------------------------------------------------------------------
+    font_size 56 * font_scaling
+
+
+story_font_weight Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default font weight for story text
+// ----------------------------------------------------------------------------
+    nil
+
+
+story_font_family Theme:text ->
+// ----------------------------------------------------------------------------
+//   Default font family for story text
+// ----------------------------------------------------------------------------
+    font "Ubuntu"
+
+story_text_style Theme:text ->
+// ----------------------------------------------------------------------------
+//    Style (font, size and color) for story text
+// ----------------------------------------------------------------------------
+    plain
+    story_font_size Theme
+    story_font_weight Theme
+    story_font_family Theme
+    story_color Theme, 0
+    align 0.0
+    vertical_align 0.3
+
+
+title_bg_rect_w Theme:text ->
+// ----------------------------------------------------------------------------
+//    Width of the title background rectangle
+// ----------------------------------------------------------------------------
+    (26.0/28.0) * window_width
+
+
+title_bg_rect_h Theme:text ->
+// ----------------------------------------------------------------------------
+//    Height of the title background rectangle
+// ----------------------------------------------------------------------------
+    (2.7/21.0) * window_height
+
+
+title_bg_rect_x Theme:text ->
+// ----------------------------------------------------------------------------
+//    x coordinate of the center of the title background rectangle
+// ----------------------------------------------------------------------------
+    0.0
+
+
+title_bg_rect_y Theme:text ->
+// ----------------------------------------------------------------------------
+//    y coordinate of the center of the title background rectangle
+// ----------------------------------------------------------------------------
+    (0.5 - 1.0/21.0) * window_height - 0.5 * title_bg_rect_h Theme
+
+
+story_bg_rect_w Theme:text ->
+// ----------------------------------------------------------------------------
+//    Width of the story background rectangle
+// ----------------------------------------------------------------------------
+    (26.0/28.0) * window_width
+
+
+story_bg_rect_h Theme:text ->
+// ----------------------------------------------------------------------------
+//    Height of the story background rectangle
+// ----------------------------------------------------------------------------
+    (12.7/21.0) * window_height
+
+
+story_bg_rect_x Theme:text ->
+// ----------------------------------------------------------------------------
+//    x coordinate of the center of the story background rectangle
+// ----------------------------------------------------------------------------
+    0.0
+
+
+story_bg_rect_y Theme:text ->
+// ----------------------------------------------------------------------------
+//    y coordinate of the center of the story background rectangle
+// ----------------------------------------------------------------------------
+    (-0.5 + 1.7/21.0) * window_height + 0.5 * story_bg_rect_h Theme
+
+
+title_story_bg_rect_x Theme:text ->
+// ----------------------------------------------------------------------------
+//    y coordinate of the center of the title story background rectangle
+// ----------------------------------------------------------------------------
+    0.0
+
+
+title_story_bg_rect_y Theme:text ->
+// ----------------------------------------------------------------------------
+//    x coordinate of the center of the title story background rectangle
+// ----------------------------------------------------------------------------
+    0.0
+
+
+title_story_bg_rect_w Theme:text ->
+// ----------------------------------------------------------------------------
+//    Width of the title story background rectangle
+// ----------------------------------------------------------------------------
+    story_bg_rect_w theme
+
+
+title_story_bg_rect_h Theme:text ->
+// ----------------------------------------------------------------------------
+//    Height of the title story background rectangle
+// ----------------------------------------------------------------------------
+    0.8 * window_height
+
+
+title_bg_rect Theme:text ->
+// ----------------------------------------------------------------------------
+//   No background frame for title, by default
+// ----------------------------------------------------------------------------
+    nil
+
+
+title_layout Theme:text, Body ->
+// ----------------------------------------------------------------------------
+//   Default implementation of title layout TODO
+// ----------------------------------------------------------------------------
+    rx -> title_bg_rect_x theme
+    ry -> title_bg_rect_y theme
+    rw -> 0.9 * title_bg_rect_w theme
+    rh -> 0.9 * title_bg_rect_h theme
+    title_bg_rect theme
+    text_box rx, ry, rw, rh,
+        Body
+
+
+story_bg_rect Theme:text ->
+// ----------------------------------------------------------------------------
+//   No background frame for story, by default
+// ----------------------------------------------------------------------------
+    nil
+
+story_layout Theme:text, Body ->
+// ----------------------------------------------------------------------------
+//   Default implementation of story layout
+// ----------------------------------------------------------------------------
+    // FIXME 'theme' OK, 'Theme' NOK
+    rx -> story_bg_rect_x theme
+    ry -> story_bg_rect_y theme
+    rw -> 0.9 * story_bg_rect_w theme
+    rh -> 0.9 * story_bg_rect_h theme
+    story_bg_rect theme
+    text_box rx, ry, rw, rh,
+        Body
+
+
+title_story_bg_rect Theme:text ->
+// ----------------------------------------------------------------------------
+//   No background frame for story of title slide, by default
+// ----------------------------------------------------------------------------
+    nil
+
+
+title_story_layout Theme:text, Body ->
+// ----------------------------------------------------------------------------
+//   Default implementation of story layout for a title slide
+// ----------------------------------------------------------------------------
+    rx -> title_story_bg_rect_x theme
+    ry -> title_story_bg_rect_y theme
+    rw -> 0.9 * title_story_bg_rect_w theme
+    rh -> 0.9 * title_story_bg_rect_h theme
+    title_story_bg_rect theme
+    text_box rx, ry, rw, rh,
+        Body
+
+
+title Theme, Title ->
+// ----------------------------------------------------------------------------
+//   Default implementation of title
+// ----------------------------------------------------------------------------
+    title_layout Theme,
+        title_text_style Theme
+        text Title
+
+
+story Theme, Body ->
+// ----------------------------------------------------------------------------
+//   Default implementation of a story
+// ----------------------------------------------------------------------------
+    story_layout Theme,
+        story_text_style Theme
+        Body
+
+
+title_story Theme, Body ->
+// ----------------------------------------------------------------------------
+//   Default implementation of a story for a title slide
+// ----------------------------------------------------------------------------
+    title_story_layout Theme,
+        title_story_text_style Theme
+        Body
+
+
+theme_init S:text ->
+    refresh 0.1
+
+
+background Theme:text ->
+// ----------------------------------------------------------------------------
+//    Default background is solid white
+// ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
+
+
+base_slide T:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a slide without a title and story (only the background)
+// ----------------------------------------------------------------------------
+    page T,
+        theme_init theme
+        background theme
+        Body
+
+
+slide T:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a slide with title and content
+// ----------------------------------------------------------------------------
+    base_slide T,
+        story theme, Body
+        title theme, T
+
+
+title_slide T:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a title slide (one unique text area)
+// ----------------------------------------------------------------------------
+    base_slide T,
+        title_story theme, Body
+
+
+title_only_slide T:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a slide with title only
+// ----------------------------------------------------------------------------
+    base_slide T,
+        title theme, T
+        Body
+
+
+min x:real, y:real              -> if x < y then x else y
+max x:real, y:real              -> if x > y then x else y
+get_z x:real, y:real, z:real    -> z
+get_w w:real, h:real            -> w
+get_h w:real, h:real            -> h
+
+
+background_z Theme:text -> 0.0
+
+background_stretch Theme:text ->
+// ----------------------------------------------------------------------------
+//   Background scaling: proportional if false, non-proportional if true
+// ----------------------------------------------------------------------------
+    false
+
+show_picture_background File:text ->
+// ----------------------------------------------------------------------------
+//   Show a picture background
+// ----------------------------------------------------------------------------
+    min_w_h -> min window_width, window_height
+    cam_z -> get_z camera_position
+    bg_z -> background_z theme
+    bg_w -> get_w image_size File
+    bg_h -> get_h image_size File
+    bg_zscale -> 110% * (1.0 - bg_z/cam_z)
+    bg_sx -> bg_zscale * window_width  / bg_w
+    bg_sy -> bg_zscale * window_height / bg_h
+    bg_scale -> max window_height/bg_h, window_width/bg_w
+    locally
+        translatez bg_z
+        color "white"
+        if background_stretch theme then
+            // Non-proportional scaling
+            image 0.0, 0.0, bg_sx, bg_sy, File
+        else
+            // Proportional scaling
+            image 0.0, 0.0, bg_scale, bg_scale, File
+
+
+bullet_text_color Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Set text color for bullet text
+// ----------------------------------------------------------------------------
+    story_color theme, Level
+
+
+bullet_text_font_size Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Set font size for bullet text
+// ----------------------------------------------------------------------------
+    font_size bullet_size (Theme, Level)
+
+
+bullet_text_font_family Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Set font family for bullet text
+// ----------------------------------------------------------------------------
+    font "Ubuntu"
+
+
+bullet_text_style S:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Style (font, size and color) for bullet text
+// ----------------------------------------------------------------------------
+    plain
+    bullet_text_font_family (theme, Level)
+    bullet_text_font_size (theme, Level)
+    bullet_text_color theme, Level
+
+
+bullet_color Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Default bullet fill color
+// ----------------------------------------------------------------------------
+    color "black"
+
+
+bullet_line_color Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Default bullet line color
+// ----------------------------------------------------------------------------
+    line_color "black"
+
+
+bullet_picture Theme:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Draw a bullet
+// ----------------------------------------------------------------------------
+    bullet_color (Theme, Level)
+    bullet_line_color (Theme, Level)
+    draw S:real -> circle -50% * S, 30% * S, 12% * S
+    draw bullet_size (theme, Level)
+
+
+bullet_size Theme:text, 0 -> 56 * font_scaling
+bullet_size Theme:text, 1 -> 56 * font_scaling
+bullet_size Theme:text, Level:integer -> 48 * font_scaling
+
+
+bullet Theme, Level, Text ->
+// ----------------------------------------------------------------------------
+//   Draw a bullet point with a given text
+// ----------------------------------------------------------------------------
+    margins Level * bullet_size(Theme, Level), 0
+    paragraph_break
+    anchor
+        bullet_picture Theme, Level
+    bullet_text_style Theme, Level
+    text Text
+
+
+*T:text -> bullet theme, 1, T
+// ----------------------------------------------------------------------------
+//   Display a first-level bullet
+// ----------------------------------------------------------------------------
+
+
+-T:text -> bullet theme, 2, T
+// ----------------------------------------------------------------------------
+//   Display a second-level bullet
+// ----------------------------------------------------------------------------
+
+
++T:text -> bullet theme, 3, T
+// ----------------------------------------------------------------------------
+//   Display a third-level bullet
+// ----------------------------------------------------------------------------

@@ -77,7 +77,7 @@ PREFIX(PageCount,    integer,   "page_count", , RTAO(pageCount(self)),
        DESCRIPTION("Return the number of pages in the current document")
        RETURNS(integer, "The number of pages in the current document"))
 PREFIX(PageName,    text,   "page_name",
-       PARM(n, integer, "Index of page, starting at 0"), 
+       PARM(n, integer, "Index of page, starting at 0"),
        RTAO(pageNameAtIndex(self, n)),
        GROUP(page)
        SYNOPSIS("The name of the nth page.")
@@ -109,6 +109,11 @@ PREFIX(PageThumbnail, tree, "page_thumbnail",
        RTAO(thumbnail(context, self, s, i, p)),
        GROUP(page)
        SYNOPSIS("Generate a page thumbnail as a texture"))
+PREFIX(OffLineRendering, boolean, "offline_rendering", , RTAO(offlineRendering(self)),
+       GROUP(page)
+       SYNOPSIS("Return true if we are currently rendering to file")
+       DESCRIPTION("")
+       RETURNS(boolean, "Return the offline rendering status"))
 
 PREFIX(FrameWidth,   real,      "frame_width", , RTAO(frameWidth(self)),
        GROUP(frame)
@@ -136,6 +141,38 @@ PREFIX(WindowHeight, real,      "window_height", , RTAO(windowHeight(self)),
        SYNOPSIS("Return the height of window in which we display")
        DESCRIPTION("Return the height of window in which we display")
        RETURNS(real, "Return the height of window in which we display"))
+PREFIX(TimeSeconds, integer,  "seconds", PARM(t, real, ), RTAO(seconds(self, t)),
+       GROUP(time) SYNOPSIS("Extract seconds from timestamp"))
+PREFIX(TimeMinutes, integer,  "minutes", PARM(t, real, ), RTAO(minutes(self, t)),
+       GROUP(time) SYNOPSIS("Extract minutes (local time) from timestamp"))
+PREFIX(TimeHours,   integer,  "hours", PARM(t, real, ), RTAO(hours(self, t)),
+       GROUP(time) SYNOPSIS("Extract hours (local time) from timestamp"))
+PREFIX(TimeDay,     integer,  "day", PARM(t, real, ), RTAO(day(self, t)),
+       GROUP(time) SYNOPSIS("Extract day (1-31) from timestamp"))
+PREFIX(TimeWeekDay, integer,  "week_day", PARM(t, real, ), RTAO(weekDay(self, t)),
+       GROUP(time) SYNOPSIS("Extract week day (1-7) from timestamp"))
+PREFIX(TimeYearDay, integer,  "year_day", PARM(t, real, ), RTAO(yearDay(self, t)),
+       GROUP(time) SYNOPSIS("Extract year day (1-365) from timestamp"))
+PREFIX(TimeMonth,   integer,  "month", PARM(t, real, ), RTAO(month(self, t)),
+       GROUP(time) SYNOPSIS("Extract month from timestamp"))
+PREFIX(TimeYear, integer,  "year", PARM(t, real, ), RTAO(year(self, t)),
+       GROUP(time) SYNOPSIS("Extract year from timestamp"))
+PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return seconds of current time"))
+PREFIX(Minutes, integer, "minutes" ,, RTAO(minutes(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return minutes of current time"))
+PREFIX(Hours,   integer, "hours"   ,, RTAO(hours(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return hours of current time"))
+PREFIX(Day,     integer, "day"     ,, RTAO(day(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current day of month"))
+PREFIX(WeekDay, integer, "week_day",, RTAO(weekDay(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current day of week"))
+PREFIX(YearDay, integer, "year_day",, RTAO(yearDay(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current day of year"))
+PREFIX(Month,   integer, "month"   ,, RTAO(month(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current month"))
+PREFIX(Year,    integer, "year"    ,, RTAO(year(self, -1.0)),
+       GROUP(time) SYNOPSIS("Return current year"))
 PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
        GROUP(time)
        SYNOPSIS("Return a fractional time, including milliseconds")
@@ -177,23 +214,6 @@ PREFIX(Every50Pct, real, "every",
                    "The interval is specified in seconds, with a precision "
                    "of one millisecond. The specified code evaluates for "
                    "approximately 50% of the time."))
-
-PREFIX(Seconds, integer, "seconds" ,, RTAO(seconds(self)),
-       GROUP(time) SYNOPSIS("Return seconds of current time"))
-PREFIX(Minutes, integer, "minutes" ,, RTAO(minutes(self)),
-       GROUP(time) SYNOPSIS("Return minutes of current time"))
-PREFIX(Hours,   integer, "hours"   ,, RTAO(hours(self)),
-       GROUP(time) SYNOPSIS("Return hours of current time"))
-PREFIX(Day,     integer, "day"     ,, RTAO(day(self)),
-       GROUP(time) SYNOPSIS("Return current day of month"))
-PREFIX(WeekDay, integer, "week_day",, RTAO(weekDay(self)),
-       GROUP(time) SYNOPSIS("Return current day of week"))
-PREFIX(YearDay, integer, "year_day",, RTAO(yearDay(self)),
-       GROUP(time) SYNOPSIS("Return current day of year"))
-PREFIX(Month,   integer, "month"   ,, RTAO(month(self)),
-       GROUP(time) SYNOPSIS("Return current month"))
-PREFIX(Year,    integer, "year"    ,, RTAO(year(self)),
-       GROUP(time) SYNOPSIS("Return current year"))
 
 PREFIX(MouseX,  real,  "mouse_x", , RTAO(mouseX(self)),
        GROUP(mouse)
@@ -241,6 +261,13 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
+PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
+       PARM(name, symbol, "The name of the feature to test"),
+       RTAO(taoFeatureAvailable(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a functionality is available")
+       DESCRIPTION("Check if a specific Tao feature is available with the current version of the program")
+       RETURNS( boolean, "True if the feature is compiled in, false otherwise.") )
 
 
 
@@ -427,6 +454,7 @@ PREFIX(DefaultRefresh, tree, "default_refresh",
        DESCRIPTION("Set the documents refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
+#ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),
        RTAO(showSource(self, flag)),
@@ -437,6 +465,7 @@ PREFIX(ShowSource, boolean, "show_source",
        RETURNS(boolean,
                "The previous visibility state of the "
                "source code panel."))
+#endif
 PREFIX(FullScreen, boolean, "full_screen",
        PARM(flag, boolean, "Flag controlling full-screen mode"),
        RTAO(fullScreen(self, flag)),
@@ -581,6 +610,7 @@ PREFIX(EnableAnimations,  boolean,  "enable_animations",
        SYNOPSIS("Enable or disable animations")
        DESCRIPTION("Enable or disable animations")
        RETURNS(boolean, "True if previous state was on."))
+#ifndef CFG_NOSTEREO
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off"),
        RTAO(enableStereoscopy(self, mode)),
@@ -593,6 +623,7 @@ PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer, "on or of
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
        RETURNS(boolean, "True if previous state was on."))
+#endif
 PREFIX(EyeDistance,  boolean,  "eye_distance",
        PARM(e, real, ),
        RTAO(setEyeDistance(self, e)),
@@ -662,7 +693,7 @@ PREFIX(MotionBlur, tree, "motion_blur",
        PARM(f, real, "Amount of blur, between 0 and 1"),
        RTAO(motionBlur(self, f)),
        GROUP(page)
-       SYNOPSIS("Set the motion blur factor"))       
+       SYNOPSIS("Set the motion blur factor"))
 PREFIX(LineColorName,  tree,  "line_color",
        PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
        PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),
@@ -804,7 +835,7 @@ PREFIX(ImageA,  tree, "image",
        PARM(w, real, )
        PARM(h, real, )
        PARM(img, text, ),
-       RTAO(image(self, x, y, w, h, img)),
+       RTAO(image(context, self, x, y, w, h, img)),
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
@@ -812,10 +843,27 @@ PREFIX(ImageB,  tree, "image",
        PARM(x, real, "x-coordinate of the image")
        PARM(y, real, "y-coordinate of the image")
        PARM(img, text, "width of the image"),
-       RTAO(image(self, x, y, img)),
+       RTAO(image(context, self, x, y, img)),
        GROUP(graph)
        SYNOPSIS("Make an image")
        DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))
+PREFIX(ImagePx,  tree, "image_px",
+       PARM(x, real, "X coordinate of image center")
+       PARM(y, real, "Y coordinate of image center")
+       PARM(w, real, "Image width in pixels")
+       PARM(h, real, "Image height in pixels")
+       PARM(img, text, "File path"),
+       RTAO(imagePx(context, self, x, y, w, h, img)),
+       GROUP()
+       SYNOPSIS("Insert an image")
+       DESCRIPTION(""))
+PREFIX(ImageSize,  infix, "image_size",
+       PARM(img, text, "File path"),
+       RTAO(imageSize(self, img)),
+       GROUP()
+       SYNOPSIS("Get the size of an image")
+       DESCRIPTION("")
+       RETURNS(infix, "Two integer values: w,h"))
 PREFIX(TextureWrap,  tree,  "texture_wrap",
        PARM(s, boolean, "[TODO]")
        PARM(t, boolean, "[TODO]"),
@@ -1154,8 +1202,8 @@ PREFIX(Cylinder,  tree,  "cylinder",
        PARM(d, real, "depth"),
        RTAO(cone(self, x, y, z, w, h, d, 1.0)),
        GROUP(graph)
-       SYNOPSIS("cone")
-       DESCRIPTION("cone[TODO]"))
+       SYNOPSIS("cylinder")
+       DESCRIPTION("cylinder[TODO]"))
 PREFIX(TruncatedCone,  tree,  "truncated_cone",
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
@@ -1163,11 +1211,11 @@ PREFIX(TruncatedCone,  tree,  "truncated_cone",
        PARM(w, real, "width")
        PARM(h, real, "height")
        PARM(d, real, "depth")
-       PARM(r, real, ),
+       PARM(r, real, "percentage of basis : 0.0 is a cone; 1.0 is a cylinder."),
        RTAO(cone(self, x, y, z, w, h, d, r)),
        GROUP(graph)
-       SYNOPSIS("cone")
-       DESCRIPTION("cone[TODO]"))
+       SYNOPSIS("truncated cone")
+       DESCRIPTION("truncated cone[TODO]"))
 
 
 
@@ -1228,6 +1276,12 @@ PREFIX(TextValue,  tree, "text_value",
 PREFIX(Font,  tree,  "font",
        PARM(f, tree, "The font description"),
        RTAO(font(context, self, f)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
+PREFIX(FontFamily,  tree,  "font",
+       PARM(f, text, "The font family, and optionally, font style after a slash"),
+       RTAO(fontFamily(context, self, f)),
        GROUP(text:font)
        SYNOPSIS("Select a font family")
        DESCRIPTION("Select a font family"))
@@ -1487,7 +1541,8 @@ PREFIX(TableBorder,  tree,  "table_cell_border",
        PARM(b, code, "border code body."),
        RTAO(tableBorder(self, b)),
        GROUP(table)
-       SYNOPSIS("Define the border code for cells"))
+       SYNOPSIS("Define the border code for cells")
+       DESCRIPTION("Define the border code for cells. The short name is border."))
 PREFIX(TableCellX,  tree,  "table_cell_x", , RTAO(tableCellX(self)),
        GROUP(table)
        SYNOPSIS("x-ccordinate of the cell center")
@@ -2117,6 +2172,11 @@ PREFIX(Checkout,  tree,  "checkout",
        GROUP(code:checkout)
        SYNOPSIS("")
        DESCRIPTION("Checkout a branch or a commit"))
+PREFIX(CurrentRepository,  boolean,  "current_repository",,
+       RTAO(currentRepository(self)),
+       GROUP(code:checkout)
+       SYNOPSIS("Return true if we use a git repository with the current document")
+       DESCRIPTION("Return true if the current document is stored in a repository, Git functionality is compiled in, and not disabled on the command line"))
 PREFIX(ChooserCloseDocument, tree, "chooser_command_Close_current_document",
        /* No param */,
        RTAO(closeCurrentDocument(self)),
@@ -2352,18 +2412,19 @@ PREFIX(Constant,  tree,  "constant",
        DESCRIPTION("A tree that cannot be modify.")
        RETURNS(tree, "the tree"))
 
-PREFIX(Exit, integer, "exit",, exit(0);,
+PREFIX(Exit, integer, "exit",
+       PARM(n, integer, "exit parameter"), exit(n.value);,
        GROUP(code)
        SYNOPSIS("Exit from Tao")
-       DESCRIPTION("Exit from Tao"))
+       DESCRIPTION("Exit from Tao with the given value"))
 
 PREFIX(GenDoc,  text,  "generate_doc",
        PARM(t, tree, "The tree from wich extracting the documentation"),
-       RTAO(generateDoc(self, t)),
+       RTAO(generateDoc(self, t, "XL")),
        GROUP(documentation)
        SYNOPSIS("generate the doc for the specified tree ")
        DESCRIPTION("Extract the documentation from the specified tree. ")
-       RETURNS(tree, "The Text contains the documentation, ready to be parsed. "))
+       RETURNS(text, "The Text contains the documentation, ready to be parsed. "))
 
 PREFIX(GenAllDoc,  tree,  "generate_all_doc",
        PARM(filename, text, "File name for the documentation"),
@@ -2383,11 +2444,11 @@ PREFIX(ListFiles2, tree, "files", PARM(pat, tree, ""),
        SYNOPSIS("")
        DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
        RETURNS(tree, ""))
-PREFIX(ListFiles, tree, "list_files", PARM(pat, tree, ""),
+PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
        RTAO(listFiles(context, self, pat)),
        GROUP(misc)
        SYNOPSIS("")
-       DESCRIPTION("")
+       DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
        RETURNS(tree, ""))
 
 

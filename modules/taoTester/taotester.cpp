@@ -1,5 +1,7 @@
 #include "taotester.h"
 #include "runtime.h"
+
+#include <QDir>
 using namespace XL;
 
 
@@ -29,12 +31,12 @@ Tree_p taoTester::startRecTest(Tree_p )
 }
 
 
-Tree_p taoTester::stopRecTest(Tree_p )
+Tree_p taoTester::stop(Tree_p )
 // ----------------------------------------------------------------------------
 //   Stop recording events
 // ----------------------------------------------------------------------------
 {
-    currentTest()->stopRecord();
+    currentTest()->stop();
     return XL::xl_true;
 }
 
@@ -44,7 +46,7 @@ Tree_p taoTester::playTest(Tree_p )
 //   Replay the test
 // ----------------------------------------------------------------------------
 {
-    bool res = currentTest()->play();
+    bool res = currentTest()->startPlay();
     currentTest()->printResult();
     return  res ? XL::xl_true : XL::xl_false;
 }
@@ -55,7 +57,7 @@ Tree_p taoTester::resetTest(Tree_p)
  //   Reset current test
  // ----------------------------------------------------------------------------
 {
-    currentTest()->stopRecord();
+    currentTest()->stop();
     currentTest()->reset();
     return XL::xl_true;
 }
@@ -83,15 +85,16 @@ Tree_p taoTester::testCheck(Tree_p)
 
 Tree_p taoTester::testDef(Context *context,
                           Tree_p , Text_p name, Integer_p fId, Text_p desc,
-                          Tree_p body, Real_p thr)
+                          Tree_p body, Real_p thr, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
 //   Define a new test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->reset(name->value, fId->value,
-                         desc->value, text("./"), thr->value);
-    return xl_evaluate(context, body); //TEMPO FOR BUILD CaB
-   // return XL::xl_false;
+    QStringList dirList = QDir::searchPaths("image");
+    text dir = +dirList.at(1) + '/' + name->value;
+    currentTest()->reset(name->value, fId->value, desc->value, dir,
+                         thr->value, width->value, height->value);
+    return xl_evaluate(context, body);
 }
 
 
@@ -204,7 +207,7 @@ Tree_p taoTester::testAddFont(Tree_p , Text_p name, Text_p ftname, Integer_p del
 //  Add a font change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addColor(+name->value, +ftname->value, delay->value);
+    currentTest()->addFont(+name->value, +ftname->value, delay->value);
     return XL::xl_true;
 }
 
@@ -214,7 +217,17 @@ Tree_p taoTester::testAddColor(Tree_p , Text_p name, Text_p colname, Integer_p d
 //  Add a color change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addFont(+name->value, +colname->value, delay->value);
+    currentTest()->addColor(+name->value, +colname->value, delay->value);
+    return XL::xl_true;
+}
+
+
+Tree_p taoTester::testAddFile(Tree_p , Text_p name, Text_p filename, Integer_p delay)
+// ----------------------------------------------------------------------------
+//  Add a font change event to the current test
+// ----------------------------------------------------------------------------
+{
+    currentTest()->addFile(+name->value, +filename->value, delay->value);
     return XL::xl_true;
 }
 

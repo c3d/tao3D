@@ -1460,9 +1460,7 @@ PREFIX(TableCell,  tree,  "table_cell",
        GROUP(table)
        SYNOPSIS("Define a free-size cell in the table")
        DESCRIPTION("Define a cell in the context of the table. Short name 'cell' can be used with both syntaxes.")
-       RETURNS(tree, "body evaluation result")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "body evaluation result"))
 PREFIX(TableMargins2,  tree,  "table_cell_margins",
        PARM(w, real, )
        PARM(h, real, ),
@@ -1478,29 +1476,23 @@ PREFIX(TableMargins,  tree,  "table_cell_margins",
        RTAO(tableMargins(self, x, y, w, h)),
        GROUP(table)
        SYNOPSIS("Set the margin rectangle for the table.")
-       DESCRIPTION("Set the margin rectangle for the table. The short name of the function is margins. It can be used with both syntaxes.")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       DESCRIPTION("Set the margin rectangle for the table. The short name of the function is margins. It can be used with both syntaxes."))
 PREFIX(TableFill,  tree,  "table_cell_fill",
        PARM(b, code, "fill code body."),
        RTAO(tableFill(self, b)),
        GROUP(table)
        SYNOPSIS("fill of the cell")
-       DESCRIPTION("Define the fill code for cells")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       DESCRIPTION("Define the fill code for cells"))
 PREFIX(TableBorder,  tree,  "table_cell_border",
        PARM(b, code, "border code body."),
        RTAO(tableBorder(self, b)),
        GROUP(table)
-       SYNOPSIS("Define the border code for cells")
-       DESCRIPTION("Define the border code for cells. The short name is border.")       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       SYNOPSIS("Define the border code for cells"))
 PREFIX(TableCellX,  tree,  "table_cell_x", , RTAO(tableCellX(self)),
        GROUP(table)
        SYNOPSIS("x-ccordinate of the cell center")
        DESCRIPTION("Get the horizontal center of the current table cell")
-       RETURNS(tree, "The coordinate of the center of the current cell on x-axis")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "The coordinate of the center of the current cell on x-axis"))
 PREFIX(TableCellY,  tree,  "table_cell_y", , RTAO(tableCellY(self)),
        GROUP(table)
        SYNOPSIS("y-ccordinate of the cell center")
@@ -1515,37 +1507,27 @@ PREFIX(TableCellH,  tree,  "table_cell_h", , RTAO(tableCellH(self)),
        GROUP(table)
        SYNOPSIS("Height of the cell.")
        DESCRIPTION("Get the vertical size of the current table cell")
-       RETURNS(tree, "The size of the current cell along the y-axis")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "The size of the current cell along the y-axis"))
 PREFIX(TableRow,  tree,  "table_cell_row", , RTAO(tableRow(self)),
        GROUP(table)
        SYNOPSIS("Return the current row")
        DESCRIPTION("Return the current row index")
-       RETURNS(tree, "the row index")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "the row index"))
 PREFIX(TableColumn,  tree,  "table_cell_column", , RTAO(tableColumn(self)),
        GROUP(table)
        SYNOPSIS("Return the current column")
        DESCRIPTION("Return the current column index.")
-       RETURNS(tree, "The column index.")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "The column index."))
 PREFIX(TableRows,  tree,  "table_rows", , RTAO(tableRows(self)),
        GROUP(table)
        SYNOPSIS("number of rows in the current table")
        DESCRIPTION("Return the number of rows in the current table")
-       RETURNS(tree, "Number of rows in the table")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "Number of rows in the table"))
 PREFIX(TableColumns,  tree,  "table_columns", , RTAO(tableColumns(self)),
        GROUP(table)
        SYNOPSIS("number of columns in the current table")
        DESCRIPTION("Return the number of columns in the current table")
-       RETURNS(tree, "number of columns in the table")
-       MISC("  err \"\", \"Error raised when invoked outside of a table context.\" \
-"))
+       RETURNS(tree, "number of columns in the table"))
 
 
 

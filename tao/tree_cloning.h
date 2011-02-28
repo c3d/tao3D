@@ -56,10 +56,6 @@ template <typename mode> struct TaoCloneTemplate
     Tree *Reselect(Tree *from, Tree *to)
     {
         widget->reselect(from, to);
-        if (XL::CommentsInfo *cinfo = from->GetInfo<XL::CommentsInfo>())
-            to->SetInfo<XL::CommentsInfo> (new XL::CommentsInfo(*cinfo));
-        if (XL::Symbols *symbols = from->Symbols())
-            to->SetSymbols(symbols);
         return to;
     }
 

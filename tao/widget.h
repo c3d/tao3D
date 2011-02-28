@@ -176,6 +176,7 @@ public:
     void        endPanning(QMouseEvent *);
 
     // XL program management
+    void        normalizeProgram();
     void        updateProgram(SourceFile *sf);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();

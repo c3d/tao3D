@@ -2732,6 +2732,20 @@ void Widget::endPanning(QMouseEvent *)
 //
 // ============================================================================
 
+void Widget::normalizeProgram()
+// ----------------------------------------------------------------------------
+//   Put the program in normalized form
+// ----------------------------------------------------------------------------
+{
+    if (Tree *prog = xlProgram->tree)
+    {
+        Renormalize renorm(this);
+        xlProgram->tree = prog->Do(renorm);
+        xl_tree_copy(prog, xlProgram->tree);
+    }
+}
+
+
 void Widget::updateProgram(XL::SourceFile *source)
 // ----------------------------------------------------------------------------
 //   Change the XL program, clean up stuff along the way
@@ -2739,12 +2753,7 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
-    if (Tree *prog = xlProgram->tree)
-    {
-        Renormalize renorm(this);
-        xlProgram->tree = prog->Do(renorm);
-        xlProgram->tree->SetSymbols(source->symbols);
-    }
+    normalizeProgram();
     refreshProgram();
     inError = false;
 }
@@ -2755,22 +2764,14 @@ void Widget::reloadProgram(XL::Tree *newProg)
 //   Set the program to reload
 // ----------------------------------------------------------------------------
 {
-    Tree *prog = xlProgram->tree;
-
     if (!newProg)
     {
         // We want to force a clone so that we recompile everything
-        if (prog)
-        {
-            Renormalize renorm(this);
-            newProg = prog->Do(renorm);
-            newProg->SetSymbols(prog->Symbols());
-            xlProgram->tree = newProg;
-        }
+        normalizeProgram();
     }
 
     // Check if we can simply change some parameters in the tree
-    else
+    else if (Tree *prog = xlProgram->tree)
     {
         ApplyChanges changes(newProg);
         if (!prog->Do(changes))
@@ -2780,11 +2781,11 @@ void Widget::reloadProgram(XL::Tree *newProg)
             xlProgram->tree = newProg;
         }
     }
-    inError = false;
 
     // Now update the window
     updateProgramSource();
     refreshNow();
+    inError = false;
 }
 
 
@@ -3518,6 +3519,10 @@ void Widget::reselect(Tree *from, Tree *to)
     // Check if we are possibly changing the page tree reference
     if (pageTree == from)
         pageTree = to;
+
+    // Copy relevant tree data
+    if (XL::CommentsInfo *cinfo = from->GetInfo<XL::CommentsInfo>())
+        to->SetInfo<XL::CommentsInfo> (new XL::CommentsInfo(*cinfo));
 }
 
 

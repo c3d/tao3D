@@ -1838,17 +1838,18 @@ PREFIX(Movie,  tree,  "movie",
        PARM(y,real, "y-coordinate")
        PARM(w,real, "width")
        PARM(h,real, "height")
-       PARM(u,text, "The URL of the video to play."),
+       PARM(u,text, "The URL of the movie to play."),
        RTAO(movie(self, x, y, w, h, u)),
        GROUP(widget)
        SYNOPSIS("Play a movie")
        DESCRIPTION("Display a movie in the rectangle specified by the given coordinates. Supported movie formats depend on the operating system."))
 PREFIX(MovieTexture,  tree,  "movie_texture",
-       PARM(u,text, "width"),
+       PARM(u,text, "The URL of the movie to play"),
        RTAO(movieTexture(self, u)),
        GROUP(widget)
        SYNOPSIS("Create a texture from a video.")
        DESCRIPTION("Create a dynamic texture from the given movie."))
+
 
 
 // ============================================================================
@@ -2376,7 +2377,12 @@ PREFIX(GenAllDoc,  tree,  "generate_all_doc",
        RETURNS(tree,
                "The Text contains the documentation, "
                "ready to be parsed. "))
-
+PREFIX(ListFiles2, tree, "files", PARM(pat, tree, ""),
+       RTAO(listFiles(context, self, pat)),
+       GROUP(misc)
+       SYNOPSIS("")
+       DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
+       RETURNS(tree, ""))
 PREFIX(ListFiles, tree, "list_files", PARM(pat, tree, ""),
        RTAO(listFiles(context, self, pat)),
        GROUP(misc)

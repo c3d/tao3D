@@ -1,7 +1,14 @@
 #!/bin/bash
 set -a DYLD_LIBRARY_PATH
-DYLD_LIBRARY_PATH="/Users/cathy/Work/tao/install/Tao.app/Contents/Frameworks"
-TAO="cd /Users/cathy/Work/tao/install/Tao.app/Contents/MacOS; ./Tao -norepo "
+INST_DIR=$PWD"/../install/Tao.app/Contents"
+if [[ -f $INST_DIR"/MacOS/Tao" ]];
+then
+  DYLD_LIBRARY_PATH=$INST_DIR"/Frameworks"
+  TAO="cd "$INST_DIR"/MacOS; ./Tao -norepo "
+else
+  echo $INST_DIR"/MacOS/Tao not found."
+  exit -1
+fi
 
 runTests="run_all_tests -> "$'\n'
 listTests="\"Tests that will run :\""$'\n'

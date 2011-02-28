@@ -888,6 +888,7 @@ void Widget::runProgram()
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
         gotoPageName = "";
+        refresh();
     }
 
     processProgramEvents();
@@ -5530,10 +5531,10 @@ static void list_files(Context *context, Dir &current, Tree *patterns,
     if (Text *glob = patterns->AsText())
     {
         QString filter = +glob->value;
-        QStringList files = current.entryList(QStringList() << filter);
-        foreach (QString file, files)
+        QFileInfoList files = current.entryInfoGlobList(filter);
+        foreach (QFileInfo file, files)
         {
-            Text *listed = new Text(+file);
+            Text *listed = new Text(+file.absoluteFilePath());
             if (*parent)
             {
                 Infix *added = new Infix(",", *parent, listed);
@@ -6642,6 +6643,15 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
     if (fontFileMgr)
         fontFileMgr->AddFontFiles(layout->font);
     return XL::xl_true;
+}
+
+
+Tree_p Widget::fontFamily(Context *context, Tree_p self, text family)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    return font(context, self, new XL::Text(family));
 }
 
 

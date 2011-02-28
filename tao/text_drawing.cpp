@@ -48,7 +48,13 @@ TAO_BEGIN
 //
 // ============================================================================
 
+// Text globally looks better and is less buggy with bitmap cache enabled
+// on Windows and disabled on MacOSX. See #745.
+#if defined(Q_OS_WIN)
 bool TextSpan::cacheEnabled = true;
+#else
+bool TextSpan::cacheEnabled = false;
+#endif
 
 void TextSpan::Draw(Layout *where)
 // ----------------------------------------------------------------------------

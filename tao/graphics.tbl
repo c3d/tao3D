@@ -1279,6 +1279,12 @@ PREFIX(Font,  tree,  "font",
        GROUP(text:font)
        SYNOPSIS("Select a font family")
        DESCRIPTION("Select a font family"))
+PREFIX(FontFamily,  tree,  "font",
+       PARM(f, text, "The font family, and optionally, font style after a slash"),
+       RTAO(fontFamily(context, self, f)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
 PREFIX(FontSize,  tree,  "font_size",
        PARM(s, real, "The font size."),
        RTAO(fontSize(self, s)),
@@ -2433,7 +2439,13 @@ PREFIX(GenAllDoc,  tree,  "generate_all_doc",
                "The Text contains the documentation, "
                "ready to be parsed. "))
 
-PREFIX(ListFiles, tree, "list_files", PARM(pat, tree, ""),
+PREFIX(ListFiles2, tree, "files", PARM(pat, tree, ""),
+       RTAO(listFiles(context, self, pat)),
+       GROUP(misc)
+       SYNOPSIS("")
+       DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
+       RETURNS(tree, ""))
+PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
        RTAO(listFiles(context, self, pat)),
        GROUP(misc)
        SYNOPSIS("")

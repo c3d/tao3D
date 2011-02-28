@@ -30,12 +30,7 @@ class Dir : public QDir
 {
 public:
     Dir(const QString &path) : QDir(path) {}
-
-public:
-    QStringList entryList(const QStringList &nameFilters);
-
-protected:
-    QStringList entryList(QString pattern);
+    QFileInfoList entryInfoGlobList(QString pattern);
 };
 
 TAO_END

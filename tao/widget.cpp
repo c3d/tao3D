@@ -1593,7 +1593,8 @@ void Widget::userMenu(QAction *p_action)
 
     TaoSave saveCurrent(current, this);
     XL::Tree *t = var.value<XL::Tree_p>();
-    xlProgram->context->Evaluate(t); // Typically will insert something...
+    if (t)
+        xlProgram->context->Evaluate(t); // Typically will insert something...
 }
 
 

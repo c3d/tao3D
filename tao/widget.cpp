@@ -4798,10 +4798,10 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Infix(",",
+                     new Real(cameraPosition.x),
                      new Infix(",",
-                               new Real(cameraPosition.x),
-                               new Real(cameraPosition.y)),
-                     new Real(cameraPosition.z));
+                               new Real(cameraPosition.y),
+                               new Real(cameraPosition.z)));
 }
 
 
@@ -4827,10 +4827,10 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Infix(",",
+                     new Real(cameraTarget.x),
                      new Infix(",",
-                               new Real(cameraTarget.x),
-                               new Real(cameraTarget.y)),
-                     new Real(cameraTarget.z));
+                               new Real(cameraTarget.y),
+                               new Real(cameraTarget.z)));
 }
 
 
@@ -4856,10 +4856,10 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Infix(",",
+                     new Real(cameraUpVector.x),
                      new Infix(",",
-                               new Real(cameraUpVector.x),
-                               new Real(cameraUpVector.y)),
-                     new Real(cameraUpVector.z));
+                               new Real(cameraUpVector.y),
+                               new Real(cameraUpVector.z)));
 }
 
 
@@ -9235,7 +9235,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
 bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
 // ----------------------------------------------------------------------------
-//    Helper function: Plug the group's chlid tree under the parent.
+//    Helper function: Plug the group's child tree under the parent.
 // ----------------------------------------------------------------------------
 {
     Infix * inf = parent->AsInfix();
@@ -9243,13 +9243,12 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
     if ( !block)
         return false;
 
-    if ( inf )
+    if (inf)
     {
         if (inf->left == group)
         {
             if (Infix * inf_child = block->child->AsInfix())
             {
-
                 Tree *p_right = inf->right;
                 Infix *last = inf_child->LastStatement();
                 last->right = new Infix("\n",last->right, p_right);
@@ -9257,17 +9256,20 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
                 inf->right = inf_child->right;
             }
             else
+            {
                 inf->left = block->child;
-
+            }
         }
         else
+        {
             inf->right = block->child;
+        }
 
         return true;
     }
 
     Prefix * pref = parent->AsPrefix();
-    if ( pref )
+    if (pref)
     {
         if (pref->left == group)
             pref->left = block->child;
@@ -9278,7 +9280,7 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
     }
 
     Postfix * pos = parent->AsPostfix();
-    if ( pos )
+    if (pos)
     {
         if (pos->left == group)
             pos->left = block->child;
@@ -9333,8 +9335,9 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
     markChanged("Selection ungrouped");
 
     return XL::xl_true;
-
 }
+
+
 
 // ============================================================================
 //

@@ -68,7 +68,7 @@ XL::Tree_p ModuleManager::import(XL::Context_p context, XL::Tree_p self,
     // import "filename"
     XL::Text *file = what->AsText();
     if (file)
-        return XL::xl_import(context->stack, file->value);
+        return XL::xl_import(context, file->value);
 
     // Other import syntax: explicit module import
     ModuleManager *mmgr = moduleManager();
@@ -128,7 +128,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
 
-                    XL::xl_import(context->stack, +xlPath);
+                    XL::xl_import(context, +xlPath);
                 }
             }
         }
@@ -166,7 +166,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
         err = XL::Ooops("Invalid module import: $1", self);
 
     if (err)
-        return context->stack->Evaluate(err);
+        return xl_evaluate(context, err);
 
     return XL::xl_true;
 }

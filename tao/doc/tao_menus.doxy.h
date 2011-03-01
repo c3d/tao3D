@@ -2,7 +2,7 @@
  * @addtogroup TaoMenus Application menus
  * @ingroup TaoBuiltins
  *
- * @brief Create and insert new menus into the Tao application window.
+ * Creates and inserts new menus into the Tao application window.
  *
  * With the primitives defined in this group, a document can create and insert
  * new menus in the menu bar of the Tao Presentations application. Specific
@@ -88,7 +88,7 @@ tree submenu(text name, text label, text icon);
  * @see menu, submenu to set the current %menu \n
  *      menu_item(text name, text label, text icon, boolean checkable, text checked, code action)
  */
-tree menu_item(text name, text label, code C);
+tree menu_item(text name, text label, code action);
 
 /**
  * Adds a menu item with an associated action to the current menu.
@@ -99,6 +99,9 @@ tree menu_item(text name, text label, code C);
  * associate an icon to the menu item,  give the path to the icon file using the
  * @a icon parameter; otherwise supply an emtpy string. The icon path may be
  * absolute or relative to the current document.
+ *
+ * The action to execute when the menu is clicked should be given as an indented
+ * block of code (see the example in this group's description).
  *
  * A menu item can have a check box to indicate it has a state and may be
  * changed from checked to unchecked and vice-versa. To create a checkable item,

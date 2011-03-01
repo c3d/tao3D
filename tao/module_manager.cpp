@@ -69,7 +69,7 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
     // import "filename"
     XL::Text *file = what->AsText();
     if (file)
-        return XL::xl_import(context, file->value);
+        return XL::xl_import(context, self, file->value);
 
     // Other import syntax: explicit module import
     ModuleManager *mmgr = moduleManager();
@@ -130,7 +130,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
 
-                    XL::xl_import(context, +xlPath);
+                    XL::xl_import(context, self, +xlPath);
                 }
             }
         }

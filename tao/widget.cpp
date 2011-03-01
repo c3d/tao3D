@@ -834,29 +834,15 @@ void Widget::runProgram()
     // If we have evaluation errors, show them (bug #498)
     if (XL::MAIN->HadErrors())
     {
-        std::vector<XL::Error> &errors = XL::MAIN->errors->errors;
+        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
         std::vector<XL::Error>::iterator ei;
         Window *window = (Window *) parentWidget();
+        XL::MAIN->errors->Clear();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
             text message = (*ei).Position() + ": " + (*ei).Message();
             window->addError(+message);
         }
-        XL::MAIN->errors->Clear();
-    }
-
-    // If we have evaluation errors, show them (bug #498)
-    if (XL::MAIN->errors->Count())
-    {
-        std::vector<XL::Error> &errors = XL::MAIN->errors->errors;
-        std::vector<XL::Error>::iterator ei;
-        Window *window = (Window *) parentWidget();
-        for (ei = errors.begin(); ei != errors.end(); ei++)
-        {
-            text message = (*ei).Position() + ": " + (*ei).Message();
-            window->addError(+message);
-        }
-        XL::MAIN->errors->Clear();
     }
 
     // Clean the end of the old menu list.

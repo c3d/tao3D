@@ -2960,8 +2960,6 @@ void Widget::refreshProgram()
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
-                XL::Save<XL::Context_p> save(XL::MAIN->context,
-                                                  sf.context->scope);
                 XL::MAIN->LoadFile(sf.name);
                 inError = false;
             }

@@ -59,7 +59,8 @@ ModuleManager * ModuleManager::moduleManager()
 }
 
 
-XL::Tree_p ModuleManager::import(XL::Context_p context, XL::Tree_p self,
+XL::Tree_p ModuleManager::import(XL::Context_p context,
+                                 XL::Tree_p self,
                                  XL::Tree_p what)
 // ----------------------------------------------------------------------------
 //   The import primitive
@@ -79,7 +80,8 @@ XL::Tree_p ModuleManager::import(XL::Context_p context, XL::Tree_p self,
 }
 
 
-XL::Tree_p ModuleManager::importModule(XL::Context_p context, XL::Tree_p self,
+XL::Tree_p ModuleManager::importModule(XL::Context_p context,
+                                       XL::Tree_p self,
                                        XL::Tree_p what)
 // ----------------------------------------------------------------------------
 //   The primitive to import a module, for example:   import ModuleName "1.10"

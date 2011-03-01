@@ -44,16 +44,15 @@
  * Tao documents are written using the XL language. Tao builtins are XL forms
  * that you must use to describe your document. They are further divided into
  * categories as shown above.
- * @{
- */
-
-#include "tao_graphics2d.doxy.h" // todo
-#include "tao_graphics3d.doxy.h" // todo
-
-#include "tao_menus.doxy.h"
-#include "tao_files.doxy.h"
-#include "tao_modules.doxy.h"
-
-/**
- * @}
+ *
+ * @todo Document GL shader primitives?
+ * @todo Document Git-related primitives (branch/commit chooser commands and
+ *       checkout)?
+ * @todo Document "error" primitives?
+ * @todo Document "tree management" primitives? (insert, delete_selection,
+ *       set_attribute)
+ * @todo Document the z-order management primitives? (bring_to_front, etc.)
+ * @todo Document the group management primitives? (group, group_selection,
+ *       ungroup_selection)
+ * @todo Document the dimension conversion postfixes? (mm, cm, inch, pt)
  */

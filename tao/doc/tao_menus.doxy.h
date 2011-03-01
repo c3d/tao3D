@@ -9,6 +9,15 @@
  * code can be executed when the menu is triggered. In addition, stateful menus
  * (with a check mark: enable or disabled) are supported.
  *
+ * Menus are structured as follows:
+ *   @li The menu bar (made current by @ref menubar) contains top-level menus
+ *       (created or made current by @ref menu)
+ *   @li A top-level menu may contain menu items (created or made current by
+ *       @ref menu_item) and/or sub-menus (create or made current by
+ *       @ref submenu).
+ *   @li A sub-menu, like top-level menus, may contain sub-menus and menu
+ *       items.
+ *
  * Example:
  @verbatim
 // menus.ddd
@@ -50,12 +59,16 @@ tree menu(text name, text label);
  * @a icon parameter; otherwise supply an emtpy string. The icon path may be
  * absolute or relative to the current document.
  *
+ * When this primitive returns, the menu becomes current for @ref submenu
+ * and @ref separator. Call @ref menu or @ref submenu again to make another
+ * menu current.
+ *
  * @see menubar to set the current %menubar
  */
 tree menu(text name, text label, text icon);
 
 /**
- * Adds a menu to the current menu and make it the current menu.
+ * Adds a menu to the current menu or sub-menu and make it the current menu.
  *
  * This is a simplified form of submenu(text name, text label, text icon)
  * when you want a menu with no icon.
@@ -66,7 +79,7 @@ tree menu(text name, text label, text icon);
 tree submenu(text name, text label);
 
 /**
- * Adds a menu to the current menu and make it the current menu.
+ * Adds a menu to the current menu or sub-menu and make it the current menu.
  *
  * @a name is a text string that should uniquely identify this menu in the
  * Tao application. @a label is the visible menu string.
@@ -74,6 +87,10 @@ tree submenu(text name, text label);
  * associate an icon to the menu, give the path to the icon file using the
  * @a icon parameter; otherwise supply an emtpy string. The icon path may be
  * absolute or relative to the current document.
+ *
+ * When this primitive returns, the sub-menu becomes current for @ref submenu
+ * and @ref separator. Call @ref menu or @ref submenu again to make another
+ * menu current.
  *
  * @see menu to set the current top-level %menu
  */
@@ -115,8 +132,36 @@ tree menu_item(text name, text label, text icon, boolean checkable, text checked
 
 /**
  * Sets the menu bar attached to the current window as the current menu bar.
+ *
+ * When this primitive returns, the menu bar becomes current for
+ * @ref separator.
  */
 tree menubar();
+
+/**
+ * Adds a toolbar to the current widget at the specified location.
+ * @a name is a text string that should uniquely identify this tool bar in the
+ * application. @a label is the user-visible name of the toolbar, as it will
+ * appear in the View menu. @a location specifies where the toolbar should
+ * appear, relative to the current widget.
+ * The possible values for this parameter are:
+ *   @li @c "n" or @c "N" (north): the widget's top toolbar area
+ *   @li @c "s" or @c "S" (south): the widget's bottom toolbar area
+ *   @li @c "w" or @c "W" (west): the widget's left toolbar area
+ *   @li @c "e" or @c "E" (east): the widget's right toolbar area
+ *
+ * When this primitive returns, the tool bar becomes current for
+ * @ref separator.
+ *
+ * @todo Does @a label really appear in the View menu?
+ * @todo Accept "top", "bottom", "left" and "right" for @a location?
+ */
+tree toolbar(text name, text label, text location);
+
+/**
+ * Adds a separator to the current menu or sub-menu or menu bar or tool bar.
+ */
+tree separator();
 
 /**
  * @}

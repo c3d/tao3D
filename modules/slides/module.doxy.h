@@ -152,3 +152,6 @@ title_only_slide(text T, code Body);
  */
 ＋(text T);
 
+/**
+ * @}
+ */

@@ -11,11 +11,12 @@
 # (C) 2011 Taodyne SAS
 # ******************************************************************************
 
-#include (../main.pri)
-
 TEMPLATE = subdirs
 
+
 macx {
+
+  include (../version.pri)
 
   QMAKE_SUBSTITUTES = Doxyfile.in 
 
@@ -25,7 +26,7 @@ macx {
   dox.target = doc
   dox.commands = doxygen 
 
-  clean.commands = /bin/rm -rf html/ 
+  clean.commands = /bin/rm -rf html/ qch/
 
   QMAKE_EXTRA_TARGETS += dox clean
 

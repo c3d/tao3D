@@ -144,7 +144,8 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
+      hasAttributes(false), hasTextureMatrix(false),
+      hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false),
       items(), display(widget)
 {}
@@ -156,7 +157,8 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
+      hasAttributes(false), hasTextureMatrix(false),
+      hasLighting(false), hasMaterial(false),
       isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display)
 {}
@@ -574,6 +576,8 @@ void Layout::Inherit(Layout *where)
     has3D           = where->has3D;
     hasPixelBlur    = where->hasPixelBlur;
     groupDrag       = where->groupDrag;
+    hasLighting     = where->hasLighting;
+    hasMaterial     = where->hasMaterial;
 }
 
 

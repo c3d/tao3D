@@ -52,8 +52,7 @@ LayoutState::LayoutState()
       fillTexture(0), lightId(GL_LIGHT0), programId(0),
       wrapS(false), wrapT(false), printing(false),
       planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0),
-      refreshEvents(), nextRefresh(DBL_MAX)
+      rotationId(0), translationId(0), scaleId(0)
 {}
 
 
@@ -80,10 +79,8 @@ LayoutState::LayoutState(const LayoutState &o)
         planarScale(o.planarScale),
         rotationId(o.rotationId),
         translationId(o.translationId),
-        scaleId(o.scaleId),
-        refreshEvents(), nextRefresh(DBL_MAX)
+        scaleId(o.scaleId)
 {}
-
 
 
 void LayoutState::Clear()
@@ -146,7 +143,8 @@ Layout::Layout(Widget *widget)
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
       isSelection(false), groupDrag(false),
-      items(), display(widget)
+      items(), display(widget),
+      refreshEvents(), nextRefresh(DBL_MAX)
 {}
 
 
@@ -158,7 +156,8 @@ Layout::Layout(const Layout &o)
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
       hasAttributes(false), hasTextureMatrix(false), hasLighting(false),
       isSelection(o.isSelection), groupDrag(false),
-      items(), display(o.display)
+      items(), display(o.display),
+      refreshEvents(), nextRefresh(DBL_MAX)
 {}
 
 
@@ -171,7 +170,7 @@ Layout::~Layout()
 }
 
 
-Layout *Layout::AddChild(uint childId, Tree_p self, Context_p ctx)
+Layout *Layout::AddChild(uint childId, Tree_p body, Context_p ctx)
 // ----------------------------------------------------------------------------
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
@@ -179,9 +178,9 @@ Layout *Layout::AddChild(uint childId, Tree_p self, Context_p ctx)
     Layout *result = NewChild();
     Add(result);
     result->id = childId;
-    result->self = self;
+    result->body = body;
     result->ctx = ctx;
-    if (ctx)
+    if (ctx && XL::MAIN->options.enable_layout_cache)
         result->ctxHash = LayoutCache::contextHash(ctx);
     return result;
 }
@@ -371,17 +370,17 @@ text Layout::PrettyId()
 {
     std::stringstream sstr;
     sstr << (void*)this;
-    if (self)
+    if (body)
     {
-        Tree *sself = XL::xl_source(self);
-        if (Prefix *p = self->AsPrefix())
+        Tree *source = XL::xl_source(body);
+        if (Prefix *p = source->AsPrefix())
         {
             if (p->left)
             {
                 if (Name *n = p->left->AsName())
                 {
                     sstr << "[" << n->value;
-                    XL::TreePosition pos = sself->Position();
+                    XL::TreePosition pos = source->Position();
                     if (pos != XL::Tree::NOWHERE)
                         sstr << "@" << pos ;
                     sstr << "]";
@@ -436,55 +435,19 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
                 items.clear();
             }
 
-            // Create a new (empty) layout
-            Layout * layout = new Layout(this->display);
-
-            do
+            // Check if we can evaluate locally
+            if (ctx && body)
             {
+                // Clear old contents of the layout, drop all children
+                Clear();
+
                 // Set new layout as the current layout in the current Widget
-                XL::Save<Layout *> saveLayout(widget->layout, layout);
+                XL::Save<Layout *> saveLayout(widget->layout, this);
 
-                // Re-evaluate the source code for 'this' layout: will create a
-                // child layout in the new layout
-                if (self && ctx)
-                    ctx->Evaluate(self);
-            } while (0);
-
-            // Get the (updated) child layout
-            if (layout->items.begin() == layout->items.end())
-                return false;
-
-            layout_items::iterator b = layout->items.begin();
-            Layout *child = dynamic_cast<Layout*>(*b);
-            if (!child)
-                return false;
-
-            // Preserve id for selection
-            layout->id = id;
-
-            // In our parent, replace 'this' by the child layout
-            // REVISIT data structure for direct access (map)
-            bool found = false;
-            layout_items::iterator i;
-            for (i = parent->items.begin(); i != parent->items.end(); i++)
-            {
-                if ((*i) == this)
-                {
-                    (*i) = child;
-                    found = true;
-                    break;
-                }
+                IFTRACE(layoutevents)
+                    std::cerr << "Evaluating " << body << "\n";
+                ctx->Evaluate(body);
             }
-            Q_ASSERT(found);
-
-            // Delete temporary layout (but not child!)
-            layout->items.clear();
-            delete layout;
-
-            // We're useless now
-            delete this;
-
-            return child->RefreshChildren(e);
         }
         else
         {

@@ -4348,7 +4348,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
         }
     }
 
-    Layout *childLayout = layout->AddChild(layout->id, self, context);
+    Layout *childLayout = layout->AddChild(layout->id, child, context);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
     return result;
@@ -4371,7 +4371,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
         }
     }
 
-    Layout *childLayout = layout->AddChild(selectionId(), self, context);
+    Layout *childLayout = layout->AddChild(selectionId(), child, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     XL::Save<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
@@ -6528,7 +6528,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
     tbox->id = selectionId();
-    tbox->self = self;
+    tbox->body = prog;
     tbox->ctx = context;
     layout->Add(tbox);
     flows[flowName] = tbox;

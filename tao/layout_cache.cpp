@@ -191,11 +191,11 @@ bool LayoutCache::insert(Layout *layout)
 //   Insert a layout into the cache
 // ----------------------------------------------------------------------------
 {
-    if (!layout || !layout->self || !layout->ctx)
+    if (!layout || !layout->body || !layout->ctx)
         return false;
     // NB: do not hash layout->ctx now because it may have changed since the
     // layout was created - use the hash value computed at that time
-    QByteArray h = treeContextHash(layout->self, layout->ctxHash);
+    QByteArray h = treeContextHash(layout->body, layout->ctxHash);
     IFTRACE(layoutcache)
         debug() << "Insert " << layoutId(layout) << " @ " << h << "\n";
     return LayoutCacheBase::insert(h, layout);

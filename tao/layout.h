@@ -72,11 +72,6 @@ public:
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
-    qevent_ids          refreshEvents;
-    double              nextRefresh;
-    Tree_p              self;
-    Context_p           ctx;
-    QByteArray          ctxHash;
 };
 
 
@@ -100,8 +95,7 @@ struct Layout : Drawing, LayoutState
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild(uint id = 0, Tree_p self = NULL,
-                                 Context_p ctx = NULL);
+    virtual Layout *    AddChild(uint id=0, Tree_p body=0, Context_p ctx=0);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
@@ -150,6 +144,13 @@ protected:
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
     Widget *            display;
+
+public:
+    qevent_ids          refreshEvents;
+    double              nextRefresh;
+    Tree_p              body;
+    Context_p           ctx;
+    QByteArray          ctxHash;
 
 public:
     // Static attributes for polygon offset computation

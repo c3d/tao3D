@@ -773,14 +773,12 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
                       << " (" << +d.toString("dd MMM yyyy hh:mm:ss.zzz")
                       << " = now + " << delta << "s)\n";
         }
-        if (layout->nextRefresh == DBL_MAX ||
-            nextRefresh < layout->nextRefresh)
+        if (layout->nextRefresh == DBL_MAX || nextRefresh < layout->nextRefresh)
         {
             layout->nextRefresh = nextRefresh;
             changed = true;
         }
-        if (this->nextRefresh == DBL_MAX ||
-            nextRefresh < this->nextRefresh)
+        if (this->nextRefresh == DBL_MAX || nextRefresh < this->nextRefresh)
         {
             this->nextRefresh = nextRefresh;
         }
@@ -1641,6 +1639,7 @@ bool Widget::refresh(double delay)
     double end = CurrentTime() + delay;
     return refreshOn(QEvent::Timer, end);
 }
+
 
 
 // ============================================================================
@@ -2598,13 +2597,12 @@ void Widget::startRefreshTimer()
     if (inError || !animated)
         return;
 
-    if (refreshEvents.count(QEvent::Timer) &&
-        nextRefresh != DBL_MAX)
+    if (refreshEvents.count(QEvent::Timer) && nextRefresh != DBL_MAX)
     {
         double now = trueCurrentTime();
         double remaining = nextRefresh - now;
-        if (remaining < 0)
-            remaining = 0;
+        if (remaining <= 0)
+            remaining = 0.001;
         int ms = remaining * 1000;
         IFTRACE(layoutevents)
             std::cerr << "Starting refresh timer: " << ms << " ms (current "
@@ -4339,18 +4337,20 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current state
 // ----------------------------------------------------------------------------
 {
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
     if (XL::MAIN->options.enable_layout_cache)
     {
-        if (Layout *cached = layoutCache.take(self, context->stack))
+        if (Layout *cached = layoutCache.take(self, context))
         {
             layout->Add(cached);
             return XL::xl_true;
         }
     }
 
-    Layout *childLayout = layout->AddChild(layout->id, self, context->stack);
+    Layout *childLayout = layout->AddChild(layout->id, self, context);
     XL::Save<Layout *> save(layout, childLayout);
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = currentContext->Evaluate(child);
     return result;
 }
 
@@ -4360,16 +4360,18 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child and mark the current shape
 // ----------------------------------------------------------------------------
 {
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
     if (XL::MAIN->options.enable_layout_cache)
     {
-        if (Layout *cached = layoutCache.take(self, context->stack))
+        if (Layout *cached = layoutCache.take(self, context))
         {
             layout->Add(cached);
             return XL::xl_true;
         }
     }
 
-    Layout *childLayout = layout->AddChild(selectionId(), self, context->stack);
+    Layout *childLayout = layout->AddChild(selectionId(), self, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     XL::Save<Tree_p>   saveShape (currentShape, self);
     if (selectNextTime.count(self))
@@ -4378,10 +4380,10 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     // This makes sure we save argument source for Manipulator::updateArg
-    Context_p childContext = context;
+    Context_p childContext = currentContext;
     context->ClosureValue(child, &childContext);
     XL::Save<bool> setSaveArgs(childContext->keepSource, true);
-    Tree_p result = context->Evaluate(child);
+    Tree_p result = currentContext->Evaluate(child);
     return result;
 }
 
@@ -5435,7 +5437,8 @@ Tree_p Widget::image(Context *context,
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
-    filename = context->stack->ResolvePrefixedPath(filename);
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    filename = context->ResolvePrefixedPath(filename);
 
     GLuint texId = 0;
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
@@ -6511,9 +6514,11 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 //   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
 {
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
     if (XL::MAIN->options.enable_layout_cache)
     {
-        if (Layout *cached = layoutCache.take(self, context->stack))
+        if (Layout *cached = layoutCache.take(self, context))
         {
             layout->Add(cached);
             return XL::xl_true;
@@ -6524,7 +6529,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
     tbox->id = selectionId();
     tbox->self = self;
-    tbox->ctx = context->stack;
+    tbox->ctx = context;
     layout->Add(tbox);
     flows[flowName] = tbox;
 
@@ -6532,7 +6537,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
 
     XL::Save<Layout *> save(layout, tbox);
-    Tree *result = context->Evaluate(prog);
+    Tree *result = currentContext->Evaluate(prog);
     return result;
 }
 

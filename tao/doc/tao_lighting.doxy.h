@@ -6,11 +6,100 @@
  *
  * This page describes all the builtin primitives that are related to lighting.
  * The primitives are mostly direct mappings of the OpenGL calls. Please
- * refer to the OpenGL documentation for details:
+ * refer to the OpenGL documentation of
  * <a href="http://www.opengl.org/sdk/docs/man/xhtml/glLight.xml">glLight</a>
  * and
- * <a href="http://www.opengl.org/sdk/docs/man/xhtml/glMaterial.xml">glMaterial</a>.
+ * <a href="http://www.opengl.org/sdk/docs/man/xhtml/glMaterial.xml">glMaterial</a>
+ * for details.
  *
+ * @par Enabling lighting
+ *
+ * Lighting calculations do not occur by default. They are enabled as
+ * lights are declared and only within the current and child layouts
+ * (layouts are created with @c locally or @c shape).
+ * Therefore, the following code will
+ * draw one orange rectangle and one yellow rectangle, as expected:
+ @verbatim
+locally
+    // Red light (diffuse)
+    light 0
+    light_diffuse 1, 0, 0, 1
+    light_position 200, 200, 200
+    // Yellow material
+    material_ambient 1, 1, 0, 1
+    material_diffuse 1, 1, 0, 1
+    rectangle -100, 0, 150, 100
+
+// Regular color model, no lighting
+color "yellow"
+rectangle 100, 0, 150, 100
+ @endverbatim
+ *
+ * Without the <tt>locally</tt> call (for instance, if you replace
+ * <tt>'locally'</tt> with <tt>'if true then'</tt>),
+ * the program shows two orange rectangles. This is because
+ * lighting is still active when the second rectangle is drawn, contrary
+ * to what occurs when the light is enclosed in a @c locally block. The
+ * yellow rectangle being lit with a red light, it appears orange.
+ *
+ * @par Colors and materials
+ *
+ * When lighting is enabled and until you set materials
+ * explicitely (by calling one of the <tt>material_*</tt> functions),
+ * the current color will be considered as a "front and back, ambient
+ * and diffuse" material. That is, the following code:
+ @verbatim
+// Yellow
+color 1, 1, 0, 1
+ @endverbatim
+ * ...is equivalent to:
+ @verbatim
+// Yellow
+material_ambient 1, 1, 0, 1
+material_diffuse 1, 1, 0, 1
+ @endverbatim
+ *
+ * @par Example
+ *
+ * The following code draws a white sphere and creates three colored lights:
+ * one red, one green and one blue. Each light rotates around the sphere, so
+ * that you can see how lights blend into smooth colors gradients onto the
+ * sphere.
+ @verbatim
+// lighting.ddd
+
+clear_color 0, 0, 0, 0
+
+create_light id, x, y, z, dr, dg, db ->
+    light id
+    light_ambient 0, 0, 0, 1
+    light_diffuse dr, dg, db, 1
+    light_position x, y, z
+
+red_light x, y, z -> create_light 0, x, y, z, 1, 0, 0
+green_light x, y, z -> create_light 1, x, y, z, 0, 1, 0
+blue_light x, y, z -> create_light 2, x, y, z, 0, 0, 1
+
+white_sphere r ->
+    // Note: material_ambient is visible due to the default
+    // OpenGL global ambient light (0.2, 0.2, 0.2, 1.0)
+    material_ambient 0.3, 0.3, 0.3, 1
+    material_diffuse 1.0, 1.0, 1.0, 1.0
+    slices := 50
+    sphere 0, 0, 0, r, r, r, slices, slices
+
+draw_scene ->
+    d := window_height
+    t := time
+    red_light d * sin t, d * cos t, d
+    green_light d * sin ( -t + 120) , d * cos ( -t + 120) , d
+    blue_light 0, d * sin t, d * cos t
+    white_sphere d * 60%
+
+draw_scene
+ @endverbatim
+ *
+ * @image html lighting.png "Lighting demo: lighting.ddd"
  * @{
  */
 

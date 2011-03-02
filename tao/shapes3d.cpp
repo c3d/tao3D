@@ -130,9 +130,21 @@ void Cube::Draw(Layout *where)
         {1, 0}, {1, 1}, {0, 1}, {0, 0}
     };
 
+    static GLfloat normals[][3] =
+    {
+        { 0,  0, -1}, { 0,  0, -1}, { 0,  0, -1}, { 0,  0, -1},
+        { 0,  0,  1}, { 0,  0,  1}, { 0,  0,  1}, { 0,  0,  1},
+        { 0, -1,  0}, { 0, -1,  0}, { 0, -1,  0}, { 0, -1,  0},
+        { 0,  1,  0}, { 0,  1,  0}, { 0,  1,  0}, { 0,  1,  0},
+        {-1,  0,  0}, {-1,  0,  0}, {-1,  0,  0}, {-1,  0,  0},
+        { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0},
+    };
+
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
+    glNormalPointer(GL_FLOAT, 0, normals);
     glTexCoordPointer(2, GL_INT, 0, textures);
     setTexture(where);
     if (setFillColor(where))
@@ -142,6 +154,7 @@ void Cube::Draw(Layout *where)
             glDrawArrays(GL_LINE_LOOP, 4*face, 4);
 
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 

@@ -606,8 +606,8 @@ WARN_LOGFILE           =
 # directories like "/usr/src/myproject". Separate the files or directories
 # with spaces.
 
-INPUT                  = ../modules/modules_doxygen.h \\
-                         ../tao/doc \\
+INPUT                  = ../tao/doc \\
+                         ../modules/modules_doxygen.h \\
                          $$MOD_PATHS 
 
 

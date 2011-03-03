@@ -2,7 +2,7 @@
  * @addtogroup TaoFiles Listing files
  * @ingroup TaoBuiltins
  *
- * @brief Lists file present on the computer.
+ * Lists file present on the computer.
  * @{
  */
 

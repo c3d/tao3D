@@ -2,7 +2,7 @@
  * @addtogroup TaoModules Module management primitives
  * @ingroup TaoBuiltins
  *
- * @brief Use code and resources from external modules.
+ * Use code and resources from external modules.
  *
  * @{
  */

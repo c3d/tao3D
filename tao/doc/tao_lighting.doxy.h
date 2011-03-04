@@ -1,6 +1,6 @@
 /**
- * @addtogroup Lighting3D 3D lighting
- * @ingroup Graphics3D
+ * @addtogroup Lighting
+ * @ingroup Graphics
  *
  * Controls the lighting of the 3D scene.
  *

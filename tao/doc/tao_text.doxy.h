@@ -66,7 +66,7 @@ text_box 0, 0, window_width - 50, window_height - 50,
  * powerful primitives: @ref align and @ref vertical_align.
  *
  * Example:
- @verbatim
+@verbatim
 // justification.ddd
 
 lorem := <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
@@ -93,15 +93,15 @@ box align ->
         text lorem
     x += w + 10
 
-box { nil }
+box { align_left ; vertical_align_top }
 box { align_center ; vertical_align_center }
 box { align_right ; vertical_align_bottom }
 y -= h + 10
 x := x0
-box { align_justify }
-box { align_right_justify }
-box { align_full_justify }
- @endverbatim
+box { align_justify ; vertical_align_top }
+box { align_right_justify ; vertical_align_top  }
+box { align_full_justify ; vertical_align_top }
+@endverbatim
  *
  * @image html justification.png "Various text justifications (justification.ddd)"
  *

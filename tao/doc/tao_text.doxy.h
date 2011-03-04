@@ -19,7 +19,7 @@
  * for more information.
  *
  * Example:
-@verbatim
+@code
 // fonts.ddd
 
 msg := <<A quick brown fox jumps over the lazy dog.
@@ -55,7 +55,7 @@ text_box 0, 0, window_width - 50, window_height - 50,
     font "Tangerine/Bold"
     font_size 28
     write_text
-@endverbatim
+@endcode
  *
  * Here is a screen capture:
  * @image html fonts.png "Changing fonts and font attributes (fonts.ddd)"
@@ -66,7 +66,7 @@ text_box 0, 0, window_width - 50, window_height - 50,
  * powerful primitives: @ref align and @ref vertical_align.
  *
  * Example:
-@verbatim
+@code
 // justification.ddd
 
 lorem := <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
@@ -101,7 +101,7 @@ x := x0
 box { align_justify ; vertical_align_top }
 box { align_right_justify ; vertical_align_top  }
 box { align_full_justify ; vertical_align_top }
-@endverbatim
+@endcode
  *
  * @image html justification.png "Various text justifications (justification.ddd)"
  *
@@ -152,7 +152,7 @@ tree text_flow(text name);
  * that could not make it into the previous boxes.
  *
  * Here is the typical use:
-@verbatim
+@code
 // Name the text flow we are going to create
 text_flow "First"
 text_box -100, 0, 200, 400,
@@ -161,7 +161,7 @@ text_box -100, 0, 200, 400,
 // Then, later:
 text_flow "First"               // Select text flow
 text_overflow 100, 0, 200, 400  // Continuation of 1st text box
-@endverbatim
+@endcode
  *
  * @bug [#794] Empty text_overflow even though there is enough text to display
  */
@@ -181,9 +181,9 @@ tree text(text t);
  *
  * For instance you may write the following expression to select
  * font family @a Ubuntu in 24 point size and bold weight:
-@verbatim
+@code
 font "Ubuntu", 24, bold
-@endverbatim
+@endcode
  * The following arguments are recognized:
  * <ul>
  *   <li> @b "FontFamily" or @b "FontFamily/Style". Selects the font
@@ -240,17 +240,17 @@ font "Ubuntu", 24, bold
  * @note You cannot provide the family string or the size in variables. The
  * following code, for instance, is invalid and will result in an
  * <em>Unexpected font keyword</em> error:
-@verbatim
+@code
 f := "Times"
 font f, 18, bold
-@endverbatim
+@endcode
  * Instead, you should use the specific primitives, as follows:
-@verbatim
+@code
 f := "Times"
 font f
 font_size 18
 bold
-@endverbatim
+@endcode
  *
  * When an exact match for the requested font cannot be found, the program
  * will select the closest match or possibly the application's default font.

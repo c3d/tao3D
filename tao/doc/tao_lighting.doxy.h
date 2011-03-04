@@ -19,7 +19,7 @@
  * (layouts are created with @c locally or @c shape).
  * Therefore, the following code will
  * draw one orange rectangle and one yellow rectangle, as expected:
- @verbatim
+ @code
 locally
     // Red light (diffuse)
     light 0
@@ -33,7 +33,7 @@ locally
 // Regular color model, no lighting
 color "yellow"
 rectangle 100, 0, 150, 100
- @endverbatim
+ @endcode
  *
  * Without the <tt>locally</tt> call (for instance, if you replace
  * <tt>'locally'</tt> with <tt>'if true then'</tt>),
@@ -48,16 +48,16 @@ rectangle 100, 0, 150, 100
  * explicitely (by calling one of the <tt>material_*</tt> functions),
  * the current color will be considered as a "front and back, ambient
  * and diffuse" material. That is, the following code:
- @verbatim
+ @code
 // Yellow
 color 1, 1, 0, 1
- @endverbatim
+ @endcode
  * ...is equivalent to:
- @verbatim
+ @code
 // Yellow
 material_ambient 1, 1, 0, 1
 material_diffuse 1, 1, 0, 1
- @endverbatim
+ @endcode
  *
  * @par Example
  *
@@ -65,7 +65,7 @@ material_diffuse 1, 1, 0, 1
  * one red, one green and one blue. Each light rotates around the sphere, so
  * that you can see how lights blend into smooth colors gradients onto the
  * sphere.
- @verbatim
+ @code
 // lighting.ddd
 
 clear_color 0, 0, 0, 0
@@ -97,7 +97,7 @@ draw_scene ->
     white_sphere d * 60%
 
 draw_scene
- @endverbatim
+ @endcode
  *
  * @image html lighting.png "Lighting demo: lighting.ddd"
  * @{

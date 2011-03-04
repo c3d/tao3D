@@ -19,7 +19,7 @@
  *       items.
  *
  * Example:
- @verbatim
+ @code
 // menus.ddd
 
 menubar
@@ -29,7 +29,7 @@ menu_item "mymenu:1.1", "Select me",
 submenu "menu:1.2", "Submenu"
 menu_item "menu:1.2.1", "Toggle me", "", true, "false",
     writeln 'Menu "Toggle me" selected'
- @endverbatim
+ @endcode
  *
  * The screen shot below shows the result. The menu "Select me" was clicked once,
  * then "Toggle me" was activated, and shown again.

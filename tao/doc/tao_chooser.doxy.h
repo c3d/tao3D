@@ -22,7 +22,7 @@
  * menu (when you press the escape key).
  *
  * Let's illustrate this with an example.
- @verbatim
+ @code
 // chooser.ddd
 
 animal_chooser ->
@@ -38,7 +38,7 @@ wild_animal_A_tiger ->
     writeln "Growl!"
 
 key "a" -> animal_chooser
- @endverbatim
+ @endcode
  *
  * The first picture shows the command chooser as the user has just pressed
  * the "a" key to show the manu. The second one show the updated command list

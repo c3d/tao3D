@@ -10,9 +10,9 @@
 /**
  * Loads a Tao module.
  * The syntax is:
-@verbatim
+@code
 import MyModule "1.0"
-@endverbatim
+@endcode
  *
  * When Tao encounters the import statement, it looks up ModuleName in the
  * list of currently known (and enabled) modules, checks the version

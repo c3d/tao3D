@@ -5,7 +5,7 @@
  * Layout text or other items in columns and rows.
  *
  * Example:
- @verbatim
+ @code
 // table.ddd
 
 cols := 2
@@ -46,7 +46,7 @@ table 0, 0, rows + 1, cols,
         text "Total"
     table_cell
         text text my_sum (1, rows)
- @endverbatim
+ @endcode
  *
  * The above code creates a simple two-column table. Each row consists in
  * a text label (in the first column), and a number (in the second column).
@@ -124,13 +124,13 @@ tree table_cell_margins(real x, real y, integer w, integer h);
  * before any table_cell specific code is executed. You may use this
  * form to define the cell background color. The following code, for
  * instance, will create a light blue background:
- @verbatim
+ @code
 table nr, nc,
     table_cell_fill
         line_width 0
         color "lightblue"
         rectangle table_cell_x, table_cell_y, table_cell_w, table_cell_h
- @endverbatim
+ @endcode
  *
  */
 tree table_cell_fill(code contents);

@@ -54,9 +54,11 @@ bool Shape3::setFillColor(Layout *where)
     if (where)
     {
         Color &color = where->fillColor;
-        if (color.alpha > 0.0)
+        scale v = where->visibility * color.alpha;
+        if (v > 0.0)
         {
-            glColor4f(color.red, color.green, color.blue, color.alpha);
+            if (!where->hasMaterial)
+                glColor4f(color.red, color.green, color.blue, v);
             return true;
         }
     }
@@ -75,9 +77,11 @@ bool Shape3::setLineColor(Layout *where)
     {
         Color &color = where->lineColor;
         scale width = where->lineWidth;
-        if (color.alpha > 0.0 && width > 0.0)
+        scale v = where->visibility * color.alpha;
+        if (v > 0.0 && width > 0.0)
         {
-            glColor4f(color.red, color.green, color.blue, color.alpha);
+            if (!where->hasMaterial)
+                glColor4f(color.red, color.green, color.blue, v);
             return true;
         }
     }
@@ -126,9 +130,21 @@ void Cube::Draw(Layout *where)
         {1, 0}, {1, 1}, {0, 1}, {0, 0}
     };
 
+    static GLfloat normals[][3] =
+    {
+        { 0,  0, -1}, { 0,  0, -1}, { 0,  0, -1}, { 0,  0, -1},
+        { 0,  0,  1}, { 0,  0,  1}, { 0,  0,  1}, { 0,  0,  1},
+        { 0, -1,  0}, { 0, -1,  0}, { 0, -1,  0}, { 0, -1,  0},
+        { 0,  1,  0}, { 0,  1,  0}, { 0,  1,  0}, { 0,  1,  0},
+        {-1,  0,  0}, {-1,  0,  0}, {-1,  0,  0}, {-1,  0,  0},
+        { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0},
+    };
+
     glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
+    glNormalPointer(GL_FLOAT, 0, normals);
     glTexCoordPointer(2, GL_INT, 0, textures);
     setTexture(where);
     if (setFillColor(where))
@@ -138,6 +154,7 @@ void Cube::Draw(Layout *where)
             glDrawArrays(GL_LINE_LOOP, 4*face, 4);
 
     glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
@@ -154,6 +171,8 @@ void Sphere::Draw(Layout *where)
     gluQuadricTexture (q, true);
     gluQuadricNormals (q, GLU_SMOOTH);
     glPushMatrix();
+    glPushAttrib(GL_ENABLE_BIT);
+    glEnable(GL_NORMALIZE);
     glTranslatef(p.x, p.y, p.z);
     glRotatef(-90.0, 1.0, 0.0, 0.0);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
@@ -169,6 +188,7 @@ void Sphere::Draw(Layout *where)
         gluQuadricDrawStyle(q, GLU_LINE);
         gluSphere(q, radius, slices, stacks);
     }
+    glPopAttrib();
     glPopMatrix();
     gluDeleteQuadric(q);
 }

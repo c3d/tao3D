@@ -126,6 +126,7 @@ public:
     bool                hasAttributes   : 1;
     bool                hasTextureMatrix: 1;
     bool                hasLighting     : 1;
+    bool                hasMaterial     : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
 

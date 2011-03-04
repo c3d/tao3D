@@ -17,7 +17,7 @@ MODINSTDIR = slides
 
 include(../modules.pri)
 
-OTHER_FILES = module.xl
+OTHER_FILES = module.xl module.doxy.h
 
 PICTURES = \
     images/keyboard.jpg \

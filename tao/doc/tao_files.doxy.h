@@ -45,5 +45,11 @@ tree files(text pattern);
 tree list_files(text pattern);
 
 /**
+ * Loads text from a file.
+ * Returns a text string that is the contents of the file.
+ */
+text load_text(text path);
+
+/**
  * @}
  */

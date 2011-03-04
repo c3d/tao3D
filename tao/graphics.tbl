@@ -1381,7 +1381,7 @@ PREFIX(VAlign,  tree,  "vertical_align",
        GROUP(text:spread)
        SYNOPSIS("[TODO]")
        DESCRIPTION("[TODO]"))
-PREFIX(Spacing,  tree,  "character_spacing",
+PREFIX(Spacing,  tree,  "word_spacing",
        PARM(factor, real, "[TODO]"),
        RTAO(spacing(self, factor, 0)),
        GROUP(text:spread)

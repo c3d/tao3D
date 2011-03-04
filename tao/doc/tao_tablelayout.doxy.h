@@ -53,6 +53,8 @@ table 0, 0, rows + 1, cols,
  * The last row is for the total.
  *
  * @image html table.png "A simple table layout (table.ddd)"
+ *
+ * @todo formula, text_value not documented (my tests failed on interp)
  * @{
  */
 

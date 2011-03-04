@@ -1,5 +1,5 @@
 /**
- * @addtogroup Text Text and fonts
+ * @addtogroup Text Text layout and fonts
  * @ingroup TaoBuiltins
  *
  * Displays formatted text.
@@ -105,14 +105,24 @@ box { align_full_justify ; vertical_align_top }
  *
  * @image html justification.png "Various text justifications (justification.ddd)"
  *
- * @bug [#325]
- * On MacOSX, some fonts cannot be rendered, due to
+ * @bug [#325] On MacOSX, some fonts cannot be rendered, due to
  * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-11145">QTBUG-11145</a>.
- * The correction of this bug expected in QT 4.8.
+ *      The correction of this bug expected in QT 4.8.
  * @bug [#325] On MacOSX, font styles other than "Normal", "Bold", "Italic" and
- * "Bold Italic" cannot be selected. This is caused by
+ *     "Bold Italic" cannot be selected. This is caused by
  * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
  *
+ * @todo vertical_align_justify and vertical_align_spread are identical to
+ *       vertical_align_top? (not documented)
+ * @todo Do we need to document the return value of the many primitives that
+ *       return a boolean (often declared as "tree"), but which is rarely
+ *       useful? Should we pretend they return nothing? See text and font
+ *       group.
+ * @todo font_scaling not documented - I don't understand its purpose
+ * @todo The following primitives are not documented yet: paragraph_space,
+ *       character_space (should it be called word_space ?), line_break,
+ *       sentence_break, paragraph_break, column_break, page_break.
+ * @todo Document enable_glyph_cache?
  * @{
  */
 
@@ -126,9 +136,36 @@ box { align_full_justify ; vertical_align_top }
 tree text_box(real x, real y, real w, real h, code contents);
 
 /**
- * @todo explain
+ * Sets the name of the current text flow.
+ *
+ * Use this function to name a text flow, either before creating it (with
+ * @ref text_box) or before accessing it (with @ref text_overflow).
  */
 tree text_flow(text name);
+
+/**
+ * Creates a text box automatically filled by text from a text flow.
+ * This function is useful to display text in several separate text boxes.
+ * The text to render has to be declared inside a single text_box, after
+ * the flow name has been set. Then, you call @ref text_overflow to create
+ * additional text boxes that will be automatically filled with the text
+ * that could not make it into the previous boxes.
+ *
+ * Here is the typical use:
+@verbatim
+// Name the text flow we are going to create
+text_flow "First"
+text_box -100, 0, 200, 400,
+    // Use the text box normally
+    text "Some long text"
+// Then, later:
+text_flow "First"               // Select text flow
+text_overflow 100, 0, 200, 400  // Continuation of 1st text box
+@endverbatim
+ *
+ * @bug [#794] Empty text_overflow even though there is enough text to display
+ */
+tree text_overflow(real x, real y, real w, real h);
 
 /**
  * Inserts text into a text box.
@@ -460,8 +497,7 @@ tree align_full_spread();
  *
  * The default vertical text layout is vertical_align_top.
  *
- * @see vertical_align_top, vertical_align_bottom, vertical_align_center,
- * vertical_align_justify, vertical_align_spread.
+ * @see vertical_align_top, vertical_align_bottom, vertical_align_center.
  */
 tree vertical_align(real center, real justify, real spread, real full_justify);
 
@@ -489,6 +525,37 @@ tree vertical_align_bottom();
  * Synonym for @ref vertical_align 0.5, 0, 0, 0.
  */
 tree vertical_align_center();
+
+/**
+ * Sets the word spacing factor.
+ *
+ * Give a @a factor value larger that 1.0 to increase the space between words,
+ * or a value smaller than 1.0 to reduce it.
+ */
+tree word_spacing(real factor);
+
+/**
+ * Sets the line spacing factor.
+ *
+ * Give a @a factor value larger that 1.0 to increase the space between lines,
+ * or a value smaller than 1.0 to reduce it.
+ */
+tree line_spacing(real factor);
+
+/**
+ * Sets the left and right margins.
+ *
+ * The margin sizes are in pixels.
+ * @bug [#793] The margins are ignored for first line of the first paragraph.
+ */
+tree margins(real left, real right);
+
+/**
+ * Sets the top and bottom margins.
+ *
+ * The margin sizes are in pixels.
+ */
+tree vertical_margins(real top, real bottom);
 
 /**
  * @}

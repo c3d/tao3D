@@ -45,6 +45,8 @@
  * that you must use to describe your document. They are further divided into
  * categories as shown above.
  *
+ * @todo vertical_align_justify and vertical_align_spread are identical to
+ *       vertical_align_top?
  * @todo Do we need to document the return value of the many primitives that
  *       return a boolean (often declared as "tree"), but which is rarely
  *       useful? Should we pretend they return nothing? See text and font

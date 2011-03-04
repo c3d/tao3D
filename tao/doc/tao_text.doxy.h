@@ -15,17 +15,95 @@
  * text. Therefore, the terms that are used here to describe fonts and
  * fonts attributes are the same that the ones used by Qt. You may want to
  * refer to the
- * <a href="http://doc.qt.nokia.com/latest/qfont.html>Qt documentation</a>
+ * <a href="http://doc.qt.nokia.com/latest/qfont.html">Qt documentation</a>
  * for more information.
  *
  * Example:
+@verbatim
+// fonts.ddd
+
+msg := <<A quick brown fox jumps over the lazy dog.
+>>
+lineno := 1
+
+write_text ->
+    text text lineno & ". " & msg
+    lineno := lineno + 1
+
+text_box 0, 0, window_width - 50, window_height - 50,
+    font "Times", 16
+    write_text // normal
+    italic
+    write_text // italic
+    roman
+    write_text // back to normal
+    bold
+    write_text // bold
+    regular
+    write_text // back to normal
+    bold
+    italic
+    write_text // bold and italic
+    plain
+    write_text // back to normal
+    font "Times", 16, expanded
+    write_text // stretched
+    stretch 1.0
+    write_text //  back to normal
+    font "Lobster"
+    write_text
+    font "Tangerine/Bold"
+    font_size 28
+    write_text
+@endverbatim
+ *
+ * Here is a screen capture:
+ * @image html fonts.png "Changing fonts and font attributes (fonts.ddd)"
+ *
+ * @par Text layout
+ *
+ * You can control the horizontal and vertical distribution of text with two
+ * powerful primitives: @ref align and @ref vertical_align.
+ *
+ * Example:
  @verbatim
-// text.ddd
+// justification.ddd
 
+lorem := <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
+<< elit, sed do eiusmod tempor incididunt ut labore et dolore >> &
+<<magna aliqua.
 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco >> &
+<<laboris nisi ut aliquip ex ea commodo consequat.>>
+
+x0 := -135
+x := x0
+y := 120
+w := 125
+h := 230
+
+box align ->
+    locally
+        color 0, 0, 1, 5%
+        line_width 0
+        rectangle x, y, w, h
+    text_box x, y, w, h,
+        font "Ubuntu", 12
+        align
+        text lorem
+    x += w + 10
+
+box { nil }
+box { align_center ; vertical_align_center }
+box { align_right ; vertical_align_bottom }
+y -= h + 10
+x := x0
+box { align_justify }
+box { align_right_justify }
+box { align_full_justify }
  @endverbatim
  *
- * @image html text.png "Displaying text (text.ddd)"
+ * @image html justification.png "Various text justifications (justification.ddd)"
  *
  * @bug [#325]
  * On MacOSX, some fonts cannot be rendered, due to
@@ -97,16 +175,6 @@ font "Ubuntu", 24, bold
  *     <li> @b bold. Same as @ref bold.
  *     <li> @b black. Sets the weight of the font to an intermediate value
  *          between bold and the maximum font weight.
- *   </ul>
- *   <li> Capitalization:
- *   <ul>
- *     <li> @b mixed_case, @b normal_case. Resets capitalization mode to
- *          the normal, mixed case.
- *     <li> @b uppercase. Render text in upper case type.
- *     <li> @b lowercase. Render text in lower case type.
- *     <li> @b small_caps. Render text in small-caps type.
- *     <li> @b capitalized. Render the first character of each word as an
- *       uppercase character.
  *   </ul>
  *   <li> Glyph stretch factor (see also @ref stretch):
  *   <ul>
@@ -251,7 +319,6 @@ tree bold();
  *
  * Set @a w to 0 to disable the attribute, or to any positive value to enable
  * it.
- * @todo take boolean instead of real?
  */
 tree underline(real w);
 
@@ -260,7 +327,6 @@ tree underline(real w);
  *
  * Set @a w to 0 to disable the attribute, or to any positive value to enable
  * it.
- * @todo take boolean instead of real?
  */
 tree overline(real w);
 
@@ -269,7 +335,6 @@ tree overline(real w);
  *
  * Set @a w to 0 to disable the attribute, or to any positive value to enable
  * it.
- * @todo take boolean instead of real?
  */
 tree strikeout(real w);
 
@@ -291,6 +356,139 @@ tree strikeout(real w);
  */
 tree stretch(real s);
 
+/**
+ * Sets parameters for horizontal text layout.
+ *
+ * This primitive controls how words and glyphs are positioned horizontally
+ * to form a line of text in the current text box.
+ * The four parameters @a center, @a justify, @a spread
+ * and @a full_justify may take any value between 0 and 1 (inclusive). Some
+ * combinations have a usual meaning; see the functions listed below
+ * for details.
+ *
+ * @todo The default horizontal alignment is ???.
+ * @see align_left, align_right, align_center, align_justify,
+ * align_right_justify, align_full_justify, align_spread, align_full_spread.
+ */
+tree align(real center, real justify, real spread, real full_justify);
+
+/**
+ * Align text to the left of the text box.
+ * Synonym for @ref align 0, 0, 0, 0.
+ */
+tree align_left();
+
+/**
+ * Align text to the right of the text box.
+ * Synonym for @ref align 1, 0, 0, 0.
+ */
+tree align_right();
+
+/**
+ * Center text horizontally in the text box.
+ * Synonym for @ref align 0.5, 0, 0, 0.
+ */
+tree align_center();
+
+/**
+ * Justify text horizontally in the text box.
+ * Text is aligned both to the left and to the right of the text box,
+ * except for the last line of each paragraph, which is aligned to the left.
+ * Justification is obtained by inserting extra space between words, and
+ * without changing the space between characters.
+ * Synonym for @ref align 0, 1, 0, 0.
+ */
+tree align_justify();
+
+/**
+ * Justify text horizontally in the text box.
+ * Synonym for @ref align_justify.
+ */
+tree align_left_justify();
+
+/**
+ * Justify text horizontally in the text box.
+ * Text is aligned both to the left and to the right of the text box,
+ * except for the last line of each paragraph, which is aligned to the right.
+ * Justification is obtained by inserting extra space between words, and
+ * without changing the space between characters.
+ * Synonym for @ref align 1, 1, 0, 0.
+ */
+tree align_right_justify();
+
+/**
+ * Justify text horizontally in the text box.
+ * Text is aligned both to the left and to the right of the text box,
+ * including the last line of each paragraph, even if this line is too short
+ * to fit nicely in the horizontal space. In the extreme case where the last
+ * line contains a single word, this word is aligned to the left.
+ * Justification is obtained by inserting extra space between words, and
+ * without changing the space between characters.
+ * Synonym for @ref align 0, 1, 0, 1.
+ */
+tree align_full_justify();
+
+/**
+ * Justify characters horizontally in the text box.
+ * Similar to @ref align_justify, except that extra space in each line is
+ * distributed evenly between characters, not just between words.
+ * The last line of each paragraph is rendered aligned the left.
+ * Synonym for @ref align 0, 1, 1, 0.
+ */
+tree align_spread();
+
+/**
+ * Justify characters horizontally in the text box.
+ * Like @ref align_spread, but all lines are fully justified (including the
+ * last line of each paragraph).
+ * Synonym for @ref align 0, 1, 1, 1.
+ */
+tree align_full_spread();
+
+/**
+ * Sets parameters for vertical text layout.
+ *
+ * This primitive controls how lines of text are positioned vertically in the
+ * current text box. The four parameters @a center, @a justify, @a spread
+ * and @a full_justify may take any value between 0 and 1 (inclusive). Some
+ * combinations have a usual meaning; see the functions listed below
+ * for details.
+ *
+ * This function is to be called once per text box, before any text is written.
+ * Otherwise, unexpected results may occur such as overlapping text or
+ * otherwise incorrect layout.
+ *
+ * The default vertical text layout is vertical_align_top.
+ *
+ * @see vertical_align_top, vertical_align_bottom, vertical_align_center,
+ * vertical_align_justify, vertical_align_spread.
+ */
+tree vertical_align(real center, real justify, real spread, real full_justify);
+
+/**
+ * Flush all lines of text to the top of the text box.
+ * If there are not enough lines of text to fill the box vertically, empty
+ * space is at the bottom of the box.
+ * Synonym for @ref vertical_align 0, 0, 0, 0.
+ */
+tree vertical_align_top();
+
+/**
+ * Flush all lines of text to the bottom of the text box.
+ * If there are not enough lines of text to fill the box vertically, empty
+ * space is at the top of the box.
+ * Synonym for @ref vertical_align 1, 0, 0, 0.
+ */
+tree vertical_align_bottom();
+
+
+/**
+ * Center lines of text vertically within the text box.
+ * If there are not enough lines of text to fill the box vertically, empty
+ * space is equally distributed between top and bottom of the box.
+ * Synonym for @ref vertical_align 0.5, 0, 0, 0.
+ */
+tree vertical_align_center();
 
 /**
  * @}

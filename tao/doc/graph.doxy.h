@@ -18,53 +18,36 @@
  * @{
  */
 /**
- * @fn shape ( t)
- * @brief Make the shape selectable
+ * Creates a selectable shape
  *
  *  Evaluate the child and mark the current shape.
  *  The modification done to the environment is only applicable inside this shape as @ref locally is doing.
  *  Make the shape sensible to mouse events. 
  *  It enables click action (@ref on), and handles for selection, motion, rotation, resize...
- *
- * @param t [tree] The code of the shape.
- * @returns The result of the child execution.
  */
-shape ( t);
+shape (t:tree);
 
 
 /**
- * @fn active_widget ( t)
  * @brief Make the widget clickable
  *
  *  Create a context for active widgets (like buttons) or drawing (circle, etc...)
  *  Make the shape sensible to mouse events. 
  *  It enables click action (@ref on), but does not enables handles for mouse manipulations.
- *
- * @param t [tree] The code that represent the widget.
- * @returns The result of the child execution.
  */
-active_widget ( t);
+active_widget (t:tree);
 
 /**
- * @fn anchor ( t)
- * @brief 
- *
- *  Anchor a set of shapes to the current position
- *
- * @param t [tree] The code that represent the shapes to be anchored.
- * @returns The result of the child execution.
+ * Anchors a set of shapes to the current position
  */
-anchor ( t);
+anchor (t:tree);
 
 /**
- * @fn line_width ( lw)
- * @brief Select the line width for OpenGL
+ * Selects the line width for shape outlines.
  *
- *  Set the line width for OpenGL
- *
- * @param lw [real] The line width to set.
+ * @a lw is the width in pixels
  */
-line_width ( lw);
+line_width (lw:integer);
 
 
 /** @} */
@@ -78,132 +61,85 @@ line_width ( lw);
 
 
 /**
- * 
- * @fn move_to ( x, y, z)
- * @brief move to point
+ * Starts a graphic path.
  *
- *  Add a 'moveTo' to the current path
- *
- * @param x [real] x-coordinate of the point to move to.
- * @param y [real] y-coordinate of the point to move to.
- * @param z [real] z-coordinate of the point to move to.
+ * A graphic path is a collection of segments of lines or curves
+ * (quadrics or cubics).
  */
-move_to ( x, y, z);
-/**
- * @fn quad_to ( cx, cy, cz, x, y, z)
- * @brief  quadric curveTo
- *
- *  Add a quadric curveTo to the current path.
- *
- * @param cx [real] x-coordinate of the control point.
- * @param cy [real] y-coordinate of the control point.
- * @param cz [real] z-coordinate of the control point.
- * @param x [real] x-coordinate of the point to finish to.
- * @param y [real] y-coordinate of the point to finish to.
- * @param z [real] z-coordinate of the point to finish to.
- */
-quad_to ( cx, cy, cz, x, y, z);
+path (t:tree);
 
 /**
- * @fn line_relative ( x, y, z)
- * @brief relative line to
+ * Moves path cursor to a specific point.
  *
- *  Add a relative 'lineTo' to the current path
- *
- * @param x [real] delta to line to on x-axis.
- * @param y [real] delta to line to on y-axis.
- * @param z [real] delta to line to on z-axis.
- * @returns 
+ * Add a 'moveTo' to the current path.
  */
-line_relative ( x, y, z);
+move_to (x:real, y:real, z:real);
 
 /**
- * @fn path_texture ( x, y, z)
- * @brief Not supported yet
+ * Adds a quadric segment to the current path.
  *
- *   NOT SUPPORTED YET. Add a texture coordinate to the path. NOT SUPPORTED YET
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
+ * (@a cx, @a cy, @a cz) defines the control point.
+ * (@a x, @a y, @a z) is the end point.
  */
-path_texture ( x, y, z);
-
+quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
 
 /**
- * @fn endpoints_style ( s, e)
- * @brief style of the path endpoints
+ * Adds a cubic segment to the current path.
  *
- *  Specify the style of the path endpoints. Supported values are : ARROWHEAD, ARROWHEAD, POINTER, DIAMOND, CIRCLE, SQUARE, BAR, CUP, FLETCHING, HOLLOW_CIRCLEHOLLOW_SQUARE.
- *
- * @param s [symbol] start endpoint style
- * @param e [symbol] end endpoint style
- * @returns 
+ * (@a c1x, @a c1y, @a c1z) defines the first control point.
+ * (@a c2x, @a c2y, @a c2z) defines the second control point.
+ * (@a x, @a y, @a z) is the end point.
  */
-endpoints_style ( s, e);
+cubic_to (c1x:real, c1y:real, c1z:real, c2x:real, c2y:real, c2z:real,
+          x:real, y:real, z:real);
 
 /**
- * @fn path_color ( r, g, b, a)
- * @brief Not supported yet
- *
- *  NOT SUPPORTED YET. Add a color element to the path. NOT SUPPORTED YET. 
- *
- * @param r [real] The red componant of the color
- * @param g [real] The blue componant of the color
- * @param b [real] The green componant of the color
- * @param a [real] Alpha channel: the transparency of the color. 
+ * Adds a line segment to the current path relative to current position.
  */
-path_color ( r, g, b, a);
+line_relative (x:real, y:real, z:real);
 
 /**
- * @fn cubic_to ( c1x, c1y, c1z, c2x, c2y, c2z, x, y, z)
- * @brief cubic curveTo
- *
- *  Add a cubic curveTo to the current path
- *
- * @param c1x [real] x-coordinate of the first control point.
- * @param c1y [real] y-coordinate of the first control point.
- * @param c1z [real] z-coordinate of the first control point.
- * @param c2x [real] x-coordinate of the second control point.
- * @param c2y [real] y-coordinate of the second control point.
- * @param c2z [real] z-coordinate of the second control point.
- * @param x [real] x-coordinate of the point to finish to.
- * @param y [real] y-coordinate of the point to finish to.
- * @param z [real] z-coordinate of the point to finish to.
+ * Moves current path cursor relative to current position.
  */
-cubic_to ( c1x, c1y, c1z, c2x, c2y, c2z, x, y, z);
+move_relative (x:real, y:real, z:real);
 
 /**
- * @fn move_relative ( x, y, z)
- * @brief relative moveTo
- *
- *  Add a relative moveTo
- *
- * @param x [real] delta to move to on x-axis.
- * @param y [real] delta to move to on y-axis.
- * @param z [real] delta to move to on z-axis.
- */
-move_relative ( x, y, z);
-
-/**
- * @fn path ( t)
- * @brief Start a path
- *
- *  Evaluate the child tree within a polygon
- *
- * @param t [tree] The definition of the path.
- * @returns The result of the child evaluation.
- */
-path ( t);
-
-
-/**
- * @fn close_path ()
- * @brief close the path
- *
- *  Close the path back to its origin
+ * Closes current path by a straight line to the start point.
  */
 close_path ();
+
+/**
+ * Add a texture coordinate to the path.
+ * NOT SUPPORTED YET.
+ * @bug Not supported yet.
+ */
+path_texture (x:real, y:real, z:real);
+
+
+/**
+ * Sets the style of the path endpoints.
+ *
+ * Supported values are:
+ * @li ARROWHEAD
+ * @li POINTER
+ * @li DIAMOND
+ * @li CIRCLE
+ * @li SQUARE
+ * @li BAR
+ * @li CUP
+ * @li FLETCHING
+ * @li HOLLOW_CIRCLE
+ * @li HOLLOW_SQUARE
+ */
+endpoints_style (s:symbol, e:symbol);
+
+/**
+ * Adds a color element to the path.
+ *
+ * NOT SUPPORTED YET.
+ * @bug Not supported yet.
+ */
+path_color (r:real, g:real, b:real, a:real);
 
 /**
  * @fn line_to ( x, y, z)
@@ -215,7 +151,7 @@ close_path ();
  * @param y [real] y-coordinate of the point to line to.
  * @param z [real] z-coordinate of the point to line to.
  */
-line_to ( x, y, z);
+line_to (x:real, y:real, z:real);
 
 
 /** @} */
@@ -248,7 +184,7 @@ line_to ( x, y, z);
  * @param z [real] z-coordinate
  * @param s [real] THe size of the point
  */
-point ( x, y, z, s);
+point (x:real, y:real, z:real, s:real);
 
 /**
  * @fn rectangle ( x, y, w, h)
@@ -272,7 +208,7 @@ point ( x, y, z, s);
  * @param w [real] width of the rectangle
  * @param h [real] height of the rectangle
  */
-rectangle ( x, y, w, h);
+rectangle (x:real, y:real, w:real, h:real);
 
 /**
  * @fn rounded_rectangle ( x, y, w, h, r)
@@ -299,7 +235,7 @@ rectangle ( x, y, w, h);
  * @param h [real] height of the rectangle
  * @param r [real] corner radius
  */
-rounded_rectangle ( x, y, w, h, r);
+rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 
 /**
@@ -320,7 +256,7 @@ rounded_rectangle ( x, y, w, h, r);
  * @param h [real] height of the rectangle
  * @param r [real] ratio of the ellpitic sides [0.0, 1.0]
  */
-elliptical_rectangle ( x, y, w, h, r);
+elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 /**
  * @fn ellipse ( x, y, w, h)
@@ -341,7 +277,7 @@ elliptical_rectangle ( x, y, w, h, r);
  * @param w [real] width of the ellipse
  * @param h [real] height of the ellipse
  */
-ellipse ( x, y, w, h);
+ellipse (x:real, y:real, w:real, h:real);
 
 /**
  * @fn ellipse_arc ( x, y, w, h, start, sweep)
@@ -363,7 +299,7 @@ ellipse ( x, y, w, h);
  * @param start [real] start angle express in degrees
  * @param sweep [real] sweep angle express in degrees
  */
-ellipse_arc ( x, y, w, h, start, sweep);
+ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
 
 /**
  * @fn triangle ( x, y, w, h)
@@ -387,7 +323,7 @@ ellipse_arc ( x, y, w, h, start, sweep);
  * @param w [real] base of the triangle
  * @param h [real] height of the triangle
  */
-triangle ( x, y, w, h);
+triangle (x:real, y:real, w:real, h:real);
 
 /**
  * @fn right_triangle ( x, y, w, h)
@@ -412,30 +348,28 @@ triangle ( x, y, w, h);
  * @param w [real] base of the triangle
  * @param h [real] height of the triangle
  */
-right_triangle ( x, y, w, h);
+right_triangle (x:real, y:real, w:real, h:real);
 
 
 /**
- * @fn arrow ( x, y, w, h, head, bodyRatio)
- * @brief Draw an arraw
+ * Draws an arraw.
  *
- *  Draw an arraw with adjustable head and depth and body width.
+ * The arrow is centered at (@a x, @a y) and is contained in a bounding box of
+ * @a w by @a h pixels. @a head is the length of the arrow head in pixels.
+ * @a tail is the size of the the arrow relative to the overall witdh. @a tail
+ * is comprised between 0 and 1.
  *
- *  @image html arrow.png "Arrow sample"
+ * @image html arrow.png "Arrow"
  *
+ * Example:
  * @code
  * color "orange"
  * arrow 0, 0, 250, 200, 60, 0.5
  * @endcode
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of surrounding rectangle
- * @param h [real] height of surrounding rectangle
- * @param head [real] length of the arrow's head
- * @param bodyRatio [real] ratio between the full width and the body width [0.0, 1.0]
+ * @todo why head is in px and tail is a ratio?
  */
-arrow ( x, y, w, h, head, bodyRatio);
+arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 
 /**
  * @fn double_arrow ( x, y, w, h, ax, ay)
@@ -457,7 +391,7 @@ arrow ( x, y, w, h, head, bodyRatio);
  * @param head [real] length of the arrow's head
  * @param bodyRatio [real] ratio between the full width and the body width [0.0, 1.0]
  */
-double_arrow ( x, y, w, h, ax, ay);
+double_arrow (x:real, y:real, w:real, h:real, ax:real, ay:real);
 
 /**
  * @fn star ( x, y, w, h, p, r)
@@ -480,7 +414,7 @@ double_arrow ( x, y, w, h, ax, ay);
  * @param p [integer] Number of branch
  * @param r [real] inner radius ratio
  */
-star ( x, y, w, h, p, r);
+star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
  * @fn star_polygon ( x, y, w, h, p, q)
@@ -503,7 +437,7 @@ star ( x, y, w, h, p, r);
  * @param p [integer] Number of branch
  * @param q [integer] Number of vertex to skip for sighting
  */
-star_polygon ( x, y, w, h, p, q);
+star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /**
  * @fn speech_balloon ( x, y, w, h, r, ax, ay)
@@ -526,7 +460,7 @@ star_polygon ( x, y, w, h, p, q);
  * @param ax [real] tail end x-coordinate
  * @param ay [real] tail end y-coordinate
  */
-speech_balloon ( x, y, w, h, r, ax, ay);
+speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
 
 /**
  * @fn callout ( x, y, w, h, r, ax, ay, tw)
@@ -550,7 +484,7 @@ speech_balloon ( x, y, w, h, r, ax, ay);
  * @param ay [real] y-coordinate of point a
  * @param tw [real] tip width
  */
-callout ( x, y, w, h, r, ax, ay, tw);
+callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 
 
 /** @} */
@@ -568,23 +502,6 @@ callout ( x, y, w, h, r, ax, ay, tw);
  */
 
 /**
- * @fn object ( x, y, z, w, h, d, f)
- * @brief Load a 3D object
- *
- *  Load a 3D object
- * @todo Est-ce deja documente ?
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param w [real] width
- * @param h [real] height
- * @param d [real] depth
- * @param f [text] filename
- */
-object ( x, y, z, w, h, d, f);
-
-/**
  * @fn sphere ( x, y, z, w, h, d, slices, stacks)
  * @brief sphere like
  *
@@ -599,7 +516,7 @@ object ( x, y, z, w, h, d, f);
  * @param slices [integer] number of slices
  * @param stacks [integer] [TODO]
  */
-sphere ( x, y, z, w, h, d, slices, stacks);
+sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer);
 
 /**
  * @fn cone ( x, y, z, w, h, d)
@@ -614,7 +531,7 @@ sphere ( x, y, z, w, h, d, slices, stacks);
  * @param h [real] height
  * @param d [real] depth
  */
-cone ( x, y, z, w, h, d);
+cone (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
  * @fn truncated_cone ( x, y, z, w, h, d, r)
@@ -630,7 +547,7 @@ cone ( x, y, z, w, h, d);
  * @param d [real] depth
  * @param r [real] percentage of basis : 0.0 is a cone; 1.0 is a cylinder.
  */
-truncated_cone ( x, y, z, w, h, d, r);
+truncated_cone (x:real, y:real, z:real, w:real, h:real, d:real, r:real);
 
 /**
  * @fn cube ( x, y, z, w, h, d)
@@ -645,7 +562,7 @@ truncated_cone ( x, y, z, w, h, d, r);
  * @param h [real] height
  * @param d [real] depth
  */
-cube ( x, y, z, w, h, d);
+cube (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
  * @fn cylinder ( x, y, z, w, h, d)
@@ -660,7 +577,7 @@ cube ( x, y, z, w, h, d);
  * @param h [real] height
  * @param d [real] depth
  */
-cylinder ( x, y, z, w, h, d);
+cylinder (x:real, y:real, z:real, w:real, h:real, d:real);
 
 
 /** @} */

@@ -53,7 +53,7 @@ new_page with list_files "*.jpg"
  * @param body [tree] Content of the page.
  * @returns The name of the previous page
  */
-page ( name, body);
+page (name:text, body:tree);
 
 /**
  * @fn goto_page ( p)
@@ -64,7 +64,7 @@ page ( name, body);
  * @param p [text] The name of the page to go to.
  * @returns The name of the previously shown page.
  */
-goto_page ( p);
+goto_page (p:text);
 
 /**
  * @fn page_print_time ( t)
@@ -75,7 +75,7 @@ goto_page ( p);
  * @param t [real] Time used to print the page.
  * @returns Previous time used for printing
  */
-page_print_time ( t);
+page_print_time (t:real);
 
 
 /**
@@ -88,7 +88,7 @@ page_print_time ( t);
  * @param name [text] The name of the page to go to
  * @returns The name of the page previously linked to this key.
  */
-page_link ( key, name);
+page_link (key:text, name:text);
 
 /**
  * @fn page_name ( n)
@@ -99,7 +99,7 @@ page_link ( key, name);
  * @param n [integer] Index of page starting at 1. @c n is treated as an unsigned integer.
  * @returns The name of the nth page
  */
-page_name ( n);
+page_name (n:integer);
 
 /**
  * @fn page_thumbnail ( s, i, p)
@@ -111,7 +111,7 @@ page_name ( n);
  * @param i [real] Refresh interval of the thumbnail
  * @param p [text] Page name
  */
-page_thumbnail ( s, i, p);
+page_thumbnail (s:real, i:real, p:text);
 
 /**
  * @fn page_count ()

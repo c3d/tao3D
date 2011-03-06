@@ -24,7 +24,7 @@
  * @param n [text] The action name
  * @param t [tree] The code to execute
  */
-on ( n, t);
+on (n:text, t:tree);
 
 /**
  * @fn on_click ( t)
@@ -35,7 +35,7 @@ on ( n, t);
  *
  * @param t [tree] The code to execute
  */
-on_click ( t);
+on_click (t:tree);
 
 /**
  * @fn on_mouseover ( t)
@@ -46,7 +46,7 @@ on_click ( t);
  *
  * @param t [tree] The code to execute
  */
-on_mouseover ( t);
+on_mouseover (t:tree);
 
 /**
  * @fn mouse_buttons ()

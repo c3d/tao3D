@@ -5,151 +5,103 @@
  * This group deals with transformation of the space.
  * Transformations are based on OpenGL capacity.
  * Transformations are
- * - rotation, express in degrees
- * - translation, express in pixels
- * - scaling, express in percentage
+ * - rotation, expressed in degrees
+ * - translation, expressed in pixels
+ * - scaling, expressed with a scaling factor
  *
  * @note Rotations follows the right-hand rule, so if the rotation axis
  *      points toward the user, the rotation will be counterclockwise.
  *
+ * @todo Explain order of calls, give an example.
  * @{
  */
 
 /**
- * @fn scalex ( x)
- * @brief Rescale along X
- *
- *  Rescale along X-axis. It is equivalent to @code scale x, 1, 1 @endcode
- *
- * @param x [real] scale factor.
+ * Scales along the three axes.
  */
-scalex ( x);
+scale (x:real, y:real, z:real);
 
 /**
- * @fn scaley ( y)
- * @brief Rescale along Y
+ * Scales along the X axis.
  *
- *  Rescale along Y-axis. It is equivalent to @code scale 1, y, 1 @endcode
- *
- * @param y [real] scale factor.
+ * Equivalent to @code scale x, 1, 1 @endcode
  */
-scaley ( y);
+scalex (x:real);
 
 /**
- * @fn scalez ( z)
- * @brief Rescale along Z
+ * Scales along the Y axis.
  *
- *  Rescale along Z-axis. It is equivalent to @code scale 1, 1, z @endcode
- *
- * @param z [real] scale factor.
+ * Equivalent to @code scale 1, y, 1 @endcode
  */
-scalez ( z);
+scaley (y:real);
 
 /**
- * @fn rotate ( ra, rx, ry, rz)
- * @brief Rotation along an arbitrary axis
+ * Scales along the Z axis.
  *
- *  Rotation of @p ra degrees arround the axis determined by the <TT> (rx, ry, rz) </TT> vector.
- *
- * @param ra [real] amount of degrees to rotate
- * @param rx [real] x-coordinate of the vector
- * @param ry [real] y-coordinate of the vector
- * @param rz [real] z-coordinate of the vector
- *
- * @note Rotations follows the right-hand rule, so if the vector (x,  y,  z)
- *      points toward the user, the rotation will be counterclockwise.
+ * Equivalent to @code scale 1, 1, z @endcode
  */
-rotate ( ra, rx, ry, rz);
+scalez (z:real);
 
 /**
- * @fn scale ( x, y, z)
- * @brief Scaling along three axis
+ * Rotates along an arbitrary axis.
  *
- *  Scaling along three axis.
+ * Rotation of @p ra degrees around the axis determined by the
+ * (@a rx, @a ry, @a rz) vector.
  *
- * @param x [real] x-scale factor.
- * @param y [real] y-scale factor.
- * @param z [real] z-scale factor.
+ * Rotations follows the right-hand rule, so if the vector (x,  y,  z)
+ * points toward the user, the rotation will be counterclockwise.
  */
-scale ( x, y, z);
+rotate (ra:real, rx:real, ry:real, rz:real);
 
 /**
- * @fn rotatex ( rx)
- * @brief Rotate around X
+ * Rotates around the X axis.
  *
- *  Rotate around X axis. It is equivalent to @code rotate rx, 1, 0, 0 @endcode
- *
- * @param rx [real] The angle of rotation in degree.
+ * Equivalent to @code rotate rx, 1, 0, 0 @endcode
  */
-rotatex ( rx);
+rotatex (rx:real);
 
 /**
- * @fn rotatey ( ry)
- * @brief Rotate around Y
+ * Rotates around the Y axis.
  *
- *  Rotate around Y axis. It is equivalent to @code rotate ry, 0, 1, 0 @endcode
- *
- * @param ry [real] The angle of rotation in degree.
+ * Equivalent to @code rotate ry, 0, 1, 0 @endcode
  */
-rotatey ( ry);
+rotatey (ry:real);
 
 /**
- * @fn rotatez ( rz)
- * @brief Rotate around Z
+ * Rotates around the Z axis.
  *
- *  Rotate around Z axis : x-axis > 0 is 0 degree, y-axis > 0 is 90 degrees, etc...
- * It is equivalent to @code rotate rz, 0, 0, 1 @endcode
- * @param rz [real] The angle of rotation in degree.
+ * Equivalent to @code rotate rz, 0, 0, 1 @endcode
  */
-rotatez ( rz);
+rotatez (rz:real);
 
 /**
- * @fn translatez ( z)
- * @brief Translate along Z
- *
- *  Translate along Z-axis. It is equivalent to @code translate 0, 0, z @endcode
- *
- * @param z [real] z translation.
+ * Translates along the three axes.
  */
-translatez ( z);
+translate (x:real, y:real, z:real);
 
 /**
- * @fn translatey ( y)
- * @brief Translate along Y
+ * Translates along the X axis.
  *
- *  Translate along Y-axis. It is equivalent to @code translate 0, y, 0 @endcode
- *
- * @param y [real] y translation.
+ * Equivalent to @code translate x, 0, 0 @endcode
  */
-translatey ( y);
+translatex (x:real);
 
 /**
- * @fn translatex ( x)
- * @brief Translate along X
+ * Translates along the Y axis.
  *
- *  Translate along X-axis. It is equivalent to @code translate x, 0, 0 @endcode
- *
- * @param x [real] x translation.
+ * Equivalent to @code translate 0, y, 0 @endcode
  */
-translatex ( x);
+translatey (y:real);
 
 /**
- * @fn translate ( x, y, z)
- * @brief Translation along three axes
+ * Translates along the Z axis.
  *
- *  Translation along three axes
- *
- * @param x [real] x translation.
- * @param y [real] y translation.
- * @param z [real] z translation.
+ * Equivalent to @code translate 0, 0, z @endcode
  */
-translate ( x, y, z);
+translatez (z:real);
 
 /**
- * @fn reset_transform ()
- * @brief Reset transform
- *
- *  Reset transform to original projection state.
+ * Reset the geometric transform to original projection state.
  */
 reset_transform ();
 

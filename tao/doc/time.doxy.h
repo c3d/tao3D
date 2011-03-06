@@ -10,8 +10,7 @@
  */
 
 /**
- * @fn time ()
- * @brief Return a time in second, including milliseconds.
+ * Returns current time in second, including milliseconds.
  *
  * Returns the current document's time or the time at wich the document was frozen.
  * The returned value is a real in seconds, with millisecond precision.
@@ -22,190 +21,101 @@ time ();
 
 /**
  * @~english
- * @fn year_day ( t)
- * @brief Extract year day (1-365) from timestamp
- *
- *  Gives the day number in the year.
- *
- * @param t [real] a timestamp in seconds.
- * @returns the day number in the year.
+ * Extracts day in year (1-365) from timestamp.
  */
 /**
  * @~french
- * @fn year_day ( t)
- * @brief Extrait du timestamp le numero du jour dans l'annee (1-365).
- *
- * Donne le numero du jour dans l'annee.
- *
- * @param t [real] le timestamp en secondes.
- * @returns le numero du jour dans l'annee.
+ * Extrait du timestamp le numero du jour dans l'annee (1-365).
  */
-year_day ( t);
+year_day (t:real);
 
 /**
- * @fn week_day ( t)
- * @brief Extract week day (1-7) from timestamp
- *
- *  Gives the day number in the week, starting on monday.
- *
- * @param t [real] a timestamp in seconds.
- * @returns the day in the week.
+ * Extracts week day (1-7) from timestamp.
  */
-week_day ( t);
+week_day (t:real);
 
 /**
- * @fn year ( t)
- * @brief Extract year from timestamp
+ * Extracts year from timestamp.
  *
- *  Gives the year relatively to J.C.
- *
- * @param t [real] a timestamp in seconds.
- * @return the year
+ * For instance, 2011.
  */
-year ( t);
+year (t:real);
 
 /**
- * @fn month ( t)
- * @brief Extract month (1-12) from timestamp
- *
- *  Gives the month number in the year.
- *
- * @param t [real] a timestamp in seconds.
- * @return the month number.
+ * Extracts month (1-12) from timestamp.
  */
-month ( t);
+month (t:real);
 
 /**
- * @fn day ( t)
- * @brief Extract day (1-31) from timestamp
- *
- * Gives the day number in the month.
- *
- * @param t [real] a timestamp in seconds.
- * @return the day in the month.
+ * Extracts day (1-31) from timestamp.
  */
-day ( t);
+day (t:real);
 
 /**
- * @fn hours ( t)
- * @brief Extract hours (0-23) from timestamp
- *
- *  Gives the hour from the timestamp.
- *
- * @param t [real] a timestamp in seconds.
- * @return the hour.
+ * Extracts minutes (0-23) from timestamp.
  */
-hours ( t);
+hours (t:real);
 
 /**
- * @fn minutes ( t)
- * @brief Extract minutes (0-59) from timestamp
- *
- *  Gives the minutes from timestamp.
- *
- * @param t [real] a timestamp in seconds.
- * @return the number of minutes.
+ * Extracts minutes (0-59) from timestamp.
  */
-minutes ( t);
+minutes (t:real);
 
 /**
- * @fn seconds ( t)
- * @brief Extract seconds (0-59) from timestamp
- *
- *  Gives the seconds from timestamp.
- *
- * @param t [real] a timestamp in seconds.
- * @return the number of seconds.
+ * Extracts seconds (0-59) from timestamp.
  */
-seconds ( t);
+seconds (t:real);
 
 /**
- * @fn day ()
- * @brief Extract day (1-31) from current time
- *
- * Gives the day number in the month.
- *
- * @param t [real] a timestamp in seconds.
- * @return the day in the month.
+ * Returns day in the month of hte current time.
  */
 day ();
 
 /**
- * @fn hours ()
- * @brief Return hours (0-23) of current time
- *
- *  Gives the hour of the day
- * @return the current hour.
+ * Returns the hours (0-23) of the current time.
  */
 hours ();
 
 /**
- * @fn minutes ()
- * @brief Return minutes (0-59) of current time
- *
- *  Gives the minutes in the hour
- * @return the current minutes
+ * Returns the minutes (0-59) of the current time.
  */
 minutes ();
 
 /**
- * @fn month ()
- * @brief Return current month number (1-12)
- *
- *  Gives the month number in the year.
- * @return the month number.
+ * Returns the current month number (1-12).
  */
 month ();
 
 /**
- * @fn seconds ()
- * @brief Return seconds of current time (0-59)
- *
- *  Gives the seconds in the current minute.
- *  
- * @return the number of seconds.
+ * Returns the seconds of the current time (0-59).
  */
 seconds ();
 
 /**
- * @fn week_day ()
- * @brief Return current day of week (1-7)
+ * Returns the current day of week (1-7).
  *
- *  Gives the day number in the week, starting on monday.
- *  
- * @returns the day in the week.
+ * Day 1 is monday.
  */
 week_day ();
 
 /**
- * @fn year ()
- * @brief Return current year
+ * Returns the current year.
  *
- *  Gives the year relatively to J.C.
- *  
- * @return the current year
+ * For instance 2011.
  */
 year ();
 
 /**
- * @fn year_day ()
  * @~english
- * @brief Return current day in year (1-365).
+ * Returns the current day in year (1-365).
  *
- *  Gives the day number in the year.
- * @returns the day number in the year.
-
  * @~french
- * @brief Retourne le numero du jour dans l'annee courante (1-365).
- *
- *  Donne le numero du jour dans l'annee.
- * @returns le numero du jour dans l'annee.
+ * Retourne le numero du jour dans l'annee courante (1-365).
  */
 year_day ();
 
 /**
- * @fn page_time ()
- * @brief Returns the page time
+ * Returns the page time.
  *
  *  Returns the time of the current page relatively to the current document's time, 
  * or relatively to the frozen time.
@@ -215,8 +125,7 @@ year_day ();
 page_time ();
 
 /**
- * @fn after ( d, c)
- * @brief Wait for time to execute code
+ * Execute code after specified interval.
  *
  *  Execute the given code only after the specified amount of time.
  *
@@ -224,29 +133,25 @@ page_time ();
  * @param c [tree] The code to execute.
  * @returns The real elapsed time.
  */
-after ( d, c);
+after (d:real, c:tree);
 
 /**
- * @fn every ( i, d, c)
- * @brief Code executed every interval.
- *
- *  Code executed every interval.
+ * Executes code periodically.
  *
  * @param i [real] The interval in second. Sensitive upto millisecond.
  * @param d [real] The duty in second. Sensitive upto millisecond. 
  * @param c [tree] The code to execute.
  * @returns The real elapsed time.
  */
-every ( i, d, c);
+every (i:real, d:real, c:tree);
 
 /**
- * @fn every ( i, c)
- * @copybrief every(i,d,c)
+ * @copybrief every(i:real, d:real, c:tree)
  *
  *  \p duty is 0.5 when not specified.
- * @copydetails every(i,d,c)
+ * @copydetails every(i:real, d:real, c:tree)
  *
  */
-every ( i, c);
+every (i:real, c:tree);
 
 /** @} */

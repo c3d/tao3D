@@ -141,7 +141,7 @@ protected:
                 return -1;
             if (x2 < x1)
                 return 1;
-            return 0;                
+            return 0;
         }
 
         int compare(const QFont &f1, const QFont &f2) const
@@ -156,6 +156,8 @@ protected:
                 return stretch;
             if (int family = order(f1.family(), f2.family()))
                 return family;
+            if (int capitalization = order(f1.capitalization(), f2.capitalization()))
+                return capitalization;
             return 0;
         }
 

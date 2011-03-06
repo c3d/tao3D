@@ -5729,7 +5729,8 @@ Tree_p Widget::ellipseArc(Tree_p self,
 //   Circular sector centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), start, sweep);
+    // start and sweep must be provided upsidedown because of y flip. See Bug#787
+    EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep);
     if (path)
         shape.Draw(*path);
     else

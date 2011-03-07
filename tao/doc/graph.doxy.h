@@ -1,5 +1,5 @@
 /**
- * @defgroup Graphics
+ * @defgroup Graphics Graphics
  * @ingroup TaoBuiltins
  *
  * Tao Presentations relies on OpenGL (http://www.opengl.org/) to provide
@@ -151,7 +151,7 @@ line_to (x:real, y:real, z:real);
 
 
 /**
- * @defgroup graph_2D 2D drawings
+ * @defgroup graph_2D 2D shapes
  * @ingroup Graphics
  * Creating 2D shapes.
  *
@@ -160,8 +160,9 @@ line_to (x:real, y:real, z:real);
  * defined, its z coordinate is set to 0.
  *
  * In all the 2D primitives,
- * -  @p x, and @p y represent the center of the drawing, x > 0 goes toward the right, y > goes toward the top
- * -  @p h, and @p w represent the width and the height of the drawing
+ * -  @a x, and @a y represent the center of the shape. @a x > 0 goes toward
+ *    the right, @a y > goes toward the top
+ * -  @a h, and @a w represent the width and the height of the shape.
  *
  * @{
  */
@@ -361,13 +362,16 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 /** @} */
 
 /**
- * @defgroup graph_3D 3D drawings
+ * @defgroup graph_3D 3D shapes
  * @ingroup Graphics
  * Creating 3D shapes.
  *
  * In all the 3D primitives,
- * -  @p x, @p y, and @p z represent the center of the drawing, x > 0 goes toward the right, y > goes toward the top, and z > 0 goes toward the user.
- * -  @p h, @p w, and @p d represent the width, the height and the depth of the drawing
+ * -  @a x, @a y, and @a z represent the center of the shape, @a x > 0 goes
+ *    toward the right, @a y > goes toward the top, and @a z > 0 goes toward
+ *    the user.
+ * -  @a h, @a w, and @a d represent the width, height and depth of the shape,
+ *    respectively.
  *
  * @{
  */

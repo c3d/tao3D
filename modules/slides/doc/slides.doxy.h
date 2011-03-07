@@ -24,8 +24,8 @@
  // Change theme to "Keyboard"
  theme := "Keyboard"
  slide "The Keyboard theme",
-     * "Has a background picture"
-     * "Is nicer than the default theme"
+ *     * "Has a background picture"
+ *     * "Is nicer than the default theme"
  @endcode
  *
  * The Slides module currently defines five themes in addition to the default

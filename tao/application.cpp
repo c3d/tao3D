@@ -90,7 +90,7 @@ Application::Application(int & argc, char ** argv)
     if (arguments().contains("-nosplash") || arguments().contains("-h"))
         showSplash = false;
 
-    if (arguments().contains("-norepo"))
+    if (arguments().contains("-norepo") || arguments().contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
     // Show splash screen

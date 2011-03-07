@@ -582,7 +582,7 @@ again:
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
 #ifndef CFG_NOGIT
-    if (XL::MAIN->options.enable_git)
+    if (!RepositoryFactory::no_repo)
         if (!openProject(projpath, fileNameOnly, false))
             return false;
 #endif
@@ -1637,7 +1637,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QString docPath = QFileInfo(fileName).canonicalPath();
 #ifndef CFG_NOGIT
-    if (XL::MAIN->options.enable_git && openProj &&
+    if (!RepositoryFactory::no_repo && openProj &&
         !openProject(docPath,
                      QFileInfo(fileName).fileName()))
         return false;

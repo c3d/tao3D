@@ -1057,6 +1057,23 @@ void Window::preferences()
 }
 
 
+void Window::onlineDoc()
+// ----------------------------------------------------------------------------
+//    Open the online documentation page
+// ----------------------------------------------------------------------------
+{
+    QString index = QCoreApplication::applicationDirPath()
+                    + "/doc/html/index.html";
+    if (!QFileInfo(index).exists())
+    {
+        QMessageBox::warning(this, tr("Documentation not found"),
+                             tr("Online documentation file was not found."));
+        return;
+    }
+    QDesktopServices::openUrl("file://" + index);
+}
+
+
 void Window::documentWasModified()
 // ----------------------------------------------------------------------------
 //   Record when the document was modified
@@ -1266,6 +1283,11 @@ void Window::createActions()
     preferencesAct->setObjectName("preferences");
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
+    onlineDocAct = new QAction(tr("&Online Documentation"), this);
+    onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
+    onlineDocAct->setObjectName("onlineDoc");
+    connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
+
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
@@ -1395,6 +1417,7 @@ void Window::createMenus()
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
+    helpMenu->addAction(onlineDocAct);
 }
 
 

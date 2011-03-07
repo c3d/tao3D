@@ -21,14 +21,16 @@ macx {
   QMAKE_SUBSTITUTES = Doxyfile.in 
 
   include (../modules/module_list.pri)
-  MOD_PATHS=$$join(MODULES, " ../modules/", "../modules/")
+  MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   dox.target = doc
   dox.commands = doxygen 
   dox.depends = cp_examples
 
   cp_examples.target = examples
-  cp_examples.commands = mkdir -p html/examples ; cp ../tao/doc/examples/*.ddd html/examples/
+  cp_examples.commands = mkdir -p html/examples ; \
+                         cp ../tao/doc/examples/*.ddd html/examples/ ; \
+                         for p in $$MOD_PATHS ; do cp \$\$p/*.ddd html/examples/ ; done
 
   clean.commands = /bin/rm -rf html/ qch/
 

@@ -1,0 +1,71 @@
+
+color "tao_orange" -> color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+color "tao_yellow" -> color "#EEAA11" 
+
+font_size 14 
+
+croix -> 
+    line_width 2 
+    line_color "tao_yellow" 
+    path 
+        move_to -150, 0 
+        line_to 150, 0 
+        move_to 0, -150 
+        line_to 0, 150 
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    path 
+        move_to 10, -15 
+        text "(x, y)" 
+
+color "tao_orange" 
+shape 
+    speech_balloon 0, 0, 200, 100, 25, 35, -130 
+croix 
+line_width 1.5 
+line_color "black" 
+line_arrow -100, 65, ARROWHEAD, 100, 65, ARROWHEAD 
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to -115, 70 
+        text "Width" 
+
+line_arrow 115, 50, ARROWHEAD, 115, -50, ARROWHEAD 
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to 120, 45 
+        text "Height" 
+
+point 35, -130, 1, 5 
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to 40, -130 
+        text "(ax, ay)" 
+
+locally 
+    line_color "tao_yellow" 
+    translate -75, -25, 0 
+    line -40, -40, 0, 0 
+    line_color "transparent" 
+    color "tao_yellow" 
+    path 
+        move_to -75, -25 
+        text "bisector" 
+
+line_color "black" 
+line_arrow -75, -25, ARROWHEAD, -75, -50, ARROWHEAD 
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to -70, -45 
+        text "radius"

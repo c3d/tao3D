@@ -29,7 +29,7 @@ shape (t:tree);
 
 
 /**
- * @brief Make the widget clickable
+ * Makes the widget clickable.
  *
  *  Create a context for active widgets (like buttons) or drawing (circle, etc...)
  *  Make the shape sensible to mouse events. 
@@ -142,14 +142,7 @@ endpoints_style (s:symbol, e:symbol);
 path_color (r:real, g:real, b:real, a:real);
 
 /**
- * @fn line_to ( x, y, z)
- * @brief line to point
- *
- *  Add a 'lineTo' to the current path
- *
- * @param x [real] x-coordinate of the point to line to.
- * @param y [real] y-coordinate of the point to line to.
- * @param z [real] z-coordinate of the point to line to.
+ * Adds a line segment to the current path.
  */
 line_to (x:real, y:real, z:real);
 
@@ -174,10 +167,9 @@ line_to (x:real, y:real, z:real);
  */
 
 /**
- * @fn point ( x, y, z, s)
- * @brief Draw a point
+ * Draws a point.
  *
- *  Draw a point with the given size. It is not affected by the scaling factor.
+ * The point size is not affected by the scaling factor.
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -187,8 +179,7 @@ line_to (x:real, y:real, z:real);
 point (x:real, y:real, z:real, s:real);
 
 /**
- * @fn rectangle ( x, y, w, h)
- * @brief Draw a rectangle
+ * Draws a rectangle.
  *
  *  Draw a rectangle centered in @c (x,y), with width @p w and height @p h.
  *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
@@ -196,12 +187,8 @@ point (x:real, y:real, z:real, s:real);
  *  - top left corner is at coordinate (x-w/2, y+h/2)
  *  - top right corner is at coordinate (x+w/2, y+h/2)
  *
- *  @image html rectangle.png "Rectangle sample"
- *
- * @code
- * color "orange"
- * rectangle 0, 0, 100, 200
- * @endcode
+ * Example: <a href="examples/rectangle.ddd">rectangle.ddd</a>
+ * @image html rectangle.png "Rectangle"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -211,8 +198,7 @@ point (x:real, y:real, z:real, s:real);
 rectangle (x:real, y:real, w:real, h:real);
 
 /**
- * @fn rounded_rectangle ( x, y, w, h, r)
- * @brief Rounded rectangle
+ * Draws a rounded rectangle.
  *
  *  Draw a rounded rectangle with radius r for the rounded corners.
  *  The rectangle is centered in @c (x,y), with width @p w and height @p h.
@@ -221,13 +207,8 @@ rectangle (x:real, y:real, w:real, h:real);
  *  - top left corner is at coordinate (x-w/2, y+h/2)
  *  - top right corner is at coordinate (x+w/2, y+h/2)
  *
- *  @image html rounded_rectangle.png "Rounded rectangle sample"
- *
- * @code
- * color "orange"
- * rounded_rectangle 0, 0, 100, 200, 25
- * @endcode
- *
+ * Example: <a href="examples/rounded_rectangle.ddd">rounded_rectangle.ddd</a>
+ * @image html rounded_rectangle.png "Rounded rectangle"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -239,16 +220,14 @@ rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 
 /**
- * @fn elliptical_rectangle ( x, y, w, h, r)
- * @brief Rectangle with elliptical side
+ * Draws a rectangle with elliptical sides.
  *
- *  Elliptical rectangle with ratio r for the elliptic sides. The ratio is a real between 0.0 and 1.0. With ratio 0.0 the elliptical rectangle is an ellipse, and with ratio 1.0 the elliptical rectangle is a rectangle.
- *  @image html elliptical_rectangle.png "Elliptical rectangle sample"
- *
- * @code
- * color "orange"
- * rounded_rectangle 0, 0, 100, 200, 25
- * @endcode
+ * The ratio @a r is a real between 0.0 and 1.0. With ratio 0.0 the elliptical
+ * rectangle is an ellipse, and with ratio 1.0 the elliptical rectangle is a
+ * rectangle.
+ * Example:
+ * <a href="examples/elliptical_rectangle.ddd">elliptical_rectangle.ddd</a>
+ * @image html elliptical_rectangle.png "Elliptical rectangle"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -259,18 +238,12 @@ rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 /**
- * @fn ellipse ( x, y, w, h)
- * @brief Ellipse
+ * Draws an ellipse.
  *
  *  Draw an ellipse centered around @c (x,y) with size <tt>w * h</tt>.
  *
- *  @image html ellipse.png "Ellipse sample"
- *
- * @code
- * color "orange"
- * ellipse 0, 0, 100, 200
- * @endcode
- *
+ * Example: <a href="examples/ellipse.ddd">ellipse.ddd</a>
+ * @image html ellipse.png "Ellipse sample"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -280,17 +253,15 @@ elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
 ellipse (x:real, y:real, w:real, h:real);
 
 /**
- * @fn ellipse_arc ( x, y, w, h, start, sweep)
- * @brief Elliptic sector
+ * Draws an elliptic sector.
  *
- *  Elliptic sector centered around @c (x,y) that occupies the given rectangle, beginning at the specified startAngle and extending sweepLength degrees counter-clockwise. Angles are specified in degrees. Clockwise arcs can be specified using negative angles.
+ * Elliptic sector centered around (@a x, @a y) that occupies the given
+ * rectangle, beginning at the specified @a startAngle and extending
+ * @a sweepLength degrees counter-clockwise. Angles are specified in
+ * degrees. Clockwise arcs can be specified using negative angles.
  *
- *  @image html ellipse_arc.png "Ellipse arc sample"
- *
- * @code
- * color "orange"
- * ellipse_arc 0, 0, 200, 290, 20, 135
- * @endcode
+ * Example: <a href="examples/ellipse_arc.ddd">ellipse_arc.ddd</a>
+ * @image html ellipse_arc.png "Ellipse arc"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -302,21 +273,16 @@ ellipse (x:real, y:real, w:real, h:real);
 ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
 
 /**
- * @fn triangle ( x, y, w, h)
- * @brief Isoceles triangle
+ * Draws an isoceles triangle.
  *
- *  Draw an isoceles triangle centered in @c (x,y), with width @p w and height @p h.
+ * Draws an isoceles triangle centered at (@a x, @a y), with width @a w and
+ * height @a h.
  *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
  *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
- *  - top corner is at coordinate (x, y+h/2)
+ *  - Top corner is at coordinate (x, y+h/2)
  *
- *  @image html triangle.png "Isoceles triangle sample"
- *
- * @code
- * color "orange"
- * triangle 0, 0, 150, 200
- * @endcode
- *
+ * Example: <a href="examples/triangle.ddd">triangle.ddd</a>
+ * @image html triangle.png "Isoceles triangle"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -326,8 +292,7 @@ ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
 triangle (x:real, y:real, w:real, h:real);
 
 /**
- * @fn right_triangle ( x, y, w, h)
- * @brief Right triangle
+ * Draws a right triangle.
  *
  *  Draw a right triangle with hypotenuse centered in @c (x,y), with width @p w and height @p h.
  *  Right angle is the bottom left one.
@@ -335,13 +300,8 @@ triangle (x:real, y:real, w:real, h:real);
  *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
  *  - top corner is at coordinate (x-w/2, y+h/2)
  *
- *  @image html right_triangle.png "Right triangle sample"
- *
- * @code
- * color "orange"
- * right_triangle 0, 0, 150, 200
- * @endcode
- *
+ * Example: <a href="examples/right_triangle.ddd">right_triangle.ddd</a>
+ * @image html right_triangle.png "Right triangle sample"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -359,30 +319,20 @@ right_triangle (x:real, y:real, w:real, h:real);
  * @a tail is the size of the the arrow relative to the overall witdh. @a tail
  * is comprised between 0 and 1.
  *
+ * Example: <a href="examples/arrow.ddd">arrow.ddd</a>
  * @image html arrow.png "Arrow"
- *
- * Example:
- * @code
- * color "orange"
- * arrow 0, 0, 250, 200, 60, 0.5
- * @endcode
  *
  * @todo why head is in px and tail is a ratio?
  */
 arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 
 /**
- * @fn double_arrow ( x, y, w, h, ax, ay)
- * @brief Double arraw
+ * Creates a double arraw.
  *
  *  Draw a symetric double arraw
  *
- *  @image html double_arrow.png "Double arrow sample"
- *
- * @code
- * color "orange"
- * double_arrow 0, 0, 250, 200, 60, 0.5
- * @endcode
+ * Example: <a href="examples/double_arrow.ddd">double_arrow.ddd</a>
+ * @image html double_arrow.png "Double arrow"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -394,18 +344,12 @@ arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 double_arrow (x:real, y:real, w:real, h:real, ax:real, ay:real);
 
 /**
- * @fn star ( x, y, w, h, p, r)
- * @brief Draw a star
+ * Draws a star.
  *
- *  GL regular p-side star centered around (x,y) with inner radius ratio r.
+ * GL regular p-side star centered around (x,y) with inner radius ratio r.
  *
- *  @image html star.png "Star sample"
- *
- * @code
- * color "orange"
- * star 0, 0, 250, 200, 8, 0.5 
- * @endcode
- *
+ * Example: <a href="examples/star.ddd">star.ddd</a>
+ * @image html star.png "Star sample"
  *
  * @param x [real] center x-coordinate
  * @param y [real] center y-coordinate
@@ -417,18 +361,14 @@ double_arrow (x:real, y:real, w:real, h:real, ax:real, ay:real);
 star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
- * @fn star_polygon ( x, y, w, h, p, q)
- * @brief Draw a star
+ * Draws a star.
  *
- *  GL regular p-side star polygon centered around (x,y).
- *  @p p is the number of branch. Each side of a branch is drawn by aimed at another vertex. This other vertex is the @p qth starting from the current one.
+ * GL regular p-side star polygon centered around (x,y).
+ * @p p is the number of branch. Each side of a branch is drawn by aimed at
+ * another vertex. This other vertex is the @p qth starting from the current one.
  *
- *  @image html star_polygon.png "Star polygon sample"
- *
- * @code
- * color "orange"
- * star_polygon 0, 0, 250, 200, 16, 6 
- * @endcode
+ * Example: <a href="examples/star_polygon.ddd">star_polygon.ddd</a>
+ * @image html star_polygon.png "Star polygon"
  *
  * @param x [real] center x-coordinate
  * @param y [real] center y-coordinate
@@ -440,17 +380,14 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
 star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /**
- * @fn speech_balloon ( x, y, w, h, r, ax, ay)
- * @brief Speech balloon
+
+ * Creates a speech balloon.
  *
- *  Speech balloon with radius r for rounded corners, and point a for the tail. The tail width is computed.
+ * Speech balloon with radius @a r for rounded corners, and point a for the tail.
+ * The tail width is computed.
  *
- *  @image html speech_balloon.png "Speech balloon sample"
- *
- * @code
- * color "orange"
- * speech_balloon  0, 0, 200, 100, 25, 35, -130
- * @endcode
+ * Example: <a href="examples/speech_balloon.ddd">speech_balloon.ddd</a>
+ * @image html speech_balloon.png "Speech balloon"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -463,17 +400,12 @@ star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
 
 /**
- * @fn callout ( x, y, w, h, r, ax, ay, tw)
- * @brief callout
+ * Creates a callout.
  *
- *  Callout with radius r for corners, and point a for the head of the tip and, tw as the tip basis width.
+ * Callout with radius r for corners, and point a for the head of the tip and, tw as the tip basis width.
  *
- *  @image html callout.png "Callout sample"
- *
- * @code
- * color "orange"
- * callout 0, 0, 200, 100, 25, 35, -130, 25
- * @endcode
+ * Example: <a href="examples/callout.ddd">callout.ddd</a>
+ * @image html callout.png "Callout"
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -502,27 +434,15 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  */
 
 /**
- * @fn sphere ( x, y, z, w, h, d, slices, stacks)
- * @brief sphere like
+ * Draws a sphere.
  *
- *  GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param w [real] width
- * @param h [real] height
- * @param d [real] depth
- * @param slices [integer] number of slices
- * @param stacks [integer] [TODO]
+ * The sphere is divided in @a slices and @a stacks. The higher the vaue of
+ * these parametres, the smoother the sphere.
  */
 sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer);
 
 /**
- * @fn cone ( x, y, z, w, h, d)
- * @brief cone
- *
- *  cone[TODO]
+ * Draws a cone.
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -534,10 +454,7 @@ sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:i
 cone (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
- * @fn truncated_cone ( x, y, z, w, h, d, r)
- * @brief truncated cone
- *
- *  truncated cone[TODO]
+ * Draws a truncated cone.
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -550,10 +467,7 @@ cone (x:real, y:real, z:real, w:real, h:real, d:real);
 truncated_cone (x:real, y:real, z:real, w:real, h:real, d:real, r:real);
 
 /**
- * @fn cube ( x, y, z, w, h, d)
- * @brief cube like
- *
- *  parallelepiped rectangle
+ * Draws a cube.
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate
@@ -565,10 +479,7 @@ truncated_cone (x:real, y:real, z:real, w:real, h:real, d:real, r:real);
 cube (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
- * @fn cylinder ( x, y, z, w, h, d)
- * @brief cylinder
- *
- *  cylinder[TODO]
+ * Drwas a cyinder.
  *
  * @param x [real] x-coordinate
  * @param y [real] y-coordinate

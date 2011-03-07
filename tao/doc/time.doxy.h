@@ -125,23 +125,18 @@ year_day ();
 page_time ();
 
 /**
- * Execute code after specified interval.
+ * Execute a block of code after specified interval.
  *
- *  Execute the given code only after the specified amount of time.
+ *  Execute @a c after the specified amount of time @a d, in seconds.
  *
- * @param d [real] The delay in second. Sensitive upto millisecond.
- * @param c [tree] The code to execute.
  * @returns The real elapsed time.
  */
 after (d:real, c:tree);
 
 /**
- * Executes code periodically.
+ * Executes a block of code periodically.
  *
- * @param i [real] The interval in second. Sensitive upto millisecond.
- * @param d [real] The duty in second. Sensitive upto millisecond. 
- * @param c [tree] The code to execute.
- * @returns The real elapsed time.
+ * @todo Check this. How is the duty parameter (@a d) used?
  */
 every (i:real, d:real, c:tree);
 

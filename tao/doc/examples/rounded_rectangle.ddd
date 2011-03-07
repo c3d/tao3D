@@ -1,0 +1,47 @@
+
+color "tao_orange" -> color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+
+font_size 14 
+
+croix -> 
+    line_width 2 
+    line_color "tao_yellow" 
+    path 
+        move_to -150, 0 
+        line_to 150, 0 
+        move_to 0, -150 
+        line_to 0, 150 
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    path 
+        move_to 10, -15 
+        text "(x, y)" 
+
+color "tao_orange" 
+shape 
+    rounded_rectangle 0, 0, 100, 200, 25 
+croix 
+line_color "black" 
+line_arrow -50, -110, ARROWHEAD, 50, -110, ARROWHEAD 
+path 
+    move_to 20, -125 
+    text "Width" 
+line_arrow -60, 100, ARROWHEAD, -60, -100, ARROWHEAD 
+path 
+    move_to -110, 65 
+    text "Height" 
+
+line_color "tao_yellow" 
+line 20, 70, 60, 110 
+path 
+    move_to 60, 90 
+    text "bisector" 
+
+line_color "black" 
+line_arrow 25, 75, ARROWHEAD, 25, 100, ARROWHEAD 
+path 
+    move_to 17, 110 
+    text "radius" 

@@ -13,44 +13,34 @@
  * @{
  */
 /**
- * @fn on ( n, t)
- * @brief Associate the specified code to the named event.
+ * Associates the specified code to the named event.
  *
- *  Associate the specified code and the named action. This code is then executed when the action occurs on the current @c shape or @c active_widget.
+ * Associate the specified code @a t and the action named @a n. This code is
+ * executed when the action occurs on the current @c shape or @c active_widget.
  * Currently known event name are
  * - @c click
  * - @c mouseover
- *
- * @param n [text] The action name
- * @param t [tree] The code to execute
  */
 on (n:text, t:tree);
 
 /**
- * @fn on_click ( t)
- * @brief Associate code with click.
+ * Associates code with click.
  *
  *  Associate the specified code to the click.
  *  It is equivalent to @code on "click", t @endcode
- *
- * @param t [tree] The code to execute
  */
 on_click (t:tree);
 
 /**
- * @fn on_mouseover ( t)
- * @brief Associate code with mouse over
+ * Associates code with mouse over.
  *
  *  Associate the specified code to the mouse over.
  *  It is equivalent to @code on "mouseover", t @endcode
- *
- * @param t [tree] The code to execute
  */
 on_mouseover (t:tree);
 
 /**
- * @fn mouse_buttons ()
- * @brief Return the buttons of the last mouse event
+ * Return the buttons of the last mouse event.
  *
  *  It allows to access to the last mouse button event. It is an OR combination of following values:<BR>
  * <TABLE>
@@ -67,20 +57,12 @@ on_mouseover (t:tree);
 mouse_buttons ();
 
 /**
- * @fn mouse_x ()
- * @brief Mouse x-coordinate
- *
- *  It gives access to the last mouse x-coordinate.
- * @returns Return the position of the mouse
+ * Returns the current X position of the mouse.
  */
 mouse_x ();
 
 /**
- * @fn mouse_y ()
- * @brief Mouse y-coordinate
- *
- *  It gives access to the last mouse y-coordinate.
- * @returns Return the position of the mouse
+ * Returns the current Y position of the mouse.
  */
 mouse_y ();
 

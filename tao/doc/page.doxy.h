@@ -44,118 +44,92 @@ new_page with list_files "*.jpg"
  */
 
 /**
- * @fn page ( name, body)
- * @brief Create a page in a document.
+ * Creates a new page or make page current.
  *
- *  Create a new page in the document with the given name, or add to the content of a previously created page. The body contents will be evaluated only when the page is being displayed. The order of pages in the document is the order of page creation.
+ * Creates a new page in the document with the given @a name, or add to the
+ * content of a previously created page. The body contents will be evaluated
+ * only when the page is being displayed. The order of pages in the document
+ * is the order of page creation.
  *
- * @param name [text] Name of the page. Any valid string can be used.
- * @param body [tree] Content of the page.
- * @returns The name of the previous page
+ * @returns The name of the previous page.
  */
 page (name:text, body:tree);
 
 /**
- * @fn goto_page ( p)
- * @brief Directly go to the given page.
+ * Goes to the given page.
  *
- *  Directly go to the given page. Page is identified by its name given as the 'p' parameter.
+ * The page is identified by its name.
  *
- * @param p [text] The name of the page to go to.
  * @returns The name of the previously shown page.
  */
 goto_page (p:text);
 
 /**
- * @fn page_print_time ( t)
- * @brief Set the freeze time used when printing.
+ * Sets the page time to use when printing.
  *
- *  As pages can change with the time, the user can set the time used when printing this page.
+ * As pages can change with the time, the user can set the time used when
+ * printing this page.
  *
- * @param t [real] Time used to print the page.
  * @returns Previous time used for printing
  */
 page_print_time (t:real);
 
 
 /**
- * @fn page_link ( key, name)
- * @brief Link other pages to the current page.
+ * Links another page to the current page.
  *
- *  Add a key binding to this page to go to the given page.
+ * Add a key binding to go from the current page to the specified page.
+ * The page change is triggered when @a key is pressed.
  *
- * @param key [text] Key used to change pages
- * @param name [text] The name of the page to go to
  * @returns The name of the page previously linked to this key.
  */
 page_link (key:text, name:text);
 
 /**
- * @fn page_name ( n)
- * @brief The name of the nth page.
+ *  Returns the name of the nth page.
  *
- *  Return the name of a page given its index. If the page does not exist an empty string is returned.
- *
- * @param n [integer] Index of page starting at 1. @c n is treated as an unsigned integer.
- * @returns The name of the nth page
+ * @a n is the page index. First page has index 1. If the page does not exist
+ * an empty string is returned.
  */
 page_name (n:integer);
 
 /**
- * @fn page_thumbnail ( s, i, p)
- * @brief Generate a page thumbnail as a texture.
+ * Generates a page thumbnail as a texture.
  *
- *  The mini page is scaled and refreshed as specified in parameter.
- *
- * @param s [real] Scaling of the thumbnail
- * @param i [real] Refresh interval of the thumbnail
- * @param p [text] Page name
+ * @a p is the name of the page to render. The mini page is scaled by a
+ * factor @a s. It is refreshed every @a i seconds.
  */
 page_thumbnail (s:real, i:real, p:text);
 
 /**
- * @fn page_count ()
- * @brief The number of page.
- *
- *  Return the number of pages in the current document.
- * @returns Return the number of pages in the current document.
+ * Returns the number of pages in the current document.
  */
 page_count ();
 
 /**
- * @fn page_height ()
- * @brief Return the height of pages
+ * Returns the height of the current page.
  *
- *  Return the height of pages as a real.
- * @returns Return the height of pages
+ * The page height is in pixels.
+ * @todo check unit (pixels)
  */
 page_height ();
 
 /**
- * @fn page_label ()
- * @brief The current page name.
+ * Returns the width of the current page.
  *
- *  Return the current page name
- * @returns Return the label of the current page
+ * The page width is in pixels.
+ * @todo check unit (pixels)
+ */
+page_width ();
+
+/**
+ * Returns the name of the current page.
  */
 page_label ();
 
 /**
- * @fn page_number ()
- * @brief The current page number
- *
- *  Return the number of the current page
- * @returns Return the number of the current page
+ * Returns the number of the current page.
  */
 page_number ();
-
-/**
- * @fn page_width ()
- * @brief Return the width of pages
- *
- *  Return the width of pages as a real.
- * @returns Return the width of pages
- */
-page_width ();
 
 /** @} */

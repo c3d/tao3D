@@ -1,0 +1,69 @@
+
+color "tao_orange" -> color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+
+font_size 14 
+
+croix -> 
+    line_width 2 
+    line_color "tao_yellow" 
+    path 
+        move_to -150, 0 
+        line_to 150, 0 
+        move_to 0, -150 
+        line_to 0, 150 
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        path 
+            move_to 10, -15 
+            text "(x, y)" 
+
+color "tao_orange" 
+ellipse_arc 0, 0, 200, 290, 20, 135 
+croix 
+line_width 1.5 
+line_color "black" 
+line_arrow -100, -155, ARROWHEAD, 100, -155, ARROWHEAD 
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to 50, -145 
+        text "Width" 
+line_arrow -110, 290 / 2, ARROWHEAD, -110, -290 / 2, ARROWHEAD 
+
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to -100, 130 
+        text "Height" 
+
+color "transparent" 
+path 
+    move_to 61, 0 
+    endpoints_style BAR, ARROWHEAD 
+    quad_to 68, 17, 57, 30 
+
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to 70, 17 
+        text "start angle" 
+
+path 
+    move_to 68, 38 
+    endpoints_style BAR, ARROWHEAD 
+    quad_to 4, 105, -57, 41 
+
+locally 
+    line_color "transparent" 
+    color "black" 
+    path 
+        move_to -80, 73 
+        text "sweep angle"

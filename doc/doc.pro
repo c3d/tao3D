@@ -25,10 +25,14 @@ macx {
 
   dox.target = doc
   dox.commands = doxygen 
+  dox.depends = cp_examples
+
+  cp_examples.target = examples
+  cp_examples.commands = mkdir -p html/examples ; cp ../tao/doc/examples/*.ddd html/examples/
 
   clean.commands = /bin/rm -rf html/ qch/
 
-  QMAKE_EXTRA_TARGETS += dox clean
+  QMAKE_EXTRA_TARGETS += dox cp_examples clean
 
 } else {
 

@@ -1070,7 +1070,17 @@ void Window::onlineDoc()
                              tr("Online documentation file was not found."));
         return;
     }
-    QDesktopServices::openUrl("file://" + index);
+#ifdef Q_OS_WIN
+    // On Windows, index starts with a drive letter, not with a leading
+    // slash. Add one to end up with a valid URI.
+    index = "/" + index;
+#endif
+    index = "file://" + index;
+    bool ok = QDesktopServices::openUrl(index);
+    if (!ok)
+        QMessageBox::warning(this, tr("Online help error"),
+                             tr("Could not open "
+                                "online documentation file:\n%1").arg(index));
 }
 
 

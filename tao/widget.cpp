@@ -1525,6 +1525,11 @@ void Widget::setup(double w, double h, const Box *picking)
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
 {
+#define ROUND(x, r) (x - fmod(x, r))
+    // #806 Rendering artifacts when window is resized (1 px)
+    w = ROUND(w, 2);
+    h = ROUND(h, 2);
+
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;

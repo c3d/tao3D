@@ -212,7 +212,7 @@ OPTIMIZE_OUTPUT_JAVA   = NO
 # Set the OPTIMIZE_OUTPUT_XL tag to YES if your project consists of XL sources only. Doxygen will then generate output that is more tailored for
 # XL. For instance, declarations will be presented with XL syntax Name:Type instead of Type Name as in C, etc.
 
-OPTIMIZE_OUTPUT_XL     = NO
+# OPTIMIZE_OUTPUT_XL     = NO
 
 # Set the OPTIMIZE_FOR_FORTRAN tag to YES if your project consists of Fortran
 # sources only. Doxygen will then generate output that is more tailored for

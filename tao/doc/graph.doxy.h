@@ -120,16 +120,16 @@ path_texture (x:real, y:real, z:real);
  * Sets the style of the path endpoints.
  *
  * Supported values are:
- * @li ARROWHEAD
- * @li POINTER
- * @li DIAMOND
- * @li CIRCLE
- * @li SQUARE
- * @li BAR
- * @li CUP
- * @li FLETCHING
- * @li HOLLOW_CIRCLE
- * @li HOLLOW_SQUARE
+ *   - ARROWHEAD
+ *   - POINTER
+ *   - DIAMOND
+ *   - CIRCLE
+ *   - SQUARE
+ *   - BAR
+ *   - CUP
+ *   - FLETCHING
+ *   - HOLLOW_CIRCLE
+ *   - HOLLOW_SQUARE
  */
 endpoints_style (s:symbol, e:symbol);
 
@@ -169,19 +169,15 @@ line_to (x:real, y:real, z:real);
 /**
  * Draws a point.
  *
- * The point size is not affected by the scaling factor.
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param s [real] THe size of the point
+ * This primitive draws an OpenGL point. @a s is the point size in
+ * pixels. It is @b not affected by the scaling factor.
  */
 point (x:real, y:real, z:real, s:real);
 
 /**
  * Draws a rectangle.
  *
- *  Draw a rectangle centered in @c (x,y), with width @p w and height @p h.
+ * The rectangle is centered at (@a x, @a y), with width @a w and height @a h.
  *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
  *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
  *  - top left corner is at coordinate (x-w/2, y+h/2)
@@ -189,32 +185,22 @@ point (x:real, y:real, z:real, s:real);
  *
  * Example: <a href="examples/rectangle.ddd">rectangle.ddd</a>
  * @image html rectangle.png "Rectangle"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the rectangle
- * @param h [real] height of the rectangle
  */
 rectangle (x:real, y:real, w:real, h:real);
 
 /**
  * Draws a rounded rectangle.
  *
- *  Draw a rounded rectangle with radius r for the rounded corners.
- *  The rectangle is centered in @c (x,y), with width @p w and height @p h.
+ * The rectangle is centered at (@a x, @a y), with width @a w and
+ * height @a h.
  *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
  *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
  *  - top left corner is at coordinate (x-w/2, y+h/2)
  *  - top right corner is at coordinate (x+w/2, y+h/2)
+ * The rounded corners have radius @a r.
  *
  * Example: <a href="examples/rounded_rectangle.ddd">rounded_rectangle.ddd</a>
  * @image html rounded_rectangle.png "Rounded rectangle"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the rectangle
- * @param h [real] height of the rectangle
- * @param r [real] corner radius
  */
 rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 
@@ -222,60 +208,44 @@ rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 /**
  * Draws a rectangle with elliptical sides.
  *
+ * The rectangle is centered at (@a x, @a y), with width @a w and
+ * height @a h.
  * The ratio @a r is a real between 0.0 and 1.0. With ratio 0.0 the elliptical
  * rectangle is an ellipse, and with ratio 1.0 the elliptical rectangle is a
  * rectangle.
  * Example:
  * <a href="examples/elliptical_rectangle.ddd">elliptical_rectangle.ddd</a>
  * @image html elliptical_rectangle.png "Elliptical rectangle"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the rectangle
- * @param h [real] height of the rectangle
- * @param r [real] ratio of the ellpitic sides [0.0, 1.0]
  */
 elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 /**
  * Draws an ellipse.
  *
- *  Draw an ellipse centered around @c (x,y) with size <tt>w * h</tt>.
+ * The ellipse is centered at (@a x, @a y) with width @a w and height @a h.
  *
  * Example: <a href="examples/ellipse.ddd">ellipse.ddd</a>
  * @image html ellipse.png "Ellipse sample"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the ellipse
- * @param h [real] height of the ellipse
  */
 ellipse (x:real, y:real, w:real, h:real);
 
 /**
  * Draws an elliptic sector.
  *
- * Elliptic sector centered around (@a x, @a y) that occupies the given
- * rectangle, beginning at the specified @a startAngle and extending
- * @a sweepLength degrees counter-clockwise. Angles are specified in
+ * The elliptic sector is inside a rectangle centered at (@a x, @a y).
+ * It begins at an angle of @a start degrees and extends
+ * @a sweep degrees counter-clockwise. Angles are specified in
  * degrees. Clockwise arcs can be specified using negative angles.
  *
  * Example: <a href="examples/ellipse_arc.ddd">ellipse_arc.ddd</a>
  * @image html ellipse_arc.png "Ellipse arc"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the ellipse
- * @param h [real] height of the ellipse
- * @param start [real] start angle express in degrees
- * @param sweep [real] sweep angle express in degrees
  */
 ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
 
 /**
  * Draws an isoceles triangle.
  *
- * Draws an isoceles triangle centered at (@a x, @a y), with width @a w and
+ * The triangle is centered at (@a x, @a y), has width @a w and
  * height @a h.
  *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
  *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
@@ -283,36 +253,27 @@ ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
  *
  * Example: <a href="examples/triangle.ddd">triangle.ddd</a>
  * @image html triangle.png "Isoceles triangle"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] base of the triangle
- * @param h [real] height of the triangle
  */
 triangle (x:real, y:real, w:real, h:real);
 
 /**
  * Draws a right triangle.
  *
- *  Draw a right triangle with hypotenuse centered in @c (x,y), with width @p w and height @p h.
- *  Right angle is the bottom left one.
+ * The middle of the hypotenuse is at @c (x,y). The width of the triangle is
+ * @a w and its height is @a h.
+ * The right angle is the bottom left one.
  *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
  *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
  *  - top corner is at coordinate (x-w/2, y+h/2)
  *
  * Example: <a href="examples/right_triangle.ddd">right_triangle.ddd</a>
  * @image html right_triangle.png "Right triangle sample"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] base of the triangle
- * @param h [real] height of the triangle
  */
 right_triangle (x:real, y:real, w:real, h:real);
 
 
 /**
- * Draws an arraw.
+ * Draws an arrow.
  *
  * The arrow is centered at (@a x, @a y) and is contained in a bounding box of
  * @a w by @a h pixels. @a head is the length of the arrow head in pixels.
@@ -327,94 +288,72 @@ right_triangle (x:real, y:real, w:real, h:real);
 arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 
 /**
- * Creates a double arraw.
+ * Draws a double arrow.
  *
- *  Draw a symetric double arraw
- *
+ * Similar to arrow (x:real, y:real, w:real, h:real, head:real, tail:real)
+ * but with two heads.
  * Example: <a href="examples/double_arrow.ddd">double_arrow.ddd</a>
  * @image html double_arrow.png "Double arrow"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of surrounding rectangle
- * @param h [real] height of surrounding rectangle
- * @param head [real] length of the arrow's head
- * @param bodyRatio [real] ratio between the full width and the body width [0.0, 1.0]
  */
 double_arrow (x:real, y:real, w:real, h:real, ax:real, ay:real);
 
 /**
  * Draws a star.
  *
- * GL regular p-side star centered around (x,y) with inner radius ratio r.
+ * This primitive defines a regular @a p-branch star centered at (@a x,@a y).
+ * Width is @a w, height is
+ * @a h. @a r is a real between 0 and 1 that defines the aspects of the
+ * branches. When @a r approaches 0, the branches get thinner. When @a r
+ * gets closer to 1, the star degenerates into a regular polygon.
+ *
  *
  * Example: <a href="examples/star.ddd">star.ddd</a>
  * @image html star.png "Star sample"
- *
- * @param x [real] center x-coordinate
- * @param y [real] center y-coordinate
- * @param w [real] width of the star
- * @param h [real] height of the star
- * @param p [integer] Number of branch
- * @param r [real] inner radius ratio
  */
 star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
  * Draws a star.
  *
- * GL regular p-side star polygon centered around (x,y).
- * @p p is the number of branch. Each side of a branch is drawn by aimed at
- * another vertex. This other vertex is the @p qth starting from the current one.
+ * This primitive draws a regular star polygon centered at (@a x,@a y).
+ * The star is obtained by placing @a p vertices regularly spaced on a
+ * circle, to form a regular polygon. Then every </a>q</a>th vertices are
+ * connected together.
  *
  * Example: <a href="examples/star_polygon.ddd">star_polygon.ddd</a>
  * @image html star_polygon.png "Star polygon"
- *
- * @param x [real] center x-coordinate
- * @param y [real] center y-coordinate
- * @param w [real] width of the star
- * @param h [real] height of the star
- * @param p [integer] Number of branch
- * @param q [integer] Number of vertex to skip for sighting
  */
 star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /**
 
- * Creates a speech balloon.
+ * Draws a speech balloon.
  *
- * Speech balloon with radius @a r for rounded corners, and point a for the tail.
- * The tail width is computed.
+ * A speech ballon is made of:
+ *   - a rounded rectangle centered at (@a x, @a y), with width @a w,
+ *     height @a h and radius @a r, and
+ *   - a tail ending at point (@a ax, @a ay). The tail width is determined
+ *     automatically. The tail is not made of straight lines; it has a
+ *     rounded shape. It is directed from the end point to the center of
+ *     the speech balloon.
  *
  * Example: <a href="examples/speech_balloon.ddd">speech_balloon.ddd</a>
  * @image html speech_balloon.png "Speech balloon"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the balloon
- * @param h [real] height of the balloon
- * @param r [real] rounded rectangle radius
- * @param ax [real] tail end x-coordinate
- * @param ay [real] tail end y-coordinate
  */
 speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
 
 /**
- * Creates a callout.
+ * Draws a callout.
  *
- * Callout with radius r for corners, and point a for the head of the tip and, tw as the tip basis width.
+ * A callout is made of:
+ *   - a rounded rectangle centered at (@a x, @a y), with width @a w,
+ *     height @a h and radius @a r, and
+ *   - a triangular tail, which connects point (@a ax, @a ay) to the
+ *     closest point on the rounded rectangle. The base of the tail has
+ *     a width of @a tw pixels.
  *
  * Example: <a href="examples/callout.ddd">callout.ddd</a>
  * @image html callout.png "Callout"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the callout
- * @param h [real] height of the callout
- * @param r [real] radius
- * @param ax [real] x-coordinate of point a
- * @param ay [real] y-coordinate of point a
- * @param tw [real] tip width
  */
 callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 

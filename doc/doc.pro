@@ -32,7 +32,7 @@ equals(HAS_DOXYGEN, true) {
   cp_examples.target = examples
   cp_examples.commands = mkdir -p html/examples ; \
                          cp ../tao/doc/examples/*.ddd html/examples/ ; \
-                         for p in $$MOD_PATHS ; do cp \$\$p/*.ddd html/examples/ ; done
+                         for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ ; done
 
   clean.commands = /bin/rm -rf html/ qch/
 

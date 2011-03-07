@@ -14,7 +14,9 @@
 TEMPLATE = subdirs
 
 
-macx {
+system(bash -c \"doxygen --version >/dev/null 2>&1\"):HAS_DOXYGEN=true
+
+equals(HAS_DOXYGEN, true) {
 
   include (../version.pri)
 
@@ -38,6 +40,6 @@ macx {
 
 } else {
 
-  message("Documentation is only build on MacOSX systems.
+  warning(doxygen not found - will not build online documentation)
 
 }

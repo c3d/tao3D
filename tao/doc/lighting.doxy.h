@@ -61,43 +61,12 @@ material_diffuse 1, 1, 0, 1
  *
  * @par Example
  *
- * The following code draws a white sphere and creates three colored lights:
+ * The following code (<a href="examples/lighting.ddd">lighting.ddd</a>) draws
+ * a white sphere and creates three colored lights:
  * one red, one green and one blue. Each light rotates around the sphere, so
  * that you can see how lights blend into smooth colors gradients onto the
  * sphere.
- @code
-// lighting.ddd
-
-clear_color 0, 0, 0, 0
-
-create_light id, x, y, z, dr, dg, db ->
-    light id
-    light_ambient 0, 0, 0, 1
-    light_diffuse dr, dg, db, 1
-    light_position x, y, z
-
-red_light x, y, z -> create_light 0, x, y, z, 1, 0, 0
-green_light x, y, z -> create_light 1, x, y, z, 0, 1, 0
-blue_light x, y, z -> create_light 2, x, y, z, 0, 0, 1
-
-white_sphere r ->
-    // Note: material_ambient is visible due to the default
-    // OpenGL global ambient light (0.2, 0.2, 0.2, 1.0)
-    material_ambient 0.3, 0.3, 0.3, 1
-    material_diffuse 1.0, 1.0, 1.0, 1.0
-    slices := 50
-    sphere 0, 0, 0, r, r, r, slices, slices
-
-draw_scene ->
-    d := window_height
-    t := time
-    red_light d * sin t, d * cos t, d
-    green_light d * sin ( -t + 120) , d * cos ( -t + 120) , d
-    blue_light 0, d * sin t, d * cos t
-    white_sphere d * 60%
-
-draw_scene
- @endcode
+ * @include lighting.ddd
  *
  * @image html lighting.png "Lighting demo: lighting.ddd"
  * @{

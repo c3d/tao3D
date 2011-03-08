@@ -18,44 +18,8 @@
  * <a href="http://doc.qt.nokia.com/latest/qfont.html">Qt documentation</a>
  * for more information.
  *
- * Example:
-@code
-// fonts.ddd
-
-msg := <<A quick brown fox jumps over the lazy dog.
->>
-lineno := 1
-
-write_text ->
-    text text lineno & ". " & msg
-    lineno := lineno + 1
-
-text_box 0, 0, window_width - 50, window_height - 50,
-    font "Times", 16
-    write_text // normal
-    italic
-    write_text // italic
-    roman
-    write_text // back to normal
-    bold
-    write_text // bold
-    regular
-    write_text // back to normal
-    bold
-    italic
-    write_text // bold and italic
-    plain
-    write_text // back to normal
-    font "Times", 16, expanded
-    write_text // stretched
-    stretch 1.0
-    write_text //  back to normal
-    font "Lobster"
-    write_text
-    font "Tangerine/Bold"
-    font_size 28
-    write_text
-@endcode
+ * Example (<a href="examples/fonts.ddd">fonts.ddd</a>):
+ * @include fonts.ddd
  *
  * Here is a screen capture:
  * @image html fonts.png "Changing fonts and font attributes (fonts.ddd)"
@@ -65,43 +29,8 @@ text_box 0, 0, window_width - 50, window_height - 50,
  * You can control the horizontal and vertical distribution of text with two
  * powerful primitives: @ref align and @ref vertical_align.
  *
- * Example:
-@code
-// justification.ddd
-
-lorem := <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
-<< elit, sed do eiusmod tempor incididunt ut labore et dolore >> &
-<<magna aliqua.
-
-Ut enim ad minim veniam, quis nostrud exercitation ullamco >> &
-<<laboris nisi ut aliquip ex ea commodo consequat.>>
-
-x0 := -135
-x := x0
-y := 120
-w := 125
-h := 230
-
-box align ->
-    locally
-        color 0, 0, 1, 5%
-        line_width 0
-        rectangle x, y, w, h
-    text_box x, y, w, h,
-        font "Ubuntu", 12
-        align
-        text lorem
-    x += w + 10
-
-box { align_left ; vertical_align_top }
-box { align_center ; vertical_align_center }
-box { align_right ; vertical_align_bottom }
-y -= h + 10
-x := x0
-box { align_justify ; vertical_align_top }
-box { align_right_justify ; vertical_align_top  }
-box { align_full_justify ; vertical_align_top }
-@endcode
+ * Example (<a href="examples/justification.ddd">justification.ddd</a>):
+ * @include justification.ddd
  *
  * @image html justification.png "Various text justifications (justification.ddd)"
  *

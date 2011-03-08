@@ -21,24 +21,9 @@
  * The same primitives are used by Tao to display the main application
  * menu (when you press the escape key).
  *
- * Let's illustrate this with an example.
- @code
-// chooser.ddd
-
-animal_chooser ->
-    chooser "Select an animal"
-    chooser_choice "A dog", { writeln "Bark! Bark!" }
-    chooser_choice "A cat", { writeln "Meowww..." }
-    chooser_commands "wild_animal_", "(Wild) "
-
-wild_animal_A_lion ->
-    writeln "Roarrr!"
-
-wild_animal_A_tiger ->
-    writeln "Growl!"
-
-key "a" -> animal_chooser
- @endcode
+ * Let's illustrate this with an example,
+ * (<a href="examples/chooser.ddd">chooser.ddd</a>).
+ * @include chooser.ddd
  *
  * The first picture shows the command chooser as the user has just pressed
  * the "a" key to show the manu. The second one show the updated command list

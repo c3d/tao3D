@@ -1,5 +1,5 @@
 /**
- * @defgroup Graphics
+ * @defgroup Graphics Graphics
  * @ingroup TaoBuiltins
  *
  * Tao Presentations relies on OpenGL (http://www.opengl.org/) to provide
@@ -120,17 +120,17 @@ close_path ();
  * @p s is the start point and @p e is the end point. Only beginning and very end of the path can be styled. If a text is added at the end of the path, the end style won't be applied to the line end (because end of the line is not the end of the path).
  *
  * Supported values are:
- * @li NONE
- * @li ARROWHEAD
- * @li POINTER
- * @li DIAMOND
- * @li CIRCLE
- * @li SQUARE
- * @li BAR
- * @li CUP
- * @li FLETCHING
- * @li HOLLOW_CIRCLE
- * @li HOLLOW_SQUARE
+ *   - NONE
+ *   - ARROWHEAD
+ *   - POINTER
+ *   - DIAMOND
+ *   - CIRCLE
+ *   - SQUARE
+ *   - BAR
+ *   - CUP
+ *   - FLETCHING
+ *   - HOLLOW_CIRCLE
+ *   - HOLLOW_SQUARE
  */
 endpoints_style (s:symbol, e:symbol);
 
@@ -154,7 +154,7 @@ path_color (r:real, g:real, b:real, a:real);
 
 
 /**
- * @defgroup graph_2D 2D drawings
+ * @defgroup graph_2D 2D shapes
  * @ingroup Graphics
  * Creating 2D shapes.
  *
@@ -181,15 +181,15 @@ path_color (r:real, g:real, b:real, a:real);
 /**
  * Draws a point.
  *
- * The point size is not affected by the scaling factor. @p s is the point size in pixel. The point is a 3D one so it is more like a ball.
- *
+ * This primitive draws an OpenGL point. @p s is the point size in
+ * pixels. It is @b not affected by the scaling factor.
  */
 point (x:real, y:real, z:real, s:real);
 
 /**
  * Draws a rectangle.
  *
- *  Draw a rectangle centered in @c (x,y), with width @p w and height @p h.
+ *  The rectangle is centered at (@p x, @p y), with width @p w and height @p h.
  *  - Bottom left corner is at coordinate <tt>(x-w/2, y-h/2)</tt>
  *  - Bottom right corner is at coordinate <tt>(x+w/2, y-h/2)</tt>
  *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
@@ -231,7 +231,7 @@ elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
 /**
  * Draws an ellipse.
  *
- *  Draw an ellipse centered around @c (x,y) with size <tt>w * h</tt>.
+ * The ellipse is centered at (@a x, @a y) with width @a w and height @a h.
  *
  * @image html ellipse.png
  *
@@ -299,7 +299,8 @@ arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 /**
  * Creates a double arrow.
  *
- *  Draw a symetric double arraw.
+ *  Draw a symetric double arraw. Similar to arrow (x:real, y:real, w:real, h:real, head:real, tail:real)
+ * but with two heads.
  * @see See arrow for more details.
  *
  * @image html double_arrow.png
@@ -310,7 +311,11 @@ double_arrow (x:real, y:real, w:real, h:real, head:real, body:real);
 /**
  * Draws a star.
  *
- * GL regular p-side star centered around (x,y) with inner radius ratio @p r.
+ * This primitive defines a regular @p p-branch star centered at (@p x,@p y).
+ * Width is @p w, height is
+ * @p h. @p r is a real between 0 and 1 that defines the aspects of the
+ * branches. When @p r approaches 0, the branches get thinner. When @p r
+ * gets closer to 1, the star degenerates into a regular polygon.
  *
  * @image html star.png
  *
@@ -322,10 +327,10 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
 /**
  * Draws a star.
  *
- * GL regular p-side star polygon centered around <tt>(x,y)</tt>.
- * @p p is the number of branch. Each side of a branch is drawn by aimed at
- * another vertex. This other vertex is the @p qth starting from the current one.
- *
+ * This primitive draws a regular star polygon centered at (@p x,@p y).
+ * The star is obtained by placing @p p vertices regularly spaced on a
+ * circle, to form a regular polygon. Then every @p q th vertices are
+ * connected together.
  * @image html star_polygon.png
  *
  * @param p [integer] Number of branch
@@ -335,20 +340,29 @@ star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /**
 
- * Creates a speech balloon.
+ * Draws a speech balloon.
  *
- * Speech balloon with radius @p r for rounded corners, and point @p a for the tail's head.
- * The tail width is computed.
- *
+ * A speech ballon is made of:
+ *   - a rounded rectangle centered at (@p x, @p y), with width @p w,
+ *     height @p h and radius @p r, and
+ *   - a tail ending at point (@p ax, @p ay). The tail width is determined
+ *     automatically. The tail is not made of straight lines; it has a
+ *     rounded shape. It is directed from the end point to the center of
+ *     the speech balloon.
  * @image html speech_balloon.png
  *
  */
 speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
 
 /**
- * Creates a callout.
+ * Draws a callout.
  *
- * Callout with radius @p r for corners, and point @p a for the head of the tip and, @p tw as the tip basis width.
+ * A callout is made of:
+ *   - a rounded rectangle centered at (@p x, @p y), with width @a w,
+ *     height @p h and radius @p r, and
+ *   - a triangular tail, which connects point (@p ax, @p ay) to the
+ *     closest point on the rounded rectangle. The base of the tail has
+ *     a width of @p tw pixels.
  *
  * @image html callout.png
  */
@@ -358,7 +372,7 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 /** @} */
 
 /**
- * @defgroup graph_3D 3D drawings
+ * @defgroup graph_3D 3D shapes
  * @ingroup Graphics
  * Creating 3D shapes.
  *
@@ -367,7 +381,7 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *   - [0, x) x > 0 goes toward the right,
  *   - [0, y) y > 0 goes toward the top,
  *   - [0, z) z > 0 goes toward the user.
- * -  @p h, @p w, and @p d represent the width, the height and the depth of the drawing
+ * -  @p h, @p w, and @p d represent the width, the height and the depth of the shape respectively
  * - shapes' size including those that got round part, is given by width, heigt and depth of the bouding box. 
  *
  * Examples: <a href="examples/3D_samples.ddd">3D_samples.ddd</a>

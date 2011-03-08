@@ -1,0 +1,15 @@
+// chooser.ddd
+
+animal_chooser ->
+    chooser "Select an animal"
+    chooser_choice "A dog", { writeln "Bark! Bark!" }
+    chooser_choice "A cat", { writeln "Meowww..." }
+    chooser_commands "wild_animal_", "(Wild) "
+
+wild_animal_A_lion ->
+    writeln "Roarrr!"
+
+wild_animal_A_tiger ->
+    writeln "Growl!"
+
+key "a" -> animal_chooser

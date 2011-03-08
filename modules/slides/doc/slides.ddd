@@ -1,0 +1,40 @@
+// slides.ddd
+
+import Slides "0.1"
+
+new_title_slide T:text ->
+    title_slide "Title slide (" & T & ")",
+        text "Theme:"
+        paragraph_break
+        text T
+        paragraph_break
+        text ""
+        paragraph_break
+        * "The quick brown fox"
+        - "Jumps over"
+        - "The lazy dog"
+
+new_slide T:text ->
+    slide "Regular slide (" & T & ")",
+        text "Here is a nice story :"
+        * "The quick brown fox"
+        - "Jumps over"
+        + "The lazy dog"
+
+new_title_only_slide T:text ->
+    title_only_slide "Title only (" & T & ")",
+        nil
+
+do_test T:text ->
+    new_title_slide T
+    new_slide T
+    new_title_only_slide T
+
+theme := "WhiteOnGray"
+do_test theme
+
+theme := "Rounded"
+do_test theme
+
+theme := "Keyboard"
+do_test theme

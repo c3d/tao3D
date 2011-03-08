@@ -18,18 +18,8 @@
  *   @li A sub-menu, like top-level menus, may contain sub-menus and menu
  *       items.
  *
- * Example:
- @code
-// menus.ddd
-
-menubar
-menu "mymenu:1", "My Menu"
-menu_item "mymenu:1.1", "Select me",
-    writeln 'Menu "Select me" was selected'
-submenu "menu:1.2", "Submenu"
-menu_item "menu:1.2.1", "Toggle me", "", true, "false",
-    writeln 'Menu "Toggle me" selected'
- @endcode
+ * Example (<a href="examples/menus.ddd">menus.ddd</a>):
+ * @include menus.ddd
  *
  * The screen shot below shows the result. The menu "Select me" was clicked once,
  * then "Toggle me" was activated, and shown again.

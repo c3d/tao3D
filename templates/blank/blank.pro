@@ -6,7 +6,7 @@
 
 TEMPLATE = subdirs
 
-include(../../main_defs.pri)
+include(../templates.pri)
 
 files.path  = $$APPINST/templates/blank
 files.files = template.ini blank.ddd blank.png

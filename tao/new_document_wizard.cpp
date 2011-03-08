@@ -16,6 +16,7 @@
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
@@ -24,98 +25,116 @@
 
 #include "new_document_wizard.h"
 #include "application.h"
+#include "tao_utf8.h" // DEBUG
 
 TAO_BEGIN
 
 NewDocumentWizard::NewDocumentWizard(QWidget *parent)
     : QWizard(parent)
 {
-    addPage(new ThemeChooserPage(this));
+    addPage(new TemplateChooserPage(this));
     addPage(new DocumentNameAndLocationPage(this));
 
     setWindowTitle(tr("New Document"));
-
-    for (int i = 0; i < 6; i++)
-    {
-        themeNameList.append(tr("Theme %1").arg(i));
-    }
 }
 
 void NewDocumentWizard::accept()
 {
     QString docName = field("docName").toString();
     QString docLocation = field("docLocation").toString();
-    QString themeName = themeNameList.at(field("themeIdx").toInt());
+    QString dstPath = docLocation + "/" + docName;
 
-    QDir docDir(docLocation);
-    if( !docDir.exists(docName) && !docDir.mkdir(docName) )
+    QDir dst(dstPath);
+    if (dst.exists())
     {
-        QMessageBox::warning(this,
-                QObject::tr("New Document"),
-                QObject::tr("Cannot create directory %1").arg(docName));
-    }
-    if( !docDir.cd(docName) )
-    {
-        QMessageBox::warning(this,
-                QObject::tr("New Document"),
-                QObject::tr("Cannot open directory %1").arg(docName));
+        QString dstPathNative = QDir::toNativeSeparators(dstPath);
+        int r = QMessageBox::warning(this, tr("Folder exists"),
+                    tr("Document folder:\n%1\nalready exists. "
+                       "Do you want to use it anyway?\n"
+                       "Click No to choose another location.")
+                       .arg(dstPathNative),
+                       QMessageBox::Yes | QMessageBox::No);
+        if (r != QMessageBox::Yes)
+            return;
     }
 
-    QByteArray xl;
-    xl += "theme \"" + themeName + "\"\n\n";
-    xl += "slide \"Double-Click to Edit\"\n";
-    xl += "    o \"Double-click to edit\"\n";
+    Template t = templates.at(field("templateIdx").toInt());
 
-    QFile xlDoc(docDir.canonicalPath() + "/" + docName + ".ddd");
-    if (!xlDoc.open(QFile::WriteOnly | QFile::Text))
+    bool ok = t.copyTo(dst);
+    if (!ok)
     {
-        QMessageBox::warning(this,
-                QObject::tr("New Document"),
-                QObject::tr("Cannot write file %1:\n%2")
-                                .arg(xlDoc.fileName())
-                                .arg(xlDoc.errorString()));
+        QMessageBox::warning(this, tr("Error"),
+            tr("Failed to copy document template."));
+        return;
     }
-    xlDoc.write(xl);
+
+    docPath = dstPath;
+    if (t.mainFile != "")
+    {
+        QString oldPath = dstPath + "/" + t.mainFile;
+        QString newPath = dstPath + "/" + docName + ".ddd";
+        if (oldPath != newPath)
+        {
+            // Rename template main file to doc name.
+            // Don't use QDir::rename nor QFile::rename because these
+            // methods assume that the destination file does not exist.
+            // We want to overwrite any existing file.
+            QFile src(oldPath);
+            QFile dst(newPath);
+            src.open(QIODevice::ReadOnly);
+            dst.open(QIODevice::ReadWrite | QIODevice::Truncate);
+            QByteArray data = src.readAll();
+            dst.write(data);
+            dst.close();
+            src.close();
+            QDir(dstPath).remove(t.mainFile);
+        }
+        docPath = newPath;
+    }
 
     QDialog::accept();
 }
 
-ThemeChooserPage::ThemeChooserPage(QWidget *parent)
+TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     : QWizardPage(parent)
 {
-    setTitle(tr("Theme Chooser"));
-    setSubTitle(tr("Choose the theme to apply to your slides."));
+    setTitle(tr("Template Chooser"));
+    setSubTitle(tr("Choose a template to create your document with."));
 
-    themeListWidget = new QListWidget(this);
-    themeListWidget->setViewMode(QListView::IconMode);
-    themeListWidget->setIconSize(QSize(96, 72));
-    themeListWidget->setMovement(QListView::Static);
-    themeListWidget->setResizeMode(QListView::Adjust);
-    themeListWidget->setMinimumWidth(144);
-    themeListWidget->setSpacing(9);
+    templateListWidget = new QListWidget(this);
+    templateListWidget->setViewMode(QListView::IconMode);
+    templateListWidget->setIconSize(QSize(96, 72));
+    templateListWidget->setMovement(QListView::Static);
+    templateListWidget->setResizeMode(QListView::Adjust);
+    templateListWidget->setMinimumWidth(144);
+    templateListWidget->setSpacing(9);
 
-    registerField("themeIdx*", themeListWidget);
+    registerField("templateIdx*", templateListWidget);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
-    layout->addWidget(themeListWidget);
+    layout->addWidget(templateListWidget);
     setLayout(layout);
 }
 
-void ThemeChooserPage::initializePage()
+void TemplateChooserPage::initializePage()
 {
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
-    QStringList themes(wiz->themeNameList);
+    QDir dir(TaoApp->applicationDirPath() + "/templates");
+    wiz->templates = Templates(dir);
 
-    for (int i = 0; i < themes.size(); i++)
+    foreach (Template tmpl, wiz->templates)
     {
-        QListWidgetItem *t = new QListWidgetItem(themeListWidget);
-        t->setIcon(QIcon(":/images/default_image.svg"));
-        t->setText(themes.at(i));
+        QListWidgetItem *t = new QListWidgetItem(templateListWidget);
+        QPixmap pm(tmpl.thumbnail);
+        if (pm.isNull())
+            pm = QPixmap(":/images/default_image.svg");
+        t->setIcon(QIcon(pm));
+        t->setText(tmpl.name);
         t->setTextAlignment(Qt::AlignHCenter);
         t->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
     }
 
-    themeListWidget->setCurrentRow(0);
+    templateListWidget->setCurrentRow(0);
 }
 
 DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
@@ -134,6 +153,8 @@ DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
     docLocationLineEdit->setDisabled(true);
     docLocationLabel->setBuddy(docLocationLineEdit);    
     docLocationChooseButton = new QPushButton(tr("Choose..."), this);
+    docLocationChooseButton->setDefault(false);
+    docLocationChooseButton->setAutoDefault(false);
 
     QObject::connect(docLocationChooseButton, SIGNAL(clicked()),
                      this,  SLOT(chooseLocation()));
@@ -142,18 +163,18 @@ DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
 
     copyImagesCheckBox = new QCheckBox(tr("&Copy images into document"), this);
     embedFontsCheckBox = new QCheckBox(tr("Embed &fonts into document"), this);
-    copyThemeImagesCheckBox = new QCheckBox(tr("Copy &theme images into document"), this);
+    copyTemplateImagesCheckBox = new QCheckBox(tr("Copy &template images into document"), this);
 
     registerField("docName*", docNameLineEdit);
     registerField("docLocation*", docLocationLineEdit);
     registerField("copyImages", copyImagesCheckBox);
     registerField("embedFonts", embedFontsCheckBox);
-    registerField("copyThemeImages", copyThemeImagesCheckBox);
+    registerField("copyTemplateImages", copyTemplateImagesCheckBox);
 
     QVBoxLayout *groupBoxLayout = new QVBoxLayout(this);
     groupBoxLayout->addWidget(copyImagesCheckBox);
     groupBoxLayout->addWidget(embedFontsCheckBox);
-    groupBoxLayout->addWidget(copyThemeImagesCheckBox);
+    groupBoxLayout->addWidget(copyTemplateImagesCheckBox);
     groupBox->setLayout(groupBoxLayout);
 
     QGridLayout *layout = new QGridLayout(this);

@@ -344,7 +344,11 @@ void Window::newDocument()
 // ----------------------------------------------------------------------------
 {
     NewDocumentWizard wizard(this);
-    wizard.exec();
+    bool ok = wizard.exec();
+    if (!ok)
+        return;
+    if (wizard.docPath != "")
+        open(wizard.docPath);
 }
 
 

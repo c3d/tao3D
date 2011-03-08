@@ -6,7 +6,7 @@
 
 TEMPLATE = subdirs
 
-include(../../main_defs.pri)
+include(../templates.pri)
 
 files.path  = $$APPINST/templates/simple_slides
 files.files = template.ini simple_slides.ddd simple_slides.png

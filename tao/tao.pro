@@ -120,7 +120,8 @@ HEADERS += widget.h \
     render_to_file_dialog.h \
     inspectordialog.h \
     raster_text.h \
-    dir.h
+    dir.h \
+    templates.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -176,7 +177,8 @@ SOURCES += tao_main.cpp \
     render_to_file_dialog.cpp \
     inspectordialog.cpp \
     raster_text.cpp \
-    dir.cpp
+    dir.cpp \
+    templates.cpp
 
 # Check compile-time options
 
@@ -337,4 +339,3 @@ macx {
   target.path = $$INSTROOT
   INSTALLS   += target
 }
-

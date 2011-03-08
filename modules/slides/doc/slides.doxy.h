@@ -56,61 +56,77 @@
  * The next command that creates a slide page will take into account the
  * value of this variable to select the appearance of the slide.
  * The possible values are:
- *  @li "WhiteOnBlack" The default theme  with black and white reversed
- *  @li "WhiteOnGray" Similar to the default theme, with white text on a gray
- *      backround
- *  @li "Rounded" Similar to the default, with the addition of a thin black
- *      rounded rectangle around text areas
- *  @li "Keyboard" A slightly more sophisticated theme, with a background
- *      picture and semi-transparent white text boxes
- *  @li "Seyes" A theme that uses a handwriting font on a backround that looks
- *      like french ruled ("seyes") paper
+ *  - "WhiteOnBlack" The default theme  with black and white reversed
+ *  - "WhiteOnGray" Similar to the default theme, with white text on a gray
+ *     backround
+ *  - "Rounded" Similar to the default, with the addition of a thin black
+ *     rounded rectangle around text areas
+ *  - "Keyboard" A slightly more sophisticated theme, with a background
+ *     picture and semi-transparent white text boxes
+ *  - "Seyes" A theme that uses a handwriting font on a backround that looks
+ *     like french ruled ("seyes") paper
  */
 text theme = "";
 
 /**
- * Creates a slide without a title and story (only the background)
+ * Creates a slide without a title and story (only the background).
+ * @a P is the page name.
  */
-base_slide(text T, code Body);
+base_slide(P:text, Body:code);
 
 /**
- * Creates a slide with title and content
+ * Creates a slide with title and content.
+ * The slide title @a T is used as the page name.
  */
-slide(text T, code Body);
+slide(T:text, Body:code);
 
 /**
- * Creates a title slide (one unique text area)
+ * Creates a slide with title and content.
+ * @a P is the page name, @a T is the slide title.
  */
-title_slide(text T, code Body);
+slide(P:text, T:text, Body:code);
 
 /**
- * Creates a slide with title only
+ * Creates a title slide (one unique text area).
+ * @a P is the page name.
  */
-title_only_slide(text T, code Body);
+title_slide(P:text, Body:code);
 
 /**
- * Display a first-level bullet
+ * Creates a slide with a title box only.
+ * The slide title @a T is used as the page name.
+ */
+title_only_slide(T:text, Body:code);
+
+/**
+ * Creates a slide with a title box only.
+ * @a P is the page name, @a T is the slide title.
+ */
+title_only_slide(P:text, T:text, Body:code);
+
+/**
+ * Display a first-level bullet.
  * Note that this is really a normal asterisk character (*). In this
  * documentation we are using a special unicode character due to
  * technical constraints.
  */
-＊(text T);
+＊(T:text);
 
 /**
- * Display a second-level bullet
+ * Display a second-level bullet.
  * Note that this is really a normal minus character (-). In this
  * documentation we are using a special unicode character due to
  * technical constraints.
  */
-‐(text T);
+‐(T:text);
 
 /**
- * Display a third-level bullet
+ * Display a third-level bullet.
  * Note that this is really a normal plus character (+). In this
  * documentation we are using a special unicode character due to
  * technical constraints.
  */
-＋(text T);
+＋(T:text);
 
 /**
  * @}

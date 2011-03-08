@@ -46,7 +46,7 @@ new_page with list_files "*.jpg"
 /**
  * Creates a new page or make page current.
  *
- * Creates a new page in the document with the given @a name, or add to the
+ * Creates a new page in the document with the given @p name, or add to the
  * content of a previously created page. The body contents will be evaluated
  * only when the page is being displayed. The order of pages in the document
  * is the order of page creation.
@@ -79,7 +79,7 @@ page_print_time (t:real);
  * Links another page to the current page.
  *
  * Add a key binding to go from the current page to the specified page.
- * The page change is triggered when @a key is pressed.
+ * The page change is triggered when @p key is pressed.
  *
  * @returns The name of the page previously linked to this key.
  */
@@ -88,7 +88,7 @@ page_link (key:text, name:text);
 /**
  *  Returns the name of the nth page.
  *
- * @a n is the page index. First page has index 1. If the page does not exist
+ * @p n is the page index. First page has index 1. If the page does not exist
  * an empty string is returned.
  */
 page_name (n:integer);
@@ -96,8 +96,8 @@ page_name (n:integer);
 /**
  * Generates a page thumbnail as a texture.
  *
- * @a p is the name of the page to render. The mini page is scaled by a
- * factor @a s. It is refreshed every @a i seconds.
+ * @p p is the name of the page to render. The mini page is scaled by a
+ * factor @p s. It is refreshed every @p i seconds.
  */
 page_thumbnail (s:real, i:real, p:text);
 

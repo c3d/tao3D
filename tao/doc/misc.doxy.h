@@ -34,7 +34,7 @@ x ( cm);
 /**
  * Converts from pixels to pixels.
  *
- * This function simply returns a copy of @a x.
+ * This function simply returns a copy of @p x.
  *
  * @param x [real] The value in pixel
  * @returns The value in pixel. 
@@ -44,7 +44,7 @@ x ( px);
 /**
  * Convert from points (pt) to pixels.
  *
- * @a x is a value in PostScript points (1/72 inch).
+ * @p x is a value in PostScript points (1/72 inch).
  * @param x [real] The value in point
  * @returns The value in pixel. 
  */
@@ -70,8 +70,8 @@ constant (t:tree);
 /**
  * Sets the refresh time for the current loayout.
  *
- * The current layout (that is, the enclosing @ref locally or @a shape) will
- * be re-executed every @a interval seconds.
+ * The current layout (that is, the enclosing @ref locally or @p shape) will
+ * be re-executed every @p interval seconds.
  */
 refresh (interval:real);
 
@@ -79,7 +79,7 @@ refresh (interval:real);
 /**
  * Exits the Tao application.
  *
- * @a n is the exit status of the process.
+ * @p n is the exit status of the process.
  * @bug #771 No cleanup is performed; the size and positions of Tao windows
  * are not saved.
  */
@@ -108,7 +108,7 @@ current_repository ();
  * Checks out a version of the current document.
  *
  * Checkout a branch or a commit from the git repository, if available.
- * @a t must be a valid version identifier: branch name, tag name or commit ID.
+ * @p t must be a valid version identifier: branch name, tag name or commit ID.
  * @see current_repository.
  * @returns True if the checkout succeded, false otherwise.
  */
@@ -118,7 +118,7 @@ checkout (t:text);
 /**
  * Checks if a Tao feature is available with the current Tao version.
  *
- * @a name is the name of the feature to test. Valid feature names are:
+ * @p name is the name of the feature to test. Valid feature names are:
  *   @li @b git document versioning with Git
  *   @li @b stereoscopy support for stereoscopic 3D displays (active or passive
  *       glasses, for instance)

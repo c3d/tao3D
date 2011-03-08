@@ -61,8 +61,8 @@ tree chooser(text caption);
 
 /**
  * Adds a command into the current chooser.
- * Creates a chooser item, associates the @a action code block to the item,
- * and appends a new line to the current chooser list. @a action is
+ * Creates a chooser item, associates the @p action code block to the item,
+ * and appends a new line to the current chooser list. @p action is
  * executed when the user presses the return key on a highlighted command.
  */
 tree chooser_item(text label, code action);
@@ -73,9 +73,9 @@ tree chooser_item(text label, code action);
  * All the commands in the current symbol table that have the given prefix are
  * added to the chooser.
  * The current symbol table is scanned, and each time a parameterless function
- * starting with @a prefix is found, a new command is added to the current
+ * starting with @p prefix is found, a new command is added to the current
  * chooser. The label of the command is the concatenation of:
- *    @li @a label_prefix, and
+ *    @li @p label_prefix, and
  *    @li the end of the symbol name, with all underscores changed into spaces.
  *
  * When a command is chosen, the associated action is executed.
@@ -88,7 +88,7 @@ tree chooser_commands(text prefix, text label_prefix);
  * select a page from the current document, and execute an action related to
  * this page. The page table is scanned, and for each page a new command is added
  * into the current chooser. The label of the command is the concatenation of:
- *    @li @a label_prefix,
+ *    @li @p label_prefix,
  *    @li the page number,
  *    @li a space character, and
  *    @li the page name.

@@ -59,11 +59,11 @@ table 0, 0, rows + 1, cols,
  */
 
 /**
- * Creates a table of @a r rows and @a c columns centered at (@a x, @a y).
+ * Creates a table of @p r rows and @p c columns centered at (@p x, @p y).
  *
- * @a x and @a y are the coordinates of the center of the table, in pixels.
+ * @p x and @p y are the coordinates of the center of the table, in pixels.
  *
- * The @a contents of the table is a code block in which you should use
+ * The @p contents of the table is a code block in which you should use
  * other table primitives to describe the table cells.
  *
  * Cells are inserted in rows, from left to right and top to bottom.
@@ -71,7 +71,7 @@ table 0, 0, rows + 1, cols,
 tree table(real x, real y, integer r, integer c, code contents);
 
 /**
- * Creates a table of @a r rows and @a c columns.
+ * Creates a table of @p r rows and @p c columns.
  *
  * The table is centered at the origin.
  * @see table(real x, real y, integer r, integer c, code contents)
@@ -79,9 +79,9 @@ tree table(real x, real y, integer r, integer c, code contents);
 tree table(integer r, integer c, code contents);
 
 /**
- * Inserts a fixed-size cell of @a w x @a h pixels.
+ * Inserts a fixed-size cell of @p w x @p h pixels.
  *
- * The @a contents code block is executed and is typically used to define
+ * The @p contents code block is executed and is typically used to define
  * the cell's contents.
  */
 tree table_cell(integer w, integer h, code contents);
@@ -101,8 +101,8 @@ tree table_cell(code contents);
 /**
  * Defines margins for all cells in the table.
  *
- * A vertical space of @a w pixels is added to the left and right sides of
- * each cell. A horizontal space of @a h pixels is added to the top and
+ * A vertical space of @p w pixels is added to the left and right sides of
+ * each cell. A horizontal space of @p h pixels is added to the top and
  * bottom sides.
  */
 tree table_cell_margins(integer w, integer h);
@@ -111,7 +111,7 @@ tree table_cell_margins(integer w, integer h);
 /**
  * Defines margins for all cells in the table.
  *
- * @todo What is the purpose of @a x and @a y parameters? What is the
+ * @todo What is the purpose of @p x and @p y parameters? What is the
  * difference with the other table_cell_margins primitive ?.
  */
 tree table_cell_margins(real x, real y, integer w, integer h);
@@ -120,7 +120,7 @@ tree table_cell_margins(real x, real y, integer w, integer h);
 /**
  * Defines common fill code for cells.
  *
- * The @a contents code block is executed once for each cell in the table,
+ * The @p contents code block is executed once for each cell in the table,
  * before any table_cell specific code is executed. You may use this
  * form to define the cell background color. The following code, for
  * instance, will create a light blue background:
@@ -139,7 +139,7 @@ tree table_cell_fill(code contents);
 /**
  * Defines common border code for cells.
  *
- * The @a contents code block is executed once for each cell in the table,
+ * The @p contents code block is executed once for each cell in the table,
  * before any table_cell specific code is executed and after code declared
  * by @ref table_cell_fill.
  * @todo Isn't this function redundant with table_cell_fill?

@@ -46,7 +46,7 @@ scalez (z:real);
  * Rotates along an arbitrary axis.
  *
  * Rotation of @p ra degrees around the axis determined by the
- * (@a rx, @a ry, @a rz) vector.
+ * (@p rx, @p ry, @p rz) vector.
  *
  * Rotations follows the right-hand rule, so if the vector (x,  y,  z)
  * points toward the user, the rotation will be counterclockwise.

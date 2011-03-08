@@ -15,7 +15,7 @@
 /**
  * Associates the specified code to the named event.
  *
- * Associate the specified code @a t and the action named @a n. This code is
+ * Associate the specified code @p t and the action named @p n. This code is
  * executed when the action occurs on the current @c shape or @c active_widget.
  * Currently known event name are
  * - @c click

@@ -105,7 +105,7 @@ draw_scene
 
 /**
  * Switch a light on or off and make it the current light.
- * @a id is an integer between 0 and the maximum number of lights minus 1.
+ * @p id is an integer between 0 and the maximum number of lights minus 1.
  * The number of lights depends on the OpenGL implementation, but at least
  * eight lights are supported.
  * When the primitive returns, the light is the current light for the

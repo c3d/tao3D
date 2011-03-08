@@ -52,11 +52,11 @@ tree menu(text name, text label);
 /**
  * Adds a top-level menu to the current menu bar and make it the current menu.
  *
- * @a name is a text string that should uniquely identify this menu in the
- * Tao application. @a label is the visible menu string.
+ * @p name is a text string that should uniquely identify this menu in the
+ * Tao application. @p label is the visible menu string.
  * If the menu already exists, it is simply updated. If you want to
  * associate an icon to the menu, give the path to the icon file using the
- * @a icon parameter; otherwise supply an emtpy string. The icon path may be
+ * @p icon parameter; otherwise supply an emtpy string. The icon path may be
  * absolute or relative to the current document.
  *
  * When this primitive returns, the menu becomes current for @ref submenu
@@ -81,11 +81,11 @@ tree submenu(text name, text label);
 /**
  * Adds a menu to the current menu or sub-menu and make it the current menu.
  *
- * @a name is a text string that should uniquely identify this menu in the
- * Tao application. @a label is the visible menu string.
+ * @p name is a text string that should uniquely identify this menu in the
+ * Tao application. @p label is the visible menu string.
  * If the menu already exists, it is simply updated. If you want to
  * associate an icon to the menu, give the path to the icon file using the
- * @a icon parameter; otherwise supply an emtpy string. The icon path may be
+ * @p icon parameter; otherwise supply an emtpy string. The icon path may be
  * absolute or relative to the current document.
  *
  * When this primitive returns, the sub-menu becomes current for @ref submenu
@@ -110,11 +110,11 @@ tree menu_item(text name, text label, code action);
 /**
  * Adds a menu item with an associated action to the current menu.
  *
- * @a name is a text string that should uniquely identify this menu item in the
- * Tao application. @a label is the visible menu item string.
+ * @p name is a text string that should uniquely identify this menu item in the
+ * Tao application. @p label is the visible menu item string.
  * If the menu item already exists, it is simply updated. If you want to
  * associate an icon to the menu item,  give the path to the icon file using the
- * @a icon parameter; otherwise supply an emtpy string. The icon path may be
+ * @p icon parameter; otherwise supply an emtpy string. The icon path may be
  * absolute or relative to the current document.
  *
  * The action to execute when the menu is clicked should be given as an indented
@@ -122,7 +122,7 @@ tree menu_item(text name, text label, code action);
  *
  * A menu item can have a check box to indicate it has a state and may be
  * changed from checked to unchecked and vice-versa. To create a checkable item,
- * set @a checkable to true. In this case, set the @a checked parameter to "true"
+ * set @p checkable to true. In this case, set the @p checked parameter to "true"
  * to have a check mark be displayed initially.
  *
  * @see menu, submenu to set the current %menu
@@ -140,9 +140,9 @@ tree menubar();
 
 /**
  * Adds a toolbar to the current widget at the specified location.
- * @a name is a text string that should uniquely identify this tool bar in the
- * application. @a label is the user-visible name of the toolbar, as it will
- * appear in the View menu. @a location specifies where the toolbar should
+ * @p name is a text string that should uniquely identify this tool bar in the
+ * application. @p label is the user-visible name of the toolbar, as it will
+ * appear in the View menu. @p location specifies where the toolbar should
  * appear, relative to the current widget.
  * The possible values for this parameter are:
  *   @li @c "n" or @c "N" (north): the widget's top toolbar area
@@ -153,8 +153,8 @@ tree menubar();
  * When this primitive returns, the tool bar becomes current for
  * @ref separator.
  *
- * @todo Does @a label really appear in the View menu?
- * @todo Accept "top", "bottom", "left" and "right" for @a location?
+ * @todo Does @p label really appear in the View menu?
+ * @todo Accept "top", "bottom", "left" and "right" for @p location?
  */
 tree toolbar(text name, text label, text location);
 

@@ -129,8 +129,8 @@ box { align_full_justify ; vertical_align_top }
 /**
  * Draws a text box.
  *
- * The text box is centered at @a x, @a y. Th width is @a w and
- * the height is @a h. @a contents is a block of code in which you describe
+ * The text box is centered at @p x, @p y. Th width is @p w and
+ * the height is @p h. @p contents is a block of code in which you describe
  * the contents of the box.
  */
 tree text_box(real x, real y, real w, real h, code contents);
@@ -180,7 +180,7 @@ tree text(text t);
  * conflicting arguments are given, the last one takes precedence.
  *
  * For instance you may write the following expression to select
- * font family @a Ubuntu in 24 point size and bold weight:
+ * font family @p Ubuntu in 24 point size and bold weight:
 @code
 font "Ubuntu", 24, bold
 @endcode
@@ -192,7 +192,7 @@ font "Ubuntu", 24, bold
  *       specified, it must be separated form the family name by a forward
  *       slash. Example styles are: "Light", "Light Italic", "Bold", "Oblique",
  *       "Demi".
- *   <li> @a number. Sets the font size, in points.
+ *   <li> @p number. Sets the font size, in points.
  *   <li> @b plain, @b default, @b normal. Resets all font attributes.
  *       See @ref plain.
  *   <li> Font style arguments:
@@ -230,10 +230,10 @@ font "Ubuntu", 24, bold
  *   <li> @b strike_out. Sets strikeout on. See @ref strikeout.
  *   <li> @b kerning. Sets font kerning on.
  *   <li> @b no_kerning. Sets font kerning off.
- *   <li> @b size @a s. Sets size to @a s. See @ref font_size.
- *   <li> @b slant @a s. Sets slant to @a s. See @ref slant.
- *   <li> @b weight @a w. Sets weight to @a w. See @ref weight.
- *   <li> @b stretch @a s. Sets character stretch factor to @a s.
+ *   <li> @b size @p s. Sets size to @p s. See @ref font_size.
+ *   <li> @b slant @p s. Sets slant to @p s. See @ref slant.
+ *   <li> @b weight @p w. Sets weight to @p w. See @ref weight.
+ *   <li> @b stretch @p s. Sets character stretch factor to @p s.
  *       See @ref stretch.
  * </ul>
  *
@@ -261,7 +261,7 @@ tree font(code desc);
 /**
  * Sets the current font.
  *
- * @a name is the font family (for instance, "Times") and optionally the font
+ * @p name is the font family (for instance, "Times") and optionally the font
  * style after a slash ("Times/Bold", "Futura/Medium").
  */
 tree font(text name);
@@ -269,7 +269,7 @@ tree font(text name);
 /**
  * Sets the current font size.
  *
- * @a size is in points (pt).
+ * @p size is in points (pt).
  */
 tree font_size(integer size);
 
@@ -316,7 +316,7 @@ tree oblique();
 /**
  * Sets the weight of the current font.
  *
- * @a w should be an integer value between 0 and 99. 0 is ultralight, 99 is
+ * @p w should be an integer value between 0 and 99. 0 is ultralight, 99 is
  * extremely black. The following predefined values are used by
  * the @ref font function:
  *   @li @b light: 25
@@ -354,7 +354,7 @@ tree bold();
 /**
  * Enables or disables underline.
  *
- * Set @a w to 0 to disable the attribute, or to any positive value to enable
+ * Set @p w to 0 to disable the attribute, or to any positive value to enable
  * it.
  */
 tree underline(real w);
@@ -362,7 +362,7 @@ tree underline(real w);
 /**
  * Enables or disables overline.
  *
- * Set @a w to 0 to disable the attribute, or to any positive value to enable
+ * Set @p w to 0 to disable the attribute, or to any positive value to enable
  * it.
  */
 tree overline(real w);
@@ -370,7 +370,7 @@ tree overline(real w);
 /**
  * Enables or disables strikeout.
  *
- * Set @a w to 0 to disable the attribute, or to any positive value to enable
+ * Set @p w to 0 to disable the attribute, or to any positive value to enable
  * it.
  */
 tree strikeout(real w);
@@ -378,7 +378,7 @@ tree strikeout(real w);
 /**
  * Sets the stretch factor for the current font.
  *
- * For example, setting @a s to 1.5 results in all glyphs in the font
+ * For example, setting @p s to 1.5 results in all glyphs in the font
  * being 1.5 times wider. The following predefined values are used by
  * the @ref font function:
  *   @li @b ultra_condensed: 0.5
@@ -398,8 +398,8 @@ tree stretch(real s);
  *
  * This primitive controls how words and glyphs are positioned horizontally
  * to form a line of text in the current text box.
- * The four parameters @a center, @a justify, @a spread
- * and @a full_justify may take any value between 0 and 1 (inclusive). Some
+ * The four parameters @p center, @p justify, @p spread
+ * and @p full_justify may take any value between 0 and 1 (inclusive). Some
  * combinations have a usual meaning; see the functions listed below
  * for details.
  *
@@ -486,8 +486,8 @@ tree align_full_spread();
  * Sets parameters for vertical text layout.
  *
  * This primitive controls how lines of text are positioned vertically in the
- * current text box. The four parameters @a center, @a justify, @a spread
- * and @a full_justify may take any value between 0 and 1 (inclusive). Some
+ * current text box. The four parameters @p center, @p justify, @p spread
+ * and @p full_justify may take any value between 0 and 1 (inclusive). Some
  * combinations have a usual meaning; see the functions listed below
  * for details.
  *
@@ -529,7 +529,7 @@ tree vertical_align_center();
 /**
  * Sets the word spacing factor.
  *
- * Give a @a factor value larger that 1.0 to increase the space between words,
+ * Give a @p factor value larger that 1.0 to increase the space between words,
  * or a value smaller than 1.0 to reduce it.
  */
 tree word_spacing(real factor);
@@ -537,7 +537,7 @@ tree word_spacing(real factor);
 /**
  * Sets the line spacing factor.
  *
- * Give a @a factor value larger that 1.0 to increase the space between lines,
+ * Give a @p factor value larger that 1.0 to increase the space between lines,
  * or a value smaller than 1.0 to reduce it.
  */
 tree line_spacing(real factor);

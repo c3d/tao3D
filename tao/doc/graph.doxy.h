@@ -21,7 +21,8 @@
  * Creates a selectable shape
  *
  *  Evaluate the child and mark the current shape.
- *  The modification done to the environment is only applicable inside this shape as @ref locally is doing.
+ *  The modification done to the environment is only applicable inside this shape as @ref locally does.
+ *
  *  Make the shape sensible to mouse events. 
  *  It enables click action (@ref on), and handles for selection, motion, rotation, resize...
  */
@@ -31,8 +32,8 @@ shape (t:tree);
 /**
  * Makes the widget clickable.
  *
- *  Create a context for active widgets (like buttons) or drawing (circle, etc...)
- *  Make the shape sensible to mouse events. 
+ *  Create a context for active widgets (like buttons) or drawing (circle, etc...).
+ *  Make the shape sensive to mouse events. 
  *  It enables click action (@ref on), but does not enables handles for mouse manipulations.
  */
 active_widget (t:tree);
@@ -45,7 +46,7 @@ anchor (t:tree);
 /**
  * Selects the line width for shape outlines.
  *
- * @a lw is the width in pixels
+ * @p lw is the width in pixels
  */
 line_width (lw:integer);
 
@@ -76,19 +77,24 @@ path (t:tree);
 move_to (x:real, y:real, z:real);
 
 /**
+ * Adds a line segment to the current path.
+ */
+line_to (x:real, y:real, z:real);
+
+/**
  * Adds a quadric segment to the current path.
  *
- * (@a cx, @a cy, @a cz) defines the control point.
- * (@a x, @a y, @a z) is the end point.
+ * (@p cx, @p cy, @p cz) defines the control point.
+ * (@p x, @p y, @p z) is the end point.
  */
 quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
 
 /**
  * Adds a cubic segment to the current path.
  *
- * (@a c1x, @a c1y, @a c1z) defines the first control point.
- * (@a c2x, @a c2y, @a c2z) defines the second control point.
- * (@a x, @a y, @a z) is the end point.
+ * (@p c1x, @p c1y, @p c1z) defines the first control point.
+ * (@p c2x, @p c2y, @p c2z) defines the second control point.
+ * (@p x, @p y, @p z) is the end point.
  */
 cubic_to (c1x:real, c1y:real, c1z:real, c2x:real, c2y:real, c2z:real,
           x:real, y:real, z:real);
@@ -109,17 +115,12 @@ move_relative (x:real, y:real, z:real);
 close_path ();
 
 /**
- * Add a texture coordinate to the path.
- * NOT SUPPORTED YET.
- * @bug Not supported yet.
- */
-path_texture (x:real, y:real, z:real);
-
-
-/**
  * Sets the style of the path endpoints.
  *
+ * @p s is the start point and @p e is the end point. Only beginning and very end of the path can be styled. If a text is added at the end of the path, the end style won't be applied to the line end (because end of the line is not the end of the path).
+ *
  * Supported values are:
+ * @li NONE
  * @li ARROWHEAD
  * @li POINTER
  * @li DIAMOND
@@ -134,17 +135,19 @@ path_texture (x:real, y:real, z:real);
 endpoints_style (s:symbol, e:symbol);
 
 /**
+ * Add a texture coordinate to the path.
+ * NOT SUPPORTED YET.
+ * @bug Not supported yet.
+ */
+path_texture (x:real, y:real, z:real);
+
+/**
  * Adds a color element to the path.
  *
  * NOT SUPPORTED YET.
  * @bug Not supported yet.
  */
 path_color (r:real, g:real, b:real, a:real);
-
-/**
- * Adds a line segment to the current path.
- */
-line_to (x:real, y:real, z:real);
 
 
 /** @} */
@@ -160,21 +163,26 @@ line_to (x:real, y:real, z:real);
  * defined, its z coordinate is set to 0.
  *
  * In all the 2D primitives,
- * -  @p x, and @p y represent the center of the drawing, x > 0 goes toward the right, y > goes toward the top
- * -  @p h, and @p w represent the width and the height of the drawing
+ * -  @p x, and @p y represent the center of the drawing.
+ *   - [0, x) x > 0 goes toward the right,
+ *   - [0, y) y > 0 goes toward the top,
+ * -  @p h, and @p w represent the width and the height in pixel of the drawing
  *
+ * Example of 2D primitives : <a href="examples/2D_samples.ddd">2D_samples.ddd</a>
+ *
+ * Images keys:
+ * - dark orange is the result of the documented primitive.
+ * - black parts are the representations of the provided parameters.
+ * - yellow parts are useful marks.
+ * 
  * @{
  */
 
 /**
  * Draws a point.
  *
- * The point size is not affected by the scaling factor.
+ * The point size is not affected by the scaling factor. @p s is the point size in pixel. The point is a 3D one so it is more like a ball.
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param s [real] THe size of the point
  */
 point (x:real, y:real, z:real, s:real);
 
@@ -182,39 +190,28 @@ point (x:real, y:real, z:real, s:real);
  * Draws a rectangle.
  *
  *  Draw a rectangle centered in @c (x,y), with width @p w and height @p h.
- *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
- *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
- *  - top left corner is at coordinate (x-w/2, y+h/2)
- *  - top right corner is at coordinate (x+w/2, y+h/2)
+ *  - Bottom left corner is at coordinate <tt>(x-w/2, y-h/2)</tt>
+ *  - Bottom right corner is at coordinate <tt>(x+w/2, y-h/2)</tt>
+ *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
+ *  - top right corner is at coordinate <tt>(x+w/2, y+h/2)</tt>
  *
- * Example: <a href="examples/rectangle.ddd">rectangle.ddd</a>
- * @image html rectangle.png "Rectangle"
+ * @image html rectangle.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the rectangle
- * @param h [real] height of the rectangle
  */
 rectangle (x:real, y:real, w:real, h:real);
 
 /**
  * Draws a rounded rectangle.
  *
- *  Draw a rounded rectangle with radius r for the rounded corners.
+ *  Draw a rounded rectangle with radius @p r for the rounded corners.
  *  The rectangle is centered in @c (x,y), with width @p w and height @p h.
- *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
- *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
- *  - top left corner is at coordinate (x-w/2, y+h/2)
- *  - top right corner is at coordinate (x+w/2, y+h/2)
+ *  - Bottom left corner is at coordinate <tt>(x-w/2, y-h/2)</tt>
+ *  - Bottom right corner is at coordinate <tt>(x+w/2, y-h/2)</tt>
+ *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
+ *  - top right corner is at coordinate <tt>(x+w/2, y+h/2)</tt>
  *
- * Example: <a href="examples/rounded_rectangle.ddd">rounded_rectangle.ddd</a>
- * @image html rounded_rectangle.png "Rounded rectangle"
+ * @image html rounded_rectangle.png 
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the rectangle
- * @param h [real] height of the rectangle
- * @param r [real] corner radius
  */
 rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 
@@ -222,17 +219,11 @@ rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 /**
  * Draws a rectangle with elliptical sides.
  *
- * The ratio @a r is a real between 0.0 and 1.0. With ratio 0.0 the elliptical
+ * The ratio @p r is a real between 0.0 and 1.0. With ratio 0.0 the elliptical
  * rectangle is an ellipse, and with ratio 1.0 the elliptical rectangle is a
  * rectangle.
- * Example:
- * <a href="examples/elliptical_rectangle.ddd">elliptical_rectangle.ddd</a>
- * @image html elliptical_rectangle.png "Elliptical rectangle"
+ * @image html elliptical_rectangle.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the rectangle
- * @param h [real] height of the rectangle
  * @param r [real] ratio of the ellpitic sides [0.0, 1.0]
  */
 elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
@@ -242,31 +233,21 @@ elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
  *
  *  Draw an ellipse centered around @c (x,y) with size <tt>w * h</tt>.
  *
- * Example: <a href="examples/ellipse.ddd">ellipse.ddd</a>
- * @image html ellipse.png "Ellipse sample"
+ * @image html ellipse.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the ellipse
- * @param h [real] height of the ellipse
  */
 ellipse (x:real, y:real, w:real, h:real);
 
 /**
  * Draws an elliptic sector.
  *
- * Elliptic sector centered around (@a x, @a y) that occupies the given
- * rectangle, beginning at the specified @a startAngle and extending
- * @a sweepLength degrees counter-clockwise. Angles are specified in
+ * Elliptic sector centered around (@p x, @p y) that occupies the given
+ * rectangle, beginning at the specified @p startAngle and extending
+ * @p sweepLength degrees counter-clockwise. Angles are specified in
  * degrees. Clockwise arcs can be specified using negative angles.
  *
- * Example: <a href="examples/ellipse_arc.ddd">ellipse_arc.ddd</a>
- * @image html ellipse_arc.png "Ellipse arc"
+ * @image html ellipse_arc.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the ellipse
- * @param h [real] height of the ellipse
  * @param start [real] start angle express in degrees
  * @param sweep [real] sweep angle express in degrees
  */
@@ -275,19 +256,14 @@ ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
 /**
  * Draws an isoceles triangle.
  *
- * Draws an isoceles triangle centered at (@a x, @a y), with width @a w and
- * height @a h.
- *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
- *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
- *  - Top corner is at coordinate (x, y+h/2)
+ * Draws an isoceles triangle centered at (@p x, @p y), with width @p w and
+ * height @p h.
+ *  - Bottom left corner is at coordinate  <tt>(x-w/2, y-h/2)</tt>
+ *  - Bottom right corner is at coordinate  <tt>(x+w/2, y-h/2)</tt>
+ *  - Top corner is at coordinate  <tt>(x, y+h/2)</tt>
  *
- * Example: <a href="examples/triangle.ddd">triangle.ddd</a>
- * @image html triangle.png "Isoceles triangle"
+ * @image html triangle.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] base of the triangle
- * @param h [real] height of the triangle
  */
 triangle (x:real, y:real, w:real, h:real);
 
@@ -296,65 +272,48 @@ triangle (x:real, y:real, w:real, h:real);
  *
  *  Draw a right triangle with hypotenuse centered in @c (x,y), with width @p w and height @p h.
  *  Right angle is the bottom left one.
- *  - Bottom left corner is at coordinate (x-w/2, y-h/2)
- *  - Bottom right corner is at coordinate (x+w/2, y-h/2)
- *  - top corner is at coordinate (x-w/2, y+h/2)
+ *  - Bottom left corner is at coordinate <tt>(x-w/2, y-h/2)</tt>
+ *  - Bottom right corner is at coordinate  <tt>(x+w/2, y-h/2)</tt>
+ *  - top corner is at coordinate  <tt>(x-w/2, y+h/2)</tt>
  *
- * Example: <a href="examples/right_triangle.ddd">right_triangle.ddd</a>
- * @image html right_triangle.png "Right triangle sample"
+ * @image html right_triangle.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] base of the triangle
- * @param h [real] height of the triangle
  */
 right_triangle (x:real, y:real, w:real, h:real);
 
 
 /**
- * Draws an arraw.
+ * Draws an arrow.
  *
- * The arrow is centered at (@a x, @a y) and is contained in a bounding box of
- * @a w by @a h pixels. @a head is the length of the arrow head in pixels.
- * @a tail is the size of the the arrow relative to the overall witdh. @a tail
- * is comprised between 0 and 1.
+ * The arrow is centered at (@p x, @p y) and is contained in a bounding box of
+ * @p w by @p h pixels. @p head is the length of the arrow head in pixels.
+ * @p tail is the size of the the arrow relative to the overall witdh. @p tail
+ * is a real comprised between 0 and 1.
  *
- * Example: <a href="examples/arrow.ddd">arrow.ddd</a>
- * @image html arrow.png "Arrow"
+ * @image html arrow.png
  *
- * @todo why head is in px and tail is a ratio?
+ * @note why head is in pixel and tail is a ratio ? Because when you want to resize the arrow width you generaly want to increase the tail size, but not the head's one, and when you resize the height, you want to keep the aspect ratio.
  */
 arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 
 /**
- * Creates a double arraw.
+ * Creates a double arrow.
  *
- *  Draw a symetric double arraw
+ *  Draw a symetric double arraw.
+ * @see See arrow for more details.
  *
- * Example: <a href="examples/double_arrow.ddd">double_arrow.ddd</a>
- * @image html double_arrow.png "Double arrow"
+ * @image html double_arrow.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of surrounding rectangle
- * @param h [real] height of surrounding rectangle
- * @param head [real] length of the arrow's head
- * @param bodyRatio [real] ratio between the full width and the body width [0.0, 1.0]
  */
-double_arrow (x:real, y:real, w:real, h:real, ax:real, ay:real);
+double_arrow (x:real, y:real, w:real, h:real, head:real, body:real);
 
 /**
  * Draws a star.
  *
- * GL regular p-side star centered around (x,y) with inner radius ratio r.
+ * GL regular p-side star centered around (x,y) with inner radius ratio @p r.
  *
- * Example: <a href="examples/star.ddd">star.ddd</a>
- * @image html star.png "Star sample"
+ * @image html star.png
  *
- * @param x [real] center x-coordinate
- * @param y [real] center y-coordinate
- * @param w [real] width of the star
- * @param h [real] height of the star
  * @param p [integer] Number of branch
  * @param r [real] inner radius ratio
  */
@@ -363,17 +322,12 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
 /**
  * Draws a star.
  *
- * GL regular p-side star polygon centered around (x,y).
+ * GL regular p-side star polygon centered around <tt>(x,y)</tt>.
  * @p p is the number of branch. Each side of a branch is drawn by aimed at
  * another vertex. This other vertex is the @p qth starting from the current one.
  *
- * Example: <a href="examples/star_polygon.ddd">star_polygon.ddd</a>
- * @image html star_polygon.png "Star polygon"
+ * @image html star_polygon.png
  *
- * @param x [real] center x-coordinate
- * @param y [real] center y-coordinate
- * @param w [real] width of the star
- * @param h [real] height of the star
  * @param p [integer] Number of branch
  * @param q [integer] Number of vertex to skip for sighting
  */
@@ -383,38 +337,20 @@ star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
  * Creates a speech balloon.
  *
- * Speech balloon with radius @a r for rounded corners, and point a for the tail.
+ * Speech balloon with radius @p r for rounded corners, and point @p a for the tail's head.
  * The tail width is computed.
  *
- * Example: <a href="examples/speech_balloon.ddd">speech_balloon.ddd</a>
- * @image html speech_balloon.png "Speech balloon"
+ * @image html speech_balloon.png
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the balloon
- * @param h [real] height of the balloon
- * @param r [real] rounded rectangle radius
- * @param ax [real] tail end x-coordinate
- * @param ay [real] tail end y-coordinate
  */
 speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
 
 /**
  * Creates a callout.
  *
- * Callout with radius r for corners, and point a for the head of the tip and, tw as the tip basis width.
+ * Callout with radius @p r for corners, and point @p a for the head of the tip and, @p tw as the tip basis width.
  *
- * Example: <a href="examples/callout.ddd">callout.ddd</a>
- * @image html callout.png "Callout"
- *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param w [real] width of the callout
- * @param h [real] height of the callout
- * @param r [real] radius
- * @param ax [real] x-coordinate of point a
- * @param ay [real] y-coordinate of point a
- * @param tw [real] tip width
+ * @image html callout.png
  */
 callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 
@@ -427,66 +363,66 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  * Creating 3D shapes.
  *
  * In all the 3D primitives,
- * -  @p x, @p y, and @p z represent the center of the drawing, x > 0 goes toward the right, y > goes toward the top, and z > 0 goes toward the user.
+ * -  @p x, @p y, and @p z represent the center of the drawing
+ *   - [0, x) x > 0 goes toward the right,
+ *   - [0, y) y > 0 goes toward the top,
+ *   - [0, z) z > 0 goes toward the user.
  * -  @p h, @p w, and @p d represent the width, the height and the depth of the drawing
+ * - shapes' size including those that got round part, is given by width, heigt and depth of the bouding box. 
  *
+ * Examples: <a href="examples/3D_samples.ddd">3D_samples.ddd</a>
+ *
+ * Images keys:
+ * - dark orange is the result of the documented primitive.
+ * - black parts are the representations of the provided parameters.
+ * - yellow parts are useful marks.
+ *
+ * Other 3D samples are available in @ref Lighting module.
  * @{
  */
 
 /**
  * Draws a sphere.
  *
- * The sphere is divided in @a slices and @a stacks. The higher the vaue of
- * these parametres, the smoother the sphere.
+ * The sphere is divided in @p slices and @p stacks. The higher the value of
+ * these parametres are, the smoother the sphere is (and longer the drawing is).
+ * The sphere's @p w, @p h and @p d are not aimed to be equals. One can draw a water-melon with the sphere primitive
+ * @image html sphere.png
+
  */
 sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer);
 
 /**
  * Draws a cone.
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param w [real] width
- * @param h [real] height
- * @param d [real] depth
+ * It draws a cone with a fixed number of polygon.
+ * @image html cone.png
  */
 cone (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
  * Draws a truncated cone.
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param w [real] width
- * @param h [real] height
- * @param d [real] depth
- * @param r [real] percentage of basis : 0.0 is a cone; 1.0 is a cylinder.
+ * The diameter of the top of the cone is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0. If @p r is 0 the drawing is a cone, if @p r is 1 the drawing is a cylinder.
+ * @image html truncated_cone.png
  */
 truncated_cone (x:real, y:real, z:real, w:real, h:real, d:real, r:real);
 
 /**
  * Draws a cube.
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param w [real] width
- * @param h [real] height
- * @param d [real] depth
+ * It draws a right parallelepiped, and in a particular case a cube.
+ *
+ * @image html right_parallelepiped.png
+ *
  */
 cube (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
- * Drwas a cyinder.
+ * Draws a cylinder.
  *
- * @param x [real] x-coordinate
- * @param y [real] y-coordinate
- * @param z [real] z-coordinate
- * @param w [real] width
- * @param h [real] height
- * @param d [real] depth
+ * It draws the "skin" of a cylinder
+ * @image html cylinder.png 
  */
 cylinder (x:real, y:real, z:real, w:real, h:real, d:real);
 

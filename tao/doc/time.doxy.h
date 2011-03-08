@@ -127,7 +127,7 @@ page_time ();
 /**
  * Execute a block of code after specified interval.
  *
- *  Execute @a c after the specified amount of time @a d, in seconds.
+ *  Execute @p c after the specified amount of time @p d, in seconds.
  *
  * @returns The real elapsed time.
  */
@@ -136,7 +136,7 @@ after (d:real, c:tree);
 /**
  * Executes a block of code periodically.
  *
- * @todo Check this. How is the duty parameter (@a d) used?
+ * @todo Check this. How is the duty parameter (@p d) used?
  */
 every (i:real, d:real, c:tree);
 

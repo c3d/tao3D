@@ -1,0 +1,19 @@
+import Slides "0.2"
+
+// Themes:
+// "" / "Default", "WhiteOnBlack", "WhiteOnGray",
+// "Rounded", "Keyboard", "Seyes"
+
+theme := "Keyboard"
+
+title_slide "Slide 1",
+    text "Lorem ipsum dolor sit amet"
+    line_break
+    text "consectetur adipisicing"
+
+slide "Slide 2", "Lorem Ipsum",
+    text "Lorem ipsum dolor sit amet"
+    * "Consectetur adipisicing"
+    - "Elit, sed do eiusmod tempor incididunt"
+    * "Ut labore et dolore magna"
+

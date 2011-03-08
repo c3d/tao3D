@@ -43,6 +43,21 @@ using namespace XL;
 #include "graphics.tbl"
 
 
+Tree *xl_process_module_import(Symbols *symbols, Tree *source, bool execute)
+// ----------------------------------------------------------------------------
+//   Standard connector for 'load' statements
+// ----------------------------------------------------------------------------
+{
+    if (Prefix *pfx = source->AsPrefix())
+    {
+        source->SetSymbols(symbols);
+        return Tao::ModuleManager::import(MAIN->context, source,
+                                          pfx->right, execute);
+    }
+    return NULL;
+}
+
+
 void EnterGraphics()
 // ----------------------------------------------------------------------------
 //   Enter all the basic operations defined in graphics.tbl
@@ -51,6 +66,7 @@ void EnterGraphics()
     XL::Context *context = MAIN->context;
 #include "opcodes_define.h"
 #include "graphics.tbl"
+    xl_enter_declarator("import", xl_process_module_import);
 }
 
 

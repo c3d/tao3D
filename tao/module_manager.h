@@ -270,8 +270,10 @@ struct ModuleManager : public QObject
 
 public:
     static ModuleManager * moduleManager();
-    static XL::Tree_p      import(XL::Context_p context, XL::Tree_p self,
-                                  XL::Tree_p what);
+    static XL::Tree_p      import(XL::Context_p context,
+                                  XL::Tree_p self,
+                                  XL::Tree_p what,
+                                  bool execute);
 
     struct ModuleInfoPrivate : ModuleInfo
     // ------------------------------------------------------------------------
@@ -410,8 +412,10 @@ private:
 
     ModuleInfoPrivate * moduleById(text id);
 
-    XL::Tree_p          importModule(XL::Context_p context, XL::Tree_p self,
-                                     XL::Tree_p what);
+    XL::Tree_p          importModule(XL::Context_p context,
+                                     XL::Tree_p self,
+                                     XL::Tree_p what,
+                                     bool execute);
 private:
     QString                     u, s;
     QMap<QString, ModuleInfoPrivate>   modules;

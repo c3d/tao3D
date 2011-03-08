@@ -2462,6 +2462,6 @@ PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
 // Not a problem because implementation takes care of the above syntax
 PREFIX(ImportModule, tree, "import",
        PARM(m, tree, "Module file name"),
-       return Tao::ModuleManager::import(context, self, m),
+       return Tao::ModuleManager::import(context, self, m, true),
        GROUP(modules)
        SYNOPSIS("Import a module from a file"))

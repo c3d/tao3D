@@ -61,7 +61,8 @@ ModuleManager * ModuleManager::moduleManager()
 
 XL::Tree_p ModuleManager::import(XL::Context_p context,
                                  XL::Tree_p self,
-                                 XL::Tree_p what)
+                                 XL::Tree_p what,
+                                 bool execute)
 // ----------------------------------------------------------------------------
 //   The import primitive
 // ----------------------------------------------------------------------------
@@ -69,12 +70,12 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
     // import "filename"
     XL::Text *file = what->AsText();
     if (file)
-        return XL::xl_import(context, self, file->value);
+        return XL::xl_import(context, self, file->value, execute);
 
     // Other import syntax: explicit module import
     ModuleManager *mmgr = moduleManager();
     if (mmgr)
-        return mmgr->importModule(context, self, what);
+        return mmgr->importModule(context, self, what, execute);
 
     return XL::xl_false;
 }
@@ -82,7 +83,8 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
 
 XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                                        XL::Tree_p self,
-                                       XL::Tree_p what)
+                                       XL::Tree_p what,
+                                       bool execute)
 // ----------------------------------------------------------------------------
 //   The primitive to import a module, for example:   import ModuleName "1.10"
 // ----------------------------------------------------------------------------
@@ -130,7 +132,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
 
-                    XL::xl_import(context, self, +xlPath);
+                    XL::xl_import(context, self, +xlPath, execute);
                 }
             }
         }
@@ -737,7 +739,8 @@ struct SetCwd
 
 
 
-bool ModuleManager::loadNative(Context * /*context*/, const ModuleInfoPrivate &m)
+bool ModuleManager::loadNative(Context * /*context*/,
+                               const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 //   Load the native code of a module (shared libraries under lib/)
 // ----------------------------------------------------------------------------
@@ -999,6 +1002,8 @@ ModuleManager::ModuleInfoPrivate * ModuleManager::moduleById(text id)
     return NULL;
 }
 
+
+
 // ============================================================================
 //
 //   Virtual methods are the module manager's interface with the user
@@ -1077,6 +1082,8 @@ void ModuleManager::warnBinaryModuleIncompatible(QLibrary *lib)
     std::cerr << +QObject::tr("WARNING: Skipping incompatible binary module ")
               << +lib->fileName() << "\n";
 }
+
+
 
 // ============================================================================
 //
@@ -1177,6 +1184,8 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
     deleteLater();
 }
 
+
+
 // ============================================================================
 //
 //   Checking if any module has an update
@@ -1231,6 +1240,8 @@ void CheckAllForUpdate::processResult(ModuleManager::ModuleInfoPrivate m,
         deleteLater();
     }
 }
+
+
 
 // ============================================================================
 //

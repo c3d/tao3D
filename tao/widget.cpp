@@ -328,6 +328,9 @@ void Widget::setupPage()
     pageH = (29.7 / 2.54) * logicalDpiY();
     flowName = "";
     flows.clear();
+    IFTRACE(pages)
+        std::cerr << "setupPage: found=" << pageFound
+                  << " id=" << pageId << "\n";
     pageId = 0;
     pageFound = 0;
     pageTree = NULL;
@@ -352,9 +355,7 @@ void Widget::draw()
     // Recursive drawing may occur with video widgets, and it's bad
     if (inDraw)
         return;
-
     XL::Save<bool> drawing(inDraw, true);
-
     TaoSave saveCurrent(current, this);
 
     // Setup the initial drawing environment
@@ -656,13 +657,13 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inError)
+    if (inError || inDraw)
         return false;
 
     bool changed = false;
-
     if (!event || space->refreshEvents.count(event->type()))
     {
+        XL::Save<bool> drawing(inDraw, true);
         IFTRACE(layoutevents)
         {
             text what = event ? LayoutState::ToText(event->type()) : "NULL";
@@ -802,7 +803,6 @@ void Widget::runProgram()
 //   Run the  XL program
 // ----------------------------------------------------------------------------
 {
-    setupPage();
     setCurrentTime();
 
     XL::GarbageCollector::Collect();
@@ -857,6 +857,11 @@ void Widget::runProgram()
     currentMenuBar = ((Window*)parent())->menuBar();
 
     // Update page count for next run
+    IFTRACE(pages)
+        std::cerr << "Page found=" << pageFound
+                  << " id=" << pageId
+                  << " shown=" << pageShown
+                  << "\n";
     pageNames = newPageNames;
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
@@ -867,12 +872,17 @@ void Widget::runProgram()
     // Check if program asked to change page for the next run
     if (gotoPageName != "")
     {
+        IFTRACE(pages)
+            std::cerr << "Goto page request: '" << gotoPageName
+                      << "' from '" << pageName << "'\n";
         pageName = gotoPageName;
         frozenTime = pageStartTime = CurrentTime();
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
         gotoPageName = "";
+        IFTRACE(pages)
+            std::cerr << "New page number is " << pageShown << "\n";
         refresh();
     }
 
@@ -1974,8 +1984,6 @@ Context *Widget::context()
 //   Widget basic events (painting, mause, ...)
 //
 // ============================================================================
-
-
 
 bool Widget::forwardEvent(QEvent *event)
 // ----------------------------------------------------------------------------
@@ -3857,6 +3865,10 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 {
     refreshOn(QEvent::KeyPress);
 
+    IFTRACE(pages)
+        std::cerr << "Displaying page '" << name
+                  << "' target '" << pageName << "'\n";
+
     // We start with first page if we had no page set
     if (pageName == "")
         pageName = name;
@@ -3925,6 +3937,8 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     selectionTrees.clear();
     delete textSelection();
     delete drag();
+    IFTRACE(pages)
+        std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
     refreshNow();
     return new Text(old);

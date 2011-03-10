@@ -1106,21 +1106,22 @@ void Window::createActions()
 //   Create the various menus and icons on the toolbar
 // ----------------------------------------------------------------------------
 {
-    newDocAct = new QAction(QIcon(":/images/new.png"), tr("New &Document..."), this);
+    newDocAct = new QAction(QIcon(":/images/new.png"),
+                            tr("New from &Template Chooser..."), this);
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
-    newDocAct->setStatusTip(tr("Create a new document"));
+    newDocAct->setStatusTip(tr("Create a new document from a template"));
     newDocAct->setIconVisibleInMenu(false);
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
 
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new file"));
+    newAct->setStatusTip(tr("Open a blank document window"));
     newAct->setIconVisibleInMenu(false);
     newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open File..."),
+    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."),
                           this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
@@ -1129,8 +1130,8 @@ void Window::createActions()
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
 #ifndef CFG_NOGIT
-    openUriAct = new QAction(tr("Open &URI..."), this);
-    openUriAct->setStatusTip(tr("Open an URI"));
+    openUriAct = new QAction(tr("Open Net&work..."), this);
+    openUriAct->setStatusTip(tr("Download and open a remote document (URI)"));
     openUriAct->setObjectName("openURI");
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
@@ -1147,7 +1148,7 @@ void Window::createActions()
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
-    renderToFileAct = new QAction(tr("Render to files..."), this);
+    renderToFileAct = new QAction(tr("&Render to files..."), this);
     renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
     renderToFileAct->setObjectName("renderToFile");
     connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
@@ -1366,8 +1367,9 @@ void Window::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
-    fileMenu->addAction(newDocAct);
     fileMenu->addAction(newAct);
+    fileMenu->addAction(newDocAct);
+    fileMenu->addSeparator();
     fileMenu->addAction(openAct);
 #ifndef CFG_NOGIT
     fileMenu->addAction(openUriAct);

@@ -7,7 +7,7 @@
 !include "MUI.nsh"
 
 ; The name of the installer
-Name "Tao"
+Name "Tao Presentations"
 
 ; The file to write
 !ifndef OUTFILE
@@ -16,11 +16,11 @@ Name "Tao"
 OutFile ${OUTFILE}
 
 ; The default installation directory
-InstallDir $PROGRAMFILES\Taodyne\Tao
+InstallDir "$PROGRAMFILES\Taodyne\Tao Presentations"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Taodyne\Tao" "Install_Dir"
+InstallDirRegKey HKLM "Software\Taodyne\Tao Presentations" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -65,7 +65,7 @@ RequestExecutionLevel admin
 
 ; Installer sections
 
-Section "Tao (required)"
+Section "Tao Presentations (required)"
 
   SectionIn RO
   
@@ -76,15 +76,15 @@ Section "Tao (required)"
   File /r "build_root\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM SOFTWARE\Taodyne\Tao "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\Taodyne\Tao Presentations" "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "DisplayName" "Tao"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "DisplayIcon" "$INSTDIR\\Tao.exe,0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "Publisher" "Taodyne"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayName" "Tao Presentations"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayIcon" "$INSTDIR\\Tao.exe,0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "Publisher" "Taodyne"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
 SectionEnd
@@ -93,8 +93,8 @@ SectionEnd
 Section "Start Menu Shortcuts"
 
   SetShellVarContext all
-  CreateDirectory "$SMPROGRAMS\Tao"
-  CreateShortCut "$SMPROGRAMS\Tao\Tao.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
+  CreateDirectory "$SMPROGRAMS\Tao Presentations"
+  CreateShortCut "$SMPROGRAMS\Tao Presentations\Tao Presentations.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
   
 SectionEnd
 
@@ -168,8 +168,8 @@ Section "Uninstall"
   call un.RefreshShellIcons
 
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao"
-  DeleteRegKey HKLM SOFTWARE\Taodyne\Tao
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations"
+  DeleteRegKey HKLM "SOFTWARE\Taodyne\Tao Presentations"
 
   ; Remove application files and uninstaller
   Delete $INSTDIR\*.*
@@ -185,8 +185,8 @@ Section "Uninstall"
 
   ; Remove shortcuts
   SetShellVarContext all
-  Delete "$SMPROGRAMS\Tao\*.*"
-  RMDir  "$SMPROGRAMS\Tao"
+  Delete "$SMPROGRAMS\Tao Presentations\*.*"
+  RMDir  "$SMPROGRAMS\Tao Presentations"
 
   ; Remove installtion directory if empty (should be)
   RMDir "$INSTDIR"

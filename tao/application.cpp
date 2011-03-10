@@ -72,7 +72,7 @@ Application::Application(int & argc, char ** argv)
       moduleManager(NULL), doNotEnterEventLoop(false)
 {
     // Set some useful parameters for the application
-    setApplicationName ("Tao");
+    setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));

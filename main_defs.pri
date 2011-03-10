@@ -13,8 +13,8 @@
 
 INSTROOT = $$PWD/install
 macx {
-APPINST = $$INSTROOT/Tao.app/Contents/MacOS
-LIBINST = $$INSTROOT/Tao.app/Contents/Frameworks
+APPINST = "$$INSTROOT/Tao Presentations.app/Contents/MacOS"
+LIBINST = "$$INSTROOT/Tao Presentations.app/Contents/Frameworks"
 } else {
 APPINST = $$INSTROOT
 LIBINST = $$INSTROOT

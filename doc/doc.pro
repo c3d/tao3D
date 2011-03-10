@@ -38,7 +38,7 @@ equals(HAS_DOXYGEN, true) {
   clean.commands = /bin/rm -rf html/ qch/
 
   install.target = install
-  install.commands = mkdir -p $$APPINST/doc ; cp -R html $$APPINST/doc/
+  install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
   install.depends = dox
 
   QMAKE_EXTRA_TARGETS += dox cp_examples install clean

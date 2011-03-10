@@ -8924,6 +8924,15 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 //    Insert at the end of page or program
 // ----------------------------------------------------------------------------
 {
+    Window *window = (Window *) parentWidget();
+    if (window->isReadOnly)
+    {
+        QMessageBox::warning(this, tr("Insert"),
+                             tr("Current document is read-only. Use "
+                                "\"Save as...\" to make a modifiable copy."));
+        return XL::xl_false;
+    }
+
     // For 'insert { statement; }', we don't want the { } block
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;

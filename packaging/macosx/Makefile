@@ -1,7 +1,7 @@
 # Makefile to build a MacOSX installer (.dmg)
 #
 # The application is distributed as a disk image (.dmg) which
-# contains an application bundle (Tao.app) with:
+# contains an application bundle (Tao Presentations.app) with:
 #   - The Tao exectuables
 #   - The Qt libraries, distributed as Frameworks
 #   - Git binaries (downloaded and built by this Makefile)
@@ -53,7 +53,9 @@ GIT_VERSION=1.7.2.2
 ########
 
 INSTROOT=$(shell pwd)/../../install
-GIT_INSTALL_PREFIX=$(shell pwd)/build_root/Tao.app/Contents/MacOS/git
+GIT_INSTALL_PREFIX=$(shell pwd)/build_root/git
+# GIT_INSTALL_PREFIX can't contain spaces
+GIT_DEST=$(shell pwd)/build_root/Tao Presentations.app/Contents/MacOS/git
 
 tao.dmg: tmp.dmg
 	rm -f $@
@@ -98,7 +100,7 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 # This is not a problem, the lib is in Tao.app/Contents/Framework
 .tao_install_deps_ts: .tao_install_prog_ts
 	@echo "Note: the message 'ERROR: no file at "/usr/lib/libxlr.1.dylib"' has no consequence"
-	macdeployqt build_root/Tao.app
+	macdeployqt "build_root/Tao Presentations.app"
 
 clean.tao_install_deps:
 	rm -f .tao_install_deps_ts
@@ -112,7 +114,7 @@ clean.tao_install_deps:
 	cp -Rp $(INSTROOT)/* build_root
 
 clean.tao_install_prog:
-	rm -rf build_root/Tao.app
+	rm -rf "build_root/Tao Presentations".app
 	rm -f .tao_install_prog_ts
 
 ########
@@ -124,10 +126,13 @@ clean.tao: clean.tao_install
 
 .git_install_ts: .git_build_ts
 	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) install
+	mkdir -p "$(GIT_DEST)"
+	mv $(GIT_INSTALL_PREFIX)/* "$(GIT_DEST)"
+	rm -rf $(GIT_INSTALL_PREFIX)
 	touch $@
 
 clean.git_install:
-	rm -rf $(GIT_INSTALL_PREFIX)
+	rm -rf $(GIT_INSTALL_PREFIX) "$(GIT_DEST)"
 	rm -f .git_install_ts
 
 ########

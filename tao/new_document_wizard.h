@@ -89,10 +89,6 @@ private:
     QLineEdit *docNameLineEdit;
     QLineEdit *docLocationLineEdit;
     QPushButton *docLocationChooseButton;
-    QGroupBox *groupBox;
-    QCheckBox *copyImagesCheckBox;
-    QCheckBox *embedFontsCheckBox;
-    QCheckBox *copyTemplateImagesCheckBox;
 };
 
 }

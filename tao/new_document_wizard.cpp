@@ -159,23 +159,8 @@ DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
     QObject::connect(docLocationChooseButton, SIGNAL(clicked()),
                      this,  SLOT(chooseLocation()));
 
-    groupBox = new QGroupBox(tr("&Options"), this);
-
-    copyImagesCheckBox = new QCheckBox(tr("&Copy images into document"), this);
-    embedFontsCheckBox = new QCheckBox(tr("Embed &fonts into document"), this);
-    copyTemplateImagesCheckBox = new QCheckBox(tr("Copy &template images into document"), this);
-
     registerField("docName*", docNameLineEdit);
     registerField("docLocation*", docLocationLineEdit);
-    registerField("copyImages", copyImagesCheckBox);
-    registerField("embedFonts", embedFontsCheckBox);
-    registerField("copyTemplateImages", copyTemplateImagesCheckBox);
-
-    QVBoxLayout *groupBoxLayout = new QVBoxLayout(this);
-    groupBoxLayout->addWidget(copyImagesCheckBox);
-    groupBoxLayout->addWidget(embedFontsCheckBox);
-    groupBoxLayout->addWidget(copyTemplateImagesCheckBox);
-    groupBox->setLayout(groupBoxLayout);
 
     QGridLayout *layout = new QGridLayout(this);
     layout->addWidget(docNameLabel, 0, 0, Qt::AlignRight);
@@ -183,7 +168,6 @@ DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
     layout->addWidget(docLocationLabel, 1, 0, Qt::AlignRight);
     layout->addWidget(docLocationLineEdit, 1, 1);
     layout->addWidget(docLocationChooseButton, 1, 2);
-    layout->addWidget(groupBox, 2, 0, 1, 3);
     setLayout(layout);
 }
 

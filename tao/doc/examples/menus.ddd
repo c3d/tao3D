@@ -1,0 +1,9 @@
+// menus.ddd
+
+menubar
+menu "mymenu:1", "My Menu"
+menu_item "mymenu:1.1", "Select me",
+    writeln 'Menu "Select me" was selected'
+submenu "menu:1.2", "Submenu"
+menu_item "menu:1.2.1", "Toggle me", "", true, "false",
+    writeln 'Menu "Toggle me" selected'

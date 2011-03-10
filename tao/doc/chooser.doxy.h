@@ -21,24 +21,9 @@
  * The same primitives are used by Tao to display the main application
  * menu (when you press the escape key).
  *
- * Let's illustrate this with an example.
- @verbatim
-// chooser.ddd
-
-animal_chooser ->
-    chooser "Select an animal"
-    chooser_choice "A dog", { writeln "Bark! Bark!" }
-    chooser_choice "A cat", { writeln "Meowww..." }
-    chooser_commands "wild_animal_", "(Wild) "
-
-wild_animal_A_lion ->
-    writeln "Roarrr!"
-
-wild_animal_A_tiger ->
-    writeln "Growl!"
-
-key "a" -> animal_chooser
- @endverbatim
+ * Let's illustrate this with an example,
+ * (<a href="examples/chooser.ddd">chooser.ddd</a>).
+ * @include chooser.ddd
  *
  * The first picture shows the command chooser as the user has just pressed
  * the "a" key to show the manu. The second one show the updated command list
@@ -61,8 +46,8 @@ tree chooser(text caption);
 
 /**
  * Adds a command into the current chooser.
- * Creates a chooser item, associates the @a action code block to the item,
- * and appends a new line to the current chooser list. @a action is
+ * Creates a chooser item, associates the @p action code block to the item,
+ * and appends a new line to the current chooser list. @p action is
  * executed when the user presses the return key on a highlighted command.
  */
 tree chooser_item(text label, code action);
@@ -73,9 +58,9 @@ tree chooser_item(text label, code action);
  * All the commands in the current symbol table that have the given prefix are
  * added to the chooser.
  * The current symbol table is scanned, and each time a parameterless function
- * starting with @a prefix is found, a new command is added to the current
+ * starting with @p prefix is found, a new command is added to the current
  * chooser. The label of the command is the concatenation of:
- *    @li @a label_prefix, and
+ *    @li @p label_prefix, and
  *    @li the end of the symbol name, with all underscores changed into spaces.
  *
  * When a command is chosen, the associated action is executed.
@@ -88,7 +73,7 @@ tree chooser_commands(text prefix, text label_prefix);
  * select a page from the current document, and execute an action related to
  * this page. The page table is scanned, and for each page a new command is added
  * into the current chooser. The label of the command is the concatenation of:
- *    @li @a label_prefix,
+ *    @li @p label_prefix,
  *    @li the page number,
  *    @li a space character, and
  *    @li the page name.

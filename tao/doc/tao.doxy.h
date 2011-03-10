@@ -45,8 +45,6 @@
  * that you must use to describe your document. They are further divided into
  * categories as shown above.
  *
- * @todo Group Widgets not yet documented because test program does not work
- *       on interp branch
  * @todo Document movie / movie_texture?
  * @todo Document GL shader primitives?
  * @todo Document Git-related primitives (branch/commit chooser commands and

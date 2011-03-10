@@ -1,0 +1,358 @@
+
+line_color "tao_orange" -> line_color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+color "tao_yellow" -> color "#EEAA11" 
+color "tao_orange" -> color "#DD3311" 
+delta -> 10 
+
+axes -> 
+    line_width 2 
+    line_color "tao_yellow" 
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to -150, 0 
+        line_to 150, 0 
+
+    locally 
+        translatex 150 
+        text "X" 
+
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to 0, -150 
+        line_to 0, 150 
+
+    locally 
+        translatey 150 
+        text "Y" 
+
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    locally 
+        translate 10, 15, 0 
+        text "(x, y)" 
+
+width_and_height x, y, w, h -> 
+    // Width 
+    line_arrow x - w / 2, y - h / 2 - delta, ARROWHEAD, x + w / 2, y - h / 2 - delta, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate x + w / 2 - 30, y - h / 2 - delta - 15, 0 
+        text "Width" 
+    // Height
+    line_arrow x - w / 2 - delta, y + h / 2, ARROWHEAD, x - w / 2 - delta, y - h / 2, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate x - w / 2 - delta - 45, y + h / 2 - 15, 0 
+        text "Height" 
+
+bisector_and_radius x, y, w, h, r -> 
+    // Bisector for corner radius localization
+    line_color "tao_yellow" 
+    line x + w / 2 - 30, y + h / 2 - 30, x + w / 2 + 30, y + h / 2 + 30 
+    locally 
+        line_color "font" 
+        color "tao_yellow" 
+        translate x + w / 2 + 30, y + h / 2, 0 
+        text "bisector" 
+    // Corner radius
+    line_color "black" 
+    line_arrow x + w / 2 - r, y + h / 2 - r, ARROWHEAD, x + w / 2 - r, y + h / 2, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate x + w / 2 - r - 10, y + h / 2 + delta, 0 
+        text "radius" 
+
+font_size 14 
+line_width 1 
+
+page "rectangle", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    rectangle 0, 0, 100, 200 
+    axes 
+    width_and_height 0, 0, 100, 200 
+
+page "rounded_rectangle", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    rect_x -> 0 
+    rect_y -> 0 
+    rect_w -> 100 
+    rect_h -> 200 
+    rect_r -> 25 
+    rounded_rectangle rect_x, rect_y, rect_w, rect_h, rect_r 
+    axes 
+    line_color "black" 
+    width_and_height rect_x, rect_y, rect_w, rect_h 
+    bisector_and_radius rect_x, rect_y, rect_w, rect_h, rect_r 
+
+page "elliptical_rectangle", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    ell_rect_x -> 0 
+    ell_rect_y -> 0 
+    ell_rect_w -> 100 
+    ell_rect_h -> 200 
+    ell_rect_r -> 50% 
+    elliptical_rectangle ell_rect_x, ell_rect_y, ell_rect_w, ell_rect_h, ell_rect_r 
+    axes 
+    line_color "black" 
+    width_and_height ell_rect_x, ell_rect_y, ell_rect_w, ell_rect_h 
+
+page "ellipse", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    ellipse_x -> 0 
+    ellipse_y -> 0 
+    ellipse_w -> 100 
+    ellipse_h -> 200 
+    ellipse ellipse_x, ellipse_y, ellipse_w, ellipse_h 
+    axes 
+    line_color "black" 
+    width_and_height ellipse_x, ellipse_y, ellipse_w, ellipse_h 
+
+page "ellipse_arc", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    ellipsea_x -> 0 
+    ellipsea_y -> 0 
+    ellipsea_w -> 200 
+    ellipsea_h -> 290 
+    ellipsea_start -> 20 
+    ellipsea_sweep -> 135 
+    ellipse_arc ellipsea_x, ellipsea_y, ellipsea_w, ellipsea_h, ellipsea_start, ellipsea_sweep 
+    axes 
+    line_color "black" 
+    width_and_height ellipsea_x, ellipsea_y, ellipsea_w, ellipsea_h 
+
+    // Start angle
+    color "transparent" 
+    path 
+        move_to 61, 0 
+        endpoints_style BAR, ARROWHEAD 
+        quad_to 68, 17, 57, 30 
+
+    locally 
+        line_color "font" 
+        color "font" 
+        translate 70, 17, 0 
+        text "start angle" 
+
+    // Sweep angle
+    path 
+        move_to 68, 38 
+        endpoints_style BAR, ARROWHEAD 
+        quad_to 4, 105, -57, 41 
+
+    locally 
+        line_color "font" 
+        color "font" 
+        translate -80, 73, 0 
+        text "sweep angle" 
+
+page "isocel_triangle", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    tri_x -> 0 
+    tri_y -> 0 
+    tri_w -> 150 
+    tri_h -> 200 
+    triangle tri_x, tri_y, tri_w, tri_h 
+    axes 
+    line_color "black" 
+    width_and_height tri_x, tri_y, tri_w, tri_h 
+
+page "right_triangle", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    rtri_x -> 0 
+    rtri_y -> 0 
+    rtri_w -> 150 
+    rtri_h -> 200 
+    right_triangle rtri_x, rtri_y, rtri_w, rtri_h 
+    axes 
+    line_color "black" 
+    width_and_height rtri_x, rtri_y, rtri_w, rtri_h 
+
+page "arrow", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    arrow_x -> 0 
+    arrow_y -> 0 
+    arrow_w -> 250 
+    arrow_h -> 200 
+    arrow_head -> 60 
+    arrow_body -> 50% 
+    arrow arrow_x, arrow_y, arrow_w, arrow_h, arrow_head, arrow_body 
+    axes 
+    line_color "black" 
+    width_and_height arrow_x, arrow_y, arrow_w, arrow_h 
+
+    line_arrow arrow_x + arrow_w / 2, 0, ARROWHEAD, arrow_x + arrow_w / 2 - arrow_head, 0, ARROWHEAD 
+    line_color "tao_yellow" 
+    line arrow_x + arrow_w / 2 - arrow_head, -140, arrow_x + arrow_w / 2 - arrow_head, 140 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate 80, 8, 0 
+        text "head" 
+
+    line_color "black" 
+    line_arrow -100, arrow_x - (arrow_h * arrow_body) / 2, ARROWHEAD, -100, arrow_x + (arrow_h * arrow_body) / 2, ARROWHEAD 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate -80, -50, 0 
+        rotatez 90 
+        text "bodyRatio * Height" 
+
+page "double_arrow", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    darrow_x -> 0 
+    darrow_y -> 0 
+    darrow_w -> 250 
+    darrow_h -> 200 
+    darrow_head -> 60 
+    darrow_body -> 50% 
+    double_arrow darrow_x, darrow_y, darrow_w, darrow_h, darrow_head, darrow_body 
+    axes 
+    line_color "black" 
+    width_and_height darrow_x, darrow_y, darrow_w, darrow_h 
+
+    line_arrow darrow_x + darrow_w / 2, 0, ARROWHEAD, darrow_x + darrow_w / 2 - darrow_head, 0, ARROWHEAD 
+    line_color "tao_yellow" 
+    line darrow_x + darrow_w / 2 - darrow_head, -140, darrow_x + darrow_w / 2 - darrow_head, 140 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate 80, 8, 0 
+        text "head" 
+
+    line_color "black" 
+    line_arrow -100, darrow_x - (darrow_h * darrow_body) / 2, ARROWHEAD, -100, darrow_x + (darrow_h * darrow_body) / 2, ARROWHEAD 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate -80, -50, 0 
+        rotatez 90 
+        text "bodyRatio * Height" 
+
+page "star", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    star_x -> 0 
+    star_y -> 0 
+    star_w -> 250 
+    star_h -> 200 
+    star_vertex -> 8 
+    star_ratio -> 50% 
+    star star_x, star_y, star_w, star_h, star_vertex, star_ratio 
+    axes 
+    line_color "black" 
+    width_and_height star_x, star_y, star_w, star_h 
+    line_arrow 0, 0, ARROWHEAD, -23, -45, ARROWHEAD 
+    locally 
+        rotatez 58 
+        line_color "transparent" 
+        color "black" 
+        translate -45, 0, 0 
+        text "r * " 
+        color "tao_yellow" 
+        text "L" 
+    line_color "tao_yellow" 
+    line_width 1.5 
+
+    shape 
+        line_arrow 0, 0, ARROWHEAD, -89, 71, ARROWHEAD 
+    locally 
+        line_color "transparent" 
+        color "tao_yellow" 
+        rotatez -42 
+        translate -60, 0, 0 
+        text "L" 
+
+
+page "star_polygon", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    starp_x -> 0 
+    starp_y -> 0 
+    starp_w -> 250 
+    starp_h -> 200 
+    starp_vertex -> 16 
+    starp_skip -> 6 
+    star_polygon starp_x, starp_y, starp_w, starp_h, starp_vertex, starp_skip 
+    axes 
+    line_color "black" 
+    width_and_height starp_x, starp_y, starp_w, starp_h 
+    line_color "tao_yellow" 
+    color "transparent" 
+    line 0, 100, 89, -73 
+    color "black" 
+    point 48, 90, 1, 5 
+    point 87, 68, 1, 5 
+    point 112, 37, 1, 5 
+    point 125, 0, 1, 5 
+    point 113, -37, 1, 5 
+    point 88, -70, 1, 5 
+
+page "speech_balloon", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    balloon_x -> 0 
+    balloon_y -> 0 
+    balloon_w -> 200 
+    balloon_h -> 100 
+    balloon_r -> 25 
+    balloon_ax -> 35 
+    balloon_ay -> -130 
+    speech_balloon balloon_x, balloon_y, balloon_w, balloon_h, balloon_r, balloon_ax, balloon_ay 
+    axes 
+    line_color "black" 
+    width_and_height balloon_x, balloon_y, balloon_w, balloon_h 
+    bisector_and_radius balloon_x, balloon_y, balloon_w, balloon_h, balloon_r 
+    point balloon_ax, balloon_ay, 0, 5 
+    locally 
+        color "font" 
+        line_color "font" 
+        translate balloon_ax + delta, balloon_ay - delta, 0 
+        text "(ax, ay)" 
+
+page "callout", 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    callout_x -> 0 
+    callout_y -> 0 
+    callout_w -> 200 
+    callout_h -> 100 
+    callout_r -> 25 
+    callout_ax -> -55 
+    callout_ay -> 130 
+    callout_tw -> 25 
+    callout callout_x, callout_y, callout_w, callout_h, callout_r, callout_ax, callout_ay, callout_tw 
+    axes 
+    line_color "black" 
+    width_and_height callout_x, callout_y, callout_w, callout_h 
+    bisector_and_radius callout_x, callout_y, callout_w, callout_h, callout_r 
+    point callout_ax, callout_ay, 0, 5 
+    locally 
+        color "font" 
+        line_color "font" 
+        translate callout_ax + delta, callout_ay, 0 
+        text "(ax, ay)" 
+
+    // tip width
+    line_arrow callout_x + callout_ax - callout_tw / 2, callout_y + callout_h / 2, ARROWHEAD, callout_x + callout_ax + callout_tw / 2, callout_y + callout_h / 2, ARROWHEAD 
+
+    locally 
+        color "font" 
+        line_color "font" 
+        translate callout_x + callout_ax - callout_tw / 2, callout_y + callout_h / 2 - 15, 0 
+        text "tip width" 

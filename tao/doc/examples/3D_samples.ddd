@@ -1,0 +1,84 @@
+line_color "tao_orange" -> line_color "#DD3311"
+line_color "tao_yellow" -> line_color "#EEAA11"
+color "tao_yellow" -> color "#EEAA11", 0.2 
+
+axes -> 
+    line_width 2 
+    line_color "tao_orange" 
+    path 
+        endpoints_style NONE, ARROWHEAD
+        move_to -200, 0, 0
+        line_to 200, 0, 0
+
+    locally
+        translatex 200 
+        text "X"
+
+    path 
+        endpoints_style NONE, ARROWHEAD
+        move_to 0, -200, 0 
+        line_to 0, 200, 0 
+
+    locally
+        translatey 200 
+        text "Y"
+
+    path
+        endpoints_style NONE, ARROWHEAD
+        move_to 0,0,-200
+        line_to 0,0, 200
+    
+    locally
+        translatez 200
+        text "Z"
+
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    locally
+        translate 10, 15, 0
+        text "(x, y, z)" 
+
+
+line_width 1
+
+page "spere",
+    rotatex -45
+    rotatey 25
+    axes
+    color "tao_yellow"
+    line_color "tao_orange"
+    sphere 0, 0, 0, 250, 250, 250, 40, 40
+
+page "cone",
+    rotatex -45
+    rotatey 25
+    axes
+    color "tao_yellow"
+    line_color "tao_orange"
+    cone 0, 0, 0, 250, 200, 200
+ 
+page "truncated cone",
+    rotatex -45
+    rotatey 25
+    axes
+    color "tao_yellow"
+    line_color "tao_orange"
+    truncated_cone 0, 0, 0, 250, 200, 200, 50%
+ 
+page "cylinder",
+    rotatex -45
+    rotatey 25
+    axes
+    color "tao_yellow"
+    line_color "tao_orange"
+    cylinder 0, 0, 0, 150, 150, 200
+ 
+page "cube",
+    rotatex -45
+    rotatey 25
+    axes
+    color "tao_yellow"
+    line_color "tao_orange"
+    cube 0, 0, 0, 250, 150, 150

@@ -10,7 +10,7 @@
 /**
  * List full paths of files that match the given pattern.
  *
- * @a pattern is interpreted as a so-called "glob pattern". The forward
+ * @p pattern is interpreted as a so-called "glob pattern". The forward
  * slash characters (@c /) should be used to denote subdirectories.
  * Only regular files are considered: directories and symbolic links that
  * match the pattern will not be retained by the primitive. The paths
@@ -26,7 +26,7 @@
  * <tt>images/1.jpg</tt>, <tt>images/1a.jpg</tt> ands
  * <tt>images/10b.JPG</tt>, but not <tt>images/a.jpg</tt>.
  *
- * If @a pattern does not start with a slash (that is, if it is not an
+ * If @p pattern does not start with a slash (that is, if it is not an
  * absolute path), then pattern will be matched relative to the directory
  * of the current file.
  *
@@ -43,6 +43,12 @@ tree files(text pattern);
  * @deprecated Same as @ref files.
  */
 tree list_files(text pattern);
+
+/**
+ * Loads text from a file.
+ * Returns a text string that is the contents of the file.
+ */
+text load_text(text path);
 
 /**
  * @}

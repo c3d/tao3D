@@ -1,6 +1,6 @@
 /**
- * @addtogroup Lighting3D 3D lighting
- * @ingroup Graphics3D
+ * @addtogroup Lighting
+ * @ingroup Graphics
  *
  * Controls the lighting of the 3D scene.
  *
@@ -19,7 +19,7 @@
  * (layouts are created with @c locally or @c shape).
  * Therefore, the following code will
  * draw one orange rectangle and one yellow rectangle, as expected:
- @verbatim
+ @code
 locally
     // Red light (diffuse)
     light 0
@@ -33,7 +33,7 @@ locally
 // Regular color model, no lighting
 color "yellow"
 rectangle 100, 0, 150, 100
- @endverbatim
+ @endcode
  *
  * Without the <tt>locally</tt> call (for instance, if you replace
  * <tt>'locally'</tt> with <tt>'if true then'</tt>),
@@ -48,56 +48,25 @@ rectangle 100, 0, 150, 100
  * explicitely (by calling one of the <tt>material_*</tt> functions),
  * the current color will be considered as a "front and back, ambient
  * and diffuse" material. That is, the following code:
- @verbatim
+ @code
 // Yellow
 color 1, 1, 0, 1
- @endverbatim
+ @endcode
  * ...is equivalent to:
- @verbatim
+ @code
 // Yellow
 material_ambient 1, 1, 0, 1
 material_diffuse 1, 1, 0, 1
- @endverbatim
+ @endcode
  *
  * @par Example
  *
- * The following code draws a white sphere and creates three colored lights:
+ * The following code (<a href="examples/lighting.ddd">lighting.ddd</a>) draws
+ * a white sphere and creates three colored lights:
  * one red, one green and one blue. Each light rotates around the sphere, so
  * that you can see how lights blend into smooth colors gradients onto the
  * sphere.
- @verbatim
-// lighting.ddd
-
-clear_color 0, 0, 0, 0
-
-create_light id, x, y, z, dr, dg, db ->
-    light id
-    light_ambient 0, 0, 0, 1
-    light_diffuse dr, dg, db, 1
-    light_position x, y, z
-
-red_light x, y, z -> create_light 0, x, y, z, 1, 0, 0
-green_light x, y, z -> create_light 1, x, y, z, 0, 1, 0
-blue_light x, y, z -> create_light 2, x, y, z, 0, 0, 1
-
-white_sphere r ->
-    // Note: material_ambient is visible due to the default
-    // OpenGL global ambient light (0.2, 0.2, 0.2, 1.0)
-    material_ambient 0.3, 0.3, 0.3, 1
-    material_diffuse 1.0, 1.0, 1.0, 1.0
-    slices := 50
-    sphere 0, 0, 0, r, r, r, slices, slices
-
-draw_scene ->
-    d := window_height
-    t := time
-    red_light d * sin t, d * cos t, d
-    green_light d * sin ( -t + 120) , d * cos ( -t + 120) , d
-    blue_light 0, d * sin t, d * cos t
-    white_sphere d * 60%
-
-draw_scene
- @endverbatim
+ * @include lighting.ddd
  *
  * @image html lighting.png "Lighting demo: lighting.ddd"
  * @{
@@ -105,7 +74,7 @@ draw_scene
 
 /**
  * Switch a light on or off and make it the current light.
- * @a id is an integer between 0 and the maximum number of lights minus 1.
+ * @p id is an integer between 0 and the maximum number of lights minus 1.
  * The number of lights depends on the OpenGL implementation, but at least
  * eight lights are supported.
  * When the primitive returns, the light is the current light for the

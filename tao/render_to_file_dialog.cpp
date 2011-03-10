@@ -99,8 +99,6 @@ void RenderToFileDialog::accept()
             return;
         }
     }
-    TaoApp->addPathCompletion(folder);
-    QSettings().setValue("renderToFolder", folder);
 
     // Read other values
     x = xResolution->text().toInt();
@@ -110,8 +108,10 @@ void RenderToFileDialog::accept()
     fps = fpsEdit->text().toDouble();
 
     // Save values
+    TaoApp->addPathCompletion(folder);
     QSettings settings;
     settings.beginGroup("renderToFiles");
+    settings.setValue("folder", folder);
     settings.setValue("x", x);
     settings.setValue("y", y);
     settings.setValue("start", start);

@@ -14,24 +14,32 @@
 TEMPLATE = subdirs
 
 
-macx {
+system(bash -c \"doxygen --version >/dev/null 2>&1\"):HAS_DOXYGEN=true
+
+equals(HAS_DOXYGEN, true) {
 
   include (../version.pri)
 
   QMAKE_SUBSTITUTES = Doxyfile.in 
 
   include (../modules/module_list.pri)
-  MOD_PATHS=$$join(MODULES, " ../modules/", "../modules/")
+  MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   dox.target = doc
   dox.commands = doxygen 
+  dox.depends = cp_examples
+
+  cp_examples.target = examples
+  cp_examples.commands = mkdir -p html/examples ; \
+                         cp ../tao/doc/examples/*.ddd html/examples/ ; \
+                         for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ ; done
 
   clean.commands = /bin/rm -rf html/ qch/
 
-  QMAKE_EXTRA_TARGETS += dox clean
+  QMAKE_EXTRA_TARGETS += dox cp_examples clean
 
 } else {
 
-  message("Documentation is only build on MacOSX systems.
+  warning(doxygen not found - will not build online documentation)
 
 }

@@ -1714,6 +1714,11 @@ void Widget::setup(double w, double h, const Box *picking)
 //   Setup an initial environment for drawing
 // ----------------------------------------------------------------------------
 {
+#define ROUND(x, r) (x - fmod(x, r))
+    // #806 Rendering artifacts when window is resized (1 px)
+    w = ROUND(w, 2);
+    h = ROUND(h, 2);
+
     // Setup viewport
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
@@ -6150,7 +6155,8 @@ Tree_p Widget::ellipseArc(Tree_p self,
 //   Circular sector centered around (cx,cy)
 // ----------------------------------------------------------------------------
 {
-    EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), start, sweep);
+    // start and sweep must be provided upsidedown because of y flip. See Bug#787
+    EllipseArc shape(Box(cx-w/2, cy-h/2, w, h), -start, -sweep);
     if (path)
         shape.Draw(*path);
     else

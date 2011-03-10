@@ -9,6 +9,8 @@
  * library. For instance, @c line_edit creates a QLineEdit object,
  * @c push_button uses QPushButton, and so on.
  *
+ * @todo Group Widgets not yet documented because test program does not work
+ *       on interp branch
  * @{
  */
 

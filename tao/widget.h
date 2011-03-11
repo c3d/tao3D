@@ -643,7 +643,8 @@ public:
     Tree_p      imagePx(Context *context,
                         Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                         text filename);
-    Infix_p     imageSize(Tree_p self, text filename);
+    Infix_p     imageSize(Context *context,
+                          Tree_p self, text filename);
 
     // Menus and widgets
     Tree_p      chooser(Context *, Tree_p self, text caption);

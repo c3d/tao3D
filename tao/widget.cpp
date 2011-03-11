@@ -5484,7 +5484,7 @@ Tree_p Widget::imagePx(Context *context,
 //  Make an image
 //----------------------------------------------------------------------------
 {
-    Infix_p resolution = imageSize(self, filename);
+    Infix_p resolution = imageSize(context, self, filename);
     Integer_p ww = resolution->left->AsInteger();
     Integer_p hh = resolution->right->AsInteger();
     double sx = (double)w / (double)ww;
@@ -5494,11 +5494,15 @@ Tree_p Widget::imagePx(Context *context,
 }
 
 
-Infix_p Widget::imageSize(Tree_p self, text filename)
+Infix_p Widget::imageSize(Context *context,
+                          Tree_p self, text filename)
 //----------------------------------------------------------------------------
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
+    GLuint w = 0, h = 0;
+    filename = context->stack->ResolvePrefixedPath(filename);
+
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
@@ -5506,8 +5510,12 @@ Infix_p Widget::imageSize(Tree_p self, text filename)
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     ImageTextureInfo::Texture t = rinfo->load(filename);
+    if (t.id != ImageTextureInfo::defaultTexture().id)
+    {
+        w = t.width; h = t.height;
+    }
 
-    return new Infix(",", new Integer(t.width), new Integer(t.height));
+    return new Infix(",", new Integer(w), new Integer(h));
 }
 
 

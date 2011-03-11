@@ -1,6 +1,6 @@
 # Makefile.sdk: create a sdk/ directory with all the files needed
 # to build Tao modules.
-# The ObjectLoader module is included as an example.
+# The HelloWorld, LoremIpsum and ObjectLoader modules are included as examples.
 #
 
 # Identification of the default build environment
@@ -16,16 +16,34 @@ OBJECT_LOADER_FILES = \
 	modules/object_loader/glc-lib/include \
 	$(shell find modules/object_loader/glc-lib/include)
 
+HELLO_WORLD_FILES = \
+	modules/hello_world \
+	modules/hello_world/hello_world.pro \
+	modules/hello_world/module.xl
+
+LOREM_IPSUM_FILES = \
+	modules/lorem_ipsum \
+	modules/lorem_ipsum/icon.png \
+	modules/lorem_ipsum/lorem_ipsum.cpp \
+	modules/lorem_ipsum/lorem_ipsum.h \
+	modules/lorem_ipsum/lorem_ipsum.pro \
+	modules/lorem_ipsum/lorem_ipsum.tbl \
+	modules/lorem_ipsum/module.xl \
+	modules/lorem_ipsum/traces.tbl
+
 FILES_COMMON = \
 	main.pri \
 	main_defs.pri \
 	modules \
+	modules/README_SDK \
 	modules/modules.pro \
 	modules/modules.pri \
 	modules/modules_defs.pri \
 	modules/module_list.pri \
 	modules/tbl_wrap \
 	$(OBJECT_LOADER_FILES) \
+	$(HELLO_WORLD_FILES) \
+	$(LOREM_IPSUM_FILES) \
 	tao \
 	tao/include \
 	$(shell find tao/include) \
@@ -50,7 +68,7 @@ FILES_mingw = \
 	libxlr \
 	$(NULL)
 
-OTHER_COMMANDS_mingw = $(CP_A) ./install/libxlr.a ./install/xlr.dll $(SDK_ROOT) 
+OTHER_COMMANDS_mingw = $(CP_A) ./install/libxlr.a ./install/xlr.dll $(SDK_ROOT)/libxlr
 
 ####
 
@@ -60,20 +78,17 @@ MKDIR_P = mkdir -p
 CP_A = cp -a
 
 sdk:
-	mkdir -p $(SDK_ROOT)
-	doo() { \
-		echo $$* ; \
-		$$* ; \
-	} ; \
 	set -e ; \
+	mkdir -p $(SDK_ROOT)
 	for i in $(FILES) ; do \
 		if [ -d "$$i" ] ; then \
-			doo $(MKDIR_P) $(SDK_ROOT)/"$$i" ; \
+			$(MKDIR_P) $(SDK_ROOT)/"$$i" ; \
 		else \
-			doo $(CP_A) "$$i" $(SDK_ROOT)/"$$i" ; \
+			$(CP_A) "$$i" $(SDK_ROOT)/"$$i" ; \
 		fi ; \
 	done ; \
-	doo $(OTHER_COMMANDS_$(BUILDENV))
+	tao/updaterev.sh -n > $(SDK_ROOT)/VERSION ; \
+	$(OTHER_COMMANDS_$(BUILDENV))
 
 .PHONY: sdk
 

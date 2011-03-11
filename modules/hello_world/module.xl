@@ -2,7 +2,7 @@
 //
 // This exemple module defines the hello_world primitive
 //
-// Copyright 20010-2011 Taodyne
+// Copyright 2010-2011 Taodyne
 
 module_description
     id "5336423A-4EEE-45E4-9DEF-0A9D936E60A6"
@@ -11,4 +11,4 @@ module_description
     description "A primitive that says hello to the world"
     version "0.1"
 
-// text hello_world
+hello_world -> "Hello, World!"

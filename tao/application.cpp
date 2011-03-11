@@ -725,7 +725,7 @@ QString Application::defaultTaoPreferencesFolderPath()
 #if   defined (CONFIG_LINUX)
     QString tao = "/.tao";
 #else // Win, MacOS
-    QString tao = "/Tao";
+    QString tao = "/Tao Presentations";
 #endif
     return QDir::toNativeSeparators(appDataPath() + tao);
 }

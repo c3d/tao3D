@@ -14,5 +14,6 @@ MODINSTDIR = hello_world
 
 include(../modules.pri)
 
-TBL_SOURCES = hello_world.tbl
-OTHER_FILES = hello_world.tbl module.xl
+OTHER_FILES = module.xl
+
+INSTALLS    -= thismod_bin

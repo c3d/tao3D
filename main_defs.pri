@@ -19,4 +19,3 @@ LIBINST = "$$INSTROOT/Tao Presentations.app/Contents/Frameworks"
 APPINST = $$INSTROOT
 LIBINST = $$INSTROOT
 }
-

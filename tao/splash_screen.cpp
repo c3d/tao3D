@@ -131,13 +131,12 @@ void SplashScreen::drawContents(QPainter *painter)
     int x = 270, y = 230, w = 500, h = 225;
     const char * txt =
             "<font color=\"" TEXT_COLOR "\">"
-            "Brought to you by "
-            "Anne Lempereur, "
+            "by "
             "Catherine Burvelle, "
-            "J\303\251r\303\264me Forissier,<br>"
-            "Lionel Schaffhauser and "
-            "Christophe de Dinechin."
-            "</font>";
+            "J\303\251r\303\264me Forissier and "
+            "Christophe de Dinechin,<br>" 
+            "with help from Anne Lempereur and Lionel Schaffhauser."
+           "</font>";
     QTextDocument doc;
     QRect clip = rect();
     clip.setRect(0, 0, w, h);

@@ -18,7 +18,7 @@ INFIX
         250     and or xor
         260     in at contains
         271     of to
-        280     .. step
+        280     ..
         290     = < > <= >= <>
         300     & |
         310     + -

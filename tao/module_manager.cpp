@@ -723,15 +723,17 @@ struct SetCwd
             ModuleManager::debug() << "    Changing current directory to: "
                                    << +path << "\n";
         }
-        getcwd(wd, sizeof(wd));
-        chdir(path.toStdString().c_str());
+        if (getcwd(wd, sizeof(wd)))
+            if (chdir(path.toStdString().c_str()) < 0)
+                perror("Tao chdir");
     }
     ~SetCwd()
     {
         IFTRACE(modules)
             ModuleManager::debug() << "    Restoring current directory: "
                                    << wd << "\n";
-        chdir(wd);
+        if (chdir(wd) < 0)
+            perror("Tao chdir restore");
     }
 
     char wd[MAXPATHLEN];

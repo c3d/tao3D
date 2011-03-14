@@ -8508,6 +8508,7 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     {
         Window *window = (Window *) current->parentWidget();
         window->addError(+err.Message());
+        err.Display();
     }
     else
     {

@@ -62,7 +62,8 @@ Tree *Renormalize::DoPrefix(Prefix *what)
         }
     }
     return Reselect(what, new Prefix(what->left->Do(this),
-                                     what->right->Do(this)));
+                                     what->right->Do(this),
+                                     what->Position()));
 }
 
 
@@ -72,7 +73,8 @@ Tree *Renormalize::DoPostfix(Postfix *what)
 // ----------------------------------------------------------------------------
 {
     return Reselect(what, new Postfix(what->left->Do(this),
-                                      what->right->Do(this)));
+                                      what->right->Do(this),
+                                      what->Position()));
 }
 
 
@@ -105,8 +107,7 @@ Tree *Renormalize::DoInfix(Infix *what)
                 il->right = NULL;
 
                 // Connect the bottom of what we had on the left
-                last->right = new Infix(what->name,
-                                        last->right, right,
+                last->right = new Infix(what->name, last->right, right,
                                         what->Position());
             }
         }

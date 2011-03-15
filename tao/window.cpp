@@ -344,7 +344,11 @@ void Window::newDocument()
 // ----------------------------------------------------------------------------
 {
     NewDocumentWizard wizard(this);
-    wizard.exec();
+    bool ok = wizard.exec();
+    if (!ok)
+        return;
+    if (wizard.docPath != "")
+        open(wizard.docPath);
 }
 
 
@@ -582,7 +586,7 @@ again:
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
 #ifndef CFG_NOGIT
-    if (XL::MAIN->options.enable_git)
+    if (!RepositoryFactory::no_repo)
         if (!openProject(projpath, fileNameOnly, false))
             return false;
 #endif
@@ -1057,6 +1061,33 @@ void Window::preferences()
 }
 
 
+void Window::onlineDoc()
+// ----------------------------------------------------------------------------
+//    Open the online documentation page
+// ----------------------------------------------------------------------------
+{
+    QString index = QCoreApplication::applicationDirPath()
+                    + "/doc/html/index.html";
+    if (!QFileInfo(index).exists())
+    {
+        QMessageBox::warning(this, tr("Documentation not found"),
+                             tr("Online documentation file was not found."));
+        return;
+    }
+#ifdef Q_OS_WIN
+    // On Windows, index starts with a drive letter, not with a leading
+    // slash. Add one to end up with a valid URI.
+    index = "/" + index;
+#endif
+    index = "file://" + index;
+    bool ok = QDesktopServices::openUrl(index);
+    if (!ok)
+        QMessageBox::warning(this, tr("Online help error"),
+                             tr("Could not open "
+                                "online documentation file:\n%1").arg(index));
+}
+
+
 void Window::documentWasModified()
 // ----------------------------------------------------------------------------
 //   Record when the document was modified
@@ -1075,21 +1106,22 @@ void Window::createActions()
 //   Create the various menus and icons on the toolbar
 // ----------------------------------------------------------------------------
 {
-    newDocAct = new QAction(QIcon(":/images/new.png"), tr("New &Document..."), this);
+    newDocAct = new QAction(QIcon(":/images/new.png"),
+                            tr("New from &Template Chooser..."), this);
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
-    newDocAct->setStatusTip(tr("Create a new document"));
+    newDocAct->setStatusTip(tr("Create a new document from a template"));
     newDocAct->setIconVisibleInMenu(false);
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
 
     newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Create a new file"));
+    newAct->setStatusTip(tr("Open a blank document window"));
     newAct->setIconVisibleInMenu(false);
     newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open File..."),
+    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."),
                           this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
@@ -1098,8 +1130,8 @@ void Window::createActions()
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
 #ifndef CFG_NOGIT
-    openUriAct = new QAction(tr("Open &URI..."), this);
-    openUriAct->setStatusTip(tr("Open an URI"));
+    openUriAct = new QAction(tr("Open Net&work..."), this);
+    openUriAct->setStatusTip(tr("Download and open a remote document (URI)"));
     openUriAct->setObjectName("openURI");
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
@@ -1116,7 +1148,7 @@ void Window::createActions()
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
-    renderToFileAct = new QAction(tr("Render to files..."), this);
+    renderToFileAct = new QAction(tr("&Render to files..."), this);
     renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
     renderToFileAct->setObjectName("renderToFile");
     connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
@@ -1266,6 +1298,11 @@ void Window::createActions()
     preferencesAct->setObjectName("preferences");
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
+    onlineDocAct = new QAction(tr("&Online Documentation"), this);
+    onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
+    onlineDocAct->setObjectName("onlineDoc");
+    connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
+
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
@@ -1330,8 +1367,9 @@ void Window::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
-    fileMenu->addAction(newDocAct);
     fileMenu->addAction(newAct);
+    fileMenu->addAction(newDocAct);
+    fileMenu->addSeparator();
     fileMenu->addAction(openAct);
 #ifndef CFG_NOGIT
     fileMenu->addAction(openUriAct);
@@ -1395,6 +1433,7 @@ void Window::createMenus()
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
+    helpMenu->addAction(onlineDocAct);
 }
 
 
@@ -1614,7 +1653,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QString docPath = QFileInfo(fileName).canonicalPath();
 #ifndef CFG_NOGIT
-    if (XL::MAIN->options.enable_git && openProj &&
+    if (!RepositoryFactory::no_repo && openProj &&
         !openProject(docPath,
                      QFileInfo(fileName).fileName()))
         return false;

@@ -2,22 +2,115 @@ Tao module SDK - Instructions to build the example modules
 ----------------------------------------------------------
 
 
-* MacOSX
+I) Building and installing modules
+   ===============================
 
-0. Install Tao
+ * MacOSX
+   ------
 
-Open tao.dmg, drag and drop Tao onto the Application folder.
+ 0. Prerequisites
 
-1. Build and install a local copy of the modules
+ - Qt 4 (4.7.0 or later).
+ - Tao Presentations (to install: open tao.dmg, drag and drop the Tao
+   Presentations icon onto the Applications folder).
 
-$ cd tao_sdk
-$ qmake modules/modules.pro -recursive -spec macx-g++
-$ (cd modules ; make install)
+ 1. Build and install a local copy of the modules
 
-2. Deploy and test the modules 
+$ cd tao_sdk/modules
+$ qmake -r -spec macx-g++
+$ make install
 
-$ mkdir -p ~/Library/Application\ Support/Tao/modules
-$ cp -R install/Tao.app/Contents/MacOS/modules/* ~/Library/Application\ Support/Tao/modules
+This will copy the modules under your "Application Support" directory:
+"~/Library/Application Support/Tao Presentations/modules".
 
-Start Tao, the new modules will be loaded automatically.
+Start Tao Presentations: the new modules will be detected automatically.
 
+ * Windows (Vista, 7)
+   ------------------
+
+ 0. Prerequisites
+
+ - Qt 4 (4.7 or later).
+ - MinGW
+ - Tao Presentations (to install: run taosetup.exe).
+
+ 1. Build and install a local copy of the modules
+
+In a MinGW shell window:
+
+$ cd tao_sdk/modules
+$ qmake -r -spec win32-g++
+$ make install
+
+This will copy the modules under your "Application Data" directory:
+"%APPDATA%\Tao Presentations\modules".
+
+Start Tao Presentations. The new modules will be detected automatically.
+
+
+II) Uninstalling a module
+    =====================
+
+To uninstall a module, simply delete its installation directory.
+
+
+III) Testing the modules
+     ===================
+
+Create a new .ddd document and import the module you want to test, for example:
+
+// test.ddd
+import HelloWorld "0.1"
+writeln hello_world
+
+
+IV) Adding a new module
+    ===================
+
+To add a new module:
+
+ 1. Make a copy of an example as a starting point. In order of increasing
+   complexity:
+    - hello_world is the simplest module possible. It has no native code; only
+      XL language in module.xl.
+    - lorem_ipsum has some simple native code (new primitives), but no
+      graphics.
+    - object_loader defines new primitives, uses a 3rd party library and makes
+      OpenGL calls.
+ 2. Rename the directory and the project file (.pro). They must have the same
+    name or qmake will complain (if directory is "foo" then project file must
+    be "foo.pro").
+ 3. Edit the file module.xl:
+    - Change the module identifier (id=). Use a Univerally Unique Identifier
+      (UUID) to make sure your module won't conflict with any other Tao module.
+      You may use the uuidgen command.
+    - Change the name, description, import_name, etc.
+ 4. Rename and adapt C++ source files and the .tbl file (if any). Update the
+    .pro accordingly. You can provide your own icon for the module, too.
+ 5. Add your module to the build configuration, either by editing
+    module_list.pri or by running qmake with option "module=+you_module_dir".
+ 6. Build as explained above.
+
+
+V) Troubleshooting
+   ===============
+
+You can check which modules are detected by selecting the Preferences menu
+(Tao Presentations>Preferences on MacOSX, Help>Preferences on Windows). In this
+dialog box you can also disable or enable modules.
+
+Modules from the user's home directory are loaded first, followed by
+modules in the application directory. Therefore, if two modules with the same
+identifier are found under both locations, the user's one is preferred and
+the other one is ignored.
+
+Module debugging can be turned on as follows:
+  - Select the Debug group in the Preferences dialog, click the "modules"
+    checkbox, click "Save". Restart Tao.
+  - Through the command line option: -tmodules
+
+When Tao is started from a command window, the debug traces are sent to the
+standard error output (stderr). Otherwise, the destination of the traces
+depend on the platform:
+  - On Windows, traces are written to %HOMEPATH%\Documents\Tao\tao.log,
+  - On MacOSX, they are visible with the console application.

@@ -157,6 +157,7 @@ private slots:
 #endif
     void about();
     void preferences();
+    void onlineDoc();
     void documentWasModified();
     void checkFiles();
 
@@ -246,6 +247,7 @@ private:
 #endif
     QAction          *aboutAct;
     QAction          *preferencesAct;
+    QAction          *onlineDocAct;
     QAction          *aboutQtAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;

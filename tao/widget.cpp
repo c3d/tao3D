@@ -5495,7 +5495,7 @@ Tree_p Widget::imagePx(Context *context,
 //  Make an image
 //----------------------------------------------------------------------------
 {
-    Infix_p resolution = imageSize(self, filename);
+    Infix_p resolution = imageSize(context, self, filename);
     Integer_p ww = resolution->left->AsInteger();
     Integer_p hh = resolution->right->AsInteger();
     double sx = (double)w / (double)ww;
@@ -5505,11 +5505,15 @@ Tree_p Widget::imagePx(Context *context,
 }
 
 
-Infix_p Widget::imageSize(Tree_p self, text filename)
+Infix_p Widget::imageSize(Context *context,
+                          Tree_p self, text filename)
 //----------------------------------------------------------------------------
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
+    GLuint w = 0, h = 0;
+    filename = context->stack->ResolvePrefixedPath(filename);
+
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
     {
@@ -5517,8 +5521,12 @@ Infix_p Widget::imageSize(Tree_p self, text filename)
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
     ImageTextureInfo::Texture t = rinfo->load(filename);
+    if (t.id != ImageTextureInfo::defaultTexture().id)
+    {
+        w = t.width; h = t.height;
+    }
 
-    return new Infix(",", new Integer(t.width), new Integer(t.height));
+    return new Infix(",", new Integer(w), new Integer(h));
 }
 
 
@@ -8956,6 +8964,15 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 //    Insert at the end of page or program
 // ----------------------------------------------------------------------------
 {
+    Window *window = (Window *) parentWidget();
+    if (window->isReadOnly)
+    {
+        QMessageBox::warning(this, tr("Insert"),
+                             tr("Current document is read-only. Use "
+                                "\"Save as...\" to make a modifiable copy."));
+        return XL::xl_false;
+    }
+
     // For 'insert { statement; }', we don't want the { } block
     if (XL::Block *block = toInsert->AsBlock())
         toInsert = block->child;

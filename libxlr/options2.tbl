@@ -42,13 +42,10 @@ OPTION(print_resolution, "Set printer resolution in DPI",
 OPTVAR(enable_layout_cache, bool, false)
 OPTION(layoutcache, "Enable 'layout cache' optimization", enable_layout_cache = true)
 
-OPTVAR(enable_git, bool, true)
-OPTION(nogit, "Disable Git", enable_git = false)
-
 OPTVAR(rendering_options, text, "-")
 OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder. "
                "Render frames and exit. Single document only.",
        rendering_options = STRING)
 
-
 OPTION(norepo, "Disable GIT repository", ;)
+OPTION(nogit, "Synonym for -norepo", ;)

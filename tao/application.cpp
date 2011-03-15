@@ -72,7 +72,7 @@ Application::Application(int & argc, char ** argv)
       moduleManager(NULL), doNotEnterEventLoop(false)
 {
     // Set some useful parameters for the application
-    setApplicationName ("Tao");
+    setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
@@ -90,7 +90,7 @@ Application::Application(int & argc, char ** argv)
     if (arguments().contains("-nosplash") || arguments().contains("-h"))
         showSplash = false;
 
-    if (arguments().contains("-norepo"))
+    if (arguments().contains("-norepo") || arguments().contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
     // Show splash screen
@@ -728,7 +728,7 @@ QString Application::defaultTaoPreferencesFolderPath()
 #if   defined (CONFIG_LINUX)
     QString tao = "/.tao";
 #else // Win, MacOS
-    QString tao = "/Tao";
+    QString tao = "/Tao Presentations";
 #endif
     return QDir::toNativeSeparators(appDataPath() + tao);
 }

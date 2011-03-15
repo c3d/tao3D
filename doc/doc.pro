@@ -18,6 +18,7 @@ system(bash -c \"doxygen --version >/dev/null 2>&1\"):HAS_DOXYGEN=true
 
 equals(HAS_DOXYGEN, true) {
 
+  include (../main_defs.pri)
   include (../version.pri)
 
   QMAKE_SUBSTITUTES = Doxyfile.in 
@@ -32,11 +33,15 @@ equals(HAS_DOXYGEN, true) {
   cp_examples.target = examples
   cp_examples.commands = mkdir -p html/examples ; \
                          cp ../tao/doc/examples/*.ddd html/examples/ ; \
-                         for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ ; done
+                         for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ 2>/dev/null || : ; done
 
   clean.commands = /bin/rm -rf html/ qch/
 
-  QMAKE_EXTRA_TARGETS += dox cp_examples clean
+  install.target = install
+  install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
+  install.depends = dox
+
+  QMAKE_EXTRA_TARGETS += dox cp_examples install clean
 
 } else {
 

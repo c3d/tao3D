@@ -17,7 +17,8 @@ include(../main.pri)
 include(../version.pri) # required to process Info.plist.in, tao.rc.in
 
 TEMPLATE = app
-TARGET = Tao
+!macx:TARGET =  Tao
+ macx:TARGET = "Tao Presentations"
 INC = . \
     include \
     include/tao \
@@ -38,6 +39,7 @@ QMAKE_CXXFLAGS_RELEASE += -g \
     \$(CXXFLAGS_\$%)
 
 macx {
+    CFBUNDLEEXECUTABLE=$$TARGET
     XLRDIR = Contents/MacOS
     ICON = tao.icns
     FILETYPES.files = tao-doc.icns
@@ -120,7 +122,8 @@ HEADERS += widget.h \
     render_to_file_dialog.h \
     inspectordialog.h \
     raster_text.h \
-    dir.h
+    dir.h \
+    templates.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -176,7 +179,8 @@ SOURCES += tao_main.cpp \
     render_to_file_dialog.cpp \
     inspectordialog.cpp \
     raster_text.cpp \
-    dir.cpp
+    dir.cpp \
+    templates.cpp
 
 # Check compile-time options
 
@@ -331,10 +335,9 @@ macx {
   # part of this block) starts by recursively deleting $$target.path/Tao.app.
   # This is bad since we have previously stored libraries there :(
   app.path    = $$INSTROOT
-  app.extra   = \$(INSTALL_DIR) Tao.app $$INSTROOT
+  app.extra   = \$(INSTALL_DIR) \"$${TARGET}.app\" $$INSTROOT
   INSTALLS   += app
 } else {
   target.path = $$INSTROOT
   INSTALLS   += target
 }
-

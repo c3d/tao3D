@@ -859,7 +859,7 @@ PREFIX(ImagePx,  tree, "image_px",
        DESCRIPTION(""))
 PREFIX(ImageSize,  infix, "image_size",
        PARM(img, text, "File path"),
-       RTAO(imageSize(self, img)),
+       RTAO(imageSize(context, self, img)),
        GROUP()
        SYNOPSIS("Get the size of an image")
        DESCRIPTION("")

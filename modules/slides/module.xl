@@ -10,7 +10,7 @@ module_description
                 "Several graphical themes are defined, and can be further " &
                 "customized (colors, background, layout)."
     import_name "Slides"
-    version "0.1"
+    version "0.2"
 
 
 // Adding this module's images/ directory to the image: search path
@@ -463,40 +463,54 @@ background Theme:text ->
     clear_color 1, 1, 1, 1
 
 
-base_slide T:text, Body ->
+base_slide P:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a slide without a title and story (only the background)
+//    Create a "blank" slide (only the background). P is the page name.
 // ----------------------------------------------------------------------------
-    page T,
+    page P,
         theme_init theme
         background theme
         Body
 
 
-slide T:text, Body ->
+slide P:text, T:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a slide with title and content
+//    Create a slide with page name, title and content
 // ----------------------------------------------------------------------------
-    base_slide T,
+    base_slide P,
         story theme, Body
         title theme, T
 
 
-title_slide T:text, Body ->
+slide T:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a title slide (one unique text area)
+//    Create a slide with title and content. Page name is same as title.
 // ----------------------------------------------------------------------------
-    base_slide T,
+    slide T, T, Body
+
+
+title_slide P:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a title slide (one unique text area) with page name and text
+// ----------------------------------------------------------------------------
+    base_slide P,
         title_story theme, Body
+
+
+title_only_slide P:text, T:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a slide with page name and title only
+// ----------------------------------------------------------------------------
+    base_slide P,
+        title theme, T
+        Body
 
 
 title_only_slide T:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a slide with title only
+//    Create a slide with title only. Page name is same as title.
 // ----------------------------------------------------------------------------
-    base_slide T,
-        title theme, T
-        Body
+    title_only_slide T, T, Body
 
 
 min x:real, y:real              -> if x < y then x else y

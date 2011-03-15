@@ -18,6 +18,7 @@
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
@@ -25,6 +26,7 @@
 #include <QWizard>
 
 #include "tao.h"
+#include "templates.h"
 
 QT_BEGIN_NAMESPACE
 class QCheckBox;
@@ -48,22 +50,23 @@ public:
     void accept();
 
 public:
-    QStringList themeNameList;
+    Templates templates;
+    QString   docPath;
 };
 
 
-class ThemeChooserPage : public QWizardPage
+class TemplateChooserPage : public QWizardPage
 {
     Q_OBJECT
 
 public:
-    ThemeChooserPage(QWidget *parent = 0);
+    TemplateChooserPage(QWidget *parent = 0);
 
 protected:
     void initializePage();
 
 private:
-    QListWidget *themeListWidget;
+    QListWidget *templateListWidget;
 };
 
 
@@ -86,10 +89,6 @@ private:
     QLineEdit *docNameLineEdit;
     QLineEdit *docLocationLineEdit;
     QPushButton *docLocationChooseButton;
-    QGroupBox *groupBox;
-    QCheckBox *copyImagesCheckBox;
-    QCheckBox *embedFontsCheckBox;
-    QCheckBox *copyThemeImagesCheckBox;
 };
 
 }

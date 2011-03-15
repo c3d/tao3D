@@ -11,9 +11,9 @@
 	<key>CFBundleSignature</key>
 	<string>????</string>
 	<key>CFBundleExecutable</key>
-	<string>Tao</string>
+	<string>$$CFBUNDLEEXECUTABLE</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.taodyne.Tao</string>
+	<string>com.taodyne.TaoPresentations</string>
 	<key>CFBundleVersion</key>
 	<string>$$VERSION</string>
 	<key>CFBundleShortVersionString</key>

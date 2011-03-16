@@ -4,7 +4,7 @@ line_color "tao_yellow" -> line_color "#EEAA11"
 color "tao_yellow" -> color "#EEAA11" 
 color "tao_orange" -> color "#DD3311" 
 
-page "endpoints_style", do
+page "endpoints_style", 
     line_width 5
     line_color "tao_orange"
     path
@@ -63,7 +63,7 @@ page "endpoints_style", do
         line_to 350, -50
 
 
-page "quad", do
+page "quad", 
     line_width 5
     line_color "tao_yellow"
     color "transparent"
@@ -72,7 +72,7 @@ page "quad", do
             move_to 0, 0
             quad_to 100, 100, 0, 200, 50, 0
  
-page "cubic", do
+page "cubic", 
     line_width 5
     line_color "tao_yellow"
     color "transparent"

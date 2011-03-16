@@ -54,7 +54,7 @@ line_color "tao_yellow"
 axes
 width_and_height 0, 0, window_width, window_height, "Window "
 color 1,1,1,1
-frame -100, -100, 400, 400, do
+frame -100, -100, 400, 400, 
     color 0.1, 0.5, 0.1, 0.5
     rectangle 0, 0, 100, 100
     color "transparent"

@@ -40,7 +40,7 @@ axes ->
 my_rectangle -> 
     rectangle 0, 0, 200, 100
 
-page "translation", do
+page "translation", 
     axes
     line_color "tao_orange"
     color "transparent"
@@ -55,7 +55,7 @@ page "translation", do
     line_width 2 
     line_arrow 0,0, NONE, -150,150, ARROWHEAD
 
-page "rotation", do
+page "rotation", 
     axes
     line_color "tao_orange"
     color "transparent"
@@ -70,7 +70,7 @@ page "rotation", do
     line_width 2 
     ellipse_arc 0,0,200,200, 0, 45
     
-page "rotation_translation", do
+page "rotation_translation", 
   locally
     translatex -300
     axes
@@ -147,7 +147,7 @@ page "rotation_translation", do
         move_to -200, -20
         text "2- translation"
 
-page "scale", do
+page "scale", 
     line_width 1
     line_color "tao_orange"
     color "transparent"

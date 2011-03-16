@@ -14,5 +14,5 @@ QTBASE="$2"
 REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }' `
 for r in $REFS ; do
   base=`echo $r | sed -e s@$QTBASE/@@g`
-  doo install_name_tool -change "$r" "@executable_path/../Frameworks/$base" "$TARGET"
+  doo install_name_tool -change "$r" "@rpath/$base" "$TARGET"
 done

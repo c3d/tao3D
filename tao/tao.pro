@@ -278,7 +278,15 @@ macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     LIBS += -framework \
         ApplicationServices \
-        -Wl,-macosx_version_min,10.5,-rpath,@executable_path/../Frameworks
+        -Wl,-macosx_version_min,10.5 \
+        -Wl,-rpath,@executable_path/../Frameworks \
+        -Wl,-rpath,$$QMAKE_LIBDIR_QT
+
+    # Make sure libGLC references the Qt libraries bundled with the application
+    # and not the ones that may be installed on the target system, otherwise
+    # they may clash
+    FIX_QT_REFS = ../modules/fix_qt_refs
+    QMAKE_POST_LINK = $$FIX_QT_REFS "$(TARGET)" \"$$QMAKE_LIBDIR_QT\"
 }
 RESOURCES += tao.qrc
 

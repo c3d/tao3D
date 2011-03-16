@@ -1,0 +1,73 @@
+
+line_color "tao_orange" -> line_color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+color "tao_yellow" -> color "#EEAA11" 
+color "tao_orange" -> color "#DD3311" 
+delta -> 30 
+
+axes -> 
+    line_width 2 
+    //line_color "tao_yellow" 
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to -150, 0 
+        line_to 150, 0 
+
+    locally 
+        translatex 150 
+        text "X" 
+
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to 0, -150 
+        line_to 0, 150 
+
+    locally 
+        translatey 150 
+        text "Y" 
+
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    locally 
+        translate 10, 15, 0 
+        text "(0, 0)" 
+
+width_and_height x, y, w, h, t -> 
+    // Width 
+    line_arrow x - w / 2, y - h / 2 + delta, ARROWHEAD, x + w / 2, y - h / 2 + delta, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate x + w / 2 - 150, y - h / 2 + delta + 15, 0 
+        text t & "width" 
+    // Height
+    line_arrow x - w / 2 + delta, y + h / 2, ARROWHEAD, x - w / 2 + delta, y - h / 2, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate x - w / 2 + delta + 15, y + h / 2 - 35, 0 
+        text t & "height" 
+
+line_color "tao_yellow" 
+axes
+width_and_height 0, 0, window_width, window_height, "Window "
+color 1,1,1,1
+frame -100, -100, 400, 400, do
+    color 0.1, 0.5, 0.1, 0.5
+    rectangle 0, 0, 100, 100
+    color "transparent"
+    line_color "tao_orange"
+    //line_width 8
+    //rectangle 0, 0, 400, 400
+    line_color "tao_orange" 
+    axes
+    //debug frame_depth
+    //debug frame_height
+    //debug frame_width
+    //width_and_height 0, 0, frame_width, frame_height, "Frame "
+    width_and_height 0, 0, 400, 400, "Frame "
+
+debug frame_width
+debug window_width 

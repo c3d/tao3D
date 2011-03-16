@@ -1,0 +1,160 @@
+line_color "tao_orange" -> line_color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+line_color "tao_blue"   -> line_color "#229988"
+line_color "tao_green"  -> line_color "#88BB00"
+color "tao_yellow" -> color "#EEAA11" 
+color "tao_orange" -> color "#DD3311" 
+color "tao_blue"   -> color "#229988"
+color "tao_green"  -> color "#88BB00"
+
+
+axes -> 
+    line_width 2 
+    line_color "tao_yellow" 
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to -150, 0 
+        line_to 150, 0 
+
+    locally 
+        translatex 150 
+        text "X" 
+
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to 0, -150 
+        line_to 0, 150 
+
+    locally 
+        translatey 150 
+        text "Y" 
+
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    locally 
+        translate 10, 15, 0 
+        text "(x, y)" 
+
+my_rectangle -> 
+    rectangle 0, 0, 200, 100
+
+page "translation", do
+    axes
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        translate -150, 150, 0
+        color "tao_orange"
+        my_rectangle
+    
+    line_color "black"
+    line_width 2 
+    line_arrow 0,0, NONE, -150,150, ARROWHEAD
+
+page "rotation", do
+    axes
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        rotatez 45
+        color "tao_orange"
+        my_rectangle
+    
+    line_color "black"
+    line_width 2 
+    ellipse_arc 0,0,200,200, 0, 45
+    
+page "rotation_translation", do
+  locally
+    translatex -300
+    axes
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        translate -150, 150, 0
+        line_color "tao_blue"
+        color "transparent"
+        my_rectangle
+        rotatez 45
+        line_color "transparent"
+        color "tao_orange"
+        my_rectangle
+    
+    locally
+        translate -150, 150, 0
+        line_color "tao_green"
+        line_width 2 
+        ellipse_arc 0,0,200,200, 0, 45
+    locally
+        line_color "tao_blue"
+        line_width 2 
+        line_arrow 0,0, NONE, -150,150, ARROWHEAD
+
+    line_color "font"
+    color "tao_blue"
+    path
+        move_to -75, 75
+        text "1- translation"
+    
+    color "tao_green"
+    path
+        move_to -60, 210
+        text "2- rotation"
+    
+  locally
+    translatex 300
+    axes
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        rotatez 45
+        line_color "tao_green"
+        color "transparent"
+        my_rectangle
+        translate -150, 150, 0
+        color "tao_orange"
+        line_color "transparent"
+        my_rectangle
+    
+    locally
+        line_color "tao_green"
+        line_width 2 
+        ellipse_arc 0,0,200,200, 0, 45
+    locally
+        rotatez 45
+        line_color "tao_blue"
+        line_width 2 
+        line_arrow 0,0, NONE, -150,150, ARROWHEAD
+    
+    line_color "font"
+    color "tao_green"
+    path
+        move_to 75, 75
+        text "1- rotation"
+    
+    color "tao_blue"
+    path
+        move_to -200, -20
+        text "2- translation"
+
+page "scale", do
+    line_width 1
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        scale 0.5, 0.5, 1
+        color "tao_orange"
+        my_rectangle
+    axes

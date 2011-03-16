@@ -66,4 +66,10 @@ mouse_x ();
  */
 mouse_y ();
 
+/**
+ * Mouse wheel handling.
+ * With control key down, zoum in or out. Otherwise call @c pan
+ */
+wheel_event (x, y);
+
 /** @} */

@@ -356,3 +356,55 @@ page "callout", do
         line_color "font" 
         translate callout_x + callout_ax - callout_tw / 2, callout_y + callout_h / 2 - 15, 0 
         text "tip width" 
+
+page "image", do
+    color "white"
+    image 0, 0, 100%, 100%, "../images/tortue.jpg"
+    axes
+
+page "image_px", do
+    color "white"
+    image_px 0, 0, 200, 200, "../images/tortue.jpg"
+    axes
+    line_color "black" 
+    width_and_height 0, 0, 200, 200
+
+page "polygon", do
+    color "tao_orange" 
+    poly_x -> 0 
+    poly_y -> 0 
+    poly_w -> 200 
+    poly_h -> 200 
+    poly nb, dx, dy ->
+        locally
+            translate dx, dy, 0
+            polygon poly_x, poly_y, poly_w, poly_h, nb
+            axes 
+            line_color "black" 
+            width_and_height poly_x, poly_y, poly_w, poly_h
+    poly  5, -350,  175
+    poly  6,    0,  175
+    poly  7,  350,  175
+    poly 10, -350, -175
+    poly 12,    0, -175
+    poly 15,  350, -175
+
+page "polygram", do
+    color "tao_orange" 
+    poly_x -> 0 
+    poly_y -> 0 
+    poly_w -> 200
+    poly_h -> 200 
+    polyg nb, i, dx, dy ->
+        locally
+            translate dx, dy, 0
+            polygram poly_x, poly_y, poly_w, poly_h, nb, i
+            axes 
+            line_color "black" 
+            width_and_height poly_x, poly_y, poly_w, poly_h
+    polyg  5, 2, -350,  175
+    polyg  6, 2,    0,  175
+    polyg  7, 2,  350,  175
+    polyg 10, 3, -350, -175
+    polyg 12, 4,    0, -175
+    polyg 15, 4,  350, -175

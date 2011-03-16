@@ -71,6 +71,10 @@ tao.depends = libxlr
 modules.depends = tao
 tests.depends = tao
 
+# The following is artificial, it's just so that we don't start building the
+# doc until the main build has actually completed.
+doc.depends = tao libxlr modules ssh_ask_pass
+
 sdk.commands = \$(MAKE) -f Makefile.sdk
 sdk.depends = FORCE
 QMAKE_EXTRA_TARGETS += sdk

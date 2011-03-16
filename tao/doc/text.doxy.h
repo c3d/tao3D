@@ -24,6 +24,86 @@
  * Here is a screen capture:
  * @image html fonts.png "Changing fonts and font attributes (fonts.ddd)"
  *
+ * @par Fonts bundled with Tao Presentations
+ *
+ * Tao Presentation comes with pre-installed Open Source fonts you can use in
+ * your documents. By using them, you can be sure that your presentation will
+ * show correctly on someone else's computer even on a different operating
+ * system (Microsoft Windows, MacOSX, Linux).
+ *
+ * Here is a complete list of the fonts that are packaged with Tao. Be aware
+ * that family and style names are case sensitive; they must be typed as they
+ * appears in the table (including spaces between words). For example:
+ * @code
+ * font "Gentium Plus"
+ * font "Allerta/Stencil"
+ * @endcode
+ *
+ * <table>
+ *  <tr>
+ *   <th colspan="2"><b>Serif fonts</b></th></td>
+ *  </tr>
+ *     <tr><th>Family</th><th>Styles</th></tr>
+ *     <tr><td>Bentham</td><td>Regular</td></tr>
+ *     <tr><td>Gentium Plus</td><td>Regular, Italic</td></tr>
+ *     <tr><td>Goudy Bookletter 1911</td><td>Regular</td></tr>
+ *     <tr><td>IM FELL English</td><td>Regular, Italic</td></tr>
+ *     <tr><td>IM FELL English SC</td><td>Regular</td></tr>
+ *     <tr><td>Old Standard TT</td><td>Regular, Bold, Italic</td></tr>
+ *     <tr><td>PT Serif</td><td>Regular, Italic, Bold, Bold Italic</td></tr>
+ *  <tr>
+ *   <th colspan="2"><b>Sans-serif fonts</b></th></td>
+ *  </tr>
+ *     <tr><th>Family</th><th>Styles</th></tr>
+ *     <tr><td>Andika Basic</td><td>Regular</td></tr>
+ *     <tr><td>Cherry Cream Soda</td><td>Regular</td></tr>
+ *     <tr><td>Ubuntu</td><td>Regular, Italic, Bold, Bold Italic</td></tr>
+ *     <tr><td>Yanone Kaffeesatz</td><td>Thin, Light, Regular, Bold</td></tr>
+ *  <tr>
+ *   <th colspan="2"><b>Handwriting fonts</b></th></td>
+ *  </tr>
+ *     <tr><th>Family</th><th>Styles</th></tr>
+ *     <tr><td>Calligraffiti</td><td>Regular</td></tr>
+ *     <tr><td>Coming Soon</td><td>Regular</td></tr>
+ *     <tr><td>Dancing Script</td><td>Regular</td></tr>
+ *     <tr><td>Homemade Apple</td><td>Regular</td></tr>
+ *     <tr><td>Just Another Hand</td><td>Regular</td></tr>
+ *     <tr><td>Kristi</td><td>Medium</td></tr>
+ *     <tr><td>Tangerine</td><td>Regular, Bold</td></tr>
+ *  <tr>
+ *   <th colspan="2"><b>Miscellaneous fonts</b></th></td>
+ *  </tr>
+ *     <tr><th>Family</th><th>Styles</th></tr>
+ *     <tr><td>Allerta</td><td>Stencil</td></tr>
+ *     <tr><td>Geo</td><td>Regular</td></tr>
+ *     <tr><td>Kenia</td><td>Regular</td></tr>
+ *     <tr><td>Kranky</td><td>Regular</td></tr>
+ *     <tr><td>Lobster</td><td>Regular</td></tr>
+ *     <tr><td>Luckiest Guy</td><td>Regular</td></tr>
+ *     <tr><td>Mountains of Christmas</td><td>Regular</td></tr>
+ *     <tr><td>Orbitron</td><td>Regular, Medium, Bold, Black</td></tr>
+ *     <tr><td>Permanent Marker</td><td>Regular</td></tr>
+ *     <tr><td>UnifrakturMaguntia</td><td>Book</td></tr>
+ *     <tr><td>Unkempt</td><td>Regular</td></tr>
+ * </table>
+ *
+ * @bug [#325] On MacOSX, some font families cannot be rendered, due to
+ * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-11145">QTBUG-11145</a>.
+ *      The correction of this bug expected in QT 4.8.
+ * @bug [#325] On MacOSX, font styles other than "Normal", "Bold", "Italic" and
+ *     "Bold Italic" cannot be selected. This is caused by
+ * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
+ *
+ * @par Using additional fonts
+ *
+ * All the fonts installed on the computer are available for use by Tao. So, if
+ * you need to use a specific font, you may simply install it and restart Tao
+ * for the change to take effect.
+ *
+ * Another way of using a specific font without installing it on the computer
+ * is to copy the font file (TrueType or OpenType font, usually with one of the
+ * following extnsions: .ttf, .otf, .ttc, )
+ *
  * @par Text layout
  *
  * You can control the horizontal and vertical distribution of text with two
@@ -104,9 +184,9 @@ text(t:text);
  *
  * For instance you may write the following expression to select
  * font family @p Ubuntu in 24 point size and bold weight:
-@code
-font "Ubuntu", 24, bold
-@endcode
+ * @code
+ * font "Ubuntu", 24, bold
+ * @endcode
  * The following arguments are recognized:
  * <ul>
  *   <li> @b "FontFamily" or @b "FontFamily/Style". Selects the font
@@ -114,7 +194,37 @@ font "Ubuntu", 24, bold
  *       among those that are available for this font family. When a style is
  *       specified, it must be separated form the family name by a forward
  *       slash. Example styles are: "Light", "Light Italic", "Bold", "Oblique",
- *       "Demi".
+ *       "Demi". @n Some style names are equivalent to style primitives or
+ *       keywords: "Bold" is equivalent to @ref bold, "Italic" is equivalent to
+ *       @ref italic, "Regular" is equivalent to @ref roman. For instance:
+ * @code
+ * font "Ubuntu/Bold Italic"
+ * @endcode
+ *       has the same effect as:
+ * @code
+ * font "Ubuntu"
+ * bold
+ * italic
+ * @endcode
+ *        Consequently, the effect of the style qualifier applies not only
+ *        to the current font, but also to the subsequent font declarations.
+ *        In the following example, @a both words are italicized:
+ * @code
+ * text_box 0, 0, 200, 100,
+ *     font "Andika Basic/Italic"
+ *     text "Hello, "
+ *     font "Andika Basic"  // does NOT cancel italic
+ *     text "world!"
+ * @endcode
+ *        To cancel the italic mode, you would need to call @ref roman or
+ *        use the "/Regular" style qualifier, like this:
+ * @code
+ * text_box 0, 0, 200, 100,
+ *     font "Andika Basic/Italic"
+ *     text "Hello, "
+ *     font "Andika Basic/Regular"  // cancels italic
+ *     text "world!"
+ * @endcode
  *   <li> @p number. Sets the font size, in points.
  *   <li> @b plain, @b default, @b normal. Resets all font attributes.
  *       See @ref plain.

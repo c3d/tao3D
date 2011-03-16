@@ -844,7 +844,7 @@ void Widget::runProgram()
     }
 
     // Clean the end of the old menu list.
-    for  ( ; order < orderedMenuElements.count(); order++)
+    for  (; order < orderedMenuElements.count(); order++)
     {
         delete orderedMenuElements[order];
         orderedMenuElements[order] = NULL;
@@ -1231,7 +1231,7 @@ void Widget::copy()
         // Build a single tree from all the selected sub-trees
         XL::Tree *tree = copySelection();
 
-        if (! tree ) return;
+        if (!tree) return;
 
         IFTRACE(clipboard)
         {
@@ -1350,8 +1350,8 @@ void Widget::paste()
         comma = new XL::Infix(",", comma,
                               new XL::Prefix(new Name("do"),
                                              new XL::Block(t, "I+", "I-")));
-        XL::Prefix * tb = new XL::Prefix( new XL::Name("text_box"),
-                                          comma);
+        XL::Prefix * tb = new XL::Prefix(new XL::Name("text_box"),
+                                         comma);
         tb = new XL::Prefix(new XL::Name("shape"),
                             new XL::Block(tb, "I+", "I-"));
         insert(NULL, tb, "paste from HTML");
@@ -1365,7 +1365,7 @@ Name_p Widget::bringToFront(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     Tree * select = removeSelection();
-    if ( ! select )
+    if (!select)
         return XL::xl_false;
 
     insert(NULL, select, "Selection brought to front");
@@ -1378,8 +1378,11 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------
 {
+    if (!markChanged("Selection sent to back"))
+        return XL::xl_false;    // Source code was edited
+
     Tree * select = removeSelection();
-    if ( ! select )
+    if (!select)
         return XL::xl_false;
     // Make sure the new objects appear selected next time they're drawn
     selectStatements(select);
@@ -1411,7 +1414,6 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection sent to back");
 
     return XL::xl_true;
 }
@@ -1422,7 +1424,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection())
+    if (!hasSelection() || !markChanged("Selection brought forward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -1433,12 +1435,12 @@ Name_p Widget::bringForward(Tree_p /*self*/)
     if (!parent)
         return XL::xl_false;
     Infix * current = parent->AsInfix();
-    if ( !current )
+    if (!current)
         return XL::xl_false;
 
     Tree * tmp =  NULL;
     Infix * next = current->right->AsInfix();
-    if ( !next )
+    if (!next)
     {
         // We are at the bottom of the tree
         //Check if we are already the latest
@@ -1457,9 +1459,10 @@ Name_p Widget::bringForward(Tree_p /*self*/)
         next->left = tmp;
     }
     selectStatements(tmp);
+
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection brought forward");
+
     return XL::xl_true;
 }
 
@@ -1469,7 +1472,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection())
+    if (!hasSelection() || !markChanged("Selection sent backward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -1479,7 +1482,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
     if (!parent)
         return XL::xl_false;
     Infix * current = parent->AsInfix();
-    if ( !current )
+    if (!current)
         return XL::xl_false;
 
      Tree * tmp = NULL;
@@ -1498,7 +1501,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
         if (!grandParent)
             return XL::xl_false;
         Infix * previous = grandParent->AsInfix();
-        if ( !previous )
+        if (!previous)
             return XL::xl_false;
 
         tmp = current->left;
@@ -1506,9 +1509,10 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
         previous->left = tmp;
     }
     selectStatements(tmp);
+
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection sent backward");
+
     return XL::xl_true;
 }
 
@@ -2019,7 +2023,7 @@ bool Widget::forwardEvent(QMouseEvent *event)
         Point3 u = unproject(x, y, 0);
         int nx = u.x + w/2;
         int ny = h/2 - u.y;
-        QMouseEvent local(event->type(), QPoint(nx, ny ),
+        QMouseEvent local(event->type(), QPoint(nx, ny),
                           event->button(), event->buttons(),
                           event->modifiers());
         IFTRACE(widgets)
@@ -2555,7 +2559,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (button == Qt::LeftButton && ( !activities || !activities->next))
+    if (button == Qt::LeftButton && (!activities || !activities->next))
         new Selection(this);
 
     // Save location
@@ -2771,11 +2775,27 @@ void Widget::endPanning(QMouseEvent *)
 //
 // ============================================================================
 
+bool Widget::sourceChanged()
+// ----------------------------------------------------------------------------
+//   Return 'true' if the source window was modified
+// ----------------------------------------------------------------------------
+{
+#ifndef CFG_NOSRCEDIT
+    Window *window = (Window *) parentWidget();
+    if (window->srcEdit->document()->isModified())
+        return true;
+#endif
+    return false;
+}
+
+
 void Widget::normalizeProgram()
 // ----------------------------------------------------------------------------
 //   Put the program in normalized form
 // ----------------------------------------------------------------------------
 {
+    if (sourceChanged())
+        return;
     if (Tree *prog = xlProgram->tree)
     {
         Renormalize renorm(this);
@@ -2790,6 +2810,8 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
+    if (sourceChanged())
+        return;
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
@@ -2803,6 +2825,9 @@ void Widget::reloadProgram(XL::Tree *newProg)
 //   Set the program to reload
 // ----------------------------------------------------------------------------
 {
+    if (sourceChanged())
+        return;
+
     if (!newProg)
     {
         // We want to force a clone so that we recompile everything
@@ -2835,7 +2860,7 @@ void Widget::updateProgramSource()
 {
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
-    if (window->src->isHidden() || ! xlProgram)
+    if (window->src->isHidden() || !xlProgram || sourceChanged())
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
 #endif
@@ -3002,11 +3027,14 @@ void Widget::preloadSelectionCode()
 }
 
 
-void Widget::markChanged(text reason)
+bool Widget::markChanged(text reason)
 // ----------------------------------------------------------------------------
 //    Record that the program changed
 // ----------------------------------------------------------------------------
 {
+    if (sourceChanged())
+        return false;
+    
     Repository *repo = repository();
     if (repo)
         repo->markChanged(reason);
@@ -3037,6 +3065,9 @@ void Widget::markChanged(text reason)
 
     // Cause the screen to redraw
     refresh(0);
+
+    // Caller is allowed to modify the source code
+    return true;
 }
 
 
@@ -5203,7 +5234,7 @@ Tree_p Widget::lineColorHsl(Tree_p self, double h, double s, double l, double a)
     CHECK_0_1_RANGE(a);
 
     h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if ( h < 0 ) h++;
+    if (h < 0) h++;
 
     QColor hsl;
     hsl.setHslF(h, s, l);
@@ -5222,7 +5253,7 @@ Tree_p Widget::lineColorHsv(Tree_p self, double h, double s, double v, double a)
     CHECK_0_1_RANGE(a);
 
     h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if ( h < 0 ) h++;
+    if (h < 0) h++;
 
     QColor hsv;
     hsv.setHsvF(h, s, v);
@@ -5319,7 +5350,7 @@ Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
     CHECK_0_1_RANGE(a);
 
     h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if ( h < 0 ) h++;
+    if (h < 0) h++;
 
     QColor hsl;
     hsl.setHslF(h, s, l);
@@ -5338,7 +5369,7 @@ Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
     CHECK_0_1_RANGE(a);
 
     h = std::fmod(h, 360) / 360; // converts h from degrees to %
-    if ( h < 0 ) h++;
+    if (h < 0) h++;
 
     QColor hsv;
     hsv.setHsvF(h, s, v);
@@ -8964,6 +8995,10 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 //    Insert at the end of page or program
 // ----------------------------------------------------------------------------
 {
+    // Check if blocked because the source code window was edited
+    if (!markChanged(msg))
+        return XL::xl_false;
+
     Window *window = (Window *) parentWidget();
     if (window->isReadOnly)
     {
@@ -9026,7 +9061,6 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged(msg);
 
     return XL::xl_true;
 }
@@ -9051,7 +9085,7 @@ XL::Tree_p Widget::removeSelection()
 // ----------------------------------------------------------------------------
 {
     XL::Tree *tree = copySelection();
-    if ( !tree)
+    if (!tree)
         return NULL;
     deleteSelection();
     return tree;
@@ -9077,6 +9111,10 @@ void Widget::deleteSelection()
 //    Delete the selection (when selection is not text)
 // ----------------------------------------------------------------------------
 {
+    // Check if the source was modified, if so, do not update the tree
+    if (!markChanged("Deleted selection"))
+        return;
+
     XL::Tree *what = xlProgram->tree;
     if (what)
     {
@@ -9086,7 +9124,6 @@ void Widget::deleteSelection()
         if (!what)
             xlProgram->tree = what;
         reloadProgram(what);
-        markChanged("Deleted selection");
     }
     selection.clear();
     selectionTrees.clear();
@@ -9100,6 +9137,11 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 //    Insert the tree in all shapes in the selection
 // ----------------------------------------------------------------------------
 {
+    // Check if the source code window was modified, if so do not change
+    if (!markChanged("Updated " + name + " attribute"))
+        return XL::xl_false;
+
+    // Attribute may be encapsulated in a block
     if (XL::Block_p block = attribute->AsBlock())
         attribute = block->child;
 
@@ -9111,7 +9153,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
         XL::Prefix *p = new XL::Prefix(new XL::Name("text"),
                                        new XL::Text(+sel->cursor.
                                                     document()->toPlainText(),
-                                                    "<<", ">>" ));
+                                                    "<<", ">>"));
         XL::Infix *lf = new XL::Infix("\n", attribute,
                                       new XL::Infix("\n", p, XL::xl_nil));
 
@@ -9131,10 +9173,6 @@ XL::Name_p Widget::setAttribute(Tree_p self,
         {
             SetAttributeAction setAttrib(name, attribute, this, shape);
             program->Do(setAttrib);
-
-            // We don't need to reloadProgram() because Widget::set does it
-            markChanged("Updated " + name + " attribute");
-
             return XL::xl_true;
         }
     }
@@ -9180,7 +9218,7 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
                               new Block(copySelection(), "I+", "I-"));
 
     Infix * inf = parent->AsInfix();
-    if ( inf )
+    if (inf)
     {
         if (inf->left == child)
             inf->left = group;
@@ -9191,7 +9229,7 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
     }
 
     Prefix * pref = parent->AsPrefix();
-    if ( pref )
+    if (pref)
     {
         if (pref->left == child)
             pref->left = group;
@@ -9202,7 +9240,7 @@ Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
     }
 
     Postfix * pos = parent->AsPostfix();
-    if ( pos )
+    if (pos)
     {
         if (pos->left == child)
             pos->left = group;
@@ -9229,7 +9267,8 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 //    Create the group from the selected objects
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection())
+    // Check if there's no selection or if source window changed
+    if (!hasSelection() || !markChanged("Selection grouped"))
         return XL::xl_false;
 
     // Find the first non-selected ancestor of the first element
@@ -9248,28 +9287,29 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
     // Do the work
     Tree * theGroup = updateParentWithGroupInPlaceOfChild(parent, child);
-    if (! theGroup )
+    if (!theGroup)
         return XL::xl_false;
 
     deleteSelection();
 
     selectStatements(theGroup);
+
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection grouped");
 
     return XL::xl_true;
 }
 
 
-bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group)
+bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent,
+                                                    Prefix *group)
 // ----------------------------------------------------------------------------
 //    Helper function: Plug the group's child tree under the parent.
 // ----------------------------------------------------------------------------
 {
     Infix * inf = parent->AsInfix();
     Block * block = group->right->AsBlock();
-    if ( !block)
+    if (!block)
         return false;
 
     if (inf)
@@ -9335,7 +9375,8 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
 //    Remove the group instruction from the source code
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection())
+    // Check if there is no selection or if source window changed
+    if (!hasSelection() || !markChanged("Selection ungrouped"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -9345,7 +9386,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
         return XL::xl_false;
 
     Name * name = groupTree->left->AsName();
-    if (! name || name->value != "group")
+    if (!name || name->value != "group")
         return XL::xl_false;
 
     XL::FindParentAction getParent(*sel);
@@ -9355,13 +9396,13 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
         return XL::xl_false;
 
     bool res = updateParentWithChildrenInPlaceOfGroup(parent, groupTree);
-    if (! res )
+    if (!res)
         return XL::xl_false;
 
     selectStatements(groupTree->right);
+
     // Reload the program and mark the changes
     reloadProgram();
-    markChanged("Selection ungrouped");
 
     return XL::xl_true;
 }
@@ -9511,7 +9552,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
 
     // Documentation from the context files (*.xl)
     XL::source_files::iterator couple;
-    for (couple = xlr->files.begin(); couple != xlr->files.end(); couple++ )
+    for (couple = xlr->files.begin(); couple != xlr->files.end(); couple++)
     {
         XL::SourceFile src = couple->second;
         if (!src.tree) continue;

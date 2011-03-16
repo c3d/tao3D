@@ -219,14 +219,14 @@ void WebViewSurface::loadProgress(int progressPercent)
     if (webView->url().isValid() && progressPercent >= 20)
         currentUrl = +webView->url().toString();
 
+    Widget *parent = (Widget *) widget->parent();
     if (url.Pointer() &&
         url->value != currentUrl &&
-        !IsMarkedConstant(url))
+        !IsMarkedConstant(url) &&
+        !parent->markChanged("URL change"))
     {
         // Record the change
         url->value = currentUrl;
-        Widget *parent = (Widget *) widget->parent();
-        parent->markChanged("URL change");
     }
 
     if (progress.Pointer())
@@ -277,10 +277,6 @@ GLuint LineEditSurface::bind(XL::Text *textTree)
         contents = NULL;
         lineEdit->setText(+textTree->value);
         contents = textTree;
-
-        // Record the change
-        Widget *parent = (Widget *) widget->parent();
-        parent->markChanged("Line editor text change");
     }
 
     return WidgetSurface::bind();
@@ -296,17 +292,19 @@ void LineEditSurface::textChanged(const QString &text)
     {
         if (immediate)
         {
-            contents->value = +text;
-            locallyModified = false;
+            // Record the change
+            Widget *parent = (Widget *) widget->parent();
+            if (parent->markChanged("Line editor text change"))
+            {
+                contents->value = +text;
+                locallyModified = false;
+            }
         }
         else
         {
             locallyModified = true;
         }
 
-        // Record the change
-        Widget *parent = (Widget *) widget->parent();
-        parent->markChanged("Line editor text change");
     }
 
     repaint();

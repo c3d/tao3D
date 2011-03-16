@@ -10,8 +10,9 @@ doo(){
   "$@"
 }
 TARGET="$1"
-REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }'`
+QTBASE="$2"
+REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }' `
 for r in $REFS ; do
-  doo install_name_tool -change "$r" "@executable_path/../Frameworks/$r" "$TARGET"
+  base=`echo $r | sed -e s@$QTBASE/@@g`
+  doo install_name_tool -change "$r" "@executable_path/../Frameworks/$base" "$TARGET"
 done
-

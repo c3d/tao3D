@@ -71,14 +71,14 @@ bisector_and_radius x, y, w, h, r ->
 font_size 14 
 line_width 1 
 
-page "rectangle", do 
+page "rectangle", 
     color "tao_orange" 
     //line_color "tao_orange"
     rectangle 0, 0, 100, 200 
     axes 
     width_and_height 0, 0, 100, 200 
 
-page "rounded_rectangle", do 
+page "rounded_rectangle", 
     color "tao_orange" 
     //line_color "tao_orange"
     rect_x -> 0 
@@ -92,7 +92,7 @@ page "rounded_rectangle", do
     width_and_height rect_x, rect_y, rect_w, rect_h 
     bisector_and_radius rect_x, rect_y, rect_w, rect_h, rect_r 
 
-page "elliptical_rectangle", do 
+page "elliptical_rectangle", 
     color "tao_orange" 
     //line_color "tao_orange"
     ell_rect_x -> 0 
@@ -105,7 +105,7 @@ page "elliptical_rectangle", do
     line_color "black" 
     width_and_height ell_rect_x, ell_rect_y, ell_rect_w, ell_rect_h 
 
-page "ellipse", do 
+page "ellipse", 
     color "tao_orange" 
     //line_color "tao_orange"
     ellipse_x -> 0 
@@ -117,7 +117,7 @@ page "ellipse", do
     line_color "black" 
     width_and_height ellipse_x, ellipse_y, ellipse_w, ellipse_h 
 
-page "ellipse_arc", do 
+page "ellipse_arc", 
     color "tao_orange" 
     //line_color "tao_orange"
     ellipsea_x -> 0 
@@ -156,7 +156,7 @@ page "ellipse_arc", do
         translate -80, 73, 0 
         text "sweep angle" 
 
-page "isocel_triangle", do 
+page "isocel_triangle", 
     color "tao_orange" 
     //line_color "tao_orange"
     tri_x -> 0 
@@ -168,7 +168,7 @@ page "isocel_triangle", do
     line_color "black" 
     width_and_height tri_x, tri_y, tri_w, tri_h 
 
-page "right_triangle", do 
+page "right_triangle", 
     color "tao_orange" 
     //line_color "tao_orange"
     rtri_x -> 0 
@@ -180,7 +180,7 @@ page "right_triangle", do
     line_color "black" 
     width_and_height rtri_x, rtri_y, rtri_w, rtri_h 
 
-page "arrow", do 
+page "arrow", 
     color "tao_orange" 
     //line_color "tao_orange"
     arrow_x -> 0 
@@ -212,7 +212,7 @@ page "arrow", do
         rotatez 90 
         text "bodyRatio * Height" 
 
-page "double_arrow", do 
+page "double_arrow", 
     color "tao_orange" 
     //line_color "tao_orange"
     darrow_x -> 0 
@@ -244,7 +244,7 @@ page "double_arrow", do
         rotatez 90 
         text "bodyRatio * Height" 
 
-page "star", do 
+page "star", 
     color "tao_orange" 
     //line_color "tao_orange"
     star_x -> 0 
@@ -279,7 +279,7 @@ page "star", do
         text "L" 
 
 
-page "star_polygon", do 
+page "star_polygon", 
     color "tao_orange" 
     //line_color "tao_orange"
     starp_x -> 0 
@@ -303,7 +303,7 @@ page "star_polygon", do
     point 113, -37, 1, 5 
     point 88, -70, 1, 5 
 
-page "speech_balloon", do 
+page "speech_balloon", 
     color "tao_orange" 
     //line_color "tao_orange"
     balloon_x -> 0 
@@ -325,7 +325,7 @@ page "speech_balloon", do
         translate balloon_ax + delta, balloon_ay - delta, 0 
         text "(ax, ay)" 
 
-page "callout", do 
+page "callout", 
     color "tao_orange" 
     //line_color "tao_orange"
     callout_x -> 0 
@@ -357,19 +357,19 @@ page "callout", do
         translate callout_x + callout_ax - callout_tw / 2, callout_y + callout_h / 2 - 15, 0 
         text "tip width" 
 
-page "image", do
+page "image",
     color "white"
     image 0, 0, 100%, 100%, "../images/tortue.jpg"
     axes
 
-page "image_px", do
+page "image_px",
     color "white"
     image_px 0, 0, 200, 200, "../images/tortue.jpg"
     axes
     line_color "black" 
     width_and_height 0, 0, 200, 200
 
-page "polygon", do
+page "polygon",
     color "tao_orange" 
     poly_x -> 0 
     poly_y -> 0 
@@ -389,7 +389,7 @@ page "polygon", do
     poly 12,    0, -175
     poly 15,  350, -175
 
-page "polygram", do
+page "polygram",
     color "tao_orange" 
     poly_x -> 0 
     poly_y -> 0 

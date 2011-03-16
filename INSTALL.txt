@@ -1,0 +1,62 @@
+            How to build Tao Presentations
+            ==============================
+
+*** Windows 7, Windows Vista ***
+
+- Install the latest Qt SDK from http://qt.nokia.com.
+  Select the "LGPL" download and install it. Keep the default options.
+  Remember the installation directory, you will have to add it to your PATH.
+  For instance for Qt 4.7.2, the default path is C:\Qt\2010.05.
+
+- Install msysgit from http://code.google.com/p/msysgit/downloads/list
+  You should pick the "full installer" version to get a version of make,
+  which will prove useful for building LLVM (LLVM wants gmake to build).
+  At the end of the installation, create a shortcut on the desktop with the
+  command:
+  $ /share/msysGit/add-shortcut.tcl Desktop
+
+- Optional: install doxygen (to compile the Tao documentation).
+  http://www.stack.nl/~dimitri/doxygen/download.html
+  Then make sure the "doxygen" command is in your Windows PATH.
+  
+- Start the msysgit bash shell (use the desktop shortcut).
+  cd $HOME. Create the file $HOME/.profile with the following line:
+
+  export PATH=/c/llvm/bin:/c/Qt/2010.05/mingw/bin:/c/Qt/2010.05/qt/bin:$PATH
+
+  Note:
+  * /c/llvm/bin is where you will install LLVM (see below). LLVM is required
+    to build Tao Presentations.
+  * /c/Qt/2010.05/mingw/bin is the location of the GCC compiler we will use
+  * /c/Qt/2010.05/qt/bin is for Tao Presentations to find the Qt DLLs
+
+- Download LLVM 2.9rc1:
+  $ svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_29/rc1 llvm_2.9rc1
+  (This is svn rev 127576)
+
+- Build and install LLVM:
+  $ cd llvm_2.9rc1
+  $ ./configure --prefix=/c/llvm --enable-optimized
+  $ make
+  $ make -k install   # Note: doc installation fails but we don't care
+
+- Get the Tao source code
+  $ git clone ssh://nano.taodyne.com/~ddd/Work/tao.git
+
+- Build Tao
+  $ cd tao
+  $ qmake -r -spec win32-g++
+  $ make -j2 install  # will put the application under the "install" directory
+
+- Optional: configure Qt Creator to build and run Tao:
+  * Open main.pro
+  * Update PATH (in Projects/Build Settings/Build Environment):
+    append C:\llvm\bin;C:\msysgit\msysgit\bin (for llvm-config and bash)
+  * Set application and application current directory in
+    Projects/Run Settings: the application is Tao.exe under the install
+    directory.
+
+You can create a Windows installer for Tao (taosetup.exe) with:
+  $ cd packaging/win
+  $ make
+

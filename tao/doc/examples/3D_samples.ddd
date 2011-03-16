@@ -43,15 +43,15 @@ axes ->
 
 line_width 1
 
-page "spere", do
+page "spere",
     rotatex -45
     rotatey 25
     axes
     color "tao_yellow"
     line_color "tao_orange"
     sphere 0, 0, 0, 250, 250, 250, 40, 40
-        
-page "cone", do
+
+page "cone",
     rotatex -45
     rotatey 25
     axes
@@ -59,7 +59,7 @@ page "cone", do
     line_color "tao_orange"
     cone 0, 0, 0, 250, 200, 200
  
-page "truncated cone", do
+page "truncated cone",
     rotatex -45
     rotatey 25
     axes
@@ -67,7 +67,7 @@ page "truncated cone", do
     line_color "tao_orange"
     truncated_cone 0, 0, 0, 250, 200, 200, 50%
  
-page "cylinder", do
+page "cylinder",
     rotatex -45
     rotatey 25
     axes
@@ -75,7 +75,7 @@ page "cylinder", do
     line_color "tao_orange"
     cylinder 0, 0, 0, 150, 150, 200
  
-page "cube", do
+page "cube",
     rotatex -45
     rotatey 25
     axes

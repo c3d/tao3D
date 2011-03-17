@@ -3,6 +3,11 @@
 
 *** Windows 7, Windows Vista ***
 
+Tao Presentations for Windows is built in the MinGW environment with the GCC
+compiler. You need to have a number of software packages installed before you
+can build Tao: the Qt SDK, MSYSGit, LLVM, and optionally doxygen and NSIS.
+Here is a step-by-tep guide.
+
 - Install the latest Qt SDK from http://qt.nokia.com.
   Select the "LGPL" download and install it. Keep the default options.
   Remember the installation directory, you will have to add it to your PATH.
@@ -32,7 +37,7 @@
 
 - Download LLVM 2.9rc1:
   $ svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_29/rc1 llvm_2.9rc1
-  (This is svn rev 127576)
+  (This is svn rev 127232)
 
 - Build and install LLVM:
   $ cd llvm_2.9rc1
@@ -40,23 +45,40 @@
   $ make
   $ make -k install   # Note: doc installation fails but we don't care
 
-- Get the Tao source code
+- Get the Tao source code. Put it somewhere under your home directory.
+  $ cd
   $ git clone ssh://nano.taodyne.com/~ddd/Work/tao.git
+  If your windows user name is not the same as your login on nano.taodyne.com,
+  you may need to give your login in the URL, or connection would be rejected:
+    ssh://your_login@nano.taodyne.com/~ddd/Work/tao.git
+  $ cd tao
+  $ git submodule init
+  If you had to give login in the nano URL above, you will also need to add
+  it to the submodule URLs. In this case, edit the .git/config file and fix the
+  URLs before proceeding.
+  $ git submodule update
 
 - Build Tao
-  $ cd tao
+  $ cd ~/tao
   $ qmake -r -spec win32-g++
   $ make -j2 install  # will put the application under the "install" directory
 
-- Optional: configure Qt Creator to build and run Tao:
+- Optional: configure Qt Creator to build and run Tao from the Qt Creator IDE.
+  This is not needed if you are OK with building from the command line.
   * Open main.pro
   * Update PATH (in Projects/Build Settings/Build Environment):
-    append C:\llvm\bin;C:\msysgit\msysgit\bin (for llvm-config and bash)
+    prepend C:\llvm\bin;C:\msysgit\msysgit\bin;C:\msysgit\msysgit\mingw\lib
+    With this PATH, Qt Creator will be able to find llvm-config, bash, git.
+  * Change the default make specification to use:
+    C:\msysgit\msysgit\mingw\bin\mingw32-make.exe
   * Set application and application current directory in
     Projects/Run Settings: the application is Tao.exe under the install
-    directory.
+    directory. So, before you can run Tao you must execute the "install"
+    target.
 
-You can create a Windows installer for Tao (taosetup.exe) with:
+- Optional: install the Nullsoft Scriptable Install System (NSIS) from
+  http://nsis.sourceforge.net/Download.
+  Not needed if you don't want to create an installer (taosetup.exe).
+  Once NSIS is installed you can build the installer with:
   $ cd packaging/win
   $ make
-

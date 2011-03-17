@@ -178,13 +178,14 @@ public:
     void        endPanning(QMouseEvent *);
 
     // XL program management
+    bool        sourceChanged();
     void        normalizeProgram();
     void        updateProgram(SourceFile *sf);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
     void        preloadSelectionCode();
     void        updateProgramSource();
-    void        markChanged(text reason);
+    bool        markChanged(text reason);
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);

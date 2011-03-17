@@ -1825,16 +1825,16 @@ void Window::consolidate()
 {
     text fn = +curFile;
     IFTRACE(resources)
-    {
-        std::cerr << "fn is "<< fn << std::endl;
-    }
+        std::cerr << "Consolidate: File name is "<< fn << std::endl;
 
-    ResourceMgt checkFiles(taoWidget);
-    xlRuntime->files[fn].tree->Do(checkFiles);
-    checkFiles.cleanUpRepo();
-    // Reload the program and mark the changes
-    taoWidget->reloadProgram();
-    taoWidget->markChanged("Related files included in the project");
+    if (taoWidget->markChanged("Include resource files in the project"))
+    {
+        ResourceMgt checkFiles(taoWidget);
+        xlRuntime->files[fn].tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+        // Reload the program and mark the changes
+        taoWidget->reloadProgram();
+    }
 
 }
 

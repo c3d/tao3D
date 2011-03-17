@@ -54,7 +54,7 @@ thismod_bin.path  = $${MODINSTPATH}/lib
 # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558
 # thismod_bin.files = $$MODULE
 macx {
-  thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE \"$$thismod_bin.path\" ; $$FIX_QT_REFS \"$$thismod_bin.path/$$MODULE\"
+  thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE \"$$thismod_bin.path\" ; $$FIX_QT_REFS \"$$thismod_bin.path/$$MODULE\" \"$$QMAKE_LIBDIR_QT\"
 } else {
   thismod_bin.extra = \$(INSTALL_PROGRAM) $$MODULE \"$$thismod_bin.path\"
 }

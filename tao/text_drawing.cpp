@@ -279,13 +279,14 @@ void TextSpan::DrawDirect(Layout *where)
 }
 
 
-QTextBlockFormat modifyBlockFormat(QTextBlockFormat blockFormat, Layout * where)
+QTextBlockFormat modifyBlockFormat(QTextBlockFormat blockFormat,
+                                   Layout * where)
 // ----------------------------------------------------------------------------
 //   Modify a blockFormat with the given layout
 // ----------------------------------------------------------------------------
 {
-    blockFormat.setAlignment( where->alongX.toQtHAlign() |
-                              where->alongY.toQtVAlign());
+    blockFormat.setAlignment(where->alongX.toQtHAlign() |
+                             where->alongY.toQtVAlign());
     blockFormat.setTopMargin(where->top);
     blockFormat.setBottomMargin(where->bottom);
     blockFormat.setLeftMargin(where->left);
@@ -296,7 +297,8 @@ QTextBlockFormat modifyBlockFormat(QTextBlockFormat blockFormat, Layout * where)
 }
 
 
-QTextCharFormat modifyCharFormat( QTextCharFormat format, Layout * where)
+QTextCharFormat modifyCharFormat(QTextCharFormat format,
+                                 Layout * where)
 // ----------------------------------------------------------------------------
 //   Modify a charFormat with the given layout
 // ----------------------------------------------------------------------------
@@ -365,7 +367,7 @@ void TextSpan::DrawSelection(Layout *where)
         if (sel && canSel)
         {
             // Mark characters in selection range
-            sel->inSelection = (charId >= sel->start() && charId <= sel->end());
+            sel->inSelection = charId>=sel->start() && charId<=sel->end();
             // Check up and down keys
             if (sel->inSelection || sel->needsPositions())
             {
@@ -379,9 +381,9 @@ void TextSpan::DrawSelection(Layout *where)
                     // Edit text in place if we have an editing request
                     if (sel->replace)
                     {
-                        if ( PerformEditOperation(widget, i) < 0)
+                        if (PerformEditOperation(widget, i) < 0)
                             next = i;
-                        // Soure->value has changed so reset local variables
+                        // Reset local copies after source->value changed
                         str = source->value;
                         max = str.length();
                     }
@@ -389,7 +391,7 @@ void TextSpan::DrawSelection(Layout *where)
                     scale sh = glyph.scalingFactor * height;
                     sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
 
-                    // add the char to the selected text
+                    // Add the char to the selected text
                     if (charId != sel->end())
                         selectedText.append(QChar(unicode));
 
@@ -437,14 +439,13 @@ void TextSpan::DrawSelection(Layout *where)
         }
     }
 
-    // Update the selection data with the format and text (to be used in copy/paste)
+    // Update the selection data with the format and text
+    // (to be used in copy/paste)
     if (sel && !selectedText.isEmpty())
     {
-        sel->cursor.mergeBlockFormat(modifyBlockFormat(sel->cursor.blockFormat(),
-                                                       where));
-        sel->cursor.insertText(selectedText,
-                               modifyCharFormat(sel->cursor.charFormat(),
-                                                where));
+        QTextCursor &sc = sel->cursor;
+        sc.mergeBlockFormat(modifyBlockFormat(sc.blockFormat(), where));
+        sc.insertText(selectedText, modifyCharFormat(sc.charFormat(), where));
     }
 
     if (sel && canSel)
@@ -454,7 +455,7 @@ void TextSpan::DrawSelection(Layout *where)
             charId++;
             if (charId >= sel->start() && charId <= sel->end())
             {
-                if ((sel->replace) && (sel->mark == sel->point))
+                if (sel->replace && sel->mark == sel->point)
                     PerformEditOperation(widget, i);
                 scale sd = glyph.scalingFactor * descent;
                 scale sh = glyph.scalingFactor * height;
@@ -849,7 +850,7 @@ int TextSpan::PerformEditOperation(Widget *widget, uint i)
     text        str           = source->value;
     uint        entryLen      = str.length();
 
-    if (! sel->length() && ! length)
+    if (!sel->length() && !length)
     {
         sel->replace = false;
         return 0; // Nothing to do
@@ -859,14 +860,18 @@ int TextSpan::PerformEditOperation(Widget *widget, uint i)
         commitMessage = "Replaced text";
     else if (length && !sel->length())
         commitMessage = "Inserted text";
-    else if (sel->length() && ! length)
+    else if (sel->length() && !length)
         commitMessage = "Deleted text";
+
+    // Mark the changes with commit message, abort if source window changed
+    if (!widget->markChanged(commitMessage))
+        return 0;
 
     // Compute the end of selection Id based on the selection length
     // and move the cursor accordingly
     uint tmp = eos;
     uint originalSelectionLength = sel->length();
-    for ( uint l = 0; l < originalSelectionLength; l++)
+    for (uint l = 0; l < originalSelectionLength; l++)
     {
         tmp = XL::Utf8Next(str, eos);
         if (tmp == eos)
@@ -894,8 +899,7 @@ int TextSpan::PerformEditOperation(Widget *widget, uint i)
     {
         // Move the cursor
         sel->moveTo(sel->mark + deltaSelection);
-        // Mark the changes with commit message.
-        widget->markChanged(commitMessage);
+
         // Reset replacement data
         sel->replace = false;
     }
@@ -917,7 +921,8 @@ void TextSpan::PerformInsertOperation(Layout * l,
 // ----------------------------------------------------------------------------
 {
     TextSelect *sel = widget->textSelection();
-    if (sel->replacement_tree)
+    if (sel->replacement_tree &&
+        widget->markChanged("Clipboard content pasted"))
     {
         XL::Infix * tail = sel->replacement_tree->AsInfix();
         XL::Infix * head = tail;
@@ -1009,15 +1014,14 @@ void TextSpan::PerformInsertOperation(Layout * l,
             std::cerr << post << std::endl;
         }
 
-        sel->moveTo( sel->start() );
-        // Reload the program and mark the changes
-        widget->markChanged("Clipboard content pasted");
+        sel->moveTo(sel->start());
+
+        // Reload the program
         widget->reloadProgram(NULL);
         widget->refreshNow();
-
     }
-
 }
+
 
 
 // ============================================================================
@@ -1179,14 +1183,13 @@ bool TextFormula::Validate(Text *source, Widget *widget)
     XL::Positions      &positions = XL::MAIN->positions;
     XL::Errors          errors;
     XL::Parser          parser(input, syntax,positions,errors);
-    Tree *              newTree   = parser.Parse();
+    Tree *              newTree = parser.Parse();
 
-    if (newTree)
+    if (newTree && widget->markChanged("Replaced formula"))
     {
         Prefix *prefix = self;
         prefix->right = newTree;
         widget->reloadProgram();
-        widget->markChanged("Replaced formula");
         return true;
     }
     return false;
@@ -1334,7 +1337,7 @@ bool TextValue::Validate(XL::Text *source, Widget *widget)
     Tree *              newTree   = parser.Parse();
     bool                valid = false;
 
-    if (newTree)
+    if (newTree && widget->markChanged("Replaced value"))
     {
         if (Real *oldReal = value->AsReal())
         {
@@ -1372,10 +1375,7 @@ bool TextValue::Validate(XL::Text *source, Widget *widget)
         }
 
         if (valid)
-        {
             widget->reloadProgram();
-            widget->markChanged("Replaced value");
-        }
         return valid;
     }
     return false;

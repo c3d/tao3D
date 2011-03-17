@@ -8,7 +8,7 @@
  * In this manual, you will find reference information on:
  *   - the format and structure of Tao documents,
  *   - the constructs (@a builtins) that you can use to write documents,
- *   - the XL language, which is the basis of Tao documents.
+ *   - the XLR language, which is the basis of Tao documents.
  *
  * The reference pages also contain some examples.
  *
@@ -52,7 +52,7 @@
  *    a main <tt>.ddd</tt> file that will simply import all the others. @n
  *    When an imported file cannot be opened as a Tao document on its own,
  *    it is usual to name it with a <tt>.xl</tt> extension to denote that the
- *    file is XL language source.
+ *    file is XL(R) language source.
  *  - Pictures. Typically (but not necessarily) stored under the @c images
  *    subdirectory. Several file formats are supported (PNG, JPEG, and so on;
  *    refer to the @ref image primitive for details).
@@ -67,11 +67,12 @@
  * such as how the document changes with time or external events (key press
  * or mouse position, for instance).
  *
- * @subsection secXLRef The XL Language
+ * @subsection secXLRef The XLR Language
  *
- * The XL programming language is the basis of the Tao document syntax.
- * Detailed information is available in the XL language reference guide.
- * However, a deep knowledge of XL is not needed to write Tao documents.
+ * The XLR programming language is the basis of the Tao document syntax.
+ * Detailed information is available in <a href="XLRef.pdf">the XLR language
+ * reference guide</a>. However, a deep knowledge of XL is not needed to write
+ * Tao documents.
  *
  * @subsection secBuiltins Tao Builtins and Primitives
  *

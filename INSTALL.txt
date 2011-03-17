@@ -23,7 +23,7 @@ Here is a step-by-tep guide.
 - Optional: install doxygen (to compile the Tao documentation).
   http://www.stack.nl/~dimitri/doxygen/download.html
   Then make sure the "doxygen" command is in your Windows PATH.
-  
+
 - Start the msysgit bash shell (use the desktop shortcut).
   cd $HOME. Create the file $HOME/.profile with the following line:
 

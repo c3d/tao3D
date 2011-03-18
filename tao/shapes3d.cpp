@@ -88,6 +88,29 @@ bool Shape3::setLineColor(Layout *where)
     return false;
 }
 
+Vector3& Shape3::calculateNormal(const Point3& v1,const Point3& v2,const Point3& v3)
+// ----------------------------------------------------------------------------
+//    Compute normal of specified triangle
+// ----------------------------------------------------------------------------
+{
+    Point3 a;
+    Point3 b;
+    Vector3 normal;
+
+    a.x = v1.x - v2.x;
+    a.y = v1.y - v2.y;
+    a.z = v1.z - v2.z;
+
+    b.x = v2.x - v3.x;
+    b.y = v2.y - v3.y;
+    b.z = v2.z - v3.z;
+
+    normal.x = (a.y * b.z) - (a.z * b.y);
+    normal.y = (a.z * b.x) - (a.x * b.z);
+    normal.z = (a.x * b.y) - (a.y * b.x);
+
+    return normal.Normalize();
+}
 
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
@@ -205,6 +228,7 @@ void Cone::Draw(Layout *where)
     scale d = bounds.Depth();
     std::vector<Point3> tex;
     std::vector<Point3> geom;
+    std::vector<Vector3> norm;
 
     for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
     {
@@ -212,14 +236,39 @@ void Cone::Draw(Layout *where)
         double sa = sin(a);
         tex.push_back(Point3(0.5 + 0.5 * ca, 0.5 + 0.5 * sa, 0));
         geom.push_back(Point3(p.x + w/2* ca, p.y + h/2 * sa, p.z - d/2));
+
         tex.push_back(Point3(0.5 + 0.5 * ca, 0.5 + 0.5 * sa, 1));
         geom.push_back(Point3(p.x + w/2* ca * ratio, p.y + h/2 * sa * ratio, p.z + d/2));
     }
 
+    //Compute normal of each vertex according to those calculate for neighbouring faces
+    //NOTE: First and last normals are the same because of QUAD_STRIP
+    Vector3 previousFaceNorm, nextFaceNorm;
+    previousFaceNorm = calculateNormal(geom[geom.size() - 2], geom[geom.size() - 1], geom[0]);
+    nextFaceNorm = calculateNormal(geom[0], geom[1], geom[2]);
+    norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
+    norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
+    for(unsigned int i = 2; i < geom.size() - 2; i +=2)
+    {
+        previousFaceNorm = nextFaceNorm;
+
+        if(i < geom.size() - 2)
+         nextFaceNorm = calculateNormal(geom[i], geom[i + 1], geom[i + 2]);
+        else
+         nextFaceNorm = calculateNormal(geom[geom.size() - 2], geom[geom.size() - 1], geom[0]);
+
+        norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
+        norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
+    }
+    norm.push_back(norm[0]);
+    norm.push_back(norm[0]);
+
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &geom[0].x);
     glTexCoordPointer(3, GL_DOUBLE, 0, &tex[0].x);
+    glNormalPointer(GL_DOUBLE, 0, &norm[0].x);
 
     setTexture(where);
     if (setFillColor(where))
@@ -231,6 +280,7 @@ void Cone::Draw(Layout *where)
             
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
 }
 
 TAO_END

@@ -37,6 +37,7 @@ struct Shape3 : Shape
 protected:
     bool                setFillColor(Layout *where);
     bool                setLineColor(Layout *where);
+    Vector3&            calculateNormal(const Point3& v1,const Point3& v2, const Point3& v3);
 };
 
 

@@ -4,8 +4,8 @@
 # File Description:
 # Project include file for Tao templates
 # ******************************************************************************
-# This document is released under the GNU General Public License.
-# See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+# This software is property of Taodyne SAS - Confidential
+# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
 # (C) 2011 Taodyne SAS
 # ******************************************************************************

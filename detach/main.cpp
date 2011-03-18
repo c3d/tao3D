@@ -39,8 +39,8 @@
 //         3. Start git.exe through detach.exe in order to get rid of the
 //            console.
 //
-// This document is released under the GNU General Public License.
-// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 

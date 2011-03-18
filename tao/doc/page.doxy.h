@@ -1,5 +1,5 @@
 /**
- * @addtogroup page Pages
+ * @addtogroup Page Pages
  * @ingroup TaoBuiltins
  * This group of primitives deals with the page attributes.
  * 

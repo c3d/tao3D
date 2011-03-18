@@ -4,8 +4,8 @@
 # File Description:
 # Qt build file for tao documentation
 # ******************************************************************************
-# This document is released under the GNU General Public License.
-# See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+# This software is property of Taodyne SAS - Confidential
+# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2011 Catherine Burvelle <catherine@taodyne.com>
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
 # (C) 2011 Taodyne SAS
@@ -15,6 +15,7 @@ TEMPLATE = subdirs
 
 
 system(bash -c \"doxygen --version >/dev/null 2>&1\"):HAS_DOXYGEN=true
+system(bash -c \"texmacs -h >/dev/null 2>&1\"):HAS_TEXMACS=true
 
 equals(HAS_DOXYGEN, true) {
 
@@ -26,22 +27,31 @@ equals(HAS_DOXYGEN, true) {
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
-  dox.target = doc
-  dox.commands = doxygen 
-  dox.depends = cp_examples
+  doc.commands = doxygen
+  doc.depends = cp_examples cp_xlref
 
-  cp_examples.target = examples
   cp_examples.commands = mkdir -p html/examples ; \
                          cp ../tao/doc/examples/*.ddd html/examples/ ; \
                          for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ 2>/dev/null || : ; done
 
+  cp_xlref.commands = cp XLRef.pdf html
+  cp_xlref.depends = xlref
+
+  xlref.target = XLRef.pdf
+  equals(HAS_TEXMACS, true) {
+    xlref.commands = texmacs --convert XLRef.tm XLRef.pdf --quit
+    xlref.depends = XLRef.tm
+  }
+
   clean.commands = /bin/rm -rf html/ qch/
 
-  install.target = install
+  install.path = $$APPINST/doc
   install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
-  install.depends = dox
+  install.depends = doc
 
-  QMAKE_EXTRA_TARGETS += dox cp_examples install clean
+  QMAKE_EXTRA_TARGETS += doc cp_examples cp_xlref xlref clean
+
+  INSTALLS += install
 
 } else {
 

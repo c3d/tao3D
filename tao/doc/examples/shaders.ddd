@@ -1,0 +1,64 @@
+sphere_shader ->
+    shader_program 
+        vertex_shader <<
+            uniform float factor[2];
+            void main()
+            {
+                vec4 v = vec4(gl_Vertex);		
+                vec4 t = gl_MultiTexCoord0;
+                float r = 1.0 + factor[0] * sin(factor[1] * (25.0 * t.x + 30.0 * t.y));
+                v.x *= r; v.y *= r; v.z *= r;
+                gl_Position = gl_ModelViewProjectionMatrix * v;
+                gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+            }
+        >> 
+        fragment_shader <<
+            uniform sampler2D tex;
+            void main()
+            {
+                vec4 texcolor = texture2D(tex, gl_TexCoord[0].st);
+                gl_FragColor = texcolor;
+            }
+        >> 
+    shader_set factor := (2 * mouse_x / window_width; 2 * mouse_y / window_height)
+
+sphere_texture ->
+    frame_texture 128, 64,
+        color 1, 1, 1, 100% 
+        rectangle 0, 0, 200, 200 
+        color 1, 0, 0, 1 
+        rectangle -16, -16, 32, 32 
+        rectangle 16, 16, 32, 32 
+        rectangle 48, -16, 32, 32 
+        rectangle -48, 16, 32, 32 
+    texture_wrap true, true 
+    texture_transform 
+        scale 400% , 400% , 400% 
+
+draw_sphere r ->
+    min x, y -> if (x < y) then x else y
+    sz -> 40% * min (window_width, window_height)
+    sphere_texture
+    sphere_shader
+    rotatez -20 
+    rotatey r 
+    sphere 0, 0, 0, sz, sz, sz, 50, 50 
+
+draw_scene ->
+    locally
+        draw_sphere 30 * time
+    locally
+        bw -> 200
+        bh -> 30 
+        bx -> 0
+        by -> -window_height/2 + bh/2 + 5 
+        color "blue"
+        rectangle 0, by, bw, bh 
+        font "Ubuntu", 18
+        color "white"
+        text_box bx, by, bw, bh,
+            align_center
+            vertical_align_center
+            text "Shaders are cool!"
+
+draw_scene

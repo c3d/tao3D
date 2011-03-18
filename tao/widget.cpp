@@ -14,8 +14,8 @@
 //
 //
 // ****************************************************************************
-// This document is released under the GNU General Public License.
-// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
@@ -1761,7 +1761,7 @@ void Widget::setup(double w, double h, const Box *picking)
         Point center = b.lower + size / 2;
         gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
-    double zf = 0.5 * zoom / scaling;
+    double zf = 0.5 / (zoom * scaling);
     glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
 
     // Setup the model-view matrix
@@ -2747,10 +2747,10 @@ void Widget::doPanning(QMouseEvent *event)
     dx = x - panX;
     dy = y - panY;
 
-    cameraPosition.x -= dx*zoom;
-    cameraPosition.y += dy*zoom;
-    cameraTarget.x -= dx*zoom;
-    cameraTarget.y += dy*zoom;
+    cameraPosition.x -= dx/zoom;
+    cameraPosition.y += dy/zoom;
+    cameraTarget.x -= dx/zoom;
+    cameraTarget.y += dy/zoom;
 
     panX = x;
     panY = y;

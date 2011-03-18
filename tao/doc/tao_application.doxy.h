@@ -114,18 +114,3 @@ toggle_hand_cursor();
 show(amount:real);
 
 /** @} */
-
-
-/**
- * @addtogroup stereoscopy Stereoscopie
- * @ingroup TaoGui
- * Deals with stereoscopy capabilities of Tao Presentations.
- *
- * @{
- */
-/**
-enable_stereoscopy
-eye_distance
-stereoscopy_settings
-*/
-/** @} */

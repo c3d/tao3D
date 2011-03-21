@@ -1100,13 +1100,43 @@ void Window::documentWasModified()
         setWindowModified(true);
 }
 
+class Action
+// ----------------------------------------------------------------------------
+//   QAction with shortcut context Qt:ApplicationShortcut on Windows
+// ----------------------------------------------------------------------------
+    : public QAction
+{
+public:
+    Action(const QIcon & icon, const QString & text, QObject * parent)
+        : QAction(icon, text, parent) { init(); }
+    Action(const QString & text, QObject * parent)
+        : QAction(text, parent) { init(); }
+    Action(QObject * parent)
+        : QAction(parent) { init(); }
+
+private:
+    void init()
+    {
+#ifdef Q_OS_WIN
+        // Work around bug #879:
+        // XLSourceEdit is a modeless QDialog. On MacOSX, the keyboard
+        // shortcuts defined by the main window are active when the QDialog
+        // has the focus; on Windows, shortcuts are ignored and I don't see
+        // why.
+        // Creating application shortcuts is a workaround. It would not work
+        // with multiple main windows (multiple documents), however.
+        setShortcutContext(Qt::ApplicationShortcut);
+#endif
+    }
+};
+
 
 void Window::createActions()
 // ----------------------------------------------------------------------------
 //   Create the various menus and icons on the toolbar
 // ----------------------------------------------------------------------------
 {
-    newDocAct = new QAction(QIcon(":/images/new.png"),
+    newDocAct = new Action(QIcon(":/images/new.png"),
                             tr("New from &Template Chooser..."), this);
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
     newDocAct->setStatusTip(tr("Create a new document from a template"));
@@ -1114,14 +1144,14 @@ void Window::createActions()
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
 
-    newAct = new QAction(QIcon(":/images/new.png"), tr("&New"), this);
+    newAct = new Action(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Open a blank document window"));
     newAct->setIconVisibleInMenu(false);
     newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
 
-    openAct = new QAction(QIcon(":/images/open.png"), tr("&Open..."),
+    openAct = new Action(QIcon(":/images/open.png"), tr("&Open..."),
                           this);
     openAct->setShortcuts(QKeySequence::Open);
     openAct->setStatusTip(tr("Open an existing file"));
@@ -1136,7 +1166,7 @@ void Window::createActions()
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
 
-    saveAct = new QAction(QIcon(":/images/save.png"), tr("&Save"), this);
+    saveAct = new Action(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
     saveAct->setIconVisibleInMenu(false);
@@ -1153,7 +1183,7 @@ void Window::createActions()
     renderToFileAct->setObjectName("renderToFile");
     connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
 
-    saveAsAct = new QAction(tr("Save &As..."), this);
+    saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
     saveAsAct->setObjectName("saveAs");
@@ -1164,7 +1194,7 @@ void Window::createActions()
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 
-    printAct = new QAction(tr("&Print..."), this);
+    printAct = new Action(tr("&Print..."), this);
     printAct->setStatusTip(tr("Print the document"));
     printAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
     connect(printAct, SIGNAL(triggered()), this, SLOT(print()));
@@ -1189,13 +1219,13 @@ void Window::createActions()
                 this, SLOT(openRecentFile()));
     }
 
-    closeAct = new QAction(tr("&Close"), this);
+    closeAct = new Action(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
     closeAct->setStatusTip(tr("Close this window"));
     closeAct->setObjectName("close");
     connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
 
-    exitAct = new QAction(tr("E&xit"), this);
+    exitAct = new Action(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");

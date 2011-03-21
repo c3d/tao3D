@@ -15,8 +15,11 @@
  *       options. Following each key press, the list of entries is reduced
  *       to show only the ones that match the text the user has entered so
  *       far. For instance, type "e": the chooser will show only the options
- *       that contain an "e". Press "x": only the entrie that contain "ex"
+ *       that contain an "e". Press "x": only the entry that contain "ex"
  *       will be displayed.
+ *
+ * @note You cannot validate an entry with the mouse. You need to press the
+ * return key instead.
  *
  * The same primitives are used by Tao to display the main application
  * menu (when you press the escape key).
@@ -30,6 +33,9 @@
  * after the user entered a "g".
  * @image html chooser.png "Using the command chooser"
  *
+ * @note The message sent by writeln are visible on the application's
+ * standard ouput. See @ref secStdoutStderr "Standard Ouput, Standard Error"
+ * for details.
  * @note Currently, the XL forms controlling the appearance of the chooser
  * are defined in <tt>tao.xl</tt> and cannot be overriden in a Tao document.
  *

@@ -2110,7 +2110,7 @@ PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
        SYNOPSIS("Return the shader compilation log")
        DESCRIPTION(""))
 PREFIX(ShaderSet, tree, "shader_set",
-       PARM(t, tree, "Assignment to a shader variable"),
+       PARM(t, source, "Assignment to a shader variable"),
        RTAO(shaderSet(context, self, t)),
        GROUP(lighting)
        SYNOPSIS("Set a shader uniform or attribute value")

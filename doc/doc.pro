@@ -28,7 +28,7 @@ equals(HAS_DOXYGEN, true) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   doc.commands = doxygen
-  doc.depends = cp_examples cp_xlref
+  doc.depends = cp_examples cp_xlref version
 
   cp_examples.commands = mkdir -p html/examples ; \
                          cp ../tao/doc/examples/*.ddd html/examples/ ; \
@@ -49,7 +49,11 @@ equals(HAS_DOXYGEN, true) {
   install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
   install.depends = doc
 
-  QMAKE_EXTRA_TARGETS += doc cp_examples cp_xlref xlref clean
+  version.target = project_number.doxinclude
+  version.commands = V=`git describe --tags --always --dirty=-dirty`; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
+  version.depends = FORCE
+
+  QMAKE_EXTRA_TARGETS += doc cp_examples cp_xlref xlref clean version
 
   INSTALLS += install
 

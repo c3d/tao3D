@@ -34,7 +34,7 @@ equals(HAS_DOXYGEN, true) {
                          cp ../tao/doc/examples/*.ddd html/examples/ ; \
                          for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ 2>/dev/null || : ; done
 
-  cp_xlref.commands = cp XLRef.pdf html
+  cp_xlref.commands = mkdir -p html ; cp XLRef.pdf html
   cp_xlref.depends = xlref
 
   xlref.target = XLRef.pdf

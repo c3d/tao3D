@@ -3,3 +3,5 @@
 /.*_ts
 /build_root/
 /git_build/
+/Makefile.config
+/Makefile

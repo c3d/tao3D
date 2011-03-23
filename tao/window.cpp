@@ -1777,7 +1777,8 @@ bool Window::switchToSlideShow(bool ss)
 {
     bool oldMode = slideShowMode;
     switchToFullScreen(ss);
-    setWindowAlwaysOnTop(ss);
+    if (!ss || QSettings().value("fsAlwaysOnTop", QVariant(false)).toBool())
+        setWindowAlwaysOnTop(ss);
     taoWidget->autoHideCursor(NULL, ss);
     TaoApp->blockScreenSaver(ss);
     slideShowAct->setChecked(ss);

@@ -100,6 +100,11 @@
  *  - Fonts. TrueType or OpenType fonts may be stored in the @c fonts
  *    subdirectory.
  *
+ * When it opens a document, Tao Presentation will automatically import the
+ * files @c xl:user.xl and @c xl:theme.xl, in that order, if they exist
+ * (see the @ref secSearchPaths "search paths" section below for details on the
+ * meaning of @c xl:).
+ *
  * @subsection subsecDocStructure Document structure
  *
  * Tao documents are written in the Tao language, which enables to describe the
@@ -191,6 +196,27 @@ locally
  * inside the main Layout of the document, they get re-executed too.
  *
  * @bug [#871] Partial execution not triggered correctly
+ *
+ * @subsection secSearchPaths Search Paths
+ *
+ * Some primitives that take a file name or file path accept a special syntax
+ * called a <em>search path prefix</em>. For instance:
+ * @code
+image 0, 0, 100%, 100%, "image:file.jpg"
+ * @endcode
+ * The @c image: prefix indicates where to find the file. Tao will look for
+ * @c file.jpg in several folders and use the first file it can find.
+ * Here is where Tao will look for files for each prefix:
+ * - @b image: the image folders registered by @ref Modules "modules", the
+ *   @c images subfolder in the current document folder, the current document
+ *   folder.
+ * - @b xl: the current document folder, the user's Tao folder, the application
+ *   folder.
+ * - @b system: the application folder.
+ *
+ * The user's Tao folder is <tt>%APPDATA%\Tao Presentations</tt> on Windows,
+ * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
+ * The application folder is where Tao Presentation is installed.
  */
 
 /**

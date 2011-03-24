@@ -65,8 +65,12 @@ public:
 protected:
     void initializePage();
 
+protected slots:
+    void updateDescription();
+
 private:
     QListWidget *templateListWidget;
+    QLabel      *description;
 };
 
 

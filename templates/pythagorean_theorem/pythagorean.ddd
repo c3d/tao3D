@@ -1,0 +1,136 @@
+// Animated "proof" of the Pythagorean theorem
+
+min x, y -> if x < y then x else y
+
+S -> min window_height, window_width
+a -> S * 30%
+b -> S * 70%
+A -> 0.0
+B -> 0.0
+C -> 0.0
+now -> page_time mod C
+fsize -> S*8%
+
+pyth_init t1:real, t2:real, t3:real ->
+    A := t1 ; B := t1 + t2 ; C := t1 + t2 + t3
+
+linear m:real, M:real ->
+    if (now < A) then
+        m
+    else
+        if (now > B) then
+            M
+        else
+            m + (now - A) * (M - m)/(B - A)
+
+triangle1 ->
+    locally
+        translate -S/2 + a/2, a/2, 0
+        rotatez -90
+        right_triangle 0, 0, b, a
+
+triangle2 ->
+    locally
+        translate -a/2, -S/2 + a/2, 0
+        right_triangle 0, 0, b, a 
+
+triangle3 angle:real ->
+    locally
+        translate S/2 - a, -S/2, 0
+        rotatez angle + 90
+        translate b/2, -a/2, 0
+        right_triangle 0, 0, b, a
+
+triangle4 angle:real ->
+    locally
+        translate -S/2 + a, S/2, 0
+        rotatez 180 - angle
+        translate -b/2, a/2, 0
+        right_triangle 0, 0, b, a
+
+background_square ->
+    locally
+        color "gray"
+        line_color "black"
+        line_width 0
+        rectangle 0, 0, S, S
+
+triangles ->
+    locally
+        color 0, 0.4, 0.8, 1
+        line_color "black"
+        line_width 1
+        triangle1
+        triangle2
+        triangle3 linear (0, 90)
+        triangle4 linear (0, 90)
+
+legend_c ->
+    text_box 0, 0, S, S, 
+        align_center
+        vertical_align_center
+        text "s = c²"
+
+legend_a ->
+    text_box (S-a)/2, -(S-a)/2, a, a, 
+        align_center
+        vertical_align_center
+        text "s = a²"
+
+legend_b ->
+    text_box (S-b)/2, (S-b)/2, b, b, 
+        align_center
+        vertical_align_center
+        text "s = b²"
+
+line_ab ->
+    locally
+        line_color "black"
+        line_width 1
+        path
+            move_to S/2-a, -S/2+a, 0
+            line_relative a, 0, 0
+
+legend ->
+    locally
+        color "black"
+        line_color "black"
+        line_width 0
+        font "Old Standard TT/Italic"
+        font_size fsize 
+        locally
+            move_to -S/2 + 6, S/2 - b/2
+            text "b"
+            move_to -S/2 + 6, -S/2 + 0.8*a/2
+            text "a"
+            move_to -S/2 + b/2 - 0.6*fsize, -S/2 + a/2 - 0.6*fsize
+            text "c"
+        if now < A then
+            legend_c
+        else
+            if now > B then
+                legend_a
+                legend_b
+                line_ab
+
+pyth x:real, y: real, w: real, t1:real, t2:real, t3:real ->
+    locally
+        pyth_init t1, t2, t3
+        translate x, y, 0.0
+        scale w/S, w/S, 1.0
+        background_square
+        triangles
+        legend
+
+page "The Pythagorean theorem",
+    pyth 0, S*10%, S*80%, 3, 4, 3
+    H -> S*20%
+    text_box 0, -S/2+H/2, S, H,
+        line_width 0
+        color "black"
+        align_center
+        vertical_align_center
+        font "Old Standard TT/Italic"
+        font_size H/3 
+        text "a² + b² = c²"
+

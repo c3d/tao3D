@@ -125,7 +125,7 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
     QString cmd("/bin/sh");
     QStringList args;
-    args << "-c" << "cp -R " + srcPath + "/* " + dstPath;
+    args << "-c" << "cp -R \"" + srcPath + "\"/* " + dstPath;
 
 #elif defined (Q_OS_WIN)
 

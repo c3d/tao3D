@@ -5826,6 +5826,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     {
         if (infix->name == ":=")
         {
+            ADJUST_CONTEXT_FOR_INTERPRETER(context);
+            XL::Symbols *symbols = self->Symbols();
             Name *name = infix->left->AsName();
             TreeList args;
             Tree *arg = infix->right;
@@ -5843,6 +5845,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             for (i = 0; i < max; i++)
             {
                 arg = args[i];
+                if (symbols)
+                    arg->SetSymbols(symbols);
                 arg = context->Evaluate(arg);
                 if (Integer *it = arg->AsInteger())
                     arg = new Real(it->value);

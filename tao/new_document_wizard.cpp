@@ -25,9 +25,8 @@
 
 #include "new_document_wizard.h"
 #include "application.h"
-#include "tao_utf8.h" // DEBUG
 
-TAO_BEGIN
+namespace Tao {
 
 NewDocumentWizard::NewDocumentWizard(QWidget *parent)
     : QWizard(parent)
@@ -202,5 +201,5 @@ void DocumentNameAndLocationPage::chooseLocation()
         docLocationLineEdit->setText(QDir::toNativeSeparators(location));
 }
 
-TAO_END
+}
 

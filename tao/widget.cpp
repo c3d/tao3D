@@ -24,7 +24,6 @@
 // ****************************************************************************
 
 #include "widget.h"
-#include "tao.h"
 #include "tao_main.h"
 #include "main.h"
 #include "runtime.h"
@@ -100,7 +99,7 @@
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
 
-TAO_BEGIN
+namespace Tao {
 
 // ============================================================================
 //
@@ -9669,4 +9668,4 @@ void tao_widget_refresh(double delay)
     TAO(refresh(delay));
 }
 
-TAO_END
+}

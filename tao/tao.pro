@@ -349,3 +349,18 @@ macx {
   target.path = $$INSTROOT
   INSTALLS   += target
 }
+
+
+TRANSLATIONS = tao_fr.ts
+
+lupdate.commands = lupdate -verbose tao.pro
+lupdate.depends  = FORCE
+QMAKE_EXTRA_TARGETS += lupdate
+
+lrelease.commands = lrelease tao.pro
+lrelease.depends  = FORCE
+QMAKE_EXTRA_TARGETS += lrelease
+
+translations.path = $$APPINST
+translations.files = *.qm
+INSTALLS += translations

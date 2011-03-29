@@ -32,7 +32,7 @@
 #include <QApplication>
 #include <fstream>
 
-TAO_BEGIN
+namespace Tao {
 
 QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
@@ -458,4 +458,4 @@ bool RepositoryFactory::available()
     return available;
 }
 
-TAO_END
+}

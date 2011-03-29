@@ -71,7 +71,7 @@
  *                      ";;All files (*.*)"
  */
 
-TAO_BEGIN
+namespace Tao {
 
 Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
                bool ro)
@@ -2407,4 +2407,4 @@ Window *Window::findWindow(const QString &fileName)
     return NULL;
 }
 
-TAO_END
+}

@@ -21,7 +21,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
 #include "version.h"
 #include "splash_screen.h"
 
@@ -35,7 +34,7 @@
 #include <QDesktopServices>
 #include <QUrl>
 
-TAO_BEGIN
+namespace Tao {
 
 #define TEXT_COLOR "#FFFFFF"
 #define LINK_COLOR "#EEAA11"
@@ -129,20 +128,18 @@ void SplashScreen::drawContents(QPainter *painter)
     QSplashScreen::drawContents(painter);
 
     int x = 270, y = 230, w = 500, h = 225;
-    const char * txt =
-            "<font color=\"" TEXT_COLOR "\">"
-            "by "
-            "Catherine Burvelle, "
-            "J\303\251r\303\264me Forissier and "
-            "Christophe de Dinechin,<br>" 
-            "with help from Anne Lempereur and Lionel Schaffhauser."
-           "</font>";
     QTextDocument doc;
     QRect clip = rect();
     clip.setRect(0, 0, w, h);
     painter->save();
     painter->translate(x, y);
-    doc.setHtml(trUtf8(txt));
+    doc.setHtml(trUtf8("<font color=\"%1\">"
+            "by "
+            "Catherine Burvelle, "
+            "J\303\251r\303\264me Forissier and "
+            "Christophe de Dinechin,<br>"
+            "with help from Anne Lempereur and Lionel Schaffhauser."
+           "</font>").arg(TEXT_COLOR));
     doc.drawContents(painter, clip);
     painter->restore();
 
@@ -169,4 +166,4 @@ void SplashScreen::showMessage(const QString &message, int, const QColor &)
     repaint();
 }
 
-TAO_END
+}

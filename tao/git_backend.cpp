@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-TAO_BEGIN
+namespace Tao {
 
 // The 'git' command. May be updated by checkGit().
 QString GitRepository::gitCommand("git");
@@ -1307,4 +1307,4 @@ void GitAuthProcess::setEnvironment()
     }
 }
 
-TAO_END
+}

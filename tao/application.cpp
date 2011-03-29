@@ -25,7 +25,6 @@
 #include "application.h"
 #include "widget.h"
 #include "repository.h"
-#include "tao.h"
 #include "tao_utf8.h"
 #include "tao_main.h"
 #include "error_message_dialog.h"
@@ -60,7 +59,7 @@ extern "C" void UpdateSystemActivity(uint8_t);
 
 XL_DEFINE_TRACES
 
-TAO_BEGIN
+namespace Tao {
 
 
 Application::Application(int & argc, char ** argv)
@@ -76,6 +75,19 @@ Application::Application(int & argc, char ** argv)
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
+
+    // UI internationalization
+    //
+    // For easier testing: the TAO_LANG environment variable overrides the
+    // current locale. For example: TAO_LANG=en_US, TAO_LANG=fr_FR
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    QString name = env.value("TAO_LANG");
+    if (!name.isEmpty())
+        QLocale::setDefault(QLocale(name));
+    // Load translations, based on current locale
+    QString lang = QLocale().name().left(2);
+    translator.load(QString("tao_") + lang);
+    installTranslator(&translator);
 
     // Set current directory
     QDir::setCurrent(applicationDirPath());
@@ -1053,4 +1065,4 @@ void Application::addUrlCompletion(QString url)
 }
 
 
-TAO_END
+}

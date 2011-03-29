@@ -49,8 +49,9 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      fillTexture(0), lightId(GL_LIGHT0), programId(0),
-      wrapS(false), wrapT(false), printing(false),
+      currentTexUnit(0),
+      lightId(GL_LIGHT0), programId(0),
+      printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0)
 {}
@@ -69,11 +70,10 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        fillTexture(o.fillTexture),
+        currentTexUnit(o.currentTexUnit),
+        fillTextures(o.fillTextures),
         lightId(o.lightId),
-        programId(o.programId),
-        wrapS(o.wrapS),
-        wrapT(o.wrapT),
+        programId(o.programId),        
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
@@ -141,7 +141,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTextureMatrix(0),
       hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false),
       items(), display(widget),
@@ -155,7 +155,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTextureMatrix(0),
       hasLighting(false), hasMaterial(false),
       isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display),
@@ -528,11 +528,10 @@ void Layout::Inherit(Layout *where)
     lineWidth       = where->lineWidth;
     lineColor       = where->lineColor;
     fillColor       = where->fillColor;
-    fillTexture     = where->fillTexture;
+    //fillTexture     = where->fillTexture;
+    fillTextures    = where->fillTextures;
     lightId         = where->lightId;
     programId       = where->programId;
-    wrapS           = where->wrapS;
-    wrapT           = where->wrapT;
     printing        = where->printing;
     planarRotation  = where->planarRotation;
     planarScale     = where->planarScale;

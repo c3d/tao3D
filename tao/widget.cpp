@@ -3767,7 +3767,7 @@ static inline void resetLayout(Layout *where)
         where->lineWidth = 1;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
-        where->fillTexture = 0;
+        (where->fillTextures).clear();
     }
 }
 
@@ -5406,7 +5406,42 @@ Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y, double k
 }
 
 
-Tree_p Widget::fillTexture(Tree_p self, text img)
+Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
+// ----------------------------------------------------------------------------
+//     Build a GL texture out of an id
+// ----------------------------------------------------------------------------
+{
+    GLuint numTextureUnits = 1;
+    //Get number of maximum texture units in fragment shaders (texture units are limited to 4 otherwise)
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*) &numTextureUnits);
+    if((texUnit < 0) && (texUnit > (numTextureUnits - 1)))
+    {
+        Ooops("Invalide texture unit $1", self);
+        return 0;
+    }
+
+    layout->currentTexUnit = texUnit;
+    return new XL::Integer(texUnit);
+}
+
+Integer* Widget::fillTextureID(Tree_p self, GLuint texId)
+// ----------------------------------------------------------------------------
+//     Build a GL texture out of an id
+// ----------------------------------------------------------------------------
+{
+    if((! glIsTexture(texId)) && (texId != 0))
+    {
+        Ooops("Invalide texture id $1", self);
+        return 0;
+    }
+
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(texId, texUnit));
+    layout->hasAttributes = true;
+    return new XL::Integer(texId);
+}
+
+Integer* Widget::fillTexture(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
@@ -5424,13 +5459,15 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
         texId = rinfo->bind(img);
     }
 
-    layout->Add(new FillTexture(texId));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new XL::Integer(texId);
 }
 
 
-Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
+
+Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
@@ -5448,13 +5485,14 @@ Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
         texId = rinfo->bind(img);
     }
 
-    layout->Add(new FillTexture(texId));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new XL::Integer(texId);
 }
 
 
-Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
+Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format
 // ----------------------------------------------------------------------------
@@ -5472,13 +5510,15 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
         }
         texId = rinfo->bind(img);
     }
-    layout->Add(new FillTexture(texId));
+
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new XL::Integer(texId);
 }
 
 
-Tree_p Widget::image(Context *context,
+Integer* Widget::image(Context *context,
                      Tree_p self, Real_p x, Real_p y, text filename)
 //----------------------------------------------------------------------------
 //  Make an image with default size
@@ -5489,7 +5529,7 @@ Tree_p Widget::image(Context *context,
 }
 
 
-Tree_p Widget::image(Context *context,
+Integer* Widget::image(Context *context,
                      Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
                      text filename)
 //----------------------------------------------------------------------------
@@ -5513,7 +5553,8 @@ Tree_p Widget::image(Context *context,
     }
     texId = rinfo->bind(filename);
 
-    layout->Add(new FillTexture(texId));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
     double w0 = rinfo->width;
@@ -5525,11 +5566,11 @@ Tree_p Widget::image(Context *context,
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return XL::xl_true;
+    return new XL::Integer(texId);
 }
 
 
-Tree_p Widget::imagePx(Context *context,
+Integer* Widget::imagePx(Context *context,
                        Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                        text filename)
 //----------------------------------------------------------------------------
@@ -5638,7 +5679,8 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
 //   Record if we want to wrap textures or clamp them
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new TextureWrap(s, t));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new TextureWrap(s, t, texUnit));
     return XL::xl_true;
 }
 
@@ -5648,10 +5690,11 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 //   Apply a texture transformation
 // ----------------------------------------------------------------------------
 {
-    layout->hasTextureMatrix = true;
-    layout->Add(new TextureTransform(true));
+    uint texUnit = layout->currentTexUnit;
+    layout->hasTextureMatrix |= 1 << texUnit;
+    layout->Add(new TextureTransform(true, texUnit));
     Tree_p result = context->Evaluate(code);
-    layout->Add(new TextureTransform(false));
+    layout->Add(new TextureTransform(false, texUnit));
     return result;
 }
 
@@ -6474,7 +6517,7 @@ struct ImagePacker : XL::Action
 };
 
 
-XL::Tree_p Widget::picturePacker(Tree_p self,
+Integer* Widget::picturePacker(Tree_p self,
                                  uint tw, uint th,
                                  uint iw, uint ih,
                                  uint pw, uint ph,
@@ -6504,7 +6547,8 @@ XL::Tree_p Widget::picturePacker(Tree_p self,
     }
 
     GLuint textureId = tinfo->bind();
-    layout->Add(new FillTexture(textureId));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(textureId, texUnit));
     return new Integer(textureId);
 }
 
@@ -7294,7 +7338,7 @@ Tree_p Widget::status(Tree_p self, text caption)
 }
 
 
-Tree_p Widget::framePaint(Context *context, Tree_p self,
+Integer* Widget::framePaint(Context *context, Tree_p self,
                           Real_p x, Real_p y, Real_p w, Real_p h,
                           Tree_p prog)
 // ----------------------------------------------------------------------------
@@ -7302,17 +7346,17 @@ Tree_p Widget::framePaint(Context *context, Tree_p self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild());
-    Tree_p result = frameTexture(context, self, w, h, prog);
+    Integer* tex = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
     layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
     if (currentShape)
         layout->Add(new FrameManipulator(currentShape, x, y, w, h));
-    return result;
+    return tex;
 }
 
 
-Tree_p Widget::frameTexture(Context *context, Tree_p self,
+Integer* Widget::frameTexture(Context *context, Tree_p self,
                             double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
@@ -7361,14 +7405,15 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
 
     // Bind the resulting texture
     GLuint tex = frame.bind();
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return result;
+    return new Integer(tex);
 }
 
 
-Tree_p Widget::thumbnail(Context *context,
+Integer* Widget::thumbnail(Context *context,
                          Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------
 //   Generate a texture with a page thumbnail of the given page
@@ -7376,7 +7421,7 @@ Tree_p Widget::thumbnail(Context *context,
 {
     // Prohibit recursion on thumbnails
     if (page == pageName)
-        return XL::xl_false;
+        return 0;
 
     double w = width() * s;
     double h = height() * s;
@@ -7434,11 +7479,12 @@ Tree_p Widget::thumbnail(Context *context,
     }
 
     // Bind the resulting texture
-    GLuint tex = frame.bind();
-    layout->Add(new FillTexture(tex));
+    GLuint tex = frame.bind();    
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -7468,7 +7514,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 }
 
 
-Tree_p Widget::urlTexture(Tree_p self, double w, double h,
+Integer* Widget::urlTexture(Tree_p self, double w, double h,
                           Text_p url, Integer_p progress)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given URL
@@ -7488,10 +7534,12 @@ Tree_p Widget::urlTexture(Tree_p self, double w, double h,
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind(url, progress);
-    layout->Add(new FillTexture(tex));
+
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -7512,7 +7560,7 @@ Tree_p Widget::lineEdit(Tree_p self,
 }
 
 
-Tree_p Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
+Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given line editor
 // ----------------------------------------------------------------------------
@@ -7530,11 +7578,12 @@ Tree_p Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(txt);
-    layout->Add(new FillTexture(tex));
+    GLuint tex = surface->bind(txt);    
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 Tree_p Widget::radioButton(Tree_p self,
@@ -7550,7 +7599,7 @@ Tree_p Widget::radioButton(Tree_p self,
 }
 
 
-Tree_p Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
+Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
                                   Text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given radio button
@@ -7570,10 +7619,11 @@ Tree_p Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl, act, sel);
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -7590,7 +7640,7 @@ Tree_p Widget::checkBoxButton(Tree_p self,
 }
 
 
-Tree_p Widget::checkBoxButtonTexture(Tree_p self,
+Integer* Widget::checkBoxButtonTexture(Tree_p self,
                                      double w, double h, Text_p name,
                                      Text_p lbl, Text_p  sel, Tree_p act)
 // ----------------------------------------------------------------------------
@@ -7610,11 +7660,12 @@ Tree_p Widget::checkBoxButtonTexture(Tree_p self,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl, act, sel);
-    layout->Add(new FillTexture(tex));
+    GLuint tex = surface->bind(lbl, act, sel);    
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -7631,7 +7682,7 @@ Tree_p Widget::pushButton(Tree_p self,
 }
 
 
-Tree_p Widget::pushButtonTexture(Tree_p self,
+Integer* Widget::pushButtonTexture(Tree_p self,
                                  double w, double h, Text_p name,
                                  Text_p lbl, Tree_p act)
 // ----------------------------------------------------------------------------
@@ -7651,11 +7702,12 @@ Tree_p Widget::pushButtonTexture(Tree_p self,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    GLuint tex = surface->bind(lbl, act, NULL);
-    layout->Add(new FillTexture(tex));
+    GLuint tex = surface->bind(lbl, act, NULL);    
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -7902,7 +7954,7 @@ Tree_p Widget::colorChooser(Tree_p self,
 }
 
 
-Tree_p Widget::colorChooserTexture(Tree_p self,
+Integer* Widget::colorChooserTexture(Tree_p self,
                                    double w, double h, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given color chooser
@@ -7922,10 +7974,11 @@ Tree_p Widget::colorChooserTexture(Tree_p self,
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind();
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -7948,7 +8001,7 @@ Tree_p Widget::fontChooser(Tree_p self,
 }
 
 
-Tree_p Widget::fontChooserTexture(Tree_p self, double w, double h,
+Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
                                   Tree_p action)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given color chooser
@@ -7968,10 +8021,11 @@ Tree_p Widget::fontChooserTexture(Tree_p self, double w, double h,
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind();
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -8177,7 +8231,7 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 }
 
 
-Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
+Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
                                   Tree_p properties)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given file chooser
@@ -8200,10 +8254,11 @@ Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind();
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -8274,7 +8329,7 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
 }
 
 
-Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
+Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 // ----------------------------------------------------------------------------
 //   Make a texture out of a given group box
 // ----------------------------------------------------------------------------
@@ -8297,10 +8352,11 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind(lbl);
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 
@@ -8323,7 +8379,7 @@ Tree_p Widget::movie(Tree_p self,
 }
 
 
-Tree_p Widget::movieTexture(Tree_p self, Text_p url)
+Integer* Widget::movieTexture(Tree_p self, Text_p url)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
@@ -8338,10 +8394,11 @@ Tree_p Widget::movieTexture(Tree_p self, Text_p url)
 
     // Resize to requested size, and bind texture
     GLuint tex = surface->bind(url);
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex, texUnit));
     layout->hasAttributes = true;
 
-    return XL::xl_true;
+    return new Integer(tex);
 }
 
 

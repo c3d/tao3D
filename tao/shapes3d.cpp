@@ -165,10 +165,19 @@ void Cube::Draw(Layout *where)
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
     glNormalPointer(GL_FLOAT, 0, normals);
-    glTexCoordPointer(2, GL_INT, 0, textures);
+    std::map<uint, TextureState>::iterator it;
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+    {
+        if(((*it).second).texId)
+        {
+            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(2, GL_INT, 0, textures);
+        }
+    }
+
     setTexture(where);
     if (setFillColor(where))
         glDrawArrays(GL_QUADS, 0, 24);
@@ -178,7 +187,9 @@ void Cube::Draw(Layout *where)
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
 }
 
 
@@ -241,8 +252,8 @@ void Cone::Draw(Layout *where)
         geom.push_back(Point3(p.x + w/2* ca * ratio, p.y + h/2 * sa * ratio, p.z + d/2));
     }
 
-    //Compute normal of each vertex according to those calculate for neighbouring faces
-    //NOTE: First and last normals are the same because of QUAD_STRIP
+    // Compute normal of each vertex according to those calculate for neighbouring faces
+    // NOTE: First and last normals are the same because of QUAD_STRIP
     Vector3 previousFaceNorm, nextFaceNorm;
     previousFaceNorm = calculateNormal(geom[geom.size() - 2], geom[geom.size() - 1], geom[0]);
     nextFaceNorm = calculateNormal(geom[0], geom[1], geom[2]);
@@ -264,12 +275,19 @@ void Cone::Draw(Layout *where)
     norm.push_back(norm[0]);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &geom[0].x);
-    glTexCoordPointer(3, GL_DOUBLE, 0, &tex[0].x);
     glNormalPointer(GL_DOUBLE, 0, &norm[0].x);
-
+    std::map<uint, TextureState>::iterator it;
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+    {
+        if(((*it).second).texId)
+        {
+            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glTexCoordPointer(3, GL_DOUBLE, 0, &tex[0].x);
+        }
+    }
     setTexture(where);
     if (setFillColor(where))
         glDrawArrays(GL_QUAD_STRIP, 0, geom.size());
@@ -280,7 +298,8 @@ void Cone::Draw(Layout *where)
             
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 TAO_END

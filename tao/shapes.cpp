@@ -44,39 +44,45 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
-    if (where->fillTexture)
+    std::map<uint, TextureState>::iterator it;
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        glBindTexture(GL_TEXTURE_2D, where->fillTexture);
-        if (where->hasPixelBlur)
+        glActiveTexture(GL_TEXTURE0 + (*it).first);
+        if(((*it).second).texId)
         {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glBindTexture(GL_TEXTURE_2D, ((*it).second).texId);
+            if (where->hasPixelBlur)
+            {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            }
+            else
+            {
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            }
+            GLuint wrapS = ((*it).second).wrapS ? GL_REPEAT : GL_CLAMP;
+            GLuint wrapT = ((*it).second).wrapT ? GL_REPEAT : GL_CLAMP;
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+            glEnable(GL_TEXTURE_2D);
+            if (TaoApp->hasGLMultisample)
+                glEnable(GL_MULTISAMPLE);
         }
         else
         {
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+           // glBindTexture(GL_TEXTURE_2D, 0);
+            glDisable(GL_TEXTURE_2D);
         }
-        GLuint wrapS = where->wrapS ? GL_REPEAT : GL_CLAMP;
-        GLuint wrapT = where->wrapT ? GL_REPEAT : GL_CLAMP;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-        glEnable(GL_TEXTURE_2D);
-        if (TaoApp->hasGLMultisample)
-            glEnable(GL_MULTISAMPLE);
     }
-    else
-    {
-        glDisable(GL_TEXTURE_2D);
-    }
+
     if (where->globalProgramId)
         glUseProgram(where->globalProgramId);
     else
         glUseProgram(where->programId);
 
-    return where->fillTexture ? true : false;
+    return !(where->fillTextures.empty());
 }
-
 
 bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------

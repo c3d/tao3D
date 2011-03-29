@@ -795,7 +795,19 @@ PREFIX(FillColorCMYK,  tree,  "color_cmyk",
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
-PREFIX(FillTexture,  tree,  "texture",
+PREFIX(FillTextureUnit,  integer,  "texture_unit",
+       PARM(texUnit, integer, "The texture unit."),
+       RTAO(fillTextureUnit(self, texUnit)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION(""))
+PREFIX(FillTextureID,  integer,  "texture",
+       PARM(texId, integer, "The texture id."),
+       RTAO(fillTextureID(self, texId)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION(""))
+PREFIX(FillTexture,  integer,  "texture",
        PARM(n, text, "The image filename."),
        RTAO(fillTexture(self, n)),
        GROUP(graph:attribute)
@@ -813,14 +825,14 @@ PREFIX(FillTexture,  tree,  "texture",
                    "TIFF Tagged Image File Format\n"
                    "XBM  X11 Bitmap\n"
                    "XPM X11 Pixmap"))
-PREFIX(FillTextureSVG,  tree, "svg",
+PREFIX(FillTextureSVG,  integer, "svg",
        PARM(img, text, "The image filename."),
        RTAO(fillTextureFromSVG(self, img)),
        GROUP(graph)
        SYNOPSIS("Create a texture from an SVG")
        DESCRIPTION("Draw an image from an SVG format")
        RETURNS(tree, ""))
-PREFIX(FillAnimatedTexture,  tree,  "animated_texture",
+PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
        PARM(n, text, "The animation filename."),
        RTAO(fillAnimatedTexture(self, n)),
        GROUP(graph:attribute)
@@ -829,7 +841,7 @@ PREFIX(FillAnimatedTexture,  tree,  "animated_texture",
 GIF	Animated Graphic Interchange Format\n                           \
 MNG	Animated portable Network Graphics\n                            \
 others [TODO:  description is troncated] "))
-PREFIX(ImageA,  tree, "image",
+PREFIX(ImageA,  integer, "image",
        PARM(x, real, )
        PARM(y, real, )
        PARM(w, real, )
@@ -839,7 +851,7 @@ PREFIX(ImageA,  tree, "image",
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
-PREFIX(ImageB,  tree, "image",
+PREFIX(ImageB,  integer, "image",
        PARM(x, real, "x-coordinate of the image")
        PARM(y, real, "y-coordinate of the image")
        PARM(img, text, "width of the image"),
@@ -847,7 +859,7 @@ PREFIX(ImageB,  tree, "image",
        GROUP(graph)
        SYNOPSIS("Make an image")
        DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))
-PREFIX(ImagePx,  tree, "image_px",
+PREFIX(ImagePx,  integer, "image_px",
        PARM(x, real, "X coordinate of image center")
        PARM(y, real, "Y coordinate of image center")
        PARM(w, real, "Image width in pixels")

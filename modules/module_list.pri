@@ -9,7 +9,7 @@
     # The modules listed here are packaged with Tao and installed at the same time
     # as the application ; they are not managed by Git (and therefore, each module
     # MUST have its own version attribute in module.xl).
-    DEFAULT_MODULES = lorem_ipsum object_loader tao_visuals digital_clock slides
+    DEFAULT_MODULES = lorem_ipsum object_loader tao_visuals digital_clock slides gradient
     OTHER_MODULES = hello_world taoTester
 } else {
     # We're building inside the Tao SDK. Only some modules are available.

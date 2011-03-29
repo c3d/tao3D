@@ -105,7 +105,7 @@ void FillTexture::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    where->fillTexture = glName;
+    where->fillTextures[texUnit].texId = glName;
 }
 
 
@@ -114,8 +114,8 @@ void TextureWrap::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    where->wrapS = s;
-    where->wrapT = t;
+    where->fillTextures[texUnit].wrapS = s;
+    where->fillTextures[texUnit].wrapT = t;
 }
 
 
@@ -124,6 +124,7 @@ void TextureTransform::Draw(Layout *)
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
+    glActiveTexture(GL_TEXTURE0 + texUnit);
     if (enable)
         glMatrixMode(GL_TEXTURE);
     else

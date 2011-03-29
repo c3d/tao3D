@@ -33,10 +33,21 @@
 #include <QEvent>
 #include <float.h>
 
+#define MAX_TEX_UNITS 64
 
 TAO_BEGIN
 
 struct Widget;
+
+struct TextureState
+// ----------------------------------------------------------------------------
+//   The state of current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState(): wrapS(false), wrapT(false), texId(0) {}
+    bool        wrapS, wrapT;
+    uint        texId;
+};
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -48,6 +59,7 @@ struct LayoutState
 
 public:
     typedef std::set<QEvent::Type>              qevent_ids;
+    typedef std::map<uint,TextureState>         tex_list;
 
 public:
     void                Clear();
@@ -63,11 +75,10 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
-    uint                fillTexture;
+    uint                currentTexUnit;
+    tex_list            fillTextures;
     uint                lightId;
     uint                programId;
-    bool                wrapS : 1;                // Texture wrapping
-    bool                wrapT : 1;
     bool                printing : 1;
     double              planarRotation;
     double              planarScale;
@@ -124,7 +135,7 @@ public:
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
     bool                hasAttributes   : 1;
-    bool                hasTextureMatrix: 1;
+    uint64              hasTextureMatrix; // 64 texture units
     bool                hasLighting     : 1;
     bool                hasMaterial     : 1;
     bool                isSelection     : 1;

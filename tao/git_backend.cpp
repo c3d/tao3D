@@ -1170,7 +1170,7 @@ text GitRepository::version()
     if (cachedDocVersion != "")
         return cachedDocVersion;
 
-    text    output, result = +QString(tr("Unkwnown"));
+    text    output, result = +QString(tr("Unknown"));
     waitForAsyncProcessCompletion();
     QStringList args;
     args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";

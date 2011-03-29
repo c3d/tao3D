@@ -1,0 +1,40 @@
+// HelloWorld module definition
+//
+// This exemple module defines the hello_world primitive
+//
+// Copyright 2010-2011 Taodyne
+
+module_description
+    id "e0e9d08f-9e40-4553-9b77-032aa16f3e2d"
+    name "Gradient"
+    import_name "Gradient"
+    description "A module to make gradient ramp"
+    version "0.1"
+
+linear_gradient teta:real, r1:real, g1:real, b1:real, a1:real, r2:real, g2:real, b2:real, a2:real ->
+    shader_program
+        vertex_shader <<
+                          void main()
+                          {
+                                 vec4 v = vec4(gl_Vertex);
+                                 vec3 normal = normalize(gl_NormalMatrix * gl_Normal);
+                                 gl_Position = gl_ModelViewProjectionMatrix * v;
+                                 gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+                         }
+                         >>
+        fragment_shader <<
+                         uniform float angle;
+                         uniform float[4] color1;
+                         uniform float[4] color2;
+                         void main()
+                         {
+                             /*float ratio_s = gl_TexCoord[0].s;
+                             float ratio_t = gl_TexCoord[0].t;
+                             vec4 color_s = mix(vec4(color1[0],color1[1],color1[2],color1[3]), vec4(color2[0],color2[1],color2[2],color2[3]), ratio_s);
+                             vec4 color_t = mix(vec4(color1[0],color1[1],color1[2],color1[3]), vec4(color2[0],color2[1],color2[2],color2[3]), ratio_t);*/
+                             gl_FragColor = vec4(1.0,1.0,0.0,1.0); //color_s * cos(angle) + color_t * sin(angle);
+                         }
+                       >>
+    shader_set angle := teta
+    shader_set color1 := (r1; g1; b1; a1)
+    shader_set color2 := (r2; g2; b2; a2)

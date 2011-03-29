@@ -373,88 +373,88 @@
 <context>
     <name>Tao::Application</name>
     <message>
-        <location filename="application.cpp" line="159"/>
+        <location filename="application.cpp" line="156"/>
         <source>OpenGL support</source>
         <translation>Support d&apos;OpenGL</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="160"/>
+        <location filename="application.cpp" line="157"/>
         <source>This system doesn&apos;t support OpenGL.</source>
         <translation>Ce système ne dispose pas d&apos;OpenGL.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="167"/>
+        <location filename="application.cpp" line="164"/>
         <source>Framebuffer support</source>
         <translation>Support de framebuffer</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="168"/>
+        <location filename="application.cpp" line="165"/>
         <source>This system does not support framebuffers. Performance may not be optimal. Consider updating the OpenGL drivers.</source>
         <translation>Ce système ne dispose pas de framebuffers, ce qui peut réduire les performances. Vérifiez si les pilotes OpenGL sont à jour.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="179"/>
+        <location filename="application.cpp" line="176"/>
         <source>Multisample support</source>
         <translation>Support du multi-échantillonnage</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="180"/>
+        <location filename="application.cpp" line="177"/>
         <source>This system does not support GL sample buffers. Shapes and large text may look jaggy.</source>
         <translation>Ce système ne dispose pas du multi-échantillonnage. Les formes géométriques risquent d&apos;être crénelées.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="222"/>
+        <location filename="application.cpp" line="219"/>
         <source>Checking module configuration</source>
         <translation>Vérification des modules</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="225"/>
+        <location filename="application.cpp" line="222"/>
         <source>Loading modules</source>
         <translation>Chargement des modules</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="239"/>
+        <location filename="application.cpp" line="236"/>
         <source>Loading modules [%1]</source>
         <translation>Chargement des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="396"/>
+        <location filename="application.cpp" line="393"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="397"/>
+        <location filename="application.cpp" line="394"/>
         <source>Could not open %1.
 </source>
         <translation>Impossible d&apos;ouvrir %1.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="531"/>
+        <location filename="application.cpp" line="528"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="545"/>
+        <location filename="application.cpp" line="542"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="711"/>
+        <location filename="application.cpp" line="708"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="839"/>
-        <location filename="application.cpp" line="855"/>
-        <location filename="application.cpp" line="868"/>
-        <location filename="application.cpp" line="881"/>
+        <location filename="application.cpp" line="836"/>
+        <location filename="application.cpp" line="852"/>
+        <location filename="application.cpp" line="865"/>
+        <location filename="application.cpp" line="878"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="840"/>
+        <location filename="application.cpp" line="837"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -465,7 +465,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="856"/>
+        <location filename="application.cpp" line="853"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -474,7 +474,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="869"/>
+        <location filename="application.cpp" line="866"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -483,7 +483,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="882"/>
+        <location filename="application.cpp" line="879"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -723,22 +723,22 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DebugPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="46"/>
+        <location filename="preferences_pages.cpp" line="124"/>
         <source>Debug traces</source>
         <translation>Traces de debug</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="63"/>
+        <location filename="preferences_pages.cpp" line="141"/>
         <source>Select all</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="66"/>
+        <location filename="preferences_pages.cpp" line="144"/>
         <source>Deselect all</source>
         <translation>Tout déselectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="70"/>
+        <location filename="preferences_pages.cpp" line="148"/>
         <source>Save for next run</source>
         <translation>Enregistrer</translation>
     </message>
@@ -823,6 +823,29 @@ Code : %1
         <location filename="fetch_push_dialog_base.cpp" line="148"/>
         <source>Error</source>
         <translation>Erreur</translation>
+    </message>
+</context>
+<context>
+    <name>Tao::GeneralPage</name>
+    <message>
+        <location filename="preferences_pages.cpp" line="44"/>
+        <source>General</source>
+        <translation>Général</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="46"/>
+        <source>User interface language:</source>
+        <translation>Langue de l&apos;interface utilisateur :</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="50"/>
+        <source>(System Language)</source>
+        <translation>(Langue du système)</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="99"/>
+        <source>The language change will take effect after a restart of the application.</source>
+        <translation>Le changement de langue prendra effet après redémarrage de l&apos;application.</translation>
     </message>
 </context>
 <context>
@@ -988,27 +1011,27 @@ Emplacement : %2</translation>
 <context>
     <name>Tao::ModulesPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="167"/>
+        <location filename="preferences_pages.cpp" line="245"/>
         <source>Modules are disabled</source>
         <translation>Les modules sont désactivés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="174"/>
+        <location filename="preferences_pages.cpp" line="252"/>
         <source>Installed modules</source>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="194"/>
+        <location filename="preferences_pages.cpp" line="272"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="261"/>
+        <location filename="preferences_pages.cpp" line="339"/>
         <source>Disable</source>
         <translation>Désactiver</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="261"/>
+        <location filename="preferences_pages.cpp" line="339"/>
         <source>Enable</source>
         <translation>Activer</translation>
     </message>
@@ -1050,22 +1073,22 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 <context>
     <name>Tao::PreferencesDialog</name>
     <message>
-        <location filename="preferences_dialog.cpp" line="54"/>
+        <location filename="preferences_dialog.cpp" line="55"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location filename="preferences_dialog.cpp" line="76"/>
+        <location filename="preferences_dialog.cpp" line="77"/>
         <source>Tao Preferences</source>
         <translation>Préférences de Tao</translation>
     </message>
     <message>
-        <location filename="preferences_dialog.cpp" line="92"/>
+        <location filename="preferences_dialog.cpp" line="103"/>
         <source>Module options</source>
         <translation>Modules</translation>
     </message>
     <message>
-        <location filename="preferences_dialog.cpp" line="104"/>
+        <location filename="preferences_dialog.cpp" line="115"/>
         <source>Debug options</source>
         <translation>Debug</translation>
     </message>
@@ -1479,7 +1502,7 @@ Voulez-vous continuer malgré tout ? Choisisser Non pour choisir un autre emplac
     </message>
     <message>
         <location filename="window.cpp" line="700"/>
-        <location filename="window.cpp" line="1940"/>
+        <location filename="window.cpp" line="1943"/>
         <source>File saved</source>
         <translation>Fichier enregistré</translation>
     </message>
@@ -1656,383 +1679,383 @@ Voulez-vous continuer malgré tout ? Choisisser Non pour choisir un autre emplac
         <translation>Quitte l&apos;application</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1235"/>
+        <location filename="window.cpp" line="1236"/>
         <source>Cu&amp;t</source>
         <translation>Couper</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1237"/>
+        <location filename="window.cpp" line="1238"/>
         <source>Cut the current selection&apos;s contents to the clipboard</source>
         <translation>Coupe la sélection en cours</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1243"/>
+        <location filename="window.cpp" line="1244"/>
         <source>&amp;Copy</source>
         <translation>Copier</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1245"/>
+        <location filename="window.cpp" line="1246"/>
         <source>Copy the current selection&apos;s contents to the clipboard</source>
         <translation>Copie la sélection en cours</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1251"/>
+        <location filename="window.cpp" line="1252"/>
         <source>&amp;Paste</source>
         <translation>Coller</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1253"/>
+        <location filename="window.cpp" line="1254"/>
         <source>Paste the clipboard&apos;s contents into the current selection</source>
         <translation>Colle le contenu du presse-papier dans la sélection en cours</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1260"/>
+        <location filename="window.cpp" line="1261"/>
         <source>Synchronize...</source>
         <translation>Synchroniser...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1261"/>
+        <location filename="window.cpp" line="1262"/>
         <source>Set the remote address to &quot;pull&quot; from when synchronizing the current document with a remote one</source>
         <translation>Permet de garder le document synchronisé avec un document distant</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1268"/>
+        <location filename="window.cpp" line="1269"/>
         <source>Push...</source>
         <translation>Pousser...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1269"/>
+        <location filename="window.cpp" line="1270"/>
         <source>Push the current project to a specific path or URL</source>
         <translation>Pousse le document courant vers un emplacement distant (chemin ou URL)</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1275"/>
+        <location filename="window.cpp" line="1276"/>
         <source>Fetch...</source>
         <translation>Fetch...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1276"/>
+        <location filename="window.cpp" line="1277"/>
         <source>Fetch data from a remote Tao project (path or URL)</source>
         <translation>Transfère les donnée d&apos;un projet Tao distant (chemin ou URL)</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1282"/>
+        <location filename="window.cpp" line="1283"/>
         <source>Clone...</source>
         <translation>Cloner...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1283"/>
+        <location filename="window.cpp" line="1284"/>
         <source>Clone (download) a Tao project and make a local copy</source>
         <translation>Clone (télécharge) un projet Tao et fait une copie locale</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1288"/>
+        <location filename="window.cpp" line="1289"/>
         <source>Merge...</source>
         <translation>Fusionner...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1289"/>
+        <location filename="window.cpp" line="1290"/>
         <source>Apply the changes made in one branch into another branch</source>
         <translation>Applique les changements faits dans une branche dans une autre branche</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1295"/>
+        <location filename="window.cpp" line="1296"/>
         <source>Checkout...</source>
         <translation>Checkout...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1296"/>
+        <location filename="window.cpp" line="1297"/>
         <source>Checkout a previous version of the document into a temporary branch</source>
         <translation>Extrait une version précédente du document dans une branche temporaire</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1302"/>
+        <location filename="window.cpp" line="1303"/>
         <source>Selective undo...</source>
         <translation>Annulation sélective...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1303"/>
+        <location filename="window.cpp" line="1304"/>
         <source>Pick a previous change, revert it and apply it to the current document</source>
         <translation>Permet de défaire une modification passée</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1310"/>
+        <location filename="window.cpp" line="1311"/>
         <source>Diff...</source>
         <translation>Différences...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1311"/>
+        <location filename="window.cpp" line="1312"/>
         <source>View the source code difference between two document versions</source>
         <translation>Affiche les différences de code source entre deux versions du document</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1318"/>
+        <location filename="window.cpp" line="1319"/>
         <source>&amp;About</source>
         <translation>&amp;À propos</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1319"/>
+        <location filename="window.cpp" line="1320"/>
         <source>Show the application&apos;s About box</source>
         <translation>Affiche la boîte À propos</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1327"/>
+        <location filename="window.cpp" line="1329"/>
         <source>&amp;Preferences</source>
         <translation>&amp;Préférences</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1328"/>
+        <location filename="window.cpp" line="1330"/>
         <source>Set application preferences</source>
         <translation>Permet de configurer le comportement de l&apos;application</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1332"/>
+        <location filename="window.cpp" line="1335"/>
         <source>&amp;Online Documentation</source>
         <translation>&amp;Documentation en ligne</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1333"/>
+        <location filename="window.cpp" line="1336"/>
         <source>Open the Online Documentation</source>
         <translation>Ouvre la documentation en ligne dans un navigateur (en anglais)</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1337"/>
+        <location filename="window.cpp" line="1340"/>
         <source>Full Screen</source>
         <translation>Plein écran</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1338"/>
+        <location filename="window.cpp" line="1341"/>
         <source>Toggle full screen mode</source>
         <translation>Bascule en mode plein écran</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1343"/>
+        <location filename="window.cpp" line="1346"/>
         <source>Animations</source>
         <translation>Animations</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1344"/>
+        <location filename="window.cpp" line="1347"/>
         <source>Switch animations on or off</source>
         <translation>Active ou désactive les animations</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1351"/>
+        <location filename="window.cpp" line="1354"/>
         <source>Stereoscopy</source>
         <translation>Stéréoscopie</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1352"/>
+        <location filename="window.cpp" line="1355"/>
         <source>Switch stereoscopy on or off</source>
         <translation>Active ou désactive l&apos;affichage stéréoscopique (3D)</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1368"/>
+        <location filename="window.cpp" line="1371"/>
         <source>&amp;Undo</source>
         <translation>&amp;Défaire</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1371"/>
+        <location filename="window.cpp" line="1374"/>
         <source>&amp;Redo</source>
         <translation>&amp;Refaire</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1377"/>
+        <location filename="window.cpp" line="1380"/>
         <source>Hand cursor</source>
         <translation>Curseur de déplacement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1378"/>
+        <location filename="window.cpp" line="1381"/>
         <source>Select hand cursor to pan around screen</source>
         <translation>Sélectionne le curseur de déplacement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1386"/>
+        <location filename="window.cpp" line="1389"/>
         <source>Restore default view</source>
         <translation>Vue par défaut</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1387"/>
+        <location filename="window.cpp" line="1390"/>
         <source>Restore default view (zoom and position)</source>
         <translation>Affiche la vue par défaut (zoom et position)</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1399"/>
+        <location filename="window.cpp" line="1402"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1408"/>
+        <location filename="window.cpp" line="1411"/>
         <source>Open &amp;Recent</source>
         <translation>Ouvrir un document &amp;récent</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1428"/>
+        <location filename="window.cpp" line="1431"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1438"/>
+        <location filename="window.cpp" line="1441"/>
         <source>&amp;Share</source>
         <translation>&amp;Partage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1450"/>
+        <location filename="window.cpp" line="1453"/>
         <source>&amp;View</source>
         <translation>Aff&amp;ichage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1459"/>
+        <location filename="window.cpp" line="1462"/>
         <source>&amp;Toolbars</source>
         <translation>&amp;Barres d&apos;outils</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1463"/>
+        <location filename="window.cpp" line="1466"/>
         <source>&amp;Help</source>
         <translation>&amp;Aide</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1479"/>
+        <location filename="window.cpp" line="1482"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1488"/>
+        <location filename="window.cpp" line="1491"/>
         <source>Edit</source>
         <translation>Édition</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1497"/>
+        <location filename="window.cpp" line="1500"/>
         <source>View</source>
         <translation>Affichage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1506"/>
+        <location filename="window.cpp" line="1509"/>
         <source>Git Tools</source>
         <translation>Git</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1533"/>
+        <location filename="window.cpp" line="1536"/>
         <source>Change History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1600"/>
+        <location filename="window.cpp" line="1603"/>
         <source>Save changes?</source>
         <translation>Enregistrer ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1601"/>
+        <location filename="window.cpp" line="1604"/>
         <source>The document has been modified.
 Do you want to save your changes?</source>
         <translation>Le document a été modifié.
 Voulez-vous l&apos;enregistrer ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1683"/>
+        <location filename="window.cpp" line="1686"/>
         <source>Loading %1 [%2]...</source>
         <translation>Chargement de %1 [%2]...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1697"/>
+        <location filename="window.cpp" line="1700"/>
         <source>Repository cleanup</source>
         <translation>Nettoyage du projet</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1701"/>
+        <location filename="window.cpp" line="1704"/>
         <source>Fonts</source>
         <translation>Polices</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1710"/>
+        <location filename="window.cpp" line="1713"/>
         <source>Document</source>
         <translation>Document</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1729"/>
+        <location filename="window.cpp" line="1732"/>
         <source>Load error</source>
         <translation>Erreur de chargement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1745"/>
+        <location filename="window.cpp" line="1748"/>
         <source>Caching code</source>
         <translation>Mise en cache</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1755"/>
+        <location filename="window.cpp" line="1758"/>
         <source>File loaded</source>
         <translation>Fichier chargé</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1881"/>
+        <location filename="window.cpp" line="1884"/>
         <source>Error saving file</source>
         <translation>Erreur d&apos;enregistrement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1882"/>
+        <location filename="window.cpp" line="1885"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation>Impossible d&apos;enregistrer le ficher %1 :
 %2.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1889"/>
+        <location filename="window.cpp" line="1892"/>
         <source>Saving...</source>
         <translation>Enregistrement...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2003"/>
+        <location filename="window.cpp" line="2006"/>
         <source>The file &apos;%1&apos; is not associated with a Tao project.</source>
         <translation>Le fichier %1 n&apos;est pas associé à un projet Tao.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2006"/>
+        <location filename="window.cpp" line="2009"/>
         <source>Do you want to create a new project in %1, or skip and continue without a project (version control and sharing will be disabled)?</source>
         <translation>Voulez-vous créer un nouveau projet sous %1, ou continuer sans projet (l&apos;historique et le partage seront désactivés) ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2010"/>
+        <location filename="window.cpp" line="2013"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2012"/>
+        <location filename="window.cpp" line="2015"/>
         <source>Skip</source>
         <translation>Continuer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2014"/>
+        <location filename="window.cpp" line="2017"/>
         <source>Create</source>
         <translation>Créer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2034"/>
+        <location filename="window.cpp" line="2037"/>
         <source>Puzzled</source>
         <translation>Bizarre</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2035"/>
+        <location filename="window.cpp" line="2038"/>
         <source>How did you do that?</source>
         <translation>Comment avez-vous fait ça ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2054"/>
+        <location filename="window.cpp" line="2057"/>
         <source>Task selection</source>
         <translation>Sélection de tâche</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2055"/>
+        <location filename="window.cpp" line="2058"/>
         <source>An error occured setting the task:
 %1</source>
         <translation>Une erreur est survenue en choisissant la tâche :
 %1</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2353"/>
+        <location filename="window.cpp" line="2356"/>
         <source>%1/Untitled%2.ddd</source>
         <translation>%1/Sans titre %2.ddd</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2381"/>
+        <location filename="window.cpp" line="2384"/>
         <source>&amp;%1 %2</source>
         <translation>&amp;%1 %2</translation>
     </message>

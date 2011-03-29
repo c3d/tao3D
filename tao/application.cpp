@@ -78,12 +78,9 @@ Application::Application(int & argc, char ** argv)
 
     // UI internationalization
     //
-    // For easier testing: the TAO_LANG environment variable overrides the
-    // current locale. For example: TAO_LANG=en_US, TAO_LANG=fr_FR
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QString name = env.value("TAO_LANG");
-    if (!name.isEmpty())
-        QLocale::setDefault(QLocale(name));
+    int code = QSettings().value("uiLanguage", QVariant(-1)).toInt();
+    if (code != -1)
+        QLocale::setDefault(QLocale((QLocale::Language)code));
     // Load translations, based on current locale
     QString lang = QLocale().name().left(2);
     translator.load(QString("tao_") + lang);

@@ -1230,6 +1230,7 @@ void Window::createActions()
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");
+    exitAct->setMenuRole(QAction::QuitRole);
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
@@ -1318,6 +1319,7 @@ void Window::createActions()
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     aboutAct->setObjectName("about");
+    aboutAct->setMenuRole(QAction::AboutRole);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
     //aboutQtAct = new QAction(tr("About &Qt"), this);
@@ -1327,6 +1329,7 @@ void Window::createActions()
     preferencesAct = new QAction(tr("&Preferences"), this);
     preferencesAct->setStatusTip(tr("Set application preferences"));
     preferencesAct->setObjectName("preferences");
+    preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
     onlineDocAct = new QAction(tr("&Online Documentation"), this);

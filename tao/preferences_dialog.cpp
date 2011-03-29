@@ -44,6 +44,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     contentsWidget->setSpacing(12);
 
     pagesWidget = new QStackedWidget;
+    pagesWidget->addWidget(new GeneralPage);
 #ifndef CFG_NOMODPREF
     pagesWidget->addWidget(new ModulesPage);
 #endif
@@ -82,6 +83,16 @@ void PreferencesDialog::createIcons()
 //   Add one icon per preference page
 // ----------------------------------------------------------------------------
 {
+    // general.png downloaded from:
+    // http://www.iconfinder.com/icondetails/17814/128/preferences_settings_tools_icon
+    // Author: Everaldo Coelho (Crystal Project)
+    // License: LGPL
+    QListWidgetItem *generalButton = new QListWidgetItem(contentsWidget);
+    generalButton->setIcon(QIcon(":/images/general.png"));
+    generalButton->setText(tr("General options"));
+    generalButton->setTextAlignment(Qt::AlignHCenter);
+    generalButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
 #ifndef CFG_NOMODPREF
     // modules.png downloaded from:
     // http://www.iconfinder.com/icondetails/17854/128/cubes_modules_icon

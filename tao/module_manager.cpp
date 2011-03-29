@@ -33,6 +33,7 @@
 
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
+#include <math.h>
 
 
 namespace Tao {
@@ -91,32 +92,31 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
 {
     XL::Tree *err = NULL;
     XL::Name *name = NULL;
-    XL::Text *ver = NULL;
-    text m_n, m_v;
+    double m_v = 1.0;
 
-    XL::Prefix *prefix = what->AsPrefix();
-    if (prefix)
+    if (XL::Prefix *prefix = what->AsPrefix())
     {
+        m_v = parseVersion(prefix->right);
         name = prefix->left->AsName();
-        if (name)
-            m_n = name->value;
-        ver = prefix->right->AsText();
-        if (ver)
-            m_v = ver->value;
+    }
+    else
+    {
+        name = what->AsName();
     }
 
-    if (m_n != "" && m_v != "")
+    if (name && m_v > 0.0)
     {
+        text m_n = name->value;
         bool found = false, name_found = false, version_found = false;
         bool enabled_found = false;
-        text inst_v;
+        double inst_v;
         foreach (ModuleInfoPrivate m, modules)
         {
             if (m_n == m.importName)
             {
                 name_found = true;
                 inst_v = m.ver;
-                if (Repository::versionMatches(+m.ver, +m_v))
+                if (Repository::versionMatches(m.ver, m_v))
                 {
                     version_found = true;
                     if (!m.enabled)
@@ -156,8 +156,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                 {
                     err = XL::Ooops("Installed module $1 version $2 does not "
                                     "match requested version $3", name,
-                                    new XL::Text(inst_v, "", ""),
-                                    new XL::Text(m_v, "", ""));
+                                    new XL::Real(inst_v), new XL::Real(m_v));
                 }
             }
             else
@@ -167,7 +166,9 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
         }
     }
     else
+    {
         err = XL::Ooops("Invalid module import: $1", self);
+    }
 
     if (err)
         return xl_evaluate(context, err);
@@ -549,15 +550,15 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
             // If any mandatory attribute is missing, module is ignored
             QString id =  moduleAttr(tree, "id");
             QString name = moduleAttr(tree, "name");
-            QString ver = gitVersion(moduleDir);
-            if (ver == "")
-                ver = moduleAttr(tree, "version");
-
-            if (id != "" && name != "" && ver != "")
+            double ver = 1.0;
+            FindAttribute findAttribute("module_description", "version");
+            if (Tree *version = tree->Do(findAttribute))
+                ver = parseVersion(version);
+            if (id != "" && name != "" && ver > 0.0)
             {
                 m = ModuleInfoPrivate(+id, +moduleDir);
                 m.name = +name;
-                m.ver = +ver;
+                m.ver = ver;
                 m.desc = +moduleAttr(tree, "description");
                 QString iconPath = QDir(moduleDir).filePath("icon.png");
                 if (QFile(iconPath).exists())
@@ -1086,6 +1087,47 @@ void ModuleManager::warnBinaryModuleIncompatible(QLibrary *lib)
 }
 
 
+double ModuleManager::parseVersion(Tree *versionId)
+// ----------------------------------------------------------------------------
+//   Verify if we have a valid version number
+// ----------------------------------------------------------------------------
+//   Version numbers can have one of three forms:
+//   - An integer value, e.g 1, which is the same as 1.0
+//   - A real value, e.g. 1.0203, which is major 1, minor 2, patch-level 3
+//   - A text value with dot-separated fields, e.g. 1.2.3 or 1.02.03
+{
+    if (Integer *iver = versionId->AsInteger())
+        return iver->value;
+    if (Real *rver = versionId->AsReal())
+        return rver->value;
+    if (Text *tver = versionId->AsText())
+        return parseVersion(tver->value);
+
+    XL::Ooops("Malformed version number $1", versionId);
+    return 1.0;
+}
+
+
+double ModuleManager::parseVersion(text versionId)
+// ----------------------------------------------------------------------------
+//    Parse the text form of version numbers
+// ----------------------------------------------------------------------------
+{
+    uint major = 0, minor = 0, patch = 0;
+    kstring sver = versionId.c_str();
+    if (sscanf(sver, "%u.%u.%u", &major, &minor, &patch) == 3)
+        if (minor < 100 && patch < 100)
+            return major + 0.01 * minor + 0.0001 * patch;
+    if (sscanf(sver, "%u.%u", &major, &minor) == 2)
+        if (minor < 100)
+            return major + 0.01 * minor;
+    if (sscanf(sver, "%u", &major) == 1)
+        return major;
+
+    // Return an invalid version
+    return -1.0;
+}
+
 
 // ============================================================================
 //
@@ -1109,7 +1151,13 @@ bool CheckForUpdate::start()
         QStringList tags = repo->tags();
         if (!tags.isEmpty())
         {
-            if (tags.contains(+m.ver))
+            uint major = (uint) floor(m.ver);
+            uint minor = (uint) (m.ver * 100) % 100;
+            uint patch = (uint) (m.ver * 10000) % 100;
+            QString ver1 = QString("%1.%2.%3").arg(major).arg(minor).arg(patch);
+            QString ver2 = QString("%1.%2").arg(major).arg(minor);
+            QString ver3 = QString("%1").arg(major);
+            if (tags.contains(ver1)||tags.contains(ver2)||tags.contains(ver3))
             {
                 proc = repo->asyncGetRemoteTags("origin");
                 connect(repo.data(),
@@ -1155,16 +1203,17 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
     bool hasUpdate = false;
     if (!tags.isEmpty())
     {
-        QString current = +m.ver;
+        double current = m.ver;
         QString latest = tags[0];
         foreach (QString tag, tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
         mm.modules[+m.id].latest = +latest;
+        double latestVer = ModuleManager::parseVersion(+latest);
 
-        hasUpdate = (latest != current &&
-                     Repository::versionGreaterOrEqual(latest, current));
+        hasUpdate = (latestVer != current &&
+                     Repository::versionGreaterOrEqual(latestVer, current));
 
         IFTRACE(modules)
         {
@@ -1291,7 +1340,7 @@ void UpdateModule::onFinished(int exitCode, QProcess::ExitStatus status)
         if (ok)
         {
             ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
-            p->ver = +ver;
+            p->ver = ModuleManager::parseVersion(+ver);
             p->updateAvailable = false;
         }
     }

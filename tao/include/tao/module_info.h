@@ -33,14 +33,15 @@ struct ModuleInfo
 // ------------------------------------------------------------------------
 {
     ModuleInfo() {}
-    ModuleInfo(std::string id, std::string path) : id(id), path(path) {}
+    ModuleInfo(std::string id, std::string path)
+        : id(id), path(path), ver(1.0) {}
 
     std::string id;
     std::string path;
     std::string name;
     std::string desc;
     std::string icon;
-    std::string ver;
+    double      ver;
     std::string author;
     std::string website;
     std::string importName;

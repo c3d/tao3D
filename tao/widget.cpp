@@ -899,7 +899,8 @@ void Widget::processProgramEvents()
             std::cerr << "Program events: "
             << LayoutState::ToText(refreshEvents) << "\n";
     // Trigger mouse tracking only if needed
-    setMouseTracking(refreshEvents.count(QEvent::MouseMove) != 0);
+    setMouseTracking(refreshEvents.count(QEvent::MouseMove) != 0 ||
+                     bAutoHideCursor);
     // Make sure refresh timer is restarted if needed
     startRefreshTimer();
 }
@@ -4710,8 +4711,17 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 {
     bool oldAutoHide = bAutoHideCursor;
     bAutoHideCursor = ah;
+    bool mouseTracking = false;
     if (ah)
+    {
         QTimer::singleShot(2000, this, SLOT(hideCursor()));
+        mouseTracking = true;
+    }
+    else
+    {
+        mouseTracking = (bool) (refreshEvents.count(QEvent::MouseMove) != 0);
+    }
+    setMouseTracking(mouseTracking);
     return oldAutoHide ? XL::xl_true : XL::xl_false;
 }
 
@@ -5816,6 +5826,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     {
         if (infix->name == ":=")
         {
+            ADJUST_CONTEXT_FOR_INTERPRETER(context);
+            XL::Symbols *symbols = self->Symbols();
             Name *name = infix->left->AsName();
             TreeList args;
             Tree *arg = infix->right;
@@ -5833,6 +5845,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             for (i = 0; i < max; i++)
             {
                 arg = args[i];
+                if (symbols)
+                    arg->SetSymbols(symbols);
                 arg = context->Evaluate(arg);
                 if (Integer *it = arg->AsInteger())
                     arg = new Real(it->value);

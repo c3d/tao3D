@@ -13,7 +13,7 @@
 # steps:
 #   - run "make install" at the top level of the Tao project
 #   - copy the installation directory under ./build_root
-#   - run macdeployqt on ./build_root to import Qt frameworks
+#   - run deployqt on ./build_root to import Qt frameworks
 #   - download and build git under ./git_build
 #   - install git under ./build_root
 #   - create the DMG from ./buid_root
@@ -34,7 +34,7 @@
 # "Show View Options" does not work. It has to be done inside a
 # mounted disk image. Therefore, here is how to change this file:
 #
-# $ make K=1
+# $ make kit K=1
 # $ open tmp.dmg
 # Edit appearance through the Finder's "Show View Options", and eject
 # the disk image to flush file buffers
@@ -44,7 +44,7 @@
 # final disk image.
 #
 # Usage:
-#   make
+#   make kit
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
@@ -52,10 +52,13 @@ GIT_VERSION=1.7.2.2
 
 ########
 
-INSTROOT=$(shell pwd)/../../install
+include Makefile.config
+
 GIT_INSTALL_PREFIX=$(shell pwd)/build_root/git
 # GIT_INSTALL_PREFIX can't contain spaces
 GIT_DEST=$(shell pwd)/build_root/Tao Presentations.app/Contents/MacOS/git
+
+kit: tao.dmg
 
 tao.dmg: tmp.dmg
 	rm -f $@
@@ -95,12 +98,9 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 	rm -f .tao_install_ts
 
 ########
-# Note: macdeployqt shows:
-# ERROR: no file at "/usr/lib/libxlr.1.dylib"
-# This is not a problem, the lib is in Tao.app/Contents/Framework
+
 .tao_install_deps_ts: .tao_install_prog_ts
-	@echo "Note: the message 'ERROR: no file at "/usr/lib/libxlr.1.dylib"' has no consequence"
-	macdeployqt "build_root/Tao Presentations.app"
+	./deployqt "build_root/Tao Presentations.app" "$(QMAKE_LIBDIR_QT)"
 
 clean.tao_install_deps:
 	rm -f .tao_install_deps_ts

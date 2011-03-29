@@ -63,7 +63,7 @@
 include(main.pri)
 
 TEMPLATE = subdirs
-SUBDIRS  = libxlr tao modules ssh_ask_pass tests doc templates
+SUBDIRS  = libxlr tao modules ssh_ask_pass tests doc templates packaging
 
 win32:SUBDIRS += detach
 

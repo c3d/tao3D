@@ -1,0 +1,93 @@
+#!/bin/sh
+#
+# deployqt
+#
+# Our own version of macdeployqt. The original  does not support @rpath
+# references in the application, which is the mechanism we are using
+# (see bug #858).
+#
+# Copy the Qt frameworks into an application bundle, and run install_name_tool
+# on the copied frameworks so that they use @rpath.
+#
+# Contrary to macdeployqt:
+#  - The app binary is not modified: it is assumed that the install_names
+#    are already OK (they are, because the script fix_qt_refs has been run
+#    on the app).
+#  - The macdeployqt command-line options are not supported.
+#  - No Qt plugins are currently deployed.
+#
+# REVISIT:
+#  - Improvement: get rid of hardcoded list (FRAMEWORKS) and Qt path
+#    parameter ($2). Instead, resolve frameworks dynamically (otool -L,
+#    otool -l).
+#
+# ******************************************************************************
+# This software is property of Taodyne SAS - Confidential
+# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+# (C) 2011 Jerome Forissier <jerome@taodyne.com>
+# (C) 2011 Taodyne SAS
+# ******************************************************************************
+
+FRAMEWORKS="QtWebKit.framework/Versions/4/QtWebKit \
+           phonon.framework/Versions/4/phonon \
+           QtDBus.framework/Versions/4/QtDBus \
+           QtXml.framework/Versions/4/QtXml \
+           QtSvg.framework/Versions/4/QtSvg \
+           QtOpenGL.framework/Versions/4/QtOpenGL \
+           QtGui.framework/Versions/4/QtGui \
+           QtNetwork.framework/Versions/4/QtNetwork \
+           QtCore.framework/Versions/4/QtCore"
+
+if [ $# -ne 2 ] ; then
+  echo Usage: $0 \<app bundle directory\> \<Qt library dir\>
+  echo Example: $0 path/to/MyApp.app /Library/Frameworks
+  exit 1
+fi
+
+BUNDLE="$1"
+FRAMEWORKS_SRC="$2"
+FIX_QT_REFS=../../modules/fix_qt_refs
+
+doo(){
+  echo "[deployqt] $@"
+  "$@"
+}
+
+cp_and_fix_framework() {
+  # cp_framework <framework> <source> <dest>
+  # Ex: cp_framework QtCore.framework/Versions/4/QtCore /Library/Frameworks ./MyApp.app/Contents/Frameworks
+  FMWK="$1" ; SRC="$2" ; DEST="$3"
+  FDIR=`dirname ${FMWK}`
+  TODIR="$DEST/$FDIR"
+  doo mkdir -p "${TODIR}"
+  doo cp "${SRC}/${FMWK}" "${TODIR}"
+  LIB="${DEST}/${FMWK}"
+  doo strip -x "${LIB}"
+  doo ${FIX_QT_REFS} "${LIB}" "${SRC}"
+  FNAME=`echo ${FMWK} | sed s@/.*@@`
+  if [ -e "${SRC}/${FNAME}/Resources" ] ; then
+    doo cp -r "${SRC}/${FNAME}/Resources" "${DEST}/${FNAME}/Resources"
+  fi
+}
+
+make_qt_conf() {
+  CONFDIR="$1/Contents/Resources"
+  CONF="${CONFDIR}/qt.conf"
+  doo mkdir -p "${CONFDIR}"
+  echo Writing "${CONF}"
+  cat >"${CONF}" <<_EOF_
+[Paths]
+Plugins = PlugIns
+_EOF_
+}
+
+#
+
+FRAMEWORKS_DEST="${BUNDLE}/Contents/Frameworks"
+
+doo mkdir -p "${FRAMEWORKS_DEST}"
+for f in ${FRAMEWORKS} ; do
+  cp_and_fix_framework "$f" "${FRAMEWORKS_SRC}" "${FRAMEWORKS_DEST}"
+done
+make_qt_conf "${BUNDLE}"
+

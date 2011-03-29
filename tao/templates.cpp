@@ -123,11 +123,9 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
 #if defined (Q_OS_UNIX)
 
-    // The ending slash in the source path is über-important: it makes cp
-    // copy the contents of the directory rather than the directory itself.
-    QString cmd("cp");
+    QString cmd("/bin/sh");
     QStringList args;
-    args << "-R" << srcPath + "/" << dstPath;
+    args << "-c" << "cp -R " + srcPath + "/* " + dstPath;
 
 #elif defined (Q_OS_WIN)
 

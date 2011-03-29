@@ -1,17 +1,17 @@
 #!/bin/sh
 # MacOSX only -
 # Use instal_name_tool to prefix any reference to a Qt library with
-# @executable_path/../Frameworks
+# @rpath.
 # This is to make sure that the Qt libraries are always loaded form the
 # application's bundle
 
 doo(){
-  echo " $@"
+  echo "[fix_qt_refs] $@"
   "$@"
 }
 TARGET="$1"
 QTBASE="$2"
-REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | awk '{ print $1 }' `
+REFS=`otool -L "$TARGET" | grep -e Qt -e phonon | grep -v  @executable_path | grep -v ':$' | awk '{ print $1 }' `
 for r in $REFS ; do
   base=`echo $r | sed -e s@$QTBASE/@@g`
   doo install_name_tool -change "$r" "@rpath/$base" "$TARGET"

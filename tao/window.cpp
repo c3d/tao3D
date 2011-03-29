@@ -254,6 +254,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
     }
 
     QTextStream in(&file);
+    in.setCodec("UTF-8");
     QApplication::setOverrideCursor(Qt::WaitCursor);
     loadInProgress = true;
     srcEdit->setPlainText(in.readAll());
@@ -1893,6 +1894,7 @@ bool Window::saveFile(const QString &fileName)
     do
     {
         QTextStream out(&file);
+        out.setCodec("UTF-8");
         QApplication::setOverrideCursor(Qt::WaitCursor);
 #ifndef CFG_NOSRCEDIT
         out << srcEdit->toPlainText();

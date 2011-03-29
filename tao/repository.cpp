@@ -94,6 +94,9 @@ bool Repository::write(text fileName, XL::Tree *tree)
     if (full == "")
         return false;
 
+    if (!QFileInfo(+full).isWritable())
+        return false;
+
     // Write the file in a copy (avoid overwriting original)
     text copy = full + "~";
     {

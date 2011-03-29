@@ -108,11 +108,17 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     templateListWidget->setResizeMode(QListView::Adjust);
     templateListWidget->setMinimumWidth(144);
     templateListWidget->setSpacing(9);
+    connect(templateListWidget, SIGNAL(itemSelectionChanged()),
+            this, SLOT(updateDescription()));
 
     registerField("templateIdx*", templateListWidget);
 
+    description = new QLabel(this);
+    description->setWordWrap(true);
+
     QVBoxLayout *layout = new QVBoxLayout(this);
     layout->addWidget(templateListWidget);
+    layout->addWidget(description);
     setLayout(layout);
 }
 
@@ -135,6 +141,16 @@ void TemplateChooserPage::initializePage()
     }
 
     templateListWidget->setCurrentRow(0);
+}
+
+void TemplateChooserPage::updateDescription()
+{
+    NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    int idx = field("templateIdx").toInt();
+    if (idx == -1)
+        return;
+    Template t = wiz->templates.at(idx);
+    description->setText(t.description);
 }
 
 DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)

@@ -5789,6 +5789,7 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
                                           new QGLShaderProgram());
         result = context->Evaluate(code);
         program = currentShaderProgram;
+        self->Set<ShaderProgramInfo>(program);
 
         QString message = currentShaderProgram->log();
         if (message.length())

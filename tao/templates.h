@@ -72,6 +72,7 @@ private:
 
 public:
     QString name;       // Template name. Not empty if isValid().
+    QString description; // Template description. Not empty if isValid().
     QPixmap thumbnail;  // Thumbnail picture. May be null.
     QString mainFile;   // Path to the main .ddd file. May be empty.
 

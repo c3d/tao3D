@@ -49,6 +49,10 @@ Template::Template(const QDir &dir)
     QVariant dirname(QString(dir.dirName()));
     name = ini.value("name", dirname).toString();
 
+    // Read template description, default to directory name
+    QVariant noDesc(QObject::tr("No description available."));
+    description = ini.value("description", noDesc).toString();
+
     // Read thumbnail picture
     thumbFile = ini.value("thumbnail").toString();
     thumbnail = QPixmap(path + "/" + thumbFile);
@@ -125,7 +129,7 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
     QString cmd("/bin/sh");
     QStringList args;
-    args << "-c" << "cp -R " + srcPath + "/* " + dstPath;
+    args << "-c" << "cp -R \"" + srcPath + "\"/* " + dstPath;
 
 #elif defined (Q_OS_WIN)
 

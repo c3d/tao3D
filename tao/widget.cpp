@@ -8570,6 +8570,7 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     }
 
     Tree_p result = (Tree *) err;
+    result->SetSymbols(self->Symbols());
     return result;
 }
 

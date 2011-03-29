@@ -1859,7 +1859,7 @@ void Window::consolidate()
     IFTRACE(resources)
         std::cerr << "Consolidate: File name is "<< fn << std::endl;
 
-    if (taoWidget->markChanged("Include resource files in the project"))
+    if (taoWidget->markChange("Include resource files in the project"))
     {
         ResourceMgt checkFiles(taoWidget);
         xlRuntime->files[fn].tree->Do(checkFiles);
@@ -1930,7 +1930,7 @@ bool Window::saveFile(const QString &fileName)
         // FIXME: shouldn't create an empty commit
         XL::SourceFile &sf = xlRuntime->files[fn];
         sf.changed = true;
-        taoWidget->markChanged("Manual save");
+        taoWidget->markChange("Manual save");
         taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;

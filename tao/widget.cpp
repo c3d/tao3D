@@ -886,6 +886,9 @@ void Widget::runProgram()
     }
 
     processProgramEvents();
+
+    if (!dragging)
+        finishChanges();
 }
 
 
@@ -1378,7 +1381,7 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------
 {
-    if (!markChanged("Selection sent to back"))
+    if (!markChange("Selection sent to back"))
         return XL::xl_false;    // Source code was edited
 
     Tree * select = removeSelection();
@@ -1424,7 +1427,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChanged("Selection brought forward"))
+    if (!hasSelection() || !markChange("Selection brought forward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -1472,7 +1475,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChanged("Selection sent backward"))
+    if (!hasSelection() || !markChange("Selection sent backward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -3027,17 +3030,30 @@ void Widget::preloadSelectionCode()
 }
 
 
-bool Widget::markChanged(text reason)
+bool Widget::markChange(text reason)
 // ----------------------------------------------------------------------------
-//    Record that the program changed
+//    Record that we're about to change program
 // ----------------------------------------------------------------------------
 {
     if (sourceChanged())
         return false;
-    
-    Repository *repo = repository();
-    if (repo)
-        repo->markChanged(reason);
+
+    changeReason = reason;
+
+    // Cause the screen to redraw
+    refresh(0);
+
+    // Caller is allowed to modify the source code
+    return true;
+}
+
+
+void Widget::finishChanges()
+// ----------------------------------------------------------------------------
+//    Check if program has changed and save+commit+update src view if needed
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
 
     if (xlProgram->tree)
     {
@@ -3049,13 +3065,19 @@ bool Widget::markChanged(text reason)
         {
             XL::SourceFile &sf = **f;
             if (&sf != xlProgram && sf.changed)
+            {
+                changed = true;
                 writeIfChanged(sf);
+            }
         }
     }
 
-
-    if (!dragging)
+    if (changed)
     {
+        Repository *repo = repository();
+        if (repo && changeReason != "")
+            repo->markChanged(changeReason);
+
         // Record change to repository
         saveAndCommit();
 
@@ -3063,11 +3085,7 @@ bool Widget::markChanged(text reason)
         updateProgramSource();
     }
 
-    // Cause the screen to redraw
-    refresh(0);
-
-    // Caller is allowed to modify the source code
-    return true;
+    changeReason = "";
 }
 
 
@@ -9010,7 +9028,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 {
     // Check if blocked because the source code window was edited
-    if (!markChanged(msg))
+    if (!markChange(msg))
         return XL::xl_false;
 
     Window *window = (Window *) parentWidget();
@@ -9126,7 +9144,7 @@ void Widget::deleteSelection()
 // ----------------------------------------------------------------------------
 {
     // Check if the source was modified, if so, do not update the tree
-    if (!markChanged("Deleted selection"))
+    if (!markChange("Deleted selection"))
         return;
 
     XL::Tree *what = xlProgram->tree;
@@ -9152,7 +9170,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     // Check if the source code window was modified, if so do not change
-    if (!markChanged("Updated " + name + " attribute"))
+    if (!markChange("Updated " + name + " attribute"))
         return XL::xl_false;
 
     // Attribute may be encapsulated in a block
@@ -9282,7 +9300,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there's no selection or if source window changed
-    if (!hasSelection() || !markChanged("Selection grouped"))
+    if (!hasSelection() || !markChange("Selection grouped"))
         return XL::xl_false;
 
     // Find the first non-selected ancestor of the first element
@@ -9390,7 +9408,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there is no selection or if source window changed
-    if (!hasSelection() || !markChanged("Selection ungrouped"))
+    if (!hasSelection() || !markChange("Selection ungrouped"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();

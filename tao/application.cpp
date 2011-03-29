@@ -83,7 +83,7 @@ Application::Application(int & argc, char ** argv)
         QLocale::setDefault(QLocale((QLocale::Language)code));
     // Load translations, based on current locale
     QString lang = QLocale().name().left(2);
-    translator.load(QString("tao_") + lang);
+    translator.load(QString("tao_") + lang, applicationDirPath());
     installTranslator(&translator);
 
     // Set current directory

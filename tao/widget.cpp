@@ -5572,7 +5572,8 @@ Infix_p Widget::imageSize(Context *context,
 //----------------------------------------------------------------------------
 {
     GLuint w = 0, h = 0;
-    filename = context->stack->ResolvePrefixedPath(filename);
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    filename = context->ResolvePrefixedPath(filename);
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)

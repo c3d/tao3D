@@ -48,14 +48,15 @@ template <typename mode> struct TaoCloneTemplate
 //   Clone a tree
 // ----------------------------------------------------------------------------
 {
-    TaoCloneTemplate(Widget *widget) : widget(widget){}
+    TaoCloneTemplate(Widget *widget = NULL) : widget(widget){}
     virtual ~TaoCloneTemplate(){}
 
     typedef Tree *value_type;
 
     Tree *Reselect(Tree *from, Tree *to)
     {
-        widget->reselect(from, to);
+        if (widget)
+            widget->reselect(from, to);
         return to;
     }
 
@@ -228,19 +229,20 @@ struct CopySelection
 };
 
 
-
 // ============================================================================
-// 
+//
 //   Some useful specializations to manipulate parameter trees
-// 
+//
 // ============================================================================
 
-struct ColorTreeClone : XL::TreeClone
+
+struct ColorTreeClone : TaoCloneTemplate<ColorTreeClone>
 // ----------------------------------------------------------------------------
 //  Override names 'red', 'green', 'blue' and 'alpha' in the input tree
 // ----------------------------------------------------------------------------
 {
     ColorTreeClone(const QColor &c): color(c){}
+
     XL::Tree *DoName(XL::Name *what)
     {
         if (what->value == "red")
@@ -251,14 +253,17 @@ struct ColorTreeClone : XL::TreeClone
             return new XL::Real(color.blueF(), what->Position());
         if (what->value == "alpha")
             return new XL::Real(color.alphaF(), what->Position());
-        
+
         return new XL::Name(what->value, what->Position());
     }
     QColor color;
-};
+protected:
+    // Default is to do a deep copy
+    Tree *  Clone(Tree *t) { return t->Do(this); }
+ };
 
 
-struct FontTreeClone : XL::TreeClone
+struct FontTreeClone : TaoCloneTemplate<FontTreeClone>
 // ----------------------------------------------------------------------------
 //   Overrides font description names in the input tree
 // ----------------------------------------------------------------------------
@@ -282,14 +287,14 @@ struct FontTreeClone : XL::TreeClone
             return font.italic() ? XL::xl_true : XL::xl_false;
         if (what->value == "font_is_bold")
             return font.bold() ? XL::xl_true : XL::xl_false;
-        
+
         return new XL::Name(what->value, what->Position());
     }
     QFont font;
 };
 
 
-struct ToggleTreeClone : XL::TreeClone
+struct ToggleTreeClone : TaoCloneTemplate<ToggleTreeClone>
 // ----------------------------------------------------------------------------
 //   Override the name "checked" in the input tree
 // ----------------------------------------------------------------------------
@@ -310,7 +315,7 @@ struct ToggleTreeClone : XL::TreeClone
 };
 
 
-struct ClickTreeClone : XL::TreeClone
+struct ClickTreeClone : TaoCloneTemplate<ClickTreeClone>
 // ----------------------------------------------------------------------------
 //  Override name "button_name" in the input tree
 // ----------------------------------------------------------------------------
@@ -328,4 +333,5 @@ struct ClickTreeClone : XL::TreeClone
 };
 
 TAO_END
+
 #endif // TREE_CLONING_H

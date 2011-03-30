@@ -9,6 +9,6 @@ module_description
     name "Hello World"
     import_name "HelloWorld"
     description "A primitive that says hello to the world"
-    version "0.1"
+    version "1.0"
 
 hello_world -> "Hello, World!"

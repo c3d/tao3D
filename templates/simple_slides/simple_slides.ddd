@@ -1,4 +1,4 @@
-import Slides "0.2"
+import Slides 1.0 
 
 // Available Themes:
 // "" / "Default", "WhiteOnBlack", "WhiteOnGray",

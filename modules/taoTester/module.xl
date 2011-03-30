@@ -4,7 +4,7 @@ module_description
         id "4D6BA446-FAA5-4749-BA9F-4B3F126A618A"
         name "Tao tester"
         description "Adds primitives to create automated test in Tao."
-        version "1.0"
+        version 1.0
 
 toolbar_test -> {
 menu "toolbar:test", "test"

@@ -50,7 +50,6 @@ macx {
     QMAKE_DISTCLEAN += Info.plist
     QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
 }
-    QMAKE_SUBSTITUTES += tao.rc.in
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc

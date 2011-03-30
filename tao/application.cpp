@@ -78,11 +78,10 @@ Application::Application(int & argc, char ** argv)
 
     // UI internationalization
     //
-    int code = QSettings().value("uiLanguage", QVariant(-1)).toInt();
-    if (code != -1)
-        QLocale::setDefault(QLocale((QLocale::Language)code));
     // Load translations, based on current locale
     QString lang = QLocale().name().left(2);
+    // Preferences may override current locale
+    lang = QSettings().value("uiLanguage", lang).toString();
     translator.load(QString("tao_") + lang, applicationDirPath());
     installTranslator(&translator);
 

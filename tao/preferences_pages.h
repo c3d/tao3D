@@ -25,7 +25,6 @@
 
 #include "module_manager.h"
 #include <QWidget>
-#include <QLocale>
 
 QT_BEGIN_NAMESPACE
 class QTableWidget;
@@ -48,7 +47,7 @@ public:
     GeneralPage(QWidget *parent = 0);
 
 private:
-    QList<QLocale::Language> installedLanguages();
+    QStringList  installedLanguages();
 
 private slots:
     void         setLanguage(int index);

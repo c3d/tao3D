@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  portability.h						   Tao project
+//  text_edit.h						   Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -23,17 +23,18 @@
 #define PORTABILITY_H
 
 #include "tao_tree.h"
+#include "layout.h"
 #include <QString>
 #include <QTextDocument>
 #include <QTextBlock>
 #include <QTextFragment>
 
 TAO_BEGIN
-struct portability
+struct text_portability
 {
 public:
-    portability(): head(NULL), tail(NULL){}
-    QString toHTML();
+    text_portability(): head(NULL), tail(NULL){}
+    //QString toHTML();
     XL::Infix * fromHTML(QString html);
 
     XL::Infix * docToTree(const QTextDocument &doc );
@@ -49,6 +50,10 @@ protected:
 
 };
 
+// Helper function
+Tree_p list2tree(std::vector<Tree*> v, text infix);
+bool modifyBlockFormat(QTextBlockFormat &blockFormat,  Layout * where);
+bool modifyCharFormat(QTextCharFormat &format, Layout * where);
 
 TAO_END
 #endif // PORTABILITY_H

@@ -1,0 +1,82 @@
+
+line_color "tao_orange" -> line_color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+color "tao_yellow" -> color "#EEAA11" 
+color "tao_orange" -> color "#DD3311" 
+
+page "endpoints_style", 
+    line_width 5
+    line_color "tao_orange"
+    path
+        endpoints_style NONE, NONE
+        move_to 0, 200
+        line_to 350, 200
+
+    path
+        endpoints_style ARROWHEAD, ARROWHEAD
+        move_to 0, 150
+        line_to 150, 150
+
+    path
+        endpoints_style POINTER, POINTER
+        move_to 0, 100
+        line_to 150, 100
+    
+    path
+        endpoints_style DIAMOND, DIAMOND
+        move_to 0, 50
+        line_to 150, 50
+
+    path
+        endpoints_style CIRCLE, CIRCLE
+        move_to 0, 0
+        line_to 150, 0
+
+    path
+        endpoints_style SQUARE, SQUARE
+        move_to 0, -50
+        line_to 150, -50
+
+    path
+        endpoints_style BAR, BAR
+        move_to 200, 150
+        line_to 350, 150
+
+    path
+        endpoints_style CUP, CUP
+        move_to 200, 100
+        line_to 350, 100
+    
+    path
+        endpoints_style FLETCHING, FLETCHING
+        move_to 200, 50
+        line_to 350, 50
+
+    path
+        endpoints_style HOLLOW_CIRCLE, HOLLOW_CIRCLE
+        move_to 200, 0
+        line_to 350, 0
+
+    path
+        endpoints_style HOLLOW_SQUARE, HOLLOW_SQUARE
+        move_to 200, -50
+        line_to 350, -50
+
+
+page "quad", 
+    line_width 5
+    line_color "tao_yellow"
+    color "transparent"
+    shape
+        path
+            move_to 0, 0
+            quad_to 100, 100, 0, 200, 50, 0
+ 
+page "cubic", 
+    line_width 5
+    line_color "tao_yellow"
+    color "transparent"
+    shape
+        path
+           cubic_to 100, 200, 0, 200, -200, 0, 300, 50, 0
+

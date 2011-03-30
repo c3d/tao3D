@@ -111,6 +111,28 @@ public slots:
     void inputValidated();
 };
 
+struct TextEditSurface : WidgetSurface
+// ----------------------------------------------------------------------------
+//    Hold information about a QLineEdit
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT;
+public:
+    typedef TextEditSurface * data_t;
+    TextEditSurface(QTextDocument *doc, XL::Block *prog,
+                    Widget *parent, bool immed=false);
+    operator data_t() { return this; }
+    virtual GLuint bind(QTextDocument *doc);
+
+private:
+    bool      immediate;
+    bool      locallyModified;
+
+public slots:
+    void textChanged();
+};
+
+
 
 struct AbstractButtonSurface : WidgetSurface
 // ----------------------------------------------------------------------------
@@ -149,7 +171,7 @@ public:
     {
         connect((QPushButton*)widget, SIGNAL(clicked(bool)),
                 this,                 SLOT(clicked(bool)));
-    };
+    }
     operator data_t() { return this; }
 };
 
@@ -163,7 +185,7 @@ struct RadioButtonSurface : AbstractButtonSurface
 public:
     typedef RadioButtonSurface * data_t;
     RadioButtonSurface(XL::Tree *t, QWidget *parent, QString name):
-        AbstractButtonSurface(t, new QRadioButton(parent), name){};
+        AbstractButtonSurface(t, new QRadioButton(parent), name){}
     operator data_t() { return this; }
 };
 
@@ -177,7 +199,7 @@ struct CheckBoxSurface : AbstractButtonSurface
 public:
     typedef CheckBoxSurface * data_t;
     CheckBoxSurface(XL::Tree *t, QWidget *parent, QString name):
-        AbstractButtonSurface(t, new QCheckBox(parent), name){};
+        AbstractButtonSurface(t, new QCheckBox(parent), name){}
     operator data_t() { return this; }
 };
 

@@ -264,5 +264,31 @@ struct ClickTreeClone : NameChangeClone
     text name;
 };
 
+
+struct NameToNameReplacement : NameChangeClone
+// ----------------------------------------------------------------------------
+//    Replace specific names with names (e.g. alternate spellings)
+// ----------------------------------------------------------------------------
+{
+    NameToNameReplacement(): replaced(false) {}
+
+    Tree *  DoName(XL::Name *what);
+    Tree *  Replace(Tree *original);
+    text &      operator[] (text index)         { return map[index]; }
+
+    std::map<text, text> map;
+    bool replaced;
+};
+
+
+struct NameToTextReplacement : NameToNameReplacement
+// ----------------------------------------------------------------------------
+//    Replace specific names with a text
+// ----------------------------------------------------------------------------
+{
+    NameToTextReplacement(): NameToNameReplacement() {}
+    Tree *  DoName(XL::Name *what);
+};
+
 XL_END
 #endif // TREE_CLONING_H

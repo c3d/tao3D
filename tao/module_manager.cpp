@@ -110,7 +110,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
         text m_n = name->value;
         bool found = false, name_found = false, version_found = false;
         bool enabled_found = false;
-        double inst_v;
+        double inst_v = 0.0;
         foreach (ModuleInfoPrivate m, modules)
         {
             if (m_n == m.importName)

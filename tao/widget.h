@@ -571,6 +571,11 @@ public:
                          Real_p w,Real_p h, text_p s);
     Tree_p      lineEditTexture(Tree_p self, double x, double y, Text_p s);
 
+    Tree_p      textEdit(Context *context, Tree_p self,
+                         Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
+    Tree_p      textEditTexture(Context *context, Tree_p self,
+                                double w, double h, Tree_p prog);
+
     Tree_p      abstractButton(Tree_p self, Text_p name,
                                Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      pushButton(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -852,6 +857,9 @@ private:
     double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
+
+    QTextCursor          * editCursor;
+    void                  updateCursor(Text_p t);
 };
 
 

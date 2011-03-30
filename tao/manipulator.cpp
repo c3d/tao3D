@@ -376,7 +376,7 @@ bool ControlPoint::DrawHandles(Layout *layout)
             {
                 Point3 p1 = drag->Previous();
                 Point3 p2 = drag->Current();
-                if (p1 != p2 && widget->markChanged("Control point moved"))
+                if (p1 != p2 && widget->markChange("Control point moved"))
                 {
                     Point3 p0 = drag->Origin();
                     updateArg(widget, x,  p0.x, p1.x, p2.x);
@@ -436,7 +436,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
 
     int mode = CurrentTransformMode();
     text change = (mode & TM_ROTATE_BIT) ? "rotate" : "resize";
-    bool canChange = widget->markChanged("Shape " + change);
+    bool canChange = widget->markChange("Shape " + change);
 
     for (uint hn = 0; hn < 4; hn++)
     {
@@ -624,7 +624,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Shape moved"))
+            if (p1 != p2 && widget->markChange("Shape moved"))
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, x, p0.x, p1.x, p2.x);
@@ -687,7 +687,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                 Point3 p1 = drag->Previous();
                 Point3 p2 = drag->Current();
                 if (p1 != p2 &&
-                    widget->markChanged("Rounded rectangle corner modified"))
+                    widget->markChange("Rounded rectangle corner modified"))
                 {
                     Point3 p0 = drag->Origin();
                     updateArg(widget, r,
@@ -711,7 +711,7 @@ bool ControlRoundedRectangle::DrawHandles(Layout *layout)
                 Point3 p1 = drag->Previous();
                 Point3 p2 = drag->Current();
                 if (p1 != p2 &&
-                    widget->markChanged("Rounded rectangle corner modified"))
+                    widget->markChange("Rounded rectangle corner modified"))
                 {
                     Point3 p0 = drag->Origin();
                     updateArg(widget, r,
@@ -797,7 +797,7 @@ bool ControlArrow::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Arrow modified"))
+            if (p1 != p2 && widget->markChange("Arrow modified"))
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, ax,
@@ -865,7 +865,7 @@ bool ControlPolygon::DrawHandles(Layout *layout)
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
             if (p1 != p2 &&
-                widget->markChanged("Number of points changed"))
+                widget->markChange("Number of points changed"))
             {
                 Point3 p0 = drag->Origin();
                 coord p0x = 19*sw*(p0.x - x)/w + 11.5;
@@ -926,7 +926,7 @@ bool ControlStar::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Star inner circle changed"))
+            if (p1 != p2 && widget->markChange("Star inner circle changed"))
             {
                 Point3 p0 = drag->Origin();
                 scale hp = sqrt(w*sp*w*sp + h*cp*h*cp)*sh*cp/2;
@@ -979,7 +979,7 @@ bool ControlBalloon::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Balloon tail changed"))
+            if (p1 != p2 && widget->markChange("Balloon tail changed"))
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, ax, p0.x, p1.x, p2.x);
@@ -1082,7 +1082,7 @@ bool ControlCallout::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Callout tail width changed"))
+            if (p1 != p2 && widget->markChange("Callout tail width changed"))
             {
                 Point3 p0 = drag->Origin();
                 if (-sty*cos(beta+M_PI_2) > stx*sin(beta+M_PI_2))
@@ -1249,7 +1249,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Path moved"))
+            if (p1 != p2 && widget->markChange("Path moved"))
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, x, p0.x, p1.x, p2.x);
@@ -1342,7 +1342,7 @@ bool BoxManipulator::DrawHandles(Layout *layout)
                     text   t2 = sw < 0 ? "left " : "right ";
                     text   t3 = sd < 0 ? "front " : "back ";
                     if (p1 != p2 &&
-                        widget->markChanged(t1 + t2 + t3 + "corner moved"))
+                        widget->markChange(t1 + t2 + t3 + "corner moved"))
                     {
                         Point3 p0 = drag->Origin();
                         if (hn < 4)
@@ -1399,7 +1399,7 @@ bool ControlBox::DrawHandles(Layout *layout)
         {
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("3D shape moved"))
+            if (p1 != p2 && widget->markChange("3D shape moved"))
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, x, p0.x, p1.x, p2.x);
@@ -1474,7 +1474,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
             // Compute the desired tip position
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Changed rotation direction"))
+            if (p1 != p2 && widget->markChange("Changed rotation direction"))
             {
                 Point3 p0 = drag->Origin();
                 updateArg(widget, x, p0.x, p1.x, p2.x);
@@ -1493,7 +1493,7 @@ bool RotationManipulator::DrawHandles(Layout *layout)
             // Compute the desired angle
             Point3 p1 = drag->Previous();
             Point3 p2 = drag->Current();
-            if (p1 != p2 && widget->markChanged("Changed rotation amount"))
+            if (p1 != p2 && widget->markChange("Changed rotation amount"))
             {
                 Point3 p0 = drag->Origin();
 
@@ -1576,22 +1576,22 @@ bool TranslationManipulator::DrawHandles(Layout *layout)
             switch(handle)
             {
             case 1:
-                if (widget->markChanged("Updated translation"))
+                if (widget->markChange("Updated translation"))
                 {
                     updateArg(widget, x,  p0.x, p1.x, p2.x);
                     updateArg(widget, y,  p0.y, p1.y, p2.y);
                 }
                 break;
             case 2:
-                if (widget->markChanged("Updated translation X axis"))
+                if (widget->markChange("Updated translation X axis"))
                     updateArg(widget, x,  p0.x, p1.x, p2.x);
                 break;
             case 3:
-                if (widget->markChanged("Updated translation Y axis"))
+                if (widget->markChange("Updated translation Y axis"))
                     updateArg(widget, y,  p0.y, p1.y, p2.y);
                 break;
             case 4:
-                if (widget->markChanged("Updated translation Z axis"))
+                if (widget->markChange("Updated translation Z axis"))
                     updateArg(widget, z,  p0.x-p0.y, p1.x-p1.y, p2.x-p2.y);
                 break;
             }
@@ -1669,7 +1669,7 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
             switch(handle)
             {
             case 1:
-                if (widget->markChanged("Updated scale"))
+                if (widget->markChange("Updated scale"))
                 {
                     updateArg(widget, x, v0, v1, v2);
                     updateArg(widget, y, v0, v1, v2);
@@ -1677,15 +1677,15 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
                 }
                 break;
             case 2:
-                if (widget->markChanged("Updated scale X axis"))
+                if (widget->markChange("Updated scale X axis"))
                     updateArg(widget, x,  s * p0.x, s * p1.x, s * p2.x);
                 break;
             case 3:
-                if (widget->markChanged("Updated scale Y axis"))
+                if (widget->markChange("Updated scale Y axis"))
                     updateArg(widget, y,  s * p0.y, s * p1.y, s * p2.y);
                 break;
             case 4:
-                if (widget->markChanged("Updated scale Z axis"))
+                if (widget->markChange("Updated scale Z axis"))
                     updateArg(widget, z,  v0, v1, v2);
                 break;
             }

@@ -185,7 +185,8 @@ public:
     void        refreshProgram();
     void        preloadSelectionCode();
     void        updateProgramSource();
-    bool        markChanged(text reason);
+    bool        markChange(text reason);
+    void        finishChanges();
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);
@@ -852,6 +853,7 @@ private:
     double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
+    text                  changeReason;
 };
 
 

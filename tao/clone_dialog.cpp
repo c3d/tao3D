@@ -160,7 +160,7 @@ void CloneDialog::endClone(void *id, QString projPath)
             if (ok)
             {
                 this->projectPath = projPath;
-                cloneOutput->insertPlainText(tr("Done\n"));
+                cloneOutput->insertPlainText(tr("Done.\n"));
                 allOk = true;
             }
             else

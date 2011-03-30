@@ -31,6 +31,84 @@ namespace Tao {
 
 // ============================================================================
 //
+//   The general page is used to show and modify general settings
+//
+// ============================================================================
+
+GeneralPage::GeneralPage(QWidget *parent)
+// ----------------------------------------------------------------------------
+//   Create the page and show general settings
+// ----------------------------------------------------------------------------
+     : QWidget(parent)
+{
+    QGroupBox *group = new QGroupBox(tr("General"));
+    QHBoxLayout *hbox = new QHBoxLayout;
+    hbox->addWidget(new QLabel(tr("User interface language:")));
+    combo = new QComboBox;
+    hbox->addWidget(combo);
+    QList<QLocale::Language> languages = installedLanguages();
+    combo->addItem(tr("(System Language)"));
+    // Unfortunately, languages are always in english: vote for QTBUG-1587.
+    foreach (QLocale::Language lang, languages)
+        combo->addItem(QLocale::languageToString(lang), QVariant(lang));
+    QVariant saved = QSettings().value("uiLanguage", QVariant(-1));
+    if (saved.toInt() != -1)
+    {
+        int index = combo->findData(saved);
+        if (index != -1)
+            combo->setCurrentIndex(index);
+    }
+    connect(combo, SIGNAL(currentIndexChanged(int)),
+            this,  SLOT(setLanguage(int)));
+    group->setLayout(hbox);
+
+    message = new QLabel;
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(group);
+    mainLayout->addSpacing(12);
+    mainLayout->addStretch(1);
+    mainLayout->addWidget(message);
+    setLayout(mainLayout);
+}
+
+
+QList<QLocale::Language> GeneralPage::installedLanguages()
+// ----------------------------------------------------------------------------
+//   Return the language for which we have a .qm file
+// ----------------------------------------------------------------------------
+{
+    QList<QLocale::Language> ret;
+    ret << QLocale::English;
+    QDir dir = QDir(QCoreApplication::applicationDirPath());
+    QStringList files = dir.entryList(QStringList("tao_*.qm"), QDir::Files);
+    foreach (QString file, files)
+    {
+        QString lang = file.mid(4, 2);
+        ret << QLocale(lang).language();
+    }
+    return ret;
+}
+
+
+void GeneralPage::setLanguage(int index)
+// ----------------------------------------------------------------------------
+//   Save (or clear) the preferred language
+// ----------------------------------------------------------------------------
+{
+    message->setText(tr("The language change will take effect after a restart "
+                        "of the application."));
+    if (index == 0)
+    {
+        QSettings().remove("uiLanguage");
+        return;
+    }
+    QLocale::Language lang = (QLocale::Language)combo->itemData(index).toInt();
+    QSettings().setValue("uiLanguage", QVariant(lang));
+}
+
+// ============================================================================
+//
 //   The debug page is used to show and modify the state of debug traces
 //
 // ============================================================================

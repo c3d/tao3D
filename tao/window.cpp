@@ -71,7 +71,7 @@
  *                      ";;All files (*.*)"
  */
 
-TAO_BEGIN
+namespace Tao {
 
 Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
                bool ro)
@@ -1230,6 +1230,7 @@ void Window::createActions()
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");
+    exitAct->setMenuRole(QAction::QuitRole);
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
@@ -1318,6 +1319,7 @@ void Window::createActions()
     aboutAct = new QAction(tr("&About"), this);
     aboutAct->setStatusTip(tr("Show the application's About box"));
     aboutAct->setObjectName("about");
+    aboutAct->setMenuRole(QAction::AboutRole);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
     //aboutQtAct = new QAction(tr("About &Qt"), this);
@@ -1327,6 +1329,7 @@ void Window::createActions()
     preferencesAct = new QAction(tr("&Preferences"), this);
     preferencesAct->setStatusTip(tr("Set application preferences"));
     preferencesAct->setObjectName("preferences");
+    preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
     onlineDocAct = new QAction(tr("&Online Documentation"), this);
@@ -1859,7 +1862,7 @@ void Window::consolidate()
     IFTRACE(resources)
         std::cerr << "Consolidate: File name is "<< fn << std::endl;
 
-    if (taoWidget->markChanged("Include resource files in the project"))
+    if (taoWidget->markChange("Include resource files in the project"))
     {
         ResourceMgt checkFiles(taoWidget);
         xlRuntime->files[fn].tree->Do(checkFiles);
@@ -1930,7 +1933,7 @@ bool Window::saveFile(const QString &fileName)
         // FIXME: shouldn't create an empty commit
         XL::SourceFile &sf = xlRuntime->files[fn];
         sf.changed = true;
-        taoWidget->markChanged("Manual save");
+        taoWidget->markChange("Manual save");
         taoWidget->writeIfChanged(sf);
         taoWidget->doCommit(true);
         sf.changed = false;
@@ -2407,4 +2410,4 @@ Window *Window::findWindow(const QString &fileName)
     return NULL;
 }
 
-TAO_END
+}

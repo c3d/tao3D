@@ -37,7 +37,7 @@
 
 #include <iostream>
 
-TAO_BEGIN
+namespace Tao {
 
 // The 'git' command. May be updated by checkGit().
 QString GitRepository::gitCommand("git");
@@ -1170,7 +1170,7 @@ text GitRepository::version()
     if (cachedDocVersion != "")
         return cachedDocVersion;
 
-    text    output, result = +QString(tr("Unkwnown"));
+    text    output, result = +QString(tr("Unknown"));
     waitForAsyncProcessCompletion();
     QStringList args;
     args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";
@@ -1307,4 +1307,4 @@ void GitAuthProcess::setEnvironment()
     }
 }
 
-TAO_END
+}

@@ -23,5 +23,6 @@
         <file>images/modules.png</file>
         <file>images/branch_tool.png</file>
         <file>images/playback_tool.png</file>
+        <file>images/general.png</file>
     </qresource>
 </RCC>

@@ -13,15 +13,18 @@
 /**
  * @defgroup graph_env Graphical environment
  * @ingroup Graphics
- * Opening environment to manipulate graphical objects.
- * This groups also holds attribute information like color, line width, etc... 
+ * Opening environment to handle graphical objects and their attributes.
+ * This groups also holds attribute information like color, line width, texture, etc... 
+ *
+ * All color component are express as a percentage, so values are between 0.0 and 1.0 inclusive.
+ * Texture and color are combined (they are not exclusive).
  * @{
  */
 /**
  * Creates a selectable shape
  *
  *  Evaluate the child and mark the current shape.
- *  The modification done to the environment is only applicable inside this shape as @ref locally does.
+ *  Modifications done to the environment is only applicable inside this shape as @ref locally does.
  *
  *  Make the shape sensible to mouse events. 
  *  It enables click action (@ref on), and handles for selection, motion, rotation, resize...
@@ -34,35 +37,403 @@ shape (t:tree);
  *
  *  Create a context for active widgets (like buttons) or drawing (circle, etc...).
  *  Make the shape sensive to mouse events. 
- *  It enables click action (@ref on), but does not enables handles for mouse manipulations.
+ *  It enables click action (@ref on), but does not enables handles for mouse handling.
  */
 active_widget (t:tree);
 
 /**
  * Anchors a set of shapes to the current position
+ * @todo An example is missing for anchor.
  */
 anchor (t:tree);
 
 /**
  * Selects the line width for shape outlines.
  *
+ * @c line_width @c "default" reset the line width to its default value.
  * @p lw is the width in pixels
  */
-line_width (lw:integer);
+line_width (lw:real);
 
+/**
+ * specify the line stipple pattern.
+ *                   
+ * @param pattern
+ * Specifies a 16-bit integer whose bit pattern determines
+ * which fragments of a line will be drawn when the line is rasterized.
+ * Bit zero is used first; the default pattern is all 1's.
+ *
+ * @param factor
+ * Specifies a multiplier for each bit in the line stipple pattern.
+ * If @p factor is 3, for example, each bit in the pattern is used three times
+ * before the next bit in the pattern is used.
+ * factor is clamped to the range [1, 256] and defaults to 1.
+ *
+ * @see OpenGL <a href="http://www.opengl.org/sdk/docs/man/xhtml/glLineStipple.xml">documentation</a>
+ */
+line_stipple(pattern:integer, factor:integer);
+
+/**
+ * Selects the color.
+ *
+ * The color name can be one of the following :
+ *   - a color name from Qt::GlobalColor,
+ *   - a color name from the W3C http://www.w3.org/TR/SVG/types.html#ColorKeywords
+ *   - a color description in the "#RRGGBB" system
+ *   - a color defined by Tao presentations
+ *       - color "transparent"
+ *       - color "default"
+ *       - color "fill"
+ *       - color "font"
+ *       - color "line"
+ *   - a color defined by a module (like @ref tao_visuals.doxy.h::color "Tao Visuals")
+ *
+ * @param colorname is the name of the color
+ * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. Its default value is 1.0.
+ */
+color (colorname:text, alpha:real);
+
+/**
+ * Selects the color.
+ * @see @ref graph.doxy.h::color(colorname:text,alpha:real) "color colorname:text, alpha:real"
+ */
+color (colorname:text);
+
+/**
+ * Selects a color by its red, green, blue and alpha-channel value.
+ *
+ * @param r red component of the color
+ * @param g green component of the color
+ * @param b blue component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+color (r:real, g:real, b:real, a:real);
+
+/**
+ * Selects the color.
+ * @see @ref graph.doxy.h::color(r:real,g:real,b:real,a:real) "color r:real, g:real, b:real, a:real"
+ */
+color (r:real, g:real, b:real);
+
+/**
+ * Selects the color by its hue, saturation, lightness, and alpha-channel (transparency) components.
+ *
+ * @param h hue component of the color
+ * @param s saturation component of the color
+ * @param l lightness component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+color_hsl (h:real, s:real, l:real, a:real);
+
+/**
+ * Selects the color.
+ * @see @ref graph.doxy.h::color_hsl(h:real, s:real, l:real, a:real) "color_hsl h:real, s:real, l:real, a:real"
+ */
+color_hsl (h:real, s:real, l:real);
+
+/**
+ * Selects the color by its hue, saturation, value, and alpha-channel (transparency) components.
+ *
+ * @param h hue component of the color
+ * @param s saturation component of the color
+ * @param v value component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+color_hsv (h:real, s:real, v:real, a:real);
+
+/**
+ * Selects the color.
+ * @see @ref graph.doxy.h::color_hsv(h:real, s:real, v:real, a:real) "color_hsv h:real, s:real, v:real, a:real"
+ */
+color_hsv (h:real, s:real, v:real);
+
+/**
+ * Selects the color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
+ *
+ * @param c cyan component of the color
+ * @param y yellow component of the color
+ * @param m magenta component of the color
+ * @param k black component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+color_cymk (c:real, y:real, m:real, k:real, a:real);
+
+/**
+ * Selects the color.
+ * @see @ref graph.doxy.h::color_cymk(c:real, y:real, m:real, k:real, a:real) "color_cymk c:real, y:real, m:real, k:real, a:real"
+ */
+color_cymk (c:real, y:real, m:real, k:real);
+
+/**
+ * Reset color value.
+ * shortcut for @c color 0,0,0,0 i.e. a transparent black.
+ */
+no_color ();
+
+/**
+ * Set the background color.
+ * Set the RGB clear (background) color
+ */
+clear_color (r:real, g:real, b:real, a:real);
+
+/**
+ * Reset line_color value.
+ * shortcut for @c line_color 0,0,0,0 i.e. a transparent black.
+ */
+no_line_color ();
+
+/**
+ * Selects the line color.
+ *
+ * The color name can be one of the following :
+ *   - a color name from Qt::GlobalColor,
+ *   - a color name from the W3C http://www.w3.org/TR/SVG/types.html#ColorKeywords
+ *   - a color description in the "#RRGGBB" system
+ *   - a color defined by Tao presentations
+ *       - line_color "transparent"
+ *       - line_color "default"
+ *       - line_color "fill"
+ *       - line_color "font"
+ *       - line_color "line"
+ *   - a color defined by a module (like @ref tao_visuals.doxy.h::color "Tao Visuals")
+ *
+ * @note @c color @c "font" and @c line_color @c "font" are not the same color,
+ * but relevent colors for the line of a glyph and the fill of a glyph. 
+ *
+ * @param colorname is the name of the color
+ * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. Its default value is 1.0.
+ */
+line_color (colorname:text, alpha:real);
+
+/**
+ * Selects the color.
+ * @see @ref graph.doxy.h::color(colorname:text,alpha:real) "color colorname:text, alpha:real"
+ */
+line_color (colorname:text);
+
+/**
+ * Selects a line color by its red, green, blue and alpha-channel value.
+ *
+ * @param r red component of the color
+ * @param g green component of the color
+ * @param b blue component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+line_color (r:real, g:real, b:real, a:real);
+
+/**
+ * Selects the line_color.
+ * @see @ref graph.doxy.h::line_color(r:real,g:real,b:real,a:real) "line_color r:real, g:real, b:real, a:real"
+ */
+line_color (r:real, g:real, b:real);
+
+/**
+ * Selects the line_color by its hue, saturation, lightness, and alpha-channel (transparency) components.
+ *
+ * @param h hue component of the color
+ * @param s saturation component of the color
+ * @param l lightness component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+line_color_hsl (h:real, s:real, l:real, a:real);
+
+/**
+ * Selects the line_color.
+ * @see @ref graph.doxy.h::line_color_hsl(h:real, s:real, l:real, a:real) "line_color_hsl h:real, s:real, l:real, a:real"
+ */
+line_color_hsl (h:real, s:real, l:real);
+
+/**
+ * Selects the line_color by its hue, saturation, value, and alpha-channel (transparency) components.
+ *
+ * @param h hue component of the color
+ * @param s saturation component of the color
+ * @param v value component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+line_color_hsv (h:real, s:real, v:real, a:real);
+
+/**
+ * Selects the line_color.
+ * @see @ref graph.doxy.h::line_color_hsv(h:real, s:real, v:real, a:real) "line_color_hsv h:real, s:real, v:real, a:real"
+ */
+line_color_hsv (h:real, s:real, v:real);
+
+/**
+ * Selects the line_color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
+ *
+ * @param c cyan component of the color
+ * @param y yellow component of the color
+ * @param m magenta component of the color
+ * @param k black component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * Its default value is 1.0.
+ */
+line_color_cymk (c:real, y:real, m:real, k:real, a:real);
+
+/**
+ * Selects the line_color.
+ * @see @ref graph.doxy.h::line_color_cymk(c:real, y:real, m:real, k:real, a:real) "line_color_cymk c:real, y:real, m:real, k:real, a:real"
+ */
+line_color_cymk (c:real, y:real, m:real, k:real);
+
+/**
+ * Selects the texture.
+ * Build a GL texture out of an image file @p filename.
+ * Supported format include:
+ *   - BMP  Windows Bitmap
+ *   - GIF  Graphic Interchange Format (optional)
+ *   - JPG  Joint Photographic Experts Group
+ *   - JPEG Joint Photographic Experts Group
+ *   - PNG  Portable Network Graphics
+ *   - PBM  Portable Bitmap
+ *   - PGM  Portable Graymap
+ *   - PPM  Portable Pixmap
+ *   - TIFF Tagged Image File Format
+ *   - XBM  X11 Bitmap
+ *   - XPM  X11 Pixmap
+ *
+ */
+texture(filename:text);
+
+/**
+ * Create a GL animated texture.
+ * Build a GL texture images from an animated image file. Supported format are:
+ *   - GIF	Animated Graphic Interchange Format
+ *   - MNG	Animated portable Network Graphics
+ *   - others [TODO:  description is troncated] 
+ */
+animated_texture(filename:text);
+/**
+ * Creates a texture from an SVG file.
+ * Build a GL texture out of an SVG file @p svg.
+ */
+svg(svg:text);
+
+/**
+ * Geometric transformation for texture
+ * Allows transformation to be applied to the current texture.
+ * Transformation are specified in the body and can be a combination of
+ *  - rotate
+ *  - scale
+ *  - translate
+ *
+ * @see transforms
+ */
+texture_transform (body:tree);
+
+/**
+ * Texture wrapping
+ * Controls the wrapping of the texture along @c S and @c T axis.
+ * @param s is the pre-transformation horizontal axis (like X).
+ * @param t is the pre-transformation vertical axis (like Y).
+ *
+ * Default values are false, false.
+ * @see OpenGL documentation about GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T
+ */
+texture_wrap (s:boolean, t:boolean);
+
+/**
+ * Resets the texture.
+ * Clears the texture.
+ */
+no_texture();
+
+/** @} */
+
+/**
+ * @defgroup graph_img Image handling
+ * @ingroup Graphics
+ * Handles images.
+ * Images are loaded from the local file system. The supported format are those 
+ * supported by Qt, including :
+ *   - BMP  Windows Bitmap
+ *   - GIF  Graphic Interchange Format (optional)
+ *   - JPG  Joint Photographic Experts Group
+ *   - JPEG Joint Photographic Experts Group
+ *   - PNG  Portable Network Graphics
+ *   - PBM  Portable Bitmap
+ *   - PGM  Portable Graymap
+ *   - PPM  Portable Pixmap
+ *   - TIFF Tagged Image File Format
+ *   - XBM  X11 Bitmap
+ *   - XPM  X11 Pixmap
+ *
+ * Images are combined with the current color.
+ *
+ * Texture are handled in the @ref graph_env module.
+ * @{
+ */
+
+/**
+ * Display an image.
+ * Load an image from file @p filename.
+ *  - @p x and @p y coordinate of the image center are specified in pixel
+ *  - @p w and @p h are size express in percentage
+ * @image html "images/image.png"
+@code
+page "image",
+    color "white"
+    image 0, 0, 100%, 100%, "../images/tortue.jpg"
+    axes
+@endcode
+ */
+image (x:real, y:real, w:real, h:real, filename:text);
+
+/**
+ * Display an image.
+ * Load an image from file @p filename.
+ *  - @p x and @p y coordinate of the image center are specified in pixel
+ *  - @p w and @p h are size express in pixel
+ * @image html "images/image_px.png"
+
+@code
+page "image_px",
+    color "white"
+    image_px 0, 0, 200, 200, "../images/tortue.jpg"
+    axes
+    line_color "black" 
+    width_and_height 0, 0, 200, 200
+@endcode
+
+ */
+image_px (x:real, y:real, w:real, h:real, filename:text);
+
+/**
+ * Get image size.
+ * Return the image size of the @p img image.
+ * @return [infix] a tree containing <tt>w, h</tt>
+ */
+image_size(img:text);
 
 /** @} */
 
 /**
  * @defgroup graph_path Graphical Path
  * @ingroup Graphics
- * Creation of drawing in 2D or 3D vertex by vertex
+ * Creation of drawing in 2D or 3D vertex by vertex.
+ *
+ * A path is a drawing made of straight lines and curves. To build a path you specify where you 
+ * place the pencil (move), where you want to line (line) to, and what kind of curve (quad, cubic) 
+ * you want to draw. Coordinates can be given obsolutely or relatively to the previous location.
+ *
+ * When placed in a @ref shape environment, each vertex and control point can be handled by the mouse.
+ *
+ * Example of path primitives used to produce here after images : 
+ * <a href="examples/path_samples.ddd">path_samples.ddd</a>
+ *
  * @{
  */
 
-
 /**
- * Starts a graphic path.
+ * Opens a graphic path environment.
  *
  * A graphic path is a collection of segments of lines or curves
  * (quadrics or cubics).
@@ -73,28 +444,46 @@ path (t:tree);
  * Moves path cursor to a specific point.
  *
  * Add a 'moveTo' to the current path.
+ *
+ * Shortcut for 2D is also available :
+ * @code move_to x:real, y:real @endcode 
  */
 move_to (x:real, y:real, z:real);
 
 /**
  * Adds a line segment to the current path.
+ *
+ * Shortcut for 2D is also available :
+ * @code line_to x:real, y:real @endcode
  */
 line_to (x:real, y:real, z:real);
 
 /**
  * Adds a quadric segment to the current path.
  *
+ * A quadric segment of path is a curve where you specify the two 
+ * endpoints and one control point that controls the curve itself.
  * (@p cx, @p cy, @p cz) defines the control point.
  * (@p x, @p y, @p z) is the end point.
+ *
+ * Shortcut for 2D is also available :
+ * @code quad_to cx:real, cy:real, x:real, y:real @endcode 
+ * @image html quad_path.png
  */
 quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
 
 /**
  * Adds a cubic segment to the current path.
  *
+ * A cubic segment of path is a curve where you specify the two endpoints
+ * and two control points that control two curves (like S).
  * (@p c1x, @p c1y, @p c1z) defines the first control point.
  * (@p c2x, @p c2y, @p c2z) defines the second control point.
  * (@p x, @p y, @p z) is the end point.
+ *
+ * Shortcut for 2D is also available :
+ * @code cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real @endcode
+ * @image html cubic_path.png
  */
 cubic_to (c1x:real, c1y:real, c1z:real, c2x:real, c2y:real, c2z:real,
           x:real, y:real, z:real);
@@ -111,15 +500,23 @@ move_relative (x:real, y:real, z:real);
 
 /**
  * Closes current path by a straight line to the start point.
+ *
+ * It creates a loop in the path by drawing a straight line from
+ * current point to last move_to point or the start point.
+ * @note It does not close the path environment. One can continue to add segment to current path.
  */
 close_path ();
 
 /**
  * Sets the style of the path endpoints.
  *
- * @p s is the start point and @p e is the end point. Only beginning and very end of the path can be styled. If a text is added at the end of the path, the end style won't be applied to the line end (because end of the line is not the end of the path).
+ * @p s is the start point and @p e is the end point.
  *
- * Supported values are:
+ * Only very beginning and very end of the path can be styled. If a
+ * text is added at the end of the path, the end style won't be applied
+ * to the line end (because end of the line is not the end of the path).
+ *
+ * Supported symbols are:
  *   - NONE
  *   - ARROWHEAD
  *   - POINTER
@@ -131,6 +528,9 @@ close_path ();
  *   - FLETCHING
  *   - HOLLOW_CIRCLE
  *   - HOLLOW_SQUARE
+ *
+ * @image html endpoints_style.png
+ *
  */
 endpoints_style (s:symbol, e:symbol);
 
@@ -204,7 +604,7 @@ rectangle (x:real, y:real, w:real, h:real);
  * Draws a rounded rectangle.
  *
  *  Draw a rounded rectangle with radius @p r for the rounded corners.
- *  The rectangle is centered in @c (x,y), with width @p w and height @p h.
+ *  The rectangle is centered in (@p x, @p y), with width @p w and height @p h.
  *  - Bottom left corner is at coordinate <tt>(x-w/2, y-h/2)</tt>
  *  - Bottom right corner is at coordinate <tt>(x+w/2, y-h/2)</tt>
  *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
@@ -270,7 +670,7 @@ triangle (x:real, y:real, w:real, h:real);
 /**
  * Draws a right triangle.
  *
- *  Draw a right triangle with hypotenuse centered in @c (x,y), with width @p w and height @p h.
+ *  Draw a right triangle with hypotenuse centered in (@p x, @p y), with width @p w and height @p h.
  *  Right angle is the bottom left one.
  *  - Bottom left corner is at coordinate <tt>(x-w/2, y-h/2)</tt>
  *  - Bottom right corner is at coordinate  <tt>(x+w/2, y-h/2)</tt>
@@ -292,7 +692,9 @@ right_triangle (x:real, y:real, w:real, h:real);
  *
  * @image html arrow.png
  *
- * @note why head is in pixel and tail is a ratio ? Because when you want to resize the arrow width you generaly want to increase the tail size, but not the head's one, and when you resize the height, you want to keep the aspect ratio.
+ * @note why head is in pixel and tail is a ratio ? Because when you want to
+ * resize the arrow width you generaly want to increase the tail size, but not
+ * the head's one, and when you resize the height, you want to keep the aspect ratio.
  */
 arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 
@@ -334,12 +736,11 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
  * @image html star_polygon.png
  *
  * @param p [integer] Number of branch
- * @param q [integer] Number of vertex to skip for sighting
+ * @param q [integer] Number of vertex to skip for sighting. q is in range [1..p/2].
  */
 star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /**
-
  * Draws a speech balloon.
  *
  * A speech ballon is made of:
@@ -368,6 +769,53 @@ speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
  */
 callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 
+/**
+ * Draws a regular polygon
+ *
+ * This primitives draws a regular polygon with @p p vertex.
+ * @image html polygon.png
+ * Shortcuts has been defined for polygon from 3 to 20 vertexes.
+ *  -# none
+ *  -# none
+ *  -# equilateral_triangle
+ *  -# tetragon
+ *  -# pentagon
+ *  -# hexagon
+ *  -# heptagon
+ *  -# octagon
+ *  -# nonagon
+ *  -# decagon
+ *  -# hendecagon
+ *  -# dodecagon
+ *  -# tridecagon
+ *  -# tetradecagon
+ *  -# pentadecagon
+ *  -# hexadecagon
+ *  -# heptadecagon
+ *  -# octadecagon
+ *  -# enneadecagon
+ *  -# icosagon
+ *
+ *
+ */
+polygon (x:real, y:real, w:real, h:real, p:integer);
+
+/**
+ * @copydoc star_polygon
+ * @image html polygram.png
+ * Shortcuts has been defined for polygram from 5 to 10 vertexes.
+
+ *  - pentagram       p = 5, q = 2
+ *  - hexagram        p = 6, q = 2
+ *  - star_of_david   p = 6, q = 2
+ *  - heptagram       p = 7, q = 2
+ *  - star_of_lakshmi p = 8, q = 2
+ *  - octagram        p = 8, q = 3
+ *  - nonagram        p = 9, q = 3
+ *  - decagram        p =10, q = 3
+
+ */
+polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /** @} */
 
@@ -386,11 +834,6 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *
  * Examples: <a href="examples/3D_samples.ddd">3D_samples.ddd</a>
  *
- * Images keys:
- * - dark orange is the result of the documented primitive.
- * - black parts are the representations of the provided parameters.
- * - yellow parts are useful marks.
- *
  * Other 3D samples are available in @ref Lighting module.
  * @{
  */
@@ -400,11 +843,23 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *
  * The sphere is divided in @p slices and @p stacks. The higher the value of
  * these parametres are, the smoother the sphere is (and longer the drawing is).
- * The sphere's @p w, @p h and @p d are not aimed to be equals. One can draw a water-melon with the sphere primitive
+ * The sphere's @p w, @p h and @p d are not aimed to be equals. One can draw a
+ * water-melon with the sphere primitive
  * @image html sphere.png
 
  */
 sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer);
+
+/**
+ * Draws a sphere.
+ *
+ * Sphere with radius @p r located at (@p x, @p y, @p z).
+ * Shorcut to 
+@code
+sphere x, y, z, 2*r, 2*r, 2*r, 25, 25
+@endcode
+ */
+sphere (x:real, y:real, z:real, r:real);
 
 /**
  * Draws a cone.
@@ -417,7 +872,8 @@ cone (x:real, y:real, z:real, w:real, h:real, d:real);
 /**
  * Draws a truncated cone.
  *
- * The diameter of the top of the cone is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0. If @p r is 0 the drawing is a cone, if @p r is 1 the drawing is a cylinder.
+ * The diameter of the top of the cone is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0.
+ * If @p r is 0 the drawing is a cone, if @p r is 1 the drawing is a cylinder.
  * @image html truncated_cone.png
  */
 truncated_cone (x:real, y:real, z:real, w:real, h:real, d:real, r:real);

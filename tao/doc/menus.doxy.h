@@ -1,6 +1,12 @@
 /**
- * @addtogroup TaoMenus Application menus
+ * @addtogroup TaoGui Application User Interface
  * @ingroup TaoBuiltins
+ *
+ * User Interface manipulation of Tao Applications.
+ */
+/**
+ * @addtogroup TaoMenus Application menus
+ * @ingroup TaoGui
  *
  * Creates and inserts new menus into the Tao application window.
  *
@@ -10,12 +16,18 @@
  * (with a check mark: enable or disabled) are supported.
  *
  * Menus are structured as follows:
- *   @li The menu bar (made current by @ref menubar) contains top-level menus
- *       (created or made current by @ref menu)
- *   @li A top-level menu may contain menu items (created or made current by
+ *   - A top level element that is either 
+ *       - the application menu bar (made current by @ref menubar)<BR>
+ *         or 
+ *       - a created tool bar (made current by @ref toolbar).<BR>
+ *         or
+ *       - a contextual menu
+ *
+ *   - A top-level menu may contain menu items (created or made current by
  *       @ref menu_item) and/or sub-menus (create or made current by
- *       @ref submenu).
- *   @li A sub-menu, like top-level menus, may contain sub-menus and menu
+ *       @ref submenu). The top-level menu is either added to the menubar, 
+ *       a toolbar or registered as a contextual menu.
+ *   - A sub-menu, like top-level menus, may contain sub-menus and menu
  *       items.
  *
  * Example (<a href="examples/menus.ddd">menus.ddd</a>):
@@ -29,15 +41,26 @@
  */
 
 /**
+ * Make the named menu current.
+ *
+ * This is a simplified form of menu(name:text, label:text, icon:text)
+ * when you just want to make an existing menu current.
+ *
+ * @see menubar to set the current %menubar \n
+ *      menu(name:text, label:text, icon:text) to create a new menu
+ */
+menu(name:text);
+
+/**
  * Adds a top-level menu to the current menu bar and make it the current menu.
  *
- * This is a simplified form of menu(text name, text label, text icon)
+ * This is a simplified form of menu(name:text, label:text, icon:text)
  * when you want a menu with no icon.
  *
  * @see menubar to set the current %menubar \n
- *      menu(text name, text label, text icon) to provide an icon
+ *      menu(name:text, label:text, icon:text) to provide an icon
  */
-tree menu(text name, text label);
+menu(name:text, label:text);
 
 /**
  * Adds a top-level menu to the current menu bar and make it the current menu.
@@ -53,20 +76,38 @@ tree menu(text name, text label);
  * and @ref separator. Call @ref menu or @ref submenu again to make another
  * menu current.
  *
+ * To use contextual menus, make them current using their names :
+ *    - "TAO_CONTEXT_MENU"
+ *    - "TAO_CONTEXT_MENU_SHIFT"
+ *    - "TAO_CONTEXT_MENU_CONTROL"
+ *    - "TAO_CONTEXT_MENU_ALT"
+ *    - "TAO_CONTEXT_MENU_META"
+ *
+ *
  * @see menubar to set the current %menubar
  */
-tree menu(text name, text label, text icon);
+menu(name:text, label:text, icon:text);
+
+/**
+ * Make the named submenu current.
+ *
+ * This is a simplified form of submenu(name:text, label:text, icon:text)
+ * when you just want to make an existing submenu current.
+ *
+ * @see submenu(name:text, label:text, icon:text) to create a new submenu
+ */
+submenu(name:text);
 
 /**
  * Adds a menu to the current menu or sub-menu and make it the current menu.
  *
- * This is a simplified form of submenu(text name, text label, text icon)
+ * This is a simplified form of submenu(name:text, label:text, icon:text)
  * when you want a menu with no icon.
  *
  * @see menu to set the current top-level %menu \n
- *      submenu(text name, text label, text icon) to provide an icon
+ *      submenu(name:text, label:text, icon:text) to provide an icon
  */
-tree submenu(text name, text label);
+submenu(name:text, label:text);
 
 /**
  * Adds a menu to the current menu or sub-menu and make it the current menu.
@@ -84,18 +125,40 @@ tree submenu(text name, text label);
  *
  * @see menu to set the current top-level %menu
  */
-tree submenu(text name, text label, text icon);
+submenu(name:text, label:text, icon:text);
 
 /**
  * Adds a menu item with an associated action to the current menu.
  *
  * This is a simplified version of
- * menu_item(text name, text label, text icon, boolean checkable, text checked, code action).
+ * menu_item(name:text, label:text, icon:text, boolean checkable, text checked,action:tree).
  *
  * @see menu, submenu to set the current %menu \n
- *      menu_item(text name, text label, text icon, boolean checkable, text checked, code action)
+ *      menu_item(name:text, label:text, icon:text, boolean checkable, text checked,action:tree)
  */
-tree menu_item(text name, text label, code action);
+menu_item(name:text, label:text, action:tree);
+
+/**
+ * Adds a menu item with an associated action to the current menu.
+ *
+ * This is a simplified version of
+ * menu_item(name:text, label:text, icon:text, boolean checkable, text checked,action:tree).
+ *
+ * @see menu, submenu to set the current %menu \n
+ *      menu_item(name:text, label:text, icon:text, boolean checkable, text checked,action:tree)
+ */
+menu_item(name:text, label:text, icon:text, action:tree);
+
+/**
+ * Adds a menu item with an associated action to the current menu.
+ *
+ * This is a simplified version of
+ * menu_item(name:text, label:text, icon:text, boolean checkable, text checked,action:tree).
+ *
+ * @see menu, submenu to set the current %menu \n
+ *      menu_item(name:text, label:text, icon:text, boolean checkable, text checked,action:tree)
+ */
+menu_item(name:text, label:text, checkable:boolean, checked:text, action:tree);
 
 /**
  * Adds a menu item with an associated action to the current menu.
@@ -115,18 +178,20 @@ tree menu_item(text name, text label, code action);
  * set @p checkable to true. In this case, set the @p checked parameter to "true"
  * to have a check mark be displayed initially.
  *
+ * To get a selection sensitive item, the item @p name must start with @c menu:select:
+ *
  * @see menu, submenu to set the current %menu
- * @bug checked should be a boolean
+ * @bug checked should be a boolean. Yes but boolean cannot be rewritten, so value 
+ * cannot be kept. That's why there is a string "true" or "false".
  */
-tree menu_item(text name, text label, text icon, boolean checkable, text checked, code action);
+menu_item(name:text, label:text, icon:text, checkable:boolean, checked:text, action:tree);
 
 /**
  * Sets the menu bar attached to the current window as the current menu bar.
  *
- * When this primitive returns, the menu bar becomes current for
- * @ref separator.
+ * When this primitive returns, the menu bar becomes current.
  */
-tree menubar();
+menubar();
 
 /**
  * Adds a toolbar to the current widget at the specified location.
@@ -135,23 +200,22 @@ tree menubar();
  * appear in the View menu. @p location specifies where the toolbar should
  * appear, relative to the current widget.
  * The possible values for this parameter are:
- *   @li @c "n" or @c "N" (north): the widget's top toolbar area
- *   @li @c "s" or @c "S" (south): the widget's bottom toolbar area
- *   @li @c "w" or @c "W" (west): the widget's left toolbar area
- *   @li @c "e" or @c "E" (east): the widget's right toolbar area
+ *   - @c "n" or @c "N" (north): the widget's top toolbar area
+ *   - @c "s" or @c "S" (south): the widget's bottom toolbar area
+ *   - @c "w" or @c "W" (west): the widget's left toolbar area
+ *   - @c "e" or @c "E" (east): the widget's right toolbar area
  *
- * When this primitive returns, the tool bar becomes current for
- * @ref separator.
+ * When this primitive returns, the tool bar becomes current.
  *
- * @todo Does @p label really appear in the View menu?
- * @todo Accept "top", "bottom", "left" and "right" for @p location?
+ * @todo Does @p label really appear in the View menu ? Ben oui, bien sur !
+ * @todo Accept "top", "bottom", "left" and "right" for @p location ? Ben non, mais on peut le rajouter... Tout est possible !
  */
-tree toolbar(text name, text label, text location);
+toolbar(name:text, label:text, location:text);
 
 /**
- * Adds a separator to the current menu or sub-menu or menu bar or tool bar.
+ * Adds a visual separator to the current menu, sub-menu, menu bar or tool bar.
  */
-tree separator();
+separator();
 
 /**
  * @}

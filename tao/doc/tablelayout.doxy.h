@@ -25,24 +25,28 @@
  * other table primitives to describe the table cells.
  *
  * Cells are inserted in rows, from left to right and top to bottom.
+ *
+ * @return [tree] the contents evaluation result.
  */
-tree table(real x, real y, integer r, integer c, code contents);
+tree table(x:real, y:real, r:integer, c:integer, contents:tree);
 
 /**
  * Creates a table of @p r rows and @p c columns.
  *
  * The table is centered at the origin.
- * @see table(real x, real y, integer r, integer c, code contents)
+ * @see table(x:real, y:real, r:integer, c:integer, contents:tree)
+ * @return [tree] the contents evaluation result.
  */
-tree table(integer r, integer c, code contents);
+tree table(r:integer, c:integer, contents:tree);
 
 /**
  * Inserts a fixed-size cell of @p w x @p h pixels.
  *
  * The @p contents code block is executed and is typically used to define
  * the cell's contents.
+ * @return [tree] the contents evaluation result.
  */
-tree table_cell(integer w, integer h, code contents);
+tree table_cell(w:integer, h:integer, contents:tree);
 
 
 /**
@@ -51,28 +55,28 @@ tree table_cell(integer w, integer h, code contents);
  * The cell will normally have the smallest possible dimension to fit
  * its contents. However a bigger cell in the same row or same column will
  * cause the current cell to adapt its size.
- * @see table_cell(integer w, integer h, code contents)
+ * @see table_cell(w:integer, h:integer, contents:tree)
+ * @return [tree] the contents evaluation result.
  */
-tree table_cell(code contents);
+tree table_cell(contents:tree);
 
 
 /**
  * Defines margins for all cells in the table.
  *
- * A vertical space of @p w pixels is added to the left and right sides of
- * each cell. A horizontal space of @p h pixels is added to the top and
+ * A horizontal space of @p w pixels is added to the left and right sides of
+ * each cell. A vertical space of @p h pixels is added to the top and
  * bottom sides.
  */
-tree table_cell_margins(integer w, integer h);
+table_cell_margins(w:integer, h:integer);
 
 
 /**
  * Defines margins for all cells in the table.
  *
- * @todo What is the purpose of @p x and @p y parameters? What is the
- * difference with the other table_cell_margins primitive ?.
+ * This allow margin to not be centered.
  */
-tree table_cell_margins(real x, real y, integer w, integer h);
+table_cell_margins(x:real, y:real, w:integer, h:integer);
 
 
 /**
@@ -91,7 +95,7 @@ table nr, nc,
  @endcode
  *
  */
-tree table_cell_fill(code contents);
+table_cell_fill(contents:tree);
 
 
 /**
@@ -102,13 +106,14 @@ tree table_cell_fill(code contents);
  * by @ref table_cell_fill.
  * @todo Isn't this function redundant with table_cell_fill?
  */
-tree table_cell_border(code contents);
+table_cell_border(contents:tree);
 
 
 /**
  * The x coordinate of the center of the current cell. In pixels.
  * Valid only in the context of the code block of @ref table_cell_fill,
  * @ref table_cell_border or @ref table_cell.
+ * @return [real] The x-coordinate in pixels.
  */
 real table_cell_x();
 
@@ -117,6 +122,7 @@ real table_cell_x();
  * The y coordinate of the center of the current cell. In pixels.
  * Valid only in the context of the code block of @ref table_cell_fill,
  * @ref table_cell_border or @ref table_cell.
+ * @return [real] The y-coordinate in pixels.
  */
 real table_cell_y();
 
@@ -125,6 +131,7 @@ real table_cell_y();
  * The width of the current cell. In pixels.
  * Valid only in the context of the code block of @ref table_cell_fill,
  * @ref table_cell_border or @ref table_cell.
+ * @return [real] The width in pixels.
  */
 real table_cell_w();
 
@@ -133,6 +140,7 @@ real table_cell_w();
  * The height of the current cell. In pixels.
  * Valid only in the context of the code block of @ref table_cell_fill,
  * @ref table_cell_border or @ref table_cell.
+ * @return [real] The height in pixels.
  */
 real table_cell_h();
 
@@ -141,6 +149,7 @@ real table_cell_h();
  * The row index of the current cell. First row has index 0.
  * Valid only in the context of the code block of @ref table_cell_fill,
  * @ref table_cell_border or @ref table_cell.
+ * @return [integer] The row index.
  */
 integer table_cell_row();
 
@@ -149,6 +158,7 @@ integer table_cell_row();
  * The column index of the current cell. First column has index 0.
  * Valid only in the context of the code block of @ref table_cell_fill,
  * @ref table_cell_border or @ref table_cell.
+ * @return [integer] The column index.
  */
 integer table_cell_column();
 
@@ -156,6 +166,7 @@ integer table_cell_column();
 /**
  * The number of rows in the current table.
  * Valid only in the context of the code block of @c table command.
+ * @return [integer] The number of row.
  */
 integer table_rows();
 
@@ -163,6 +174,7 @@ integer table_rows();
 /**
  * The number of columns in the current table.
  * Valid only in the context of the code block of @c table command.
+ * @return [integer] The number of column.
  */
 integer table_columns();
 

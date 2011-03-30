@@ -2,7 +2,7 @@
  * @addtogroup TaoFiles Listing files
  * @ingroup TaoBuiltins
  *
- * Lists file present on the computer.
+ * List files present on the computer.
  * @{
  */
 
@@ -33,8 +33,8 @@
  * @return a comma-separated list of strings, each one being the absolute
  * path to a regular file that matches the given pattern.
  *
- * @bug Not sure if relative paths are matched relative to the path of the
- * file that calls @ref files, or the path of the main document.
+ * @bug Not sure if relative paths are matched relatively to the path of the
+ * file that calls @ref files, or to the path of the main document.
  * @bug What about symbolic links?
  */
 tree files(text pattern);

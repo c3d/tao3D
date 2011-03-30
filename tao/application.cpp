@@ -76,14 +76,18 @@ Application::Application(int & argc, char ** argv)
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
 
-    // UI internationalization
-    //
-    // Load translations, based on current locale
+    // Load translations, based on current locale. Preferences may override
+    // current locale.
     QString lang = QLocale().name().left(2);
-    // Preferences may override current locale
     lang = QSettings().value("uiLanguage", lang).toString();
-    translator.load(QString("tao_") + lang, applicationDirPath());
-    installTranslator(&translator);
+    if (translator.load(QString("tao_") + lang, applicationDirPath()))
+    {
+        installTranslator(&translator);
+        QString path = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+        QString file = QString("qt_") + lang;
+        if (qtTranslator.load(file, path))
+            installTranslator(&qtTranslator);
+    }
 
     // Set current directory
     QDir::setCurrent(applicationDirPath());

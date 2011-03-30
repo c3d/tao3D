@@ -119,7 +119,7 @@ private:
 #endif
     ModuleManager * moduleManager;
     bool         doNotEnterEventLoop;
-    QTranslator  translator;
+    QTranslator  translator, qtTranslator;
 };
 
 #define TaoApp  ((Application *) qApp)

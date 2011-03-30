@@ -5571,7 +5571,7 @@ Infix_p Widget::imageSize(Context *context,
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
-    GLuint w = 0, h = 0;
+    GLuint w = 1, h = 1;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
@@ -5587,7 +5587,9 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    return new Infix(",", new Integer(w), new Integer(h));
+    Infix *result = new Infix(",", new Integer(w), new Integer(h));
+    result->SetSymbols(self->Symbols());
+    return result;
 }
 
 

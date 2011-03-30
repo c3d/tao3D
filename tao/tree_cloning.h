@@ -160,7 +160,19 @@ struct CopySelection
 // 
 // ============================================================================
 
-struct ColorTreeClone : XL::TreeClone
+struct NameChangeCloneMode
+// ----------------------------------------------------------------------------
+//   Clone mode where DoName is virtual so that we can override it
+// ----------------------------------------------------------------------------
+{
+    virtual XL::Tree *DoName(XL::Name *what) = 0;
+    template<typename CloneClass>
+    XL::Tree *Clone(Tree *t, CloneClass *clone) { return t->Do(clone); }
+};
+typedef XL::TreeCloneTemplate<NameChangeCloneMode>      NameChangeClone;
+
+
+struct ColorTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //  Override names 'red', 'green', 'blue' and 'alpha' in the input tree
 // ----------------------------------------------------------------------------
@@ -183,7 +195,7 @@ struct ColorTreeClone : XL::TreeClone
 };
 
 
-struct FontTreeClone : XL::TreeClone
+struct FontTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //   Overrides font description names in the input tree
 // ----------------------------------------------------------------------------
@@ -214,7 +226,7 @@ struct FontTreeClone : XL::TreeClone
 };
 
 
-struct ToggleTreeClone : XL::TreeClone
+struct ToggleTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //   Override the name "checked" in the input tree
 // ----------------------------------------------------------------------------
@@ -235,7 +247,7 @@ struct ToggleTreeClone : XL::TreeClone
 };
 
 
-struct ClickTreeClone : XL::TreeClone
+struct ClickTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //  Override name "button_name" in the input tree
 // ----------------------------------------------------------------------------

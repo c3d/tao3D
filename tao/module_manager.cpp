@@ -1212,6 +1212,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
+        // Warning: remote tag (text string) 1.2 is parsed as (real value) 1.02
         mm.modules[+m.id].latest = +latest;
         double latestVer = ModuleManager::parseVersion(+latest);
 

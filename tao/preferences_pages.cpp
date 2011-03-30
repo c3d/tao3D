@@ -363,7 +363,10 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 2, item);
 
-        item = new QTableWidgetItem(+m.ver);
+        QString vstr = QString::number(m.ver);
+        if (!vstr.contains("."))
+            vstr.append(".0");
+        item = new QTableWidgetItem(vstr);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(enFlag);
         table->setItem(row, 3, item);

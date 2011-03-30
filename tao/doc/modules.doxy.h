@@ -4,6 +4,8 @@
  *
  * Use code and resources from external modules.
  *
+ *@todo Add a link to the module SDK documentation
+ *
  * @{
  */
 
@@ -37,7 +39,7 @@ import MyModule "1.0"
  * @param version The minimum version of the module known to work with the
  *        current document.
  */
-import(name modulename, text version);
+import(modulename:name, version:text);
 
 /**
  * @}

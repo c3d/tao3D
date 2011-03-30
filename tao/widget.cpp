@@ -68,7 +68,7 @@
 #include "version.h"
 #include "documentation.h"
 #include "formulas.h"
-#include "portability.h"
+#include "text_edit.h"
 #include "xl_source_edit.h"
 #include "tool_window.h"
 #include "context.h"
@@ -173,7 +173,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false), bShowStatistics(false),
-      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false)
+      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
+      editCursor(NULL)
 {
     setObjectName(QString("Widget"));
     // Make sure we don't fill background with crap
@@ -1317,7 +1318,7 @@ void Widget::paste()
             }
             sel->replacement = "";
             sel->replace = true;
-            sel->replacement_tree = portability().fromHTML(mimeData->html());
+            sel->replacement_tree = text_portability().fromHTML(mimeData->html());
 
             updateGL();
             return;
@@ -1340,19 +1341,19 @@ void Widget::paste()
     {
         Tree * t = NULL;
         if (mimeData->hasHtml())
-            t = portability().fromHTML(mimeData->html());
+            t = text_portability().fromHTML(mimeData->html());
         else if (mimeData->hasText())
             t = new XL::Prefix(new XL::Name("text"),
                                new XL::Text(+mimeData->text()));
         else return;
         // Insert a text box with that content at the end of the doc/page.
-        XL::Infix * comma = new XL::Infix(",", new XL::Integer(0LL),
-                                          new XL::Integer(0LL));
-        comma = new XL::Infix(",", comma, new XL::Integer(200));
-        comma = new XL::Infix(",", comma, new XL::Integer(200));
-        comma = new XL::Infix(",", comma,
-                              new XL::Prefix(new Name("do"),
-                                             new XL::Block(t, "I+", "I-")));
+        std::vector<Tree*> arg_list;
+        arg_list.push_back( new XL::Integer(0LL));
+        arg_list.push_back( new XL::Integer(0LL));
+        arg_list.push_back( new XL::Integer(200));
+        arg_list.push_back( new XL::Integer(200));
+        arg_list.push_back( new XL::Block(t, "I+", "I-"));
+        XL::Tree *comma = list2tree(arg_list, ",");
         XL::Prefix * tb = new XL::Prefix(new XL::Name("text_box"),
                                          comma);
         tb = new XL::Prefix(new XL::Name("shape"),
@@ -3670,6 +3671,7 @@ bool Widget::focused(Layout *layout)
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
+//    std::cerr << "layout id " << layout->id << " FocusId " <<  focusId << std::endl; // CaB
     return layout->id == focusId;
 }
 
@@ -5569,8 +5571,9 @@ Infix_p Widget::imageSize(Context *context,
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
-    GLuint w = 0, h = 0;
-    filename = context->stack->ResolvePrefixedPath(filename);
+    GLuint w = 1, h = 1;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    filename = context->ResolvePrefixedPath(filename);
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
@@ -5584,7 +5587,9 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    return new Infix(",", new Integer(w), new Integer(h));
+    Infix *result = new Infix(",", new Integer(w), new Integer(h));
+    result->SetSymbols(self->Symbols());
+    return result;
 }
 
 
@@ -6599,6 +6604,80 @@ bool Widget::addControlBox(Real *x, Real *y, Real *z,
 //
 // ============================================================================
 
+Tree_p  Widget::textEdit(Context *context, Tree_p self,
+                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Create a new text edit widget and render text in it
+// ----------------------------------------------------------------------------
+{
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    Tree * result = textEditTexture(context, self, w, h, prog);
+    TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    if (currentShape)
+        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
+    return result;
+}
+
+
+Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
+                                double w, double h, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Create a new text edit widget and render text in it
+// ----------------------------------------------------------------------------
+{
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
+
+    // Update document with prog
+    editCursor = new QTextCursor(new QTextDocument(""));
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    Tree *result = currentContext->Evaluate(prog);
+
+    // Get or build the current frame if we don't have one
+    TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
+    if (!surface)
+    {
+        surface = new TextEditSurface(editCursor->document()->clone(),
+                                      prog->AsBlock(), this);
+        prog->SetInfo<TextEditSurface> (surface);
+    }
+
+    // Resize to requested size, and bind texture
+    surface->resize(w,h);
+    GLuint tex = surface->bind(editCursor->document()->clone());
+    layout->Add(new FillTexture(tex));
+    layout->hasAttributes = true;
+    delete editCursor;
+    editCursor = NULL;
+
+    return result;
+
+}
+
+
+void Widget::updateCursor(Text_p t)
+// ----------------------------------------------------------------------------
+//   Update the cursor with the current layout info and text.
+// ----------------------------------------------------------------------------
+{
+    if (! editCursor) return;
+
+    QTextBlockFormat copyBF = editCursor->blockFormat();
+    QTextCharFormat copyCF = editCursor->charFormat();
+    // 1- check if paragraph format has changed
+    if (modifyBlockFormat(copyBF, layout))
+        editCursor->insertBlock(copyBF);
+
+    // 2- check if character format has changed
+    if (modifyCharFormat(copyCF, layout))
+        editCursor->insertText(+t->value, copyCF);
+    else
+        editCursor->insertText(+t->value);
+}
+
 Tree_p  Widget::textBox(Context *context, Tree_p self,
                         Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
 // ----------------------------------------------------------------------------
@@ -6668,8 +6747,11 @@ Tree_p Widget::textSpan(Tree_p self, Text_p contents)
 {
     if (path)
         TextSpan(contents).Draw(*path, layout);
+    else if (editCursor)
+        updateCursor(contents);
     else
         layout->Add(new TextSpan(contents));
+
     return XL::xl_true;
 }
 
@@ -7339,6 +7421,7 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
@@ -8300,7 +8383,6 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
-
     // Get or build the current frame if we don't have one
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
     if (!surface)
@@ -8587,6 +8669,7 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     }
 
     Tree_p result = (Tree *) err;
+    result->SetSymbols(self->Symbols());
     return result;
 }
 
@@ -9565,7 +9648,7 @@ static void generateRewriteDoc(Widget *widget, XL::Rewrite_p rewrite, text &com)
         Text_p t2 = widget->generateDoc(rewrite->to, rewrite->to);
         com += t2->value;
     }
-    
+
     XL::rewrite_table &rewrites = rewrite->hash;
     XL::rewrite_table::iterator i;
     for (i = rewrites.begin(); i != rewrites.end(); i++)
@@ -9595,7 +9678,7 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
 
     // Documentation from the primitives files (*.tbl)
     for (XL::Context *globals = xlr->context; globals; globals = globals->scope)
-    {    
+    {
         XL::rewrite_table &rewrites = globals->rewrites;
         XL::rewrite_table::iterator i;
         for (i = rewrites.begin(); i != rewrites.end(); i++)

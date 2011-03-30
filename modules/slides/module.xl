@@ -181,8 +181,9 @@ title_bg_rect "Seyes" ->
 //
 // ============================================================================
 
-
-theme := ""
+// Default theme and background picture
+theme -> ""
+background_picture -> "seyes.jpg"
 
 
 font_scaling ->
@@ -381,8 +382,7 @@ title_layout Theme:text, Body ->
     rw -> 0.9 * title_bg_rect_w theme
     rh -> 0.9 * title_bg_rect_h theme
     title_bg_rect theme
-    text_box rx, ry, rw, rh,
-        Body
+    text_box rx, ry, rw, rh, Body
 
 
 story_bg_rect Theme:text ->
@@ -401,8 +401,7 @@ story_layout Theme:text, Body ->
     rw -> 0.9 * story_bg_rect_w theme
     rh -> 0.9 * story_bg_rect_h theme
     story_bg_rect theme
-    text_box rx, ry, rw, rh,
-        Body
+    text_box rx, ry, rw, rh, Body
 
 
 title_story_bg_rect Theme:text ->
@@ -421,8 +420,7 @@ title_story_layout Theme:text, Body ->
     rw -> 0.9 * title_story_bg_rect_w theme
     rh -> 0.9 * title_story_bg_rect_h theme
     title_story_bg_rect theme
-    text_box rx, ry, rw, rh,
-        Body
+    text_box rx, ry, rw, rh, Body
 
 
 title Theme, Title ->
@@ -452,7 +450,16 @@ title_story Theme, Body ->
         Body
 
 
+theme T:text -> theme := T
+// ----------------------------------------------------------------------------
+//   Select a theme name
+// ----------------------------------------------------------------------------
+
+
 theme_init S:text ->
+// ----------------------------------------------------------------------------
+//   Initialization of the theme
+// ----------------------------------------------------------------------------
     refresh 0.1
 
 
@@ -473,7 +480,18 @@ base_slide P:text, Body ->
         Body
 
 
-slide P:text, T:text, Body ->
+picture_slide P:text, Body ->
+// ----------------------------------------------------------------------------
+//    Create a slide for pictures, photos, animations
+// ----------------------------------------------------------------------------
+    page P,
+        theme_init theme
+        background theme
+        locally Body
+        title theme, P
+
+
+named_slide P:text, T:text, Body ->
 // ----------------------------------------------------------------------------
 //    Create a slide with page name, title and content
 // ----------------------------------------------------------------------------
@@ -486,7 +504,7 @@ slide T:text, Body ->
 // ----------------------------------------------------------------------------
 //    Create a slide with title and content. Page name is same as title.
 // ----------------------------------------------------------------------------
-    slide T, T, Body
+    named_slide T, T, Body
 
 
 title_slide P:text, Body ->
@@ -513,37 +531,43 @@ title_only_slide T:text, Body ->
     title_only_slide T, T, Body
 
 
-min x:real, y:real              -> if x < y then x else y
-max x:real, y:real              -> if x > y then x else y
-get_z x:real, y:real, z:real    -> z
-get_w w:real, h:real            -> w
-get_h w:real, h:real            -> h
-
 
 background_z Theme:text -> 0.0
+// ----------------------------------------------------------------------------
+//   Default Z for the background picture
+// ----------------------------------------------------------------------------
 
-background_stretch Theme:text ->
+
+background_stretch Theme:text -> false
 // ----------------------------------------------------------------------------
 //   Background scaling: proportional if false, non-proportional if true
 // ----------------------------------------------------------------------------
-    false
+
+
+background_picture_size -> image_size background_picture
+// ----------------------------------------------------------------------------
+//   Return the size of the selected background picture
+// ----------------------------------------------------------------------------
+
 
 show_picture_background File:text ->
 // ----------------------------------------------------------------------------
 //   Show a picture background
 // ----------------------------------------------------------------------------
     min_w_h -> min window_width, window_height
-    cam_z -> get_z camera_position
+    cam_z -> camera_position at 3
     bg_z -> background_z theme
-    bg_w -> get_w image_size File
-    bg_h -> get_h image_size File
+    bg_w -> background_picture_size at 1
+    bg_h -> background_picture_size at 2
     bg_zscale -> 110% * (1.0 - bg_z/cam_z)
     bg_sx -> bg_zscale * window_width  / bg_w
     bg_sy -> bg_zscale * window_height / bg_h
     bg_scale -> max window_height/bg_h, window_width/bg_w
+
     locally
         translatez bg_z
         color "white"
+        background_picture := File
         if background_stretch theme then
             // Non-proportional scaling
             image 0.0, 0.0, bg_sx, bg_sy, File

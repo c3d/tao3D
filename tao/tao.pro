@@ -111,7 +111,7 @@ HEADERS += widget.h \
     preferences_dialog.h \
     preferences_pages.h \
     module_manager.h \
-    portability.h \
+    text_edit.h \
     tao_main.h \
     tool_window.h \
     include/tao/module_api.h \
@@ -170,7 +170,7 @@ SOURCES += tao_main.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     module_manager.cpp \
-    portability.cpp \
+    text_edit.cpp \
     tool_window.cpp \
     module_api_p.cpp \
     module_renderer.cpp \
@@ -299,7 +299,7 @@ OTHER_FILES += xl.syntax \
     bytecode.stylesheet \
     xlr/xlr/builtins.xl \
     tao.xl \
-    tutorial.ddd \
+    welcome.ddd \
     git.stylesheet \
     traces.tbl \
     nocomment.stylesheet \
@@ -332,7 +332,7 @@ xl_files.files = xlr/xlr/builtins.xl \
     xl.syntax \
     xl.stylesheet \
     git.stylesheet \
-    tutorial.ddd
+    welcome.ddd
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*

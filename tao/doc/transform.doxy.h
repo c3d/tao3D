@@ -5,19 +5,25 @@
  * This group deals with transformation of the space.
  * Transformations are based on OpenGL capacity.
  * Transformations are
- * - rotation, expressed in degrees
+ * - rotation, expressed in degrees. Rotations follows the right-hand rule, so if the rotation axis
+ *      points toward the user, the rotation will be counterclockwise.
  * - translation, expressed in pixels
  * - scaling, expressed with a scaling factor
  *
- * @note Rotations follows the right-hand rule, so if the rotation axis
- *      points toward the user, the rotation will be counterclockwise.
+ * Those transformations are applied to the whole system : origin and axes are modified by transformation. 
+ * So the user should focus on rotation and translation order because 
+ * a translation and then a rotation do not give the same location as rotation
+ * and then translation, as shown in the following image and sample.
+ * @image html rotation_translation.png
  *
- * @todo Explain order of calls, give an example.
+ * Examples: <a href="examples/transform_samples.ddd">transform_samples.ddd</a>
  * @{
  */
 
 /**
  * Scales along the three axes.
+ *
+ * @image html scale.png
  */
 scale (x:real, y:real, z:real);
 
@@ -50,6 +56,8 @@ scalez (z:real);
  *
  * Rotations follows the right-hand rule, so if the vector (x,  y,  z)
  * points toward the user, the rotation will be counterclockwise.
+ *
+ * @image html rotation.png
  */
 rotate (ra:real, rx:real, ry:real, rz:real);
 
@@ -76,6 +84,8 @@ rotatez (rz:real);
 
 /**
  * Translates along the three axes.
+ *
+ * @image html translation.png
  */
 translate (x:real, y:real, z:real);
 

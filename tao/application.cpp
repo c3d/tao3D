@@ -268,7 +268,7 @@ bool Application::processCommandLine()
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo tutorial  ("system:tutorial.ddd");
+    QFileInfo tutorial  ("system:welcome.ddd");
 
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());

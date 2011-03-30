@@ -2339,7 +2339,7 @@ bool Window::isTutorial(const QString &filePath)
 //    Return true if the file currently loaded is the Tao tutorial
 // ----------------------------------------------------------------------------
 {
-    static QFileInfo tutorial("system:tutorial.ddd");
+    static QFileInfo tutorial("system:welcome.ddd");
     static QString tutoPath = tutorial.canonicalFilePath();
     return (filePath == tutoPath);
 }

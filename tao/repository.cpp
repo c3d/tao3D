@@ -31,6 +31,8 @@
 #include <QtGlobal>
 #include <QApplication>
 #include <fstream>
+#include <math.h>
+
 
 namespace Tao {
 
@@ -308,32 +310,27 @@ bool Repository::versionGreaterOrEqual(QString ver, QString ref)
             return false;
     return true;
 }
+ 
+
+bool Repository::versionGreaterOrEqual(double ver, double ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
+// ----------------------------------------------------------------------------
+{
+    return ver >= ref;
+}
 
 
-bool Repository::versionMatches(QString ver, QString ref)
+bool Repository::versionMatches(double ver, double ref)
 // ----------------------------------------------------------------------------
 //   Return true if ver.major == ref.major and ver.minor >= ref.minor
 // ----------------------------------------------------------------------------
-// versionMatches("1.0", "1.0"): true
-// versionMatches("1.0.1", "1.0"): true
-// versionMatches("1.1", "1.0"): true
-// versionMatches("2.0", "1.0"): false
-// versionMatches("1.0", "1.1"): false
 {
-    QStringList v = ver.split(".");
-    QStringList r = ref.split(".");
-    if (!v.size())
-        return !r.size();
-    int v_major = 0, r_major = 0;
-    if (v.size())
-        v_major = v.takeFirst().toInt();
-    if (r.size())
-        r_major = r.takeFirst().toInt();
-    if (v_major != r_major)
-        return false;
-    QString v_minor = v.join(".");
-    QString r_minor = r.join(".");
-    return versionGreaterOrEqual(v_minor, r_minor);
+    double verMajor = floor(ver);
+    double refMajor = floor(ref);
+    double verMinor = ver - verMajor;
+    double refMinor = ref - refMajor;
+    return verMajor == refMajor && verMinor >= refMinor;
 }
 
 

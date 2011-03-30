@@ -47,16 +47,16 @@
  * Creates and shows a chooser with the given caption.
  * A chooser shows a selection among the possible commands.
  */
-tree chooser(text caption);
+tree chooser(caption:text);
 
 
 /**
  * Adds a command into the current chooser.
  * Creates a chooser item, associates the @p action code block to the item,
  * and appends a new line to the current chooser list. @p action is
- * executed when the user presses the return key on a highlighted command.
+ * executed when the user presses the return key on the highlighted command.
  */
-tree chooser_item(text label, code action);
+tree chooser_choice(label:text, action:tree);
 
 
 /**
@@ -71,7 +71,7 @@ tree chooser_item(text label, code action);
  *
  * When a command is chosen, the associated action is executed.
  */
-tree chooser_commands(text prefix, text label_prefix);
+tree chooser_commands(prefix:text, label_prefix:text);
 
 /**
  * Adds one command for each page into the current chooser.
@@ -87,7 +87,7 @@ tree chooser_commands(text prefix, text label_prefix);
  * When a command is chosen, the symbol action is executed and is passed the
  * page name (without the page number).
  */
-tree chooser_pages(name action, text label_prefix);
+tree chooser_pages(action:name, label_prefix:text);
 
 /**
  * @}

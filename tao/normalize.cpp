@@ -32,8 +32,10 @@ Renormalize::Renormalize(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Constructor, nothing special to do
 // ----------------------------------------------------------------------------
-    : TaoTreeClone(widget)
-{}
+    : TreeClone()
+{
+    this->widget = widget;
+}
 
 
 Renormalize::~Renormalize()

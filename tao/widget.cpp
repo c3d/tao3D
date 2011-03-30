@@ -7966,6 +7966,7 @@ void Widget::fontChanged(const QFont& ft)
     FontTreeClone replacer(ft);
     XL::Tree *toBeEvaluated = fontAction;
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(fontAction->Symbols());
 
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);
@@ -8253,6 +8254,7 @@ void Widget::fileChosen(const QString & filename)
     map["rel_file_path"] = +relFilePath;
 
     XL::Tree *toBeEvaluated = map.Replace(fileAction);
+    toBeEvaluated->SetSymbols(fileAction->Symbols());
 
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);

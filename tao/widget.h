@@ -1023,32 +1023,6 @@ struct SetAttributeAction : XL::Action
     text      shape;
 };
 
-
-struct NameToNameReplacement : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    Replace specific names with names (e.g. alternate spellings)
-// ----------------------------------------------------------------------------
-{
-    NameToNameReplacement(): replaced(false) {}
-
-    Tree *  DoName(XL::Name *what);
-    Tree *  Replace(Tree *original);
-    text &      operator[] (text index)         { return map[index]; }
-
-    std::map<text, text> map;
-    bool replaced;
-};
-
-
-struct NameToTextReplacement : NameToNameReplacement
-// ----------------------------------------------------------------------------
-//    Replace specific names with a text
-// ----------------------------------------------------------------------------
-{
-    NameToTextReplacement(): NameToNameReplacement() {}
-    Tree *  DoName(XL::Name *what);
-};
-
 } // namespace Tao
 
 

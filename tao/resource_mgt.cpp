@@ -27,11 +27,12 @@
 
 TAO_BEGIN
 
-ResourceMgt::ResourceMgt(Widget *widget): TaoTreeClone(widget)
+ResourceMgt::ResourceMgt(Widget *widget): TreeClone()
 //-----------------------------------------------------------------------------
 //  Resource management constructor.
 //-----------------------------------------------------------------------------
 {
+    this->widget = widget;
     if (cmdFileList.empty())
     {
         cmdFileList["load"]      = std::pair<int, text>(1, "xl");
@@ -60,11 +61,11 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
 {
     Name * n = what->left->AsName();
     if (!n || cmdFileList.count(n->value) == 0)
-        return TaoTreeClone::DoPrefix(what);
+        return TreeClone::DoPrefix(what);
 
     Text * arg = getArg(what, cmdFileList[n->value].first);
     if (! arg)
-        return TaoTreeClone::DoPrefix(what);
+        return TreeClone::DoPrefix(what);
 
     QFileInfo info(+(arg->value));
     if (! isToBeMoved(info,+(cmdFileList[n->value].second)))
@@ -75,7 +76,7 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
             std::cerr << "Used file: "<< +(info.filePath()) << std::endl;
         }
 
-        return TaoTreeClone::DoPrefix(what);
+        return TreeClone::DoPrefix(what);
     }
 
     if (movedFiles.count(+(info.canonicalFilePath())))
@@ -86,7 +87,7 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
     }
 
 
-    return TaoTreeClone::DoPrefix(what);
+    return TreeClone::DoPrefix(what);
 }
 
 

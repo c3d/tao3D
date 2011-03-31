@@ -832,7 +832,7 @@ int TextSpan::PerformEditOperation(Widget *widget, uint i)
         commitMessage = "Deleted text";
 
     // Mark the changes with commit message, abort if source window changed
-    if (!widget->markChanged(commitMessage))
+    if (!widget->markChange(commitMessage))
         return 0;
 
     // Compute the end of selection Id based on the selection length
@@ -890,7 +890,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
 {
     TextSelect *sel = widget->textSelection();
     if (sel->replacement_tree &&
-        widget->markChanged("Clipboard content pasted"))
+        widget->markChange("Clipboard content pasted"))
     {
         XL::Infix * tail = sel->replacement_tree->AsInfix();
         XL::Infix * head = tail;
@@ -1154,7 +1154,7 @@ bool TextFormula::Validate(Text *source, Widget *widget)
     XL::Parser          parser(input, syntax,positions,errors);
     Tree *              newTree = parser.Parse();
 
-    if (newTree && widget->markChanged("Replaced formula"))
+    if (newTree && widget->markChange("Replaced formula"))
     {
         Prefix *prefix = self;
         prefix->right = newTree;
@@ -1306,7 +1306,7 @@ bool TextValue::Validate(XL::Text *source, Widget *widget)
     Tree *              newTree   = parser.Parse();
     bool                valid = false;
 
-    if (newTree && widget->markChanged("Replaced value"))
+    if (newTree && widget->markChange("Replaced value"))
     {
         if (Real *oldReal = value->AsReal())
         {

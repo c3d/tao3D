@@ -24,7 +24,6 @@
 // ****************************************************************************
 
 #include "widget.h"
-#include "tao.h"
 #include "tao_main.h"
 #include "main.h"
 #include "runtime.h"
@@ -100,7 +99,7 @@
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
 
-TAO_BEGIN
+namespace Tao {
 
 // ============================================================================
 //
@@ -888,6 +887,9 @@ void Widget::runProgram()
     }
 
     processProgramEvents();
+
+    if (!dragging)
+        finishChanges();
 }
 
 
@@ -1380,7 +1382,7 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------
 {
-    if (!markChanged("Selection sent to back"))
+    if (!markChange("Selection sent to back"))
         return XL::xl_false;    // Source code was edited
 
     Tree * select = removeSelection();
@@ -1426,7 +1428,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChanged("Selection brought forward"))
+    if (!hasSelection() || !markChange("Selection brought forward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -1474,7 +1476,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChanged("Selection sent backward"))
+    if (!hasSelection() || !markChange("Selection sent backward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -3029,17 +3031,30 @@ void Widget::preloadSelectionCode()
 }
 
 
-bool Widget::markChanged(text reason)
+bool Widget::markChange(text reason)
 // ----------------------------------------------------------------------------
-//    Record that the program changed
+//    Record that we're about to change program
 // ----------------------------------------------------------------------------
 {
     if (sourceChanged())
         return false;
 
-    Repository *repo = repository();
-    if (repo)
-        repo->markChanged(reason);
+    changeReason = reason;
+
+    // Cause the screen to redraw
+    refresh(0);
+
+    // Caller is allowed to modify the source code
+    return true;
+}
+
+
+void Widget::finishChanges()
+// ----------------------------------------------------------------------------
+//    Check if program has changed and save+commit+update src view if needed
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
 
     if (xlProgram->tree)
     {
@@ -3051,13 +3066,19 @@ bool Widget::markChanged(text reason)
         {
             XL::SourceFile &sf = **f;
             if (&sf != xlProgram && sf.changed)
+            {
+                changed = true;
                 writeIfChanged(sf);
+            }
         }
     }
 
-
-    if (!dragging)
+    if (changed)
     {
+        Repository *repo = repository();
+        if (repo && changeReason != "")
+            repo->markChanged(changeReason);
+
         // Record change to repository
         saveAndCommit();
 
@@ -3065,11 +3086,7 @@ bool Widget::markChanged(text reason)
         updateProgramSource();
     }
 
-    // Cause the screen to redraw
-    refresh(0);
-
-    // Caller is allowed to modify the source code
-    return true;
+    changeReason = "";
 }
 
 
@@ -5554,8 +5571,9 @@ Infix_p Widget::imageSize(Context *context,
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
-    GLuint w = 0, h = 0;
-    filename = context->stack->ResolvePrefixedPath(filename);
+    GLuint w = 1, h = 1;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    filename = context->ResolvePrefixedPath(filename);
 
     ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
     if (!rinfo)
@@ -5569,7 +5587,9 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    return new Infix(",", new Integer(w), new Integer(h));
+    Infix *result = new Infix(",", new Integer(w), new Integer(h));
+    result->SetSymbols(self->Symbols());
+    return result;
 }
 
 
@@ -7946,6 +7966,7 @@ void Widget::fontChanged(const QFont& ft)
     FontTreeClone replacer(ft);
     XL::Tree *toBeEvaluated = fontAction;
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(fontAction->Symbols());
 
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);
@@ -8233,6 +8254,7 @@ void Widget::fileChosen(const QString & filename)
     map["rel_file_path"] = +relFilePath;
 
     XL::Tree *toBeEvaluated = map.Replace(fileAction);
+    toBeEvaluated->SetSymbols(fileAction->Symbols());
 
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);
@@ -8649,6 +8671,7 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     }
 
     Tree_p result = (Tree *) err;
+    result->SetSymbols(self->Symbols());
     return result;
 }
 
@@ -9090,7 +9113,7 @@ XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 {
     // Check if blocked because the source code window was edited
-    if (!markChanged(msg))
+    if (!markChange(msg))
         return XL::xl_false;
 
     Window *window = (Window *) parentWidget();
@@ -9206,7 +9229,7 @@ void Widget::deleteSelection()
 // ----------------------------------------------------------------------------
 {
     // Check if the source was modified, if so, do not update the tree
-    if (!markChanged("Deleted selection"))
+    if (!markChange("Deleted selection"))
         return;
 
     XL::Tree *what = xlProgram->tree;
@@ -9232,7 +9255,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     // Check if the source code window was modified, if so do not change
-    if (!markChanged("Updated " + name + " attribute"))
+    if (!markChange("Updated " + name + " attribute"))
         return XL::xl_false;
 
     // Attribute may be encapsulated in a block
@@ -9362,7 +9385,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there's no selection or if source window changed
-    if (!hasSelection() || !markChanged("Selection grouped"))
+    if (!hasSelection() || !markChange("Selection grouped"))
         return XL::xl_false;
 
     // Find the first non-selected ancestor of the first element
@@ -9470,7 +9493,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there is no selection or if source window changed
-    if (!hasSelection() || !markChanged("Selection ungrouped"))
+    if (!hasSelection() || !markChange("Selection ungrouped"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -9748,4 +9771,4 @@ void tao_widget_refresh(double delay)
     TAO(refresh(delay));
 }
 
-TAO_END
+}

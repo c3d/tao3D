@@ -856,7 +856,7 @@ menu_item "menu:select:format >  texture...", "Texture...",
                "PPM - Portable Pixmap (*.ppm);;" &
                "XBM - X11 Bitmap (*.xbm);;" &
                "XPM - X11 Pixmap (*.xpm)"
-        action do
+        action
             set_attribute "texture", {texture rel_file_path}
 }
 

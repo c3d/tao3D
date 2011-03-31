@@ -1,0 +1,24 @@
+text_box 0, 0, 800, 600, 
+    font "Papyrus", 80 
+    color_hsv time * 5, 60% , 100% , 50% 
+    line_width 2 
+    line_color "black" 
+    align_center 
+    vertical_align_center 
+    text "Tao Presentations" 
+    line_break 
+
+    font "Arial", 20, italic 
+    color "darkgrey" 
+    line_width 0 
+    text "Version beta [30-03-2011]" 
+    line_break 
+    text "© Copyright 2010-2011 Taodyne SAS" 
+
+text_box 0, -400, 800, 400, 
+    font "Arial", 28 
+    align_center 
+    color "darkgreen" 
+    text "L'aide en ligne se trouve dans le menu ""Help""" 
+    line_break 
+    text "Online help is available in the ""Help"" menu" 

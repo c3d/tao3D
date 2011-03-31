@@ -38,111 +38,36 @@ struct Widget;
 //
 // ============================================================================
 
-typedef struct XL::DeepCopyCloneMode DeepCopyCloneMode;
-typedef struct XL::ShallowCopyCloneMode ShallowCopyCloneMode;
-typedef struct XL::NodeOnlyCloneMode NodeOnlyCloneMode;
-
-
-template <typename mode> struct TaoCloneTemplate
+template <typename CloneMode>
+struct WidgetCloneMode : CloneMode
 // ----------------------------------------------------------------------------
-//   Clone a tree
+//   A special way to clone where we reselect items in a given widget
 // ----------------------------------------------------------------------------
 {
-    TaoCloneTemplate(Widget *widget = NULL) : widget(widget){}
-    virtual ~TaoCloneTemplate(){}
-
-    typedef Tree *value_type;
-
+    WidgetCloneMode() : widget(NULL) {}
     Tree *Reselect(Tree *from, Tree *to)
     {
         if (widget)
             widget->reselect(from, to);
         return to;
     }
-
-    Tree *DoInteger(Integer *what)
+    template<typename CloneClass>
+    Tree *Clone(Tree *from, CloneClass *clone)
     {
-        return Reselect(what, new Integer(what->value, what->Position()));
+        Tree *to = CloneMode::Clone(from, clone);
+        return Reselect(from, to);
     }
-    Tree *DoReal(Real *what)
-    {
-        return Reselect(what, new Real(what->value, what->Position()));
-
-    }
-    Tree *DoText(Text *what)
-    {
-        return Reselect(what, new Text(what->value,
-                                       what->opening,
-                                       what->closing,
-                                       what->Position()));
-    }
-    Tree *DoName(Name *what)
-    {
-        return Reselect(what, new Name(what->value, what->Position()));
-    }
-
-    Tree *DoBlock(Block *what)
-    {
-        return  Reselect(what, new Block(Clone(what->child),
-                                         what->opening,
-                                         what->closing,
-                                         what->Position()));
-    }
-    Tree *DoInfix(Infix *what)
-    {
-        return Reselect(what,  new Infix (what->name,
-                                          Clone(what->left),
-                                          Clone(what->right),
-                                          what->Position()));
-    }
-    Tree *DoPrefix(Prefix *what)
-    {
-        return  Reselect(what, new Prefix(Clone(what->left),
-                                          Clone(what->right),
-                                          what->Position()));
-    }
-    Tree *DoPostfix(Postfix *what)
-    {
-        return  Reselect(what, new Postfix(Clone(what->left),
-                                           Clone(what->right),
-                                           what->Position()));
-    }
-    Tree *Do(Tree *what)
-    {
-        return what;            // ??? Should not happen
-    }
-protected:
-    // Default is to do a deep copy
-    Tree *  Clone(Tree *t) { return t->Do(this); }
-
     Widget *widget;
-
 };
 
 
-template<> inline
-Tree *TaoCloneTemplate<ShallowCopyCloneMode>::Clone(Tree *t)
-// ----------------------------------------------------------------------------
-//   Specialization for the shallow copy clone
-// ----------------------------------------------------------------------------
-{
-    return t;
-}
+typedef WidgetCloneMode <XL::DeepCloneMode>             DeepCloneMode;
+typedef WidgetCloneMode <XL::ShallowCloneMode>          ShallowCloneMode;
+typedef WidgetCloneMode <XL::NullCloneMode>             NullCloneMode;
 
-
-template<> inline
-Tree *TaoCloneTemplate<NodeOnlyCloneMode>::Clone(Tree *)
-// ----------------------------------------------------------------------------
-//   Specialization for the node-only clone
-// ----------------------------------------------------------------------------
-{
-    return NULL;
-}
-
-
-typedef struct TaoCloneTemplate<DeepCopyCloneMode>   TaoTreeClone;
-typedef struct TaoCloneTemplate<ShallowCopyCloneMode>TaoShallowCopyTreeClone;
-typedef struct TaoCloneTemplate<NodeOnlyCloneMode>   TaoNodeOnlyTreeClone;
+typedef XL::TreeCloneTemplate<DeepCloneMode>            TreeClone;
+typedef XL::TreeCloneTemplate<ShallowCloneMode>         ShallowClone;
+typedef XL::TreeCloneTemplate<NullCloneMode>            NullClone;
 
 
 struct CopySelection
@@ -235,14 +160,24 @@ struct CopySelection
 //
 // ============================================================================
 
+struct NameChangeCloneMode
+// ----------------------------------------------------------------------------
+//   Clone mode where DoName is virtual so that we can override it
+// ----------------------------------------------------------------------------
+{
+    virtual XL::Tree *DoName(XL::Name *what) = 0;
+    template<typename CloneClass>
+    XL::Tree *Clone(Tree *t, CloneClass *clone) { return t->Do(clone); }
+};
+typedef XL::TreeCloneTemplate<NameChangeCloneMode>      NameChangeClone;
 
-struct ColorTreeClone : TaoCloneTemplate<ColorTreeClone>
+
+struct ColorTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //  Override names 'red', 'green', 'blue' and 'alpha' in the input tree
 // ----------------------------------------------------------------------------
 {
-    ColorTreeClone(const QColor &c): color(c){}
-
+    ColorTreeClone(const QColor &c): color(c) {}
     XL::Tree *DoName(XL::Name *what)
     {
         if (what->value == "red")
@@ -263,7 +198,7 @@ protected:
  };
 
 
-struct FontTreeClone : TaoCloneTemplate<FontTreeClone>
+struct FontTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //   Overrides font description names in the input tree
 // ----------------------------------------------------------------------------
@@ -294,7 +229,7 @@ struct FontTreeClone : TaoCloneTemplate<FontTreeClone>
 };
 
 
-struct ToggleTreeClone : TaoCloneTemplate<ToggleTreeClone>
+struct ToggleTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //   Override the name "checked" in the input tree
 // ----------------------------------------------------------------------------
@@ -315,7 +250,7 @@ struct ToggleTreeClone : TaoCloneTemplate<ToggleTreeClone>
 };
 
 
-struct ClickTreeClone : TaoCloneTemplate<ClickTreeClone>
+struct ClickTreeClone : NameChangeClone
 // ----------------------------------------------------------------------------
 //  Override name "button_name" in the input tree
 // ----------------------------------------------------------------------------
@@ -332,6 +267,31 @@ struct ClickTreeClone : TaoCloneTemplate<ClickTreeClone>
     text name;
 };
 
-TAO_END
 
+struct NameToNameReplacement : NameChangeClone
+// ----------------------------------------------------------------------------
+//    Replace specific names with names (e.g. alternate spellings)
+// ----------------------------------------------------------------------------
+{
+    NameToNameReplacement(): replaced(false) {}
+
+    Tree *  DoName(XL::Name *what);
+    Tree *  Replace(Tree *original);
+    text &      operator[] (text index)         { return map[index]; }
+
+    std::map<text, text> map;
+    bool replaced;
+};
+
+
+struct NameToTextReplacement : NameToNameReplacement
+// ----------------------------------------------------------------------------
+//    Replace specific names with a text
+// ----------------------------------------------------------------------------
+{
+    NameToTextReplacement(): NameToNameReplacement() {}
+    Tree *  DoName(XL::Name *what);
+};
+
+TAO_END
 #endif // TREE_CLONING_H

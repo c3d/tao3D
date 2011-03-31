@@ -185,7 +185,8 @@ public:
     void        refreshProgram();
     void        preloadSelectionCode();
     void        updateProgramSource();
-    bool        markChanged(text reason);
+    bool        markChange(text reason);
+    void        finishChanges();
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);
@@ -857,6 +858,7 @@ private:
     double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
+    text                  changeReason;
 
     QTextCursor          * editCursor;
     void                  updateCursor(Text_p t);
@@ -1019,32 +1021,6 @@ struct SetAttributeAction : XL::Action
     Tree_p    attribute;
     Widget   *widget;
     text      shape;
-};
-
-
-struct NameToNameReplacement : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    Replace specific names with names (e.g. alternate spellings)
-// ----------------------------------------------------------------------------
-{
-    NameToNameReplacement(): replaced(false) {}
-
-    Tree *  DoName(XL::Name *what);
-    Tree *  Replace(Tree *original);
-    text &      operator[] (text index)         { return map[index]; }
-
-    std::map<text, text> map;
-    bool replaced;
-};
-
-
-struct NameToTextReplacement : NameToNameReplacement
-// ----------------------------------------------------------------------------
-//    Replace specific names with a text
-// ----------------------------------------------------------------------------
-{
-    NameToTextReplacement(): NameToNameReplacement() {}
-    Tree *  DoName(XL::Name *what);
 };
 
 } // namespace Tao

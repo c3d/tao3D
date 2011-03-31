@@ -300,7 +300,7 @@ OTHER_FILES += xl.syntax \
     bytecode.stylesheet \
     xlr/xlr/builtins.xl \
     tao.xl \
-    tutorial.ddd \
+    welcome.ddd \
     git.stylesheet \
     traces.tbl \
     nocomment.stylesheet \
@@ -333,7 +333,7 @@ xl_files.files = xlr/xlr/builtins.xl \
     xl.syntax \
     xl.stylesheet \
     git.stylesheet \
-    tutorial.ddd
+    welcome.ddd
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*
@@ -349,3 +349,18 @@ macx {
   target.path = $$INSTROOT
   INSTALLS   += target
 }
+
+
+TRANSLATIONS = tao_fr.ts
+
+lupdate.commands = lupdate -verbose tao.pro
+lupdate.depends  = FORCE
+QMAKE_EXTRA_TARGETS += lupdate
+
+lrelease.commands = lrelease tao.pro
+lrelease.depends  = FORCE
+QMAKE_EXTRA_TARGETS += lrelease
+
+translations.path = $$APPINST
+translations.files = *.qm
+INSTALLS += translations

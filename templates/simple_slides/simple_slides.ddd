@@ -1,19 +1,95 @@
 import Slides "0.2"
 
-// Themes:
+// Available Themes:
 // "" / "Default", "WhiteOnBlack", "WhiteOnGray",
 // "Rounded", "Keyboard", "Seyes"
 
-theme := "Keyboard"
 
-title_slide "Slide 1",
+// ----------------------------------------------------------------------------
+theme "Keyboard"
+// ----------------------------------------------------------------------------
+
+title_slide "Keyboard style (Title)",
     text "Lorem ipsum dolor sit amet"
     line_break
     text "consectetur adipisicing"
 
-slide "Slide 2", "Lorem Ipsum",
+slide "Keyboard style (Slide)", "Lorem Ipsum",
     text "Lorem ipsum dolor sit amet"
     * "Consectetur adipisicing"
     - "Elit, sed do eiusmod tempor incididunt"
     * "Ut labore et dolore magna"
+
+picture_slide "Keyboard style (Drawing)",
+    locally
+        color_hsv 30 * time, 20%, 80%, 60%
+        rotatez 5 * time
+        ellipse 0, 0, 400, 150
+    locally
+        color "white", 50%
+        texture "Corsica.jpg"
+        rotatez 30
+        rounded_rectangle 100, 30, 150, 120, 20
+
+
+// ----------------------------------------------------------------------------
+theme "Seyes"
+// ----------------------------------------------------------------------------
+
+title_slide "Seyes style (Title)",
+    text "This is the Seyes theme"
+
+slide "Seyes style (Slide)",
+    * "Bullet level 1"
+    - "Bullet level 2"
+
+picture_slide "Seyes style (Web)",
+    w -> window_width * 0.9
+    h -> window_height * 0.7
+    y -> window_height * -0.1
+    shape
+        color "red"
+        rectangle 0, y, w+10, h+10
+    active_widget
+        color "white"
+        url 0, y, w, h, "http://www.google.com"
+        refresh 0.05
+
+
+// ----------------------------------------------------------------------------
+theme "WhiteOnBlack"
+// ----------------------------------------------------------------------------
+
+title_slide "White on Black (Title)",
+    text "This is the White on Black theme"
+
+slide "White On Black (Slide)",
+    * "Bullet level 1"
+    - "Bullet level 2"
+
+picture_slide "White on Black (Picture)",
+    color "white"
+    wscale -> window_height / 1600
+    image 0, 0, wscale, wscale, "Corsica.jpg"
+
+
+// ----------------------------------------------------------------------------
+theme "WhiteOnGray"
+// ----------------------------------------------------------------------------
+
+title_slide "White on Gray (Title)",
+    text "This is the White on Gray theme"
+
+slide "White On Gray (Slide)",
+    * "Bullet level 1"
+    - "Bullet level 2"
+
+picture_slide "White on Gray (3D)",
+    color "white"
+    texture "earth.bmp"
+    rotatey 2.3 * time
+    sphere 0, 0, 0, window_height * 0.3
+    texture "clouds.png"
+    rotatey 0.6 * time
+    sphere 0, 0, 0, window_height * 0.3 + 3
 

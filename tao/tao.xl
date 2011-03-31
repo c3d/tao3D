@@ -69,6 +69,7 @@ main_chooser ->
     chooser_commands "chooser_command_", ""
     if is_available stereoscopy then
         stereoscopy_settings
+    chooser_choice "Texture...", {texture_chooser}
 
 page_chooser ->
     chooser "Go to page..."
@@ -829,20 +830,7 @@ menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
             line_color "fill"
             polygon 0, 0, 100, 100, 5
 }
-
-menu_format -> {
-menubar
-menu   "menu:select:format", "Format"
-menu_item "menu:select:format > fill color", "Fill Color...",
-    color_chooser "color",
-        set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:select:format > line color", "Line Color...",
-    color_chooser "line_color",
-        set_attribute "line_color", {line_color red, green, blue, alpha}
-menu_item "menu:select:format > font", "Font...",
-    font_chooser
-        set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
-menu_item "menu:select:format >  texture...", "Texture...",
+texture_chooser ->
     file_chooser
         filter "All image formats (*.bmp *.gif *.jpg *.jpeg *.png *.pbm *.pgm *.ppm *.svg *.tif *.tiff *.xbm *.xpm);;" &
                "BMP - Windows Bitmap (*.bmp);;" &
@@ -858,6 +846,22 @@ menu_item "menu:select:format >  texture...", "Texture...",
                "XPM - X11 Pixmap (*.xpm)"
         action
             set_attribute "texture", {texture rel_file_path}
+
+
+menu_format -> {
+menubar
+menu   "menu:select:format", "Format"
+menu_item "menu:select:format > fill color", "Fill Color...",
+    color_chooser "color",
+        set_attribute "color", {color red, green, blue, alpha}
+menu_item "menu:select:format > line color", "Line Color...",
+    color_chooser "line_color",
+        set_attribute "line_color", {line_color red, green, blue, alpha}
+menu_item "menu:select:format > font", "Font...",
+    font_chooser
+        set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
+menu_item "menu:select:format >  texture...", "Texture...",
+    texture_chooser
 }
 
 menu_arrange -> {

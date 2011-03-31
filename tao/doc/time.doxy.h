@@ -127,26 +127,42 @@ page_time ();
 /**
  * Execute a block of code after specified interval.
  *
- *  Execute @p c after the specified amount of time @p d, in seconds.
+ *  Execute once @p c after the specified amount of time @p d, in seconds.
  *
  * @returns The real elapsed time.
- */
+ *
+ * @todo Check behavior on futur master branch because it is not consistent nor on pre-merge master, nor on interp. */
 after (d:real, c:tree);
 
 /**
  * Executes a block of code periodically.
+ * @param interval is the interval in second between two executions of @p body.
+ * @param duty_cycle is the percentage of @p interval when the @p body should be executed. 50% when not specified.
+ * @param body is the code to execute each @p interval time and during @p duty_cycle * @p interval second.
+ * @warning @c every is not using a separate thread or queue. If the @every code is not evaluated, 
+ * then the body cannot be executed when it is time to do so. 
+ * I.e. following code will only write <tt>nothing to write</tt>
+ * @code
+ * do_write := 1
+ * locally // Creates a layout that isolates outside from evaluation.
+ *     if do_write = 1 then
+ *         every 0.5, 
+ *             writeln "0.5 more millisecond"
+ *         do_write := 0
+ *     else
+ *         writeln "nothing to write"
+ * @endcode
  *
- * @todo Check this. How is the duty parameter (@p d) used?
+ * @bug @p duty_cycle is not used in current implementation. @p body is only executed once 
+ * between two @p interval time
+ * @todo Check behavior on futur master branch because it is not consistent nor on pre-merge master, nor on interp.
  */
-every (i:real, d:real, c:tree);
+every (interval:real, duty_cycle:real, body:tree);
 
 /**
- * @copybrief every(i:real, d:real, c:tree)
- *
- *  \p duty is 0.5 when not specified.
- * @copydetails every(i:real, d:real, c:tree)
- *
+ * @copybrief every(interval:real, duty_cycle:real, body:tree)
+ * @copydetails every(interval:real, duty_cycle:real, body:tree)
  */
-every (i:real, c:tree);
+every (interval:real, body:tree);
 
 /** @} */

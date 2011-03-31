@@ -42,7 +42,7 @@ TAO_BEGIN
 
 struct Widget;
 
-struct Renormalize : TaoTreeClone
+struct Renormalize : TreeClone
 // ----------------------------------------------------------------------------
 //   Put the input program back in normal form
 // ----------------------------------------------------------------------------
@@ -50,10 +50,10 @@ struct Renormalize : TaoTreeClone
     Renormalize(Widget *widget);
     virtual ~Renormalize();
 
-    virtual Tree *DoPrefix(Prefix *what);
-    virtual Tree *DoPostfix(Postfix *what);
-    virtual Tree *DoInfix(Infix *what);
-    virtual Tree *DoBlock(Block *what);
+    Tree *DoPrefix(Prefix *what);
+    Tree *DoPostfix(Postfix *what);
+    Tree *DoInfix(Infix *what);
+    Tree *DoBlock(Block *what);
 };
 
 TAO_END

@@ -26,6 +26,7 @@
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
+#include <QTranslator>
 
 
 namespace Tao {
@@ -118,6 +119,7 @@ private:
 #endif
     ModuleManager * moduleManager;
     bool         doNotEnterEventLoop;
+    QTranslator  translator, qtTranslator;
 };
 
 #define TaoApp  ((Application *) qApp)

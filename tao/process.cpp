@@ -32,7 +32,7 @@
 #include <QRegExp>
 #include <QDir>
 
-TAO_BEGIN
+namespace Tao {
 
 ulong Process::snum = 0;
 
@@ -310,4 +310,4 @@ QString Process::exitStatusToString(QProcess::ExitStatus status)
     }
 }
 
-TAO_END
+}

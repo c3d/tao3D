@@ -25,7 +25,6 @@
 #include "application.h"
 #include "widget.h"
 #include "repository.h"
-#include "tao.h"
 #include "tao_utf8.h"
 #include "tao_main.h"
 #include "error_message_dialog.h"
@@ -60,7 +59,7 @@ extern "C" void UpdateSystemActivity(uint8_t);
 
 XL_DEFINE_TRACES
 
-TAO_BEGIN
+namespace Tao {
 
 
 Application::Application(int & argc, char ** argv)
@@ -76,6 +75,19 @@ Application::Application(int & argc, char ** argv)
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
     setWindowIcon(QIcon(":/images/tao.png"));
+
+    // Load translations, based on current locale. Preferences may override
+    // current locale.
+    QString lang = QLocale().name().left(2);
+    lang = QSettings().value("uiLanguage", lang).toString();
+    if (translator.load(QString("tao_") + lang, applicationDirPath()))
+    {
+        installTranslator(&translator);
+        QString path = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+        QString file = QString("qt_") + lang;
+        if (qtTranslator.load(file, path))
+            installTranslator(&qtTranslator);
+    }
 
     // Set current directory
     QDir::setCurrent(applicationDirPath());
@@ -256,7 +268,7 @@ bool Application::processCommandLine()
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo tutorial  ("system:tutorial.ddd");
+    QFileInfo tutorial  ("system:welcome.ddd");
 
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
@@ -1053,4 +1065,4 @@ void Application::addUrlCompletion(QString url)
 }
 
 
-TAO_END
+}

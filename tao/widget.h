@@ -185,7 +185,8 @@ public:
     void        refreshProgram();
     void        preloadSelectionCode();
     void        updateProgramSource();
-    bool        markChanged(text reason);
+    bool        markChange(text reason);
+    void        finishChanges();
     void        selectStatements(Tree *tree);
     bool        writeIfChanged(SourceFile &sf);
     bool        setDragging(bool on);
@@ -573,6 +574,11 @@ public:
                          Real_p w,Real_p h, text_p s);
     Integer*    lineEditTexture(Tree_p self, double x, double y, Text_p s);
 
+    Tree_p      textEdit(Context *context, Tree_p self,
+                         Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
+    Tree_p      textEditTexture(Context *context, Tree_p self,
+                                double w, double h, Tree_p prog);
+
     Tree_p      abstractButton(Tree_p self, Text_p name,
                                Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      pushButton(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -854,6 +860,10 @@ private:
     double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
+    text                  changeReason;
+
+    QTextCursor          * editCursor;
+    void                  updateCursor(Text_p t);
 };
 
 
@@ -1013,32 +1023,6 @@ struct SetAttributeAction : XL::Action
     Tree_p    attribute;
     Widget   *widget;
     text      shape;
-};
-
-
-struct NameToNameReplacement : XL::TreeClone
-// ----------------------------------------------------------------------------
-//    Replace specific names with names (e.g. alternate spellings)
-// ----------------------------------------------------------------------------
-{
-    NameToNameReplacement(): replaced(false) {}
-
-    Tree *  DoName(XL::Name *what);
-    Tree *  Replace(Tree *original);
-    text &      operator[] (text index)         { return map[index]; }
-
-    std::map<text, text> map;
-    bool replaced;
-};
-
-
-struct NameToTextReplacement : NameToNameReplacement
-// ----------------------------------------------------------------------------
-//    Replace specific names with a text
-// ----------------------------------------------------------------------------
-{
-    NameToTextReplacement(): NameToNameReplacement() {}
-    Tree *  DoName(XL::Name *what);
 };
 
 } // namespace Tao

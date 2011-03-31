@@ -28,6 +28,7 @@
 #include "application.h"
 #include "apply_changes.h"
 #include "tree_cloning.h"
+#include "text_edit.h"
 #include <QtWebKit>
 #include <phonon>
 #include <cstring>
@@ -223,7 +224,7 @@ void WebViewSurface::loadProgress(int progressPercent)
     if (url.Pointer() &&
         url->value != currentUrl &&
         !IsMarkedConstant(url) &&
-        !parent->markChanged("URL change"))
+        !parent->markChange("URL change"))
     {
         // Record the change
         url->value = currentUrl;
@@ -294,7 +295,7 @@ void LineEditSurface::textChanged(const QString &text)
         {
             // Record the change
             Widget *parent = (Widget *) widget->parent();
-            if (parent->markChanged("Line editor text change"))
+            if (parent->markChange("Line editor text change"))
             {
                 contents->value = +text;
                 locallyModified = false;
@@ -325,6 +326,81 @@ void LineEditSurface::inputValidated()
     repaint();
 }
 
+// ============================================================================
+//
+//   TextEditSurface - Specialization for QLineView
+//
+// ============================================================================
+
+TextEditSurface::TextEditSurface(QTextDocument *doc, XL::Block *t,
+                                 Widget *parent, bool immed)
+// ----------------------------------------------------------------------------
+//    Build the QLineEdit
+// ----------------------------------------------------------------------------
+    : WidgetSurface(t, new QTextEdit(parent)), immediate(immed),
+    locallyModified(false)
+{
+    QTextEdit *textEdit = (QTextEdit *) widget;
+    textEdit->setDocument(doc);
+    textEdit->setReadOnly(false);
+
+    connect(textEdit, SIGNAL(textChanged()),
+            this,     SLOT(textChanged()));
+    connect(textEdit, SIGNAL(selectionChanged()),
+            this,     SLOT(repaint()));
+    connect(textEdit, SIGNAL(cursorPositionChanged()),
+            this,     SLOT(repaint()));
+    connect(textEdit, SIGNAL(currentCharFormatChanged(QTextCharFormat)),
+            this,     SLOT(textChanged()));
+}
+
+
+GLuint TextEditSurface::bind(QTextDocument * doc)
+// ----------------------------------------------------------------------------
+//    Update text based on text changes
+// ----------------------------------------------------------------------------
+{
+    QTextEdit *textEdit = (QTextEdit *) widget;
+    QTextDocument *tmp = textEdit->document();
+    if (!locallyModified && tmp != doc)
+    {
+        textEdit->setDocument(doc);
+        textEdit->textCursor().clearSelection();
+        delete tmp;
+    }
+
+    return WidgetSurface::bind();
+}
+
+
+void TextEditSurface::textChanged()
+// ----------------------------------------------------------------------------
+//    If the text changed, update the associated XL::Text
+// ----------------------------------------------------------------------------
+{
+    if (XL::Block * prog = tree->AsBlock())
+    {
+        if (immediate)
+        {
+            // Record the change
+            Widget *parent = (Widget *) widget->parent();
+            if (parent->markChange("Text editor text change"))
+            {
+                QTextEdit *textEdit = (QTextEdit *) widget;
+                text_portability p;
+                prog->child = p.docToTree(*textEdit->document());
+                locallyModified = false;
+            }
+        }
+        else
+        {
+            locallyModified = true;
+        }
+
+    }
+
+    repaint();
+}
 
 
 // ============================================================================
@@ -801,7 +877,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
         glTexImage2D(GL_TEXTURE_2D, 0, 3,
                      image.width(), image.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, image.bits());
-        
+
 #else
         // Faster rendering through a frame buffer object
         fbo->bind();

@@ -13,7 +13,7 @@
  *
  * Tao Presentations relies on the QFont class from the Qt library to display
  * text. Therefore, the terms that are used here to describe fonts and
- * fonts attributes are the same that the ones used by Qt. You may want to
+ * fonts attributes are the same as those used by Qt. You may want to
  * refer to the
  * <a href="http://doc.qt.nokia.com/latest/qfont.html">Qt documentation</a>
  * for more information.
@@ -114,12 +114,13 @@
  *
  * @image html justification.png "Various text justifications (justification.ddd)"
  *
- * @todo vertical_align_justify and vertical_align_spread are identical to
- *       vertical_align_top? (not documented)
- * @todo Do we need to document the return value of the many primitives that
- *       return a boolean (often declared as "tree"), but which is rarely
- *       useful? Should we pretend they return nothing? See text and font
- *       group.
+ * @bug [#325] On MacOSX, some fonts cannot be rendered, due to
+ * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-11145">QTBUG-11145</a>.
+ *      The correction of this bug expected in QT 4.8.
+ * @bug [#325] On MacOSX, font styles other than "Normal", "Bold", "Italic" and
+ *     "Bold Italic" cannot be selected. This is caused by
+ * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
+ *
  * @todo font_scaling not documented - I don't understand its purpose
  * @todo The following primitives are not documented yet: paragraph_space,
  *       character_space (should it be called word_space ?), line_break,
@@ -133,9 +134,9 @@
  *
  * The text box is centered at @p x, @p y. Th width is @p w and
  * the height is @p h. @p contents is a block of code in which you describe
- * the contents of the box.
+ * the content of the box.
  */
-tree text_box(real x, real y, real w, real h, code contents);
+text_box(x:real, y:real, w:real, h:real, contents:tree);
 
 /**
  * Sets the name of the current text flow.
@@ -143,7 +144,7 @@ tree text_box(real x, real y, real w, real h, code contents);
  * Use this function to name a text flow, either before creating it (with
  * @ref text_box) or before accessing it (with @ref text_overflow).
  */
-tree text_flow(text name);
+text_flow(name:text);
 
 /**
  * Creates a text box automatically filled by text from a text flow.
@@ -167,12 +168,12 @@ text_overflow 100, 0, 200, 400  // Continuation of 1st text box
  *
  * @bug [#794] Empty text_overflow even though there is enough text to display
  */
-tree text_overflow(real x, real y, real w, real h);
+text_overflow(x:real, y:real, w:real, h:real);
 
 /**
  * Inserts text into a text box.
  */
-tree text(text t);
+text(t:text);
 
 /**
  * Sets the current font.
@@ -288,7 +289,7 @@ bold
  * will select the closest match or possibly the application's default font.
  *
  */
-tree font(code desc);
+font(desc:tree);
 
 /**
  * Sets the current font.
@@ -296,14 +297,14 @@ tree font(code desc);
  * @p name is the font family (for instance, "Times") and optionally the font
  * style after a slash ("Times/Bold", "Futura/Medium").
  */
-tree font(text name);
+font(name:text);
 
 /**
  * Sets the current font size.
  *
  * @p size is in points (pt).
  */
-tree font_size(integer size);
+font_size(size:real);
 
 /**
  * Resets all the font attributes of the current font.
@@ -311,18 +312,18 @@ tree font_size(integer size);
  * Same as calling @ref roman, @ref regular, @ref underline 0,
  * @ref stretch 1.0, @ref overline 0, and @ref strikeout 0.
  */
-tree plain();
+plain();
 
 /**
  * Sets the style of the current font.
  *
  * Valid values are 0 for roman, 1 for italic and 2 for oblique.
  *
- * @todo Check valid values are indeed 0, 1, and 2.
- * @bug In reality, takes a real
- * @todo Remove? (and also slant parameter in @ref font)
+ * - normal	0	Normal glyphs used in unstyled text.
+ * - italic	1	Italic glyphs that are specifically designed for the purpose of representing italicized text.
+ * - oblique	2	Glyphs with an italic appearance that are typically based on the unstyled glyphs, but are not fine-tuned for the purpose of representing italicized text.
  */
-tree slant(integer s);
+slant(s:real);
 
 
 /**
@@ -330,12 +331,12 @@ tree slant(integer s);
  *
  * Cancels italic or oblique style.
  */
-tree roman();
+roman();
 
 /**
  * Sets the style of the current font to italic.
  */
-tree italic();
+italic();
 
 /**
  * Sets the style of the current font to oblique.
@@ -343,7 +344,7 @@ tree italic();
  * Oblique glyphs have an italic appearance, but are typically based
  * on the unstyled glyphs, which are slanted.
  */
-tree oblique();
+oblique();
 
 /**
  * Sets the weight of the current font.
@@ -359,7 +360,7 @@ tree oblique();
  *
  * @bug type should be integer
  */
-tree weight(real w);
+weight(w:real);
 
 
 /**
@@ -367,21 +368,21 @@ tree weight(real w);
  *
  * @see weight
  */
-tree regular();
+regular();
 
 /**
  * Sets the weight of the current font to light.
  *
  * @see weight
  */
-tree light();
+light();
 
 /**
  * Sets the weight of the current font to bold.
  *
  * @see weight
  */
-tree bold();
+bold();
 
 /**
  * Enables or disables underline.
@@ -389,7 +390,7 @@ tree bold();
  * Set @p w to 0 to disable the attribute, or to any positive value to enable
  * it.
  */
-tree underline(real w);
+underline(w:real);
 
 /**
  * Enables or disables overline.
@@ -397,7 +398,7 @@ tree underline(real w);
  * Set @p w to 0 to disable the attribute, or to any positive value to enable
  * it.
  */
-tree overline(real w);
+overline(w:real);
 
 /**
  * Enables or disables strikeout.
@@ -405,7 +406,7 @@ tree overline(real w);
  * Set @p w to 0 to disable the attribute, or to any positive value to enable
  * it.
  */
-tree strikeout(real w);
+strikeout(w:real);
 
 /**
  * Sets the stretch factor for the current font.
@@ -423,7 +424,7 @@ tree strikeout(real w);
  *   @li @b extra_expanded: 1.5
  *   @li @b ultra_expanded: 2.0
  */
-tree stretch(real s);
+stretch(s:real);
 
 /**
  * Sets parameters for horizontal text layout.
@@ -435,29 +436,53 @@ tree stretch(real s);
  * combinations have a usual meaning; see the functions listed below
  * for details.
  *
- * @todo The default horizontal alignment is ???.
+ * Default alignment is equivalent to <tt> align 0, 0, 0, 0</tt>
  * @see align_left, align_right, align_center, align_justify,
  * align_right_justify, align_full_justify, align_spread, align_full_spread.
  */
-tree align(real center, real justify, real spread, real full_justify);
+align(center:real, justify:real, spread:real, full_justify:real);
+
+/**
+ * Sets parameters for horizontal text layout.
+ *
+ * This is equivalent to @code align center, justify, spread, 0 @endcode
+ * @see align(center:real, justify:real, spread:real, full_justify:real);
+ */
+align(center:real, justify:real, spread:real);
+
+/**
+ * Sets parameters for horizontal text layout.
+ *
+ * This is equivalent to @code align center, justify, 0, 0 @endcode
+ * @see align(center:real, justify:real, spread:real, full_justify:real);
+ */
+align(center:real, justify:real);
+
+/**
+ * Sets parameters for horizontal text layout.
+ *
+ * This is equivalent to @code align center, 0, 0, 0 @endcode
+ * @see align(center:real, justify:real, spread:real, full_justify:real);
+ */
+align(center:real);
 
 /**
  * Align text to the left of the text box.
  * Synonym for @ref align 0, 0, 0, 0.
  */
-tree align_left();
+align_left();
 
 /**
  * Align text to the right of the text box.
  * Synonym for @ref align 1, 0, 0, 0.
  */
-tree align_right();
+align_right();
 
 /**
  * Center text horizontally in the text box.
  * Synonym for @ref align 0.5, 0, 0, 0.
  */
-tree align_center();
+align_center();
 
 /**
  * Justify text horizontally in the text box.
@@ -467,13 +492,13 @@ tree align_center();
  * without changing the space between characters.
  * Synonym for @ref align 0, 1, 0, 0.
  */
-tree align_justify();
+align_justify();
 
 /**
  * Justify text horizontally in the text box.
  * Synonym for @ref align_justify.
  */
-tree align_left_justify();
+align_left_justify();
 
 /**
  * Justify text horizontally in the text box.
@@ -483,7 +508,7 @@ tree align_left_justify();
  * without changing the space between characters.
  * Synonym for @ref align 1, 1, 0, 0.
  */
-tree align_right_justify();
+align_right_justify();
 
 /**
  * Justify text horizontally in the text box.
@@ -495,7 +520,7 @@ tree align_right_justify();
  * without changing the space between characters.
  * Synonym for @ref align 0, 1, 0, 1.
  */
-tree align_full_justify();
+align_full_justify();
 
 /**
  * Justify characters horizontally in the text box.
@@ -504,7 +529,7 @@ tree align_full_justify();
  * The last line of each paragraph is rendered aligned the left.
  * Synonym for @ref align 0, 1, 1, 0.
  */
-tree align_spread();
+align_spread();
 
 /**
  * Justify characters horizontally in the text box.
@@ -512,7 +537,7 @@ tree align_spread();
  * last line of each paragraph).
  * Synonym for @ref align 0, 1, 1, 1.
  */
-tree align_full_spread();
+align_full_spread();
 
 /**
  * Sets parameters for vertical text layout.
@@ -531,7 +556,32 @@ tree align_full_spread();
  *
  * @see vertical_align_top, vertical_align_bottom, vertical_align_center.
  */
-tree vertical_align(real center, real justify, real spread, real full_justify);
+vertical_align(center:real, justify:real, spread:real, full_justify:real);
+
+/**
+ * Sets parameters for vertical text layout.
+ *
+ * This is equivalent to @code vertical_align center, justify, spread, 0 @endcode
+ * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
+ */
+vertical_align(center:real, justify:real, spread:real);
+ 
+/**
+ * Sets parameters for vertical text layout.
+ *
+ * This is equivalent to @code vertical_align center, justify, 0, 0 @endcode
+ * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
+ */
+vertical_align(center:real, justify:real);
+ 
+/**
+ * Sets parameters for vertical text layout.
+ *
+ * This is equivalent to @code vertical_align center, 0, 0, 0 @endcode
+ * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
+ */
+vertical_align(center:real);
+ 
 
 /**
  * Flush all lines of text to the top of the text box.
@@ -539,7 +589,7 @@ tree vertical_align(real center, real justify, real spread, real full_justify);
  * space is at the bottom of the box.
  * Synonym for @ref vertical_align 0, 0, 0, 0.
  */
-tree vertical_align_top();
+vertical_align_top();
 
 /**
  * Flush all lines of text to the bottom of the text box.
@@ -547,24 +597,39 @@ tree vertical_align_top();
  * space is at the top of the box.
  * Synonym for @ref vertical_align 1, 0, 0, 0.
  */
-tree vertical_align_bottom();
+vertical_align_bottom();
 
 
 /**
  * Center lines of text vertically within the text box.
- * If there are not enough lines of text to fill the box vertically, empty
+ * If there are not enough lines of text to fill the ox vertically, empty
  * space is equally distributed between top and bottom of the box.
  * Synonym for @ref vertical_align 0.5, 0, 0, 0.
  */
-tree vertical_align_center();
+vertical_align_center();
+
+/**
+ * Justify lines of text vertically within the text box.
+ *
+ * Synonym for @ref vertical_align 0, 1, 0, 1.
+ */
+vertical_align_justify();
+
+/**
+ * Spread lines of text vertically within the text box.
+ * 
+ * Space is equally distributed between lines and top and bottom of the box.
+ * Synonym for @ref vertical_align 0, 1, 1, 1.
+ */
+vertical_align_spread();
 
 /**
  * Sets the word spacing factor.
  *
- * Give a @p factor value larger that 1.0 to increase the space between words,
+ * Give a @p factor value larger than 1.0 to increase the space between words,
  * or a value smaller than 1.0 to reduce it.
  */
-tree word_spacing(real factor);
+word_spacing(factor:real);
 
 /**
  * Sets the line spacing factor.
@@ -572,7 +637,7 @@ tree word_spacing(real factor);
  * Give a @p factor value larger that 1.0 to increase the space between lines,
  * or a value smaller than 1.0 to reduce it.
  */
-tree line_spacing(real factor);
+line_spacing(factor:real);
 
 /**
  * Sets the left and right margins.
@@ -580,14 +645,14 @@ tree line_spacing(real factor);
  * The margin sizes are in pixels.
  * @bug [#793] The margins are ignored for first line of the first paragraph.
  */
-tree margins(real left, real right);
+margins(left:real, right:real);
 
 /**
  * Sets the top and bottom margins.
  *
  * The margin sizes are in pixels.
  */
-tree vertical_margins(real top, real bottom);
+vertical_margins(top:real, bottom:real);
 
 /**
  * @}

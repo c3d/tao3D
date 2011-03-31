@@ -30,9 +30,32 @@ QT_BEGIN_NAMESPACE
 class QTableWidget;
 class QStackedWidget;
 class QProgressBar;
+class QComboBox;
+class QLabel;
 QT_END_NAMESPACE
 
 namespace Tao {
+
+class GeneralPage : public QWidget
+// ----------------------------------------------------------------------------
+//   Page to show and modify general settings
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    GeneralPage(QWidget *parent = 0);
+
+private:
+    QStringList  installedLanguages();
+
+private slots:
+    void         setLanguage(int index);
+
+private:
+    QComboBox *  combo;
+    QLabel *     message;
+};
 
 class DebugPage : public QWidget
 // ----------------------------------------------------------------------------

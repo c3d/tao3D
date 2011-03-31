@@ -31,7 +31,7 @@
 #include "runtime.h"
 #include "application.h"
 #include "apply_changes.h"
-#include "portability.h"
+#include "text_edit.h"
 #include "tao_gl.h"
 #include "tree-walk.h"
 
@@ -277,43 +277,6 @@ void TextSpan::DrawDirect(Layout *where)
 
     where->offset = Point3(x, y, z);
 }
-
-
-QTextBlockFormat modifyBlockFormat(QTextBlockFormat blockFormat,
-                                   Layout * where)
-// ----------------------------------------------------------------------------
-//   Modify a blockFormat with the given layout
-// ----------------------------------------------------------------------------
-{
-    blockFormat.setAlignment(where->alongX.toQtHAlign() |
-                             where->alongY.toQtVAlign());
-    blockFormat.setTopMargin(where->top);
-    blockFormat.setBottomMargin(where->bottom);
-    blockFormat.setLeftMargin(where->left);
-    blockFormat.setRightMargin(where->right);
-
-    return blockFormat;
-
-}
-
-
-QTextCharFormat modifyCharFormat(QTextCharFormat format,
-                                 Layout * where)
-// ----------------------------------------------------------------------------
-//   Modify a charFormat with the given layout
-// ----------------------------------------------------------------------------
-{
-    format.setFont(where->font);
-    QColor fill;
-    fill.setRgbF(where->fillColor.red,
-                 where->fillColor.green,
-                 where->fillColor.blue,
-                 where->fillColor.alpha);
-    format.setForeground(QBrush(fill));
-    return format;
-}
-
-
 void TextSpan::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
@@ -444,8 +407,13 @@ void TextSpan::DrawSelection(Layout *where)
     if (sel && !selectedText.isEmpty())
     {
         QTextCursor &sc = sel->cursor;
-        sc.mergeBlockFormat(modifyBlockFormat(sc.blockFormat(), where));
-        sc.insertText(selectedText, modifyCharFormat(sc.charFormat(), where));
+        QTextBlockFormat bf = sc.blockFormat();
+        modifyBlockFormat(bf, where);
+        sc.mergeBlockFormat(bf);
+        QTextCharFormat cf = sc.charFormat();
+        modifyCharFormat(cf, where);
+        sc.mergeCharFormat(cf);
+        sc.insertText(selectedText);
     }
 
     if (sel && canSel)
@@ -864,7 +832,7 @@ int TextSpan::PerformEditOperation(Widget *widget, uint i)
         commitMessage = "Deleted text";
 
     // Mark the changes with commit message, abort if source window changed
-    if (!widget->markChanged(commitMessage))
+    if (!widget->markChange(commitMessage))
         return 0;
 
     // Compute the end of selection Id based on the selection length
@@ -922,7 +890,7 @@ void TextSpan::PerformInsertOperation(Layout * l,
 {
     TextSelect *sel = widget->textSelection();
     if (sel->replacement_tree &&
-        widget->markChanged("Clipboard content pasted"))
+        widget->markChange("Clipboard content pasted"))
     {
         XL::Infix * tail = sel->replacement_tree->AsInfix();
         XL::Infix * head = tail;
@@ -932,16 +900,20 @@ void TextSpan::PerformInsertOperation(Layout * l,
         {
             // Duplicate the Layout env of the current span
             QTextCursor cursor(new QTextDocument(""));
-            cursor.setBlockFormat(modifyBlockFormat(cursor.blockFormat(), l));
-            cursor.setCharFormat(modifyCharFormat(cursor.charFormat(), l));
+            QTextBlockFormat bf = cursor.blockFormat();
+            QTextCharFormat cf  = cursor.charFormat();
+            modifyBlockFormat(bf, l);
+            modifyCharFormat(cf, l);
+            cursor.mergeBlockFormat(bf);
+            cursor.mergeCharFormat(cf);
             // Get text from sel->point to end of this text_span.
             cursor.insertText(+endOfSpan);
             // Delete the end of the current text_span
             source->value.erase(position);
 
             // generate the tree for the end of the span
-            portability p;
-            head = p.fromHTML(cursor.document()->toHtml());
+            text_portability p;
+            head = p.docToTree(*cursor.document());
 
             // Go to the bottom of the replacement tree
             XL::Infix * temp = sel->replacement_tree->AsInfix();
@@ -995,7 +967,6 @@ void TextSpan::PerformInsertOperation(Layout * l,
         else if (bl)
         {
             bl->child = head;
-            std::cerr << bl << std::endl;
         }
         else if (pre)
         {
@@ -1003,7 +974,6 @@ void TextSpan::PerformInsertOperation(Layout * l,
                 pre->left = head;
             else
                 pre->right = head;
-            std::cerr << pre << std::endl;
         }
         else if (post)
         {
@@ -1011,14 +981,13 @@ void TextSpan::PerformInsertOperation(Layout * l,
                 post->left = head;
             else
                 post->right = head;
-            std::cerr << post << std::endl;
         }
 
         sel->moveTo(sel->start());
 
         // Reload the program
-        widget->reloadProgram(NULL);
-        widget->refreshNow();
+        widget->reloadProgram();
+        widget->refresh(0.4);
     }
 }
 
@@ -1090,7 +1059,7 @@ void TextFormula::DrawSelection(Layout *where)
                 if (Tree *named = context->Bound(name))
                     value = named;
 
-            
+
             text edited = text("  ") + text(*value) + "  ";
             Text *editor = new Text(edited, "\"", "\"", value->Position());
             info = new TextFormulaEditInfo(editor, shows);
@@ -1185,7 +1154,7 @@ bool TextFormula::Validate(Text *source, Widget *widget)
     XL::Parser          parser(input, syntax,positions,errors);
     Tree *              newTree = parser.Parse();
 
-    if (newTree && widget->markChanged("Replaced formula"))
+    if (newTree && widget->markChange("Replaced formula"))
     {
         Prefix *prefix = self;
         prefix->right = newTree;
@@ -1337,7 +1306,7 @@ bool TextValue::Validate(XL::Text *source, Widget *widget)
     Tree *              newTree   = parser.Parse();
     bool                valid = false;
 
-    if (newTree && widget->markChanged("Replaced value"))
+    if (newTree && widget->markChange("Replaced value"))
     {
         if (Real *oldReal = value->AsReal())
         {

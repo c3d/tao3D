@@ -93,8 +93,9 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
     XL::Tree *err = NULL;
     XL::Name *name = NULL;
     double m_v = 1.0;
+    XL::Prefix *prefix = what->AsPrefix();
 
-    if (XL::Prefix *prefix = what->AsPrefix())
+    if (prefix)
     {
         m_v = parseVersion(prefix->right);
         name = prefix->left->AsName();
@@ -109,7 +110,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
         text m_n = name->value;
         bool found = false, name_found = false, version_found = false;
         bool enabled_found = false;
-        double inst_v;
+        double inst_v = 0.0;
         foreach (ModuleInfoPrivate m, modules)
         {
             if (m_n == m.importName)
@@ -156,7 +157,9 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                 {
                     err = XL::Ooops("Installed module $1 version $2 does not "
                                     "match requested version $3", name,
-                                    new XL::Real(inst_v), new XL::Real(m_v));
+                                    new XL::Real(inst_v),
+                                    prefix ? prefix->right
+                                           : new XL::Real(m_v));
                 }
             }
             else
@@ -1209,6 +1212,7 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
             if (Repository::versionGreaterOrEqual(tag, latest))
                 latest = tag;
 
+        // Warning: remote tag (text string) 1.2 is parsed as (real value) 1.02
         mm.modules[+m.id].latest = +latest;
         double latestVer = ModuleManager::parseVersion(+latest);
 

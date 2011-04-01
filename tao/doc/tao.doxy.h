@@ -37,47 +37,6 @@
  * with the bundled editor. Composite documents (see below) should be modified
  * with an external text editor.
  *
- * @section secPlatformNotes Platform Notes
- *
- * @subsection secStdoutStderr Standard Output, Standard Error
- *
- * Errors are normally shown in the application's graphical user interface,
- * either through dialog boxes or in the error display pane. However, some
- * diagnostic message are sent only to the standard output or standard error
- * channels:
- *  - Debug traces,
- *  - Messages sent by the write and writeln builtins.
- *
- * The destination of the standard output and standard error are different
- * if you are using Tao Presentations on MacOSX or on Windows.
- *
- * @subsubsection secWindows Windows
- *
- * The standard output and standard error channels of Tao Presentations are
- * normally redirected to the file @c tao.log in the @c Tao folder under the
- * current users's document folder. This file is overwritten each time the
- * application is started.
- *
- * Errors are normally shown in the application's graphical user interface,
- * either with dialog boxes or in the error display pane. However some
- * diagnostic message are sent only to the @c tao.log %file:
- *  - Debug traces,
- *  - Messages sent by the write and writeln builtins.
- *
- * However, if the application is started from a command prompt the standard
- * output and standard error will remain connected to the command prompt
- * window, and will not be sent to @c tao.log.
- *
- * @subsubsection secMacOSX MacOSX
- *
- * The standard output and standard error channels of Tao Presentations are
- * normally sent to log files and can be seen with the MacOSX @c console
- * application.
- *
- * However, if the application is started from a terminal, standard output
- * and standard error will remain connected to the terminal window, and
- * will not appear in the console.
- *
  * @section secTaoDocuments Tao Presentation documents
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
@@ -108,11 +67,12 @@
  *
  * @subsection subsecDocStructure Document structure
  *
- * Tao documents are written in the Tao language, which enables to describe the
- * structure of the document (by creating items such as: pages, slides, text
- * boxes, rectangles and so on), and at the same time define its dynamic properties
- * such as how the document changes with time or external events (key press
- * or mouse position, for instance).
+ * Tao documents are written in the Tao language, which enables to
+ * describe the structure of the document (by creating items such as:
+ * pages, slides, text boxes, rectangles and so on), and at the same
+ * time define its dynamic properties such as how the document changes
+ * with time or external events (key press or mouse position, for
+ * instance).
  *
  * @subsection secXLRef The XLR Language
  *
@@ -218,6 +178,48 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * The user's Tao folder is <tt>%APPDATA%\Tao Presentations</tt> on Windows,
  * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
  * The application folder is where Tao Presentation is installed.
+ * 
+ * @section secPlatformNotes Platform Notes
+ *
+ * @subsection secStdoutStderr Standard Output, Standard Error
+ *
+ * Errors are normally shown in the application's graphical user interface,
+ * either through dialog boxes or in the error display pane. However, some
+ * diagnostic message are sent only to the standard output or standard error
+ * channels:
+ *  - Debug traces,
+ *  - Messages sent by the write and writeln builtins.
+ *
+ * The destination of the standard output and standard error are different
+ * if you are using Tao Presentations on MacOSX or on Windows.
+ *
+ * @subsubsection secWindows Windows
+ *
+ * The standard output and standard error channels of Tao Presentations are
+ * normally redirected to the file @c tao.log in the @c Tao folder under the
+ * current users's document folder. This file is overwritten each time the
+ * application is started.
+ *
+ * Errors are normally shown in the application's graphical user interface,
+ * either with dialog boxes or in the error display pane. However some
+ * diagnostic message are sent only to the @c tao.log %file:
+ *  - Debug traces,
+ *  - Messages sent by the write and writeln builtins.
+ *
+ * However, if the application is started from a command prompt the standard
+ * output and standard error will remain connected to the command prompt
+ * window, and will not be sent to @c tao.log.
+ *
+ * @subsubsection secMacOSX MacOSX
+ *
+ * The standard output and standard error channels of Tao Presentations are
+ * normally sent to log files and can be seen with the MacOSX @c console
+ * application.
+ *
+ * However, if the application is started from a terminal, standard output
+ * and standard error will remain connected to the terminal window, and
+ * will not appear in the console.
+ *
  */
 /**
  * @~french

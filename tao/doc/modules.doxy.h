@@ -13,7 +13,7 @@
  * Loads a Tao module.
  * The syntax is:
 @code
-import MyModule "1.0"
+import MyModule 1.0
 @endcode
  *
  * When Tao encounters the import statement, it looks up ModuleName in the
@@ -21,14 +21,19 @@ import MyModule "1.0"
  * compatibility, and then makes the module definitions available to the Tao
  * document.
  *
- * Version matching is a major/minor match. For a module to load, module.major
- * must be equal to requested.major and module.minor must be greater or equal
- * to requested.minor.
- *   @li major is the part before the first dot
- *   @li minor is the remaining part
+ * Version numbers can have one of three forms:
+ *  - An integer value, e.g. 1, which is the same as 1.0
+ *  - A real value, e.g. 1.0203, which is major 1, minor 2, patch-level 3
+ *  - A text value with dot-separated fields, e.g. "1.2.3" which is the same
+ *    as "1.02.03".
  *
- * For instance in 1.0.2, major is 1 and minor is 0.2. Comparison is performed
- * after converting to integers.
+ * Version matching is a major/minor match. For a module to load, the module
+ * major must be equal to the requested major (the integer part of the
+ * version, when represented as a real value), and the module minor must be
+ * greater or equal to the requested minor (the fractional part of the
+ * version, when represented as a real value).
+ *
+ * If the version is not specified, it is assumed to be 1.0.
  *
  * Without explicit import, no definition from the module's module.xl file are
  * reachable from the document.

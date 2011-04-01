@@ -1,31 +1,37 @@
-lorem -> <<Lorem ipsum dolor sit amet, consectetur adipisicing>> & << elit, sed do eiusmod tempor incididunt ut labore et dolore >> & <<magna aliqua.
+lorem -> <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
+<< elit, sed do eiusmod tempor incididunt ut labore et dolore >> &
+<<magna aliqua.
 
-Ut enim ad minim veniam, quis nostrud exercitation ullamco >> & <<laboris nisi ut aliquip ex ea commodo consequat.>> 
-x0 -> -135 
-x -> 270 
-x := x0 
-y -> -360 
-w -> 125 
-h -> 230 
-box Alignh, Alignv -> 
-    locally 
-        color 0, 0, 1, 5% 
-        line_width 0 
+Ut enim ad minim veniam, quis nostrud exercitation ullamco >> &
+<<laboris nisi ut aliquip ex ea commodo consequat.>>
+
+x0 -> -135
+y0 -> 120
+
+x -> 0
+y -> 0
+w -> 125
+h -> 230
+
+x := x0
+y := y0
+
+box Align ->
+    locally
+        color 0, 0, 1, 5%
+        line_width 0
         rectangle x, y, w, h
-     
-    text_box x, y, w, h, 
-        font "Ubuntu", 12 
-        Alignh 
-        Alignv 
+    text_box x, y, w, h,
+        font "Ubuntu", 12
+        Align
         text lorem
-     
     x := x + w + 10
- 
-box align_left, vertical_align_top 
-box align_center, vertical_align_center 
-box align_right, vertical_align_bottom 
-y := y - (h + 10) 
-x := x0 
-box align_justify, vertical_align_top 
-box align_right_justify, vertical_align_top 
-box align_full_justify, vertical_align_top
+
+box { align_left ; vertical_align_top }
+box { align_center ; vertical_align_center }
+box { align_right ; vertical_align_bottom }
+x := x0
+y := y - h - 10
+box { align_justify ; vertical_align_top }
+box { align_right_justify ; vertical_align_top  }
+box { align_full_justify ; vertical_align_top }

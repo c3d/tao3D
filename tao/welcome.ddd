@@ -11,7 +11,7 @@ text_box 0, 0, 800, 600,
     font "Arial", 20, italic 
     color "darkgrey" 
     line_width 0 
-    text "Version beta [30-03-2011]" 
+    text "Version " & tao_version
     line_break 
     text "© Copyright 2010-2011 Taodyne SAS" 
 
@@ -19,6 +19,6 @@ text_box 0, -400, 800, 400,
     font "Arial", 28 
     align_center 
     color "darkgreen" 
-    text "L'aide en ligne se trouve dans le menu ""Help""" 
+    text "L'aide en ligne se trouve dans le menu ""Aide"""
     line_break 
-    text "Online help is available in the ""Help"" menu" 
+    text "Online help is available in the ""Help"" menu"

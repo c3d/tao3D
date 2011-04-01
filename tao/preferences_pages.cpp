@@ -46,13 +46,19 @@ GeneralPage::GeneralPage(QWidget *parent)
     hbox->addWidget(new QLabel(tr("User interface language:")));
     combo = new QComboBox;
     hbox->addWidget(combo);
-    QList<QLocale::Language> languages = installedLanguages();
+    QStringList languages = installedLanguages();
     combo->addItem(tr("(System Language)"));
     // Unfortunately, languages are always in english: vote for QTBUG-1587.
-    foreach (QLocale::Language lang, languages)
-        combo->addItem(QLocale::languageToString(lang), QVariant(lang));
-    QVariant saved = QSettings().value("uiLanguage", QVariant(-1));
-    if (saved.toInt() != -1)
+    foreach (QString lang, languages)
+    {
+        QLocale locale(lang);
+        // For our purpose "C" means invalid
+        if (locale.name() != "C")
+            combo->addItem(QLocale::languageToString(locale.language()),
+                           lang);
+    }
+    QString saved = QSettings().value("uiLanguage", "C").toString();
+    if (saved != "C")
     {
         int index = combo->findData(saved);
         if (index != -1)
@@ -73,19 +79,20 @@ GeneralPage::GeneralPage(QWidget *parent)
 }
 
 
-QList<QLocale::Language> GeneralPage::installedLanguages()
+QStringList GeneralPage::installedLanguages()
 // ----------------------------------------------------------------------------
 //   Return the language for which we have a .qm file
 // ----------------------------------------------------------------------------
 {
-    QList<QLocale::Language> ret;
-    ret << QLocale::English;
+    QStringList ret("en");
     QDir dir = QDir(QCoreApplication::applicationDirPath());
     QStringList files = dir.entryList(QStringList("tao_*.qm"), QDir::Files);
     foreach (QString file, files)
     {
-        QString lang = file.mid(4, 2);
-        ret << QLocale(lang).language();
+        int from = file.indexOf("_") + 1;
+        int to = file.lastIndexOf(".");
+        QString lang = file.mid(from, to-from);
+        ret << lang;
     }
     return ret;
 }
@@ -103,8 +110,8 @@ void GeneralPage::setLanguage(int index)
         QSettings().remove("uiLanguage");
         return;
     }
-    QLocale::Language lang = (QLocale::Language)combo->itemData(index).toInt();
-    QSettings().setValue("uiLanguage", QVariant(lang));
+    QString lang = combo->itemData(index).toString();
+    QSettings().setValue("uiLanguage", lang);
 }
 
 // ============================================================================
@@ -356,7 +363,10 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 2, item);
 
-        item = new QTableWidgetItem(+m.ver);
+        QString vstr = QString::number(m.ver);
+        if (!vstr.contains("."))
+            vstr.append(".0");
+        item = new QTableWidgetItem(vstr);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(enFlag);
         table->setItem(row, 3, item);

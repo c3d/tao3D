@@ -7,12 +7,12 @@ my_data 1 -> "Foo", 12.0
 my_data 2 -> "Bar", 5.2
 my_data 3 -> "Baz", 100.0
 
-first x, y -> x
-second x, y -> y
+first X, Y -> X
+second X, Y -> Y
 
-my_sum from, to ->
+my_sum From, To ->
     s := 0
-    for i in from..to loop
+    for i in From..To loop
         s += second my_data i
     s
 

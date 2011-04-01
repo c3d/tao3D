@@ -13,14 +13,14 @@ y := 120
 w := 125
 h := 230
 
-box align ->
+box Align ->
     locally
         color 0, 0, 1, 5%
         line_width 0
         rectangle x, y, w, h
     text_box x, y, w, h,
         font "Ubuntu", 12
-        align
+        Align
         text lorem
     x += w + 10
 

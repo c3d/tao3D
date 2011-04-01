@@ -114,6 +114,58 @@
  * such as how the document changes with time or external events (key press
  * or mouse position, for instance).
  *
+ * You can group items and give them names using the rewrite operator @c -> and an
+ * indented block, like this:
+ * @code
+my_items ->
+    first_item
+    second_item
+ * @endcode
+ * It means that writing @c my_items is equivalent to @c first_item followed by
+ * @c second_item. You can also use parameters, such as in:
+ * @code
+my_circle Radius ->
+    color "red"
+    circle 0, 0, Radius
+ * @endcode
+ * Here, @c Radius may be considered as a parameter and @c my_circle is like a
+ * function (or procedure).
+ * @warning The unqualified word @c Radius in the left part of the @c ->
+ * operator is in the same lexical scope as @c my_circle. Therefore, suppose
+ * you have previously defined a @c Radius symbol, for instance
+ * <tt>Radius -> 50</tt>:
+ * @code
+Radius -> 50
+my_circle Radius ->
+    color "red"
+    circle 0, 0, Radius
+ * @endcode
+ Then, the definition of @c my_circle would evaluate
+ * to:
+ * @code
+my_circle 50 ->
+    color "red"
+    circle 0, 0, 50
+ * @endcode
+ * ...which is legal, but probably not what you would expect: in the end,
+ * only <tt>my_circle 50</tt> would be defined and could be used. Trying to
+ * call @c my_circle with any other value (for instance, 100) would result
+ * in an error:
+@verbatim
+No form matches my_circle 100
+@endverbatim
+ * To avoid such issues, it is recommended to use different naming
+ * conventions for parameters and other symbols. In this documentation,
+ * we always capitalize the parameters so they do not conflict with
+ * builtins.
+ * In our example, we could also qualify the @c Radius parameter to make
+ * it obvious that is is a parameter:
+ * @code
+my_circle Radius:real ->
+    color "red"
+    circle 0, 0, Radius
+ * @endcode
+ *
  * @subsection secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.

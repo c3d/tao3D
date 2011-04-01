@@ -34,38 +34,38 @@ axes ->
         translate 10, 15, 0 
         text "(x, y)" 
 
-width_and_height X, Y, W, H ->
+width_and_height X, Y, W, H -> 
     // Width 
-    line_arrow X - W / 2, Y - H / 2 - delta, ARROWHEAD, X + W / 2, Y - H / 2 - delta, ARROWHEAD
+    line_arrow X - W / 2, Y - H / 2 - delta, ARROWHEAD, X + W / 2, Y - H / 2 - delta, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate X + W / 2 - 30, Y - H / 2 - delta - 15, 0
+        translate X + W / 2 - 30, Y - H / 2 - delta - 15, 0 
         text "Width" 
     // Height
-    line_arrow X - W / 2 - delta, Y + H / 2, ARROWHEAD, X - W / 2 - delta, Y - H / 2, ARROWHEAD
+    line_arrow X - W / 2 - delta, Y + H / 2, ARROWHEAD, X - W / 2 - delta, Y - H / 2, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate x - w / 2 - delta - 45, y + h / 2 - 15, 0 
+        translate X - W / 2 - delta - 45, Y + H / 2 - 15, 0 
         text "Height" 
 
-bisector_and_radius X, Y, W, H, R ->
+bisector_and_radius X, Y, W, H, R -> 
     // Bisector for corner radius localization
     line_color "tao_yellow" 
-    line X + W / 2 - 30, Y + H / 2 - 30, X + W / 2 + 30, Y + H / 2 + 30
+    line X + W / 2 - 30, Y + H / 2 - 30, X + W / 2 + 30, Y + H / 2 + 30 
     locally 
         line_color "font" 
         color "tao_yellow" 
-        translate X + W / 2 + 30, Y + H / 2, 0
+        translate X + W / 2 + 30, Y + H / 2, 0 
         text "bisector" 
     // Corner radius
     line_color "black" 
-    line_arrow X + W / 2 - R, Y + H / 2 - R, ARROWHEAD, X + W / 2 - R, Y + H / 2, ARROWHEAD
+    line_arrow X + W / 2 - R, Y + H / 2 - R, ARROWHEAD, X + W / 2 - R, Y + H / 2, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate X + W / 2 - R - 10, Y + H / 2 + delta, 0
+        translate X + W / 2 - R - 10, Y + H / 2 + delta, 0 
         text "radius" 
 
 font_size 14 
@@ -391,17 +391,17 @@ page "polygon",
 
 page "polygram",
     color "tao_orange" 
-    poly_x -> 0 
-    poly_y -> 0 
-    poly_w -> 200
-    poly_h -> 200 
+    polyg_x -> 0 
+    polyg_y -> 0 
+    polyg_w -> 200
+    polyg_h -> 200 
     polyg nb, i, dx, dy ->
         locally
             translate dx, dy, 0
-            polygram poly_x, poly_y, poly_w, poly_h, nb, i
+            polygram polyg_x, polyg_y, polyg_w, polyg_h, nb, i
             axes 
             line_color "black" 
-            width_and_height poly_x, poly_y, poly_w, poly_h
+            width_and_height polyg_x, polyg_y, polyg_w, polyg_h
     polyg  5, 2, -350,  175
     polyg  6, 2,    0,  175
     polyg  7, 2,  350,  175

@@ -178,6 +178,7 @@ public:
     void        endPanning(QMouseEvent *);
 
     // XL program management
+    bool        isBeingDestroyed() { return xlProgram == NULL; }
     bool        sourceChanged();
     void        normalizeProgram();
     void        updateProgram(SourceFile *sf);

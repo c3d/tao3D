@@ -246,6 +246,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
 }
@@ -361,6 +362,7 @@ void Widget::draw()
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
+    space->ClearAttributes();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -816,13 +818,8 @@ void Widget::runProgram()
     id = idDepth = 0;
 
     // Run the XL program associated with this widget
-    QTextOption alignCenter(Qt::AlignCenter);
-    IFTRACE(memory)
-        std::cerr << "Run, Drawing::count = " << space->count << ", ";
-    space->Clear();
-    IFTRACE(memory)
-        std::cerr << "cleared, count = " << space->count << ", ";
     XL::Save<Layout *> saveLayout(layout, space);
+    space->Clear();
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
@@ -2784,6 +2781,10 @@ bool Widget::sourceChanged()
 //   Return 'true' if the source window was modified
 // ----------------------------------------------------------------------------
 {
+    // Protect against derivatives of #933 or #929 (e.g. QT Bug 2616)
+    if (isBeingDestroyed())
+        return true;
+
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
     if (window->srcEdit->document()->isModified())
@@ -5480,6 +5481,8 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
+    refreshOn(QEvent::Timer);
+
     GLuint texId = 0;
     if (img != "")
     {

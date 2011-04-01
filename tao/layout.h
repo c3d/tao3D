@@ -50,7 +50,7 @@ public:
     typedef std::set<QEvent::Type>              qevent_ids;
 
 public:
-    void                Clear();
+    void                ClearAttributes();
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
 

@@ -45,7 +45,6 @@ SvgRendererInfo::~SvgRendererInfo()
     glDisable(GL_TEXTURE_2D);
     for (i = renderers.begin(); i != renderers.end(); i++)
         delete (*i).second;
-
 }
 
 

@@ -40,15 +40,15 @@ width_and_height X, Y, W, H, T ->
     locally 
         line_color "font" 
         color "font" 
-        translate x + w / 2 - 150, y - h / 2 + delta + 15, 0 
-        text t & "width" 
+        translate X + W / 2 - 150, Y - H / 2 + delta + 15, 0 
+        text T & "width" 
     // Height
     line_arrow X - W / 2 + delta, Y + H / 2, ARROWHEAD, X - W / 2 + delta, Y - H / 2, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
         translate X - W / 2 + delta + 15, Y + H / 2 - 35, 0 
-        text t & "height" 
+        text T & "height" 
 
 line_color "tao_yellow" 
 axes

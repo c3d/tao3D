@@ -34,38 +34,38 @@ axes ->
         translate 10, 15, 0 
         text "(x, y)" 
 
-width_and_height x, y, w, h -> 
+width_and_height X, Y, W, H -> 
     // Width 
-    line_arrow x - w / 2, y - h / 2 - delta, ARROWHEAD, x + w / 2, y - h / 2 - delta, ARROWHEAD 
+    line_arrow X - W / 2, Y - H / 2 - delta, ARROWHEAD, X + W / 2, Y - H / 2 - delta, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate x + w / 2 - 30, y - h / 2 - delta - 15, 0 
+        translate X + W / 2 - 30, Y - H / 2 - delta - 15, 0 
         text "Width" 
     // Height
-    line_arrow x - w / 2 - delta, y + h / 2, ARROWHEAD, x - w / 2 - delta, y - h / 2, ARROWHEAD 
+    line_arrow X - W / 2 - delta, Y + H / 2, ARROWHEAD, X - W / 2 - delta, Y - H / 2, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate x - w / 2 - delta - 45, y + h / 2 - 15, 0 
+        translate X - W / 2 - delta - 45, Y + H / 2 - 15, 0 
         text "Height" 
 
-bisector_and_radius x, y, w, h, r -> 
+bisector_and_radius X, Y, W, H, R -> 
     // Bisector for corner radius localization
     line_color "tao_yellow" 
-    line x + w / 2 - 30, y + h / 2 - 30, x + w / 2 + 30, y + h / 2 + 30 
+    line X + W / 2 - 30, Y + H / 2 - 30, X + W / 2 + 30, Y + H / 2 + 30 
     locally 
         line_color "font" 
         color "tao_yellow" 
-        translate x + w / 2 + 30, y + h / 2, 0 
+        translate X + W / 2 + 30, Y + H / 2, 0 
         text "bisector" 
     // Corner radius
     line_color "black" 
-    line_arrow x + w / 2 - r, y + h / 2 - r, ARROWHEAD, x + w / 2 - r, y + h / 2, ARROWHEAD 
+    line_arrow X + W / 2 - R, Y + H / 2 - R, ARROWHEAD, X + W / 2 - R, Y + H / 2, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate x + w / 2 - r - 10, y + h / 2 + delta, 0 
+        translate X + W / 2 - R - 10, Y + H / 2 + delta, 0 
         text "radius" 
 
 font_size 14 

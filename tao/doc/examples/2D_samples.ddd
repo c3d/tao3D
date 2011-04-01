@@ -391,17 +391,17 @@ page "polygon",
 
 page "polygram",
     color "tao_orange" 
-    poly_x -> 0 
-    poly_y -> 0 
-    poly_w -> 200
-    poly_h -> 200 
+    polyg_x -> 0 
+    polyg_y -> 0 
+    polyg_w -> 200
+    polyg_h -> 200 
     polyg nb, i, dx, dy ->
         locally
             translate dx, dy, 0
-            polygram poly_x, poly_y, poly_w, poly_h, nb, i
+            polygram polyg_x, polyg_y, polyg_w, polyg_h, nb, i
             axes 
             line_color "black" 
-            width_and_height poly_x, poly_y, poly_w, poly_h
+            width_and_height polyg_x, polyg_y, polyg_w, polyg_h
     polyg  5, 2, -350,  175
     polyg  6, 2,    0,  175
     polyg  7, 2,  350,  175

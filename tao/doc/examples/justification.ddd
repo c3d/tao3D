@@ -1,17 +1,17 @@
 // justification.ddd
 
-lorem := <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
+lorem -> <<Lorem ipsum dolor sit amet, consectetur adipisicing>> &
 << elit, sed do eiusmod tempor incididunt ut labore et dolore >> &
 <<magna aliqua.
 
 Ut enim ad minim veniam, quis nostrud exercitation ullamco >> &
 <<laboris nisi ut aliquip ex ea commodo consequat.>>
 
-x0 := -135
-x := x0
-y := 120
-w := 125
-h := 230
+x0 -> -135
+x -> x0
+y -> 120
+w -> 125
+h -> 230
 
 box align ->
     locally
@@ -22,12 +22,12 @@ box align ->
         font "Ubuntu", 12
         align
         text lorem
-    x += w + 10
+    x := x + w + 10
 
 box { align_left ; vertical_align_top }
 box { align_center ; vertical_align_center }
 box { align_right ; vertical_align_bottom }
-y -= h + 10
+y := y - (h + 10)
 x := x0
 box { align_justify ; vertical_align_top }
 box { align_right_justify ; vertical_align_top  }

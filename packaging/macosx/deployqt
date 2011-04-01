@@ -14,7 +14,6 @@
 #    are already OK (they are, because the script fix_qt_refs has been run
 #    on the app).
 #  - The macdeployqt command-line options are not supported.
-#  - No Qt plugins are currently deployed.
 #
 # REVISIT:
 #  - Improvement: get rid of hardcoded list (FRAMEWORKS) and Qt path
@@ -25,6 +24,7 @@
 # This software is property of Taodyne SAS - Confidential
 # Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
+# (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2011 Taodyne SAS
 # ******************************************************************************
 
@@ -38,14 +38,15 @@ FRAMEWORKS="QtWebKit.framework/Versions/4/QtWebKit \
            QtNetwork.framework/Versions/4/QtNetwork \
            QtCore.framework/Versions/4/QtCore"
 
-if [ $# -ne 2 ] ; then
-  echo Usage: $0 \<app bundle directory\> \<Qt library dir\>
-  echo Example: $0 path/to/MyApp.app /Library/Frameworks
+if [ $# -ne 3 ] ; then
+  echo Usage: $0 \<app bundle directory\> \<Qt library dir\> \<Plugins dir\>
+  echo Example: $0 path/to/MyApp.app /Library/Frameworks /path/to/Qt/plugins
   exit 1
 fi
 
 BUNDLE="$1"
 FRAMEWORKS_SRC="$2"
+PLUGINS_SRC="$3"
 FIX_QT_REFS=../../modules/fix_qt_refs
 
 doo(){
@@ -89,5 +90,8 @@ doo mkdir -p "${FRAMEWORKS_DEST}"
 for f in ${FRAMEWORKS} ; do
   cp_and_fix_framework "$f" "${FRAMEWORKS_SRC}" "${FRAMEWORKS_DEST}"
 done
+
+doo cp -r "${PLUGINS_SRC}" "${BUNDLE}/Contents/plugins"
+
 make_qt_conf "${BUNDLE}"
 

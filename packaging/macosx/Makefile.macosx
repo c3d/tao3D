@@ -100,7 +100,7 @@ clean.tao_install: clean.tao_install_prog clean.tao_install_deps
 ########
 
 .tao_install_deps_ts: .tao_install_prog_ts
-	./deployqt "build_root/Tao Presentations.app" "$(QMAKE_LIBDIR_QT)"
+	./deployqt "build_root/Tao Presentations.app" "$(QMAKE_LIBDIR_QT)" "$(QMAKE_LIBDIR_QT)/../plugins"
 
 clean.tao_install_deps:
 	rm -f .tao_install_deps_ts

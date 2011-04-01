@@ -3055,6 +3055,9 @@ void Widget::finishChanges()
 //    Check if program has changed and save+commit+update src view if needed
 // ----------------------------------------------------------------------------
 {
+    if (changeReason == "")
+        return;
+
     bool changed = false;
 
     if (xlProgram->tree)

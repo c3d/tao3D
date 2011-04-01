@@ -246,6 +246,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
 }
@@ -2780,6 +2781,10 @@ bool Widget::sourceChanged()
 //   Return 'true' if the source window was modified
 // ----------------------------------------------------------------------------
 {
+    // Protect against derivatives of #933 or #929 (e.g. QT Bug 2616)
+    if (isBeingDestroyed())
+        return true;
+
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
     if (window->srcEdit->document()->isModified())

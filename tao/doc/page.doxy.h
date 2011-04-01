@@ -36,7 +36,7 @@ page "Images", do
     thumb  0.25, -0.25, 0.4, "perroquet.jpg"
 
 // Create one page per image
-new_page with list_files "*.jpg"
+new_page with files "*.jpg"
 
 @endcode
  * 

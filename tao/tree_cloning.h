@@ -47,7 +47,8 @@ struct WidgetCloneMode : CloneMode
     WidgetCloneMode() : widget(NULL) {}
     Tree *Reselect(Tree *from, Tree *to)
     {
-        widget->reselect(from, to);
+        if (widget)
+            widget->reselect(from, to);
         return to;
     }
     template<typename CloneClass>
@@ -153,11 +154,10 @@ struct CopySelection
 };
 
 
-
 // ============================================================================
-// 
+//
 //   Some useful specializations to manipulate parameter trees
-// 
+//
 // ============================================================================
 
 struct NameChangeCloneMode
@@ -188,11 +188,14 @@ struct ColorTreeClone : NameChangeClone
             return new XL::Real(color.blueF(), what->Position());
         if (what->value == "alpha")
             return new XL::Real(color.alphaF(), what->Position());
-        
+
         return new XL::Name(what->value, what->Position());
     }
     QColor color;
-};
+protected:
+    // Default is to do a deep copy
+    Tree *  Clone(Tree *t) { return t->Do(this); }
+ };
 
 
 struct FontTreeClone : NameChangeClone
@@ -219,7 +222,7 @@ struct FontTreeClone : NameChangeClone
             return font.italic() ? XL::xl_true : XL::xl_false;
         if (what->value == "font_is_bold")
             return font.bold() ? XL::xl_true : XL::xl_false;
-        
+
         return new XL::Name(what->value, what->Position());
     }
     QFont font;
@@ -290,5 +293,5 @@ struct NameToTextReplacement : NameToNameReplacement
     Tree *  DoName(XL::Name *what);
 };
 
-XL_END
+TAO_END
 #endif // TREE_CLONING_H

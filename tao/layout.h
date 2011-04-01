@@ -62,7 +62,7 @@ public:
     typedef std::map<uint,TextureState>         tex_list;
 
 public:
-    void                Clear();
+    void                ClearAttributes();
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
 

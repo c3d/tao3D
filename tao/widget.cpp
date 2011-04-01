@@ -361,6 +361,7 @@ void Widget::draw()
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
+    space->ClearAttributes();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -816,13 +817,8 @@ void Widget::runProgram()
     id = idDepth = 0;
 
     // Run the XL program associated with this widget
-    QTextOption alignCenter(Qt::AlignCenter);
-    IFTRACE(memory)
-        std::cerr << "Run, Drawing::count = " << space->count << ", ";
-    space->Clear();
-    IFTRACE(memory)
-        std::cerr << "cleared, count = " << space->count << ", ";
     XL::Save<Layout *> saveLayout(layout, space);
+    space->Clear();
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
@@ -7623,6 +7619,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
@@ -7668,6 +7665,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
@@ -7708,6 +7706,7 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7750,6 +7749,7 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7792,6 +7792,7 @@ Integer* Widget::pushButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -8064,6 +8065,7 @@ Integer* Widget::colorChooserTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
@@ -8111,6 +8113,7 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
@@ -8342,6 +8345,7 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
@@ -8439,6 +8443,7 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
@@ -8486,6 +8491,7 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseMove);
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)

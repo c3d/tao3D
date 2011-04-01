@@ -1403,7 +1403,7 @@ void Window::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
-    fileMenu->addAction(newAct);
+    // fileMenu->addAction(newAct);
     fileMenu->addAction(newDocAct);
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
@@ -1483,7 +1483,7 @@ void Window::createToolBars()
     QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("fileToolBar");
-    fileToolBar->addAction(newAct);
+    // fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
     fileToolBar->hide();

@@ -7577,6 +7577,7 @@ Tree_p Widget::urlTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
@@ -7620,6 +7621,7 @@ Tree_p Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
@@ -7659,6 +7661,7 @@ Tree_p Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7700,6 +7703,7 @@ Tree_p Widget::checkBoxButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7741,6 +7745,7 @@ Tree_p Widget::pushButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -8012,6 +8017,7 @@ Tree_p Widget::colorChooserTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
@@ -8058,6 +8064,7 @@ Tree_p Widget::fontChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
@@ -8288,6 +8295,7 @@ Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
@@ -8384,6 +8392,7 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
+    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
@@ -8430,6 +8439,7 @@ Tree_p Widget::movieTexture(Tree_p self, Text_p url)
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseMove);
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)

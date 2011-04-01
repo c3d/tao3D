@@ -1,7 +1,7 @@
 // table.ddd
 
-cols := 2
-rows := 3
+cols -> 2
+rows -> 3
 
 my_data 1 -> "Foo", 12.0
 my_data 2 -> "Bar", 5.2
@@ -11,7 +11,7 @@ first X, Y -> X
 second X, Y -> Y
 
 my_sum From, To ->
-    s := 0
+    s -> 0
     for i in From..To loop
         s += second my_data i
     s

@@ -83,7 +83,7 @@ LayoutState::LayoutState(const LayoutState &o)
 {}
 
 
-void LayoutState::Clear()
+void LayoutState::ClearAttributes()
 // ----------------------------------------------------------------------------
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
@@ -204,7 +204,7 @@ void Layout::Clear()
     has3D = false;
     hasAttributes = false;
 
-    LayoutState::Clear();
+    ClearAttributes();
 }
 
 

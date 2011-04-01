@@ -361,6 +361,7 @@ void Widget::draw()
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
+    space->ClearAttributes();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -816,13 +817,8 @@ void Widget::runProgram()
     id = idDepth = 0;
 
     // Run the XL program associated with this widget
-    QTextOption alignCenter(Qt::AlignCenter);
-    IFTRACE(memory)
-        std::cerr << "Run, Drawing::count = " << space->count << ", ";
-    space->Clear();
-    IFTRACE(memory)
-        std::cerr << "cleared, count = " << space->count << ", ";
     XL::Save<Layout *> saveLayout(layout, space);
+    space->Clear();
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);

@@ -5481,6 +5481,8 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
+    refreshOn(QEvent::Timer);
+
     GLuint texId = 0;
     if (img != "")
     {

@@ -1145,12 +1145,14 @@ void Window::createActions()
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
 
+#if 0 // Workaround for bug #928
     newAct = new Action(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Open a blank document window"));
     newAct->setIconVisibleInMenu(false);
     newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
+#endif
 
     openAct = new Action(QIcon(":/images/open.png"), tr("&Open..."),
                           this);

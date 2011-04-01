@@ -25,6 +25,17 @@ InstallDirRegKey HKLM "Software\Taodyne\Tao Presentations" "Install_Dir"
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
 
+;--------------------------------
+
+; Show all languages
+!define MUI_LANGDLL_ALLLANGUAGES
+
+; Remember the installer language
+!define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\Taodyne\Tao Presentations"
+!define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
+
+;--------------------------------
 
 ; Installer & uninstaller icons
 !define MUI_ICON "tao_inst.ico"
@@ -58,14 +69,37 @@ RequestExecutionLevel admin
 
 ;Languages
 
-  !insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "English"
+!insertmacro MUI_LANGUAGE "French"
 
+; Language strings - English
+LangString sec_tao       ${LANG_ENGLISH} "Tao Presentations (required)"
+LangString sec_shortcuts ${LANG_ENGLISH} "Start Menu Shortcuts"
+LangString sec_register  ${LANG_ENGLISH} "Register tao: links and .ddd files"
+LangString tao_document  ${LANG_ENGLISH} "Tao Presentations Document"
+LangString reg_fileext   ${LANG_ENGLISH} "Registering $0 file extension"
+LangString reg_uri       ${LANG_ENGLISH} "Registering $0: URI scheme"
+LangString unreg_fileext ${LANG_ENGLISH} "Unregistering $0 file extension"
+LangString unreg_uri     ${LANG_ENGLISH} "Unregistering $0: URI scheme"
+
+; Language strings - French
+LangString sec_tao       ${LANG_FRENCH} "Tao Presentations (requis)"
+LangString sec_shortcuts ${LANG_FRENCH} "Raccourcis du menu Démarrer"
+LangString sec_register  ${LANG_FRENCH} "Associations tao: et .ddd"
+LangString tao_document  ${LANG_FRENCH} "Document Tao Presentations"
+LangString reg_fileext   ${LANG_FRENCH} "Association l'extension $0"
+LangString reg_uri       ${LANG_FRENCH} "Association des URIs $0:"
+LangString unreg_fileext ${LANG_FRENCH} "Suppression de l'extension $0"
+LangString unreg_uri     ${LANG_FRENCH} "Suppression des URIs $0:"
+
+; Makes the installer start faster
+!insertmacro MUI_RESERVEFILE_LANGDLL
 
 ;--------------------------------
 
 ; Installer sections
 
-Section "Tao Presentations (required)"
+Section $(sec_tao)
 
   SectionIn RO
   
@@ -90,7 +124,7 @@ Section "Tao Presentations (required)"
 SectionEnd
 
 ; Optional section (can be disabled by the user)
-Section "Start Menu Shortcuts"
+Section $(sec_shortcuts)
 
   SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\Tao Presentations"
@@ -99,7 +133,7 @@ Section "Start Menu Shortcuts"
 SectionEnd
 
 ; Optional
-Section "Register tao: links and .ddd files"
+Section $(sec_register)
 
   push "tao"
   call RegisterURIScheme
@@ -113,7 +147,7 @@ SectionEnd
 Function RegisterURIScheme
 
   Exch $0
-  DetailPrint "Registering $0: links"
+  DetailPrint $(reg_uri)
   DeleteRegKey HKCR "$0"
   WriteRegStr HKCR "$0" "" "URL:Tao link ($0:)"
   WriteRegStr HKCR "$0" "URL Protocol" ""
@@ -129,11 +163,11 @@ FunctionEnd
 Function RegisterFileExtension
 
   Exch $0
-  DetailPrint "Registering $0 files"
+  DetailPrint $(reg_fileext)
   DeleteRegKey HKCR "$0"
   WriteRegStr HKCR "$0" "" "TaoPresentations.Document"
   DeleteRegKey HKCR "TaoPresentations.Document"
-  WriteRegStr HKCR "TaoPresentations.Document" "" "Tao Presentations Document"
+  WriteRegStr HKCR "TaoPresentations.Document" "" $(tao_document) 
   WriteRegStr HKCR "TaoPresentations.Document\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
   WriteRegStr HKCR "TaoPresentations.Document\shell" "" ""
   WriteRegStr HKCR "TaoPresentations.Document\shell\Open" "" ""
@@ -149,6 +183,13 @@ FunctionEnd
 Function RefreshShellIcons
   System::Call 'shell32.dll::SHChangeNotify(i, i, i, i) v \
     (${SHCNE_ASSOCCHANGED}, ${SHCNF_IDLIST}, 0, 0)'
+FunctionEnd
+
+Function .onInit
+
+  ; For installer to display language selection dialog
+  !insertmacro MUI_LANGDLL_DISPLAY
+
 FunctionEnd
 
 ;--------------------------------
@@ -169,7 +210,8 @@ Section "Uninstall"
 
   ; Remove registry keys
   DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations"
-  DeleteRegKey HKLM "SOFTWARE\Taodyne\Tao Presentations"
+;  DeleteRegKey HKLM "SOFTWARE\Taodyne\Tao Presentations"
+  DeleteRegValue HKCU "Software\Taodyne\Tao Presentations" "Installer Language"
 
   ; Remove application files and uninstaller
   Delete $INSTDIR\*.*
@@ -197,7 +239,7 @@ SectionEnd
 Function un.UnregisterUriScheme
 
   Exch $0
-  DetailPrint "Unregistering $0: URI scheme"
+  DetailPrint $(unreg_uri)
   DeleteRegKey HKCR "$0"
   Pop $0
 
@@ -206,7 +248,7 @@ FunctionEnd
 Function un.UnregisterFileExtension
 
   Exch $0
-  DetailPrint "Unregistering $0 file extension"
+  DetailPrint $(unreg_fileext)
   DeleteRegKey HKCR "$0"
   Pop $0
 
@@ -215,4 +257,12 @@ FunctionEnd
 Function un.RefreshShellIcons
   System::Call 'shell32.dll::SHChangeNotify(i, i, i, i) v \
     (${SHCNE_ASSOCCHANGED}, ${SHCNF_IDLIST}, 0, 0)'
+FunctionEnd
+
+Function un.onInit
+
+  ; Uninstaller will automatically use the language that was selected during
+  ; installation (no dialog selection dialog will be shown)
+  !insertmacro MUI_LANGDLL_DISPLAY
+
 FunctionEnd

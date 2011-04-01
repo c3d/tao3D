@@ -2,23 +2,23 @@
 
 clear_color 0, 0, 0, 0
 
-create_light id, x, y, z, dr, dg, db ->
-    light id
+create_light Id, X, Y, Z, Dr, Dg, Db ->
+    light Id
     light_ambient 0, 0, 0, 1
-    light_diffuse dr, dg, db, 1
-    light_position x, y, z
+    light_diffuse Dr, Dg, Db, 1
+    light_position X, Y, Z
 
-red_light x, y, z -> create_light 0, x, y, z, 1, 0, 0
-green_light x, y, z -> create_light 1, x, y, z, 0, 1, 0
-blue_light x, y, z -> create_light 2, x, y, z, 0, 0, 1
+red_light X, Y, Z -> create_light 0, X, Y, Z, 1, 0, 0
+green_light X, Y, Z -> create_light 1, X, Y, Z, 0, 1, 0
+blue_light X, Y, Z -> create_light 2, X, Y, Z, 0, 0, 1
 
-white_sphere r ->
+white_sphere R ->
     // Note: material_ambient is visible due to the default
     // OpenGL global ambient light (0.2, 0.2, 0.2, 1.0)
     material_ambient 0.3, 0.3, 0.3, 1
     material_diffuse 1.0, 1.0, 1.0, 1.0
     slices -> 50
-    sphere 0, 0, 0, r, r, r, slices, slices
+    sphere 0, 0, 0, R, R, R, slices, slices
 
 draw_scene ->
     d -> window_height

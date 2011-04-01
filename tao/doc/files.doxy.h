@@ -33,16 +33,11 @@
  * @return a comma-separated list of strings, each one being the absolute
  * path to a regular file that matches the given pattern.
  *
- * @bug Not sure if relative paths are matched relatively to the path of the
+ * @todo Not sure if relative paths are matched relatively to the path of the
  * file that calls @ref files, or to the path of the main document.
- * @bug What about symbolic links?
+ * @todo What about symbolic links?
  */
 tree files(text pattern);
-
-/**
- * @deprecated Same as @ref files.
- */
-tree list_files(text pattern);
 
 /**
  * Loads text from a file.

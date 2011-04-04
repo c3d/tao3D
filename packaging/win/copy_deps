@@ -4,6 +4,7 @@
 #   - DLLs (Qt, msys)
 #   - Git
 
+PLUGINS_DIR="$1"
 
 doo() {
   echo $*
@@ -29,6 +30,8 @@ for f in `bin/ldd build_root/Tao.exe | \
 do 
     doo cp $f build_root/
 done
+
+doo cp -r "${PLUGINS_DIR}" build_root/
 )
 
 

@@ -1,6 +1,6 @@
 // slides.ddd
 
-import Slides "0.1"
+import Slides 1.0
 
 new_title_slide T:text ->
     title_slide "Title slide (" & T & ")",

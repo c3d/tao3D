@@ -358,7 +358,7 @@ oblique();
  *   @li @b bold: 75
  *   @li @b black: 87
  *
- * @bug type should be integer
+ * @todo type should be integer
  */
 weight(w:real);
 

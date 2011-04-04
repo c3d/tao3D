@@ -14,9 +14,8 @@
  * width and height to the @ref frame_texture command, but they are returning the
  * computed value of the bounding box of the frame's layout.
  *
- * @bug Computation of frame bounding box (requesting by @ref frame_width,
+ * @bug #860 Computation of frame bounding box (requesting by @ref frame_width,
  * @ref frame_height, @ref frame_depth) is damaging the frame itself. 
- * <a href="http://nano.taodyne.com:8080/redmine/issues/860">bug#860</a>
  *
  * @{
  */
@@ -49,7 +48,7 @@ frame_texture( w:real, h:real, body:tree);
  * Frame depth
  * Returns the depth of the current layout frame.
  *
- * @bug frame is a 2D object...
+ * @todo frame is a 2D object...
  */
 frame_depth ();
 

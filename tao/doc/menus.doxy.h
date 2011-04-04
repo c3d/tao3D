@@ -181,7 +181,7 @@ menu_item(name:text, label:text, checkable:boolean, checked:text, action:tree);
  * To get a selection sensitive item, the item @p name must start with @c menu:select:
  *
  * @see menu, submenu to set the current %menu
- * @bug checked should be a boolean. Yes but boolean cannot be rewritten, so value 
+ * @todo checked should be a boolean. Yes but boolean cannot be rewritten, so value 
  * cannot be kept. That's why there is a string "true" or "false".
  */
 menu_item(name:text, label:text, icon:text, checkable:boolean, checked:text, action:tree);

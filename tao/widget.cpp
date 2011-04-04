@@ -355,6 +355,7 @@ void Widget::draw()
     // Recursive drawing may occur with video widgets, and it's bad
     if (inDraw)
         return;
+
     XL::Save<bool> drawing(inDraw, true);
     TaoSave saveCurrent(current, this);
 
@@ -371,7 +372,7 @@ void Widget::draw()
     }
 
     //Clean actionMap
-    actionMap.clear();
+   // actionMap.clear();
 
     // Make sure program has been run at least once
     if (runOnNextDraw)
@@ -4395,6 +4396,7 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseMove);
     actionMap[name][layout->id] = action;
     if (!action->Symbols())
         action->SetSymbols(self->Symbols());

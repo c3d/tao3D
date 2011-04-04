@@ -2057,7 +2057,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             QMessageBox::information
                     (NULL, tr("Task selection"),
-                     tr("An error occured setting the task:\n%1")
+                     tr("An error occurred setting the task:\n%1")
                      .arg(+repo->errors),
                      QMessageBox::Ok);
         }

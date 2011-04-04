@@ -4,6 +4,7 @@
 #   - DLLs (Qt, msys)
 #   - Git
 
+PLUGINS_DIR="$1"
 
 doo() {
   echo $*
@@ -21,7 +22,7 @@ cd $THISDIR
 export PATH=$PATH:.
 for f in `bin/ldd build_root/Tao.exe | \
           grep -v -i 'build_root' | \
-          grep -v -i 'windows/system' | \
+          grep -v -i 'windows/sys' | \
           grep -v -i 'ntdll.dll' | \
           grep -v -i 'comctl' | \
           sed 's/^.*=> \\(.*\\)(0x.*)$/\\1/' | \
@@ -29,6 +30,8 @@ for f in `bin/ldd build_root/Tao.exe | \
 do 
     doo cp $f build_root/
 done
+
+doo cp -r "${PLUGINS_DIR}" build_root/
 )
 
 

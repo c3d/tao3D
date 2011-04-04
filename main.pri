@@ -20,7 +20,7 @@ linux-g++*:DEFINES += CONFIG_LINUX
 
 QMAKE_CFLAGS           += -Werror
 QMAKE_CXXFLAGS         += -Werror -ggdb
-QMAKE_CXXFLAGS_RELEASE += -g -O3 \$(CXXFLAGS_\$%)
+QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
 
 # Adding 'c++tbl' option with lowered optimization level
 c++tbl.output = ${QMAKE_FILE_BASE}.o

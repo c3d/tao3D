@@ -14,7 +14,7 @@
  * @defgroup graph_env Graphical environment
  * @ingroup Graphics
  * Opening environment to handle graphical objects and their attributes.
- * This groups also holds attribute information like color, line width, texture, etc... 
+ * This groups also holds attribute information like color, line width, texture, etc...
  *
  * All color component are express as a percentage, so values are between 0.0 and 1.0 inclusive.
  * Texture and color are combined (they are not exclusive).
@@ -26,7 +26,7 @@
  *  Evaluate the child and mark the current shape.
  *  Modifications done to the environment is only applicable inside this shape as @ref locally does.
  *
- *  Make the shape sensible to mouse events. 
+ *  Make the shape sensible to mouse events.
  *  It enables click action (@ref on), and handles for selection, motion, rotation, resize...
  */
 shape (t:tree);
@@ -36,7 +36,7 @@ shape (t:tree);
  * Makes the widget clickable.
  *
  *  Create a context for active widgets (like buttons) or drawing (circle, etc...).
- *  Make the shape sensive to mouse events. 
+ *  Make the shape sensive to mouse events.
  *  It enables click action (@ref on), but does not enables handles for mouse handling.
  */
 active_widget (t:tree);
@@ -57,7 +57,7 @@ line_width (lw:real);
 
 /**
  * specify the line stipple pattern.
- *                   
+ *
  * @param pattern
  * Specifies a 16-bit integer whose bit pattern determines
  * which fragments of a line will be drawn when the line is rasterized.
@@ -202,7 +202,7 @@ no_line_color ();
  *   - a color defined by a module (like @ref tao_visuals.doxy.h::color "Tao Visuals")
  *
  * @note @c color @c "font" and @c line_color @c "font" are not the same color,
- * but relevent colors for the line of a glyph and the fill of a glyph. 
+ * but relevent colors for the line of a glyph and the fill of a glyph.
  *
  * @param colorname is the name of the color
  * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. Its default value is 1.0.
@@ -308,7 +308,7 @@ texture(filename:text);
  * Build a GL texture images from an animated image file. Supported format are:
  *   - GIF	Animated Graphic Interchange Format
  *   - MNG	Animated portable Network Graphics
- *   - others [TODO:  description is troncated] 
+ *   - others [TODO:  description is troncated]
  */
 animated_texture(filename:text);
 /**
@@ -352,7 +352,7 @@ no_texture();
  * @defgroup graph_img Image handling
  * @ingroup Graphics
  * Handles images.
- * Images are loaded from the local file system. The supported format are those 
+ * Images are loaded from the local file system. The supported format are those
  * supported by Qt, including :
  *   - BMP  Windows Bitmap
  *   - GIF  Graphic Interchange Format (optional)
@@ -399,7 +399,7 @@ page "image_px",
     color "white"
     image_px 0, 0, 200, 200, "../images/tortue.jpg"
     axes
-    line_color "black" 
+    line_color "black"
     width_and_height 0, 0, 200, 200
 @endcode
 
@@ -420,13 +420,13 @@ image_size(img:text);
  * @ingroup Graphics
  * Creation of drawing in 2D or 3D vertex by vertex.
  *
- * A path is a drawing made of straight lines and curves. To build a path you specify where you 
- * place the pencil (move), where you want to line (line) to, and what kind of curve (quad, cubic) 
+ * A path is a drawing made of straight lines and curves. To build a path you specify where you
+ * place the pencil (move), where you want to line (line) to, and what kind of curve (quad, cubic)
  * you want to draw. Coordinates can be given obsolutely or relatively to the previous location.
  *
  * When placed in a @ref shape environment, each vertex and control point can be handled by the mouse.
  *
- * Example of path primitives used to produce here after images : 
+ * Example of path primitives used to produce here after images :
  * <a href="examples/path_samples.ddd">path_samples.ddd</a>
  *
  * @{
@@ -446,7 +446,7 @@ path (t:tree);
  * Add a 'moveTo' to the current path.
  *
  * Shortcut for 2D is also available :
- * @code move_to x:real, y:real @endcode 
+ * @code move_to x:real, y:real @endcode
  */
 move_to (x:real, y:real, z:real);
 
@@ -461,13 +461,13 @@ line_to (x:real, y:real, z:real);
 /**
  * Adds a quadric segment to the current path.
  *
- * A quadric segment of path is a curve where you specify the two 
+ * A quadric segment of path is a curve where you specify the two
  * endpoints and one control point that controls the curve itself.
  * (@p cx, @p cy, @p cz) defines the control point.
  * (@p x, @p y, @p z) is the end point.
  *
  * Shortcut for 2D is also available :
- * @code quad_to cx:real, cy:real, x:real, y:real @endcode 
+ * @code quad_to cx:real, cy:real, x:real, y:real @endcode
  * @image html quad_path.png
  */
 quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
@@ -574,7 +574,7 @@ path_color (r:real, g:real, b:real, a:real);
  * - dark orange is the result of the documented primitive.
  * - black parts are the representations of the provided parameters.
  * - yellow parts are useful marks.
- * 
+ *
  * @{
  */
 
@@ -610,7 +610,7 @@ rectangle (x:real, y:real, w:real, h:real);
  *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
  *  - top right corner is at coordinate <tt>(x+w/2, y+h/2)</tt>
  *
- * @image html rounded_rectangle.png 
+ * @image html rounded_rectangle.png
  *
  */
 rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
@@ -830,7 +830,7 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
  *   - [0, y) y > 0 goes toward the top,
  *   - [0, z) z > 0 goes toward the user.
  * -  @p h, @p w, and @p d represent the width, the height and the depth of the shape respectively
- * - shapes' size including those that got round part, is given by width, heigt and depth of the bouding box. 
+ * - shapes' size including those that got round part, is given by width, heigt and depth of the bouding box.
  *
  * Examples: <a href="examples/3D_samples.ddd">3D_samples.ddd</a>
  *
@@ -853,10 +853,10 @@ sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:i
 /**
  * Draws a sphere.
  *
- * Sphere with radius @p r located at (@p x, @p y, @p z).
- * Shorcut to 
+ * Sphere with diameter @p d located at (@p x, @p y, @p z).
+ * Shorcut to
 @code
-sphere x, y, z, 2*r, 2*r, 2*r, 25, 25
+sphere x, y, z, d, d, d, 25, 25
 @endcode
  */
 sphere (x:real, y:real, z:real, r:real);
@@ -892,7 +892,7 @@ cube (x:real, y:real, z:real, w:real, h:real, d:real);
  * Draws a cylinder.
  *
  * It draws the "skin" of a cylinder
- * @image html cylinder.png 
+ * @image html cylinder.png
  */
 cylinder (x:real, y:real, z:real, w:real, h:real, d:real);
 

@@ -239,9 +239,9 @@ vertical_align_spread                                   -> vertical_align   0, 1
 
 
 // 3D Shapes
-sphere x:real, y:real, z:real, r:real  -> sphere x,y,z,2*r,2*r,2*r,25,25
+sphere x:real, y:real, z:real, r:real  -> sphere x,y,z,r,r,r,25,25
 sphere r:real                          ->
-    sphere 0.0, 0.0, 0.0, 2*r, 2*r, 2*r, 25, 25
+    sphere 0.0, 0.0, 0.0, r, r, r, 25, 25
 
 // 2D Paths
 move_to x:real, y:real                  -> move_to x, y, 0

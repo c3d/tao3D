@@ -238,12 +238,11 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
-    maxTextureCoords = 1;
-    maxTextureUnits = 1;
-    //Get number of maximum texture units in fragment shaders (texture units are limited to 4 otherwise)
-    glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
-}
+
+    //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
+    glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &(TaoApp->maxTextureCoords));
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &(TaoApp->maxTextureUnits));
+ }
 
 
 Widget::~Widget()
@@ -5440,7 +5439,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {    
-    if(texUnit > maxTextureUnits)
+    if(texUnit > TaoApp->maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -5722,7 +5721,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= maxTextureCoords)
+    if(texUnit >= TaoApp->maxTextureCoords)
     {
         Ooops("Invalid texture unit to transform $1", self);
         return false;

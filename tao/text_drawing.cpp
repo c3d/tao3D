@@ -101,7 +101,7 @@ void TextSpan::DrawCached(Layout *where)
     bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
     TextSelect *sel      = widget->textSelection();
     QFont      &font     = where->font;
-    uint64      texUnits = where->textureCoords;
+    uint64      texUnits = where->textureUnits;
     coord       x        = pos.x;
     coord       y        = pos.y;
     coord       z        = pos.z;
@@ -213,7 +213,7 @@ void TextSpan::DrawDirect(Layout *where)
     bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
     TextSelect *sel      = widget->textSelection();
     QFont      &font     = where->font;
-    uint64      texUnits = where->textureCoords;
+    uint64      texUnits = where->textureUnits;
     coord       x        = pos.x;
     coord       y        = pos.y;
     coord       z        = pos.z;
@@ -292,7 +292,7 @@ void TextSpan::DrawSelection(Layout *where)
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
     QFont      &font         = where->font;    
-    uint64      texUnits     = where->textureCoords;
+    uint64      texUnits     = where->textureUnits;
     Point3      pos          = where->offset;
     coord       x            = pos.x;
     coord       y            = pos.y;
@@ -453,7 +453,7 @@ void TextSpan::Identify(Layout *where)
     TextSelect *sel       = widget->textSelection();
     uint        charId    = ~0U;
     QFont      &font      = where->font;
-    uint64      texUnits  = where->textureCoords;
+    uint64      texUnits  = where->textureUnits;
     Point3      pos       = where->offset;
     coord       x         = pos.x;
     coord       y         = pos.y;
@@ -603,7 +603,7 @@ Box3 TextSpan::Bounds(Layout *where)
     GlyphCache &glyphs   = widget->glyphs();
     text        str      = source->value;
     QFont      &font     = where->font;
-    uint64      texUnits = where->textureCoords;
+    uint64      texUnits = where->textureUnits;
     Box3        result;
     scale       ascent   = glyphs.Ascent(font, texUnits);
     scale       descent  = glyphs.Descent(font, texUnits);
@@ -670,7 +670,7 @@ Box3 TextSpan::Space(Layout *where)
     GlyphCache &glyphs   = widget->glyphs();
     text        str      = source->value;
     QFont      &font     = where->font;
-    uint64      texUnits = where->textureCoords;
+    uint64      texUnits = where->textureUnits;
     Box3        result;
     scale       ascent   = glyphs.Ascent(font, texUnits);
     scale       descent  = glyphs.Descent(font, texUnits);
@@ -773,7 +773,7 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
     Widget     *widget   = where->Display();
     GlyphCache &glyphs   = widget->glyphs();
     QFont      &font     = where->font;
-    uint64      texUnits = where->textureCoords;
+    uint64      texUnits = where->textureUnits;
     text        str      = source->value;
     uint        pos      = str.length();
     Box3        box;

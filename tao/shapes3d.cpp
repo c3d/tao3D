@@ -172,7 +172,7 @@ void Cube::Draw(Layout *where)
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
+        if(((*it).second).texId && ((*it).first) <  TaoApp->maxTextureCoords)
         {
             glClientActiveTexture( GL_TEXTURE0 + (*it).first );
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -191,7 +191,7 @@ void Cube::Draw(Layout *where)
     glDisableClientState(GL_NORMAL_ARRAY);
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
+        if(((*it).second).texId && ((*it).first) <  TaoApp->maxTextureCoords)
         {
             glClientActiveTexture( GL_TEXTURE0 + (*it).first );
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -288,7 +288,7 @@ void Cone::Draw(Layout *where)
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
+        if(((*it).second).texId && ((*it).first) <  TaoApp->maxTextureCoords)
         {
             glClientActiveTexture( GL_TEXTURE0 + (*it).first );
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -307,7 +307,7 @@ void Cone::Draw(Layout *where)
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
+        if(((*it).second).texId && ((*it).first) <  TaoApp->maxTextureCoords)
         {
             glClientActiveTexture( GL_TEXTURE0 + (*it).first );
             glDisableClientState(GL_TEXTURE_COORD_ARRAY);

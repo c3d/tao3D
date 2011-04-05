@@ -180,6 +180,10 @@ Application::Application(int & argc, char ** argv)
         dialog.showMessage(tr("This system does not support GL sample buffers."
                               " Shapes and large text may look jaggy."));
     }
+
+    maxTextureCoords = 1;
+    maxTextureUnits = 1;
+
     if (!RepositoryFactory::available())
     {
         // Nothing (dialog box already shown by Repository class)

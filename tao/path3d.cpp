@@ -99,7 +99,7 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
-    for(uint i = 0; i <= poly->textureUnits; i++)
+    for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
     {
         if (poly->textureUnits & (1 << i))
             glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
@@ -827,7 +827,7 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                     glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
                     glEnableClientState(GL_VERTEX_ARRAY);
                     glEnableClientState(GL_NORMAL_ARRAY);
-                    for(uint i = 0; i < texUnits ; i++)
+                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
                     {
                         if(texUnits & (1 << i))
                         {
@@ -840,7 +840,7 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                     glDrawArrays(mode, 0, size);
                     glDisableClientState(GL_VERTEX_ARRAY);
                     glDisableClientState(GL_NORMAL_ARRAY);
-                    for(uint i = 0; i < texUnits ; i++)
+                    for(uint i = 0; i < TaoApp->maxTextureCoords ; i++)
                     {
                         if(texUnits & (1 << i))
                         {

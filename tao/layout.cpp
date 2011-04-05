@@ -49,7 +49,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentTexUnit(0), textureUnits(1), textureCoords(1),
+      currentTexUnit(0), textureUnits(1),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
@@ -74,7 +74,6 @@ LayoutState::LayoutState(const LayoutState &o)
         fillColor(o.fillColor),
         currentTexUnit(o.currentTexUnit),
         textureUnits(o.textureUnits),
-        textureCoords(o.textureCoords),
         fillTextures(o.fillTextures),
         lightId(o.lightId),
         programId(o.programId),        
@@ -218,7 +217,7 @@ void Layout::Draw(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix, display->maxTextureCoords);
+                            hasMatrix, false, hasTextureMatrix, TaoApp->maxTextureCoords);
     Inherit(where);
 
     // Display all items
@@ -241,7 +240,7 @@ void Layout::DrawSelection(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix, display->maxTextureCoords);
+                            hasMatrix, false, hasTextureMatrix, TaoApp->maxTextureCoords);
     Inherit(where);
 
     PushLayout(this);
@@ -263,7 +262,7 @@ void Layout::Identify(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix, display->maxTextureCoords);
+                            hasMatrix, false, hasTextureMatrix, TaoApp->maxTextureCoords);
     Inherit(where);
 
 
@@ -531,7 +530,6 @@ void Layout::Inherit(Layout *where)
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
     textureUnits     = where->textureUnits;
-    textureCoords    = where->textureCoords;
     fillTextures     = where->fillTextures;
     lightId          = where->lightId;
     programId        = where->programId;

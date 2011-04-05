@@ -105,8 +105,6 @@ void FillTexture::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    if(texUnit < (where->display)->getMaxTextureCoords())
-        where->textureCoords |= 1 << texUnit;
     where->textureUnits |= 1 << texUnit;
     where->fillTextures[texUnit].texId = glName;
 }

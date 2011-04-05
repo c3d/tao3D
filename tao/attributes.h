@@ -273,14 +273,15 @@ struct MouseCoordinatesInfo : XL::Info
     Point3      coordinates;
 };
 
-
+struct Widget;
 struct RecordMouseCoordinates : Attribute
 // ----------------------------------------------------------------------------
 //    Record the mouse coordinates in current projection matrix for a tree
 // ----------------------------------------------------------------------------
 {
-    RecordMouseCoordinates(Tree *self): self(self) {}
+    RecordMouseCoordinates(Tree *self, Widget* widget): self(self) {record(widget);}
     virtual void Draw(Layout *where);
+    void record(Widget* widget);
     Tree_p self;
 };
 

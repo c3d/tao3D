@@ -187,7 +187,7 @@ void GlyphCache::Clear()
 }
 
 
-GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, bool create)
+GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, const uint64 texUnits, bool create)
 // ----------------------------------------------------------------------------
 //   Find the per-font information in the cache
 // ----------------------------------------------------------------------------
@@ -216,15 +216,14 @@ GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, bool create)
 }
 
 
-bool GlyphCache::Find(Layout* where, const QFont &font,
+bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
                       uint code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a unicode entry in the cache
 // ----------------------------------------------------------------------------
 {
-    texUnits = where->textureUnits;
-    PerFont *perFont = FindFont(font, create);
+    PerFont *perFont = FindFont(font, texUnits, create);
     if (!perFont)
         return false;
     bool found = perFont->Find(code, entry);
@@ -345,15 +344,14 @@ bool GlyphCache::Find(Layout* where, const QFont &font,
 }
 
 
-bool GlyphCache::Find(Layout* where, const QFont &font,
+bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
                       text code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a word entry in the cache
 // ----------------------------------------------------------------------------
 {
-    texUnits = where->textureUnits;
-    PerFont *perFont = FindFont(font, create);
+    PerFont *perFont = FindFont(font, texUnits, create);
     if (!perFont)
         return false;
     bool found = perFont->Find(code, entry);
@@ -512,30 +510,30 @@ void GlyphCache::GenerateTexture()
 }
 
 
-qreal GlyphCache::Ascent(const QFont &font)
+qreal GlyphCache::Ascent(const QFont &font, const uint64 texUnits)
 // ----------------------------------------------------------------------------
 //   Return the ascent for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, true)->ascent;
+    return FindFont(font, texUnits, true)->ascent;
 }
 
 
-qreal GlyphCache::Descent(const QFont &font)
+qreal GlyphCache::Descent(const QFont &font, const uint64 texUnits)
 // ----------------------------------------------------------------------------
 //   Return the descent for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, true)->descent;
+    return FindFont(font, texUnits, true)->descent;
 }
 
 
-qreal GlyphCache::Leading(const QFont &font)
+qreal GlyphCache::Leading(const QFont &font, const uint64 texUnits)
 // ----------------------------------------------------------------------------
 //   Return the leading for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, true)->leading;
+    return FindFont(font, texUnits, true)->leading;
 }
 
 

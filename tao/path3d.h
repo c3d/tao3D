@@ -100,7 +100,7 @@ public:
         ~PolygonData();
         Vertices        vertices;
         DynamicVertices allocated;
-        uint64         textureUnits;
+        uint64          textureUnits;
     };
 
 public:

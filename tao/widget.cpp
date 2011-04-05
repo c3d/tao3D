@@ -1824,6 +1824,7 @@ void Widget::setupGL()
             glDisable(GL_TEXTURE_2D);
         }
     }
+    glActiveTexture(GL_TEXTURE0);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);

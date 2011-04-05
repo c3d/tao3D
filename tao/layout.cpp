@@ -49,7 +49,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentTexUnit(0), textureUnits(1),
+      currentTexUnit(0), textureUnits(1), textureCoords(1),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
@@ -74,6 +74,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillColor(o.fillColor),
         currentTexUnit(o.currentTexUnit),
         textureUnits(o.textureUnits),
+        textureCoords(o.textureCoords),
         fillTextures(o.fillTextures),
         lightId(o.lightId),
         programId(o.programId),        
@@ -530,6 +531,7 @@ void Layout::Inherit(Layout *where)
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
     textureUnits     = where->textureUnits;
+    textureCoords    = where->textureCoords;
     fillTextures     = where->fillTextures;
     lightId          = where->lightId;
     programId        = where->programId;

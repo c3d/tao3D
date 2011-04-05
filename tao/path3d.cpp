@@ -833,7 +833,7 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
                             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3,GL_DOUBLE,sizeof(VertexData), tdata);
+                            glTexCoordPointer(3,GL_DOUBLE, sizeof(VertexData), tdata);
                         }
                     }
 

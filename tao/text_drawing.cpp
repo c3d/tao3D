@@ -139,10 +139,10 @@ void TextSpan::DrawCached(Layout *where)
         else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, false))
+            if (!glyphs.Find(where, font, unicode, glyph, false))
             {
                 // Try to create the glyph
-                if (!glyphs.Find(font, unicode, glyph, true))
+                if (!glyphs.Find(where, font, unicode, glyph, true))
                     continue;
             }
 
@@ -239,7 +239,6 @@ void TextSpan::DrawDirect(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
-
         if (canSel)
             charId = where->CharacterId();
 
@@ -254,7 +253,7 @@ void TextSpan::DrawDirect(Layout *where)
         else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, true, true, lw))
+            if (!glyphs.Find(where, font, unicode, glyph, true, true, lw))
                 continue;
 
             GLMatrixKeeper save;
@@ -324,7 +323,7 @@ void TextSpan::DrawSelection(Layout *where)
             charId = where->CharacterId();
 
         // Fetch data about that glyph
-        if (!glyphs.Find(font, unicode, glyph, false))
+        if (!glyphs.Find(where, font, unicode, glyph, false))
             continue;
 
         if (sel && canSel)
@@ -494,7 +493,7 @@ void TextSpan::Identify(Layout *where)
             charId = where->CharacterId();
 
         // Fetch data about that glyph
-        if (!glyphs.Find(font, unicode, glyph, false))
+        if (!glyphs.Find(where, font, unicode, glyph, false))
             continue;
 
         if (canSel)
@@ -536,7 +535,7 @@ void TextSpan::Identify(Layout *where)
     {
         charId++;
         glLoadName(charId | Widget::CHARACTER_SELECTED);
-        if (glyphs.Find(font, ' ', glyph, false))
+        if (glyphs.Find(where, font, ' ', glyph, false))
         {
             sd = glyph.scalingFactor * descent;
             sh = glyph.scalingFactor * height;
@@ -619,7 +618,7 @@ Box3 TextSpan::Bounds(Layout *where)
         bool  newLine  = unicode == '\n';
 
         // Find the glyph in the glyph cache
-        if (!glyphs.Find(font, unicode, glyph, true))
+        if (!glyphs.Find(where, font, unicode, glyph, true))
             continue;
 
         scale sa = ascent * glyph.scalingFactor;
@@ -685,7 +684,7 @@ Box3 TextSpan::Space(Layout *where)
         bool  newLine  = unicode == '\n';
 
         // Find the glyph in the glyph cache
-        if (!glyphs.Find(font, unicode, glyph, true))
+        if (!glyphs.Find(where, font, unicode, glyph, true))
             continue;
 
         scale sa = ascent * glyph.scalingFactor;
@@ -784,7 +783,7 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
         // Find the glyph in the glyph cache
         GlyphCache::GlyphEntry  glyph;
         uint  unicode  = XL::Utf8Code(str, pos);
-        if (!glyphs.Find(font, unicode, glyph, true))
+        if (!glyphs.Find(where, font, unicode, glyph, true))
             continue;
 
         // Enter the geometry coordinates

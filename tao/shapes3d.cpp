@@ -25,6 +25,7 @@
 #include "layout.h"
 #include "widget.h"
 #include "tao_gl.h"
+#include "application.h"
 
 TAO_BEGIN
 
@@ -167,10 +168,11 @@ void Cube::Draw(Layout *where)
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
     glNormalPointer(GL_FLOAT, 0, normals);
+
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        if(((*it).second).texId)
+        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
         {
             glClientActiveTexture( GL_TEXTURE0 + (*it).first );
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -188,8 +190,13 @@ void Cube::Draw(Layout *where)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-
+    {
+        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
+        {
+            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+    }
 }
 
 
@@ -262,7 +269,6 @@ void Cone::Draw(Layout *where)
     for(unsigned int i = 2; i < geom.size() - 2; i +=2)
     {
         previousFaceNorm = nextFaceNorm;
-
         if(i < geom.size() - 2)
          nextFaceNorm = calculateNormal(geom[i], geom[i + 1], geom[i + 2]);
         else
@@ -278,10 +284,11 @@ void Cone::Draw(Layout *where)
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &geom[0].x);
     glNormalPointer(GL_DOUBLE, 0, &norm[0].x);
+
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
-        if(((*it).second).texId)
+        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
         {
             glClientActiveTexture( GL_TEXTURE0 + (*it).first );
             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -299,7 +306,13 @@ void Cone::Draw(Layout *where)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    {
+        if(((*it).second).texId && ((*it).first) <  (where->display)->getMaxTextureCoords() - 1)
+        {
+            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
+            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        }
+    }
 }
 
 TAO_END

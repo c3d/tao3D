@@ -161,6 +161,8 @@ public:
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();
+    uint        getMaxTextureUnits() {return maxTextureUnits; }
+    uint        getMaxTextureCoords() {return maxTextureCoords; }
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -792,6 +794,7 @@ private:
     GLint                 focusViewport[4];
     uint                  keyboardModifiers;
 
+
     // Menus and widgets
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
@@ -838,8 +841,9 @@ private:
     bool                  renderFramesCanceled;
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;
-    int                   offlineRenderingHeight;
-
+    int                   offlineRenderingHeight;    
+    uint                  maxTextureCoords;
+    uint                  maxTextureUnits;
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 private:
     void        updateFileDialog(Tree *properties, Tree *context);

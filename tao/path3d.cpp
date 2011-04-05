@@ -99,7 +99,11 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
-    glTexCoord3dv(&vertex->texture.x);
+    for(uint i = 0; i <= poly->textureUnits; i++)
+    {
+        if (poly->textureUnits & (1 << i))
+            glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
+    }
     glVertex3dv(&vertex->vertex.x);
 }
 
@@ -409,7 +413,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
     setTexture(where);
     if (setFillColor(where))
     {
-        Draw(where->offset, GL_POLYGON, tessel);
+        Draw(where->offset, where->textureUnits, GL_POLYGON, tessel);
     }
     if (setLineColor(where))
     {
@@ -593,18 +597,18 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             {
                 addEndpointToPath(endStyle, endPoint, endHeading, outline);
             }
-            outline.Draw(where->offset, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+            outline.Draw(where->offset, where->textureUnits, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
         }
         else
         {
             // Path is not flat: use GL lines (temporarily)
-            Draw(where->offset, GL_LINE_STRIP, 0);
+            Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
         }
     }
 }
 
 
-void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
+void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
@@ -613,6 +617,7 @@ void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
     Vertices &data = polygon.vertices;
     Vertices control;           // Control points
     path_elements::iterator i, begin = elements.begin(), end = elements.end();
+    polygon.textureUnits = texUnits;
 
     // Check if we need to tesselate polygon
     static GLUtesselator *tess = 0;
@@ -819,15 +824,30 @@ void GraphicPath::Draw(const Vector3 &offset, GLenum mode, GLenum tesselation)
                         std::cerr << std::endl;
 
                     glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-                    glTexCoordPointer(3,GL_DOUBLE,sizeof(VertexData), tdata);
                     glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
                     glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
                     glEnableClientState(GL_NORMAL_ARRAY);
+                    for(uint i = 0; i < texUnits ; i++)
+                    {
+                        if(texUnits & (1 << i))
+                        {
+                            glClientActiveTexture( GL_TEXTURE0 + i );
+                            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+                            glTexCoordPointer(3,GL_DOUBLE,sizeof(VertexData), tdata);
+                        }
+                    }
+
                     glDrawArrays(mode, 0, size);
                     glDisableClientState(GL_VERTEX_ARRAY);
-                    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
                     glDisableClientState(GL_NORMAL_ARRAY);
+                    for(uint i = 0; i < texUnits ; i++)
+                    {
+                        if(texUnits & (1 << i))
+                        {
+                            glClientActiveTexture( GL_TEXTURE0 + i );
+                            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                        }
+                    }
                 }
 
                 data.clear();

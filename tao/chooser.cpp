@@ -179,7 +179,7 @@ Activity *Chooser::Display(void)
     coord iy = my + mh - mtla;
 
     // Initialize an "overlay" projection mode
-    GLAllStateKeeper saveGL(GL_ALL_ATTRIB_BITS, true, true, 0);
+    GLAllStateKeeper saveGL(GL_ALL_ATTRIB_BITS, true, true, 0, 0);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, ww, 0, wh);

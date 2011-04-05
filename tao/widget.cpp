@@ -238,6 +238,11 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
+    maxTextureCoords = 1;
+    maxTextureUnits = 1;
+    //Get number of maximum texture units in fragment shaders (texture units are limited to 4 otherwise)
+    glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
 }
 
 
@@ -362,6 +367,7 @@ void Widget::draw()
     uint w = width(), h = height();
     setupPage();
     space->ClearAttributes();
+
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -1712,7 +1718,6 @@ double Widget::scalingFactorFromCamera()
     return csf;
 }
 
-
 void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -1809,7 +1814,16 @@ void Widget::setupGL()
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);
-    glDisable(GL_TEXTURE_2D);
+
+    std::map<uint, TextureState>::iterator it;
+    for(it = layout->fillTextures.begin(); it != layout->fillTextures.end(); it++)
+    {
+        if(((*it).second).texId)
+        {
+            glActiveTexture(GL_TEXTURE0 + (*it).first);
+            glDisable(GL_TEXTURE_2D);
+        }
+    }
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
@@ -3780,6 +3794,7 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
+        where->textureUnits = 1;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         (where->fillTextures).clear();
@@ -4625,7 +4640,6 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     return XL::xl_true;
 }
 
-
 XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 //   Change the delta we use for the depth
@@ -5195,7 +5209,6 @@ static inline QColor colorByName(text name)
     return QColor(0.0, 0.0, 0.0);
 }
 
-
 Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
 //    Set the RGB clear (background) color
@@ -5425,16 +5438,12 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
-{
-    GLuint numTextureUnits = 1;
-    //Get number of maximum texture units in fragment shaders (texture units are limited to 4 otherwise)
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS, (GLint*) &numTextureUnits);
-    if((texUnit < 0) && (texUnit > (numTextureUnits - 1)))
+{    
+    if(texUnit > maxTextureUnits)
     {
-        Ooops("Invalide texture unit $1", self);
+        Ooops("Invalid texture unit $1", self);
         return 0;
     }
-
     layout->currentTexUnit = texUnit;
     return new XL::Integer(texUnit);
 }
@@ -5446,7 +5455,7 @@ Integer* Widget::fillTextureID(Tree_p self, GLuint texId)
 {
     if((! glIsTexture(texId)) && (texId != 0))
     {
-        Ooops("Invalide texture id $1", self);
+        Ooops("Invalid texture id $1", self);
         return 0;
     }
 
@@ -5709,10 +5718,20 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 {
     uint texUnit = layout->currentTexUnit;
+
+    //Check if we can use this texture unit for transform according
+    //to the maximum of texture coordinates (maximum of texture transformation)
+    if(texUnit >= maxTextureCoords)
+    {
+        Ooops("Invalid texture unit to transform $1", self);
+        return false;
+    }
+
     layout->hasTextureMatrix |= 1 << texUnit;
     layout->Add(new TextureTransform(true, texUnit));
     Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false, texUnit));
+
     return result;
 }
 
@@ -6688,7 +6707,8 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
     // Resize to requested size, and bind texture
     surface->resize(w,h);
     GLuint tex = surface->bind(editCursor->document()->clone());
-    layout->Add(new FillTexture(tex));
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new FillTexture(tex,texUnit));
     layout->hasAttributes = true;
     delete editCursor;
     editCursor = NULL;

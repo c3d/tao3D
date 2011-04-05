@@ -61,6 +61,7 @@ bool Shape::setTexture(Layout *where)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             }
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
             GLuint wrapS = ((*it).second).wrapS ? GL_REPEAT : GL_CLAMP;
             GLuint wrapT = ((*it).second).wrapT ? GL_REPEAT : GL_CLAMP;
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
@@ -71,7 +72,7 @@ bool Shape::setTexture(Layout *where)
         }
         else
         {
-           // glBindTexture(GL_TEXTURE_2D, 0);
+            glBindTexture(GL_TEXTURE_2D, 0);
             glDisable(GL_TEXTURE_2D);
         }
     }
@@ -192,7 +193,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     glDisable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
-    path.Draw(where->Offset(), GL_LINE_STRIP, 0);
+    path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);
 }
 
 

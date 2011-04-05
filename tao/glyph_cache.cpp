@@ -48,11 +48,11 @@ TAO_BEGIN
 //   The entries we return from Find, on the other hand, are OpenGL texture
 //   coordinates, i.e. we normalize them in the 0..1 range.
 
-PerFontGlyphCache::PerFontGlyphCache(const QFont &font)
+PerFontGlyphCache::PerFontGlyphCache(const QFont &font, const uint64 texUnits)
 // ----------------------------------------------------------------------------
 //   Construct an empty per-font glyph cache
 // ----------------------------------------------------------------------------
-    : font(font), ascent(0), descent(0), leading(0)
+    : font(font), texUnits(texUnits), ascent(0), descent(0), leading(0)
 {
     QFontMetricsF fm(font);
     ascent = fm.ascent();
@@ -193,16 +193,16 @@ GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, bool create)
 // ----------------------------------------------------------------------------
 {
     PerFontGlyphCache *perFont = lastFont;
-    if (!perFont || perFont->font != font)
+    if (!perFont || perFont->font != font || perFont->texUnits != texUnits)
     {
-        Key key(font);
+        Key key(font, texUnits);
         FontMap::iterator cacheEntry = cache.find(key);
         if (cacheEntry == cache.end())
         {
             // Create font cache entry if necessary
             if (!create)
                 return NULL;
-            perFont = new PerFontGlyphCache(font);
+            perFont = new PerFontGlyphCache(font, texUnits);
             cache[key] = perFont;
         }
         else
@@ -216,13 +216,14 @@ GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, bool create)
 }
 
 
-bool GlyphCache::Find(const QFont &font,
+bool GlyphCache::Find(Layout* where, const QFont &font,
                       uint code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a unicode entry in the cache
 // ----------------------------------------------------------------------------
 {
+    texUnits = where->textureUnits;
     PerFont *perFont = FindFont(font, create);
     if (!perFont)
         return false;
@@ -303,14 +304,13 @@ bool GlyphCache::Find(const QFont &font,
 
         qtPath.addText(0, 0, scaled, QString(QChar(code)));
         path.addQtPath(qtPath, -1);
-
         if (interior)
         {
             // Create an OpenGL display list for the glyph
             if (!entry.interior)
                 entry.interior = glGenLists(1);
             glNewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), GL_POLYGON, GLU_TESS_WINDING_ODD);
+            path.Draw(Vector3(0,0,0), texUnits, GL_POLYGON, GLU_TESS_WINDING_ODD);
             glEndList();
         }
 
@@ -330,7 +330,7 @@ bool GlyphCache::Find(const QFont &font,
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
             glNewList(entry.outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), GL_POLYGON,
+            strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
                             GLU_TESS_WINDING_POSITIVE);
             glEndList();
         }
@@ -345,13 +345,14 @@ bool GlyphCache::Find(const QFont &font,
 }
 
 
-bool GlyphCache::Find(const QFont &font,
+bool GlyphCache::Find(Layout* where, const QFont &font,
                       text code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a word entry in the cache
 // ----------------------------------------------------------------------------
 {
+    texUnits = where->textureUnits;
     PerFont *perFont = FindFont(font, create);
     if (!perFont)
         return false;
@@ -439,7 +440,7 @@ bool GlyphCache::Find(const QFont &font,
             if (!entry.interior)
                 entry.interior = glGenLists(1);
             glNewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), GL_POLYGON, GLU_TESS_WINDING_ODD);
+            path.Draw(Vector3(0,0,0), texUnits, GL_POLYGON, GLU_TESS_WINDING_ODD);
             glEndList();
         }
 
@@ -459,7 +460,7 @@ bool GlyphCache::Find(const QFont &font,
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
             glNewList(entry.outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), GL_POLYGON,
+            strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
                             GLU_TESS_WINDING_POSITIVE);
             glEndList();
         }

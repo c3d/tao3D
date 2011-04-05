@@ -26,7 +26,7 @@
 #include "tao.h"
 #include "widget.h"
 #include "tao_gl.h"
-
+#include "application.h"
 
 TAO_BEGIN
 
@@ -104,26 +104,30 @@ struct GLAllStateKeeper : GLStateKeeper
     GLAllStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS,
                      bool saveModel = true,
                      bool saveProjection = true,
-                     uint64 saveTextureMatrix = ~0UL)
+                     uint64 saveTextureMatrix = ~0UL,
+                     uint maxTextureMatrix = 4)
         : GLStateKeeper(bits, saveModel),
           saveProjection(saveProjection),
-          saveTextureMatrix(saveTextureMatrix)
+          saveTextureMatrix(saveTextureMatrix),
+          maxTextureMatrix(maxTextureMatrix)
     {
         if (saveProjection)
         {
             glMatrixMode(GL_PROJECTION);
             glPushMatrix();
         }
-        for(int i = 0; i < 64; i++)
+
+        for(uint i = 0; i <  maxTextureMatrix; i++)
         {
-            if ((saveTextureMatrix & (1 << i)))
+            if (saveTextureMatrix & (1 << i))
             {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glMatrixMode(GL_TEXTURE);
                 glPushMatrix();
             }
-            glMatrixMode(GL_MODELVIEW);
         }
+
+        glMatrixMode(GL_MODELVIEW);
     }
     ~GLAllStateKeeper()
     {
@@ -132,21 +136,24 @@ struct GLAllStateKeeper : GLStateKeeper
             glMatrixMode(GL_PROJECTION);
             glPopMatrix();
         }
-        for(int i = 0; i < 64; i++)
+
+        for(uint i = 0; i < maxTextureMatrix; i++)
         {
-            if ((saveTextureMatrix & (1 << i)))
+            if (saveTextureMatrix & (1 << i))
             {
                 glActiveTexture(GL_TEXTURE0 + i);
                 glMatrixMode(GL_TEXTURE);
                 glPopMatrix();
             }
-            glMatrixMode(GL_MODELVIEW);
         }
+
+        glMatrixMode(GL_MODELVIEW);
     }
 
 private:
     bool        saveProjection;
     uint64      saveTextureMatrix;
+    uint        maxTextureMatrix;
     GLAllStateKeeper(const GLStateKeeper &other);
 };
 

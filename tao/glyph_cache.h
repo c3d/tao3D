@@ -43,7 +43,7 @@ struct PerFontGlyphCache
 //    Cache storing glyph information for a specific font
 // ----------------------------------------------------------------------------
 {
-    PerFontGlyphCache(const QFont &font);
+    PerFontGlyphCache(const QFont &font, const uint64 texUnits);
     ~PerFontGlyphCache();
 
 public:
@@ -69,7 +69,8 @@ protected:
 
 protected:
     friend class GlyphCache;
-    QFont       font;
+    QFont       font;    
+    uint64      texUnits;
     CodeMap     codes;
     TextMap     texts;
     qreal       ascent, descent, leading;
@@ -98,9 +99,9 @@ public:
 
     PerFont *   FindFont(const QFont &font, bool create = false);
 
-    bool        Find(const QFont &font, uint code, GlyphEntry&,
+    bool        Find(Layout* where, const QFont &font, uint code, GlyphEntry&,
                      bool create=false, bool interior=false, scale lineWidth=0);
-    bool        Find(const QFont &font, text word, GlyphEntry&,
+    bool        Find(Layout* where, const QFont &font, text word, GlyphEntry&,
                      bool create=false, bool interior=false, scale lineWidth=0);
     void        Allocate(uint width, uint height, Rect &rect);
 
@@ -115,8 +116,9 @@ protected:
     // Two fonts with slightly differing size are considered equivalent
     struct Key
     {
-        Key(const QFont &font): font(font) {}
+        Key(const QFont &font,const uint64 textUnits): font(font), textUnits(textUnits) {}
         QFont font;
+        uint64 textUnits;
 
         uint fontSizeOrder(const QFont &font) const
         {
@@ -163,11 +165,11 @@ protected:
 
         bool operator==(const Key &o) const
         {
-            return compare(font, o.font) == 0;
+            return (compare(font, o.font) == 0);
         }
         bool operator<(const Key &o) const
         {
-            return compare(font, o.font) < 0;
+            return (compare(font, o.font) < 0);
         }
     };
 
@@ -178,6 +180,7 @@ protected:
     uint        texture;
     QImage      image;
     bool        dirty;
+    uint64      texUnits;
 
 public:
     static uint defaultSize;

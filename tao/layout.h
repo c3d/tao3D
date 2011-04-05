@@ -41,7 +41,7 @@ struct Widget;
 
 struct TextureState
 // ----------------------------------------------------------------------------
-//   The state of current texture
+//   The state of texture we want to preserve
 // ----------------------------------------------------------------------------
 {
     TextureState(): wrapS(false), wrapT(false), texId(0) {}
@@ -76,6 +76,7 @@ public:
     Color               lineColor;
     Color               fillColor;
     uint                currentTexUnit;
+    uint64              textureUnits;
     tex_list            fillTextures;
     uint                lightId;
     uint                programId;
@@ -83,6 +84,7 @@ public:
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+
 };
 
 
@@ -126,10 +128,10 @@ struct Layout : Drawing, LayoutState
     text                PrettyId();
 
 public:
+    Widget *            display;
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
@@ -155,7 +157,6 @@ protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
-    Widget *            display;
 
 public:
     qevent_ids          refreshEvents;

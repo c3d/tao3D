@@ -14,5 +14,5 @@
 # (C) 2011 Taodyne SAS
 # ******************************************************************************
 
-INSTROOT=$$INSTROOT
-QMAKE_LIBDIR_QT=$$QMAKE_LIBDIR_QT
+INSTROOT=\"$$INSTROOT\"
+QMAKE_LIBDIR_QT=\"$$QMAKE_LIBDIR_QT\"

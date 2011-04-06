@@ -373,9 +373,6 @@ void Widget::draw()
         sel->cursor.removeSelectedText();
     }
 
-    //Clean actionMap
-   // actionMap.clear();
-
     // Make sure program has been run at least once
     if (runOnNextDraw)
     {
@@ -813,6 +810,9 @@ void Widget::runProgram()
     // Don't run anything if we detected errors running previously
     if (inError)
         return;
+
+    //Clean actionMap
+    actionMap.clear();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;

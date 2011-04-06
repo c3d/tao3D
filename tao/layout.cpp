@@ -49,7 +49,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentTexUnit(0), textureUnits(1),
+      currentTexUnit(0), textureUnits(1), previousUnits(0),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
@@ -74,6 +74,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillColor(o.fillColor),
         currentTexUnit(o.currentTexUnit),
         textureUnits(o.textureUnits),
+        previousUnits(o.previousUnits),
         fillTextures(o.fillTextures),
         lightId(o.lightId),
         programId(o.programId),        
@@ -229,6 +230,9 @@ void Layout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -251,6 +255,9 @@ void Layout::DrawSelection(Layout *where)
         child->DrawSelection(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -274,6 +281,9 @@ void Layout::Identify(Layout *where)
         child->Identify(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -530,6 +540,7 @@ void Layout::Inherit(Layout *where)
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
     textureUnits     = where->textureUnits;
+    previousUnits    = where->previousUnits;
     fillTextures     = where->fillTextures;
     lightId          = where->lightId;
     programId        = where->programId;

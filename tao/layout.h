@@ -77,6 +77,7 @@ public:
     Color               fillColor;
     uint                currentTexUnit;
     uint64              textureUnits;
+    uint64              previousUnits;
     tex_list            fillTextures;
     uint                lightId;
     uint                programId;

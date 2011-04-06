@@ -44,13 +44,13 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+    uint64 unusedUnits = (where->previousUnits & where->textureUnits) ^ where->previousUnits;
+    for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
-        glActiveTexture(GL_TEXTURE0 + (*it).first);
-        if(((*it).second).texId)
+        if((where->fillTextures[i]).texId && (where->textureUnits & (1 << i)))
         {
-            glBindTexture(GL_TEXTURE_2D, ((*it).second).texId);
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).texId);
             if (where->hasPixelBlur)
             {
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -62,17 +62,17 @@ bool Shape::setTexture(Layout *where)
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             }
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-            GLuint wrapS = ((*it).second).wrapS ? GL_REPEAT : GL_CLAMP;
-            GLuint wrapT = ((*it).second).wrapT ? GL_REPEAT : GL_CLAMP;
+            GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
+            GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
             glEnable(GL_TEXTURE_2D);
             if (TaoApp->hasGLMultisample)
                 glEnable(GL_MULTISAMPLE);
         }
-        else
+        else if((i == 0) || (unusedUnits & (1 << i)))
         {
-            glBindTexture(GL_TEXTURE_2D, 0);
+            glActiveTexture(GL_TEXTURE0 + i);
             glDisable(GL_TEXTURE_2D);
         }
     }
@@ -81,6 +81,8 @@ bool Shape::setTexture(Layout *where)
         glUseProgram(where->globalProgramId);
     else
         glUseProgram(where->programId);
+
+    where->previousUnits = where->textureUnits;
 
     return !(where->fillTextures.empty());
 }

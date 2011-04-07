@@ -44,33 +44,38 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
+    //Determine unused texture units according to the previous one to desactive them
     uint64 unusedUnits = (where->previousUnits & where->textureUnits) ^ where->previousUnits;
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
-        if((where->fillTextures[i]).texId && (where->textureUnits & (1 << i)))
+        //Check if the current texture unit is really used
+        if((where->fillTextures.count(i)) && (where->textureUnits & (1 << i)))
         {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).texId);
-            if (where->hasPixelBlur)
+            if((where->fillTextures[i]).texId)
             {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glActiveTexture(GL_TEXTURE0 + i);
+                glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).texId);
+                if (where->hasPixelBlur)
+                {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                }
+                else
+                {
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                }
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
+                GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+                glEnable(GL_TEXTURE_2D);
+                if (TaoApp->hasGLMultisample)
+                    glEnable(GL_MULTISAMPLE);
             }
-            else
-            {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            }
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-            GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
-            GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-            glEnable(GL_TEXTURE_2D);
-            if (TaoApp->hasGLMultisample)
-                glEnable(GL_MULTISAMPLE);
         }
-        else if((i == 0) || (unusedUnits & (1 << i)))
+        else if(unusedUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glDisable(GL_TEXTURE_2D);
@@ -82,6 +87,7 @@ bool Shape::setTexture(Layout *where)
     else
         glUseProgram(where->programId);
 
+    //Update used texture units
     where->previousUnits = where->textureUnits;
 
     return !(where->fillTextures.empty());

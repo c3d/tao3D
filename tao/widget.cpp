@@ -521,10 +521,11 @@ void Widget::draw()
         space->DrawSelection(NULL);
 
         // Render all activities, e.g. the selection rectangle
-        SpaceLayout selectionSpace(this);
-        XL::Save<Layout *> saveLayout(layout, &selectionSpace);
         setupGL();
         glDisable(GL_DEPTH_TEST);
+        SpaceLayout selectionSpace(this);
+        XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+
         for (Activity *a = activities; a; a = a->Display()) ;
         selectionSpace.Draw(NULL);
         if (stereoMode == stereoDEPTHMAP && depthMapper)
@@ -1813,17 +1814,16 @@ void Widget::setupGL()
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);
-
-    std::map<uint, TextureState>::iterator it;
-    for(it = layout->fillTextures.begin(); it != layout->fillTextures.end(); it++)
+    for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
     {
-        if(((*it).second).texId)
+        if(layout->textureUnits & (1 << i))
         {
-            glActiveTexture(GL_TEXTURE0 + (*it).first);
+            glActiveTexture(GL_TEXTURE0 + i);
             glDisable(GL_TEXTURE_2D);
         }
     }
     glActiveTexture(GL_TEXTURE0);
+    glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
@@ -3794,7 +3794,7 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        where->textureUnits = 1;
+        where->textureUnits = 0;
         where->previousUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);

@@ -44,9 +44,10 @@ struct TextureState
 //   The state of texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), texId(0) {}
+    TextureState(): wrapS(false), wrapT(false), id(0), mode(GL_MODULATE) {}
     bool        wrapS, wrapT;
-    uint        texId;
+    uint        id;
+    GLenum      mode;
 };
 
 struct LayoutState
@@ -76,8 +77,8 @@ public:
     Color               lineColor;
     Color               fillColor;
     uint                currentTexUnit;
-    uint64              textureUnits;
-    uint64              previousUnits;
+    uint64              textureUnits; //Current used texture units
+    uint64              previousUnits; //Previous used texture units
     tex_list            fillTextures;
     uint                lightId;
     uint                programId;

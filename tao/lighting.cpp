@@ -93,11 +93,10 @@ void ShaderValue::Draw(Layout *where)
     {
         ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
         ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();
-
         if (!uniform && !attribute)
         {
             kstring cname = name->value.c_str();
-            GLint uni = glGetUniformLocation(where->programId, cname);
+            GLuint uni = glGetUniformLocation(where->programId, cname);
             if (uni >= 0)
             {
                 uniform = new ShaderUniformInfo(uni);
@@ -114,9 +113,39 @@ void ShaderValue::Draw(Layout *where)
             }
         }
 
+
         if (uniform)
         {
-            glUniform1fv(uniform->id, values.size(), &values[0]);
+            uint id = uniform->id;
+            GLint type = 0;
+
+            //Check if glGetActiveUniformsiv exists in order to obtain type of the uniform (according to glew)
+            if(glGetActiveUniformsiv != NULL)
+            {
+                glGetActiveUniformsiv(where->programId, 1, &id, GL_UNIFORM_TYPE, &type);
+            }
+            else
+            {
+                GLint uniformMaxLength = 0;
+                glGetProgramiv( where->programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength );
+
+                GLint size = 0;
+                GLchar* uniformName = new GLchar[uniformMaxLength];
+                glGetActiveUniform( where->programId, id, uniformMaxLength, NULL, &size, (GLenum*) &type, uniformName);
+            }
+
+            switch (type)
+            {
+            case GL_SAMPLER_1D:
+            case GL_SAMPLER_2D:
+            case GL_SAMPLER_3D:
+            case GL_SAMPLER_CUBE:
+                glUniform1i(id, values[0]);
+                break;
+            default:
+                glUniform1fv(id, values.size(), &values[0]);
+                break;
+            }
         }
         else if (attribute)
         {

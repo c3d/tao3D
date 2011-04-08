@@ -51,10 +51,10 @@ bool Shape::setTexture(Layout *where)
         //Check if the current texture unit is really used
         if((where->fillTextures.count(i)) && (where->textureUnits & (1 << i)))
         {
-            if((where->fillTextures[i]).texId)
+            if((where->fillTextures[i]).id)
             {
                 glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).texId);
+                glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).id);
                 if (where->hasPixelBlur)
                 {
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -65,7 +65,7 @@ bool Shape::setTexture(Layout *where)
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 }
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (where->fillTextures[i]).mode);
                 GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
                 GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);

@@ -5439,7 +5439,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
-{    
+{
     if(texUnit > TaoApp->maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
@@ -5711,6 +5711,17 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
     layout->Add(new TextureWrap(s, t, texUnit));
     return XL::xl_true;
 }
+
+Tree_p Widget::textureMode(Tree_p self, GLuint texMode)
+// ----------------------------------------------------------------------------
+//   Record texture mode
+// ----------------------------------------------------------------------------
+{
+    uint texUnit = layout->currentTexUnit;
+    layout->Add(new TextureMode(texMode, texUnit));
+    return XL::xl_true;
+}
+
 
 
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)

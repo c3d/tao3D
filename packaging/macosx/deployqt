@@ -38,15 +38,18 @@ FRAMEWORKS="QtWebKit.framework/Versions/4/QtWebKit \
            QtNetwork.framework/Versions/4/QtNetwork \
            QtCore.framework/Versions/4/QtCore"
 
-if [ $# -ne 3 ] ; then
-  echo Usage: $0 \<app bundle directory\> \<Qt library dir\> \<Plugins dir\>
-  echo Example: $0 path/to/MyApp.app /Library/Frameworks /path/to/Qt/plugins
+if [ $# -ne 2 ] ; then
+  echo Usage: $0 \<app bundle directory\> \<Qt library dir\>
+  echo Example: $0 path/to/MyApp.app /Library/Frameworks
   exit 1
 fi
 
 BUNDLE="$1"
 FRAMEWORKS_SRC="$2"
-PLUGINS_SRC="$3"
+PLUGINS_SRC="${FRAMEWORKS_SRC}/../plugins"
+if [ ! -d "${PLUGINS_SRC}" ] ; then
+  PLUGINS_SRC="/Developer/Applications/Qt/plugins" # Assume binary package
+fi
 FIX_QT_REFS=../../modules/fix_qt_refs
 
 doo(){
@@ -71,6 +74,15 @@ cp_and_fix_framework() {
   fi
 }
 
+cp_and_fix_plugins() {
+  # cp_and_fix_plugins <plugins_src> <qt_framework_src> <plugins_dest>
+  # Ex: cp_and_fix_plugins /Developer/Applications/Qt/plugins /Library/Frameworks ./MyApp.app/Contents/plugins
+  doo cp -r "$1" "$3"
+  find "$3" -name "*.dylib" -print | while read f ; do
+      doo ${FIX_QT_REFS} "$f" "$2"
+    done
+}
+
 make_qt_conf() {
   CONFDIR="$1/Contents/Resources"
   CONF="${CONFDIR}/qt.conf"
@@ -91,7 +103,7 @@ for f in ${FRAMEWORKS} ; do
   cp_and_fix_framework "$f" "${FRAMEWORKS_SRC}" "${FRAMEWORKS_DEST}"
 done
 
-doo cp -r "${PLUGINS_SRC}" "${BUNDLE}/Contents/plugins"
+cp_and_fix_plugins "${PLUGINS_SRC}" "${FRAMEWORKS_SRC}" "${BUNDLE}/Contents/plugins"
 
 make_qt_conf "${BUNDLE}"
 

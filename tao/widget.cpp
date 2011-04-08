@@ -373,9 +373,6 @@ void Widget::draw()
         sel->cursor.removeSelectedText();
     }
 
-    //Clean actionMap
-   // actionMap.clear();
-
     // Make sure program has been run at least once
     if (runOnNextDraw)
     {
@@ -813,6 +810,9 @@ void Widget::runProgram()
     // Don't run anything if we detected errors running previously
     if (inError)
         return;
+
+    //Clean actionMap
+    actionMap.clear();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -2515,8 +2515,6 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "mouseMove " <<event->pos().x() << ", "<< event->pos().y() <<
-//            ", buttons : " << event->buttons() << std::endl; // CaB
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
 
@@ -3676,7 +3674,6 @@ bool Widget::focused(Layout *layout)
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "layout id " << layout->id << " FocusId " <<  focusId << std::endl; // CaB
     return layout->id == focusId;
 }
 

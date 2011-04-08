@@ -134,7 +134,7 @@ void TextSpan::DrawCached(Layout *where)
             scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing * glyph.scalingFactor;
+            y -= spacing * glyphs.fontScaling;
         }
         else
         {
@@ -249,7 +249,7 @@ void TextSpan::DrawDirect(Layout *where)
             scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing * glyph.scalingFactor;
+            y -= spacing * glyphs.fontScaling;
         }
         else
         {

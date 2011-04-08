@@ -2515,8 +2515,6 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "mouseMove " <<event->pos().x() << ", "<< event->pos().y() <<
-//            ", buttons : " << event->buttons() << std::endl; // CaB
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
 
@@ -3676,7 +3674,6 @@ bool Widget::focused(Layout *layout)
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "layout id " << layout->id << " FocusId " <<  focusId << std::endl; // CaB
     return layout->id == focusId;
 }
 

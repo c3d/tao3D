@@ -250,6 +250,7 @@ Widget::~Widget()
 //   Destroy the widget
 // ----------------------------------------------------------------------------
 {
+    xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
 }
@@ -359,6 +360,7 @@ void Widget::draw()
     // Recursive drawing may occur with video widgets, and it's bad
     if (inDraw)
         return;
+
     XL::Save<bool> drawing(inDraw, true);
     TaoSave saveCurrent(current, this);
 
@@ -375,9 +377,6 @@ void Widget::draw()
         sel->cursor.select(QTextCursor::Document);
         sel->cursor.removeSelectedText();
     }
-
-    //Clean actionMap
-    actionMap.clear();
 
     // Make sure program has been run at least once
     if (runOnNextDraw)
@@ -817,6 +816,9 @@ void Widget::runProgram()
     // Don't run anything if we detected errors running previously
     if (inError)
         return;
+
+    //Clean actionMap
+    actionMap.clear();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -2527,8 +2529,6 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "mouseMove " <<event->pos().x() << ", "<< event->pos().y() <<
-//            ", buttons : " << event->buttons() << std::endl; // CaB
     if (cursor().shape() == Qt::ClosedHandCursor)
         return doPanning(event);
 
@@ -2794,6 +2794,10 @@ bool Widget::sourceChanged()
 //   Return 'true' if the source window was modified
 // ----------------------------------------------------------------------------
 {
+    // Protect against derivatives of #933 or #929 (e.g. QT Bug 2616)
+    if (isBeingDestroyed())
+        return true;
+
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
     if (window->srcEdit->document()->isModified())
@@ -3064,6 +3068,9 @@ void Widget::finishChanges()
 //    Check if program has changed and save+commit+update src view if needed
 // ----------------------------------------------------------------------------
 {
+    if (changeReason == "")
+        return;
+
     bool changed = false;
 
     if (xlProgram->tree)
@@ -3681,7 +3688,6 @@ bool Widget::focused(Layout *layout)
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "layout id " << layout->id << " FocusId " <<  focusId << std::endl; // CaB
     return layout->id == focusId;
 }
 
@@ -4372,7 +4378,7 @@ Real_p Widget::mouseX(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
-    layout->Add(new RecordMouseCoordinates(self));
+    layout->Add(new RecordMouseCoordinates(self, this));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.x);
     return new Real(0.0);
@@ -4385,7 +4391,7 @@ Real_p Widget::mouseY(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
-    layout->Add(new RecordMouseCoordinates(self));
+    layout->Add(new RecordMouseCoordinates(self, this));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.y);
     return new Real(0.0);
@@ -4407,6 +4413,7 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::MouseMove);
     actionMap[name][layout->id] = action;
     if (!action->Symbols())
         action->SetSymbols(self->Symbols());
@@ -5524,6 +5531,8 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
+    refreshOn(QEvent::Timer);
+
     GLuint texId = 0;
     if (img != "")
     {

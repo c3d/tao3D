@@ -119,6 +119,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 coord additional = justify.before;
                 if (!firstElement && additional < justify.after)
                     additional = justify.after;
+                if ( firstElement ) firstElement = false;
                 size += additional;
             }
             if (sign * pos + size > sign * end && sign * pos > sign * start)
@@ -155,7 +156,7 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                     lastItemCount = itemCount;
                     firstElement = false;
                 }
-  
+
                 if (done)
                 {
                     items.erase(items.begin(), i+1);

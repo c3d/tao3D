@@ -10,8 +10,8 @@
  *
 @code
 // Define a page holding an image
-new_page filename:text -> 
-    page filename, do
+new_page Filename:text -> 
+    page Filename, do
         color "white"
         image 0, 0, filename
 
@@ -20,13 +20,13 @@ new_page filename:text ->
 // The active rectangle allows the user to click on the thumbnail to go to the real page.
 // x, y: position (-0.5 to 0.5, relative to window size)
 // s: size (relative to window size)
-thumb x:real, y:real, s:real, n:text ->
+thumb X:real, Y:real, S:real, N:text ->
     color "white"
-    page_thumbnail s, 0.02, n
+    page_thumbnail S, 0.02, N
     active_widget
-        rectangle window_width * x, window_height * y, window_width * s, window_height * s
+        rectangle window_width * X, window_height * Y, window_width * S, window_height * S
         on_click 
-            goto_page n
+            goto_page N
 
 // Create a page with 4 thumbnails
 page "Images", do
@@ -36,7 +36,7 @@ page "Images", do
     thumb  0.25, -0.25, 0.4, "perroquet.jpg"
 
 // Create one page per image
-new_page with list_files "*.jpg"
+new_page with files "*.jpg"
 
 @endcode
  * 

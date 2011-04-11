@@ -1145,12 +1145,14 @@ void Window::createActions()
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
 
+#if 0 // Workaround for bug #928
     newAct = new Action(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
     newAct->setStatusTip(tr("Open a blank document window"));
     newAct->setIconVisibleInMenu(false);
     newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
+#endif
 
     openAct = new Action(QIcon(":/images/open.png"), tr("&Open..."),
                           this);
@@ -1401,7 +1403,7 @@ void Window::createMenus()
 {
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
-    fileMenu->addAction(newAct);
+    // fileMenu->addAction(newAct);
     fileMenu->addAction(newDocAct);
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
@@ -1481,7 +1483,7 @@ void Window::createToolBars()
     QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("fileToolBar");
-    fileToolBar->addAction(newAct);
+    // fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
     fileToolBar->addAction(saveAct);
     fileToolBar->hide();
@@ -2055,7 +2057,7 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             QMessageBox::information
                     (NULL, tr("Task selection"),
-                     tr("An error occured setting the task:\n%1")
+                     tr("An error occurred setting the task:\n%1")
                      .arg(+repo->errors),
                      QMessageBox::Ok);
         }

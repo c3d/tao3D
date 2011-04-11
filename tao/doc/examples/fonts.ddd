@@ -1,35 +1,34 @@
 // fonts.ddd
+msg -> <<A quick brown fox jumps over the lazy dog.
+>> 
+lineno -> 12 
 
-msg := <<A quick brown fox jumps over the lazy dog.
->>
-lineno := 1
+write_text -> 
+    text text lineno & ". " & msg 
+    lineno := lineno + 1 
 
-write_text ->
-    text text lineno & ". " & msg
-    lineno := lineno + 1
-
-text_box 0, 0, window_width - 50, window_height - 50,
-    font "Times", 16
+text_box 0, 0, window_width - 50, window_height - 50, 
+    font "Times", 16 
     write_text // normal
-    italic
+    italic 
     write_text // italic
-    roman
+    roman 
     write_text // back to normal
-    bold
+    bold 
     write_text // bold
-    regular
+    regular 
     write_text // back to normal
-    bold
-    italic
+    bold 
+    italic 
     write_text // bold and italic
-    plain
+    plain 
     write_text // back to normal
-    font "Times", 16, expanded
+    font "Times", 16, expanded 
     write_text // stretched
-    stretch 1.0
+    stretch 1.0 
     write_text //  back to normal
-    font "Lobster"
-    write_text
-    font "Tangerine/Bold"
-    font_size 28
-    write_text
+    font "Lobster" 
+    write_text 
+    font "Tangerine/Bold" 
+    font_size 28 
+    write_text 

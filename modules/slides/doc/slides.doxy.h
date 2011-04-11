@@ -18,14 +18,16 @@
  * matter of setting the variable @ref theme to the suitable value, before using
  * the slide commands. For example:
  @code
- // Show a title slide with the default theme (black on white)
- title_slide "My title slide",
-     text "This shows the default theme"
- // Change theme to "Keyboard"
- theme := "Keyboard"
- slide "The Keyboard theme",
- *     * "Has a background picture"
- *     * "Is nicer than the default theme"
+import Slides 1.0
+
+// Show a title slide with the default theme (black on white)
+title_slide "My title slide",
+    text "This shows the default theme"
+// Change theme to "Keyboard"
+theme := "Keyboard"
+slide "The Keyboard theme",
+ *    * "Has a background picture"
+ *    * "Is nicer than the default theme"
  @endcode
  *
  * The Slides module currently defines five themes in addition to the default

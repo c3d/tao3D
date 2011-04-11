@@ -34,21 +34,21 @@ axes ->
         translate 10, 15, 0 
         text "(0, 0)" 
 
-width_and_height x, y, w, h, t -> 
+width_and_height X, Y, W, H, T ->
     // Width 
-    line_arrow x - w / 2, y - h / 2 + delta, ARROWHEAD, x + w / 2, y - h / 2 + delta, ARROWHEAD 
+    line_arrow X - W / 2, Y - H / 2 + delta, ARROWHEAD, X + W / 2, Y - H / 2 + delta, ARROWHEAD
     locally 
         line_color "font" 
         color "font" 
-        translate x + w / 2 - 150, y - h / 2 + delta + 15, 0 
-        text t & "width" 
+        translate X + W / 2 - 150, Y - H / 2 + delta + 15, 0 
+        text T & "width" 
     // Height
-    line_arrow x - w / 2 + delta, y + h / 2, ARROWHEAD, x - w / 2 + delta, y - h / 2, ARROWHEAD 
+    line_arrow X - W / 2 + delta, Y + H / 2, ARROWHEAD, X - W / 2 + delta, Y - H / 2, ARROWHEAD 
     locally 
         line_color "font" 
         color "font" 
-        translate x - w / 2 + delta + 15, y + h / 2 - 35, 0 
-        text t & "height" 
+        translate X - W / 2 + delta + 15, Y + H / 2 - 35, 0 
+        text T & "height" 
 
 line_color "tao_yellow" 
 axes
@@ -59,14 +59,8 @@ frame -100, -100, 400, 400,
     rectangle 0, 0, 100, 100
     color "transparent"
     line_color "tao_orange"
-    //line_width 8
-    //rectangle 0, 0, 400, 400
     line_color "tao_orange" 
     axes
-    //debug frame_depth
-    //debug frame_height
-    //debug frame_width
-    //width_and_height 0, 0, frame_width, frame_height, "Frame "
     width_and_height 0, 0, 400, 400, "Frame "
 
 debug frame_width

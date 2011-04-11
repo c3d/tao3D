@@ -35,13 +35,13 @@ sphere_texture ->
     texture_transform 
         scale 400% , 400% , 400% 
 
-draw_sphere r ->
-    min x, y -> if (x < y) then x else y
+draw_sphere R ->
+    min X, Y -> if (X < Y) then X else Y
     sz -> 40% * min (window_width, window_height)
     sphere_texture
     sphere_shader
     rotatez -20 
-    rotatey r 
+    rotatey R 
     sphere 0, 0, 0, sz, sz, sz, 50, 50 
 
 draw_scene ->

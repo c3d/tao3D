@@ -5,7 +5,8 @@
 #
 #   make clean
 
-INSTROOT=$(shell pwd)/../../install
+include Makefile.config
+QMAKE_LIBDIR_QT_SANE="$(QMAKE_LIBDIR_QT:\\=/)"
 
 # Path to the Nullsoft Scriptable Install System (NSIS) compiler
 MAKENSIS = "/c/Program Files/NSIS/makensis"
@@ -27,7 +28,7 @@ tao_install:
 	[ -d build_root ] || mkdir -p build_root
 	cd ../.. && make install
 	cp -Rp $(INSTROOT)/* build_root
-	./copy_deps
+	./copy_deps "$(QMAKE_LIBDIR_QT_SANE)/../plugins"
 
 clean:
 	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install

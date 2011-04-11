@@ -240,6 +240,8 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
         }
         widget->updateGL();
     }
+    if (Tree *action = widget->shapeAction("mouseover", current))
+        XL::MAIN->context->Evaluate(action);
 
     previous = current;
     return next;
@@ -468,7 +470,7 @@ Activity *Selection::MouseMove(int x, int y, bool active)
             !selectionsMatch(oldSelection, widget->selection))
             widget->selectionChanged = true;
     }
-    
+
     // Need a refresh
     widget->updateGL();
 

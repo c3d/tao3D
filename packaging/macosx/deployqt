@@ -14,7 +14,6 @@
 #    are already OK (they are, because the script fix_qt_refs has been run
 #    on the app).
 #  - The macdeployqt command-line options are not supported.
-#  - No Qt plugins are currently deployed.
 #
 # REVISIT:
 #  - Improvement: get rid of hardcoded list (FRAMEWORKS) and Qt path
@@ -25,6 +24,7 @@
 # This software is property of Taodyne SAS - Confidential
 # Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 # (C) 2011 Jerome Forissier <jerome@taodyne.com>
+# (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
 # (C) 2011 Taodyne SAS
 # ******************************************************************************
 
@@ -46,6 +46,10 @@ fi
 
 BUNDLE="$1"
 FRAMEWORKS_SRC="$2"
+PLUGINS_SRC="${FRAMEWORKS_SRC}/../plugins"
+if [ ! -d "${PLUGINS_SRC}" ] ; then
+  PLUGINS_SRC="/Developer/Applications/Qt/plugins" # Assume binary package
+fi
 FIX_QT_REFS=../../modules/fix_qt_refs
 
 doo(){
@@ -70,6 +74,15 @@ cp_and_fix_framework() {
   fi
 }
 
+cp_and_fix_plugins() {
+  # cp_and_fix_plugins <plugins_src> <qt_framework_src> <plugins_dest>
+  # Ex: cp_and_fix_plugins /Developer/Applications/Qt/plugins /Library/Frameworks ./MyApp.app/Contents/plugins
+  doo cp -r "$1" "$3"
+  find "$3" -name "*.dylib" -print | while read f ; do
+      doo ${FIX_QT_REFS} "$f" "$2"
+    done
+}
+
 make_qt_conf() {
   CONFDIR="$1/Contents/Resources"
   CONF="${CONFDIR}/qt.conf"
@@ -89,5 +102,8 @@ doo mkdir -p "${FRAMEWORKS_DEST}"
 for f in ${FRAMEWORKS} ; do
   cp_and_fix_framework "$f" "${FRAMEWORKS_SRC}" "${FRAMEWORKS_DEST}"
 done
+
+cp_and_fix_plugins "${PLUGINS_SRC}" "${FRAMEWORKS_SRC}" "${BUNDLE}/Contents/plugins"
+
 make_qt_conf "${BUNDLE}"
 

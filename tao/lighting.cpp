@@ -96,7 +96,7 @@ void ShaderValue::Draw(Layout *where)
         if (!uniform && !attribute)
         {
             kstring cname = name->value.c_str();
-            GLuint uni = glGetUniformLocation(where->programId, cname);
+            GLint uni = glGetUniformLocation(where->programId, cname);
             if (uni >= 0)
             {
                 uniform = new ShaderUniformInfo(uni);

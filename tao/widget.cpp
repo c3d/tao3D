@@ -3041,9 +3041,6 @@ bool Widget::markChange(text reason)
 
     changeReason = reason;
 
-    // Cause the screen to redraw
-    refresh(0);
-
     // Caller is allowed to modify the source code
     return true;
 }

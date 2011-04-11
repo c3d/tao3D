@@ -5563,6 +5563,12 @@ Tree_p Widget::imagePx(Context *context,
     Infix_p resolution = imageSize(context, self, filename);
     Integer_p ww = resolution->left->AsInteger();
     Integer_p hh = resolution->right->AsInteger();
+    if (ww == 1 && hh == 1)
+    {
+        // File not found
+        ww->value = ImageTextureInfo::defaultTexture().width;
+        hh->value = ImageTextureInfo::defaultTexture().height;
+    }
     double sx = (double)w / (double)ww;
     double sy = (double)h / (double)hh;
 

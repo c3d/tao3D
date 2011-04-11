@@ -169,6 +169,7 @@ void Cube::Draw(Layout *where)
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
     glNormalPointer(GL_FLOAT, 0, normals);
 
+    //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {
@@ -285,6 +286,7 @@ void Cone::Draw(Layout *where)
     glVertexPointer(3, GL_DOUBLE, 0, &geom[0].x);
     glNormalPointer(GL_DOUBLE, 0, &norm[0].x);
 
+    //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
     {

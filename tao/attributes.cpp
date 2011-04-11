@@ -119,25 +119,6 @@ void TextureWrap::Draw(Layout *where)
     where->fillTextures[texUnit].wrapT = t;
 }
 
-void TextureMode::Draw(Layout *where)
-// ------------------------------------------------------------- ---------------
-//   Replay a texture mode
-// ----------------------------------------------------------------------------
-{
-    switch(texMode)
-    {
-    case 1: where->fillTextures[texUnit].mode = GL_MODULATE; break;
-    case 2: where->fillTextures[texUnit].mode = GL_ADD; break;
-    case 3: where->fillTextures[texUnit].mode = GL_ADD_SIGNED; break;
-    case 4: where->fillTextures[texUnit].mode = GL_SUBTRACT; break;
-    case 5: where->fillTextures[texUnit].mode = GL_INTERPOLATE; break;
-    case 6: where->fillTextures[texUnit].mode = GL_DOT3_RGB; break;
-    default:
-        where->fillTextures[texUnit].mode = GL_MODULATE; break;
-    }
-}
-
-
 void TextureTransform::Draw(Layout *)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode

@@ -5712,18 +5712,6 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
     return XL::xl_true;
 }
 
-Tree_p Widget::textureMode(Tree_p self, GLuint texMode)
-// ----------------------------------------------------------------------------
-//   Record texture mode
-// ----------------------------------------------------------------------------
-{
-    uint texUnit = layout->currentTexUnit;
-    layout->Add(new TextureMode(texMode, texUnit));
-    return XL::xl_true;
-}
-
-
-
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation

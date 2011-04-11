@@ -65,7 +65,7 @@ bool Shape::setTexture(Layout *where)
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
                     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
                 }
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, (where->fillTextures[i]).mode);
+                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
                 GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
                 GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);

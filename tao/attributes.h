@@ -111,17 +111,6 @@ struct TextureWrap : Attribute
     uint  texUnit;
 };
 
-struct TextureMode : Attribute
-// ----------------------------------------------------------------------------
-//    Record a texture wrapping setting
-// ----------------------------------------------------------------------------
-{
-    TextureMode(uint texMode, uint texUnit): Attribute(), texMode(texMode), texUnit(texUnit) {}
-    virtual void Draw(Layout *where);
-    uint  texMode;
-    uint  texUnit;
-};
-
 struct TextureTransform : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture transform

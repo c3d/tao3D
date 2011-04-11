@@ -407,7 +407,6 @@ public:
     Integer*    fillAnimatedTexture(Tree_p self, text fileName);
     Integer*    fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
-    Tree_p      textureMode(Tree_p self, GLuint texMode);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
     Tree_p      light(Tree_p self, GLenum function, GLfloat value);

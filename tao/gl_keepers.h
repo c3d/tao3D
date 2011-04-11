@@ -9,7 +9,7 @@
 //   Helper classes to save and restore OpenGL selected attributes and/or the
 //   current matrix.
 //
-//   The mask used to indicates which groups of state variables to save on the 
+//   The mask used to indicates which groups of state variables to save on the
 //   attribute stack is the same than the one of glPushAttrib.
 //
 //
@@ -104,12 +104,10 @@ struct GLAllStateKeeper : GLStateKeeper
     GLAllStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS,
                      bool saveModel = true,
                      bool saveProjection = true,
-                     uint64 saveTextureMatrix = ~0UL,
-                     uint maxTextureMatrix = 4)
+                     uint64 saveTextureMatrix = ~0UL)
         : GLStateKeeper(bits, saveModel),
           saveProjection(saveProjection),
-          saveTextureMatrix(saveTextureMatrix),
-          maxTextureMatrix(maxTextureMatrix)
+          saveTextureMatrix(saveTextureMatrix)
     {
         if (saveProjection)
         {
@@ -117,7 +115,7 @@ struct GLAllStateKeeper : GLStateKeeper
             glPushMatrix();
         }
 
-        for(uint i = 0; i <  maxTextureMatrix; i++)
+        for(uint i = 0; i <  TaoApp->maxTextureCoords; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {
@@ -137,7 +135,7 @@ struct GLAllStateKeeper : GLStateKeeper
             glPopMatrix();
         }
 
-        for(uint i = 0; i < maxTextureMatrix; i++)
+        for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {

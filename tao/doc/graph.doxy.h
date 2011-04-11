@@ -18,6 +18,14 @@
  *
  * All color component are express as a percentage, so values are between 0.0 and 1.0 inclusive.
  * Texture and color are combined (they are not exclusive).
+ *
+ * @par Multitexturing
+ *
+ * Multitexturing is the use of more than one texture at a time on a same primitive.
+ * For instance, the following code (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>) draws a rectangle using the combinaison of a
+ * texture of a wall and a second one of a spot to create the effect of the following figure.
+ *
+ * @include multitexturing.ddd
  * @{
  */
 /**
@@ -302,6 +310,25 @@ line_color_cymk (c:real, y:real, m:real, k:real);
  *
  */
 texture(filename:text);
+
+/**
+ * Selects the texture by its id.
+ * Build a GL texture out of an @p id.
+ * @note @c texture @c 0 deactivate the texture binded on the current unit.
+ */
+texture(id:integer);
+
+/**
+ * Selects the texture unit.
+ * Set the current texture unit to @p unit.
+ *
+ * Default value is 0.
+ *
+ * @note Only the fourth texture units can be used without shaders. The maximum number of texture units and coordinates depends on the graphic card.
+ * @note @c shader_set can be used to link the texture unit with a sampler inside shaders.
+ * @see OpenGL documentation about GL_MAX_TEXTURE_COORDS, GL_MAX_TEXTURE_IMAGE_UNITS and GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.
+ */
+texture_unit (unit:integer);
 
 /**
  * Create a GL animated texture.

@@ -44,10 +44,9 @@ struct TextureState
 //   The state of texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0), mode(GL_MODULATE) {}
+    TextureState(): wrapS(false), wrapT(false), id(0) {}
     bool        wrapS, wrapT;
     uint        id;
-    GLenum      mode;
 };
 
 struct LayoutState

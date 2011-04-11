@@ -218,7 +218,7 @@ void Layout::Draw(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix, TaoApp->maxTextureCoords);
+                            hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
     // Display all items
@@ -244,7 +244,7 @@ void Layout::DrawSelection(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix, TaoApp->maxTextureCoords);
+                            hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
     PushLayout(this);
@@ -269,7 +269,7 @@ void Layout::Identify(Layout *where)
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
-                            hasMatrix, false, hasTextureMatrix, TaoApp->maxTextureCoords);
+                            hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
 

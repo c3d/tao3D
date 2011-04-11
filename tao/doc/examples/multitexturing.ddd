@@ -29,10 +29,10 @@ draw_scene ->
     color "white"
     //Activate first unit 
     texture_unit 1 
-    texture "C:\Users\Psy\Desktop\wall.jpg" 
+    texture "wall.jpg" 
     //Activate second unit 
     texture_unit 2 
-    texture "C:\Users\Psy\Desktop\spot.jpg" 
+    texture "spot.jpg" 
     spot_shader 
     rectangle 0, 0, 200, 200
  

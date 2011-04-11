@@ -25,7 +25,9 @@
  * For instance, the following code (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>) draws a rectangle using the combinaison of a
  * texture of a wall and a second one of a spot to create the effect of the following figure.
  *
+ * @image html multitexturing.png
  * @include multitexturing.ddd
+ *
  * @{
  */
 /**

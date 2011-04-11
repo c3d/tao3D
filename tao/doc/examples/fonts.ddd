@@ -1,7 +1,8 @@
 // fonts.ddd
 msg -> <<A quick brown fox jumps over the lazy dog.
 >> 
-lineno -> 12 
+lineno -> 1
+lineno := 1
 
 write_text -> 
     text text lineno & ". " & msg 

@@ -268,6 +268,7 @@ bool GlyphCache::Find(const QFont &font,
         entry.lineWidth = 0;
         entry.interior = 0;
         entry.outline = 0;
+        entry.scalingFactor = fs;
 
         // Store the new entry
         perFont->Insert(code, entry);
@@ -397,6 +398,7 @@ bool GlyphCache::Find(const QFont &font,
         entry.lineWidth = 0;
         entry.interior = 0;
         entry.outline = 0;
+        entry.scalingFactor = fs;
 
         // Store the new entry
         perFont->Insert(code, entry);

@@ -775,19 +775,23 @@ void PageLayout::Compute(Layout *where)
     line->Add(items.begin(), items.end());
     items.clear();
 
-    // Loop while there are more lines to place
-    while (line)
     {
-        // Remember the line for vertical layout
-        page.Add(line);
+        // Save the font to let the vertical computing work with the original one. BUG#407
+        XL::Save<QFont> save(this->font);
 
-        // Compute horizontal layout for current line
-        line->Compute(this);
+        // Loop while there are more lines to place
+        while (line)
+        {
+            // Remember the line for vertical layout
+            page.Add(line);
 
-        // Get next line if there is anything left to layout
-        line = line->Remaining();
+            // Compute horizontal layout for current line
+            line->Compute(this);
+
+            // Get next line if there is anything left to layout
+            line = line->Remaining();
+        }
     }
-
     // Now that we have all lines, do the vertical layout
     coord top = space.Top() - this->top;
     coord bottom = space.Bottom() + this->bottom;

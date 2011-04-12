@@ -1097,7 +1097,7 @@ void Window::documentWasModified()
     // If we're called because we're loading a file, don't set modified state.
     // It is useless, and moreover it triggers an error message on Linux:
     //   "The window title does not contain a '[*]' placeholder"
-    if (!loadInProgress)
+    if (!loadInProgress && !isReadOnly)
         setWindowModified(true);
 }
 
@@ -1761,6 +1761,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     isUntitled = false;
     setCurrentFile(fileName);
+    setReadOnly(isReadOnly);
     if (XL::MAIN->options.slideshow)
         switchToSlideShow();
     return true;
@@ -1953,6 +1954,9 @@ void Window::markChanged(bool changed)
 //   Someone else tells us that the window is changed or not
 // ----------------------------------------------------------------------------
 {
+    if (changed && isReadOnly)
+        return;
+
 #ifndef CFG_NOSRCEDIT
     srcEdit->document()->setModified(changed);
 #endif

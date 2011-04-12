@@ -5457,6 +5457,8 @@ Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::Timer);
+
     GLuint texId = 0;
 
     if (img != "")

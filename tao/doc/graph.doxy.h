@@ -22,11 +22,11 @@
  * @par Multitexturing
  *
  * Multitexturing is the use of more than one texture at a time on a same primitive.
- * For instance, the following code (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>) draws a rectangle using the combinaison of a
- * texture of a wall and a second one of a spot to create the effect of the following figure.
+ * For instance, the following code (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>) draws a rectangle using the combinaison of
+ * wall and spot textures in order to create a nice lighting effect.
  *
- * @image html multitexturing.png
  * @include multitexturing.ddd
+ * @image html multitexturing.png "Multitexturing demo: multitexturing.ddd"
  *
  * @{
  */
@@ -327,7 +327,7 @@ texture(id:integer);
  * Default value is 0.
  *
  * @note Only the fourth texture units can be used without shaders. The maximum number of texture units and coordinates depends on the graphic card.
- * @note @c shader_set can be used to link the texture unit with a sampler inside shaders.
+ * @note @c shader_set can be used to link texture unit with sampler inside shaders.
  * @see OpenGL documentation about GL_MAX_TEXTURE_COORDS, GL_MAX_TEXTURE_IMAGE_UNITS and GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.
  */
 texture_unit (unit:integer);

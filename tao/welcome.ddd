@@ -8,7 +8,8 @@ text_box 0, 0, 800, 600,
     text "Tao Presentations" 
     line_break 
 
-    font "Arial", 20, italic 
+    font "Arial", 20
+    italic
     color "darkgrey" 
     line_width 0 
     text "Version " & tao_version

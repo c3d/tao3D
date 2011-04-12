@@ -1,4 +1,4 @@
-text_box 0, 0, 800, 600, 
+text_box 0, 0, window_width, window_height,
     font "Papyrus", 80 
     color_hsv time * 5, 60% , 100% , 50% 
     line_width 2 
@@ -16,7 +16,8 @@ text_box 0, 0, 800, 600,
     line_break 
     text "© Copyright 2010-2011 Taodyne SAS" 
 
-text_box 0, -400, 800, 400, 
+text_box 0, 0, window_width, window_height,
+    vertical_align_bottom
     font "Arial", 28 
     align_center 
     color "darkgreen" 

@@ -30,6 +30,7 @@
 #include "runtime.h"
 #include "repository.h"
 #include <QSettings>
+#include <QHash>
 
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
@@ -132,6 +133,20 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                             debug() << "  Importing module " << m_n
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
+
+                    if (!execute && m.native)
+                    {
+                        // execute == false when file is [re]loaded => we won't
+                        // call enter_symbols at each execution
+                        enter_symbols_fn es =
+                            (enter_symbols_fn) m.native->resolve("enter_symbols");
+                        if (es)
+                        {
+                             IFTRACE(modules)
+                                    debug() << "    Calling enter_symbols\n";
+                            es(context);
+                        }
+                    }
 
                     XL::xl_import(context, self, +xlPath, execute);
                 }
@@ -796,11 +811,9 @@ bool ModuleManager::loadNative(Context * /*context*/,
                         mi(&api, &m);
                     }
 
-                    IFTRACE(modules)
-                            debug() << "    Calling enter_symbols\n";
                     if (m_p)
                         m_p->native = lib;
-                    es(XL::MAIN->context);
+                    // enter_symbols is called later, when module is imported
                 }
             }
         }

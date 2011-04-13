@@ -1,0 +1,3 @@
+newmtl plane_mat
+    map_Kd plane.png
+

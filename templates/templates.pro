@@ -18,3 +18,4 @@ SUBDIRS  = blank pythagorean_theorem hello_world
 # Some templates depend on module availability
 include (../modules/module_list.pri)
 contains (MODULES, slides):SUBDIRS += simple_slides
+contains (MODULES, object_loader):SUBDIRS += pigs_fly

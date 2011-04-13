@@ -4867,11 +4867,13 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraPosition.x),
-                     new Infix(",",
-                               new Real(cameraPosition.y),
-                               new Real(cameraPosition.z)));
+    Infix_p infix = new Infix(",",
+                              new Real(cameraPosition.x),
+                              new Infix(",",
+                                        new Real(cameraPosition.y),
+                                        new Real(cameraPosition.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -4896,11 +4898,13 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraTarget.x),
-                     new Infix(",",
-                               new Real(cameraTarget.y),
-                               new Real(cameraTarget.z)));
+    Infix_p infix = new Infix(",",
+                              new Real(cameraTarget.x),
+                              new Infix(",",
+                                        new Real(cameraTarget.y),
+                                        new Real(cameraTarget.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -4925,11 +4929,13 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraUpVector.x),
-                     new Infix(",",
-                               new Real(cameraUpVector.y),
-                               new Real(cameraUpVector.z)));
+    Infix_p infix =  new Infix(",",
+                               new Real(cameraUpVector.x),
+                               new Infix(",",
+                                         new Real(cameraUpVector.y),
+                                         new Real(cameraUpVector.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -5656,6 +5662,8 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     list_files(context, current, pattern, parent);
     if (!result)
         result = XL::xl_nil;
+    else
+        result->SetSymbols(self->Symbols());
     return result;
 }
 

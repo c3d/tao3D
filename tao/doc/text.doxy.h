@@ -57,6 +57,8 @@
  *     <tr><th>Family</th><th>Styles</th></tr>
  *     <tr><td>Andika Basic</td><td>Regular</td></tr>
  *     <tr><td>Cherry Cream Soda</td><td>Regular</td></tr>
+ *     <tr><td>Droid Sans</td><td>Regular, Bold</td></tr>
+ *     <tr><td>Droid Sans Mono</td><td>Regular</td></tr>
  *     <tr><td>Ubuntu</td><td>Regular, Italic, Bold, Bold Italic</td></tr>
  *     <tr><td>Yanone Kaffeesatz</td><td>Thin, Light, Regular, Bold</td></tr>
  *  <tr>

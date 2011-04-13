@@ -1,0 +1,28 @@
+color 1, 1, 1, 1
+locally
+    texture_wrap true, true
+    texture_transform {scale 5, 5, 5}
+    texture "milkyway.jpg"
+    rotatey 0.02 * page_time + 90
+    scale 1, -1, 1
+    sphere 0, 0, 0, 11000
+rotatez -23
+locally
+    texture "earth.bmp"
+    rotatey 5 * page_time + 250
+    sphere 0, 0, 0, 400
+locally
+    frame_texture 1900, 600,
+        color 1, 1, 1, 1
+        reset_transform
+        // If font Arial Unicode installed, it will be used.
+        // Otherwise, unifont will be used (unifont is packaged
+        // with Tao presentations).
+        font "Arial Unicode MS", "unifont", 72
+        move_to -800, -9, 0
+        text "Hello World! or Καλημέρα κόσμε; or こんにちは 世界"
+    rotatey -11 * page_time + 180
+    color 20% , 20% , 20% , 70%
+    sphere 0, 0, 0, 410
+    color 100% , 90% , 20% , 90%
+    sphere 0, 0, 0, 440

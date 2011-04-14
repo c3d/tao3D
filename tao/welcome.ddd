@@ -1,5 +1,5 @@
 text_box 0, 0, window_width, window_height,
-    font "Papyrus", 80 
+    font "Ubuntu", 80, bold
     color_hsv time * 5, 60% , 100% , 50% 
     line_width 2 
     line_color "black" 

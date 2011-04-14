@@ -846,9 +846,9 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
             resize(hint.width(), hint.height());
         }
 
-        glClearColor(0,0,0,0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor4f(1,1,1,1);
+        // glClearColor(0,0,0,0);
+        // glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        // glColor4f(1,1,1,1);
 
 #if 0
         // Rendering through a QImage
@@ -864,7 +864,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
                          image.width(), image.height(), 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, image.bits());
         }
-#elif 0
+#elif 1
         static QImage image(widget->width(), widget->height(),
                             QImage::Format_ARGB32);
         widget->setAutoFillBackground(false);
@@ -877,6 +877,8 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
         glTexImage2D(GL_TEXTURE_2D, 0, 3,
                      image.width(), image.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, image.bits());
+
+        return textureId;
 
 #else
         // Faster rendering through a frame buffer object

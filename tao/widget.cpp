@@ -669,7 +669,7 @@ bool Widget::refreshNow(QEvent *event)
             text what = event ? LayoutState::ToText(event->type()) : "NULL";
             std::cerr << "Full refresh due to event: " << what << "\n";
         }
-        if (event)
+        if (event && event->type() != QEvent::MouseMove)
         {
             refreshEvents.erase(event->type());
             if (event->type() == QEvent::Timer)
@@ -697,8 +697,8 @@ bool Widget::refreshNow(QEvent *event)
             IFTRACE(layoutevents)
                 std::cerr << "Partial refresh due to event: "
                           << LayoutState::ToText(event->type()) << "\n";
-
-            refreshEvents.erase(event->type());
+            if (type != QEvent::MouseMove)
+                refreshEvents.erase(event->type());
             if (type == QEvent::Timer)
                 nextRefresh = DBL_MAX;
 
@@ -813,6 +813,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
+    refreshEvents.clear(); //
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -4394,7 +4395,12 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::MouseMove);
+    IFTRACE(layoutevents)
+        std::cerr << "Register action " << name
+        << " on layout " << layout->PrettyId() << std::endl;
+    if (name == "mouseover")
+        refreshOn(QEvent::MouseMove);
+
     actionMap[name][layout->id] = action;
     if (!action->Symbols())
         action->SetSymbols(self->Symbols());
@@ -6638,7 +6644,6 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Update document with prog
     editCursor = new QTextCursor(new QTextDocument(""));
@@ -7431,7 +7436,6 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
@@ -7587,7 +7591,6 @@ Tree_p Widget::urlTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
@@ -7631,7 +7634,6 @@ Tree_p Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
@@ -7671,7 +7673,6 @@ Tree_p Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7713,7 +7714,6 @@ Tree_p Widget::checkBoxButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7755,7 +7755,6 @@ Tree_p Widget::pushButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -8027,7 +8026,6 @@ Tree_p Widget::colorChooserTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
@@ -8074,7 +8072,6 @@ Tree_p Widget::fontChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
@@ -8305,7 +8302,6 @@ Tree_p Widget::fileChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
@@ -8402,7 +8398,6 @@ Tree_p Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
@@ -8449,7 +8444,6 @@ Tree_p Widget::movieTexture(Tree_p self, Text_p url)
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::MouseMove);
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)

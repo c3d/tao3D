@@ -1,0 +1,350 @@
+import ObjectLoader 1.0
+import TaoVisuals 1.0
+logo_page "Intro Logo" 
+title_page "Step 1: Type this", "in any old text editor" 
+code_page "Description code", 22.5, <<slide "Share your message",
+    * "Don't waste time"
+    * "Get your point across!">>, 
+    after 4.0, 
+        locally 
+            translate 250, -150, 350 
+            rotatez 20 
+            rotatey -20 
+            show -expm1 ( - (page_time - 4) * 1.3) 
+            text_box 0, 0, 1200, 100, 
+                editors -> "Visual Studio", "ed", "TextEdit", "Emacs", "vi", "Eclipse", "nedit", "nano", "Notepad", "Word", "SimpleText", "Kedit", "Notepad++", "BBEdit", "CodeWright", "Emacs", "SlickEdit", "SubEthaEdit", "E", "JOVE", "EVE", "Pico", "ne", "MinEd", "Emacs", "mcedit", "LE", "JOE", "jupp", "XCode", "Diakonos", "many other", "many other", "many other", "many other", "many other" 
+                align 0.0 
+                vertical_align 0.5 
+                color_hsv 30 * page_time, 100% , 40% , 50% 
+                font "Ubuntu", 80 
+                text "Compatible with " 
+                text editors at min (integer ( ( (page_time - 4) * 10) + 1) , 36) 
+
+title_page "Step 2: Show this", "instantly!" 
+slide "Share your message", 
+    * "Don't waste time" 
+    * "Get your point across!"
+ 
+title_page "Step 3: repeat", "Focus on your message" 
+code_page "Second page", 42.5, <<slide "Reveal your inner geek",
+    * "Add computations: " & text_time
+    flying_object "Amiga Boink"
+    * "Make it your own"
+    flying_object "piggy.3ds"
+    * "Be creative!">>, 
+    after 5.0, 
+        locally 
+            color "white", 70% 
+            line_color "black" 
+            line_width 2 
+            speech_balloon 400, 230, 450, 200, 10, 250, 40 
+            text_box 400, 230, 430, 180, 
+                color_hsv 42 * page_time, 70% , 60% , 70% 
+                line_width 0 
+                show -expm1 ( - (page_time - 5) * 0.3) 
+                font "Ubuntu", 60 
+                align 0.5 
+                vertical_align 0.5 
+                text "Geeks will do presentations..."
+     
+    after 7.0, 
+        locally 
+            color "white", 70% 
+            line_color "black" 
+            line_width 2 
+            speech_balloon 400, -250, 450, 200, 10, 200, -80 
+            text_box 400, -250, 430, 180, 
+                color_hsv 180 - 61 * page_time, 70% , 60% , 70% 
+                line_width 0 
+                show -expm1 ( - (page_time - 7) * 0.3) 
+                font "Ubuntu", 60 
+                align 0.5 
+                vertical_align 0.5 
+                text "the day pigs fly! That's today!"
+ 
+title_page "Instant reward", "No caffeine required" 
+slide "Reveal your inner geek", 
+    locally 
+        * "Computations: " & text_time 
+        flying_object "Amiga Boink" 
+        * "Make it your own" 
+        flying_object "piggy/piggy_placeholder.obj" 
+        * "Be creative"
+ 
+page "Statistics", 
+    fly_theme_rescale fly_theme_window_scale 
+    rotatey -20 
+    locally 
+        color "lightgray", 20% 
+        rectangle 0, 0, 1200, 900
+     
+    text_box 0, 0, 1200, 800, 
+        -T:text -> (paragraph_break; text T) 
+        font "Droid Sans Mono", 48 
+        align 0.5 
+        vertical_align 1.0 
+        paragraph_space 70, 70 
+        color_hsv 20 * time, 100% , 30% 
+        font "Ubuntu", 90 
+        text "This entire show is" 
+        after 1.0, 
+            font "Gentium Plus", 70, italic 
+            - "an interactive presentation, not a movie"
+         
+        after 1.5, 
+            - "Less than 300 lines of actual code"
+         
+        after 2.0, 
+            - "or less than 10Kb, theme included"
+         
+        after 2.5, 
+            font_size 60 
+            line_break 
+            text "That's 0.00001GB in modern units" 
+            font_size 70
+         
+        after 3.0, 
+            - "Fun! Doesn't seem like real work..."
+     
+    after 4.0, 
+        locally 
+            fly_theme_lights 
+            translate 550, -800 - 400 * expm1 ( - (page_time - 4) * 1.3) , 200 
+            rotatez -10 
+            rotatex -90.0 + 20 * sin (15 * time) 
+            rotatez -10 
+            object 0, 0, 0, 200, 200, 200, "piggy/piggy_placeholder.obj"
+ 
+title_page "Don't tell your boss", "how easy it is!" 
+logo_page "Final Logo" 
+fly_theme_lights -> 
+// ----------------------------------------------------------------------------
+//   One light in the upper right front, neutral colors
+// ----------------------------------------------------------------------------
+    light 0 
+    light_position 5000, 5000, 5000, 1 
+    light_spot_direction -1, -1, -1 
+    light_spot_exponent 64 
+    light_spot_cutoff 10 
+    light_attenuation 1, 0.0, 0.0 
+    light_ambient 100% , 100% , 100% , 100% 
+    light_diffuse 50% , 60% , 60% , 100% 
+    light_specular 100% , 100% , 100% , 100% 
+
+    material_ambient 50% , 60% , 70% , 1 
+    material_diffuse 40% , 20% , 50% , 1 
+    material_specular 100% , 100% , 100% , 1 
+    material_emission 40% , 25% , 10% , 1 
+    material_shininess 120.0
+ 
+fly_theme_background -> 
+// ----------------------------------------------------------------------------
+//    Background picture : blue sky, far far behind
+// ----------------------------------------------------------------------------
+    locally 
+        color "white" 
+        translatez -20000 
+        image 0, 0, 500% , 500% , "sky.jpg"
+ 
+fly_theme_flying_object -> "piggy/piggy_placeholder.obj" 
+flying_object T:text -> fly_theme_flying_object := T 
+fly_theme_defaults -> flying_object "plane/plane_placeholder.obj" 
+fly_theme_adjust_for "plane/plane_placeholder.obj" -> 
+// ----------------------------------------------------------------------------
+//    Rotate the plane so that it flies straight
+// ----------------------------------------------------------------------------
+    rotatex -88 
+    rotatey -10
+ 
+fly_theme_adjust_for "piggy/piggy_placeholder.obj" -> 
+// ----------------------------------------------------------------------------
+//    Put the pig in the right position for the banner and make it 'walk'
+// ----------------------------------------------------------------------------
+    translate 0, 40, -100 
+    rotatex -90 + 10 * sin (10 * time) 
+    rotatez 180 
+    scale 70% , 70% , 70% 
+
+
+fly_theme_fly "Amiga Boink" -> 
+// ----------------------------------------------------------------------------
+//    Description of an "Amiga Boink Demo"-style sphere
+// ----------------------------------------------------------------------------
+    locally 
+        frame_texture 128, 64, 
+            color "white" 
+            rectangle 0, 0, 200, 200 
+            color "red" 
+            rectangle -16, -16, 32, 32 
+            rectangle 16, 16, 32, 32 
+            rectangle 48, -16, 32, 32 
+            rectangle -48, 16, 32, 32
+         
+        texture_wrap true, true 
+        texture_transform 
+            scale 400% , 400% , 400% 
+
+        rotatez 20 
+        translate 0, 220, -50 
+        rotatey 20 * time 
+        color "white" 
+        sphere 0, 0, 0, 200
+ 
+fly_theme_fly T:text -> 
+// ----------------------------------------------------------------------------
+//   Fly a 3D object imported from a mesh file (e.g. .3ds file)
+// ----------------------------------------------------------------------------
+    locally 
+        fly_theme_adjust_for T 
+        object 0, 0, 0, 400, 400, 400, T
+ 
+fly_theme_banner -> 
+// ----------------------------------------------------------------------------
+//   Geometry for a banner flying behind the plane
+// ----------------------------------------------------------------------------
+    t -> 1.3015e+09 
+    side N:integer, Y:real -> 
+        line_to -50 * N, Y, 40 * sin (0.8 * (N + exp ( -N * 0.3) + t * 4) ) * exp ( -N * 0.1) - N ^ 2 * 0.4
+     
+    up_side N:integer -> side N, -100 
+    dn_side N:integer -> side 30 - N, 100 
+    t := time 
+    path 
+        up_side with 0 .. 30 
+        dn_side with 0 .. 30
+ 
+fly_theme_title T:text -> 
+// ----------------------------------------------------------------------------
+//    Display the title with a smoke-like texture
+// ----------------------------------------------------------------------------
+    puff 0 -> false 
+    puff N:integer -> 
+        color "darkgrey", 50% + 20% * sin N 
+        circle 80 * sin (3.27 * N + 0.2 * time) , 80 * sin (8.67 * N + 0.11 * time) , 30 * sin (20 * N) 
+        puff N - 1
+     
+    locally 
+        translatez 1000 * sin (0.3 * time) + 500 
+        frame_texture 200, 200, 
+            puff 100
+         
+        text_box 0, 300, 800, 200, 
+            align 0.5 
+            vertical_align 0.5 
+            font "Luckiest Guy", 120 
+            color_hsv 100 * time, 20% , 40% 
+
+            path 
+                text T
+ 
+fly_theme_window_scale -> min (window_width / 1280.0, window_height / 1024.0) 
+fly_theme_rescale S:real -> scale S, S, S 
+fly_theme_bullet -> 413 
+slide T:text, B -> 
+// ----------------------------------------------------------------------------
+//    Create a slide with title T and body B
+// ----------------------------------------------------------------------------
+    page T, 
+        fly_theme_rescale fly_theme_window_scale 
+        fly_theme_defaults 
+        fly_theme_background 
+        fly_theme_bullet := 0 
+        locally 
+            do B
+         
+        fly_theme_title T
+ 
+*T:text -> 
+// ----------------------------------------------------------------------------
+//   Create a bullet point with the given text
+// ----------------------------------------------------------------------------
+    locally 
+        fly_theme_lights 
+        translatex 1500 + 1500 * expm1 ( - (page_time - 8 * fly_theme_bullet) * 0.3) 
+
+        angle -> 10 * page_time - fly_theme_bullet * 60 
+        fly_theme_bullet := fly_theme_bullet + 1 
+        rotatey angle 
+        translatex 800 
+        locally 
+            rotatey 80 
+            rotatex -10 
+            translate -100, 200, 0 
+            frame_texture 1500, 200, 
+                color "white" 
+                rectangle 0, 0, 1500, 200 
+                if sin (angle * pi / 180 - pi / 6) > 0 then 
+                    scale -1, 1, 1
+                 
+                text_box 0, 0, 1500, 200, 
+                    align 0.5 
+                    vertical_align 0.5 
+                    color "black" 
+                    font "Orbitron/Black", 90 
+                    text T
+             
+            fly_theme_banner
+         
+        fly_theme_fly fly_theme_flying_object
+     
+    translatey -250
+ 
+title_page T:text, S:text -> 
+// ----------------------------------------------------------------------------
+//   Draw a title page with title and subtitle
+// ----------------------------------------------------------------------------
+    page T, 
+        fly_theme_rescale fly_theme_window_scale 
+        text_box 0, 0, 1100, 800, 
+            align 0.5 
+            vertical_align 0.5 
+            color_hsv 20 * time, 80% , 80% 
+
+            font "Ubuntu", 130 
+            text T 
+            font "Tangerine", 140, bold 
+            line_break 
+            text S
+ 
+logo_page T:text -> 
+// ----------------------------------------------------------------------------
+//   A page showing the Taodyne logo
+// ----------------------------------------------------------------------------
+    page T, 
+        fly_theme_rescale fly_theme_window_scale 
+        locally 
+            color "white" 
+            translatez -29000 - 30000 * expm1 ( -page_time * 2.5) 
+            rotatey 360 * expm1 ( -page_time * 2.5) 
+            tv_taodyne_logo 0, 0, 930, 414 
+            text_box 0, -250, 1000, 100, 
+                font "Droid Sans Mono", 50 
+                color "darkblue" 
+                align 0.5 
+                vertical_align 0.5 
+                text "http://www.taodyne.com"
+ 
+code_page T:text, S:real, C:text, Ad -> 
+// ----------------------------------------------------------------------------
+//    Display a page showing some code with optional additional stuff (Ad)
+// ----------------------------------------------------------------------------
+    page T, 
+        fly_theme_rescale fly_theme_window_scale 
+        locally 
+            color "lightgray", 20% 
+            rounded_rectangle 0, 0, 1200, 900, 50
+         
+        text_box 0, 0, 1100, 800, 
+            align 0.0 
+            vertical_align 0.5 
+            font "Droid Sans Mono", 48 
+            color_hsv 20 * time, 100% , 30% 
+            text text_range (C, 0, min (integer (page_time * S) , text_length C) ) 
+
+            color "red" 
+            rectangle 0, 0, 50, 10
+         
+        do Ad
+ 
+zero N:integer -> if N < 10 then "0" & text N else text N 
+text_time -> (text hours & ":" & zero minutes & ":" & zero seconds) 

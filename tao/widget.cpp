@@ -5573,6 +5573,10 @@ Tree_p Widget::imagePx(Context *context,
     }
     double sx = (double)w / (double)ww;
     double sy = (double)h / (double)hh;
+    if ((double)w == 0.0 && (double)h != 0)
+        sx = sy;
+    if ((double)h == 0.0 && (double)w != 0)
+        sy = sx;
 
     return image(context, self, x, y, new Real(sx), new Real(sy), filename);
 }

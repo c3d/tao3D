@@ -117,6 +117,7 @@ void FrameInfo::begin()
 // ----------------------------------------------------------------------------
 {
     // Clear the render FBO
+    checkGLContext();
     int ok = render_fbo->bind();
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();

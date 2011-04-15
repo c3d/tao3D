@@ -203,8 +203,6 @@ public:
     bool        set(Tree *shape, text n, TreeList &a, text sh = "group,shape");
     bool        get(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
-    bool        set(Tree *shape, text n, attribute_args &a,
-                    text sh = "group,shape");
     bool        isReadOnly();
     QStringList listNames();
 

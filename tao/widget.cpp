@@ -1346,7 +1346,7 @@ void Widget::paste()
                                new XL::Text(+mimeData->text()));
         else return;
         // Insert a text box with that content at the end of the doc/page.
-        std::vector<Tree*> arg_list;
+        TreeList arg_list;
         arg_list.push_back( new XL::Integer(0LL));
         arg_list.push_back( new XL::Integer(0LL));
         arg_list.push_back( new XL::Integer(200));
@@ -3434,18 +3434,15 @@ bool Widget::get(Tree *shape, text name, XL::TreeList &args, text topName)
     return true;
 }
 
-
 bool Widget::set(Tree *shape, text name, XL::TreeList &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
 {
     Tree *call = new XL::Name(name);
-    if (uint arity = args.size())
+    if (args.size())
     {
-        Tree *argsTree = args[0];
-        for (uint a = 1; a < arity; a++)
-            argsTree = new XL::Infix(",", argsTree, args[a]);
+        Tree *argsTree = list2tree(args, ",");
         call = new XL::Prefix(call, argsTree);
     }
 
@@ -3479,24 +3476,6 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
     }
 
     return true;
-}
-
-
-bool Widget::set(Tree *shape, text name, attribute_args &args, text topName)
-// ----------------------------------------------------------------------------
-//   Set the arguments, building the comma-separated list
-// ----------------------------------------------------------------------------
-{
-    Tree *call = new XL::Name(name);
-    if (uint arity = args.size())
-    {
-        Tree *argsTree = new XL::Real(args[0]);
-        for (uint a = 1; a < arity; a++)
-            argsTree = new XL::Infix(",", argsTree, new XL::Real(args[a]));
-        call = new XL::Prefix(call, argsTree);
-    }
-
-    return set(shape, name, call, topName);
 }
 
 

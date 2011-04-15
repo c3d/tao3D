@@ -26,15 +26,11 @@ new_title_only_slide T:text ->
         nil
 
 do_test T:text ->
+    theme T
     new_title_slide T
     new_slide T
     new_title_only_slide T
 
-theme := "WhiteOnGray"
-do_test theme
-
-theme := "Rounded"
-do_test theme
-
-theme := "Keyboard"
-do_test theme
+do_test "WhiteOnGray"
+do_test "Rounded"
+do_test "Keyboard"

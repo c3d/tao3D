@@ -103,9 +103,7 @@ title_story_bg_rect "Rounded" ->
 
 // Keyboard
 
-background "Keyboard" ->
-    set_picture_background "image:keyboard.jpg"
-    show_picture_background
+background "Keyboard" -> show_picture_background
 
 title_bg_rect "Keyboard" ->
     rx -> title_bg_rect_x "Rounded"
@@ -148,16 +146,12 @@ story_color       "Keyboard", Level:integer -> color keyboard_theme_gray
 bullet_text_color "Keyboard"                -> color keyboard_theme_gray
 
 title_font_size "Keyboard" -> font_size 72
+theme_background_picture "Keyboard" -> "image:keyboard.jpg"
 
 
 // Seyes
 
-background "Seyes" ->
-    set_picture_background "image:seyes.jpg"
-    show_picture_background
-    locally
-        color 1.0, 1.0, 1.0, 0.4
-        rectangle 0, 0, slide_width * 1.1, slide_height * 1.1
+background "Seyes" -> show_picture_background
 
 title_font_family       "Seyes" -> font "Dancing Script"
 story_font_family       "Seyes" -> font "Dancing Script"
@@ -194,6 +188,7 @@ title_bg_rect "Seyes" ->
             move_to rx-Lw/2, ry-rh/2-5, 0
             line_to rx+Lw/2, ry-rh/2-5, 0
 
+theme_background_picture "Seyes" -> "image:seyes.jpg"
 
 
 
@@ -476,6 +471,8 @@ theme T:text ->
 // ----------------------------------------------------------------------------
 //   Select a theme name
 // ----------------------------------------------------------------------------
+    if theme_background_picture T <> "" then
+        set_picture_background theme_background_picture T
     theme := T
 
 
@@ -624,6 +621,12 @@ set_picture_background File:text->
 //   Select the background picture
 // ----------------------------------------------------------------------------
    background_picture := File
+
+
+theme_background_picture Theme:text -> ""
+// ----------------------------------------------------------------------------
+//   Default background picture for a theme is none
+// ----------------------------------------------------------------------------
 
 
 enlarge_background_object Z:real ->

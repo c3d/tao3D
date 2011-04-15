@@ -172,7 +172,7 @@ XL::Infix * text_portability::fragmentToTree(const QTextFragment &fragment,
     //////////////////////////
     // color
     QColor txtColor = charFormat.foreground().color().toRgb();
-    std::vector<Tree*> color_list;
+    TreeList color_list;
     color_list.push_back(new XL::Real(txtColor.redF()));
     color_list.push_back(new XL::Real(txtColor.greenF()));
     color_list.push_back(new XL::Real(txtColor.blueF()));
@@ -183,7 +183,7 @@ XL::Infix * text_portability::fragmentToTree(const QTextFragment &fragment,
     XL::Prefix *textColor = new XL::Prefix(n, comma);
 
     // Font
-    std::vector<Tree*> font_list;
+    TreeList font_list;
     XL::Name *style = NULL;
     QFont::Style st = charFormat.font().style();
     switch (st) {
@@ -303,7 +303,7 @@ XL::Infix * text_portability::fragmentToTree(const QTextFragment &fragment,
 }
 
 
-Tree_p list2tree(std::vector<Tree*> v, text infix)
+Tree_p list2tree(TreeList v, text infix)
 // ----------------------------------------------------------------------------
 //   Builds a tree from a list of tree with the given infix.
 // ----------------------------------------------------------------------------
@@ -312,7 +312,7 @@ Tree_p list2tree(std::vector<Tree*> v, text infix)
     if (v.size() == 1) return v[0];
 
     Tree* result = NULL;
-    std::vector<Tree*>::reverse_iterator rit;
+    TreeList::reverse_iterator rit;
     // First build the bottom of the tree
     rit = v.rbegin();
     result = *rit;

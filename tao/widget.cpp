@@ -7102,6 +7102,15 @@ Text_p Widget::loadText(Tree_p self, text file)
 }
 
 
+Text_p Widget::taoLanguage(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current language code of the Tao GUI ("en", "fr")
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(+TaoApp->lang);
+}
+
+
 Text_p Widget::taoVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the version of the Tao program

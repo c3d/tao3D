@@ -1455,6 +1455,11 @@ PREFIX(LoadText,  tree,  "load_text",
        SYNOPSIS("Load a text file from disk")
        DESCRIPTION("Load a text file from disk. It uses the 'doc' prefix to look into resources")
        RETURNS(tree, "The content of the file."))
+PREFIX(TaoLanguage, text, "tao_language", , RTAO(taoLanguage(self)),
+       GROUP(text)
+       SYNOPSIS("Return the current language used by the Tao program") 
+       DESCRIPTION("Returns the two-letter ISO 639 language code of the current locale. For instance: en, fr.")
+       RETURNS(text, "The current language code"))
 PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
        GROUP(version)
        SYNOPSIS("The Tao version")
@@ -2450,7 +2455,6 @@ PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
        SYNOPSIS("")
        DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
        RETURNS(tree, ""))
-
 
 // ============================================================================
 //

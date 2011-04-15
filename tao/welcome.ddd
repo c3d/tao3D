@@ -19,7 +19,12 @@ text_box 0, 0, window_width, window_height,
     vertical_align_bottom
     font "Arial", 28 
     align_center 
-    color "darkgreen" 
+    color "darkgreen"
+    help_message tao_language
+
+help_message "fr" ->
     text "L'aide en ligne se trouve dans le menu ""Aide"""
-    line_break 
+
+help_message T:text ->
     text "Online help is available in the ""Help"" menu"
+

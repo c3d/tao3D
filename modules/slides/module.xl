@@ -43,6 +43,25 @@ title_color       "WhiteOnGray"                -> color "white"
 story_color       "WhiteOnGray", Level:integer -> color "white"
 bullet_text_color "WhiteOnGray"                -> color "white"
 
+// WhiteOnPicture
+
+background        "WhiteOnPicture"                -> show_picture_background
+bullet_color      "WhiteOnPicture", Level:integer -> color "white"
+bullet_line_color "WhiteOnPicture", Level:integer -> line_color "white"
+title_color       "WhiteOnPicture"                -> color "white"
+story_color       "WhiteOnPicture", Level:integer -> color "white"
+bullet_text_color "WhiteOnPicture"                -> color "white"
+
+
+// BlackOnPicture
+
+background        "BlackOnPicture"                -> show_picture_background
+bullet_color      "BlackOnPicture", Level:integer -> color "black"
+bullet_line_color "BlackOnPicture", Level:integer -> line_color "black"
+title_color       "BlackOnPicture"                -> color "black"
+story_color       "BlackOnPicture", Level:integer -> color "black"
+bullet_text_color "BlackOnPicture"                -> color "black"
+
 
 // Rounded
 
@@ -85,7 +104,8 @@ title_story_bg_rect "Rounded" ->
 // Keyboard
 
 background "Keyboard" ->
-    show_picture_background "image:keyboard.jpg"
+    set_picture_background "image:keyboard.jpg"
+    show_picture_background
 
 title_bg_rect "Keyboard" ->
     rx -> title_bg_rect_x "Rounded"
@@ -127,16 +147,17 @@ title_color       "Keyboard"                -> color keyboard_theme_gray
 story_color       "Keyboard", Level:integer -> color keyboard_theme_gray
 bullet_text_color "Keyboard"                -> color keyboard_theme_gray
 
-title_font_size "Keyboard" -> font_size 72 * font_scaling
+title_font_size "Keyboard" -> font_size 72
 
 
 // Seyes
 
 background "Seyes" ->
-    show_picture_background "image:seyes.jpg"
+    set_picture_background "image:seyes.jpg"
+    show_picture_background
     locally
         color 1.0, 1.0, 1.0, 0.4
-        rectangle 0, 0, window_width * 1.1, window_height * 1.1
+        rectangle 0, 0, slide_width * 1.1, slide_height * 1.1
 
 title_font_family       "Seyes" -> font "Dancing Script"
 story_font_family       "Seyes" -> font "Dancing Script"
@@ -149,9 +170,9 @@ title_color       "Seyes"                -> color seyes_theme_purple
 story_color       "Seyes", Level:integer -> color seyes_theme_purple
 bullet_text_color "Seyes"                -> color seyes_theme_purple
 
-story_bg_rect_w "Seyes" -> (22.0/28.0) * window_width
+story_bg_rect_w "Seyes" -> (22.0/28.0) * slide_width
 
-story_bg_rect_x "Seyes" -> ( 2.0/28.0) * window_width
+story_bg_rect_x "Seyes" -> ( 2.0/28.0) * slide_width
 
 title_bg_rect "Seyes" ->
 // ----------------------------------------------------------------------------
@@ -175,24 +196,25 @@ title_bg_rect "Seyes" ->
 
 
 
+
+// ============================================================================
+// 
+//   Theme control variables
+// 
+// ============================================================================
+
+theme -> ""
+background_picture -> "image:seyes.jpg"
+slide_width -> 1024.0
+slide_height -> 768.0
+current_zscale -> 1.0
+
+
 // ============================================================================
 //
 //    Slide structure, default theme
 //
 // ============================================================================
-
-// Default theme and background picture
-theme -> ""
-background_picture -> "seyes.jpg"
-
-
-font_scaling ->
-// ----------------------------------------------------------------------------
-//   Default font scaling factor. Applied to font size for 768 px height.
-// ----------------------------------------------------------------------------
-     K -> integer (7 * window_height / 768)
-     K / 7.0
-
 
 title_color Theme:text ->
 // ----------------------------------------------------------------------------
@@ -205,7 +227,7 @@ title_font_size Theme:text ->
 // ----------------------------------------------------------------------------
 //   Default font size for titles
 // ----------------------------------------------------------------------------
-    font_size 84 * font_scaling
+    font_size 84
 
 
 title_font_weight Theme:text ->
@@ -253,7 +275,7 @@ story_font_size Theme:text ->
 // ----------------------------------------------------------------------------
 //   Default font size for story text
 // ----------------------------------------------------------------------------
-    font_size 56 * font_scaling
+    font_size 56
 
 
 story_font_weight Theme:text ->
@@ -286,14 +308,14 @@ title_bg_rect_w Theme:text ->
 // ----------------------------------------------------------------------------
 //    Width of the title background rectangle
 // ----------------------------------------------------------------------------
-    (26.0/28.0) * window_width
+    (26.0/28.0) * slide_width
 
 
 title_bg_rect_h Theme:text ->
 // ----------------------------------------------------------------------------
 //    Height of the title background rectangle
 // ----------------------------------------------------------------------------
-    (2.7/21.0) * window_height
+    (2.7/21.0) * slide_height
 
 
 title_bg_rect_x Theme:text ->
@@ -307,21 +329,21 @@ title_bg_rect_y Theme:text ->
 // ----------------------------------------------------------------------------
 //    y coordinate of the center of the title background rectangle
 // ----------------------------------------------------------------------------
-    (0.5 - 1.0/21.0) * window_height - 0.5 * title_bg_rect_h Theme
+    (0.5 - 1.0/21.0) * slide_height - 0.5 * title_bg_rect_h Theme
 
 
 story_bg_rect_w Theme:text ->
 // ----------------------------------------------------------------------------
 //    Width of the story background rectangle
 // ----------------------------------------------------------------------------
-    (26.0/28.0) * window_width
+    (26.0/28.0) * slide_width
 
 
 story_bg_rect_h Theme:text ->
 // ----------------------------------------------------------------------------
 //    Height of the story background rectangle
 // ----------------------------------------------------------------------------
-    (12.7/21.0) * window_height
+    (12.7/21.0) * slide_height
 
 
 story_bg_rect_x Theme:text ->
@@ -335,7 +357,7 @@ story_bg_rect_y Theme:text ->
 // ----------------------------------------------------------------------------
 //    y coordinate of the center of the story background rectangle
 // ----------------------------------------------------------------------------
-    (-0.5 + 1.7/21.0) * window_height + 0.5 * story_bg_rect_h Theme
+    (-0.5 + 1.7/21.0) * slide_height + 0.5 * story_bg_rect_h Theme
 
 
 title_story_bg_rect_x Theme:text ->
@@ -363,7 +385,7 @@ title_story_bg_rect_h Theme:text ->
 // ----------------------------------------------------------------------------
 //    Height of the title story background rectangle
 // ----------------------------------------------------------------------------
-    0.8 * window_height
+    0.8 * slide_height
 
 
 title_bg_rect Theme:text ->
@@ -450,17 +472,20 @@ title_story Theme, Body ->
         Body
 
 
-theme T:text -> theme := T
+theme T:text ->
 // ----------------------------------------------------------------------------
 //   Select a theme name
 // ----------------------------------------------------------------------------
+    theme := T
 
 
-theme_init S:text ->
+theme_init Theme:text ->
 // ----------------------------------------------------------------------------
-//   Initialization of the theme
+//   Initialization of the theme. The default is to scale to fit
 // ----------------------------------------------------------------------------
-    refresh 0.1
+    current_zscale := 1.0
+    fit_contents_in_window
+
 
 
 background Theme:text ->
@@ -469,6 +494,56 @@ background Theme:text ->
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
 
+
+set_slide_size Width:real, Height:real ->
+// ----------------------------------------------------------------------------
+//   Set the dimensions of the slide
+// ----------------------------------------------------------------------------
+    slide_width := Width
+    slide_height := Height
+
+
+scale_contents S:real ->
+// ----------------------------------------------------------------------------
+//   Scale contents with same size along x, y and z
+// ----------------------------------------------------------------------------
+    scale S, S, S
+    current_zscale := current_zscale * S
+
+
+fit_contents_in_window ->
+// ----------------------------------------------------------------------------
+//   Scaling the display to fit 
+// ----------------------------------------------------------------------------
+    if window_width / window_height > slide_width / slide_height then
+        scale_contents window_height / slide_height
+    else
+        scale_contents window_width / slide_width
+
+
+zoom_contents_for_window ->
+// ----------------------------------------------------------------------------
+//   Additional scaling to make sure nothing shows outside of the window
+// ----------------------------------------------------------------------------
+    if window_width / window_height > slide_width / slide_height then
+        scale_contents 1.03 * window_width / window_height * slide_height / slide_width
+    else
+        scale_contents 1.03 * window_height / window_width * slide_width / slide_height
+
+
+stretch_contents_to_window ->
+// ----------------------------------------------------------------------------
+//  Additional scaling to strech the contents to the window
+// ----------------------------------------------------------------------------
+    scale window_width / slide_width, window_height / slide_height, 1.0
+
+
+
+// ============================================================================
+// 
+//   Slide formats
+// 
+// ============================================================================
 
 base_slide P:text, Body ->
 // ----------------------------------------------------------------------------
@@ -532,15 +607,9 @@ title_only_slide T:text, Body ->
 
 
 
-background_z Theme:text -> 0.0
+background_z Theme:text -> 30000.0
 // ----------------------------------------------------------------------------
 //   Default Z for the background picture
-// ----------------------------------------------------------------------------
-
-
-background_stretch Theme:text -> false
-// ----------------------------------------------------------------------------
-//   Background scaling: proportional if false, non-proportional if true
 // ----------------------------------------------------------------------------
 
 
@@ -550,30 +619,32 @@ background_picture_size -> image_size background_picture
 // ----------------------------------------------------------------------------
 
 
-show_picture_background File:text ->
+set_picture_background File:text->
+// ----------------------------------------------------------------------------
+//   Select the background picture
+// ----------------------------------------------------------------------------
+   background_picture := File
+
+
+enlarge_background_object Z:real ->
+// ----------------------------------------------------------------------------
+//   Position in a background Z position, enlarge to compensate
+// ----------------------------------------------------------------------------
+    cam_z -> camera_position at 3
+    bg_zscale ZZ:real -> 1.0 - ZZ / cam_z
+    translatez Z / current_zscale
+    scale_contents bg_zscale Z
+
+
+show_picture_background ->
 // ----------------------------------------------------------------------------
 //   Show a picture background
 // ----------------------------------------------------------------------------
-    min_w_h -> min window_width, window_height
-    cam_z -> camera_position at 3
-    bg_z -> background_z theme
-    bg_w -> background_picture_size at 1
-    bg_h -> background_picture_size at 2
-    bg_zscale -> 110% * (1.0 - bg_z/cam_z)
-    bg_sx -> bg_zscale * window_width  / bg_w
-    bg_sy -> bg_zscale * window_height / bg_h
-    bg_scale -> max window_height/bg_h, window_width/bg_w
-
     locally
-        translatez bg_z
+        enlarge_background_object (-background_z theme)
         color "white"
-        background_picture := File
-        if background_stretch theme then
-            // Non-proportional scaling
-            image 0.0, 0.0, bg_sx, bg_sy, File
-        else
-            // Proportional scaling
-            image 0.0, 0.0, bg_scale, bg_scale, File
+        zoom_contents_for_window
+        image_px 0.0, 0.0, slide_width, slide_height, background_picture
 
 
 bullet_text_color Theme:text, Level:integer ->
@@ -631,9 +702,9 @@ bullet_picture Theme:text, Level:integer ->
     draw bullet_size (theme, Level)
 
 
-bullet_size Theme:text, 0 -> 56 * font_scaling
-bullet_size Theme:text, 1 -> 56 * font_scaling
-bullet_size Theme:text, Level:integer -> 48 * font_scaling
+bullet_size Theme:text, 0 -> 56
+bullet_size Theme:text, 1 -> 52
+bullet_size Theme:text, Level:integer -> 48
 
 
 bullet Theme, Level, Text ->

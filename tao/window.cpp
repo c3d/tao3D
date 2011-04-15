@@ -272,6 +272,9 @@ void Window::addError(QString txt)
 //   Update the text edit widget with updates we made
 // ----------------------------------------------------------------------------
 {
+    // Ugly workaround to bug #775
+    if (txt.contains("Untitled1.ddd cannot be read"))
+        return;
     QTextCursor cursor = errorMessages->textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");

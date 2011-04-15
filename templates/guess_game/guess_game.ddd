@@ -1,8 +1,9 @@
-//refresh_on 5
+// Simple game to guess the random number
+
+// Ask to refresh the screen after the click
 refresh_on 2
 
-font_color -> "font"
-
+// Internationalization
 title_en -> "Select a flag to start"
 title_fr -> "Sélectionnez un drapeau pour démarrer le jeu"
 invit_en -> "Click on a circle"
@@ -14,25 +15,26 @@ win_fr -> "Vous avez gagné !"
 loose_en -> "You loose"
 loose_fr -> "Vous avez perdu"
 
+// Other variable definition
+// String variables
+font_color -> "font"
 display -> ""
 invit -> ""
 scramble -> ""
 win -> ""
 loose -> ""
 
+// Integer variables
 result -> 0
 clicked -> 0
+
+// Real variables
 x_flag -> 0.0
 y_flag -> 0.0
 w_flag -> 0.0
 h_flag -> 0.0
 
-reset ->
-    font_color := "font"
-    clicked := 0
-    result := 0
-    display := invit
-   
+// Definition to draw a clickable flag that set the international strings
 flag Inv, Scramb, Win, Loose, Img ->
     active_widget
         color "white"
@@ -50,16 +52,26 @@ flag Inv, Scramb, Win, Loose, Img ->
                 goto_page "game"
             }
 
+
+// function to reset the game
+reset ->
+    font_color := "font"
+    clicked := 0
+    result := 0
+    display := invit
+
+
+// First page to choose the language
 page "flags",
     w_flag := window_width / 4.0
     h_flag := window_width / 6.0
     x_flag := w_flag/4 - window_width / 4.0
     y_flag := 0.0
-    circle 0, 0, 20
     flag invit_fr, scramb_fr, win_fr, loose_fr, "France.svg"
     flag invit_en, scramb_en, win_en, loose_en, "UnitedKingdom.svg"
-     
 
+
+// Second page where the game stand
 page "game",
     x_flag := 100.0 - window_width / 2.0
     y_flag :=  window_height / 2.0 - 100.0
@@ -68,7 +80,7 @@ page "game",
     flag invit_fr, scramb_fr, win_fr, loose_fr, "France.svg"
     flag invit_en, scramb_en, win_en, loose_en, "UnitedKingdom.svg"
 
-
+    // This draw a clickable round rectangle, i.e. a button
     active_widget
         color "white"
         line_color "gray"
@@ -85,13 +97,13 @@ page "game",
                 result := random(1, 4)
             }
 
+    // Draw 3 green clikable circles
     color "lightgreen"
-
     active_widget
         circle -300, 0, 100
         on_click
             clicked := 1
-        
+
     active_widget
         circle 0, 0, 100
         on_click
@@ -102,6 +114,8 @@ page "game",
         on_click
             clicked := 3
 
+    // Conditional part of the game :
+    // Check if the cliked circle number is the same as the random number
     if clicked <> 0 then
         if result = clicked then
             display := win
@@ -110,6 +124,7 @@ page "game",
             display := loose
             font_color := "red"
 
+    // The text box that shows the result
     text_box 0, -200, 300, 20,
         align_center
         color font_color

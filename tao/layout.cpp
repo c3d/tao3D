@@ -65,7 +65,7 @@ LayoutState::LayoutState(const LayoutState &o)
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
         left(o.left), right(o.right),
         top(o.top), bottom(o.bottom),
-        visibility(1),
+        visibility(o.visibility),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),

@@ -67,10 +67,12 @@ protected:
 
 protected slots:
     void updateDescription();
+    void doSearch();
 
 private:
     QListWidget *templateListWidget;
     QLabel      *description;
+    QLineEdit   *search;
 };
 
 

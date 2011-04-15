@@ -100,12 +100,19 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     setTitle(tr("Template Chooser"));
     setSubTitle(tr("Choose a template to create your document with."));
 
-    templateListWidget = new QListWidget(this);
+    search = new QLineEdit;
+    search->setPlaceholderText(tr("Search"));
+    connect(search, SIGNAL(textChanged(QString)), this, SLOT(doSearch()));
+    QHBoxLayout *searchLayout = new QHBoxLayout;
+    searchLayout->addStretch(2);
+    searchLayout->addWidget(search, 1);
+
+    templateListWidget = new QListWidget;
     templateListWidget->setViewMode(QListView::IconMode);
     templateListWidget->setIconSize(QSize(96, 72));
     templateListWidget->setMovement(QListView::Static);
     templateListWidget->setResizeMode(QListView::Adjust);
-    templateListWidget->setMinimumWidth(3 * 144 + 20);
+    templateListWidget->setMinimumWidth(3 * 144 + 25);
     templateListWidget->setGridSize(QSize(144, 144));
     templateListWidget->setWordWrap(true);
     connect(templateListWidget, SIGNAL(itemSelectionChanged()),
@@ -113,10 +120,11 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
 
     registerField("templateIdx*", templateListWidget);
 
-    description = new QLabel(this);
+    description = new QLabel;
     description->setWordWrap(true);
 
     QVBoxLayout *layout = new QVBoxLayout(this);
+    layout->addLayout(searchLayout);
     layout->addWidget(templateListWidget);
     layout->addWidget(description);
     setLayout(layout);
@@ -127,7 +135,6 @@ void TemplateChooserPage::initializePage()
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
     QDir dir(TaoApp->applicationDirPath() + "/templates");
     wiz->templates = Templates(dir);
-
     foreach (Template tmpl, wiz->templates)
     {
         QListWidgetItem *t = new QListWidgetItem(templateListWidget);
@@ -145,12 +152,33 @@ void TemplateChooserPage::initializePage()
 
 void TemplateChooserPage::updateDescription()
 {
+    QString desc;
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
     int idx = field("templateIdx").toInt();
-    if (idx == -1)
-        return;
-    Template t = wiz->templates.at(idx);
-    description->setText(t.description);
+    if (idx != -1)
+    {
+        Template t = wiz->templates.at(idx);
+        desc = t.description;
+    }
+    description->setText(desc);
+}
+
+void TemplateChooserPage::doSearch()
+{
+    NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    QString searchString = search->text();
+    int firstShown = -1;
+    for (int idx = 0; idx < templateListWidget->count(); idx++)
+    {
+        QListWidgetItem *item = templateListWidget->item(idx);
+        Template t = wiz->templates.at(idx);
+        bool hide = !searchString.isEmpty() && !t.contains(searchString);
+        item->setHidden(hide);
+        if (firstShown == -1 && !hide)
+            firstShown = idx;
+    }
+
+    templateListWidget->setCurrentRow(firstShown);
 }
 
 DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)

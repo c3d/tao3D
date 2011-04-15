@@ -65,16 +65,19 @@ public:
 
     bool isValid() { return valid; }
     bool copyTo(QDir &dst);
+    bool contains(const QString &keyword, bool searchSource = true);
 
 private:
     std::ostream& debug();
     bool          recursiveCopy(const QDir &src, QDir &dst);
+    QString       mainFileFullPath();
 
 public:
     QString name;       // Template name. Not empty if isValid().
     QString description; // Template description. Not empty if isValid().
     QPixmap thumbnail;  // Thumbnail picture. May be null.
     QString mainFile;   // Path to the main .ddd file. May be empty.
+    QString source;     // .ddd content, non-null only after full text search.
 
 private:
     QDir    dir;        // The template's directory

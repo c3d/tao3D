@@ -105,7 +105,7 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     templateListWidget->setIconSize(QSize(96, 72));
     templateListWidget->setMovement(QListView::Static);
     templateListWidget->setResizeMode(QListView::Adjust);
-    templateListWidget->setMinimumWidth(144);
+    templateListWidget->setMinimumWidth(3 * 144 + 20);
     templateListWidget->setGridSize(QSize(144, 144));
     templateListWidget->setWordWrap(true);
     connect(templateListWidget, SIGNAL(itemSelectionChanged()),

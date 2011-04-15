@@ -273,7 +273,7 @@ void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
 {
     // Ugly workaround to bug #775
-    if (txt.contains("Untitled1.ddd cannot be read"))
+    if (txt.contains("1.ddd cannot be read"))
         return;
     QTextCursor cursor = errorMessages->textCursor();
     cursor.movePosition(QTextCursor::End);

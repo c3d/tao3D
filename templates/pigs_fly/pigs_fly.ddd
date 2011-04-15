@@ -1,5 +1,14 @@
+// Template: pigs_fly.ddd
+//
+// This file normally uses 3D model files: plane.3ds and piggy.3ds. 
+// Due to redistribution restrictions, these files cannot be included
+// with this demo. However, you may download them from the web and use
+// them according to their licensing terms.
+// See plane/README.txt and piggy/README.txt for details.
+
 import ObjectLoader 1.0
 import TaoVisuals 1.0
+
 logo_page "Intro Logo" 
 title_page "Step 1: Type this", "in any old text editor" 
 code_page "Description code", 22.5, <<slide "Share your message",
@@ -197,6 +206,15 @@ fly_theme_fly T:text ->
     locally 
         fly_theme_adjust_for T 
         object 0, 0, 0, 400, 400, 400, T
+        if T = "plane/plane_placeholder.obj" or T = "piggy/piggy_placeholder.obj" then
+            locally
+                reset_transform
+                text_box 0, 0, window_width, window_height,
+                    color "white"
+                    align_center
+                    font "Droid Sans", 18 
+                    text "See source file for instruction on how to download " &
+                         "3D models"
  
 fly_theme_banner -> 
 // ----------------------------------------------------------------------------

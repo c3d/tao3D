@@ -18,4 +18,7 @@ SUBDIRS  = blank pythagorean_theorem hello_world guess_game
 # Some templates depend on module availability
 include (../modules/module_list.pri)
 contains (MODULES, slides):SUBDIRS += simple_slides
-contains (MODULES, object_loader):SUBDIRS += pigs_fly
+contains (MODULES, object_loader):contains(MODULES, tao_visuals):SUBDIRS += pigs_fly
+contains (MODULES, slideshow_3d):SUBDIRS += photo_viewer
+
+message(Templates to install: $$SUBDIRS)

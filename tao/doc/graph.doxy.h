@@ -391,7 +391,8 @@ no_texture();
  * Display an image.
  * Load an image from file @p filename.
  *  - @p x and @p y coordinate of the image center are specified in pixel
- *  - @p w and @p h are size express in percentage
+ *  - @p w and @p h are the width and height relative to the original size
+ *    (for instance, set @p w to 1.0 to keep the original width)
  * @image html "images/image.png"
 @code
 page "image",
@@ -406,7 +407,10 @@ image (x:real, y:real, w:real, h:real, filename:text);
  * Display an image.
  * Load an image from file @p filename.
  *  - @p x and @p y coordinate of the image center are specified in pixel
- *  - @p w and @p h are size express in pixel
+ *  - @p w and @p h are the width and height of the image in pixel. If
+ *    @p w or @p h is null (but not both), the image is scaled
+ *    proportionally so that it keeps its original aspect ratio. If both
+ *    parameters are null, nothing is displayed.
  * @image html "images/image_px.png"
 
 @code

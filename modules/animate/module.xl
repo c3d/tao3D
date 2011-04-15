@@ -39,6 +39,7 @@ interpolate S:real, TX:real, X:real ->
 // ----------------------------------------------------------------------------
     X := S * TX + (1-S) * X
 
+
 interpolate S:real, TX:real, TY:real, TZ:real, X:real, Y:real, Z:real ->
 // ----------------------------------------------------------------------------
 //    Interpolate 3 variables at a time (typically coordinates)

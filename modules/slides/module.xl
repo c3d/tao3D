@@ -705,9 +705,9 @@ bullet_picture Theme:text, Level:integer ->
     draw bullet_size (theme, Level)
 
 
-bullet_size Theme:text, 0 -> 56
-bullet_size Theme:text, 1 -> 52
-bullet_size Theme:text, Level:integer -> 48
+bullet_size Theme:text, 0 -> 52
+bullet_size Theme:text, 1 -> 42
+bullet_size Theme:text, Level:integer -> 36
 
 
 bullet Theme, Level, Text ->

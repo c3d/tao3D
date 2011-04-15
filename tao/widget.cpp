@@ -363,7 +363,6 @@ void Widget::draw()
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
-    space->ClearAttributes();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -481,6 +480,7 @@ void Widget::draw()
         // On MacOSX, profiling shows that glEndList() can take quite a long
         // time (~60ms average on a moderately complex scene including
         // a 400k-triangle object rendered by GLC_Lib)
+        space->ClearAttributes();
         space->Draw(NULL);
 
         IFTRACE(memory)
@@ -500,6 +500,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);
             glUseProgram(0);
@@ -511,7 +512,7 @@ void Widget::draw()
 
         id = idDepth = 0;
         selectionTrees.clear();
-        space->offset.Set(0,0,0);
+        space->ClearAttributes();
         space->DrawSelection(NULL);
 
         // Render all activities, e.g. the selection rectangle

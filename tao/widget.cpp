@@ -5464,6 +5464,8 @@ Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::Timer);
+
     GLuint texId = 0;
 
     if (img != "")
@@ -5570,8 +5572,18 @@ Tree_p Widget::imagePx(Context *context,
     Infix_p resolution = imageSize(context, self, filename);
     Integer_p ww = resolution->left->AsInteger();
     Integer_p hh = resolution->right->AsInteger();
+    if (ww == 1 && hh == 1)
+    {
+        // File not found
+        ww->value = ImageTextureInfo::defaultTexture().width;
+        hh->value = ImageTextureInfo::defaultTexture().height;
+    }
     double sx = (double)w / (double)ww;
     double sy = (double)h / (double)hh;
+    if ((double)w == 0.0 && (double)h != 0)
+        sx = sy;
+    if ((double)h == 0.0 && (double)w != 0)
+        sy = sx;
 
     return image(context, self, x, y, new Real(sx), new Real(sy), filename);
 }
@@ -7096,6 +7108,15 @@ Text_p Widget::loadText(Tree_p self, text file)
     }
     text contents = output.str();
     return new XL::Text(contents);
+}
+
+
+Text_p Widget::taoLanguage(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current language code of the Tao GUI ("en", "fr")
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(+TaoApp->lang);
 }
 
 

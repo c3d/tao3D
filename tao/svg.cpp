@@ -82,13 +82,13 @@ GLuint SvgRendererInfo::bind (text file)
         if (r->isValid())
         {
             r->connect(r, SIGNAL(repaintNeeded()), widget, SLOT(updateGL()));
-            renderers[file] = r;
         }
         else
         {
             delete r;
             r = defaultImageRenderer();
         }
+        renderers[file] = r;
     }
 
     if (r)

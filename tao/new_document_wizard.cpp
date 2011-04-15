@@ -218,6 +218,25 @@ DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
 void DocumentNameAndLocationPage::initializePage()
 {
     docLocationLineEdit->setText(Application::defaultProjectFolderPath());
+
+    // By default, propose to name new document like template
+    int idx = field("templateIdx").toInt();
+    if (idx != -1)
+    {
+        QString name;
+        NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+        Template t = wiz->templates.at(idx);
+        if (t.mainFile != "")
+        {
+            name = t.mainFile;
+            name.replace(".ddd", "");
+        }
+        if (name != "")
+        {
+            docNameLineEdit->setText(name);
+            docNameLineEdit->selectAll();
+        }
+    }
 }
 
 void DocumentNameAndLocationPage::chooseLocation()

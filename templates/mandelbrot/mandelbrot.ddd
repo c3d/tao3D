@@ -1,0 +1,73 @@
+mandelbrot_shader ->
+    shader_program 
+        vertex_shader <<
+            varying vec3 position;
+            void main()
+            {
+                gl_Position = ftransform();
+
+                // Compute position according to texture coordinates
+                position = vec3(gl_MultiTexCoord0 - 0.5) * 3.0;
+            }
+        >> 
+        fragment_shader <<
+            varying vec3 position;
+            uniform float maxIter;
+            void main()
+            {               
+                vec2 center = vec2(-0.5, 0);
+                
+                float c_real = position.x + center.x;
+                float c_imag = position.y + center.y;                
+                vec2 c = vec2(c_real, c_imag);
+                vec2 z = c; 
+
+                // Pixel color is based on the speed at which points outside of the set diverge
+                vec4  insideColor  = vec4(0.0, 0.0, 0.0, 1.0); 
+                vec4  middleColor1 = vec4(1.0, 1.0, 0.0, 1.0); 
+                float threshold1   = 0.1; 
+                vec4  middleColor2 = vec4(1.0, 0.0, 0.0, 1.0);  
+                float threshold2   = 0.5;  
+                vec4  outerColor   = vec4(1.0, 1.0, 1.0, 1.0);  
+
+                gl_FragColor = insideColor;
+
+                for (int i = 0; i < int(maxIter); i++)
+                {
+                        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+                        if (dot(z, z) > 4.0)
+                        {
+                                float v = float(i)/maxIter;
+                                float frac;
+
+                                if (v < threshold1)
+                                {
+                                        frac = v / threshold1;
+                                        gl_FragColor = mix(outerColor, middleColor2, frac);
+                                }
+                                else if (v < threshold2)
+                                {
+                                        frac = (v - threshold1) / (threshold2 - threshold1);
+                                        gl_FragColor = mix(middleColor2, middleColor1, frac);
+                                }
+                                else
+                                {
+                                        frac = (v - threshold2) / (1.0 - threshold2);
+                                        gl_FragColor = mix(middleColor1, insideColor, frac);
+                                }
+
+                                break;
+                        }
+                }
+
+            }
+        >> 
+    // Maximum number of iterations for each point
+    shader_set maxIter := 200
+
+draw_mandelbrot -> 
+    mandelbrot_shader
+    sz -> min (window_width, window_height) 
+    rectangle 0, 0, sz, sz 
+
+draw_mandelbrot

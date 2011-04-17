@@ -798,6 +798,27 @@ bool Widget::refreshOn(int event_type)
 }
 
 
+bool Widget::noRefreshOn(QEvent::Type type)
+// ----------------------------------------------------------------------------
+//   Current layout (if any) should NOT be updated on specified event
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (!layout)
+        return false;
+
+    if (layout->refreshEvents.count(type) != 0)
+    {
+        layout->refreshEvents.erase(type);
+        changed = true;
+        if (type == QEvent::Timer)
+            layout->nextRefresh = DBL_MAX;
+    }
+    return changed;
+}
+
+
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
 //   Run the  XL program
@@ -4658,6 +4679,15 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 // ----------------------------------------------------------------------------
 {
     return refreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
+// ----------------------------------------------------------------------------
+//    Do NOT refresh current layout on event
+// ----------------------------------------------------------------------------
+{
+    return noRefreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
 }
 
 

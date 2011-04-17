@@ -15,7 +15,7 @@
  *
  * The slide layout and colors are grouped by themes. Each theme as a name,
  * for instance @c "Keyboard" or @c "WhiteOnGray". Selecting a theme is just the
- * matter of setting the variable @ref theme to the suitable value, before using
+ * matter of using the @ref theme function with the suitable value, before using
  * the slide commands. For example:
  @code
 import Slides 1.0
@@ -24,7 +24,7 @@ import Slides 1.0
 title_slide "My title slide",
     text "This shows the default theme"
 // Change theme to "Keyboard"
-theme := "Keyboard"
+theme "Keyboard"
 slide "The Keyboard theme",
  *    * "Has a background picture"
  *    * "Is nicer than the default theme"
@@ -33,13 +33,23 @@ slide "The Keyboard theme",
  * The Slides module currently defines five themes in addition to the default
  * one, which is black text on white backround and can be selected by setting
  * @ref theme to any value that is not a valid theme name (for instance,
- * theme := "Default" or, more simply, theme := ""). See @ref theme for
+ * theme "Default" or, more simply, theme ""). See @ref theme for
  * details.
  *
  * In addition to these themes, the module exposes an interface so that
  * you can customize the appearance of your slides (font family, size and
  * weight; bullets; text backround; colors...)
  * @todo Document this interface.
+ *
+ * Slides are automatically scaled to the size of the display area.
+ * Background pictures are automatically scaled to cover at least the display
+ * area. A part of the background may disappear if the aspect ratio of the
+ * display area is not the same as the aspect ratio of the picture.
+ * All elements on the slide are drawn assuming that the slide is 1024x768
+ * pixels by default. This can be adjusted with @ref set_slide_size.
+ * Use @ref window_width and @ref window_height to get the size of the
+ * display area. Use @ref slide_width and @ref slide_height to get the size
+ * of the slide.
  *
  * Here is a more complete example showing all the slide types for some
  * themes in this module.
@@ -61,6 +71,7 @@ slide "The Keyboard theme",
  *  - "WhiteOnBlack" The default theme  with black and white reversed
  *  - "WhiteOnGray" Similar to the default theme, with white text on a gray
  *     backround
+ *  - "WhiteOnPicture" and "BlackOnPicture" use a custom background picture
  *  - "Rounded" Similar to the default, with the addition of a thin black
  *     rounded rectangle around text areas
  *  - "Keyboard" A slightly more sophisticated theme, with a background
@@ -70,11 +81,25 @@ slide "The Keyboard theme",
  */
 text theme = "";
 
+
+/**
+ * Select a new theme for all subsequent slides
+ * The @a Theme is the name of the new theme to be applied.
+ */
+theme(Theme:text);
+
+
 /**
  * Creates a slide without a title and story (only the background).
  * @a P is the page name.
  */
 base_slide(P:text, Body:code);
+
+/**
+ * Creates a slide with title and picture content.
+ * The slide title @a T is used as the page name.
+ */
+picture_slide(T:text, Body:code);
 
 /**
  * Creates a slide with title and content.
@@ -86,7 +111,7 @@ slide(T:text, Body:code);
  * Creates a slide with title and content.
  * @a P is the page name, @a T is the slide title.
  */
-slide(P:text, T:text, Body:code);
+named_slide(P:text, T:text, Body:code);
 
 /**
  * Creates a title slide (one unique text area).
@@ -129,6 +154,13 @@ title_only_slide(P:text, T:text, Body:code);
  * technical constraints.
  */
 ＋(T:text);
+
+/**
+ * Set the background picture
+ * Select @a File as the background picture. This may override the default
+ * selected by @ref theme.
+ */
+set_picture_background(File:text);
 
 /**
  * @}

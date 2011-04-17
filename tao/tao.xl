@@ -522,12 +522,6 @@ menu n:text, l:text                     -> menu n, l, ""
 submenu n:text                          -> submenu n, "", ""
 submenu n:text, l:text                  -> submenu n, l, ""
 
-push_button x:real, y:real, w:real, h:real, l:text, a:code ->
-      push_button x, y, w, h, l, l, a
-radio_button x:real, y:real, w:real, h:real, l:text, m:text, a:code ->
-      radio_button x, y, w, h, l, l, m, a
-check_box_button x:real, y:real, w:real, h:real, l:text, m:text, a:code ->
-      check_box_button  x, y, w, h, l, l, m, a
 
 menu_item name:text, label:text, todo:block -> menu_item name, label, "", false, "false", todo
 

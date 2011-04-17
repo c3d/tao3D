@@ -1,0 +1,142 @@
+// ****************************************************************************
+//  module.xl (animate)                                            Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Module to interpolate angles and/or positions
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+module_description
+    id "8cc936c7-ee1b-41b6-bb06-7de7bb1ef709"
+    name "Animate"
+    description "Animation utilities"
+    import_name "Animate"
+    version 1.0
+
+
+// ============================================================================
+// 
+//    Interpolation functions
+// 
+// ============================================================================
+
+interpolate S:real, TX:real, X:real ->
+// ----------------------------------------------------------------------------
+//    Interpolate variable x with target value tx, change ratio S
+// ----------------------------------------------------------------------------
+    X := S * TX + (1-S) * X
+
+
+interpolate S:real, TX:real, TY:real, TZ:real, X:real, Y:real, Z:real ->
+// ----------------------------------------------------------------------------
+//    Interpolate 3 variables at a time (typically coordinates)
+// ----------------------------------------------------------------------------
+    X := S * TX + (1-S) * X
+    Y := S * TY + (1-S) * Y
+    Z := S * TZ + (1-S) * Z
+
+
+interpolate_position S:real, TX:real,TY:real,TZ:real, X:real,Y:real,Z:real ->
+// ----------------------------------------------------------------------------
+//    Interpolate a position and translate accordingly
+// ----------------------------------------------------------------------------
+    interpolate S, TX, TY, TZ, X, Y, Z
+    translate X, Y, Z
+
+
+interpolate_xangle S:real, TX:real, X:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate a rotation angle around X (horizontal axis)
+// ----------------------------------------------------------------------------
+    interpolate S, TX, X
+    rotatex X
+
+
+interpolate_yangle S:real, TY:real, Y:real ->
+// ----------------------------------------------------------------------------
+//    Interpolate a rotation angle along Y (vertical axis)
+// ----------------------------------------------------------------------------
+    interpolate S, TY, Y
+    rotatez Y
+
+
+interpolate_zangle S:real, TZ:real, Z:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate through Z axis (depth)
+// ----------------------------------------------------------------------------
+    interpolate S, TZ, Z
+    rotatez Z
+
+
+
+// ============================================================================
+// 
+//   Fade-in and fade-out functions
+// 
+// ============================================================================
+
+fade_in  Value:real, Duration:real  -> -expm1(-5 * Value / Duration)
+fade_out Value:real, Duration:real  -> 1+expm1(-5 * Value / Duration)
+
+
+
+// ============================================================================
+// 
+//   Helpers to skip to a given step in an animation
+// 
+// ============================================================================
+
+step -> 0.0
+smooth_step -> 0.0
+
+
+skip S:real     ->
+// ----------------------------------------------------------------------------
+//   Skip by amount S in the animation
+// ----------------------------------------------------------------------------
+    step := step + S
+
+
+skip_to S:real  ->
+// ----------------------------------------------------------------------------
+//   Skip directly to given animation step
+// ----------------------------------------------------------------------------
+    step := S
+
+
+step_scale N:integer ->
+// ----------------------------------------------------------------------------
+//    Adjust scale for current animation step
+// ----------------------------------------------------------------------------
+    fade_in((smooth_step - N) ^2, 1)
+
+
+compute_smooth_step ->
+// ----------------------------------------------------------------------------
+//    Compute the value of smooth step
+// ----------------------------------------------------------------------------
+    if page_time < 0.2 then
+       step := 0.0
+       smooth_step := 0.0
+
+    interpolate 0.05, step, smooth_step
+
+
+at_step N:integer ->
+// ----------------------------------------------------------------------------
+//   Show something at step N
+// ----------------------------------------------------------------------------
+   show 0.5 + atan(100*(smooth_step-N+0.5))/pi

@@ -257,6 +257,7 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
 //   We create the necessary rotatez and translate statements
 {
     Widget::attribute_args rArgs, tArgs;
+    TreeList setTArgs, setRArgs;
     double a1 = 0.0, tx = 0.0, ty = 0.0, tz = 0.0;
     double cx = center.x, cy = center.y;
 
@@ -300,14 +301,14 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
     ty -= cx*(sa2-sa1) + cy*(ca2-ca1);
 
     // Update translation and rotation
-    rArgs.resize(1);
-    rArgs[0] = a2;
-    widget->set(shape, "rotatez", rArgs);
-    tArgs.resize(3);
-    tArgs[0] = tx;
-    tArgs[1] = ty;
-    tArgs[2] = tz;
-    widget->set(shape, "translate", tArgs);
+    setRArgs.resize(1);
+    setRArgs[0] = new XL::Real(a2);
+    widget->set(shape, "rotatez", setRArgs);
+    setTArgs.resize(3);
+    setTArgs[0] = new XL::Real(tx);
+    setTArgs[1] = new XL::Real(ty);
+    setTArgs[2] = new XL::Real(tz);
+    widget->set(shape, "translate", setTArgs);
 }
 
 

@@ -1388,6 +1388,24 @@ void Window::createActions()
     handCursorAct->setObjectName("handCursor");
     connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
             SLOT(showHandCursor(bool)));
+    // Icon downloaded from:
+    // http://www.iconfinder.com/icondetails/11144/32/find_in_magnifying_glass_plus_search_zoom_icon
+    // Author: Jonas Rask. Free for commercial use.
+    zoomInAct = new QAction(QIcon(":/images/zoom_in.png"),
+                            tr("Zoom in"), this);
+    zoomInAct->setStatusTip(tr("Zoom in"));
+    zoomInAct->setObjectName("zoomIn");
+    connect(zoomInAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomIn()));
+    // Icon downloaded from:
+    // http://www.iconfinder.com/icondetails/11145/32/minus_out_search_zoom_icon
+    // Author: Jonas Rask. Free for commercial use.
+    zoomOutAct = new QAction(QIcon(":/images/zoom_out.png"),
+                             tr("Zoom out"), this);
+    zoomOutAct->setStatusTip(tr("Zoom out"));
+    zoomOutAct->setObjectName("zoomOut");
+    connect(zoomOutAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomOut()));
     // Icon copied from:
     // /opt/local/share/icons/gnome/32x32/actions/view-restore.png
     resetViewAct = new QAction(QIcon(":/images/view-restore.png"),
@@ -1505,6 +1523,8 @@ void Window::createToolBars()
     viewToolBar = addToolBar(tr("View"));
     viewToolBar->setObjectName("viewToolBar");
     viewToolBar->addAction(handCursorAct);
+    viewToolBar->addAction(zoomInAct);
+    viewToolBar->addAction(zoomOutAct);
     viewToolBar->addAction(resetViewAct);
     viewToolBar->hide();
     if (view)

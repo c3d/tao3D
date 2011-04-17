@@ -131,6 +131,8 @@ public slots:
     void        showHandCursor(bool enabled);
     void        hideCursor();
     void        resetView();
+    void        zoomIn();
+    void        zoomOut();
     void        saveAndCommit();
     void        renderFrames(int w, int h, double startT, double endT,
                              QString dir, double fps = 25.0, int page = -1);

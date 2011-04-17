@@ -1630,6 +1630,36 @@ void Widget::resetView()
 }
 
 
+void Widget::zoomIn()
+// ----------------------------------------------------------------------------
+//    Call zoom_in builtin
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    (XL::XLCall("zoom_in"))(xlProgram);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
+}
+
+
+void Widget::zoomOut()
+// ----------------------------------------------------------------------------
+//    Call zoom_out builtin
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    (XL::XLCall("zoom_out"))(xlProgram);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
+}
+
+
 void Widget::saveAndCommit()
 // ----------------------------------------------------------------------------
 //   Save files and commit to repository if needed

@@ -1,5 +1,5 @@
 mandelbrot_shader ->
-    shader_program 
+    shader_program
         vertex_shader <<
             varying vec3 position;
             void main()
@@ -9,26 +9,26 @@ mandelbrot_shader ->
                 // Compute position according to texture coordinates
                 position = vec3(gl_MultiTexCoord0 - 0.5) * 3.0;
             }
-        >> 
+        >>
         fragment_shader <<
             varying vec3 position;
             uniform float maxIter;
             void main()
-            {               
+            {
                 vec2 center = vec2(-0.5, 0);
-                
+
                 float c_real = position.x + center.x;
-                float c_imag = position.y + center.y;                
+                float c_imag = position.y + center.y;
                 vec2 c = vec2(c_real, c_imag);
-                vec2 z = c; 
+                vec2 z = c;
 
                 // Pixel color is based on the speed at which points outside of the set diverge
-                vec4  insideColor  = vec4(0.0, 0.0, 0.0, 1.0); 
-                vec4  middleColor1 = vec4(1.0, 1.0, 0.0, 1.0); 
-                float threshold1   = 0.1; 
-                vec4  middleColor2 = vec4(1.0, 0.0, 0.0, 1.0);  
-                float threshold2   = 0.5;  
-                vec4  outerColor   = vec4(1.0, 1.0, 1.0, 1.0);  
+                vec4  insideColor  = vec4(0.0, 0.0, 0.0, 1.0);
+                vec4  middleColor1 = vec4(1.0, 1.0, 0.0, 1.0);
+                float threshold1   = 0.1;
+                vec4  middleColor2 = vec4(1.0, 0.0, 0.0, 1.0);
+                float threshold2   = 0.5;
+                vec4  outerColor   = vec4(1.0, 1.0, 1.0, 1.0);
 
                 gl_FragColor = insideColor;
 
@@ -61,13 +61,36 @@ mandelbrot_shader ->
                 }
 
             }
-        >> 
+        >>
     // Maximum number of iterations for each point
     shader_set maxIter := 200
 
-draw_mandelbrot -> 
-    mandelbrot_shader
-    sz -> min (window_width, window_height) 
-    rectangle 0, 0, sz, sz 
+draw_mandelbrot ->
+    locally
+        mandelbrot_shader
+        sz -> min (window_width, window_height)
+        rectangle 0, 0, sz, sz
+
+help_text "en" ->
+    text "Use the ""View"" toolbar "
+    italic
+    text "(View>Toolbars>View) "
+    roman
+    text " to zoom and scroll"
+
+help_text "fr" ->
+    text "Utilisez la barre d'outils « Affichage » "
+    italic
+    text "(Affichage>Barres d'outils>Affichage) "
+    roman
+    text " pour zoomer et déplacer la vue"
+
+draw_help ->
+    text_box 0, 0, window_width, window_height,
+        align_center
+        font "Droid Sans", 14
+        help_text tao_language
 
 draw_mandelbrot
+draw_help
+

@@ -121,7 +121,7 @@ step_scale N:integer ->
 // ----------------------------------------------------------------------------
 //    Adjust scale for current animation step
 // ----------------------------------------------------------------------------
-    fade_in((smooth_step - N) ^2, 1)
+    fade_out((smooth_step - N) ^2, 1)
 
 
 compute_smooth_step ->

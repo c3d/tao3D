@@ -186,8 +186,9 @@ Any XL code goes into <module_name>.xl and possibly other .xl files.
 
 New XL primitives can be added by using the Tao module API, and generating
 a shared library that will be loaded by Tao before <module_name>.xl is loaded.
-The base name of the library must be "module", i.e., module.dll on Windows,
-libmodule.dylib on MacOSX, libmodule.so on Linux.
+The base name of the library must be the name of the main module directory,
+i.e., <module_name>.dll on Windows,lib<module_name>.dylib on MacOSX,
+lib<module_name>.so on Linux.
 To make building a Tao module easy, Tao has a special Qt project include
 file, modules.pri, as well as a C/C++ API. There are also examples under the
 'modules' directory.
@@ -316,6 +317,23 @@ public:
             QString ret = QDir(+path).filePath(dirname() + ".xl");
             if (!QFileInfo(ret).isReadable())
                 ret = QDir(+path).filePath("module.xl"); // Backward compat.
+            return ret;
+        }
+
+        QString libPath() const
+        {
+#           if   defined(CONFIG_MINGW)
+            QString fmt("%1/%2/%3.dll");
+#           elif defined(CONFIG_MACOSX)
+            QString fmt("%1/%2/lib%3.dylib");
+#           elif defined(CONFIG_LINUX)
+            QString fmt("%1/%2/lib%3.so");
+#           else
+#           error Unknown OS - please define library name
+#           endif
+            QString ret = fmt.arg(+path).arg("lib").arg(dirname());
+            if (!QFileInfo(ret).isReadable())
+                ret = fmt.arg(+path).arg("lib").arg("module"); // Backwd compat.
             return ret;
         }
     };

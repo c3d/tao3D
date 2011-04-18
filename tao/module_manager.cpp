@@ -772,21 +772,13 @@ bool ModuleManager::loadNative(Context * /*context*/,
     ModuleInfoPrivate * m_p = moduleById(m.id);
     Q_ASSERT(m_p);
     bool ok;
-    QString libdir(+m.path + "/lib");
-#if   defined(CONFIG_MINGW)
-    QString path(libdir + "/module.dll");
-#elif defined(CONFIG_MACOSX)
-    QString path(libdir + "/libmodule.dylib");
-#elif defined(CONFIG_LINUX)
-    QString path(libdir + "/libmodule.so");
-#else
-#error Unknown OS - please define library name
-#endif
+    QString path = m.libPath();
 
     m_p->hasNative = QFile(path).exists();
     if (m_p->hasNative)
     {
         // Change current directory, just the time to load any module dependency
+        QString libdir = QFileInfo(path).absolutePath();
         SetCwd cd(libdir);
         QLibrary * lib = new QLibrary(path, this);
         if (lib->load())
@@ -995,6 +987,8 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     {
         debug() << "  Has native: " <<  m.hasNative << "\n";
         debug() << "  Lib loaded: " << (m.native != NULL) << "\n";
+        if (m.native)
+            debug() << "  Lib file:   " << +m.libPath() << "\n";
     }
     debug() << "  ------------------------------------------------\n";
 }

@@ -14,7 +14,7 @@ include(modules_defs.pri)
 include(../main.pri)
 
 TEMPLATE = lib
-TARGET   = module
+TARGET   = $$basename(MODINSTPATH)
 CONFIG  += dll
 QT      -= core gui
 
@@ -40,15 +40,15 @@ tbl_wrap.clean = ${QMAKE_FILE_BASE}_wrap.cpp
 QMAKE_EXTRA_COMPILERS += tbl_wrap
 
 # Default module installation rules
-macx:MODULE  = libmodule.dylib
-linux-g++*:MODULE = libmodule.so
+macx:MODULE  = lib$${TARGET}.dylib
+linux-g++*:MODULE = lib$${TARGET}.so
 win32 {
     CONFIG(debug, debug|release):DD=debug
     CONFIG(release, debug|release):DD=release
-    MODULE = $${DD}/module.dll
+    MODULE = $${DD}/$${TARGET}.dll
 }
 thismod_xl.path   = $$MODINSTPATH
-thismod_xl.files  = $$basename(MODINSTPATH).xl
+thismod_xl.files  = $${TARGET}.xl
 INSTALLS += thismod_xl
 thismod_bin.path  = $${MODINSTPATH}/lib
 # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558

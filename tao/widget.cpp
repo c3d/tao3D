@@ -363,7 +363,6 @@ void Widget::draw()
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
-    space->ClearAttributes();
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -481,6 +480,7 @@ void Widget::draw()
         // On MacOSX, profiling shows that glEndList() can take quite a long
         // time (~60ms average on a moderately complex scene including
         // a 400k-triangle object rendered by GLC_Lib)
+        space->ClearAttributes();
         space->Draw(NULL);
 
         IFTRACE(memory)
@@ -500,6 +500,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);
             glUseProgram(0);
@@ -511,7 +512,7 @@ void Widget::draw()
 
         id = idDepth = 0;
         selectionTrees.clear();
-        space->offset.Set(0,0,0);
+        space->ClearAttributes();
         space->DrawSelection(NULL);
 
         // Render all activities, e.g. the selection rectangle
@@ -4849,11 +4850,13 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraPosition.x),
-                     new Infix(",",
-                               new Real(cameraPosition.y),
-                               new Real(cameraPosition.z)));
+    Infix_p infix = new Infix(",",
+                              new Real(cameraPosition.x),
+                              new Infix(",",
+                                        new Real(cameraPosition.y),
+                                        new Real(cameraPosition.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -4878,11 +4881,13 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraTarget.x),
-                     new Infix(",",
-                               new Real(cameraTarget.y),
-                               new Real(cameraTarget.z)));
+    Infix_p infix = new Infix(",",
+                              new Real(cameraTarget.x),
+                              new Infix(",",
+                                        new Real(cameraTarget.y),
+                                        new Real(cameraTarget.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -4907,11 +4912,13 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraUpVector.x),
-                     new Infix(",",
-                               new Real(cameraUpVector.y),
-                               new Real(cameraUpVector.z)));
+    Infix_p infix =  new Infix(",",
+                               new Real(cameraUpVector.x),
+                               new Infix(",",
+                                         new Real(cameraUpVector.y),
+                                         new Real(cameraUpVector.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -5650,6 +5657,8 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     list_files(context, current, pattern, parent);
     if (!result)
         result = XL::xl_nil;
+    else
+        result->SetSymbols(self->Symbols());
     return result;
 }
 
@@ -7080,6 +7089,15 @@ Text_p Widget::loadText(Tree_p self, text file)
     }
     text contents = output.str();
     return new XL::Text(contents);
+}
+
+
+Text_p Widget::taoLanguage(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current language code of the Tao GUI ("en", "fr")
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(+TaoApp->lang);
 }
 
 

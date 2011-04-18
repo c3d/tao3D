@@ -25,6 +25,7 @@
 #include "process.h"
 
 #include <QSettings>
+#include <QTextStream>
 
 TAO_BEGIN
 
@@ -163,6 +164,45 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 #endif
 
     return ok;
+}
+
+
+QString Template::mainFileFullPath()
+// ----------------------------------------------------------------------------
+//   Full path to the main .ddd file of the template (if known)
+// ----------------------------------------------------------------------------
+{
+    if (mainFile.isEmpty())
+        return "";
+    return dir.absoluteFilePath(mainFile);
+}
+
+
+bool Template::contains(const QString &keyword, bool searchSource)
+// ----------------------------------------------------------------------------
+//   Check if name, description or main file contains keyword
+// ----------------------------------------------------------------------------
+{
+    if (name.contains(keyword))
+        return true;
+    if (description.contains(keyword))
+        return true;
+    if (searchSource)
+    {
+        if (source.isNull())
+        {
+            QFile file(mainFileFullPath());
+            if (file.open(QIODevice::ReadOnly))
+            {
+                QTextStream s(&file);
+                source = s.readAll();
+            }
+        }
+        if (source.contains(keyword))
+            return true;
+    }
+
+    return false;
 }
 
 

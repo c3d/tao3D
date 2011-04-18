@@ -1,0 +1,26 @@
+import Animate 1.0
+
+X -> 0.0
+Y -> 0.0
+Z -> 0.0
+
+position 0 -> interpolate_position 0.1, 0.0, 0.0, 0.0, X, Y, Z
+position 1 -> interpolate_position 0.1, 400.0, 0.0, 0.0, X, Y, Z
+position 2 -> interpolate_position 0.1, 100.0, 100.0, 0.0, X, Y, Z
+position 3 -> interpolate_position 0.1, -150.0, -200.0, 1500.0, X, Y, Z
+position 4 -> interpolate_position 0.1, 50.0, 100.0, -1500.0, X, Y, Z
+
+key "Left"  -> skip -1
+key "Right" -> skip 1
+key "Return" -> skip_to 0
+
+scale 1000 / window_width, 1000 / window_width, 1000 / window_width
+
+compute_smooth_step
+locally
+    position integer step mod 5
+    color_hsv smooth_step * 30, 0.7, 1
+    texture "unknown"
+    rotatey 20 * time
+    sphere 0, 0, 0, 200
+    

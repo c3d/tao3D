@@ -102,6 +102,7 @@ public:
 
 public:
     bool         hasGLMultisample;
+    QString      lang;
 
 private:
     QStringList  pathList;

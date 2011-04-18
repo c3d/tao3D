@@ -621,6 +621,11 @@ bool ControlRectangle::DrawHandles(Layout *layout)
     if (!changed)
     {
         Widget *widget = layout->Display();
+        uint    selected = widget->selected(layout);
+        // Don't move if this is an open container BUG#891
+        if (selected & Widget::CONTAINER_OPENED)
+            return true;
+
         Drag *drag = widget->drag();
         if (drag && (layout->groupDrag || !widget->selectionHandleId()))
         {

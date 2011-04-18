@@ -8590,7 +8590,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
             std::ostringstream os;
             os << label << pnum++ << " " << name;
             std::string txt(os.str());
-            chooser->AddItem(label + name, action);
+            chooser->AddItem(txt, action);
         }
         return XL::xl_true;
     }

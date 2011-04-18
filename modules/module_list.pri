@@ -8,7 +8,7 @@
     # Building the full Tao Presentations.
     # The modules listed here are packaged with Tao and installed at the same time
     # as the application ; they are not managed by Git (and therefore, each module
-    # MUST have its own version attribute in module.xl).
+    # MUST have its own version attribute in <module_name>.xl).
     DEFAULT_MODULES =   \
        lorem_ipsum      \
        object_loader    \

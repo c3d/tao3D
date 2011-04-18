@@ -48,7 +48,7 @@ win32 {
     MODULE = $${DD}/module.dll
 }
 thismod_xl.path   = $$MODINSTPATH
-thismod_xl.files  = module.xl
+thismod_xl.files  = $$basename(MODINSTPATH).xl
 INSTALLS += thismod_xl
 thismod_bin.path  = $${MODINSTPATH}/lib
 # Workaround http://bugreports.qt.nokia.com/browse/QTBUG-5558

@@ -23,8 +23,6 @@ MODINSTDIR = animate
 
 include(../modules.pri)
 
-OTHER_FILES = module.xl module.doxy.h
+OTHER_FILES = animate.xl
 
-# icon from http://www.iconfinder.com/icondetails/15430/32/keynote_presentation_stand_icon
-INSTALLS    += thismod_icon pics
 INSTALLS    -= thismod_bin

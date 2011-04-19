@@ -5,6 +5,7 @@
 ;--------------------------------
 
 !include "MUI.nsh"
+!include "version.nsh"
 
 ; The name of the installer
 Name "Tao Presentations"
@@ -116,6 +117,7 @@ Section $(sec_tao)
   
   ; Write the uninstall keys for Windows
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayName" "Tao Presentations"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayVersion" "${VERSION}"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "UninstallString" '"$INSTDIR\uninstall.exe"'
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayIcon" "$INSTDIR\\Tao.exe,0"
   WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "Publisher" "Taodyne"

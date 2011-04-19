@@ -81,6 +81,7 @@ LangString reg_fileext   ${LANG_ENGLISH} "Registering $0 file extension"
 LangString reg_uri       ${LANG_ENGLISH} "Registering $0: URI scheme"
 LangString unreg_fileext ${LANG_ENGLISH} "Unregistering $0 file extension"
 LangString unreg_uri     ${LANG_ENGLISH} "Unregistering $0: URI scheme"
+LangString inst_path_invalid ${LANG_ENGLISH} "Install path is invalid. Some files will not be removed."
 
 ; Language strings - French
 LangString sec_tao       ${LANG_FRENCH} "Tao Presentations (requis)"
@@ -91,6 +92,7 @@ LangString reg_fileext   ${LANG_FRENCH} "Association l'extension $0"
 LangString reg_uri       ${LANG_FRENCH} "Association des URIs $0:"
 LangString unreg_fileext ${LANG_FRENCH} "Suppression de l'extension $0"
 LangString unreg_uri     ${LANG_FRENCH} "Suppression des URIs $0:"
+LangString inst_path_invalid ${LANG_FRENCH} "Le chemin d'installation est invalide. Certains fichiers ne seront pas supprimés."
 
 ; Makes the installer start faster
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -213,25 +215,19 @@ Section "Uninstall"
 ;  DeleteRegKey HKLM "SOFTWARE\Taodyne\Tao Presentations"
   DeleteRegValue HKCU "Software\Taodyne\Tao Presentations" "Installer Language"
 
-  ; Remove application files and uninstaller
-  Delete $INSTDIR\*.*
-
-  ; Recursively remove Git files
-  RMDir /r $INSTDIR\git
-
-  ; Recursively remove fonts packaged with Tao
-  RMDir /r $INSTDIR\fonts
-
-  ; Recursively remove modules packaged with Tao, or installed subsequently
-  RMDir /r $INSTDIR\modules
-
   ; Remove shortcuts
   SetShellVarContext all
   Delete "$SMPROGRAMS\Tao Presentations\*.*"
   RMDir  "$SMPROGRAMS\Tao Presentations"
 
-  ; Remove installtion directory if empty (should be)
-  RMDir "$INSTDIR"
+  ; Validate $INSTDIR before recursively deleting it (better safe than sorry)
+  IfFileExists "$INSTDIR\*.*" 0 +2
+  IfFileExists "$INSTDIR\Tao.exe" +3
+    MessageBox MB_OK|MB_ICONSTOP $(inst_path_invalid)
+      Abort
+
+  ; Remove installation directory
+  RMDir /r "$INSTDIR"
 
 SectionEnd
 

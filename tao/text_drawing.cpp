@@ -1573,14 +1573,7 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
     }
 
     // If selecting a range of text, prevent the drag from moving us around
-    if (textMode)
-    {
-        if (Drag *drag = widget->drag())
-        {
-            drag->x1 = drag->x2 = x;
-            drag->y1 = drag->y2 = widget->height() - y;
-        }
-    }
+    // BUG #891 This is to late
 
     // Need a refresh
     widget->updateGL();
@@ -1600,7 +1593,11 @@ void TextSelect::updateSelection()
     for (uint i = s; i <= e; i++)
         widget->select(i | marker, marker);
     if (textBoxId)
+    {
         widget->select(textBoxId, Widget::CONTAINER_OPENED);
+        widget->refreshOn(QEvent::KeyPress);
+        widget->refreshOn(QEvent::KeyRelease);
+    }
     formulaMode = false;
     widget->updateGL();
 }

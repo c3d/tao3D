@@ -1869,6 +1869,7 @@ void Widget::setupGL()
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
     glUseProgram(0);
     glAlphaFunc(GL_GREATER, 0.01);
     glEnable(GL_ALPHA_TEST);

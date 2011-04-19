@@ -1124,7 +1124,7 @@ void Widget::updateSelection()
 {
     id = idDepth = 0;
     selectionTrees.clear();
-    space->offset.Set(0,0,0);
+    space->ClearAttributes();
     space->DrawSelection(NULL);
 }
 

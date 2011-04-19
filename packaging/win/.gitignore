@@ -1,7 +1,9 @@
 /taosetup.exe
 /taosetup_d.exe
-/buildroot/
+/build_root/
 /inst_header.bmp
 /inst_welcome_finish.bmp
 /uninst_header.bmp
 /uninst_welcome_finish.bmp
+/Makefile.config
+/Makefile

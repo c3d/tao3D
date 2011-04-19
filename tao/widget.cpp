@@ -836,6 +836,8 @@ void Widget::runProgram()
     //Clean actionMap
     actionMap.clear();
     refreshEvents.clear(); //
+    nextRefresh = DBL_MAX;
+    dfltRefresh = 0.04;
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -2869,6 +2871,10 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     if (sourceChanged())
         return;
+    refreshEvents.clear();
+    nextRefresh = DBL_MAX;
+    space->Clear();
+    dfltRefresh = 0.04;
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();

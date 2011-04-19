@@ -258,6 +258,8 @@ private:
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
     QAction          *handCursorAct;
+    QAction          *zoomInAct;
+    QAction          *zoomOutAct;
     QAction          *resetViewAct;
     struct
     {

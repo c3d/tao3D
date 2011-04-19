@@ -15,8 +15,10 @@ key "Control-G"                         -> page_chooser
 key X                                   -> text_edit_key X
 
 // Zoom
-zoom_out                                -> if zoom > 0.25 then zoom (zoom-0.25)
-zoom_in                                 -> if zoom < 4.0 then zoom (zoom+0.25)
+zoom_max                                -> 32.0
+zoom_min                                -> 0.125
+zoom_out                                -> if zoom > zoom_min then zoom (zoom/1.5)
+zoom_in                                 -> if zoom < zoom_max then zoom (zoom*1.5)
 
 // Wheel events
 control_modifier  -> (keyboard_modifiers and 16#04000000) <> 0

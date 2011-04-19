@@ -131,6 +131,8 @@ public slots:
     void        showHandCursor(bool enabled);
     void        hideCursor();
     void        resetView();
+    void        zoomIn();
+    void        zoomOut();
     void        saveAndCommit();
     void        renderFrames(int w, int h, double startT, double endT,
                              QString dir, double fps = 25.0, int page = -1);
@@ -330,6 +332,7 @@ public:
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
+    Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
@@ -846,6 +849,7 @@ private:
 
     bool                  refreshOn(QEvent::Type type,
                                     double nextRefresh = DBL_MAX);
+    bool                  noRefreshOn(QEvent::Type type);
 public:
     static bool           refreshOn(int event_type);
     static bool           addControlBox(Real *x, Real *y, Real *z,

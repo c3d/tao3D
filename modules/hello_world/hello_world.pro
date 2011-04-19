@@ -14,6 +14,6 @@ MODINSTDIR = hello_world
 
 include(../modules.pri)
 
-OTHER_FILES = module.xl
+OTHER_FILES = hello_world.xl
 
 INSTALLS    -= thismod_bin

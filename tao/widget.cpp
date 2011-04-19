@@ -799,6 +799,27 @@ bool Widget::refreshOn(int event_type)
 }
 
 
+bool Widget::noRefreshOn(QEvent::Type type)
+// ----------------------------------------------------------------------------
+//   Current layout (if any) should NOT be updated on specified event
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (!layout)
+        return false;
+
+    if (layout->refreshEvents.count(type) != 0)
+    {
+        layout->refreshEvents.erase(type);
+        changed = true;
+        if (type == QEvent::Timer)
+            layout->nextRefresh = DBL_MAX;
+    }
+    return changed;
+}
+
+
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
 //   Run the  XL program
@@ -1608,6 +1629,36 @@ void Widget::resetView()
     setup(width(), height());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
+}
+
+
+void Widget::zoomIn()
+// ----------------------------------------------------------------------------
+//    Call zoom_in builtin
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    (XL::XLCall("zoom_in"))(xlProgram);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
+}
+
+
+void Widget::zoomOut()
+// ----------------------------------------------------------------------------
+//    Call zoom_out builtin
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    (XL::XLCall("zoom_out"))(xlProgram);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
 }
 
 
@@ -4641,6 +4692,15 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 // ----------------------------------------------------------------------------
 {
     return refreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
+// ----------------------------------------------------------------------------
+//    Do NOT refresh current layout on event
+// ----------------------------------------------------------------------------
+{
+    return noRefreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -8530,7 +8590,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
             std::ostringstream os;
             os << label << pnum++ << " " << name;
             std::string txt(os.str());
-            chooser->AddItem(label + name, action);
+            chooser->AddItem(txt, action);
         }
         return XL::xl_true;
     }

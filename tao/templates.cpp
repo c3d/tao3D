@@ -23,6 +23,7 @@
 #include "templates.h"
 #include "tao_utf8.h"
 #include "process.h"
+#include "application.h"
 
 #include <QSettings>
 #include <QTextStream>
@@ -66,6 +67,18 @@ Template::Template(const QDir &dir)
         QStringList ddd = dir.entryList(QStringList("*.ddd"), QDir::Files);
         if (ddd.size() == 1)
             mainFile = ddd.first();
+    }
+
+    // Read translations, if present
+    QString lang = TaoApp->lang;
+    if (lang != "")
+    {
+        QSettings ini(inipath, QSettings::IniFormat);
+        ini.setIniCodec("UTF-8");
+        ini.beginGroup(lang);
+        name = ini.value("name", name).toString();
+        description = ini.value("description", description).toString();
+        ini.endGroup();
     }
 
     valid = true;

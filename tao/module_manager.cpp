@@ -127,7 +127,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     if (m.hasNative && !m.native)
                         continue;
                     found = true;
-                    QString xlPath = QDir(+m.path).filePath("module.xl");
+                    QString xlPath = m.xlPath();
 
                     IFTRACE(modules)
                             debug() << "  Importing module " << m_n
@@ -558,9 +558,9 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
 //   Read module directory and return module info. Set m.id == "" on error.
 // ----------------------------------------------------------------------------
 {
-    ModuleInfoPrivate m;
+    ModuleInfoPrivate m("", +moduleDir);
     QString cause;
-    QString xlPath = QDir(moduleDir).filePath("module.xl");
+    QString xlPath = m.xlPath();
     if (QFileInfo(xlPath).isReadable())
     {
         if (XL::Tree * tree = parse(xlPath))
@@ -592,7 +592,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
         }
         else
         {
-            cause = tr("Could not parse module.xl");
+            cause = tr("Could not parse %1").arg(xlPath);
         }
     }
     if (m.id == "")
@@ -686,14 +686,14 @@ bool ModuleManager::loadXL(Context */*context*/, const ModuleInfoPrivate &/*m*/)
     // Do not import module definitions at startup time but only on explicit
     // import (see importModule)
     // REVISIT: here we probably want to execute only a specific part of
-    // module.xl
+    // the module's XL file
     return true;
 
 #if 0
     IFTRACE(modules)
-        debug() << "  Loading XL source (module.xl)\n";
+        debug() << "  Loading XL source\n";
 
-    QString xlPath = QDir(+m.path).filePath("module.xl");
+    QString xlPath = m.xlPath();
 
     // module_description <indent block> evaluates as nil
     // REVISIT: bind a native function and use it to parse the block?
@@ -772,21 +772,13 @@ bool ModuleManager::loadNative(Context * /*context*/,
     ModuleInfoPrivate * m_p = moduleById(m.id);
     Q_ASSERT(m_p);
     bool ok;
-    QString libdir(+m.path + "/lib");
-#if   defined(CONFIG_MINGW)
-    QString path(libdir + "/module.dll");
-#elif defined(CONFIG_MACOSX)
-    QString path(libdir + "/libmodule.dylib");
-#elif defined(CONFIG_LINUX)
-    QString path(libdir + "/libmodule.so");
-#else
-#error Unknown OS - please define library name
-#endif
+    QString path = m.libPath();
 
     m_p->hasNative = QFile(path).exists();
     if (m_p->hasNative)
     {
         // Change current directory, just the time to load any module dependency
+        QString libdir = QFileInfo(path).absolutePath();
         SetCwd cd(libdir);
         QLibrary * lib = new QLibrary(path, this);
         if (lib->load())
@@ -938,13 +930,13 @@ bool ModuleManager::unloadXL(Context *, const ModuleInfoPrivate &m)
 {
     bool ok = true;
     IFTRACE(modules)
-        debug() << "  Unloading XL code (module.xl)\n";
+        debug() << "  Unloading XL code\n";
 
     ModuleInfoPrivate * m_p = moduleById(m.id);
     if (!m_p)
         return ok;
 
-    QString xlPath = +m_p->path + "module.xl";
+    QString xlPath = m_p->xlPath();
     XL::source_files::iterator it = XL::MAIN->files.find(+xlPath);
     XL::source_files::iterator end = XL::MAIN->files.end();
     if (it != end)
@@ -985,6 +977,7 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  Author:     " <<  m.author << "\n";
     debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";
+    debug() << "  XL file:    " << +m.xlPath() << "\n";
     debug() << "  Version:    " <<  m.ver << "\n";
     debug() << "  Latest:     " <<  m.latest << "\n";
     debug() << "  Up to date: " << !m.updateAvailable << "\n";
@@ -994,6 +987,8 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     {
         debug() << "  Has native: " <<  m.hasNative << "\n";
         debug() << "  Lib loaded: " << (m.native != NULL) << "\n";
+        if (m.native)
+            debug() << "  Lib file:   " << +m.libPath() << "\n";
     }
     debug() << "  ------------------------------------------------\n";
 }

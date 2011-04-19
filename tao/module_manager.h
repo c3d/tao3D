@@ -43,13 +43,13 @@ A module is a directory with the following structure:
 
   <module_name>/
     .git/        [Optional] Git folder, used to manage upgrades
-    module.xl    A XL file, loaded by the module manager
+    <module_name>.xl  A XL file, loaded by the module manager
     icon.png     [Optional] Module icon
     lib/         [Optional] Native code as a shared library
 
-  2.1 Structure of module.xl
+  2.1 Structure of <module_name>.xl
 
-module.xl may contain the following.
+<module_name>.xl may contain the following.
 
 //-----
 module_description
@@ -128,7 +128,7 @@ of currently loaded modules, checks the version compatibility, and then makes
 the module definitions available to the Tao document.
 Version matching is documented in the online doc.
 
-Without explicit import, no definition from the module.xl are reachable from
+Without explicit import, no definition from <module_name>.xl are reachable from
 the document.
 
 5. How are modules installed?
@@ -180,14 +180,15 @@ checking for update...) is achieved through the Preferences dialog.
 
   8.1. XL code
 
-Any XL code goes into module.xl and possibly other .xl files.
+Any XL code goes into <module_name>.xl and possibly other .xl files.
 
   8.2. Native code
 
 New XL primitives can be added by using the Tao module API, and generating
-a shared library that will be loaded by Tao before module.xl is loaded.
-The base name of the library must be "module", i.e., module.dll on Windows,
-libmodule.dylib on MacOSX, libmodule.so on Linux.
+a shared library that will be loaded by Tao before <module_name>.xl is loaded.
+The base name of the library must be the name of the main module directory,
+i.e., <module_name>.dll on Windows,lib<module_name>.dylib on MacOSX,
+lib<module_name>.so on Linux.
 To make building a Tao module easy, Tao has a special Qt project include
 file, modules.pri, as well as a C/C++ API. There are also examples under the
 'modules' directory.
@@ -195,7 +196,7 @@ file, modules.pri, as well as a C/C++ API. There are also examples under the
   8.2.1 Source files for a typical Tao module
 
     mymodule.pro   Qt project file. Uses Tao's modules.pri.
-    module.xl      Module information (id, description...) and XL code.
+    mymodule.xl    Module information (id, description...) and XL code.
     mymodule.tbl   Declarations of new XL primitives. Processed by the tbl_gen
                    script to produce mymodule_wrap.cpp, which defines functions
                    enter_symbols and delete_symbols.
@@ -250,6 +251,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QStringList>
 #include <QSet>
 #include <QLibrary>
+#include <QDir>
 #include <iostream>
 
 
@@ -303,6 +305,36 @@ public:
         void copyPublicProperties(const ModuleInfo &o)
         {
             *(ModuleInfo*)this = o;
+        }
+
+        QString dirname() const
+        {
+            return QDir(+path).dirName();
+        }
+
+        QString xlPath() const
+        {
+            QString ret = QDir(+path).filePath(dirname() + ".xl");
+            if (!QFileInfo(ret).isReadable())
+                ret = QDir(+path).filePath("module.xl"); // Backward compat.
+            return ret;
+        }
+
+        QString libPath() const
+        {
+#           if   defined(CONFIG_MINGW)
+            QString fmt("%1/%2/%3.dll");
+#           elif defined(CONFIG_MACOSX)
+            QString fmt("%1/%2/lib%3.dylib");
+#           elif defined(CONFIG_LINUX)
+            QString fmt("%1/%2/lib%3.so");
+#           else
+#           error Unknown OS - please define library name
+#           endif
+            QString ret = fmt.arg(+path).arg("lib").arg(dirname());
+            if (!QFileInfo(ret).isReadable())
+                ret = fmt.arg(+path).arg("lib").arg("module"); // Backwd compat.
+            return ret;
         }
     };
 

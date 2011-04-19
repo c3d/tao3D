@@ -113,6 +113,7 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     templateListWidget->setMovement(QListView::Static);
     templateListWidget->setResizeMode(QListView::Adjust);
     templateListWidget->setMinimumWidth(3 * 144 + 25);
+    templateListWidget->setMinimumHeight(2 * 144);
     templateListWidget->setGridSize(QSize(144, 144));
     templateListWidget->setWordWrap(true);
     connect(templateListWidget, SIGNAL(itemSelectionChanged()),

@@ -1,7 +1,3 @@
-/*
- * This file duplicates module.xl for documentation purposes.
- */
-
 /**
  * @defgroup Slides Themes for slides
  * @ingroup Modules

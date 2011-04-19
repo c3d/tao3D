@@ -5,7 +5,8 @@ window_scale -> min (window_width / 1024, window_height / 768)
 scale window_scale, window_scale, 1 
 page "Photos", 
     pt -> page_time 
-    Message -> "Create nice slide shows from your own photos!" 
+    Message "en" -> "Create nice slide shows from your own photos!"
+    Message "fr" -> "Créez votre album en utilisant vos propres photos !"
     earth_position -> translate 0, -100, 1000 
     rotatex 8 
     scale 70% , 70% , 70% 
@@ -38,7 +39,7 @@ page "Photos",
             no_line_color 
             font "Arial", 64 
             move_to 320 - (pt mod 24) * 80, -12, 0 
-            text Message
+            text Message tao_language
          
         earth_position 
         color "black" 

@@ -289,7 +289,7 @@
         <translation>Version %1</translation>
     </message>
     <message>
-        <location filename="templates.cpp" line="53"/>
+        <location filename="templates.cpp" line="55"/>
         <source>No description available.</source>
         <translation>Pas de description disponible.</translation>
     </message>
@@ -759,32 +759,32 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DocumentNameAndLocationPage</name>
     <message>
-        <location filename="new_document_wizard.cpp" line="159"/>
+        <location filename="new_document_wizard.cpp" line="187"/>
         <source>Document Name and Location</source>
         <translation>Nom et Emplacement du Document</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="160"/>
+        <location filename="new_document_wizard.cpp" line="188"/>
         <source>Specify the name and location of your document.</source>
         <translation>Précisez le nom et l&apos;emplacement de votre document.</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="162"/>
+        <location filename="new_document_wizard.cpp" line="190"/>
         <source>&amp;Name:</source>
         <translation>&amp;Nom :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="166"/>
+        <location filename="new_document_wizard.cpp" line="194"/>
         <source>&amp;Location:</source>
         <translation>&amp;Emplacement :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="171"/>
+        <location filename="new_document_wizard.cpp" line="199"/>
         <source>Choose...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="198"/>
+        <location filename="new_document_wizard.cpp" line="245"/>
         <source>Choose Document Location</source>
         <translation>Emplacement du Document</translation>
     </message>
@@ -1352,6 +1352,11 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
         <source>Choose a template to create your document with.</source>
         <translation>Choisissez un modèle pour votre document.</translation>
     </message>
+    <message>
+        <location filename="new_document_wizard.cpp" line="104"/>
+        <source>Search</source>
+        <translation>Recherche</translation>
+    </message>
 </context>
 <context>
     <name>Tao::Uri</name>
@@ -1435,17 +1440,17 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="973"/>
+        <location filename="widget.cpp" line="996"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9158"/>
+        <location filename="widget.cpp" line="9197"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9159"/>
+        <location filename="widget.cpp" line="9198"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>
@@ -1507,7 +1512,7 @@ Voulez-vous continuer malgré tout ? Choisisser Non pour choisir un autre emplac
     </message>
     <message>
         <location filename="window.cpp" line="703"/>
-        <location filename="window.cpp" line="1949"/>
+        <location filename="window.cpp" line="1969"/>
         <source>File saved</source>
         <translation>Fichier enregistré</translation>
     </message>
@@ -1874,193 +1879,205 @@ Voulez-vous continuer malgré tout ? Choisisser Non pour choisir un autre emplac
         <translation>Sélectionne le curseur de déplacement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1394"/>
+        <location filename="window.cpp" line="1395"/>
+        <location filename="window.cpp" line="1396"/>
+        <source>Zoom in</source>
+        <translation>Zoom +</translation>
+    </message>
+    <message>
+        <location filename="window.cpp" line="1404"/>
+        <location filename="window.cpp" line="1405"/>
+        <source>Zoom out</source>
+        <translation>Zoom -</translation>
+    </message>
+    <message>
+        <location filename="window.cpp" line="1412"/>
         <source>Restore default view</source>
         <translation>Vue par défaut</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1395"/>
+        <location filename="window.cpp" line="1413"/>
         <source>Restore default view (zoom and position)</source>
         <translation>Affiche la vue par défaut (zoom et position)</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1407"/>
+        <location filename="window.cpp" line="1425"/>
         <source>&amp;File</source>
         <translation>&amp;Fichier</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1416"/>
+        <location filename="window.cpp" line="1434"/>
         <source>Open &amp;Recent</source>
         <translation>Ouvrir un document &amp;récent</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1436"/>
+        <location filename="window.cpp" line="1454"/>
         <source>&amp;Edit</source>
         <translation>&amp;Édition</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1446"/>
+        <location filename="window.cpp" line="1464"/>
         <source>&amp;Share</source>
         <translation>&amp;Partage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1458"/>
+        <location filename="window.cpp" line="1476"/>
         <source>&amp;View</source>
         <translation>Aff&amp;ichage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1467"/>
+        <location filename="window.cpp" line="1485"/>
         <source>&amp;Toolbars</source>
         <translation>&amp;Barres d&apos;outils</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1471"/>
+        <location filename="window.cpp" line="1489"/>
         <source>&amp;Help</source>
         <translation>&amp;Aide</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1487"/>
+        <location filename="window.cpp" line="1505"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1496"/>
+        <location filename="window.cpp" line="1514"/>
         <source>Edit</source>
         <translation>Édition</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1505"/>
+        <location filename="window.cpp" line="1523"/>
         <source>View</source>
         <translation>Affichage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1514"/>
+        <location filename="window.cpp" line="1534"/>
         <source>Git Tools</source>
         <translation>Git</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1541"/>
+        <location filename="window.cpp" line="1561"/>
         <source>Change History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1608"/>
+        <location filename="window.cpp" line="1628"/>
         <source>Save changes?</source>
         <translation>Enregistrer ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1609"/>
+        <location filename="window.cpp" line="1629"/>
         <source>The document has been modified.
 Do you want to save your changes?</source>
         <translation>Le document a été modifié.
 Voulez-vous l&apos;enregistrer ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1691"/>
+        <location filename="window.cpp" line="1711"/>
         <source>Loading %1 [%2]...</source>
         <translation>Chargement de %1 [%2]...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1705"/>
+        <location filename="window.cpp" line="1725"/>
         <source>Repository cleanup</source>
         <translation>Nettoyage du projet</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1709"/>
+        <location filename="window.cpp" line="1729"/>
         <source>Fonts</source>
         <translation>Polices</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1718"/>
+        <location filename="window.cpp" line="1738"/>
         <source>Document</source>
         <translation>Document</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1737"/>
+        <location filename="window.cpp" line="1757"/>
         <source>Load error</source>
         <translation>Erreur de chargement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1753"/>
+        <location filename="window.cpp" line="1773"/>
         <source>Caching code</source>
         <translation>Mise en cache</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1763"/>
+        <location filename="window.cpp" line="1783"/>
         <source>File loaded</source>
         <translation>Fichier chargé</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1890"/>
+        <location filename="window.cpp" line="1910"/>
         <source>Error saving file</source>
         <translation>Erreur d&apos;enregistrement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1891"/>
+        <location filename="window.cpp" line="1911"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation>Impossible d&apos;enregistrer le ficher %1 :
 %2.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1898"/>
+        <location filename="window.cpp" line="1918"/>
         <source>Saving...</source>
         <translation>Enregistrement...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2015"/>
+        <location filename="window.cpp" line="2035"/>
         <source>The file &apos;%1&apos; is not associated with a Tao project.</source>
         <translation>Le fichier %1 n&apos;est pas associé à un projet Tao.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2018"/>
+        <location filename="window.cpp" line="2038"/>
         <source>Do you want to create a new project in %1, or skip and continue without a project (version control and sharing will be disabled)?</source>
         <translation>Voulez-vous créer un nouveau projet sous %1, ou continuer sans projet (l&apos;historique et le partage seront désactivés) ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2022"/>
+        <location filename="window.cpp" line="2042"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2024"/>
+        <location filename="window.cpp" line="2044"/>
         <source>Skip</source>
         <translation>Continuer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2026"/>
+        <location filename="window.cpp" line="2046"/>
         <source>Create</source>
         <translation>Créer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2046"/>
+        <location filename="window.cpp" line="2066"/>
         <source>Puzzled</source>
         <translation>Bizarre</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2047"/>
+        <location filename="window.cpp" line="2067"/>
         <source>How did you do that?</source>
         <translation>Comment avez-vous fait ça ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2066"/>
+        <location filename="window.cpp" line="2086"/>
         <source>Task selection</source>
         <translation>Sélection de tâche</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2067"/>
+        <location filename="window.cpp" line="2087"/>
         <source>An error occurred setting the task:
 %1</source>
         <translation>Une erreur est survenue en choisissant la tâche :
 %1</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2365"/>
+        <location filename="window.cpp" line="2385"/>
         <source>%1/Untitled%2.ddd</source>
         <translation>%1/Sans titre %2.ddd</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2393"/>
+        <location filename="window.cpp" line="2413"/>
         <source>&amp;%1 %2</source>
         <translation>&amp;%1 %2</translation>
     </message>

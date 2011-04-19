@@ -446,6 +446,13 @@ PREFIX(RefreshOn, tree, "refresh_on",
                    "MouseMoveEvent              = 5\n"
                    "KeyPressEvent               = 6\n"
                    "KeyReleaseEvent             = 7\n"))
+PREFIX(NoRefreshOn, tree, "no_refresh_on",
+       PARM(event_type, integer, "Type of event (Qt value)"),
+       RTAO(noRefreshOn(self, event_type)),
+       GROUP(events)
+       SYNOPSIS("Do not refresh current layout on a specific event type")
+       DESCRIPTION("Cancel refresh on specified event type, if it was set to refresh. "
+                   "See refresh_on for a list of event type values."))
 PREFIX(DefaultRefresh, tree, "default_refresh",
        PARM(interval, real, "Interval in seconds"), 
        RTAO(defaultRefresh(self, interval)),

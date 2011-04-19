@@ -197,8 +197,13 @@ int RasterText::printf(const char *format...)
     vsprintf(text, format, ap);
     va_end(ap);
 
+    // Save GL state
     glPushAttrib(GL_LIGHTING_BIT | GL_LIST_BIT);
     glDisable(GL_LIGHTING);
+    GLint prog = 0;
+    glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
+    if (prog)
+        glUseProgram(0);
 
     // Draw background
     glWindowPos2d(instance->pos.x, instance->pos.y - 2.0);
@@ -217,7 +222,11 @@ int RasterText::printf(const char *format...)
     glWindowPos2d(instance->pos.x, instance->pos.y);
     glListBase(instance->fontOffset);
     glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
+
+    // Restore GL state
     glPopAttrib();
+    if (prog)
+        glUseProgram(prog);
 
     return strlen(text);
 }

@@ -23,7 +23,7 @@ QT += core gui opengl testlib
 
 OTHER_FILES += \
     taoTester.tbl \
-    module.xl
+    taoTester.xl
 
 HEADERS += \
     widgettests.h \

@@ -149,7 +149,7 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
     QString cmd("xcopy");
     QStringList args;
-    args << "/E" << "/B" << "/Q" << "/Y" << srcPath << dstPath;
+    args << "/E" << "/Q" << "/Y" << srcPath << dstPath;
 
 #else
 #error "Don't know how to do a recursive copy!"

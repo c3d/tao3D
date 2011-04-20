@@ -28,7 +28,7 @@ tao_install:
 	[ -d build_root ] || mkdir -p build_root
 	cd ../.. && make install
 	cp -Rp $(INSTROOT)/* build_root
-	./copy_deps "$(QMAKE_LIBDIR_QT_SANE)/../plugins"
+	./copy_deps "$(QMAKE_LIBDIR_QT_SANE)"
 
 clean:
 	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh

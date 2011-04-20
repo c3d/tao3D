@@ -19,7 +19,7 @@ OBJECT_LOADER_FILES = \
 HELLO_WORLD_FILES = \
 	modules/hello_world \
 	modules/hello_world/hello_world.pro \
-	modules/hello_world/module.xl
+	modules/hello_world/hello_world.xl
 
 LOREM_IPSUM_FILES = \
 	modules/lorem_ipsum \
@@ -28,7 +28,7 @@ LOREM_IPSUM_FILES = \
 	modules/lorem_ipsum/lorem_ipsum.h \
 	modules/lorem_ipsum/lorem_ipsum.pro \
 	modules/lorem_ipsum/lorem_ipsum.tbl \
-	modules/lorem_ipsum/module.xl \
+	modules/lorem_ipsum/lorem_ipsum.xl \
 	modules/lorem_ipsum/traces.tbl
 
 FILES_COMMON = \

@@ -72,7 +72,7 @@ To add a new module:
  1. Make a copy of an example as a starting point. In order of increasing
    complexity:
     - hello_world is the simplest module possible. It has no native code; only
-      XL language in module.xl.
+      XL language in hello_world.xl.
     - lorem_ipsum has some simple native code (new primitives), but no
       graphics.
     - object_loader defines new primitives, uses a 3rd party library and makes
@@ -80,7 +80,7 @@ To add a new module:
  2. Rename the directory and the project file (.pro). They must have the same
     name or qmake will complain (if directory is "foo" then project file must
     be "foo.pro").
- 3. Edit the file module.xl:
+ 3. Edit the file <module_name>.xl:
     - Change the module identifier (id=). Use a Univerally Unique Identifier
       (UUID) to make sure your module won't conflict with any other Tao module.
       You may use the uuidgen command.

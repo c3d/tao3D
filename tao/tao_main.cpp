@@ -119,9 +119,13 @@ void win_redirect_io()
         QDir dir(Tao::Application::defaultProjectFolderPath());
         QString path = dir.absoluteFilePath("tao.log");
         const char *f = path.toStdString().c_str();
-        fclose(fopen(f, "w"));
-        freopen(f, "a", stdout);
-        freopen(f, "a", stderr);
+        FILE *fp = fopen(f, "w");
+        if (fp)
+        {
+            fclose(fp);
+            freopen(f, "a", stdout);
+            freopen(f, "a", stderr);
+        }
     }
 }
 #endif

@@ -1,5 +1,5 @@
-text_box 0, 0, 800, 600, 
-    font "Papyrus", 80 
+text_box 0, 0, window_width, window_height,
+    font "Ubuntu", 80, bold
     color_hsv time * 5, 60% , 100% , 50% 
     line_width 2 
     line_color "black" 
@@ -15,10 +15,16 @@ text_box 0, 0, 800, 600,
     line_break 
     text "© Copyright 2010-2011 Taodyne SAS" 
 
-text_box 0, -400, 800, 400, 
+text_box 0, 0, window_width, window_height,
+    vertical_align_bottom
     font "Arial", 28 
     align_center 
-    color "darkgreen" 
+    color "darkgreen"
+    help_message tao_language
+
+help_message "fr" ->
     text "L'aide en ligne se trouve dans le menu ""Aide"""
-    line_break 
+
+help_message T:text ->
     text "Online help is available in the ""Help"" menu"
+

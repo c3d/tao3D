@@ -78,7 +78,7 @@ Application::Application(int & argc, char ** argv)
 
     // Load translations, based on current locale. Preferences may override
     // current locale.
-    QString lang = QLocale().name().left(2);
+    lang = QLocale().name().left(2);
     lang = QSettings().value("uiLanguage", lang).toString();
     if (translator.load(QString("tao_") + lang, applicationDirPath()))
     {

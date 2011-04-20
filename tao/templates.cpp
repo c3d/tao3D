@@ -23,8 +23,10 @@
 #include "templates.h"
 #include "tao_utf8.h"
 #include "process.h"
+#include "application.h"
 
 #include <QSettings>
+#include <QTextStream>
 
 TAO_BEGIN
 
@@ -65,6 +67,18 @@ Template::Template(const QDir &dir)
         QStringList ddd = dir.entryList(QStringList("*.ddd"), QDir::Files);
         if (ddd.size() == 1)
             mainFile = ddd.first();
+    }
+
+    // Read translations, if present
+    QString lang = TaoApp->lang;
+    if (lang != "")
+    {
+        QSettings ini(inipath, QSettings::IniFormat);
+        ini.setIniCodec("UTF-8");
+        ini.beginGroup(lang);
+        name = ini.value("name", name).toString();
+        description = ini.value("description", description).toString();
+        ini.endGroup();
     }
 
     valid = true;
@@ -135,7 +149,7 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
     QString cmd("xcopy");
     QStringList args;
-    args << "/E" << "/B" << "/Q" << "/Y" << srcPath << dstPath;
+    args << "/E" << "/Q" << "/Y" << srcPath << dstPath;
 
 #else
 #error "Don't know how to do a recursive copy!"
@@ -163,6 +177,45 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 #endif
 
     return ok;
+}
+
+
+QString Template::mainFileFullPath()
+// ----------------------------------------------------------------------------
+//   Full path to the main .ddd file of the template (if known)
+// ----------------------------------------------------------------------------
+{
+    if (mainFile.isEmpty())
+        return "";
+    return dir.absoluteFilePath(mainFile);
+}
+
+
+bool Template::contains(const QString &keyword, bool searchSource)
+// ----------------------------------------------------------------------------
+//   Check if name, description or main file contains keyword
+// ----------------------------------------------------------------------------
+{
+    if (name.contains(keyword))
+        return true;
+    if (description.contains(keyword))
+        return true;
+    if (searchSource)
+    {
+        if (source.isNull())
+        {
+            QFile file(mainFileFullPath());
+            if (file.open(QIODevice::ReadOnly))
+            {
+                QTextStream s(&file);
+                source = s.readAll();
+            }
+        }
+        if (source.contains(keyword))
+            return true;
+    }
+
+    return false;
 }
 
 

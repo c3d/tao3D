@@ -44,9 +44,9 @@ slide "Seyes style (Slide)",
     - "Bullet level 2"
 
 picture_slide "Seyes style (Web)",
-    w -> window_width * 0.9
-    h -> window_height * 0.7
-    y -> window_height * -0.1
+    w -> slide_width * 0.9
+    h -> slide_height * 0.7
+    y -> slide_height * -0.1
     shape
         color "red"
         rectangle 0, y, w+10, h+10
@@ -69,7 +69,7 @@ slide "White On Black (Slide)",
 
 picture_slide "White on Black (Picture)",
     color "white"
-    wscale -> window_height / 1600
+    wscale -> slide_height / 1600
     image 0, 0, wscale, wscale, "Corsica.jpg"
 
 
@@ -88,8 +88,8 @@ picture_slide "White on Gray (3D)",
     color "white"
     texture "earth.bmp"
     rotatey 2.3 * time
-    sphere 0, 0, 0, window_height * 0.3
+    sphere 0, 0, 0, slide_height * 0.6
     texture "clouds.png"
     rotatey 0.6 * time
-    sphere 0, 0, 0, window_height * 0.3 + 3
+    sphere 0, 0, 0, slide_height * 0.6 + 3
 

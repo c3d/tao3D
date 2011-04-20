@@ -314,7 +314,6 @@ public:
     virtual GLuint bind(XL::Text *url);
 public:
     text url;
-    QGLFramebufferObject *fbo;
     Phonon::AudioOutput *audio;
     Phonon::MediaObject *media;
 };

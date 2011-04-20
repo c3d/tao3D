@@ -35,12 +35,12 @@ import MyModule 1.0
  *
  * If the version is not specified, it is assumed to be 1.0.
  *
- * Without explicit import, no definition from the module's module.xl file are
+ * Without explicit import, no definition from the module's main XL file are
  * reachable from the document.
  *
  * @param modulename The export name of the module, as defined in the module
  *        documentation (this is also the value of import_name of the
- *        module_description block in module.xl)
+ *        module_description block in the module's main XL file)
  * @param version The minimum version of the module known to work with the
  *        current document.
  */

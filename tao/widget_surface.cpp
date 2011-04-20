@@ -793,7 +793,6 @@ VideoSurface::VideoSurface(XL::Tree *t, Widget *parent)
 //   Create the video player
 // ----------------------------------------------------------------------------
     : WidgetSurface(t, new Phonon::VideoWidget(NULL)),
-      fbo(NULL),
       audio(new Phonon::AudioOutput(Phonon::VideoCategory, NULL)),
       media(new Phonon::MediaObject(NULL))
 {
@@ -811,7 +810,6 @@ VideoSurface::~VideoSurface()
 // ----------------------------------------------------------------------------
 {
    media->stop();
-   delete fbo;
    delete audio;
    delete media;
 }
@@ -834,58 +832,23 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     QSize hint = player->sizeHint();
     if (hint.isValid())
     {
-        if (!fbo ||
-            fbo->width() != hint.width() ||
-            fbo->height() != hint.height())
-        {
-            delete fbo;
-            fbo = new QGLFramebufferObject(hint.width(), hint.height(),
-                                           GL_TEXTURE_2D);
-
-            // Save width and height for use by caller
+        if (hint.width() != widget->width() ||
+            hint.height() != widget->height())
             resize(hint.width(), hint.height());
-        }
 
-        glClearColor(0,0,0,0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glColor4f(1,1,1,1);
-
-#if 0
-        // Rendering through a QImage
-        QImage image = ((Phonon::VideoWidget *) widget)->snapshot();
-
-        // Generate the GL texture
-        if (!image.isNull())
-        {
-            GLuint textureId = fbo->texture();
-            image = QGLWidget::convertToGLFormat(image);
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glTexImage2D(GL_TEXTURE_2D, 0, 3,
-                         image.width(), image.height(), 0, GL_RGBA,
-                         GL_UNSIGNED_BYTE, image.bits());
-        }
-#elif 0
-        static QImage image(widget->width(), widget->height(),
-                            QImage::Format_ARGB32);
+        QImage image(widget->width(), widget->height(),
+                     QImage::Format_ARGB32);
         widget->setAutoFillBackground(false);
         widget->render(&image);
 
         // Generate the GL texture
-        GLuint textureId = fbo->texture();
         image = QGLWidget::convertToGLFormat(image);
         glBindTexture(GL_TEXTURE_2D, textureId);
         glTexImage2D(GL_TEXTURE_2D, 0, 3,
                      image.width(), image.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, image.bits());
 
-#else
-        // Faster rendering through a frame buffer object
-        fbo->bind();
-        widget->render(fbo, QPoint(), QRegion(),
-                       QWidget::RenderFlags(QWidget::DrawChildren));
-        fbo->release();
-#endif
-        return fbo->texture();
+        return textureId;
     }
 
     // Default is to return no texture

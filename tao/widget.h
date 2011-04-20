@@ -131,6 +131,8 @@ public slots:
     void        showHandCursor(bool enabled);
     void        hideCursor();
     void        resetView();
+    void        zoomIn();
+    void        zoomOut();
     void        saveAndCommit();
     void        renderFrames(int w, int h, double startT, double endT,
                              QString dir, double fps = 25.0, int page = -1);
@@ -202,8 +204,6 @@ public:
     bool        get(Tree *shape, text n, TreeList &a, text sh = "group,shape");
     bool        set(Tree *shape, text n, TreeList &a, text sh = "group,shape");
     bool        get(Tree *shape, text n, attribute_args &a,
-                    text sh = "group,shape");
-    bool        set(Tree *shape, text n, attribute_args &a,
                     text sh = "group,shape");
     bool        isReadOnly();
     QStringList listNames();
@@ -332,6 +332,7 @@ public:
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
+    Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
@@ -533,6 +534,7 @@ public:
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
     Text_p      loadText(Tree_p self, text file);
+    Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
@@ -856,6 +858,7 @@ private:
 
     bool                  refreshOn(QEvent::Type type,
                                     double nextRefresh = DBL_MAX);
+    bool                  noRefreshOn(QEvent::Type type);
 public:
     static bool           refreshOn(int event_type);
     static bool           addControlBox(Real *x, Real *y, Real *z,

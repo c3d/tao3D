@@ -12,6 +12,8 @@
  *
  * @image html table.png "A simple table layout (table.ddd)"
  *
+ * @bug The above code does not work with the current version of Tao.
+ *      @c for loops are currently not supported.
  * @todo formula, text_value not documented (my tests failed on interp)
  * @{
  */

@@ -367,7 +367,6 @@ void Widget::draw()
     // Setup the initial drawing environment
     uint w = width(), h = height();
     setupPage();
-    space->ClearAttributes();
 
 
     // Clean text selection
@@ -486,6 +485,7 @@ void Widget::draw()
         // On MacOSX, profiling shows that glEndList() can take quite a long
         // time (~60ms average on a moderately complex scene including
         // a 400k-triangle object rendered by GLC_Lib)
+        space->ClearAttributes();
         space->Draw(NULL);
 
         IFTRACE(memory)
@@ -505,6 +505,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);
             glUseProgram(0);
@@ -516,7 +517,7 @@ void Widget::draw()
 
         id = idDepth = 0;
         selectionTrees.clear();
-        space->offset.Set(0,0,0);
+        space->ClearAttributes();
         space->DrawSelection(NULL);
 
         // Render all activities, e.g. the selection rectangle
@@ -675,7 +676,7 @@ bool Widget::refreshNow(QEvent *event)
             text what = event ? LayoutState::ToText(event->type()) : "NULL";
             std::cerr << "Full refresh due to event: " << what << "\n";
         }
-        if (event)
+        if (event && event->type() != QEvent::MouseMove)
         {
             refreshEvents.erase(event->type());
             if (event->type() == QEvent::Timer)
@@ -703,8 +704,8 @@ bool Widget::refreshNow(QEvent *event)
             IFTRACE(layoutevents)
                 std::cerr << "Partial refresh due to event: "
                           << LayoutState::ToText(event->type()) << "\n";
-
-            refreshEvents.erase(event->type());
+            if (type != QEvent::MouseMove)
+                refreshEvents.erase(event->type());
             if (type == QEvent::Timer)
                 nextRefresh = DBL_MAX;
 
@@ -804,6 +805,27 @@ bool Widget::refreshOn(int event_type)
 }
 
 
+bool Widget::noRefreshOn(QEvent::Type type)
+// ----------------------------------------------------------------------------
+//   Current layout (if any) should NOT be updated on specified event
+// ----------------------------------------------------------------------------
+{
+    bool changed = false;
+
+    if (!layout)
+        return false;
+
+    if (layout->refreshEvents.count(type) != 0)
+    {
+        layout->refreshEvents.erase(type);
+        changed = true;
+        if (type == QEvent::Timer)
+            layout->nextRefresh = DBL_MAX;
+    }
+    return changed;
+}
+
+
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
 //   Run the  XL program
@@ -819,6 +841,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
+    refreshEvents.clear(); //
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -1128,7 +1151,7 @@ void Widget::updateSelection()
 {
     id = idDepth = 0;
     selectionTrees.clear();
-    space->offset.Set(0,0,0);
+    space->ClearAttributes();
     space->DrawSelection(NULL);
 }
 
@@ -1351,7 +1374,7 @@ void Widget::paste()
                                new XL::Text(+mimeData->text()));
         else return;
         // Insert a text box with that content at the end of the doc/page.
-        std::vector<Tree*> arg_list;
+        TreeList arg_list;
         arg_list.push_back( new XL::Integer(0LL));
         arg_list.push_back( new XL::Integer(0LL));
         arg_list.push_back( new XL::Integer(200));
@@ -1615,6 +1638,36 @@ void Widget::resetView()
 }
 
 
+void Widget::zoomIn()
+// ----------------------------------------------------------------------------
+//    Call zoom_in builtin
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    (XL::XLCall("zoom_in"))(xlProgram);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
+}
+
+
+void Widget::zoomOut()
+// ----------------------------------------------------------------------------
+//    Call zoom_out builtin
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    (XL::XLCall("zoom_out"))(xlProgram);
+    do
+    {
+        TaoSave saveCurrent(current, NULL);
+        updateGL();
+    } while (0);
+}
+
+
 void Widget::saveAndCommit()
 // ----------------------------------------------------------------------------
 //   Save files and commit to repository if needed
@@ -1830,6 +1883,7 @@ void Widget::setupGL()
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
     glDisable(GL_LIGHTING);
+    glDisable(GL_COLOR_MATERIAL);
     glUseProgram(0);
     glAlphaFunc(GL_GREATER, 0.01);
     glEnable(GL_ALPHA_TEST);
@@ -3055,9 +3109,6 @@ bool Widget::markChange(text reason)
 
     changeReason = reason;
 
-    // Cause the screen to redraw
-    refresh(0);
-
     // Caller is allowed to modify the source code
     return true;
 }
@@ -3450,18 +3501,15 @@ bool Widget::get(Tree *shape, text name, XL::TreeList &args, text topName)
     return true;
 }
 
-
 bool Widget::set(Tree *shape, text name, XL::TreeList &args, text topName)
 // ----------------------------------------------------------------------------
 //   Set the arguments, building the comma-separated list
 // ----------------------------------------------------------------------------
 {
     Tree *call = new XL::Name(name);
-    if (uint arity = args.size())
+    if (args.size())
     {
-        Tree *argsTree = args[0];
-        for (uint a = 1; a < arity; a++)
-            argsTree = new XL::Infix(",", argsTree, args[a]);
+        Tree *argsTree = list2tree(args, ",");
         call = new XL::Prefix(call, argsTree);
     }
 
@@ -3495,24 +3543,6 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
     }
 
     return true;
-}
-
-
-bool Widget::set(Tree *shape, text name, attribute_args &args, text topName)
-// ----------------------------------------------------------------------------
-//   Set the arguments, building the comma-separated list
-// ----------------------------------------------------------------------------
-{
-    Tree *call = new XL::Name(name);
-    if (uint arity = args.size())
-    {
-        Tree *argsTree = new XL::Real(args[0]);
-        for (uint a = 1; a < arity; a++)
-            argsTree = new XL::Infix(",", argsTree, new XL::Real(args[a]));
-        call = new XL::Prefix(call, argsTree);
-    }
-
-    return set(shape, name, call, topName);
 }
 
 
@@ -4413,7 +4443,12 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 //   Set the action associated with a click or other on the object
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::MouseMove);
+    IFTRACE(layoutevents)
+        std::cerr << "Register action " << name
+        << " on layout " << layout->PrettyId() << std::endl;
+    if (name == "mouseover")
+        refreshOn(QEvent::MouseMove);
+
     actionMap[name][layout->id] = action;
     if (!action->Symbols())
         action->SetSymbols(self->Symbols());
@@ -4676,6 +4711,15 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 }
 
 
+Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
+// ----------------------------------------------------------------------------
+//    Do NOT refresh current layout on event
+// ----------------------------------------------------------------------------
+{
+    return noRefreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
+}
+
+
 Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
 //    Set the default refresh time for layout that depend on QEvent::Timer
@@ -4882,11 +4926,13 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraPosition.x),
-                     new Infix(",",
-                               new Real(cameraPosition.y),
-                               new Real(cameraPosition.z)));
+    Infix_p infix = new Infix(",",
+                              new Real(cameraPosition.x),
+                              new Infix(",",
+                                        new Real(cameraPosition.y),
+                                        new Real(cameraPosition.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -4911,11 +4957,13 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraTarget.x),
-                     new Infix(",",
-                               new Real(cameraTarget.y),
-                               new Real(cameraTarget.z)));
+    Infix_p infix = new Infix(",",
+                              new Real(cameraTarget.x),
+                              new Infix(",",
+                                        new Real(cameraTarget.y),
+                                        new Real(cameraTarget.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -4940,11 +4988,13 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    return new Infix(",",
-                     new Real(cameraUpVector.x),
-                     new Infix(",",
-                               new Real(cameraUpVector.y),
-                               new Real(cameraUpVector.z)));
+    Infix_p infix =  new Infix(",",
+                               new Real(cameraUpVector.x),
+                               new Infix(",",
+                                         new Real(cameraUpVector.y),
+                                         new Real(cameraUpVector.z)));
+    infix->SetSymbols(self->Symbols());
+    return infix;
 }
 
 
@@ -5504,6 +5554,8 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::Timer);
+
     GLuint texId = 0;
 
     if (img != "")
@@ -5614,8 +5666,18 @@ Integer* Widget::imagePx(Context *context,
     Infix_p resolution = imageSize(context, self, filename);
     Integer_p ww = resolution->left->AsInteger();
     Integer_p hh = resolution->right->AsInteger();
+    if (ww == 1 && hh == 1)
+    {
+        // File not found
+        ww->value = ImageTextureInfo::defaultTexture().width;
+        hh->value = ImageTextureInfo::defaultTexture().height;
+    }
     double sx = (double)w / (double)ww;
     double sy = (double)h / (double)hh;
+    if ((double)w == 0.0 && (double)h != 0)
+        sx = sy;
+    if ((double)h == 0.0 && (double)w != 0)
+        sy = sx;
 
     return image(context, self, x, y, new Real(sx), new Real(sy), filename);
 }
@@ -5707,6 +5769,8 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     list_files(context, current, pattern, parent);
     if (!result)
         result = XL::xl_nil;
+    else
+        result->SetSymbols(self->Symbols());
     return result;
 }
 
@@ -6796,7 +6860,6 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Update document with prog
     editCursor = new QTextCursor(new QTextDocument(""));
@@ -7254,6 +7317,15 @@ Text_p Widget::loadText(Tree_p self, text file)
 }
 
 
+Text_p Widget::taoLanguage(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the current language code of the Tao GUI ("en", "fr")
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(+TaoApp->lang);
+}
+
+
 Text_p Widget::taoVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the version of the Tao program
@@ -7590,7 +7662,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
@@ -7748,7 +7819,6 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
@@ -7794,7 +7864,6 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
@@ -7835,7 +7904,6 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7878,7 +7946,6 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -7921,7 +7988,6 @@ Integer* Widget::pushButtonTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     AbstractButtonSurface *surface = name->GetInfo<AbstractButtonSurface>();
@@ -8194,7 +8260,6 @@ Integer* Widget::colorChooserTexture(Tree_p self,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
@@ -8242,7 +8307,6 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
@@ -8474,7 +8538,6 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
@@ -8572,7 +8635,6 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 {
     if (w < 16) w = 16;
     if (h < 16) h = 16;
-    refreshOn(QEvent::MouseMove);
 
     // Get or build the current frame if we don't have one
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
@@ -8620,7 +8682,6 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::MouseMove);
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
@@ -8707,7 +8768,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
             std::ostringstream os;
             os << label << pnum++ << " " << name;
             std::string txt(os.str());
-            chooser->AddItem(label + name, action);
+            chooser->AddItem(txt, action);
         }
         return XL::xl_true;
     }

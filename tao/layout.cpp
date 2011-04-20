@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  layout.cpp                                                      Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Drawing object that is used to lay out objects in 2D or 3D space
 //     Layouts are used to represent 2D pages, 3D spaces (Z ordering)
 //     and text made of a sequence of glyphs
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -68,7 +68,7 @@ LayoutState::LayoutState(const LayoutState &o)
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
         left(o.left), right(o.right),
         top(o.top), bottom(o.bottom),
-        visibility(1),
+        visibility(o.visibility),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
@@ -382,7 +382,7 @@ text Layout::PrettyId()
 // ----------------------------------------------------------------------------
 {
     std::stringstream sstr;
-    sstr << (void*)this;
+    sstr << (void*)this << " id = " << id;
     if (body)
     {
         Tree *source = XL::xl_source(body);

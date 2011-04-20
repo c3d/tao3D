@@ -446,6 +446,13 @@ PREFIX(RefreshOn, tree, "refresh_on",
                    "MouseMoveEvent              = 5\n"
                    "KeyPressEvent               = 6\n"
                    "KeyReleaseEvent             = 7\n"))
+PREFIX(NoRefreshOn, tree, "no_refresh_on",
+       PARM(event_type, integer, "Type of event (Qt value)"),
+       RTAO(noRefreshOn(self, event_type)),
+       GROUP(events)
+       SYNOPSIS("Do not refresh current layout on a specific event type")
+       DESCRIPTION("Cancel refresh on specified event type, if it was set to refresh. "
+                   "See refresh_on for a list of event type values."))
 PREFIX(DefaultRefresh, tree, "default_refresh",
        PARM(interval, real, "Interval in seconds"), 
        RTAO(defaultRefresh(self, interval)),
@@ -1467,6 +1474,11 @@ PREFIX(LoadText,  tree,  "load_text",
        SYNOPSIS("Load a text file from disk")
        DESCRIPTION("Load a text file from disk. It uses the 'doc' prefix to look into resources")
        RETURNS(tree, "The content of the file."))
+PREFIX(TaoLanguage, text, "tao_language", , RTAO(taoLanguage(self)),
+       GROUP(text)
+       SYNOPSIS("Return the current language used by the Tao program") 
+       DESCRIPTION("Returns the two-letter ISO 639 language code of the current locale. For instance: en, fr.")
+       RETURNS(text, "The current language code"))
 PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
        GROUP(version)
        SYNOPSIS("The Tao version")
@@ -2492,7 +2504,6 @@ PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
        SYNOPSIS("")
        DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
        RETURNS(tree, ""))
-
 
 // ============================================================================
 //

@@ -43,13 +43,13 @@ A module is a directory with the following structure:
 
   <module_name>/
     .git/        [Optional] Git folder, used to manage upgrades
-    module.xl    A XL file, loaded by the module manager
+    <module_name>.xl  A XL file, loaded by the module manager
     icon.png     [Optional] Module icon
     lib/         [Optional] Native code as a shared library
 
-  2.1 Structure of module.xl
+  2.1 Structure of <module_name>.xl
 
-module.xl may contain the following.
+<module_name>.xl may contain the following.
 
 //-----
 module_description
@@ -90,7 +90,7 @@ The web site where one can find information about the module.
 import_name [Optional]
 The name to use if the module is to be explicitely imported. That is, if
 import_name is "MyModule", the module can be imported with:
-  import MyModule "1.0"
+  import MyModule 1.0
 
 3. Where are modules installed?
 
@@ -110,7 +110,7 @@ prompted with a description of the module and has to choose whether to enable
 the module or not. If user accepts, the module is initialized and the module
 ID is stored into the user's settings, along with the "enabled" flag.
 Otherwise, the module ID is stored with the "disabled" flag.
-The module path is also saved.
+Note: currently user is not prompted, all modules are enabled by default.
 
 Then, all other modules marked as "enabled" in the user settings are loaded
 and initialized (see details below).
@@ -121,18 +121,14 @@ A Tao document may explicitely import a module, for instance to benefit from
 new XL constructs or primitives. Explicit import is achived by the following
 line:
 
-  import ModuleName "1.10"
+  import ModuleName 1.1
 
 When Tao encounters the import statement, it looks up ModuleName in the list
 of currently loaded modules, checks the version compatibility, and then makes
 the module definitions available to the Tao document.
-Version matching is a major/minor match. For a module to load, module.major
-must be equal to requested.major and module.minor must be greater or equal to
-requested.minor. "major" is the part before the first dot. "minor" is the
-remaining part. For instance in 1.0.2, major is 1 and minor is 0.2. Comparison
-is performed after converting to integers.
+Version matching is documented in the online doc.
 
-Without explicit import, no definition from the module.xl are reachable from
+Without explicit import, no definition from <module_name>.xl are reachable from
 the document.
 
 5. How are modules installed?
@@ -141,7 +137,7 @@ Several options:
   - Manually, by downloading module files under U/modules or S/modules then
   restarting Tao. Download typically goes through "git clone".
   - By clicking on a specially crafted tao: link (which will "git clone" the
-  module under U or S).
+  module under U or S) (TBD).
   - Through the Tao interface (TBD).
 
 6. How are modules upgraded?
@@ -162,9 +158,7 @@ development version);
 (3) The remote name "origin" must be a valid repository and must have at
 least one tag (annotated or not);
 (4) The highest local tag must be strictly lower than the highest remote
-tag. Comparison is performed assuming the usual versioning scheme, where:
-    1.0 < 1.1 < 1.1.2 < 1.2 < 1.9 < 1.10 < 2.0
-(lexicographic comparison left to right of integers separated by dots).
+tag. Comparison is performed by ModuleManager::parseVersion().
 
   6.2. Maintaining a module repository
 
@@ -186,14 +180,15 @@ checking for update...) is achieved through the Preferences dialog.
 
   8.1. XL code
 
-Any XL code goes into module.xl and possibly other .xl files.
+Any XL code goes into <module_name>.xl and possibly other .xl files.
 
   8.2. Native code
 
 New XL primitives can be added by using the Tao module API, and generating
-a shared library that will be loaded by Tao before module.xl is loaded.
-The base name of the library must be "module", i.e., module.dll on Windows,
-libmodule.dylib on MacOSX, libmodule.so on Linux.
+a shared library that will be loaded by Tao before <module_name>.xl is loaded.
+The base name of the library must be the name of the main module directory,
+i.e., <module_name>.dll on Windows,lib<module_name>.dylib on MacOSX,
+lib<module_name>.so on Linux.
 To make building a Tao module easy, Tao has a special Qt project include
 file, modules.pri, as well as a C/C++ API. There are also examples under the
 'modules' directory.
@@ -201,7 +196,7 @@ file, modules.pri, as well as a C/C++ API. There are also examples under the
   8.2.1 Source files for a typical Tao module
 
     mymodule.pro   Qt project file. Uses Tao's modules.pri.
-    module.xl      Module information (id, description...) and XL code.
+    mymodule.xl    Module information (id, description...) and XL code.
     mymodule.tbl   Declarations of new XL primitives. Processed by the tbl_gen
                    script to produce mymodule_wrap.cpp, which defines functions
                    enter_symbols and delete_symbols.
@@ -229,13 +224,13 @@ is used by Tao to communicate some module information to the module itself
 
 Native and XL functions of a module are called by Tao in the following order:
 
-  1. module_init    (native)
-  2. enter_symbols  (native)
-  3. module_init    (XL)
+  1. module_init    (native)  Once, after library is loaded
+  2. enter_symbols  (native)  When module is explicitely imported
+  3. module_init    (XL)      Not in current implementation
   ...
-  4. module_exit    (XL)
-  5. delete_symbols (native)
-  6. module_exit    (native)
+  4. module_exit    (XL)      Not in current implementation
+  5. delete_symbols (native)  Not in current implementation
+  6. module_exit    (native)  Not in current implementation
 
  */
 
@@ -256,6 +251,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QStringList>
 #include <QSet>
 #include <QLibrary>
+#include <QDir>
 #include <iostream>
 
 
@@ -309,6 +305,36 @@ public:
         void copyPublicProperties(const ModuleInfo &o)
         {
             *(ModuleInfo*)this = o;
+        }
+
+        QString dirname() const
+        {
+            return QDir(+path).dirName();
+        }
+
+        QString xlPath() const
+        {
+            QString ret = QDir(+path).filePath(dirname() + ".xl");
+            if (!QFileInfo(ret).isReadable())
+                ret = QDir(+path).filePath("module.xl"); // Backward compat.
+            return ret;
+        }
+
+        QString libPath() const
+        {
+#           if   defined(CONFIG_MINGW)
+            QString fmt("%1/%2/%3.dll");
+#           elif defined(CONFIG_MACOSX)
+            QString fmt("%1/%2/lib%3.dylib");
+#           elif defined(CONFIG_LINUX)
+            QString fmt("%1/%2/lib%3.so");
+#           else
+#           error Unknown OS - please define library name
+#           endif
+            QString ret = fmt.arg(+path).arg("lib").arg(dirname());
+            if (!QFileInfo(ret).isReadable())
+                ret = fmt.arg(+path).arg("lib").arg("module"); // Backwd compat.
+            return ret;
         }
     };
 

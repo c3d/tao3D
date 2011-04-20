@@ -1,0 +1,61 @@
+import SlideShow3D 1.0 
+
+window_scale -> min (window_width / 1024, window_height / 768) 
+
+scale window_scale, window_scale, 1 
+page "Photos", 
+    pt -> page_time 
+    Message "en" -> "Create nice slide shows from your own photos!"
+    Message "fr" -> "Créez votre album en utilisant vos propres photos !"
+    earth_position -> translate 0, -100, 1000 
+    rotatex 8 
+    scale 70% , 70% , 70% 
+
+    SHOWN := 24
+    MAX := 48
+
+    locally 
+        color "white", -expm1 (0.0 - pt * 0.05) 
+
+        earth_position 
+        rotatex -12 
+        image_index := 0 
+        show_front := -1.0 
+        show_image with files "photos/*.jpg"
+     
+    locally 
+        earth_position 
+        color "white" 
+        texture "earth.bmp" 
+        rotatey 2.5 * pt 
+        sphere 0, 0, 0, 500 
+        rotatey 0.3 * pt 
+        texture "clouds.png" 
+        sphere 0, 0, 0, 505
+     
+    locally 
+        frame_texture 1200, 400, do 
+            color "white" 
+            no_line_color 
+            font "Arial", 64 
+            move_to 320 - (pt mod 24) * 80, -12, 0 
+            text Message tao_language
+         
+        earth_position 
+        color "black" 
+        sphere 0, 0, 0, 520 
+        color_hsv time * 20, 30% , 100% , 80% 
+        move_to 0, 0, 0 
+        sphere 0, 0, 0, 540
+     
+    locally 
+        color "white", -expm1 (0.0 - pt * 0.05) 
+
+        earth_position 
+        rotatex -12 
+        image_index := 0 
+        show_front := 1.0 
+        show_image with files "photos/*.jpg"
+     
+    default_refresh 1 / 60
+

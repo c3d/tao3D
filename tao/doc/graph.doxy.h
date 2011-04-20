@@ -296,7 +296,8 @@ line_color_cymk (c:real, y:real, m:real, k:real);
 
 /**
  * Selects the texture.
- * Build a GL texture out of an image file @p filename.
+ * Build a GL texture out of image file @p filename, and make it the current
+ * texture.
  * Supported format include:
  *   - BMP  Windows Bitmap
  *   - GIF  Graphic Interchange Format (optional)
@@ -306,10 +307,13 @@ line_color_cymk (c:real, y:real, m:real, k:real);
  *   - PBM  Portable Bitmap
  *   - PGM  Portable Graymap
  *   - PPM  Portable Pixmap
+ *   - SVG  Scalable Vector Graphics
  *   - TIFF Tagged Image File Format
  *   - XBM  X11 Bitmap
  *   - XPM  X11 Pixmap
  *
+ * @note Use @ref animated_texture to render animated bitmaps and @ svg
+ * to render animated SVG files.
  */
 texture(filename:text);
 
@@ -334,15 +338,22 @@ texture_unit (unit:integer);
 
 /**
  * Create a GL animated texture.
- * Build a GL texture images from an animated image file. Supported format are:
+ * Build a GL texture images from an animated image file and make it the
+ * current texture. Supported format are:
  *   - GIF	Animated Graphic Interchange Format
  *   - MNG	Animated portable Network Graphics
- *   - others [TODO:  description is troncated]
+ *
+ * @note This primitive does not support animated SVGs. You may use the
+ * @ref svg primitive to render animated SVGs.
  */
 animated_texture(filename:text);
+
 /**
- * Creates a texture from an SVG file.
- * Build a GL texture out of an SVG file @p svg.
+ * Creates an animated texture from an SVG file.
+ * Build a GL texture out of SVG file @p svg. This primitive supports
+ * animated SVGs, in addition to non-animated ones. For non-animated SVGs,
+ * however, it is recommended to use the @ref texture primitive, which uses
+ * system resources.
  */
 svg(svg:text);
 
@@ -391,11 +402,15 @@ no_texture();
  *   - PBM  Portable Bitmap
  *   - PGM  Portable Graymap
  *   - PPM  Portable Pixmap
+ *   - SVG  Scalable Vector Graphics
  *   - TIFF Tagged Image File Format
  *   - XBM  X11 Bitmap
  *   - XPM  X11 Pixmap
  *
- * Images are combined with the current color.
+ * Images are combined with the current color. Animated image files (bitmap or
+ * SVG) appear fixed when displayed by the image primitives. If you need to
+ * show animated files, use the texture primitives @ref animated_texture or
+ * @ref svg.
  *
  * Texture are handled in the @ref graph_env module.
  * @{
@@ -405,7 +420,8 @@ no_texture();
  * Display an image.
  * Load an image from file @p filename.
  *  - @p x and @p y coordinate of the image center are specified in pixel
- *  - @p w and @p h are size express in percentage
+ *  - @p w and @p h are the width and height relative to the original size
+ *    (for instance, set @p w to 1.0 to keep the original width)
  * @image html "images/image.png"
 @code
 page "image",
@@ -420,7 +436,10 @@ image (x:real, y:real, w:real, h:real, filename:text);
  * Display an image.
  * Load an image from file @p filename.
  *  - @p x and @p y coordinate of the image center are specified in pixel
- *  - @p w and @p h are size express in pixel
+ *  - @p w and @p h are the width and height of the image in pixel. If
+ *    @p w or @p h is null (but not both), the image is scaled
+ *    proportionally so that it keeps its original aspect ratio. If both
+ *    parameters are null, nothing is displayed.
  * @image html "images/image_px.png"
 
 @code

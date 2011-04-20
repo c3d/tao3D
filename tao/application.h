@@ -104,6 +104,7 @@ public:
     bool         hasGLMultisample;    
     uint         maxTextureCoords;
     uint         maxTextureUnits;
+    QString      lang;
 
 private:
     QStringList  pathList;

@@ -147,6 +147,21 @@ my_circle Radius:real ->
  * When a builtin is implemented in native code (C or C++), it is called a
  * @a primitive.
  *
+ * @subsection secVariables Variables
+ *
+ * To declare and initialise a variable with the current version of Tao
+ * Presentations, write the following:
+ @code
+ count -> 0  // Create variable of type integer (0 is an integer)
+ count := 1  // Initialize it
+
+ size -> 0.0  // Create variable of type real (0.0 is a real)
+ size := 10.0 // Initialize it
+ @endcode
+ * Make sure you do not assign an integer to a variable created as a real,
+ * and vice versa. Otherwise weird things will occur, like the variable not
+ * having the expected value.
+ *
  * @subsection secExecModel Execution and Drawing Model
  *
  * In order to display a document, Tao @a executes the document (or parts of

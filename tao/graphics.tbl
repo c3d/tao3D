@@ -2051,7 +2051,6 @@ PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real,),
        GROUP(lighting)
        SYNOPSIS("Select the shininess of the material")
        DESCRIPTION(""))
-
 PREFIX(MaterialBackAmbient, tree, "material_back_ambient",
        PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_BACK, GL_AMBIENT, r, g, b, a)),
@@ -2121,14 +2120,45 @@ PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
        GROUP(graph:shading)
        SYNOPSIS("Return the shader compilation log")
        DESCRIPTION(""))
+PREFIX(GeometryInputType, integer, "geometry_shader_input", ,
+       RTAO(geometryInputType(self)),
+       SYNOPSIS("Get geometry shader input type")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryInputType, boolean, "geometry_shader_input",
+       PARM(type, integer, "Input type"),
+       RTAO(setGeometryInputType(self, type)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader input type")
+       DESCRIPTION(""))
+PREFIX(GeometryOutputType, integer, "geometry_shader_output", ,
+       RTAO(geometryOutputType(self)),
+       SYNOPSIS("Get geometry shader output type")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryOutputType, boolean, "geometry_shader_output",
+       PARM(type, integer, "Output type"),
+       RTAO(setGeometryOutputType(self, type)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader output type")
+       DESCRIPTION(""))
+PREFIX(GeometryOutputCount, integer, "geometry_shader_count", ,
+       RTAO(geometryOutputCount(self)),
+       SYNOPSIS("Get geometry shader vertices count")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryOutputCount, boolean, "geometry_shader_count",
+       PARM(count, integer, "output count"),
+       RTAO(setGeometryOutputCount(self, count)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader vertices count")
+       DESCRIPTION(""))
 PREFIX(ShaderSet, tree, "shader_set",
        PARM(t, source, "Assignment to a shader variable"),
        RTAO(shaderSet(context, self, t)),
        GROUP(lighting)
        SYNOPSIS("Set a shader uniform or attribute value")
        DESCRIPTION(""));
-
-
 
 // ============================================================================
 //

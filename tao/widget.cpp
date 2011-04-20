@@ -3800,8 +3800,8 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        where->textureUnits = 0;
-        where->previousUnits = 0;
+        where->textureUnits = 1;
+        where->previousUnits = 1;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         (where->fillTextures).clear();
@@ -5954,7 +5954,6 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     return XL::xl_false;
 }
 
-
 Text_p Widget::shaderLog(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the log for the shader
@@ -5970,7 +5969,108 @@ Text_p Widget::shaderLog(Tree_p self)
     return new Text(message);
 }
 
+Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
+// ----------------------------------------------------------------------------
+//   Specify input type for geometry shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
 
+    switch(inputType)
+    {
+    case GL_LINES: currentShaderProgram->setGeometryInputType(GL_LINES); break;
+    case GL_TRIANGLES: currentShaderProgram->setGeometryInputType(GL_TRIANGLES); break;
+    case GL_LINES_ADJACENCY: currentShaderProgram->setGeometryInputType(GL_LINES_ADJACENCY); break;
+    case GL_TRIANGLES_ADJACENCY: currentShaderProgram->setGeometryInputType(GL_TRIANGLES_ADJACENCY); break;
+    default : currentShaderProgram->setGeometryInputType(GL_POINTS); break;
+    }
+
+    return XL::xl_true;
+}
+
+Integer* Widget::geometryInputType(Tree_p self)
+// ----------------------------------------------------------------------------
+//   return input type of geometry shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return 0;
+    }
+    return new XL::Integer(currentShaderProgram->geometryInputType());
+}
+
+Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
+// ----------------------------------------------------------------------------
+//   Specify output type for geometry shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    switch(outputType)
+    {
+    case GL_LINE_STRIP: currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
+    case GL_TRIANGLE_STRIP: currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
+    default : currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
+    }
+    return XL::xl_true;
+}
+
+Integer* Widget::geometryOutputType(Tree_p self)
+// ----------------------------------------------------------------------------
+//   return output type of geometry shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return 0;
+    }
+    return new XL::Integer(currentShaderProgram->geometryOutputType());
+}
+
+Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
+// ----------------------------------------------------------------------------
+//   Specify output vertices count for geometry shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return XL::xl_false;
+    }
+
+    uint maxVertices = currentShaderProgram->maxGeometryOutputVertices();
+    if(outputCount < maxVertices)
+        currentShaderProgram->setGeometryOutputVertexCount(outputCount);
+    else
+        currentShaderProgram->setGeometryOutputVertexCount(maxVertices);
+
+    return XL::xl_true;
+}
+
+Integer* Widget::geometryOutputCount(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Specify output vertices count for geometry shader
+// ----------------------------------------------------------------------------
+{
+    if (!currentShaderProgram)
+    {
+        Ooops("No shader program while executing $1", self);
+        return 0;
+    }
+
+    return new XL::Integer(currentShaderProgram->geometryOutputVertexCount());
+}
 
 // ============================================================================
 //

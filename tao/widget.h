@@ -423,6 +423,12 @@ public:
     Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
     Tree_p      shaderSet(Context *, Tree_p self, Tree_p code);
     Text_p      shaderLog(Tree_p self);
+    Name_p      setGeometryInputType(Tree_p self, uint inputType);
+    Integer*    geometryInputType(Tree_p self);
+    Name_p      setGeometryOutputType(Tree_p self, uint outputType);
+    Integer*    geometryOutputType(Tree_p self);
+    Name_p      setGeometryOutputCount(Tree_p self, uint outputCount);
+    Integer*    geometryOutputCount(Tree_p self);
 
     // Generating a path
     Tree_p      newPath(Context *c, Tree_p self, Tree_p t);

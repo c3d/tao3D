@@ -46,6 +46,23 @@ MouseMoveEvent             -> 5
 KeyPressEvent              -> 6
 KeyReleaseEvent            -> 7
 
+// OpenGL types used to draw
+Points                     -> 0
+Lines                      -> 1
+Line_Loop                  -> 2
+Line_Strip                 -> 3
+Triangles                  -> 4
+Triangle_Strip             -> 5
+Triangle_Fan               -> 6
+Quads                      -> 7
+Quad_Strip                 -> 8
+Polygon                    -> 9
+Lines_Adjacency            -> 10
+Line_Strip_Adjacency       -> 11
+Triangles_Adjacency        -> 12
+Triangle_Strip_Adjacency   -> 13
+
+
 // Chooser
 main_chooser ->
     chooser "Choose command"

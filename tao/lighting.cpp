@@ -141,6 +141,7 @@ void ShaderValue::Draw(Layout *where)
             case GL_SAMPLER_2D:
             case GL_SAMPLER_3D:
             case GL_SAMPLER_CUBE:
+            case GL_SAMPLER_2D_RECT:
                 glUniform1i(id, values[0]);
                 break;
             default:

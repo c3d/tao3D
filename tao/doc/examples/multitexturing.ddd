@@ -24,7 +24,7 @@ multitex_shader ->
     // Specify each texture unit to fragment shader
     shader_set wall := 1 
     shader_set spot := 2
- 
+
 draw_scene -> 
     color "white"
     // Activate first unit

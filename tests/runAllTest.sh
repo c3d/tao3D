@@ -1,12 +1,12 @@
 #!/bin/bash
 set -a DYLD_LIBRARY_PATH
-INST_DIR=$PWD"/../install/Tao.app/Contents"
-if [[ -f $INST_DIR"/MacOS/Tao" ]];
+INST_DIR=$PWD"/../install/Tao presentations.app/Contents"
+if [[ -f $INST_DIR"/MacOS/Tao presentations" ]];
 then
   DYLD_LIBRARY_PATH=$INST_DIR"/Frameworks"
-  TAO="cd "$INST_DIR"/MacOS; ./Tao -norepo "
+  TAO="cd \"$INST_DIR/MacOS\"; ./Tao\ presentations -norepo "
 else
-  echo $INST_DIR"/MacOS/Tao not found."
+  echo $INST_DIR"/MacOS/Tao presentations not found."
   exit -1
 fi
 

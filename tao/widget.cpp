@@ -98,7 +98,6 @@
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
 
-
 namespace Tao {
 
 // ============================================================================
@@ -172,7 +171,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       zoom(1.0), eyeDistance(10.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false), bShowStatistics(false),
+      dragging(false), bAutoHideCursor(false),
+      savedCursorShape(Qt::ArrowCursor), bShowStatistics(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL)
 {
@@ -836,6 +836,8 @@ void Widget::runProgram()
     //Clean actionMap
     actionMap.clear();
     refreshEvents.clear(); //
+    nextRefresh = DBL_MAX;
+    dfltRefresh = 0.04;
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -923,8 +925,9 @@ void Widget::processProgramEvents()
             std::cerr << "Program events: "
             << LayoutState::ToText(refreshEvents) << "\n";
     // Trigger mouse tracking only if needed
-    setMouseTracking(refreshEvents.count(QEvent::MouseMove) != 0 ||
-                     bAutoHideCursor);
+    bool mouseTracking = (refreshEvents.count(QEvent::MouseMove) != 0);
+    if (mouseTracking)
+        setMouseTracking(true);
     // Make sure refresh timer is restarted if needed
     startRefreshTimer();
 }
@@ -1600,9 +1603,10 @@ void Widget::showHandCursor(bool enabled)
 // ----------------------------------------------------------------------------
 {
     if (enabled)
-        setCursor(Qt::OpenHandCursor);
+        savedCursorShape = Qt::OpenHandCursor;
     else
-        setCursor(Qt::ArrowCursor);
+        savedCursorShape = Qt::ArrowCursor;
+    setCursor(savedCursorShape);
 }
 
 
@@ -1612,7 +1616,11 @@ void Widget::hideCursor()
 // ----------------------------------------------------------------------------
 {
     if (bAutoHideCursor)
+    {
         setCursor(Qt::BlankCursor);
+        // Be notified when we need to restore cursor
+        setMouseTracking(true);
+    }
 }
 
 
@@ -2569,15 +2577,18 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
-    if (cursor().shape() == Qt::ClosedHandCursor)
-        return doPanning(event);
-
     if (cursor().shape() == Qt::BlankCursor)
     {
-        setCursor(Qt::ArrowCursor);
+        setCursor(savedCursorShape);
+        bool mouseTracking = (refreshEvents.count(QEvent::MouseMove) != 0);
+        if (!mouseTracking)
+            setMouseTracking(false);
         if (bAutoHideCursor)
             QTimer::singleShot(2000, this, SLOT(hideCursor()));
     }
+
+    if (cursor().shape() == Qt::ClosedHandCursor)
+        return doPanning(event);
 
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
@@ -2783,7 +2794,7 @@ void Widget::startPanning(QMouseEvent *event)
 //    Enter view panning mode
 // ----------------------------------------------------------------------------
 {
-    setCursor(Qt::ClosedHandCursor);
+    setCursor(savedCursorShape = Qt::ClosedHandCursor);
     panX = event->x();
     panY = event->y();
 }
@@ -2818,7 +2829,7 @@ void Widget::endPanning(QMouseEvent *)
 //    Leave view panning mode
 // ----------------------------------------------------------------------------
 {
-    setCursor(Qt::OpenHandCursor);
+    setCursor(savedCursorShape = Qt::OpenHandCursor);
 }
 
 
@@ -2870,6 +2881,10 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     if (sourceChanged())
         return;
+    refreshEvents.clear();
+    nextRefresh = DBL_MAX;
+    space->Clear();
+    dfltRefresh = 0.04;
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
@@ -4777,17 +4792,17 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 {
     bool oldAutoHide = bAutoHideCursor;
     bAutoHideCursor = ah;
-    bool mouseTracking = false;
     if (ah)
     {
         QTimer::singleShot(2000, this, SLOT(hideCursor()));
-        mouseTracking = true;
     }
     else
     {
-        mouseTracking = (bool) (refreshEvents.count(QEvent::MouseMove) != 0);
+        setCursor(savedCursorShape);
+        bool mouseTracking = (refreshEvents.count(QEvent::MouseMove) != 0);
+        if (!mouseTracking)
+            setMouseTracking(false);
     }
-    setMouseTracking(mouseTracking);
     return oldAutoHide ? XL::xl_true : XL::xl_false;
 }
 

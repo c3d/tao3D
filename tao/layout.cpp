@@ -205,6 +205,9 @@ void Layout::Clear()
     hasAttributes = false;
 
     ClearAttributes();
+
+    refreshEvents.clear();
+    nextRefresh = DBL_MAX;
 }
 
 

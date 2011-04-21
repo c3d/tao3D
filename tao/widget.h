@@ -835,6 +835,7 @@ private:
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
+    Qt::CursorShape       savedCursorShape;
     bool                  bShowStatistics;
     bool                  renderFramesCanceled;
     bool                  inOfflineRendering;

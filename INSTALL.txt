@@ -5,7 +5,8 @@
 
 Tao Presentations for Windows is built in the MinGW environment with the GCC
 compiler. You need to have a number of software packages installed before you
-can build Tao: the Qt SDK, MSYSGit, LLVM, and optionally doxygen and NSIS.
+can build Tao: the Qt SDK, MSYSGit, Python, LLVM, and optionally doxygen and
+NSIS.
 Here is a step-by-tep guide.
 
 - Install the latest Qt SDK from http://qt.nokia.com.
@@ -27,20 +28,24 @@ Here is a step-by-tep guide.
 - Start the msysgit bash shell (use the desktop shortcut).
   cd $HOME. Create the file $HOME/.profile with the following line:
 
-  export PATH=/c/llvm/bin:/c/Qt/2010.05/mingw/bin:/c/Qt/2010.05/qt/bin:$PATH
+  export PATH=/c/llvm/bin:/c/Python27:/c/Qt/2010.05/mingw/bin:/c/Qt/2010.05/qt/bin:$PATH
 
   Note:
   * /c/llvm/bin is where you will install LLVM (see below). LLVM is required
-    to build Tao Presentations.
+  * /c/Python27 is where Python is installed by default. Python is required to
+    build LLVM.
   * /c/Qt/2010.05/mingw/bin is the location of the GCC compiler we will use
+    to build Tao Presentations.
   * /c/Qt/2010.05/qt/bin is for Tao Presentations to find the Qt DLLs
+    (useful to start Tao directly from the command line).
 
-- Download LLVM 2.9rc1:
-  $ svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_29/rc1 llvm_2.9rc1
-  (This is svn rev 127232)
+- Download and install Python 2.7 from http://python.org/.
+
+- Download LLVM:
+  $ svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_29/final llvm_2.9
 
 - Build and install LLVM:
-  $ cd llvm_2.9rc1
+  $ cd llvm_2.9
   $ ./configure --prefix=/c/llvm --enable-optimized
   $ make
   $ make -k install   # Note: doc installation fails but we don't care
@@ -60,7 +65,7 @@ Here is a step-by-tep guide.
 
 - Build Tao
   $ cd ~/tao
-  $ qmake -r -spec win32-g++
+  $ qmake -r -spec win32-g++  # append 'CONFIG+=release' for a releas build
   $ make -j2 install  # will put the application under the "install" directory
 
 - Optional: configure Qt Creator to build and run Tao from the Qt Creator IDE.
@@ -81,4 +86,46 @@ Here is a step-by-tep guide.
   Not needed if you don't want to create an installer (taosetup.exe).
   Once NSIS is installed you can build the installer with:
   $ cd packaging/win
-  $ make
+  $ make kit
+
+*** MacOSX ***
+
+x86_64 build (64 bit)
+
+  - Configure LLVM as follows:
+    $ ./configure --enable-optimized  # will install in /usr/local
+    $ make -j3
+    $ sudo make install
+  - Configure Tao as follows:
+    $ export PATH=/usr/local/bin:$PATH
+    $ qmake -r -spec macx-g++  # append 'CONFIG+=release' for release
+    $ make -j3 install
+    $ cd packaging/macosx
+    $ make kit
+
+x86 build (32 bit)
+
+Configure and build LLVM as follows (will install in
+~/work/inst/llvm, use a different path if you wish):
+    $ ./configure --prefix=$HOME/work/inst/llvm \
+        --enable-optimized \
+        UNIVERSAL=1 \
+        UNIVERSAL_ARCH="i386 x86_64" \
+        UNIVERSAL_SDK_PATH=/Developer/SDKs/MacOSX10.5.sdk \
+        DARWIN_VERSION=10.5
+    $ make -j3 \
+        UNIVERSAL=1 \
+        UNIVERSAL_ARCH="i386 x86_64" \
+        UNIVERSAL_SDK_PATH=/Developer/SDKs/MacOSX10.5.sdk \
+        DARWIN_VERSION=10.5
+    $ sudo make install \
+        UNIVERSAL=1 \
+        UNIVERSAL_ARCH="i386 x86_64" \
+        UNIVERSAL_SDK_PATH=/Developer/SDKs/MacOSX10.5.sdk \
+        DARWIN_VERSION=10.5
+  - Configure and build Tao as follows:
+    $ export PATH=~/work/inst/llvm/bin:$PATH
+    $ qmake -r -spec macx-g++ CONFIG+=x86 # append 'CONFIG+=release' for release
+    $ make -j3 install
+    $ cd packaging/macosx
+    $ make kit

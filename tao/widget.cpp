@@ -2885,6 +2885,8 @@ void Widget::updateProgram(XL::SourceFile *source)
     nextRefresh = DBL_MAX;
     space->Clear();
     dfltRefresh = 0.04;
+    clearCol.setRgb(255, 255, 255, 255);
+
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();

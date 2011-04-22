@@ -54,6 +54,8 @@ public:
     virtual bool done(text *errors = NULL, text *output = NULL);
     virtual bool failed();
 
+    QProcessEnvironment getProcessEnvironment();
+
 public:
     static QString processErrorToString(QProcess::ProcessError error);
     static QString exitStatusToString(QProcess::ExitStatus status);

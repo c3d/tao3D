@@ -54,9 +54,12 @@ GIT_VERSION=1.7.2.2
 
 include Makefile.config
 
-GIT_INSTALL_PREFIX=$(shell pwd)/build_root/git
-# GIT_INSTALL_PREFIX can't contain spaces
+# Warning: GIT_DESTDIR can't contain spaces
+GIT_DESTDIR=$(shell pwd)/git_build/install
 GIT_DEST=$(shell pwd)/build_root/Tao Presentations.app/Contents/MacOS/git
+define git-makeparms
+NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
+endef
 
 kit: tao.dmg
 
@@ -125,22 +128,20 @@ clean.tao: clean.tao_install
 ########
 
 .git_install_ts: .git_build_ts
-	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) install
-	mkdir -p "$(GIT_DEST)"
-	mv $(GIT_INSTALL_PREFIX)/* "$(GIT_DEST)"
-	rm -rf $(GIT_INSTALL_PREFIX)
+	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
+	rm -rf $(GIT_DEST) ; mkdir -p "$(GIT_DEST)"
+	mv $(GIT_DESTDIR)/usr/local/* "$(GIT_DEST)"
 	touch $@
 
 clean.git_install:
-	rm -rf $(GIT_INSTALL_PREFIX) "$(GIT_DEST)"
+	rm -rf $(GIT_DESTDIR) "$(GIT_DEST)"
 	rm -f .git_install_ts
 
 ########
 
 .git_build_ts: .git_extract_ts
-	cd git_build/git-$(GIT_VERSION) && echo "NO_DARWIN_PORTS=1" >> Makefile.tmp && cat Makefile >> Makefile.tmp && mv Makefile.tmp Makefile
-	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) all
-	make -C git_build/git-$(GIT_VERSION) CFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" LDFLAGS="-mmacosx-version-min=10.4 -isysroot /Developer/SDKs/MacOSX10.5.sdk -arch i386" prefix=$(GIT_INSTALL_PREFIX) strip
+	make -C git_build/git-$(GIT_VERSION) $(git-makeparms)
+	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
 	touch .git_build_ts
 
 clean.git_build:

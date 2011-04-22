@@ -160,6 +160,18 @@ bool Process::failed()
 }
 
 
+QProcessEnvironment Process::getProcessEnvironment()
+// ----------------------------------------------------------------------------
+//   Return the process environment that will be used to start the process
+// ----------------------------------------------------------------------------
+{
+    QProcessEnvironment env = processEnvironment();
+    if (env.isEmpty())
+        env = QProcessEnvironment::systemEnvironment();
+    return env;
+}
+
+
 void Process::initialize(size_t bufSize)
 // ----------------------------------------------------------------------------
 //   Initialize the process and streambuf

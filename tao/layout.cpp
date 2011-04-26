@@ -49,7 +49,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentTexUnit(0), textureUnits(1), previousUnits(1),
+      textureUnits(1), previousUnits(1),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
@@ -72,7 +72,6 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        currentTexUnit(o.currentTexUnit),
         textureUnits(o.textureUnits),
         previousUnits(o.previousUnits),
         fillTextures(o.fillTextures),

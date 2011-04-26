@@ -330,8 +330,8 @@ texture(id:integer);
  *
  * Default value is 0.
  *
- * @note Only the fourth texture units can be used without shaders. The maximum number of texture units and coordinates depends on the graphic card.
- * @note @c shader_set can be used to link texture unit with sampler inside shaders.
+ * @note Only the fourth texture units can be used without shaders. The maximum number of texture units and coordinates depend on the graphic card.
+ * @note @c shader_set can be used to link texture unit with a sampler inside shaders.
  * @see OpenGL documentation about GL_MAX_TEXTURE_COORDS, GL_MAX_TEXTURE_IMAGE_UNITS and GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.
  */
 texture_unit (unit:integer);

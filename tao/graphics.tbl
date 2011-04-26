@@ -808,9 +808,9 @@ PREFIX(FillTextureUnit,  integer,  "texture_unit",
        GROUP(graph:attribute)
        SYNOPSIS("Create a GL texture")
        DESCRIPTION(""))
-PREFIX(FillTextureID,  integer,  "texture",
+PREFIX(FillTextureId,  integer,  "texture",
        PARM(texId, integer, "The texture id."),
-       RTAO(fillTextureID(self, texId)),
+       RTAO(fillTextureId(self, texId)),
        GROUP(graph:attribute)
        SYNOPSIS("Create a GL texture")
        DESCRIPTION(""))
@@ -897,8 +897,30 @@ PREFIX(TextureTransform,  tree,  "texture_transform",
        SYNOPSIS("Apply a texture transformation")
        DESCRIPTION("Apply a texture transformation.[TODO: de quel genre ?]")
        RETURNS(tree, "The result of the child evaluation."))
-
-
+PREFIX(TextureWidth,  tree,  "texture_width",,
+       RTAO(textureWidth(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture width.")
+       DESCRIPTION("Return current texture width.")
+       RETURNS(tree, "The current texture width."))
+PREFIX(TextureHeight,  tree,  "texture_height",,
+       RTAO(textureHeight(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture height")
+       DESCRIPTION("Return current texture height")
+       RETURNS(tree, "The current texture height"))
+PREFIX(TextureId,  tree,  "texture_id",,
+       RTAO(textureId(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture id")
+       DESCRIPTION("Return current texture id")
+       RETURNS(tree, "The current texture id"))
+PREFIX(TextureUnit,  tree,  "texture_unit",,
+       RTAO(textureUnit(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture unit")
+       DESCRIPTION("Return current texture unit")
+       RETURNS(tree, "The current texture unit"))
 
 // ============================================================================
 //

@@ -44,10 +44,14 @@ struct TextureState
 //   The state of texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0) {}
+    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0) {}
     bool        wrapS, wrapT;
     uint        id;
+    uint        unit;
+    uint        width;
+    uint        height;
 };
+
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -60,6 +64,7 @@ struct LayoutState
 public:
     typedef std::set<QEvent::Type>              qevent_ids;
     typedef std::map<uint,TextureState>         tex_list;
+
 
 public:
     void                ClearAttributes();
@@ -75,7 +80,7 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
-    uint                currentTexUnit;
+    TextureState        currentTexture;
     uint64              textureUnits; //Current used texture units
     uint64              previousUnits; //Previous used texture units
     tex_list            fillTextures;

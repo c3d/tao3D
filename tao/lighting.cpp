@@ -119,21 +119,22 @@ void ShaderValue::Draw(Layout *where)
             uint id = uniform->id;
             GLint type = 0;
 
-            //Check if glGetActiveUniformsiv exists in order to obtain type of the uniform (according to glew)
-            if(glGetActiveUniformsiv != NULL)
-            {
-                glGetActiveUniformsiv(where->programId, 1, &id, GL_UNIFORM_TYPE, &type);
-            }
-            else
-            {
-                GLint uniformMaxLength = 0;
-                glGetProgramiv( where->programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength );
+            GLint uniformMaxLength = 0;
+            glGetProgramiv( where->programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength );
 
-                GLint size = 0;
-                GLchar* uniformName = new GLchar[uniformMaxLength];
-                glGetActiveUniform( where->programId, id, uniformMaxLength, NULL, &size, (GLenum*) &type, uniformName);
-                delete uniformName;
+            GLint uniformActive = 0;
+            glGetProgramiv( where->programId, GL_ACTIVE_UNIFORMS, &uniformActive );
+
+            //Get type of current uniform variable
+            GLint size = 0;
+            GLchar* uniformName = new GLchar[uniformMaxLength];
+            for(int index = 0; index < uniformActive; index++)
+            {
+                glGetActiveUniform( where->programId, index, uniformMaxLength + 1, NULL, &size, (GLenum*) &type, uniformName);
+                if(! strcmp(uniformName,name->value.c_str()))
+                    break;
             }
+            delete uniformName;
 
             switch (type)
             {

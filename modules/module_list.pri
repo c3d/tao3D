@@ -17,6 +17,8 @@
        slides           \
        animate          \
        gradient         \
+       filters          \
+       render_to_texture\
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

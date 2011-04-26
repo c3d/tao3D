@@ -404,12 +404,16 @@ public:
     Tree_p      fillColorCmyk(Tree_p self,
                               double c, double m, double y, double k, double a);
     Integer*    fillTextureUnit(Tree_p self, GLuint texUnit);
-    Integer*    fillTextureID(Tree_p self, GLuint texId);
+    Integer*    fillTextureId(Tree_p self, GLuint texId);
     Integer*    fillTexture(Tree_p self, text fileName);
     Integer*    fillAnimatedTexture(Tree_p self, text fileName);
     Integer*    fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
+    Integer*    textureWidth(Tree_p self);
+    Integer*    textureHeight(Tree_p self);
+    Integer*    textureId(Tree_p self);
+    Integer*    textureUnit(Tree_p self);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
     Tree_p      light(Tree_p self, GLenum function, GLfloat value);
     Tree_p      light(Tree_p self, GLenum function,

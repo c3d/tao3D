@@ -325,7 +325,25 @@ texture(filename:text);
 texture(id:integer);
 
 /**
- * Selects the texture unit.
+ * Get current texture id.
+ * @return [integer] current texture id
+ */
+texture_id();
+
+/**
+ * Get current texture width.
+ * @return [integer] current texture width
+ */
+texture_width();
+
+/**
+ * Get current texture height.
+ * @return [integer] current texture height
+ */
+texture_height();
+
+/**
+ * Selects current the texture unit.
  * Set the current texture unit to @p unit.
  *
  * Default value is 0.
@@ -335,6 +353,12 @@ texture(id:integer);
  * @see OpenGL documentation about GL_MAX_TEXTURE_COORDS, GL_MAX_TEXTURE_IMAGE_UNITS and GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.
  */
 texture_unit (unit:integer);
+
+/**
+ * Get current texture unit.
+ * @return [integer] current texture unit
+ */
+texture_unit();
 
 /**
  * Create a GL animated texture.

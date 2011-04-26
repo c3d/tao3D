@@ -909,7 +909,7 @@ PREFIX(TextureHeight,  tree,  "texture_height",,
        SYNOPSIS("Return current texture height")
        DESCRIPTION("Return current texture height")
        RETURNS(tree, "The current texture height"))
-PREFIX(TextureId,  tree,  "texture_id",,
+PREFIX(TextureId,  tree,  "texture",,
        RTAO(textureId(self)),
        GROUP(graph)
        SYNOPSIS("Return current texture id")

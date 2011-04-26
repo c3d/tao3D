@@ -1,0 +1,56 @@
+// RenderToTexture module definition
+//
+// This exemple module allows to render the current texture modified by a sample code
+//
+// Copyright 2010-2011 Taodyne
+
+module_description
+    id "88c6794f-8822-4029-ae34-005fa32148c1"
+    name "Render to Texture"
+    import_name "RenderToTexture"
+    description "A primitive that allows to render the current texture modified by a sample code"
+    version 1.0
+
+//Texture parameters
+TEXTURE_WIDTH -> 0
+TEXTURE_WIDTH := 0
+
+TEXTURE_HEIGHT -> 0
+TEXTURE_WIDTH  := 0
+
+TEXTURE_ID -> 0
+TEXTURE_ID := 0
+
+//Code to render to texture
+RENDER_CODE -> nil
+
+// -------------------------------------------------------------------------------------------------------------------
+//   render to texture
+// -------------------------------------------------------------------------------------------------------------------
+render_to_texture ->
+    /**
+    * Allow to render the current texture modified by RENDER_CODE to new one.
+    **/
+    TEXTURE_WIDTH := texture_width
+    TEXTURE_HEIGHT := texture_height
+    TEXTURE_ID := texture
+    frame_texture TEXTURE_WIDTH, TEXTURE_HEIGHT,
+        texture TEXTURE_ID
+        color "white"
+        do RENDER_CODE
+        rectangle 0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT
+
+// -------------------------------------------------------------------------------------------------------------------
+//   Iterative render
+// -------------------------------------------------------------------------------------------------------------------
+MAX_ITER -> 0
+CURRENT_ITER -> 0
+
+iterate_render ->
+   if MAX_ITER > 0 then
+       if CURRENT_ITER = MAX_ITER then
+           texture texture_unit
+       else
+           CURRENT_ITER := CURRENT_ITER + 1
+           iterate_render
+           render_to_texture

@@ -266,7 +266,9 @@ slide T:text, B ->
         fly_theme_rescale fly_theme_window_scale 
         fly_theme_defaults 
         fly_theme_background 
-        fly_theme_bullet := 0 
+        locally
+            page_time
+            fly_theme_bullet := 0
         locally 
             do B
          

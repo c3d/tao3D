@@ -207,6 +207,9 @@ void Layout::Clear()
     hasAttributes = false;
     hasTextureMatrix = 0;
     ClearAttributes();
+
+    refreshEvents.clear();
+    nextRefresh = DBL_MAX;
 }
 
 

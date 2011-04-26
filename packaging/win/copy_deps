@@ -4,7 +4,7 @@
 #   - DLLs (Qt, msys)
 #   - Git
 
-PLUGINS_DIR="$(echo $1 | sed 's@\\@/@g' | sed 's@C:@/c/@g')"
+LIBDIR_QT="$(echo $1 | sed 's@\\@/@g' | sed 's@C:@/c/@g')"
 
 doo() {
   echo $*
@@ -30,8 +30,9 @@ for f in `bin/ldd build_root/Tao.exe | \
 do 
     doo cp $f build_root/
 done
+doo cp "${LIBDIR_QT}/../bin/QtXml4.dll" build_root/
 
-doo cp -r "${PLUGINS_DIR}"/* build_root/
+doo cp -r "${LIBDIR_QT}"/../plugins/* build_root/
 )
 
 

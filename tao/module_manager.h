@@ -279,16 +279,21 @@ public:
         ModuleInfoPrivate() : ModuleInfo() {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
-              updateAvailable(false), hasNative(false), native(NULL),
-              context(NULL)
+              updateAvailable(false), hasNative(false),
+              native(NULL), context(NULL)
             {}
 
         // Runtime attributes
         text    latest;
         bool    enabled;
+        // loaded is set to true when xl file is imported and
+        //           set to false when xl file is unloaded
         bool    loaded;
         bool    updateAvailable;
+        // hasNative is true when the specified path for native library exists. It is
+        // different from native only when specified file is not a compliant library.
         bool    hasNative;
+        // native is the pointer to a compliant library (enter_symbols is present)
         QLibrary * native;
         XL::Context_p context;
 

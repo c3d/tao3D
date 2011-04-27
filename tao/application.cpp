@@ -180,11 +180,12 @@ Application::Application(int & argc, char ** argv)
         dialog.showMessage(tr("This system does not support GL sample buffers."
                               " Shapes and large text may look jaggy."));
     }
+#ifndef CFG_NOGIT
     if (!RepositoryFactory::available())
     {
         // Nothing (dialog box already shown by Repository class)
     }
-
+#endif //CFG_NOGIT
     // Create default folder for Tao documents
     // ("Save as..." box will land there)
     createDefaultProjectFolder();

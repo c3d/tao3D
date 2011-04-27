@@ -117,7 +117,9 @@ void win_redirect_io()
     {
         // Parent has no console, log to a file
         QDir dir(Tao::Application::defaultProjectFolderPath());
+        dir.mkpath(dir.absolutePath());
         QString path = dir.absoluteFilePath("tao.log");
+
         const char *f = path.toStdString().c_str();
         FILE *fp = fopen(f, "w");
         if (fp)

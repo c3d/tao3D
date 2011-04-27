@@ -25,6 +25,7 @@
 #include "gl_keepers.h"
 #include "attributes.h"
 #include "tao_tree.h"
+#include "tao_utf8.h"
 #include <sstream>
 
 TAO_BEGIN
@@ -144,7 +145,7 @@ Layout::Layout(Widget *widget)
       hasAttributes(false), hasTextureMatrix(false),
       hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false),
-      items(), display(widget),
+      items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
 
@@ -158,7 +159,7 @@ Layout::Layout(const Layout &o)
       hasAttributes(false), hasTextureMatrix(false),
       hasLighting(false), hasMaterial(false),
       isSelection(o.isSelection), groupDrag(false),
-      items(), display(o.display),
+      items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
 
@@ -179,6 +180,7 @@ Layout *Layout::AddChild(uint childId, Tree_p body, Context_p ctx)
 {
     Layout *result = NewChild();
     Add(result);
+    result->idx = items.size();
     result->id = childId;
     result->body = body;
     result->ctx = ctx;
@@ -397,76 +399,79 @@ text Layout::PrettyId()
 }
 
 
-bool Layout::Refresh(QEvent *e, Layout *parent)
+bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
 // ----------------------------------------------------------------------------
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
 {
-    bool need_refresh = false;
-    Widget * widget = Widget::Tao();
-
+    bool changed = false;
     if (!e)
         return false;
 
-    if (refreshEvents.count(e->type()))
+    Widget * widget = Widget::Tao();
+    text layoutId;
+    IFTRACE(layoutevents)
     {
-        if (e->type() != QEvent::Timer)
-            need_refresh = true;
-        else
-            need_refresh = (nextRefresh <= widget->CurrentTime());
+        if (!debug.isEmpty())
+            debug.append("/");
+        debug += QString("%1").arg(idx);
+        layoutId = +debug + " " + PrettyId();
     }
 
-    if (need_refresh)
+    if (NeedRefresh(e, now))
     {
-        // Refresh this layout by recomputing it and replacing it in the parent
-
         IFTRACE(layoutevents)
-            std::cerr << "Layout " << PrettyId() << " needs updating\n";
+            std::cerr << "Layout " << layoutId << " needs updating\n";
 
-        if (parent)
+        refreshEvents.clear();
+        nextRefresh = DBL_MAX;
+
+        if (XL::MAIN->options.enable_layout_cache)
         {
-            if (XL::MAIN->options.enable_layout_cache)
+            // Drop children: delete drawings but set aside layouts, in case
+            // they can be reused by the evaluation step below
+            layout_items::iterator it;
+            for (it = items.begin(); it != items.end(); it++)
             {
-                // Drop children: delete drawings but set aside layouts, in case
-                // they can be reused by the evaluation step below
-                layout_items::iterator it;
-                for (it = items.begin(); it != items.end(); it++)
-                {
-                    if (Layout * layout = dynamic_cast<Layout*>(*it))
-                        widget->layoutCache.insert(layout);
-                    else
-                        delete (*it);
-                }
-                items.clear();
+                if (Layout * layout = dynamic_cast<Layout*>(*it))
+                    widget->layoutCache.insert(layout);
+                else
+                    delete (*it);
             }
+            items.clear();
+        }
 
-            // Check if we can evaluate locally
-            if (ctx && body)
-            {
-                // Clear old contents of the layout, drop all children
-                Clear();
+        // Check if we can evaluate locally
+        if (ctx && body)
+        {
+            // Clear old contents of the layout, drop all children
+            Clear();
 
-                // Set new layout as the current layout in the current Widget
-                XL::Save<Layout *> saveLayout(widget->layout, this);
+            // Set new layout as the current layout in the current Widget
+            XL::Save<Layout *> saveLayout(widget->layout, this);
 
-                IFTRACE(layoutevents)
-                    std::cerr << "Evaluating " << body << "\n";
-                ctx->Evaluate(body);
-            }
+            IFTRACE(layoutevents)
+                std::cerr << "Evaluating " << body << "\n";
+            ctx->Evaluate(body);
         }
         else
         {
-            std::cerr << "Error: Refresh called on dirty root layout\n";
+            if (this == (Layout*)widget->space)
+                widget->refreshNow();
+            else
+                std::cerr << "Unexpected NULL ctx/body in non-root layout\n";
         }
+
+        changed = true;
     }
     else
     {
         IFTRACE(layoutevents)
-            std::cerr << "Layout " << PrettyId() << " does not need updating\n";
+            std::cerr << "Layout " << layoutId << " does not need updating\n";
     }
 
     // Forward event to all child layouts
-    bool changed = RefreshChildren(e);
+    changed |= RefreshChildren(e, now, debug);
 
     // When done with topmost layout we can clear cache
     if (XL::MAIN->options.enable_layout_cache && !parent)
@@ -476,7 +481,7 @@ bool Layout::Refresh(QEvent *e, Layout *parent)
 }
 
 
-bool Layout::RefreshChildren(QEvent *e)
+bool Layout::RefreshChildren(QEvent *e, double now, QString debug)
 // ----------------------------------------------------------------------------
 //   Refresh all child layouts
 // ----------------------------------------------------------------------------
@@ -487,8 +492,87 @@ bool Layout::RefreshChildren(QEvent *e)
     layout_items items_copy = items;
     for (i = items_copy.begin(); i != items_copy.end(); i++)
         if ((layout = dynamic_cast<Layout*>(*i)))
-            result |= layout->Refresh(e, this);
+            result |= layout->Refresh(e, now, this, debug);
     return result;
+}
+
+
+LayoutState::qevent_ids Layout::RefreshEvents()
+// ----------------------------------------------------------------------------
+//   The set of all refresh events for this layout and its children
+// ----------------------------------------------------------------------------
+{
+    LayoutState::qevent_ids events = refreshEvents;
+    Layout *layout;
+    layout_items::iterator i;
+    layout_items items_copy = items;
+    for (i = items_copy.begin(); i != items_copy.end(); i++)
+    {
+        if ((layout = dynamic_cast<Layout*>(*i)))
+        {
+            LayoutState::qevent_ids evt = layout->RefreshEvents();
+            events.insert(evt.begin(), evt.end());
+        }
+    }
+    return events;
+}
+
+
+double Layout::NextRefresh()
+// ----------------------------------------------------------------------------
+//   The date of next refresh for this layout or any of its children
+// ----------------------------------------------------------------------------
+{
+    double next = nextRefresh;
+    Layout *layout;
+    layout_items::iterator i;
+    layout_items items_copy = items;
+    for (i = items_copy.begin(); i != items_copy.end(); i++)
+        if ((layout = dynamic_cast<Layout*>(*i)))
+            next = qMin(next, layout->NextRefresh());
+    return next;
+}
+
+
+bool Layout::NeedRefresh(QEvent *e, double when)
+// ----------------------------------------------------------------------------
+//   Return true if event/time should trigger refresh of current layout
+// ----------------------------------------------------------------------------
+{
+    QEvent::Type type = e->type();
+    if (!refreshEvents.count(type))
+        return false;
+    if (type == QEvent::Timer && nextRefresh > when)
+        return false;
+    return true;
+}
+
+
+void Layout::RefreshOn(QEvent::Type type, double when)
+// ----------------------------------------------------------------------------
+//   Ask for refresh on specified event (and time if event is QEvent::Timer)
+// ----------------------------------------------------------------------------
+{
+    if (refreshEvents.count(type) == 0)
+        refreshEvents.insert(type);
+
+    if (type == QEvent::Timer)
+        if (when < nextRefresh)
+            nextRefresh = when;
+}
+
+
+void Layout::NoRefreshOn(QEvent::Type type)
+// ----------------------------------------------------------------------------
+//   Layout should NOT be updated on specified event
+// ----------------------------------------------------------------------------
+{
+    if (refreshEvents.count(type) != 0)
+    {
+        refreshEvents.erase(type);
+        if (type == QEvent::Timer)
+            nextRefresh = DBL_MAX;
+    }
 }
 
 

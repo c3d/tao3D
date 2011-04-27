@@ -6103,15 +6103,7 @@ Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
         return XL::xl_false;
     }
 
-    switch(inputType)
-    {
-    case GL_LINES: currentShaderProgram->setGeometryInputType(GL_LINES); break;
-    case GL_TRIANGLES: currentShaderProgram->setGeometryInputType(GL_TRIANGLES); break;
-    case GL_LINES_ADJACENCY: currentShaderProgram->setGeometryInputType(GL_LINES_ADJACENCY); break;
-    case GL_TRIANGLES_ADJACENCY: currentShaderProgram->setGeometryInputType(GL_TRIANGLES_ADJACENCY); break;
-    default : currentShaderProgram->setGeometryInputType(GL_POINTS); break;
-    }
-
+    currentShaderProgram->setGeometryInputType(inputType);
     return XL::xl_true;
 }
 

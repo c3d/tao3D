@@ -1,0 +1,38 @@
+import RenderToTexture 1.0 
+shader -> 
+    shader_program 
+        vertex_shader <<
+            void main()
+            {
+               gl_Position = ftransform();
+               gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+            }
+        >> 
+        fragment_shader <<
+            uniform sampler2D colorMap;
+            void main (void)
+            {
+               vec4 texel = texture2D(colorMap, gl_TexCoord[0].st);
+               gl_FragColor = vec4(texel.r * 0.8, texel.gb, 1.0);
+            }
+        >>
+ 
+example_1 -> 
+    color "white" 
+    texture "C:\Users\Psy\Desktop\Taodyne GLSL\Map\vampbeauty_02.jpg" 
+    FILTER -> shader 
+    render_to_texture FILTER 
+    render_to_texture FILTER 
+    render_to_texture FILTER 
+    render_to_texture FILTER 
+    rectangle 0, 0, 500, 750
+ 
+example_2 -> 
+    color "white" 
+    texture "C:\Users\Psy\Desktop\Taodyne GLSL\Map\vampbeauty_02.jpg" 
+    CURRENT_ITER := 0 
+    MAX_ITER := 4 
+    FILTER -> shader 
+    iterate_render FILTER 
+    rectangle 0, 0, 500, 750
+ 

@@ -16,23 +16,26 @@ shader ->
                gl_FragColor = vec4(texel.r * 0.8, texel.gb, 1.0);
             }
         >>
- 
-example_1 -> 
-    color "white" 
-    texture "C:\Users\Psy\Desktop\Taodyne GLSL\Map\vampbeauty_02.jpg" 
-    FILTER -> shader 
-    render_to_texture FILTER 
-    render_to_texture FILTER 
-    render_to_texture FILTER 
-    render_to_texture FILTER 
+
+//Classic code
+example_1 ->
+    color 0.4096, 1.0, 1.0, 1.0
     rectangle 0, 0, 500, 750
  
-example_2 -> 
+//Render to texture several times in order to apply same effect
+example_2 ->
     color "white" 
-    texture "C:\Users\Psy\Desktop\Taodyne GLSL\Map\vampbeauty_02.jpg" 
-    CURRENT_ITER := 0 
+    EFFECT -> shader 
+    render_to_texture EFFECT 
+    render_to_texture EFFECT 
+    render_to_texture EFFECT 
+    render_to_texture EFFECT 
+    rectangle 0, 0, 500, 750
+
+//Apply several times the same effect thanks to an iterative render
+example_3 ->
+    color "white" 
+    EFFECT -> shader 
     MAX_ITER := 4 
-    FILTER -> shader 
-    iterate_render FILTER 
+    iterate_render EFFECT 
     rectangle 0, 0, 500, 750
- 

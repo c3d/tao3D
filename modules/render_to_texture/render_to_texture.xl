@@ -21,13 +21,10 @@ TEXTURE_WIDTH  := 0
 TEXTURE_ID -> 0
 TEXTURE_ID := 0
 
-//Code to render to texture
-RENDER_CODE -> nil
-
 // -------------------------------------------------------------------------------------------------------------------
 //   render to texture
 // -------------------------------------------------------------------------------------------------------------------
-render_to_texture ->
+render_to_texture RENDER_CODE ->
     /**
     * Allow to render the current texture modified by RENDER_CODE to new one.
     **/
@@ -35,8 +32,8 @@ render_to_texture ->
     TEXTURE_HEIGHT := texture_height
     TEXTURE_ID := texture
     frame_texture TEXTURE_WIDTH, TEXTURE_HEIGHT,
-        texture TEXTURE_ID
         color "white"
+        texture TEXTURE_ID
         do RENDER_CODE
         rectangle 0, 0, TEXTURE_WIDTH, TEXTURE_HEIGHT
 
@@ -46,11 +43,11 @@ render_to_texture ->
 MAX_ITER -> 0
 CURRENT_ITER -> 0
 
-iterate_render ->
+iterate_render RENDER_CODE ->
    if MAX_ITER > 0 then
        if CURRENT_ITER = MAX_ITER then
            texture texture_unit
        else
            CURRENT_ITER := CURRENT_ITER + 1
-           iterate_render
-           render_to_texture
+           iterate_render RENDER_CODE
+           render_to_texture RENDER_CODE

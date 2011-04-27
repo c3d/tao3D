@@ -263,12 +263,11 @@ slide T:text, B ->
 //    Create a slide with title T and body B
 // ----------------------------------------------------------------------------
     page T, 
+        page_time // Force refresh
         fly_theme_rescale fly_theme_window_scale 
         fly_theme_defaults 
         fly_theme_background 
-        locally
-            page_time
-            fly_theme_bullet := 0
+        fly_theme_bullet := 0
         locally 
             do B
          

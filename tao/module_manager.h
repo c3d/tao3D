@@ -279,7 +279,7 @@ public:
         ModuleInfoPrivate() : ModuleInfo() {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
-              updateAvailable(false), hasNative(false), symbolsEntered(false),
+              updateAvailable(false), hasNative(false),
               native(NULL), context(NULL)
             {}
 
@@ -293,9 +293,6 @@ public:
         // hasNative is true when the specified path for native library exists. It is
         // different from native only when specified file is not a compliant library.
         bool    hasNative;
-        // symbolsEntered is set to true when enter_symbols is called and
-        //                   set to false when delete_symbols is called
-        bool    symbolsEntered;
         // native is the pointer to a compliant library (enter_symbols is present)
         QLibrary * native;
         XL::Context_p context;

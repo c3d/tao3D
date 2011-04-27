@@ -134,7 +134,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
 
-                    if (!execute && m.native && !m.symbolsEntered )
+                    if (!execute && m.native)
                     {
                         // execute == false when file is [re]loaded => we won't
                         // call enter_symbols at each execution
@@ -145,13 +145,11 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                              IFTRACE(modules)
                                     debug() << "    Calling enter_symbols\n";
                             es(context);
-                            moduleById(m.id)->symbolsEntered = true;
                         }
                     }
 
                     XL::xl_import(context, self, +xlPath, execute);
                     moduleById(m.id)->loaded = true;
-
                 }
             }
         }
@@ -907,7 +905,6 @@ bool ModuleManager::unloadNative(Context *context, const ModuleInfoPrivate &m)
         IFTRACE(modules)
             debug() << "    Calling delete_symbols\n";
         ok &= ds(context);
-        m_p->symbolsEntered = false;
     }
     Tao::module_exit_fn me;
     me = (Tao::module_exit_fn)lib->resolve("module_exit");
@@ -992,11 +989,7 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
         debug() << "  Has native: " <<  m.hasNative << "\n";
         debug() << "  Lib loaded: " << (m.native != NULL) << "\n";
         if (m.native)
-        {
             debug() << "  Lib file:   " << +m.libPath() << "\n";
-            debug() << "  Symbols entered : " << m.symbolsEntered  << "\n";
-        }
-
     }
     debug() << "  ------------------------------------------------\n";
 }

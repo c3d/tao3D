@@ -129,3 +129,15 @@ Configure and build LLVM as follows (will install in
     $ make -j3 install
     $ cd packaging/macosx
     $ make kit
+
+Valgrind usage
+
+Install valgrind (version > 3.6.0)
+  $ sudo port install valgrind
+
+Build Tao whiteout Git repository
+  $ qmake -r DEFINES+=CFG_NOGIT 
+  $ make -j3 install
+
+Launch Tao with valgrind (it is very very slow)
+  $ valgrind -q --tool=memcheck --suppressions=~/Work/tao/taoValgrindSupp.txt --dsymutil=yes  ~/Work/tao/install/Tao\ Presentations.app/Contents/MacOS/Tao\ Presentations

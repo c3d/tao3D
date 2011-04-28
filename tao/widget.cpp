@@ -176,6 +176,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
       editCursor(NULL)
 {
     setObjectName(QString("Widget"));
+    bzero(focusProjection, 16*sizeof(GLdouble));
+    bzero(focusModel, 16*sizeof(GLdouble));
+    bzero(focusViewport, 4*sizeof(GLint));
+
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -3529,7 +3533,9 @@ void Widget::printStatistics()
         double n = (double)stats.size() * 1000 / stats_interval;
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
-    GLint vp[4], vx, vy, vw, vh;
+    GLint vp[4] = {0,0,0,0};
+    GLint vx, vy, vw, vh;
+
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
@@ -3702,6 +3708,10 @@ void Widget::recordProjection()
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
+    bzero(focusProjection, 16*sizeof(GLdouble));
+    bzero(focusModel, 16*sizeof(GLdouble));
+    bzero(focusViewport, 4*sizeof(GLint));
+
     glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
     glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
     glGetIntegerv(GL_VIEWPORT, focusViewport);
@@ -3718,12 +3728,14 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
+    x3dn = y3dn = z3dn = 0.0;
     gluUnProject(x, y, 0.0,
                  focusModel, focusProjection, focusViewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
+    x3df = y3df = z3df = 0;
     gluUnProject(x, y, 1.0,
                  focusModel, focusProjection, focusViewport,
                  &x3df, &y3df, &z3df);

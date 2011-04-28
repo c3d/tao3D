@@ -4458,7 +4458,8 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
 //   We set currentShape to NULL, which means that we won't create manipulator
 //   so the widget is active (it can be selected) but won't budge
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    Layout *childLayout = layout->AddChild(selectionId(), child, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
     XL::Save<Tree_p>   saveShape (currentShape, NULL);
     if (selectNextTime.count(self))
     {

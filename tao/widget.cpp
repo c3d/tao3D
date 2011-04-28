@@ -7471,6 +7471,7 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
+    Layout *parent = layout;
     do
     {
         GLAllStateKeeper saveGL;
@@ -7493,6 +7494,8 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
         layout->Draw(NULL);
         frame.end();
 
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;

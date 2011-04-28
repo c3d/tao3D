@@ -106,6 +106,7 @@ struct Layout : Drawing, LayoutState
     virtual bool        Refresh(QEvent *e, double now, Layout *parent = NULL, QString debug = "");
     bool                RefreshChildren(QEvent *e, double now, QString debug);
     bool                NeedRefresh(QEvent *e, double when);
+    void                RefreshOn(Layout *);
     void                RefreshOn(QEvent::Type type, double when = DBL_MAX);
     void                NoRefreshOn(QEvent::Type type);
     qevent_ids          RefreshEvents();

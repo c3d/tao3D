@@ -17,3 +17,4 @@ include(../modules.pri)
 OTHER_FILES = render_to_texture.xl
 
 INSTALLS    -= thismod_bin
+INSTALLS    += thismod_icon

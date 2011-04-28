@@ -147,6 +147,12 @@ void ShaderValue::Draw(Layout *where)
 #endif
                 glUniform1i(id, values[0]);
                 break;
+            case GL_FLOAT_VEC2: glUniform2fv(id, (int) (values.size() / 2), &values[0]); break;
+            case GL_FLOAT_VEC3: glUniform3fv(id, (int) (values.size() / 3), &values[0]); break;
+            case GL_FLOAT_VEC4: glUniform4fv(id, (int) (values.size() / 4), &values[0]); break;
+            case GL_FLOAT_MAT2: glUniformMatrix2fv(id, (int) (values.size() / 4), 0, &values[0]); break;
+            case GL_FLOAT_MAT3: glUniformMatrix3fv(id, (int) (values.size() / 9), 0, &values[0]); break;
+            case GL_FLOAT_MAT4: glUniformMatrix4fv(id, (int) (values.size() / 16), 0, &values[0]); break;
             default:
                 glUniform1fv(id, values.size(), &values[0]);
                 break;

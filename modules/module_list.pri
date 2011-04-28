@@ -19,6 +19,7 @@
        gradient         \
        filters          \
        render_to_texture\
+       shading          \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

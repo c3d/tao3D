@@ -56,6 +56,7 @@ struct MouseFocusTracker : Identify
 {
     MouseFocusTracker(text t, Widget *w);
     virtual Activity *  MouseMove(int x, int y, bool active);
+    virtual Activity *  Click(uint button, uint count, int x, int y);
     uint previous;
 };
 

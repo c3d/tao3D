@@ -247,6 +247,33 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
     return next;
 }
 
+Activity *MouseFocusTracker::Click(uint /*button*/, uint /*count*/, int x, int y)
+// ----------------------------------------------------------------------------
+//   Track focus when mouse click
+// ----------------------------------------------------------------------------
+{
+    uint current = ObjectAtPoint(x, widget->height() - y);
+
+    if (current != previous)
+    {
+        if (previous > 0)
+        {
+            // Forward 'focus-out' to previous item
+            widget->focusId = 0;
+            widget->focusWidget = NULL;
+        }
+        if (current > 0)
+        {
+            // Forward 'focus-in' to current item
+            widget->focusId = current;
+        }
+        widget->updateGL();
+    }
+    previous = current;
+    return next;
+}
+
+
 
 
 // ============================================================================

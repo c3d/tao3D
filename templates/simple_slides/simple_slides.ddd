@@ -48,7 +48,6 @@ picture_slide "Seyes style (Web)",
     h -> slide_height * 0.7
     y -> slide_height * -0.1
     active_widget
-        refresh_on 5
         color "white"
         url 0, y, w, h, "http://www.google.com"
         refresh 0.05

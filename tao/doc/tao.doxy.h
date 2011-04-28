@@ -223,8 +223,6 @@ locally
  * to the main Layout object. Since the two @ref locally blocks are nested
  * inside the main Layout of the document, they get re-executed too.
  *
- * @bug [#871] Partial execution not triggered correctly
- *
  * @subsection secSearchPaths Search Paths
  *
  * Some primitives that take a file name or file path accept a special syntax

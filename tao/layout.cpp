@@ -626,7 +626,6 @@ void Layout::Inherit(Layout *where)
     has3D           = where->has3D;
     hasPixelBlur    = where->hasPixelBlur;
     groupDrag       = where->groupDrag;
-    hasLighting     = where->hasLighting;
     hasMaterial     = where->hasMaterial;
 }
 

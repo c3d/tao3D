@@ -1,3 +1,5 @@
+import LoremIpsum 1.0
+
 lorem_ipsum_box x, y -> 
     color "white" 
     line_color 0.505303, 0.873304, 0.678096, 1.0 

@@ -1,4 +1,4 @@
-fontRendering_test -> test_definition "fontRendering", 0,  <<Testing the font rendering in small and huge sizes.>>, 1920, 1106, 0.5, do 
+fontRendering_test -> test_definition "fontRendering", 0,  <<Testing the font rendering in small and huge sizes.>>, 1920, 1106, 0.5,
     test_add_check 0, 1811
     test_add_mouse_move 0, 0, 431, 5, 264
     test_add_mouse_move 0, 0, 439, 13, 16

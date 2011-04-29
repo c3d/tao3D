@@ -42,10 +42,10 @@ GeneralPage::GeneralPage(QWidget *parent)
      : QWidget(parent)
 {
     QGroupBox *group = new QGroupBox(tr("General"));
-    QHBoxLayout *hbox = new QHBoxLayout;
-    hbox->addWidget(new QLabel(tr("User interface language:")));
+    QGridLayout *grid = new QGridLayout;
+    grid->addWidget(new QLabel(tr("User interface language:")), 1, 1);
     combo = new QComboBox;
-    hbox->addWidget(combo);
+    grid->addWidget(combo, 1, 2);
     QStringList languages = installedLanguages();
     combo->addItem(tr("(System Language)"));
     // Unfortunately, languages are always in english: vote for QTBUG-1587.
@@ -66,7 +66,16 @@ GeneralPage::GeneralPage(QWidget *parent)
     }
     connect(combo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(setLanguage(int)));
-    group->setLayout(hbox);
+
+    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
+    noStereo = new QCheckBox;
+    grid->addWidget(noStereo, 2, 2);
+    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
+    noStereo->setChecked(disable);
+    connect(noStereo, SIGNAL(toggled(bool)),
+            this,     SLOT(disableStereoBuffers(bool)));
+
+    group->setLayout(grid);
 
     message = new QLabel;
 
@@ -112,6 +121,22 @@ void GeneralPage::setLanguage(int index)
     }
     QString lang = combo->itemData(index).toString();
     QSettings().setValue("uiLanguage", lang);
+}
+
+
+void GeneralPage::disableStereoBuffers(bool disable)
+// ----------------------------------------------------------------------------
+//   Save the "disable stereoscopy" setting
+// ----------------------------------------------------------------------------
+{
+    message->setText(tr("The change will take effect after a restart "
+                        "of the application."));
+    if (!disable)
+    {
+        QSettings().remove("DisableStereoscopy");
+        return;
+    }
+    QSettings().setValue("DisableStereoscopy", true);
 }
 
 // ============================================================================

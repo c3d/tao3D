@@ -121,8 +121,11 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
-         QGL::AccumBuffer       |
-         QGL::StereoBuffers);
+         QGL::AccumBuffer);
+    if (QSettings().value("DisableStereoscopy", false).toBool())
+        XL::MAIN->options.enable_stereoscopy = false;
+    if (XL::MAIN->options.enable_stereoscopy)
+        options |= QGL::StereoBuffers;
     QGLFormat format(options);
     // Enable VSync by default
     format.setSwapInterval(1);

@@ -43,14 +43,12 @@ flag Inv, Scramb, Win, Loose, Img ->
         image_px x_flag , y_flag, w_flag, h_flag, Img
         x_flag := x_flag + 1.5 * w_flag
         on_click
-            {
-                invit := Inv
-                scramble := Scramb
-                win := Win
-                loose := Loose
-                reset
-                goto_page "game"
-            }
+            invit := Inv
+            scramble := Scramb
+            win := Win
+            loose := Loose
+            reset
+            goto_page "game"
 
 
 // function to reset the game
@@ -92,12 +90,10 @@ page "game",
             align_center
             text scramble
         on_click
-            {
-                reset
-                result := random(1, 4)
-            }
+            reset
+            result := random(1, 4)
 
-    // Draw 3 green clikable circles
+    // Draw 3 green clickable circles
     color "lightgreen"
     active_widget
         circle -300, 0, 100
@@ -115,7 +111,7 @@ page "game",
             clicked := 3
 
     // Conditional part of the game :
-    // Check if the cliked circle number is the same as the random number
+    // Check if the clicked circle number is the same as the random number
     if clicked <> 0 then
         if result = clicked then
             display := win

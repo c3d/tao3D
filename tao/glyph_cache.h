@@ -158,6 +158,12 @@ protected:
                 return family;
             if (int capitalization = order(f1.capitalization(), f2.capitalization()))
                 return capitalization;
+            if (int line = order(f1.overline(), f2.overline()))
+                return line;
+            if (int line = order(f1.underline(), f2.underline()))
+                return line;
+            if (int line = order(f1.strikeOut(), f2.strikeOut()))
+                return line;
             return 0;
         }
 

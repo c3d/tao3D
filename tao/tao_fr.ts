@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1101"/>
+        <location filename="module_manager.cpp" line="1097"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible : </translation>
@@ -373,88 +373,88 @@
 <context>
     <name>Tao::Application</name>
     <message>
-        <location filename="application.cpp" line="159"/>
+        <location filename="application.cpp" line="161"/>
         <source>OpenGL support</source>
         <translation>Support d&apos;OpenGL</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="160"/>
+        <location filename="application.cpp" line="162"/>
         <source>This system doesn&apos;t support OpenGL.</source>
         <translation>Ce système ne dispose pas d&apos;OpenGL.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="167"/>
+        <location filename="application.cpp" line="169"/>
         <source>Framebuffer support</source>
         <translation>Support de framebuffer</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="168"/>
+        <location filename="application.cpp" line="170"/>
         <source>This system does not support framebuffers. Performance may not be optimal. Consider updating the OpenGL drivers.</source>
         <translation>Ce système ne dispose pas de framebuffers, ce qui peut réduire les performances. Vérifiez si les pilotes OpenGL sont à jour.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="179"/>
+        <location filename="application.cpp" line="181"/>
         <source>Multisample support</source>
         <translation>Support du multi-échantillonnage</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="180"/>
+        <location filename="application.cpp" line="182"/>
         <source>This system does not support GL sample buffers. Shapes and large text may look jaggy.</source>
         <translation>Ce système ne dispose pas du multi-échantillonnage. Les formes géométriques risquent d&apos;être crénelées.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="222"/>
+        <location filename="application.cpp" line="225"/>
         <source>Checking module configuration</source>
         <translation>Vérification des modules</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="225"/>
+        <location filename="application.cpp" line="228"/>
         <source>Loading modules</source>
         <translation>Chargement des modules</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="239"/>
+        <location filename="application.cpp" line="242"/>
         <source>Loading modules [%1]</source>
         <translation>Chargement des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="396"/>
+        <location filename="application.cpp" line="399"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="397"/>
+        <location filename="application.cpp" line="400"/>
         <source>Could not open %1.
 </source>
         <translation>Impossible d&apos;ouvrir %1.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="531"/>
+        <location filename="application.cpp" line="534"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="545"/>
+        <location filename="application.cpp" line="548"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="711"/>
+        <location filename="application.cpp" line="714"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="839"/>
-        <location filename="application.cpp" line="855"/>
-        <location filename="application.cpp" line="868"/>
-        <location filename="application.cpp" line="881"/>
+        <location filename="application.cpp" line="842"/>
+        <location filename="application.cpp" line="858"/>
+        <location filename="application.cpp" line="871"/>
+        <location filename="application.cpp" line="884"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="840"/>
+        <location filename="application.cpp" line="843"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -465,7 +465,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="856"/>
+        <location filename="application.cpp" line="859"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -474,7 +474,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="869"/>
+        <location filename="application.cpp" line="872"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -483,7 +483,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="882"/>
+        <location filename="application.cpp" line="885"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -723,22 +723,22 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DebugPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="131"/>
+        <location filename="preferences_pages.cpp" line="156"/>
         <source>Debug traces</source>
         <translation>Traces de debug</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="148"/>
+        <location filename="preferences_pages.cpp" line="173"/>
         <source>Select all</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="151"/>
+        <location filename="preferences_pages.cpp" line="176"/>
         <source>Deselect all</source>
         <translation>Tout déselectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="155"/>
+        <location filename="preferences_pages.cpp" line="180"/>
         <source>Save for next run</source>
         <translation>Enregistrer</translation>
     </message>
@@ -759,32 +759,32 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DocumentNameAndLocationPage</name>
     <message>
-        <location filename="new_document_wizard.cpp" line="187"/>
+        <location filename="new_document_wizard.cpp" line="188"/>
         <source>Document Name and Location</source>
         <translation>Nom et Emplacement du Document</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="188"/>
+        <location filename="new_document_wizard.cpp" line="189"/>
         <source>Specify the name and location of your document.</source>
         <translation>Précisez le nom et l&apos;emplacement de votre document.</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="190"/>
+        <location filename="new_document_wizard.cpp" line="191"/>
         <source>&amp;Name:</source>
         <translation>&amp;Nom :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="194"/>
+        <location filename="new_document_wizard.cpp" line="195"/>
         <source>&amp;Location:</source>
         <translation>&amp;Emplacement :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="199"/>
+        <location filename="new_document_wizard.cpp" line="200"/>
         <source>Choose...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="245"/>
+        <location filename="new_document_wizard.cpp" line="246"/>
         <source>Choose Document Location</source>
         <translation>Emplacement du Document</translation>
     </message>
@@ -843,47 +843,57 @@ Code : %1
         <translation>(Langue du système)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="106"/>
+        <location filename="preferences_pages.cpp" line="70"/>
+        <source>Disable stereoscopy (3D)</source>
+        <translation>Désactiver la stéréoscopie (3D)</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="115"/>
         <source>The language change will take effect after a restart of the application.</source>
         <translation>Le changement de langue prendra effet après redémarrage de l&apos;application.</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="132"/>
+        <source>The change will take effect after a restart of the application.</source>
+        <translation>Le changement prendra effet après redémarrage de l&apos;application.</translation>
     </message>
 </context>
 <context>
     <name>Tao::GitRepository</name>
     <message>
-        <location filename="git_backend.cpp" line="243"/>
+        <location filename="git_backend.cpp" line="261"/>
         <source>Version control software</source>
         <translation>Contrôle de version</translation>
     </message>
     <message>
-        <location filename="git_backend.cpp" line="244"/>
+        <location filename="git_backend.cpp" line="262"/>
         <source>No supported version control software was found. Some functions will not be available. Consider re-installing the application, or installing Git v1.7.0 or later.</source>
         <translation>Aucun logiciel de contrôle de version n&apos;a été reconnu. Certaines fonctions seront inactives. Ré-installez l&apos;application ou Git 1.7.0 ou plus récent.</translation>
     </message>
     <message>
-        <location filename="git_backend.cpp" line="252"/>
+        <location filename="git_backend.cpp" line="270"/>
         <source>Git selection</source>
         <translation>Choix de Git</translation>
     </message>
     <message>
-        <location filename="git_backend.cpp" line="253"/>
+        <location filename="git_backend.cpp" line="271"/>
         <source>Missing command: git
 Do you want to locate the file yourself?</source>
         <translation>La commande &quot;git&quot; est introuvable.
 Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
     <message>
-        <location filename="git_backend.cpp" line="261"/>
+        <location filename="git_backend.cpp" line="279"/>
         <source>Select git program</source>
         <translation>Choix du program &quot;git&quot;</translation>
     </message>
     <message>
-        <location filename="git_backend.cpp" line="1173"/>
+        <location filename="git_backend.cpp" line="1191"/>
         <source>Unknown</source>
         <translation>Inconnue</translation>
     </message>
     <message>
-        <location filename="git_backend.cpp" line="1176"/>
+        <location filename="git_backend.cpp" line="1194"/>
         <source>--dirty=-dirty</source>
         <translation>--dirty=modifié</translation>
     </message>
@@ -941,22 +951,22 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::ModuleManager</name>
     <message>
-        <location filename="module_manager.cpp" line="479"/>
+        <location filename="module_manager.cpp" line="480"/>
         <source>New module</source>
         <translation>Nouveau module</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="590"/>
+        <location filename="module_manager.cpp" line="591"/>
         <source>Missing ID, name or version</source>
         <translation>Identifiant, nom ou version manquant</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="595"/>
-        <source>Could not parse module.xl</source>
-        <translation>Impossible de faire l&apos;analyse grammaticale de module.xl</translation>
+        <location filename="module_manager.cpp" line="596"/>
+        <source>Could not parse %1</source>
+        <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1038"/>
+        <location filename="module_manager.cpp" line="1034"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -967,8 +977,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1043"/>
-        <location filename="module_manager.cpp" line="1064"/>
+        <location filename="module_manager.cpp" line="1039"/>
+        <location filename="module_manager.cpp" line="1060"/>
         <source>
 
 Reason: %1</source>
@@ -977,13 +987,13 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1045"/>
-        <location filename="module_manager.cpp" line="1066"/>
+        <location filename="module_manager.cpp" line="1041"/>
+        <location filename="module_manager.cpp" line="1062"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1060"/>
+        <location filename="module_manager.cpp" line="1056"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -994,14 +1004,14 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1080"/>
+        <location filename="module_manager.cpp" line="1076"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1083"/>
+        <location filename="module_manager.cpp" line="1079"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
@@ -1011,27 +1021,27 @@ Emplacement : %2</translation>
 <context>
     <name>Tao::ModulesPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="252"/>
+        <location filename="preferences_pages.cpp" line="277"/>
         <source>Modules are disabled</source>
         <translation>Les modules sont désactivés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="259"/>
+        <location filename="preferences_pages.cpp" line="284"/>
         <source>Installed modules</source>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="279"/>
+        <location filename="preferences_pages.cpp" line="304"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="346"/>
+        <location filename="preferences_pages.cpp" line="371"/>
         <source>Disable</source>
         <translation>Désactiver</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="346"/>
+        <location filename="preferences_pages.cpp" line="371"/>
         <source>Enable</source>
         <translation>Activer</translation>
     </message>
@@ -1108,14 +1118,14 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 </translation>
     </message>
     <message>
-        <location filename="process.cpp" line="257"/>
+        <location filename="process.cpp" line="269"/>
         <source>Process %1 finished (exit type: %2, exit code: %3, elapsed: %4 ms)
 </source>
         <translation>Le processus %1 s&apos;est terminé (état : %2, code : %3, écoulé : %4 ms)
 </translation>
     </message>
     <message>
-        <location filename="process.cpp" line="261"/>
+        <location filename="process.cpp" line="273"/>
         <source>Process %1 stdout:
 %2Process %3 stdout end
 </source>
@@ -1124,7 +1134,7 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 </translation>
     </message>
     <message>
-        <location filename="process.cpp" line="264"/>
+        <location filename="process.cpp" line="276"/>
         <source>Process %1 stderr:
 %2Process %3 stderr end
 </source>
@@ -1133,62 +1143,62 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 </translation>
     </message>
     <message>
-        <location filename="process.cpp" line="275"/>
+        <location filename="process.cpp" line="287"/>
         <source>Process %1 error: %2
 </source>
         <translation>Processus %1 : erreur : %2
 </translation>
     </message>
     <message>
-        <location filename="process.cpp" line="278"/>
+        <location filename="process.cpp" line="290"/>
         <source>  stderr: %1
 </source>
         <translation>  stderr : %1
 </translation>
     </message>
     <message>
-        <location filename="process.cpp" line="289"/>
+        <location filename="process.cpp" line="301"/>
         <source>Failed to start</source>
         <translation>N&apos;a pas démarré</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="290"/>
+        <location filename="process.cpp" line="302"/>
         <source>Crashed</source>
         <translation>Crashé</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="291"/>
+        <location filename="process.cpp" line="303"/>
         <source>Timed out</source>
         <translation>Temps expiré</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="292"/>
+        <location filename="process.cpp" line="304"/>
         <source>Write error</source>
         <translation>Erreur d&apos;écriture</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="293"/>
+        <location filename="process.cpp" line="305"/>
         <source>Read error</source>
         <translation>Erreur de lecture</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="294"/>
+        <location filename="process.cpp" line="306"/>
         <source>Unknown error</source>
         <translation>Erreur inconnue</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="295"/>
-        <location filename="process.cpp" line="309"/>
+        <location filename="process.cpp" line="307"/>
+        <location filename="process.cpp" line="321"/>
         <source>???</source>
         <translation>???</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="307"/>
+        <location filename="process.cpp" line="319"/>
         <source>Normal exit</source>
         <translation>Sortie normale</translation>
     </message>
     <message>
-        <location filename="process.cpp" line="308"/>
+        <location filename="process.cpp" line="320"/>
         <source>Crash exit</source>
         <translation>Sortie après crash</translation>
     </message>
@@ -1440,17 +1450,17 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="996"/>
+        <location filename="widget.cpp" line="944"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9197"/>
+        <location filename="widget.cpp" line="9180"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9198"/>
+        <location filename="widget.cpp" line="9181"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

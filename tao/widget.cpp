@@ -4668,11 +4668,12 @@ Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
 
 Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
-//    Set the default refresh time for layout that depend on QEvent::Timer
+//    Get/set the default refresh time for layouts that depend on QEvent::Timer
 // ----------------------------------------------------------------------------
 {
     double prev = dfltRefresh;
-    dfltRefresh = delay;
+    if (delay >= 0.0)
+        dfltRefresh = delay;
     return new XL::Real(prev);
 }
 

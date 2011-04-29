@@ -270,6 +270,16 @@ text(t:text);
  *   <li> @b weight @p w. Sets weight to @p w. See @ref weight.
  *   <li> @b stretch @p s. Sets character stretch factor to @p s.
  *       See @ref stretch.
+ *   <li> Capitalization:
+ *   <ul>
+ *     <li> @b mixed_case, @b normal_case. Resets capitalization mode to
+ *          the normal, mixed case.
+ *     <li> @b uppercase. Render text in upper case type.
+ *     <li> @b lowercase. Render text in lower case type.
+ *     <li> @b small_caps. Render text in small-caps type.
+ *     <li> @b capitalized. Render the first character of each word as an
+ *       uppercase character.
+ *   </ul>
  * </ul>
  *
  * @note You cannot provide the family string or the size in variables. The
@@ -567,7 +577,7 @@ vertical_align(center:real, justify:real, spread:real, full_justify:real);
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real, justify:real, spread:real);
- 
+
 /**
  * Sets parameters for vertical text layout.
  *
@@ -575,7 +585,7 @@ vertical_align(center:real, justify:real, spread:real);
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real, justify:real);
- 
+
 /**
  * Sets parameters for vertical text layout.
  *
@@ -583,7 +593,7 @@ vertical_align(center:real, justify:real);
  * @see vertical_align(center:real, justify:real, spread:real, full_justify:real);
  */
 vertical_align(center:real);
- 
+
 
 /**
  * Flush all lines of text to the top of the text box.
@@ -619,7 +629,7 @@ vertical_align_justify();
 
 /**
  * Spread lines of text vertically within the text box.
- * 
+ *
  * Space is equally distributed between lines and top and bottom of the box.
  * Synonym for @ref vertical_align 0, 1, 1, 1.
  */

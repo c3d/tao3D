@@ -210,7 +210,7 @@ int RasterText::printf(const char *format...)
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (unsigned i = 0; i < strlen(text); i++)
     {
-        GLdouble current[4];
+        GLdouble current[4] = {0,0,0,0};
         glGetDoublev(GL_CURRENT_RASTER_POSITION, current);
         glDrawPixels(BG_W, BG_H, GL_ALPHA, GL_UNSIGNED_BYTE, bg_alpha);
         current[0] += BG_W;

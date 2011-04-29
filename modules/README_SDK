@@ -88,7 +88,7 @@ To add a new module:
  4. Rename and adapt C++ source files and the .tbl file (if any). Update the
     .pro accordingly. You can provide your own icon for the module, too.
  5. Add your module to the build configuration, either by editing
-    module_list.pri or by running qmake with option "module=+you_module_dir".
+    module_list.pri or by running qmake with option "modules=+your_module_dir".
  6. Build as explained above.
 
 

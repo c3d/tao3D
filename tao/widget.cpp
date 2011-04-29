@@ -91,6 +91,7 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include <QtGui>
 
@@ -176,9 +177,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       editCursor(NULL)
 {
     setObjectName(QString("Widget"));
-    bzero(focusProjection, 16*sizeof(GLdouble));
-    bzero(focusModel, 16*sizeof(GLdouble));
-    bzero(focusViewport, 4*sizeof(GLint));
+    memset(focusProjection, 0, 16*sizeof(GLdouble));
+    memset(focusModel, 0, 16*sizeof(GLdouble));
+    memset(focusViewport, 0, 4*sizeof(GLint));
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -3708,9 +3709,9 @@ void Widget::recordProjection()
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
-    bzero(focusProjection, 16*sizeof(GLdouble));
-    bzero(focusModel, 16*sizeof(GLdouble));
-    bzero(focusViewport, 4*sizeof(GLint));
+    memset(focusProjection, 0, 16*sizeof(GLdouble));
+    memset(focusModel, 0, 16*sizeof(GLdouble));
+    memset(focusViewport, 0, 4*sizeof(GLint));
 
     glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
     glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);

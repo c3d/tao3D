@@ -1,11 +1,13 @@
-toolbar_test
+import LoremIpsum 1.0
+
+//toolbar_test
 lorem_ipsum_box x, y, t, col, colbg -> 
     color colbg 
     line_color 0.505303, 0.873304, 0.678096, 1.0 
     rectangle x, y, 600, 240 
     color col 
     line_color "font" 
-    text_box x, y, 600, 240, do 
+    text_box x, y, 600, 240, 
         text t 
         line_break 
         text lorem_ipsum 50 
@@ -16,13 +18,13 @@ lorem_ipsum_big_box x, y, t, col, colbg ->
     rectangle x, y, 837, 346 
     color col 
     line_color "font" 
-    text_box x, y, 837, 346, do 
+    text_box x, y, 837, 346, 
         text t 
         line_break 
         text lorem_ipsum 50 
 
-//page "testSmallFont", do 
-page "fontRendering", do 
+//page "testSmallFont",  
+page "fontRendering", 
     font "default" 
     shape 
         lorem_ipsum_box -620, 400, "default" , "font" , "white" 
@@ -51,8 +53,8 @@ page "fontRendering", do
         font "Arial", 18, slant 0% , weight 50% , stretch 100% , small_caps 
         lorem_ipsum_box 600, -100, "Arial 18 Small Caps" , "font" , "white" 
     shape 
-        font "Times New Roman", 18, overline 
-        lorem_ipsum_box -620, -350, "Times New Roman 18 overline" , "font" , "white" 
+        font "Times New Roman",20, overline 
+        lorem_ipsum_box -620, -350, "Times New Roman 20 overline" , "font" , "white" 
     shape 
         font "Times New Roman", 20, slant 100% , weight 100% , stretch 150% , underlined 
         font "plain" 
@@ -61,7 +63,7 @@ page "fontRendering", do
         font "Times New Roman", 20, slant 100% , weight 100% , stretch 150% , underlined 
         lorem_ipsum_box 600, -350, "Combined" , "green" , "pink" 
 
-page "testLargeFont1", do 
+page "testLargeFont1", 
     font "default" 
     shape 
         lorem_ipsum_big_box -506, 360, "default" , "font" , "white" 
@@ -81,7 +83,7 @@ page "testLargeFont1", do
         font "Arial", 70, slant 100% 
         lorem_ipsum_big_box 340, -350, "Arial 70 slant 100%" , "font" , "orange" 
 
-page "testLargeFont2", do 
+page "testLargeFont2",  
     font "default" 
     shape 
         font "Arial", 80, slant 0% , weight 50% , stretch 200% 

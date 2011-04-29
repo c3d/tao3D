@@ -4,15 +4,17 @@ module_description
         id "4D6BA446-FAA5-4749-BA9F-4B3F126A618A"
         name "Tao tester"
         description "Adds primitives to create automated test in Tao."
+        import_name "TaoTester"
         version 1.0
 
-toolbar_test -> {
+toolbar_test ->
+{
 menu "toolbar:test", "test"
-menu_item "toolbar:test > start", "start","", do test_start_record
-menu_item "toolbar:test > check", "check","", do test_check
-menu_item "toolbar:test > stop", "stop","", do test_stop
-menu_item "toolbar:test > play", "play","", do test_replay
-menu_item "toolbar:test > save", "save","", do test_save
-menu_item "toolbar:test > reset", "reset","", do test_reset
+menu_item "toolbar:test > start", "start", { test_start_record }
+menu_item "toolbar:test > check", "check", { test_check }
+menu_item "toolbar:test > stop", "stop", { test_stop }
+menu_item "toolbar:test > play", "play", { test_replay }
+menu_item "toolbar:test > save", "save", { test_save }
+menu_item "toolbar:test > reset", "reset", { test_reset }
 }
 

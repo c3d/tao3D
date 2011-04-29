@@ -1,5 +1,5 @@
-
-textJustification_test -> test_definition "textJustification", 0, <<Test the horizontal and vertical placement of a text in boxes.>> , 1920, 1106, 0.07, do 
+import TaoTester 1.0
+textJustification_test -> test_definition "textJustification", 0, <<Test the horizontal and vertical placement of a text in boxes.>> , 1920, 1106, 0.07, 
     test_add_key_press 16777239, 0, 667 
     test_add_key_release 16777239, 0, 66 
     test_add_check 0, 620 

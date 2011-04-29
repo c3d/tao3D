@@ -148,9 +148,15 @@ skip_to(Position:real);
  * Return a scaling factor that depends on how far @a N is from the current
  * position of the animation (as given by @ref step).
  */
-
 step_scale(N:integer);
 
+
+/**
+ * Compute the value of @ref smooth_step
+ *
+ */
+
+compute_smooth_step();
 
 /**
  * @}

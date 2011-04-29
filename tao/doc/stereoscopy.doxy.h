@@ -1,5 +1,5 @@
 /**
- * @defgroup stereoscopy
+ * @defgroup stereoscopy Stereoscopy
  * @ingroup TaoBuiltins
  *
  * Stereoscopy abilities.

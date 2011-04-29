@@ -45,16 +45,24 @@ struct WidgetCloneMode : CloneMode
 // ----------------------------------------------------------------------------
 {
     WidgetCloneMode() : widget(NULL) {}
+
     Tree *Reselect(Tree *from, Tree *to)
     {
         if (widget)
             widget->reselect(from, to);
         return to;
     }
+
     template<typename CloneClass>
     Tree *Clone(Tree *from, CloneClass *clone)
     {
         Tree *to = CloneMode::Clone(from, clone);
+        return Reselect(from, to);
+    }
+
+    template<typename CloneClass>
+    Tree *Adjust(Tree *from, Tree *to, CloneClass * /* clone */)
+    {
         return Reselect(from, to);
     }
     Widget *widget;
@@ -160,14 +168,12 @@ struct CopySelection
 //
 // ============================================================================
 
-struct NameChangeCloneMode
+struct NameChangeCloneMode : DeepCloneMode
 // ----------------------------------------------------------------------------
 //   Clone mode where DoName is virtual so that we can override it
 // ----------------------------------------------------------------------------
 {
     virtual XL::Tree *DoName(XL::Name *what) = 0;
-    template<typename CloneClass>
-    XL::Tree *Clone(Tree *t, CloneClass *clone) { return t->Do(clone); }
 };
 typedef XL::TreeCloneTemplate<NameChangeCloneMode>      NameChangeClone;
 

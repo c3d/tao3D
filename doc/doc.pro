@@ -22,7 +22,7 @@ equals(HAS_DOXYGEN, true) {
   include (../main_defs.pri)
   include (../version.pri)
 
-  QMAKE_SUBSTITUTES = Doxyfile.in 
+  QMAKE_SUBSTITUTES = Doxyfile.in
 
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
@@ -62,3 +62,27 @@ equals(HAS_DOXYGEN, true) {
   warning(doxygen not found - will not build online documentation)
 
 }
+
+OTHER_FILES += XLRef.pdf \
+    ../tao/doc/camera.doxy.h \
+    ../tao/doc/graph.doxy.h \
+    ../tao/doc/page.doxy.h \
+    ../tao/doc/tao.doxy.h \
+    ../tao/doc/widgets.doxy.h \
+    ../tao/doc/chooser.doxy.h \
+    ../tao/doc/lighting.doxy.h \
+    ../tao/doc/shaders.doxy.h  \
+    ../tao/doc/tao_application.doxy.h \
+    ../tao/doc/code.doxy.h \
+    ../tao/doc/menus.doxy.h \
+    ../tao/doc/shape_handling.doxy.h \
+    ../tao/doc/text.doxy.h \
+    ../tao/doc/files.doxy.h \
+    ../tao/doc/modules.doxy.h \
+    ../tao/doc/stereoscopy.doxy.h \
+    ../tao/doc/time.doxy.h \
+    ../tao/doc/frame.doxy.h \
+    ../tao/doc/mouse.doxy.h \
+    ../tao/doc/tablelayout.doxy.h \
+    ../tao/doc/transform.doxy.h
+

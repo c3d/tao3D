@@ -255,6 +255,8 @@ Activity *MouseFocusTracker::Click(uint /*button*/, uint /*count*/, int x, int y
 // ----------------------------------------------------------------------------
 {
     uint current = ObjectAtPoint(x, widget->height() - y);
+    IFTRACE(widgets)
+            std::cerr<<"Focus " << current << std::endl;
     if (current != previous)
     {
         if (previous > 0)
@@ -462,7 +464,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             return new Drag(widget);
     }
 
-    return NULL;                // We dealt with the event
+    return next;
+    //return NULL;                // We dealt with the event
 }
 
 

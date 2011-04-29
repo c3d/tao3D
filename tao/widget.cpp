@@ -835,7 +835,7 @@ void Widget::runProgram()
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
         pageName = gotoPageName;
-        frozenTime = pageStartTime = CurrentTime();
+        frozenTime = pageStartTime = startTime = CurrentTime();
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;

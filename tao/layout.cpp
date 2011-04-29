@@ -548,6 +548,18 @@ bool Layout::NeedRefresh(QEvent *e, double when)
 }
 
 
+void Layout::RefreshOn(Layout *layout)
+// ----------------------------------------------------------------------------
+//   Refresh whenever other layout would refresh
+// ----------------------------------------------------------------------------
+{
+    refreshEvents.insert(layout->refreshEvents.begin(),
+                         layout->refreshEvents.end());
+    if (layout->nextRefresh < nextRefresh)
+        nextRefresh = layout->nextRefresh;
+}
+
+
 void Layout::RefreshOn(QEvent::Type type, double when)
 // ----------------------------------------------------------------------------
 //   Ask for refresh on specified event (and time if event is QEvent::Timer)

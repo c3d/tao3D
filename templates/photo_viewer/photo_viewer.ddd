@@ -57,5 +57,5 @@ page "Photos",
         show_front := 1.0 
         show_image with files "photos/*.jpg"
      
-    default_refresh 1 / 60
+    default_refresh 1.0 / 30
 

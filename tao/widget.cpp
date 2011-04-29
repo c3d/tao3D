@@ -835,7 +835,7 @@ void Widget::runProgram()
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
         pageName = gotoPageName;
-        frozenTime = pageStartTime = CurrentTime();
+        frozenTime = pageStartTime = startTime = CurrentTime();
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
@@ -4668,11 +4668,12 @@ Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
 
 Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
-//    Set the default refresh time for layout that depend on QEvent::Timer
+//    Get/set the default refresh time for layouts that depend on QEvent::Timer
 // ----------------------------------------------------------------------------
 {
     double prev = dfltRefresh;
-    dfltRefresh = delay;
+    if (delay >= 0.0)
+        dfltRefresh = delay;
     return new XL::Real(prev);
 }
 
@@ -7471,6 +7472,7 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
+    Layout *parent = layout;
     do
     {
         GLAllStateKeeper saveGL;
@@ -7493,6 +7495,8 @@ Tree_p Widget::frameTexture(Context *context, Tree_p self,
         layout->Draw(NULL);
         frame.end();
 
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;

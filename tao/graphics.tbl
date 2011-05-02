@@ -802,6 +802,17 @@ PREFIX(FillColorCMYK,  tree,  "color_cmyk",
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
+PREFIX(FillColorGradient,  tree, "gradient_color",
+       PARM(pos, real, )
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(fillColorGradient(self, pos, r, g, b, a)),
+       GROUP(graph)
+       SYNOPSIS("")
+       DESCRIPTION("")
+       RETURNS(tree, ""))
 PREFIX(FillTextureUnit,  integer,  "texture_unit",
        PARM(texUnit, integer, "The texture unit."),
        RTAO(fillTextureUnit(self, texUnit)),
@@ -1663,7 +1674,44 @@ PREFIX(FrameTexture,  tree,  "frame_texture",
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
-       RETURNS(tree, "The result of 'prog' evaluation"))
+       RETURNS(tree, "The result of 'prog' evaluation"))       
+PREFIX(LinearGradient,  tree,  "linear_gradient",
+       PARM(start_x, real, "x-coordinate of the gradient start")
+       PARM(start_y, real, "y-coordinate of the gradient start")
+       PARM(end_x, real, "x-coordinate of the gradient end")
+       PARM(end_y, real, "y-coordinate of the gradient end")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(p, code, "The program that allow to define colors for the gradient"),
+       RTAO(linearGradient(context, self, start_x, start_y, end_x, end_y, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A linear gradient with content as colors")
+       DESCRIPTION("Make a linear gradient")
+       RETURNS(tree, "The id of current gradient"))
+PREFIX(RadialGradient,  tree,  "radial_gradient",
+       PARM(center_x, real, "x-coordinate of the gradient center")
+       PARM(center_y, real, "y-coordinate of the gradient center")
+       PARM(radius, real, "gradient radius")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(p, code, "The program that allow to define colors for the gradient"),
+       RTAO(radialGradient(context, self, center_x, center_y, radius, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A radial gradient with content as colors")
+       DESCRIPTION("Make a radial gradient")
+       RETURNS(tree, "The id of current gradient"))
+PREFIX(ConicalGradient,  tree,  "conical_gradient",
+       PARM(center_x, real, "x-coordinate of the gradient center")
+       PARM(center_y, real, "y-coordinate of the gradient center")
+       PARM(angle, real, "gradient angle")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(p, code, "The program that allow to define colors for the gradient"),
+       RTAO(conicalGradient(context, self, center_x, center_y, angle, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A conical gradient with content as colors")
+       DESCRIPTION("Make a conical gradient")
+       RETURNS(tree, "The id of current gradient"))
 PREFIX(Url,  tree,  "url",
        PARM(x,real, )
        PARM(y,real, )

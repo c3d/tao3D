@@ -160,8 +160,6 @@ GLuint ImageTextureInfo::bind(text file)
     return texinfo.id;
 }
 
-
-
 // ============================================================================
 // 
 //   Movie textures

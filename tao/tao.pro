@@ -299,6 +299,7 @@ OTHER_FILES += xl.syntax \
     bytecode.stylesheet \
     xlr/xlr/builtins.xl \
     tao.xl \
+    tao_fr.xl \
     welcome.ddd \
     git.stylesheet \
     traces.tbl \
@@ -329,6 +330,7 @@ QMAKE_EXTRA_TARGETS += revtarget
 xl_files.path  = $$APPINST
 xl_files.files = xlr/xlr/builtins.xl \
     tao.xl \
+    tao_fr.xl \
     xl.syntax \
     xl.stylesheet \
     git.stylesheet \

@@ -77,6 +77,16 @@ slide "The Keyboard theme",
  */
 text theme = "";
 
+/**
+ * The width of the current slide.
+ */
+real slide_width = 1024.0;
+
+/**
+ * The height of the current slide.
+ */
+real slide_height = 768.0;
+
 
 /**
  * Select a new theme for all subsequent slides
@@ -152,11 +162,17 @@ title_only_slide(P:text, T:text, Body:code);
 ＋(T:text);
 
 /**
- * Set the background picture
+ * Set the background picture.
  * Select @a File as the background picture. This may override the default
  * selected by @ref theme.
  */
 set_picture_background(File:text);
+
+/**
+ * Set the dimension of the slide.
+ * @p Width and @p Height are expressed in pixels.
+ */
+set_slide_size(Width:real, Height:real);
 
 /**
  * @}

@@ -27,6 +27,7 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include <QtGui>
+#include <string.h>
 
 TAO_BEGIN
 
@@ -73,7 +74,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     int    hits          = 0;
 
     GLuint *buffer = new GLuint[capacity];
-    bzero(buffer, capacity * sizeof(GLuint));
+    memset(buffer, 0, capacity * sizeof(GLuint));
     glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
@@ -160,7 +161,7 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
 
     // Create the select buffer and switch to select mode
     GLuint *buffer = new GLuint[capacity];
-    bzero(buffer, capacity * sizeof(GLuint));
+    memset(buffer, 0, capacity * sizeof(GLuint));
     glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 

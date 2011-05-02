@@ -91,6 +91,7 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include <QtGui>
 
@@ -120,8 +121,11 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
-         QGL::AccumBuffer       |
-         QGL::StereoBuffers);
+         QGL::AccumBuffer);
+    if (QSettings().value("DisableStereoscopy", false).toBool())
+        XL::MAIN->options.enable_stereoscopy = false;
+    if (XL::MAIN->options.enable_stereoscopy)
+        options |= QGL::StereoBuffers;
     QGLFormat format(options);
     // Enable VSync by default
     format.setSwapInterval(1);
@@ -176,9 +180,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       editCursor(NULL)
 {
     setObjectName(QString("Widget"));
-    bzero(focusProjection, 16*sizeof(GLdouble));
-    bzero(focusModel, 16*sizeof(GLdouble));
-    bzero(focusViewport, 4*sizeof(GLint));
+    memset(focusProjection, 0, 16*sizeof(GLdouble));
+    memset(focusModel, 0, 16*sizeof(GLdouble));
+    memset(focusViewport, 0, 4*sizeof(GLint));
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -839,7 +843,7 @@ void Widget::runProgram()
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
         pageName = gotoPageName;
-        frozenTime = pageStartTime = CurrentTime();
+        frozenTime = pageStartTime = startTime = CurrentTime();
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
@@ -3708,9 +3712,9 @@ void Widget::recordProjection()
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
-    bzero(focusProjection, 16*sizeof(GLdouble));
-    bzero(focusModel, 16*sizeof(GLdouble));
-    bzero(focusViewport, 4*sizeof(GLint));
+    memset(focusProjection, 0, 16*sizeof(GLdouble));
+    memset(focusModel, 0, 16*sizeof(GLdouble));
+    memset(focusViewport, 0, 4*sizeof(GLint));
 
     glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
     glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
@@ -4680,11 +4684,12 @@ Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
 
 Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
-//    Set the default refresh time for layout that depend on QEvent::Timer
+//    Get/set the default refresh time for layouts that depend on QEvent::Timer
 // ----------------------------------------------------------------------------
 {
     double prev = dfltRefresh;
-    dfltRefresh = delay;
+    if (delay >= 0.0)
+        dfltRefresh = delay;
     return new XL::Real(prev);
 }
 

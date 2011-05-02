@@ -1,168 +1,282 @@
 /**
- * @addtogroup time Time and time conversions
+ * @addtogroup grpTime Time and time conversions
  * @ingroup TaoBuiltins
- * This group holds time relative primitives.
+ * This group contains time related primitives.
  *
- * Most of those primitives uses a timestamp as input. This timestamp is a real representing a number
- *  of seconds with a precision of milliseconds. The time is given in seconds since epoch. 
- * The timestamp of the current time can be retreived by the @c time primitive.
+ * Time-related primitives can be grouped as follows:
+ * - Primitives that return information about the current time:
+ * time, seconds, hours, minutes, hours, day, month, year,
+ * week_day, month_day, year_day. These primitives have an effect on the
+ * execution of the block of code they belong to. See @ref secExecModel
+ * for general information ; the <em>next refresh</em> value is documented
+ * for each primitive below.
+ * - Conversion primitives: they are variants of the above that take
+ * a timestamp parameter.
  * @{
  */
 
 /**
- * Returns current time in second, including milliseconds.
+ * Returns current time in seconds.
  *
- * Returns the current document's time or the time at wich the document was frozen.
- * The returned value is a real in seconds, with millisecond precision.
- * The time is given in seconds since epoch.
- * @returns Return a fractional time, including milliseconds
- */
-time ();
-
-/**
- * @~english
- * Extracts day in year (1-365) from timestamp.
- */
-/**
- * @~french
- * Extrait du timestamp le numero du jour dans l'annee (1-365).
- */
-year_day (t:real);
-
-/**
- * Extracts week day (1-7) from timestamp.
- */
-week_day (t:real);
-
-/**
- * Extracts year from timestamp.
+ * The return value is the current timestamp expressed as seconds since
+ * 1970-01-01T00:00:00 Universal Coordinated Time. This is like the POSIX
+ * @c time_t variable, but expressed as a real value to represent fractional
+ * seconds.
  *
- * For instance, 2011.
- */
-year (t:real);
-
-/**
- * Extracts month (1-12) from timestamp.
- */
-month (t:real);
-
-/**
- * Extracts day (1-31) from timestamp.
- */
-day (t:real);
-
-/**
- * Extracts minutes (0-23) from timestamp.
- */
-hours (t:real);
-
-/**
- * Extracts minutes (0-59) from timestamp.
- */
-minutes (t:real);
-
-/**
- * Extracts seconds (0-59) from timestamp.
- */
-seconds (t:real);
-
-/**
- * Returns day in the month of hte current time.
- */
-day ();
-
-/**
- * Returns the hours (0-23) of the current time.
- */
-hours ();
-
-/**
- * Returns the minutes (0-59) of the current time.
- */
-minutes ();
-
-/**
- * Returns the current month number (1-12).
- */
-month ();
-
-/**
- * Returns the seconds of the current time (0-59).
- */
-seconds ();
-
-/**
- * Returns the current day of week (1-7).
+ * If the document is frozen (that is, if animations are stopped), the
+ * returned value remains constant and is the value of @ref time when
+ * animations were disabled.
  *
- * Day 1 is monday.
+ * Execution of this primitive requests a refresh of the current layout after
+ * @ref default_refresh seconds (0.04 by default).
  */
-week_day ();
+real time ();
+
+/**
+ * Returns the time elapsed since the page was displayed.
+ *
+ * The return value is in seconds.
+ *
+ * If the document is frozen (that is, if animations are stopped), the
+ * returned value remains constant and is the value of @ref page_time
+ * when animations were disabled.
+ *
+ * Execution of this primitive requests a refresh of the current layout after
+ * @ref default_refresh seconds (0.04 by default).
+ */
+real page_time ();
+
+
+/**
+ * Returns the second part (0 to 59) for the current time.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next second.
+ */
+integer seconds ();
+
+/**
+ * Returns the minute part (0 to 59) for the current time.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next minute.
+ */
+integer minutes ();
+
+/**
+ * Returns the hour part (0 to 23) for the current time.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next hour.
+ */
+integer hours ();
+
+/**
+ * Returns the day of the month (1 to 31) for the current date.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next day.
+ */
+integer day ();
+
+/**
+ * Returns the number of the month (1 to 12) for the current date.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next day (not the next month).
+ */
+integer month ();
 
 /**
  * Returns the current year.
  *
  * For instance 2011.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next day (not the next year).
  */
-year ();
+integer year ();
+
+/**
+ * Returns the weekday (1-7) for the current date.
+ *
+ * Day 1 is monday.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next day.
+ */
+integer week_day ();
 
 /**
  * @~english
- * Returns the current day in year (1-365).
+ * Returns the day of the year (1 to 365 or 366 on leap years)
+ * for the current date.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * on the next day.
  *
  * @~french
  * Retourne le numero du jour dans l'annee courante (1-365).
  */
-year_day ();
+integer year_day ();
+
+
 
 /**
- * Returns the page time.
- *
- *  Returns the time of the current page relatively to the current document's time, 
- * or relatively to the frozen time.
- * 
- * @returns Return the page time in second, with milliseconds precision.
+ * Returns the second part (0 to 59) for the specified timestamp.
  */
-page_time ();
+integer seconds (t:real);
 
 /**
- * Execute a block of code after specified interval.
- *
- *  Execute once @p c after the specified amount of time @p d, in seconds.
- *
- * @returns The real elapsed time.
- *
- * @todo Check behavior on futur master branch because it is not consistent nor on pre-merge master, nor on interp. */
-after (d:real, c:tree);
+ * Returns the minute part (0 to 59) for the specified timestamp.
+ */
+integer minutes (t:real);
 
 /**
- * Executes a block of code periodically.
- * @param interval is the interval in second between two executions of @p body.
- * @param duty_cycle is the percentage of @p interval when the @p body should be executed. 50% when not specified.
- * @param body is the code to execute each @p interval time and during @p duty_cycle * @p interval second.
- * @warning @c every is not using a separate thread or queue. If the @every code is not evaluated, 
- * then the body cannot be executed when it is time to do so. 
- * I.e. following code will only write <tt>nothing to write</tt>
+ * Returns the hour part (0 to 23) for the specified timestamp.
+ */
+integer hours (t:real);
+
+/**
+ * Returns the day of the month (1 to 31) for the specified timestamp.
+ */
+integer day (t:real);
+
+/**
+ * Returns the number of the month (1 to 12) for the specified timestamp.
+ */
+integer month (t:real);
+
+/**
+ * Returns the year for the specified timestamp.
+ *
+ * For instance 2011.
+ */
+integer year (t:real);
+
+/**
+ * Returns the weekday (1-7) for the specified timestamp.
+ *
+ * Day 1 is monday.
+ */
+integer week_day (t:real);
+
+/**
+ * @~english
+ * Returns the day of the year (1 to 365 or 366 on leap years)
+ * for the specified timestamp.
+ *
+ * @~french
+ * Retourne le numero du jour dans l'annee courante (1-365).
+ */
+integer year_day (t:real);
+
+
+
+/**
+ * Enables a block of code after a specified interval.
+ *
+ * The code specified by @p body is not executed until @p delay
+ * has expired. Until that time, the @ref after instruction is
+ * equivalent to: <tt>if false then</tt>.
+ * Once @p delay has expired, @p body
+ * is executed and the @p after instruction becomes equivalent to:
+ * <tt>if true then</tt>.
+ *
+ * For example:
  * @code
- * do_write := 1
- * locally // Creates a layout that isolates outside from evaluation.
- *     if do_write = 1 then
- *         every 0.5, 
- *             writeln "0.5 more millisecond"
- *         do_write := 0
- *     else
- *         writeln "nothing to write"
+page "Empty page",
+    nil
+page "Second page",
+    color "blue"
+    rectangle -300, 0, 200, 100
+    after 2.0,
+        color "red"
+        circle 0, 0, 100
+        after 3.0,
+            color "green"
+            triangle 300, 0, 100, 100
+ * @endcode
+ * If you load this example and press the arrow key to display
+ * the second page:
+ * - a blue rectangle shows up immediately,
+ * - followed by a red circle two seconds later,
+ * - followed by a green triangle three seconds later.
+ *
+ * This primitive must be used inside a @ref page primitive,
+ * otherwise its behavior is undefined.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * when the delay expires.
+ */
+after (delay:real, body:tree);
+
+/**
+ * Enables a block of code periodically.
+ *
+ * The code specified by @p body is executed, and the @ref every
+ * instruction is equivalent to: <tt>if true then</tt> until
+ * @p interval * @p duty_cycle seconds have expired.
+ * Then, the @ref every instruction becomes equivalent to:
+ * <tt>if false then</tt> for a duration of @p interval * (1 - @p duty_cycle).
+ *
+ * @p interval is expressed in seconds. @p duty_cycle is a real value between
+ * 0.0 and 1.0.
+ *
+ * The following example show a blinking text:
+ * @code
+page "Blinking text",
+    every 1.0, 0.75,
+        text_box 0, 0, 100, 100,
+            text "Blinking"
  * @endcode
  *
- * @bug @p duty_cycle is not used in current implementation. @p body is only executed once 
- * between two @p interval time
- * @todo Check behavior on futur master branch because it is not consistent nor on pre-merge master, nor on interp.
+ * This primitive must be used inside a @ref page primitive,
+ * otherwise its behavior is undefined.
+ *
+ * Execution of this primitive requests a refresh of the current layout
+ * when the next activation or de-activation of the code is due to occur.
+ *
  */
 every (interval:real, duty_cycle:real, body:tree);
 
 /**
- * @copybrief every(interval:real, duty_cycle:real, body:tree)
- * @copydetails every(interval:real, duty_cycle:real, body:tree)
+ * Enables a block of code periodically.
+ *
+ * This builtin is equivalent to @ref every(interval:real, duty_cycle:real, body:tree)
+ * with a @p duty_cycle of 50%.
  */
 every (interval:real, body:tree);
+
+/**
+ * Sets the default refresh interval for code using time and page_time.
+ *
+ * This primitive controls the refresh rate of layouts that call the
+ * @ref time and/or @ref page_time primitives. While code based on
+ * for instance, the @ref seconds primitive does not need to be re-evaluated
+ * more often than once per second, it is obvious that code depending on
+ * @ref time or @ref page_time will yield different values each time it is
+ * executed. Such code will actually be re-evaluated automatically every
+ * @ref default_refresh seconds.
+ *
+ * @ref time and @ref page_time use the current value of the default refresh
+ * interval to schedule the next evaluation of the current layout.
+ *
+ * Setting the default refresh interval to 0.0 will cause @ref time and
+ * @ref page_time to schedule an immediate refresh of the current layout,
+ * which will therefore be executed as fast as possible.
+ *
+ * @see @ref secExecModel
+ *
+ * @returns the previous value of the default refresh interval.
+ */
+real default_refresh (interval:real);
+
+/**
+ * The default refresh interval for code using time and page_time.
+ *
+ * The default value of the default refresh interval is 0.04 seconds.
+ */
+real default_refresh ();
 
 /** @} */

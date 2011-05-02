@@ -240,7 +240,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%APPDATA%\Tao Presentations</tt> on Windows,
+ * The user's Tao folder is <tt>%APPDATA%\\Tao Presentations</tt> on Windows,
  * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
  * The application folder is where Tao Presentation is installed.
  * 

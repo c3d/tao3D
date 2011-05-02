@@ -110,3 +110,5 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Format", "Format"
     tr "Fill Color...", "Remplissage..."
     tr "Line Color...", "Ligne..."
+    tr "Quit Tao", "Quitter Tao"
+    tr "Close current document", "Fermer le document"

@@ -38,12 +38,12 @@ my %ref_strings = ();
 if ($ref) {
     open REF, "<", $ref or die $!;
     while (<REF>) {
-        while(/tr \"[^"]+\", (\"[^"]+\")/g) {
+        while(/tr (\"[^"]+\"), \"[^"]+\"/g) {
             $ref_strings{$1} = 1
         }
     }
 }
 
 foreach (keys(%strings)) {
-    print "tr \"$lang\", $_ -> $_\n" unless $ref_strings{$_};
+    print "    tr $_, $_\n" unless $ref_strings{$_};
 }

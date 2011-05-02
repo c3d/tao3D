@@ -716,6 +716,10 @@ public:
     Text_p generateDoc(Tree_p self, Tree_p tree, text defGrp = "");
     Text_p generateAllDoc(Tree_p self, text filename);
 
+    // Text translation
+    Text_p xlTrAdd(Tree_p self, text from, text to);
+    Text_p xlTr(Tree_p self, text t);
+
 private:
     friend class Window;
     friend class Activity;
@@ -864,6 +868,8 @@ private:
 
     QTextCursor          * editCursor;
     void                  updateCursor(Text_p t);
+
+    std::map<text, text>  xlTranslations;
 };
 
 

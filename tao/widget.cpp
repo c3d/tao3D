@@ -3824,13 +3824,13 @@ void Widget::drawSelection(Layout *where,
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (xlProgram);
-    selectionSpace.Draw(where);
+
+    selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Widget::drawHandle(Layout *where,
-                        const Point3 &p, text handleName, uint id)
+void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
@@ -3845,7 +3845,7 @@ void Widget::drawHandle(Layout *where,
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
-    selectionSpace.Draw(where);
+    selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 }
 

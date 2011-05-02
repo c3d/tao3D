@@ -4363,7 +4363,7 @@ Real_p Widget::mouseX(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
-    layout->Add(new RecordMouseCoordinates(self, this));
+    layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.x);
     return new Real(0.0);
@@ -4376,7 +4376,7 @@ Real_p Widget::mouseY(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
-    layout->Add(new RecordMouseCoordinates(self, this));
+    layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.y);
     return new Real(0.0);

@@ -223,8 +223,6 @@ locally
  * to the main Layout object. Since the two @ref locally blocks are nested
  * inside the main Layout of the document, they get re-executed too.
  *
- * @bug [#871] Partial execution not triggered correctly
- *
  * @subsection secSearchPaths Search Paths
  *
  * Some primitives that take a file name or file path accept a special syntax
@@ -242,7 +240,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%APPDATA%\Tao Presentations</tt> on Windows,
+ * The user's Tao folder is <tt>%APPDATA%\\Tao Presentations</tt> on Windows,
  * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
  * The application folder is where Tao Presentation is installed.
  * 

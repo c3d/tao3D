@@ -461,6 +461,14 @@ PREFIX(DefaultRefresh, tree, "default_refresh",
        DESCRIPTION("Set the documents refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
+PREFIX(DefaultRefreshGet, tree, "default_refresh",
+       ,
+       RTAO(defaultRefresh(self, -1.0)),
+       GROUP(time:events)
+       SYNOPSIS("Return the current value of the default refresh interval")
+       DESCRIPTION("Get the document refresh interval for code blocks that "
+                   "depend on time due to the use of the time or "
+                   "page_time primitive."))
 #ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),

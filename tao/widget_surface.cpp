@@ -468,6 +468,7 @@ void AbstractButtonSurface::clicked(bool checked)
     // the action is usually a closure capturing the original context
     if (action)
         XL::MAIN->context->Evaluate(action);
+    repaint();
 }
 
 
@@ -507,6 +508,7 @@ void AbstractButtonSurface::toggled(bool checked)
 
     // Evaluate the input tree
     XL::MAIN->context->Evaluate(toBeEvaluated);
+    repaint();
 }
 
 
@@ -574,6 +576,8 @@ void ColorChooserSurface::colorChosen(const QColor &col)
     XL::MAIN->context->Evaluate(toBeEvaluated);
 
     widget->setVisible(false);
+    repaint();
+
 }
 
 
@@ -633,6 +637,7 @@ void FontChooserSurface::fontChosen(const QFont& ft)
     XL::MAIN->context->Evaluate(toBeEvaluated);
 
     widget->setVisible(false);
+    repaint();
 }
 
 
@@ -675,6 +680,7 @@ void FileChooserSurface::hideWidget()
 // ----------------------------------------------------------------------------
 {
      widget->setVisible(false);
+     repaint();
 }
 
 // ============================================================================

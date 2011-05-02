@@ -8,9 +8,11 @@
 
 
 /**
- * List full paths of files that match the given pattern.
+ * List full paths of files that match the given pattern(s).
  *
- * @p pattern is interpreted as a so-called "glob pattern". The forward
+ * @p patterns is one or several text strings separated by commas,
+ * semicolons or carriage returns.
+ * Each pattern is interpreted as a so-called "glob pattern". The forward
  * slash characters (@c /) should be used to denote subdirectories.
  * Only regular files are considered: directories and symbolic links that
  * match the pattern will not be retained by the primitive. The paths
@@ -33,17 +35,29 @@
  * @return a comma-separated list of strings, each one being the absolute
  * path to a regular file that matches the given pattern.
  *
+ * For example:
+ *
+ @code
+print_path T:text -> writeln "Path: ", T
+
+print_path with files "images/*.jpg", "images/*.png"
+// The following syntax is valid, too
+print_path with files
+    "images/*.jpg"
+    "images/*.png"
+ @endcode
+ *
  * @todo Not sure if relative paths are matched relatively to the path of the
  * file that calls @ref files, or to the path of the main document.
  * @todo What about symbolic links?
  */
-tree files(text pattern);
+tree files(patterns:tree);
 
 /**
  * Loads text from a file.
  * Returns a text string that is the contents of the file.
  */
-text load_text(text path);
+text load_text(path:text);
 
 /**
  * @}

@@ -41,6 +41,9 @@ namespace Tao {
 
 // The 'git' command. May be updated by checkGit().
 QString GitRepository::gitCommand("git");
+// Used if git needs GIT_EXEC_PATH/GIT_TEMPLATE_DIR to be set
+QString GitRepository::gitExecPath;
+QString GitRepository::gitTemplateDir;
 // The command that ssh should use to prompt user for a password.
 // Updated by checkGit().
 QString GitRepository::sshAskPassCommand;
@@ -118,6 +121,21 @@ again:
     {
         IFTRACE(process)
             std::cerr << "Will use git command: " << +gitCommand << "\n";
+#ifndef Q_OS_WIN
+        QString appPath = qApp->applicationDirPath();
+        if (gitCommand == appPath + "/git/bin/git")
+        {
+            gitExecPath    = appPath + "/git/libexec/git-core";
+            gitTemplateDir = appPath + "/git/share/git-core/templates";
+            IFTRACE(process)
+            {
+                std::cerr << "Will set GIT_EXEC_PATH to: "
+                          << +gitExecPath << "\n";
+                std::cerr << "Will set GIT_TEMPLATE_DIR to: "
+                          << +gitTemplateDir << "\n";
+            }
+        }
+#endif
         return true;
     }
 
@@ -306,7 +324,7 @@ bool GitRepository::valid()
     if (!QDir(path).exists())
         return false;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("branch"), path);
+    GitProcess cmd(command(), QStringList("branch"), path);
     return cmd.done(&errors);
 }
 
@@ -318,7 +336,7 @@ bool GitRepository::initialize()
 {
     if (!QDir(path).mkpath("."))
         return false;
-    Process cmd(command(), QStringList("init"), path);
+    GitProcess cmd(command(), QStringList("init"), path);
     if (cmd.done(&errors))
         return initialCommit();
     return false;
@@ -334,10 +352,10 @@ bool GitRepository::initialCommit()
     if (!dummy.open(QIODevice::WriteOnly))
         return false;
     dummy.close();
-    Process cmd(command(), QStringList("add") << ".tao", path);
+    GitProcess cmd(command(), QStringList("add") << ".tao", path);
     if (!cmd.done(&errors))
         return false;
-    Process cmd2(command(), QStringList("commit") << "-a" << "-m"
+    GitProcess cmd2(command(), QStringList("commit") << "-a" << "-m"
                  << "Automatic initial commit", path);
     return cmd.done(&errors);
 }
@@ -350,7 +368,7 @@ text GitRepository::branch()
 {
     text    output, result;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("branch"), path);
+    GitProcess cmd(command(), QStringList("branch"), path);
     bool    ok = cmd.done(&errors, &output);
     if (ok)
     {
@@ -376,7 +394,7 @@ QStringList GitRepository::branches()
     text    output;
     QStringList result;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("branch") << "-a", path);
+    GitProcess cmd(command(), QStringList("branch") << "-a", path);
     bool    ok = cmd.done(&errors, &output);
     if (ok)
     {
@@ -408,7 +426,7 @@ bool GitRepository::addBranch(QString name, bool force)
     if (force)
         args << "-f";
     args << name;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -433,7 +451,7 @@ bool GitRepository::delBranch(QString name, bool force)
         name = name.mid(8);
     }
     args << name;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -451,7 +469,7 @@ bool GitRepository::renBranch(QString oldName, QString newName, bool force)
     else
         args << "-m";
     args << oldName << newName;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -472,7 +490,7 @@ bool GitRepository::checkout(text branch)
 {
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("checkout") << +branch, path);
+    GitProcess cmd(command(), QStringList("checkout") << +branch, path);
     return cmd.done(&errors);
 }
 
@@ -484,7 +502,7 @@ bool GitRepository::branch(text name)
 {
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("branch") << +name, path);
+    GitProcess cmd(command(), QStringList("branch") << +name, path);
     bool result = cmd.done(&errors);
     if (!result)
         if (errors.find("already exists") != errors.npos)
@@ -505,7 +523,7 @@ bool GitRepository::add(text name)
         args << "--all";
     else
         args << +name;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -519,7 +537,7 @@ bool GitRepository::change(text name)
     waitForAsyncProcessCompletion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
-    Process cmd(command(), QStringList("add") << +name, path);
+    GitProcess cmd(command(), QStringList("add") << +name, path);
     return cmd.done(&errors);
 }
 
@@ -532,7 +550,7 @@ bool GitRepository::remove(text name)
     clearCachedDocVersion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
-    Process cmd(command(), QStringList("rm") << +name, path);
+    GitProcess cmd(command(), QStringList("rm") << +name, path);
     return cmd.done(&errors);
 }
 
@@ -544,7 +562,7 @@ bool GitRepository::rename(text from, text to)
 {
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("mv") << +from << +to, path);
+    GitProcess cmd(command(), QStringList("mv") << +from << +to, path);
     return cmd.done(&errors);
 }
 
@@ -569,7 +587,7 @@ bool GitRepository::commit(text message, bool all)
     if (all)
         args << "-a";
     args << "-m" << +message;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     text output;
     bool result = cmd.done(&errors, &output);
     if (!result)
@@ -603,7 +621,7 @@ bool GitRepository::revert(text id)
 
     QStringList args("revert");
     args << "--no-edit" << +id;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -624,7 +642,7 @@ bool GitRepository::cherryPick(text id)
 
     QStringList args("cherry-pick");
     args << "-x" << +id;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -852,7 +870,7 @@ bool GitRepository::merge(text branch, ConflictResolution how)
     waitForAsyncProcessCompletion();
     QStringList args("merge");
     args << crArgs(how) << +branch;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -868,7 +886,7 @@ bool GitRepository::reset(text commit)
     args << "--hard";
     if (!commit.empty())
         args << +commit;
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     return cmd.done(&errors);
 }
 
@@ -936,7 +954,7 @@ QStringList GitRepository::remotes()
     QStringList result;
     text        output;
     waitForAsyncProcessCompletion();
-    Process     cmd(command(), QStringList("remote"), path);
+    GitProcess     cmd(command(), QStringList("remote"), path);
     if (cmd.done(&errors, &output))
     {
         result = (+output).split("\n");
@@ -955,7 +973,7 @@ QString GitRepository::remoteFetchUrl(QString name)
     args << "config" << "--get" << QString("remote.%1.url").arg(name);
     text    output;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     cmd.done(&errors, &output);
     return (+output).trimmed();
 }
@@ -970,7 +988,7 @@ QString GitRepository::remotePushUrl(QString name)
     args << "config" << "--get" << QString("remote.%1.pushUrl").arg(name);
     text    output;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     bool ok = cmd.done(&errors, &output);
     if (ok)
         return (+output).trimmed();
@@ -997,7 +1015,7 @@ bool GitRepository::addRemote(QString name, QString url)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
+    GitProcess cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
     return cmd.done(&errors);
 }
 
@@ -1007,7 +1025,7 @@ bool GitRepository::setRemote(QString name, QString url)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("remote") <<"set-url" << name
+    GitProcess cmd(command(), QStringList("remote") <<"set-url" << name
                 << url, path);
     return cmd.done(&errors);
 }
@@ -1018,7 +1036,7 @@ bool GitRepository::delRemote(QString name)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("remote") << "rm" << name, path);
+    GitProcess cmd(command(), QStringList("remote") << "rm" << name, path);
     return cmd.done(&errors);
 }
 
@@ -1029,7 +1047,7 @@ bool GitRepository::renRemote(QString oldName, QString newName)
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("remote") << "rename"
+    GitProcess cmd(command(), QStringList("remote") << "rename"
                 << oldName << newName, path);
     return cmd.done(&errors);
 }
@@ -1050,7 +1068,7 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
         args << branch;
     text    output;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     cmd.done(&errors, &output);
 
     QList<Commit>       result;
@@ -1079,7 +1097,7 @@ QString GitRepository::diff(QString a, QString b, bool symetric)
     else
         args << a << b;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     cmd.done(&errors, &output);
 
     return +output;
@@ -1154,7 +1172,7 @@ QStringList GitRepository::tags()
     QStringList tags;
     text    output;
     waitForAsyncProcessCompletion();
-    Process cmd(command(), QStringList("tag"), path);
+    GitProcess cmd(command(), QStringList("tag"), path);
     bool    ok = cmd.done(&errors, &output);
     if (ok && output != "")
         tags = (+output).split("\n");
@@ -1174,7 +1192,7 @@ text GitRepository::version()
     waitForAsyncProcessCompletion();
     QStringList args;
     args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     bool    ok = cmd.done(&errors, &output);
     output = +(+output).trimmed();
     if (ok)
@@ -1197,7 +1215,7 @@ bool GitRepository::isClean()
 
     QStringList args;
     args << "status" << "--porcelain";
-    Process cmd(command(), args, path);
+    GitProcess cmd(command(), args, path);
     ok = cmd.done(&errors, &output);
     if (!ok || !output.empty())
         return false;
@@ -1226,7 +1244,7 @@ bool GitRepository::gc()
 // ----------------------------------------------------------------------------
 {
     waitForAsyncProcessCompletion();
-    Process * proc = new Process(command(), QStringList("gc"), path, false);
+    GitProcess * proc = new GitProcess(command(), QStringList("gc"), path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
     dispatch(process_p(proc));
@@ -1240,6 +1258,34 @@ bool GitRepository::pathIsRoot()
 // ----------------------------------------------------------------------------
 {
     return (QDir(path + "/.git").exists());
+}
+
+
+void GitProcess::setEnvironment()
+// ----------------------------------------------------------------------------
+//    Set environment variables for a Git process
+// ----------------------------------------------------------------------------
+{
+    Process::setEnvironment();
+
+#ifndef Q_OS_WIN
+    // If we use the git command packaged with Tao, we need to tell it where to
+    // find its internal stuff
+    QProcessEnvironment env = getProcessEnvironment();
+    QString val;
+
+    val = GitRepository::gitExecPath;
+    if (!val.isEmpty())
+        env.insert("GIT_EXEC_PATH", val);
+    val = GitRepository::gitTemplateDir;
+    if (!val.isEmpty())
+        env.insert("GIT_TEMPLATE_DIR", val);
+
+    setProcessEnvironment(env);
+#else
+    // On Windows, msysGit/PortableGit automatically finds its internal
+    // commands based on the runtime path of the main executable
+#endif
 }
 
 
@@ -1289,13 +1335,13 @@ void GitAuthProcess::setEnvironment()
 //    Set environment variables for the GitAuth process
 // ----------------------------------------------------------------------------
 {
-    Process::setEnvironment();
+    GitProcess::setEnvironment();
 
     // Variables needed for ssh authentication
     QString sap = GitRepository::sshAskPassCommand;
     if (!sap.isEmpty())
     {
-        QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+        QProcessEnvironment env = getProcessEnvironment();
 
         env.insert("SSH_ASKPASS", sap);
         if (!env.contains("DISPLAY"))

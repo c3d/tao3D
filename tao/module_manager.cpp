@@ -149,6 +149,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     }
 
                     XL::xl_import(context, self, +xlPath, execute);
+                    moduleById(m.id)->loaded = true;
                 }
             }
         }
@@ -982,7 +983,7 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  Latest:     " <<  m.latest << "\n";
     debug() << "  Up to date: " << !m.updateAvailable << "\n";
     debug() << "  Enabled:    " <<  m.enabled << "\n";
-    debug() << "  Loaded:     " <<  m.loaded << "\n";
+    debug() << "  XL Loaded:  " <<  m.loaded << "\n";
     if (m.enabled)
     {
         debug() << "  Has native: " <<  m.hasNative << "\n";

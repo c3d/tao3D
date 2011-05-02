@@ -108,7 +108,7 @@ public slots:
     void        print(QPrinter *printer);
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
-    bool        refresh(double delay = 0.0);
+    void        refresh(double delay = 0.0);
     bool        refreshNow();
     bool        refreshNow(QEvent *event);
 #ifndef CFG_NOGIT
@@ -801,8 +801,6 @@ private:
     StereoMode            stereoMode;
     char                  stereoscopic;
     char                  stereoPlanes;
-    LayoutState::qevent_ids  refreshEvents;
-    double                nextRefresh;
     LayoutCache           layoutCache;
 
     // Selection
@@ -875,9 +873,8 @@ private:
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
-    bool                  refreshOn(QEvent::Type type,
+    void                  refreshOn(QEvent::Type type,
                                     double nextRefresh = DBL_MAX);
-    bool                  noRefreshOn(QEvent::Type type);
 public:
     static bool           refreshOn(int event_type);
     static bool           addControlBox(Real *x, Real *y, Real *z,

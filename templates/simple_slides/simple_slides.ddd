@@ -1,4 +1,4 @@
-import Slides 1.0 
+import Slides 1.0
 
 // Available Themes:
 // "" / "Default", "WhiteOnBlack", "WhiteOnGray",
@@ -42,18 +42,6 @@ title_slide "Seyes style (Title)",
 slide "Seyes style (Slide)",
     * "Bullet level 1"
     - "Bullet level 2"
-
-picture_slide "Seyes style (Web)",
-    w -> slide_width * 0.9
-    h -> slide_height * 0.7
-    y -> slide_height * -0.1
-    shape
-        color "red"
-        rectangle 0, y, w+10, h+10
-    active_widget
-        color "white"
-        url 0, y, w, h, "http://www.google.com"
-        refresh 0.05
 
 
 // ----------------------------------------------------------------------------

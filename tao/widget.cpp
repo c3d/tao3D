@@ -91,6 +91,7 @@
 #include <QtWebKit>
 #include <sys/time.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #include <QtGui>
 
@@ -120,8 +121,11 @@ static inline QGLFormat TaoGLFormat()
          QGL::StencilBuffer     |
          QGL::SampleBuffers     |
          QGL::AlphaChannel      |
-         QGL::AccumBuffer       |
-         QGL::StereoBuffers);
+         QGL::AccumBuffer);
+    if (QSettings().value("DisableStereoscopy", false).toBool())
+        XL::MAIN->options.enable_stereoscopy = false;
+    if (XL::MAIN->options.enable_stereoscopy)
+        options |= QGL::StereoBuffers;
     QGLFormat format(options);
     // Enable VSync by default
     format.setSwapInterval(1);
@@ -146,7 +150,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
       stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
-      nextRefresh(DBL_MAX),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -177,6 +180,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
       editCursor(NULL)
 {
     setObjectName(QString("Widget"));
+    memset(focusProjection, 0, 16*sizeof(GLdouble));
+    memset(focusModel, 0, 16*sizeof(GLdouble));
+    memset(focusViewport, 0, 4*sizeof(GLint));
+
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -668,59 +675,38 @@ bool Widget::refreshNow(QEvent *event)
         return false;
 
     bool changed = false;
-    if (!event || space->refreshEvents.count(event->type()))
+    double now = CurrentTime();
+    if (!event || space->NeedRefresh(event, now))
     {
-        XL::Save<bool> drawing(inDraw, true);
         IFTRACE(layoutevents)
-        {
-            text what = event ? LayoutState::ToText(event->type()) : "NULL";
-            std::cerr << "Full refresh due to event: " << what << "\n";
-        }
-        if (event && event->type() != QEvent::MouseMove)
-        {
-            refreshEvents.erase(event->type());
-            if (event->type() == QEvent::Timer)
-                nextRefresh = DBL_MAX;
-        }
+            std::cerr << "Full refresh\n";
 
-        if (current)
-        {
-            runProgram();
-        }
-        else
-        {
-            // Occurs sometimes, for instance: from Window::loadFile()
-            TaoSave saveCurrent(current, this);
-            runProgram();
-        }
+        XL::Save<bool> drawing(inDraw, true);
+        // runProgram needs current != NULL which is not always true here
+        // for instance: from Window::loadFile()
+        TaoSave saveCurrent(current, this);
+
+        runProgram();
+
         changed = true;
     }
     else
     {
-        QEvent::Type type = event->type();
-        if (refreshEvents.count(type))
-        {
-            // At least one layout subscribed to this event
-            IFTRACE(layoutevents)
-                std::cerr << "Partial refresh due to event: "
-                          << LayoutState::ToText(event->type()) << "\n";
-            if (type != QEvent::MouseMove)
-                refreshEvents.erase(event->type());
-            if (type == QEvent::Timer)
-                nextRefresh = DBL_MAX;
+        IFTRACE(layoutevents)
+            std::cerr << "Partial refresh due to event: "
+                      << LayoutState::ToText(event->type()) << "\n";
 
-            space->Refresh(event);
+        XL::GarbageCollector::Collect();
 
-            changed = true;
-        }
+        changed = space->Refresh(event, now);
+
+        if (changed)
+            processProgramEvents();
     }
 
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
-
-    if (changed)
-        processProgramEvents();
 
     return changed;
 }
@@ -743,35 +729,23 @@ static QDateTime fromSecsSinceEpoch(double when)
 }
 
 
-bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
+void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 // ----------------------------------------------------------------------------
 //   Current layout (if any) should be updated on specified event
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
-
     if (inOfflineRendering)
-        return false;
+        return;
 
     if (!layout)
-        return false;
+        return;
 
-    if (layout->refreshEvents.count(type) == 0)
-    {
-        layout->refreshEvents.insert(type);
-        changed = true;
-    }
-    if (refreshEvents.count(type) == 0)
-    {
-        refreshEvents.insert(type);
-    }
     if (type == QEvent::Timer)
     {
         double currentTime = CurrentTime();
         if (nextRefresh == DBL_MAX)
-        {
             nextRefresh = currentTime + dfltRefresh;
-        }
+
         IFTRACE(layoutevents)
         {
             QDateTime d = fromSecsSinceEpoch(nextRefresh);
@@ -781,17 +755,9 @@ bool Widget::refreshOn(QEvent::Type type, double nextRefresh)
                       << " (" << +d.toString("dd MMM yyyy hh:mm:ss.zzz")
                       << " = now + " << delta << "s)\n";
         }
-        if (layout->nextRefresh == DBL_MAX || nextRefresh < layout->nextRefresh)
-        {
-            layout->nextRefresh = nextRefresh;
-            changed = true;
-        }
-        if (this->nextRefresh == DBL_MAX || nextRefresh < this->nextRefresh)
-        {
-            this->nextRefresh = nextRefresh;
-        }
     }
-    return changed;
+
+    layout->RefreshOn(type, nextRefresh);
 }
 
 
@@ -802,27 +768,6 @@ bool Widget::refreshOn(int event_type)
 {
     Tao()->refreshOn((QEvent::Type)event_type);
     return true;
-}
-
-
-bool Widget::noRefreshOn(QEvent::Type type)
-// ----------------------------------------------------------------------------
-//   Current layout (if any) should NOT be updated on specified event
-// ----------------------------------------------------------------------------
-{
-    bool changed = false;
-
-    if (!layout)
-        return false;
-
-    if (layout->refreshEvents.count(type) != 0)
-    {
-        layout->refreshEvents.erase(type);
-        changed = true;
-        if (type == QEvent::Timer)
-            layout->nextRefresh = DBL_MAX;
-    }
-    return changed;
 }
 
 
@@ -841,8 +786,6 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
-    refreshEvents.clear(); //
-    nextRefresh = DBL_MAX;
     dfltRefresh = 0.04;
 
     // Reset the selection id for the various elements being drawn
@@ -852,6 +795,7 @@ void Widget::runProgram()
     // Run the XL program associated with this widget
     XL::Save<Layout *> saveLayout(layout, space);
     space->Clear();
+    setMouseTracking(false);
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
@@ -905,7 +849,7 @@ void Widget::runProgram()
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
         pageName = gotoPageName;
-        frozenTime = pageStartTime = CurrentTime();
+        frozenTime = pageStartTime = startTime = CurrentTime();
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
@@ -927,6 +871,7 @@ void Widget::processProgramEvents()
 //   Process registered program events
 // ----------------------------------------------------------------------------
 {
+    LayoutState::qevent_ids refreshEvents = space->RefreshEvents();
     IFTRACE(layoutevents)
             std::cerr << "Program events: "
             << LayoutState::ToText(refreshEvents) << "\n";
@@ -1714,13 +1659,13 @@ void Widget::userMenu(QAction *p_action)
 }
 
 
-bool Widget::refresh(double delay)
+void Widget::refresh(double delay)
 // ----------------------------------------------------------------------------
 //   Refresh current layout after the given number of seconds
 // ----------------------------------------------------------------------------
 {
     double end = CurrentTime() + delay;
-    return refreshOn(QEvent::Timer, end);
+    refreshOn(QEvent::Timer, end);
 }
 
 
@@ -2594,6 +2539,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     if (cursor().shape() == Qt::BlankCursor)
     {
         setCursor(savedCursorShape);
+        LayoutState::qevent_ids refreshEvents = space->RefreshEvents();
         bool mouseTracking = (refreshEvents.count(QEvent::MouseMove) != 0);
         if (!mouseTracking)
             setMouseTracking(false);
@@ -2693,16 +2639,18 @@ void Widget::startRefreshTimer()
     if (inError || !animated)
         return;
 
-    if (refreshEvents.count(QEvent::Timer) && nextRefresh != DBL_MAX)
+    assert(space || !"No space layout");
+    double next = space->NextRefresh();
+    if (next != DBL_MAX)
     {
         double now = trueCurrentTime();
-        double remaining = nextRefresh - now;
+        double remaining = next - now;
         if (remaining <= 0)
             remaining = 0.001;
         int ms = remaining * 1000;
         IFTRACE(layoutevents)
             std::cerr << "Starting refresh timer: " << ms << " ms (current "
-                         "time " << now << " next refresh " << nextRefresh
+                         "time " << now << " next refresh " << next
                       << ")\n";
         if (timer.isActive())
             timer.stop();
@@ -2727,7 +2675,7 @@ void Widget::timerEvent(QTimerEvent *event)
             std::cerr << "Refresh timer expired, now = " << trueCurrentTime()
                       << "\n";
 
-        if (CurrentTime() < nextRefresh)
+        if (CurrentTime() < space->NextRefresh())
         {
             // Timer expired early. Unfortunately, this occurs sometime.
             return startRefreshTimer();
@@ -2895,10 +2843,10 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     if (sourceChanged())
         return;
-    refreshEvents.clear();
-    nextRefresh = DBL_MAX;
     space->Clear();
     dfltRefresh = 0.04;
+    clearCol.setRgb(255, 255, 255, 255);
+
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
@@ -3603,7 +3551,9 @@ void Widget::printStatistics()
         double n = (double)stats.size() * 1000 / stats_interval;
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
-    GLint vp[4], vx, vy, vw, vh;
+    GLint vp[4] = {0,0,0,0};
+    GLint vx, vy, vw, vh;
+
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
@@ -3776,6 +3726,10 @@ void Widget::recordProjection()
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
+    memset(focusProjection, 0, 16*sizeof(GLdouble));
+    memset(focusModel, 0, 16*sizeof(GLdouble));
+    memset(focusViewport, 0, 4*sizeof(GLint));
+
     glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
     glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
     glGetIntegerv(GL_VIEWPORT, focusViewport);
@@ -3792,12 +3746,14 @@ Point3 Widget::unproject (coord x, coord y, coord z)
 
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
+    x3dn = y3dn = z3dn = 0.0;
     gluUnProject(x, y, 0.0,
                  focusModel, focusProjection, focusViewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
+    x3df = y3df = z3df = 0;
     gluUnProject(x, y, 1.0,
                  focusModel, focusProjection, focusViewport,
                  &x3df, &y3df, &z3df);
@@ -4534,7 +4490,8 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
 //   We set currentShape to NULL, which means that we won't create manipulator
 //   so the widget is active (it can be selected) but won't budge
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    Layout *childLayout = layout->AddChild(selectionId(), child, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
     XL::Save<Tree_p>   saveShape (currentShape, NULL);
     if (selectNextTime.count(self))
     {
@@ -4713,7 +4670,8 @@ Tree_p Widget::refresh(Tree_p self, double delay)
 //    Refresh current layout after the given number of seconds
 // ----------------------------------------------------------------------------
 {
-    return refresh (delay) ? XL::xl_true : XL::xl_false;
+    refresh (delay);
+    return XL::xl_true;
 }
 
 
@@ -4722,7 +4680,8 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 //    Refresh current layout on event
 // ----------------------------------------------------------------------------
 {
-    return refreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
+    refreshOn((QEvent::Type)eventType);
+    return XL::xl_true;
 }
 
 
@@ -4731,17 +4690,21 @@ Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
 //    Do NOT refresh current layout on event
 // ----------------------------------------------------------------------------
 {
-    return noRefreshOn((QEvent::Type)eventType) ? XL::xl_true : XL::xl_false;
+    if (layout)
+        layout->NoRefreshOn((QEvent::Type)eventType);
+
+    return XL::xl_true;
 }
 
 
 Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 // ----------------------------------------------------------------------------
-//    Set the default refresh time for layout that depend on QEvent::Timer
+//    Get/set the default refresh time for layouts that depend on QEvent::Timer
 // ----------------------------------------------------------------------------
 {
     double prev = dfltRefresh;
-    dfltRefresh = delay;
+    if (delay >= 0.0)
+        dfltRefresh = delay;
     return new XL::Real(prev);
 }
 
@@ -4814,6 +4777,7 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
     else
     {
         setCursor(savedCursorShape);
+        LayoutState::qevent_ids refreshEvents = space->RefreshEvents();
         bool mouseTracking = (refreshEvents.count(QEvent::MouseMove) != 0);
         if (!mouseTracking)
             setMouseTracking(false);
@@ -7747,6 +7711,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
+    Layout *parent = layout;
     do
     {
         GLAllStateKeeper saveGL;
@@ -7769,6 +7734,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         layout->Draw(NULL);
         frame.end();
 
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;

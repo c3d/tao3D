@@ -1,12 +1,12 @@
 #!/bin/bash
 set -a DYLD_LIBRARY_PATH
-INST_DIR=$PWD"/../install/Tao.app/Contents"
-if [[ -f $INST_DIR"/MacOS/Tao" ]];
+INST_DIR=$PWD"/../install/Tao presentations.app/Contents"
+if [[ -f $INST_DIR"/MacOS/Tao presentations" ]];
 then
   DYLD_LIBRARY_PATH=$INST_DIR"/Frameworks"
-  TAO="cd "$INST_DIR"/MacOS; ./Tao -norepo "
+  TAO="cd \"$INST_DIR/MacOS\"; ./Tao\ presentations -norepo "
 else
-  echo $INST_DIR"/MacOS/Tao not found."
+  echo $INST_DIR"/MacOS/Tao presentations not found."
   exit -1
 fi
 
@@ -58,6 +58,9 @@ function listTests()
 function generateCore()
 {
     cat > $PWD/runTests.ddd << EOF
+
+import TaoTester 1.0
+
 toolbar_test
 show_source false
 
@@ -72,17 +75,17 @@ show_source false
 
 $runTests
 
-page "intro", do
+page "intro",
     active_widget
         color 0.592157, 0.772549, 0.109804, 1.0
-        push_button -50, 440, 240, 50, "button_1" , "Run all tests" , do
+        push_button -50, 440, 240, 50, "button_1", "Run all tests",
             run_all_tests
-    text_box 0, 0, 300, 600, do
+    text_box 0, 0, 300, 600,
         text $listTests
 
 $importTests
 
-page "results", do
+page "results",
     import "results.ddd"
 
 EOF
@@ -94,7 +97,7 @@ cat >  $PWD/results.ddd <<EOF
 
 load "result_style.xl"
 
-text_box 0,0,800,1500, do
+text_box 0,0,800,1500,
 EOF
 
 }

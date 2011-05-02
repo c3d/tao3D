@@ -127,6 +127,7 @@ private:
     QStringList         parseLsRemoteTagsOutput(QString output);
 
     static QString      gitCommand;
+    static QString      gitExecPath, gitTemplateDir;
     static QString      sshAskPassCommand;
 #ifdef CONFIG_MINGW
     static QString      detachCommand;
@@ -136,25 +137,46 @@ private:
     QTimer              cdvTimer;
     time_t              currentBranchMtime;
 
+friend class GitProcess;
 friend class GitAuthProcess;
 
 };
 
 
+class GitProcess : public Process
+// ----------------------------------------------------------------------------
+//   A Git process
+// ----------------------------------------------------------------------------
+{
+public:
+    GitProcess(size_t bufSize = 1024) : Process(bufSize) {};
+    GitProcess(
+            const QString &cmd,
+            const QStringList &args = QStringList(),
+            const QString &workingDirectory = "",
+            bool  startImmediately = true,
+            size_t bufSize = 1024)
+        : Process(cmd, args, workingDirectory, startImmediately, bufSize) {};
+    virtual ~GitProcess() {};
+
+    virtual void setEnvironment();
+};
+
+
 // TODO? move to process.h
-class GitAuthProcess : public Process
+class GitAuthProcess : public GitProcess
 // ----------------------------------------------------------------------------
 //   A Git process that may require user authentication (password prompt)
 // ----------------------------------------------------------------------------
 {
 public:
-    GitAuthProcess(size_t bufSize = 1024) : Process(bufSize) {};
+    GitAuthProcess(size_t bufSize = 1024) : GitProcess(bufSize) {};
     GitAuthProcess(
             const QStringList &args = QStringList(),
             const QString &workingDirectory = "",
             bool  startImmediately = true,
             size_t bufSize = 1024)
-        : Process("", args, workingDirectory, startImmediately, bufSize) {};
+        : GitProcess("", args, workingDirectory, startImmediately, bufSize) {};
     virtual ~GitAuthProcess() {};
 
     virtual void setEnvironment();

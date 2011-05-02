@@ -1,0 +1,158 @@
+{
+   Qt_error_1
+   Memcheck:Cond
+   fun:_ZN20QSharedMemoryPrivate6detachEv
+   fun:_ZN13QSharedMemory6detachEv
+   fun:_ZN13QSharedMemory6setKeyERK7QString
+   fun:_ZN13QSharedMemoryD1Ev
+   fun:_ZN20QRasterWindowSurface5flushEP7QWidgetRK7QRegionRK6QPoint
+   fun:_Z8qt_flushP7QWidgetRK7QRegionP14QWindowSurfaceS0_RK6QPoint
+   fun:_ZN19QWidgetBackingStore5flushEP7QWidgetP14QWindowSurface
+   fun:_ZN19QWidgetBackingStore8endPaintERK7QRegionP14QWindowSurfaceP14BeginPaintInfo
+   fun:_ZN19QWidgetBackingStore4syncEv
+   fun:_ZN14QWidgetPrivate16syncBackingStoreEv
+   fun:_ZN7QWidget5eventEP6QEvent
+   fun:_ZN11QMainWindow5eventEP6QEvent
+}
+{
+   Qt_error_2
+   Memcheck:Leak
+   fun:_Znwm
+   fun:_ZN18QtSimulatorPrivate15connectToServerEv
+   fun:_ZN18QtSimulatorPrivate19SimulatorConnection18connectToSimulatorEv
+   fun:_ZN18QtSimulatorPrivate19SimulatorConnection8instanceEv
+   fun:_ZN9QColormap10initializeEv
+   fun:_Z7qt_initP19QApplicationPrivatei
+   fun:_ZN19QApplicationPrivate9constructEv
+   fun:_ZN12QApplicationC1ERiPPci
+   fun:main
+}
+{
+   Qt_error_3
+   Memcheck:Cond
+   fun:_DPSNextEvent
+   fun:-[NSApplication nextEventMatchingMask:untilDate:inMode:dequeue:]
+   fun:_ZN19QEventDispatcherMac13processEventsE6QFlagsIN10QEventLoop17ProcessEventsFlagEE
+   fun:_ZN16QCoreApplication13processEventsE6QFlagsIN10QEventLoop17ProcessEventsFlagEE
+   fun:_ZN14QWidgetPrivate11show_helperEv
+   fun:_ZN7QWidget10setVisibleEb
+   fun:_ZN7QWidget4showEv
+   fun:_ZN3Tao11ApplicationC1ERiPPc
+   fun:main
+}
+{
+   Qt_error_4
+   Memcheck:Cond
+   fun:_DPSNextEvent
+   fun:-[NSApplication nextEventMatchingMask:untilDate:inMode:dequeue:]
+   fun:_ZN19QEventDispatcherMac13processEventsE6QFlagsIN10QEventLoop17ProcessEventsFlagEE
+   fun:_ZN16QCoreApplication13processEventsE6QFlagsIN10QEventLoop17ProcessEventsFlagEE
+   fun:_ZN14QWidgetPrivate11show_helperEv
+   fun:_ZN7QWidget10setVisibleEb
+   fun:_ZN7QWidget4showEv
+   fun:_ZN3Tao11ApplicationC1ERiPPc
+   fun:main
+}
+{
+   GL_error_0
+   Memcheck:Cond
+   obj:/System/Library/Frameworks/OpenGL.framework/Versions/A/Resources/GLEngine.bundle/GLEngine
+}
+{
+   GL_error_1
+   Memcheck:Cond
+   fun:gleUpdateLightColorChangeFunc
+   fun:gleUpdateState
+   fun:gleInitializeContext
+   fun:gliCreateContext
+   fun:CGLCreateContext
+   fun:-[NSOpenGLContext initWithFormat:shareContext:]
+   fun:_ZN19QGLTemporaryContextC2EbP7QWidget
+   fun:_ZL19qtDefaultExtensionsv
+   fun:_ZN13QGLExtensions12glExtensionsEv
+   fun:_ZN20QGLFramebufferObject27hasOpenGLFramebufferObjectsEv
+   fun:_ZN3Tao11ApplicationC1ERiPPc
+   fun:main
+}
+{
+   GL_error_2
+   Memcheck:Cond
+   fun:gleInitializeContext
+   fun:gliCreateContext
+   fun:CGLCreateContext
+   fun:-[NSOpenGLContext initWithFormat:shareContext:]
+   fun:_ZN19QGLTemporaryContextC2EbP7QWidget
+   fun:_ZL19qtDefaultExtensionsv
+   fun:_ZN13QGLExtensions12glExtensionsEv
+   fun:_ZN20QGLFramebufferObject27hasOpenGLFramebufferObjectsEv
+   fun:_ZN3Tao11ApplicationC1ERiPPc
+   fun:main
+}
+{
+   GL_error_3
+   Memcheck:Cond
+   fun:glViewport_Exec
+   fun:_ZN3Tao6Widget5setupEddPKNS_3BoxE
+   fun:_ZN3Tao6Widget4drawEv
+   fun:_ZN3Tao6Widget7paintGLEv
+   fun:_ZN9QGLWidget6glDrawEv
+   fun:_ZN3Tao6Widget10refreshNowEP6QEvent
+   fun:_ZN3Tao6Widget8resizeGLEii
+   fun:_ZN9QGLWidget6glDrawEv
+   fun:_ZN3Tao6Window13updateProgramERK7QString
+   fun:_ZN3Tao6Window8loadFileERK7QStringb
+   fun:_ZN3Tao6Window4openE7QStringb
+   fun:_ZN3Tao11Application18processCommandLineEv
+}
+{
+   GL_error_4
+   Memcheck:Cond
+   fun:gleUpdateState
+   fun:_ZN3Tao14GLAttribKeeperD1Ev
+   fun:_ZN3Tao13GLStateKeeperD2Ev
+   fun:_ZN3Tao16GLAllStateKeeperD1Ev
+   fun:_ZN3Tao6Layout4DrawEPS0_
+   fun:_ZN3Tao6Widget4drawEv
+   fun:_ZN3Tao6Widget7paintGLEv
+   fun:_ZN9QGLWidget6glDrawEv
+   fun:_ZN3Tao6Widget10refreshNowEP6QEvent
+   fun:_ZN3Tao6Widget8resizeGLEii
+   fun:_ZN9QGLWidget6glDrawEv
+   fun:_ZN3Tao6Window13updateProgramERK7QString
+}
+{
+   GL_error_5
+   Memcheck:Cond
+   fun:bcmp
+   fun:gldUpdateDispatch
+   fun:gleDoSelectiveDispatchNoErrorCore
+}
+{
+   GL_error_6
+   Memcheck:Cond
+   fun:bcmp
+   fun:gldUpdateDispatch
+   fun:gleDoDrawDispatchCore
+}
+
+{
+   GL_error_7
+   Memcheck:Cond
+   fun:gleUpdateLightPosition
+   fun:gleUpdateState
+}
+{
+   GL_error_8
+   Memcheck:Cond
+   fun:gleUpdateState
+   fun:gleInitializeContext
+   fun:gliCreateContext
+   fun:CGLCreateContext
+   fun:-[NSOpenGLContext initWithFormat:shareContext:]
+   fun:_ZN19QGLTemporaryContextC2EbP7QWidget
+   fun:_ZL19qtDefaultExtensionsv
+   fun:_ZN13QGLExtensions12glExtensionsEv
+   fun:_ZN20QGLFramebufferObject27hasOpenGLFramebufferObjectsEv
+   fun:_ZN3Tao11ApplicationC1ERiPPc
+   fun:main
+}

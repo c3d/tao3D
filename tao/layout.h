@@ -122,8 +122,14 @@ struct Layout : Drawing, LayoutState
     virtual uint        ChildrenSelected();
 
     // Event interface
-    virtual bool        Refresh(QEvent *e, Layout *parent = NULL);
-    bool                RefreshChildren(QEvent *e);
+    virtual bool        Refresh(QEvent *e, double now, Layout *parent = NULL, QString debug = "");
+    bool                RefreshChildren(QEvent *e, double now, QString debug);
+    bool                NeedRefresh(QEvent *e, double when);
+    void                RefreshOn(Layout *);
+    void                RefreshOn(QEvent::Type type, double when = DBL_MAX);
+    void                NoRefreshOn(QEvent::Type type);
+    qevent_ids          RefreshEvents();
+    double              NextRefresh();
 
     LayoutState &       operator=(const LayoutState &o);
     void                Inherit(Layout *other);
@@ -163,6 +169,9 @@ protected:
     // List of drawing elements
     typedef std::vector<Drawing *>      layout_items;
     layout_items        items;
+    Widget *            display;
+    // Debug: index in parent items (-1 = root layout)
+    int                 idx;
 
 public:
     qevent_ids          refreshEvents;

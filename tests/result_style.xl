@@ -1,7 +1,4 @@
-color "tao_blue" -> color "blue"
-color "tao_red" -> color "red"
-color "tao_green" -> color "green"
-color "tao_black" -> color "black"
+import TaoVisuals 1.0
 
 @ X:text ->
     factor -> 20.0
@@ -23,16 +20,17 @@ check i:integer, res:boolean, p:real ->
         text text i
     text " differs from reference by " & text p & "%"
 
-result name:text, desc:text, redmine:integer, taux:real,intermediate:tree, res:boolean  ->
+result name:text, desc:text, redmine:integer, taux:real,intermediate:tree, res:boolean  -> {
     font_size 14
     margins 0, 0
     paragraph_break
-    if res then color "green" else color "red"
+    if res then color "tao_green" else color "tao_red"
     text name
     line_break
-    color "tao_black"
+    color "font"
     text desc
     line_break
     text "Authorize difference between images from reference and run is : " & text taux & "%"
     line_break
-    do intermediate
+    do { intermediate }
+}

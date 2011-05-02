@@ -27,6 +27,7 @@
 #include "gl_keepers.h"
 #include "runtime.h"
 #include <QtGui>
+#include <string.h>
 
 TAO_BEGIN
 
@@ -73,6 +74,7 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     int    hits          = 0;
 
     GLuint *buffer = new GLuint[capacity];
+    memset(buffer, 0, capacity * sizeof(GLuint));
     glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
@@ -111,7 +113,6 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
                 parentId = selected = *ptr++;
-
                 // Check if we have a handleId or character ID
                 while (ptr < selNext)
                 {
@@ -160,6 +161,7 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
 
     // Create the select buffer and switch to select mode
     GLuint *buffer = new GLuint[capacity];
+    memset(buffer, 0, capacity * sizeof(GLuint));
     glSelectBuffer(capacity, buffer);
     glRenderMode(GL_SELECT);
 
@@ -246,6 +248,34 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
     previous = current;
     return next;
 }
+
+Activity *MouseFocusTracker::Click(uint /*button*/, uint /*count*/, int x, int y)
+// ----------------------------------------------------------------------------
+//   Track focus when mouse click
+// ----------------------------------------------------------------------------
+{
+    uint current = ObjectAtPoint(x, widget->height() - y);
+    IFTRACE(widgets)
+            std::cerr<<"Focus " << current << std::endl;
+    if (current != previous)
+    {
+        if (previous > 0)
+        {
+            // Forward 'focus-out' to previous item
+            widget->focusId = 0;
+            widget->focusWidget = NULL;
+        }
+        if (current > 0)
+        {
+            // Forward 'focus-in' to current item
+            widget->focusId = current;
+        }
+        widget->updateGL();
+    }
+    previous = current;
+    return next;
+}
+
 
 
 
@@ -434,7 +464,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             return new Drag(widget);
     }
 
-    return NULL;                // We dealt with the event
+    return next;
+    //return NULL;                // We dealt with the event
 }
 
 

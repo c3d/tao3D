@@ -47,6 +47,7 @@
 #include <QDebug>
 #include <QtWebKit>
 #include <QProcessEnvironment>
+#include <QStringList>
 
 #if defined(CONFIG_MINGW)
 #include <windows.h>
@@ -92,17 +93,18 @@ Application::Application(int & argc, char ** argv)
     // Set current directory
     QDir::setCurrent(applicationDirPath());
 
+    QStringList cmdLineArguments = arguments();
     // Internal clean option
-    if (arguments().contains("--internal-use-only-clean-environment"))
+    if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
         exit(0);
     }
     bool showSplash = true;
-    if (arguments().contains("-nosplash") || arguments().contains("-h"))
+    if (cmdLineArguments.contains("-nosplash") || cmdLineArguments.contains("-h"))
         showSplash = false;
 
-    if (arguments().contains("-norepo") || arguments().contains("-nogit"))
+    if (cmdLineArguments.contains("-norepo") || cmdLineArguments.contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
     // Show splash screen
@@ -184,11 +186,12 @@ Application::Application(int & argc, char ** argv)
     maxTextureCoords = 1;
     maxTextureUnits = 1;
 
+#ifndef CFG_NOGIT
     if (!RepositoryFactory::available())
     {
         // Nothing (dialog box already shown by Repository class)
     }
-
+#endif //CFG_NOGIT
     // Create default folder for Tao documents
     // ("Save as..." box will land there)
     createDefaultProjectFolder();

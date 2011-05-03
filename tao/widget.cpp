@@ -7201,6 +7201,29 @@ Text_p Widget::taoLanguage(Tree_p self)
 }
 
 
+
+Text_p Widget::xlTrAdd(Tree_p self, text from, text to)
+// ----------------------------------------------------------------------------
+//    Add a new translation
+// ----------------------------------------------------------------------------
+{
+    xlTranslations[from] = to;
+    return new XL::Text(to);
+}
+
+
+Text_p Widget::xlTr(Tree_p self, text t)
+// ----------------------------------------------------------------------------
+//    Translate a string
+// ----------------------------------------------------------------------------
+{
+    text translated = t;
+    if (xlTranslations.count(t))
+        translated = xlTranslations[t];
+    return new XL::Text(translated);
+}
+
+
 Text_p Widget::taoVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the version of the Tao program

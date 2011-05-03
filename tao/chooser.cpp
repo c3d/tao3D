@@ -404,6 +404,7 @@ void Chooser::AddCommands(Context *ctx, text prefix, text label)
         
         // Create a closure from the resulting commands to remember context
         Tree *command = ctx->CreateCode(rw->to);
+        caption = widget->xlTr(NULL, caption);
         AddItem(label + caption, command);
     }
 }

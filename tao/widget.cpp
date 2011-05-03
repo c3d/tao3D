@@ -181,9 +181,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       editCursor(NULL)
 {
     setObjectName(QString("Widget"));
-    memset(focusProjection, 0, 16*sizeof(GLdouble));
-    memset(focusModel, 0, 16*sizeof(GLdouble));
-    memset(focusViewport, 0, 4*sizeof(GLint));
+    memset(focusProjection, 0, sizeof focusProjection);
+    memset(focusModel, 0, sizeof focusModel);
+    memset(focusViewport, 0, sizeof focusViewport);
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -3708,22 +3708,33 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 }
 
 
-void Widget::recordProjection()
+void Widget::recordProjection(GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
-    memset(focusProjection, 0, 16*sizeof(GLdouble));
-    memset(focusModel, 0, 16*sizeof(GLdouble));
-    memset(focusViewport, 0, 4*sizeof(GLint));
+    // Is this really necessary? Did Valgrind show that GL fails to fill them?
+    memset(proj, 0, sizeof focusProjection);
+    memset(model, 0, sizeof focusModel);
+    memset(viewport, 0, sizeof focusViewport);
 
-    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
-    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
-    glGetIntegerv(GL_VIEWPORT, focusViewport);
+    glGetDoublev(GL_PROJECTION_MATRIX, proj);
+    glGetDoublev(GL_MODELVIEW_MATRIX, model);
+    glGetIntegerv(GL_VIEWPORT, viewport);
 }
 
 
-Point3 Widget::unproject (coord x, coord y, coord z)
+void Widget::recordProjection()
+// ----------------------------------------------------------------------------
+//   Record focus projection
+// ----------------------------------------------------------------------------
+{
+    recordProjection(focusProjection, focusModel, focusViewport);
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z,
+                          GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
@@ -3735,14 +3746,14 @@ Point3 Widget::unproject (coord x, coord y, coord z)
     GLdouble x3dn, y3dn, z3dn;
     x3dn = y3dn = z3dn = 0.0;
     gluUnProject(x, y, 0.0,
-                 focusModel, focusProjection, focusViewport,
+                 model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
     x3df = y3df = z3df = 0;
     gluUnProject(x, y, 1.0,
-                 focusModel, focusProjection, focusViewport,
+                 model, proj, viewport,
                  &x3df, &y3df, &z3df);
 
     GLfloat zDistance = z3dn - z3df;
@@ -3753,6 +3764,34 @@ Point3 Widget::unproject (coord x, coord y, coord z)
     GLfloat y3d = y3dn + ratio * (y3df - y3dn);
 
     return Point3(x3d, y3d, z);
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Unproject in widget's focus transform
+// ----------------------------------------------------------------------------
+{
+    return unproject(x, y, z, focusProjection, focusModel, focusViewport);
+}
+
+
+Point3 Widget::unprojectLastMouse(GLdouble *proj, GLdouble *model, GLint *view)
+// ----------------------------------------------------------------------------
+//   Unproject last mouse coordinates in given context
+// ----------------------------------------------------------------------------
+{
+    return unproject(lastMouseX, lastMouseY, 0.0, proj, model, view);
+}
+
+
+Point3 Widget::unprojectLastMouse()
+// ----------------------------------------------------------------------------
+//    Unproject last mouse coordinates in current focus transform
+// ----------------------------------------------------------------------------
+{
+    return unproject(lastMouseX, lastMouseY, 0.0,
+                     focusProjection, focusModel, focusViewport);
 }
 
 
@@ -3888,7 +3927,7 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 }
 
 
-Tree * Widget::shapeAction(text n, GLuint id)
+Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
 // ----------------------------------------------------------------------------
 //   Return the shape action for the given name and GL id
 // ----------------------------------------------------------------------------
@@ -3904,6 +3943,11 @@ Tree * Widget::shapeAction(text n, GLuint id)
             // Set event mouse coordinates (bug #937, #1013)
             MouseCoordinatesInfo *m = action->GetInfo<MouseCoordinatesInfo>();
             XL::Save<MouseCoordinatesInfo *> s(mouseCoordinatesInfo, m);
+
+            // Adjust coordinates with latest event information
+            m->coordinates = unproject(x, y, 0,
+                                       m->projection, m->model, m->viewport);
+
             return XL::MAIN->context->Evaluate(action);
         }
     }

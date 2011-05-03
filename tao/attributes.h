@@ -26,6 +26,7 @@
 #include "drawing.h"
 #include "color.h"
 #include <QFont>
+#include <QtOpenGL>
 
 TAO_BEGIN
 
@@ -271,6 +272,8 @@ struct MouseCoordinatesInfo : XL::Info
 // ----------------------------------------------------------------------------
 {
     Point3      coordinates;
+    GLdouble    projection[16], model[16];
+    GLint       viewport[4];
 };
 
 

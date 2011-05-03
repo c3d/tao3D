@@ -242,7 +242,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
         }
         widget->updateGL();
     }
-    widget->shapeAction("mouseover", current);
+    widget->shapeAction("mouseover", current, x, y);
 
     previous = current;
     return next;
@@ -338,6 +338,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
 
+    int oy = y;
     y = widget->height() - y;
 
     if (button & Qt::LeftButton)
@@ -430,7 +431,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 // Select given object
                 widget->select(selected, savedSelection[selected] + count);
                 if (!shiftModifier && !handleId)
-                    widget->shapeAction("click", selected);
+                    widget->shapeAction("click", selected, x, oy);
             }
         }
         widget->handleId = handleId;

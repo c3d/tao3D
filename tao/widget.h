@@ -252,11 +252,20 @@ public:
     bool        focused(Layout *);
     void        deleteFocus(QWidget *widget);
     bool        requestFocus(QWidget *widget, coord x, coord y);
+    void        recordProjection(GLdouble *projection,
+                                 GLdouble *model,
+                                 GLint *viewport);
     void        recordProjection();
-    Point3      unprojectLastMouse()    { return unproject(lastMouseX,
-                                                           lastMouseY); }
-    uint        lastModifiers()         { return keyboardModifiers; }
+    Point3      unproject (coord x, coord y, coord z,
+                           GLdouble *projection,
+                           GLdouble *model,
+                           GLint *viewport);
     Point3      unproject (coord x, coord y, coord z = 0.0);
+    Point3      unprojectLastMouse(GLdouble *projection,
+                                   GLdouble *model,
+                                   GLint *viewport);
+    Point3      unprojectLastMouse();
+    uint        lastModifiers()         { return keyboardModifiers; }
     Drag *      drag();
     TextSelect *textSelection();
     void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
@@ -269,7 +278,7 @@ public:
     void        checkCopyAvailable();
     bool        canPaste();
 
-    Tree *      shapeAction(text n, GLuint id);
+    Tree *      shapeAction(text n, GLuint id, int x, int y);
 
     // Text flows and text management
     PageLayout*&pageLayoutFlow(text name) { return flows[name]; }

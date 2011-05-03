@@ -18,7 +18,7 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
        pull_interval = INTEGER(1000, 100000))
 
 OPTVAR(prefer_opengl, bool, false)
-OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
+OPTION(opengl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
 OPTVAR(enable_stereoscopy, bool, true)
 OPTION(stereo, "Enable stereoscopy", enable_stereoscopy = true)

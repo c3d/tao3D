@@ -242,14 +242,16 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
         }
         widget->updateGL();
     }
-    if (Tree *action = widget->shapeAction("mouseover", current))
-        XL::MAIN->context->Evaluate(action);
+    widget->shapeAction("mouseover", current, x, y);
 
     previous = current;
     return next;
 }
 
-Activity *MouseFocusTracker::Click(uint /*button*/, uint /*count*/, int x, int y)
+
+Activity *MouseFocusTracker::Click(uint /*button*/,
+                                   uint /*count*/,
+                                   int x, int y)
 // ----------------------------------------------------------------------------
 //   Track focus when mouse click
 // ----------------------------------------------------------------------------
@@ -335,7 +337,10 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     bool firstClick = false;
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
+    // The next to be returned even if this is deleted. BUG#1009
+    Activity * the_next = next;
 
+    int oy = y;
     y = widget->height() - y;
 
     if (button & Qt::LeftButton)
@@ -428,8 +433,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 // Select given object
                 widget->select(selected, savedSelection[selected] + count);
                 if (!shiftModifier && !handleId)
-                    if (Tree *action = widget->shapeAction("click", selected))
-                        XL::MAIN->context->Evaluate(action);
+                    widget->shapeAction("click", selected, x, oy);
             }
         }
         widget->handleId = handleId;
@@ -464,7 +468,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             return new Drag(widget);
     }
 
-    return next;
+    return the_next;
     //return NULL;                // We dealt with the event
 }
 

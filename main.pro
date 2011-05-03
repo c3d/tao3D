@@ -33,6 +33,10 @@
 #   DEFINES+=CFG_MDI
 #     Allow several documents to be open simultaneously (Multiple Document
 #     Interface)
+#   DEFINES+=NVALGRIND
+#     Build libxlr without valgrind hooks. Normally not needed, even for release
+#     builds because according to the valgrind documentation, the overhead is
+#     negligible.
 #
 #   modules=none
 #     Do not build any Tao module

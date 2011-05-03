@@ -123,4 +123,7 @@ DEFINES += $$LLVM_DEF
 target.path = $$LIBINST
 INSTALLS    = target
 
+# Compile with valgrind hooks by default
+contains(DEFINES, NVALGRIND):message(Compiling libxlr without Valgrind hooks)
+
 macx:QMAKE_LFLAGS_SONAME = -install_name$${LITERAL_WHITESPACE}@rpath/

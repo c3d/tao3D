@@ -257,6 +257,9 @@ draw_info ->
             line "Mouse X=" & text info_x
             line "Mouse Y=" & text info_y
             line "zoom " & text scaling_factor
+            if scaling_factor > 125000 then
+                color "red", 80%
+                line "Pixellization (float precision)"
             refresh 0.1
 
 info_text "fr" -> text "Une fractale définie par l'équation itérative "

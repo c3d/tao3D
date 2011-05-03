@@ -1,5 +1,72 @@
+// ****************************************************************************
+//  mandelbrot.ddd                                                  Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Illustration of the Mandelbrot set with Tao Presentations
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+import Animate 1.0
+import Slides 1.0
+
+
+// ============================================================================
+// 
+//    General description of the slide
+// 
+// ============================================================================
+
+// Pick the "Keyboard" theme
+theme "Keyboard"
+
+// Do not draw any selection when we click on the Mandelbrot picture
+draw_selection x, y, w, h -> false
+
+
+picture_slide "Mandelbrot",
+// ----------------------------------------------------------------------------
+// First slide is a picture slide showing the Mandelbrot set
+// ----------------------------------------------------------------------------
+    draw_mandelbrot
+    draw_help
+    draw_info
+
+
+
+
+// ============================================================================
+// 
+//   Shader program
+// 
+// ============================================================================
+//  The shader program is where we perform the actual computation of the
+//  Mandelbrot set. The vertex shader records the position.
+//  The fragment shader (aka pixel shader) is where we perform the
+//  actual computation for each pixel.
+
 mandelbrot_shader ->
+// ----------------------------------------------------------------------------
+//   Setup the OpenGL shader for the Mandelbrot set
+// ----------------------------------------------------------------------------
+
     shader_program
+
         vertex_shader <<
             varying vec3 position;
             void main()
@@ -10,19 +77,26 @@ mandelbrot_shader ->
                 position = vec3(gl_MultiTexCoord0 - 0.5) * 3.0;
             }
         >>
+
         fragment_shader <<
-            varying vec3 position;
+
+            // Parameters set by the outside program (shader_set statements)
             uniform float maxIter;
+            uniform float scaling;
+            uniform float centerX;
+            uniform float centerY;
+
+            varying vec3 position;
+
             void main()
             {
-                vec2 center = vec2(-0.5, 0);
-
-                float c_real = position.x + center.x;
-                float c_imag = position.y + center.y;
+                // Position of the current coordiantes
+                float c_real = position.x / scaling + centerX;
+                float c_imag = position.y / scaling + centerY;
                 vec2 c = vec2(c_real, c_imag);
                 vec2 z = c;
 
-                // Pixel color is based on the speed at which points outside of the set diverge
+                // Configuration of the colors
                 vec4  insideColor  = vec4(0.0, 0.0, 0.0, 1.0);
                 vec4  middleColor1 = vec4(1.0, 1.0, 0.0, 1.0);
                 float threshold1   = 0.1;
@@ -30,67 +104,163 @@ mandelbrot_shader ->
                 float threshold2   = 0.5;
                 vec4  outerColor   = vec4(1.0, 1.0, 1.0, 1.0);
 
+                // Pixel color is based on the speed at which
+                // points outside of the set diverge
                 gl_FragColor = insideColor;
 
+                // Loop, checking for divergence
                 for (int i = 0; i < int(maxIter); i++)
                 {
-                        z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
-                        if (dot(z, z) > 4.0)
+                    z = vec2(z.x * z.x - z.y * z.y, 2.0 * z.x * z.y) + c;
+                    if (dot(z, z) > 4.0)
+                    {
+                        float v = float(i)/maxIter;
+                        float frac;
+
+                        if (v < threshold1)
                         {
-                                float v = float(i)/maxIter;
-                                float frac;
-
-                                if (v < threshold1)
-                                {
-                                        frac = v / threshold1;
-                                        gl_FragColor = mix(outerColor, middleColor2, frac);
-                                }
-                                else if (v < threshold2)
-                                {
-                                        frac = (v - threshold1) / (threshold2 - threshold1);
-                                        gl_FragColor = mix(middleColor2, middleColor1, frac);
-                                }
-                                else
-                                {
-                                        frac = (v - threshold2) / (1.0 - threshold2);
-                                        gl_FragColor = mix(middleColor1, insideColor, frac);
-                                }
-
-                                break;
+                            frac = v / threshold1;
+                            gl_FragColor = mix(outerColor, middleColor2, frac);
                         }
+                        else if (v < threshold2)
+                        {
+                            frac = (v - threshold1) / (threshold2 - threshold1);
+                            gl_FragColor = mix(middleColor2,middleColor1,frac);
+                        }
+                        else
+                        {
+                            frac = (v - threshold2) / (1.0 - threshold2);
+                            gl_FragColor = mix(middleColor1,insideColor,frac);
+                        }
+                            
+                        break;
+                    }
                 }
-
             }
         >>
+
     // Maximum number of iterations for each point
     shader_set maxIter := 200
 
+
+
+// ============================================================================
+// 
+//   Slide animation
+// 
+// ============================================================================
+
+// Current values for center position and scaling factor
+center_x -> 0.0
+center_y -> 0.0
+scaling_factor -> 1.0
+
+// Target values for center position and scaling factor
+tgt_center_x -> 0.0
+tgt_center_y -> 0.0
+tgt_scaling_factor -> 1.0
+
+// Information on current mouse position
+info_x -> 0.0
+info_y -> 0.0
+
+// Size based on the size of the slide (we display in a square)
+sz -> slide_height
+sf -> sz * 0.25 * scaling_factor
+
+
 draw_mandelbrot ->
+// ----------------------------------------------------------------------------
+//    How to draw the Mandelbrot set
+// ----------------------------------------------------------------------------
     locally
+
+        // Select the Mandelbrot shader program
         mandelbrot_shader
-        sz -> min (window_width, window_height)
-        rectangle 0, 0, sz, sz
 
-help_text "en" ->
-    text "Use the ""View"" toolbar "
-    italic
-    text "(View>Toolbars>View) "
-    roman
-    text " to zoom and scroll"
+        // Set the current shader's uniform variables
+        shader_set centerX := center_x
+        shader_set centerY := center_y
+        shader_set scaling := scaling_factor
 
-help_text "fr" ->
-    text "Utilisez la barre d'outils « Affichage » "
-    italic
-    text "(Affichage>Barres d'outils>Affichage) "
-    roman
-    text " pour zoomer et déplacer la vue"
+        // Draw the rounded rectangle displaying the set
+        // We make it an "active_widget" so that it reacts to clicks
+        translate -0.25 * sz, -0.07 * sz, 0
+        active_widget
+            rounded_rectangle 0, 0, 0.75 * sz, 0.75 * sz, 20
+
+            on_click
+                writeln "Click X=", mouse_x, " Y=", mouse_y
+                // When we click on the rectangle, adjust center position
+                tgt_center_x := center_x + mouse_x / sf
+                tgt_center_y := center_y + mouse_y / sf
+                if alt_modifier then
+                    tgt_scaling_factor := tgt_scaling_factor / 2
+                else
+                    tgt_scaling_factor := tgt_scaling_factor * 2
+                refresh 0.1
+
+            on_mouseover
+                // Display current mouse coordinates
+                info_x := center_x + mouse_x / sf
+                info_y := center_y + mouse_y / sf
+
+        // Animate coordinates smoothly
+        interpolate 0.1, tgt_center_x, center_x
+        interpolate 0.1, tgt_center_y, center_y
+        interpolate 0.1, tgt_scaling_factor, scaling_factor
+        if scaling_factor <> tgt_scaling_factor then
+            refresh 0.01
+
+
 
 draw_help ->
-    text_box 0, 0, window_width, window_height,
+// ----------------------------------------------------------------------------
+//   Draw a text box displaying the localized help text
+// ----------------------------------------------------------------------------
+    text_box 0, 0, slide_width, slide_height,
         align_center
-        font "Droid Sans", 14
+        vertical_align 0.98
+        font "Droid Sans", 20
+        color "darkblue"
         help_text tao_language
 
-draw_mandelbrot
-draw_help
+help_text "fr" -> text "Cliquez pour approcher, Alt-Click pour éloigner"
+help_text Other -> text "Click to zoom in, Alt-Click to zoom out"
 
+
+
+draw_info ->
+// ----------------------------------------------------------------------------
+//   Draw the text box on the right displaying info about Mandelbrot
+// ----------------------------------------------------------------------------
+    locally
+        color "white", 60%
+        rounded_rectangle 0.40 * sz, -0.07 * sz, 0.45 * sz, 0.75 * sz, 20
+        text_box 0.40 * sz, -0.07 * sz, 0.40 * sz, 0.70 * sz,
+            vertical_align 0.2
+            align 0.5
+
+            bullet_text_style theme, 1
+            info_text tao_language
+            line_break
+            italic
+            text "z' = z² + C"
+
+        text_box 0.40 * sz, -0.07 * sz, 0.40 * sz, 0.70 * sz,
+            vertical_align 0.9
+            font "Arial", 24, italic
+            color "black", 40%
+            line T:text -> text T; line_break
+            line "Center X=" & text center_x
+            line "Center Y=" & text center_y
+            line "Mouse X=" & text info_x
+            line "Mouse Y=" & text info_y
+            line "zoom " & text scaling_factor
+            if scaling_factor > 125000 then
+                color "red", 80%
+                line "Pixellization (float precision)"
+            refresh 0.1
+
+info_text "fr" -> text "Une fractale définie par l'équation itérative "
+info_text Other -> text "A fractal defined by iterative equation "

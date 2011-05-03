@@ -242,14 +242,16 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
         }
         widget->updateGL();
     }
-    if (Tree *action = widget->shapeAction("mouseover", current))
-        XL::MAIN->context->Evaluate(action);
+    widget->shapeAction("mouseover", current);
 
     previous = current;
     return next;
 }
 
-Activity *MouseFocusTracker::Click(uint /*button*/, uint /*count*/, int x, int y)
+
+Activity *MouseFocusTracker::Click(uint /*button*/,
+                                   uint /*count*/,
+                                   int x, int y)
 // ----------------------------------------------------------------------------
 //   Track focus when mouse click
 // ----------------------------------------------------------------------------
@@ -428,8 +430,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 // Select given object
                 widget->select(selected, savedSelection[selected] + count);
                 if (!shiftModifier && !handleId)
-                    if (Tree *action = widget->shapeAction("click", selected))
-                        XL::MAIN->context->Evaluate(action);
+                    widget->shapeAction("click", selected);
             }
         }
         widget->handleId = handleId;

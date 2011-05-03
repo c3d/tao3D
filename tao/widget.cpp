@@ -159,6 +159,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
+      mouseCoordinatesInfo(NULL),
       timer(), dfltRefresh(0.04), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
@@ -3898,7 +3899,12 @@ Tree * Widget::shapeAction(text n, GLuint id)
         perId_action_map::iterator foundAction = (*foundName).second.find(id);
         if (foundAction != (*foundName).second.end())
         {
-            return (*foundAction).second;
+            Tree_p action = (*foundAction).second;
+
+            // Set event mouse coordinates (bug #937, #1013)
+            MouseCoordinatesInfo *m = action->GetInfo<MouseCoordinatesInfo>();
+            XL::Save<MouseCoordinatesInfo *> s(mouseCoordinatesInfo, m);
+            return XL::MAIN->context->Evaluate(action);
         }
     }
     return NULL;
@@ -4362,6 +4368,9 @@ Real_p Widget::mouseX(Tree_p self)
 //    Return the position of the mouse
 // ----------------------------------------------------------------------------
 {
+    // Get on_mouseover / on_click coordinates if they are set (bug #937, #1013)
+    if (mouseCoordinatesInfo)
+        return new Real(mouseCoordinatesInfo->coordinates.x);
     refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
@@ -4375,6 +4384,9 @@ Real_p Widget::mouseY(Tree_p self)
 //   Return the position of the mouse
 // ----------------------------------------------------------------------------
 {
+    // Get on_mouseover / on_click coordinates if they are set (bug #937, #1013)
+    if (mouseCoordinatesInfo)
+        return new Real(mouseCoordinatesInfo->coordinates.y);
     refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
@@ -4400,13 +4412,17 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 {
     IFTRACE(layoutevents)
         std::cerr << "Register action " << name
-        << " on layout " << layout->PrettyId() << std::endl;
+                  << " on layout " << layout->PrettyId() << std::endl;
     if (name == "mouseover")
         refreshOn(QEvent::MouseMove);
+
+    // Make sure we record proper mouse coordinates (bugs #1013 and #937)
+    layout->Add (new RecordMouseCoordinates(action));
 
     actionMap[name][layout->id] = action;
     if (!action->Symbols())
         action->SetSymbols(self->Symbols());
+
     return XL::xl_true;
 }
 

@@ -66,6 +66,7 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
+struct MouseCoordinatesInfo;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -803,6 +804,7 @@ private:
     QFont                 selectionFont;
     QColor                originalColor;
     int                   lastMouseX, lastMouseY, lastMouseButtons;
+    MouseCoordinatesInfo *mouseCoordinatesInfo;
 
     // Timing
     QBasicTimer           timer;

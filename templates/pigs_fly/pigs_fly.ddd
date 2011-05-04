@@ -74,6 +74,7 @@ code_page "Second page", 42.5, <<slide "Reveal your inner geek",
 title_page "Instant reward", "No caffeine required" 
 slide "Reveal your inner geek", 
     locally 
+        page_time // #1027
         * "Computations: " & text_time 
         flying_object "Amiga Boink" 
         * "Make it your own" 

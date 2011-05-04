@@ -25,8 +25,8 @@
 
 #include "drawing.h"
 #include "color.h"
+#include "tao_gl.h"
 #include <QFont>
-#include <QtOpenGL>
 
 TAO_BEGIN
 

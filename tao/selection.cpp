@@ -337,6 +337,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     bool firstClick = false;
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;
+    // The next to be returned even if this is deleted. BUG#1009
+    Activity * the_next = next;
 
     int oy = y;
     y = widget->height() - y;
@@ -466,7 +468,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             return new Drag(widget);
     }
 
-    return next;
+    return the_next;
     //return NULL;                // We dealt with the event
 }
 

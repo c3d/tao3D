@@ -154,7 +154,7 @@ fly_theme_background ->
     locally 
         color "white" 
         translatez -20000 
-        image 0, 0, 500% , 500% , "sky.jpg"
+        image 0, 0, 550% , 550% , "sky.jpg"
  
 fly_theme_flying_object -> "piggy/piggy_placeholder.obj" 
 flying_object T:text -> fly_theme_flying_object := T 

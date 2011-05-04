@@ -693,6 +693,8 @@ bool Widget::refreshNow(QEvent *event)
 
         XL::GarbageCollector::Collect();
 
+        // Layout::Refresh needs current != NULL
+        TaoSave saveCurrent(current, this);
         changed = space->Refresh(event, now);
 
         if (changed)

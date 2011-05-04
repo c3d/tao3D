@@ -51,7 +51,6 @@ protected:
 };
 
 // Helper function
-Tree_p list2tree(TreeList v, text infix);
 bool modifyBlockFormat(QTextBlockFormat &blockFormat,  Layout * where);
 bool modifyCharFormat(QTextCharFormat &format, Layout * where);
 

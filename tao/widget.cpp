@@ -1323,8 +1323,8 @@ void Widget::paste()
         arg_list.push_back( new XL::Integer(200));
         arg_list.push_back( new XL::Integer(200));
         arg_list.push_back( new XL::Block(t, "I+", "I-"));
-        XL::Tree *comma = list2tree(arg_list, ",");
-        XL::Prefix * tb = new XL::Prefix(new XL::Name("text_box"),
+        XL::Tree *comma = xl_list_to_tree(arg_list, ",");
+        XL::Prefix_p tb = new XL::Prefix(new XL::Name("text_box"),
                                          comma);
         tb = new XL::Prefix(new XL::Name("shape"),
                             new XL::Block(tb, "I+", "I-"));
@@ -3459,7 +3459,7 @@ bool Widget::set(Tree *shape, text name, XL::TreeList &args, text topName)
     Tree *call = new XL::Name(name);
     if (args.size())
     {
-        Tree *argsTree = list2tree(args, ",");
+        Tree * argsTree = xl_list_to_tree(args, ",");
         call = new XL::Prefix(call, argsTree);
     }
 

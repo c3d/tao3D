@@ -190,7 +190,6 @@ draw_mandelbrot ->
             rounded_rectangle 0, 0, 0.75 * sz, 0.75 * sz, 20
 
             on_click
-                writeln "Click X=", mouse_x, " Y=", mouse_y
                 // When we click on the rectangle, adjust center position
                 tgt_center_x := center_x + mouse_x / sf
                 tgt_center_y := center_y + mouse_y / sf

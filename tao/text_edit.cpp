@@ -22,6 +22,7 @@
 #include "text_edit.h"
 #include <QTextBlock>
 #include <iostream>
+#include "runtime.h"
 #include "tao_tree.h"
 #include "tao_utf8.h"
 #include "options.h"
@@ -179,7 +180,7 @@ XL::Infix * text_portability::fragmentToTree(const QTextFragment &fragment,
     color_list.push_back(new XL::Real(txtColor.alphaF()));
     XL::Name * n = new XL::Name("color");
 
-    Tree * comma = list2tree(color_list, ",");
+    Tree * comma = xl_list_to_tree(color_list, ",");
     XL::Prefix *textColor = new XL::Prefix(n, comma);
 
     // Font
@@ -272,7 +273,7 @@ XL::Infix * text_portability::fragmentToTree(const QTextFragment &fragment,
 
     font_list.push_back(new XL::Text(charFormat.fontFamily().toUtf8().constData(),
                                      "\"", "\""));
-    comma = list2tree(font_list, ",");
+    comma = xl_list_to_tree(font_list, ",");
 
     n = new XL::Name("font");
     XL::Prefix *font = new XL::Prefix(n, comma);
@@ -300,29 +301,6 @@ XL::Infix * text_portability::fragmentToTree(const QTextFragment &fragment,
             std::cerr << "<- text_portability::fragmentToTree\n";
 
     return toReturn;
-}
-
-
-Tree_p list2tree(TreeList v, text infix)
-// ----------------------------------------------------------------------------
-//   Builds a tree from a list of tree with the given infix.
-// ----------------------------------------------------------------------------
-{
-    if (v.size() <= 0) return XL::xl_nil;
-    if (v.size() == 1) return v[0];
-
-    Tree* result = NULL;
-    TreeList::reverse_iterator rit;
-    // First build the bottom of the tree
-    rit = v.rbegin();
-    result = *rit;
-    rit++;
-    // Build the common part
-    for (; rit < v.rend(); ++rit)
-    {
-        result = new XL::Infix(infix, *rit, result);
-    }
-    return result;
 }
 
 

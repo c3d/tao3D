@@ -45,6 +45,9 @@ CURRENT_ITER -> 0
 CURRENT_ITER := 0
 
 iterate_render RENDER_CODE ->
+   /**
+   * Allow to apply the same effect defined by RENDER_CODE several times making several pass of render to texture.
+   **/
    if MAX_ITER > 0 then
        if CURRENT_ITER = MAX_ITER then
            texture texture_unit

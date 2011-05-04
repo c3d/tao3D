@@ -295,6 +295,74 @@ line_color_cymk (c:real, y:real, m:real, k:real, a:real);
 line_color_cymk (c:real, y:real, m:real, k:real);
 
 /**
+ * Creates a stop point in the current gradient at the given position with the given color.
+ *
+ * @param pos position of stop point in the current gradient. The value must be in the range 0 to 1.
+ * @param r red component of the color
+ * @param g green component of the color
+ * @param b blue component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ */
+gradient_color (pos:real, r:real, g:real, b:real, a:real);
+
+/**
+ * Make a linear gradient.
+ * Draw a linear gradient with colors specified in the body
+ * thanks to @ref gradient_color.
+ *
+ *  - @p start_x and @p start_y are the coordinates of the gradient start.
+ *  - @p end_x and @p end_y are the coordinates of the gradient end.
+ *  - @p w and @p h are the width and height of the resulting texture.
+ *
+ * @image html "images/linear_gradient.png"
+ *
+ * Code used to produce this image :
+ * <a href="examples/linear_gradient.ddd">linear_gradient.ddd</a>
+ *
+ * @note This gradient is generated as a new texture.
+ * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ */
+linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:real, body:tree);
+
+/**
+ * Make a radial gradient.
+ * Draw a radial gradient with colors specified in the body
+ * thanks to @ref gradient_color.
+ *
+ *  - @p cx and @p cy are the coordinates of the gradient center.
+ *  - @p r is the gradient radius.
+ *  - @p w and @p h are the width and height of the resulting texture.
+ *
+ * @image html "images/radial_gradient.png"
+ *
+ * Code used to produce this image :
+ * <a href="examples/radial_gradient.ddd">radial_gradient.ddd</a>
+ *
+ * @note This gradient is generated as a new texture.
+ * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ */
+radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
+
+/**
+ * Make a conical gradient.
+ * Draw a conical gradient with colors specified in the body
+ * thanks to @ref gradient_color.
+ *
+ *  - @p cx and @p cy are the coordinates of the gradient center.
+ *  - @p teta is the gradient angle. This one must be specified in degrees between 0 and 360.
+ *  - @p w and @p h are the width and height of the resulting texture.
+ *
+ * @image html "images/conical_gradient.png"
+ *
+ * Code used to produce this image :
+ * <a href="examples/conical_gradient.ddd">conical_gradient.ddd</a>
+ *
+ * @note This gradient is generated as a new texture.
+ * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ */
+conical_gradient (cx:real, cy:real, teta:real, w:real, h:real, body:tree);
+
+/**
  * Selects the texture.
  * Build a GL texture out of image file @p filename, and make it the current
  * texture.

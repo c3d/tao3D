@@ -70,7 +70,6 @@ public:
     QMovie movie;
 };
 
-
 struct TextureIdInfo : XL::Info
 // ----------------------------------------------------------------------------
 //   Info recording a given texture ID in a tree

@@ -16,7 +16,6 @@
        digital_clock    \
        slides           \
        animate          \
-       gradient         \
        filters          \
        render_to_texture\
        shading          \

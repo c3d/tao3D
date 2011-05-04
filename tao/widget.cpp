@@ -5506,6 +5506,20 @@ Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y, double k
     return XL::xl_true;
 }
 
+Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
+                                double r, double g, double b, double a)
+{
+    CHECK_0_1_RANGE(r);
+    CHECK_0_1_RANGE(g);
+    CHECK_0_1_RANGE(b);
+    CHECK_0_1_RANGE(a);
+
+    QColor color;
+    color.setRgbF(r, g, b, a);
+    gradient->setColorAt(pos, color);
+    return XL::xl_true;
+}
+
 
 Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 // ----------------------------------------------------------------------------
@@ -5593,7 +5607,6 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
     layout->hasAttributes = true;
     return new XL::Integer(texId);
 }
-
 
 Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 // ----------------------------------------------------------------------------
@@ -7855,6 +7868,137 @@ Integer* Widget::thumbnail(Context *context,
     return new Integer(texId);
 }
 
+Integer* Widget::linearGradient(Context *context, Tree_p self,
+                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
+                                double w, double h, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Generate a texture to draw a linear gradient
+// ----------------------------------------------------------------------------
+{
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+    }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
+
+    // Define a painter to draw in current frame
+    FramePainter painter(&frame);
+
+    // Define our gradient type
+    gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
+
+    // Evaluate the program
+    setup(w, h);
+    context->Evaluate(prog);
+
+    // Draw gradient in a rectangle
+    painter.fillRect(QRect(0, 0, w, h), (*gradient));
+    painter.end();
+
+    // Bind the resulting texture and save current infos
+    layout->currentTexture.id = frame.bind();
+    layout->currentTexture.width = w;
+    layout->currentTexture.height = h;
+
+    uint texUnit = layout->currentTexture.unit;
+    uint texId   = layout->currentTexture.id;
+
+    layout->Add(new FillTexture(texId, texUnit));
+    layout->hasAttributes = true;
+    return new XL::Integer(texId);
+}
+
+Integer* Widget::radialGradient(Context *context, Tree_p self,
+                                Real_p center_x, Real_p center_y, Real_p radius,
+                                double w, double h, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Generate a texture to draw a radial gradient
+// ----------------------------------------------------------------------------
+{
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+    }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
+
+    // Define a painter to draw in current frame
+    FramePainter painter(&frame);
+
+    // Define our gradient type
+    gradient = new QRadialGradient(center_x, center_y, radius);
+
+    // Evaluate the program
+    setup(w, h);
+    context->Evaluate(prog);
+
+    // Draw gradient in a rectangle
+    painter.fillRect(QRect(0, 0, w, h), (*gradient));
+    painter.end();
+
+    // Bind the resulting texture and save current infos
+    layout->currentTexture.id = frame.bind();
+    layout->currentTexture.width = w;
+    layout->currentTexture.height = h;
+
+    uint texUnit = layout->currentTexture.unit;
+    uint texId   = layout->currentTexture.id;
+
+    layout->Add(new FillTexture(texId, texUnit));
+    layout->hasAttributes = true;
+    return new XL::Integer(texId);
+}
+
+Integer* Widget::conicalGradient(Context *context, Tree_p self,
+                                 Real_p center_x, Real_p center_y, Real_p angle,
+                                 double w, double h, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Generate a texture to draw a conical gradient
+// ----------------------------------------------------------------------------
+{
+    // Get or build the current frame if we don't have one
+    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+    if (!multiframe)
+    {
+        multiframe = new MultiFrameInfo<uint>();
+        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+    }
+    uint id = selectionId();
+    FrameInfo &frame = multiframe->frame(id);
+
+    // Define a painter to draw in current frame
+    FramePainter painter(&frame);
+
+    // Define our gradient type
+    gradient = new QConicalGradient(center_x, center_y, angle);
+
+    // Evaluate the program
+    setup(w, h);
+    context->Evaluate(prog);
+
+    // Draw gradient in a rectangle
+    painter.fillRect(QRect(0, 0, w, h), (*gradient));
+    painter.end();
+
+    // Bind the resulting texture and save current infos
+    layout->currentTexture.id = frame.bind();
+    layout->currentTexture.width = w;
+    layout->currentTexture.height = h;
+
+    uint texUnit = layout->currentTexture.unit;
+    uint texId   = layout->currentTexture.id;
+
+    layout->Add(new FillTexture(texId, texUnit));
+    layout->hasAttributes = true;
+    return new XL::Integer(texId);
+}
 
 Name_p Widget::offlineRendering(Tree_p self)
 // ----------------------------------------------------------------------------

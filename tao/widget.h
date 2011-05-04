@@ -403,6 +403,9 @@ public:
                              double h, double s, double v, double a);
     Tree_p      fillColorCmyk(Tree_p self,
                               double c, double m, double y, double k, double a);
+    Tree_p      fillColorGradient(Tree_p self,
+                                  Real_p pos, double r, double g, double b, double a);
+
     Integer*    fillTextureUnit(Tree_p self, GLuint texUnit);
     Integer*    fillTextureId(Tree_p self, GLuint texId);
     Integer*    fillTexture(Tree_p self, text fileName);
@@ -575,6 +578,16 @@ public:
     Integer*    frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
+    Integer*    linearGradient(Context *context, Tree_p self,
+                               Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
+                               double w, double h, Tree_p prog);
+    Integer*    radialGradient(Context *context, Tree_p self,
+                               Real_p center_x, Real_p center_y, Real_p radius,
+                               double w, double h, Tree_p prog);
+    Integer*    conicalGradient(Context *context, Tree_p self,
+                                Real_p center_x, Real_p center_y, Real_p angle,
+                                double w, double h, Tree_p prog);
+
     Name_p      offlineRendering(Tree_p self);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -764,6 +777,7 @@ private:
 
     // Rendering
     QColor                clearCol;
+    QGradient*            gradient;
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;

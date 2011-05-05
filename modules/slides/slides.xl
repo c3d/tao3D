@@ -12,6 +12,10 @@ module_description
     import_name "Slides"
     version 1.0
 
+syntax
+    PREFIX     370     !*
+    PREFIX     370     !-
+    PREFIX     370     !+
 
 // Adding this module's images/ directory to the image: search path
 // for the current document
@@ -191,11 +195,20 @@ title_bg_rect "Seyes" ->
 theme_background_picture "Seyes" -> "image:seyes.jpg"
 
 
+bullet_picture "Seyes", Level:integer ->
+// ----------------------------------------------------------------------------
+//    Draw a bullet for seyes style
+// ----------------------------------------------------------------------------
+    bullet_color ("Seyes", Level)
+    bullet_line_color ("Seyes", Level)
+    draw S:real -> pentagram -50% * S, 30% * S, 25% * S, 25% * S
+    draw bullet_size ("Seyes", Level)
+
 
 // ============================================================================
-// 
+//
 //   Theme control variables
-// 
+//
 // ============================================================================
 
 theme -> ""
@@ -510,7 +523,7 @@ scale_contents S:real ->
 
 fit_contents_in_window ->
 // ----------------------------------------------------------------------------
-//   Scaling the display to fit 
+//   Scaling the display to fit
 // ----------------------------------------------------------------------------
     if window_width / window_height > slide_width / slide_height then
         scale_contents window_height / slide_height
@@ -537,9 +550,9 @@ stretch_contents_to_window ->
 
 
 // ============================================================================
-// 
+//
 //   Slide formats
-// 
+//
 // ============================================================================
 
 base_slide P:text, Body ->
@@ -738,3 +751,36 @@ bullet Theme, Level, Text ->
 // ----------------------------------------------------------------------------
 //   Display a third-level bullet
 // ----------------------------------------------------------------------------
+
+
+no_bullet Theme, Level, Text ->
+// ----------------------------------------------------------------------------
+//   Draw a bullet point with a given text
+// ----------------------------------------------------------------------------
+    margins (Level - 50% - 12% ) * bullet_size(Theme, Level), 0
+    paragraph_break
+    bullet_text_style Theme, Level
+    text Text
+
+
+!*T:text -> no_bullet theme, 1, T
+// ----------------------------------------------------------------------------
+//   Display a first-level text without bullet
+// ----------------------------------------------------------------------------
+
+
+!-T:text -> no_bullet theme, 2, T
+// ----------------------------------------------------------------------------
+//   Display a second-level text without bullet
+// ----------------------------------------------------------------------------
+
+
+!+T:text -> no_bullet theme, 3, T
+// ----------------------------------------------------------------------------
+//   Display a third-level text without bullet
+// ----------------------------------------------------------------------------
+
+reset_style ->
+    margins 0,0
+    story_text_style theme
+    paragraph_break

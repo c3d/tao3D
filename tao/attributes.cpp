@@ -295,25 +295,18 @@ void RecordMouseCoordinates::Draw(Layout *where)
     Widget *widget = where->Display();
     if (widget->stereoPlane() == 1)
     {
-        record(widget);
-    }
-}
+        MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
+        if (!info)
+        {
+            info = new MouseCoordinatesInfo;
+            self->SetInfo<MouseCoordinatesInfo>(info);
+        }
 
-
-void RecordMouseCoordinates::record(Widget* widget)
-// ----------------------------------------------------------------------------
-//   Record the widget mouse coordinates in a tree info
-// ----------------------------------------------------------------------------
-{
-    widget->recordProjection();
-    Point3 pos = widget->unprojectLastMouse();
-    MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
-    if (!info)
-    {
-        info = new MouseCoordinatesInfo;
-        self->SetInfo<MouseCoordinatesInfo>(info);
+        widget->recordProjection(info->projection, info->model, info->viewport);
+        Point3 pos = widget->unprojectLastMouse(info->projection,
+                                                info->model, info->viewport);
+        info->coordinates = pos;
     }
-    info->coordinates = pos;
 }
 
 TAO_END

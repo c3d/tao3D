@@ -74,6 +74,7 @@ code_page "Second page", 42.5, <<slide "Reveal your inner geek",
 title_page "Instant reward", "No caffeine required" 
 slide "Reveal your inner geek", 
     locally 
+        page_time // #1027
         * "Computations: " & text_time 
         flying_object "Amiga Boink" 
         * "Make it your own" 
@@ -153,7 +154,7 @@ fly_theme_background ->
     locally 
         color "white" 
         translatez -20000 
-        image 0, 0, 500% , 500% , "sky.jpg"
+        image 0, 0, 550% , 550% , "sky.jpg"
  
 fly_theme_flying_object -> "piggy/piggy_placeholder.obj" 
 flying_object T:text -> fly_theme_flying_object := T 

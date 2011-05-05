@@ -25,6 +25,7 @@
 
 #include "drawing.h"
 #include "color.h"
+#include "tao_gl.h"
 #include <QFont>
 
 TAO_BEGIN
@@ -273,17 +274,18 @@ struct MouseCoordinatesInfo : XL::Info
 // ----------------------------------------------------------------------------
 {
     Point3      coordinates;
+    GLdouble    projection[16], model[16];
+    GLint       viewport[4];
 };
 
-struct Widget;
+
 struct RecordMouseCoordinates : Attribute
 // ----------------------------------------------------------------------------
 //    Record the mouse coordinates in current projection matrix for a tree
 // ----------------------------------------------------------------------------
 {
-    RecordMouseCoordinates(Tree *self, Widget* widget): self(self) {record(widget);}
+    RecordMouseCoordinates(Tree *self): self(self) {}
     virtual void Draw(Layout *where);
-    void record(Widget* widget);
     Tree_p self;
 };
 

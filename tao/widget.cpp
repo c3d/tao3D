@@ -159,6 +159,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
+      mouseCoordinatesInfo(NULL),
       timer(), dfltRefresh(0.04), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
@@ -180,9 +181,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       editCursor(NULL)
 {
     setObjectName(QString("Widget"));
-    memset(focusProjection, 0, 16*sizeof(GLdouble));
-    memset(focusModel, 0, 16*sizeof(GLdouble));
-    memset(focusViewport, 0, 4*sizeof(GLint));
+    memset(focusProjection, 0, sizeof focusProjection);
+    memset(focusModel, 0, sizeof focusModel);
+    memset(focusViewport, 0, sizeof focusViewport);
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -698,6 +699,8 @@ bool Widget::refreshNow(QEvent *event)
 
         XL::GarbageCollector::Collect();
 
+        // Layout::Refresh needs current != NULL
+        TaoSave saveCurrent(current, this);
         changed = space->Refresh(event, now);
 
         if (changed)
@@ -1328,8 +1331,8 @@ void Widget::paste()
         arg_list.push_back( new XL::Integer(200));
         arg_list.push_back( new XL::Integer(200));
         arg_list.push_back( new XL::Block(t, "I+", "I-"));
-        XL::Tree *comma = list2tree(arg_list, ",");
-        XL::Prefix * tb = new XL::Prefix(new XL::Name("text_box"),
+        XL::Tree *comma = xl_list_to_tree(arg_list, ",");
+        XL::Prefix_p tb = new XL::Prefix(new XL::Name("text_box"),
                                          comma);
         tb = new XL::Prefix(new XL::Name("shape"),
                             new XL::Block(tb, "I+", "I-"));
@@ -3472,7 +3475,7 @@ bool Widget::set(Tree *shape, text name, XL::TreeList &args, text topName)
     Tree *call = new XL::Name(name);
     if (args.size())
     {
-        Tree *argsTree = list2tree(args, ",");
+        Tree * argsTree = xl_list_to_tree(args, ",");
         call = new XL::Prefix(call, argsTree);
     }
 
@@ -3721,22 +3724,33 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 }
 
 
-void Widget::recordProjection()
+void Widget::recordProjection(GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
-    memset(focusProjection, 0, 16*sizeof(GLdouble));
-    memset(focusModel, 0, 16*sizeof(GLdouble));
-    memset(focusViewport, 0, 4*sizeof(GLint));
+    // Is this really necessary? Did Valgrind show that GL fails to fill them?
+    memset(proj, 0, sizeof focusProjection);
+    memset(model, 0, sizeof focusModel);
+    memset(viewport, 0, sizeof focusViewport);
 
-    glGetDoublev(GL_PROJECTION_MATRIX, focusProjection);
-    glGetDoublev(GL_MODELVIEW_MATRIX, focusModel);
-    glGetIntegerv(GL_VIEWPORT, focusViewport);
+    glGetDoublev(GL_PROJECTION_MATRIX, proj);
+    glGetDoublev(GL_MODELVIEW_MATRIX, model);
+    glGetIntegerv(GL_VIEWPORT, viewport);
 }
 
 
-Point3 Widget::unproject (coord x, coord y, coord z)
+void Widget::recordProjection()
+// ----------------------------------------------------------------------------
+//   Record focus projection
+// ----------------------------------------------------------------------------
+{
+    recordProjection(focusProjection, focusModel, focusViewport);
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z,
+                          GLdouble *proj, GLdouble *model, GLint *viewport)
 // ----------------------------------------------------------------------------
 //   Convert mouse clicks into 3D planar coordinates for the focus object
 // ----------------------------------------------------------------------------
@@ -3748,14 +3762,14 @@ Point3 Widget::unproject (coord x, coord y, coord z)
     GLdouble x3dn, y3dn, z3dn;
     x3dn = y3dn = z3dn = 0.0;
     gluUnProject(x, y, 0.0,
-                 focusModel, focusProjection, focusViewport,
+                 model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
     x3df = y3df = z3df = 0;
     gluUnProject(x, y, 1.0,
-                 focusModel, focusProjection, focusViewport,
+                 model, proj, viewport,
                  &x3df, &y3df, &z3df);
 
     GLfloat zDistance = z3dn - z3df;
@@ -3766,6 +3780,34 @@ Point3 Widget::unproject (coord x, coord y, coord z)
     GLfloat y3d = y3dn + ratio * (y3df - y3dn);
 
     return Point3(x3d, y3d, z);
+}
+
+
+Point3 Widget::unproject (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   Unproject in widget's focus transform
+// ----------------------------------------------------------------------------
+{
+    return unproject(x, y, z, focusProjection, focusModel, focusViewport);
+}
+
+
+Point3 Widget::unprojectLastMouse(GLdouble *proj, GLdouble *model, GLint *view)
+// ----------------------------------------------------------------------------
+//   Unproject last mouse coordinates in given context
+// ----------------------------------------------------------------------------
+{
+    return unproject(lastMouseX, lastMouseY, 0.0, proj, model, view);
+}
+
+
+Point3 Widget::unprojectLastMouse()
+// ----------------------------------------------------------------------------
+//    Unproject last mouse coordinates in current focus transform
+// ----------------------------------------------------------------------------
+{
+    return unproject(lastMouseX, lastMouseY, 0.0,
+                     focusProjection, focusModel, focusViewport);
 }
 
 
@@ -3840,13 +3882,13 @@ void Widget::drawSelection(Layout *where,
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (xlProgram);
-    selectionSpace.Draw(where);
+
+    selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 }
 
 
-void Widget::drawHandle(Layout *where,
-                        const Point3 &p, text handleName, uint id)
+void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 // ----------------------------------------------------------------------------
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
@@ -3861,7 +3903,7 @@ void Widget::drawHandle(Layout *where,
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
-    selectionSpace.Draw(where);
+    selectionSpace.Draw(NULL);
     glEnable(GL_DEPTH_TEST);
 }
 
@@ -3903,7 +3945,7 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 }
 
 
-Tree * Widget::shapeAction(text n, GLuint id)
+Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
 // ----------------------------------------------------------------------------
 //   Return the shape action for the given name and GL id
 // ----------------------------------------------------------------------------
@@ -3914,7 +3956,17 @@ Tree * Widget::shapeAction(text n, GLuint id)
         perId_action_map::iterator foundAction = (*foundName).second.find(id);
         if (foundAction != (*foundName).second.end())
         {
-            return (*foundAction).second;
+            Tree_p action = (*foundAction).second;
+
+            // Set event mouse coordinates (bug #937, #1013)
+            MouseCoordinatesInfo *m = action->GetInfo<MouseCoordinatesInfo>();
+            XL::Save<MouseCoordinatesInfo *> s(mouseCoordinatesInfo, m);
+
+            // Adjust coordinates with latest event information
+            m->coordinates = unproject(x, y, 0,
+                                       m->projection, m->model, m->viewport);
+
+            return XL::MAIN->context->Evaluate(action);
         }
     }
     return NULL;
@@ -4378,8 +4430,11 @@ Real_p Widget::mouseX(Tree_p self)
 //    Return the position of the mouse
 // ----------------------------------------------------------------------------
 {
+    // Get on_mouseover / on_click coordinates if they are set (bug #937, #1013)
+    if (mouseCoordinatesInfo)
+        return new Real(mouseCoordinatesInfo->coordinates.x);
     refreshOn(QEvent::MouseMove);
-    layout->Add(new RecordMouseCoordinates(self, this));
+    layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.x);
     return new Real(0.0);
@@ -4391,8 +4446,11 @@ Real_p Widget::mouseY(Tree_p self)
 //   Return the position of the mouse
 // ----------------------------------------------------------------------------
 {
+    // Get on_mouseover / on_click coordinates if they are set (bug #937, #1013)
+    if (mouseCoordinatesInfo)
+        return new Real(mouseCoordinatesInfo->coordinates.y);
     refreshOn(QEvent::MouseMove);
-    layout->Add(new RecordMouseCoordinates(self, this));
+    layout->Add(new RecordMouseCoordinates(self));
     if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
         return new Real(info->coordinates.y);
     return new Real(0.0);
@@ -4416,13 +4474,17 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 {
     IFTRACE(layoutevents)
         std::cerr << "Register action " << name
-        << " on layout " << layout->PrettyId() << std::endl;
+                  << " on layout " << layout->PrettyId() << std::endl;
     if (name == "mouseover")
         refreshOn(QEvent::MouseMove);
+
+    // Make sure we record proper mouse coordinates (bugs #1013 and #937)
+    layout->Add (new RecordMouseCoordinates(action));
 
     actionMap[name][layout->id] = action;
     if (!action->Symbols())
         action->SetSymbols(self->Symbols());
+
     return XL::xl_true;
 }
 
@@ -7361,6 +7423,29 @@ Text_p Widget::taoLanguage(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new XL::Text(+TaoApp->lang);
+}
+
+
+
+Text_p Widget::xlTrAdd(Tree_p self, text from, text to)
+// ----------------------------------------------------------------------------
+//    Add a new translation
+// ----------------------------------------------------------------------------
+{
+    xlTranslations[from] = to;
+    return new XL::Text(to);
+}
+
+
+Text_p Widget::xlTr(Tree_p self, text t)
+// ----------------------------------------------------------------------------
+//    Translate a string
+// ----------------------------------------------------------------------------
+{
+    text translated = t;
+    if (xlTranslations.count(t))
+        translated = xlTranslations[t];
+    return new XL::Text(translated);
 }
 
 

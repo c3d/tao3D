@@ -2582,6 +2582,18 @@ PREFIX(ListFiles3, tree, "list_files", PARM(pat, tree, ""),
        SYNOPSIS("")
        DESCRIPTION("List regular files that match pattern. Examples of valid patterns: '*.jpg' '*/*.jpg' '/Users/john/*.jpg' '*.[jJ][pP][gG]'")
        RETURNS(tree, ""))
+PREFIX(TrAdd,  text,  "tr",
+       PARM(from, text, "The english string")
+       PARM(to, text, "The translation"),
+       RTAO(xlTrAdd(self, from, to)),
+       GROUP(i18n)
+       SYNOPSIS("Add a translation into the translation map"))
+PREFIX(Tr,  text,  "tr",
+       PARM(t, text, "The string to translate"),
+       RTAO(xlTr(self, t)),
+       GROUP(i18n)
+       SYNOPSIS("Translate a string into the current language")
+       RETURNS(text, "The translated text."))
 
 // ============================================================================
 //

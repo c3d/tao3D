@@ -79,5 +79,5 @@ picture_slide "White on Gray (3D)",
     sphere 0, 0, 0, slide_height * 0.6
     texture "clouds.png"
     rotatey 0.6 * time
-    sphere 0, 0, 0, slide_height * 0.6 + 3
+    sphere 0, 0, 0, slide_height * 0.6 + 5
 

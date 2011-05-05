@@ -1,5 +1,8 @@
 import Slides 1.0
 
+// Work around to Bug#1032
+syntax ( PREFIX 370 !* !- !+ )
+
 // Available Themes:
 // "" / "Default", "WhiteOnBlack", "WhiteOnGray",
 // "Rounded", "Keyboard", "Seyes"
@@ -42,6 +45,9 @@ title_slide "Seyes style (Title)",
 slide "Seyes style (Slide)",
     * "Bullet level 1"
     - "Bullet level 2"
+    !- "Text without bullet level 2"
+    reset_style
+    text "Regular text"
 
 
 // ----------------------------------------------------------------------------

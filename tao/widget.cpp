@@ -549,6 +549,7 @@ void Widget::draw()
             glDisable(GL_SCISSOR_TEST);
             glUseProgram(0);
         }
+
         glEnable(GL_DEPTH_TEST);
     }
 

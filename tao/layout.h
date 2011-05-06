@@ -140,7 +140,6 @@ struct Layout : Drawing, LayoutState
     text                PrettyId();
 
 public:
-    Widget *            display;
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;

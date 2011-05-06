@@ -143,7 +143,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), display(widget), id(0), charId(0),
+    : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasTextureMatrix(0),
       hasLighting(false), hasMaterial(false),
@@ -157,7 +157,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor
 // ----------------------------------------------------------------------------
-    : Drawing(o), LayoutState(o), display(o.display), id(0), charId(0),
+    : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
       hasAttributes(false), hasTextureMatrix(o.hasTextureMatrix),
       hasLighting(false), hasMaterial(false),
@@ -627,7 +627,6 @@ void Layout::Inherit(Layout *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-<<<<<<< HEAD
     font             = where->font;
     alongX           = where->alongX;
     alongY           = where->alongY;
@@ -653,32 +652,6 @@ void Layout::Inherit(Layout *where)
     groupDrag        = where->groupDrag;
     hasLighting      = where->hasLighting;
     hasMaterial      = where->hasMaterial;
-=======
-    font            = where->font;
-    alongX          = where->alongX;
-    alongY          = where->alongY;
-    alongZ          = where->alongZ;
-    left            = where->left;
-    right           = where->right;
-    top             = where->top;
-    bottom          = where->bottom;
-    visibility      = where->visibility;
-    lineWidth       = where->lineWidth;
-    lineColor       = where->lineColor;
-    fillColor       = where->fillColor;
-    fillTexture     = where->fillTexture;
-    lightId         = where->lightId;
-    programId       = where->programId;
-    wrapS           = where->wrapS;
-    wrapT           = where->wrapT;
-    printing        = where->printing;
-    planarRotation  = where->planarRotation;
-    planarScale     = where->planarScale;
-    has3D           = where->has3D;
-    hasPixelBlur    = where->hasPixelBlur;
-    groupDrag       = where->groupDrag;
-    hasMaterial     = where->hasMaterial;
->>>>>>> c32d544d64b502882185fdbc0f34fd71b939a059
 }
 
 

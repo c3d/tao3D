@@ -10,7 +10,7 @@ I) Building and installing modules
 
  0. Prerequisites
 
- - Qt 4 (4.7.0 or later).
+ - Qt 4 (4.7.2 or later).
  - Tao Presentations (to install: open tao.dmg, drag and drop the Tao
    Presentations icon onto the Applications folder).
 
@@ -30,7 +30,7 @@ Start Tao Presentations: the new modules will be detected automatically.
 
  0. Prerequisites
 
- - Qt 4 (4.7 or later).
+ - Qt 4 (4.7.2 or later).
  - MinGW
  - Tao Presentations (to install: run taosetup.exe).
 
@@ -46,6 +46,24 @@ This will copy the modules under your "Application Data" directory:
 "%APPDATA%\Tao Presentations\modules".
 
 Start Tao Presentations. The new modules will be detected automatically.
+
+ * Linux
+   -----
+
+ 0. Prerequisites
+
+ - Qt 4 (4.7.2 or later).
+ - Tao Presentations.
+
+ 1. Build and install a local copy of the modules
+
+$ cd tao_sdk/modules
+$ qmake -r
+$ make install
+
+This will copy the modules under your home directory: "~/.tao/modules".
+
+Start Tao Presentations: the new modules will be detected automatically.
 
 
 II) Uninstalling a module

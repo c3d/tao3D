@@ -5446,7 +5446,10 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 {
     CHECK_0_1_RANGE(a);
     QColor c = colorByName(name);
-    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
+    FillColor * fillColor = new FillColor(c.redF(), c.greenF(), c.blueF(), a);
+    layout->fillColor = fillColor->color;
+    layout->Add(fillColor);
+    std::cerr << "Setting color to layout " << layout->PrettyId() << std::endl;
     return XL::xl_true;
 }
 
@@ -6851,18 +6854,36 @@ XL::Text_p Widget::textFlow(Tree_p self, text name)
     return new XL::Text(oldName);
 }
 
+Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree while preserving the current text format state
+// ----------------------------------------------------------------------------
+{
+    // to be preserved : Font, color, line_color, texture, alignement, linewidth, rotation, scale
+    //LayoutState state = *layout;
+//    XL::Save<LayoutState *> saveLayout(layout, layout);
+    Layout *childLayout = layout->AddChild(layout->id, child, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
 
-Tree_p Widget::textSpan(Tree_p self, Text_p contents)
+    Tree_p result = context->Evaluate(child);
+
+    // offset should not be repositionned like before this evaluation
+    saveLayout.saved->offset = childLayout->offset;
+    return result;
+}
+
+
+Tree_p Widget::textUnit(Tree_p self, Text_p contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
     if (path)
-        TextSpan(contents).Draw(*path, layout);
+        TextUnit(contents).Draw(*path, layout);
     else if (editCursor)
         updateCursor(contents);
     else
-        layout->Add(new TextSpan(contents));
+        layout->Add(new TextUnit(contents));
 
     return XL::xl_true;
 }
@@ -7258,8 +7279,8 @@ Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
 //   Enable or disable glyph cache
 // ----------------------------------------------------------------------------
 {
-    bool old = TextSpan::cacheEnabled;
-    TextSpan::cacheEnabled = enable;
+    bool old = TextUnit::cacheEnabled;
+    TextUnit::cacheEnabled = enable;
     return old ? XL::xl_true : XL::xl_false;
 }
 

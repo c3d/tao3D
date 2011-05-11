@@ -511,7 +511,8 @@ public:
     Tree_p      textOverflow(Tree_p self,
                              Real_p x, Real_p y, Real_p w, Real_p h);
     Text_p      textFlow(Tree_p self, text name);
-    Tree_p      textSpan(Tree_p self, Text_p content);
+    Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
+    Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
     Tree_p      font(Context *context, Tree_p self, Tree_p descr);
@@ -738,7 +739,7 @@ private:
     friend class MouseFocusTracker;
     friend class Drag;
     friend class TextSelect;
-    friend class TextSpan;
+    friend class TextUnit;
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;

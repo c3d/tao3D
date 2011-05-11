@@ -454,7 +454,7 @@ PREFIX(NoRefreshOn, tree, "no_refresh_on",
        DESCRIPTION("Cancel refresh on specified event type, if it was set to refresh. "
                    "See refresh_on for a list of event type values."))
 PREFIX(DefaultRefresh, tree, "default_refresh",
-       PARM(interval, real, "Interval in seconds"), 
+       PARM(interval, real, "Interval in seconds"),
        RTAO(defaultRefresh(self, interval)),
        GROUP(time:events)
        SYNOPSIS("Change default refresh interval for time primitives")
@@ -1267,10 +1267,16 @@ PREFIX(TextFlow,  tree,  "text_flow",
        SYNOPSIS("Names the flow")
        DESCRIPTION("Set the name of the current text flow")
        RETURNS(tree, "The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]"))
+PREFIX(TextSpan,  tree, "text_span",
+       PARM(t, code, "The text to insert"),
+       RTAO(textSpan(context, self, t)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of text")
+       DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
 
-PREFIX(TextSpan,  tree, "text",
+PREFIX(TextUnit,  tree, "text",
        PARM(t, text, "The text to insert"),
-       RTAO(textSpan(self, t)),
+       RTAO(textUnit(self, t)),
        GROUP(text)
        SYNOPSIS("Insert a block of text")
        DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
@@ -1472,7 +1478,7 @@ PREFIX(LoadText,  tree,  "load_text",
        RETURNS(tree, "The content of the file."))
 PREFIX(TaoLanguage, text, "tao_language", , RTAO(taoLanguage(self)),
        GROUP(text)
-       SYNOPSIS("Return the current language used by the Tao program") 
+       SYNOPSIS("Return the current language used by the Tao program")
        DESCRIPTION("Returns the two-letter ISO 639 language code of the current locale. For instance: en, fr.")
        RETURNS(text, "The current language code"))
 PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
@@ -1693,6 +1699,25 @@ PREFIX(LineEditTexture,  tree,  "line_edit_texture",
        RTAO(lineEditTexture(self, w, h, u)),
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given line editor")
+       DESCRIPTION(""))
+
+PREFIX(TextEdit,  tree,  "text_edit",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The description of the text"),
+       RTAO(textEdit(context, self, x, y, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("Draw a text editor in the current frame")
+       DESCRIPTION("A text edit allows the user to enter and edit some text with a useful collection of editing functions, including undo and redo, cut and paste, and drag and drop."))
+PREFIX(TextEditTexture,  tree,  "text_edit_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The text to insert in the text edit widget."),
+       RTAO(textEditTexture(context, self, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given editor")
        DESCRIPTION(""))
 
 PREFIX(PushButton,  tree,  "push_button",

@@ -3386,6 +3386,9 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topNameList)
                             *addr = value;
                             reloadProgram();
                         }
+                        else
+                            refreshNow();
+
                         return true;
                     }
                 }

@@ -70,7 +70,7 @@ constant (t:tree);
 /**
  * Sets the refresh time for the current loayout.
  *
- * The current layout (that is, the enclosing @ref locally or @p shape) will
+ * The current layout (that is, the enclosing @ref locally or @ref shape) will
  * be re-executed every @p interval seconds.
  */
 refresh (interval:real);
@@ -84,16 +84,6 @@ refresh (interval:real);
  * are not saved.
  */
 exit (n:integer);
-
-
-/**
- * Creates a local context.
- *
- * Evaluate the child tree while preserving the current graphical state.
- * Any state modification like color or translation done in the 
- * locally block only affect the block.
- */
-locally (t:tree);
 
 /**
  * Returns true if the current document is stored in a repository.

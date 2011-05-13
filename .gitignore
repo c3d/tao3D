@@ -4,6 +4,7 @@ debug/
 release/
 install/
 *.pro.user
+*.pro.user.*
 *.o
 ui_*.h
 object_script.*.Release

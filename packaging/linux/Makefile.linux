@@ -9,20 +9,21 @@
 #   - copy the installation directory under ./$(TAO)
 #   - copy the Qt libraries
 #   - copy the Qt plugins (for JPEG images, ...)
-#   - download and build git under ./git_build
-#   - install git under ./$(TAO)
 #   - create the tar-bz2 file from $(TAO)
 #
 #
 # Usage:
 #   make kit
-#   make clean      # Won't remove Git source package
-#   make veryclean  # Will remove Git source
+#   make clean
 
 # Spaces are evil on Linux
 TAO=Tao_Presentations_$(shell ../../tao/updaterev.sh -n)
 
-ARCH=$(shell lsb_release -is).$(shell uname -m)
+OS=$(shell lsb_release -is)
+ifeq ($(OS),)
+  OS=linux
+endif
+ARCH=$(OS).$(shell uname -m)
 
 ########
 

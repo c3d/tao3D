@@ -1786,6 +1786,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     isUntitled = false;
     setCurrentFile(fileName);
     setReadOnly(isReadOnly);
+    taoWidget->updateProgramSource(false);
+    setWindowModified(false);
     if (XL::MAIN->options.slideshow)
         switchToSlideShow();
     return true;

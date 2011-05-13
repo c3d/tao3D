@@ -1121,12 +1121,12 @@ public:
 private:
     void init()
     {
-#ifdef Q_OS_WIN
+#ifndef Q_OS_MACX
         // Work around bug #879:
         // XLSourceEdit is a modeless QDialog. On MacOSX, the keyboard
         // shortcuts defined by the main window are active when the QDialog
-        // has the focus; on Windows, shortcuts are ignored and I don't see
-        // why.
+        // has the focus; on Windows and Linux, shortcuts are ignored and
+        // I don't see why.
         // Creating application shortcuts is a workaround. It would not work
         // with multiple main windows (multiple documents), however.
         setShortcutContext(Qt::ApplicationShortcut);

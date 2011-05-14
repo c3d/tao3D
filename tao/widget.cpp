@@ -7662,8 +7662,7 @@ Tree_p Widget::thumbnail(Context *context,
         frame.resize(w,h);
         setup(w, h);
 
-        // Evaluate the program
-        XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
+        // Evaluate the program, not the context files (bug #1054)
         if (Tree *prog = xlProgram->tree)
             context->Evaluate(prog);
 

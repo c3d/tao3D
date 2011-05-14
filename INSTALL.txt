@@ -141,3 +141,29 @@ Build Tao whiteout Git repository
 
 Launch Tao with valgrind (it is very very slow)
   $ valgrind -q --tool=memcheck --suppressions=~/Work/tao/taoValgrindSupp.txt --dsymutil=yes  ~/Work/tao/install/Tao\ Presentations.app/Contents/MacOS/Tao\ Presentations
+
+*** Linux ***
+
+Prerequisites to build Tao: Qt 4.7.2, LLVM 2.9, libxss-dev.
+
+ - Building Qt 4.7.2 from sources (qt-everywhere-opensource-src-4.7.2.tar.gz)
+   Make sure you have the following packages (they do not come with the
+   default install of Ubuntu 11.04):
+     libx11-dev, libgstreamer0.10-dev, libglib2.0-dev, libphonon-dev,
+     libfontconfig1-dev
+   Configure Qt with:
+   $ ./configure --opensource
+   $ make -j3
+   $ sudo make install
+ - Building LLVM from sources:
+     $ svn co http://llvm.org/svn/llvm-project/llvm/tags/RELEASE_29/final llvm_2.9
+     $ cd llvm_2.9
+     $ ./configure --enable-optimized  # will install in /usr/local
+     $ make -j3
+     $ sudo make install
+ - Configure and build Tao as follows:
+   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.2/bin:$PATH
+   $ qmake -r # append 'CONFIG+=release' for release
+   $ make -j3 install
+   $ cd packaging/linux
+   $ make kit

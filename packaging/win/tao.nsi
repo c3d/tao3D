@@ -4,7 +4,7 @@
 
 ;--------------------------------
 
-!include "MUI.nsh"
+!include "MUI2.nsh"
 !include "version.nsh"
 
 ; The name of the installer
@@ -54,17 +54,24 @@ RequestExecutionLevel admin
 
 ; Pages
 
-  !insertmacro MUI_PAGE_WELCOME
+!insertmacro MUI_PAGE_WELCOME
 ;  !insertmacro MUI_PAGE_LICENSE "License.txt"
-  !insertmacro MUI_PAGE_COMPONENTS
-  !insertmacro MUI_PAGE_DIRECTORY
-  !insertmacro MUI_PAGE_INSTFILES
-  !insertmacro MUI_PAGE_FINISH
-
-  !insertmacro MUI_UNPAGE_WELCOME
-  !insertmacro MUI_UNPAGE_CONFIRM
-  !insertmacro MUI_UNPAGE_INSTFILES
-  !insertmacro MUI_UNPAGE_FINISH
+!insertmacro MUI_PAGE_COMPONENTS
+!insertmacro MUI_PAGE_DIRECTORY
+!insertmacro MUI_PAGE_INSTFILES
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_TEXT $(create_dshortcut)
+!define MUI_FINISHPAGE_RUN_FUNCTION "CreateDesktopShortcut"
+!define MUI_FINISHPAGE_RUN_NOTCHECKED
+!define MUI_FINISHPAGE_SHOWREADME
+!define MUI_FINISHPAGE_SHOWREADME_TEXT $(create_qlaunch)
+!define MUI_FINISHPAGE_SHOWREADME_FUNCTION "CreateQuickLaunchShortcut"
+!define MUI_FINISHPAGE_SHOWREADME_NOTCHECKED
+!insertmacro MUI_PAGE_FINISH
+!insertmacro MUI_UNPAGE_WELCOME
+!insertmacro MUI_UNPAGE_CONFIRM
+!insertmacro MUI_UNPAGE_INSTFILES
+!insertmacro MUI_UNPAGE_FINISH
 
 ;--------------------------------
 
@@ -83,6 +90,8 @@ LangString reg_uri       ${LANG_ENGLISH} "Registering $0: URI scheme"
 LangString unreg_fileext ${LANG_ENGLISH} "Unregistering $0 file extension"
 LangString unreg_uri     ${LANG_ENGLISH} "Unregistering $0: URI scheme"
 LangString inst_path_invalid ${LANG_ENGLISH} "Install path is invalid. Some files will not be removed."
+LangString create_dshortcut ${LANG_ENGLISH} "Create desktop shortcut"
+LangString create_qlaunch ${LANG_ENGLISH} "Create quick launch shortcut"
 
 ; Language strings - French
 LangString sec_tao       ${LANG_FRENCH} "Tao Presentations (requis)"
@@ -94,6 +103,8 @@ LangString reg_uri       ${LANG_FRENCH} "Association des URIs $0:"
 LangString unreg_fileext ${LANG_FRENCH} "Suppression de l'extension $0"
 LangString unreg_uri     ${LANG_FRENCH} "Suppression des URIs $0:"
 LangString inst_path_invalid ${LANG_FRENCH} "Le chemin d'installation est invalide. Certains fichiers ne seront pas supprimés."
+LangString create_dshortcut ${LANG_FRENCH} "Créer un raccourci sur le bureau"
+LangString create_qlaunch ${LANG_FRENCH} "Créer un raccourci dans la barre de lancement rapide"
 
 ; Makes the installer start faster
 !insertmacro MUI_RESERVEFILE_LANGDLL
@@ -193,6 +204,18 @@ Function .onInit
 
   ; For installer to display language selection dialog
   !insertmacro MUI_LANGDLL_DISPLAY
+
+FunctionEnd
+
+Function CreateDesktopShortcut
+
+  CreateShortCut "$DESKTOP\Tao Presentations.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
+
+FunctionEnd
+
+Function CreateQuickLaunchShortcut
+
+  CreateShortCut "$QUICKLAUNCH\Tao Presentations.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
 
 FunctionEnd
 

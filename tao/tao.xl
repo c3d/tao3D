@@ -16,6 +16,8 @@ key "Control--"                         -> zoom_out
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"
 key "Control-G"                         -> page_chooser
+key "Control-Left"                      -> decrease_eye_distance
+key "Control-Right"                     -> increase_eye_distance
 key X                                   -> text_edit_key X
 
 // Zoom
@@ -89,6 +91,9 @@ commit_chooser b:text ->
     chooser tr "Select commit"
     chooser_commits b, checkout, ""
 
+increase_eye_distance -> eye_distance eye_distance * 1.5
+decrease_eye_distance -> eye_distance eye_distance * 0.75
+
 stereoscopy_settings ->
     chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
     chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
@@ -98,8 +103,8 @@ stereoscopy_settings ->
     chooser_choice tr "Enable stereoscopy (back interleave)", {enable_stereoscopy antidiagonal}
     chooser_choice tr "Enable stereoscopy (Cannes)", {enable_stereoscopy alioscopy; eye_distance 30.0}
     chooser_choice tr "Enable stereoscopy (Depth map)", {enable_stereoscopy depthmap}
-    chooser_choice tr "Increase eye distance", {eye_distance eye_distance * 1.5}
-    chooser_choice tr "Decrease eye distance", {eye_distance eye_distance * 0.75}
+    chooser_choice tr "Increase eye distance", {increase_eye_distance}
+    chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
     chooser_choice tr "Set 2 stereo planes", {stereoscopy_planes 2}
     chooser_choice tr "Set 3 stereo planes", {stereoscopy_planes 3}
     chooser_choice tr "Set 4 stereo planes", {stereoscopy_planes 4}

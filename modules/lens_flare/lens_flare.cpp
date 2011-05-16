@@ -27,7 +27,7 @@ XL_DEFINE_TRACES
 
 LensFlare* lens;
 
-Tree_p lens_flare(Context *context, Tree_p tree, Tree_p prog)
+Tree_p lens_flare(Context *context, Tree_p /* tree */, Tree_p prog)
 // ----------------------------------------------------------------------------
 //    Generate a lens flare
 // ----------------------------------------------------------------------------
@@ -97,7 +97,7 @@ Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
         return xl_false;
     }
 
-    bool enable;
+    bool enable = true;
     if (name == xl_false || name->value == "OFF")
     {
         enable = false;
@@ -111,7 +111,7 @@ Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
     return xl_true;
 }
 
-int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *mod)
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo */* mod */)
 // ----------------------------------------------------------------------------
 //   Initialize the Tao module
 // ----------------------------------------------------------------------------

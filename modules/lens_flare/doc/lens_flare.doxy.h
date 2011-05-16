@@ -1,0 +1,73 @@
+/**
+ * @defgroup LensFlare Lens Flare
+ * @ingroup Modules
+ *
+ * Generate a lens flare.
+ *
+ * This module allows to create a dynamic lens flare, either using default model,
+ * or adding new flares thanks to specified textures.
+ *
+ * A lens flare is an optical phenomenon that occurs when light reflects inside the lens of the camera.
+ * The light bounces off of the camera lens and components inside of the lens and
+ * camera to create streaks, haze, and other effects.
+ *
+ * Typically a lens flare is something to avoid, however some types of flare may actually enhance.
+ * the artistic meaning of a photo when it is used on purpose.
+ *
+ * It can help add realism to the scene, or make an otherwise boring photo
+ *  stand out with the artful use of light.
+ *
+ *
+ * For instance, the following code define the model of a lens flare generate by a sun, like the integrated one.
+ * @include lens_flare.ddd
+ *
+ * @{
+ */
+
+/**
+ * Creates a local lens flare.
+ *
+ * Define and evaluate the lens flare tree while
+ * preserving the current graphical state like a @ref locally.
+ *
+ * @param contents defines code applied on the current lens flare.
+ */
+lens_flare(contents:tree);
+
+/**
+ * Enable or disable the depth test for the lens flare.
+ *
+ * @param mode is @c ON or @c OFF.
+ */
+lens_flare_depth_test(mode:name);
+
+/**
+ * Define lens flare source.
+ *
+ * Set the target of the lens source at (@p x, @p y, @ z).
+ */
+lens_flare_source(x:real, y:real, z:real);
+
+
+/**
+ * Define lens flare target.
+ *
+ * Set the target of the lens flare at (@p x, @p y, @ z).
+ */
+lens_flare_target(x:real, y:real, z:real);
+
+/**
+ * Add a new flare to the current lens flare.
+ * @param id index of the flare texture.
+ * @param loc relative location of the flare. 0 is the position of the source and 1 is the one of the target.
+ * @param scale scaling rate of the texture. 1 is the texture normal size.
+ * @param r red component of the flare color.
+ * @param g green component of the flare color.
+ * @param b blue component of the flare color.
+ * @param a alpha-channel, transparency of the flare color. 0 is transparent and 1 is opaque.
+ */
+add_flare(id:integer, loc:real, scale:real, r:real, g:real, b:real, a:real);
+
+/**
+* @}
+*/

@@ -60,6 +60,7 @@ linux-g++* {
 
 # Input
 HEADERS += widget.h \
+    include/tao/tao_gl.h \
     window.h \
     application.h \
     frame.h \
@@ -267,10 +268,10 @@ CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
 !macx {
-    HEADERS += GL/glew.h \
-        GL/glxew.h \
-        GL/wglew.h
-    SOURCES += GL/glew.c
+    HEADERS += include/tao/GL/glew.h \
+        include/tao/GL/glxew.h \
+        include/tao/GL/wglew.h
+    SOURCES += include/tao/GL/glew.c
     DEFINES += GLEW_STATIC
 }
 macx {

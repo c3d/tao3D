@@ -118,6 +118,7 @@ extern "C"
 {
     // Called once immediately after the module library is loaded
     // [Optional]
+    // [ModuleInfo is only valable during this call]
     int module_init(const Tao::ModuleApi *a, const Tao::ModuleInfo *m);
 
     // Called when module is imported to let the module extend the XL symbol

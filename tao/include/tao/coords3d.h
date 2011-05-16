@@ -126,6 +126,11 @@ struct Vector3 : Point3
         return *this;
     }
 
+    double Dot(const Vector3& o)
+    {
+        return x*o.x+y*o.y+z*o.z;
+    }
+
     Vector3& Cross(const Vector3& o)
     {
         coord cx = y*o.z - z*o.y;

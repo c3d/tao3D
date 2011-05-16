@@ -9,7 +9,7 @@
 //   Helper classes to save and restore OpenGL selected attributes and/or the
 //   current matrix.
 //
-//   The mask used to indicates which groups of state variables to save on the 
+//   The mask used to indicates which groups of state variables to save on the
 //   attribute stack is the same than the one of glPushAttrib.
 //
 //
@@ -26,7 +26,7 @@
 #include "tao.h"
 #include "widget.h"
 #include "tao_gl.h"
-
+#include "application.h"
 
 TAO_BEGIN
 
@@ -104,7 +104,7 @@ struct GLAllStateKeeper : GLStateKeeper
     GLAllStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS,
                      bool saveModel = true,
                      bool saveProjection = true,
-                     bool saveTextureMatrix = true)
+                     uint64 saveTextureMatrix = ~0UL)
         : GLStateKeeper(bits, saveModel),
           saveProjection(saveProjection),
           saveTextureMatrix(saveTextureMatrix)
@@ -114,31 +114,44 @@ struct GLAllStateKeeper : GLStateKeeper
             glMatrixMode(GL_PROJECTION);
             glPushMatrix();
         }
-        if (saveTextureMatrix)
+
+        for(uint i = 0; i <  TaoApp->maxTextureCoords; i++)
         {
-            glMatrixMode(GL_TEXTURE);
-            glPushMatrix();
+            if (saveTextureMatrix & (1 << i))
+            {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glMatrixMode(GL_TEXTURE);
+                glPushMatrix();
+            }
         }
+
         glMatrixMode(GL_MODELVIEW);
     }
     ~GLAllStateKeeper()
     {
-        if (saveTextureMatrix)
-        {
-            glMatrixMode(GL_TEXTURE);
-            glPopMatrix();
-        }
         if (saveProjection)
         {
             glMatrixMode(GL_PROJECTION);
             glPopMatrix();
         }
+
+        for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
+        {
+            if (saveTextureMatrix & (1 << i))
+            {
+                glActiveTexture(GL_TEXTURE0 + i);
+                glMatrixMode(GL_TEXTURE);
+                glPopMatrix();
+            }
+        }
+
         glMatrixMode(GL_MODELVIEW);
     }
 
 private:
     bool        saveProjection;
-    bool        saveTextureMatrix;
+    uint64      saveTextureMatrix;
+    uint        maxTextureMatrix;
     GLAllStateKeeper(const GLStateKeeper &other);
 };
 

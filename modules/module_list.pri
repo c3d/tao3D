@@ -16,6 +16,10 @@
        digital_clock    \
        slides           \
        animate          \
+       filters          \
+       render_to_texture\
+       shading          \
+       lens_flare       \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

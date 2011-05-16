@@ -93,7 +93,6 @@ void ShaderValue::Draw(Layout *where)
     {
         ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
         ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();
-
         if (!uniform && !attribute)
         {
             kstring cname = name->value.c_str();
@@ -114,9 +113,50 @@ void ShaderValue::Draw(Layout *where)
             }
         }
 
+
         if (uniform)
         {
-            glUniform1fv(uniform->id, values.size(), &values[0]);
+            uint id = uniform->id;
+            GLint type = 0;
+
+            GLint uniformMaxLength = 0;
+            glGetProgramiv( where->programId, GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength );
+
+            GLint uniformActive = 0;
+            glGetProgramiv( where->programId, GL_ACTIVE_UNIFORMS, &uniformActive );
+
+            //Get type of current uniform variable
+            GLint size = 0;
+            GLchar* uniformName = new GLchar[uniformMaxLength];
+            for(int index = 0; index < uniformActive; index++)
+            {
+                glGetActiveUniform( where->programId, index, uniformMaxLength + 1, NULL, &size, (GLenum*) &type, uniformName);
+                if(! strcmp(uniformName,name->value.c_str()))
+                    break;
+            }
+            delete uniformName;
+
+            switch (type)
+            {
+            case GL_SAMPLER_1D:
+            case GL_SAMPLER_2D:
+            case GL_SAMPLER_3D:
+            case GL_SAMPLER_CUBE:
+#ifdef GL_SAMPLER_2D_RECT
+            case GL_SAMPLER_2D_RECT:
+#endif
+                glUniform1i(id, values[0]);
+                break;
+            case GL_FLOAT_VEC2: glUniform2fv(id, (int) (values.size() / 2), &values[0]); break;
+            case GL_FLOAT_VEC3: glUniform3fv(id, (int) (values.size() / 3), &values[0]); break;
+            case GL_FLOAT_VEC4: glUniform4fv(id, (int) (values.size() / 4), &values[0]); break;
+            case GL_FLOAT_MAT2: glUniformMatrix2fv(id, (int) (values.size() / 4), 0, &values[0]); break;
+            case GL_FLOAT_MAT3: glUniformMatrix3fv(id, (int) (values.size() / 9), 0, &values[0]); break;
+            case GL_FLOAT_MAT4: glUniformMatrix4fv(id, (int) (values.size() / 16), 0, &values[0]); break;
+            default:
+                glUniform1fv(id, values.size(), &values[0]);
+                break;
+            }
         }
         else if (attribute)
         {

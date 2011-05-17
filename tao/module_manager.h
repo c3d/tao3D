@@ -356,6 +356,7 @@ public:
                                   QString reason = "");
     virtual void        warnInvalidModule(QString moduleDir, QString cause);
     virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
+    virtual void        warnLibraryLoadError(QString name, QString errorString);
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);

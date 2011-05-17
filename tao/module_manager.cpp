@@ -31,6 +31,7 @@
 #include "repository.h"
 #include <QSettings>
 #include <QHash>
+#include <QMessageBox>
 
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
@@ -814,6 +815,7 @@ bool ModuleManager::loadNative(Context * /*context*/,
         {
             IFTRACE(modules)
                 debug() << "    Load error: " << +lib->errorString() << "\n";
+            warnLibraryLoadError(+m.name, lib->errorString());
             delete lib;
         }
     }
@@ -1086,6 +1088,17 @@ void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 {
     (void)m;
+}
+
+
+void ModuleManager::warnLibraryLoadError(QString name, QString errorString)
+// ----------------------------------------------------------------------------
+//   Tell user that library failed to load (module will be ignored)
+// ----------------------------------------------------------------------------
+{
+    QString msg = tr("Module %1 cannot be initialized.\n%2").arg(name)
+                                                            .arg(errorString);
+    QMessageBox::warning(NULL, tr("Tao modules"), msg);
 }
 
 

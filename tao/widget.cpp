@@ -7672,6 +7672,8 @@ Tree_p Widget::thumbnail(Context *context,
         XL::Save<uint> savePageShown(pageShown, pageShown);
         XL::Save<uint> savePageTotal(pageShown, pageTotal);
         XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+        XL::Save<bool> saveDAP(drawAllPages, false);
+        XL::Save<QPrinter *> savePrinter(printer, NULL);
 
         // Clear the background and setup initial state
         frame.resize(w,h);

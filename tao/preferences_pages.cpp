@@ -331,7 +331,7 @@ void ModulesPage::toggleModule()
     int row = act->data().toInt();
     ModuleManager::ModuleInfoPrivate m = modules[row];
 
-    mmgr->setEnabled(+m.id, !m.enabled);
+    mmgr->setEnabled(+m.id, !m.enabled || m.inError);
     updateTable();
 }
 

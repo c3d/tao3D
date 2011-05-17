@@ -276,16 +276,21 @@ public:
     //   Information about a module
     // ------------------------------------------------------------------------
     {
-        ModuleInfoPrivate() : ModuleInfo() {}
+        ModuleInfoPrivate() : ModuleInfo(), enabled(enabled), loaded(false),
+              updateAvailable(false), hasNative(false),
+              native(NULL), context(NULL), inError(false)
+            {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL)
+              native(NULL), context(NULL), inError(false)
             {}
+
+        // Configuration attributes
+        bool    enabled;
 
         // Runtime attributes
         text    latest;
-        bool    enabled;
         // loaded is set to true when xl file is imported and
         //           set to false when xl file is unloaded
         bool    loaded;
@@ -296,6 +301,7 @@ public:
         // native is the pointer to a compliant library (enter_symbols is present)
         QLibrary * native;
         XL::Context_p context;
+        bool    inError;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {

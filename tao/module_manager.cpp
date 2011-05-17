@@ -390,7 +390,7 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     bool prev = m_p->enabled;
     m_p->enabled = enabled;
 
-    if (prev == enabled)
+    if (prev == enabled && !m_p->inError)
         return;
     if (!m_p->context)
         return;
@@ -817,6 +817,7 @@ bool ModuleManager::loadNative(Context * /*context*/,
                 debug() << "    Load error: " << +lib->errorString() << "\n";
             warnLibraryLoadError(+m.name, lib->errorString());
             delete lib;
+            m_p->inError = true;
         }
     }
     else

@@ -77,6 +77,7 @@ struct MouseCoordinatesInfo;
 #define EDIT_MENU_NAME  "TAO_EDIT_MENU"
 #define SHARE_MENU_NAME "TAO_SHARE_MENU"
 #define VIEW_MENU_NAME  "TAO_VIEW_MENU"
+#define TOOLBAR_MENU_NAME  "TAO_VIEW_TOOLBAR_MENU"
 #define HELP_MENU_NAME  "TAO_HELP_MENU"
 
 
@@ -339,6 +340,7 @@ public:
     Tree_p      rescale(Tree_p self, Real_p x, Real_p y, Real_p z);
 
     // Setting attributes
+    Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
     Name_p      depthTest(Tree_p self, bool enable);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);

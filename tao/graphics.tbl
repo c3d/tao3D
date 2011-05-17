@@ -28,6 +28,13 @@
 //
 // ============================================================================
 
+PREFIX(WindowSize, tree, "window_size",
+       PARM(w, integer, "Width of the window.")
+       PARM(h, integer, "Height of the window."),
+       RTAO(windowSize(self, w, h)),
+       GROUP(page)
+       SYNOPSIS("Resize the window to the specified width and height."))
+
 PREFIX(ShowHide, tree, "show",
        PARM(amount, real, "Amount of global transparency"),
        RTAO(visibility(self, amount)),

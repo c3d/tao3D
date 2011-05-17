@@ -482,7 +482,7 @@ void Widget::draw()
                 glDrawBuffer(GL_BACK_LEFT);
             else if (stereoscopic == 2)
                 glDrawBuffer(GL_BACK_RIGHT);
-                
+
             glDisable(GL_STENCIL_TEST);
         }
 
@@ -4713,6 +4713,15 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     return XL::xl_true;
 }
 
+
+Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
+// ----------------------------------------------------------------------------
+//   Resize the main window to the specified size.
+// ----------------------------------------------------------------------------
+{
+    ((QMainWindow*)parent())->resize(width->value, height->value);
+    return XL::xl_true;
+}
 
 XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
@@ -9182,7 +9191,7 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
         break;
     }
 
-    if (QMenu* view = win->findChild<QMenu*>(VIEW_MENU_NAME))
+    if (QMenu* view = win->findChild<QMenu*>(TOOLBAR_MENU_NAME))
         view->addAction(currentToolBar->toggleViewAction());
 
     connect(currentToolBar, SIGNAL(actionTriggered(QAction*)),

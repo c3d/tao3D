@@ -2886,14 +2886,15 @@ void Widget::reloadProgram(XL::Tree *newProg)
 }
 
 
-void Widget::updateProgramSource()
+void Widget::updateProgramSource(bool notWhenHidden)
 // ----------------------------------------------------------------------------
 //   Update the contents of the program source window
 // ----------------------------------------------------------------------------
 {
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
-    if (window->src->isHidden() || !xlProgram || sourceChanged())
+    if ((window->src->isHidden() && notWhenHidden) ||
+        !xlProgram || sourceChanged())
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
 #endif
@@ -7701,6 +7702,8 @@ Tree_p Widget::thumbnail(Context *context,
         XL::Save<uint> savePageShown(pageShown, pageShown);
         XL::Save<uint> savePageTotal(pageShown, pageTotal);
         XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+        XL::Save<bool> saveDAP(drawAllPages, false);
+        XL::Save<QPrinter *> savePrinter(printer, NULL);
 
         // Clear the background and setup initial state
         frame.resize(w,h);

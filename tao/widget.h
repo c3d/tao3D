@@ -189,7 +189,7 @@ public:
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
     void        preloadSelectionCode();
-    void        updateProgramSource();
+    void        updateProgramSource(bool notWhenHidden = true);
     bool        markChange(text reason);
     void        finishChanges();
     void        selectStatements(Tree *tree);

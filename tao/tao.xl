@@ -115,6 +115,8 @@ stereoscopy_settings ->
     chooser_choice tr "Set 9 stereo planes", {stereoscopy_planes 9}
     chooser_choice tr "Set 10 stereo planes", {stereoscopy_planes 10}
 
+    chooser_choice tr "Activate ATI Macs quad buffer workaround", {enable_stereoscopy bogusquadbuffers}
+
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28
 

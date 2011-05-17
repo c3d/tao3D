@@ -21,7 +21,6 @@ syntax
 // for the current document
 add_search_path "image:", module_dir & "/images"
 
-
 // ============================================================================
 //
 //    Themes

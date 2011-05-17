@@ -34,7 +34,6 @@ Tree_p lens_flare(Context *context, Tree_p tree, Tree_p prog)
 {
     lens = new LensFlare();
     context->Evaluate(prog);
-    //(XLCall("locally"), prog) (tree->Symbols());
     LensFlare::tao->scheduleRender(LensFlare::render_callback, lens);
 
     return xl_true;

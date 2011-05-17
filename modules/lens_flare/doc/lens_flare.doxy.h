@@ -23,8 +23,10 @@
  *
  * @image html lens_flare.png "Output from lens_flare.ddd"
  *
- * @note This module integrate by defaut some flare textures, which can be used to create differents effects like in the previous example.
+ *
  * @note In order to use correctly the depth test, the lens flare must be drawn after the others elements.
+ * @note This module integrate already some lens flare textures, which can be used to create differents effects like in the previous example.
+ * @note It is also possible to create these textures in Tao thanks to integrated fonctions (@ref frame_texture, @ref radial_gradient, etc.).
  *
  * @{
  */

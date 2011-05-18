@@ -46,6 +46,7 @@ public:
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
+    virtual void        RefreshLayouts(Layout::Layouts &layouts);
 
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
@@ -78,6 +79,7 @@ public:
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
+    virtual void        RefreshLayouts(Layouts &layouts);
 
     virtual void        Add(Drawing *child);
     void                Add(Items::iterator first, Items::iterator last);

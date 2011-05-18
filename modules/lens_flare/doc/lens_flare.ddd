@@ -1,14 +1,17 @@
 import LensFlare 1.0
 
+// Black background
+clear_color 0.0, 0.0, 0.0, 1.0
+
 sun_flare ->
     locally
         // Define flare textures
-        FLARE0 -> texture FLARES_DIR & "flare0.jpg"
-        FLARE1 -> texture FLARES_DIR & "flare1.jpg"
-        FLARE2 -> texture FLARES_DIR & "flare2.jpg"
-        FLARE3 -> texture FLARES_DIR & "flare3.jpg"
-        FLARE4 -> texture FLARES_DIR & "flare4.jpg"
-        FLARE5 -> texture FLARES_DIR & "flare5.jpg"
+        FLARE0 -> texture FLARES_DIR & "sun_flare0.jpg"
+        FLARE1 -> texture FLARES_DIR & "sun_flare1.jpg"
+        FLARE2 -> texture FLARES_DIR & "sun_flare2.jpg"
+        FLARE3 -> texture FLARES_DIR & "sun_flare3.jpg"
+        FLARE4 -> texture FLARES_DIR & "sun_flare4.jpg"
+        FLARE5 -> texture FLARES_DIR & "sun_flare5.jpg"
         // Create lens flare
         lens_flare
             // Define parameters
@@ -25,4 +28,6 @@ sun_flare ->
             add_flare FLARE4, 0.85, 0.05, 1, 0.8, 1, 0.2
             add_flare FLARE5, 0.95, 0.3, 1, 1, 1, 1
 
+// Same as built-in form:
+// sun_flare 0, 0, -500, -100, -100, 500
 sun_flare

@@ -18,7 +18,8 @@
  *  stand out with the artful use of light.
  *
  *
- * For instance, the following code define the same model of a lens flare generate by a sun, than the integrated one.
+ * For instance, the following code defines the same model of a lens flare created by the sun,
+ * than the built-in form @ref sun_flare(sx:real, sy:real, sz:real, tx:real, ty:real, tz:real).
  * @include lens_flare.ddd
  *
  * @image html lens_flare.png "Output from lens_flare.ddd"

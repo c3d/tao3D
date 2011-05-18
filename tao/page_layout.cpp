@@ -947,6 +947,10 @@ void AnchorLayout::Draw(Layout *where)
 //   Draw all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Draw(where);
 }
 
@@ -956,6 +960,10 @@ void AnchorLayout::DrawSelection(Layout *where)
 //   Draw selection for all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     return Layout::DrawSelection(where);
 }
 
@@ -965,6 +973,10 @@ void AnchorLayout::Identify(Layout *where)
 //   Identify all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Identify(where);
 }
 

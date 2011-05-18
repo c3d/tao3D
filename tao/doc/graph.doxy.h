@@ -30,6 +30,16 @@
  *
  * @{
  */
+
+/**
+ * Creates a local context.
+ *
+ * Evaluate the child tree while preserving the current graphical state.
+ * Any state modification like color or translation done in the 
+ * locally block only affect the block.
+ */
+locally (t:tree);
+
 /**
  * Creates a selectable shape
  *

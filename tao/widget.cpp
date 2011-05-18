@@ -108,6 +108,7 @@ namespace Tao {
 // ============================================================================
 
 static Point3 defaultCameraPosition(0, 0, 6000);
+static bool bogusQuadBuffers = false;
 
 static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
@@ -447,6 +448,8 @@ void Widget::draw()
     }
 
     int planes = stereoMode == stereoDEPTHMAP ? 1 : stereoPlanes;
+    if (bogusQuadBuffers && planes == 1 && stereoMode == stereoHARDWARE)
+        planes = 2;
     for (stereoscopic = 1; stereoscopic <= planes; stereoscopic++)
     {
         // Select the buffer in which we draw
@@ -478,7 +481,13 @@ void Widget::draw()
         }
         else
         {
-            glDrawBuffer(GL_BACK);
+            if (!bogusQuadBuffers)
+                glDrawBuffer(GL_BACK);
+            else if (stereoscopic == 1)
+                glDrawBuffer(GL_BACK_LEFT);
+            else if (stereoscopic == 2)
+                glDrawBuffer(GL_BACK_RIGHT);
+                
             glDisable(GL_STENCIL_TEST);
         }
 
@@ -2892,14 +2901,15 @@ void Widget::reloadProgram(XL::Tree *newProg)
 }
 
 
-void Widget::updateProgramSource()
+void Widget::updateProgramSource(bool notWhenHidden)
 // ----------------------------------------------------------------------------
 //   Update the contents of the program source window
 // ----------------------------------------------------------------------------
 {
 #ifndef CFG_NOSRCEDIT
     Window *window = (Window *) parentWidget();
-    if (window->src->isHidden() || !xlProgram || sourceChanged())
+    if ((window->src->isHidden() && notWhenHidden) ||
+        !xlProgram || sourceChanged())
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
 #endif
@@ -3401,6 +3411,9 @@ bool Widget::set(Tree *shape, text name, Tree *value, text topNameList)
                             *addr = value;
                             reloadProgram();
                         }
+                        else
+                            refreshNow();
+
                         return true;
                     }
                 }
@@ -5147,6 +5160,7 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     if (name == XL::xl_false || name->value == "no" || name->value == "none")
     {
         newState = false;
+        stereoMode = stereoHARDWARE;
     }
     else if (name == XL::xl_true || name->value == "hardware")
     {
@@ -5195,6 +5209,10 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         newState = true;
         stereoMode = stereoDEPTHMAP;
         stereoPlanes = 1;
+    }
+    else if (name->value == "bogusquadbuffers")
+    {
+        bogusQuadBuffers = true;
     }
     else
     {
@@ -7886,13 +7904,14 @@ Integer* Widget::thumbnail(Context *context,
         XL::Save<uint> savePageShown(pageShown, pageShown);
         XL::Save<uint> savePageTotal(pageShown, pageTotal);
         XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+        XL::Save<bool> saveDAP(drawAllPages, false);
+        XL::Save<QPrinter *> savePrinter(printer, NULL);
 
         // Clear the background and setup initial state
         frame.resize(w,h);
         setup(w, h);
 
-        // Evaluate the program
-        XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
+        // Evaluate the program, not the context files (bug #1054)
         if (Tree *prog = xlProgram->tree)
             context->Evaluate(prog);
 

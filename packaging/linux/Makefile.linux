@@ -1,0 +1,50 @@
+# Makefile to package a Linux distribution
+#
+# The application is distributed as a tar.bz2 copy of the
+# install directory, with additional files copied in.
+#
+# To build the package, this Makefile goes through the following
+# steps:
+#   - run "make install" at the top level of the Tao project
+#   - copy the installation directory under ./$(TAO)
+#   - copy the Qt libraries
+#   - copy the Qt plugins (for JPEG images, ...)
+#   - create the tar-bz2 file from $(TAO)
+#
+#
+# Usage:
+#   make kit
+#   make clean
+
+# Spaces are evil on Linux
+TAO=Tao_Presentations_$(shell ../../tao/updaterev.sh -n)
+
+OS=$(shell lsb_release -is)
+ifeq ($(OS),)
+  OS=linux
+endif
+ARCH=$(OS).$(shell uname -m)
+
+########
+
+include Makefile.config
+
+kit: $(TAO).$(ARCH).tar.bz2
+
+$(TAO).$(ARCH).tar.bz2: $(TAO) $(TAO)/Tao.bin
+	tar cvfj $@ $(TAO)
+
+$(TAO):
+	mkdir $(TAO)
+
+$(TAO)/Tao.bin: $(TAO) install
+	mv $(TAO)/Tao $(TAO)/Tao.bin
+	cp Tao.sh $(TAO)/Tao
+	chmod +x $(TAO)/Tao
+
+install: $(TAO)
+	(cd ../.. && make install) && cp -Rp ../../install/* $(TAO)
+
+clean:
+	rm -rf $(TAO)
+

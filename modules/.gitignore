@@ -4,4 +4,5 @@ Makefile.Release
 *_wrap.cpp
 lib*.dylib
 lib*.so
+lib*.so.*
 *.dll

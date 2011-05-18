@@ -25,6 +25,7 @@ isEmpty(MODINSTPATH) {
         MODINSTROOT = "$${APPDATA}/Tao Presentations/modules"
       }
       macx:MODINSTROOT = $$(HOME)"/Library/Application Support/Tao Presentations/modules"
+      linux*:MODINSTROOT = $$(HOME)"/.tao/modules"
       isEmpty(MODINSTROOT):error(MODINSTROOT not defined)
     } else {
       # Building full Tao including its bundled modules

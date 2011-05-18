@@ -1,0 +1,14 @@
+# ******************************************************************************
+# Makefile.config.in                                                Tao project
+# ******************************************************************************
+# File Description:
+# Make include file to retrieve some variables from the Qt/qmake environment
+# ******************************************************************************
+# This software is property of Taodyne SAS - Confidential
+# Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+# (C) 2011 Jerome Forissier <jerome@taodyne.com>
+# (C) 2011 Taodyne SAS
+# ******************************************************************************
+
+INSTROOT=$$INSTROOT
+QMAKE_LIBDIR_QT=$$QMAKE_LIBDIR_QT

@@ -286,6 +286,7 @@ Activity *Chooser::Key(text key)
 // ----------------------------------------------------------------------------
 {
     uint position = keystrokes.length();
+    Widget *widget = this->widget;
     if (key == "Return" || key == "Enter")
     {
         if (selected)

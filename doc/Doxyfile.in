@@ -122,7 +122,7 @@ INLINE_INHERITED_MEMB  = NO
 # path before files name in the file list and in the header files. If set
 # to NO the shortest path that makes the file name unique will be used.
 
-FULL_PATH_NAMES        = YES
+FULL_PATH_NAMES        = NO
 
 # If the FULL_PATH_NAMES tag is set to YES then the STRIP_FROM_PATH tag
 # can be used to strip a user-defined part of the path. Stripping is
@@ -521,7 +521,7 @@ SHOW_DIRECTORIES       = NO
 # This will remove the Files entry from the Quick Index and from the
 # Folder Tree View (if specified). The default is YES.
 
-SHOW_FILES             = NO
+SHOW_FILES             = YES
 
 # Set the SHOW_NAMESPACES tag to NO to disable the generation of the
 # Namespaces page.

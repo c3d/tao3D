@@ -5602,7 +5602,9 @@ Integer* Widget::fillTexture(Tree_p self, text img)
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
 {
-    uint texUnit, texId;
+    uint texUnit = 0;
+    uint texId = 0;
+
     if (img != "")
     {
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
@@ -5611,13 +5613,14 @@ Integer* Widget::fillTexture(Tree_p self, text img)
             rinfo = new ImageTextureInfo();
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
+
         layout->currentTexture.id = rinfo->bind(img);
         layout->currentTexture.width = rinfo->width;
         layout->currentTexture.height = rinfo->height;
-    }
 
-    texUnit = layout->currentTexture.unit;
-    texId   = layout->currentTexture.id;
+        texUnit = layout->currentTexture.unit;
+        texId   = layout->currentTexture.id;
+    }
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
@@ -5631,7 +5634,10 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
-{
+{       
+    uint texUnit = 0;
+    uint texId = 0;
+
     refreshOn(QEvent::Timer);
 
     if (img != "")
@@ -5645,10 +5651,10 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
         layout->currentTexture.id = rinfo->bind(img);
         layout->currentTexture.width = rinfo->width;
         layout->currentTexture.height = rinfo->height;
-    }
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        texUnit = layout->currentTexture.unit;
+        texId   = layout->currentTexture.id;
+    }
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
@@ -5662,6 +5668,9 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
+    uint texUnit = 0;
+    uint texId = 0;
+
     refreshOn(QEvent::Timer);
 
     if (img != "")
@@ -5676,10 +5685,10 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
         layout->currentTexture.id = rinfo->bind(img);
         layout->currentTexture.width = rinfo->w;
         layout->currentTexture.height = rinfo->h;
-    }
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        texUnit = layout->currentTexture.unit;
+        texId   = layout->currentTexture.id;
+    }
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;

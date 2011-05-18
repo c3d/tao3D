@@ -347,6 +347,11 @@ public:
                 ret = fmt.arg(+path).arg("lib").arg("module"); // Backwd compat.
             return ret;
         }
+
+        bool operator<(const ModuleInfoPrivate o) const
+        {
+            return (name.compare(o.name) < 0);
+        }
     };
 
     bool                loadAll(Context *context);

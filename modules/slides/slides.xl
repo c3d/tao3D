@@ -10,6 +10,8 @@ module_description
                 "Several graphical themes are defined, and can be further " &
                 "customized (colors, background, layout)."
     import_name "Slides"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
     version 1.0
 
 syntax

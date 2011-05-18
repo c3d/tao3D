@@ -122,7 +122,8 @@ HEADERS += widget.h \
     inspectordialog.h \
     raster_text.h \
     dir.h \
-    templates.h
+    templates.h \
+    module_info_dialog.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -179,7 +180,8 @@ SOURCES += tao_main.cpp \
     inspectordialog.cpp \
     raster_text.cpp \
     dir.cpp \
-    templates.cpp
+    templates.cpp \
+    module_info_dialog.cpp
 
 # Check compile-time options
 
@@ -305,7 +307,8 @@ OTHER_FILES += xl.syntax \
     traces.tbl \
     nocomment.stylesheet \
     graphics.tbl \
-    Info.plist.in
+    Info.plist.in \
+    module_info_dialog.html
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

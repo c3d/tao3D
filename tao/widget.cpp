@@ -3844,8 +3844,8 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        where->textureUnits = 1;
-        where->previousUnits = 1;
+        where->textureUnits = 0;
+        where->previousUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         (where->fillTextures).clear();
@@ -5584,6 +5584,7 @@ Integer* Widget::fillTexture(Tree_p self, text img)
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
 {
+    uint texUnit, texId;
     if (img != "")
     {
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
@@ -5597,11 +5598,12 @@ Integer* Widget::fillTexture(Tree_p self, text img)
         layout->currentTexture.height = rinfo->height;
     }
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+    texUnit = layout->currentTexture.unit;
+    texId   = layout->currentTexture.id;
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
     return new XL::Integer(texId);
 }
 

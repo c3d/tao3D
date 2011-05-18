@@ -563,6 +563,9 @@ void PageLayout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 

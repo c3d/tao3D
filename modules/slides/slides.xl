@@ -5,7 +5,7 @@
 module_description
     id "70C61E75-4CE2-4020-9E76-797763482B56"
     name "Slides"
-    description "Commands and themes for slides: "
+    description "Commands and themes for slides: " &
                 "definitions that can be used to write presentations. " &
                 "Several graphical themes are defined, and can be further " &
                 "customized (colors, background, layout)."
@@ -13,6 +13,13 @@ module_description
     author "Taodyne SAS"
     website "http://www.taodyne.com"
     version 1.0
+
+module_description "fr",
+    name "Thèmes de présentations"
+    description "Commandes et thèmes pour créer des présentations " &
+                "traditionnelles. " &
+                "Plusieurs thèmes graphiques sont fournis, et peuvent " &
+                "être personnalisés (couleurs, image de fond, mise en page)."
 
 syntax
     PREFIX     370     !*

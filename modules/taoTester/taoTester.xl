@@ -9,6 +9,10 @@ module_description
         website "http://www.taodyne.com"
         version 1.0
 
+module_description "fr",
+        name "Test de Tao"
+        description "Primitives pour créer des tests automatiques dans Tao."
+
 toolbar_test ->
 {
 menu "toolbar:test", "test"

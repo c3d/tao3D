@@ -639,7 +639,7 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
     Tree * v = moduleAttrAsTree(tree, attribute);
     if (v)
     {
-        Text * t = v->AsText();
+        Text_p t = toText(v);
         if (t)
             val = +(t->value);
     }
@@ -661,6 +661,32 @@ Tree * ModuleManager::moduleAttrAsTree(XL::Tree *tree, QString attribute)
         t = tree->Do(action);
     }
     return t;
+}
+
+
+Text * ModuleManager::toText(Tree *what)
+// ----------------------------------------------------------------------------
+//   Try to reduce 'what' to a single Text element (perform '&' concatenation)
+// ----------------------------------------------------------------------------
+{
+    Text * txt = what->AsText();
+    if (txt)
+        return txt;
+    Block * block = what->AsBlock();
+    if (block)
+        return toText(block->child);
+    Infix * inf = what->AsInfix();
+    if (inf && (inf->name == "&" || inf->name == "\n"))
+    {
+        Text * left = toText(inf->left);
+        if (!left)
+            return NULL;
+        Text * right = toText(inf->right);
+        if (!right)
+            return NULL;
+        return new Text(left->value + right->value);
+    }
+    return NULL;
 }
 
 

@@ -455,6 +455,7 @@ private:
     Tree *              parse(QString xlPath);
     QString             moduleAttr(Tree * tree, QString attribute);
     Tree *              moduleAttrAsTree(Tree * tree, QString attribute);
+    Text *              toText(Tree *what);
 
     bool                load(Context *, const QList<ModuleInfoPrivate> &mods);
     bool                load(Context *, const ModuleInfoPrivate &m);

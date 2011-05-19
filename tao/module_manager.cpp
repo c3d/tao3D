@@ -636,8 +636,7 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
 // ----------------------------------------------------------------------------
 {
     QString val;
-    FindAttribute action("module_description", +attribute);
-    Tree * v = tree->Do(action);
+    Tree * v = moduleAttrAsTree(tree, attribute);
     if (v)
     {
         Text * t = v->AsText();
@@ -645,6 +644,23 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
             val = +(t->value);
     }
     return val;
+}
+
+
+Tree * ModuleManager::moduleAttrAsTree(XL::Tree *tree, QString attribute)
+// ----------------------------------------------------------------------------
+//   Look for attribute pointer in module_description section of tree
+// ----------------------------------------------------------------------------
+{
+    // Look first in the localized description block, if present
+    FindAttribute action("module_description", +attribute, +TaoApp->lang);
+    Tree * t = tree->Do(action);
+    if (!t)
+    {
+        FindAttribute action("module_description", +attribute);
+        t = tree->Do(action);
+    }
+    return t;
 }
 
 

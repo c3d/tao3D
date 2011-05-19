@@ -26,6 +26,7 @@
 #include <QFile>
 #include <QDir>
 #include <QApplication>
+#include <QTextDocument>
 
 namespace Tao {
 
@@ -84,7 +85,7 @@ void ModuleInfoDialog::updateInfo(const ModuleInfo &info)
         mi.icon = "qrc:/images/modules.png";
     }
     mi.website = +autoLinkUrls(+mi.website);
-    mi.desc = +autoLinkUrls(+mi.desc);
+    mi.desc = +autoLinkUrls(Qt::escape(+mi.desc));
 
 
     // Load HTML template

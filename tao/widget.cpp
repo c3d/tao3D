@@ -5728,10 +5728,6 @@ Integer* Widget::image(Context *context,
         rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
-    double w0 = rinfo->width;
-    double h0 = rinfo->height;
-    double w = w0 * sx;
-    double h = h0 * sy;
 
     layout->currentTexture.id = rinfo->bind(filename);
     layout->currentTexture.width = rinfo->width;
@@ -5739,6 +5735,11 @@ Integer* Widget::image(Context *context,
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
+
+    double w0 = rinfo->width;
+    double h0 = rinfo->height;
+    double w = w0 * sx;
+    double h = h0 * sy;
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;

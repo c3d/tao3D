@@ -291,30 +291,25 @@ macx {
 }
 RESOURCES += tao.qrc
 
-# Others
-OTHER_FILES += xl.syntax \
-    xl.stylesheet \
-    short.stylesheet \
-    html.stylesheet \
-    debug.stylesheet \
-    dbghtml.stylesheet \
-    bytecode.stylesheet \
-    xlr/xlr/builtins.xl \
+# Files loaded at runtime
+SUPPORT_FILES = xlr/xlr/builtins.xl \
     tao.xl \
     tao_fr.xl \
-    welcome.ddd \
+    xl.syntax \
+    xl.stylesheet \
     git.stylesheet \
-    traces.tbl \
     nocomment.stylesheet \
+    debug.stylesheet \
+    welcome.ddd
+
+# Other files to show in the Qt Creator interface
+OTHER_FILES +=  \
+    $${SUPPORT_FILES} \
+    traces.tbl \
     graphics.tbl \
     Info.plist.in \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html
-
-# Copy the support files to the target directory
-xlr_support.path = $${DESTDIR}/$${XLRDIR}
-xlr_support.files += $${OTHER_FILES}
-QMAKE_BUNDLE_DATA += xlr_support
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \
@@ -332,13 +327,7 @@ QMAKE_EXTRA_TARGETS += revtarget
 
 # What to install
 xl_files.path  = $$APPINST
-xl_files.files = xlr/xlr/builtins.xl \
-    tao.xl \
-    tao_fr.xl \
-    xl.syntax \
-    xl.stylesheet \
-    git.stylesheet \
-    welcome.ddd
+xl_files.files = $${SUPPORT_FILES}
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*

@@ -238,6 +238,23 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
+void LayoutLine::RefreshLayouts(Layout::Layouts &out)
+// ----------------------------------------------------------------------------
+//   Copy all items that are layouts in the children
+// ----------------------------------------------------------------------------
+{
+    Items &items = line.items;
+    for (Items::iterator i = items.begin(); i != items.end(); i++)
+        if (Layout *layout = dynamic_cast<Layout *> (*i))
+            out.push_back(layout);
+
+    LineJustifier::Places &ps = line.places;
+    for (LineJustifier::PlacesIterator p = ps.begin(); p != ps.end(); p++)
+        if (Layout *layout = dynamic_cast<Layout*>((*p).item))
+            out.push_back(layout);
+}
+
+
 Box3 LayoutLine::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
@@ -758,6 +775,24 @@ void PageLayout::Inherit(Layout *other)
 }
 
 
+void PageLayout::RefreshLayouts(Layouts &out)
+// ----------------------------------------------------------------------------
+//   Refresh all child layouts
+// ----------------------------------------------------------------------------
+{
+    Items items = page.items;
+    for (Items::iterator i = items.begin(); i != items.end(); i++)
+        (*i)->RefreshLayouts(out);
+
+    PageJustifier::PlacesIterator p;
+    PageJustifier::Places places = page.places;
+    for (p = places.begin(); p != places.end(); p++)
+        (*p).item->RefreshLayouts(out);
+
+    Layout::RefreshLayouts(out);
+}
+
+
 void PageLayout::Compute(Layout *where)
 // ----------------------------------------------------------------------------
 //   Layout all elements on the page, preserving layout state
@@ -776,7 +811,8 @@ void PageLayout::Compute(Layout *where)
     items.clear();
 
     {
-        // Save the font to let the vertical computing work with the original one. BUG#407
+        // Save the font to let the vertical computing work with the
+        // original one. BUG#407
         XL::Save<QFont> save(this->font);
 
         // Loop while there are more lines to place
@@ -947,6 +983,10 @@ void AnchorLayout::Draw(Layout *where)
 //   Draw all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Draw(where);
 }
 
@@ -956,6 +996,10 @@ void AnchorLayout::DrawSelection(Layout *where)
 //   Draw selection for all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     return Layout::DrawSelection(where);
 }
 
@@ -965,6 +1009,10 @@ void AnchorLayout::Identify(Layout *where)
 //   Identify all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Identify(where);
 }
 

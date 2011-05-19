@@ -74,6 +74,7 @@ win32:SUBDIRS += detach
 tao.depends = libxlr
 modules.depends = tao
 tests.depends = tao
+templates.depends = tao
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.

@@ -5,6 +5,7 @@ import "tao_fr.xl"
 // module_description is used in a module's main file to describe the module
 // Parsing of this prefix is currently done in C++
 module_description b:block              -> false
+module_description T:text, b:block      -> false
 
 // Key management
 key "Control-L"                         -> toggle_slide_show

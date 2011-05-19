@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1111"/>
+        <location filename="module_manager.cpp" line="1153"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible : </translation>
@@ -951,17 +951,17 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::ModuleInfoDialog</name>
     <message>
-        <location filename="module_info_dialog.cpp" line="76"/>
+        <location filename="module_info_dialog.cpp" line="77"/>
         <source>&amp;lt;Tao&amp;gt;</source>
         <translation>&amp;lt;Tao&amp;gt;</translation>
     </message>
     <message>
-        <location filename="module_info_dialog.cpp" line="94"/>
+        <location filename="module_info_dialog.cpp" line="95"/>
         <source>:/html/module_info_dialog.html</source>
         <translation>:/html/module_info_dialog_fr.html</translation>
     </message>
     <message>
-        <location filename="module_info_dialog.cpp" line="96"/>
+        <location filename="module_info_dialog.cpp" line="97"/>
         <source>&lt;b&gt;Error&lt;/b&gt;: Could not open: &lt;i&gt;%1&lt;/i&gt;.&lt;br&gt;Re-installing might fix the problem.</source>
         <translation>&lt;b&gt;Erreur&lt;/b&gt;: Impossible d&apos;ouvrir &lt;i&gt;%1&lt;/i&gt;.&lt;br&gt;Vous pouvez peut-être corriger le problème en ré-installant l&apos;application.</translation>
     </message>
@@ -984,7 +984,7 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
         <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1037"/>
+        <location filename="module_manager.cpp" line="1079"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -995,8 +995,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1042"/>
-        <location filename="module_manager.cpp" line="1063"/>
+        <location filename="module_manager.cpp" line="1084"/>
+        <location filename="module_manager.cpp" line="1105"/>
         <source>
 
 Reason: %1</source>
@@ -1005,14 +1005,14 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1044"/>
-        <location filename="module_manager.cpp" line="1065"/>
-        <location filename="module_manager.cpp" line="1102"/>
+        <location filename="module_manager.cpp" line="1086"/>
+        <location filename="module_manager.cpp" line="1107"/>
+        <location filename="module_manager.cpp" line="1144"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1059"/>
+        <location filename="module_manager.cpp" line="1101"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -1023,21 +1023,21 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1079"/>
+        <location filename="module_manager.cpp" line="1121"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1082"/>
+        <location filename="module_manager.cpp" line="1124"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1100"/>
+        <location filename="module_manager.cpp" line="1142"/>
         <source>Module %1 cannot be initialized.
 %2</source>
         <translation>Le module %1 ne peut être initislisé.</translation>
@@ -1369,6 +1369,11 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 </context>
 <context>
     <name>Tao::SplashScreen</name>
+    <message>
+        <location filename="splash_screen.cpp" line="62"/>
+        <source>All rights reserved.</source>
+        <translation>Tous droits réservés.</translation>
+    </message>
     <message utf8="true">
         <location filename="splash_screen.cpp" line="136"/>
         <source>&lt;font color=&quot;%1&quot;&gt;by Catherine Burvelle, Jérôme Forissier and Christophe de Dinechin,&lt;br&gt;with help from Anne Lempereur and Lionel Schaffhauser.&lt;/font&gt;</source>

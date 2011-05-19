@@ -57,9 +57,9 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                        "</style></head><body>"
                        "\302\251 2010-2011 "
                        "<a href=\"http://taodyne.com\">Taodyne SAS</a>. "
-                       "All rights reserved."
+                       "%1"
                        "</body></html>";
-    label = new QLabel(trUtf8(cop), this);
+    label = new QLabel(trUtf8(cop).arg(tr("All rights reserved.")), this);
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
     label->move(270, 280);

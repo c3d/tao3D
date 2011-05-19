@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1097"/>
+        <location filename="module_manager.cpp" line="1111"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible : </translation>
@@ -723,22 +723,22 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DebugPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="156"/>
+        <location filename="preferences_pages.cpp" line="157"/>
         <source>Debug traces</source>
         <translation>Traces de debug</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="173"/>
+        <location filename="preferences_pages.cpp" line="174"/>
         <source>Select all</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="176"/>
+        <location filename="preferences_pages.cpp" line="177"/>
         <source>Deselect all</source>
         <translation>Tout déselectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="180"/>
+        <location filename="preferences_pages.cpp" line="181"/>
         <source>Save for next run</source>
         <translation>Enregistrer</translation>
     </message>
@@ -828,32 +828,32 @@ Code : %1
 <context>
     <name>Tao::GeneralPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="44"/>
+        <location filename="preferences_pages.cpp" line="45"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="46"/>
+        <location filename="preferences_pages.cpp" line="47"/>
         <source>User interface language:</source>
         <translation>Langue de l&apos;interface utilisateur :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="50"/>
+        <location filename="preferences_pages.cpp" line="51"/>
         <source>(System Language)</source>
         <translation>(Langue du système)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="70"/>
+        <location filename="preferences_pages.cpp" line="71"/>
         <source>Disable stereoscopy (3D)</source>
         <translation>Désactiver la stéréoscopie (3D)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="115"/>
+        <location filename="preferences_pages.cpp" line="116"/>
         <source>The language change will take effect after a restart of the application.</source>
         <translation>Le changement de langue prendra effet après redémarrage de l&apos;application.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="132"/>
+        <location filename="preferences_pages.cpp" line="133"/>
         <source>The change will take effect after a restart of the application.</source>
         <translation>Le changement prendra effet après redémarrage de l&apos;application.</translation>
     </message>
@@ -949,24 +949,42 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     </message>
 </context>
 <context>
+    <name>Tao::ModuleInfoDialog</name>
+    <message>
+        <location filename="module_info_dialog.cpp" line="76"/>
+        <source>&amp;lt;Tao&amp;gt;</source>
+        <translation>&amp;lt;Tao&amp;gt;</translation>
+    </message>
+    <message>
+        <location filename="module_info_dialog.cpp" line="94"/>
+        <source>:/html/module_info_dialog.html</source>
+        <translation>:/html/module_info_dialog_fr.html</translation>
+    </message>
+    <message>
+        <location filename="module_info_dialog.cpp" line="96"/>
+        <source>&lt;b&gt;Error&lt;/b&gt;: Could not open: &lt;i&gt;%1&lt;/i&gt;.&lt;br&gt;Re-installing might fix the problem.</source>
+        <translation>&lt;b&gt;Erreur&lt;/b&gt;: Impossible d&apos;ouvrir &lt;i&gt;%1&lt;/i&gt;.&lt;br&gt;Vous pouvez peut-être corriger le problème en ré-installant l&apos;application.</translation>
+    </message>
+</context>
+<context>
     <name>Tao::ModuleManager</name>
     <message>
-        <location filename="module_manager.cpp" line="480"/>
+        <location filename="module_manager.cpp" line="481"/>
         <source>New module</source>
         <translation>Nouveau module</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="591"/>
+        <location filename="module_manager.cpp" line="592"/>
         <source>Missing ID, name or version</source>
         <translation>Identifiant, nom ou version manquant</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="596"/>
+        <location filename="module_manager.cpp" line="597"/>
         <source>Could not parse %1</source>
         <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1034"/>
+        <location filename="module_manager.cpp" line="1037"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -977,8 +995,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1039"/>
-        <location filename="module_manager.cpp" line="1060"/>
+        <location filename="module_manager.cpp" line="1042"/>
+        <location filename="module_manager.cpp" line="1063"/>
         <source>
 
 Reason: %1</source>
@@ -987,13 +1005,14 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1041"/>
-        <location filename="module_manager.cpp" line="1062"/>
+        <location filename="module_manager.cpp" line="1044"/>
+        <location filename="module_manager.cpp" line="1065"/>
+        <location filename="module_manager.cpp" line="1102"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1056"/>
+        <location filename="module_manager.cpp" line="1059"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -1004,44 +1023,50 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1076"/>
+        <location filename="module_manager.cpp" line="1079"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1079"/>
+        <location filename="module_manager.cpp" line="1082"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
 </translation>
     </message>
+    <message>
+        <location filename="module_manager.cpp" line="1100"/>
+        <source>Module %1 cannot be initialized.
+%2</source>
+        <translation>Le module %1 ne peut être initislisé.</translation>
+    </message>
 </context>
 <context>
     <name>Tao::ModulesPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="277"/>
+        <location filename="preferences_pages.cpp" line="278"/>
         <source>Modules are disabled</source>
         <translation>Les modules sont désactivés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="284"/>
+        <location filename="preferences_pages.cpp" line="285"/>
         <source>Installed modules</source>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="304"/>
+        <location filename="preferences_pages.cpp" line="308"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="371"/>
+        <location filename="preferences_pages.cpp" line="386"/>
         <source>Disable</source>
         <translation>Désactiver</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="371"/>
+        <location filename="preferences_pages.cpp" line="386"/>
         <source>Enable</source>
         <translation>Activer</translation>
     </message>
@@ -1450,17 +1475,17 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="947"/>
+        <location filename="widget.cpp" line="956"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9265"/>
+        <location filename="widget.cpp" line="9284"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9266"/>
+        <location filename="widget.cpp" line="9285"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>
@@ -1522,7 +1547,7 @@ Voulez-vous continuer malgré tout ? Choisisser Non pour choisir un autre emplac
     </message>
     <message>
         <location filename="window.cpp" line="703"/>
-        <location filename="window.cpp" line="1970"/>
+        <location filename="window.cpp" line="1972"/>
         <source>File saved</source>
         <translation>Fichier enregistré</translation>
     </message>
@@ -2028,76 +2053,76 @@ Voulez-vous l&apos;enregistrer ?</translation>
         <translation>Fichier chargé</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1911"/>
+        <location filename="window.cpp" line="1913"/>
         <source>Error saving file</source>
         <translation>Erreur d&apos;enregistrement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1912"/>
+        <location filename="window.cpp" line="1914"/>
         <source>Cannot write file %1:
 %2.</source>
         <translation>Impossible d&apos;enregistrer le ficher %1 :
 %2.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1919"/>
+        <location filename="window.cpp" line="1921"/>
         <source>Saving...</source>
         <translation>Enregistrement...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2036"/>
+        <location filename="window.cpp" line="2038"/>
         <source>The file &apos;%1&apos; is not associated with a Tao project.</source>
         <translation>Le fichier %1 n&apos;est pas associé à un projet Tao.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2039"/>
+        <location filename="window.cpp" line="2041"/>
         <source>Do you want to create a new project in %1, or skip and continue without a project (version control and sharing will be disabled)?</source>
         <translation>Voulez-vous créer un nouveau projet sous %1, ou continuer sans projet (l&apos;historique et le partage seront désactivés) ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2043"/>
+        <location filename="window.cpp" line="2045"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2045"/>
+        <location filename="window.cpp" line="2047"/>
         <source>Skip</source>
         <translation>Continuer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2047"/>
+        <location filename="window.cpp" line="2049"/>
         <source>Create</source>
         <translation>Créer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2067"/>
+        <location filename="window.cpp" line="2069"/>
         <source>Puzzled</source>
         <translation>Bizarre</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2068"/>
+        <location filename="window.cpp" line="2070"/>
         <source>How did you do that?</source>
         <translation>Comment avez-vous fait ça ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2087"/>
+        <location filename="window.cpp" line="2089"/>
         <source>Task selection</source>
         <translation>Sélection de tâche</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2088"/>
+        <location filename="window.cpp" line="2090"/>
         <source>An error occurred setting the task:
 %1</source>
         <translation>Une erreur est survenue en choisissant la tâche :
 %1</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2386"/>
+        <location filename="window.cpp" line="2388"/>
         <source>%1/Untitled%2.ddd</source>
         <translation>%1/Sans titre %2.ddd</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2414"/>
+        <location filename="window.cpp" line="2416"/>
         <source>&amp;%1 %2</source>
         <translation>&amp;%1 %2</translation>
     </message>

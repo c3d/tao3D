@@ -308,7 +308,8 @@ OTHER_FILES += xl.syntax \
     nocomment.stylesheet \
     graphics.tbl \
     Info.plist.in \
-    module_info_dialog.html
+    html/module_info_dialog.html \
+    html/module_info_dialog_fr.html
 
 # Copy the support files to the target directory
 xlr_support.path = $${DESTDIR}/$${XLRDIR}

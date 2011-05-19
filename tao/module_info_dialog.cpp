@@ -88,12 +88,15 @@ void ModuleInfoDialog::updateInfo(const ModuleInfo &info)
 
 
     // Load HTML template
-    QString fname(":/res/module_info_dialog.html");
+    // The file name is translated with tr() instead of using a language
+    // tag in the .qrc file, because the latter depends on
+    // QLocale()::system() which cannot be changed through app preferences.
+    QString fname(tr(":/html/module_info_dialog.html"));
     QFile file(fname);
     QString t = tr("<b>Error</b>: Could not open: <i>%1</i>.<br>"
                    "Re-installing might fix the problem.").arg(fname);
     if (file.open(QIODevice::ReadOnly))
-        t = file.readAll();
+        t = QString::fromUtf8(file.readAll().data());
 
     QString vstr = QString::number(mi.ver);
     if (!vstr.contains("."))

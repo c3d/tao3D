@@ -5475,7 +5475,6 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
     FillColor * fillColor = new FillColor(c.redF(), c.greenF(), c.blueF(), a);
     layout->fillColor = fillColor->color;
     layout->Add(fillColor);
-    std::cerr << "Setting color to layout " << layout->PrettyId() << std::endl;
     return XL::xl_true;
 }
 

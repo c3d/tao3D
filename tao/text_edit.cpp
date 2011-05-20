@@ -29,7 +29,6 @@
 
 TAO_BEGIN
 
-Tree_p list2tree(std::vector<Tree*> v, text infix);
 
 XL::Infix * text_portability::fromHTML(QString html)
 // ----------------------------------------------------------------------------

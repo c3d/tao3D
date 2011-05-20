@@ -1474,6 +1474,7 @@ void Window::createMenus()
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->setObjectName(VIEW_MENU_NAME);
 #ifndef CFG_NOSRCEDIT
     viewMenu->addAction(src->toggleViewAction());
 #endif
@@ -1482,7 +1483,7 @@ void Window::createMenus()
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
         viewMenu->addAction(viewStereoscopyAct);
-    viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
+    viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
     menuBar()->addSeparator();
 
@@ -1502,7 +1503,7 @@ void Window::createToolBars()
 {
     setUnifiedTitleAndToolBarOnMac(unifiedTitleAndToolBarOnMac);
 
-    QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
+    QMenu *view = findChild<QMenu*>(TOOLBAR_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("fileToolBar");
     // fileToolBar->addAction(newAct);

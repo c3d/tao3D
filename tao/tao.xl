@@ -79,6 +79,7 @@ main_chooser ->
     if is_available stereoscopy then
         stereoscopy_settings
     chooser_choice tr "Texture...", {texture_chooser}
+    window_choices
 
 page_chooser ->
     chooser tr "Go to page..."
@@ -891,7 +892,30 @@ menu_item "menu:select:arrange > ungroup", tr "Ungroup",
     ungroup_selection
 }
 
+menu_window -> {
+menu   "TAO_VIEW_MENU", ""
+submenu "TAO_VIEW_MENU:windowsize", tr "Window size"
+menu_item "TAO_VIEW_MENU:windowsize > 800", tr "800 X 600",
+    window_size 800, 600
+menu_item "TAO_VIEW_MENU:windowsize > 1024", tr "1024 X 768",
+    window_size 1024, 768
+menu_item "TAO_VIEW_MENU:windowsize > 1280", tr "1280 X 768",
+    window_size 1280, 768
+menu_item "TAO_VIEW_MENU:windowsize > 1600", tr "1600 X 1200",
+    window_size 1600, 1200
+}
+
+window_choices ->
+    chooser_choice tr "800 X 600",
+        window_size 800, 600
+    chooser_choice tr "1024 X 768",
+        window_size 1024, 768
+    chooser_choice  tr "1280 X 768",
+        window_size 1280, 768
+    chooser_choice tr "1600 X 1200",
+        window_size 1600, 1200
 
 menu_insert
 menu_format
 menu_arrange
+menu_window

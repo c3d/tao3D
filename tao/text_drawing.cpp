@@ -51,12 +51,12 @@ TAO_BEGIN
 // Text globally looks better and is less buggy with bitmap cache enabled
 // on Windows and disabled on MacOSX. See #745.
 #if defined(Q_OS_WIN)
-bool TextSpan::cacheEnabled = true;
+bool TextUnit::cacheEnabled = true;
 #else
-bool TextSpan::cacheEnabled = false;
+bool TextUnit::cacheEnabled = false;
 #endif
 
-void TextSpan::Draw(Layout *where)
+void TextUnit::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
@@ -88,7 +88,7 @@ void TextSpan::Draw(Layout *where)
 }
 
 
-void TextSpan::DrawCached(Layout *where)
+void TextUnit::DrawCached(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw text span using cached textures
 // ----------------------------------------------------------------------------
@@ -199,7 +199,7 @@ void TextSpan::DrawCached(Layout *where)
 }
 
 
-void TextSpan::DrawDirect(Layout *where)
+void TextUnit::DrawDirect(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the given text directly using Qt paths
 // ----------------------------------------------------------------------------
@@ -277,7 +277,7 @@ void TextSpan::DrawDirect(Layout *where)
 
     where->offset = Point3(x, y, z);
 }
-void TextSpan::DrawSelection(Layout *where)
+void TextUnit::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
 // ----------------------------------------------------------------------------
@@ -408,11 +408,11 @@ void TextSpan::DrawSelection(Layout *where)
     {
         QTextCursor &sc = sel->cursor;
         QTextBlockFormat bf = sc.blockFormat();
-        modifyBlockFormat(bf, where);
-        sc.mergeBlockFormat(bf);
+        if (modifyBlockFormat(bf, where) )
+            sc.insertBlock(bf);
         QTextCharFormat cf = sc.charFormat();
-        modifyCharFormat(cf, where);
-        sc.mergeCharFormat(cf);
+        if (modifyCharFormat(cf, where) )
+            sc.mergeCharFormat(cf);
         sc.insertText(selectedText);
     }
 
@@ -438,7 +438,7 @@ void TextSpan::DrawSelection(Layout *where)
 }
 
 
-void TextSpan::Identify(Layout *where)
+void TextUnit::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw and identify the bounding boxes for the various characters
 // ----------------------------------------------------------------------------
@@ -561,7 +561,7 @@ void TextSpan::Identify(Layout *where)
 }
 
 
-void TextSpan::Draw(GraphicPath &path, Layout *where)
+void TextUnit::Draw(GraphicPath &path, Layout *where)
 // ----------------------------------------------------------------------------
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
@@ -591,7 +591,7 @@ void TextSpan::Draw(GraphicPath &path, Layout *where)
 }
 
 
-Box3 TextSpan::Bounds(Layout *where)
+Box3 TextUnit::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
@@ -657,7 +657,7 @@ Box3 TextSpan::Bounds(Layout *where)
 }
 
 
-Box3 TextSpan::Space(Layout *where)
+Box3 TextUnit::Space(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
@@ -721,7 +721,7 @@ Box3 TextSpan::Space(Layout *where)
 }
 
 
-TextSpan *TextSpan::Break(BreakOrder &order, uint &size)
+TextUnit *TextUnit::Break(BreakOrder &order, uint &size)
 // ----------------------------------------------------------------------------
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
@@ -747,8 +747,8 @@ TextSpan *TextSpan::Break(BreakOrder &order, uint &size)
         {
             // Create two text spans, the first one containing the split
             uint next = XL::Utf8Next(str, i);
-            TextSpan *result = (next < max && next < end)
-                ? new TextSpan(source, next, end)
+            TextUnit *result = (next < max && next < end)
+                ? new TextUnit(source, next, end)
                 : NULL;
             order = charOrder;
             end = next;
@@ -760,7 +760,7 @@ TextSpan *TextSpan::Break(BreakOrder &order, uint &size)
 }
 
 
-scale TextSpan::TrailingSpaceSize(Layout *where)
+scale TextUnit::TrailingSpaceSize(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the size of all the spaces at the end of the value
 // ----------------------------------------------------------------------------
@@ -804,7 +804,7 @@ scale TextSpan::TrailingSpaceSize(Layout *where)
 }
 
 
-int TextSpan::PerformEditOperation(Widget *widget, uint i)
+int TextUnit::PerformEditOperation(Widget *widget, uint i)
 // ----------------------------------------------------------------------------
 //   Perform text editing operations (insert, replace, ...)
 // ----------------------------------------------------------------------------
@@ -881,7 +881,7 @@ int TextSpan::PerformEditOperation(Widget *widget, uint i)
 
 }
 
-void TextSpan::PerformInsertOperation(Layout * l,
+void TextUnit::PerformInsertOperation(Layout * l,
                                       Widget * widget,
                                       uint     position)
 // ----------------------------------------------------------------------------
@@ -1090,7 +1090,7 @@ void TextFormula::DrawSelection(Layout *where)
         }
     }
 
-    TextSpan::DrawSelection(where);
+    TextUnit::DrawSelection(where);
 
     // Check if the cursor moves out of the selection - If so, validate
     if (info &&info->order == shows)
@@ -1138,7 +1138,7 @@ void TextFormula::Identify(Layout *where)
     if (sel)
         sel->last = charId + 1;
 
-    TextSpan::Identify(where);
+    TextUnit::Identify(where);
 }
 
 
@@ -1243,7 +1243,7 @@ void TextValue::DrawSelection(Layout *where)
         }
     }
 
-    TextSpan::DrawSelection(where);
+    TextUnit::DrawSelection(where);
 
     // Check if the cursor moves out of the selection - If so, validate
     if (info &&info->order == shows)
@@ -1289,7 +1289,7 @@ void TextValue::Identify(Layout *where)
     if (sel)
         sel->last = charId + 1;
 
-    TextSpan::Identify(where);
+    TextUnit::Identify(where);
 }
 
 

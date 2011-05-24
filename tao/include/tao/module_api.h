@@ -87,6 +87,19 @@ struct ModuleApi
     // Show a control box to manipulate the object
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
+
+    // Allow to set coordinates to a texture unit for a drawing.
+    // These coordinates must be specified before to enable textures.
+    // A value of -1 sets the specified coordinates to all units.
+    bool (*SetTexCoords)(int unit, double* texCoord);
+
+    // Allow to set fill color during a drawing according
+    // to the current layout attributes.
+    bool (*SetFillColor)();
+
+    // Allow to set line color during a drawing according
+    // to the current layout attributes.
+    bool (*SetLineColor)();
 };
 
 }

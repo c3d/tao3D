@@ -27,6 +27,7 @@
 #include "tao_utf8.h"
 #include <iostream>
 #include "text_drawing.h"
+#include "application.h"
 
 TAO_BEGIN
 
@@ -105,8 +106,11 @@ void FillTexture::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    where->textureUnits |= 1 << texUnit;
-    where->fillTextures[texUnit].id = glName;
+    if(texUnit < TaoApp->maxTextureCoords)
+    {
+        where->textureUnits |= 1 << texUnit;
+        where->fillTextures[texUnit].id = glName;
+    }
 }
 
 

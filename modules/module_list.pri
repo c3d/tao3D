@@ -20,6 +20,7 @@
        render_to_texture\
        shading          \
        lens_flare       \
+       mapping          \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

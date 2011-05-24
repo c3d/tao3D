@@ -32,10 +32,16 @@ ModuleApiPrivate::ModuleApiPrivate()
 //   Set function pointers for all functions exported to modules
 // ------------------------------------------------------------------------
 {
-    scheduleRender = ModuleRenderer::ScheduleRender;
-    refreshOn      = Widget::refreshOn;
-    addToLayout    = ModuleRenderer::AddToLayout;
-    addControlBox  = Widget::addControlBox;
+    scheduleRender   = ModuleRenderer::ScheduleRender;
+    refreshOn        = Widget::refreshOn;
+    addToLayout      = ModuleRenderer::AddToLayout;
+    addControlBox    = Widget::addControlBox;
+
+    //Drawing paramaters
+    SetTexCoords     = ModuleRenderer::SetTexCoords;
+    SetFillColor     = ModuleRenderer::SetFillColor;
+    SetLineColor     = ModuleRenderer::SetLineColor;
+
 }
 
 TAO_END

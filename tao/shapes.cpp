@@ -28,7 +28,6 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
-#include "tao_gl.h"
 #include <QPainterPath>
 
 TAO_BEGIN
@@ -91,6 +90,25 @@ bool Shape::setTexture(Layout *where)
     return !(where->fillTextures.empty());
 }
 
+void Shape::enableTexture(uint unit, void *texCoord)
+// ----------------------------------------------------------------------------
+//    Enable texture coordinates of the specified unit
+// ----------------------------------------------------------------------------
+{
+    glClientActiveTexture( GL_TEXTURE0 + unit);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
+}
+
+void Shape::disableTexture(uint unit)
+// ----------------------------------------------------------------------------
+//    Disable texture coordinates of the specified unit
+// ----------------------------------------------------------------------------
+{
+    glClientActiveTexture( GL_TEXTURE0 + unit);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+}
+
 bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
 //    Set the fill color and texture according to the layout attributes
@@ -135,7 +153,6 @@ bool Shape::setLineColor(Layout *where)
     return false;
 }
 
-
 void Shape::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //    Draw the shape in a path
@@ -154,8 +171,6 @@ void Shape::Draw(Layout *where)
     Draw(path);
     path.Draw(where);
 }
-
-
 
 // ============================================================================
 //

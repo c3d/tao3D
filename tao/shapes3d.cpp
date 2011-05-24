@@ -145,7 +145,7 @@ void Cube::Draw(Layout *where)
         {xu, yl, zl}, {xu, yu, zl}, {xu, yu, zu}, {xu, yl, zu}
     };
 
-    static GLint textures[][2] = {
+    static GLdouble textures[][2] = {
         {1, 0}, {1, 1}, {0, 1}, {0, 0},
         {0, 0}, {1, 0}, {1, 1}, {0, 1},
         {0, 0}, {1, 0}, {1, 1}, {0, 1},
@@ -172,16 +172,11 @@ void Cube::Draw(Layout *where)
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-    {
-        if(((*it).second).id && ((*it).first) <  TaoApp->maxTextureCoords)
-        {
-            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(2, GL_INT, 0, textures);
-        }
-    }
+        if(((*it).second).id)
+            enableTexture((*it).first, textures);
 
     setTexture(where);
+
     if (setFillColor(where))
         glDrawArrays(GL_QUADS, 0, 24);
     if (setLineColor(where))
@@ -190,14 +185,10 @@ void Cube::Draw(Layout *where)
 
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
+
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-    {
-        if(((*it).second).id && ((*it).first) <  TaoApp->maxTextureCoords)
-        {
-            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        }
-    }
+        if(((*it).second).id)
+           disableTexture((*it).first);
 }
 
 
@@ -289,32 +280,21 @@ void Cone::Draw(Layout *where)
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-    {
-        if(((*it).second).id && ((*it).first) <  TaoApp->maxTextureCoords)
-        {
-            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
-            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-            glTexCoordPointer(3, GL_DOUBLE, 0, &tex[0].x);
-        }
-    }
+        if(((*it).second).id)
+            enableTexture((*it).first, &tex[0].x);
+
     setTexture(where);
+
     if (setFillColor(where))
         glDrawArrays(GL_QUAD_STRIP, 0, geom.size());
     if (setLineColor(where))
         // REVISIT: Inefficient and incorrect with alpha
         for (uint i = 3; i <= geom.size(); i++)
             glDrawArrays(GL_LINE_LOOP, 0, i);
-            
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-    {
-        if(((*it).second).id && ((*it).first) <  TaoApp->maxTextureCoords)
-        {
-            glClientActiveTexture( GL_TEXTURE0 + (*it).first );
-            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        }
-    }
-}
+        if(((*it).second).id)
+           disableTexture((*it).first);
+ }
 
 TAO_END

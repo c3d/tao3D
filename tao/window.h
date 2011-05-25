@@ -115,6 +115,7 @@ public slots:
     void clearErrors();
     void renderToFile();
     void adjustToScreenResolution(int screen);
+    void updateStereoscopyAct(int mode, int planes);
 
 signals:
 #ifndef CFG_NOGIT

@@ -5214,11 +5214,8 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
         std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
     }
 
-    Window *window = (Window *) parentWidget();
     if (oldState != newState)
     {
-        window->toggleStereoscopy();
-
         if (!newState)
             stereoPlanes = 1;
         else if (stereoPlanes == 1)
@@ -5226,6 +5223,8 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     }
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width(), height());
+
+    emit stereoModeChanged(stereoMode, stereoPlanes);
 
     return oldState ? XL::xl_true : XL::xl_false;
 }
@@ -5236,12 +5235,16 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
 //   Set the number of planes
 // ----------------------------------------------------------------------------
 {
+    bool changed = (planes != (uint)stereoPlanes);
     if (planes > 1)
     {
         stereoPlanes = planes;
         if (stereoMode > stereoHARDWARE)
             setupStereoStencil(width(), height());
     }
+    if (changed)
+        emit stereoModeChanged(stereoMode, stereoPlanes);
+
     return XL::xl_true;
 }
 

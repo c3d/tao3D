@@ -517,6 +517,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            glDisable(GL_TEXTURE_2D);
             space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);

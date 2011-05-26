@@ -4585,8 +4585,10 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     AnchorLayout *anchor = new AnchorLayout(this);
-    anchor->id = selectionId();
-    layout->Add(anchor);
+    layout->AddChild(selectionId(), child, context, anchor);
+    IFTRACE(layoutevents)
+        std::cerr << "Anchor " << anchor
+                  << " id " << anchor->PrettyId() << "\n";
     XL::Save<Layout *> saveLayout(layout, anchor);
     if (selectNextTime.count(self))
     {
@@ -7060,10 +7062,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    tbox->id = selectionId();
-    tbox->body = prog;
-    tbox->ctx = context;
-    layout->Add(tbox);
+    layout->AddChild(selectionId(), prog, context, tbox);
     flows[flowName] = tbox;
 
     if (currentShape)

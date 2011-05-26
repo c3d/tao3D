@@ -176,12 +176,14 @@ Layout::~Layout()
 }
 
 
-Layout *Layout::AddChild(uint childId, Tree_p body, Context_p ctx)
+Layout *Layout::AddChild(uint childId,
+                         Tree_p body, Context_p ctx,
+                         Layout *child)
 // ----------------------------------------------------------------------------
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
-    Layout *result = NewChild();
+    Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
     result->id = childId;
@@ -198,8 +200,7 @@ void Layout::Clear()
 //   Reset the layout to the initial setup
 // ----------------------------------------------------------------------------
 {
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
+    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
         delete *i;
     items.clear();
 
@@ -229,8 +230,7 @@ void Layout::Draw(Layout *where)
 
     // Display all items
     PushLayout(this);
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
+    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->Draw(this);
@@ -254,8 +254,7 @@ void Layout::DrawSelection(Layout *where)
     Inherit(where);
 
     PushLayout(this);
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
+    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->DrawSelection(this);
@@ -280,8 +279,7 @@ void Layout::Identify(Layout *where)
 
 
     PushLayout(this);
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
+    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
         Drawing *child = *i;
         child->Identify(this);
@@ -308,12 +306,11 @@ Box3 Layout::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Box3 result;
-    layout_items::iterator i;
     Inherit(layout);
     if (items.size() == 0)
         result |= Point3();
     else
-        for (i = items.begin(); i != items.end(); i++)
+        for (Drawings::iterator i = items.begin(); i != items.end(); i++)
             result |= (*i)->Bounds(this);
     return result;
 }
@@ -325,12 +322,11 @@ Box3 Layout::Space(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     Box3 result;
-    layout_items::iterator i;
     Inherit(layout);
     if (items.size() == 0)
         result |= Point3();
     else
-        for (i = items.begin(); i != items.end(); i++)
+        for (Drawings::iterator i = items.begin(); i != items.end(); i++)
             result |= (*i)->Space(this);
     return result;
 }
@@ -362,10 +358,8 @@ uint Layout::ChildrenSelected()
 // ----------------------------------------------------------------------------
 {
     uint result = 0;
-    Layout *l;
-    layout_items::iterator i;
-    for (i = items.begin(); i != items.end(); i++)
-        if ((l = dynamic_cast<Layout*>(*i)))
+    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+        if (Layout *l = dynamic_cast<Layout*>(*i))
             result += l->Selected();
     return result;
 }
@@ -411,7 +405,7 @@ text Layout::PrettyId()
 }
 
 
-bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
+bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 // ----------------------------------------------------------------------------
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
@@ -424,10 +418,10 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
     text layoutId;
     IFTRACE(layoutevents)
     {
-        if (!debug.isEmpty())
-            debug.append("/");
-        debug += QString("%1").arg(idx);
-        layoutId = +debug + " " + PrettyId();
+        if (!dbg.isEmpty())
+            dbg.append("/");
+        dbg += QString("%1").arg(idx);
+        layoutId = +dbg + " " + PrettyId();
     }
 
     if (NeedRefresh(e, now))
@@ -442,8 +436,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
         {
             // Drop children: delete drawings but set aside layouts, in case
             // they can be reused by the evaluation step below
-            layout_items::iterator it;
-            for (it = items.begin(); it != items.end(); it++)
+            for (Drawings::iterator it = items.begin(); it != items.end(); it++)
             {
                 if (Layout * layout = dynamic_cast<Layout*>(*it))
                     widget->layoutCache.insert(layout);
@@ -468,7 +461,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
         }
         else
         {
-            if (this == (Layout*)widget->space)
+            if (this == (Layout*) widget->space)
                 widget->refreshNow();
             else
                 std::cerr << "Unexpected NULL ctx/body in non-root layout\n";
@@ -483,7 +476,7 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
     }
 
     // Forward event to all child layouts
-    changed |= RefreshChildren(e, now, debug);
+    changed |= RefreshChildren(e, now, dbg);
 
     // When done with topmost layout we can clear cache
     if (XL::MAIN->options.enable_layout_cache && !parent)
@@ -493,18 +486,27 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString debug)
 }
 
 
-bool Layout::RefreshChildren(QEvent *e, double now, QString debug)
+void Layout::RefreshLayouts(Layouts &out)
+// ----------------------------------------------------------------------------
+//   Copy all items that are layouts in the children
+// ----------------------------------------------------------------------------
+{
+    for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+        if (Layout *layout = dynamic_cast<Layout *> (*i))
+            out.push_back(layout);
+}
+
+
+bool Layout::RefreshChildren(QEvent *e, double now, QString dbg)
 // ----------------------------------------------------------------------------
 //   Refresh all child layouts
 // ----------------------------------------------------------------------------
 {
     bool result = false;
-    Layout *layout;
-    layout_items::iterator i;
-    layout_items items_copy = items;
-    for (i = items_copy.begin(); i != items_copy.end(); i++)
-        if ((layout = dynamic_cast<Layout*>(*i)))
-            result |= layout->Refresh(e, now, this, debug);
+    Layouts lyo;
+    RefreshLayouts(lyo);
+    for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
+        result |= (*i)->Refresh(e, now, this, dbg);
     return result;
 }
 
@@ -515,16 +517,12 @@ LayoutState::qevent_ids Layout::RefreshEvents()
 // ----------------------------------------------------------------------------
 {
     LayoutState::qevent_ids events = refreshEvents;
-    Layout *layout;
-    layout_items::iterator i;
-    layout_items items_copy = items;
-    for (i = items_copy.begin(); i != items_copy.end(); i++)
+    Layouts lyo;
+    RefreshLayouts(lyo);
+    for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
     {
-        if ((layout = dynamic_cast<Layout*>(*i)))
-        {
-            LayoutState::qevent_ids evt = layout->RefreshEvents();
-            events.insert(evt.begin(), evt.end());
-        }
+        LayoutState::qevent_ids evt = (*i)->RefreshEvents();
+        events.insert(evt.begin(), evt.end());
     }
     return events;
 }
@@ -536,12 +534,10 @@ double Layout::NextRefresh()
 // ----------------------------------------------------------------------------
 {
     double next = nextRefresh;
-    Layout *layout;
-    layout_items::iterator i;
-    layout_items items_copy = items;
-    for (i = items_copy.begin(); i != items_copy.end(); i++)
-        if ((layout = dynamic_cast<Layout*>(*i)))
-            next = qMin(next, layout->NextRefresh());
+    Layouts lyo;
+    RefreshLayouts(lyo);
+    for (Layouts::iterator i = lyo.begin(); i != lyo.end(); i++)
+        next = qMin(next, (*i)->NextRefresh());
     return next;
 }
 

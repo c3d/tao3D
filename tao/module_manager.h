@@ -92,6 +92,21 @@ The name to use if the module is to be explicitely imported. That is, if
 import_name is "MyModule", the module can be imported with:
   import MyModule 1.0
 
+ 2.2 Internationalization
+
+Language-specific attributes may be declared in a locallized module_description
+block, as follows:
+
+//-----
+module_description "fr",
+    name "Mon superbe module Tao"
+    description "Sans aucun doute, le meilleur module Tao."
+//-----
+
+Any attribute declared in a localized module_description block overrides the
+attribute of the same name from the plain module_description section. All
+other attributes from the non-localized module_description are still accessible.
+
 3. Where are modules installed?
 
 Module files may be installed anywhere, but are typically stored either under
@@ -276,16 +291,21 @@ public:
     //   Information about a module
     // ------------------------------------------------------------------------
     {
-        ModuleInfoPrivate() : ModuleInfo() {}
+        ModuleInfoPrivate() : ModuleInfo(), enabled(enabled), loaded(false),
+              updateAvailable(false), hasNative(false),
+              native(NULL), context(NULL), inError(false)
+            {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL)
+              native(NULL), context(NULL), inError(false)
             {}
+
+        // Configuration attributes
+        bool    enabled;
 
         // Runtime attributes
         text    latest;
-        bool    enabled;
         // loaded is set to true when xl file is imported and
         //           set to false when xl file is unloaded
         bool    loaded;
@@ -296,6 +316,7 @@ public:
         // native is the pointer to a compliant library (enter_symbols is present)
         QLibrary * native;
         XL::Context_p context;
+        bool    inError;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -341,6 +362,11 @@ public:
                 ret = fmt.arg(+path).arg("lib").arg("module"); // Backwd compat.
             return ret;
         }
+
+        bool operator<(const ModuleInfoPrivate o) const
+        {
+            return (name.compare(o.name) < 0);
+        }
     };
 
     bool                loadAll(Context *context);
@@ -356,6 +382,7 @@ public:
                                   QString reason = "");
     virtual void        warnInvalidModule(QString moduleDir, QString cause);
     virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
+    virtual void        warnLibraryLoadError(QString name, QString errorString);
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);
@@ -398,8 +425,8 @@ private:
         // is prefix of value.
         // If pattern is found at indentation level 0, a pointer to value is
         // returned. Otherwise, NULL is returned.
-        FindAttribute (text sectionName, text attrName):
-                sectionName(sectionName), attrName(attrName),
+        FindAttribute (text sectionName, text attrName, text lang = ""):
+                sectionName(sectionName), attrName(attrName), lang(lang),
                 sectionFound(false) {}
 
         Tree *DoBlock(Block *what);
@@ -407,7 +434,7 @@ private:
         Tree *DoPrefix(Prefix *what);
         Tree *Do(Tree *what);
 
-        text sectionName, attrName;
+        text sectionName, attrName, lang;
         bool sectionFound;
     };
 
@@ -427,6 +454,8 @@ private:
 
     Tree *              parse(QString xlPath);
     QString             moduleAttr(Tree * tree, QString attribute);
+    Tree *              moduleAttrAsTree(Tree * tree, QString attribute);
+    Text *              toText(Tree *what);
 
     bool                load(Context *, const QList<ModuleInfoPrivate> &mods);
     bool                load(Context *, const ModuleInfoPrivate &m);
@@ -613,12 +642,33 @@ inline Tree *ModuleManager::FindAttribute::DoPrefix(Prefix *what)
     {
         if (name && name->value == sectionName)
         {
-            if (what->right->AsBlock())
+            if (lang == "")
             {
-                sectionFound = true;
-                if (Tree * t = what->right->Do(this))
-                    return t;
-                sectionFound = false;
+                if (what->right->AsBlock())
+                {
+                    sectionFound = true;
+                    if (Tree * t = what->right->Do(this))
+                        return t;
+                    sectionFound = false;
+                }
+            }
+            else
+            {
+                Infix * inf =  what->right->AsInfix();
+                if (inf)
+                {
+                    Text * t = inf->left->AsText();
+                    if (t && t->value == lang)
+                    {
+                        if (inf->right->AsBlock())
+                        {
+                            sectionFound = true;
+                            if (Tree * t = inf->right->Do(this))
+                                return t;
+                            sectionFound = false;
+                        }
+                    }
+                }
             }
         }
         return NULL;

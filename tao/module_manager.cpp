@@ -31,6 +31,7 @@
 #include "repository.h"
 #include <QSettings>
 #include <QHash>
+#include <QMessageBox>
 
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
@@ -389,7 +390,7 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     bool prev = m_p->enabled;
     m_p->enabled = enabled;
 
-    if (prev == enabled)
+    if (prev == enabled && !m_p->inError)
         return;
     if (!m_p->context)
         return;
@@ -635,15 +636,57 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
 // ----------------------------------------------------------------------------
 {
     QString val;
-    FindAttribute action("module_description", +attribute);
-    Tree * v = tree->Do(action);
+    Tree * v = moduleAttrAsTree(tree, attribute);
     if (v)
     {
-        Text * t = v->AsText();
+        Text_p t = toText(v);
         if (t)
             val = +(t->value);
     }
     return val;
+}
+
+
+Tree * ModuleManager::moduleAttrAsTree(XL::Tree *tree, QString attribute)
+// ----------------------------------------------------------------------------
+//   Look for attribute pointer in module_description section of tree
+// ----------------------------------------------------------------------------
+{
+    // Look first in the localized description block, if present
+    FindAttribute action("module_description", +attribute, +TaoApp->lang);
+    Tree * t = tree->Do(action);
+    if (!t)
+    {
+        FindAttribute action("module_description", +attribute);
+        t = tree->Do(action);
+    }
+    return t;
+}
+
+
+Text * ModuleManager::toText(Tree *what)
+// ----------------------------------------------------------------------------
+//   Try to reduce 'what' to a single Text element (perform '&' concatenation)
+// ----------------------------------------------------------------------------
+{
+    Text * txt = what->AsText();
+    if (txt)
+        return txt;
+    Block * block = what->AsBlock();
+    if (block)
+        return toText(block->child);
+    Infix * inf = what->AsInfix();
+    if (inf && (inf->name == "&" || inf->name == "\n"))
+    {
+        Text * left = toText(inf->left);
+        if (!left)
+            return NULL;
+        Text * right = toText(inf->right);
+        if (!right)
+            return NULL;
+        return new Text(left->value + right->value);
+    }
+    return NULL;
 }
 
 
@@ -814,7 +857,9 @@ bool ModuleManager::loadNative(Context * /*context*/,
         {
             IFTRACE(modules)
                 debug() << "    Load error: " << +lib->errorString() << "\n";
+            warnLibraryLoadError(+m.name, lib->errorString());
             delete lib;
+            m_p->inError = true;
         }
     }
     else
@@ -1086,6 +1131,17 @@ void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 {
     (void)m;
+}
+
+
+void ModuleManager::warnLibraryLoadError(QString name, QString errorString)
+// ----------------------------------------------------------------------------
+//   Tell user that library failed to load (module will be ignored)
+// ----------------------------------------------------------------------------
+{
+    QString msg = tr("Module %1 cannot be initialized.\n%2").arg(name)
+                                                            .arg(errorString);
+    QMessageBox::warning(NULL, tr("Tao modules"), msg);
 }
 
 

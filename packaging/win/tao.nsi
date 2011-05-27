@@ -8,7 +8,7 @@
 !include "version.nsh"
 
 ; The name of the installer
-Name "Tao Presentations"
+Name "Tao Presentations ${VERSION}"
 
 ; The file to write
 !ifndef OUTFILE

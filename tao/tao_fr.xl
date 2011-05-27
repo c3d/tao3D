@@ -112,3 +112,5 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Line Color...", "Ligne..."
     tr "Quit Tao", "Quitter Tao"
     tr "Close current document", "Fermer le document"
+    tr "Window size", "Taille de la fenêtre"
+    tr "Activate ATI Macs quad buffer workaround", "Contourner le problème Mac ATI"

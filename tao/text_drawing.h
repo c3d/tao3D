@@ -32,19 +32,19 @@
 
 TAO_BEGIN
 
-struct TextSpan : Shape
+struct TextUnit : Shape
 // ----------------------------------------------------------------------------
 //    A contiguous run of glyphs
 // ----------------------------------------------------------------------------
 {
-    TextSpan(Text *source, uint start = 0, uint end = ~0)
+    TextUnit(Text *source, uint start = 0, uint end = ~0)
         : Shape(), source(source), start(start), end(end) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawCached(Layout *where);
     virtual void        Identify(Layout *where);
     virtual Box3        Bounds(Layout *where);
     virtual Box3        Space(Layout *where);
-    virtual TextSpan *  Break(BreakOrder &order, uint &sz);
+    virtual TextUnit *  Break(BreakOrder &order, uint &sz);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
 
@@ -73,13 +73,13 @@ struct TextFormulaEditInfo : XL::Info
 };
 
 
-struct TextFormula : TextSpan
+struct TextFormula : TextUnit
 // ----------------------------------------------------------------------------
 //   Like a text span, but for an evaluated value
 // ----------------------------------------------------------------------------
 {
     TextFormula(XL::Prefix *self, Widget *wid, uint start = 0, uint end = ~0)
-        : TextSpan(NULL, start, end), self(self), widget(wid)
+        : TextUnit(NULL, start, end), self(self), widget(wid)
     {
         source = Format(self);
     }
@@ -96,13 +96,13 @@ public:
 };
 
 
-struct TextValue : TextSpan
+struct TextValue : TextUnit
 // ----------------------------------------------------------------------------
 //   Like a text span, but for the result of an evaluation
 // ----------------------------------------------------------------------------
 {
     TextValue(XL::Tree *value, Widget *wid, uint start = 0, uint end = ~0)
-        : TextSpan(NULL, start, end), value(value), widget(wid)
+        : TextUnit(NULL, start, end), value(value), widget(wid)
     {
         source = Format(value);
     }

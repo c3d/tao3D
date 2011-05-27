@@ -101,6 +101,7 @@ private slots:
     void         endCheckForUpdate();
     void         updateOne();
     void         onUpdateOneComplete();
+    void         onCellClicked(int row, int col);
 
 private:
     void         updateTable();

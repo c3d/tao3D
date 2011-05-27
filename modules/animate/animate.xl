@@ -22,10 +22,15 @@
 module_description
     id "8cc936c7-ee1b-41b6-bb06-7de7bb1ef709"
     name "Animate"
-    description "Animation utilities"
+    description "Animation utilities."
     import_name "Animate"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
     version 1.0
 
+module_description "fr",
+    name "Animations"
+    description "Fonctions d'animation."
 
 // ============================================================================
 // 

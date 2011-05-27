@@ -37,7 +37,7 @@ struct ModuleInfo
         : id(id), path(path), ver(1.0) {}
 
     std::string id;
-    std::string path;
+    std::string path;  // Qt format (e.g., "/Users/foo", "C:/Users/foo")
     std::string name;
     std::string desc;
     std::string icon;

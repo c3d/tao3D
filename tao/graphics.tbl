@@ -260,6 +260,12 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        RTAO(shapeAction(self,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
+       DESCRIPTION("Associate the specified code to the mouse over"))       
+PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
+       PARM(t,code, "The code to execute"),
+       RTAO(shapeAction(self,"release",t)),
+       GROUP(mouse)
+       SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
 PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
        PARM(name, symbol, "The name of the feature to test"),

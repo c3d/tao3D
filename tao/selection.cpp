@@ -249,8 +249,8 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
 }
 
 
-Activity *MouseFocusTracker::Click(uint /*button*/,
-                                   uint /*count*/,
+Activity *MouseFocusTracker::Click(uint button,
+                                   uint count,
                                    int x, int y)
 // ----------------------------------------------------------------------------
 //   Track focus when mouse click
@@ -274,6 +274,7 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
         }
         widget->updateGL();
     }
+
     previous = current;
     return next;
 }
@@ -433,7 +434,9 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
                 // Select given object
                 widget->select(selected, savedSelection[selected] + count);
                 if (!shiftModifier && !handleId)
+                {
                     widget->shapeAction("click", selected, x, oy);
+                }
             }
         }
         widget->handleId = handleId;

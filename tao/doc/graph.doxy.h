@@ -406,7 +406,7 @@ texture(id:integer);
  * Get current texture id.
  * @return [integer] current texture id
  */
-texture_id();
+texture();
 
 /**
  * Get current texture width.

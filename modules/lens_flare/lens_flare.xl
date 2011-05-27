@@ -1,4 +1,4 @@
-// LensFlare module definition
+﻿// LensFlare module definition
 //
 // This module defines commands to generate the Lorem ipsum sequence.
 //
@@ -8,8 +8,14 @@ module_description
     id "e46b0a1e-0fc5-4884-b37d-027f4fe3066b"
     name "Lens Flare"
     import_name "LensFlare"
-    description ""
-    version 1.0
+    description "Simulate the optical phenomenon that occurs when light reflects inside the lens of a camera."
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version "1.0"
+
+module_description "fr",
+    name "Halo"
+    description "Permet de simuler la réflection provoquée par la projection d'une lumière vive à l'intérieur de l'objectif d'un appareil photo."
 
 FLARES_DIR -> module_dir & "/images/"
 

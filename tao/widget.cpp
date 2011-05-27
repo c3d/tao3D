@@ -4722,7 +4722,6 @@ Tree_p Widget::rescalez(Tree_p self, Real_p z)
     return rescale(self, r(1), r(1), z);
 }
 
-
 Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes

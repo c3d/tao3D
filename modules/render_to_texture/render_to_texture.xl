@@ -1,4 +1,4 @@
-// RenderToTexture module definition
+﻿// RenderToTexture module definition
 //
 // This exemple module allows to render the current texture modified by a sample code
 //
@@ -8,8 +8,14 @@ module_description
     id "88c6794f-8822-4029-ae34-005fa32148c1"
     name "Render to Texture"
     import_name "RenderToTexture"
-    description "A primitive that allows to render the current texture modified by a sample code"
-    version 1.0
+    description "A module that allows to render the current texture modified by a sample code"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version "1.0"
+
+module_description "fr",
+    name "Rendu en texture"
+    description "Permet d'effectuer un rendu d'un code donné dans une texture."
 
 //Texture parameters
 TEXTURE_WIDTH -> 0

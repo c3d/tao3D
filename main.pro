@@ -37,6 +37,9 @@
 #     Build libxlr without valgrind hooks. Normally not needed, even for release
 #     builds because according to the valgrind documentation, the overhead is
 #     negligible.
+#   DEFINES+=XLR_GC_LIFO
+#     (Debug) Tell the libxlr memory allocator to use a LIFO policy, i.e., do not
+#     reuse freed objects immediately. May help valgrind detect more errors.
 #
 #   modules=none
 #     Do not build any Tao module

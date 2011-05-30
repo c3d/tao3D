@@ -119,6 +119,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Create the main widget for displaying Tao stuff
     taoWidget = new Widget(this);
     setCentralWidget(taoWidget);
+    connect(taoWidget, SIGNAL(stereoModeChanged(int,int)),
+            this, SLOT(updateStereoscopyAct(int,int)));
 
     // Undo/redo management
     undoStack = new QUndoStack();
@@ -338,7 +340,15 @@ void Window::toggleStereoscopy()
 {
     bool enable = !taoWidget->hasStereoscopy();
     taoWidget->enableStereoscopy(enable);
-    viewStereoscopyAct->setChecked(enable);
+}
+
+
+void Window::updateStereoscopyAct(int, int)
+// ----------------------------------------------------------------------------
+//   Check or uncheck stereoscopy action
+// ----------------------------------------------------------------------------
+{
+    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
 }
 
 

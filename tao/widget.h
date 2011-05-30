@@ -146,6 +146,7 @@ signals:
     void        copyAvailable(bool yes = true);
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
+    void        stereoModeChanged(int mode, int planes);
 
 public:
     // OpenGL and drawing
@@ -216,7 +217,9 @@ public:
     void        updateStatistics();
     bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
-    char        hasStereoscopy(void)    { return stereoPlanes > 1; }
+    char        hasStereoscopy(void)    { return (stereoPlanes > 1 ||
+                                                  stereoMode >
+                                                  stereoHARDWARE); }
     char        stereoPlane(void)       { return stereoscopic; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 

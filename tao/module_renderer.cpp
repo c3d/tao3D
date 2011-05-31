@@ -81,32 +81,6 @@ bool ModuleRenderer::SetTexCoords(int unit, double* texCoord)
     return false;
 }
 
-/*
-void ModuleRenderer::EnableTextures()
-// ----------------------------------------------------------------------------
-//   Activate textures in the ModuleRenderer according
-//   to the current layout attributes
-// ----------------------------------------------------------------------------
-{
-    for(uint i = 0; i < texList.size(); i++)
-        if(texList[i] && Widget::Tao()->layout->fillTextures[i].id)
-            Shape::enableTexture(i, texList[i]);
-
-    Shape::setTexture(Widget::Tao()->layout);
-}
-
-void ModuleRenderer::DisableTextures()
-// ----------------------------------------------------------------------------
-//   Desactivate textures in the ModuleRenderer according
-//   to the current layout attributes
-// ----------------------------------------------------------------------------
-{
-    for(uint i = 0; i < texList.size(); i++)
-        if(texList[i] && Widget::Tao()->layout->fillTextures[i].id)
-            Shape::disableTexture(i);
-}*/
-
-
 bool ModuleRenderer::SetFillColor()
 // ----------------------------------------------------------------------------
 //   Set the fill color in the ModuleRenderer according

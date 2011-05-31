@@ -2410,8 +2410,9 @@ void Widget::keyPressEvent(QKeyEvent *event)
     Activity *next;
     for (Activity *a = activities; a; a = next)
     {
+        Activity * n = a->next;
         next = a->Key(key);
-        handled |= next != a->next;
+        handled |= next != n;
     }
 
     // If the key was not handled by any activity, forward to document

@@ -4977,13 +4977,8 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraPosition.x),
-                              new Infix(",",
-                                        new Real(cameraPosition.y),
-                                        new Real(cameraPosition.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraPosition.x);
+    return result->AsInfix();
 }
 
 
@@ -5008,13 +5003,8 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraTarget.x),
-                              new Infix(",",
-                                        new Real(cameraTarget.y),
-                                        new Real(cameraTarget.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraTarget.x);
+    return result->AsInfix();
 }
 
 
@@ -5039,13 +5029,8 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix =  new Infix(",",
-                               new Real(cameraUpVector.x),
-                               new Infix(",",
-                                         new Real(cameraUpVector.y),
-                                         new Real(cameraUpVector.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraUpVector.x);
+    return result->AsInfix();
 }
 
 
@@ -5730,29 +5715,29 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    Infix *result = new Infix(",", new Integer(w), new Integer(h));
-    result->SetSymbols(self->Symbols());
-    return result;
+    longlong v[2] = { w, h };
+    Tree *result = xl_integer_list(self, 2, v);
+    return result->AsInfix();
 }
 
 
-static void list_files(Context *context, Dir &current, Tree *patterns,
-                       Tree_p *&parent)
+static void list_files(Context *context, Dir &current,
+                       Tree *self, Tree *patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
 // ----------------------------------------------------------------------------
 {
     if (Block *block = patterns->AsBlock())
     {
-        list_files(context, current, block->child, parent);
+        list_files(context, current, self, block->child, parent);
         return;
     }
     if (Infix *infix = patterns->AsInfix())
     {
         if (infix->name == "," || infix->name == ";" || infix->name == "\n")
         {
-            list_files(context, current, infix->left, parent);
-            list_files(context, current, infix->right, parent);
+            list_files(context, current, self, infix->left, parent);
+            list_files(context, current, self, infix->right, parent);
             return;
         }
     }
@@ -5768,6 +5753,8 @@ static void list_files(Context *context, Dir &current, Tree *patterns,
             if (*parent)
             {
                 Infix *added = new Infix(",", *parent, listed);
+                added->SetSymbols(self->Symbols());
+                added->code = XL::xl_identity;
                 *parent = added;
                 parent = &added->right;
             }
@@ -5791,7 +5778,7 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     Tree_p *parent = &result;
     Window *window = (Window *) parentWidget();
     Dir current(window->currentProjectFolderPath());
-    list_files(context, current, pattern, parent);
+    list_files(context, current, self, pattern, parent);
     if (!result)
         result = XL::xl_nil;
     else

@@ -7592,7 +7592,8 @@ Tree_p Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild());
+    Layout *childLayout = layout->AddChild(0, prog, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
     Tree_p result = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture

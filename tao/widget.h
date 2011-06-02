@@ -53,6 +53,9 @@
 #include <map>
 #include <set>
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+typedef struct __CVDisplayLink *CVDisplayLinkRef;
+#endif
 
 namespace Tao {
 
@@ -178,6 +181,12 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    virtual
+    bool        event(QEvent *event);
+    void        displayLinkEvent();
+    void        createAndStartDisplayLink();
+#endif
     void        startPanning(QMouseEvent *);
     void        doPanning(QMouseEvent *);
     void        endPanning(QMouseEvent *);
@@ -215,7 +224,6 @@ public:
     ulonglong   now();
     void        printStatistics();
     void        updateStatistics();
-    bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return (stereoPlanes > 1 ||
                                                   stereoMode >
@@ -826,7 +834,15 @@ private:
     MouseCoordinatesInfo *mouseCoordinatesInfo;
 
     // Timing
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    QMutex                displayLinkMutex;
+    CVDisplayLinkRef      displayLink;
+    bool                  pendingDisplayLinkEvent;
+    int                   stereoSkip;
+    unsigned int          droppedFrames;
+#else
     QBasicTimer           timer;
+#endif
     double                dfltRefresh;
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
@@ -876,7 +892,7 @@ public:
 
 private:
     void                  processProgramEvents();
-    void                  startRefreshTimer();
+    void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
     double                trueCurrentTime();
     void                  setCurrentTime();

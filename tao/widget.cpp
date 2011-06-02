@@ -95,6 +95,10 @@
 
 #include <QtGui>
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#include <CoreVideo/CoreVideo.h>
+#endif
+
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -134,6 +138,8 @@ static inline QGLFormat TaoGLFormat()
 }
 
 
+#define DFLT_REFRESH 0.016
+
 Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
@@ -161,7 +167,13 @@ Widget::Widget(Window *parent, SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
-      timer(), dfltRefresh(0.04), idleTimer(this),
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+      displayLink(NULL), pendingDisplayLinkEvent(false),
+      stereoSkip(0), droppedFrames(0),
+#else
+      timer(),
+#endif
+      dfltRefresh(DFLT_REFRESH), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
@@ -258,6 +270,15 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
+
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    if (displayLink)
+    {
+        CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
+        displayLink = NULL;
+    }
+#endif
 }
 
 
@@ -792,7 +813,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = DFLT_REFRESH;
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -1535,12 +1556,8 @@ void Widget::enableAnimations(bool enable)
 //   Enable or disable animations on the page
 // ----------------------------------------------------------------------------
 {
-    animated = enable;
     frozenTime = CurrentTime();
-    if (animated)
-        startRefreshTimer();
-    else
-        timer.stop();
+    startRefreshTimer(animated = enable);
 }
 
 
@@ -1698,6 +1715,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.clear();
     stats_start.start();
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    droppedFrames = 0;
+#endif
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -2630,14 +2650,117 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-void Widget::startRefreshTimer()
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+
+static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
+                                    const CVTimeStamp *now,
+                                    const CVTimeStamp *outputTime,
+                                    CVOptionFlags flagsIn,
+                                    CVOptionFlags *flagsOut,
+                                    void *displayLinkContext)
+// ----------------------------------------------------------------------------
+//    MacOSX Core Video display link callback.
+// ----------------------------------------------------------------------------
+//    Using a display link is a way to implement precise timers, synchronized
+//    with screen refresh.
+//    See http://developer.apple.com/library/mac/#qa/qa1385/_index.html.
+//    This method is called from a thread that is NOT the GUI thread, so we
+//    can't do much here. We will just post an event to be processed ASAP by
+//    the main thread, to reevaluate any part of the document, and then redraw
+//    the scene as needed.
+{
+    Q_UNUSED(displayLink);
+    Q_UNUSED(now);
+    Q_UNUSED(outputTime);
+    Q_UNUSED(flagsIn);
+    Q_UNUSED(flagsOut);
+
+    Widget *w = (Widget*)displayLinkContext;
+    w->displayLinkEvent();
+
+    return kCVReturnSuccess;
+}
+
+
+void Widget::displayLinkEvent()
+// ----------------------------------------------------------------------------
+//    Post a User event to GUI thread (this is OpenGL our refresh timer)
+// ----------------------------------------------------------------------------
+{
+    // Stereoscopy with quad buffers: scene refresh rate is half of screen
+    // frequency
+    if (XL::MAIN->options.enable_stereoscopy && (++stereoSkip % 2 == 0))
+        return;
+
+    // Post event to main thread (have no more than one event pending,
+    // otherwise it means we can't keep up => dropped frame)
+    displayLinkMutex.lock();
+    bool pending = pendingDisplayLinkEvent;
+    pendingDisplayLinkEvent = true;
+    displayLinkMutex.unlock();
+    if (!pending)
+        qApp->postEvent(this, new QEvent(QEvent::User), Qt::HighEventPriority);
+    else
+        droppedFrames++;
+}
+
+
+bool Widget::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Convert display link event into timer event
+// ----------------------------------------------------------------------------
+{
+    if (event->type() == QEvent::User)
+    {
+        displayLinkMutex.lock();
+        pendingDisplayLinkEvent = false;
+        displayLinkMutex.unlock();
+        QTimerEvent e(0);
+        timerEvent(&e);
+        return true;
+    }
+
+    return QGLWidget::event(event);
+}
+
+#endif
+
+
+void Widget::startRefreshTimer(bool on)
 // ----------------------------------------------------------------------------
 //    Make sure refresh timer runs if it has to
 // ----------------------------------------------------------------------------
 {
+    if (!on)
+    {
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+        if (displayLink)
+            CVDisplayLinkStop(displayLink);
+#else
+        timer.stop();
+#endif
+        return;
+    }
+
     if (inError || !animated)
         return;
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    if (!displayLink)
+    {
+        // Create display link
+        CVDisplayLinkCreateWithCGDisplay(kCGDirectMainDisplay, &displayLink);
+        if (displayLink)
+        {
+            // Needed? + TODO: moving window to another display
+            CVDisplayLinkSetCurrentCGDisplay(displayLink, kCGDirectMainDisplay);
+            // Set render callback
+            CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback, this);
+        }
+    }
+    if (displayLink)
+        CVDisplayLinkStart(displayLink);
+#else
     assert(space || !"No space layout");
     double next = space->NextRefresh();
     if (next != DBL_MAX)
@@ -2655,6 +2778,7 @@ void Widget::startRefreshTimer()
             timer.stop();
         timer.start(ms, this);
     }
+#endif
 }
 
 
@@ -2665,6 +2789,12 @@ void Widget::timerEvent(QTimerEvent *event)
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
+
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    setCurrentTime();
+    if (CurrentTime() < space->NextRefresh())
+        return;
+#else
     bool is_refresh_timer = (event->timerId() == timer.timerId());
     if (is_refresh_timer)
     {
@@ -2680,6 +2810,8 @@ void Widget::timerEvent(QTimerEvent *event)
             return startRefreshTimer();
         }
     }
+#endif
+
     forwardEvent(event);
 }
 
@@ -2843,7 +2975,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     if (sourceChanged())
         return;
     space->Clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = DFLT_REFRESH;
     clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
@@ -3554,13 +3686,18 @@ void Widget::printStatistics()
         double n = (double)stats.size() * 1000 / stats_interval;
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    char dropped[20] = "";
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
+#endif
     GLint vp[4] = {0,0,0,0};
     GLint vx, vy, vw, vh;
 
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
-    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+    RasterText::printf("%dx%dx%d  %s fps%s", vw, vh, stereoPlanes, fps,
+                       dropped);
 }
 
 

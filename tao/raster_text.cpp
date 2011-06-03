@@ -194,7 +194,9 @@ int RasterText::printf(const char *format...)
     char text[256];
     va_list ap;
     va_start(ap, format);
-    vsprintf(text, format, ap);
+    int len = vsnprintf(text, sizeof(text), format, ap);
+    if (len >= (int) sizeof(text))
+        len = sizeof(text) - 1;
     va_end(ap);
 
     // Save GL state
@@ -208,7 +210,7 @@ int RasterText::printf(const char *format...)
     // Draw background
     glWindowPos2d(instance->pos.x, instance->pos.y - 2.0);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    for (unsigned i = 0; i < strlen(text); i++)
+    for (int i = 0; i < len; i++)
     {
         GLdouble current[4] = {0,0,0,0};
         glGetDoublev(GL_CURRENT_RASTER_POSITION, current);
@@ -221,14 +223,14 @@ int RasterText::printf(const char *format...)
     glColor3f(1.0, 1.0, 1.0);
     glWindowPos2d(instance->pos.x, instance->pos.y);
     glListBase(instance->fontOffset);
-    glCallLists(strlen(text), GL_UNSIGNED_BYTE, (GLubyte *) text);
+    glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
 
     // Restore GL state
     glPopAttrib();
     if (prog)
         glUseProgram(prog);
 
-    return strlen(text);
+    return len;
 }
 
 

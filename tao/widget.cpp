@@ -5520,7 +5520,7 @@ bool Widget::VSyncEnabled()
     static
     get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
     int old = 0;
-    if (get_fn) {
+    if (get_fn)
         old = get_fn();
 #else
     int old = 0;

@@ -121,7 +121,6 @@ Box3 Cube::Bounds(Layout *where)
     return bounds + where->offset;
 }
 
-
 void Cube::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Draw the cube within the bounding box
@@ -191,18 +190,43 @@ void Cube::Draw(Layout *where)
            disableTexture((*it).first);
 }
 
-
 void Sphere::Draw(Layout *where)
-// ----------------------------------------------------------------------------
-//   Draw the sphere
-// ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
     double radius = 0.5;
 
-    GLUquadric *q = gluNewQuadric();
-    gluQuadricTexture (q, true);
-    gluQuadricNormals (q, GLU_SMOOTH);
+    std::vector<Vector3> vertices;
+    std::vector<Vector3> normals;
+    std::vector<Vector>  textures;
+
+    for (uint j = 0; j < stacks; j++) {
+        GLfloat phi      = M_PI * j / stacks;
+        GLfloat incr_phi = M_PI * (j + 1) / stacks;
+
+        // Compute phi components
+        float sinPhi     =  sin(phi);
+        float cosPhi     =  cos(phi);
+        float sinIncrPhi =  sin(incr_phi);
+        float cosIncrPhi =  cos(incr_phi);
+
+        for (uint i = 0; i <= slices; i++) {
+            GLfloat theta  = 2 * M_PI * i / slices;
+            // Compute teta components
+            float sinTheta = sin(theta);
+            float cosTheta = cos(theta);
+
+            // First vertex
+            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));
+            normals.push_back(Vector3(sinTheta * sinIncrPhi, cosTheta * sinIncrPhi, cosIncrPhi));
+            vertices.push_back(radius * Vector3(sinTheta * sinIncrPhi, cosTheta * sinIncrPhi,  cosIncrPhi));
+
+            // Second vertex
+            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
+            normals.push_back(Vector3(sinTheta * sinPhi, cosTheta * sinPhi, cosPhi));
+            vertices.push_back(radius * Vector3(sinTheta * sinPhi, cosTheta * sinPhi, cosPhi));
+        }
+    }
+
     glPushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_NORMALIZE);
@@ -210,20 +234,32 @@ void Sphere::Draw(Layout *where)
     glRotatef(-90.0, 1.0, 0.0, 0.0);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
 
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
+    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+
+    //Active texture coordinates for all used units
+    std::map<uint, TextureState>::iterator it;
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        if(((*it).second).id)
+            enableTexture((*it).first, &textures[0].x);
+
     setTexture(where);
+
     if (setFillColor(where))
-    {
-        gluQuadricDrawStyle(q, GLU_FILL);
-        gluSphere(q, radius, slices, stacks);
-    }
+        glDrawArrays(GL_QUAD_STRIP, 0, textures.size());
     if (setLineColor(where))
-    {
-        gluQuadricDrawStyle(q, GLU_LINE);
-        gluSphere(q, radius, slices, stacks);
-    }
+        glDrawArrays(GL_LINE_LOOP, 0, textures.size());
+
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        if(((*it).second).id)
+           disableTexture((*it).first);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
     glPopAttrib();
     glPopMatrix();
-    gluDeleteQuadric(q);
 }
 
 
@@ -295,6 +331,8 @@ void Cone::Draw(Layout *where)
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
            disableTexture((*it).first);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
  }
 
 TAO_END

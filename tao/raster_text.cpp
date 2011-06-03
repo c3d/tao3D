@@ -129,22 +129,8 @@ static GLubyte rasters[][13] = {
 };
 
 
-#define BG_W 10
-#define BG_H 15
-#define A 50
-static GLubyte bg_alpha [BG_W][BG_H] = {
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A},
-{A, A, A, A, A, A, A, A, A, A, A, A, A, A, A}
-};
-#undef A
+static GLubyte background[17] =
+{0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8, 0xf8};
 
 RasterText::RasterText()
     : fontOffset(0), pos(0, 0)
@@ -208,20 +194,15 @@ int RasterText::printf(const char *format...)
         glUseProgram(0);
 
     // Draw background
-    glWindowPos2d(instance->pos.x, instance->pos.y - 2.0);
+    glColor4f(0.0, 0.0, 0.0, 0.5);
+    glWindowPos2d(instance->pos.x, instance->pos.y);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    for (int i = 0; i < len; i++)
-    {
-        GLdouble current[4] = {0,0,0,0};
-        glGetDoublev(GL_CURRENT_RASTER_POSITION, current);
-        glDrawPixels(BG_W, BG_H, GL_ALPHA, GL_UNSIGNED_BYTE, bg_alpha);
-        current[0] += BG_W;
-        glWindowPos2dv(current);
-    }
+    for (int i = 0; i < 2*len; i++)
+        glBitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
     // Draw text
     glColor3f(1.0, 1.0, 1.0);
-    glWindowPos2d(instance->pos.x, instance->pos.y);
+    glWindowPos2d(instance->pos.x + 2, instance->pos.y + 1);
     glListBase(instance->fontOffset);
     glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
 

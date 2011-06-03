@@ -4994,6 +4994,9 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
+#endif
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 

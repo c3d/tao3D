@@ -1556,6 +1556,8 @@ void Widget::enableAnimations(bool enable)
 //   Enable or disable animations on the page
 // ----------------------------------------------------------------------------
 {
+    if (enable)
+        pageStartTime += (trueCurrentTime() - frozenTime);
     frozenTime = CurrentTime();
     startRefreshTimer(animated = enable);
 }

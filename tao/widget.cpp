@@ -138,7 +138,11 @@ static inline QGLFormat TaoGLFormat()
 }
 
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#define DFLT_REFRESH 0.0
+#else
 #define DFLT_REFRESH 0.016
+#endif
 
 Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------

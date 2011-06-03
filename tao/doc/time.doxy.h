@@ -28,7 +28,7 @@
  * animations were disabled.
  *
  * Execution of this primitive requests a refresh of the current layout after
- * @ref default_refresh seconds (0.016 by default).
+ * @ref default_refresh seconds.
  */
 real time ();
 
@@ -42,7 +42,7 @@ real time ();
  * when animations were disabled.
  *
  * Execution of this primitive requests a refresh of the current layout after
- * @ref default_refresh seconds (0.016 by default).
+ * @ref default_refresh seconds.
  */
 real page_time ();
 
@@ -274,7 +274,7 @@ every (interval:real, body:tree);
  * trigger periodic screen refreshes. This is so that animation are as
  * smooth as possible. As a result, the granularity of the
  * refresh timer is the screen refresh rate. For most LCD displays this
- * is 60 Hz or 16.6 ms.
+ * is 60 Hz or 16.6 ms. On this platform, @ref default_refresh is 0.0.
  *
  * @see @ref secExecModel
  *
@@ -285,8 +285,8 @@ real default_refresh (interval:real);
 /**
  * The default refresh interval for code using time and page_time.
  *
- * The default value of the default refresh interval is 0.016 seconds. This
- * value is optimal for smooth rendering on a 60Hz display.
+ * The default value of the default refresh interval depends on the
+ * platform. See @ref default_refresh(interval:real).
  */
 real default_refresh ();
 

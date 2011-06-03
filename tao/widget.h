@@ -185,7 +185,6 @@ public:
     virtual
     bool        event(QEvent *event);
     void        displayLinkEvent();
-    void        createAndStartDisplayLink();
 #endif
     void        startPanning(QMouseEvent *);
     void        doPanning(QMouseEvent *);

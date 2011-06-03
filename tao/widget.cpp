@@ -2723,6 +2723,37 @@ bool Widget::event(QEvent *event)
     return QGLWidget::event(event);
 }
 
+static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
+// ----------------------------------------------------------------------------
+//    Return the display ID where the largest part of widget is
+// ----------------------------------------------------------------------------
+{
+    CGDirectDisplayID id = kCGDirectMainDisplay;
+    QDesktopWidget *dw = qApp->desktop();
+    if (dw)
+    {
+        int index = dw->screenNumber(widget);
+        if (index != -1)
+        {
+            QRect rect = dw->screenGeometry(index);
+            QPoint c = rect.center();
+
+            const int max = 64;   // Should be enough for any system
+            CGDisplayErr st;
+            CGDisplayCount count;
+            CGDirectDisplayID displayIDs[max];
+            CGPoint point;
+
+            point.x = c.x();
+            point.y = c.y();
+            st = CGGetDisplaysWithPoint(point, max, displayIDs, &count);
+            if (st == kCGErrorSuccess && count == 1)
+                id = displayIDs[0];
+        }
+    }
+    return id;
+}
+
 #endif
 
 
@@ -2752,14 +2783,12 @@ void Widget::startRefreshTimer(bool on)
     if (!displayLink)
     {
         // Create display link
-        CVDisplayLinkCreateWithCGDisplay(kCGDirectMainDisplay, &displayLink);
+        CVDisplayLinkCreateWithCGDisplay(getCurrentDisplayID(this),
+                                         &displayLink);
+        // Set render callback
         if (displayLink)
-        {
-            // Needed? + TODO: moving window to another display
-            CVDisplayLinkSetCurrentCGDisplay(displayLink, kCGDirectMainDisplay);
-            // Set render callback
-            CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback, this);
-        }
+            CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback,
+                                           this);
     }
     if (displayLink && !displayLinkStarted)
     {

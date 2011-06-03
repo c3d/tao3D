@@ -138,12 +138,6 @@ static inline QGLFormat TaoGLFormat()
 }
 
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
-#define DFLT_REFRESH 0.0
-#else
-#define DFLT_REFRESH 0.016
-#endif
-
 Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
@@ -172,12 +166,13 @@ Widget::Widget(Window *parent, SourceFile *sf)
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
 #if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
-      displayLink(NULL), pendingDisplayLinkEvent(false),
+      displayLink(NULL), displayLinkStarted(false),
+      pendingDisplayLinkEvent(false),
       stereoSkip(0), droppedFrames(0),
 #else
       timer(),
 #endif
-      dfltRefresh(DFLT_REFRESH), idleTimer(this),
+      dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
@@ -278,7 +273,8 @@ Widget::~Widget()
 #if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
     if (displayLink)
     {
-        CVDisplayLinkStop(displayLink);
+        if (displayLinkStarted)
+            CVDisplayLinkStop(displayLink);
         CVDisplayLinkRelease(displayLink);
         displayLink = NULL;
     }
@@ -817,7 +813,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
-    dfltRefresh = DFLT_REFRESH;
+    dfltRefresh = optimalDefaultRefresh();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -2738,8 +2734,11 @@ void Widget::startRefreshTimer(bool on)
     if (!on)
     {
 #if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
-        if (displayLink)
+        if (displayLink && displayLinkStarted)
+        {
             CVDisplayLinkStop(displayLink);
+            displayLinkStarted = false;
+        }
 #else
         timer.stop();
 #endif
@@ -2762,8 +2761,11 @@ void Widget::startRefreshTimer(bool on)
             CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback, this);
         }
     }
-    if (displayLink)
+    if (displayLink && !displayLinkStarted)
+    {
         CVDisplayLinkStart(displayLink);
+        displayLinkStarted = true;
+    }
 #else
     assert(space || !"No space layout");
     double next = space->NextRefresh();
@@ -2979,7 +2981,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     if (sourceChanged())
         return;
     space->Clear();
-    dfltRefresh = DFLT_REFRESH;
+    dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
@@ -4921,6 +4923,26 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     return new XL::Real(prev);
 }
 
+
+double Widget::optimalDefaultRefresh()
+// ----------------------------------------------------------------------------
+//    Set default refresh for best results
+// ----------------------------------------------------------------------------
+{
+    // The optimal value for default_refresh is either:
+    //  - 0.0 when OpenGL refresh is sync'ed with the display, for instance on
+    //    MacOSX with display link, and/or when VSync is enabled;
+    //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
+    //    Using 0.0 in this case would uselessly tax the CPU.
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    return 0.0;
+#endif
+    if (VSyncEnabled())
+        return 0.0;
+    return 0.016;
+}
+
+
 #ifndef CFG_NOSRCEDIT
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
@@ -5430,7 +5452,9 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
     typedef int  (*get_fn_t) (void);
+    static
     set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
+    static
     get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
     int old = 0;
     if (set_fn && get_fn) {
@@ -5448,6 +5472,28 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
     // Command not supported, but do it silently
     return XL::xl_false;
 #endif
+}
+
+
+bool Widget::VSyncEnabled()
+// ----------------------------------------------------------------------------
+//   Return true if vsync is enable, false otherwise
+// ----------------------------------------------------------------------------
+{
+#if defined(Q_OS_MACX)
+    GLint old = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+#elif defined(Q_OS_WIN)
+    typedef int  (*get_fn_t) (void);
+    static
+    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
+    int old = 0;
+    if (get_fn) {
+        old = get_fn();
+#else
+    int old = 0;
+#endif
+    return (old != 0);
 }
 
 

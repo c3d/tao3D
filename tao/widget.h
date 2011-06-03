@@ -405,6 +405,8 @@ public:
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
+    double      optimalDefaultRefresh();
+    bool        VSyncEnabled();
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
@@ -837,6 +839,7 @@ private:
 #if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
     QMutex                displayLinkMutex;
     CVDisplayLinkRef      displayLink;
+    bool                  displayLinkStarted;
     bool                  pendingDisplayLinkEvent;
     int                   stereoSkip;
     unsigned int          droppedFrames;

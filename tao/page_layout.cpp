@@ -397,6 +397,7 @@ void LayoutLine::Add(Drawing *item)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: LayoutLine gets new element after layout\n";
+        assert(!"LayoutLine gets a new element after layout");
         line.Clear();
     }
 
@@ -413,6 +414,7 @@ void LayoutLine::Add(Items::iterator first, Items::iterator last)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: LayoutLine gets new elements after layout\n";
+        assert(!"LayoutLine gets a new element after layout");
         line.Clear();
     }
 
@@ -473,7 +475,8 @@ PageLayout::PageLayout(Widget *widget)
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget), space()
-{}
+{
+}
 
 
 PageLayout::PageLayout(const PageLayout &o)
@@ -490,7 +493,8 @@ PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
 //    Destroy the page layout
 // ----------------------------------------------------------------------------
-{}
+{
+}
 
 
 void PageLayout::Add(Drawing *d)
@@ -502,6 +506,7 @@ void PageLayout::Add(Drawing *d)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: PageLayout gets new element after layout\n";
+        assert(!"PageLayout gets a new element after layout");
         page.Clear();
     }
     return Layout::Add(d);
@@ -517,6 +522,7 @@ void PageLayout::Add(Items::iterator first, Items::iterator last)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: PageLayout gets new elements after layout\n";
+        assert(!"PageLayout gets a new element after layout");
         page.Clear();
     }
 

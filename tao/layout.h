@@ -33,7 +33,6 @@
 #include <QEvent>
 #include <float.h>
 
-
 TAO_BEGIN
 
 struct Widget;

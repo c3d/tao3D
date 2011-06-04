@@ -863,7 +863,7 @@ void Widget::runProgram()
         gotoPageName = "";
         IFTRACE(pages)
             std::cerr << "New page number is " << pageShown << "\n";
-        refresh();
+        refreshNow();
     }
 
     processProgramEvents();
@@ -1063,7 +1063,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         Layout::polygonOffset = 0;
         setup(w, h);
         frame.begin();
-        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClearColor(clearCol.redF(),clearCol.greenF(),clearCol.blueF(),1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
@@ -4066,7 +4066,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refreshNow();
+    refresh(0);
     return new Text(old);
 }
 

@@ -153,11 +153,13 @@ void WidgetSurface::repaint()
     dirty = true;
 
     if (widget)
+    {
         if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
         {
             //parent->updateGL();
             parent->refreshNow();
         }
+    }
 }
 
 

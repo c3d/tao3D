@@ -549,6 +549,9 @@ void Layout::RefreshOn(Layout *layout)
 //   Refresh whenever other layout would refresh
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(layoutevents)
+        std::cerr << "Copying layout events from " << (void*)layout << " to "
+                  << (void*)this << "\n";
     refreshEvents.insert(layout->refreshEvents.begin(),
                          layout->refreshEvents.end());
     if (layout->nextRefresh < nextRefresh)

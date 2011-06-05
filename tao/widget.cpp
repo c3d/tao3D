@@ -700,6 +700,22 @@ bool Widget::refreshNow(QEvent *event)
     if (inError || inDraw)
         return false;
 
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+            std::cerr << "Goto page request: '" << gotoPageName
+                      << "' from '" << pageName << "'\n";
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = startTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+        IFTRACE(pages)
+            std::cerr << "New page number is " << pageShown << "\n";
+        event = NULL; // Force full refresh
+    }
+
     bool changed = false;
     double now = CurrentTime();
     if (!event || space->NeedRefresh(event, now))
@@ -870,23 +886,7 @@ void Widget::runProgram()
     else
         pageName = pageNameAtIndex(NULL, pageShown)->value;
 
-    // Check if program asked to change page for the next run
-    if (gotoPageName != "")
-    {
-        IFTRACE(pages)
-            std::cerr << "Goto page request: '" << gotoPageName
-                      << "' from '" << pageName << "'\n";
-        pageName = gotoPageName;
-        frozenTime = pageStartTime = startTime = CurrentTime();
-        for (uint p = 0; p < pageNames.size(); p++)
-            if (pageNames[p] == gotoPageName)
-                pageShown = p + 1;
-        gotoPageName = "";
-        IFTRACE(pages)
-            std::cerr << "New page number is " << pageShown << "\n";
-        refreshNow();
-    }
-
+    // Check pending events
     processProgramEvents();
 
     if (!dragging)

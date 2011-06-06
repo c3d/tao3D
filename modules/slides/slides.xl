@@ -429,6 +429,7 @@ story_bg_rect Theme:text ->
 // ----------------------------------------------------------------------------
     nil
 
+
 story_layout Theme:text, Body ->
 // ----------------------------------------------------------------------------
 //   Default implementation of story layout

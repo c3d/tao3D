@@ -53,6 +53,9 @@
 #include <map>
 #include <set>
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+typedef struct __CVDisplayLink *CVDisplayLinkRef;
+#endif
 
 namespace Tao {
 
@@ -178,6 +181,11 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    virtual
+    bool        event(QEvent *event);
+    void        displayLinkEvent();
+#endif
     void        startPanning(QMouseEvent *);
     void        doPanning(QMouseEvent *);
     void        endPanning(QMouseEvent *);
@@ -215,7 +223,6 @@ public:
     ulonglong   now();
     void        printStatistics();
     void        updateStatistics();
-    bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
     char        hasStereoscopy(void)    { return (stereoPlanes > 1 ||
                                                   stereoMode >
@@ -397,6 +404,8 @@ public:
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
+    double      optimalDefaultRefresh();
+    bool        VSyncEnabled();
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
@@ -522,7 +531,7 @@ public:
     Tree_p      torus(Tree_p self,
                        Real_p x, Real_p y, Real_p z,
                        Real_p w, Real_p h, Real_p d,
-                       double ratio, Integer_p nslices, Integer_p nstacks);
+                       Integer_p nslices, Integer_p nstacks, double ratio);
     Tree_p      cube(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
@@ -857,7 +866,16 @@ private:
     MouseCoordinatesInfo *mouseCoordinatesInfo;
 
     // Timing
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    QMutex                displayLinkMutex;
+    CVDisplayLinkRef      displayLink;
+    bool                  displayLinkStarted;
+    bool                  pendingDisplayLinkEvent;
+    int                   stereoSkip;
+    unsigned int          droppedFrames;
+#else
     QBasicTimer           timer;
+#endif
     double                dfltRefresh;
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
@@ -907,7 +925,7 @@ public:
 
 private:
     void                  processProgramEvents();
-    void                  startRefreshTimer();
+    void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
     double                trueCurrentTime();
     void                  setCurrentTime();

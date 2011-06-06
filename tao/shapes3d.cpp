@@ -221,23 +221,25 @@ void Sphere::Draw(Layout *where)
 
             // First vertex
             textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));
-            normals.push_back(Vector3(sinTheta * sinIncrPhi, cosTheta * sinIncrPhi, cosIncrPhi));
-            vertices.push_back(radius * Vector3(sinTheta * sinIncrPhi, cosTheta * sinIncrPhi,  cosIncrPhi));
+            normals.push_back(Vector3(cosTheta * sinIncrPhi, cosIncrPhi, sinTheta * sinIncrPhi));
+            vertices.push_back(Vector3(radius * cosTheta * sinIncrPhi,
+                                       radius * cosIncrPhi,
+                                       radius * sinTheta * sinIncrPhi
+                                       ));
 
             // Second vertex
             textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
-            normals.push_back(Vector3(sinTheta * sinPhi, cosTheta * sinPhi, cosPhi));
-            vertices.push_back(radius * Vector3(sinTheta * sinPhi, cosTheta * sinPhi, cosPhi));
+            normals.push_back(Vector3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi));
+            vertices.push_back(Vector3(radius * cosTheta * sinPhi,
+                                       radius * cosPhi,
+                                       radius * sinTheta * sinPhi));
         }
     }
 
     glPushMatrix();
-    glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_NORMALIZE);
     glTranslatef(p.x, p.y, p.z);
-    glRotatef(-90.0, 1.0, 0.0, 0.0);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
@@ -262,7 +264,6 @@ void Sphere::Draw(Layout *where)
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
-    glPopAttrib();
     glPopMatrix();
 }
 
@@ -272,9 +273,9 @@ void Torus::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
-    double minRadius = ratio;
-    double majRadius = 1.0;
-    double thickness = 0.5;
+    double minRadius = ratio * 0.25;
+    double majRadius = 0.25;
+    double thickness = 0.25;
 
     std::vector<Vector3> vertices;
     std::vector<Vector3> normals;
@@ -298,27 +299,25 @@ void Torus::Draw(Layout *where)
 
             // First vertex
             textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));
-            normals.push_back(Vector3(sinTheta * cosIncrPhi, cosTheta * cosIncrPhi, sinIncrPhi));
+            normals.push_back(Vector3( cosTheta * cosIncrPhi, sinIncrPhi, sinTheta * cosIncrPhi));
             vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
-                                       (majRadius + minRadius * cosIncrPhi) * cosTheta,
-                                        thickness * sinIncrPhi));
+                                        thickness * sinIncrPhi,
+                                        (majRadius + minRadius * cosIncrPhi) * cosTheta)
+                                        );
 
             // Second vertex
             textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
-            normals.push_back(Vector3(sinTheta * cosPhi, cosTheta * cosPhi, sinPhi));
+            normals.push_back(Vector3(cosTheta * cosPhi, sinPhi, sinTheta * cosPhi));
             vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
-                                       (majRadius + minRadius * cosPhi) * cosTheta,
-                                        thickness * sinPhi));
+                                        thickness * sinPhi,
+                                        (majRadius + minRadius * cosPhi) * cosTheta));
         }
     }
 
     glPushMatrix();
-    glPushAttrib(GL_ENABLE_BIT);
     glEnable(GL_NORMALIZE);
     glTranslatef(p.x, p.y, p.z);
-    glRotatef(-90.0, 1.0, 0.0, 0.0);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
-
     glEnableClientState(GL_VERTEX_ARRAY);
     glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
@@ -342,8 +341,6 @@ void Torus::Draw(Layout *where)
            disableTexture((*it).first);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
-
-    glPopAttrib();
     glPopMatrix();
 }
 

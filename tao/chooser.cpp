@@ -57,45 +57,63 @@ Chooser::~Chooser()
 {}
 
 
-struct utf8position
+static bool CharMatch(QChar ref, QChar test)
 // ----------------------------------------------------------------------------
-//   Depending on what we do, we may need byte or char index
+//   Character matching function used by incremental search
 // ----------------------------------------------------------------------------
+//   * Comparison is case-insensitive
+//   * Space and underscore are equivalent
+//   * Accent folding: a letter without accent matches itself and the same
+//     letter with any accent; but an accented letter matches only itself.
+//     For instance:   CharMatch('e', 'é') => true
+//                     CharMatch('e', 'e') => true
+//                     CharMatch('é', 'e') => false
 {
-    int byteOffset;
-    int charCount;
-    utf8position(int b, int c): byteOffset(b), charCount(c) {}
-};
+    static QMap<QChar, QChar> fold;
+
+    if (fold.empty())
+    {
+#       define F(from, to) fold[QChar(from)] = QChar(to)
+        F(0xE0, 'a'); F(0xE1, 'a'); F(0xE2, 'a'); F(0xE3, 'a'); F(0xE4, 'a');
+        F(0xE5, 'a');
+        F(0xE8, 'e'); F(0xE9, 'e'); F(0xEA, 'e'); F(0xEB, 'e');
+        F(0xEC, 'i'); F(0xED, 'i'); F(0xEE, 'i'); F(0xEF, 'i');
+        F(0xF2, 'o'); F(0xF3, 'o'); F(0xF4, 'o'); F(0xF5, 'o'); F(0xF6, 'o');
+        F(0xF8, 'o');
+        F(0xF9, 'u'); F(0xFA, 'u'); F(0xFB, 'u'); F(0xFC, 'u');
+        F(0xFD, 'y'); F(0xFF, 'y');
+#       undef F
+    }
+
+    if (test.toLower() == ref.toLower())
+        return true;
+    if ((test.isSpace() || test == '_') &&
+        ( ref.isSpace() ||  ref == '_'))
+        return true;
+    if (fold.contains(test) && fold[test] == ref)
+        return true;
+
+    return false;
+}
 
 
-static utf8position KeystrokesFind(text where, text what)
+static int KeystrokesFind(QString where, QString what)
 // ----------------------------------------------------------------------------
 //   Find 'what' in 'where', ignoring capitalization and stuff...
 // ----------------------------------------------------------------------------
 {
     uint i, maxi = where.length();
     uint j, maxj = what.length();
-    kstring di = where.data();
-    kstring dj = what.data();
-    int c = 0;
 
-    for (i = 0; i + maxj <= maxi; i = Utf8Next(di, i))
+    for (i = 0; i + maxj <= maxi; i++)
     {
         bool found = true;
-        for (j = 0; found && j < maxj; j = Utf8Next(dj, j))
-        {
-            wchar_t ref, test;
-            if (mbtowc(&ref, di + i + j, maxi - i - j) > 0 &&
-                mbtowc(&test, dj + j, maxj - j) > 0)
-                found = (towlower(ref) == towlower(test) ||
-                         ((iswspace(test) || test == '_') &&
-                          (iswspace(ref) || ref == '_')));
-        }
-        if (found && j >= maxj)
-            return utf8position(i, c);
-        c++;
+        for (j = 0; found && j < maxj; j++)
+            found = CharMatch(what[j], where[i + j]);
+        if (found)
+            return i;
     }
-    return utf8position(-1, -1);
+    return -1;
 }
 
 
@@ -136,7 +154,7 @@ Activity *Chooser::Display(void)
     for (it = items.begin(); it != items.end(); it++)
     {
         text &caption = (*it).caption;
-        int pos = KeystrokesFind (caption, keystrokes).byteOffset;
+        int pos = KeystrokesFind (+caption, +keystrokes);
         if (pos >= 0)
         {
             // Compute the width of the chooser
@@ -247,12 +265,14 @@ Activity *Chooser::Display(void)
         // Render command selection
         if (keystrokes.length())
         {
-            utf8position pos = KeystrokesFind(caption, keystrokes);
-            text ca1 = caption.substr(0, pos.byteOffset);
-            text ca2 = caption.substr(pos.byteOffset, keystrokes.length());
-            text ca3 = caption.substr(pos.byteOffset + keystrokes.length());
+            QString qcaption = +caption;
+            QString qkeystrokes = +keystrokes;
+            int pos = KeystrokesFind(qcaption, qkeystrokes);
+            QString ca1 = qcaption.mid(0, pos);
+            QString ca2 = qcaption.mid(pos, qkeystrokes.length());
+            QString ca3 = qcaption.mid(pos + qkeystrokes.length());
             XLCall call("draw_chooser_match");
-            call, ca1, ca2, ca3, ix, iy;
+            call, +ca1, +ca2, +ca3, ix, iy;
             widget->drawCall(NULL, call);
         }
         else

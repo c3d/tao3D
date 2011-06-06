@@ -1253,7 +1253,7 @@ PREFIX(Torus,  tree,  "torus",
        PARM(r, real, "radius")
        PARM(slices, integer, "number of slices")
        PARM(stacks, integer, "number of stacks"),
-       RTAO(torus(self, x, y, z, w, h, d, r, slices, stacks)),
+       RTAO(torus(self, x, y, z, w, h, d, slices, stacks, r)),
        GROUP(graph)
        SYNOPSIS("torus like")
        DESCRIPTION("torus[TODO]")

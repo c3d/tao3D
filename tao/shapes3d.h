@@ -69,7 +69,7 @@ struct Torus : Cube
 //   Draw a torus
 // ----------------------------------------------------------------------------
 {
-    Torus(Box3 bounds, double r, uint sl, uint st)
+    Torus(Box3 bounds, uint sl, uint st, double r)
         : Cube(bounds), slices(sl), stacks(st), ratio(r) {}
     virtual void        Draw(Layout *where);
     uint    slices, stacks;

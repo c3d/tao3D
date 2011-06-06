@@ -278,6 +278,7 @@ CXXTBL_SOURCES += graphics.cpp \
 }
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
+    !contains(DEFINES, CFG_NODISPLAYLINK):LIBS += -framework CoreVideo
     LIBS += -framework \
         ApplicationServices \
         -Wl,-macosx_version_min,10.5 \

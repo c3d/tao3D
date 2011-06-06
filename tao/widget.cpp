@@ -95,6 +95,10 @@
 
 #include <QtGui>
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#include <CoreVideo/CoreVideo.h>
+#endif
+
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
 #define CHECK_0_1_RANGE(var) if (var < 0) var = 0; else if (var > 1) var = 1;
@@ -161,7 +165,14 @@ Widget::Widget(Window *parent, SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
-      timer(), dfltRefresh(0.04), idleTimer(this),
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+      displayLink(NULL), displayLinkStarted(false),
+      pendingDisplayLinkEvent(false),
+      stereoSkip(0), droppedFrames(0),
+#else
+      timer(),
+#endif
+      dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
@@ -262,6 +273,16 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
+
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    if (displayLink)
+    {
+        if (displayLinkStarted)
+            CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
+        displayLink = NULL;
+    }
+#endif
 }
 
 
@@ -522,6 +543,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            glDisable(GL_TEXTURE_2D);
             space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);
@@ -685,6 +707,22 @@ bool Widget::refreshNow(QEvent *event)
     if (inError || inDraw)
         return false;
 
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+            std::cerr << "Goto page request: '" << gotoPageName
+                      << "' from '" << pageName << "'\n";
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = startTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+        IFTRACE(pages)
+            std::cerr << "New page number is " << pageShown << "\n";
+        event = NULL; // Force full refresh
+    }
+
     bool changed = false;
     double now = CurrentTime();
     if (!event || space->NeedRefresh(event, now))
@@ -799,7 +837,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = optimalDefaultRefresh();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -855,23 +893,7 @@ void Widget::runProgram()
     else
         pageName = pageNameAtIndex(NULL, pageShown)->value;
 
-    // Check if program asked to change page for the next run
-    if (gotoPageName != "")
-    {
-        IFTRACE(pages)
-            std::cerr << "Goto page request: '" << gotoPageName
-                      << "' from '" << pageName << "'\n";
-        pageName = gotoPageName;
-        frozenTime = pageStartTime = startTime = CurrentTime();
-        for (uint p = 0; p < pageNames.size(); p++)
-            if (pageNames[p] == gotoPageName)
-                pageShown = p + 1;
-        gotoPageName = "";
-        IFTRACE(pages)
-            std::cerr << "New page number is " << pageShown << "\n";
-        refresh();
-    }
-
+    // Check pending events
     processProgramEvents();
 
     if (!dragging)
@@ -1069,7 +1091,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         Layout::polygonOffset = 0;
         setup(w, h);
         frame.begin();
-        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClearColor(clearCol.redF(),clearCol.greenF(),clearCol.blueF(),1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
@@ -1542,12 +1564,10 @@ void Widget::enableAnimations(bool enable)
 //   Enable or disable animations on the page
 // ----------------------------------------------------------------------------
 {
-    animated = enable;
+    if (enable)
+        pageStartTime += (trueCurrentTime() - frozenTime);
     frozenTime = CurrentTime();
-    if (animated)
-        startRefreshTimer();
-    else
-        timer.stop();
+    startRefreshTimer(animated = enable);
 }
 
 
@@ -1705,6 +1725,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.clear();
     stats_start.start();
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    droppedFrames = 0;
+#endif
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -2424,8 +2447,9 @@ void Widget::keyPressEvent(QKeyEvent *event)
     Activity *next;
     for (Activity *a = activities; a; a = next)
     {
+        Activity * n = a->next;
         next = a->Key(key);
-        handled |= next != a->next;
+        handled |= next != n;
     }
 
     // If the key was not handled by any activity, forward to document
@@ -2644,14 +2668,152 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-void Widget::startRefreshTimer()
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+
+static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
+                                    const CVTimeStamp *now,
+                                    const CVTimeStamp *outputTime,
+                                    CVOptionFlags flagsIn,
+                                    CVOptionFlags *flagsOut,
+                                    void *displayLinkContext)
+// ----------------------------------------------------------------------------
+//    MacOSX Core Video display link callback.
+// ----------------------------------------------------------------------------
+//    Using a display link is a way to implement precise timers, synchronized
+//    with screen refresh.
+//    See http://developer.apple.com/library/mac/#qa/qa1385/_index.html.
+//    This method is called from a thread that is NOT the GUI thread, so we
+//    can't do much here. We will just post an event to be processed ASAP by
+//    the main thread, to reevaluate any part of the document, and then redraw
+//    the scene as needed.
+{
+    Q_UNUSED(displayLink);
+    Q_UNUSED(now);
+    Q_UNUSED(outputTime);
+    Q_UNUSED(flagsIn);
+    Q_UNUSED(flagsOut);
+
+    Widget *w = (Widget*)displayLinkContext;
+    w->displayLinkEvent();
+
+    return kCVReturnSuccess;
+}
+
+
+void Widget::displayLinkEvent()
+// ----------------------------------------------------------------------------
+//    Post a User event to GUI thread (this is OpenGL our refresh timer)
+// ----------------------------------------------------------------------------
+{
+    // Stereoscopy with quad buffers: scene refresh rate is half of screen
+    // frequency
+    if (XL::MAIN->options.enable_stereoscopy && (++stereoSkip % 2 == 0))
+        return;
+
+    // Post event to main thread (have no more than one event pending,
+    // otherwise it means we can't keep up => dropped frame)
+    displayLinkMutex.lock();
+    bool pending = pendingDisplayLinkEvent;
+    pendingDisplayLinkEvent = true;
+    displayLinkMutex.unlock();
+    if (!pending)
+        qApp->postEvent(this, new QEvent(QEvent::User), Qt::HighEventPriority);
+    else
+        droppedFrames++;
+}
+
+
+bool Widget::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Convert display link event into timer event
+// ----------------------------------------------------------------------------
+{
+    if (event->type() == QEvent::User)
+    {
+        displayLinkMutex.lock();
+        pendingDisplayLinkEvent = false;
+        displayLinkMutex.unlock();
+        QTimerEvent e(0);
+        timerEvent(&e);
+        return true;
+    }
+
+    return QGLWidget::event(event);
+}
+
+static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
+// ----------------------------------------------------------------------------
+//    Return the display ID where the largest part of widget is
+// ----------------------------------------------------------------------------
+{
+    CGDirectDisplayID id = kCGDirectMainDisplay;
+    QDesktopWidget *dw = qApp->desktop();
+    if (dw)
+    {
+        int index = dw->screenNumber(widget);
+        if (index != -1)
+        {
+            QRect rect = dw->screenGeometry(index);
+            QPoint c = rect.center();
+
+            const int max = 64;   // Should be enough for any system
+            CGDisplayErr st;
+            CGDisplayCount count;
+            CGDirectDisplayID displayIDs[max];
+            CGPoint point;
+
+            point.x = c.x();
+            point.y = c.y();
+            st = CGGetDisplaysWithPoint(point, max, displayIDs, &count);
+            if (st == kCGErrorSuccess && count == 1)
+                id = displayIDs[0];
+        }
+    }
+    return id;
+}
+
+#endif
+
+
+void Widget::startRefreshTimer(bool on)
 // ----------------------------------------------------------------------------
 //    Make sure refresh timer runs if it has to
 // ----------------------------------------------------------------------------
 {
+    if (!on)
+    {
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+        if (displayLink && displayLinkStarted)
+        {
+            CVDisplayLinkStop(displayLink);
+            displayLinkStarted = false;
+        }
+#else
+        timer.stop();
+#endif
+        return;
+    }
+
     if (inError || !animated)
         return;
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    if (!displayLink)
+    {
+        // Create display link
+        CVDisplayLinkCreateWithCGDisplay(getCurrentDisplayID(this),
+                                         &displayLink);
+        // Set render callback
+        if (displayLink)
+            CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback,
+                                           this);
+    }
+    if (displayLink && !displayLinkStarted)
+    {
+        CVDisplayLinkStart(displayLink);
+        displayLinkStarted = true;
+    }
+#else
     assert(space || !"No space layout");
     double next = space->NextRefresh();
     if (next != DBL_MAX)
@@ -2669,6 +2831,7 @@ void Widget::startRefreshTimer()
             timer.stop();
         timer.start(ms, this);
     }
+#endif
 }
 
 
@@ -2679,6 +2842,12 @@ void Widget::timerEvent(QTimerEvent *event)
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
+
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    setCurrentTime();
+    if (CurrentTime() < space->NextRefresh())
+        return;
+#else
     bool is_refresh_timer = (event->timerId() == timer.timerId());
     if (is_refresh_timer)
     {
@@ -2694,6 +2863,8 @@ void Widget::timerEvent(QTimerEvent *event)
             return startRefreshTimer();
         }
     }
+#endif
+
     forwardEvent(event);
 }
 
@@ -2857,7 +3028,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     if (sourceChanged())
         return;
     space->Clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
@@ -3568,13 +3739,18 @@ void Widget::printStatistics()
         double n = (double)stats.size() * 1000 / stats_interval;
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    char dropped[20] = "";
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
+#endif
     GLint vp[4] = {0,0,0,0};
     GLint vx, vy, vw, vh;
 
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
-    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+    RasterText::printf("%dx%dx%d  %s fps%s", vw, vh, stereoPlanes, fps,
+                       dropped);
 }
 
 
@@ -4081,7 +4257,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refreshNow();
+    refresh(0);
     return new Text(old);
 }
 
@@ -4794,6 +4970,26 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     return new XL::Real(prev);
 }
 
+
+double Widget::optimalDefaultRefresh()
+// ----------------------------------------------------------------------------
+//    Set default refresh for best results
+// ----------------------------------------------------------------------------
+{
+    // The optimal value for default_refresh is either:
+    //  - 0.0 when OpenGL refresh is sync'ed with the display, for instance on
+    //    MacOSX with display link, and/or when VSync is enabled;
+    //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
+    //    Using 0.0 in this case would uselessly tax the CPU.
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    return 0.0;
+#endif
+    if (VSyncEnabled())
+        return 0.0;
+    return 0.016;
+}
+
+
 #ifndef CFG_NOSRCEDIT
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
@@ -4816,6 +5012,9 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+    CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
+#endif
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -4991,13 +5190,8 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraPosition.x),
-                              new Infix(",",
-                                        new Real(cameraPosition.y),
-                                        new Real(cameraPosition.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraPosition.x);
+    return result->AsInfix();
 }
 
 
@@ -5022,13 +5216,8 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraTarget.x),
-                              new Infix(",",
-                                        new Real(cameraTarget.y),
-                                        new Real(cameraTarget.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraTarget.x);
+    return result->AsInfix();
 }
 
 
@@ -5053,13 +5242,8 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix =  new Infix(",",
-                               new Real(cameraUpVector.x),
-                               new Infix(",",
-                                         new Real(cameraUpVector.y),
-                                         new Real(cameraUpVector.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraUpVector.x);
+    return result->AsInfix();
 }
 
 
@@ -5303,7 +5487,9 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
     typedef int  (*get_fn_t) (void);
+    static
     set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
+    static
     get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
     int old = 0;
     if (set_fn && get_fn) {
@@ -5321,6 +5507,28 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
     // Command not supported, but do it silently
     return XL::xl_false;
 #endif
+}
+
+
+bool Widget::VSyncEnabled()
+// ----------------------------------------------------------------------------
+//   Return true if vsync is enable, false otherwise
+// ----------------------------------------------------------------------------
+{
+#if defined(Q_OS_MACX)
+    GLint old = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+#elif defined(Q_OS_WIN)
+    typedef int  (*get_fn_t) (void);
+    static
+    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
+    int old = 0;
+    if (get_fn)
+        old = get_fn();
+#else
+    int old = 0;
+#endif
+    return (old != 0);
 }
 
 
@@ -5817,29 +6025,29 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    Infix *result = new Infix(",", new Integer(w), new Integer(h));
-    result->SetSymbols(self->Symbols());
-    return result;
+    longlong v[2] = { w, h };
+    Tree *result = xl_integer_list(self, 2, v);
+    return result->AsInfix();
 }
 
 
-static void list_files(Context *context, Dir &current, Tree *patterns,
-                       Tree_p *&parent)
+static void list_files(Context *context, Dir &current,
+                       Tree *self, Tree *patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
 // ----------------------------------------------------------------------------
 {
     if (Block *block = patterns->AsBlock())
     {
-        list_files(context, current, block->child, parent);
+        list_files(context, current, self, block->child, parent);
         return;
     }
     if (Infix *infix = patterns->AsInfix())
     {
         if (infix->name == "," || infix->name == ";" || infix->name == "\n")
         {
-            list_files(context, current, infix->left, parent);
-            list_files(context, current, infix->right, parent);
+            list_files(context, current, self, infix->left, parent);
+            list_files(context, current, self, infix->right, parent);
             return;
         }
     }
@@ -5855,6 +6063,8 @@ static void list_files(Context *context, Dir &current, Tree *patterns,
             if (*parent)
             {
                 Infix *added = new Infix(",", *parent, listed);
+                added->SetSymbols(self->Symbols());
+                added->code = XL::xl_identity;
                 *parent = added;
                 parent = &added->right;
             }
@@ -5878,7 +6088,7 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     Tree_p *parent = &result;
     Window *window = (Window *) parentWidget();
     Dir current(window->currentProjectFolderPath());
-    list_files(context, current, pattern, parent);
+    list_files(context, current, self, pattern, parent);
     if (!result)
         result = XL::xl_nil;
     else
@@ -6944,12 +7154,12 @@ Tree_p Widget::cube(Tree_p self,
 Tree_p Widget::torus(Tree_p self,
                      Real_p x, Real_p y, Real_p z,
                      Real_p w, Real_p h, Real_p d,
-                     double ratio, Integer_p slices, Integer_p stacks)
+                     Integer_p slices, Integer_p stacks, double ratio)
 // ----------------------------------------------------------------------------
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio, slices, stacks));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -7841,8 +8051,10 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild());
-    Integer* tex = frameTexture(context, self, w, h, prog);
+
+    Layout *childLayout = layout->AddChild(0, prog, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
+    Integer_p tex = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
     layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
@@ -7939,6 +8151,7 @@ Integer* Widget::thumbnail(Context *context,
     }
     FrameInfo &frame = multiframe->frame(page);
 
+    Layout *parent = layout;
     if (frame.refreshTime < CurrentTime())
     {
         GLAllStateKeeper saveGL;
@@ -7975,6 +8188,8 @@ Integer* Widget::thumbnail(Context *context,
         layout->Draw(NULL);
         frame.end();
 
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;

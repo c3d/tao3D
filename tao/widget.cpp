@@ -6917,7 +6917,7 @@ Tree_p Widget::sphere(Tree_p self,
                       Real_p w, Real_p h, Real_p d,
                       Integer_p slices, Integer_p stacks)
 // ----------------------------------------------------------------------------
-//     GL sphere
+//     A simple sphere
 // ----------------------------------------------------------------------------
 {
     layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
@@ -6935,6 +6935,21 @@ Tree_p Widget::cube(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     layout->Add(new Cube(Box3(x-w/2, y-h/2, z-d/2, w,h,d)));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::torus(Tree_p self,
+                     Real_p x, Real_p y, Real_p z,
+                     Real_p w, Real_p h, Real_p d,
+                     double ratio, Integer_p slices, Integer_p stacks)
+// ----------------------------------------------------------------------------
+//    A simple torus
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio, slices, stacks));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;

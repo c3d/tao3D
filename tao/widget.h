@@ -518,7 +518,11 @@ public:
     Tree_p      sphere(Tree_p self,
                        Real_p cx, Real_p cy, Real_p cz,
                        Real_p w, Real_p, Real_p d,
-                       Integer_p nslices, Integer_p nstacks);
+                       Integer_p nslices, Integer_p nstacks);    
+    Tree_p      torus(Tree_p self,
+                       Real_p x, Real_p y, Real_p z,
+                       Real_p w, Real_p h, Real_p d,
+                       double ratio, Integer_p nslices, Integer_p nstacks);
     Tree_p      cube(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,

@@ -64,6 +64,17 @@ struct Sphere : Cube
     uint    slices, stacks;
 };
 
+struct Torus : Cube
+// ----------------------------------------------------------------------------
+//   Draw a torus
+// ----------------------------------------------------------------------------
+{
+    Torus(Box3 bounds, double r, uint sl, uint st)
+        : Cube(bounds), slices(sl), stacks(st), ratio(r) {}
+    virtual void        Draw(Layout *where);
+    uint    slices, stacks;
+    double  ratio;
+};
 
 struct Cone : Cube
 // ----------------------------------------------------------------------------

@@ -190,7 +190,11 @@ void Cube::Draw(Layout *where)
            disableTexture((*it).first);
 }
 
+
 void Sphere::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the sphere within the bounding box
+// ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
     double radius = 0.5;
@@ -224,6 +228,87 @@ void Sphere::Draw(Layout *where)
             textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
             normals.push_back(Vector3(sinTheta * sinPhi, cosTheta * sinPhi, cosPhi));
             vertices.push_back(radius * Vector3(sinTheta * sinPhi, cosTheta * sinPhi, cosPhi));
+        }
+    }
+
+    glPushMatrix();
+    glPushAttrib(GL_ENABLE_BIT);
+    glEnable(GL_NORMALIZE);
+    glTranslatef(p.x, p.y, p.z);
+    glRotatef(-90.0, 1.0, 0.0, 0.0);
+    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
+    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+
+    //Active texture coordinates for all used units
+    std::map<uint, TextureState>::iterator it;
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        if(((*it).second).id)
+            enableTexture((*it).first, &textures[0].x);
+
+    setTexture(where);
+
+    if (setFillColor(where))
+        glDrawArrays(GL_QUAD_STRIP, 0, textures.size());
+    if (setLineColor(where))
+        glDrawArrays(GL_LINE_LOOP, 0, textures.size());
+
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        if(((*it).second).id)
+           disableTexture((*it).first);
+    glDisableClientState(GL_VERTEX_ARRAY);
+    glDisableClientState(GL_NORMAL_ARRAY);
+
+    glPopAttrib();
+    glPopMatrix();
+}
+
+void Torus::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the torus within the bounding box
+// ----------------------------------------------------------------------------
+{
+    Point3 p = bounds.Center() + where->Offset();
+    double minRadius = ratio;
+    double majRadius = 1.0;
+    double thickness = 0.5;
+
+    std::vector<Vector3> vertices;
+    std::vector<Vector3> normals;
+    std::vector<Vector>  textures;
+
+    for (uint j = 0; j < stacks; j++) {
+        GLfloat phi      = 2 * M_PI * j / stacks;
+        GLfloat incr_phi = 2 * M_PI * (j + 1) / stacks;
+
+        // Compute phi components
+        float sinPhi     =  sin(phi);
+        float cosPhi     =  cos(phi);
+        float sinIncrPhi =  sin(incr_phi);
+        float cosIncrPhi =  cos(incr_phi);
+
+        for (uint i = 0; i <= slices; i++) {
+            GLfloat theta  = 2 * M_PI * i / slices;
+            // Compute teta components
+            float sinTheta = sin(theta);
+            float cosTheta = cos(theta);
+
+            // First vertex
+            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));
+            normals.push_back(Vector3(sinTheta * cosIncrPhi, cosTheta * cosIncrPhi, sinIncrPhi));
+            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
+                                       (majRadius + minRadius * cosIncrPhi) * cosTheta,
+                                        thickness * sinIncrPhi));
+
+            // Second vertex
+            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
+            normals.push_back(Vector3(sinTheta * cosPhi, cosTheta * cosPhi, sinPhi));
+            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
+                                       (majRadius + minRadius * cosPhi) * cosTheta,
+                                        thickness * sinPhi));
         }
     }
 

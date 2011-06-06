@@ -1242,7 +1242,21 @@ PREFIX(Sphere,  tree,  "sphere",
        RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)),
        GROUP(graph)
        SYNOPSIS("sphere like")
-       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]")
+       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]"))
+PREFIX(Torus,  tree,  "torus",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth")
+       PARM(r, real, "radius")
+       PARM(slices, integer, "number of slices")
+       PARM(stacks, integer, "number of stacks"),
+       RTAO(torus(self, x, y, z, w, h, d, r, slices, stacks)),
+       GROUP(graph)
+       SYNOPSIS("torus like")
+       DESCRIPTION("torus[TODO]")
        RETURNS(tree, ""))
 PREFIX(Cube,  tree,  "cube",
        PARM(x, real, "x-coordinate")

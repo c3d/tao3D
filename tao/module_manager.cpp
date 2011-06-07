@@ -50,14 +50,7 @@ ModuleManager * ModuleManager::moduleManager()
 // ----------------------------------------------------------------------------
 {
     if (!instance)
-    {
         instance = new ModuleManager;
-        if (!instance->init())
-        {
-            delete instance;
-            instance = NULL;
-        }
-    }
     return instance;
 }
 
@@ -125,27 +118,38 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     if (!m.enabled)
                         continue;
                     enabled_found = true;
-                    if (m.hasNative && !m.native)
-                        continue;
+                    if (m.hasNative)
+                    {
+                        if (!m.native && !m.inError)
+                        {
+                            loadNative(context, m);
+                            m = *moduleById(m.id);
+                        }
+                        if (!m.native)
+                            continue;
+                    }
                     found = true;
                     QString xlPath = m.xlPath();
 
-                    IFTRACE(modules)
+                    if (!execute)
+                    {
+                        IFTRACE(modules)
                             debug() << "  Importing module " << m_n
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
-
-                    if (!execute && m.native)
-                    {
-                        // execute == false when file is [re]loaded => we won't
-                        // call enter_symbols at each execution
-                        enter_symbols_fn es =
-                            (enter_symbols_fn) m.native->resolve("enter_symbols");
-                        if (es)
+                        if (m.native)
                         {
-                             IFTRACE(modules)
+                            // execute == false when file is [re]loaded
+                            // => we won't call enter_symbols at each execution
+                            enter_symbols_fn es =
+                                (enter_symbols_fn)
+                                m.native->resolve("enter_symbols");
+                            if (es)
+                            {
+                                IFTRACE(modules)
                                     debug() << "    Calling enter_symbols\n";
-                            es(context);
+                                es(context);
+                            }
                         }
                     }
 
@@ -361,7 +365,12 @@ bool ModuleManager::cleanConfig()
     foreach (ModuleInfoPrivate m, modules)
     {
         if (m.path == "" || m.id == "0")
+        {
             removeFromConfig(m);
+            continue;
+        }
+        ModuleInfoPrivate * m_p = moduleById(m.id);
+        m_p->hasNative = QFile(m_p->libPath()).exists();
     }
     return true;
 }
@@ -512,6 +521,8 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
             ModuleInfoPrivate m = readModule(moduleDir);
             if (m.id != "")
             {
+                emit checking(QString::fromStdString(m.name));
+
                 if (!modules.contains(+m.id))
                 {
                     IFTRACE(modules)
@@ -712,8 +723,6 @@ bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
     IFTRACE(modules)
         debug() << "Loading module " << m.toText() << "\n";
 
-    emit loading(QString::fromStdString(m.name));
-
     ok = loadNative(context, m);
     if (ok)
         ok = loadXL(context, m);
@@ -816,12 +825,11 @@ bool ModuleManager::loadNative(Context * /*context*/,
     ModuleInfoPrivate * m_p = moduleById(m.id);
     Q_ASSERT(m_p);
     bool ok;
-    QString path = m.libPath();
 
-    m_p->hasNative = QFile(path).exists();
     if (m_p->hasNative)
     {
         // Change current directory, just the time to load any module dependency
+        QString path = m.libPath();
         QString libdir = QFileInfo(path).absolutePath();
         SetCwd cd(libdir);
         QLibrary * lib = new QLibrary(path, this);

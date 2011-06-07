@@ -369,6 +369,7 @@ public:
         }
     };
 
+    bool                init();
     bool                loadAll(Context *context);
     bool                unloadAll(Context *context);
     QList<ModuleInfoPrivate>   allModules();
@@ -388,7 +389,7 @@ public:
     static double       parseVersion(text versionId);
 
 signals:
-    void                loading(QString name);
+    void                checking(QString name);
 
 private:
     ModuleManager()  {}
@@ -438,7 +439,6 @@ private:
         bool sectionFound;
     };
 
-    bool                init();
     bool                initPaths();
 
     bool                loadConfig();

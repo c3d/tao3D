@@ -28,6 +28,7 @@
 
 QT_BEGIN_NAMESPACE
 class QTableWidget;
+class QLineEdit;
 class QStackedWidget;
 class QProgressBar;
 class QComboBox;
@@ -102,6 +103,7 @@ private slots:
     void         updateOne();
     void         onUpdateOneComplete();
     void         onCellClicked(int row, int col);
+    void         doSearch();
 
 private:
     void         updateTable();
@@ -110,6 +112,7 @@ private:
     ModuleManager *                          mmgr;
     QList<ModuleManager::ModuleInfoPrivate>  modules;
     QTableWidget *                           table;
+    QLineEdit *                              search;
     QStackedWidget *                         sw;
     QProgressBar *                           pb;
     bool                                     findUpdatesInProgress;

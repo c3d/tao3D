@@ -97,7 +97,7 @@ Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
         return xl_false;
     }
 
-    bool enable;
+    bool enable = false;
     if (name == xl_false || name->value == "OFF")
     {
         enable = false;

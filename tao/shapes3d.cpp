@@ -273,7 +273,7 @@ void Torus::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
-    double minRadius = ratio * 0.5;
+    double minRadius = ratio * 0.25;
     double majRadius = 0.25;
     double thickness = 0.25;
 

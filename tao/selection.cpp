@@ -249,8 +249,8 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
 }
 
 
-Activity *MouseFocusTracker::Click(uint button,
-                                   uint count,
+Activity *MouseFocusTracker::Click(uint /*button*/,
+                                   uint /*count*/,
                                    int x, int y)
 // ----------------------------------------------------------------------------
 //   Track focus when mouse click

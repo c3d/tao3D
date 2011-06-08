@@ -50,6 +50,10 @@ RequestExecutionLevel admin
 !define MUI_WELCOMEFINISHPAGE_BITMAP "inst_welcome_finish.bmp"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "uninst_welcome_finish.bmp"
 
+; Request extra space for the title area
+!define MUI_WELCOMEPAGE_TITLE_3LINES
+!define MUI_FINISHPAGE_TITLE_3LINES
+
 ;--------------------------------
 
 ; Pages

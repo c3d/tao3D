@@ -301,6 +301,10 @@ ModulesPage::ModulesPage(QWidget *parent)
             this, SLOT(onCellClicked(int,int)));
     updateTable();
     vbLayout->addWidget(table);
+    search = new QLineEdit;
+    search->setPlaceholderText(tr("Search"));
+    connect(search, SIGNAL(textChanged(QString)), this, SLOT(doSearch()));
+    vbLayout->addWidget(search);
     gb->setLayout(vbLayout);
 
     QWidget *cfuWidget = new QWidget;
@@ -490,6 +494,21 @@ void ModulesPage::onCellClicked(int row, int col)
     dialog.resize(500, 400);
     dialog.setWindowModality(Qt::WindowModal);
     dialog.exec();
+}
+
+
+void ModulesPage::doSearch()
+// ----------------------------------------------------------------------------
+//   Restrict module list to those that match the current search string
+// ----------------------------------------------------------------------------
+{
+    QString searchString = search->text();
+    for (int row = 0; row < table->rowCount(); row++)
+    {
+        ModuleManager::ModuleInfoPrivate m = modules[row];
+        bool hide = !searchString.isEmpty() && !m.contains(searchString);
+        table->setRowHidden(row, hide);
+    }
 }
 
 #endif // !CFG_NOMODPREF

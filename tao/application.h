@@ -70,14 +70,14 @@ signals:
 
 public slots:
     void           saveDebugTraceSettings();
-    void           moduleIsLoading(QString name);
+    void           checkingModule(QString name);
 
 protected:
     void           saveSettings();
     void           loadSettings();
     void           loadDebugTraceSettings();
     void           loadFonts();
-    void           loadModules();
+    void           checkModules();
     virtual bool   event(QEvent *e);
 
 protected slots:

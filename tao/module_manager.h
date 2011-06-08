@@ -267,6 +267,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QSet>
 #include <QLibrary>
 #include <QDir>
+#include <QTextStream>
 #include <iostream>
 
 
@@ -317,6 +318,7 @@ public:
         QLibrary * native;
         XL::Context_p context;
         bool    inError;
+        QString source; // .xl content, non-null only after full text search
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -367,8 +369,32 @@ public:
         {
             return (name.compare(o.name) < 0);
         }
+
+        bool contains(const QString &keyword, bool searchSource = true)
+        {
+            if ((+name).contains(keyword))
+                return true;
+            if ((+desc).contains(keyword))
+                return true;
+            if (searchSource)
+            {
+                if (source.isNull())
+                {
+                    QFile file(xlPath());
+                    if (file.open(QIODevice::ReadOnly))
+                    {
+                        QTextStream s(&file);
+                        source = s.readAll();
+                    }
+                }
+                if (source.contains(keyword))
+                    return true;
+            }
+            return false;
+        }
     };
 
+    bool                init();
     bool                loadAll(Context *context);
     bool                unloadAll(Context *context);
     QList<ModuleInfoPrivate>   allModules();
@@ -388,7 +414,7 @@ public:
     static double       parseVersion(text versionId);
 
 signals:
-    void                loading(QString name);
+    void                checking(QString name);
 
 private:
     ModuleManager()  {}
@@ -438,7 +464,6 @@ private:
         bool sectionFound;
     };
 
-    bool                init();
     bool                initPaths();
 
     bool                loadConfig();

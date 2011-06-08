@@ -1782,7 +1782,7 @@ void Widget::setup(double w, double h, const Box *picking)
             break;
         case stereoVSPLIT:
             vh /= 2;
-            if (stereoscopic == 2)
+            if (stereoscopic == 1)
                 vy = vh;
         default:
             break;

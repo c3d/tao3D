@@ -95,7 +95,7 @@
 
 #include <QtGui>
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
 #endif
 
@@ -165,7 +165,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
       displayLink(NULL), displayLinkStarted(false),
       pendingDisplayLinkEvent(false),
       stereoSkip(0), droppedFrames(0),
@@ -270,7 +270,7 @@ Widget::~Widget()
     delete space;
     delete path;
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     if (displayLink)
     {
         if (displayLinkStarted)
@@ -1718,7 +1718,7 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.clear();
     stats_start.start();
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     droppedFrames = 0;
 #endif
     if (stereoMode > stereoHARDWARE)
@@ -2653,7 +2653,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
 
 static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
                                     const CVTimeStamp *now,
@@ -2767,7 +2767,7 @@ void Widget::startRefreshTimer(bool on)
 {
     if (!on)
     {
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
         if (displayLink && displayLinkStarted)
         {
             CVDisplayLinkStop(displayLink);
@@ -2782,7 +2782,7 @@ void Widget::startRefreshTimer(bool on)
     if (inError || !animated)
         return;
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     if (!displayLink)
     {
         // Create display link
@@ -2828,7 +2828,7 @@ void Widget::timerEvent(QTimerEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     setCurrentTime();
     if (CurrentTime() < space->NextRefresh())
         return;
@@ -3725,7 +3725,7 @@ void Widget::printStatistics()
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
     char dropped[20] = "";
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
 #endif
     GLint vp[4] = {0,0,0,0};
@@ -4966,7 +4966,7 @@ double Widget::optimalDefaultRefresh()
     //    MacOSX with display link, and/or when VSync is enabled;
     //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
     //    Using 0.0 in this case would uselessly tax the CPU.
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     return 0.0;
 #endif
     if (VSyncEnabled())
@@ -4997,7 +4997,7 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
 #endif
     return oldFs ? XL::xl_true : XL::xl_false;

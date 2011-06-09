@@ -722,6 +722,7 @@ bool Widget::refreshNow(QEvent *event)
         event = NULL; // Force full refresh
     }
 
+    setCurrentTime();
     bool changed = false;
     double now = CurrentTime();
     if (!event || space->NeedRefresh(event, now))

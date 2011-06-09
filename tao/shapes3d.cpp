@@ -216,8 +216,8 @@ void Sphere::Draw(Layout *where)
         for (uint i = 0; i <= slices; i++) {
             GLfloat theta  = 2 * M_PI * i / slices;
             // Compute teta components
-            float sinTheta = sin(theta);
-            float cosTheta = cos(theta);
+            float sinTheta = sin(theta - M_PI/2);
+            float cosTheta = cos(theta - M_PI/2) ;
 
             // First vertex
             textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));

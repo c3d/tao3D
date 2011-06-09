@@ -1012,6 +1012,29 @@ sphere x, y, z, d, d, d, 25, 25
 sphere (x:real, y:real, z:real, r:real);
 
 /**
+ * Draws a torus.
+ *
+ * The torus is divided in @p slices and @p stacks. The higher the value of
+ * these parametres are, the smoother the torus is (and longer the drawing is).
+ * The torus's @p w, @p h and @p d are not aimed to be equals.
+ * The minor radius of the torus is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0.
+ * If @p r is 0 the drawing is a sort of opened cylinder, if @p r is 1 the torus is closed.
+
+ */
+torus (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer, r:real);
+
+/**
+ * Draws a torus.
+ *
+ * Torus with diameter @p d located at (@p x, @p y, @p z).
+ * Shorcut to
+@code
+torus x, y, z, d, d, d, 25, 25, r
+@endcode
+ */
+torus (x:real, y:real, z:real, d:real, r:real);
+
+/**
  * Draws a cone.
  *
  * It draws a cone with a fixed number of polygon.

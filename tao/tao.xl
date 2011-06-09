@@ -275,6 +275,8 @@ sphere x:real, y:real, z:real, r:real  -> sphere x,y,z,r,r,r,25,25
 sphere r:real                          ->
     sphere 0.0, 0.0, 0.0, r, r, r, 25, 25
 
+torus x:real, y:real, z:real, d:real, r:real  -> torus x,y,z,d,d,d,25,25,r
+
 // 2D Paths
 move_to x:real, y:real                  -> move_to x, y, 0
 

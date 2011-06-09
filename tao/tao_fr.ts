@@ -1046,17 +1046,22 @@ Emplacement : %2</translation>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="308"/>
+        <location filename="preferences_pages.cpp" line="305"/>
+        <source>Search</source>
+        <translation>Recherche</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="312"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="386"/>
+        <location filename="preferences_pages.cpp" line="390"/>
         <source>Disable</source>
         <translation>Désactiver</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="386"/>
+        <location filename="preferences_pages.cpp" line="390"/>
         <source>Enable</source>
         <translation>Activer</translation>
     </message>
@@ -1470,17 +1475,17 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="978"/>
+        <location filename="widget.cpp" line="985"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9529"/>
+        <location filename="widget.cpp" line="9555"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="9530"/>
+        <location filename="widget.cpp" line="9556"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

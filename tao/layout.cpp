@@ -536,11 +536,11 @@ bool Layout::NeedRefresh(QEvent *e, double when)
 // ----------------------------------------------------------------------------
 {
     QEvent::Type type = e->type();
-    if (!refreshEvents.count(type))
-        return false;
-    if (type == QEvent::Timer && nextRefresh > when)
-        return false;
-    return true;
+    if (type != QEvent::Timer && refreshEvents.count(type))
+        return true;
+    if (nextRefresh != DBL_MAX && nextRefresh <= when)
+        return true;
+    return false;
 }
 
 

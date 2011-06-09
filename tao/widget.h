@@ -845,6 +845,7 @@ private:
     bool                  displayLinkStarted;
     bool                  pendingDisplayLinkEvent;
     int                   stereoSkip;
+    bool                  holdOff;
     unsigned int          droppedFrames;
 #else
     QBasicTimer           timer;

@@ -97,6 +97,12 @@
 
 #ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
+
+enum MacOSWidgetEventType
+{
+    DisplayLink = QEvent::User,
+    UpdateGL    = QEvent::User + 1,
+};
 #endif
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
@@ -168,7 +174,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #ifdef MACOSX_DISPLAYLINK
       displayLink(NULL), displayLinkStarted(false),
       pendingDisplayLinkEvent(false),
-      stereoSkip(0), droppedFrames(0),
+      stereoSkip(0), holdOff(false), droppedFrames(0),
 #else
       timer(),
 #endif
@@ -2687,7 +2693,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 
 void Widget::displayLinkEvent()
 // ----------------------------------------------------------------------------
-//    Post a User event to GUI thread (this is OpenGL our refresh timer)
+//    Post a user event to the GUI thread (this is our OpenGL refresh timer)
 // ----------------------------------------------------------------------------
 {
     // Stereoscopy with quad buffers: scene refresh rate is half of screen
@@ -2702,7 +2708,7 @@ void Widget::displayLinkEvent()
     pendingDisplayLinkEvent = true;
     displayLinkMutex.unlock();
     if (!pending)
-        qApp->postEvent(this, new QEvent(QEvent::User), Qt::HighEventPriority);
+        qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
     else
         droppedFrames++;
 }
@@ -2710,17 +2716,36 @@ void Widget::displayLinkEvent()
 
 bool Widget::event(QEvent *event)
 // ----------------------------------------------------------------------------
-//    Convert display link event into timer event
+//    Special treatment for events of the MacOSWidgetEvent type
 // ----------------------------------------------------------------------------
 {
-    if (event->type() == QEvent::User)
+    switch (event->type())
     {
+    case DisplayLink:
+        {
         displayLinkMutex.lock();
         pendingDisplayLinkEvent = false;
         displayLinkMutex.unlock();
+        if (holdOff)
+        {
+            holdOff = false;
+            return true;
+        }
         QTimerEvent e(0);
         timerEvent(&e);
         return true;
+        }
+    case UpdateGL:
+        refreshNow(event);
+        return true;
+    case QEvent::MouseMove:
+        // Skip next frame, to keep some processing power for subsequent
+        // user events. This effectively gives higher priority to mouse events
+        // than to timer events.
+        holdOff = true;
+        break;
+    default:
+        break;
     }
 
     return QGLWidget::event(event);

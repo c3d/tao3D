@@ -24,6 +24,8 @@
 #include "module_api_p.h"
 #include "module_renderer.h"
 #include "widget.h"
+#include "display_driver.h"
+#include "frame.h"
 
 TAO_BEGIN
 
@@ -36,6 +38,33 @@ ModuleApiPrivate::ModuleApiPrivate()
     refreshOn      = Widget::refreshOn;
     addToLayout    = ModuleRenderer::AddToLayout;
     addControlBox  = Widget::addControlBox;
+
+    // Display module API
+    registerDisplayFunction = DisplayDriver::registerDisplayFunction;
+    setGlClearColor         = DisplayDriver::setGlClearColor;
+    setupGl                 = DisplayDriver::setupGl;
+    showGlErrors            = DisplayDriver::showGlErrors;
+    setProjectionMatrix     = DisplayDriver::setProjectionMatrix;
+    setModelViewMatrix      = DisplayDriver::setModelViewMatrix;
+    drawScene               = DisplayDriver::drawScene;
+    drawSelection           = DisplayDriver::drawSelection;
+    drawActivities          = DisplayDriver::drawActivities;
+    getCamera               = DisplayDriver::getCamera;
+    renderHeight            = DisplayDriver::renderHeight;
+    renderWidth             = DisplayDriver::renderWidth;
+    zNear                   = DisplayDriver::zNear;
+    zFar                    = DisplayDriver::zFar;
+    zoom                    = DisplayDriver::zoom;
+    eyeSeparation           = DisplayDriver::eyeSeparation;
+
+    // Framebuffer API
+    newFrameBufferObject       = FrameInfo::newFrameBufferObject;
+    deleteFrameBufferObject    = FrameInfo::deleteFrameBufferObject;
+    resizeFrameBufferObject    = FrameInfo::resizeFrameBufferObject;
+    bindFrameBufferObject      = FrameInfo::bindFrameBufferObject;
+    releaseFrameBufferObject   = FrameInfo::releaseFrameBufferObject;
+    frameBufferObjectToTexture = FrameInfo::frameBufferObjectToTexture;
+
 }
 
 TAO_END

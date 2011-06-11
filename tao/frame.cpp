@@ -186,6 +186,61 @@ QImage FrameInfo::toImage()
 }
 
 
+ModuleApi::fbo * FrameInfo::newFrameBufferObject(uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Create a framebuffer object
+// ----------------------------------------------------------------------------
+{
+    return (ModuleApi::fbo *)new FrameInfo(w, h);
+}
+
+
+void FrameInfo::deleteFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Delete a framebuffer object
+// ----------------------------------------------------------------------------
+{
+    delete (FrameInfo *)obj;
+}
+
+
+void FrameInfo::resizeFrameBufferObject(ModuleApi::fbo * obj,
+                                         uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Resize a framebuffer object
+// ----------------------------------------------------------------------------
+{
+    ((FrameInfo *)obj)->resize(w, h);
+}
+
+
+void FrameInfo::bindFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Make framebuffer object the current rendering target
+// ----------------------------------------------------------------------------
+{
+    ((FrameInfo *)obj)->begin();
+}
+
+
+void FrameInfo::releaseFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Stop rendering into framebuffer object
+// ----------------------------------------------------------------------------
+{
+    ((FrameInfo *)obj)->end();
+}
+
+
+unsigned int FrameInfo::frameBufferObjectToTexture(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Make framebuffer available as a texture
+// ----------------------------------------------------------------------------
+{
+    return ((FrameInfo *)obj)->bind();
+}
+
+
 
 // ============================================================================
 //

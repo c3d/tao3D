@@ -60,6 +60,7 @@ linux-g++* {
 
 # Input
 HEADERS += widget.h \
+    include/tao/tao_gl.h \
     window.h \
     application.h \
     frame.h \
@@ -123,7 +124,8 @@ HEADERS += widget.h \
     raster_text.h \
     dir.h \
     templates.h \
-    module_info_dialog.h
+    module_info_dialog.h \
+    display_driver.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -181,7 +183,8 @@ SOURCES += tao_main.cpp \
     raster_text.cpp \
     dir.cpp \
     templates.cpp \
-    module_info_dialog.cpp
+    module_info_dialog.cpp \
+    display_driver.cpp
 
 # Check compile-time options
 
@@ -269,10 +272,10 @@ CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
 !macx {
-    HEADERS += GL/glew.h \
-        GL/glxew.h \
-        GL/wglew.h
-    SOURCES += GL/glew.c
+    HEADERS += include/tao/GL/glew.h \
+        include/tao/GL/glxew.h \
+        include/tao/GL/wglew.h
+    SOURCES += include/tao/GL/glew.c
     DEFINES += GLEW_STATIC
 }
 macx {

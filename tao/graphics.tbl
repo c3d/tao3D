@@ -632,9 +632,14 @@ PREFIX(EnableAnimations,  boolean,  "enable_animations",
        SYNOPSIS("Enable or disable animations")
        DESCRIPTION("Enable or disable animations")
        RETURNS(boolean, "True if previous state was on."))
+PREFIX(SetDisplayFunction,  boolean,  "display_mode",
+       PARM(name, text, "The name of the display mode"),
+       RTAO(setDisplayMode(self, name)),
+       SYNOPSIS("Select a display mode (2D, split stereoscopy, etc.)")
+       RETURNS(boolean, "True on success."))
 #ifndef CFG_NOSTEREO
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
-       PARM(mode, symbol, "on or off"),
+       PARM(mode, symbol, "on or off or mode name"),
        RTAO(enableStereoscopy(self, mode)),
        GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")

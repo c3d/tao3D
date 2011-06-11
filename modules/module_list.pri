@@ -16,6 +16,9 @@
        digital_clock    \
        slides           \
        animate          \
+       display_quadstereo \
+       display_splitstereo \
+       display_intstereo \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

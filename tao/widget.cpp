@@ -2740,8 +2740,10 @@ bool Widget::event(QEvent *event)
         refreshNow(event);
         return true;
     case QEvent::MouseMove:
+    case QEvent::KeyPress:
+    case QEvent::KeyRelease:
         // Skip next frame, to keep some processing power for subsequent
-        // user events. This effectively gives higher priority to mouse events
+        // user events. This effectively gives a higher priority to them
         // than to timer events.
         holdOff = true;
         break;

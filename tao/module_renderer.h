@@ -51,6 +51,7 @@ struct ModuleRenderer : Drawing
                               ModuleApi::delete_fn del);
 
     // Set drawing attributes
+    static bool   SetTexture(unsigned int id, unsigned int type);
     static bool   SetTexCoords(int unit, double* texCoord);
     static bool   SetFillColor();
     static bool   SetLineColor();

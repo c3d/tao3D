@@ -106,10 +106,11 @@ void FillTexture::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    if(texUnit < TaoApp->maxTextureCoords)
+    if(glUnit < TaoApp->maxTextureCoords)
     {
-        where->textureUnits |= 1 << texUnit;
-        where->fillTextures[texUnit].id = glName;
+        where->textureUnits |= 1 << glUnit;
+        where->fillTextures[glUnit].id = glName;
+        where->fillTextures[glUnit].type = glType;
     }
 }
 
@@ -119,8 +120,8 @@ void TextureWrap::Draw(Layout *where)
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    where->fillTextures[texUnit].wrapS = s;
-    where->fillTextures[texUnit].wrapT = t;
+    where->fillTextures[glUnit].wrapS = s;
+    where->fillTextures[glUnit].wrapT = t;
 }
 
 void TextureTransform::Draw(Layout *)
@@ -128,7 +129,7 @@ void TextureTransform::Draw(Layout *)
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
-    glActiveTexture(GL_TEXTURE0 + texUnit);
+    glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
         glMatrixMode(GL_TEXTURE);
     else

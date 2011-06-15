@@ -44,12 +44,13 @@ struct TextureState
 //   The state of texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0) {}
+    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
     bool        wrapS, wrapT;
-    uint        id;
-    uint        unit;
-    uint        width;
-    uint        height;
+    GLuint        id;
+    GLuint        unit;
+    GLuint        width;
+    GLuint        height;
+    GLenum        type;
 };
 
 

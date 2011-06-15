@@ -47,35 +47,43 @@ bool Shape::setTexture(Layout *where)
     uint64 unusedUnits = (where->previousUnits & where->textureUnits) ^ where->previousUnits;
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
+        GLenum type = where->fillTextures[i].type;
+
         //Check if the current texture unit is really used
         if((where->fillTextures.count(i)) && (where->textureUnits & (1 << i)))
         {
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).id);
+            glEnable(type);
+            glBindTexture(type, (where->fillTextures[i]).id);
             if (where->hasPixelBlur)
             {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             }
             else
             {
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+                glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
             }
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-            GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
-            GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-            glEnable(GL_TEXTURE_2D);
+
+            if(type == GL_TEXTURE_2D)
+            {
+                GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
+                GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+            }
+
             if (TaoApp->hasGLMultisample)
                 glEnable(GL_MULTISAMPLE);
+
         }
         else if(unusedUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, 0);
-            glDisable(GL_TEXTURE_2D);
+            glBindTexture(type, 0);
+            glDisable(type);
         }
     }
 
@@ -90,7 +98,7 @@ bool Shape::setTexture(Layout *where)
     return !(where->fillTextures.empty());
 }
 
-void Shape::enableTexture(uint unit, void *texCoord)
+void Shape::enableTexCoord(uint unit, void *texCoord)
 // ----------------------------------------------------------------------------
 //    Enable texture coordinates of the specified unit
 // ----------------------------------------------------------------------------
@@ -100,7 +108,7 @@ void Shape::enableTexture(uint unit, void *texCoord)
     glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
 }
 
-void Shape::disableTexture(uint unit)
+void Shape::disableTexCoord(uint unit)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
 // ----------------------------------------------------------------------------

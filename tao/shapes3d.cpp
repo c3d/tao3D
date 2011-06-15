@@ -172,7 +172,7 @@ void Cube::Draw(Layout *where)
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-            enableTexture((*it).first, textures);
+            enableTexCoord((*it).first, textures);
 
     setTexture(where);
 
@@ -187,7 +187,7 @@ void Cube::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexture((*it).first);
+           disableTexCoord((*it).first);
 }
 
 
@@ -249,7 +249,7 @@ void Sphere::Draw(Layout *where)
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-            enableTexture((*it).first, &textures[0].x);
+            enableTexCoord((*it).first, &textures[0].x);
 
     setTexture(where);
 
@@ -260,7 +260,7 @@ void Sphere::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexture((*it).first);
+           disableTexCoord((*it).first);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
 
@@ -298,16 +298,16 @@ void Torus::Draw(Layout *where)
             float cosTheta = cos(theta);
 
             // First vertex
-            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));
-            normals.push_back(Vector3( cosTheta * cosIncrPhi, sinIncrPhi, sinTheta * cosIncrPhi));
+            textures.push_back(Vector((float) i / slices, (float) (j+1) / stacks));
+            normals.push_back(Vector3( sinTheta * cosIncrPhi, sinIncrPhi,  cosTheta * cosIncrPhi));
             vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
                                         thickness * sinIncrPhi,
                                         (majRadius + minRadius * cosIncrPhi) * cosTheta)
                                         );
 
             // Second vertex
-            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
-            normals.push_back(Vector3(cosTheta * cosPhi, sinPhi, sinTheta * cosPhi));
+            textures.push_back(Vector((float) i / slices, (float) j / stacks));
+            normals.push_back(Vector3(sinTheta * cosPhi, sinPhi, cosTheta * cosPhi));
             vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
                                         thickness * sinPhi,
                                         (majRadius + minRadius * cosPhi) * cosTheta));
@@ -327,7 +327,7 @@ void Torus::Draw(Layout *where)
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-            enableTexture((*it).first, &textures[0].x);
+            enableTexCoord((*it).first, &textures[0].x);
 
     setTexture(where);
 
@@ -338,7 +338,7 @@ void Torus::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexture((*it).first);
+           disableTexCoord((*it).first);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
     glPopMatrix();
@@ -399,7 +399,7 @@ void Cone::Draw(Layout *where)
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-            enableTexture((*it).first, &tex[0].x);
+            enableTexCoord((*it).first, &tex[0].x);
 
     setTexture(where);
 
@@ -412,7 +412,7 @@ void Cone::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexture((*it).first);
+           disableTexCoord((*it).first);
     glDisableClientState(GL_VERTEX_ARRAY);
     glDisableClientState(GL_NORMAL_ARRAY);
  }

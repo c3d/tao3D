@@ -26,6 +26,7 @@
 #include "widget.h"
 #include "shapes.h"
 #include "application.h"
+#include "attributes.h"
 
 namespace Tao {
 
@@ -62,7 +63,7 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
 
 bool ModuleRenderer::SetTexCoords(int unit, double* texCoord)
 // ----------------------------------------------------------------------------
-//   Set the texture in the ModuleRenderer according
+//   Set the texture coordinates in the ModuleRenderer according
 //   to the current layout attributes
 // ----------------------------------------------------------------------------
 {
@@ -78,6 +79,17 @@ bool ModuleRenderer::SetTexCoords(int unit, double* texCoord)
         return true;
     }
 
+    return false;
+}
+
+bool ModuleRenderer::SetTexture(unsigned int id, unsigned int type)
+// ----------------------------------------------------------------------------
+//   Set the texture in the ModuleRenderer according
+//   to the current layout attributes
+// ----------------------------------------------------------------------------
+{
+    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
+    Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
     return false;
 }
 
@@ -106,7 +118,7 @@ void ModuleRenderer::Draw(Layout *where)
 {
     for(uint i = 0; i < texList.size(); i++)
         if(texList[i] && where->fillTextures[i].id)
-            Shape::enableTexture(i, texList[i]);
+            Shape::enableTexCoord(i, texList[i]);
 
     Shape::setTexture(where);
 
@@ -114,7 +126,7 @@ void ModuleRenderer::Draw(Layout *where)
 
     for(uint i = 0; i < texList.size(); i++)
         if(texList[i] && where->fillTextures[i].id)
-            Shape::disableTexture(i);
+            Shape::disableTexCoord(i);
 }
 
 }

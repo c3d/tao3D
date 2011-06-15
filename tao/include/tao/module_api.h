@@ -93,6 +93,8 @@ struct ModuleApi
     // A value of -1 sets the specified coordinates to all units.
     bool (*SetTexCoords)(int unit, double* texCoord);
 
+    bool (*SetTexture)(unsigned int id, unsigned int type);
+
     // Allow to set fill color during a drawing according
     // to the current layout attributes.
     bool (*SetFillColor)();

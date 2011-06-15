@@ -838,6 +838,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     if (urlTree->value != url)
     {
         url = urlTree->value;
+        media->stop();
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
     }

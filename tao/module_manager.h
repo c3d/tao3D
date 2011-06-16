@@ -370,7 +370,7 @@ public:
             return (name.compare(o.name) < 0);
         }
 
-        bool contains(const QString &keyword, bool searchSource = true)
+        bool contains(const QString &keyword, bool searchSource = false)
         {
             if ((+name).contains(keyword))
                 return true;

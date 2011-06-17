@@ -1,4 +1,4 @@
-// LensFlare module definition
+﻿// LensFlare module definition
 //
 // This module defines commands to generate the Lorem ipsum sequence.
 //
@@ -15,7 +15,7 @@ module_description
 
 module_description "fr",
     name "Halo"
-    description "Permet de simuler la réflection provoquée par la projection d'une lumière vive �  l'intérieur de l'objectif d'un appareil photo."
+    description "Permet de simuler la réflection provoquée par la projection d'une lumière vive à l'intérieur de l'objectif d'un appareil photo."
 
 FLARES_DIR -> module_dir & "/images/"
 

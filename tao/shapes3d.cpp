@@ -215,7 +215,7 @@ void Sphere::Draw(Layout *where)
 
         for (uint i = 0; i <= slices; i++) {
             GLfloat theta  = 2 * M_PI * i / slices;
-            // Compute teta components
+            // Compute teta components (add an offset to be adaptated to the old version)
             float sinTheta = sin(theta - M_PI/2);
             float cosTheta = cos(theta - M_PI/2) ;
 

@@ -54,6 +54,10 @@
 #include <set>
 
 #if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#define MACOSX_DISPLAYLINK 1
+#endif
+
+#ifdef MACOSX_DISPLAYLINK
 typedef struct __CVDisplayLink *CVDisplayLinkRef;
 #endif
 
@@ -181,7 +185,7 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     virtual
     bool        event(QEvent *event);
     void        displayLinkEvent();
@@ -866,12 +870,13 @@ private:
     MouseCoordinatesInfo *mouseCoordinatesInfo;
 
     // Timing
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     QMutex                displayLinkMutex;
     CVDisplayLinkRef      displayLink;
     bool                  displayLinkStarted;
     bool                  pendingDisplayLinkEvent;
     int                   stereoSkip;
+    bool                  holdOff;
     unsigned int          droppedFrames;
 #else
     QBasicTimer           timer;

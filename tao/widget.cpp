@@ -95,8 +95,14 @@
 
 #include <QtGui>
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
+
+enum MacOSWidgetEventType
+{
+    DisplayLink = QEvent::User,
+    UpdateGL    = QEvent::User + 1,
+};
 #endif
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
@@ -165,10 +171,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
       displayLink(NULL), displayLinkStarted(false),
       pendingDisplayLinkEvent(false),
-      stereoSkip(0), droppedFrames(0),
+      stereoSkip(0), holdOff(false), droppedFrames(0),
 #else
       timer(),
 #endif
@@ -274,7 +280,7 @@ Widget::~Widget()
     delete space;
     delete path;
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     if (displayLink)
     {
         if (displayLinkStarted)
@@ -723,6 +729,7 @@ bool Widget::refreshNow(QEvent *event)
         event = NULL; // Force full refresh
     }
 
+    setCurrentTime();
     bool changed = false;
     double now = CurrentTime();
     if (!event || space->NeedRefresh(event, now))
@@ -1725,7 +1732,7 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.clear();
     stats_start.start();
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     droppedFrames = 0;
 #endif
     if (stereoMode > stereoHARDWARE)
@@ -1788,7 +1795,7 @@ void Widget::setup(double w, double h, const Box *picking)
             break;
         case stereoVSPLIT:
             vh /= 2;
-            if (stereoscopic == 2)
+            if (stereoscopic == 1)
                 vy = vh;
         default:
             break;
@@ -2668,7 +2675,7 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
 
 static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
                                     const CVTimeStamp *now,
@@ -2702,7 +2709,7 @@ static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
 
 void Widget::displayLinkEvent()
 // ----------------------------------------------------------------------------
-//    Post a User event to GUI thread (this is OpenGL our refresh timer)
+//    Post a user event to the GUI thread (this is our OpenGL refresh timer)
 // ----------------------------------------------------------------------------
 {
     // Stereoscopy with quad buffers: scene refresh rate is half of screen
@@ -2717,7 +2724,7 @@ void Widget::displayLinkEvent()
     pendingDisplayLinkEvent = true;
     displayLinkMutex.unlock();
     if (!pending)
-        qApp->postEvent(this, new QEvent(QEvent::User), Qt::HighEventPriority);
+        qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
     else
         droppedFrames++;
 }
@@ -2725,17 +2732,36 @@ void Widget::displayLinkEvent()
 
 bool Widget::event(QEvent *event)
 // ----------------------------------------------------------------------------
-//    Convert display link event into timer event
+//    Special treatment for events of the MacOSWidgetEvent type
 // ----------------------------------------------------------------------------
 {
-    if (event->type() == QEvent::User)
+    switch (event->type())
     {
+    case DisplayLink:
+        {
         displayLinkMutex.lock();
         pendingDisplayLinkEvent = false;
         displayLinkMutex.unlock();
+        if (holdOff)
+        {
+            holdOff = false;
+            return true;
+        }
         QTimerEvent e(0);
         timerEvent(&e);
         return true;
+        }
+    case UpdateGL:
+        refreshNow(event);
+        return true;
+    case QEvent::MouseMove:
+        // Skip next frame, to keep some processing power for subsequent
+        // user events. This effectively gives higher priority to mouse events
+        // than to timer events.
+        holdOff = true;
+        break;
+    default:
+        break;
     }
 
     return QGLWidget::event(event);
@@ -2782,7 +2808,7 @@ void Widget::startRefreshTimer(bool on)
 {
     if (!on)
     {
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
         if (displayLink && displayLinkStarted)
         {
             CVDisplayLinkStop(displayLink);
@@ -2797,7 +2823,7 @@ void Widget::startRefreshTimer(bool on)
     if (inError || !animated)
         return;
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     if (!displayLink)
     {
         // Create display link
@@ -2843,7 +2869,7 @@ void Widget::timerEvent(QTimerEvent *event)
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
 
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     setCurrentTime();
     if (CurrentTime() < space->NextRefresh())
         return;
@@ -3740,7 +3766,7 @@ void Widget::printStatistics()
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
     char dropped[20] = "";
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
 #endif
     GLint vp[4] = {0,0,0,0};
@@ -4981,7 +5007,7 @@ double Widget::optimalDefaultRefresh()
     //    MacOSX with display link, and/or when VSync is enabled;
     //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
     //    Using 0.0 in this case would uselessly tax the CPU.
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     return 0.0;
 #endif
     if (VSyncEnabled())
@@ -5012,7 +5038,7 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
-#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#ifdef MACOSX_DISPLAYLINK
     CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
 #endif
     return oldFs ? XL::xl_true : XL::xl_false;

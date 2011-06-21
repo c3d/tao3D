@@ -93,11 +93,15 @@ struct ModuleApi
     //   API for display modules
     // ------------------------------------------------------------------------
 
+    // In the following protoypes, obj is the value returned by the
+    // display_use_fn function.
     typedef void   (*display_fn)(void *obj);
     typedef void * (*display_use_fn)();
     typedef void   (*display_unuse_fn)(void *obj);
     typedef bool   (*display_setopt_fn)(void *obj, std::string name,
                                         std::string val);
+    typedef std::string
+                   (*display_getopt_fn)(void *obj, std::string name);
 
     // Register a display function (if module is a display module).
     // Display can later be activated by primitive: display_function <name>
@@ -106,10 +110,12 @@ struct ModuleApi
     //   - use is called once when fn is about to be used
     //   - unuse is called when Tao stops using fn
     //   - setopt is called when Tao needs to set a display option
+    //   - getopt is called when Tao needs to get a display option
     bool (*registerDisplayFunction)(std::string name, display_fn fn,
                                     display_use_fn use,
                                     display_unuse_fn unuse,
-                                    display_setopt_fn setopt);
+                                    display_setopt_fn setopt,
+                                    display_getopt_fn getopt);
 
     // Call glClearColor() with the color currently specified by the program.
     void (*setGlClearColor)();

@@ -5439,10 +5439,16 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 {
     bool ok = displayDriver->setDisplayFunction(+name);
     if (ok)
+    {
+        std::string pov = displayDriver->getOption("PointsOfView");
+        if (pov == "")
+            pov = "1";
+        stereoPlanes = (+pov).toInt();
         updateGL();
-    else
-        std::cerr << "Could not select display mode " << name << "\n";
-    return ok ? XL::xl_true : XL::xl_false;
+        return XL::xl_true;
+    }
+    std::cerr << "Could not select display mode " << name << "\n";
+    return XL::xl_false;
 }
 
 

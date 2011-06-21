@@ -52,6 +52,7 @@ public:
     void                display();
     bool                setDisplayFunction(QString name);
     bool                setOption(std::string name, std::string val);
+    std::string         getOption(std::string name);
 
 public:
     // Methods exported by the module API for use by display modules
@@ -60,7 +61,8 @@ public:
                                                 ModuleApi::display_fn fn,
                                                 ModuleApi::display_use_fn use = NULL,
                                                 ModuleApi::display_unuse_fn unuse = NULL,
-                                                ModuleApi::display_setopt_fn setopt = NULL);
+                                                ModuleApi::display_setopt_fn setopt = NULL,
+                                                ModuleApi::display_getopt_fn getopt = NULL);
     static void         drawScene();
     static void         drawSelection();
     static void         drawActivities();
@@ -104,21 +106,24 @@ protected:
     struct DisplayParams
     {
         DisplayParams()
-            : name(), fn(NULL), use(NULL), unuse(NULL), obj(NULL) {}
+            : name(), fn(NULL), use(NULL), unuse(NULL),
+              setopt(NULL), getopt(NULL), obj(NULL) {}
         DisplayParams(QString name,
                       ModuleApi::display_fn fn,
                       ModuleApi::display_use_fn use = NULL,
                       ModuleApi::display_unuse_fn unuse = NULL,
                       ModuleApi::display_setopt_fn setopt = NULL,
+                      ModuleApi::display_getopt_fn getopt = NULL,
                       void * obj = NULL)
             : name(name), fn(fn), use(use), unuse(unuse),
-              setopt(setopt), obj(obj) {}
+              setopt(setopt), getopt(getopt), obj(obj) {}
 
         QString                       name;
         ModuleApi::display_fn         fn;
         ModuleApi::display_use_fn     use;
         ModuleApi::display_unuse_fn   unuse;
         ModuleApi::display_setopt_fn  setopt;
+        ModuleApi::display_getopt_fn  getopt;
         void *                        obj;
     };
     typedef QMap<QString, DisplayParams>  display_map;

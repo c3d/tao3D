@@ -136,6 +136,21 @@ bool DisplayDriver::setOption(std::string name, std::string val)
 }
 
 
+std::string DisplayDriver::getOption(std::string name)
+// ----------------------------------------------------------------------------
+//   Read option from display module
+// ----------------------------------------------------------------------------
+{
+    std::string val;
+    if (current.getopt)
+        val = current.getopt(current.obj, name);
+    IFTRACE(displaymode)
+        debug() << "Read option from display function: " << +current.name
+                << " \"" << name << "\"=\"" << val << "\"\n";
+    return val;
+}
+
+
 std::ostream & DisplayDriver::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
@@ -250,7 +265,8 @@ bool DisplayDriver::registerDisplayFunction(std::string name,
                                             ModuleApi::display_fn fn,
                                             ModuleApi::display_use_fn use,
                                             ModuleApi::display_unuse_fn unuse,
-                                            ModuleApi::display_setopt_fn setopt)
+                                            ModuleApi::display_setopt_fn setopt,
+                                            ModuleApi::display_getopt_fn getopt)
 // ----------------------------------------------------------------------------
 //   Add a display function to the list of known functions
 // ----------------------------------------------------------------------------
@@ -265,7 +281,7 @@ bool DisplayDriver::registerDisplayFunction(std::string name,
             debug() << "Error: name already in use\n";
         return false;
     }
-    DisplayParams p(nam, fn, use, unuse, setopt);
+    DisplayParams p(nam, fn, use, unuse, setopt, getopt);
     map[nam] = p;
     return true;
 }

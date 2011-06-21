@@ -84,27 +84,31 @@ void FrameInfo::resize(uint w, uint h)
         delete render_fbo;
 
     // Select whether we draw directly in texture or blit to it
-    // If we can blit, we first draw in a multisample buffer
+    // If we can blit and suceed in creating a multisample buffer,
+    // we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
-#ifndef CONFIG_MINGW
-    // FrameBuffer objects don't work well under VMware, although
-    // they seem to work native
+    QGLFramebufferObjectFormat format;
+    format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+#if !defined(Q_OS_LINUX) && !defined(Q_OS_WIN32)
+    // We want to do this on Windows too, but it does not work at all
+    // under Windows/VMware :(
+    // REVISIT: runtime detection of VMware?
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
-        QGLFramebufferObjectFormat format;
-#ifndef CONFIG_LINUX
-        // Setting this crashes in the first framebuffer object ctor
+        // Setting this on Linux crashes in the first framebuffer object ctor
         format.setSamples(4);
-#endif
-        format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-
         render_fbo = new QGLFramebufferObject(w, h, format);
-        texture_fbo = new QGLFramebufferObject(w, h);
+        QGLFramebufferObjectFormat actualFormat = render_fbo->format();
+        int samples = actualFormat.samples();
+        if (samples > 0)
+            texture_fbo = new QGLFramebufferObject(w, h);
+        else
+            texture_fbo = render_fbo;
     }
     else
-#endif // CONFIG_MINGW
+#endif // CONFIG_LINUX
     {
-        render_fbo = new QGLFramebufferObject(w, h);
+        render_fbo = new QGLFramebufferObject(w, h, format);
         texture_fbo = render_fbo;
     }
     glShowErrors();

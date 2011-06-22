@@ -5907,7 +5907,7 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5933,7 +5933,7 @@ Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5959,7 +5959,7 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
     }
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -6010,7 +6010,7 @@ Tree_p Widget::image(Context *context,
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 

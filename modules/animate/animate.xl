@@ -95,6 +95,17 @@ interpolate_zangle S:real, TZ:real, Z:real ->
 
 fade_in  Value:real, Duration:real  -> -expm1(-5 * Value / Duration)
 fade_out Value:real, Duration:real  -> 1+expm1(-5 * Value / Duration)
+fade_at X:real, N:real -> if X < N - 1 then 0 else if X < N - 0.5 then 2 * (X - N + 1) ^ 2 else if X < N then 1 - 2 * (X - N) ^ 2 else 1 
+fade_out_at X:real, N:real -> 1 - fade_at (X, N) 
+fade_between X:real, A:real, B:real -> (fade_at (X, A) * fade_at ( -X, -B) ) 
+
+at N:real -> show fade_at (page_time, N) 
+between A:real, B:real -> show fade_between (page_time, A, B) 
+
+fade_list T:real, I:real, X:real -> X * fade_at (T, 1) 
+fade_list T:real, I:real, X:real, Rest -> (X * fade_at (T, 1) + fade_list (T - I, I, Rest) ) 
+
+disabled Body -> false 
 
 
 
@@ -106,6 +117,7 @@ fade_out Value:real, Duration:real  -> 1+expm1(-5 * Value / Duration)
 
 step -> 0.0
 smooth_step -> 0.0
+last_step -> 0.0
 
 
 skip S:real     ->
@@ -113,6 +125,10 @@ skip S:real     ->
 //   Skip by amount S in the animation
 // ----------------------------------------------------------------------------
     step := step + S
+    if S > 0 and step > last_step and page_number < page_count then
+        goto_page page_name(page_number+1)
+    if S < 0 and step < 0 and page_number >= 1 then
+        goto_page page_name(page_number - 1)
 
 
 skip_to S:real  ->
@@ -138,10 +154,12 @@ compute_smooth_step ->
        smooth_step := 0.0
 
     interpolate 0.05, step, smooth_step
+    last_step := 0.0
 
 
 at_step N:integer ->
 // ----------------------------------------------------------------------------
 //   Show something at step N
 // ----------------------------------------------------------------------------
-   show 0.5 + atan(100*(smooth_step-N+0.5))/pi
+    if N > last_step then last_step := N
+    show fade_at(smooth_step, N)

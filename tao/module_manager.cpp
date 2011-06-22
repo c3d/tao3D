@@ -433,6 +433,38 @@ bool ModuleManager::loadAll(Context *context)
     return ok;
 }
 
+
+bool ModuleManager::loadAnonymousNative(Context *context)
+// ----------------------------------------------------------------------------
+//   Load native code for all modules that do not have an import_name
+// ----------------------------------------------------------------------------
+{
+    bool ok = true;
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        modules[+m.id].context = context;
+        if (m.enabled && !m.loaded && m.path != "" && m.importName == "")
+            ok &= loadNative(context, m);
+    }
+    return ok;
+}
+
+
+QStringList ModuleManager::anonymousXL()
+// ----------------------------------------------------------------------------
+//   Return list of all XL files for modules that have no import_name
+// ----------------------------------------------------------------------------
+{
+    QStringList files;
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        if (m.enabled && m.path != "" && m.importName == "")
+            files << m.xlPath();
+    }
+    return files;
+}
+
+
 static bool HACK_NoUnload = true;    // See FIXME below
 
 bool ModuleManager::unloadAll(Context *context)
@@ -841,24 +873,19 @@ bool ModuleManager::loadNative(Context * /*context*/,
             ok = isCompatible(lib);
             if (ok)
             {
-                enter_symbols_fn es =
-                        (enter_symbols_fn) lib->resolve("enter_symbols");
-                ok = (es != NULL);
-                if (ok)
-                {
-                    module_init_fn mi =
-                            (module_init_fn) lib->resolve("module_init");
-                    if ((mi != NULL))
-                    {
-                        IFTRACE(modules)
-                                debug() << "    Calling module_init\n";
-                        mi(&api, &m);
-                    }
+                // enter_symbols is called later, when module is imported
 
-                    if (m_p)
-                        m_p->native = lib;
-                    // enter_symbols is called later, when module is imported
+                module_init_fn mi =
+                        (module_init_fn) lib->resolve("module_init");
+                if ((mi != NULL))
+                {
+                    IFTRACE(modules)
+                            debug() << "    Calling module_init\n";
+                    mi(&api, &m);
                 }
+
+                if (m_p)
+                    m_p->native = lib;
             }
         }
         else

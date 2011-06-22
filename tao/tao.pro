@@ -124,7 +124,8 @@ HEADERS += widget.h \
     raster_text.h \
     dir.h \
     templates.h \
-    module_info_dialog.h
+    module_info_dialog.h \
+    display_driver.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -182,7 +183,8 @@ SOURCES += tao_main.cpp \
     raster_text.cpp \
     dir.cpp \
     templates.cpp \
-    module_info_dialog.cpp
+    module_info_dialog.cpp \
+    display_driver.cpp
 
 # Check compile-time options
 

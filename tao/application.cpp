@@ -229,6 +229,8 @@ void Application::checkModules()
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
     moduleManager->init();
+    // Load only auto-load modules (the ones that do not have an import_name)
+    moduleManager->loadAnonymousNative(XL::MAIN->context);
 }
 
 

@@ -75,6 +75,7 @@
 #include "tree-walk.h"
 #include "raster_text.h"
 #include "dir.h"
+#include "display_driver.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -268,8 +269,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
     //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &(TaoApp->maxTextureCoords));
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &(TaoApp->maxTextureUnits));
- }
 
+    // Create the object we will use to render frames
+    displayDriver = new DisplayDriver(this);
+}
 
 Widget::~Widget()
 // ----------------------------------------------------------------------------
@@ -381,12 +384,77 @@ void Widget::setupPage()
 }
 
 
+void Widget::drawScene()
+// ----------------------------------------------------------------------------
+//   Draw all objects in the scene
+// ----------------------------------------------------------------------------
+{
+    id = idDepth = 0;
+    space->ClearAttributes();
+    space->Draw(NULL);
+}
+
+
+void Widget::drawSelection()
+// ----------------------------------------------------------------------------
+//   Draw selection items for all objects (selection boxes, manipulators)
+// ----------------------------------------------------------------------------
+{
+    id = idDepth = 0;
+    selectionTrees.clear();
+    space->ClearAttributes();
+    space->DrawSelection(NULL);
+}
+
+
+void Widget::drawActivities()
+// ----------------------------------------------------------------------------
+//   Draw chooser, selection rectangle, display statistics
+// ----------------------------------------------------------------------------
+{
+    SpaceLayout selectionSpace(this);
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    setupGL();
+    glDisable(GL_DEPTH_TEST);
+    for (Activity *a = activities; a; a = a->Display()) ;
+    selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
+                               // Isn't everything drawn by a->Display()?
+    glEnable(GL_DEPTH_TEST);
+
+    // Show FPS as text overlay
+    if (bShowStatistics)
+        printStatistics();
+}
+
+
+void Widget::setGlClearColor()
+// ----------------------------------------------------------------------------
+//   Call glClearColor with the color specified in the widget
+// ----------------------------------------------------------------------------
+{
+    qreal r, g, b, a;
+    clearCol.getRgbF(&r, &g, &b, &a);
+    glClearColor (r, g, b, a);
+}
+
+
+void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
+// ----------------------------------------------------------------------------
+//   Get camera characteristics
+// ----------------------------------------------------------------------------
+{
+    if (position) *position = cameraPosition;
+    if (target)   *target   = cameraTarget;
+    if (upVector) *upVector = cameraUpVector;
+}
+
+
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    // In offline renderin mode, just keep the widget clear
+    // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -401,7 +469,6 @@ void Widget::draw()
     TaoSave saveCurrent(current, this);
 
     // Setup the initial drawing environment
-    uint w = width(), h = height();
     setupPage();
 
 
@@ -420,11 +487,63 @@ void Widget::draw()
         runProgram();
     }
 
-    // After we are done, draw the space with all the drawings in it
-    // If we are in stereoscopice mode, we draw twice, once for each eye
-    qreal r, g, b, a;
-    clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+
+    // Run current display algorithm
+    stereoscopic = 1; // FIXME - REVISIT:
+                      // Without this, mouse tracking won't work if display
+                      // function is not legacyDraw().
+                      // But, in any case setting stereoscopic = 1 is not
+                      // the solution, because we don't want to record mouse
+                      // coordinates multiple times when rendering for multiple
+                      // point of views.
+                      // What interface do we need to export to the display
+                      // modules?
+    displayDriver->display();
+
+
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
+
+    // Remember number of elements drawn for GL selection buffer capacity
+    if (maxId < id + 100 || maxId > 2 * (id + 100))
+        maxId = id + 100;
+
+    // Clipboard management
+    checkCopyAvailable();
+
+    // If we must update dialogs, do it now
+    if (mustUpdateDialogs)
+    {
+        mustUpdateDialogs = false;
+        if (colorDialog)
+            updateColorDialog();
+        if (fontDialog)
+            updateFontDialog();
+    }
+
+    if (selectionChanged)
+    {
+        Window *window = (Window *) parentWidget();
+        selectionChanged = false;
+
+        // TODO: honoring isReadOnly involves more than just this
+        if (!window->isReadOnly)
+            updateProgramSource();
+    }
+}
+
+
+void Widget::legacyDraw()
+// ----------------------------------------------------------------------------
+//    Legacy code before display modules. Still the default rendered.
+// ----------------------------------------------------------------------------
+{
+    // Draw the space with all the drawings in it
+    // If we are in stereoscopic mode, we draw twice, once for each eye
+    uint w = width(), h = height();
+
+    setGlClearColor();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Generate depth map if necessary
@@ -489,7 +608,7 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
-                glClearColor(r, g, b, a);
+                setGlClearColor();
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
                 break;
@@ -522,15 +641,7 @@ void Widget::draw()
         setup(w, h);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        id = idDepth = 0;
-
-        // Warning: Using a GL display list here can result in *lower*
-        // performance than direct GL calls!
-        // On MacOSX, profiling shows that glEndList() can take quite a long
-        // time (~60ms average on a moderately complex scene including
-        // a 400k-triangle object rendered by GLC_Lib)
-        space->ClearAttributes();
-        space->Draw(NULL);
+        drawScene();
 
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
@@ -560,37 +671,30 @@ void Widget::draw()
         if (bShowStatistics)
             printStatistics();
 
-        id = idDepth = 0;
-        selectionTrees.clear();
-        space->ClearAttributes();
-        space->DrawSelection(NULL);
+        // Draw object selections, manipulators
+        drawSelection();
 
-        // Render all activities, e.g. the selection rectangle
-        setupGL();
-        glDisable(GL_DEPTH_TEST);
-        SpaceLayout selectionSpace(this);
-        XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+        // Draw selection rectangle, chooser
+        drawActivities();
 
-        for (Activity *a = activities; a; a = a->Display()) ;
-        selectionSpace.Draw(NULL);
-        if (stereoMode == stereoDEPTHMAP && depthMapper)
-        {
-            glViewport(w/2, 0, w/2, h);
-            id = idDepth = 0;
-            depthMapper->bind();
-            XL::Save<uint> setPgmId(Layout::globalProgramId,
-                                    depthMapper->programId());
-            glScissor(w/2, 0, w/2, h);
-            glEnable(GL_SCISSOR_TEST);
-            selectionSpace.Draw(NULL);
-            glDisable(GL_SCISSOR_TEST);
-            glUseProgram(0);
-        }
-
-        glEnable(GL_DEPTH_TEST);
+//        if (stereoMode == stereoDEPTHMAP && depthMapper)
+//        {
+//            glDisable(GL_DEPTH_TEST);
+//            glViewport(w/2, 0, w/2, h);
+//            id = idDepth = 0;
+//            depthMapper->bind();
+//            XL::Save<uint> setPgmId(Layout::globalProgramId,
+//                                    depthMapper->programId());
+//            glScissor(w/2, 0, w/2, h);
+//            glEnable(GL_SCISSOR_TEST);
+//            selectionSpace.Draw(NULL);
+//            glDisable(GL_SCISSOR_TEST);
+//            glUseProgram(0);
+//            glEnable(GL_DEPTH_TEST);
+//        }
     }
 
-    // Generate depth map if necessary
+    // Generate header for depth map display, if necessary
     if (stereoMode == stereoDEPTHMAP)
     {
         static uchar wowvxHeader[32] =
@@ -663,36 +767,6 @@ void Widget::draw()
         glAccum(GL_RETURN, 1.0);
     }
 
-    // One more complete view rendered
-    if (bShowStatistics)
-        updateStatistics();
-
-    // Remember number of elements drawn for GL selection buffer capacity
-    if (maxId < id + 100 || maxId > 2 * (id + 100))
-        maxId = id + 100;
-
-    // Clipboard management
-    checkCopyAvailable();
-
-    // If we must update dialogs, do it now
-    if (mustUpdateDialogs)
-    {
-        mustUpdateDialogs = false;
-        if (colorDialog)
-            updateColorDialog();
-        if (fontDialog)
-            updateFontDialog();
-    }
-
-    if (selectionChanged)
-    {
-        Window *window = (Window *) parentWidget();
-        selectionChanged = false;
-
-        // TODO: honoring isReadOnly involves more than just this
-        if (!window->isReadOnly)
-            updateProgramSource();
-    }
 }
 
 
@@ -2755,8 +2829,10 @@ bool Widget::event(QEvent *event)
         refreshNow(event);
         return true;
     case QEvent::MouseMove:
+    case QEvent::KeyPress:
+    case QEvent::KeyRelease:
         // Skip next frame, to keep some processing power for subsequent
-        // user events. This effectively gives higher priority to mouse events
+        // user events. This effectively gives a higher priority to them
         // than to timer events.
         holdOff = true;
         break;
@@ -5368,6 +5444,26 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
+XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Select a display function
+// ----------------------------------------------------------------------------
+{
+    bool ok = displayDriver->setDisplayFunction(+name);
+    if (ok)
+    {
+        std::string pov = displayDriver->getOption("PointsOfView");
+        if (pov == "")
+            pov = "1";
+        stereoPlanes = (+pov).toInt();
+        updateGL();
+        return XL::xl_true;
+    }
+    std::cerr << "Could not select display mode " << name << "\n";
+    return XL::xl_false;
+}
+
+
 #ifndef CFG_NOSTEREO
 
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
@@ -5433,6 +5529,7 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     else if (name->value == "bogusquadbuffers")
     {
         bogusQuadBuffers = true;
+        displayDriver->setOption("bogusquadbuffers", "on");
     }
     else
     {

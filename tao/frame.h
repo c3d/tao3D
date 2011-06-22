@@ -25,6 +25,7 @@
 #include "tao.h"
 #include "tree.h"
 #include "gl_keepers.h"
+#include "module_api.h"
 #include <map>
 #include <QImage>
 
@@ -59,6 +60,16 @@ struct FrameInfo : XL::Info
 
 #define render_fbo  render_fbos[QGLContext::currentContext()]
 #define texture_fbo texture_fbos[QGLContext::currentContext()]
+
+    // Static methods exported by the module interface. See module_api.h.
+
+    static ModuleApi::fbo *   newFrameBufferObject(uint w, uint h);
+    static void               deleteFrameBufferObject(ModuleApi::fbo * obj);
+    static void               resizeFrameBufferObject(ModuleApi::fbo * obj,
+                                                      uint w, uint h);
+    static void               bindFrameBufferObject(ModuleApi::fbo * obj);
+    static void               releaseFrameBufferObject(ModuleApi::fbo * obj);
+    static unsigned int       frameBufferObjectToTexture(ModuleApi::fbo * obj);
 };
 
 

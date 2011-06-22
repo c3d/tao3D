@@ -928,6 +928,14 @@ menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
     window_size 1920, 1080
 }
 
+menu_display_mode ->
+    menu   "TAO_VIEW_MENU", ""
+    submenu "TAO_VIEW_MENU:displaymode", tr "Display mode"
+    menu_item "TAO_VIEW_MENU:displaymode > 2D", tr "2D",
+        display_mode "2D"
+    menu_item "TAO_VIEW_MENU:displaymode > legacy", tr "Legacy (default)",
+        display_mode "legacy"
+
 window_choices ->
     chooser_choice "800 x 600",
         window_size 800, 600
@@ -946,3 +954,4 @@ menu_insert
 menu_format
 menu_arrange
 menu_window
+menu_display_mode

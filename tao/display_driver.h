@@ -98,7 +98,42 @@ protected:
     static bool         backBufferSetOpt(void * obj,
                                          std::string name,
                                          std::string val);
-    static bool         bogusQuadBuffer;
+
+    // 2D rendering to framebuffer object then to OpenGL framebuffer.
+    // (Enables antialised output on some platforms that do not support
+    // OpenGL multisampling)
+    struct BackBufferFBOParams
+    {
+        BackBufferFBOParams(int w, int h)
+            : w(w), h(h), bogusQuadBuffer(false), fbo(NULL)
+        {
+            fbo = new FrameInfo(w, h);
+        }
+        ~BackBufferFBOParams()
+        {
+            delete fbo;
+        }
+        void resize(int w, int h)
+        {
+            if (w != this->w || h != this->h)
+            {
+                fbo->resize(w, h);
+                this->w = w;
+                this->h = h;
+            }
+        }
+
+        int          w, h;
+        bool         bogusQuadBuffer;
+        FrameInfo *  fbo;
+    };
+    static void         displayBackBufferFBO(void *);
+    static void *       backBufferFBOUse();
+    static void         backBufferFBOUnuse(void *arg);
+    static bool         backBufferFBOSetOpt(void * obj,
+                                            std::string name,
+                                            std::string val);
+
 
     static double       stereoDelta(int i, int numCameras);
 

@@ -56,6 +56,10 @@ DisplayDriver::DisplayDriver(Widget *widget)
                                                  backBufferUnuse,
                                                  backBufferSetOpt);
 
+    registerDisplayFunction("2DFBO",             displayBackBufferFBO,
+                                                 backBufferFBOUse,
+                                                 backBufferFBOUnuse,
+                                                 backBufferFBOSetOpt);
     // Compatibility -- to be removed
     registerDisplayFunction("legacy",            legacyDraw);
     registerDisplayFunction("default",           legacyDraw);
@@ -252,6 +256,136 @@ bool DisplayDriver::backBufferSetOpt(void * obj,
     return ok;
 }
 
+
+
+void DisplayDriver::displayBackBufferFBO(void *obj)
+// ----------------------------------------------------------------------------
+//   Like displayBackBuffer, but first render into a framebuffer object.
+//   This function enables better antialiasing on platforms that do not have
+//   multisample GL widget, but do support multisample FBOs.
+// ----------------------------------------------------------------------------
+{
+    BackBufferFBOParams * o = (BackBufferFBOParams *)obj;
+    Q_ASSERT(obj || !"Back buffer FBO display routine received NULL object");
+
+    // Read output resolution
+    int w = renderWidth();
+    int h = renderHeight();
+
+    // Make sure output buffer has the right size (resolution may have changed)
+    // and prepare to draw into it
+    o->resize(w, h);
+    o->fbo->begin();
+
+    glViewport(0, 0, w, h);
+
+    // Setup projection and modelview matrices
+    setProjectionMatrix(w, h);
+    setModelViewMatrix();
+
+    // Clear color and depth information
+    setGlClearColor();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    // Set suitable GL parameters for drawing
+    setupGl();
+
+    // Draw scene, selection, and activities
+    drawScene();
+    drawSelection();
+    drawActivities();
+
+    // Done with drawing.
+    // Make buffer available as a texture.
+    o->fbo->end();
+    o->fbo->bind();
+
+    // Draw a full-screen textured quad
+
+    // Setup viewport and geometry
+    glViewport(0, 0, w, h);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+
+    int n = o->bogusQuadBuffer ? 2 : 1;
+
+    for (int i = 1; i <= n; i++)
+    {
+        // Select draw buffer
+        if (o->bogusQuadBuffer)
+            glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
+        else
+            glDrawBuffer(GL_BACK);
+
+        // Clear depth information, disable color blending so that texture alpha
+        // is ignored
+        glClear(GL_DEPTH_BUFFER_BIT);
+        glDisable(GL_BLEND);
+
+        // Not sure why, but without this I often have a blank screen
+        glDisable(GL_POLYGON_OFFSET_FILL);
+        glDisable(GL_POLYGON_OFFSET_LINE);
+        glDisable(GL_POLYGON_OFFSET_POINT);
+
+        glBegin(GL_QUADS);
+        glTexCoord2i( 0 , 0);
+        glVertex2i  (-1, -1);
+        glTexCoord2i( 1 , 0);
+        glVertex2i  ( 1, -1);
+        glTexCoord2i( 1,  1);
+        glVertex2i  ( 1,  1);
+        glTexCoord2i( 0,  1);
+        glVertex2i  (-1,  1);
+        glEnd();
+    }
+}
+
+
+void * DisplayDriver::backBufferFBOUse()
+// ----------------------------------------------------------------------------
+//   2D back buffer FBO display is about to be used: allocate context
+// ----------------------------------------------------------------------------
+{
+    // glewInit(); // if module
+
+    int w = renderWidth(), h = renderHeight();
+    return new BackBufferFBOParams(w, h);
+}
+
+
+void DisplayDriver::backBufferFBOUnuse(void *obj)
+// ----------------------------------------------------------------------------
+//   Done with 2D back buffer FBO display
+// ----------------------------------------------------------------------------
+{
+    delete (BackBufferFBOParams *)obj;
+}
+
+
+bool DisplayDriver::backBufferFBOSetOpt(void * obj,
+                                        std::string name,
+                                        std::string val)
+// ----------------------------------------------------------------------------
+//   Parse module option
+// ----------------------------------------------------------------------------
+{
+    bool ok = false;
+    BackBufferFBOParams * o = (BackBufferFBOParams *)obj;
+    if (name == "bogusquadbuffers")
+    {
+        ok = true;
+        if (val == "1" || val == "on")
+            o->bogusQuadBuffer = true;
+        else
+        if (val == "" || val == "0" || val == "off")
+            o->bogusQuadBuffer = false;
+        else
+            ok = false;
+    }
+    return ok;
+}
 
 
 // ============================================================================

@@ -990,10 +990,17 @@ void AnchorLayout::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     GLMatrixKeeper saveMatrix;
-    Vector3 &o = where->offset;
-    glTranslatef(o.x, o.y, o.z);
-    XL::Save<Vector3> saveOffset(where->offset, Vector3());
-    Layout::Draw(where);
+    if (where)
+    {
+        Vector3 &o = where->offset;
+        glTranslatef(o.x, o.y, o.z);
+        XL::Save<Vector3> saveOffset(where->offset, Vector3());
+        Layout::Draw(where);
+    }
+    else
+    {
+        Layout::Draw(where);
+    }
 }
 
 

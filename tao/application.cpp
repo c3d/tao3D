@@ -67,7 +67,8 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
 //    Build the Tao application
 // ----------------------------------------------------------------------------
-    : QApplication(argc, argv), hasGLMultisample(false), splash(NULL),
+    : QApplication(argc, argv), hasGLMultisample(false),
+      hasFBOMultisample(false), splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false)
 {
@@ -174,6 +175,17 @@ Application::Application(int & argc, char ** argv)
     {
         QGLWidget gl(QGLFormat(QGL::SampleBuffers), NULL);
         hasGLMultisample = gl.format().sampleBuffers();
+        if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
+        {
+            // Check if FBOs have sample buffers
+            gl.makeCurrent();
+            QGLFramebufferObjectFormat format;
+            format.setSamples(4);
+            QGLFramebufferObject fbo(100, 100, format);
+            QGLFramebufferObjectFormat actualFormat = fbo.format();
+            int samples = actualFormat.samples();
+            hasFBOMultisample = samples > 0;
+        }
     }
     if (!hasGLMultisample)
     {

@@ -89,21 +89,33 @@ void FrameInfo::resize(uint w, uint h)
     // with 4 samples per pixel. This cannot be used directly as texture.
     QGLFramebufferObjectFormat format;
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-#if !defined(Q_OS_LINUX) && !defined(Q_OS_WIN32)
-    // We want to do this on Windows too, but it does not work at all
-    // under Windows/VMware :(
-    // REVISIT: runtime detection of VMware?
+#if !defined(Q_OS_LINUX)
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
         // Setting this on Linux crashes in the first framebuffer object ctor
-        format.setSamples(4);
-        render_fbo = new QGLFramebufferObject(w, h, format);
+        QGLFramebufferObjectFormat mformat(format);
+        mformat.setSamples(4);
+        render_fbo = new QGLFramebufferObject(w, h, mformat);
         QGLFramebufferObjectFormat actualFormat = render_fbo->format();
         int samples = actualFormat.samples();
         if (samples > 0)
+        {
             texture_fbo = new QGLFramebufferObject(w, h);
+        }
         else
+        {
+            // Multisample framebuffer objects are not supported.
+            // Normally we could just do: texture_fbo = render_fbo, to use
+            // the FBO as a texture.
+            // But on Windows/VMWare, even when samples == 0 the
+            // FBO cannot be used directly as a texture.
+            // 2 options: (1) create a texture_fbo and blit as if MS was
+            // enabled, or (2) re-create render FBO without asking for
+            // multisampling. (2) is obviously better.
+            delete render_fbo;
+            render_fbo = new QGLFramebufferObject(w, h, format);
             texture_fbo = render_fbo;
+        }
     }
     else
 #endif // CONFIG_LINUX

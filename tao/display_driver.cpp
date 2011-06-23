@@ -25,7 +25,7 @@
 #include "tao_gl.h"
 #include "tao_utf8.h"
 #include "base.h"
-#include "frame.h"  // TODO export to module API
+#include "application.h"
 #include <iostream>
 
 
@@ -51,7 +51,7 @@ DisplayDriver::DisplayDriver(Widget *widget)
 //   Constructor
 // ----------------------------------------------------------------------------
 {
-    registerDisplayFunction("2D",                displayBackBuffer,
+    registerDisplayFunction("2Dplain",           displayBackBuffer,
                                                  backBufferUse,
                                                  backBufferUnuse,
                                                  backBufferSetOpt);
@@ -60,6 +60,10 @@ DisplayDriver::DisplayDriver(Widget *widget)
                                                  backBufferFBOUse,
                                                  backBufferFBOUnuse,
                                                  backBufferFBOSetOpt);
+
+    text name2D = useFBO() ? "2DFBO" : "2Dplain";
+    registerDisplayFunctionAlias("2D", name2D);
+
     // Compatibility -- to be removed
     registerDisplayFunction("legacy",            legacyDraw);
     registerDisplayFunction("default",           legacyDraw);
@@ -152,6 +156,25 @@ std::string DisplayDriver::getOption(std::string name)
         debug() << "Read option from display function: " << +current.name
                 << " \"" << name << "\"=\"" << val << "\"\n";
     return val;
+}
+
+
+bool DisplayDriver::useFBO()
+// ----------------------------------------------------------------------------
+//   Shall we do 2D rendering through a framebuffer object (true), or directly?
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(displaymode)
+    {
+        text gl, fbos;
+        if (!TaoApp->hasGLMultisample)
+            gl = "not ";
+        if (!TaoApp->hasFBOMultisample)
+            fbos = "not ";
+        debug() << "GL framebuffer multisampling: " << gl << "supported\n";
+        debug() << "FBOs multisampling: " << gl << "supported\n";
+    }
+    return (!TaoApp->hasGLMultisample && TaoApp->hasFBOMultisample);
 }
 
 
@@ -417,6 +440,35 @@ bool DisplayDriver::registerDisplayFunction(std::string name,
     }
     DisplayParams p(nam, fn, use, unuse, setopt, getopt);
     map[nam] = p;
+    return true;
+}
+
+
+bool DisplayDriver::registerDisplayFunctionAlias(std::string name,
+                                                 std::string other)
+// ----------------------------------------------------------------------------
+//   Create another name for an existing display function.
+// ----------------------------------------------------------------------------
+{
+    QString nam = +name, oth = +other;
+    if (map.contains(nam))
+    {
+        IFTRACE(displaymode)
+            debug() << "Error: name " << name << " already in use\n";
+        return false;
+    }
+    if (!map.contains(oth))
+    {
+        IFTRACE(displaymode)
+            debug() << "Error: name " << other << " not found\n";
+        return false;
+    }
+
+    DisplayParams p = map[nam] = map[oth];
+
+    IFTRACE(displaymode)
+        debug() << "Creating alias for display function: " << name
+                << " => " << other << "@" << (void*)p.fn << "\n";
     return true;
 }
 

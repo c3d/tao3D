@@ -63,6 +63,7 @@ public:
                                                 ModuleApi::display_unuse_fn unuse = NULL,
                                                 ModuleApi::display_setopt_fn setopt = NULL,
                                                 ModuleApi::display_getopt_fn getopt = NULL);
+    static bool         registerDisplayFunctionAlias(std::string name, std::string other);
     static void         drawScene();
     static void         drawSelection();
     static void         drawActivities();
@@ -85,7 +86,7 @@ protected:
 
 protected:
 
-    // The default display is plain double-buffered OpenGL (2D)
+    // Plain double-buffered OpenGL (2D)
 
     struct BackBufferParams
     {
@@ -102,6 +103,7 @@ protected:
     // 2D rendering to framebuffer object then to OpenGL framebuffer.
     // (Enables antialised output on some platforms that do not support
     // OpenGL multisampling)
+
     struct BackBufferFBOParams
     {
         BackBufferFBOParams(int w, int h)
@@ -136,6 +138,9 @@ protected:
 
 
     static double       stereoDelta(int i, int numCameras);
+
+protected:
+    bool                useFBO();
 
 protected:
     struct DisplayParams

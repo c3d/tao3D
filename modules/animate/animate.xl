@@ -117,18 +117,20 @@ disabled Body -> false
 
 step -> 0.0
 smooth_step -> 0.0
-last_step -> 0.0
+highest_step -> 0.0
+previous_page_number -> 0
 
 
-skip S:real     ->
+skip S:real ->
 // ----------------------------------------------------------------------------
 //   Skip by amount S in the animation
 // ----------------------------------------------------------------------------
     step := step + S
-    if S > 0 and step > last_step and page_number < page_count then
-        goto_page page_name(page_number+1)
-    if S < 0 and step < 0 and page_number >= 1 then
-        goto_page page_name(page_number - 1)
+    if highest_step > 0 then
+        if S > 0 and step > highest_step and page_number < page_count then
+            goto_page page_name(page_number+1)
+        if S < 0 and step < 0 and page_number >= 1 then
+            goto_page page_name(page_number - 1)
 
 
 skip_to S:real  ->
@@ -149,17 +151,26 @@ compute_smooth_step ->
 // ----------------------------------------------------------------------------
 //    Compute the value of smooth step
 // ----------------------------------------------------------------------------
-    if page_time < 0.2 then
-       step := 0.0
-       smooth_step := 0.0
+    if previous_page_number < page_number then
+        step := 0.0
+        smooth_step := 0.0
+        previous_page_number := page_number
+    else if previous_page_number > page_number then
+        if step = 12345678 then
+            step := highest_step
+            smooth_step := highest_step
+            previous_page_number := page_number
+        else
+            step := 12345678
 
+    page_time
     interpolate 0.05, step, smooth_step
-    last_step := 0.0
+    highest_step := 0.0
 
 
 at_step N:integer ->
 // ----------------------------------------------------------------------------
 //   Show something at step N
 // ----------------------------------------------------------------------------
-    if N > last_step then last_step := N
+    if N > highest_step then highest_step := N
     show fade_at(smooth_step, N)

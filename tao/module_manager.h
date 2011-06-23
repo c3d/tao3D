@@ -91,6 +91,8 @@ import_name [Optional]
 The name to use if the module is to be explicitely imported. That is, if
 import_name is "MyModule", the module can be imported with:
   import MyModule 1.0
+If import_name is not present or empty, the module is loaded at application
+startup. Otherwise, it is loaded on demand.
 
  2.2 Internationalization
 
@@ -370,7 +372,7 @@ public:
             return (name.compare(o.name) < 0);
         }
 
-        bool contains(const QString &keyword, bool searchSource = true)
+        bool contains(const QString &keyword, bool searchSource = false)
         {
             if ((+name).contains(keyword))
                 return true;
@@ -397,6 +399,8 @@ public:
     bool                init();
     bool                loadAll(Context *context);
     bool                unloadAll(Context *context);
+    bool                loadAnonymousNative(Context *context);
+    QStringList                anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }

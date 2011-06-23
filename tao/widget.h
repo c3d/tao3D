@@ -74,6 +74,7 @@ struct Drag;
 struct TextSelect;
 struct WidgetSurface;
 struct MouseCoordinatesInfo;
+struct DisplayDriver;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -173,6 +174,12 @@ public:
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();
+    void        legacyDraw();
+    void        drawScene();
+    void        drawSelection();
+    void        drawActivities();
+    void        setGlClearColor();
+    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector);
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -401,6 +408,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+    Name_p      setDisplayMode(XL::Tree_p self, text name);
 #ifndef CFG_NOSTEREO
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Name_p      setStereoPlanes(Tree_p self, uint planes);
@@ -765,6 +773,7 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class DisplayDriver;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
@@ -809,6 +818,7 @@ private:
     char                  stereoscopic;
     char                  stereoPlanes;
     LayoutCache           layoutCache;
+    DisplayDriver *       displayDriver;
 
     // Selection
     Activity *            activities;

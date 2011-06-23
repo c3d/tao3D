@@ -48,6 +48,7 @@
 #include "tool_window.h"
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
+#include "module_manager.h"
 
 #include <iostream>
 #include <sstream>
@@ -2162,6 +2163,11 @@ void Window::updateContext(QString docPath)
         contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFileNames.push_back(+theme.canonicalFilePath());
+
+    // Load XL files of modules that have no import_name
+    QStringList mods = ModuleManager::moduleManager()->anonymousXL();
+    foreach (QString module, mods)
+        contextFileNames.push_back(+module);
 
     XL::MAIN->LoadContextFiles(contextFileNames);
 }

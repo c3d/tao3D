@@ -5971,7 +5971,7 @@ Integer* Widget::fillTexture(Tree_p self, text img)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new XL::Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -6004,7 +6004,8 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
 Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
@@ -6038,7 +6039,8 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
 
@@ -6095,7 +6097,7 @@ Integer* Widget::image(Context *context,
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return new XL::Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -7234,7 +7236,7 @@ Integer* Widget::picturePacker(Tree_p self,
     uint texId   = layout->currentTexture.id;
 
     layout->Add(new FillTexture(texId, texUnit));
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8248,7 +8250,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8332,7 +8334,7 @@ Integer* Widget::thumbnail(Context *context,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 Integer* Widget::linearGradient(Context *context, Tree_p self,
@@ -8522,7 +8524,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8571,7 +8573,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 Tree_p Widget::radioButton(Tree_p self,
@@ -8616,7 +8618,7 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8663,7 +8665,7 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8710,7 +8712,7 @@ Integer* Widget::pushButtonTexture(Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8987,7 +8989,7 @@ Integer* Widget::colorChooserTexture(Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -9039,7 +9041,7 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -9278,7 +9280,7 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -9380,7 +9382,7 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -9427,7 +9429,7 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 

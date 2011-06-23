@@ -669,6 +669,13 @@ menu_item "menu:insert > 3Dshape > sphere", tr "Sphere",
             line_color "fill"
             sphere 0, 0, 0, 100, 100, 100, 25, 25
 
+menu_item "menu:insert > 3Dshape > torus", tr "Torus",
+    insert tr "Insert torus",
+        shape
+            color "fill"
+            line_color "fill"
+            torus 0, 0, 0, 100, 100, 100, 25, 25, 0.5
+
 menu_item "menu:insert > 3Dshape > cube", tr "Cube",
     insert tr "Insert cube",
         shape

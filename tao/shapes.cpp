@@ -67,6 +67,7 @@ bool Shape::setTexture(Layout *where)
             }
             glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
+            // Wrap if texture 2D
             if(type == GL_TEXTURE_2D)
             {
                 GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;

@@ -172,7 +172,7 @@ bool DisplayDriver::useFBO()
         if (!TaoApp->hasFBOMultisample)
             fbos = "not ";
         debug() << "GL framebuffer multisampling: " << gl << "supported\n";
-        debug() << "FBOs multisampling: " << gl << "supported\n";
+        debug() << "FBOs multisampling: " << fbos << "supported\n";
     }
     return (!TaoApp->hasGLMultisample && TaoApp->hasFBOMultisample);
 }

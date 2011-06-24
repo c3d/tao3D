@@ -121,28 +121,6 @@ namespace Tao {
 static Point3 defaultCameraPosition(0, 0, 6000);
 static bool bogusQuadBuffers = false;
 
-static inline QGLFormat TaoGLFormat()
-// ----------------------------------------------------------------------------
-//   Return the options we will use when creating the widget
-// ----------------------------------------------------------------------------
-//   This was made necessary by Bug #251
-{
-    QGL::FormatOptions options =
-        (QGL::DoubleBuffer      |
-         QGL::DepthBuffer       |
-         QGL::StencilBuffer     |
-         QGL::SampleBuffers     |
-         QGL::AlphaChannel      |
-         QGL::AccumBuffer);
-    if (QSettings().value("DisableStereoscopy", false).toBool())
-        XL::MAIN->options.enable_stereoscopy = false;
-    if (XL::MAIN->options.enable_stereoscopy)
-        options |= QGL::StereoBuffers;
-    QGLFormat format(options);
-    // Enable VSync by default
-    format.setSwapInterval(1);
-    return format;
-}
 
 
 Widget::Widget(Window *parent, SourceFile *sf)

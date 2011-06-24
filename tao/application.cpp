@@ -173,8 +173,9 @@ Application::Application(int & argc, char ** argv)
                               " Consider updating the OpenGL drivers."));
     }
     {
-        QGLWidget gl(QGLFormat(QGL::SampleBuffers), NULL);
-        hasGLMultisample = gl.format().sampleBuffers();
+        QGLWidget gl(TaoGLFormat(), NULL);
+        int samples = gl.format().samples();
+        hasGLMultisample = samples > 1;
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
             // Check if FBOs have sample buffers
@@ -184,7 +185,7 @@ Application::Application(int & argc, char ** argv)
             QGLFramebufferObject fbo(100, 100, format);
             QGLFramebufferObjectFormat actualFormat = fbo.format();
             int samples = actualFormat.samples();
-            hasFBOMultisample = samples > 0;
+            hasFBOMultisample = samples > 1;
         }
     }
     if (!hasGLMultisample)

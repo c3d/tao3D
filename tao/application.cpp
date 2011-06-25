@@ -68,7 +68,8 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
-      hasFBOMultisample(false), splash(NULL),
+      hasFBOMultisample(false), hasGLStereoBuffers(false),
+      splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false)
 {
@@ -173,9 +174,19 @@ Application::Application(int & argc, char ** argv)
                               " Consider updating the OpenGL drivers."));
     }
     {
-        QGLWidget gl(TaoGLFormat(), NULL);
+        QGLWidget gl(QGLFormat(QGL::StereoBuffers));
+        hasGLStereoBuffers = gl.format().stereo();
+        IFTRACE(displaymode)
+            std::cerr << "GL stereo buffers support: " << hasGLStereoBuffers
+                      << "\n";
+    }
+    {
+        QGLWidget gl(QGLFormat(QGL::SampleBuffers));
         int samples = gl.format().samples();
         hasGLMultisample = samples > 1;
+        IFTRACE(displaymode)
+            std::cerr << "GL multisample support: " << hasGLMultisample
+                      << " (samples per pixel: " << samples << ")\n";
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
             // Check if FBOs have sample buffers
@@ -186,6 +197,10 @@ Application::Application(int & argc, char ** argv)
             QGLFramebufferObjectFormat actualFormat = fbo.format();
             int samples = actualFormat.samples();
             hasFBOMultisample = samples > 1;
+            IFTRACE(displaymode)
+                std::cerr << "GL FBO multisample support: "
+                          << hasFBOMultisample
+                          << " (samples per pixel: " << samples << ")\n";
         }
     }
     if (!hasGLMultisample)

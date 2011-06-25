@@ -35,7 +35,8 @@ RenderToFileDialog::RenderToFileDialog(Widget *widget, QWidget *parent)
 //    Create a "clone" dialog
 // ----------------------------------------------------------------------------
     : QDialog(parent),
-      folder(Application::defaultProjectFolderPath() + tr("/frames")),
+      folder(QDir::toNativeSeparators(Application::defaultProjectFolderPath() +
+                                    tr("/frames"))),
       x(640), y(480), start(0.0), end(10.0), fps(25),
       widget(widget),
       okToDismiss(false), okButton(NULL), rendering(false)

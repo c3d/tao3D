@@ -105,7 +105,7 @@ bool DisplayDriver::setDisplayFunction(QString name)
     bool found = false;
     if (name.isEmpty())
         name = "default";
-    if (current.name == name)
+    if (isCurrentDisplayFunctionSameAs(name))
         return true;
     if (map.contains(name))
     {
@@ -138,6 +138,8 @@ bool DisplayDriver::isCurrentDisplayFunctionSameAs(QString name)
 //   Check if currrent display function is the same as name
 // ----------------------------------------------------------------------------
 {
+    if (name == "")
+        name = "default";
     if (!map.contains(name))
         return false;
     return (current.fn == map[name].fn);

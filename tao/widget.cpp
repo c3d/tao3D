@@ -5456,6 +5456,8 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 //   Select a display function
 // ----------------------------------------------------------------------------
 {
+    if (displayDriver->isCurrentDisplayFunctionSameAs(+name))
+        return XL::xl_true;
     bool ok = displayDriver->setDisplayFunction(+name);
     if (ok)
     {

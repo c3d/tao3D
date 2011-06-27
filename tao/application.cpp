@@ -569,7 +569,8 @@ void Application::checkOfflineRendering()
         return;
 
     QStringList parms = ropts.split(",");
-    if (parms.size() != 7)
+    int nparms = parms.size();
+    if (nparms < 7 || nparms > 8)
     {
         std::cerr << +tr("-render: too few or too many parameters\n");
         return;
@@ -578,7 +579,7 @@ void Application::checkOfflineRendering()
     int idx = 0;
     int page, x, y;
     double start, end, fps;
-    QString folder;
+    QString folder, disp = "";
 
     page = parms[idx++].toInt();
     x = parms[idx++].toInt();
@@ -587,17 +588,20 @@ void Application::checkOfflineRendering()
     end = parms[idx++].toDouble();
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
+    if (nparms >= 8)
+        disp = parms[idx++];
 
     std::cout << "Starting offline rendering: page=" << page << " x=" << x
               << " y=" << y << " start=" << start << " end=" << end
-              << " fps= " << fps << " folder=" << +folder << "\n";
+              << " fps=" << fps << " folder=\"" << +folder << "\""
+              << " displaymode=\"" << +disp << "\"\n";
 
     Widget *widget = findFirstTaoWindow()->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
     connect(widget, SIGNAL(renderFramesDone()),
             this,   SLOT(onRenderingDone()));
-    widget->renderFrames(x, y, start, end, folder, fps, page);
+    widget->renderFrames(x, y, start, end, folder, fps, page, disp);
 }
 
 

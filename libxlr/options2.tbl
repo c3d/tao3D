@@ -18,7 +18,7 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
        pull_interval = INTEGER(1000, 100000))
 
 OPTVAR(prefer_opengl, bool, false)
-OPTION(gl, "Prefer OpenGL for rendering", prefer_opengl = true)
+OPTION(opengl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
 OPTVAR(enable_stereoscopy, bool, true)
 OPTION(stereo, "Enable stereoscopy", enable_stereoscopy = true)
@@ -43,7 +43,7 @@ OPTVAR(enable_layout_cache, bool, false)
 OPTION(layoutcache, "Enable 'layout cache' optimization", enable_layout_cache = true)
 
 OPTVAR(rendering_options, text, "-")
-OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder. "
+OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,displaymode]. "
                "Render frames and exit. Single document only.",
        rendering_options = STRING)
 

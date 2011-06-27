@@ -1103,18 +1103,25 @@ void Widget::print(QPrinter *prt)
 
 
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps, int page)
+                          QString dir, double fps, int page, QString disp)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
 {
-    // Compatibility
     QString prevDisplay;
+    if (disp != "" && !displayDriver->isCurrentDisplayFunctionSameAs(disp))
+    {
+        // Select specific display function
+        prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction(disp);
+    }
     if (displayDriver->isCurrentDisplayFunctionSameAs("legacy"))
     {
+        // Compatibility
         std::cerr << "Legacy display function does not support offline "
                   << "rendering. Switching to \"2D\" for compatibility\n";
-        prevDisplay = displayDriver->getDisplayFunction();
+        if (prevDisplay == "")
+            prevDisplay = displayDriver->getDisplayFunction();
         displayDriver->setDisplayFunction("2D");
     }
 

@@ -1108,6 +1108,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
 {
+    // Compatibility
+    QString prevDisplay;
+    if (displayDriver->isCurrentDisplayFunctionSameAs("legacy"))
+    {
+        std::cerr << "Legacy display function does not support offline "
+                  << "rendering. Switching to \"2D\" for compatibility\n";
+        prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction("2D");
+    }
+
     // Create output directory if needed
     if (!QFileInfo(dir).exists())
         QDir().mkdir(dir);
@@ -1169,11 +1179,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Draw the layout in the frame context
         id = idDepth = 0;
         Layout::polygonOffset = 0;
-        setup(w, h);
         frame.begin();
-        glClearColor(clearCol.redF(),clearCol.greenF(),clearCol.blueF(),1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        space->Draw(NULL);
+        displayDriver->display();
         frame.end();
 
         QApplication::processEvents();
@@ -1187,6 +1194,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     // Done with offline rendering
     inOfflineRendering = false;
+    if (!prevDisplay.isEmpty())
+        displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
     QApplication::processEvents();
 }

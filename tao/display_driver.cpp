@@ -124,6 +124,26 @@ bool DisplayDriver::setDisplayFunction(QString name)
 }
 
 
+QString DisplayDriver::getDisplayFunction()
+// ----------------------------------------------------------------------------
+//   Return the name of the active display function
+// ----------------------------------------------------------------------------
+{
+    return current.name;
+}
+
+
+bool DisplayDriver::isCurrentDisplayFunctionSameAs(QString name)
+// ----------------------------------------------------------------------------
+//   Check if currrent display function is the same as name
+// ----------------------------------------------------------------------------
+{
+    if (!map.contains(name))
+        return false;
+    return (current.fn == map[name].fn);
+}
+
+
 bool DisplayDriver::setOption(std::string name, std::string val)
 // ----------------------------------------------------------------------------
 //   Pass option to display module
@@ -204,6 +224,10 @@ void DisplayDriver::displayBackBuffer(void *obj)
     BackBufferParams * o = (BackBufferParams *)obj;
     Q_ASSERT(obj || !"Back buffer display routine received NULL object");
 
+    // Are we rendering to the default framebuffer, or a FBO?
+    GLint fbname = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
+
     int n = o->bogusQuadBuffer ? 2 : 1;
 
     for (int i = 1; i <= n; i++)
@@ -217,11 +241,14 @@ void DisplayDriver::displayBackBuffer(void *obj)
         setProjectionMatrix(w, h);
         setModelViewMatrix();
 
-        // Select draw buffer
-        if (o->bogusQuadBuffer)
-            glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
-        else
-            glDrawBuffer(GL_BACK);
+        // If no FBO is bound, select draw buffer
+        if (!fbname)
+        {
+            if (o->bogusQuadBuffer)
+                glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
+            else
+                glDrawBuffer(GL_BACK);
+        }
 
         // Clear color and depth information
         setGlClearColor();

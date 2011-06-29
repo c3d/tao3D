@@ -89,6 +89,10 @@ bool ModuleRenderer::SetTexture(unsigned int id, unsigned int type)
 // ----------------------------------------------------------------------------
 {
     GLuint unit = Widget::Tao()->layout->currentTexture.unit;
+
+    Widget::Tao()->layout->currentTexture.id = id;
+    Widget::Tao()->layout->currentTexture.type = type;
+
     Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
     return false;
 }

@@ -451,6 +451,7 @@ public:
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);
+    Integer*    textureType(Tree_p self);
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);

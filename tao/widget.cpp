@@ -5938,6 +5938,10 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
     }
 
     uint texUnit = layout->currentTexture.unit;
+
+    layout->currentTexture.id   = id;
+    layout->currentTexture.type = GL_TEXTURE_2D;
+
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
     return new XL::Integer(texId);
@@ -5960,9 +5964,10 @@ Integer* Widget::fillTexture(Tree_p self, text img)
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
 
-        layout->currentTexture.id = rinfo->bind(img);
-        layout->currentTexture.width = rinfo->width;
+        layout->currentTexture.id     = rinfo->bind(img);
+        layout->currentTexture.width  = rinfo->width;
         layout->currentTexture.height = rinfo->height;
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
         texUnit = layout->currentTexture.unit;
         texId   = layout->currentTexture.id;
@@ -5994,9 +5999,10 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
             rinfo = new AnimatedTextureInfo();
             self->SetInfo<AnimatedTextureInfo>(rinfo);
         }
-        layout->currentTexture.id = rinfo->bind(img);
-        layout->currentTexture.width = rinfo->width;
+        layout->currentTexture.id     = rinfo->bind(img);
+        layout->currentTexture.width  = rinfo->width;
         layout->currentTexture.height = rinfo->height;
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
         texUnit = layout->currentTexture.unit;
         texId   = layout->currentTexture.id;
@@ -6029,9 +6035,10 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
             self->SetInfo<SvgRendererInfo>(rinfo);
         }
 
-        layout->currentTexture.id = rinfo->bind(img);
-        layout->currentTexture.width = rinfo->w;
+        layout->currentTexture.id     = rinfo->bind(img);
+        layout->currentTexture.width  = rinfo->w;
         layout->currentTexture.height = rinfo->h;
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
         texUnit = layout->currentTexture.unit;
         texId   = layout->currentTexture.id;
@@ -6077,9 +6084,10 @@ Integer* Widget::image(Context *context,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
 
-    layout->currentTexture.id = rinfo->bind(filename);
-    layout->currentTexture.width = rinfo->width;
+    layout->currentTexture.id     = rinfo->bind(filename);
+    layout->currentTexture.width  = rinfo->width;
     layout->currentTexture.height = rinfo->height;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -6272,6 +6280,13 @@ Integer* Widget::textureHeight(Tree_p self)
     return new Integer(layout->currentTexture.height);
 }
 
+Integer* Widget::textureType(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current texture type
+// ----------------------------------------------------------------------------
+{
+    return new Integer(layout->currentTexture.type);
+}
 
 Integer* Widget::textureId(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -7228,9 +7243,10 @@ Integer* Widget::picturePacker(Tree_p self,
                      GL_UNSIGNED_BYTE, texImg.bits());
     }
 
-    layout->currentTexture.id = tinfo->bind();
-    layout->currentTexture.width = iw;
+    layout->currentTexture.id     = tinfo->bind();
+    layout->currentTexture.width  = iw;
     layout->currentTexture.height = ih;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -7369,9 +7385,10 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(editCursor->document()->clone());
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(editCursor->document()->clone());
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8240,9 +8257,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8324,9 +8342,10 @@ Integer* Widget::thumbnail(Context *context,
     }
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8369,9 +8388,10 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     painter.end();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8413,9 +8433,10 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     painter.end();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8457,9 +8478,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     painter.end();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8514,9 +8536,10 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(url, progress);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(url, progress);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8563,9 +8586,10 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(txt);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(txt);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8608,9 +8632,10 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl, act, sel);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl, act, sel);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8655,9 +8680,10 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl, act, sel);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl, act, sel);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8702,9 +8728,10 @@ Integer* Widget::pushButtonTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl, act, NULL);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl, act, NULL);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8979,9 +9006,10 @@ Integer* Widget::colorChooserTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -9031,9 +9059,10 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -9270,9 +9299,10 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -9372,9 +9402,10 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -9419,9 +9450,10 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     }
 
     // Resize to requested size, and bind texture
-    layout->currentTexture.id = surface->bind(url);
-    layout->currentTexture.width = surface->width();
+    layout->currentTexture.id     = surface->bind(url);
+    layout->currentTexture.width  = surface->width();
     layout->currentTexture.height = surface->height();
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -9492,6 +9524,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         int pnum = 1;
+
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
         {

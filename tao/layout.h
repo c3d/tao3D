@@ -41,7 +41,7 @@ struct Widget;
 
 struct TextureState
 // ----------------------------------------------------------------------------
-//   The state of texture we want to preserve
+//   The state of the texture we want to preserve
 // ----------------------------------------------------------------------------
 {
     TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
@@ -52,7 +52,6 @@ struct TextureState
     GLuint        height;
     GLenum        type;
 };
-
 
 struct LayoutState
 // ----------------------------------------------------------------------------

@@ -19,6 +19,7 @@
        filters          \
        render_to_texture\
        shading          \
+       materials        \
        lens_flare       \
        mapping          \
        display_quadstereo \

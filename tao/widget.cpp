@@ -2889,6 +2889,9 @@ void Widget::startRefreshTimer(bool on)
 //    Make sure refresh timer runs if it has to
 // ----------------------------------------------------------------------------
 {
+    if (inOfflineRendering)
+        return;
+
     if (!on)
     {
 #ifdef MACOSX_DISPLAYLINK
@@ -4364,7 +4367,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refresh(0);
+    refreshNow();
     return new Text(old);
 }
 

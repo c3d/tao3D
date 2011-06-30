@@ -181,6 +181,15 @@ std::string DisplayDriver::getOption(std::string name)
 }
 
 
+QStringList DisplayDriver::allDisplayFunctions()
+// ----------------------------------------------------------------------------
+//   Return all registered function names
+// ----------------------------------------------------------------------------
+{
+    return map.keys();
+}
+
+
 bool DisplayDriver::useFBO()
 // ----------------------------------------------------------------------------
 //   Shall we do 2D rendering through a framebuffer object (true), or directly?

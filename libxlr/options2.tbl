@@ -44,7 +44,8 @@ OPTION(layoutcache, "Enable 'layout cache' optimization", enable_layout_cache = 
 
 OPTVAR(rendering_options, text, "-")
 OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,displaymode]. "
-               "Render frames and exit. Single document only.",
+               "Render frames and exit. Single document only. Set 'displaymode' to 'help' "
+               "for a list of all available modes.",
        rendering_options = STRING)
 
 OPTION(norepo, "Disable GIT repository", ;)

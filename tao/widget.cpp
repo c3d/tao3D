@@ -1181,6 +1181,24 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         XL::Save<page_list> savePageNames(pageNames, pageNames);
         setupPage();
         currentTime = t;
+
+        if (gotoPageName != "")
+        {
+            IFTRACE(pages)
+                std::cerr << "(renderFrames) "
+                          << "Goto page request: '" << gotoPageName
+                          << "' from '" << pageName << "'\n";
+            pageName = gotoPageName;
+            frozenTime = pageStartTime = startTime = CurrentTime();
+            for (uint p = 0; p < pageNames.size(); p++)
+                if (pageNames[p] == gotoPageName)
+                    pageShown = p + 1;
+            gotoPageName = "";
+            IFTRACE(pages)
+                std::cerr << "(renderFrames) "
+                          << "New page number is " << pageShown << "\n";
+        }
+
         runProgram();
 
         // Draw the layout in the frame context
@@ -4367,7 +4385,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refreshNow();
+    refresh(0); // Not refreshNow(), see #1074
     return new Text(old);
 }
 

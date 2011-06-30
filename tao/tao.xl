@@ -5,6 +5,7 @@ import "tao_fr.xl"
 // module_description is used in a module's main file to describe the module
 // Parsing of this prefix is currently done in C++
 module_description b:block              -> false
+module_description T:text, b:block      -> false
 
 // Key management
 key "Control-L"                         -> toggle_slide_show
@@ -16,6 +17,8 @@ key "Control--"                         -> zoom_out
 key "Delete"                            -> delete_selection "Delete"
 key "Backspace"                         -> delete_selection "Backspace"
 key "Control-G"                         -> page_chooser
+key "Control-Left"                      -> decrease_eye_distance
+key "Control-Right"                     -> increase_eye_distance
 key X                                   -> text_edit_key X
 
 // Zoom
@@ -90,6 +93,9 @@ commit_chooser b:text ->
     chooser tr "Select commit"
     chooser_commits b, checkout, ""
 
+increase_eye_distance -> eye_distance eye_distance * 1.5
+decrease_eye_distance -> eye_distance eye_distance * 0.75
+
 stereoscopy_settings ->
     chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
     chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
@@ -99,8 +105,8 @@ stereoscopy_settings ->
     chooser_choice tr "Enable stereoscopy (back interleave)", {enable_stereoscopy antidiagonal}
     chooser_choice tr "Enable stereoscopy (Cannes)", {enable_stereoscopy alioscopy; eye_distance 30.0}
     chooser_choice tr "Enable stereoscopy (Depth map)", {enable_stereoscopy depthmap}
-    chooser_choice tr "Increase eye distance", {eye_distance eye_distance * 1.5}
-    chooser_choice tr "Decrease eye distance", {eye_distance eye_distance * 0.75}
+    chooser_choice tr "Increase eye distance", {increase_eye_distance}
+    chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
     chooser_choice tr "Set 2 stereo planes", {stereoscopy_planes 2}
     chooser_choice tr "Set 3 stereo planes", {stereoscopy_planes 3}
     chooser_choice tr "Set 4 stereo planes", {stereoscopy_planes 4}
@@ -889,27 +895,46 @@ menu_item "menu:select:arrange > ungroup", tr "Ungroup",
 menu_window -> {
 menu   "TAO_VIEW_MENU", ""
 submenu "TAO_VIEW_MENU:windowsize", tr "Window size"
-menu_item "TAO_VIEW_MENU:windowsize > 800", tr "800 X 600",
+menu_item "TAO_VIEW_MENU:windowsize > 800", "800 x 600",
     window_size 800, 600
-menu_item "TAO_VIEW_MENU:windowsize > 1024", tr "1024 X 768",
+menu_item "TAO_VIEW_MENU:windowsize > 960", "960 x 540",
+    window_size 960, 540
+menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768",
     window_size 1024, 768
-menu_item "TAO_VIEW_MENU:windowsize > 1280", tr "1280 X 768",
+menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768",
     window_size 1280, 768
-menu_item "TAO_VIEW_MENU:windowsize > 1600", tr "1600 X 1200",
+menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200",
     window_size 1600, 1200
+menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
+    window_size 1920, 1080
 }
 
+menu_display_mode ->
+    menu   "TAO_VIEW_MENU", ""
+    submenu "TAO_VIEW_MENU:displaymode", tr "Display mode"
+    menu_item "TAO_VIEW_MENU:displaymode > 2D", tr "2D",
+        display_mode "2D"
+    menu_item "TAO_VIEW_MENU:displaymode > 2DFBO", tr "2D FBO",
+        display_mode "2DFBO"
+    menu_item "TAO_VIEW_MENU:displaymode > legacy", tr "Legacy (default)",
+        display_mode "legacy"
+
 window_choices ->
-    chooser_choice tr "800 X 600",
+    chooser_choice "800 x 600",
         window_size 800, 600
-    chooser_choice tr "1024 X 768",
+    chooser_choice "960 x 540",
+        window_size 960, 540
+    chooser_choice "1024 x 768",
         window_size 1024, 768
-    chooser_choice  tr "1280 X 768",
+    chooser_choice "1280 x 768",
         window_size 1280, 768
-    chooser_choice tr "1600 X 1200",
+    chooser_choice "1600 x 1200",
         window_size 1600, 1200
+    chooser_choice "1920 x 1080",
+        window_size 1920, 1080
 
 menu_insert
 menu_format
 menu_arrange
 menu_window
+menu_display_mode

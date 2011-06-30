@@ -8,7 +8,12 @@ module_description
     id "5336423A-4EEE-45E4-9DEF-0A9D936E60A6"
     name "Hello World"
     import_name "HelloWorld"
-    description "A primitive that says hello to the world"
+    description "A primitive that says hello to the world."
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
     version 1.0
+
+module_description "fr",
+    description "Une primitive qui affiche ""Hello World""."
 
 hello_world -> "Hello, World!"

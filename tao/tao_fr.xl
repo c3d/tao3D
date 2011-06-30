@@ -113,3 +113,7 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Quit Tao", "Quitter Tao"
     tr "Close current document", "Fermer le document"
     tr "Window size", "Taille de la fenêtre"
+    tr "Activate ATI Macs quad buffer workaround", "Contourner le problème Mac ATI"
+    tr "Display mode", "Mode d'affichage"
+    tr "2D", "2D"
+    tr "Legacy (default)", "Ancien mode (défaut)"

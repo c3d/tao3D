@@ -197,7 +197,7 @@ material_emission(r:real, g:real, b:real, a:real);
 
 
 /**
- * Sets the emission parameter of the current material (two faces).
+ * Sets the shininess parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>
  */
@@ -237,7 +237,7 @@ material_front_emission(r:real, g:real, b:real, a:real);
 
 
 /**
- * Sets the emission parameter of the current material (front face).
+ * Sets the shininess parameter of the current material (front face).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialf(GL_FRONT, GL_SHININESS, x)</tt>
  */
@@ -277,7 +277,7 @@ material_back_emission(r:real, g:real, b:real, a:real);
 
 
 /**
- * Sets the emission parameter of the current material (back face).
+ * Sets the shininess parameter of the current material (back face).
  * Equivalent to the OpenGL call:
  * <tt>glMaterialf(GL_BACK, GL_SHININESS, x)</tt>
  */

@@ -75,6 +75,7 @@
 #include "tree-walk.h"
 #include "raster_text.h"
 #include "dir.h"
+#include "display_driver.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -94,6 +95,16 @@
 #include <string.h>
 
 #include <QtGui>
+
+#ifdef MACOSX_DISPLAYLINK
+#include <CoreVideo/CoreVideo.h>
+
+enum MacOSWidgetEventType
+{
+    DisplayLink = QEvent::User,
+    UpdateGL    = QEvent::User + 1,
+};
+#endif
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
@@ -161,7 +172,14 @@ Widget::Widget(Window *parent, SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
-      timer(), dfltRefresh(0.04), idleTimer(this),
+#ifdef MACOSX_DISPLAYLINK
+      displayLink(NULL), displayLinkStarted(false),
+      pendingDisplayLinkEvent(false),
+      stereoSkip(0), holdOff(false), droppedFrames(0),
+#else
+      timer(),
+#endif
+      dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
@@ -247,6 +265,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
+
+    // Create the object we will use to render frames
+    displayDriver = new DisplayDriver(this);
 }
 
 
@@ -258,6 +279,16 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
+
+#ifdef MACOSX_DISPLAYLINK
+    if (displayLink)
+    {
+        if (displayLinkStarted)
+            CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
+        displayLink = NULL;
+    }
+#endif
 }
 
 
@@ -350,12 +381,77 @@ void Widget::setupPage()
 }
 
 
+void Widget::drawScene()
+// ----------------------------------------------------------------------------
+//   Draw all objects in the scene
+// ----------------------------------------------------------------------------
+{
+    id = idDepth = 0;
+    space->ClearAttributes();
+    space->Draw(NULL);
+}
+
+
+void Widget::drawSelection()
+// ----------------------------------------------------------------------------
+//   Draw selection items for all objects (selection boxes, manipulators)
+// ----------------------------------------------------------------------------
+{
+    id = idDepth = 0;
+    selectionTrees.clear();
+    space->ClearAttributes();
+    space->DrawSelection(NULL);
+}
+
+
+void Widget::drawActivities()
+// ----------------------------------------------------------------------------
+//   Draw chooser, selection rectangle, display statistics
+// ----------------------------------------------------------------------------
+{
+    SpaceLayout selectionSpace(this);
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    setupGL();
+    glDisable(GL_DEPTH_TEST);
+    for (Activity *a = activities; a; a = a->Display()) ;
+    selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
+                               // Isn't everything drawn by a->Display()?
+    glEnable(GL_DEPTH_TEST);
+
+    // Show FPS as text overlay
+    if (bShowStatistics)
+        printStatistics();
+}
+
+
+void Widget::setGlClearColor()
+// ----------------------------------------------------------------------------
+//   Call glClearColor with the color specified in the widget
+// ----------------------------------------------------------------------------
+{
+    qreal r, g, b, a;
+    clearCol.getRgbF(&r, &g, &b, &a);
+    glClearColor (r, g, b, a);
+}
+
+
+void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
+// ----------------------------------------------------------------------------
+//   Get camera characteristics
+// ----------------------------------------------------------------------------
+{
+    if (position) *position = cameraPosition;
+    if (target)   *target   = cameraTarget;
+    if (upVector) *upVector = cameraUpVector;
+}
+
+
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    // In offline renderin mode, just keep the widget clear
+    // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -370,7 +466,6 @@ void Widget::draw()
     TaoSave saveCurrent(current, this);
 
     // Setup the initial drawing environment
-    uint w = width(), h = height();
     setupPage();
 
     // Clean text selection
@@ -388,11 +483,63 @@ void Widget::draw()
         runProgram();
     }
 
-    // After we are done, draw the space with all the drawings in it
-    // If we are in stereoscopice mode, we draw twice, once for each eye
-    qreal r, g, b, a;
-    clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+
+    // Run current display algorithm
+    stereoscopic = 1; // FIXME - REVISIT:
+                      // Without this, mouse tracking won't work if display
+                      // function is not legacyDraw().
+                      // But, in any case setting stereoscopic = 1 is not
+                      // the solution, because we don't want to record mouse
+                      // coordinates multiple times when rendering for multiple
+                      // point of views.
+                      // What interface do we need to export to the display
+                      // modules?
+    displayDriver->display();
+
+
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
+
+    // Remember number of elements drawn for GL selection buffer capacity
+    if (maxId < id + 100 || maxId > 2 * (id + 100))
+        maxId = id + 100;
+
+    // Clipboard management
+    checkCopyAvailable();
+
+    // If we must update dialogs, do it now
+    if (mustUpdateDialogs)
+    {
+        mustUpdateDialogs = false;
+        if (colorDialog)
+            updateColorDialog();
+        if (fontDialog)
+            updateFontDialog();
+    }
+
+    if (selectionChanged)
+    {
+        Window *window = (Window *) parentWidget();
+        selectionChanged = false;
+
+        // TODO: honoring isReadOnly involves more than just this
+        if (!window->isReadOnly)
+            updateProgramSource();
+    }
+}
+
+
+void Widget::legacyDraw()
+// ----------------------------------------------------------------------------
+//    Legacy code before display modules. Still the default rendered.
+// ----------------------------------------------------------------------------
+{
+    // Draw the space with all the drawings in it
+    // If we are in stereoscopic mode, we draw twice, once for each eye
+    uint w = width(), h = height();
+
+    setGlClearColor();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Generate depth map if necessary
@@ -457,7 +604,7 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
-                glClearColor(r, g, b, a);
+                setGlClearColor();
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
                 break;
@@ -490,15 +637,7 @@ void Widget::draw()
         setup(w, h);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        id = idDepth = 0;
-
-        // Warning: Using a GL display list here can result in *lower*
-        // performance than direct GL calls!
-        // On MacOSX, profiling shows that glEndList() can take quite a long
-        // time (~60ms average on a moderately complex scene including
-        // a 400k-triangle object rendered by GLC_Lib)
-        space->ClearAttributes();
-        space->Draw(NULL);
+        drawScene();
 
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
@@ -517,6 +656,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            glDisable(GL_TEXTURE_2D);
             space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);
@@ -527,35 +667,30 @@ void Widget::draw()
         if (bShowStatistics)
             printStatistics();
 
-        id = idDepth = 0;
-        selectionTrees.clear();
-        space->ClearAttributes();
-        space->DrawSelection(NULL);
+        // Draw object selections, manipulators
+        drawSelection();
 
-        // Render all activities, e.g. the selection rectangle
-        SpaceLayout selectionSpace(this);
-        XL::Save<Layout *> saveLayout(layout, &selectionSpace);
-        setupGL();
-        glDisable(GL_DEPTH_TEST);
-        for (Activity *a = activities; a; a = a->Display()) ;
-        selectionSpace.Draw(NULL);
-        if (stereoMode == stereoDEPTHMAP && depthMapper)
-        {
-            glViewport(w/2, 0, w/2, h);
-            id = idDepth = 0;
-            depthMapper->bind();
-            XL::Save<uint> setPgmId(Layout::globalProgramId,
-                                    depthMapper->programId());
-            glScissor(w/2, 0, w/2, h);
-            glEnable(GL_SCISSOR_TEST);
-            selectionSpace.Draw(NULL);
-            glDisable(GL_SCISSOR_TEST);
-            glUseProgram(0);
-        }
-        glEnable(GL_DEPTH_TEST);
+        // Draw selection rectangle, chooser
+        drawActivities();
+
+//        if (stereoMode == stereoDEPTHMAP && depthMapper)
+//        {
+//            glDisable(GL_DEPTH_TEST);
+//            glViewport(w/2, 0, w/2, h);
+//            id = idDepth = 0;
+//            depthMapper->bind();
+//            XL::Save<uint> setPgmId(Layout::globalProgramId,
+//                                    depthMapper->programId());
+//            glScissor(w/2, 0, w/2, h);
+//            glEnable(GL_SCISSOR_TEST);
+//            selectionSpace.Draw(NULL);
+//            glDisable(GL_SCISSOR_TEST);
+//            glUseProgram(0);
+//            glEnable(GL_DEPTH_TEST);
+//        }
     }
 
-    // Generate depth map if necessary
+    // Generate header for depth map display, if necessary
     if (stereoMode == stereoDEPTHMAP)
     {
         static uchar wowvxHeader[32] =
@@ -628,36 +763,6 @@ void Widget::draw()
         glAccum(GL_RETURN, 1.0);
     }
 
-    // One more complete view rendered
-    if (bShowStatistics)
-        updateStatistics();
-
-    // Remember number of elements drawn for GL selection buffer capacity
-    if (maxId < id + 100 || maxId > 2 * (id + 100))
-        maxId = id + 100;
-
-    // Clipboard management
-    checkCopyAvailable();
-
-    // If we must update dialogs, do it now
-    if (mustUpdateDialogs)
-    {
-        mustUpdateDialogs = false;
-        if (colorDialog)
-            updateColorDialog();
-        if (fontDialog)
-            updateFontDialog();
-    }
-
-    if (selectionChanged)
-    {
-        Window *window = (Window *) parentWidget();
-        selectionChanged = false;
-
-        // TODO: honoring isReadOnly involves more than just this
-        if (!window->isReadOnly)
-            updateProgramSource();
-    }
 }
 
 
@@ -678,6 +783,23 @@ bool Widget::refreshNow(QEvent *event)
     if (inError || inDraw)
         return false;
 
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+            std::cerr << "Goto page request: '" << gotoPageName
+                      << "' from '" << pageName << "'\n";
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = startTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+        IFTRACE(pages)
+            std::cerr << "New page number is " << pageShown << "\n";
+        event = NULL; // Force full refresh
+    }
+
+    setCurrentTime();
     bool changed = false;
     double now = CurrentTime();
     if (!event || space->NeedRefresh(event, now))
@@ -792,7 +914,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = optimalDefaultRefresh();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -848,23 +970,7 @@ void Widget::runProgram()
     else
         pageName = pageNameAtIndex(NULL, pageShown)->value;
 
-    // Check if program asked to change page for the next run
-    if (gotoPageName != "")
-    {
-        IFTRACE(pages)
-            std::cerr << "Goto page request: '" << gotoPageName
-                      << "' from '" << pageName << "'\n";
-        pageName = gotoPageName;
-        frozenTime = pageStartTime = startTime = CurrentTime();
-        for (uint p = 0; p < pageNames.size(); p++)
-            if (pageNames[p] == gotoPageName)
-                pageShown = p + 1;
-        gotoPageName = "";
-        IFTRACE(pages)
-            std::cerr << "New page number is " << pageShown << "\n";
-        refresh();
-    }
-
+    // Check pending events
     processProgramEvents();
 
     if (!dragging)
@@ -1062,7 +1168,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         Layout::polygonOffset = 0;
         setup(w, h);
         frame.begin();
-        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClearColor(clearCol.redF(),clearCol.greenF(),clearCol.blueF(),1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
@@ -1535,12 +1641,10 @@ void Widget::enableAnimations(bool enable)
 //   Enable or disable animations on the page
 // ----------------------------------------------------------------------------
 {
-    animated = enable;
+    if (enable)
+        pageStartTime += (trueCurrentTime() - frozenTime);
     frozenTime = CurrentTime();
-    if (animated)
-        startRefreshTimer();
-    else
-        timer.stop();
+    startRefreshTimer(animated = enable);
 }
 
 
@@ -1698,6 +1802,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.clear();
     stats_start.start();
+#ifdef MACOSX_DISPLAYLINK
+    droppedFrames = 0;
+#endif
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -1759,7 +1866,7 @@ void Widget::setup(double w, double h, const Box *picking)
             break;
         case stereoVSPLIT:
             vh /= 2;
-            if (stereoscopic == 2)
+            if (stereoscopic == 1)
                 vy = vh;
         default:
             break;
@@ -2409,8 +2516,9 @@ void Widget::keyPressEvent(QKeyEvent *event)
     Activity *next;
     for (Activity *a = activities; a; a = next)
     {
+        Activity * n = a->next;
         next = a->Key(key);
-        handled |= next != a->next;
+        handled |= next != n;
     }
 
     // If the key was not handled by any activity, forward to document
@@ -2629,14 +2737,173 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-void Widget::startRefreshTimer()
+#ifdef MACOSX_DISPLAYLINK
+
+static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
+                                    const CVTimeStamp *now,
+                                    const CVTimeStamp *outputTime,
+                                    CVOptionFlags flagsIn,
+                                    CVOptionFlags *flagsOut,
+                                    void *displayLinkContext)
+// ----------------------------------------------------------------------------
+//    MacOSX Core Video display link callback.
+// ----------------------------------------------------------------------------
+//    Using a display link is a way to implement precise timers, synchronized
+//    with screen refresh.
+//    See http://developer.apple.com/library/mac/#qa/qa1385/_index.html.
+//    This method is called from a thread that is NOT the GUI thread, so we
+//    can't do much here. We will just post an event to be processed ASAP by
+//    the main thread, to reevaluate any part of the document, and then redraw
+//    the scene as needed.
+{
+    Q_UNUSED(displayLink);
+    Q_UNUSED(now);
+    Q_UNUSED(outputTime);
+    Q_UNUSED(flagsIn);
+    Q_UNUSED(flagsOut);
+
+    Widget *w = (Widget*)displayLinkContext;
+    w->displayLinkEvent();
+
+    return kCVReturnSuccess;
+}
+
+
+void Widget::displayLinkEvent()
+// ----------------------------------------------------------------------------
+//    Post a user event to the GUI thread (this is our OpenGL refresh timer)
+// ----------------------------------------------------------------------------
+{
+    // Stereoscopy with quad buffers: scene refresh rate is half of screen
+    // frequency
+    if (XL::MAIN->options.enable_stereoscopy && (++stereoSkip % 2 == 0))
+        return;
+
+    // Post event to main thread (have no more than one event pending,
+    // otherwise it means we can't keep up => dropped frame)
+    displayLinkMutex.lock();
+    bool pending = pendingDisplayLinkEvent;
+    pendingDisplayLinkEvent = true;
+    displayLinkMutex.unlock();
+    if (!pending)
+        qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
+    else
+        droppedFrames++;
+}
+
+
+bool Widget::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Special treatment for events of the MacOSWidgetEvent type
+// ----------------------------------------------------------------------------
+{
+    switch (event->type())
+    {
+    case DisplayLink:
+        {
+        displayLinkMutex.lock();
+        pendingDisplayLinkEvent = false;
+        displayLinkMutex.unlock();
+        if (holdOff)
+        {
+            holdOff = false;
+            return true;
+        }
+        QTimerEvent e(0);
+        timerEvent(&e);
+        return true;
+        }
+    case UpdateGL:
+        refreshNow(event);
+        return true;
+    case QEvent::MouseMove:
+    case QEvent::KeyPress:
+    case QEvent::KeyRelease:
+        // Skip next frame, to keep some processing power for subsequent
+        // user events. This effectively gives a higher priority to them
+        // than to timer events.
+        holdOff = true;
+        break;
+    default:
+        break;
+    }
+
+    return QGLWidget::event(event);
+}
+
+static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
+// ----------------------------------------------------------------------------
+//    Return the display ID where the largest part of widget is
+// ----------------------------------------------------------------------------
+{
+    CGDirectDisplayID id = kCGDirectMainDisplay;
+    QDesktopWidget *dw = qApp->desktop();
+    if (dw)
+    {
+        int index = dw->screenNumber(widget);
+        if (index != -1)
+        {
+            QRect rect = dw->screenGeometry(index);
+            QPoint c = rect.center();
+
+            const int max = 64;   // Should be enough for any system
+            CGDisplayErr st;
+            CGDisplayCount count;
+            CGDirectDisplayID displayIDs[max];
+            CGPoint point;
+
+            point.x = c.x();
+            point.y = c.y();
+            st = CGGetDisplaysWithPoint(point, max, displayIDs, &count);
+            if (st == kCGErrorSuccess && count == 1)
+                id = displayIDs[0];
+        }
+    }
+    return id;
+}
+
+#endif
+
+
+void Widget::startRefreshTimer(bool on)
 // ----------------------------------------------------------------------------
 //    Make sure refresh timer runs if it has to
 // ----------------------------------------------------------------------------
 {
+    if (!on)
+    {
+#ifdef MACOSX_DISPLAYLINK
+        if (displayLink && displayLinkStarted)
+        {
+            CVDisplayLinkStop(displayLink);
+            displayLinkStarted = false;
+        }
+#else
+        timer.stop();
+#endif
+        return;
+    }
+
     if (inError || !animated)
         return;
 
+#ifdef MACOSX_DISPLAYLINK
+    if (!displayLink)
+    {
+        // Create display link
+        CVDisplayLinkCreateWithCGDisplay(getCurrentDisplayID(this),
+                                         &displayLink);
+        // Set render callback
+        if (displayLink)
+            CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback,
+                                           this);
+    }
+    if (displayLink && !displayLinkStarted)
+    {
+        CVDisplayLinkStart(displayLink);
+        displayLinkStarted = true;
+    }
+#else
     assert(space || !"No space layout");
     double next = space->NextRefresh();
     if (next != DBL_MAX)
@@ -2654,6 +2921,7 @@ void Widget::startRefreshTimer()
             timer.stop();
         timer.start(ms, this);
     }
+#endif
 }
 
 
@@ -2664,6 +2932,12 @@ void Widget::timerEvent(QTimerEvent *event)
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
+
+#ifdef MACOSX_DISPLAYLINK
+    setCurrentTime();
+    if (CurrentTime() < space->NextRefresh())
+        return;
+#else
     bool is_refresh_timer = (event->timerId() == timer.timerId());
     if (is_refresh_timer)
     {
@@ -2679,6 +2953,8 @@ void Widget::timerEvent(QTimerEvent *event)
             return startRefreshTimer();
         }
     }
+#endif
+
     forwardEvent(event);
 }
 
@@ -2842,7 +3118,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     if (sourceChanged())
         return;
     space->Clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
@@ -3553,13 +3829,18 @@ void Widget::printStatistics()
         double n = (double)stats.size() * 1000 / stats_interval;
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    char dropped[20] = "";
+#ifdef MACOSX_DISPLAYLINK
+    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
+#endif
     GLint vp[4] = {0,0,0,0};
     GLint vx, vy, vw, vh;
 
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
-    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+    RasterText::printf("%dx%dx%d  %s fps%s", vw, vh, stereoPlanes, fps,
+                       dropped);
 }
 
 
@@ -4064,7 +4345,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refreshNow();
+    refresh(0);
     return new Text(old);
 }
 
@@ -4568,8 +4849,10 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     AnchorLayout *anchor = new AnchorLayout(this);
-    anchor->id = selectionId();
-    layout->Add(anchor);
+    layout->AddChild(selectionId(), child, context, anchor);
+    IFTRACE(layoutevents)
+        std::cerr << "Anchor " << anchor
+                  << " id " << anchor->PrettyId() << "\n";
     XL::Save<Layout *> saveLayout(layout, anchor);
     if (selectNextTime.count(self))
     {
@@ -4777,6 +5060,26 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     return new XL::Real(prev);
 }
 
+
+double Widget::optimalDefaultRefresh()
+// ----------------------------------------------------------------------------
+//    Set default refresh for best results
+// ----------------------------------------------------------------------------
+{
+    // The optimal value for default_refresh is either:
+    //  - 0.0 when OpenGL refresh is sync'ed with the display, for instance on
+    //    MacOSX with display link, and/or when VSync is enabled;
+    //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
+    //    Using 0.0 in this case would uselessly tax the CPU.
+#ifdef MACOSX_DISPLAYLINK
+    return 0.0;
+#endif
+    if (VSyncEnabled())
+        return 0.0;
+    return 0.016;
+}
+
+
 #ifndef CFG_NOSRCEDIT
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
@@ -4799,6 +5102,9 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
+#ifdef MACOSX_DISPLAYLINK
+    CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
+#endif
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -4974,13 +5280,8 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraPosition.x),
-                              new Infix(",",
-                                        new Real(cameraPosition.y),
-                                        new Real(cameraPosition.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraPosition.x);
+    return result->AsInfix();
 }
 
 
@@ -5005,13 +5306,8 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraTarget.x),
-                              new Infix(",",
-                                        new Real(cameraTarget.y),
-                                        new Real(cameraTarget.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraTarget.x);
+    return result->AsInfix();
 }
 
 
@@ -5036,13 +5332,8 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix =  new Infix(",",
-                               new Real(cameraUpVector.x),
-                               new Infix(",",
-                                         new Real(cameraUpVector.y),
-                                         new Real(cameraUpVector.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraUpVector.x);
+    return result->AsInfix();
 }
 
 
@@ -5141,6 +5432,26 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
+XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Select a display function
+// ----------------------------------------------------------------------------
+{
+    bool ok = displayDriver->setDisplayFunction(+name);
+    if (ok)
+    {
+        std::string pov = displayDriver->getOption("PointsOfView");
+        if (pov == "")
+            pov = "1";
+        stereoPlanes = (+pov).toInt();
+        updateGL();
+        return XL::xl_true;
+    }
+    std::cerr << "Could not select display mode " << name << "\n";
+    return XL::xl_false;
+}
+
+
 #ifndef CFG_NOSTEREO
 
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
@@ -5206,17 +5517,15 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     else if (name->value == "bogusquadbuffers")
     {
         bogusQuadBuffers = true;
+        displayDriver->setOption("bogusquadbuffers", "on");
     }
     else
     {
         std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
     }
 
-    Window *window = (Window *) parentWidget();
     if (oldState != newState)
     {
-        window->toggleStereoscopy();
-
         if (!newState)
             stereoPlanes = 1;
         else if (stereoPlanes == 1)
@@ -5224,6 +5533,8 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     }
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width(), height());
+
+    emit stereoModeChanged(stereoMode, stereoPlanes);
 
     return oldState ? XL::xl_true : XL::xl_false;
 }
@@ -5234,12 +5545,16 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
 //   Set the number of planes
 // ----------------------------------------------------------------------------
 {
+    bool changed = (planes != (uint)stereoPlanes);
     if (planes > 1)
     {
         stereoPlanes = planes;
         if (stereoMode > stereoHARDWARE)
             setupStereoStencil(width(), height());
     }
+    if (changed)
+        emit stereoModeChanged(stereoMode, stereoPlanes);
+
     return XL::xl_true;
 }
 
@@ -5283,7 +5598,9 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
     typedef int  (*get_fn_t) (void);
+    static
     set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
+    static
     get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
     int old = 0;
     if (set_fn && get_fn) {
@@ -5301,6 +5618,28 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
     // Command not supported, but do it silently
     return XL::xl_false;
 #endif
+}
+
+
+bool Widget::VSyncEnabled()
+// ----------------------------------------------------------------------------
+//   Return true if vsync is enable, false otherwise
+// ----------------------------------------------------------------------------
+{
+#if defined(Q_OS_MACX)
+    GLint old = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+#elif defined(Q_OS_WIN)
+    typedef int  (*get_fn_t) (void);
+    static
+    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
+    int old = 0;
+    if (get_fn)
+        old = get_fn();
+#else
+    int old = 0;
+#endif
+    return (old != 0);
 }
 
 
@@ -5473,7 +5812,6 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
     FillColor * fillColor = new FillColor(c.redF(), c.greenF(), c.blueF(), a);
     layout->fillColor = fillColor->color;
     layout->Add(fillColor);
-    std::cerr << "Setting color to layout " << layout->PrettyId() << std::endl;
     return XL::xl_true;
 }
 
@@ -5569,7 +5907,7 @@ Tree_p Widget::fillTexture(Tree_p self, text img)
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5595,7 +5933,7 @@ Tree_p Widget::fillAnimatedTexture(Tree_p self, text img)
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5621,7 +5959,7 @@ Tree_p Widget::fillTextureFromSVG(Tree_p self, text img)
     }
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5672,7 +6010,7 @@ Tree_p Widget::image(Context *context,
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return XL::xl_true;
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5725,29 +6063,29 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    Infix *result = new Infix(",", new Integer(w), new Integer(h));
-    result->SetSymbols(self->Symbols());
-    return result;
+    longlong v[2] = { w, h };
+    Tree *result = xl_integer_list(self, 2, v);
+    return result->AsInfix();
 }
 
 
-static void list_files(Context *context, Dir &current, Tree *patterns,
-                       Tree_p *&parent)
+static void list_files(Context *context, Dir &current,
+                       Tree *self, Tree *patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
 // ----------------------------------------------------------------------------
 {
     if (Block *block = patterns->AsBlock())
     {
-        list_files(context, current, block->child, parent);
+        list_files(context, current, self, block->child, parent);
         return;
     }
     if (Infix *infix = patterns->AsInfix())
     {
         if (infix->name == "," || infix->name == ";" || infix->name == "\n")
         {
-            list_files(context, current, infix->left, parent);
-            list_files(context, current, infix->right, parent);
+            list_files(context, current, self, infix->left, parent);
+            list_files(context, current, self, infix->right, parent);
             return;
         }
     }
@@ -5763,6 +6101,8 @@ static void list_files(Context *context, Dir &current, Tree *patterns,
             if (*parent)
             {
                 Infix *added = new Infix(",", *parent, listed);
+                added->SetSymbols(self->Symbols());
+                added->code = XL::xl_identity;
                 *parent = added;
                 parent = &added->right;
             }
@@ -5786,7 +6126,7 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     Tree_p *parent = &result;
     Window *window = (Window *) parentWidget();
     Dir current(window->currentProjectFolderPath());
-    list_files(context, current, pattern, parent);
+    list_files(context, current, self, pattern, parent);
     if (!result)
         result = XL::xl_nil;
     else
@@ -6836,10 +7176,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    tbox->id = selectionId();
-    tbox->body = prog;
-    tbox->ctx = context;
-    layout->Add(tbox);
+    layout->AddChild(selectionId(), prog, context, tbox);
     flows[flowName] = tbox;
 
     if (currentShape)
@@ -7590,7 +7927,8 @@ Tree_p Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild());
+    Layout *childLayout = layout->AddChild(0, prog, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
     Tree_p result = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
@@ -7682,6 +8020,7 @@ Tree_p Widget::thumbnail(Context *context,
     }
     FrameInfo &frame = multiframe->frame(page);
 
+    Layout *parent = layout;
     if (frame.refreshTime < CurrentTime())
     {
         GLAllStateKeeper saveGL;
@@ -7718,6 +8057,8 @@ Tree_p Widget::thumbnail(Context *context,
         layout->Draw(NULL);
         frame.end();
 
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;

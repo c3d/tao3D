@@ -153,11 +153,13 @@ void WidgetSurface::repaint()
     dirty = true;
 
     if (widget)
+    {
         if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
         {
             //parent->updateGL();
             parent->refreshNow();
         }
+    }
 }
 
 
@@ -836,6 +838,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     if (urlTree->value != url)
     {
         url = urlTree->value;
+        media->stop();
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
     }

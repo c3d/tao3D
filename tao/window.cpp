@@ -48,6 +48,7 @@
 #include "tool_window.h"
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
+#include "module_manager.h"
 
 #include <iostream>
 #include <sstream>
@@ -119,6 +120,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Create the main widget for displaying Tao stuff
     taoWidget = new Widget(this);
     setCentralWidget(taoWidget);
+    connect(taoWidget, SIGNAL(stereoModeChanged(int,int)),
+            this, SLOT(updateStereoscopyAct(int,int)));
 
     // Undo/redo management
     undoStack = new QUndoStack();
@@ -338,7 +341,15 @@ void Window::toggleStereoscopy()
 {
     bool enable = !taoWidget->hasStereoscopy();
     taoWidget->enableStereoscopy(enable);
-    viewStereoscopyAct->setChecked(enable);
+}
+
+
+void Window::updateStereoscopyAct(int, int)
+// ----------------------------------------------------------------------------
+//   Check or uncheck stereoscopy action
+// ----------------------------------------------------------------------------
+{
+    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
 }
 
 
@@ -2152,6 +2163,11 @@ void Window::updateContext(QString docPath)
         contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFileNames.push_back(+theme.canonicalFilePath());
+
+    // Load XL files of modules that have no import_name
+    QStringList mods = ModuleManager::moduleManager()->anonymousXL();
+    foreach (QString module, mods)
+        contextFileNames.push_back(+module);
 
     XL::MAIN->LoadContextFiles(contextFileNames);
 }

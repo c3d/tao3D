@@ -53,6 +53,13 @@
 #include <map>
 #include <set>
 
+#if defined(Q_OS_MACX) && !defined(CFG_NODISPLAYLINK)
+#define MACOSX_DISPLAYLINK 1
+#endif
+
+#ifdef MACOSX_DISPLAYLINK
+typedef struct __CVDisplayLink *CVDisplayLinkRef;
+#endif
 
 namespace Tao {
 
@@ -67,6 +74,7 @@ struct Drag;
 struct TextSelect;
 struct WidgetSurface;
 struct MouseCoordinatesInfo;
+struct DisplayDriver;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -146,6 +154,7 @@ signals:
     void        copyAvailable(bool yes = true);
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
+    void        stereoModeChanged(int mode, int planes);
 
 public:
     // OpenGL and drawing
@@ -165,6 +174,12 @@ public:
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();
+    void        legacyDraw();
+    void        drawScene();
+    void        drawSelection();
+    void        drawActivities();
+    void        setGlClearColor();
+    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector);
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -177,6 +192,11 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+#ifdef MACOSX_DISPLAYLINK
+    virtual
+    bool        event(QEvent *event);
+    void        displayLinkEvent();
+#endif
     void        startPanning(QMouseEvent *);
     void        doPanning(QMouseEvent *);
     void        endPanning(QMouseEvent *);
@@ -214,9 +234,10 @@ public:
     ulonglong   now();
     void        printStatistics();
     void        updateStatistics();
-    bool        timerIsActive()         { return timer.isActive(); }
     bool        hasAnimations(void)     { return animated; }
-    char        hasStereoscopy(void)    { return stereoPlanes > 1; }
+    char        hasStereoscopy(void)    { return (stereoPlanes > 1 ||
+                                                  stereoMode >
+                                                  stereoHARDWARE); }
     char        stereoPlane(void)       { return stereoscopic; }
     StereoMode  currentStereoMode(void) { return stereoMode; }
 
@@ -387,6 +408,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+    Name_p      setDisplayMode(XL::Tree_p self, text name);
 #ifndef CFG_NOSTEREO
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Name_p      setStereoPlanes(Tree_p self, uint planes);
@@ -394,6 +416,8 @@ public:
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
+    double      optimalDefaultRefresh();
+    bool        VSyncEnabled();
 
     // Graphic attributes
     Tree_p      clearColor(Tree_p self, double r, double g, double b, double a);
@@ -749,6 +773,7 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class DisplayDriver;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
@@ -793,6 +818,7 @@ private:
     char                  stereoscopic;
     char                  stereoPlanes;
     LayoutCache           layoutCache;
+    DisplayDriver *       displayDriver;
 
     // Selection
     Activity *            activities;
@@ -823,7 +849,17 @@ private:
     MouseCoordinatesInfo *mouseCoordinatesInfo;
 
     // Timing
+#ifdef MACOSX_DISPLAYLINK
+    QMutex                displayLinkMutex;
+    CVDisplayLinkRef      displayLink;
+    bool                  displayLinkStarted;
+    bool                  pendingDisplayLinkEvent;
+    int                   stereoSkip;
+    bool                  holdOff;
+    unsigned int          droppedFrames;
+#else
     QBasicTimer           timer;
+#endif
     double                dfltRefresh;
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
@@ -873,7 +909,7 @@ public:
 
 private:
     void                  processProgramEvents();
-    void                  startRefreshTimer();
+    void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
     double                trueCurrentTime();
     void                  setCurrentTime();

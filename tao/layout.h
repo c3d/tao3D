@@ -33,7 +33,6 @@
 #include <QEvent>
 #include <float.h>
 
-
 TAO_BEGIN
 
 struct Widget;
@@ -80,6 +79,10 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
+    typedef std::vector<Drawing *>      Drawings;
+    typedef std::vector<Layout *>       Layouts;
+
+public:
                         Layout(Widget *display);
                         Layout(const Layout &o);
                         ~Layout();
@@ -95,7 +98,9 @@ struct Layout : Drawing, LayoutState
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild(uint id=0, Tree_p body=0, Context_p ctx=0);
+    virtual Layout *    AddChild(uint id = 0,
+                                 Tree_p body = 0, Context_p ctx = 0,
+                                 Layout *child = NULL);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
@@ -103,7 +108,9 @@ struct Layout : Drawing, LayoutState
     virtual uint        ChildrenSelected();
 
     // Event interface
-    virtual bool        Refresh(QEvent *e, double now, Layout *parent = NULL, QString debug = "");
+    virtual bool        Refresh(QEvent *e, double now,
+                                Layout *parent=NULL, QString dbg = "");
+    virtual void        RefreshLayouts(Layouts &layouts);
     bool                RefreshChildren(QEvent *e, double now, QString debug);
     bool                NeedRefresh(QEvent *e, double when);
     void                RefreshOn(Layout *);
@@ -148,8 +155,7 @@ public:
 
 protected:
     // List of drawing elements
-    typedef std::vector<Drawing *>      layout_items;
-    layout_items        items;
+    Drawings            items;
     Widget *            display;
     // Debug: index in parent items (-1 = root layout)
     int                 idx;

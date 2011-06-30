@@ -37,6 +37,12 @@
 #     Build libxlr without valgrind hooks. Normally not needed, even for release
 #     builds because according to the valgrind documentation, the overhead is
 #     negligible.
+#   DEFINES+=XLR_GC_LIFO
+#     (Debug) Tell the libxlr memory allocator to use a LIFO policy, i.e., do not
+#     reuse freed objects immediately. May help valgrind detect more errors.
+#   DEFINES+=CFG_NODISPLAYLINK
+#     (MacOSX) Do not use a Core Video display link to refresh the display, but
+#     a QBasicTimer (like other platforms).
 #
 #   modules=none
 #     Do not build any Tao module
@@ -74,6 +80,7 @@ win32:SUBDIRS += detach
 tao.depends = libxlr
 modules.depends = tao
 tests.depends = tao
+templates.depends = tao
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.

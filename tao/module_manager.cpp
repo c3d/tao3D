@@ -31,6 +31,7 @@
 #include "repository.h"
 #include <QSettings>
 #include <QHash>
+#include <QMessageBox>
 
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
@@ -49,14 +50,7 @@ ModuleManager * ModuleManager::moduleManager()
 // ----------------------------------------------------------------------------
 {
     if (!instance)
-    {
         instance = new ModuleManager;
-        if (!instance->init())
-        {
-            delete instance;
-            instance = NULL;
-        }
-    }
     return instance;
 }
 
@@ -124,27 +118,38 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     if (!m.enabled)
                         continue;
                     enabled_found = true;
-                    if (m.hasNative && !m.native)
-                        continue;
+                    if (m.hasNative)
+                    {
+                        if (!m.native && !m.inError)
+                        {
+                            loadNative(context, m);
+                            m = *moduleById(m.id);
+                        }
+                        if (!m.native)
+                            continue;
+                    }
                     found = true;
                     QString xlPath = m.xlPath();
 
-                    IFTRACE(modules)
+                    if (!execute)
+                    {
+                        IFTRACE(modules)
                             debug() << "  Importing module " << m_n
                                     << " version " << inst_v << " (requested "
                                     << m_v <<  "): " << +xlPath << "\n";
-
-                    if (!execute && m.native)
-                    {
-                        // execute == false when file is [re]loaded => we won't
-                        // call enter_symbols at each execution
-                        enter_symbols_fn es =
-                            (enter_symbols_fn) m.native->resolve("enter_symbols");
-                        if (es)
+                        if (m.native)
                         {
-                             IFTRACE(modules)
+                            // execute == false when file is [re]loaded
+                            // => we won't call enter_symbols at each execution
+                            enter_symbols_fn es =
+                                (enter_symbols_fn)
+                                m.native->resolve("enter_symbols");
+                            if (es)
+                            {
+                                IFTRACE(modules)
                                     debug() << "    Calling enter_symbols\n";
-                            es(context);
+                                es(context);
+                            }
                         }
                     }
 
@@ -360,7 +365,12 @@ bool ModuleManager::cleanConfig()
     foreach (ModuleInfoPrivate m, modules)
     {
         if (m.path == "" || m.id == "0")
+        {
             removeFromConfig(m);
+            continue;
+        }
+        ModuleInfoPrivate * m_p = moduleById(m.id);
+        m_p->hasNative = QFile(m_p->libPath()).exists();
     }
     return true;
 }
@@ -389,7 +399,7 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     bool prev = m_p->enabled;
     m_p->enabled = enabled;
 
-    if (prev == enabled)
+    if (prev == enabled && !m_p->inError)
         return;
     if (!m_p->context)
         return;
@@ -422,6 +432,38 @@ bool ModuleManager::loadAll(Context *context)
     }
     return ok;
 }
+
+
+bool ModuleManager::loadAnonymousNative(Context *context)
+// ----------------------------------------------------------------------------
+//   Load native code for all modules that do not have an import_name
+// ----------------------------------------------------------------------------
+{
+    bool ok = true;
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        modules[+m.id].context = context;
+        if (m.enabled && !m.loaded && m.path != "" && m.importName == "")
+            ok &= loadNative(context, m);
+    }
+    return ok;
+}
+
+
+QStringList ModuleManager::anonymousXL()
+// ----------------------------------------------------------------------------
+//   Return list of all XL files for modules that have no import_name
+// ----------------------------------------------------------------------------
+{
+    QStringList files;
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        if (m.enabled && m.path != "" && m.importName == "")
+            files << m.xlPath();
+    }
+    return files;
+}
+
 
 static bool HACK_NoUnload = true;    // See FIXME below
 
@@ -511,6 +553,8 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
             ModuleInfoPrivate m = readModule(moduleDir);
             if (m.id != "")
             {
+                emit checking(QString::fromStdString(m.name));
+
                 if (!modules.contains(+m.id))
                 {
                     IFTRACE(modules)
@@ -635,15 +679,57 @@ QString ModuleManager::moduleAttr(XL::Tree *tree, QString attribute)
 // ----------------------------------------------------------------------------
 {
     QString val;
-    FindAttribute action("module_description", +attribute);
-    Tree * v = tree->Do(action);
+    Tree * v = moduleAttrAsTree(tree, attribute);
     if (v)
     {
-        Text * t = v->AsText();
+        Text_p t = toText(v);
         if (t)
             val = +(t->value);
     }
     return val;
+}
+
+
+Tree * ModuleManager::moduleAttrAsTree(XL::Tree *tree, QString attribute)
+// ----------------------------------------------------------------------------
+//   Look for attribute pointer in module_description section of tree
+// ----------------------------------------------------------------------------
+{
+    // Look first in the localized description block, if present
+    FindAttribute action("module_description", +attribute, +TaoApp->lang);
+    Tree * t = tree->Do(action);
+    if (!t)
+    {
+        FindAttribute action("module_description", +attribute);
+        t = tree->Do(action);
+    }
+    return t;
+}
+
+
+Text * ModuleManager::toText(Tree *what)
+// ----------------------------------------------------------------------------
+//   Try to reduce 'what' to a single Text element (perform '&' concatenation)
+// ----------------------------------------------------------------------------
+{
+    Text * txt = what->AsText();
+    if (txt)
+        return txt;
+    Block * block = what->AsBlock();
+    if (block)
+        return toText(block->child);
+    Infix * inf = what->AsInfix();
+    if (inf && (inf->name == "&" || inf->name == "\n"))
+    {
+        Text * left = toText(inf->left);
+        if (!left)
+            return NULL;
+        Text * right = toText(inf->right);
+        if (!right)
+            return NULL;
+        return new Text(left->value + right->value);
+    }
+    return NULL;
 }
 
 
@@ -668,8 +754,6 @@ bool ModuleManager::load(Context *context, const ModuleInfoPrivate &m)
 
     IFTRACE(modules)
         debug() << "Loading module " << m.toText() << "\n";
-
-    emit loading(QString::fromStdString(m.name));
 
     ok = loadNative(context, m);
     if (ok)
@@ -773,12 +857,11 @@ bool ModuleManager::loadNative(Context * /*context*/,
     ModuleInfoPrivate * m_p = moduleById(m.id);
     Q_ASSERT(m_p);
     bool ok;
-    QString path = m.libPath();
 
-    m_p->hasNative = QFile(path).exists();
     if (m_p->hasNative)
     {
         // Change current directory, just the time to load any module dependency
+        QString path = m.libPath();
         QString libdir = QFileInfo(path).absolutePath();
         SetCwd cd(libdir);
         QLibrary * lib = new QLibrary(path, this);
@@ -790,31 +873,28 @@ bool ModuleManager::loadNative(Context * /*context*/,
             ok = isCompatible(lib);
             if (ok)
             {
-                enter_symbols_fn es =
-                        (enter_symbols_fn) lib->resolve("enter_symbols");
-                ok = (es != NULL);
-                if (ok)
-                {
-                    module_init_fn mi =
-                            (module_init_fn) lib->resolve("module_init");
-                    if ((mi != NULL))
-                    {
-                        IFTRACE(modules)
-                                debug() << "    Calling module_init\n";
-                        mi(&api, &m);
-                    }
+                // enter_symbols is called later, when module is imported
 
-                    if (m_p)
-                        m_p->native = lib;
-                    // enter_symbols is called later, when module is imported
+                module_init_fn mi =
+                        (module_init_fn) lib->resolve("module_init");
+                if ((mi != NULL))
+                {
+                    IFTRACE(modules)
+                            debug() << "    Calling module_init\n";
+                    mi(&api, &m);
                 }
+
+                if (m_p)
+                    m_p->native = lib;
             }
         }
         else
         {
             IFTRACE(modules)
                 debug() << "    Load error: " << +lib->errorString() << "\n";
+            warnLibraryLoadError(+m.name, lib->errorString());
             delete lib;
+            m_p->inError = true;
         }
     }
     else
@@ -1086,6 +1166,17 @@ void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 // ----------------------------------------------------------------------------
 {
     (void)m;
+}
+
+
+void ModuleManager::warnLibraryLoadError(QString name, QString errorString)
+// ----------------------------------------------------------------------------
+//   Tell user that library failed to load (module will be ignored)
+// ----------------------------------------------------------------------------
+{
+    QString msg = tr("Module %1 cannot be initialized.\n%2").arg(name)
+                                                            .arg(errorString);
+    QMessageBox::warning(NULL, tr("Tao modules"), msg);
 }
 
 

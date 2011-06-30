@@ -84,27 +84,43 @@ void FrameInfo::resize(uint w, uint h)
         delete render_fbo;
 
     // Select whether we draw directly in texture or blit to it
-    // If we can blit, we first draw in a multisample buffer
+    // If we can blit and suceed in creating a multisample buffer,
+    // we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
-#ifndef CONFIG_MINGW
-    // FrameBuffer objects don't work well under VMware, although
-    // they seem to work native
+    QGLFramebufferObjectFormat format;
+    format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
+#if !defined(Q_OS_LINUX)
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
-        QGLFramebufferObjectFormat format;
-#ifndef CONFIG_LINUX
-        // Setting this crashes in the first framebuffer object ctor
-        format.setSamples(4);
-#endif
-        format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-
-        render_fbo = new QGLFramebufferObject(w, h, format);
-        texture_fbo = new QGLFramebufferObject(w, h);
+        // Setting this on Linux crashes in the first framebuffer object ctor
+        QGLFramebufferObjectFormat mformat(format);
+        mformat.setSamples(4);
+        render_fbo = new QGLFramebufferObject(w, h, mformat);
+        QGLFramebufferObjectFormat actualFormat = render_fbo->format();
+        int samples = actualFormat.samples();
+        if (samples > 0)
+        {
+            texture_fbo = new QGLFramebufferObject(w, h);
+        }
+        else
+        {
+            // Multisample framebuffer objects are not supported.
+            // Normally we could just do: texture_fbo = render_fbo, to use
+            // the FBO as a texture.
+            // But on Windows/VMWare, even when samples == 0 the
+            // FBO cannot be used directly as a texture.
+            // 2 options: (1) create a texture_fbo and blit as if MS was
+            // enabled, or (2) re-create render FBO without asking for
+            // multisampling. (2) is obviously better.
+            delete render_fbo;
+            render_fbo = new QGLFramebufferObject(w, h, format);
+            texture_fbo = render_fbo;
+        }
     }
     else
-#endif // CONFIG_MINGW
+#endif // CONFIG_LINUX
     {
-        render_fbo = new QGLFramebufferObject(w, h);
+        render_fbo = new QGLFramebufferObject(w, h, format);
         texture_fbo = render_fbo;
     }
     glShowErrors();
@@ -183,6 +199,61 @@ QImage FrameInfo::toImage()
 {
     checkGLContext();
     return render_fbo->toImage();
+}
+
+
+ModuleApi::fbo * FrameInfo::newFrameBufferObject(uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Create a framebuffer object
+// ----------------------------------------------------------------------------
+{
+    return (ModuleApi::fbo *)new FrameInfo(w, h);
+}
+
+
+void FrameInfo::deleteFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Delete a framebuffer object
+// ----------------------------------------------------------------------------
+{
+    delete (FrameInfo *)obj;
+}
+
+
+void FrameInfo::resizeFrameBufferObject(ModuleApi::fbo * obj,
+                                         uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Resize a framebuffer object
+// ----------------------------------------------------------------------------
+{
+    ((FrameInfo *)obj)->resize(w, h);
+}
+
+
+void FrameInfo::bindFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Make framebuffer object the current rendering target
+// ----------------------------------------------------------------------------
+{
+    ((FrameInfo *)obj)->begin();
+}
+
+
+void FrameInfo::releaseFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Stop rendering into framebuffer object
+// ----------------------------------------------------------------------------
+{
+    ((FrameInfo *)obj)->end();
+}
+
+
+unsigned int FrameInfo::frameBufferObjectToTexture(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Make framebuffer available as a texture
+// ----------------------------------------------------------------------------
+{
+    return ((FrameInfo *)obj)->bind();
 }
 
 

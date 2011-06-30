@@ -63,7 +63,7 @@ void Justifier<Item>::Clear()
     // Delete items remaining to be placed
     ItemsIterator i;
     for (i = items.begin(); i != items.end(); i++)
-        delete (*i);
+        delete *i;
     items.clear();
 
     // Delete placed items

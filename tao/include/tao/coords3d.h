@@ -269,7 +269,8 @@ struct Quaternion
     {
         Quaternion tmp;
         tmp.scalar = scalar * o.scalar - vector.Dot(o.vector);
-        tmp.vector = (o.scalar * vector) + (scalar * o.vector) + (vector.Cross(o.vector));
+        tmp.vector = (o.scalar * vector) + (scalar * o.vector) + (vector ^ o.vector);
+
         *this = tmp;
 
         return *this;
@@ -303,11 +304,13 @@ struct Quaternion
 
     Quaternion& FromAngleAndAxis(coord angle, coord x, coord y, coord z)
     {
-        coord a = (angle / 2.0) * M_PI / 180.0;
+        coord a = ((angle / 2.0) * M_PI) / 180.0;
         coord s = sin(a);
         coord c = cos(a);
 
-        return Quaternion(c, x * s, y * s, z * s).Normalize();
+        *this = Quaternion(c, x * s, y * s, z * s).Normalize();
+
+        return *this;
     }
 
     public:

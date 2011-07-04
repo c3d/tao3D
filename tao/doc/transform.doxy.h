@@ -115,4 +115,11 @@ translatez (z:real);
  */
 reset_transform ();
 
+/**
+ * Return the current model matrix 4x4 which convert from object space to world space.
+ * The default value is the identity matrix.
+ * @return 16 real values, separated by commas.
+ */
+model_matrix ();
+
 /** @} */

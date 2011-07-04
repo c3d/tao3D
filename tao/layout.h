@@ -53,6 +53,18 @@ struct TextureState
     GLenum        type;
 };
 
+struct ModelState
+// ----------------------------------------------------------------------------
+//   The state of the model we want to preserve
+// ----------------------------------------------------------------------------
+{
+    ModelState(): tx(0), ty(0), tz(0), sx(1), sy(1), sz(1), rotation(1, 0, 0, 0) {}
+
+    float tx, ty, tz;     // Translate parameters
+    float sx, sy, sz;     // Scaling parameters
+    Quaternion rotation;  // Rotation parameters
+};
+
 struct LayoutState
 // ----------------------------------------------------------------------------
 //   The state we want to preserve in a layout
@@ -84,6 +96,7 @@ public:
     uint64              textureUnits; //Current used texture units
     uint64              previousUnits; //Previous used texture units
     tex_list            fillTextures;
+    ModelState          model;
     uint                lightId;
     uint                programId;
     bool                printing : 1;

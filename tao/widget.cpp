@@ -4930,6 +4930,10 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
+    // Update the current model rotation
+    Quaternion q;
+    layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+
     layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
     return XL::xl_true;
@@ -4968,6 +4972,11 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
+    // Update the current model translation
+    layout->model.tx += tx;
+    layout->model.ty += ty;
+    layout->model.tz += tz;
+
     layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
     return XL::xl_true;
@@ -5005,6 +5014,11 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
+    // Update the current model scaling
+    layout->model.sx *= sx;
+    layout->model.sy *= sy;
+    layout->model.sz *= sz;
+
     layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
     return XL::xl_true;
@@ -5421,6 +5435,19 @@ Real_p Widget::getZFar(Tree_p self)
     return new Real(zFar);
 }
 
+Infix_p Widget::currentModelMatrix(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current model matrix which convert from object space to world space
+// ----------------------------------------------------------------------------
+{
+    Matrix4 matrix;
+    matrix.Scale(layout->model.sx, layout->model.sy, layout->model.sz);
+    matrix.Rotate(layout->model.rotation);
+    matrix.Translate(layout->model.tx, layout->model.ty, layout->model.tz);
+
+    Tree *result = xl_real_list(self, 16, matrix.Data());
+    return result->AsInfix();
+}
 
 Integer_p Widget::lastModifiers(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -9514,6 +9541,7 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
     }
     return XL::xl_false;
 }
+
 
 
 Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)

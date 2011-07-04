@@ -126,7 +126,7 @@ struct Vector3 : Point3
         return *this;
     }
 
-    double Dot(const Vector3& o)
+    scale Dot(const Vector3& o)
     {
         return x*o.x+y*o.y+z*o.z;
     }
@@ -152,11 +152,9 @@ struct Vector3 : Point3
     }
 };
 
-
-
 // ============================================================================
 //
-//   Inline Point3 and Vector3 operations not defined in class
+//   Inline Point3 and Vector3  operations not defined in class
 //
 // ============================================================================
 
@@ -226,7 +224,8 @@ inline Vector3 operator /(const Vector3& l, scale s)
 
 inline coord operator* (const Vector3& l, const Vector3& r)
 {
-    return l.x*r.x + l.y*r.y + l.z*r.z;
+    Vector3 result(l);
+    return result.Dot(r);
 }
 
 inline Vector3 operator^ (const Vector3& l, const Vector3 &r)
@@ -236,6 +235,133 @@ inline Vector3 operator^ (const Vector3& l, const Vector3 &r)
 }
 
 
+
+// ============================================================================
+//
+//   Quaternion class
+//
+// ============================================================================
+
+struct Quaternion
+// ----------------------------------------------------------------------------
+//    A hypercomplex number consisting of a vector and scalar.
+// ----------------------------------------------------------------------------
+{
+    Quaternion(coord w = 1.0, coord x = 0.0, coord y = 0.0, coord z = 0.0): scalar(w), vector(Vector3(x,y,z)) {}
+    Quaternion(const Quaternion &o): scalar(o.scalar), vector(o.vector) {}
+    Quaternion(coord a, const Vector3 &v): scalar(a), vector(v) {}
+
+    Quaternion& operator +=(const Quaternion& o)
+    {
+        scalar += o.scalar;
+        vector += o.vector;
+        return *this;
+    }
+
+    Quaternion& operator -=(const Quaternion& o)
+    {
+        scalar -= o.scalar;
+        vector -= o.vector;
+        return *this;
+    }
+
+    Quaternion& operator *=(const Quaternion& o)
+    {
+        Quaternion tmp;
+        tmp.scalar = scalar * o.scalar - vector.Dot(o.vector);
+        tmp.vector = (o.scalar * vector) + (scalar * o.vector) + (vector.Cross(o.vector));
+        *this = tmp;
+
+        return *this;
+    }
+
+    Quaternion& operator *=(scale s)
+    {
+        scalar *= s;
+        vector *= s;
+        return *this;
+    }
+
+    Quaternion& operator /=(scale s)
+    {
+        scalar /= s;
+        vector /= s;
+        return *this;
+    }
+
+    scale Length()
+    {
+        return sqrt(scalar*scalar + vector.Length() * vector.Length());
+    }
+
+    Quaternion& Normalize()
+    {
+        if (Length() != 0)
+            *this /= Length();
+        return *this;
+    }
+
+    Quaternion& FromAngleAndAxis(coord angle, coord x, coord y, coord z)
+    {
+        coord a = (angle / 2.0) * M_PI / 180.0;
+        coord s = sin(a);
+        coord c = cos(a);
+
+        return Quaternion(c, x * s, y * s, z * s).Normalize();
+    }
+
+    public:
+        double  scalar;
+        Vector3 vector;
+};
+
+// ============================================================================
+//
+//   Inline Quaternion operations not defined in class
+//
+// ============================================================================
+
+inline Quaternion operator +(const Quaternion& l, const Quaternion &r)
+{
+    Quaternion result(l);
+    result += r;
+    return result;
+}
+
+inline Quaternion operator -(const Quaternion& l, const Quaternion &r)
+{
+    Quaternion result(l);
+    result -= r;
+    return result;
+}
+
+inline Quaternion operator *(const Quaternion& l, const Quaternion &r)
+{
+    Quaternion result(l);
+    result *= r;
+    return result;
+}
+
+inline Quaternion operator *(const Quaternion& l, scale s)
+{
+    Quaternion result(l);
+    result *= s;
+    return result;
+}
+
+inline Quaternion operator *(scale s, const Quaternion& l)
+{
+    Quaternion result(l);
+    result *= s;
+    return result;
+}
+
+inline Quaternion operator /(const Quaternion& l, scale s)
+{
+    Quaternion result(l);
+    result /= s;
+    return result;
+}
 
 // ============================================================================
 //

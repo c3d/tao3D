@@ -421,6 +421,16 @@ texture_width();
 texture_height();
 
 /**
+ * Get current texture type.
+ * @return [integer] current texture type
+ *
+ * @note Returned type is defined in OpenGL specifications.
+ * @see http://www.opengl.org/registry/#specfiles
+ */
+texture_type();
+
+
+/**
  * Selects current the texture unit.
  * Set the current texture unit to @p unit.
  *

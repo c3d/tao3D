@@ -605,6 +605,10 @@ PREFIX(SetCameraUp, boolean, "camera_up_vector",
        RTAO(setCameraUpVector(self, x, y, z)),
        GROUP(gui:camera)
        SYNOPSIS("Set the up direction for the camera"))
+PREFIX(GetModelMatrix, infix, "model_matrix", ,
+       RTAO(currentModelMatrix(self)),
+       GROUP(gui)
+       SYNOPSIS("Return the model matrix which convert from object space to world space"))
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
        RTAO(toggleHandCursor(self)),
        GROUP(gui:camera)

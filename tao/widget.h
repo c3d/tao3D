@@ -30,6 +30,7 @@
 #include "save.h"
 #include "tree-clone.h"
 #include "coords3d.h"
+#include "matrix.h"
 #include "opcodes.h"
 #include "drawing.h"
 #include "activity.h"
@@ -405,6 +406,7 @@ public:
     Real_p      getZNear(Tree_p self);
     Name_p      setZFar(Tree_p self, double zf);
     Real_p      getZFar(Tree_p self);
+    Infix_p     currentModelMatrix(Tree_p self);
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);

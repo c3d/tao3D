@@ -76,6 +76,7 @@ LayoutState::LayoutState(const LayoutState &o)
         textureUnits(o.textureUnits),
         previousUnits(o.previousUnits),
         fillTextures(o.fillTextures),
+        model(o.model),
         lightId(o.lightId),
         programId(o.programId),        
         printing(o.printing),
@@ -641,6 +642,7 @@ void Layout::Inherit(Layout *where)
     textureUnits     = where->textureUnits;
     previousUnits    = where->previousUnits;
     fillTextures     = where->fillTextures;
+    model            = where->model;
     lightId          = where->lightId;
     programId        = where->programId;
     printing         = where->printing;

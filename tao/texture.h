@@ -37,7 +37,7 @@ struct ImageTextureInfo : XL::Info
     typedef ImageTextureInfo *data_t;
     struct  Texture { GLuint id, width, height; };
     typedef std::map<text, Texture> texture_map;
-    enum { MAX_TEXTURES = 200 };
+    enum { MAX_TEXTURES = 500 };
 
     ImageTextureInfo();
     ~ImageTextureInfo();

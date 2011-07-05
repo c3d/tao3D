@@ -101,7 +101,7 @@ public:
     static bool  createDefaultTaoPrefFolder();
 
 public:
-    bool         hasGLMultisample;    
+    bool         hasGLMultisample, hasFBOMultisample;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
     QString      lang;

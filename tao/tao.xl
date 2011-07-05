@@ -940,6 +940,8 @@ menu_display_mode ->
     submenu "TAO_VIEW_MENU:displaymode", tr "Display mode"
     menu_item "TAO_VIEW_MENU:displaymode > 2D", tr "2D",
         display_mode "2D"
+    menu_item "TAO_VIEW_MENU:displaymode > 2DFBO", tr "2D FBO",
+        display_mode "2DFBO"
     menu_item "TAO_VIEW_MENU:displaymode > legacy", tr "Legacy (default)",
         display_mode "legacy"
 

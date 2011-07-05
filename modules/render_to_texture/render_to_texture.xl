@@ -18,25 +18,23 @@ module_description "fr",
     description "Permet d'effectuer un rendu d'un code donné dans une texture."
 
 //Texture parameters
-TEXTURE_WIDTH -> 0
-TEXTURE_WIDTH := 0
-
-TEXTURE_HEIGHT -> 0
-TEXTURE_WIDTH  := 0
-
 TEXTURE_ID -> 0
 TEXTURE_ID := 0
+TEXTURE_WIDTH -> 0
+TEXTURE_WIDTH := 0
+TEXTURE_HEIGHT -> 0
+TEXTURE_HEIGHT := 0
 
 // -------------------------------------------------------------------------------------------------------------------
-//   render to texture
+//   Render to Texture
 // -------------------------------------------------------------------------------------------------------------------
 render_to_texture RENDER_CODE ->
     /**
     * Allow to render the current texture modified by RENDER_CODE to new one.
     **/
-    TEXTURE_WIDTH := texture_width
+    TEXTURE_WIDTH  := texture_width
     TEXTURE_HEIGHT := texture_height
-    TEXTURE_ID := texture
+    TEXTURE_ID     := texture
     frame_texture TEXTURE_WIDTH, TEXTURE_HEIGHT,
         color "white"
         texture TEXTURE_ID
@@ -46,18 +44,32 @@ render_to_texture RENDER_CODE ->
 // -------------------------------------------------------------------------------------------------------------------
 //   Iterative render
 // -------------------------------------------------------------------------------------------------------------------
+
+// Iteration parameters
 MAX_ITER -> 0
+MAX_ITER := 0
 CURRENT_ITER -> 0
 CURRENT_ITER := 0
 
+// Define a limit to the iterations number to avoid crash in Tao
+LIMIT_ITER -> 30
+LIMIT_ITER := 30
+
+iterate_recursive_render RENDER_CODE ->
+    /**
+    * Define a multipass render by recursion.
+    **/
+    if MAX_ITER > 0 then
+        if (CURRENT_ITER = MAX_ITER) or (CURRENT_ITER = LIMIT_ITER) then
+            render_to_texture RENDER_CODE
+        else
+            CURRENT_ITER := CURRENT_ITER + 1
+            iterate_recursive_render RENDER_CODE
+            render_to_texture RENDER_CODE
+
 iterate_render RENDER_CODE ->
-   /**
-   * Allow to apply the same effect defined by RENDER_CODE several times making several pass of render to texture.
-   **/
-   if MAX_ITER > 0 then
-       if CURRENT_ITER = MAX_ITER then
-           texture texture_unit
-       else
-           CURRENT_ITER := CURRENT_ITER + 1
-           iterate_render RENDER_CODE
-           render_to_texture RENDER_CODE
+    /**
+    * Allow to apply the same effect defined by RENDER_CODE several times making several pass of render to texture.
+    **/
+    CURRENT_ITER := 0
+    iterate_recursive_render RENDER_CODE

@@ -11,12 +11,16 @@
  * @include render_to_texture.ddd
  *
  * @{
+ *
+ * @note To improve performance in Tao, it is recommended to render to files the result texture before to reload it in Tao.
  */
 
 /**
- * The total number of iteration.
+ * The total number of iterations.
  *
  * This number is used to define an iterative render.
+ *
+ * @note There is a limit of 30 iterations.
  */
 integer MAX_ITER = 0;
 
@@ -33,6 +37,7 @@ render_to_texture(contents:tree);
  * in order to apply a same effect several times.
  *
  * @param contents defines code applied on the current texture.
+ *
  */
 iterate_render(contents:tree);
 

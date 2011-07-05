@@ -40,6 +40,7 @@
 #include "font_file_manager.h"
 #include "layout.h"
 #include "layout_cache.h"
+#include "page_layout.h"
 #include "tao_gl.h"
 
 #include <QImage>
@@ -303,7 +304,7 @@ public:
     Tree *      shapeAction(text n, GLuint id, int x, int y);
 
     // Text flows and text management
-    PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+    TextFlow *  pageLayoutFlow(text name) { return flows[name]; }
     GlyphCache &glyphs()    { return glyphCache; }
     QStringList fontFiles();
 
@@ -532,11 +533,10 @@ public:
                      double ratio);
 
     // Text and font
-    Tree_p      textBox(Context *context, Tree_p self,
-                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
-    Tree_p      textOverflow(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h);
-    Text_p      textFlow(Tree_p self, text name);
+    Tree_p      textBox(Tree_p self, text flowName,
+                        Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      textFlow(Context *context, Tree_p self, text name, Tree_p child);
+//    Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
@@ -773,11 +773,12 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class PageLayout;
     friend class DisplayDriver;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
-    typedef std::map<text, PageLayout*>      flow_map;
+    typedef std::map<text, TextFlow*>        flow_map;
     typedef std::map<text, text>             page_map;
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
@@ -799,7 +800,7 @@ private:
     GraphicPath *         path;
     Table *               table;
     scale                 pageW, pageH, blurFactor;
-    text                  flowName;
+    text                  currentFlowName;
     flow_map              flows;
     text                  pageName, lastPageName, gotoPageName;
     page_map              pageLinks;

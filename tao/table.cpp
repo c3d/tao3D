@@ -1,19 +1,19 @@
 // ****************************************************************************
-//  table.cpp                       (C) 1992-2009 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  table.cpp                       (C) 1992-2009 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //    Table-style layout for drawable elements
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -47,7 +47,7 @@ Table::~Table()
 //   Destructor
 // ----------------------------------------------------------------------------
 {
-    std::vector<Drawing *>::iterator it;
+    std::list<Drawing *>::iterator it;
     for (it = items.begin(); it != items.end(); it++)
         delete *it;
     items.clear();
@@ -68,7 +68,7 @@ void Table::Draw(Layout *where)
     coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = items.begin();
+    std::list<Drawing *>::iterator i = items.begin();
     TreeList::iterator fillI = cellFill.begin();
     TreeList::iterator borderI = cellBorder.begin();
     XL::Save<Table *> saveTable(widget->table, this);
@@ -141,7 +141,7 @@ void Table::DrawSelection(Layout *where)
     coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = items.begin();
+    std::list<Drawing *>::iterator i = items.begin();
     XL::Save<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
@@ -202,7 +202,7 @@ void Table::Identify(Layout *where)
     coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = items.begin();
+    std::list<Drawing *>::iterator i = items.begin();
     XL::Save<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
@@ -292,7 +292,7 @@ void Table::Compute(Layout *where)
         return;
 
     uint r, c;
-    std::vector<Drawing *>::iterator i = items.begin();
+    std::list<Drawing *>::iterator i = items.begin();
     std::vector<Box3> rowBB, colBB;
 
     // Compute the actual column width and heights

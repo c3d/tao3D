@@ -62,6 +62,8 @@ struct Drawing
     virtual scale       TrailingSpaceSize(Layout *);
     virtual bool        IsAttribute();
 
+    virtual text        getType() = 0;
+
     static uint count;
 };
 

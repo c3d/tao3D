@@ -228,6 +228,11 @@ line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color
 
 
 // Text Layout
+text_box x:real, y, w, h, body:tree ->
+    flow_name->"defaultTextBox"
+    text_flow flow_name, body
+    text_box flow_name, x, y, w, h
+
 align center:real, justify:real, spread:real            -> align center, justify, spread, 0
 align center:real, justify:real                         -> align center, justify, 0, 0
 align center:real                                       -> align center, 0, 0, 0

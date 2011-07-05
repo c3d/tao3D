@@ -27,6 +27,7 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
+#include "attributes.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -52,6 +53,8 @@ public:
     void                ClearAttributes();
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
+    void                InheritState(LayoutState *other);
+    void                toDebugString(std::ostream &out);
 
 public:
     Vector3             offset;
@@ -79,7 +82,7 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Drawing *>      Drawings;
+    typedef std::list<Drawing *>      Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -120,13 +123,14 @@ public:
     double              NextRefresh();
 
     LayoutState &       operator=(const LayoutState &o);
-    void                Inherit(Layout *other);
+    virtual void        Inherit(Layout *other);
     void                PushLayout(Layout *where);
     void                PopLayout(Layout *where);
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();
 
+    virtual text        getType(){ return "Layout";}
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;

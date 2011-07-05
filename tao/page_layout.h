@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  page_layout.h                                                   Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -25,7 +25,6 @@
 #include "layout.h"
 #include "shapes.h"
 #include "justification.h"
-
 TAO_BEGIN
 
 struct LayoutLine : Drawing
@@ -36,10 +35,9 @@ struct LayoutLine : Drawing
 //   The layout does, and is ultimately responsible for deleting them.
 {
     typedef Justifier<Drawing *>        LineJustifier;
-    typedef std::vector<Drawing *>      Items;
 
 public:
-                        LayoutLine(coord left, coord right);
+                        LayoutLine(coord left, coord right, TextFlow *flow);
                         LayoutLine(const LayoutLine &o);
                         ~LayoutLine();
 
@@ -52,27 +50,28 @@ public:
     virtual Box3        Space(Layout *layout);
     virtual LayoutLine *Break(BreakOrder &order, uint &sz);
 
-    void                Add(Drawing *d);
-    void                Add(Items::iterator first, Items::iterator last);
     void                Compute(Layout *where);
     LayoutLine *        Remaining();
+    virtual text        getType() { return "LayoutLine";}
 
 public:
     LineJustifier       line;
     coord               left, right, perSolid;
+    TextFlow          * flow;
+    std::list<Drawing*>::iterator  flowRewindPoint;
 };
 
+typedef Justifier<LayoutLine *>     PageJustifier;
 
 struct PageLayout : Layout
 // ----------------------------------------------------------------------------
 //   A 2D layout specialized for placing text and 2D shapes on pages
 // ----------------------------------------------------------------------------
 {
-    typedef Justifier<LayoutLine *>     PageJustifier;
-    typedef std::vector<LayoutLine *>   Items;
+    typedef std::list<LayoutLine *>   Items;
 
 public:
-                        PageLayout(Widget *widget);
+                        PageLayout(Widget *widget, TextFlow* flow);
                         PageLayout(const PageLayout &o);
                         ~PageLayout();
 
@@ -82,41 +81,107 @@ public:
     virtual void        RefreshLayouts(Layouts &layouts);
 
     virtual void        Add(Drawing *child);
-    void                Add(Items::iterator first, Items::iterator last);
+    virtual void        AddLine(LayoutLine *child);
     virtual void        Clear();
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual PageLayout *NewChild()      { return new PageLayout(*this); }
     virtual PageLayout *Remaining();
 
-    void                Inherit(Layout *other);
-    void                Compute(Layout *where);
+    virtual void        Compute(Layout *where);
+    virtual text        getType() { return "PageLayout";}
 
 public:
     // Space requested for the layout
     Box3                space;
+    TextFlow *          flow;
+    Items               lines;
+    Items::iterator  current;
     PageJustifier       page;
+    Drawings::iterator  lastFlowPoint;
+
 };
 
 
-struct PageLayoutOverflow : PlaceholderRectangle
+struct RevertLayoutState : LayoutState, Attribute
+{
+    RevertLayoutState(LayoutState &o):LayoutState(o){}
+    virtual void  Draw(Layout *where)
+    {
+        offset = where->Offset();
+        where->InheritState(this);
+    }
+
+    virtual text getType() { return "RevertLayoutState";}
+};
+
+
+
+
+struct TextFlow : Layout
 // ----------------------------------------------------------------------------
 //    Draw what remains in a page layout
 // ----------------------------------------------------------------------------
 {
-    PageLayoutOverflow(const Box &bounds, Widget *widget, text flowName);
-    ~PageLayoutOverflow();
+    TextFlow(Layout *l, text flowName);
+    ~TextFlow();
 
 public:
-    bool                HasData(Layout *where);
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
+    virtual text        getType() { return "Textflow";}
+
+    Drawings::iterator * getCurrentIterator() { return &currentIterator;}
+    Drawing            * getCurrentElement();
+    Drawings::iterator   end()   { return items.end();}
+    Drawings           * getItems(){ return &items;}
+    void                 resetIterator();
+    bool                 atEnd();
+    void insertAfterCurrent(Drawing *d);
+    void rewindFlow(Drawings::iterator rewindPoint)
+    {
+        IFTRACE(justify)
+                std::cerr << "TextFlow::rewindFlow "<<this<<std::endl;
+        currentIterator = rewindPoint;
+    }
 
 public:
-    Widget *            widget;
     text                flowName;
-    PageLayout *        child;
+private:
+    Drawings::iterator currentIterator;
+};
+
+
+struct BlockLayout : Layout
+// ----------------------------------------------------------------------------
+//   A 2D layout specialized for isolate text modifications
+// ----------------------------------------------------------------------------
+{
+    BlockLayout(TextFlow *flow):Layout(*flow), flow(flow),
+    revert(new RevertLayoutState((*flow)))
+    {
+        IFTRACE(justify)
+                std::cerr << "<->BlockLayout::BlockLayout ["<<this
+                <<"] from flow\n ";
+    }
+    BlockLayout( BlockLayout &o):Layout(o), flow(o.flow),
+    revert(new RevertLayoutState(*(o.flow)))
+    {
+        IFTRACE(justify)
+                std::cerr << "<->BlockLayout::BlockLayout ["<<this
+                <<"] from BlockLayout " << &o <<std::endl;
+    }
+    ~BlockLayout()
+    {
+    }
+    virtual void         Add(Drawing *child) { flow->Add(child);}
+    virtual text         getType() { return "BlockLayout";}
+    RevertLayoutState *  getRevertLayout() {return revert;}
+
+    TextFlow          *flow;
+    RevertLayoutState *revert;
+
 };
 
 
@@ -136,6 +201,7 @@ struct AnchorLayout : Layout
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
+    virtual text        getType() { return "AnchorLayout";}
 };
 
 

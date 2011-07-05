@@ -1253,32 +1253,23 @@ PREFIX(TruncatedCone,  tree,  "truncated_cone",
 // ============================================================================
 
 PREFIX(TextBox,  tree,  "text_box",
-       PARM(x, real, "x-coordinate")
-       PARM(y, real, "y-coordinate")
-       PARM(w, real, "width")
-       PARM(h, real, "height")
-       PARM(t, code, "text description"),
-       RTAO(textBox(context, self, x, y, w, h, t)),
-       GROUP(text:graph)
-       SYNOPSIS("Create a new page layout")
-       DESCRIPTION("Create a new page layout and render text in it.")
-       RETURNS(tree, "t evaluation result"))
-PREFIX(TextOverflow,  tree,  "text_overflow",
+       PARM(t, text, "Flow name to be displayed in this box")
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
        PARM(w, real, "width")
        PARM(h, real, "height"),
-       RTAO(textOverflow(self, x, y, w, h)),
+       RTAO(textBox(self, t, x, y, w, h)),
+       GROUP(text:graph)
+       SYNOPSIS("Create a new page layout")
+       DESCRIPTION("Create a new page layout and render text in it.")
+       RETURNS(tree, "t evaluation result"))
+PREFIX(TextOverflow,  tree,  "text_flow",
+       PARM(n, text, "The name of the current flow")
+       PARM(t, code, "Flow description"),
+       RTAO(textFlow(context, self, n, t)),
        GROUP(text:graph)
        SYNOPSIS("Overflow text box")
-       DESCRIPTION("Overflow text box for the rest of the current text flow"))
-PREFIX(TextFlow,  tree,  "text_flow",
-       PARM(n, text, "The name of the current flow"),
-       RTAO(textFlow(self, n)),
-       GROUP(text)
-       SYNOPSIS("Names the flow")
-       DESCRIPTION("Set the name of the current text flow")
-       RETURNS(tree, "The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]"))
+       DESCRIPTION("Text flow description"))
 PREFIX(TextSpan,  tree, "text_span",
        PARM(t, code, "The text to insert"),
        RTAO(textSpan(context, self, t)),

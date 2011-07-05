@@ -1,4 +1,5 @@
-import LoremIpsum 1.0
+
+import LoremIpsum 1.0 
 
 //toolbar_test
 lorem_ipsum_box x, y, t, col, colbg -> 
@@ -27,80 +28,80 @@ lorem_ipsum_big_box x, y, t, col, colbg ->
 page "fontRendering", 
     font "default" 
     shape 
-        lorem_ipsum_box -620, 400, "default" , "font" , "white" 
+        lorem_ipsum_box -620, 400, "default", "font", "white" 
     shape 
         font "Arial", 14, slant 0% , weight 50% , stretch 100% 
-        lorem_ipsum_box -10, 400, "Arial 14" , "blue" , "white" 
+        lorem_ipsum_box -10, 400, "Arial 14", "blue", "white" 
     shape 
         font "Arial", 18, underlined 
-        lorem_ipsum_box 600, 400, "Arial 18 underlined" , "font" , "white" 
+        lorem_ipsum_box 600, 400, "Arial 18 underlined", "font", "white" 
     shape 
         font "Times New Roman", 14, bold 
-        lorem_ipsum_box -620, 150, "Times New Roman 14 bold" , "red" , "white" 
+        lorem_ipsum_box -620, 150, "Times New Roman 14 bold", "red", "white" 
     shape 
         font "Times New Roman", 18, strike_out 
-        lorem_ipsum_box -10, 150, "Times New Roman 18 strikeout" , "font" , "white" 
+        lorem_ipsum_box -10, 150, "Times New Roman 18 strikeout", "font", "white" 
     shape 
         font "Arial", 18, slant 100% 
-        lorem_ipsum_box 600, 150, "Arial 18 slant 100%" , "font" , "orange" 
+        lorem_ipsum_box 600, 150, "Arial 18 slant 100%", "font", "orange" 
     shape 
         font "Arial", 18, slant 0% , weight 50% , stretch 200% 
-        lorem_ipsum_box -620, -100, "Arial 18 strech 200%" , "font" , "white" 
+        lorem_ipsum_box -620, -100, "Arial 18 strech 200%", "font", "white" 
     shape 
         font "Arial", 18, slant 0% , weight 50% , stretch 50% 
-        lorem_ipsum_box -10, -100, "Arial 18 Stretch 50%" , "font" , "white" 
+        lorem_ipsum_box -10, -100, "Arial 18 Stretch 50%", "font", "white" 
     shape 
         font "Arial", 18, slant 0% , weight 50% , stretch 100% , small_caps 
-        lorem_ipsum_box 600, -100, "Arial 18 Small Caps" , "font" , "white" 
+        lorem_ipsum_box 600, -100, "Arial 18 Small Caps", "font", "white" 
     shape 
-        font "Times New Roman",20, overline 
-        lorem_ipsum_box -620, -350, "Times New Roman 20 overline" , "font" , "white" 
+        font "Times New Roman", 20, overline 
+        lorem_ipsum_box -620, -350, "Times New Roman 20 overline", "font", "white" 
     shape 
         font "Times New Roman", 20, slant 100% , weight 100% , stretch 150% , underlined 
         font "plain" 
-        lorem_ipsum_box -10, -350, "Times New Roman plain" , "font" , "white" 
+        lorem_ipsum_box -10, -350, "Times New Roman plain", "font", "white" 
     shape 
         font "Times New Roman", 20, slant 100% , weight 100% , stretch 150% , underlined 
-        lorem_ipsum_box 600, -350, "Combined" , "green" , "pink" 
+        lorem_ipsum_box 600, -350, "Combined", "green", "pink" 
 
 page "testLargeFont1", 
     font "default" 
     shape 
-        lorem_ipsum_big_box -506, 360, "default" , "font" , "white" 
+        lorem_ipsum_big_box -506, 360, "default", "font", "white" 
     shape 
         font "Arial", 70, slant 0% , weight 50% , stretch 100% 
-        lorem_ipsum_big_box 340, 360, "Arial 70 no line" , "blue" , "white" 
+        lorem_ipsum_big_box 340, 360, "Arial 70 no line", "blue", "white" 
     shape 
         font "Arial", 70, underlined 
-        lorem_ipsum_big_box -506, 4, "Arial 70 underlined" , "font" , "white" 
+        lorem_ipsum_big_box -506, 4, "Arial 70 underlined", "font", "white" 
     shape 
         font "Times New Roman", 70, bold 
-        lorem_ipsum_big_box 340, 4, "Times New Roman 70 bold" , "red" , "white" 
+        lorem_ipsum_big_box 340, 4, "Times New Roman 70 bold", "red", "white" 
     shape 
         font "Times New Roman", 70, strike_out 
-        lorem_ipsum_big_box -506, -350, "Times New Roman 70 strikeout" , "font" , "white" 
+        lorem_ipsum_big_box -506, -350, "Times New Roman 70 strikeout", "font", "white" 
     shape 
         font "Arial", 70, slant 100% 
-        lorem_ipsum_big_box 340, -350, "Arial 70 slant 100%" , "font" , "orange" 
+        lorem_ipsum_big_box 340, -350, "Arial 70 slant 100%", "font", "orange" 
 
-page "testLargeFont2",  
+page "testLargeFont2", 
     font "default" 
     shape 
         font "Arial", 80, slant 0% , weight 50% , stretch 200% 
-        lorem_ipsum_big_box -506, 360, "Arial 80 strech 200%" , "font" , "white" 
+        lorem_ipsum_big_box -506, 360, "Arial 80 strech 200%", "font", "white" 
     shape 
         font "Arial", 80, slant 0% , weight 50% , stretch 50% 
-        lorem_ipsum_big_box 340, 360, "Arial 80 Stretch 50%" , "font" , "white" 
+        lorem_ipsum_big_box 340, 360, "Arial 80 Stretch 50%", "font", "white" 
     shape 
         font "Arial", 80, slant 0% , weight 50% , stretch 100% , small_caps 
-        lorem_ipsum_big_box -506, 4, "Arial 80 Small Caps" , "font" , "white" 
+        lorem_ipsum_big_box -506, 4, "Arial 80 Small Caps", "font", "white" 
     shape 
         font "Times New Roman", 80, overline 
-        lorem_ipsum_big_box 340, 4, "Times New Roman 80 overline" , "font" , "white" 
+        lorem_ipsum_big_box 340, 4, "Times New Roman 80 overline", "font", "white" 
     shape 
         font "Times New Roman", 70, slant 100% , weight 100% , stretch 150% , underlined 
         font "plain" 
-        lorem_ipsum_big_box -506, -350, "Times New Roman plain" , "font" , "white" 
+        lorem_ipsum_big_box -506, -350, "Times New Roman plain", "font", "white" 
     shape 
         font "Times New Roman", 80, slant 100% , weight 100% , stretch 150% , underlined 
-        lorem_ipsum_big_box 340, -350, "Combined" , "green" , "pink" 
+        lorem_ipsum_big_box 340, -350, "Combined", "green", "pink" 

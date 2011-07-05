@@ -25,7 +25,7 @@
 // ****************************************************************************
 
 #include "justification.h"
-
+#include "page_layout.h"
 TAO_BEGIN
 
 // ============================================================================
@@ -35,41 +35,12 @@ TAO_BEGIN
 // ============================================================================
 
 template<class Item>
-void Justifier<Item>::Add(Item item)
-// ----------------------------------------------------------------------------
-//   Add a single item to the justifier
-// ----------------------------------------------------------------------------
-{
-    items.push_back(item);
-}
-
-
-template<class Item>
-void Justifier<Item>::Add(ItemsIterator first, ItemsIterator last)
-// ----------------------------------------------------------------------------
-//   Add a range of items
-// ----------------------------------------------------------------------------
-{
-    items.insert(items.end(), first, last);
-}
-
-
-template<class Item>
 void Justifier<Item>::Clear()
 // ----------------------------------------------------------------------------
 //   Delete the elements we have moved in places
 // ----------------------------------------------------------------------------
 {
-    // Delete items remaining to be placed
-    ItemsIterator i;
-    for (i = items.begin(); i != items.end(); i++)
-        delete *i;
-    items.clear();
-
     // Delete placed items
-    PlacesIterator p;
-    for (p = places.begin(); p != places.end(); p++)
-        delete (*p).item;
     places.clear();
 }
 
@@ -90,83 +61,72 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     bool  done          = false; // e.g. line break in a line
     uint  numBreaks     = 0;
     uint  numSolids     = 0;
-    uint  numItems      = 0;
     uint  itemCount     = 0;
-    uint  lastItemCount = 0;
-    int   sign          = start < end ? 1 : -1;
+    int   sign          = start <= end ? 1 : -1;
     bool  firstElement  = true;
 
+    numItems = 0;
+
     // Place items until there's none left or we are beyond the max position
-    ItemsIterator i;
-    for (i = items.begin(); hasRoom && !done && i != items.end(); i++)
+    for (/*item_start*/;
+                       hasRoom && !done && (*item_start) != items->end();
+                       (*item_start)++)
     {
+
         // Get item and break it down into individual unbreakable units
-        Item  item = *i;
-        while (hasRoom && !done && item)
+        Item  item = *(*item_start);
+        // Cut item at the first break point
+        itemCount = 0;
+        Item next = Break(item, itemCount, hadBreak, hadSeparator, done);
+        InsertNext(next);
+
+        // Test the size of what remains
+        scale size = Size(item, layout);
+        scale spacing = justify.spacing;
+        coord originalSize = size;
+        size *= spacing;
+        if (hadSeparator)
         {
-            // Cut item at the first break point
-            itemCount = 0;
-            Item next = Break(item, itemCount, hadBreak, hadSeparator, done);
+            coord additional = justify.before;
+            if (!firstElement && additional < justify.after)
+                additional = justify.after;
+            if ( firstElement ) firstElement = false;
+            size += additional;
+        }
 
-            // Test the size of what remains
-            scale size = Size(item, layout);
-            coord offset = ItemOffset(item, layout);
-            scale spacing = justify.spacing;
-            coord originalSize = size;
-            size *= spacing;
-            if (hadSeparator)
-            {
-                coord additional = justify.before;
-                if (!firstElement && additional < justify.after)
-                    additional = justify.after;
-                if ( firstElement ) firstElement = false;
-                size += additional;
-            }
-            if (sign * pos + size > sign * end && sign * pos > sign * start)
-            {
-                // It doesn't fit, we need to stop here.
-                // Erase what we already placed
-                items.erase(items.begin(), i+1);
+        if (sign * pos + size > sign * end &&
+            sign * pos > sign * start)
+        {
+            // No more place for the current on the line
+            hasRoom = false;
+            // Breaking here will prevent the (*item_start)++ to occur.
+            // The current item in the flow will be the next to work on.
+            break;
+        }
 
-                // Insert the broken down items
-                if (next)
-                    items.insert(items.begin(), next);
-                items.insert(items.begin(), item);
-                hasRoom = false;
-            }
+        // It fits, place it
+        hadBreak |= next != NULL;
+        coord offset = ItemOffset(item, layout);
+        places.push_back(Place(item, itemCount,
+                               size, pos+sign*offset,
+                               !hadBreak));
+        pos += sign * size;
+        lastOversize = size - originalSize;
+
+        if (size > 0)
+        {
+            if (hadBreak)
+                numBreaks++;
             else
-            {
-                // It fits, place it
-                hadBreak |= next != NULL;
-                places.push_back(Place(item, itemCount,
-                                       size, pos+sign*offset,
-                                       !hadBreak));
-                pos += sign * size;
-                lastSpace = SpaceSize(item, layout);
-                lastOversize = size - originalSize;
-                item = next;
-
-                if (size > 0)
-                {
-                    if (hadBreak)
-                        numBreaks++;
-                    else
-                        numSolids++;
-                    numItems += itemCount;
-                    lastItemCount = itemCount;
-                    firstElement = false;
-                }
-
-                if (done)
-                {
-                    items.erase(items.begin(), i+1);
-                    if (next)
-                        items.insert(items.begin(), next);
-                }
-            }
+                numSolids++;
+            numItems += itemCount;
+            firstElement = false;
         }
     }
+    if (places.size() > 0)
+        lastSpace = SpaceSize(places[places.size()-1].item, layout);
 
+    // End of break start of placement.
     // Extra space that we can use for justification
     scale atEnd = sign * (lastSpace + lastOversize);
     scale extra = end - pos + atEnd;
@@ -176,11 +136,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
 
     // If we have placed all the items, don't justify
     if (hasRoom)
-    {
         just = extra * justify.partial;
-        if (!done)
-            items.clear();
-    }
+
     // If there is no place where we can justify, center instead
     if (numSolids <= 1 && numBreaks <= 1)
         just = 0;
@@ -217,14 +174,33 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 offset += atBreak + atSolid * place.itemCount;
         }
     }
-
     // Return true if we placed all the items
     return hasRoom;
 }
 
 
 template <class Item>
-void Justifier<Item>::Dump(text msg, Layout *l)
+void  Justifier<Item>::InsertNext(Item next)
+// ----------------------------------------------------------------------------
+//   Insert in next position but without moving the current iterator
+// ----------------------------------------------------------------------------
+{
+    if (!next) return;
+
+    ItemsIterator it = (*item_start);
+
+    if ( items->size() == 0 || it == items->end())
+        items->push_back(next);
+    else
+    {
+        it++;
+        items->insert(it, next);
+    }
+}
+
+
+template <class Item>
+void Justifier<Item>::Dump(text msg)
 // ----------------------------------------------------------------------------
 //   Dump the contents of a justifier for debugging purpose
 // ----------------------------------------------------------------------------
@@ -236,21 +212,11 @@ void Justifier<Item>::Dump(text msg, Layout *l)
     for (p = places.begin(); p != places.end(); p++)
     {
         Place &place = *p;
-        std::cout << " P" << p - places.begin() << ": "
+        std::cerr << " P" << p - places.begin() << ": "
                   << place.item << " ("
                   << place.size << " @ " << place.position
                   << (place.solid ? " solid" : " break") << ")\n";
     }
-
-    // Dump the items remaining
-    ItemsIterator i;
-    for (i = items.begin(); i != items.end(); i++)
-    {
-        Item item = *i;
-        std::cout << " I" << i - items.begin() << ": "
-                  << item << " (" << Size(item, l) << ")\n";
-    }
-
 }
 
 TAO_END

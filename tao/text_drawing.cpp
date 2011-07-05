@@ -71,6 +71,15 @@ void TextUnit::Draw(Layout *where)
     Point3      offset0    = where->Offset();
     uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);
     bool        dbgDirect  = (widget->lastModifiers() & dbgMod) == dbgMod;
+    IFTRACE(justify)
+    {
+        std::cerr << "<->TextUnit::Draw(Layout *" << where<<") [" << this
+                << "] offset0 :" << offset0 // << " font " << +font.toString()
+                << " Layout font " << +where->font.toString()
+                << " Layout color " << where->fillColor
+                << std::endl;
+        toDebugString(std::cerr);
+    }
 
     if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect &&
         cacheEnabled)
@@ -290,7 +299,6 @@ void TextUnit::DrawSelection(Layout *where)
     Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
-    QFont      &font         = where->font;
     Point3      pos          = where->offset;
     coord       x            = pos.x;
     coord       y            = pos.y;
@@ -299,8 +307,8 @@ void TextUnit::DrawSelection(Layout *where)
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
     uint        charId       = ~0U;
-    scale       ascent       = glyphs.Ascent(font);
-    scale       descent      = glyphs.Descent(font);
+    scale       ascent       = glyphs.Ascent(where->font);
+    scale       descent      = glyphs.Descent(where->font);
     scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
     QString     selectedText;
@@ -324,7 +332,7 @@ void TextUnit::DrawSelection(Layout *where)
             charId = where->CharacterId();
 
         // Fetch data about that glyph
-        if (!glyphs.Find(font, unicode, glyph, false))
+        if (!glyphs.Find(where->font, unicode, glyph, false))
             continue;
 
         if (sel && canSel)
@@ -389,7 +397,7 @@ void TextUnit::DrawSelection(Layout *where)
         // Advance to next character
         if (unicode == '\n')
         {
-            scale spacing = height + glyphs.Leading(font);
+            scale spacing = height + glyphs.Leading(where->font);
             x = 0;
             y -= spacing;
             textWidth = 0;
@@ -431,7 +439,7 @@ void TextUnit::DrawSelection(Layout *where)
             }
         }
 
-        sel->last = charId; // Est-ce encore utile ??? // CaB
+        sel->last = charId;
     }
 
     where->offset = Point3(x, y, z);
@@ -561,14 +569,20 @@ void TextUnit::Identify(Layout *where)
 }
 
 
-void TextUnit::Draw(GraphicPath &path, Layout *where)
+void TextUnit::Draw(GraphicPath &path, Layout *l)
 // ----------------------------------------------------------------------------
 //   Render a portion of text and advance by the width of the text
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+    {
+        std::cerr << "->TextUnit::Draw (GraphicPath &path, Layout *"
+                << l << ") [" << this << "] layout font"
+                << +l->font.toString() << "\n";
+        toDebugString(std::cerr);
+    }
     Point3 position = path.position;
-    QFont &font = where->font;
-    QFontMetricsF fm(font);
+    QFontMetricsF fm(l->font);
     QPainterPath qt;
 
     QString str = +source->value.substr(start, end - start);
@@ -576,18 +590,23 @@ void TextUnit::Draw(GraphicPath &path, Layout *where)
     while (index >= 0)
     {
         QString fragment = str.left(index);
-        qt.addText(position.x, -position.y, font, fragment);
+        qt.addText(position.x, -position.y, l->font, fragment);
         position.x = 0;
         position.y -= fm.height();
         str = str.mid(index+1);
         index = str.indexOf(QChar('\n'));
     }
 
-    qt.addText(position.x, -position.y, font, str);
+    qt.addText(position.x, -position.y, l->font, str);
     position.x += fm.width(str);
 
     path.addQtPath(qt, -1);
     path.moveTo(position);
+    IFTRACE(justify)
+    {
+        std::cerr << "<-TextUnit::Draw (GraphicPath &path, Layout *"
+                << l << ") [" << this << "]\n";
+    }
 }
 
 
@@ -638,7 +657,8 @@ Box3 TextUnit::Bounds(Layout *where)
             result |= Point3(charX1, y + sa, z);
             result |= Point3(charX1, y - sd - sl, z);
 
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
+            scale height = glyphs.Ascent(font) +
+                           glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
             y -= spacing * glyph.scalingFactor;
@@ -665,11 +685,10 @@ Box3 TextUnit::Space(Layout *where)
     Widget     *widget  = where->Display();
     GlyphCache &glyphs  = widget->glyphs();
     text        str     = source->value;
-    QFont      &font    = where->font;
     Box3        result;
-    scale       ascent  = glyphs.Ascent(font);
-    scale       descent = glyphs.Descent(font);
-    scale       leading = glyphs.Leading(font);
+    scale       ascent  = glyphs.Ascent(where->font);
+    scale       descent = glyphs.Descent(where->font);
+    scale       leading = glyphs.Leading(where->font);
     Point3      pos     = where->offset;
     coord       x       = pos.x;
     coord       y       = pos.y;
@@ -685,7 +704,7 @@ Box3 TextUnit::Space(Layout *where)
         bool  newLine  = unicode == '\n';
 
         // Find the glyph in the glyph cache
-        if (!glyphs.Find(font, unicode, glyph, true))
+        if (!glyphs.Find(where->font, unicode, glyph, true))
             continue;
 
         scale sa = ascent * glyph.scalingFactor;
@@ -716,7 +735,12 @@ Box3 TextUnit::Space(Layout *where)
         }
     }
     where->offset = Point3(x,y,z);
-
+    IFTRACE(justify)
+    {
+        std::cerr << "TextUnit::Space(Layout *" << where<< ") result "
+                << result << " for ";
+        toDebugString(std::cerr);
+    }
     return result;
 }
 
@@ -760,6 +784,37 @@ TextUnit *TextUnit::Break(BreakOrder &order, uint &size)
 }
 
 
+void TextUnit::toDebugString(std::ostream &out)
+// ----------------------------------------------------------------------------
+//   Print the Text unit value on the given ostream
+// ----------------------------------------------------------------------------
+{
+    out << "TextUnit\n" << source->value <<std::endl;
+    uint loc_end = end;
+    if (loc_end == (uint)~0)
+    {
+        loc_end = source->value.size();
+    }
+    if (source->value.size() == 0)
+    {
+        out << "EMPTY\n";
+        return;
+    }
+    for (uint i = 0; i< start; i++)
+    {
+        out << " ";
+    }
+    out << "^";
+    for (uint i = start+1; i< loc_end-1 ; i++)
+    {
+        out << "-";
+    }
+    if (start != loc_end)
+        out << "^";
+    out << "\n";
+}
+
+
 scale TextUnit::TrailingSpaceSize(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the size of all the spaces at the end of the value
@@ -767,11 +822,9 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
 {
     Widget     *widget = where->Display();
     GlyphCache &glyphs = widget->glyphs();
-    QFont      &font   = where->font;
     text        str    = source->value;
     uint        pos    = str.length();
     Box3        box;
-
     if (pos > end)
         pos = end;
     while (pos > start)
@@ -784,7 +837,7 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
         // Find the glyph in the glyph cache
         GlyphCache::GlyphEntry  glyph;
         uint  unicode  = XL::Utf8Code(str, pos);
-        if (!glyphs.Find(font, unicode, glyph, true))
+        if (!glyphs.Find(where->font, unicode, glyph, true))
             continue;
 
         // Enter the geometry coordinates
@@ -800,7 +853,13 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
     scale result = box.Width();
     if (result < 0)
         result = 0;
-    return result;
+    IFTRACE(justify)
+    {
+        std::cerr << "<->TextUnit::TrailingSpaceSize[" << this << "] font "
+                << +where->font.toString() <<" returns " << result<< " for ";
+        toDebugString(std::cerr);
+    }
+   return result;
 }
 
 
@@ -878,8 +937,8 @@ int TextUnit::PerformEditOperation(Widget *widget, uint i)
     }
     uint exitLen = source->value.length();
     return exitLen - entryLen;
-
 }
+
 
 void TextUnit::PerformInsertOperation(Layout * l,
                                       Widget * widget,

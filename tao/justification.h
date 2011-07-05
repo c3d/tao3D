@@ -23,10 +23,11 @@
 // ****************************************************************************
 
 #include "coords3d.h"
+#include "drawing.h"
+#include <list>
 #include <vector>
 #include <iostream>
 #include <Qt>
-
 TAO_BEGIN
 
 struct Layout;
@@ -90,6 +91,7 @@ struct Justification
 
 };
 
+struct TextFlow;
 
 template <class Item>
 struct Justifier
@@ -101,20 +103,22 @@ struct Justifier
 //    is broken up (e.g. by LineBreak), both elements are tracked in either
 //    items or places.
 {
-    typedef std::vector<Item>           Items;
-    typedef typename Items::iterator    ItemsIterator;
+    typedef std::list<Item>           Items;
+    typedef typename Items::iterator  ItemsIterator;
 
 public:
-    Justifier(): items(), places() {}
-    Justifier(const Justifier &): items(), places() {}
+    Justifier(Items *flow, ItemsIterator *start):
+            items(flow), item_start(start), places(), numItems(0), order(Drawing::NoBreak) {}
+    Justifier(const Justifier &j):
+            items(j.items), item_start(j.item_start), places(), numItems(0), order(Drawing::NoBreak) {}
     ~Justifier() { Clear(); }
 
     // Position items in the layout
     bool        Adjust(coord start, coord end, Justification &j, Layout *l);
+    bool        CutUp(coord &start, coord end, Justification &j, Layout *l);
+    bool        Placing(coord pos, coord end, Justification &j, Layout *l);
 
     // Build and clear the layout
-    void        Add(Item item);
-    void        Add(ItemsIterator first, ItemsIterator last);
     void        Clear();
 
     // Properties of the items in the layout
@@ -123,8 +127,8 @@ public:
     scale       Size(Item item, Layout *);
     scale       SpaceSize(Item item, Layout *);
     coord       ItemOffset(Item item, Layout *);
-
-    void        Dump(text msg, Layout *);
+    void        InsertNext(Item next);
+    void        Dump(text msg);
 
     // Structure recording an item after we placed it
     struct Place
@@ -133,7 +137,8 @@ public:
               scale size = 0, coord pos = 0, bool solid=true)
             : size(size), position(pos),
               item(item), itemCount(itemCount),
-              solid(solid) {}
+              solid(solid)
+        {}
         scale   size;
         coord   position;
         Item    item;
@@ -144,8 +149,11 @@ public:
     typedef typename Places::iterator   PlacesIterator;
 
 public:
-    Items         items;        // Items remaining to be placed (e.g. broken)
-    Places        places;       // Items placed on the layout
+    Items         * items;  // List of items to be placed.
+    ItemsIterator * item_start;// Iterator on items to be placed (e.g. broken)
+    Places         places;   // Items placed on the layout
+    uint           numItems;
+    Drawing::BreakOrder order;
 };
 
 TAO_END

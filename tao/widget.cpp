@@ -154,7 +154,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
-      pageName(""),
+      currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
       currentShape(NULL), currentGridLayout(NULL),
@@ -367,8 +367,8 @@ void Widget::setupPage()
     w_event = NULL;
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
-    flowName = "";
-    flows.clear();
+    //flowName = "";
+    //flows.clear();
     IFTRACE(pages)
         std::cerr << "setupPage: found=" << pageFound
                   << " id=" << pageId << "\n";
@@ -915,6 +915,9 @@ void Widget::runProgram()
     //Clean actionMap
     actionMap.clear();
     dfltRefresh = optimalDefaultRefresh();
+
+    // Clean text flow
+    flows.clear();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -5809,9 +5812,7 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 {
     CHECK_0_1_RANGE(a);
     QColor c = colorByName(name);
-    FillColor * fillColor = new FillColor(c.redF(), c.greenF(), c.blueF(), a);
-    layout->fillColor = fillColor->color;
-    layout->Add(fillColor);
+    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
     return XL::xl_true;
 }
 
@@ -5825,7 +5826,6 @@ Tree_p Widget::fillColorRgb(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(g);
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
-
     layout->Add(new FillColor(r, g, b, a));
     return XL::xl_true;
 }
@@ -5845,7 +5845,7 @@ Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
 
     QColor hsl;
     hsl.setHslF(h, s, l);
-    layout->Add(new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
+    layout->Add( new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
     return XL::xl_true;
 }
 
@@ -5869,7 +5869,8 @@ Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
 }
 
 
-Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a)
+Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y,
+                             double k, double a)
 // ----------------------------------------------------------------------------
 //    Set the CMYK color for fill
 // ----------------------------------------------------------------------------
@@ -7157,12 +7158,35 @@ void Widget::updateCursor(Text_p t)
         editCursor->insertText(+t->value);
 }
 
-Tree_p  Widget::textBox(Context *context, Tree_p self,
-                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
+Tree_p  Widget::textBox(Tree_p self, text flowName,
+                        Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
 {
+    TextFlow *flow = flows[flowName];
+    PageLayout *tbox = new PageLayout(this, flow);
+    this->currentFlowName = flowName;
+    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    tbox->id = selectionId();
+    layout->Add(tbox);
+
+    if (currentShape)
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textFlow(Context *context, Tree_p self,
+                        text flowName, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Overflow text box for the rest of the current text flow
+// ----------------------------------------------------------------------------
+{
+    // Creation du PageJustifier
+    // Enregistrement du flow
+    // Evaluation du prog
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     if (XL::MAIN->options.enable_layout_cache)
@@ -7174,46 +7198,20 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
         }
     }
 
-    PageLayout *tbox = new PageLayout(this);
-    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    layout->AddChild(selectionId(), prog, context, tbox);
-    flows[flowName] = tbox;
+    this->currentFlowName = flowName;
+    TextFlow *flow = new TextFlow(layout, flowName);
+    flow->body = prog;
+    flow->ctx = context;
+    flows[flowName] = flow;
 
-    if (currentShape)
-        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    layout->Add(flow);
+    XL::Save<Layout *> save(layout, flow);
 
-    XL::Save<Layout *> save(layout, tbox);
     Tree *result = currentContext->Evaluate(prog);
+    flow->resetIterator();
     return result;
 }
 
-
-Tree_p Widget::textOverflow(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h)
-// ----------------------------------------------------------------------------
-//   Overflow text box for the rest of the current text flow
-// ----------------------------------------------------------------------------
-{
-    // Add page layout overflow rectangle
-    PageLayoutOverflow *overflow =
-        new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
-    layout->Add(overflow);
-    if (currentShape)
-        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
-
-    return XL::xl_true;
-}
-
-
-XL::Text_p Widget::textFlow(Tree_p self, text name)
-// ----------------------------------------------------------------------------
-//    Set the name of the current text flow
-// ----------------------------------------------------------------------------
-{
-    text oldName = flowName;
-    flowName = name;
-    return new XL::Text(oldName);
-}
 
 Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
@@ -7221,15 +7219,17 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     // to be preserved : Font, color, line_color, texture, alignement, linewidth, rotation, scale
-    //LayoutState state = *layout;
-//    XL::Save<LayoutState *> saveLayout(layout, layout);
-    Layout *childLayout = layout->AddChild(layout->id, child, context);
-    XL::Save<Layout *> saveLayout(layout, childLayout);
-
-    Tree_p result = context->Evaluate(child);
-
-    // offset should not be repositionned like before this evaluation
-    saveLayout.saved->offset = childLayout->offset;
+    TextFlow *flow = flows[currentFlowName];
+    BlockLayout *childLayout = new BlockLayout(flow);
+    childLayout->body = child;
+    childLayout->ctx = context;
+    layout->Add(childLayout);
+    Tree_p result;
+    {
+        XL::Save<Layout *> saveLayout(layout, childLayout);
+        result = context->Evaluate(child);
+    }
+    layout->Add(childLayout->getRevertLayout());
     return result;
 }
 
@@ -7720,13 +7720,15 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
         body->SetSymbols(self->Symbols());
 
     // Define a new text layout
-    PageLayout *tbox = new PageLayout(this);
+    Tree_p result = textFlow(context, self, "defaultTableCell", body);
+    TextFlow *flow = flows["defaultTableCell"];
+    PageLayout *tbox = new PageLayout(this, flow);
     tbox->space = Box3(0, 0, 0, w, h, 0);
     table->Add(tbox);
-    flows[flowName] = tbox;
+//    flows[flowName] = tbox;
 
-    XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+//    XL::Save<Layout *> save(layout, tbox);
+//    Tree_p result = context->Evaluate(body);
     table->NextCell();
     return result;
 }

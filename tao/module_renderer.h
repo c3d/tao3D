@@ -42,6 +42,7 @@ struct ModuleRenderer : Drawing
         : Drawing(), callback(callback), arg(arg), del(del) {}
     virtual ~ModuleRenderer();
 
+    virtual text  getType() { return "ModuleRenderer";}
     // Drawing interface
     virtual void  Draw(Layout *where);
 

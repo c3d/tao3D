@@ -73,7 +73,7 @@ struct GraphicPath : Shape
 
 public:
     enum Kind           { MOVE_TO, LINE_TO, CURVE_TO, CURVE_CONTROL };
-    enum EndpointStyle  { NONE, 
+    enum EndpointStyle  { NONE,
                           ARROWHEAD, TRIANGLE, POINTER, DIAMOND, CIRCLE,
                           SQUARE, BAR, CUP, FLETCHING,
                           HOLLOW_CIRCLE, HOLLOW_SQUARE };

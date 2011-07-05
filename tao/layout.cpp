@@ -326,6 +326,8 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+    if (d->IsAttribute())
+        d->Draw(this);
 }
 
 
@@ -610,7 +612,18 @@ void Layout::Inherit(Layout *where)
 
     // Add offset of parent to the one we have
     offset = where->Offset();
+    LayoutState::InheritState(where);
+    has3D           = where->has3D;
+    hasPixelBlur    = where->hasPixelBlur;
+    groupDrag       = where->groupDrag;
+    hasMaterial     = where->hasMaterial;
+}
 
+void LayoutState::InheritState(LayoutState *where)
+// ----------------------------------------------------------------------------
+//   Inherit state from some other layoutState except offset
+// ----------------------------------------------------------------------------
+{
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
@@ -634,12 +647,33 @@ void Layout::Inherit(Layout *where)
     printing        = where->printing;
     planarRotation  = where->planarRotation;
     planarScale     = where->planarScale;
-    has3D           = where->has3D;
-    hasPixelBlur    = where->hasPixelBlur;
-    groupDrag       = where->groupDrag;
-    hasMaterial     = where->hasMaterial;
 }
 
+void LayoutState::toDebugString(std::ostream &out)
+{
+    out << "LayoutState["<<this<<"]\n";
+    out << "\tfont            = " << font.toString().toStdString() << std::endl;
+//    out << "\talongX          = " << alongX << std::endl;
+//    out << "\talongY          = " << alongY << std::endl;
+//    out << "\talongZ          = " << alongZ << std::endl;
+    out << "\tleft            = " << left << std::endl;
+    out << "\tright           = " << right << std::endl;
+    out << "\ttop             = " << top << std::endl;
+    out << "\tbottom          = " << bottom << std::endl;
+    out << "\tvisibility      = " << visibility << std::endl;
+    out << "\tlineWidth       = " << lineWidth << std::endl;
+    out << "\tlineColor       = " << lineColor << std::endl;
+    out << "\tfillColor       = " << fillColor << std::endl;
+    out << "\tfillTexture     = " << fillTexture << std::endl;
+    out << "\tlightId         = " << lightId << std::endl;
+    out << "\tprogramId       = " << programId << std::endl;
+    out << "\twrapS           = " << wrapS << std::endl;
+    out << "\twrapT           = " << wrapT << std::endl;
+    out << "\tprinting        = " << printing << std::endl;
+    out << "\tplanarRotation  = " << planarRotation << std::endl;
+    out << "\tplanarScale     = " << planarScale << std::endl;
+
+}
 
 void Layout::PushLayout(Layout *where)
 // ----------------------------------------------------------------------------

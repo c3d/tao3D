@@ -132,45 +132,73 @@
  */
 
 /**
- * Draws a text box.
+ * Defines and names a text flow.
  *
- * The text box is centered at @p x, @p y. Th width is @p w and
- * the height is @p h. @p contents is a block of code in which you describe
- * the content of the box.
- */
-text_box(x:real, y:real, w:real, h:real, contents:tree);
-
-/**
- * Sets the name of the current text flow.
- *
- * Use this function to name a text flow, either before creating it (with
- * @ref text_box) or before accessing it (with @ref text_overflow).
- */
-text_flow(name:text);
-
-/**
- * Creates a text box automatically filled by text from a text flow.
- * This function is useful to display text in several separate text boxes.
- * The text to render has to be declared inside a single text_box, after
- * the flow name has been set. Then, you call @ref text_overflow to create
- * additional text boxes that will be automatically filled with the text
- * that could not make it into the previous boxes.
+ * Use this function to name a text flow that will then be displayed in one
+ * or more text box (with @ref text_box).
  *
  * Here is the typical use:
 @code
-// Name the text flow we are going to create
-text_flow "First"
-text_box -100, 0, 200, 400,
-    // Use the text box normally
+// Create and name the text flow
+text_flow "First",
     text "Some long text"
+
 // Then, later:
-text_flow "First"               // Select text flow
-text_overflow 100, 0, 200, 400  // Continuation of 1st text box
+text_box "First", -100, 0, 200, 400,
+text_box "First",  100, 0, 200, 400  // Continuation of 1st text box
 @endcode
  *
- * @bug [#794] Empty text_overflow even though there is enough text to display
  */
-text_overflow(x:real, y:real, w:real, h:real);
+text_flow(name:text, contents:tree);
+
+
+/**
+ * Draws a text box.
+ *
+ * The text box is centered at @p x, @p y. The width is @p w and
+ * the height is @p h. @p name is the name of the flow to display.
+ * The displayed text will be the continuation of the flow.
+ */
+text_box(name:text, x:real, y:real, w:real, h:real);
+
+
+/**
+ * Draws a text box.
+ *
+ * The text box is centered at @p x, @p y. The width is @p w and
+ * the height is @p h. @p contents is a block of code in which you describe
+ * the content of the box.
+ *
+ * This is a shortcut to
+@code
+// Create and name the text flow
+text_flow "DefaultTextFlow",
+    text "Some long text"
+text_box "DefaultTextFlow", x, y, w, h
+@endcode
+
+ */
+text_box(x:real, y:real, w:real, h:real, contents:tree);
+
+
+/**
+  * Isolate text modifications
+  *
+  * Color, font and other text related modification done in this container
+  * are not visible from outside.
+  * @warning The paragraph modification are not isolated. See @ref para_span
+  */
+text_span(contents:tree);
+
+/**
+  * Create an isolated paragraph
+  *
+  * Text alignment, paragraph space, font, color and other text and paragraph
+  * related modifications done in this container are not visible from outside.
+  *
+  */
+para_span(contents:tree);
+
 
 /**
  * Inserts text into a text box.

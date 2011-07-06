@@ -92,19 +92,19 @@ void LensFlare::addFlare(GLuint id, float location, float scale, GLfloat r, GLfl
 //   Create a new flare and add it to the others.
 // ----------------------------------------------------------------------------
 {
-    Flare ret;
+    Flare flare;
 
     // Define flare paramaters
-    ret.id = id;
-    ret.loc = location;
-    ret.scale = scale;
-    ret.color[0] = r;
-    ret.color[1] = g;
-    ret.color[2] = b;
-    ret.color[3] = a;
+    flare.id = id;
+    flare.loc = location;
+    flare.scale = scale;
+    flare.color[0] = r;
+    flare.color[1] = g;
+    flare.color[2] = b;
+    flare.color[3] = a;
 
     // Add to the flares list for drawing
-    lens_flare.push_back(ret);
+    lens_flare.push_back(flare);
 }
 
 void LensFlare::Draw()

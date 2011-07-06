@@ -60,7 +60,7 @@ iterate_recursive_render RENDER_CODE ->
     * Define a multipass render by recursion.
     **/
     if MAX_ITER > 0 then
-        if (CURRENT_ITER = MAX_ITER) or (CURRENT_ITER = LIMIT_ITER) then
+        if (CURRENT_ITER = (MAX_ITER - 1)) or (CURRENT_ITER = (LIMIT_ITER - 1)) then
             render_to_texture RENDER_CODE
         else
             CURRENT_ITER := CURRENT_ITER + 1

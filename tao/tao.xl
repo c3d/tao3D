@@ -233,6 +233,12 @@ text_box x:real, y, w, h, body:tree ->
     text_flow flow_name, body
     text_box flow_name, x, y, w, h
 
+para_span b:tree ->
+    text_span
+        paragraph_break
+        b
+        paragraph_break
+
 align center:real, justify:real, spread:real            -> align center, justify, spread, 0
 align center:real, justify:real                         -> align center, justify, 0, 0
 align center:real                                       -> align center, 0, 0, 0

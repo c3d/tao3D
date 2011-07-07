@@ -2813,7 +2813,9 @@ void Widget::displayLinkEvent()
 {
     // Stereoscopy with quad buffers: scene refresh rate is half of screen
     // frequency
-    if (XL::MAIN->options.enable_stereoscopy && (++stereoSkip % 2 == 0))
+    static
+    bool stereoBuffersEnabled = format().testOption(QGL::StereoBuffers);
+    if (stereoBuffersEnabled && (++stereoSkip % 2 == 0))
         return;
 
     // Post event to main thread (have no more than one event pending,

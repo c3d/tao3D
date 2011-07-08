@@ -121,6 +121,8 @@ namespace Tao {
 static Point3 defaultCameraPosition(0, 0, 6000);
 static bool bogusQuadBuffers = false;
 
+
+
 static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   Return the options we will use when creating the widget
@@ -131,13 +133,14 @@ static inline QGLFormat TaoGLFormat()
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
          QGL::StencilBuffer     |
-         QGL::SampleBuffers     |
          QGL::AlphaChannel      |
          QGL::AccumBuffer);
-    if (QSettings().value("DisableStereoscopy", false).toBool())
-        XL::MAIN->options.enable_stereoscopy = false;
-    if (XL::MAIN->options.enable_stereoscopy)
+    if (TaoApp->hasGLStereoBuffers &&
+        !QSettings().value("DisableStereoscopy", false).toBool() &&
+        XL::MAIN->options.enable_stereoscopy)
         options |= QGL::StereoBuffers;
+    if (TaoApp->hasGLMultisample)
+        options |= QGL::SampleBuffers;
     QGLFormat format(options);
     // Enable VSync by default
     format.setSwapInterval(1);
@@ -1103,11 +1106,28 @@ void Widget::print(QPrinter *prt)
 
 
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
-                          QString dir, double fps, int page)
+                          QString dir, double fps, int page, QString disp)
 // ----------------------------------------------------------------------------
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
 {
+    QString prevDisplay;
+    if (disp != "" && !displayDriver->isCurrentDisplayFunctionSameAs(disp))
+    {
+        // Select specific display function
+        prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction(disp);
+    }
+    if (displayDriver->isCurrentDisplayFunctionSameAs("legacy"))
+    {
+        // Compatibility
+        std::cerr << "Legacy display function does not support offline "
+                  << "rendering. Switching to \"2D\" for compatibility\n";
+        if (prevDisplay == "")
+            prevDisplay = displayDriver->getDisplayFunction();
+        displayDriver->setDisplayFunction("2D");
+    }
+
     // Create output directory if needed
     if (!QFileInfo(dir).exists())
         QDir().mkdir(dir);
@@ -1164,16 +1184,31 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         XL::Save<page_list> savePageNames(pageNames, pageNames);
         setupPage();
         currentTime = t;
+
+        if (gotoPageName != "")
+        {
+            IFTRACE(pages)
+                std::cerr << "(renderFrames) "
+                          << "Goto page request: '" << gotoPageName
+                          << "' from '" << pageName << "'\n";
+            pageName = gotoPageName;
+            frozenTime = pageStartTime = startTime = CurrentTime();
+            for (uint p = 0; p < pageNames.size(); p++)
+                if (pageNames[p] == gotoPageName)
+                    pageShown = p + 1;
+            gotoPageName = "";
+            IFTRACE(pages)
+                std::cerr << "(renderFrames) "
+                          << "New page number is " << pageShown << "\n";
+        }
+
         runProgram();
 
         // Draw the layout in the frame context
         id = idDepth = 0;
         Layout::polygonOffset = 0;
-        setup(w, h);
         frame.begin();
-        glClearColor(clearCol.redF(),clearCol.greenF(),clearCol.blueF(),1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        space->Draw(NULL);
+        displayDriver->display();
         frame.end();
 
         QApplication::processEvents();
@@ -1187,6 +1222,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
     // Done with offline rendering
     inOfflineRendering = false;
+    if (!prevDisplay.isEmpty())
+        displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
     QApplication::processEvents();
 }
@@ -2873,6 +2910,9 @@ void Widget::startRefreshTimer(bool on)
 //    Make sure refresh timer runs if it has to
 // ----------------------------------------------------------------------------
 {
+    if (inOfflineRendering)
+        return;
+
     if (!on)
     {
 #ifdef MACOSX_DISPLAYLINK
@@ -4348,7 +4388,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refresh(0);
+    refresh(0); // Not refreshNow(), see #1074
     return new Text(old);
 }
 
@@ -5440,6 +5480,8 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 //   Select a display function
 // ----------------------------------------------------------------------------
 {
+    if (displayDriver->isCurrentDisplayFunctionSameAs(+name))
+        return XL::xl_true;
     bool ok = displayDriver->setDisplayFunction(+name);
     if (ok)
     {

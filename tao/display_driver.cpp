@@ -105,7 +105,7 @@ bool DisplayDriver::setDisplayFunction(QString name)
     bool found = false;
     if (name.isEmpty())
         name = "default";
-    if (current.name == name)
+    if (isCurrentDisplayFunctionSameAs(name))
         return true;
     if (map.contains(name))
     {
@@ -121,6 +121,28 @@ bool DisplayDriver::setDisplayFunction(QString name)
             current.obj = current.use();
     }
     return found;
+}
+
+
+QString DisplayDriver::getDisplayFunction()
+// ----------------------------------------------------------------------------
+//   Return the name of the active display function
+// ----------------------------------------------------------------------------
+{
+    return current.name;
+}
+
+
+bool DisplayDriver::isCurrentDisplayFunctionSameAs(QString name)
+// ----------------------------------------------------------------------------
+//   Check if currrent display function is the same as name
+// ----------------------------------------------------------------------------
+{
+    if (name == "")
+        name = "default";
+    if (!map.contains(name))
+        return false;
+    return (current.fn == map[name].fn);
 }
 
 
@@ -159,6 +181,15 @@ std::string DisplayDriver::getOption(std::string name)
 }
 
 
+QStringList DisplayDriver::allDisplayFunctions()
+// ----------------------------------------------------------------------------
+//   Return all registered function names
+// ----------------------------------------------------------------------------
+{
+    return map.keys();
+}
+
+
 bool DisplayDriver::useFBO()
 // ----------------------------------------------------------------------------
 //   Shall we do 2D rendering through a framebuffer object (true), or directly?
@@ -172,7 +203,7 @@ bool DisplayDriver::useFBO()
         if (!TaoApp->hasFBOMultisample)
             fbos = "not ";
         debug() << "GL framebuffer multisampling: " << gl << "supported\n";
-        debug() << "FBOs multisampling: " << gl << "supported\n";
+        debug() << "FBOs multisampling: " << fbos << "supported\n";
     }
     return (!TaoApp->hasGLMultisample && TaoApp->hasFBOMultisample);
 }
@@ -204,6 +235,10 @@ void DisplayDriver::displayBackBuffer(void *obj)
     BackBufferParams * o = (BackBufferParams *)obj;
     Q_ASSERT(obj || !"Back buffer display routine received NULL object");
 
+    // Are we rendering to the default framebuffer, or a FBO?
+    GLint fbname = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
+
     int n = o->bogusQuadBuffer ? 2 : 1;
 
     for (int i = 1; i <= n; i++)
@@ -217,11 +252,14 @@ void DisplayDriver::displayBackBuffer(void *obj)
         setProjectionMatrix(w, h);
         setModelViewMatrix();
 
-        // Select draw buffer
-        if (o->bogusQuadBuffer)
-            glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
-        else
-            glDrawBuffer(GL_BACK);
+        // If no FBO is bound, select draw buffer
+        if (!fbname)
+        {
+            if (o->bogusQuadBuffer)
+                glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
+            else
+                glDrawBuffer(GL_BACK);
+        }
 
         // Clear color and depth information
         setGlClearColor();

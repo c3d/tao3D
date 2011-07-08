@@ -71,6 +71,9 @@ main_chooser ->
     chooser_choice tr "Zoom in", {zoom_in}
     chooser_choice tr "Zoom out", {zoom_out}
     chooser_choice tr "Toggle hand cursor", {toggle_hand_cursor}
+    chooser_choice tr "Enable glyph cache", {enable_glyph_cache true}
+    chooser_choice tr "Disable glyph cache", {enable_glyph_cache false}
+    chooser_choice tr "Toggle hand cursor", {toggle_hand_cursor}
     chooser_choice tr "Toggle rendering statistics (fps)", {toggle_show_statistics}
     chooser_choice tr "Select page", {page_chooser}
     if current_repository then
@@ -925,8 +928,6 @@ menu_display_mode ->
     submenu "TAO_VIEW_MENU:displaymode", tr "Display mode"
     menu_item "TAO_VIEW_MENU:displaymode > 2D", tr "2D",
         display_mode "2D"
-    menu_item "TAO_VIEW_MENU:displaymode > 2DFBO", tr "2D FBO",
-        display_mode "2DFBO"
     menu_item "TAO_VIEW_MENU:displaymode > legacy", tr "Legacy (default)",
         display_mode "legacy"
 

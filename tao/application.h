@@ -102,6 +102,7 @@ public:
 
 public:
     bool         hasGLMultisample, hasFBOMultisample;
+    bool         hasGLStereoBuffers;
     QString      lang;
 
 private:

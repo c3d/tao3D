@@ -76,6 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
+#include "gc_thread.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -270,6 +271,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
+
+    // Garbage collection is run by the GCThread object, either in the main
+    // thread or in its own thread
+    connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
 }
 
 
@@ -436,6 +441,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     o.isInvalid = true;
 
     current = this;
+
+    // Garbage collection is run by the GCThread object, either in the main
+    // thread or in its own thread
+    connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
 }
 
 Widget::~Widget()
@@ -557,9 +566,24 @@ void Widget::drawScene()
 //   Draw all objects in the scene
 // ----------------------------------------------------------------------------
 {
+    if (XL::MAIN->options.threaded_gc)
+    {
+        // Start asynchronous garbage collection
+        TaoApp->gcThread->clearCollectDone();
+        emit runGC();
+    }
+
     id = idDepth = 0;
     space->ClearAttributes();
     space->Draw(NULL);
+
+    if (XL::MAIN->options.threaded_gc)
+    {
+        // Record wait time till asynchronous garbage collection completes
+        stats.begin(Statistics::GC);
+        TaoApp->gcThread->waitCollectDone();
+        stats.end(Statistics::GC);
+    }
 }
 
 
@@ -655,6 +679,14 @@ void Widget::draw()
         runProgram();
     }
 
+    if (!XL::MAIN->options.threaded_gc)
+    {
+        // Record time for synchronous garbage collection
+        stats.begin(Statistics::GC);
+        emit runGC();
+        stats.end(Statistics::GC);
+    }
+
     // Run current display algorithm
     stats.begin(Statistics::DRAW);
     displayDriver->display();
@@ -744,11 +776,6 @@ bool Widget::refreshNow(QEvent *event)
         IFTRACE(layoutevents)
             std::cerr << "Partial refresh due to event: "
                       << LayoutState::ToText(event->type()) << "\n";
-
-        stats.begin(Statistics::GC);
-        XL::GarbageCollector::Collect();
-        stats.end(Statistics::GC);
-
         // Layout::Refresh needs current != NULL
         TaoSave saveCurrent(current, this);
         stats.begin(Statistics::EXEC);
@@ -832,10 +859,6 @@ void Widget::runProgram()
 // ----------------------------------------------------------------------------
 {
     setCurrentTime();
-
-    stats.begin(Statistics::GC);
-    XL::GarbageCollector::Collect();
-    stats.end(Statistics::GC);
 
     // Don't run anything if we detected errors running previously
     if (inError)
@@ -3680,6 +3703,12 @@ void Widget::printStatistics()
     RasterText::printf("%dx%dx%d %s fps%s", vw, vh, stereoPlanes, fps,
                        dropped);
 
+    static const char *gcw = NULL;
+    if (!gcw)
+    {
+        // "GCw" is GC wait time, included in Draw time
+        gcw = XL::MAIN->options.threaded_gc ? "GCw" : "GC";
+    }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
@@ -3691,12 +3720,12 @@ void Widget::printStatistics()
         ga = stats.averageTime(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
         RasterText::printf("Avg/peak (ms): Exec %3d/%3d Draw %3d/%3d "
-                           "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+                           "%s %3d/%3d", xa, xm, da, dm, gcw, ga, gm);
     }
     else
     {
         RasterText::printf("Avg/peak (ms): Exec ---/--- Draw ---/--- "
-                           "GC ---/---");
+                           "%s ---/---", gcw);
     }
 }
 

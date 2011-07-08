@@ -35,6 +35,7 @@ struct Widget;
 struct Window;
 struct SplashScreen;
 struct ModuleManager;
+struct GCThread;
 
 
 class Application : public QApplication
@@ -46,7 +47,7 @@ class Application : public QApplication
 
 public:
     Application(int & argc, char ** argv);
-    virtual ~Application() {}
+    virtual ~Application();
 
     void           internalCleanEverythingAsIfTaoWereNeverRun();
     static QString defaultProjectFolderPath();
@@ -106,6 +107,7 @@ public:
     uint         maxTextureCoords;
     uint         maxTextureUnits;
     QString      lang;
+    GCThread *   gcThread;
 
 private:
     QStringList  pathList;

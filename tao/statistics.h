@@ -66,7 +66,7 @@ protected:
     frame_times frames;     // Frames shown during last interval
 
     // Timing for other events
-    QTime       timer;
+    QTime       timer[LAST_OP];
     durations   data[LAST_OP];
     int         total[LAST_OP];
     int         max[LAST_OP];

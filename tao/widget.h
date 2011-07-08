@@ -152,6 +152,7 @@ signals:
     void        copyAvailable(bool yes = true);
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
+    void        runGC();
 
 public:
     // OpenGL and drawing

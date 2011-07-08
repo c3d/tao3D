@@ -66,14 +66,17 @@ bool Statistics::isEnabled()
 }
 
 
-void Statistics::begin(Operation)
+void Statistics::begin(Operation op)
 // ----------------------------------------------------------------------------
 //    Start measurement
 // ----------------------------------------------------------------------------
 {
     if (!enabled)
         return;
-    timer.start();
+
+    Q_ASSERT(op >= 0 && op < LAST_OP);
+
+    timer[op].start();
 }
 
 
@@ -88,7 +91,7 @@ void Statistics::end(Operation op)
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
     int now = intervalTimer.elapsed();
-    int elapsed = timer.elapsed();
+    int elapsed = timer[op].elapsed();
 
     // Append measurement to list, keeping only 'interval' seconds of data.
     // Keep total up-to-date.

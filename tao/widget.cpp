@@ -270,7 +270,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     scaling = scalingFactorFromCamera();
 
     // Create the object we will use to render frames
-    displayDriver = new DisplayDriver(this);
+    displayDriver = new DisplayDriver;
 }
 
 

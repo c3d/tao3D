@@ -45,8 +45,7 @@ static void legacyDraw(void *)
 }
 
 
-DisplayDriver::DisplayDriver(Widget *widget)
-        : widget(widget)
+DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------

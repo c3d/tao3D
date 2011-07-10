@@ -292,7 +292,7 @@ void RecordMouseCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = where->Display();
-    if (widget->stereoPlane() == 1)
+    if (widget->mouseTracking())
     {
         MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
         if (!info)

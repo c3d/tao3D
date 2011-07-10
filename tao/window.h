@@ -84,6 +84,7 @@ public:
 #endif
     QString  currentProjectFolderPath();
     bool     needNewWindow();
+    bool     setStereo(bool on);
 
     bool isUntitled;
     bool isReadOnly;
@@ -97,7 +98,6 @@ public:
 public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
-    void toggleStereoscopy();
     bool toggleSlideShow();
 #ifndef CFG_NOSRCEDIT
     void sourceViewBecameVisible(bool visible);
@@ -115,7 +115,6 @@ public slots:
     void clearErrors();
     void renderToFile();
     void adjustToScreenResolution(int screen);
-    void updateStereoscopyAct(int mode, int planes);
 
 signals:
 #ifndef CFG_NOGIT
@@ -251,7 +250,6 @@ private:
     QAction          *onlineDocAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
-    QAction          *viewStereoscopyAct;
     QUndoView        *undoView;
     QAction          *undoAction;
     QAction          *redoAction;

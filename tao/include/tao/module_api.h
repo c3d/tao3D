@@ -46,8 +46,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   6
-#define TAO_MODULE_API_AGE       6
+#define TAO_MODULE_API_CURRENT   7
+#define TAO_MODULE_API_AGE       0
 
 // ========================================================================
 //
@@ -107,7 +107,8 @@ struct ModuleApi
     // Display can later be activated by primitive: display_function <name>
     // Returns true on success, false on error (e.g., name already used)
     //   - fn is called for each frame to be displayed
-    //   - use is called once when fn is about to be used
+    //   - use is called once when fn is about to be used.
+    //     Return (void *)(~0L) to indicated an error.
     //   - unuse is called when Tao stops using fn
     //   - setopt is called when Tao needs to set a display option
     //   - getopt is called when Tao needs to get a display option
@@ -117,6 +118,10 @@ struct ModuleApi
                                     display_setopt_fn setopt,
                                     display_getopt_fn getopt);
 
+    // Create another name for an existing display function
+    bool (*registerDisplayFunctionAlias)(std::string name,
+                                         std::string existing);
+
     // Call glClearColor() with the color currently specified by the program.
     void (*setGlClearColor)();
 
@@ -125,6 +130,12 @@ struct ModuleApi
 
     // Display all pending OpenGL errors (if any), in the error window.
     void (*showGlErrors)();
+
+    // Switch GL_STEREO on or off for the current OpenGL display context.
+    // The current context becomes invalid and a new one is created with
+    // or without stereo buffers.
+    // Returns true on success.
+    bool (*setStereo)(bool on);
 
     // setProjectionMatrix, setModelViewMatrix
     //
@@ -176,6 +187,10 @@ struct ModuleApi
     // For stereoscopic or multi-view settings: the distance between
     // the left and the right eye (or camera).
     double (*eyeSeparation)();
+
+    // Tell Tao if the current point of view is to be used for selection/
+    // mouse activities.
+    void   (*doMouseTracking)(bool on);
 
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture

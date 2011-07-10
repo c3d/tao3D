@@ -72,13 +72,13 @@ GeneralPage::GeneralPage(QWidget *parent)
     connect(combo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(setLanguage(int)));
 
-    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
-    noStereo = new QCheckBox;
-    grid->addWidget(noStereo, 2, 2);
-    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
-    noStereo->setChecked(disable);
-    connect(noStereo, SIGNAL(toggled(bool)),
-            this,     SLOT(disableStereoBuffers(bool)));
+//    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
+//    noStereo = new QCheckBox;
+//    grid->addWidget(noStereo, 2, 2);
+//    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
+//    noStereo->setChecked(disable);
+//    connect(noStereo, SIGNAL(toggled(bool)),
+//            this,     SLOT(disableStereoBuffers(bool)));
 
     group->setLayout(grid);
 
@@ -128,21 +128,6 @@ void GeneralPage::setLanguage(int index)
     QSettings().setValue("uiLanguage", lang);
 }
 
-
-void GeneralPage::disableStereoBuffers(bool disable)
-// ----------------------------------------------------------------------------
-//   Save the "disable stereoscopy" setting
-// ----------------------------------------------------------------------------
-{
-    message->setText(tr("The change will take effect after a restart "
-                        "of the application."));
-    if (!disable)
-    {
-        QSettings().remove("DisableStereoscopy");
-        return;
-    }
-    QSettings().setValue("DisableStereoscopy", true);
-}
 
 // ============================================================================
 //

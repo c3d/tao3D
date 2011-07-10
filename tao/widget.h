@@ -74,6 +74,7 @@ struct Drag;
 struct TextSelect;
 struct WidgetSurface;
 struct MouseCoordinatesInfo;
+struct MouseFocusTracker;
 struct DisplayDriver;
 
 // ----------------------------------------------------------------------------
@@ -99,15 +100,11 @@ public:
     typedef std::list<int>              frame_times;
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
-    enum StereoMode { stereoHARDWARE,
-                      stereoHSPLIT, stereoVSPLIT, stereoDEPTHMAP,
-                      stereoHORIZONTAL, stereoVERTICAL,
-                      stereoDIAGONAL, stereoANTI_DIAGONAL,
-                      stereoALIOSCOPY };
     enum ShaderKind { VERTEX, FRAGMENT, GEOMETRY };
 
 public:
     Widget(Window *parent, SourceFile *sf = NULL);
+    Widget(Widget &other, const QGLFormat &format);
     ~Widget();
 
 public slots:
@@ -137,7 +134,6 @@ public slots:
     void        cut();
     void        paste();
     void        enableAnimations(bool enable);
-    void        enableStereoscopy(bool enable);
     void        showHandCursor(bool enabled);
     void        hideCursor();
     void        resetView();
@@ -155,7 +151,6 @@ signals:
     void        copyAvailable(bool yes = true);
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
-    void        stereoModeChanged(int mode, int planes);
 
 public:
     // OpenGL and drawing
@@ -166,7 +161,6 @@ public:
     void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();
-    void        setupStereoStencil(double w, double h);
     void        identifySelection();
     void        updateSelection();
     uint        showGlErrors();
@@ -236,12 +230,6 @@ public:
     void        printStatistics();
     void        updateStatistics();
     bool        hasAnimations(void)     { return animated; }
-    char        hasStereoscopy(void)    { return (stereoPlanes > 1 ||
-                                                  stereoMode >
-                                                  stereoHARDWARE); }
-    char        stereoPlane(void)       { return stereoscopic; }
-    StereoMode  currentStereoMode(void) { return stereoMode; }
-
 
     // Selection
     GLuint      selectionId()           { return ++id; }
@@ -295,6 +283,7 @@ public:
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
     void        drawTree(Layout *where, Context *context, Tree *code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
+    bool        mouseTracking() { return doMouseTracking; }
 
     template<class Activity>
     Activity *  active();
@@ -410,10 +399,7 @@ public:
 
     Name_p      enableAnimations(Tree_p self, bool fs);
     Name_p      setDisplayMode(XL::Tree_p self, text name);
-#ifndef CFG_NOSTEREO
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
-    Name_p      setStereoPlanes(Tree_p self, uint planes);
-#endif
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
@@ -729,7 +715,7 @@ public:
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      copySelection();
     Tree_p      removeSelection();
-    // Unit conversionsxo
+    // Unit conversions
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
     Real_p      fromIn(Tree_p self, double in);
@@ -738,6 +724,7 @@ public:
 
     Tree_p      constant(Tree_p self, Tree_p tree);
     Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
+    Name_p      hasDisplayMode(Tree_p self, Name_p name);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -815,9 +802,8 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
-    StereoMode            stereoMode;
-    char                  stereoscopic;
-    char                  stereoPlanes;
+    bool                  doMouseTracking;
+    int                   stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
 
@@ -848,6 +834,7 @@ private:
     QColor                originalColor;
     int                   lastMouseX, lastMouseY, lastMouseButtons;
     MouseCoordinatesInfo *mouseCoordinatesInfo;
+    MouseFocusTracker *   mouseFocusTracker;
 
     // Timing
 #ifdef MACOSX_DISPLAYLINK
@@ -855,6 +842,7 @@ private:
     CVDisplayLinkRef      displayLink;
     bool                  displayLinkStarted;
     bool                  pendingDisplayLinkEvent;
+    bool                  stereoBuffersEnabled;
     int                   stereoSkip;
     bool                  holdOff;
     unsigned int          droppedFrames;
@@ -921,6 +909,7 @@ private:
     void                  updateCursor(Text_p t);
 
     std::map<text, text>  xlTranslations;
+    bool                  isInvalid;
 };
 
 

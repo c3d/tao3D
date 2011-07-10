@@ -117,8 +117,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Create the main widget for displaying Tao stuff
     taoWidget = new Widget(this);
     setCentralWidget(taoWidget);
-    connect(taoWidget, SIGNAL(stereoModeChanged(int,int)),
-            this, SLOT(updateStereoscopyAct(int,int)));
 
     // Undo/redo management
     undoStack = new QUndoStack();
@@ -328,25 +326,6 @@ void Window::toggleAnimations()
     bool enable = !taoWidget->hasAnimations();
     taoWidget->enableAnimations(enable);
     viewAnimationsAct->setChecked(enable);
-}
-
-
-void Window::toggleStereoscopy()
-// ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
-// ----------------------------------------------------------------------------
-{
-    bool enable = !taoWidget->hasStereoscopy();
-    taoWidget->enableStereoscopy(enable);
-}
-
-
-void Window::updateStereoscopyAct(int, int)
-// ----------------------------------------------------------------------------
-//   Check or uncheck stereoscopy action
-// ----------------------------------------------------------------------------
-{
-    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
 }
 
 
@@ -721,6 +700,30 @@ void Window::openRecentFile()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
         open(action->data().toString());
+}
+
+
+bool Window::setStereo(bool on)
+// ----------------------------------------------------------------------------
+//    Enable/disable quad buffer stereoscopy for the current GL widget
+// ----------------------------------------------------------------------------
+{
+    QGLFormat current = taoWidget->format();
+    bool stereo = current.stereo();
+    if (stereo == on)
+        return true;
+
+    QGLFormat newFormat(current);
+    newFormat.setStereo(on);
+    IFTRACE(displaymode)
+        std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
+    taoWidget = new Widget(*taoWidget, newFormat);
+    setCentralWidget(taoWidget);
+    taoWidget->show();
+    taoWidget->setFocus();
+    taoWidget->makeCurrent();
+
+    return true;
 }
 
 
@@ -1360,14 +1363,6 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
-    viewStereoscopyAct = new QAction(tr("Stereoscopy"), this);
-    viewStereoscopyAct->setStatusTip(tr("Switch stereoscopy on or off"));
-    viewStereoscopyAct->setCheckable(true);
-    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
-    viewStereoscopyAct->setObjectName("viewStereoscopy");
-    connect(viewStereoscopyAct, SIGNAL(triggered()),
-            this, SLOT(toggleStereoscopy()));
-
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
 #ifndef CFG_NOSRCEDIT
@@ -1485,8 +1480,6 @@ void Window::createMenus()
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
-    if (XL::MAIN->options.enable_stereoscopy)
-        viewMenu->addAction(viewStereoscopyAct);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
     menuBar()->addSeparator();

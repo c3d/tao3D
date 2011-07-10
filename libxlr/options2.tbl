@@ -20,10 +20,6 @@ OPTION(autopull, "Interval for automatic pull in milliseconds",
 OPTVAR(prefer_opengl, bool, false)
 OPTION(opengl, "Prefer OpenGL for rendering", prefer_opengl = true)
 
-OPTVAR(enable_stereoscopy, bool, true)
-OPTION(stereo, "Enable stereoscopy", enable_stereoscopy = true)
-OPTION(nostereo, "Disable stereoscopy", enable_stereoscopy = false)
-
 OPTION(nosplash, "Disable splash screen", ;)
 
 OPTVAR(slideshow, bool, false)

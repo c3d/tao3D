@@ -24,8 +24,6 @@
 #   DEFINES+=CFG_NOGIT
 #     Build without Git support for Tao documents (Git is still used for module
 #     update)
-#   DEFINES+=CFG_NOSTEREO
-#     Build without support for stereoscopic displays
 #   DEFINES+=CFG_NOSRCEDIT
 #     Build without document source editor
 #   DEFINES+=CFG_NOMODPREF

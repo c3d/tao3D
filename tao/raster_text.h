@@ -39,12 +39,15 @@ struct RasterText
     static int printf(const char* format, ...);
     // Set current position (2D window coordinates)
     static void moveTo(coord x, coord y);
+    // Purge instance associated to GL context
+    static void purge(const QGLContext *context);
 
 private:
     RasterText();
     ~RasterText();
 
-    void makeRasterFont();
+    void                makeRasterFont();
+    static RasterText * instance();
 
 private:
     static struct Cleanup
@@ -54,8 +57,8 @@ private:
     {
         ~Cleanup()
         {
-            if (RasterText::instance)
-                delete RasterText::instance;
+            foreach (RasterText *p, instances)
+                delete p;
         }
     } cleanup;
 
@@ -64,7 +67,7 @@ private:
     Point               pos;
 
 private:
-    static RasterText * instance;
+    static QMap<const QGLContext *, RasterText *> instances;
 };
 
 TAO_END

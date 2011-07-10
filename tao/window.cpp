@@ -92,9 +92,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
       fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
-    // Define the icon
-    setWindowIcon(QIcon(":/images/tao.png"));
-
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
     src = new ToolWindow(tr("Document Source"), this, "Tao::Window::src");

@@ -1335,10 +1335,6 @@ void Window::createActions()
     aboutAct->setMenuRole(QAction::AboutRole);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
-    aboutQtAct = new QAction(tr("About &Qt"), this);
-    aboutQtAct->setStatusTip(tr("Show the Qt library's About box"));
-    connect(aboutQtAct, SIGNAL(triggered()), qApp, SLOT(aboutQt()));
-
     preferencesAct = new QAction(tr("&Preferences"), this);
     preferencesAct->setStatusTip(tr("Set application preferences"));
     preferencesAct->setObjectName("preferences");
@@ -1498,7 +1494,6 @@ void Window::createMenus()
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
-    helpMenu->addAction(aboutQtAct);
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(onlineDocAct);
 }

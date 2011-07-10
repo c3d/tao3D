@@ -13,10 +13,22 @@
  *
  * The reference pages also contain some examples.
  *
- * @section secMoreInfo More information
+ * @section secCredits Credits
+ *
+ * Tao Presentations uses the following components:
+ *
+ *   - <b>Qt</b>: Qt is a C++ toolkit for cross-platform application
+ *   development. Qt is a Nokia product. See
+ *   <a href="http://qt.nokia.com/">qt.nokia.com</a> for more information.
+ *   - <b>LLVM</b>: The LLVM Project is a collection of modular and reusable
+ *   compiler and toolchain technologies. See
+ *   <a href="http://llvm.org/">llvm.org</a> for more information.
+ *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
+ *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
+ *   information.
  *
  * You may find more information and the latest news about Tao Presentations on
- * our web site: http://www.taodyne.com.
+ * our web site: <a href="http://taodyne.com/">taodyne.com</a>.
  *
  * @section secGettingStarted Getting started
  *

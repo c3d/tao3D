@@ -78,7 +78,6 @@ Application::Application(int & argc, char ** argv)
     setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
-    setWindowIcon(QIcon(":/images/tao.png"));
 
     // Load translations, based on current locale. Preferences may override
     // current locale.

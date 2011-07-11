@@ -45,7 +45,7 @@ class DisplayDriver
 public:
 
 public:
-    DisplayDriver(Widget *widget);
+    DisplayDriver();
     ~DisplayDriver();
 
     // Methods used by Tao
@@ -172,7 +172,6 @@ protected:
     typedef QMap<QString, DisplayParams>  display_map;
 
 protected:
-    Widget *              widget;
     DisplayParams         current;
 
 protected:

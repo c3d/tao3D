@@ -49,13 +49,17 @@ GeneralPage::GeneralPage(QWidget *parent)
     grid->addWidget(combo, 1, 2);
     QStringList languages = installedLanguages();
     combo->addItem(tr("(System Language)"));
-    // Unfortunately, languages are always in english: vote for QTBUG-1587.
     foreach (QString lang, languages)
     {
-        QLocale locale(lang);
-        // For our purpose "C" means invalid
-        if (locale.name() != "C")
-            combo->addItem(QLocale::languageToString(locale.language()),
+        QString langName;
+        if (lang == "en")
+            langName = "English";
+        else
+        if (lang == "fr")
+            langName = QString::fromUtf8("Fran\303\247ais");
+
+        if (langName != "")
+            combo->addItem(langName,
                            lang);
     }
     QString saved = QSettings().value("uiLanguage", "C").toString();

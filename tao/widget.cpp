@@ -2103,29 +2103,29 @@ uint Widget::showGlErrors()
     uint errorsFound = 0;
     while (err != GL_NO_ERROR)
     {
-        std::ostringstream cerr;
+        QString msg;
         errorsFound++;
         if (!count)
         {
-            cerr << "GL Error: " << (char *) gluErrorString(err)
-                 << " [error code: " << err << "]";
+            char *p = (char *) gluErrorString(err);
+            msg = tr("GL Error: %1 [error code: %2]")
+                    .arg(QString::fromLocal8Bit(p)).arg(err);
             last = err;
         }
         if (err != last || count == 100)
         {
-            cerr << "GL Error: error " << last << " repeated "
-                 << count << " times";
+            msg += tr("GL Error: error %1 repeated %2 times")
+                     .arg(last).arg(count);
             count = 0;
         }
         else
         {
             count++;
         }
-        text msg = cerr.str();
         if (msg.length())
         {
             Window *window = (Window *) parentWidget();
-            window->addError(+msg);
+            window->addError(msg);
         }
         err = glGetError();
     }

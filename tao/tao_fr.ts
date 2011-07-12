@@ -713,22 +713,22 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DebugPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="157"/>
+        <location filename="preferences_pages.cpp" line="161"/>
         <source>Debug traces</source>
         <translation>Traces de debug</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="174"/>
+        <location filename="preferences_pages.cpp" line="178"/>
         <source>Select all</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="177"/>
+        <location filename="preferences_pages.cpp" line="181"/>
         <source>Deselect all</source>
         <translation>Tout déselectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="181"/>
+        <location filename="preferences_pages.cpp" line="185"/>
         <source>Save for next run</source>
         <translation>Enregistrer</translation>
     </message>
@@ -833,17 +833,17 @@ Code : %1
         <translation>(Langue du système)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="71"/>
+        <location filename="preferences_pages.cpp" line="75"/>
         <source>Disable stereoscopy (3D)</source>
         <translation>Désactiver la stéréoscopie (3D)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="116"/>
+        <location filename="preferences_pages.cpp" line="120"/>
         <source>The language change will take effect after a restart of the application.</source>
         <translation>Le changement de langue prendra effet après redémarrage de l&apos;application.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="133"/>
+        <location filename="preferences_pages.cpp" line="137"/>
         <source>The change will take effect after a restart of the application.</source>
         <translation>Le changement prendra effet après redémarrage de l&apos;application.</translation>
     </message>
@@ -1036,32 +1036,32 @@ Emplacement : %2</translation>
 <context>
     <name>Tao::ModulesPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="278"/>
+        <location filename="preferences_pages.cpp" line="282"/>
         <source>Modules are disabled</source>
         <translation>Les modules sont désactivés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="285"/>
+        <location filename="preferences_pages.cpp" line="289"/>
         <source>Installed modules</source>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="305"/>
+        <location filename="preferences_pages.cpp" line="309"/>
         <source>Search</source>
         <translation>Recherche</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="312"/>
+        <location filename="preferences_pages.cpp" line="316"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="390"/>
+        <location filename="preferences_pages.cpp" line="394"/>
         <source>Disable</source>
         <translation>Désactiver</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="390"/>
+        <location filename="preferences_pages.cpp" line="394"/>
         <source>Enable</source>
         <translation>Activer</translation>
     </message>
@@ -1392,7 +1392,7 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     <message>
         <location filename="splash_screen.cpp" line="202"/>
         <source>&lt;h3&gt;Qt&lt;/h3&gt;&lt;p&gt;Qt is a C++ toolkit for cross-platform application development.&lt;/p&gt;&lt;p&gt;Qt is a Nokia product. See &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; for more information.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.&lt;/p&gt;&lt;p&gt;See &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; for more information.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR is a dynamically-compiled language based on parse tree rewrites.&lt;/p&gt;&lt;p&gt;See &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; for more information.&lt;/p&gt;</source>
-        <translation>&lt;h3&gt;Qt&lt;/h3&gt;&lt;p&gt;Qt est une boîte à outils C++ pour le développement d&apos;applications multi-plateforme.&lt;/p&gt;&lt;p&gt;Qt est un produit de Nokia. Cf. &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; pour plus d'informations.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;Le projet LLVM est un ensemble de technologies de compilation et d'outils modulaires et réutilisables.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; pour plus d'informations.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR est un langage compilé dynamiquement basé sur des réécritures d'arbres.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; pour plus d'informations.&lt;/p&gt;</translation>
+        <translation>&lt;h3&gt;Qt&lt;/h3&gt;&lt;p&gt;Qt est une boîte à outils C++ pour le développement d&apos;applications multi-plateforme.&lt;/p&gt;&lt;p&gt;Qt est un produit de Nokia. Cf. &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;Le projet LLVM est un ensemble de technologies de compilation et d&apos;outils modulaires et réutilisables.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR est un langage compilé dynamiquement basé sur des réécritures d&apos;arbres.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;</translation>
     </message>
 </context>
 <context>
@@ -1498,6 +1498,16 @@ Code : %1
         <location filename="widget.cpp" line="1065"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
+    </message>
+    <message>
+        <location filename="widget.cpp" line="2111"/>
+        <source>GL Error: %1 [error code: %2]</source>
+        <translation>Erreur GL : %1 [code d'erreur : %2]</translation>
+    </message>
+    <message>
+        <location filename="widget.cpp" line="2117"/>
+        <source>GL Error: error %1 repeated %2 times</source>
+        <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
         <location filename="widget.cpp" line="9699"/>

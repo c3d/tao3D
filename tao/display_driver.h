@@ -45,7 +45,7 @@ class DisplayDriver
 public:
 
 public:
-    DisplayDriver(Widget *widget);
+    DisplayDriver();
     ~DisplayDriver();
 
     // Methods used by Tao
@@ -55,6 +55,7 @@ public:
     bool                isCurrentDisplayFunctionSameAs(QString name);
     bool                setOption(std::string name, std::string val);
     std::string         getOption(std::string name);
+    static QStringList  allDisplayFunctions();
 
 public:
     // Methods exported by the module API for use by display modules
@@ -171,7 +172,6 @@ protected:
     typedef QMap<QString, DisplayParams>  display_map;
 
 protected:
-    Widget *              widget;
     DisplayParams         current;
 
 protected:

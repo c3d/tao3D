@@ -45,8 +45,7 @@ static void legacyDraw(void *)
 }
 
 
-DisplayDriver::DisplayDriver(Widget *widget)
-        : widget(widget)
+DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
@@ -178,6 +177,15 @@ std::string DisplayDriver::getOption(std::string name)
         debug() << "Read option from display function: " << +current.name
                 << " \"" << name << "\"=\"" << val << "\"\n";
     return val;
+}
+
+
+QStringList DisplayDriver::allDisplayFunctions()
+// ----------------------------------------------------------------------------
+//   Return all registered function names
+// ----------------------------------------------------------------------------
+{
+    return map.keys();
 }
 
 

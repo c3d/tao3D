@@ -249,7 +249,6 @@ private:
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *onlineDocAct;
-    QAction          *aboutQtAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QAction          *viewStereoscopyAct;

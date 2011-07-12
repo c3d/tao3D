@@ -36,6 +36,7 @@
 #include "font_file_manager.h"
 #include "module_manager.h"
 #include "traces.h"
+#include "display_driver.h"
 
 #include <QString>
 #include <QSettings>
@@ -77,7 +78,6 @@ Application::Application(int & argc, char ** argv)
     setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
-    setWindowIcon(QIcon(":/images/tao.png"));
 
     // Load translations, based on current locale. Preferences may override
     // current locale.
@@ -590,6 +590,15 @@ void Application::checkOfflineRendering()
     folder = parms[idx++];
     if (nparms >= 8)
         disp = parms[idx++];
+
+    if (disp == "help")
+    {
+        std::cout << "Available rendering modes are:\n";
+        QStringList names = DisplayDriver::allDisplayFunctions();
+        foreach (QString name, names)
+            std::cout << "  " << +name << "\n";
+        return;
+    }
 
     std::cout << "Starting offline rendering: page=" << page << " x=" << x
               << " y=" << y << " start=" << start << " end=" << end

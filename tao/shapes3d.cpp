@@ -164,9 +164,13 @@ void Cube::Draw(Layout *where)
     };
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
-    glNormalPointer(GL_FLOAT, 0, normals);
+
+    if(where->hasLighting || where->programId)
+    {
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, 0, normals);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -182,14 +186,21 @@ void Cube::Draw(Layout *where)
         for (uint face = 0; face < 6; face++)
             glDrawArrays(GL_LINE_LOOP, 4*face, 4);
 
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexCoord((*it).first);
+           disableTexCoord((*it).first);    
+
+    if(where->hasLighting || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
 
+// ============================================================================
+//
+//    Sphere shape
+//
+// ============================================================================
 
 void Sphere::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -197,12 +208,15 @@ void Sphere::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
+    scale w = bounds.Width();
+    scale h = bounds.Height();
+    scale d = bounds.Depth();
+
+    std::vector<Point3> vertices;
+    std::vector<Point3> normals;
+    std::vector<Point>  textures;
+
     double radius = 0.5;
-
-    std::vector<Vector3> vertices;
-    std::vector<Vector3> normals;
-    std::vector<Vector>  textures;
-
     for (uint j = 0; j < stacks; j++) {
         GLfloat phi      = M_PI * j / stacks;
         GLfloat incr_phi = M_PI * (j + 1) / stacks;
@@ -220,30 +234,29 @@ void Sphere::Draw(Layout *where)
             float cosTheta = cos(theta - M_PI/2) ;
 
             // First vertex
-            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) (j+1) / stacks));
-            normals.push_back(Vector3(cosTheta * sinIncrPhi, cosIncrPhi, sinTheta * sinIncrPhi));
-            vertices.push_back(Vector3(radius * cosTheta * sinIncrPhi,
-                                       radius * cosIncrPhi,
-                                       radius * sinTheta * sinIncrPhi
-                                       ));
+            textures.push_back(Point(1 - (double) i / slices, 1 - (double) (j+1) / stacks));
+            normals.push_back(Point3(cosTheta * sinIncrPhi, cosIncrPhi, sinTheta * sinIncrPhi));
+            vertices.push_back(p + Point3(w * radius * cosTheta * sinIncrPhi,
+                                          h * radius * cosIncrPhi,
+                                          d * radius * sinTheta * sinIncrPhi));
 
             // Second vertex
-            textures.push_back(Vector(1 - (float) i / slices, 1 - (float) j / stacks));
-            normals.push_back(Vector3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi));
-            vertices.push_back(Vector3(radius * cosTheta * sinPhi,
-                                       radius * cosPhi,
-                                       radius * sinTheta * sinPhi));
+            textures.push_back(Point(1 - (double) i / slices, 1 - (double) j / stacks));
+            normals.push_back(Point3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi));
+            vertices.push_back(p + Point3(w * radius * cosTheta * sinPhi,
+                                          h * radius * cosPhi,
+                                          d * radius * sinTheta * sinPhi));
         }
     }
 
-    glPushMatrix();
-    glEnable(GL_NORMALIZE);
-    glTranslatef(p.x, p.y, p.z);
-    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
-    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+
+    if(where->hasLighting || where->programId)
+    {
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -261,11 +274,18 @@ void Sphere::Draw(Layout *where)
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
            disableTexCoord((*it).first);
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
 
-    glPopMatrix();
+    if(where->hasLighting || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
+    glDisableClientState(GL_VERTEX_ARRAY);
 }
+
+// ============================================================================
+//
+//    Torus shape
+//
+// ============================================================================
 
 void Torus::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -276,6 +296,10 @@ void Torus::Draw(Layout *where)
     double minRadius = ratio * 0.25;
     double majRadius = 0.25;
     double thickness = 0.25;
+
+    scale w = bounds.Width();
+    scale h = bounds.Height();
+    scale d = bounds.Depth();
 
     std::vector<Vector3> vertices;
     std::vector<Vector3> normals;
@@ -298,30 +322,29 @@ void Torus::Draw(Layout *where)
             float cosTheta = cos(theta);
 
             // First vertex
-            textures.push_back(Vector((float) i / slices, (float) (j+1) / stacks));
+            textures.push_back(Vector((double) i / slices, (double) (j+1) / stacks));
             normals.push_back(Vector3( sinTheta * cosIncrPhi, sinIncrPhi,  cosTheta * cosIncrPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
-                                        thickness * sinIncrPhi,
-                                        (majRadius + minRadius * cosIncrPhi) * cosTheta)
-                                        );
+            vertices.push_back(p + Vector3(w * (majRadius + minRadius * cosIncrPhi) * sinTheta,
+                                           h * (thickness * sinIncrPhi),
+                                           d * (majRadius + minRadius * cosIncrPhi) * cosTheta));
 
             // Second vertex
-            textures.push_back(Vector((float) i / slices, (float) j / stacks));
+            textures.push_back(Vector((double) i / slices, (double) j / stacks));
             normals.push_back(Vector3(sinTheta * cosPhi, sinPhi, cosTheta * cosPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
-                                        thickness * sinPhi,
-                                        (majRadius + minRadius * cosPhi) * cosTheta));
+            vertices.push_back(p + Vector3(w * (majRadius + minRadius * cosPhi) * sinTheta,
+                                           h * (thickness * sinPhi),
+                                           d * (majRadius + minRadius * cosPhi) * cosTheta));
         }
     }
 
-    glPushMatrix();
-    glEnable(GL_NORMALIZE);
-    glTranslatef(p.x, p.y, p.z);
-    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
-    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+
+    if(where->hasLighting || where->programId)
+    {
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -339,82 +362,99 @@ void Torus::Draw(Layout *where)
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
            disableTexCoord((*it).first);
+
+    if(where->hasLighting || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
     glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glPopMatrix();
 }
 
+// ============================================================================
+//
+//    Cone shape
+//
+// ============================================================================
 
 void Cone::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Draw the cone
+//   Draw the cone within the bounding box
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
     scale w = bounds.Width();
     scale h = bounds.Height();
     scale d = bounds.Depth();
-    std::vector<Point3> tex;
-    std::vector<Point3> geom;
-    std::vector<Vector3> norm;
+
+    std::vector<Point3> vertices;
+    std::vector<Point3> normals;
+    std::vector<Point>  textures;
 
     for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
     {
         double ca = cos(a);
         double sa = sin(a);
-        tex.push_back(Point3(0.5 + 0.5 * ca, 0.5 + 0.5 * sa, 0));
-        geom.push_back(Point3(p.x + w/2* ca, p.y + h/2 * sa, p.z - d/2));
 
-        tex.push_back(Point3(0.5 + 0.5 * ca, 0.5 + 0.5 * sa, 1));
-        geom.push_back(Point3(p.x + w/2* ca * ratio, p.y + h/2 * sa * ratio, p.z + d/2));
+        double s = a / (2 * M_PI);
+        textures.push_back(Point(s, 0));
+        vertices.push_back(Point3(p.x + w/2* ca, p.y + h/2 * sa, p.z - d/2));
+
+        textures.push_back(Point(s, 1));
+        vertices.push_back(Point3(p.x + w/2* ca * ratio, p.y + h/2 * sa * ratio, p.z + d/2));
     }
-
-    // Compute normal of each vertex according to those calculate for neighbouring faces
-    // NOTE: First and last normals are the same because of QUAD_STRIP
-    Vector3 previousFaceNorm, nextFaceNorm;
-    previousFaceNorm = calculateNormal(geom[geom.size() - 2], geom[geom.size() - 1], geom[0]);
-    nextFaceNorm = calculateNormal(geom[0], geom[1], geom[2]);
-    norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
-    norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
-    for(unsigned int i = 2; i < geom.size() - 2; i +=2)
-    {
-        previousFaceNorm = nextFaceNorm;
-        if(i < geom.size() - 2)
-         nextFaceNorm = calculateNormal(geom[i], geom[i + 1], geom[i + 2]);
-        else
-         nextFaceNorm = calculateNormal(geom[geom.size() - 2], geom[geom.size() - 1], geom[0]);
-
-        norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
-        norm.push_back(((previousFaceNorm + nextFaceNorm)/2));
-    }
-    norm.push_back(norm[0]);
-    norm.push_back(norm[0]);
 
     glEnableClientState(GL_VERTEX_ARRAY);
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, &geom[0].x);
-    glNormalPointer(GL_DOUBLE, 0, &norm[0].x);
+    glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
+
+    if(where->hasLighting || where->programId)
+    {
+        // Compute normal of each vertex according to those calculate for neighbouring faces
+        // NOTE: First and last normals are the same because of QUAD_STRIP
+        Vector3 previousFaceNorm, nextFaceNorm;
+        previousFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
+        nextFaceNorm = calculateNormal(vertices[0], vertices[1], vertices[2]);
+        normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+        normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+        for(unsigned int i = 2; i < vertices.size() - 2; i +=2)
+        {
+            previousFaceNorm = nextFaceNorm;
+            if(i < vertices.size() - 2)
+             nextFaceNorm = calculateNormal(vertices[i], vertices[i + 1], vertices[i + 2]);
+            else
+             nextFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
+
+            normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+            normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+        }
+        normals.push_back(normals[0]);
+        normals.push_back(normals[0]);
+
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-            enableTexCoord((*it).first, &tex[0].x);
+            enableTexCoord((*it).first, &textures[0].x);
 
     setTexture(where);
 
     if (setFillColor(where))
-        glDrawArrays(GL_QUAD_STRIP, 0, geom.size());
+        glDrawArrays(GL_QUAD_STRIP, 0, vertices.size());
     if (setLineColor(where))
         // REVISIT: Inefficient and incorrect with alpha
-        for (uint i = 3; i <= geom.size(); i++)
+        for (uint i = 3; i <= vertices.size(); i++)
             glDrawArrays(GL_LINE_LOOP, 0, i);
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
            disableTexCoord((*it).first);
+
+    if(where->hasLighting || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
     glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_NORMAL_ARRAY);
  }
 
 TAO_END

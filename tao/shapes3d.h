@@ -49,6 +49,7 @@ struct Cube : Shape3
     Cube(const Box3 &bounds): Shape3(), bounds(bounds) {}
     virtual void        Draw(Layout *where);
     virtual Box3        Bounds(Layout *);
+
     Box3 bounds;
 };
 
@@ -58,9 +59,10 @@ struct Sphere : Cube
 //   Draw a sphere or ellipsoid
 // ----------------------------------------------------------------------------
 {
-    Sphere(Box3 bounds, uint sl, uint st)
-        : Cube(bounds), slices(sl), stacks(st) {}
+    Sphere(Box3 bounds, uint sl, uint st) : Cube(bounds), slices(sl), stacks(st) {}
     virtual void        Draw(Layout *where);
+
+private:
     uint    slices, stacks;
 };
 
@@ -69,11 +71,13 @@ struct Torus : Cube
 //   Draw a torus
 // ----------------------------------------------------------------------------
 {
-    Torus(Box3 bounds, uint sl, uint st, double r)
-        : Cube(bounds), slices(sl), stacks(st), ratio(r) {}
+    Torus(Box3 bounds, uint sl, uint st, double r) : Cube(bounds), slices(sl), stacks(st), ratio(r) {}
     virtual void        Draw(Layout *where);
+
+private:
     uint    slices, stacks;
     double  ratio;
+
 };
 
 struct Cone : Cube
@@ -83,6 +87,8 @@ struct Cone : Cube
 {
     Cone(Box3 bounds, double tipRatio = 0.0) : Cube(bounds), ratio(tipRatio) {}
     virtual void Draw(Layout *where);
+
+private:
     double ratio;
 };
 

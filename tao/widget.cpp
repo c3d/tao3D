@@ -7298,7 +7298,7 @@ Tree_p Widget::sphere(Tree_p self,
 //     A simple sphere
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
+    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), slices, stacks));
     if (currentShape)
         layout->Add (new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -7327,7 +7327,7 @@ Tree_p Widget::torus(Tree_p self,
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -7342,7 +7342,7 @@ Tree_p Widget::cone(Tree_p self,
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;

@@ -4970,9 +4970,12 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    // Update the current model rotation
-    Quaternion q;
-    layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+    if(! layout->hasTransform)
+    {
+        // Update the current model rotation
+        Quaternion q;
+        layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+    }
 
     layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
@@ -5012,10 +5015,13 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    // Update the current model translation
-    layout->model.tx += tx;
-    layout->model.ty += ty;
-    layout->model.tz += tz;
+    if(! layout->hasTransform)
+    {
+        // Update the current model translation
+        layout->model.tx += tx;
+        layout->model.ty += ty;
+        layout->model.tz += tz;
+    }
 
     layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
@@ -5054,10 +5060,13 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    // Update the current model scaling
-    layout->model.sx *= sx;
-    layout->model.sy *= sy;
-    layout->model.sz *= sz;
+    if(! layout->hasTransform)
+    {
+        // Update the current model scaling
+        layout->model.sx *= sx;
+        layout->model.sy *= sy;
+        layout->model.sz *= sz;
+    }
 
     layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
@@ -6325,10 +6334,11 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     }
 
     layout->hasTextureMatrix |= 1 << texUnit;
+    layout->hasTransform = true;
     layout->Add(new TextureTransform(true, texUnit));
     Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false, texUnit));
-
+    layout->hasTransform = false;
     return result;
 }
 
@@ -7340,7 +7350,7 @@ Tree_p Widget::sphere(Tree_p self,
 //     A simple sphere
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), slices, stacks));
+    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
     if (currentShape)
         layout->Add (new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -7369,7 +7379,7 @@ Tree_p Widget::torus(Tree_p self,
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), slices, stacks, ratio));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -7384,7 +7394,7 @@ Tree_p Widget::cone(Tree_p self,
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), ratio));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;

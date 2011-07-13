@@ -169,6 +169,7 @@ public:
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
     bool                hasAttributes   : 1;
+    bool                hasTransform    : 1;
     uint64              hasTextureMatrix; // 64 texture units
     bool                hasLighting     : 1;
     bool                hasMaterial     : 1;

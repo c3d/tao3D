@@ -153,10 +153,14 @@ void WidgetSurface::repaint()
     dirty = true;
 
     if (widget)
+    {
         if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
-            parent->updateGL();
+        {
+            //parent->updateGL();
+            parent->refreshNow();
+        }
+    }
 }
-
 
 
 // ============================================================================
@@ -173,6 +177,7 @@ WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
       url(NULL), progress(0), inputUrl(""), currentUrl("")
 {
     QWebView *webView = (QWebView *) widget;
+    webView->setObjectName("WebView");
     connect(webView->page(),    SIGNAL(repaintRequested(const QRect &)),
             this,               SLOT(repaint()));
     connect(webView,            SIGNAL(loadFinished(bool)),
@@ -495,8 +500,10 @@ void AbstractButtonSurface::toggled(bool checked)
     }
 
     if (!action)
+    {
+        repaint();
         return;
-
+    }
 
     // Replace "checked" with true or false in input tree
     // REVISIT: Replace with a declaration of "checked" in the tree
@@ -831,6 +838,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     if (urlTree->value != url)
     {
         url = urlTree->value;
+        media->stop();
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
     }

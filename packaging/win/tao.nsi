@@ -8,7 +8,7 @@
 !include "version.nsh"
 
 ; The name of the installer
-Name "Tao Presentations"
+Name "Tao Presentations ${VERSION}"
 
 ; The file to write
 !ifndef OUTFILE
@@ -49,6 +49,10 @@ RequestExecutionLevel admin
 !define MUI_HEADERIMAGE_UNBITMAP "uninst_header.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "inst_welcome_finish.bmp"
 !define MUI_UNWELCOMEFINISHPAGE_BITMAP "uninst_welcome_finish.bmp"
+
+; Request extra space for the title area
+!define MUI_WELCOMEPAGE_TITLE_3LINES
+!define MUI_FINISHPAGE_TITLE_3LINES
 
 ;--------------------------------
 

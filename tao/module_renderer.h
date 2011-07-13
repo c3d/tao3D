@@ -50,10 +50,17 @@ struct ModuleRenderer : Drawing
     static bool   AddToLayout(ModuleApi::render_fn callback, void *arg,
                               ModuleApi::delete_fn del);
 
+    // Set drawing attributes
+    static bool   SetTexture(unsigned int id, unsigned int type);
+    static bool   SetTexCoords(int unit, double* texCoord);
+    static bool   SetFillColor();
+    static bool   SetLineColor();
+
 private:
-    ModuleApi::render_fn  callback;
-    void *                arg;
-    ModuleApi::delete_fn  del;
+    ModuleApi::render_fn   callback;
+    void *                 arg;
+    ModuleApi::delete_fn   del;
+    static std::map<int, double*> texList;
 };
 
 }

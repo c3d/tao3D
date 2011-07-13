@@ -19,7 +19,13 @@
        filters          \
        render_to_texture\
        shading          \
+       materials        \
        lens_flare       \
+       mapping          \
+       display_quadstereo \
+       display_splitstereo \
+       display_intstereo \
+       display_alioscopy \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

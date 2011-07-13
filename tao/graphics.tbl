@@ -28,6 +28,13 @@
 //
 // ============================================================================
 
+PREFIX(WindowSize, tree, "window_size",
+       PARM(w, integer, "Width of the window.")
+       PARM(h, integer, "Height of the window."),
+       RTAO(windowSize(self, w, h)),
+       GROUP(page)
+       SYNOPSIS("Resize the window to the specified width and height."))
+
 PREFIX(ShowHide, tree, "show",
        PARM(amount, real, "Amount of global transparency"),
        RTAO(visibility(self, amount)),
@@ -260,6 +267,12 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        RTAO(shapeAction(self,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
+       DESCRIPTION("Associate the specified code to the mouse over"))       
+PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
+       PARM(t,code, "The code to execute"),
+       RTAO(shapeAction(self,"release",t)),
+       GROUP(mouse)
+       SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
 PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
        PARM(name, symbol, "The name of the feature to test"),
@@ -454,7 +467,7 @@ PREFIX(NoRefreshOn, tree, "no_refresh_on",
        DESCRIPTION("Cancel refresh on specified event type, if it was set to refresh. "
                    "See refresh_on for a list of event type values."))
 PREFIX(DefaultRefresh, tree, "default_refresh",
-       PARM(interval, real, "Interval in seconds"), 
+       PARM(interval, real, "Interval in seconds"),
        RTAO(defaultRefresh(self, interval)),
        GROUP(time:events)
        SYNOPSIS("Change default refresh interval for time primitives")
@@ -592,6 +605,10 @@ PREFIX(SetCameraUp, boolean, "camera_up_vector",
        RTAO(setCameraUpVector(self, x, y, z)),
        GROUP(gui:camera)
        SYNOPSIS("Set the up direction for the camera"))
+PREFIX(GetModelMatrix, infix, "model_matrix", ,
+       RTAO(currentModelMatrix(self)),
+       GROUP(gui)
+       SYNOPSIS("Return the model matrix which convert from object space to world space"))
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
        RTAO(toggleHandCursor(self)),
        GROUP(gui:camera)
@@ -625,9 +642,14 @@ PREFIX(EnableAnimations,  boolean,  "enable_animations",
        SYNOPSIS("Enable or disable animations")
        DESCRIPTION("Enable or disable animations")
        RETURNS(boolean, "True if previous state was on."))
+PREFIX(SetDisplayFunction,  boolean,  "display_mode",
+       PARM(name, text, "The name of the display mode"),
+       RTAO(setDisplayMode(self, name)),
+       SYNOPSIS("Select a display mode (2D, split stereoscopy, etc.)")
+       RETURNS(boolean, "True on success."))
 #ifndef CFG_NOSTEREO
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
-       PARM(mode, symbol, "on or off"),
+       PARM(mode, symbol, "on or off or mode name"),
        RTAO(enableStereoscopy(self, mode)),
        GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")
@@ -928,6 +950,12 @@ PREFIX(TextureHeight,  tree,  "texture_height",,
        SYNOPSIS("Return current texture height")
        DESCRIPTION("Return current texture height")
        RETURNS(tree, "The current texture height"))
+PREFIX(TextureType,  tree,  "texture_type",,
+       RTAO(textureType(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture type.")
+       DESCRIPTION("Return current texture type.")
+       RETURNS(tree, "The current texture type."))
 PREFIX(TextureId,  tree,  "texture",,
        RTAO(textureId(self)),
        GROUP(graph)
@@ -1229,7 +1257,21 @@ PREFIX(Sphere,  tree,  "sphere",
        RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)),
        GROUP(graph)
        SYNOPSIS("sphere like")
-       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]")
+       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]"))
+PREFIX(Torus,  tree,  "torus",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth")
+       PARM(slices, integer, "number of slices")
+       PARM(stacks, integer, "number of stacks")
+       PARM(r, real, "radius"),
+       RTAO(torus(self, x, y, z, w, h, d, slices, stacks, r)),
+       GROUP(graph)
+       SYNOPSIS("torus like")
+       DESCRIPTION("torus[TODO]")
        RETURNS(tree, ""))
 PREFIX(Cube,  tree,  "cube",
        PARM(x, real, "x-coordinate")
@@ -1312,10 +1354,16 @@ PREFIX(TextFlow,  tree,  "text_flow",
        SYNOPSIS("Names the flow")
        DESCRIPTION("Set the name of the current text flow")
        RETURNS(tree, "The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]"))
+PREFIX(TextSpan,  tree, "text_span",
+       PARM(t, code, "The text to insert"),
+       RTAO(textSpan(context, self, t)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of text")
+       DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
 
-PREFIX(TextSpan,  tree, "text",
+PREFIX(TextUnit,  tree, "text",
        PARM(t, text, "The text to insert"),
-       RTAO(textSpan(self, t)),
+       RTAO(textUnit(self, t)),
        GROUP(text)
        SYNOPSIS("Insert a block of text")
        DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
@@ -1517,7 +1565,7 @@ PREFIX(LoadText,  tree,  "load_text",
        RETURNS(tree, "The content of the file."))
 PREFIX(TaoLanguage, text, "tao_language", , RTAO(taoLanguage(self)),
        GROUP(text)
-       SYNOPSIS("Return the current language used by the Tao program") 
+       SYNOPSIS("Return the current language used by the Tao program")
        DESCRIPTION("Returns the two-letter ISO 639 language code of the current locale. For instance: en, fr.")
        RETURNS(text, "The current language code"))
 PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
@@ -1775,6 +1823,25 @@ PREFIX(LineEditTexture,  tree,  "line_edit_texture",
        RTAO(lineEditTexture(self, w, h, u)),
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given line editor")
+       DESCRIPTION(""))
+
+PREFIX(TextEdit,  tree,  "text_edit",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The description of the text"),
+       RTAO(textEdit(context, self, x, y, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("Draw a text editor in the current frame")
+       DESCRIPTION("A text edit allows the user to enter and edit some text with a useful collection of editing functions, including undo and redo, cut and paste, and drag and drop."))
+PREFIX(TextEditTexture,  tree,  "text_edit_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The text to insert in the text edit widget."),
+       RTAO(textEditTexture(context, self, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given editor")
        DESCRIPTION(""))
 
 PREFIX(PushButton,  tree,  "push_button",

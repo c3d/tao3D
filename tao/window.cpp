@@ -48,6 +48,7 @@
 #include "tool_window.h"
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
+#include "module_manager.h"
 
 #include <iostream>
 #include <sstream>
@@ -119,6 +120,8 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Create the main widget for displaying Tao stuff
     taoWidget = new Widget(this);
     setCentralWidget(taoWidget);
+    connect(taoWidget, SIGNAL(stereoModeChanged(int,int)),
+            this, SLOT(updateStereoscopyAct(int,int)));
 
     // Undo/redo management
     undoStack = new QUndoStack();
@@ -338,7 +341,15 @@ void Window::toggleStereoscopy()
 {
     bool enable = !taoWidget->hasStereoscopy();
     taoWidget->enableStereoscopy(enable);
-    viewStereoscopyAct->setChecked(enable);
+}
+
+
+void Window::updateStereoscopyAct(int, int)
+// ----------------------------------------------------------------------------
+//   Check or uncheck stereoscopy action
+// ----------------------------------------------------------------------------
+{
+    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
 }
 
 
@@ -1474,6 +1485,7 @@ void Window::createMenus()
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
+    viewMenu->setObjectName(VIEW_MENU_NAME);
 #ifndef CFG_NOSRCEDIT
     viewMenu->addAction(src->toggleViewAction());
 #endif
@@ -1482,7 +1494,7 @@ void Window::createMenus()
     viewMenu->addAction(viewAnimationsAct);
     if (XL::MAIN->options.enable_stereoscopy)
         viewMenu->addAction(viewStereoscopyAct);
-    viewMenu->addMenu(tr("&Toolbars"))->setObjectName(VIEW_MENU_NAME);
+    viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
     menuBar()->addSeparator();
 
@@ -1502,7 +1514,7 @@ void Window::createToolBars()
 {
     setUnifiedTitleAndToolBarOnMac(unifiedTitleAndToolBarOnMac);
 
-    QMenu *view = findChild<QMenu*>(VIEW_MENU_NAME);
+    QMenu *view = findChild<QMenu*>(TOOLBAR_MENU_NAME);
     fileToolBar = addToolBar(tr("File"));
     fileToolBar->setObjectName("fileToolBar");
     // fileToolBar->addAction(newAct);
@@ -2151,6 +2163,11 @@ void Window::updateContext(QString docPath)
         contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFileNames.push_back(+theme.canonicalFilePath());
+
+    // Load XL files of modules that have no import_name
+    QStringList mods = ModuleManager::moduleManager()->anonymousXL();
+    foreach (QString module, mods)
+        contextFileNames.push_back(+module);
 
     XL::MAIN->LoadContextFiles(contextFileNames);
 }

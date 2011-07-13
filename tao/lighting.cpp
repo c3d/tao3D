@@ -138,6 +138,7 @@ void ShaderValue::Draw(Layout *where)
 
             switch (type)
             {
+            case GL_INT:
             case GL_SAMPLER_1D:
             case GL_SAMPLER_2D:
             case GL_SAMPLER_3D:

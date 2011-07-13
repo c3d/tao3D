@@ -94,10 +94,11 @@ struct FillTexture : Attribute
 //    Record a texture change
 // ----------------------------------------------------------------------------
 {
-    FillTexture(uint glName, uint texUnit): Attribute(), glName(glName), texUnit(texUnit) {}
+    FillTexture(uint glName, uint glUnit, GLenum glType = GL_TEXTURE_2D): Attribute(), glName(glName), glUnit(glUnit), glType(glType) {}
     virtual void Draw(Layout *where);
-    uint  glName;
-    uint  texUnit;
+    uint   glName;
+    uint   glUnit;
+    GLenum glType;
 };
 
 
@@ -106,10 +107,10 @@ struct TextureWrap : Attribute
 //    Record a texture wrapping setting
 // ----------------------------------------------------------------------------
 {
-    TextureWrap(bool s, bool t, uint texUnit): Attribute(), s(s), t(t), texUnit(texUnit) {}
+    TextureWrap(bool s, bool t, uint glUnit): Attribute(), s(s), t(t), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
     bool s, t;
-    uint  texUnit;
+    uint  glUnit;
 };
 
 struct TextureTransform : Attribute
@@ -117,10 +118,10 @@ struct TextureTransform : Attribute
 //    Record a texture transform
 // ----------------------------------------------------------------------------
 {
-    TextureTransform(bool enable, uint texUnit): Attribute(), enable(enable), texUnit(texUnit) {}
+    TextureTransform(bool enable, uint glUnit): Attribute(), enable(enable), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
     bool  enable;
-    uint  texUnit;
+    uint  glUnit;
 };
 
 

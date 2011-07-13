@@ -75,6 +75,7 @@
 #include "tree-walk.h"
 #include "raster_text.h"
 #include "dir.h"
+#include "display_driver.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -94,6 +95,16 @@
 #include <string.h>
 
 #include <QtGui>
+
+#ifdef MACOSX_DISPLAYLINK
+#include <CoreVideo/CoreVideo.h>
+
+enum MacOSWidgetEventType
+{
+    DisplayLink = QEvent::User,
+    UpdateGL    = QEvent::User + 1,
+};
+#endif
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
 
@@ -161,7 +172,14 @@ Widget::Widget(Window *parent, SourceFile *sf)
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
-      timer(), dfltRefresh(0.04), idleTimer(this),
+#ifdef MACOSX_DISPLAYLINK
+      displayLink(NULL), displayLinkStarted(false),
+      pendingDisplayLinkEvent(false),
+      stereoSkip(0), holdOff(false), droppedFrames(0),
+#else
+      timer(),
+#endif
+      dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
       stats_interval(5000),
@@ -251,8 +269,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
     //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &(TaoApp->maxTextureCoords));
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &(TaoApp->maxTextureUnits));
- }
 
+    // Create the object we will use to render frames
+    displayDriver = new DisplayDriver(this);
+}
 
 Widget::~Widget()
 // ----------------------------------------------------------------------------
@@ -262,6 +282,16 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
+
+#ifdef MACOSX_DISPLAYLINK
+    if (displayLink)
+    {
+        if (displayLinkStarted)
+            CVDisplayLinkStop(displayLink);
+        CVDisplayLinkRelease(displayLink);
+        displayLink = NULL;
+    }
+#endif
 }
 
 
@@ -354,12 +384,77 @@ void Widget::setupPage()
 }
 
 
+void Widget::drawScene()
+// ----------------------------------------------------------------------------
+//   Draw all objects in the scene
+// ----------------------------------------------------------------------------
+{
+    id = idDepth = 0;
+    space->ClearAttributes();
+    space->Draw(NULL);
+}
+
+
+void Widget::drawSelection()
+// ----------------------------------------------------------------------------
+//   Draw selection items for all objects (selection boxes, manipulators)
+// ----------------------------------------------------------------------------
+{
+    id = idDepth = 0;
+    selectionTrees.clear();
+    space->ClearAttributes();
+    space->DrawSelection(NULL);
+}
+
+
+void Widget::drawActivities()
+// ----------------------------------------------------------------------------
+//   Draw chooser, selection rectangle, display statistics
+// ----------------------------------------------------------------------------
+{
+    SpaceLayout selectionSpace(this);
+    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+    setupGL();
+    glDisable(GL_DEPTH_TEST);
+    for (Activity *a = activities; a; a = a->Display()) ;
+    selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
+                               // Isn't everything drawn by a->Display()?
+    glEnable(GL_DEPTH_TEST);
+
+    // Show FPS as text overlay
+    if (bShowStatistics)
+        printStatistics();
+}
+
+
+void Widget::setGlClearColor()
+// ----------------------------------------------------------------------------
+//   Call glClearColor with the color specified in the widget
+// ----------------------------------------------------------------------------
+{
+    qreal r, g, b, a;
+    clearCol.getRgbF(&r, &g, &b, &a);
+    glClearColor (r, g, b, a);
+}
+
+
+void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
+// ----------------------------------------------------------------------------
+//   Get camera characteristics
+// ----------------------------------------------------------------------------
+{
+    if (position) *position = cameraPosition;
+    if (target)   *target   = cameraTarget;
+    if (upVector) *upVector = cameraUpVector;
+}
+
+
 void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-    // In offline renderin mode, just keep the widget clear
+    // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -374,7 +469,6 @@ void Widget::draw()
     TaoSave saveCurrent(current, this);
 
     // Setup the initial drawing environment
-    uint w = width(), h = height();
     setupPage();
 
 
@@ -393,11 +487,63 @@ void Widget::draw()
         runProgram();
     }
 
-    // After we are done, draw the space with all the drawings in it
-    // If we are in stereoscopice mode, we draw twice, once for each eye
-    qreal r, g, b, a;
-    clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+
+    // Run current display algorithm
+    stereoscopic = 1; // FIXME - REVISIT:
+                      // Without this, mouse tracking won't work if display
+                      // function is not legacyDraw().
+                      // But, in any case setting stereoscopic = 1 is not
+                      // the solution, because we don't want to record mouse
+                      // coordinates multiple times when rendering for multiple
+                      // point of views.
+                      // What interface do we need to export to the display
+                      // modules?
+    displayDriver->display();
+
+
+    // One more complete view rendered
+    if (bShowStatistics)
+        updateStatistics();
+
+    // Remember number of elements drawn for GL selection buffer capacity
+    if (maxId < id + 100 || maxId > 2 * (id + 100))
+        maxId = id + 100;
+
+    // Clipboard management
+    checkCopyAvailable();
+
+    // If we must update dialogs, do it now
+    if (mustUpdateDialogs)
+    {
+        mustUpdateDialogs = false;
+        if (colorDialog)
+            updateColorDialog();
+        if (fontDialog)
+            updateFontDialog();
+    }
+
+    if (selectionChanged)
+    {
+        Window *window = (Window *) parentWidget();
+        selectionChanged = false;
+
+        // TODO: honoring isReadOnly involves more than just this
+        if (!window->isReadOnly)
+            updateProgramSource();
+    }
+}
+
+
+void Widget::legacyDraw()
+// ----------------------------------------------------------------------------
+//    Legacy code before display modules. Still the default rendered.
+// ----------------------------------------------------------------------------
+{
+    // Draw the space with all the drawings in it
+    // If we are in stereoscopic mode, we draw twice, once for each eye
+    uint w = width(), h = height();
+
+    setGlClearColor();
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Generate depth map if necessary
@@ -462,7 +608,7 @@ void Widget::draw()
                     glDrawBuffer(GL_BACK_LEFT);
                 else if (stereoscopic == 2)
                     glDrawBuffer(GL_BACK_RIGHT);
-                glClearColor(r, g, b, a);
+                setGlClearColor();
                 glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
                 glDisable(GL_STENCIL_TEST);
                 break;
@@ -487,7 +633,7 @@ void Widget::draw()
                 glDrawBuffer(GL_BACK_LEFT);
             else if (stereoscopic == 2)
                 glDrawBuffer(GL_BACK_RIGHT);
-                
+
             glDisable(GL_STENCIL_TEST);
         }
 
@@ -495,15 +641,7 @@ void Widget::draw()
         setup(w, h);
         glClear(GL_DEPTH_BUFFER_BIT);
 
-        id = idDepth = 0;
-
-        // Warning: Using a GL display list here can result in *lower*
-        // performance than direct GL calls!
-        // On MacOSX, profiling shows that glEndList() can take quite a long
-        // time (~60ms average on a moderately complex scene including
-        // a 400k-triangle object rendered by GLC_Lib)
-        space->ClearAttributes();
-        space->Draw(NULL);
+        drawScene();
 
         IFTRACE(memory)
             std::cerr << "Draw, count = " << space->count
@@ -522,6 +660,7 @@ void Widget::draw()
             glEnable(GL_SCISSOR_TEST);
             glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
             glDisable(GL_SCISSOR_TEST);
+            glDisable(GL_TEXTURE_2D);
             space->ClearAttributes();
             space->Draw(NULL);
             glViewport(0, 0, w/2, h);
@@ -532,37 +671,30 @@ void Widget::draw()
         if (bShowStatistics)
             printStatistics();
 
-        id = idDepth = 0;
-        selectionTrees.clear();
-        space->ClearAttributes();
-        space->DrawSelection(NULL);
+        // Draw object selections, manipulators
+        drawSelection();
 
-        // Render all activities, e.g. the selection rectangle
-        setupGL();
-        glDisable(GL_DEPTH_TEST);
-        SpaceLayout selectionSpace(this);
-        XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+        // Draw selection rectangle, chooser
+        drawActivities();
 
-        for (Activity *a = activities; a; a = a->Display()) ;
-        selectionSpace.Draw(NULL);
-        if (stereoMode == stereoDEPTHMAP && depthMapper)
-        {
-            glViewport(w/2, 0, w/2, h);
-            id = idDepth = 0;
-            depthMapper->bind();
-            XL::Save<uint> setPgmId(Layout::globalProgramId,
-                                    depthMapper->programId());
-            glScissor(w/2, 0, w/2, h);
-            glEnable(GL_SCISSOR_TEST);
-            selectionSpace.Draw(NULL);
-            glDisable(GL_SCISSOR_TEST);
-            glUseProgram(0);
-        }
-
-        glEnable(GL_DEPTH_TEST);
+//        if (stereoMode == stereoDEPTHMAP && depthMapper)
+//        {
+//            glDisable(GL_DEPTH_TEST);
+//            glViewport(w/2, 0, w/2, h);
+//            id = idDepth = 0;
+//            depthMapper->bind();
+//            XL::Save<uint> setPgmId(Layout::globalProgramId,
+//                                    depthMapper->programId());
+//            glScissor(w/2, 0, w/2, h);
+//            glEnable(GL_SCISSOR_TEST);
+//            selectionSpace.Draw(NULL);
+//            glDisable(GL_SCISSOR_TEST);
+//            glUseProgram(0);
+//            glEnable(GL_DEPTH_TEST);
+//        }
     }
 
-    // Generate depth map if necessary
+    // Generate header for depth map display, if necessary
     if (stereoMode == stereoDEPTHMAP)
     {
         static uchar wowvxHeader[32] =
@@ -635,36 +767,6 @@ void Widget::draw()
         glAccum(GL_RETURN, 1.0);
     }
 
-    // One more complete view rendered
-    if (bShowStatistics)
-        updateStatistics();
-
-    // Remember number of elements drawn for GL selection buffer capacity
-    if (maxId < id + 100 || maxId > 2 * (id + 100))
-        maxId = id + 100;
-
-    // Clipboard management
-    checkCopyAvailable();
-
-    // If we must update dialogs, do it now
-    if (mustUpdateDialogs)
-    {
-        mustUpdateDialogs = false;
-        if (colorDialog)
-            updateColorDialog();
-        if (fontDialog)
-            updateFontDialog();
-    }
-
-    if (selectionChanged)
-    {
-        Window *window = (Window *) parentWidget();
-        selectionChanged = false;
-
-        // TODO: honoring isReadOnly involves more than just this
-        if (!window->isReadOnly)
-            updateProgramSource();
-    }
 }
 
 
@@ -685,6 +787,23 @@ bool Widget::refreshNow(QEvent *event)
     if (inError || inDraw)
         return false;
 
+    if (gotoPageName != "")
+    {
+        IFTRACE(pages)
+            std::cerr << "Goto page request: '" << gotoPageName
+                      << "' from '" << pageName << "'\n";
+        pageName = gotoPageName;
+        frozenTime = pageStartTime = startTime = CurrentTime();
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == gotoPageName)
+                pageShown = p + 1;
+        gotoPageName = "";
+        IFTRACE(pages)
+            std::cerr << "New page number is " << pageShown << "\n";
+        event = NULL; // Force full refresh
+    }
+
+    setCurrentTime();
     bool changed = false;
     double now = CurrentTime();
     if (!event || space->NeedRefresh(event, now))
@@ -799,7 +918,7 @@ void Widget::runProgram()
 
     //Clean actionMap
     actionMap.clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = optimalDefaultRefresh();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -855,23 +974,7 @@ void Widget::runProgram()
     else
         pageName = pageNameAtIndex(NULL, pageShown)->value;
 
-    // Check if program asked to change page for the next run
-    if (gotoPageName != "")
-    {
-        IFTRACE(pages)
-            std::cerr << "Goto page request: '" << gotoPageName
-                      << "' from '" << pageName << "'\n";
-        pageName = gotoPageName;
-        frozenTime = pageStartTime = startTime = CurrentTime();
-        for (uint p = 0; p < pageNames.size(); p++)
-            if (pageNames[p] == gotoPageName)
-                pageShown = p + 1;
-        gotoPageName = "";
-        IFTRACE(pages)
-            std::cerr << "New page number is " << pageShown << "\n";
-        refresh();
-    }
-
+    // Check pending events
     processProgramEvents();
 
     if (!dragging)
@@ -1069,7 +1172,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         Layout::polygonOffset = 0;
         setup(w, h);
         frame.begin();
-        glClearColor(clearCol.redF(), clearCol.greenF(), clearCol.blueF(), 1.0);
+        glClearColor(clearCol.redF(),clearCol.greenF(),clearCol.blueF(),1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         space->Draw(NULL);
         frame.end();
@@ -1542,12 +1645,10 @@ void Widget::enableAnimations(bool enable)
 //   Enable or disable animations on the page
 // ----------------------------------------------------------------------------
 {
-    animated = enable;
+    if (enable)
+        pageStartTime += (trueCurrentTime() - frozenTime);
     frozenTime = CurrentTime();
-    if (animated)
-        startRefreshTimer();
-    else
-        timer.stop();
+    startRefreshTimer(animated = enable);
 }
 
 
@@ -1705,6 +1806,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.clear();
     stats_start.start();
+#ifdef MACOSX_DISPLAYLINK
+    droppedFrames = 0;
+#endif
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width, height);
 
@@ -1765,7 +1869,7 @@ void Widget::setup(double w, double h, const Box *picking)
             break;
         case stereoVSPLIT:
             vh /= 2;
-            if (stereoscopic == 2)
+            if (stereoscopic == 1)
                 vy = vh;
         default:
             break;
@@ -2424,8 +2528,9 @@ void Widget::keyPressEvent(QKeyEvent *event)
     Activity *next;
     for (Activity *a = activities; a; a = next)
     {
+        Activity * n = a->next;
         next = a->Key(key);
-        handled |= next != a->next;
+        handled |= next != n;
     }
 
     // If the key was not handled by any activity, forward to document
@@ -2644,14 +2749,173 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
-void Widget::startRefreshTimer()
+#ifdef MACOSX_DISPLAYLINK
+
+static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
+                                    const CVTimeStamp *now,
+                                    const CVTimeStamp *outputTime,
+                                    CVOptionFlags flagsIn,
+                                    CVOptionFlags *flagsOut,
+                                    void *displayLinkContext)
+// ----------------------------------------------------------------------------
+//    MacOSX Core Video display link callback.
+// ----------------------------------------------------------------------------
+//    Using a display link is a way to implement precise timers, synchronized
+//    with screen refresh.
+//    See http://developer.apple.com/library/mac/#qa/qa1385/_index.html.
+//    This method is called from a thread that is NOT the GUI thread, so we
+//    can't do much here. We will just post an event to be processed ASAP by
+//    the main thread, to reevaluate any part of the document, and then redraw
+//    the scene as needed.
+{
+    Q_UNUSED(displayLink);
+    Q_UNUSED(now);
+    Q_UNUSED(outputTime);
+    Q_UNUSED(flagsIn);
+    Q_UNUSED(flagsOut);
+
+    Widget *w = (Widget*)displayLinkContext;
+    w->displayLinkEvent();
+
+    return kCVReturnSuccess;
+}
+
+
+void Widget::displayLinkEvent()
+// ----------------------------------------------------------------------------
+//    Post a user event to the GUI thread (this is our OpenGL refresh timer)
+// ----------------------------------------------------------------------------
+{
+    // Stereoscopy with quad buffers: scene refresh rate is half of screen
+    // frequency
+    if (XL::MAIN->options.enable_stereoscopy && (++stereoSkip % 2 == 0))
+        return;
+
+    // Post event to main thread (have no more than one event pending,
+    // otherwise it means we can't keep up => dropped frame)
+    displayLinkMutex.lock();
+    bool pending = pendingDisplayLinkEvent;
+    pendingDisplayLinkEvent = true;
+    displayLinkMutex.unlock();
+    if (!pending)
+        qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
+    else
+        droppedFrames++;
+}
+
+
+bool Widget::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Special treatment for events of the MacOSWidgetEvent type
+// ----------------------------------------------------------------------------
+{
+    switch (event->type())
+    {
+    case DisplayLink:
+        {
+        displayLinkMutex.lock();
+        pendingDisplayLinkEvent = false;
+        displayLinkMutex.unlock();
+        if (holdOff)
+        {
+            holdOff = false;
+            return true;
+        }
+        QTimerEvent e(0);
+        timerEvent(&e);
+        return true;
+        }
+    case UpdateGL:
+        refreshNow(event);
+        return true;
+    case QEvent::MouseMove:
+    case QEvent::KeyPress:
+    case QEvent::KeyRelease:
+        // Skip next frame, to keep some processing power for subsequent
+        // user events. This effectively gives a higher priority to them
+        // than to timer events.
+        holdOff = true;
+        break;
+    default:
+        break;
+    }
+
+    return QGLWidget::event(event);
+}
+
+static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
+// ----------------------------------------------------------------------------
+//    Return the display ID where the largest part of widget is
+// ----------------------------------------------------------------------------
+{
+    CGDirectDisplayID id = kCGDirectMainDisplay;
+    QDesktopWidget *dw = qApp->desktop();
+    if (dw)
+    {
+        int index = dw->screenNumber(widget);
+        if (index != -1)
+        {
+            QRect rect = dw->screenGeometry(index);
+            QPoint c = rect.center();
+
+            const int max = 64;   // Should be enough for any system
+            CGDisplayErr st;
+            CGDisplayCount count;
+            CGDirectDisplayID displayIDs[max];
+            CGPoint point;
+
+            point.x = c.x();
+            point.y = c.y();
+            st = CGGetDisplaysWithPoint(point, max, displayIDs, &count);
+            if (st == kCGErrorSuccess && count == 1)
+                id = displayIDs[0];
+        }
+    }
+    return id;
+}
+
+#endif
+
+
+void Widget::startRefreshTimer(bool on)
 // ----------------------------------------------------------------------------
 //    Make sure refresh timer runs if it has to
 // ----------------------------------------------------------------------------
 {
+    if (!on)
+    {
+#ifdef MACOSX_DISPLAYLINK
+        if (displayLink && displayLinkStarted)
+        {
+            CVDisplayLinkStop(displayLink);
+            displayLinkStarted = false;
+        }
+#else
+        timer.stop();
+#endif
+        return;
+    }
+
     if (inError || !animated)
         return;
 
+#ifdef MACOSX_DISPLAYLINK
+    if (!displayLink)
+    {
+        // Create display link
+        CVDisplayLinkCreateWithCGDisplay(getCurrentDisplayID(this),
+                                         &displayLink);
+        // Set render callback
+        if (displayLink)
+            CVDisplayLinkSetOutputCallback(displayLink, &displayLinkCallback,
+                                           this);
+    }
+    if (displayLink && !displayLinkStarted)
+    {
+        CVDisplayLinkStart(displayLink);
+        displayLinkStarted = true;
+    }
+#else
     assert(space || !"No space layout");
     double next = space->NextRefresh();
     if (next != DBL_MAX)
@@ -2669,6 +2933,7 @@ void Widget::startRefreshTimer()
             timer.stop();
         timer.start(ms, this);
     }
+#endif
 }
 
 
@@ -2679,6 +2944,12 @@ void Widget::timerEvent(QTimerEvent *event)
 {
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
+
+#ifdef MACOSX_DISPLAYLINK
+    setCurrentTime();
+    if (CurrentTime() < space->NextRefresh())
+        return;
+#else
     bool is_refresh_timer = (event->timerId() == timer.timerId());
     if (is_refresh_timer)
     {
@@ -2694,6 +2965,8 @@ void Widget::timerEvent(QTimerEvent *event)
             return startRefreshTimer();
         }
     }
+#endif
+
     forwardEvent(event);
 }
 
@@ -2857,7 +3130,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     if (sourceChanged())
         return;
     space->Clear();
-    dfltRefresh = 0.04;
+    dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
@@ -3568,13 +3841,18 @@ void Widget::printStatistics()
         double n = (double)stats.size() * 1000 / stats_interval;
         snprintf(fps, sizeof(fps), "%5.1f", n);
     }
+    char dropped[20] = "";
+#ifdef MACOSX_DISPLAYLINK
+    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
+#endif
     GLint vp[4] = {0,0,0,0};
     GLint vx, vy, vw, vh;
 
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
-    RasterText::printf("%dx%dx%d  %s fps", vw, vh, stereoPlanes, fps);
+    RasterText::printf("%dx%dx%d  %s fps%s", vw, vh, stereoPlanes, fps,
+                       dropped);
 }
 
 
@@ -3858,7 +4136,7 @@ static inline void resetLayout(Layout *where)
     {
         where->lineWidth = 1;
         where->textureUnits = 1;
-        where->previousUnits = 1;
+        where->previousUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         (where->fillTextures).clear();
@@ -4081,7 +4359,7 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
     IFTRACE(pages)
         std::cerr << "Goto page '" << page << "' from '" << pageName << "'\n";
     gotoPageName = page;
-    refreshNow();
+    refresh(0);
     return new Text(old);
 }
 
@@ -4585,8 +4863,10 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     AnchorLayout *anchor = new AnchorLayout(this);
-    anchor->id = selectionId();
-    layout->Add(anchor);
+    layout->AddChild(selectionId(), child, context, anchor);
+    IFTRACE(layoutevents)
+        std::cerr << "Anchor " << anchor
+                  << " id " << anchor->PrettyId() << "\n";
     XL::Save<Layout *> saveLayout(layout, anchor);
     if (selectNextTime.count(self))
     {
@@ -4650,6 +4930,10 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
+    // Update the current model rotation
+    Quaternion q;
+    layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+
     layout->Add(new Rotation(ra, rx, ry, rz));
     layout->hasMatrix = true;
     return XL::xl_true;
@@ -4688,6 +4972,11 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
+    // Update the current model translation
+    layout->model.tx += tx;
+    layout->model.ty += ty;
+    layout->model.tz += tz;
+
     layout->Add(new Translation(tx, ty, tz));
     layout->hasMatrix = true;
     return XL::xl_true;
@@ -4720,14 +5009,27 @@ Tree_p Widget::rescalez(Tree_p self, Real_p z)
     return rescale(self, r(1), r(1), z);
 }
 
-
 Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 // ----------------------------------------------------------------------------
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
+    // Update the current model scaling
+    layout->model.sx *= sx;
+    layout->model.sy *= sy;
+    layout->model.sz *= sz;
+
     layout->Add(new Scale(sx, sy, sz));
     layout->hasMatrix = true;
+    return XL::xl_true;
+}
+
+Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
+// ----------------------------------------------------------------------------
+//   Resize the main window to the specified size.
+// ----------------------------------------------------------------------------
+{
+    ((QMainWindow*)parent())->resize(width->value, height->value);
     return XL::xl_true;
 }
 
@@ -4784,6 +5086,26 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     return new XL::Real(prev);
 }
 
+
+double Widget::optimalDefaultRefresh()
+// ----------------------------------------------------------------------------
+//    Set default refresh for best results
+// ----------------------------------------------------------------------------
+{
+    // The optimal value for default_refresh is either:
+    //  - 0.0 when OpenGL refresh is sync'ed with the display, for instance on
+    //    MacOSX with display link, and/or when VSync is enabled;
+    //  - 0.015 when the drawing loop runs freely -- assuming a 60Hz display.
+    //    Using 0.0 in this case would uselessly tax the CPU.
+#ifdef MACOSX_DISPLAYLINK
+    return 0.0;
+#endif
+    if (VSyncEnabled())
+        return 0.0;
+    return 0.016;
+}
+
+
 #ifndef CFG_NOSRCEDIT
 
 XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
@@ -4806,6 +5128,9 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
+#ifdef MACOSX_DISPLAYLINK
+    CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
+#endif
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -4981,13 +5306,8 @@ Infix_p Widget::currentCameraPosition(Tree_p self)
 //   Return the current camera position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraPosition.x),
-                              new Infix(",",
-                                        new Real(cameraPosition.y),
-                                        new Real(cameraPosition.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraPosition.x);
+    return result->AsInfix();
 }
 
 
@@ -5012,13 +5332,8 @@ Infix_p Widget::currentCameraTarget(Tree_p self)
 //   Return the current center position
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix = new Infix(",",
-                              new Real(cameraTarget.x),
-                              new Infix(",",
-                                        new Real(cameraTarget.y),
-                                        new Real(cameraTarget.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraTarget.x);
+    return result->AsInfix();
 }
 
 
@@ -5043,13 +5358,8 @@ Infix_p Widget::currentCameraUpVector(Tree_p self)
 //   Return the current up vector
 // ----------------------------------------------------------------------------
 {
-    Infix_p infix =  new Infix(",",
-                               new Real(cameraUpVector.x),
-                               new Infix(",",
-                                         new Real(cameraUpVector.y),
-                                         new Real(cameraUpVector.z)));
-    infix->SetSymbols(self->Symbols());
-    return infix;
+    Tree *result = xl_real_list(self, 3, &cameraUpVector.x);
+    return result->AsInfix();
 }
 
 
@@ -5125,6 +5435,19 @@ Real_p Widget::getZFar(Tree_p self)
     return new Real(zFar);
 }
 
+Infix_p Widget::currentModelMatrix(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current model matrix which convert from object space to world space
+// ----------------------------------------------------------------------------
+{
+    Matrix4 matrix;
+    matrix.Scale(layout->model.sx, layout->model.sy, layout->model.sz);
+    matrix.Rotate(layout->model.rotation);
+    matrix.Translate(layout->model.tx, layout->model.ty, layout->model.tz);
+
+    Tree *result = xl_real_list(self, 16, matrix.Data());
+    return result->AsInfix();
+}
 
 Integer_p Widget::lastModifiers(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -5145,6 +5468,26 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
     if (oldFs != fs)
         window->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Select a display function
+// ----------------------------------------------------------------------------
+{
+    bool ok = displayDriver->setDisplayFunction(+name);
+    if (ok)
+    {
+        std::string pov = displayDriver->getOption("PointsOfView");
+        if (pov == "")
+            pov = "1";
+        stereoPlanes = (+pov).toInt();
+        updateGL();
+        return XL::xl_true;
+    }
+    std::cerr << "Could not select display mode " << name << "\n";
+    return XL::xl_false;
 }
 
 
@@ -5213,17 +5556,15 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     else if (name->value == "bogusquadbuffers")
     {
         bogusQuadBuffers = true;
+        displayDriver->setOption("bogusquadbuffers", "on");
     }
     else
     {
         std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
     }
 
-    Window *window = (Window *) parentWidget();
     if (oldState != newState)
     {
-        window->toggleStereoscopy();
-
         if (!newState)
             stereoPlanes = 1;
         else if (stereoPlanes == 1)
@@ -5231,6 +5572,8 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     }
     if (stereoMode > stereoHARDWARE)
         setupStereoStencil(width(), height());
+
+    emit stereoModeChanged(stereoMode, stereoPlanes);
 
     return oldState ? XL::xl_true : XL::xl_false;
 }
@@ -5241,12 +5584,16 @@ XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
 //   Set the number of planes
 // ----------------------------------------------------------------------------
 {
+    bool changed = (planes != (uint)stereoPlanes);
     if (planes > 1)
     {
         stereoPlanes = planes;
         if (stereoMode > stereoHARDWARE)
             setupStereoStencil(width(), height());
     }
+    if (changed)
+        emit stereoModeChanged(stereoMode, stereoPlanes);
+
     return XL::xl_true;
 }
 
@@ -5290,7 +5637,9 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
 #elif defined(Q_OS_WIN)
     typedef BOOL (*set_fn_t) (int interval);
     typedef int  (*get_fn_t) (void);
+    static
     set_fn_t set_fn = (set_fn_t) wglGetProcAddress("wglSwapIntervalEXT");
+    static
     get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
     int old = 0;
     if (set_fn && get_fn) {
@@ -5308,6 +5657,28 @@ XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
     // Command not supported, but do it silently
     return XL::xl_false;
 #endif
+}
+
+
+bool Widget::VSyncEnabled()
+// ----------------------------------------------------------------------------
+//   Return true if vsync is enable, false otherwise
+// ----------------------------------------------------------------------------
+{
+#if defined(Q_OS_MACX)
+    GLint old = 0;
+    CGLGetParameter(CGLGetCurrentContext(), kCGLCPSwapInterval, &old);
+#elif defined(Q_OS_WIN)
+    typedef int  (*get_fn_t) (void);
+    static
+    get_fn_t get_fn = (get_fn_t) wglGetProcAddress("wglGetSwapIntervalEXT");
+    int old = 0;
+    if (get_fn)
+        old = get_fn();
+#else
+    int old = 0;
+#endif
+    return (old != 0);
 }
 
 
@@ -5476,7 +5847,9 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 {
     CHECK_0_1_RANGE(a);
     QColor c = colorByName(name);
-    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
+    FillColor * fillColor = new FillColor(c.redF(), c.greenF(), c.blueF(), a);
+    layout->fillColor = fillColor->color;
+    layout->Add(fillColor);
     return XL::xl_true;
 }
 
@@ -5592,6 +5965,10 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
     }
 
     uint texUnit = layout->currentTexture.unit;
+
+    layout->currentTexture.id   = id;
+    layout->currentTexture.type = GL_TEXTURE_2D;
+
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
     return new XL::Integer(texId);
@@ -5602,6 +5979,9 @@ Integer* Widget::fillTexture(Tree_p self, text img)
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
 {
+    uint texUnit = 0;
+    uint texId = 0;
+
     if (img != "")
     {
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
@@ -5610,17 +5990,20 @@ Integer* Widget::fillTexture(Tree_p self, text img)
             rinfo = new ImageTextureInfo();
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
-        layout->currentTexture.id = rinfo->bind(img);
-        layout->currentTexture.width = rinfo->width;
-        layout->currentTexture.height = rinfo->height;
-    }
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        layout->currentTexture.id     = rinfo->bind(img);
+        layout->currentTexture.width  = rinfo->width;
+        layout->currentTexture.height = rinfo->height;
+        layout->currentTexture.type   = GL_TEXTURE_2D;
+
+        texUnit = layout->currentTexture.unit;
+        texId   = layout->currentTexture.id;
+    }
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5629,7 +6012,10 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
-{
+{       
+    uint texUnit = 0;
+    uint texId = 0;
+
     refreshOn(QEvent::Timer);
 
     if (img != "")
@@ -5640,17 +6026,19 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
             rinfo = new AnimatedTextureInfo();
             self->SetInfo<AnimatedTextureInfo>(rinfo);
         }
-        layout->currentTexture.id = rinfo->bind(img);
-        layout->currentTexture.width = rinfo->width;
+        layout->currentTexture.id     = rinfo->bind(img);
+        layout->currentTexture.width  = rinfo->width;
         layout->currentTexture.height = rinfo->height;
-    }
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        texUnit = layout->currentTexture.unit;
+        texId   = layout->currentTexture.id;
+    }
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
 Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
@@ -5660,6 +6048,9 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
+    uint texUnit = 0;
+    uint texId = 0;
+
     refreshOn(QEvent::Timer);
 
     if (img != "")
@@ -5671,17 +6062,19 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
             self->SetInfo<SvgRendererInfo>(rinfo);
         }
 
-        layout->currentTexture.id = rinfo->bind(img);
-        layout->currentTexture.width = rinfo->w;
+        layout->currentTexture.id     = rinfo->bind(img);
+        layout->currentTexture.width  = rinfo->w;
         layout->currentTexture.height = rinfo->h;
-    }
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        texUnit = layout->currentTexture.unit;
+        texId   = layout->currentTexture.id;
+    }
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5717,17 +6110,19 @@ Integer* Widget::image(Context *context,
         rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
+
+    layout->currentTexture.id     = rinfo->bind(filename);
+    layout->currentTexture.width  = rinfo->width;
+    layout->currentTexture.height = rinfo->height;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
+
+    uint texUnit = layout->currentTexture.unit;
+    uint texId   = layout->currentTexture.id;
+
     double w0 = rinfo->width;
     double h0 = rinfo->height;
     double w = w0 * sx;
     double h = h0 * sy;
-
-    layout->currentTexture.id = rinfo->bind(filename);
-    layout->currentTexture.width = rinfo->width;
-    layout->currentTexture.height = rinfo->height;
-
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
@@ -5737,7 +6132,7 @@ Integer* Widget::image(Context *context,
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return new XL::Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -5790,29 +6185,29 @@ Infix_p Widget::imageSize(Context *context,
         w = t.width; h = t.height;
     }
 
-    Infix *result = new Infix(",", new Integer(w), new Integer(h));
-    result->SetSymbols(self->Symbols());
-    return result;
+    longlong v[2] = { w, h };
+    Tree *result = xl_integer_list(self, 2, v);
+    return result->AsInfix();
 }
 
 
-static void list_files(Context *context, Dir &current, Tree *patterns,
-                       Tree_p *&parent)
+static void list_files(Context *context, Dir &current,
+                       Tree *self, Tree *patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
 // ----------------------------------------------------------------------------
 {
     if (Block *block = patterns->AsBlock())
     {
-        list_files(context, current, block->child, parent);
+        list_files(context, current, self, block->child, parent);
         return;
     }
     if (Infix *infix = patterns->AsInfix())
     {
         if (infix->name == "," || infix->name == ";" || infix->name == "\n")
         {
-            list_files(context, current, infix->left, parent);
-            list_files(context, current, infix->right, parent);
+            list_files(context, current, self, infix->left, parent);
+            list_files(context, current, self, infix->right, parent);
             return;
         }
     }
@@ -5828,6 +6223,8 @@ static void list_files(Context *context, Dir &current, Tree *patterns,
             if (*parent)
             {
                 Infix *added = new Infix(",", *parent, listed);
+                added->SetSymbols(self->Symbols());
+                added->code = XL::xl_identity;
                 *parent = added;
                 parent = &added->right;
             }
@@ -5851,7 +6248,7 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
     Tree_p *parent = &result;
     Window *window = (Window *) parentWidget();
     Dir current(window->currentProjectFolderPath());
-    list_files(context, current, pattern, parent);
+    list_files(context, current, self, pattern, parent);
     if (!result)
         result = XL::xl_nil;
     else
@@ -5910,6 +6307,13 @@ Integer* Widget::textureHeight(Tree_p self)
     return new Integer(layout->currentTexture.height);
 }
 
+Integer* Widget::textureType(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current texture type
+// ----------------------------------------------------------------------------
+{
+    return new Integer(layout->currentTexture.type);
+}
 
 Integer* Widget::textureId(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -6866,15 +7270,16 @@ Integer* Widget::picturePacker(Tree_p self,
                      GL_UNSIGNED_BYTE, texImg.bits());
     }
 
-    layout->currentTexture.id = tinfo->bind();
-    layout->currentTexture.width = iw;
+    layout->currentTexture.id     = tinfo->bind();
+    layout->currentTexture.width  = iw;
     layout->currentTexture.height = ih;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
     layout->Add(new FillTexture(texId, texUnit));
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -6890,10 +7295,10 @@ Tree_p Widget::sphere(Tree_p self,
                       Real_p w, Real_p h, Real_p d,
                       Integer_p slices, Integer_p stacks)
 // ----------------------------------------------------------------------------
-//     GL sphere
+//     A simple sphere
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks));
+    layout->Add(new Sphere(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), slices, stacks));
     if (currentShape)
         layout->Add (new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -6914,6 +7319,21 @@ Tree_p Widget::cube(Tree_p self,
 }
 
 
+Tree_p Widget::torus(Tree_p self,
+                     Real_p x, Real_p y, Real_p z,
+                     Real_p w, Real_p h, Real_p d,
+                     Integer_p slices, Integer_p stacks, double ratio)
+// ----------------------------------------------------------------------------
+//    A simple torus
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), slices, stacks, ratio));
+    if (currentShape)
+        layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
+    return XL::xl_true;
+}
+
+
 Tree_p Widget::cone(Tree_p self,
                     Real_p x, Real_p y, Real_p z,
                     Real_p w, Real_p h, Real_p d,
@@ -6922,7 +7342,7 @@ Tree_p Widget::cone(Tree_p self,
 //    A simple cone
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), ratio));
+    layout->Add(new Cone(Box3(x-w/2, y-h/2, z-d/2, w,h,d), layout->Offset(), ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -6992,9 +7412,10 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(editCursor->document()->clone());
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(editCursor->document()->clone());
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -7048,10 +7469,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 
     PageLayout *tbox = new PageLayout(this);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    tbox->id = selectionId();
-    tbox->body = prog;
-    tbox->ctx = context;
-    layout->Add(tbox);
+    layout->AddChild(selectionId(), prog, context, tbox);
     flows[flowName] = tbox;
 
     if (currentShape)
@@ -7090,18 +7508,36 @@ XL::Text_p Widget::textFlow(Tree_p self, text name)
     return new XL::Text(oldName);
 }
 
+Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
+// ----------------------------------------------------------------------------
+//   Evaluate the child tree while preserving the current text format state
+// ----------------------------------------------------------------------------
+{
+    // to be preserved : Font, color, line_color, texture, alignement, linewidth, rotation, scale
+    //LayoutState state = *layout;
+//    XL::Save<LayoutState *> saveLayout(layout, layout);
+    Layout *childLayout = layout->AddChild(layout->id, child, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
 
-Tree_p Widget::textSpan(Tree_p self, Text_p contents)
+    Tree_p result = context->Evaluate(child);
+
+    // offset should not be repositionned like before this evaluation
+    saveLayout.saved->offset = childLayout->offset;
+    return result;
+}
+
+
+Tree_p Widget::textUnit(Tree_p self, Text_p contents)
 // ----------------------------------------------------------------------------
 //   Insert a block of text with the current definition of font, color, ...
 // ----------------------------------------------------------------------------
 {
     if (path)
-        TextSpan(contents).Draw(*path, layout);
+        TextUnit(contents).Draw(*path, layout);
     else if (editCursor)
         updateCursor(contents);
     else
-        layout->Add(new TextSpan(contents));
+        layout->Add(new TextUnit(contents));
 
     return XL::xl_true;
 }
@@ -7497,8 +7933,8 @@ Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
 //   Enable or disable glyph cache
 // ----------------------------------------------------------------------------
 {
-    bool old = TextSpan::cacheEnabled;
-    TextSpan::cacheEnabled = enable;
+    bool old = TextUnit::cacheEnabled;
+    TextUnit::cacheEnabled = enable;
     return old ? XL::xl_true : XL::xl_false;
 }
 
@@ -7784,8 +8220,10 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild());
-    Integer* tex = frameTexture(context, self, w, h, prog);
+
+    Layout *childLayout = layout->AddChild(0, prog, context);
+    XL::Save<Layout *> saveLayout(layout, childLayout);
+    Integer_p tex = frameTexture(context, self, w, h, prog);
 
     // Draw a rectangle with the resulting texture
     layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
@@ -7846,9 +8284,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -7856,7 +8295,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -7882,6 +8321,7 @@ Integer* Widget::thumbnail(Context *context,
     }
     FrameInfo &frame = multiframe->frame(page);
 
+    Layout *parent = layout;
     if (frame.refreshTime < CurrentTime())
     {
         GLAllStateKeeper saveGL;
@@ -7902,6 +8342,8 @@ Integer* Widget::thumbnail(Context *context,
         XL::Save<uint> savePageShown(pageShown, pageShown);
         XL::Save<uint> savePageTotal(pageShown, pageTotal);
         XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+        XL::Save<bool> saveDAP(drawAllPages, false);
+        XL::Save<QPrinter *> savePrinter(printer, NULL);
 
         // Clear the background and setup initial state
         frame.resize(w,h);
@@ -7916,6 +8358,8 @@ Integer* Widget::thumbnail(Context *context,
         layout->Draw(NULL);
         frame.end();
 
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
@@ -7925,9 +8369,10 @@ Integer* Widget::thumbnail(Context *context,
     }
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -7935,7 +8380,7 @@ Integer* Widget::thumbnail(Context *context,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 Integer* Widget::linearGradient(Context *context, Tree_p self,
@@ -7970,9 +8415,10 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     painter.end();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8014,9 +8460,10 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     painter.end();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8058,9 +8505,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     painter.end();
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id = frame.bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = frame.bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8115,9 +8563,10 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(url, progress);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(url, progress);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8125,7 +8574,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8164,9 +8613,10 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(txt);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(txt);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8174,7 +8624,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 Tree_p Widget::radioButton(Tree_p self,
@@ -8209,9 +8659,10 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl, act, sel);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl, act, sel);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8219,7 +8670,7 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8256,9 +8707,10 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl, act, sel);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl, act, sel);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8266,7 +8718,7 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8303,9 +8755,10 @@ Integer* Widget::pushButtonTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl, act, NULL);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl, act, NULL);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8313,7 +8766,7 @@ Integer* Widget::pushButtonTexture(Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8580,9 +9033,10 @@ Integer* Widget::colorChooserTexture(Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8590,7 +9044,7 @@ Integer* Widget::colorChooserTexture(Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8632,9 +9086,10 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8642,7 +9097,7 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8871,9 +9326,10 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind();
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind();
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8881,7 +9337,7 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8973,9 +9429,10 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 
     // Resize to requested size, and bind texture
     surface->resize(w,h);
-    layout->currentTexture.id = surface->bind(lbl);
-    layout->currentTexture.width = w;
+    layout->currentTexture.id     = surface->bind(lbl);
+    layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -8983,7 +9440,7 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -9020,9 +9477,10 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     }
 
     // Resize to requested size, and bind texture
-    layout->currentTexture.id = surface->bind(url);
-    layout->currentTexture.width = surface->width();
+    layout->currentTexture.id     = surface->bind(url);
+    layout->currentTexture.width  = surface->width();
     layout->currentTexture.height = surface->height();
+    layout->currentTexture.type   = GL_TEXTURE_2D;
 
     uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
@@ -9030,7 +9488,7 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
 
@@ -9085,6 +9543,7 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 }
 
 
+
 Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 // ----------------------------------------------------------------------------
 //   Add a list of pages to the chooser
@@ -9093,6 +9552,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         int pnum = 1;
+
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
         {
@@ -9589,7 +10049,7 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
         break;
     }
 
-    if (QMenu* view = win->findChild<QMenu*>(VIEW_MENU_NAME))
+    if (QMenu* view = win->findChild<QMenu*>(TOOLBAR_MENU_NAME))
         view->addAction(currentToolBar->toggleViewAction());
 
     connect(currentToolBar, SIGNAL(actionTriggered(QAction*)),

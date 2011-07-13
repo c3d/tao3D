@@ -1,4 +1,4 @@
-// LoremIpsum module definition
+﻿// LensFlare module definition
 //
 // This module defines commands to generate the Lorem ipsum sequence.
 //
@@ -8,5 +8,66 @@ module_description
     id "e46b0a1e-0fc5-4884-b37d-027f4fe3066b"
     name "Lens Flare"
     import_name "LensFlare"
-    description ""
-    version 1.0
+    description "Simulate the optical phenomenon that occurs when light reflects inside the lens of a camera."
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version "1.0"
+
+module_description "fr",
+    name "Halo"
+    description "Permet de simuler la réflection provoquée par la projection d'une lumière vive à l'intérieur de l'objectif d'un appareil photo."
+
+FLARES_DIR -> module_dir & "/images/"
+
+sun_flare sx:real, sy:real, sz:real, tx:real, ty:real, tz:real ->
+/** Create a specific lens flare due to a sun.
+module.LensFlare
+(@a sx, @a sy, @a sz) are the coordinates of the light source.
+The object is targeted the position at (@a tx, @a ty, @a tz).
+**/
+locally
+    FLARE0 -> texture FLARES_DIR & "sun_flare0.jpg"
+    FLARE1 -> texture FLARES_DIR & "sun_flare1.jpg"
+    FLARE2 -> texture FLARES_DIR & "sun_flare2.jpg"
+    FLARE3 -> texture FLARES_DIR & "sun_flare3.jpg"
+    FLARE4 -> texture FLARES_DIR & "sun_flare4.jpg"
+    FLARE5 -> texture FLARES_DIR & "sun_flare5.jpg"
+    lens_flare
+        lens_flare_source sx, sy, sz
+        lens_flare_target tx, ty, tz
+        add_flare FLARE0, 0.0, 0.6, 1.0, 1.0, 1.0, 1.0
+        add_flare FLARE1, 0.0, 0.5, 1.0, 0.8, 0.8, 0.5
+        add_flare FLARE2, 0.25, 0.25, 1.0, 1.0, 0.7, 0.3
+        add_flare FLARE3, 0.35, 0.07, 1.0, 1.0, 1.0, 0.5
+        add_flare FLARE2, 0.45, 0.15, 1.0, 1.0, 0.7, 0.3
+        add_flare FLARE3, 0.6, 0.07, 1.0, 1.0, 1.0, 0.5
+        add_flare FLARE3, 0.7, 0.1, 1.0, 1.0, 1.0, 0.5
+        add_flare FLARE4, 0.85, 0.05, 1.0, 0.8, 1, 0.2
+        add_flare FLARE5, 0.95, 0.3, 1.0, 1.0, 1.0, 1.0
+
+white_flare sx:real, sy:real, sz:real, tx:real, ty:real, tz:real ->
+/** Create a simple white lens flare.
+module.LensFlare
+(@a sx, @a sy, @a sz) are the coordinates of the light source.
+The object is targeted the position at (@a tx, @a ty, @a tz).
+**/
+locally
+    color "white"
+    FLARE0 -> texture FLARES_DIR & "white_flare0.jpg"
+    FLARE1 -> texture FLARES_DIR & "white_flare1.jpg"
+    FLARE2 -> texture FLARES_DIR & "white_flare2.jpg"
+    FLARE3 -> texture FLARES_DIR & "white_flare3.jpg"
+    FLARE4 -> texture FLARES_DIR & "white_flare4.jpg"
+    FLARE5 -> texture FLARES_DIR & "white_flare5.jpg"
+    lens_flare
+        lens_flare_source sx, sy, sz
+        lens_flare_target tx, ty, tz
+        add_flare FLARE0, 0.0, 0.6, 1.0, 1.0, 1.0, 1.0
+        add_flare FLARE1, 0.0, 0.6, 1.0, 1.0, 1.0, 1.0
+        add_flare FLARE2, 0.2, 0.15, 1.0, 1.0, 1.0, 0.1
+        add_flare FLARE3, 0.3, 0.07, 1.0, 1.0, 1.0, 0.2
+        add_flare FLARE2, 0.45, 0.15, 1.0, 1.0, 1.0, 0.2
+        add_flare FLARE3, 0.55, 0.07, 1.0, 1.0, 1.0, 0.1
+        add_flare FLARE3, 0.65, 0.1, 1.0, 1.0, 1.0, 0.2
+        add_flare FLARE4, 0.85, 0.05, 1.0, 1.0, 1.0, 0.5
+        add_flare FLARE5, 0.95, 0.3, 1.0, 1.0, 1.0, 0.2

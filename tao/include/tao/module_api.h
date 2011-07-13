@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "tao/module_info.h"
+#include "coords3d.h"
 
 // ========================================================================
 //
@@ -45,8 +46,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   5
-#define TAO_MODULE_API_AGE       5
+#define TAO_MODULE_API_CURRENT   6
+#define TAO_MODULE_API_AGE       6
 
 // ========================================================================
 //
@@ -87,6 +88,140 @@ struct ModuleApi
     // Show a control box to manipulate the object
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
+
+    // Allow to set coordinates to a texture unit for a drawing.
+    // These coordinates must be specified before to enable textures.
+    // A value of -1 sets the specified coordinates to all units.
+    bool (*SetTexCoords)(int unit, double* texCoord);
+
+    // Allow to set a new texture in Tao thanks to its id and its type.
+    bool (*SetTexture)(unsigned int id, unsigned int type);
+
+    // Allow to set fill color during a drawing according
+    // to the current layout attributes.
+    bool (*SetFillColor)();
+
+    // Allow to set line color during a drawing according
+    // to the current layout attributes.
+    bool (*SetLineColor)();
+
+    // ------------------------------------------------------------------------
+    //   API for display modules
+    // ------------------------------------------------------------------------
+
+    // In the following protoypes, obj is the value returned by the
+    // display_use_fn function.
+    typedef void   (*display_fn)(void *obj);
+    typedef void * (*display_use_fn)();
+    typedef void   (*display_unuse_fn)(void *obj);
+    typedef bool   (*display_setopt_fn)(void *obj, std::string name,
+                                        std::string val);
+    typedef std::string
+                   (*display_getopt_fn)(void *obj, std::string name);
+
+    // Register a display function (if module is a display module).
+    // Display can later be activated by primitive: display_function <name>
+    // Returns true on success, false on error (e.g., name already used)
+    //   - fn is called for each frame to be displayed
+    //   - use is called once when fn is about to be used
+    //   - unuse is called when Tao stops using fn
+    //   - setopt is called when Tao needs to set a display option
+    //   - getopt is called when Tao needs to get a display option
+    bool (*registerDisplayFunction)(std::string name, display_fn fn,
+                                    display_use_fn use,
+                                    display_unuse_fn unuse,
+                                    display_setopt_fn setopt,
+                                    display_getopt_fn getopt);
+
+    // Call glClearColor() with the color currently specified by the program.
+    void (*setGlClearColor)();
+
+    // Setup default OpenGL parameters before drawing.
+    void (*setupGl)();
+
+    // Display all pending OpenGL errors (if any), in the error window.
+    void (*showGlErrors)();
+
+    // setProjectionMatrix, setModelViewMatrix
+    //
+    // Helper functions to define the geometry for a given camera.
+    // Cameras lie on a straight line (not on an arc) and are spaced evenly by
+    // the eyeSeparation() distance. The center of the camera segment is the
+    // 'pos' point returned by getCamera(pos, target, up). Cameras are globally
+    // aimed at the 'target' point, but they are parallel -- there is no inward
+    // rotation or vergence point.
+    // This effectively implements the "asymmetric frustum parallel axis"
+    // projection method, which is recommended for stereoscopic and
+    // autostereoscopic setups.
+    //
+    // w and h are the width and height in pixels of the frustum
+    // plane at the target point. numCameras is the total number of cameras,
+    // i is the camera number for which the view is to be rendered (i must be
+    // between 1 and numCameras).
+    void (*setProjectionMatrix)(int w, int h, int i, int numCameras);
+    void (*setModelViewMatrix)(int i, int numCameras);
+
+    // Draw the current page.
+    void (*drawScene)();
+
+    // Draw object selection.
+    void (*drawSelection)();
+
+    // Draw activities (command menu, selection rectangle, display
+    // statistics)
+    void (*drawActivities)();
+
+    // Get camera characteristics. pos, target and/or up may be NULL.
+    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up);
+
+    // The height, in pixels, of the image to be rendered.
+    int  (*renderHeight)();
+
+    // The width, in pixels, of the image to be rendered.
+    int  (*renderWidth)();
+
+    // The z coordinate of the near clipping plane.
+    double (*zNear)();
+
+    // The z coordinate of the far clipping plane.
+    double (*zFar)();
+
+    // The current zoom factor.
+    double (*zoom)();
+
+    // For stereoscopic or multi-view settings: the distance between
+    // the left and the right eye (or camera).
+    double (*eyeSeparation)();
+
+    // ------------------------------------------------------------------------
+    //   Rendering to framebuffer/texture
+    // ------------------------------------------------------------------------
+
+    typedef struct fbo_s fbo;
+
+    // Create a new framebuffer object.
+    ModuleApi::fbo *   (*newFrameBufferObject)(uint w, uint h);
+
+    // Delete a framebuffer object.
+    void               (*deleteFrameBufferObject)(ModuleApi::fbo * obj);
+
+    // Resize a framebuffer object.
+    void               (*resizeFrameBufferObject)(ModuleApi::fbo * obj,
+                                                      uint w, uint h);
+
+    // Make a framebuffer object the current rendering target.
+    // After this call, OpenGL will draw into the framebuffer.
+    void               (*bindFrameBufferObject)(ModuleApi::fbo * obj);
+
+    // Switch OpenGL rendering back to the default rendering target.
+    void               (*releaseFrameBufferObject)(ModuleApi::fbo * obj);
+
+    // Make a framebuffer object available as a texture.
+    // After this call, the texture is bound to target GL_TEXTURE_2D
+    // and target is enabled. That is:
+    //   glBindTexture(GL_TEXTURE_2D, id);
+    //   glEnable(GL_TEXTURE_2D);
+    unsigned int       (*frameBufferObjectToTexture)(ModuleApi::fbo * obj);
 };
 
 }
@@ -116,24 +251,28 @@ extern "C"
 //   API exported by modules for use by the Tao runtime
 // ------------------------------------------------------------------------
 {
-    // Called once immediately after the module library is loaded
+    // Called once immediately after the module library is loaded.
+    // Return 0 on success.
     // [Optional]
     // [ModuleInfo is only valable during this call]
     int module_init(const Tao::ModuleApi *a, const Tao::ModuleInfo *m);
 
     // Called when module is imported to let the module extend the XL symbol
-    // table (for instance, add new XL commands) in a given context
-    // [Mandatory]
+    // table (for instance, add new XL commands) in a given context.
+    // Return 0 on success.
+    // [Optional]
     // [May be automatically generated by the tbl_gen script]
     int enter_symbols(XL::Context *c);
 
     // Called once before module is unloaded to let module remove its
-    // primitives from the XL symbol table
+    // primitives from the XL symbol table.
+    // Return 0 on success.
     // [Optional]
     // [May be automatically generated by the tbl_gen script]
     int delete_symbols(XL::Context *c);
 
-    // Called when the module library is about to be unloaded
+    // Called when the module library is about to be unloaded.
+    // Return 0 on success.
     // [Optional]
     int module_exit();
 }

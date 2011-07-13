@@ -1,8 +1,4 @@
 <RCC>
-    <qresource prefix="/res">
-        <file>bubbles.svg</file>
-        <file>designer.png</file>
-    </qresource>
     <qresource prefix="/">
         <file>images/copy.png</file>
         <file>images/cut.png</file>
@@ -26,5 +22,8 @@
         <file>images/general.png</file>
         <file>images/zoom_in.png</file>
         <file>images/zoom_out.png</file>
+        <file>images/info.png</file>
+        <file>html/module_info_dialog.html</file>
+        <file>html/module_info_dialog_fr.html</file>
     </qresource>
 </RCC>

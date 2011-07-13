@@ -41,17 +41,29 @@ struct Widget;
 
 struct TextureState
 // ----------------------------------------------------------------------------
-//   The state of texture we want to preserve
+//   The state of the texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0) {}
+    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
     bool        wrapS, wrapT;
-    uint        id;
-    uint        unit;
-    uint        width;
-    uint        height;
+    GLuint        id;
+    GLuint        unit;
+    GLuint        width;
+    GLuint        height;
+    GLenum        type;
 };
 
+struct ModelState
+// ----------------------------------------------------------------------------
+//   The state of the model we want to preserve
+// ----------------------------------------------------------------------------
+{
+    ModelState(): tx(0), ty(0), tz(0), sx(1), sy(1), sz(1), rotation(1, 0, 0, 0) {}
+
+    float tx, ty, tz;     // Translate parameters
+    float sx, sy, sz;     // Scaling parameters
+    Quaternion rotation;  // Rotation parameters
+};
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -84,6 +96,7 @@ public:
     uint64              textureUnits; //Current used texture units
     uint64              previousUnits; //Previous used texture units
     tex_list            fillTextures;
+    ModelState          model;
     uint                lightId;
     uint                programId;
     bool                printing : 1;
@@ -99,6 +112,10 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
+    typedef std::vector<Drawing *>      Drawings;
+    typedef std::vector<Layout *>       Layouts;
+
+public:
                         Layout(Widget *display);
                         Layout(const Layout &o);
                         ~Layout();
@@ -114,7 +131,9 @@ struct Layout : Drawing, LayoutState
     virtual void        Add (Drawing *d);
     virtual Vector3     Offset();
     virtual Layout *    NewChild()       { return new Layout(*this); }
-    virtual Layout *    AddChild(uint id=0, Tree_p body=0, Context_p ctx=0);
+    virtual Layout *    AddChild(uint id = 0,
+                                 Tree_p body = 0, Context_p ctx = 0,
+                                 Layout *child = NULL);
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
@@ -122,7 +141,9 @@ struct Layout : Drawing, LayoutState
     virtual uint        ChildrenSelected();
 
     // Event interface
-    virtual bool        Refresh(QEvent *e, double now, Layout *parent = NULL, QString debug = "");
+    virtual bool        Refresh(QEvent *e, double now,
+                                Layout *parent=NULL, QString dbg = "");
+    virtual void        RefreshLayouts(Layouts &layouts);
     bool                RefreshChildren(QEvent *e, double now, QString debug);
     bool                NeedRefresh(QEvent *e, double when);
     void                RefreshOn(Layout *);
@@ -166,8 +187,7 @@ public:
 
 protected:
     // List of drawing elements
-    typedef std::vector<Drawing *>      layout_items;
-    layout_items        items;
+    Drawings            items;
     Widget *            display;
     // Debug: index in parent items (-1 = root layout)
     int                 idx;

@@ -123,7 +123,10 @@ HEADERS += widget.h \
     inspectordialog.h \
     raster_text.h \
     dir.h \
-    templates.h
+    templates.h \
+    module_info_dialog.h \
+    display_driver.h \
+    include/tao/matrix.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -180,7 +183,9 @@ SOURCES += tao_main.cpp \
     inspectordialog.cpp \
     raster_text.cpp \
     dir.cpp \
-    templates.cpp
+    templates.cpp \
+    module_info_dialog.cpp \
+    display_driver.cpp
 
 # Check compile-time options
 
@@ -276,6 +281,7 @@ CXXTBL_SOURCES += graphics.cpp \
 }
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
+    !contains(DEFINES, CFG_NODISPLAYLINK):LIBS += -framework CoreVideo
     LIBS += -framework \
         ApplicationServices \
         -Wl,-macosx_version_min,10.5 \
@@ -290,28 +296,25 @@ macx {
 }
 RESOURCES += tao.qrc
 
-# Others
-OTHER_FILES += xl.syntax \
-    xl.stylesheet \
-    short.stylesheet \
-    html.stylesheet \
-    debug.stylesheet \
-    dbghtml.stylesheet \
-    bytecode.stylesheet \
-    xlr/xlr/builtins.xl \
+# Files loaded at runtime
+SUPPORT_FILES = xlr/xlr/builtins.xl \
     tao.xl \
     tao_fr.xl \
-    welcome.ddd \
+    xl.syntax \
+    xl.stylesheet \
     git.stylesheet \
-    traces.tbl \
     nocomment.stylesheet \
-    graphics.tbl \
-    Info.plist.in
+    debug.stylesheet \
+    welcome.ddd
 
-# Copy the support files to the target directory
-xlr_support.path = $${DESTDIR}/$${XLRDIR}
-xlr_support.files += $${OTHER_FILES}
-QMAKE_BUNDLE_DATA += xlr_support
+# Other files to show in the Qt Creator interface
+OTHER_FILES +=  \
+    $${SUPPORT_FILES} \
+    traces.tbl \
+    graphics.tbl \
+    Info.plist.in \
+    html/module_info_dialog.html \
+    html/module_info_dialog_fr.html
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \
@@ -329,13 +332,7 @@ QMAKE_EXTRA_TARGETS += revtarget
 
 # What to install
 xl_files.path  = $$APPINST
-xl_files.files = xlr/xlr/builtins.xl \
-    tao.xl \
-    tao_fr.xl \
-    xl.syntax \
-    xl.stylesheet \
-    git.stylesheet \
-    welcome.ddd
+xl_files.files = $${SUPPORT_FILES}
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*
@@ -366,3 +363,4 @@ QMAKE_EXTRA_TARGETS += lrelease
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+

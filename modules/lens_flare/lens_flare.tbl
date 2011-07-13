@@ -5,7 +5,7 @@
 //   File Description:
 // 
 //     Definition of the interface between XLR and native code
-//     for the "lorem ipsum" module.
+//     for the "lens flare" module.
 // 
 // 
 // 
@@ -28,10 +28,10 @@ PREFIX(LensFlare,  tree, "lens_flare",
        PARM(p, code, "The program that represent the content of the frame"),
        return lens_flare(context, self, p),
        GROUP(module.LensFlare)
-       SYNOPSIS("Produce a sequence of words in pseudo-latin")
-       DESCRIPTION("Produce a sequence of words in pseudo-latin. "
-                   "The text contains an arbitrary number of words, "
-                   "specified by @a words."))
+       SYNOPSIS("Produce a lens flare")
+       DESCRIPTION("Produce a lens flare. "
+                   "This effect is defined by its source, its target, and its flares, "
+                   "specified in the @p tree."))
 
 PREFIX(LensFlareSource,  tree, "lens_flare_source",
        PARM(x, real, "x-coordinate of the lens flare source")
@@ -39,10 +39,8 @@ PREFIX(LensFlareSource,  tree, "lens_flare_source",
        PARM(z, real, "z-coordinate of the lens flare source"),
        return lens_flare_source(self, x, y, z),
        GROUP(module.LensFlare)
-       SYNOPSIS("Produce a sequence of words in pseudo-latin")
-       DESCRIPTION("Produce a sequence of words in pseudo-latin. "
-                   "The text contains an arbitrary number of words, "
-                   "specified by @a words."))
+       SYNOPSIS("Set the lens flare source")
+       DESCRIPTION("Set the lens flare source."))
 
 PREFIX(LensFlareTarget,  tree, "lens_flare_target",
        PARM(x, real, "x-coordinate of the lens flare target")
@@ -50,10 +48,8 @@ PREFIX(LensFlareTarget,  tree, "lens_flare_target",
        PARM(z, real, "z-coordinate of the lens flare target"),
        return lens_flare_target(self, x, y, z),
        GROUP(module.LensFlare)
-       SYNOPSIS("Produce a sequence of words in pseudo-latin")
-       DESCRIPTION("Produce a sequence of words in pseudo-latin. "
-                   "The text contains an arbitrary number of words, "
-                   "specified by @a words."))
+       SYNOPSIS("Set the lens flare target")
+       DESCRIPTION("Set the lens flare target."))
 
 PREFIX(AddFlare,  tree, "add_flare",
        PARM(id, integer, "id of the flare")
@@ -65,16 +61,16 @@ PREFIX(AddFlare,  tree, "add_flare",
        PARM(a, real, "Alpha channel: the transparency of the color. "),
        return add_flare(self, id, loc, scale, r, g, b, a),
        GROUP(module.LensFlare)
-       SYNOPSIS("Produce a sequence of words in pseudo-latin")
-       DESCRIPTION("Produce a sequence of words in pseudo-latin. "
-                   "The text contains an arbitrary number of words, "
-                   "specified by @a words."))
+       SYNOPSIS("Add a flare to the current effect")
+       DESCRIPTION("Add a flare to the current lens flare. "
+                   "This flare is defined by its texture @a id,"
+                   "its relative @a location, its @a scale, "
+                   "and its @a color."))
 
 PREFIX(LensFlareDepthTest,  tree, "lens_flare_depth_test",
        PARM(mode, symbol, "on or off"),
        return lens_flare_depth_test(self, mode),
        GROUP(module.LensFlare)
-       SYNOPSIS("Produce a sequence of words in pseudo-latin")
-       DESCRIPTION("Produce a sequence of words in pseudo-latin. "
-                   "The text contains an arbitrary number of words, "
-                   "specified by @a words."))
+       SYNOPSIS("Enable or disable depth test on lens flare")
+       DESCRIPTION("Enable or disable depth test on lens flare. "
+                   "This depth test is defined specifically for this effect."))

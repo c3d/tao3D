@@ -5,7 +5,13 @@ module_description
         name "Tao tester"
         description "Adds primitives to create automated test in Tao."
         import_name "TaoTester"
+        author "Taodyne SAS"
+        website "http://www.taodyne.com"
         version 1.0
+
+module_description "fr",
+        name "Test de Tao"
+        description "Primitives pour créer des tests automatiques dans Tao."
 
 toolbar_test ->
 {

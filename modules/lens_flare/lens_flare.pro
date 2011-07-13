@@ -26,6 +26,6 @@ QT          += core \
                opengl
 
 flares_img.path  = $$MODINSTPATH/images
-flares_img.files = images/flare0.jpg images/flare1.jpg images/flare2.jpg images/flare3.jpg images/flare4.jpg images/flare5.jpg
+flares_img.files = images/*.jpg
 
-INSTALLS    += flares_img
+INSTALLS    += flares_img thismod_icon

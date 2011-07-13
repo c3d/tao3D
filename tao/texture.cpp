@@ -105,14 +105,18 @@ ImageTextureInfo::Texture ImageTextureInfo::load(text file)
         }
 
         // Read the image file and convert to proper GL image format
+        QString loaded = +file;
         QImage image(+file);
         if (image.isNull())
         {
             text qualified = "texture:" + file;
-            image.load(+qualified);
+            if (image.load(+qualified))
+                loaded = +qualified;
         }
         if (!image.isNull())
         {
+            IFTRACE(fileload)
+                std::cerr << "Loaded texture: " << +loaded << "\n";
             texinfo.width = image.width();
             texinfo.height = image.height();
             QImage texture = QGLWidget::convertToGLFormat(image);
@@ -126,6 +130,8 @@ ImageTextureInfo::Texture ImageTextureInfo::load(text file)
         }
         else
         {
+            IFTRACE(fileload)
+                std::cerr << "Failed to load texture: " << file << "\n";
             texinfo = defaultTexture();
         }
 

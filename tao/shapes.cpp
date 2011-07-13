@@ -28,7 +28,6 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
-#include "tao_gl.h"
 #include <QPainterPath>
 
 TAO_BEGIN
@@ -48,37 +47,44 @@ bool Shape::setTexture(Layout *where)
     uint64 unusedUnits = (where->previousUnits & where->textureUnits) ^ where->previousUnits;
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
+        GLenum type = where->fillTextures[i].type;
+
         //Check if the current texture unit is really used
         if((where->fillTextures.count(i)) && (where->textureUnits & (1 << i)))
         {
-            if((where->fillTextures[i]).id)
+            glActiveTexture(GL_TEXTURE0 + i);
+            glEnable(type);
+            glBindTexture(type, (where->fillTextures[i]).id);
+            if (where->hasPixelBlur)
             {
-                glActiveTexture(GL_TEXTURE0 + i);
-                glBindTexture(GL_TEXTURE_2D, (where->fillTextures[i]).id);
-                if (where->hasPixelBlur)
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                }
-                else
-                {
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                }
-                glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+                glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            }
+            else
+            {
+                glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+                glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+            }
+            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+            // Wrap if texture 2D
+            if(type == GL_TEXTURE_2D)
+            {
                 GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
                 GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
                 glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-                glEnable(GL_TEXTURE_2D);
-                if (TaoApp->hasGLMultisample)
-                    glEnable(GL_MULTISAMPLE);
             }
+
+            if (TaoApp->hasGLMultisample)
+                glEnable(GL_MULTISAMPLE);
+
         }
         else if(unusedUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
-            glDisable(GL_TEXTURE_2D);
+            glBindTexture(type, 0);
+            glDisable(type);
         }
     }
 
@@ -91,6 +97,25 @@ bool Shape::setTexture(Layout *where)
     where->previousUnits = where->textureUnits;
 
     return !(where->fillTextures.empty());
+}
+
+void Shape::enableTexCoord(uint unit, void *texCoord)
+// ----------------------------------------------------------------------------
+//    Enable texture coordinates of the specified unit
+// ----------------------------------------------------------------------------
+{
+    glClientActiveTexture( GL_TEXTURE0 + unit);
+    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+    glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
+}
+
+void Shape::disableTexCoord(uint unit)
+// ----------------------------------------------------------------------------
+//    Disable texture coordinates of the specified unit
+// ----------------------------------------------------------------------------
+{
+    glClientActiveTexture( GL_TEXTURE0 + unit);
+    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 bool Shape::setFillColor(Layout *where)
@@ -137,7 +162,6 @@ bool Shape::setLineColor(Layout *where)
     return false;
 }
 
-
 void Shape::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //    Draw the shape in a path
@@ -156,8 +180,6 @@ void Shape::Draw(Layout *where)
     Draw(path);
     path.Draw(where);
 }
-
-
 
 // ============================================================================
 //

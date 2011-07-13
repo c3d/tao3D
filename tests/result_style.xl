@@ -20,7 +20,7 @@ check i:integer, res:boolean, p:real ->
         text text i
     text " differs from reference by " & text p & "%"
 
-result name:text, desc:text, redmine:integer, taux:real,intermediate:tree, res:boolean  -> {
+result name:text, desc:text, redmine:integer, taux:real,intermediate:tree, res:boolean  -> 
     font_size 14
     margins 0, 0
     paragraph_break
@@ -33,4 +33,4 @@ result name:text, desc:text, redmine:integer, taux:real,intermediate:tree, res:b
     text "Authorize difference between images from reference and run is : " & text taux & "%"
     line_break
     do { intermediate }
-}
+

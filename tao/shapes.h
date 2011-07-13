@@ -24,6 +24,7 @@
 // ****************************************************************************
 
 #include "drawing.h"
+#include "tao_gl.h"
 #include "coords3d.h"
 #include <vector>
 
@@ -31,6 +32,7 @@ TAO_BEGIN
 
 struct GraphicPath;
 struct WidgetSurface;
+struct Shape3;
 
 struct Shape : Drawing
 // ----------------------------------------------------------------------------
@@ -42,10 +44,13 @@ struct Shape : Drawing
     virtual void        Draw(Layout *where);
     virtual void        Draw(GraphicPath &path);
 
-protected:
-    bool                setTexture(Layout *where);
-    bool                setFillColor(Layout *where);
-    bool                setLineColor(Layout *where);
+public:
+    // Shape parameters
+    static void         enableTexCoord(uint units, void *texCoord);
+    static void         disableTexCoord(uint units);
+    static bool         setTexture(Layout *where);
+    static bool         setFillColor(Layout *where);
+    static bool         setLineColor(Layout *where);
 };
 
 

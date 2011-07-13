@@ -28,7 +28,7 @@
  * animations were disabled.
  *
  * Execution of this primitive requests a refresh of the current layout after
- * @ref default_refresh seconds (0.04 by default).
+ * @ref default_refresh seconds.
  */
 real time ();
 
@@ -42,7 +42,7 @@ real time ();
  * when animations were disabled.
  *
  * Execution of this primitive requests a refresh of the current layout after
- * @ref default_refresh seconds (0.04 by default).
+ * @ref default_refresh seconds.
  */
 real page_time ();
 
@@ -266,6 +266,22 @@ every (interval:real, body:tree);
  * @ref page_time to schedule an immediate refresh of the current layout,
  * which will therefore be executed as fast as possible.
  *
+ * However, the refresh rate may be limited on some platforms or under
+ * some specific circumstances:
+ * - On MacOSX, Tao Presentations uses a
+ * <a href="http://developer.apple.com/library/mac/#documentation/QuartzCore/Reference/CVDisplayLinkRef/Reference/reference.html">
+ * Core Video display link</a> to
+ * trigger periodic screen refreshes. This is so that animation are as
+ * smooth as possible. As a result, the granularity of the
+ * refresh timer is the screen refresh rate. For most LCD displays this
+ * is 60 Hz or 16.6 ms. On this platform, @ref default_refresh is set
+ * to 0.0 by default.
+ * - On any platform, when vertical synchronization is enabled,
+ * default_refresh is initially set to 0.0, and the refresh rate is
+ * automatically limited by the VSync clock. When VSync is disabled,
+ * however, default_refresh is initially set to 0.016 to avoid uselessly
+ * taxing the CPU (that is assuming a 60 Hz display).
+ *
  * @see @ref secExecModel
  *
  * @returns the previous value of the default refresh interval.
@@ -275,7 +291,8 @@ real default_refresh (interval:real);
 /**
  * The default refresh interval for code using time and page_time.
  *
- * The default value of the default refresh interval is 0.04 seconds.
+ * The default value of the default refresh interval depends on the
+ * platform. See @ref default_refresh(interval:real).
  */
 real default_refresh ();
 

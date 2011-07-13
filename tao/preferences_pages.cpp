@@ -25,6 +25,7 @@
 #include "preferences_pages.h"
 #include "main.h"
 #include "application.h"
+#include "module_info_dialog.h"
 
 
 namespace Tao {
@@ -285,18 +286,25 @@ ModulesPage::ModulesPage(QWidget *parent)
     QVBoxLayout *vbLayout = new QVBoxLayout;
 
     table = new QTableWidget;
-    table->setColumnCount(5);
+    table->setColumnCount(6);
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
-    table->setHorizontalHeaderItem(2, new QTableWidgetItem("Name"));
-    table->setHorizontalHeaderItem(3, new QTableWidgetItem("Version"));
-    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Status"));
+    table->setHorizontalHeaderItem(2, new QTableWidgetItem(""));
+    table->setHorizontalHeaderItem(3, new QTableWidgetItem("Name"));
+    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(5, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
     table->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
     table->setIconSize(QSize(32, 32));
+    connect(table, SIGNAL(cellClicked(int,int)),
+            this, SLOT(onCellClicked(int,int)));
     updateTable();
     vbLayout->addWidget(table);
+    search = new QLineEdit;
+    search->setPlaceholderText(tr("Search"));
+    connect(search, SIGNAL(textChanged(QString)), this, SLOT(doSearch()));
+    vbLayout->addWidget(search);
     gb->setLayout(vbLayout);
 
     QWidget *cfuWidget = new QWidget;
@@ -331,7 +339,7 @@ void ModulesPage::toggleModule()
     int row = act->data().toInt();
     ModuleManager::ModuleInfoPrivate m = modules[row];
 
-    mmgr->setEnabled(+m.id, !m.enabled);
+    mmgr->setEnabled(+m.id, !m.enabled || m.inError);
     updateTable();
 }
 
@@ -361,6 +369,7 @@ void ModulesPage::updateTable()
 // ----------------------------------------------------------------------------
 {
     modules = mmgr->allModules();
+    qSort(modules);
     table->setRowCount(modules.count());
     int row = 0;
     foreach (ModuleManager::ModuleInfoPrivate m, modules)
@@ -368,13 +377,23 @@ void ModulesPage::updateTable()
         Qt::ItemFlags enFlag = m.enabled ? Qt::ItemIsEnabled : Qt::NoItemFlags;
 
         QTableWidgetItem *item = new QTableWidgetItem;
-        QString txt = m.enabled ? tr("Disable") : tr("Enable");
+        item->setTextAlignment(Qt::AlignCenter);
+        // info.png from:
+        // http://www.iconfinder.com/icondetails/12825/32/info_icon
+        // Author: Austin The Heller
+        // License: Free for commercial use
+        // Icon resized to 24x24 and pasted into a 32x32 area
+        item->setIcon(QIcon(":/images/info.png"));
+        item->setFlags(enFlag);
+        table->setItem(row, 0, item);
+
+        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
         QToolButton *b = new QToolButton;
         QAction *act = new QAction(txt, this);
         act->setData(QVariant(row));
         connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
         b->setDefaultAction(act);
-        table->setCellWidget(row, 0, b);
+        table->setCellWidget(row, 1, b);
 
         if (m.icon == "")
             m.icon = ":/images/modules.png";
@@ -382,11 +401,11 @@ void ModulesPage::updateTable()
         item->setTextAlignment(Qt::AlignCenter);
         item->setIcon(QIcon(+m.icon));
         item->setFlags(enFlag);
-        table->setItem(row, 1, item);
+        table->setItem(row, 2, item);
 
         item = new QTableWidgetItem(+m.name);
         item->setFlags(enFlag);
-        table->setItem(row, 2, item);
+        table->setItem(row, 3, item);
 
         QString vstr = QString::number(m.ver);
         if (!vstr.contains("."))
@@ -394,7 +413,7 @@ void ModulesPage::updateTable()
         item = new QTableWidgetItem(vstr);
         item->setTextAlignment(Qt::AlignCenter);
         item->setFlags(enFlag);
-        table->setItem(row, 3, item);
+        table->setItem(row, 4, item);
 
         QWidget *widget = NULL;
         if (m.updateAvailable)
@@ -407,7 +426,7 @@ void ModulesPage::updateTable()
             b->setDefaultAction(act);
             widget = b;
         }
-        table->setCellWidget(row, 4, widget);
+        table->setCellWidget(row, 5, widget);
 
         row++;
     }
@@ -460,6 +479,36 @@ void ModulesPage::onUpdateOneComplete()
     UpdateModule *up = (UpdateModule *)sender();
     up->deleteLater();
     updateTable();
+}
+
+
+void ModulesPage::onCellClicked(int row, int col)
+// ----------------------------------------------------------------------------
+//   Show info box when info icon is clicked
+// ----------------------------------------------------------------------------
+{
+    if (col)
+        return;
+    ModuleManager::ModuleInfoPrivate m = modules[row];
+    ModuleInfoDialog dialog(m, this);
+    dialog.resize(500, 400);
+    dialog.setWindowModality(Qt::WindowModal);
+    dialog.exec();
+}
+
+
+void ModulesPage::doSearch()
+// ----------------------------------------------------------------------------
+//   Restrict module list to those that match the current search string
+// ----------------------------------------------------------------------------
+{
+    QString searchString = search->text();
+    for (int row = 0; row < table->rowCount(); row++)
+    {
+        ModuleManager::ModuleInfoPrivate m = modules[row];
+        bool hide = !searchString.isEmpty() && !m.contains(searchString);
+        table->setRowHidden(row, hide);
+    }
 }
 
 #endif // !CFG_NOMODPREF

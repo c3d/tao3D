@@ -238,6 +238,23 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
+void LayoutLine::RefreshLayouts(Layout::Layouts &out)
+// ----------------------------------------------------------------------------
+//   Copy all items that are layouts in the children
+// ----------------------------------------------------------------------------
+{
+    Items &items = line.items;
+    for (Items::iterator i = items.begin(); i != items.end(); i++)
+        if (Layout *layout = dynamic_cast<Layout *> (*i))
+            out.push_back(layout);
+
+    LineJustifier::Places &ps = line.places;
+    for (LineJustifier::PlacesIterator p = ps.begin(); p != ps.end(); p++)
+        if (Layout *layout = dynamic_cast<Layout*>((*p).item))
+            out.push_back(layout);
+}
+
+
 Box3 LayoutLine::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
@@ -380,6 +397,7 @@ void LayoutLine::Add(Drawing *item)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: LayoutLine gets new element after layout\n";
+        assert(!"LayoutLine gets a new element after layout");
         line.Clear();
     }
 
@@ -396,6 +414,7 @@ void LayoutLine::Add(Items::iterator first, Items::iterator last)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: LayoutLine gets new elements after layout\n";
+        assert(!"LayoutLine gets a new element after layout");
         line.Clear();
     }
 
@@ -456,7 +475,8 @@ PageLayout::PageLayout(Widget *widget)
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget), space()
-{}
+{
+}
 
 
 PageLayout::PageLayout(const PageLayout &o)
@@ -473,7 +493,8 @@ PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
 //    Destroy the page layout
 // ----------------------------------------------------------------------------
-{}
+{
+}
 
 
 void PageLayout::Add(Drawing *d)
@@ -485,6 +506,7 @@ void PageLayout::Add(Drawing *d)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: PageLayout gets new element after layout\n";
+        assert(!"PageLayout gets a new element after layout");
         page.Clear();
     }
     return Layout::Add(d);
@@ -500,6 +522,7 @@ void PageLayout::Add(Items::iterator first, Items::iterator last)
     {
         // Adding elements after we computed a layout is messy at best
         std::cerr << "WARNING: PageLayout gets new elements after layout\n";
+        assert(!"PageLayout gets a new element after layout");
         page.Clear();
     }
 
@@ -563,6 +586,9 @@ void PageLayout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -758,6 +784,24 @@ void PageLayout::Inherit(Layout *other)
 }
 
 
+void PageLayout::RefreshLayouts(Layouts &out)
+// ----------------------------------------------------------------------------
+//   Refresh all child layouts
+// ----------------------------------------------------------------------------
+{
+    Items items = page.items;
+    for (Items::iterator i = items.begin(); i != items.end(); i++)
+        (*i)->RefreshLayouts(out);
+
+    PageJustifier::PlacesIterator p;
+    PageJustifier::Places places = page.places;
+    for (p = places.begin(); p != places.end(); p++)
+        (*p).item->RefreshLayouts(out);
+
+    Layout::RefreshLayouts(out);
+}
+
+
 void PageLayout::Compute(Layout *where)
 // ----------------------------------------------------------------------------
 //   Layout all elements on the page, preserving layout state
@@ -776,7 +820,8 @@ void PageLayout::Compute(Layout *where)
     items.clear();
 
     {
-        // Save the font to let the vertical computing work with the original one. BUG#407
+        // Save the font to let the vertical computing work with the
+        // original one. BUG#407
         XL::Save<QFont> save(this->font);
 
         // Loop while there are more lines to place
@@ -947,7 +992,18 @@ void AnchorLayout::Draw(Layout *where)
 //   Draw all the children
 // ----------------------------------------------------------------------------
 {
-    Layout::Draw(where);
+    GLMatrixKeeper saveMatrix;
+    if (where)
+    {
+        Vector3 &o = where->offset;
+        glTranslatef(o.x, o.y, o.z);
+        XL::Save<Vector3> saveOffset(where->offset, Vector3());
+        Layout::Draw(where);
+    }
+    else
+    {
+        Layout::Draw(where);
+    }
 }
 
 
@@ -956,6 +1012,10 @@ void AnchorLayout::DrawSelection(Layout *where)
 //   Draw selection for all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     return Layout::DrawSelection(where);
 }
 
@@ -965,6 +1025,10 @@ void AnchorLayout::Identify(Layout *where)
 //   Identify all the children
 // ----------------------------------------------------------------------------
 {
+    GLMatrixKeeper saveMatrix;
+    Vector3 &o = where->offset;
+    glTranslatef(o.x, o.y, o.z);
+    XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Identify(where);
 }
 

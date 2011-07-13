@@ -51,8 +51,11 @@ public:
     // Methods used by Tao
     void                display();
     bool                setDisplayFunction(QString name);
+    QString             getDisplayFunction();
+    bool                isCurrentDisplayFunctionSameAs(QString name);
     bool                setOption(std::string name, std::string val);
     std::string         getOption(std::string name);
+    static QStringList  allDisplayFunctions();
 
 public:
     // Methods exported by the module API for use by display modules

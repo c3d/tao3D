@@ -36,6 +36,7 @@
 #include "font_file_manager.h"
 #include "module_manager.h"
 #include "traces.h"
+#include "display_driver.h"
 
 #include <QString>
 #include <QSettings>
@@ -68,7 +69,8 @@ Application::Application(int & argc, char ** argv)
 //    Build the Tao application
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
-      hasFBOMultisample(false), splash(NULL),
+      hasFBOMultisample(false), hasGLStereoBuffers(false),
+      splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false)
 {
@@ -173,8 +175,19 @@ Application::Application(int & argc, char ** argv)
                               " Consider updating the OpenGL drivers."));
     }
     {
-        QGLWidget gl(QGLFormat(QGL::SampleBuffers), NULL);
-        hasGLMultisample = gl.format().sampleBuffers();
+        QGLWidget gl(QGLFormat(QGL::StereoBuffers));
+        hasGLStereoBuffers = gl.format().stereo();
+        IFTRACE(displaymode)
+            std::cerr << "GL stereo buffers support: " << hasGLStereoBuffers
+                      << "\n";
+    }
+    {
+        QGLWidget gl(QGLFormat(QGL::SampleBuffers));
+        int samples = gl.format().samples();
+        hasGLMultisample = samples > 1;
+        IFTRACE(displaymode)
+            std::cerr << "GL multisample support: " << hasGLMultisample
+                      << " (samples per pixel: " << samples << ")\n";
         if (QGLFramebufferObject::hasOpenGLFramebufferObjects())
         {
             // Check if FBOs have sample buffers
@@ -184,7 +197,11 @@ Application::Application(int & argc, char ** argv)
             QGLFramebufferObject fbo(100, 100, format);
             QGLFramebufferObjectFormat actualFormat = fbo.format();
             int samples = actualFormat.samples();
-            hasFBOMultisample = samples > 0;
+            hasFBOMultisample = samples > 1;
+            IFTRACE(displaymode)
+                std::cerr << "GL FBO multisample support: "
+                          << hasFBOMultisample
+                          << " (samples per pixel: " << samples << ")\n";
         }
     }
     if (!hasGLMultisample)
@@ -557,7 +574,8 @@ void Application::checkOfflineRendering()
         return;
 
     QStringList parms = ropts.split(",");
-    if (parms.size() != 7)
+    int nparms = parms.size();
+    if (nparms < 7 || nparms > 8)
     {
         std::cerr << +tr("-render: too few or too many parameters\n");
         return;
@@ -566,7 +584,7 @@ void Application::checkOfflineRendering()
     int idx = 0;
     int page, x, y;
     double start, end, fps;
-    QString folder;
+    QString folder, disp = "";
 
     page = parms[idx++].toInt();
     x = parms[idx++].toInt();
@@ -575,17 +593,29 @@ void Application::checkOfflineRendering()
     end = parms[idx++].toDouble();
     fps = parms[idx++].toDouble();
     folder = parms[idx++];
+    if (nparms >= 8)
+        disp = parms[idx++];
+
+    if (disp == "help")
+    {
+        std::cout << "Available rendering modes are:\n";
+        QStringList names = DisplayDriver::allDisplayFunctions();
+        foreach (QString name, names)
+            std::cout << "  " << +name << "\n";
+        return;
+    }
 
     std::cout << "Starting offline rendering: page=" << page << " x=" << x
               << " y=" << y << " start=" << start << " end=" << end
-              << " fps= " << fps << " folder=" << +folder << "\n";
+              << " fps=" << fps << " folder=\"" << +folder << "\""
+              << " displaymode=\"" << +disp << "\"\n";
 
     Widget *widget = findFirstTaoWindow()->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
     connect(widget, SIGNAL(renderFramesDone()),
             this,   SLOT(onRenderingDone()));
-    widget->renderFrames(x, y, start, end, folder, fps, page);
+    widget->renderFrames(x, y, start, end, folder, fps, page, disp);
 }
 
 

@@ -166,11 +166,8 @@ void Cube::Draw(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
 
-    if(where->hasLighting || where->programId)
-    {
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_FLOAT, 0, normals);
-    }
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_FLOAT, 0, normals);
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -188,11 +185,9 @@ void Cube::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexCoord((*it).first);    
+            disableTexCoord((*it).first);
 
-    if(where->hasLighting || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
-
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -252,11 +247,8 @@ void Sphere::Draw(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
 
-    if(where->hasLighting || where->programId)
-    {
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
-    }
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -273,11 +265,9 @@ void Sphere::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexCoord((*it).first);
+            disableTexCoord((*it).first);
 
-    if(where->hasLighting || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
-
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -340,11 +330,8 @@ void Torus::Draw(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
 
-    if(where->hasLighting || where->programId)
-    {
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
-    }
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -361,11 +348,9 @@ void Torus::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexCoord((*it).first);
+            disableTexCoord((*it).first);
 
-    if(where->hasLighting || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
-
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -405,32 +390,29 @@ void Cone::Draw(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
 
-    if(where->hasLighting || where->programId)
+    // Compute normal of each vertex according to those calculate for neighbouring faces
+    // NOTE: First and last normals are the same because of QUAD_STRIP
+    Vector3 previousFaceNorm, nextFaceNorm;
+    previousFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
+    nextFaceNorm = calculateNormal(vertices[0], vertices[1], vertices[2]);
+    normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+    normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+    for(unsigned int i = 2; i < vertices.size() - 2; i +=2)
     {
-        // Compute normal of each vertex according to those calculate for neighbouring faces
-        // NOTE: First and last normals are the same because of QUAD_STRIP
-        Vector3 previousFaceNorm, nextFaceNorm;
-        previousFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
-        nextFaceNorm = calculateNormal(vertices[0], vertices[1], vertices[2]);
+        previousFaceNorm = nextFaceNorm;
+        if(i < vertices.size() - 2)
+            nextFaceNorm = calculateNormal(vertices[i], vertices[i + 1], vertices[i + 2]);
+        else
+            nextFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
+
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
-        for(unsigned int i = 2; i < vertices.size() - 2; i +=2)
-        {
-            previousFaceNorm = nextFaceNorm;
-            if(i < vertices.size() - 2)
-             nextFaceNorm = calculateNormal(vertices[i], vertices[i + 1], vertices[i + 2]);
-            else
-             nextFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
-
-            normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
-            normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
-        }
-        normals.push_back(normals[0]);
-        normals.push_back(normals[0]);
-
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
     }
+    normals.push_back(normals[0]);
+    normals.push_back(normals[0]);
+
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -449,11 +431,9 @@ void Cone::Draw(Layout *where)
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
-           disableTexCoord((*it).first);
+            disableTexCoord((*it).first);
 
-    if(where->hasLighting || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
-
+    glDisableClientState(GL_NORMAL_ARRAY);
     glDisableClientState(GL_VERTEX_ARRAY);
  }
 

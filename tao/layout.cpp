@@ -210,6 +210,7 @@ void Layout::Clear()
     hasMatrix = false;
     has3D = false;
     hasAttributes = false;
+    hasTransform = false;
     hasTextureMatrix = 0;
     ClearAttributes();
 
@@ -651,7 +652,6 @@ void Layout::Inherit(Layout *where)
     has3D            = where->has3D;
     hasPixelBlur     = where->hasPixelBlur;
     groupDrag        = where->groupDrag;
-    hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;
 }
 

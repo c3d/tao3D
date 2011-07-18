@@ -55,6 +55,23 @@ MouseMoveEvent             -> 5
 KeyPressEvent              -> 6
 KeyReleaseEvent            -> 7
 
+// OpenGL types used to draw
+Points                     -> 0
+Lines                      -> 1
+Line_Loop                  -> 2
+Line_Strip                 -> 3
+Triangles                  -> 4
+Triangle_Strip             -> 5
+Triangle_Fan               -> 6
+Quads                      -> 7
+Quad_Strip                 -> 8
+Polygon                    -> 9
+Lines_Adjacency            -> 10
+Line_Strip_Adjacency       -> 11
+Triangles_Adjacency        -> 12
+Triangle_Strip_Adjacency   -> 13
+
+
 // Chooser
 main_chooser ->
     chooser tr "Choose command"
@@ -248,6 +265,8 @@ vertical_align_spread                                   -> vertical_align   0, 1
 sphere x:real, y:real, z:real, r:real  -> sphere x,y,z,r,r,r,25,25
 sphere r:real                          ->
     sphere 0.0, 0.0, 0.0, r, r, r, 25, 25
+
+torus x:real, y:real, z:real, d:real, r:real  -> torus x,y,z,d,d,d,25,25,r
 
 // 2D Paths
 move_to x:real, y:real                  -> move_to x, y, 0
@@ -640,6 +659,13 @@ menu_item "menu:insert > 3Dshape > sphere", tr "Sphere",
             color "fill"
             line_color "fill"
             sphere 0, 0, 0, 100, 100, 100, 25, 25
+
+menu_item "menu:insert > 3Dshape > torus", tr "Torus",
+    insert tr "Insert torus",
+        shape
+            color "fill"
+            line_color "fill"
+            torus 0, 0, 0, 100, 100, 100, 25, 25, 0.5
 
 menu_item "menu:insert > 3Dshape > cube", tr "Cube",
     insert tr "Insert cube",

@@ -33,9 +33,37 @@
 #include <QEvent>
 #include <float.h>
 
+#define MAX_TEX_UNITS 64
+
 TAO_BEGIN
 
 struct Widget;
+
+struct TextureState
+// ----------------------------------------------------------------------------
+//   The state of the texture we want to preserve
+// ----------------------------------------------------------------------------
+{
+    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
+    bool        wrapS, wrapT;
+    GLuint        id;
+    GLuint        unit;
+    GLuint        width;
+    GLuint        height;
+    GLenum        type;
+};
+
+struct ModelState
+// ----------------------------------------------------------------------------
+//   The state of the model we want to preserve
+// ----------------------------------------------------------------------------
+{
+    ModelState(): tx(0), ty(0), tz(0), sx(1), sy(1), sz(1), rotation(1, 0, 0, 0) {}
+
+    float tx, ty, tz;     // Translate parameters
+    float sx, sy, sz;     // Scaling parameters
+    Quaternion rotation;  // Rotation parameters
+};
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -47,6 +75,8 @@ struct LayoutState
 
 public:
     typedef std::set<QEvent::Type>              qevent_ids;
+    typedef std::map<uint,TextureState>         tex_list;
+
 
 public:
     void                ClearAttributes();
@@ -62,15 +92,18 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
-    uint                fillTexture;
+    TextureState        currentTexture;
+    uint64              textureUnits; //Current used texture units
+    uint64              previousUnits; //Previous used texture units
+    tex_list            fillTextures;
+    ModelState          model;
     uint                lightId;
     uint                programId;
-    bool                wrapS : 1;                // Texture wrapping
-    bool                wrapT : 1;
     bool                printing : 1;
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+
 };
 
 
@@ -131,13 +164,13 @@ public:
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-
     // For optimized drawing, we keep track of what changes
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
     bool                hasAttributes   : 1;
-    bool                hasTextureMatrix: 1;
+    bool                hasTransform    : 1;
+    uint64              hasTextureMatrix; // 64 texture units
     bool                hasLighting     : 1;
     bool                hasMaterial     : 1;
     bool                isSelection     : 1;

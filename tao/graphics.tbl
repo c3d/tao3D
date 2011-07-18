@@ -267,6 +267,12 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        RTAO(shapeAction(self,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
+       DESCRIPTION("Associate the specified code to the mouse over"))       
+PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
+       PARM(t,code, "The code to execute"),
+       RTAO(shapeAction(self,"release",t)),
+       GROUP(mouse)
+       SYNOPSIS("Associate code with mouse over")
        DESCRIPTION("Associate the specified code to the mouse over"))
 PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
        PARM(name, symbol, "The name of the feature to test"),
@@ -606,6 +612,10 @@ PREFIX(SetCameraUp, boolean, "camera_up_vector",
        RTAO(setCameraUpVector(self, x, y, z)),
        GROUP(gui:camera)
        SYNOPSIS("Set the up direction for the camera"))
+PREFIX(GetModelMatrix, infix, "model_matrix", ,
+       RTAO(currentModelMatrix(self)),
+       GROUP(gui)
+       SYNOPSIS("Return the model matrix which convert from object space to world space"))
 PREFIX(ToggleHandCursor, boolean, "toggle_hand_cursor", ,
        RTAO(toggleHandCursor(self)),
        GROUP(gui:camera)
@@ -824,7 +834,30 @@ PREFIX(FillColorCMYK,  tree,  "color_cmyk",
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
-PREFIX(FillTexture,  tree,  "texture",
+PREFIX(FillColorGradient,  tree, "gradient_color",
+       PARM(pos, real, )
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(fillColorGradient(self, pos, r, g, b, a)),
+       GROUP(graph)
+       SYNOPSIS("")
+       DESCRIPTION("")
+       RETURNS(tree, ""))
+PREFIX(FillTextureUnit,  integer,  "texture_unit",
+       PARM(texUnit, integer, "The texture unit."),
+       RTAO(fillTextureUnit(self, texUnit)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION(""))
+PREFIX(FillTextureId,  integer,  "texture",
+       PARM(texId, integer, "The texture id."),
+       RTAO(fillTextureId(self, texId)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION(""))
+PREFIX(FillTexture,  integer,  "texture",
        PARM(n, text, "The image filename."),
        RTAO(fillTexture(self, n)),
        GROUP(graph:attribute)
@@ -842,14 +875,14 @@ PREFIX(FillTexture,  tree,  "texture",
                    "TIFF Tagged Image File Format\n"
                    "XBM  X11 Bitmap\n"
                    "XPM X11 Pixmap"))
-PREFIX(FillTextureSVG,  tree, "svg",
+PREFIX(FillTextureSVG,  integer, "svg",
        PARM(img, text, "The image filename."),
        RTAO(fillTextureFromSVG(self, img)),
        GROUP(graph)
        SYNOPSIS("Create a texture from an SVG")
        DESCRIPTION("Draw an image from an SVG format")
        RETURNS(tree, ""))
-PREFIX(FillAnimatedTexture,  tree,  "animated_texture",
+PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
        PARM(n, text, "The animation filename."),
        RTAO(fillAnimatedTexture(self, n)),
        GROUP(graph:attribute)
@@ -858,7 +891,7 @@ PREFIX(FillAnimatedTexture,  tree,  "animated_texture",
 GIF	Animated Graphic Interchange Format\n                           \
 MNG	Animated portable Network Graphics\n                            \
 others [TODO:  description is troncated] "))
-PREFIX(ImageA,  tree, "image",
+PREFIX(ImageA,  integer, "image",
        PARM(x, real, )
        PARM(y, real, )
        PARM(w, real, )
@@ -868,7 +901,7 @@ PREFIX(ImageA,  tree, "image",
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
-PREFIX(ImageB,  tree, "image",
+PREFIX(ImageB,  integer, "image",
        PARM(x, real, "x-coordinate of the image")
        PARM(y, real, "y-coordinate of the image")
        PARM(img, text, "width of the image"),
@@ -876,7 +909,7 @@ PREFIX(ImageB,  tree, "image",
        GROUP(graph)
        SYNOPSIS("Make an image")
        DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))
-PREFIX(ImagePx,  tree, "image_px",
+PREFIX(ImagePx,  integer, "image_px",
        PARM(x, real, "X coordinate of image center")
        PARM(y, real, "Y coordinate of image center")
        PARM(w, real, "Image width in pixels")
@@ -907,8 +940,36 @@ PREFIX(TextureTransform,  tree,  "texture_transform",
        SYNOPSIS("Apply a texture transformation")
        DESCRIPTION("Apply a texture transformation.[TODO: de quel genre ?]")
        RETURNS(tree, "The result of the child evaluation."))
-
-
+PREFIX(TextureWidth,  tree,  "texture_width",,
+       RTAO(textureWidth(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture width.")
+       DESCRIPTION("Return current texture width.")
+       RETURNS(tree, "The current texture width."))
+PREFIX(TextureHeight,  tree,  "texture_height",,
+       RTAO(textureHeight(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture height")
+       DESCRIPTION("Return current texture height")
+       RETURNS(tree, "The current texture height"))
+PREFIX(TextureType,  tree,  "texture_type",,
+       RTAO(textureType(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture type.")
+       DESCRIPTION("Return current texture type.")
+       RETURNS(tree, "The current texture type."))
+PREFIX(TextureId,  tree,  "texture",,
+       RTAO(textureId(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture id")
+       DESCRIPTION("Return current texture id")
+       RETURNS(tree, "The current texture id"))
+PREFIX(TextureUnit,  tree,  "texture_unit",,
+       RTAO(textureUnit(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture unit")
+       DESCRIPTION("Return current texture unit")
+       RETURNS(tree, "The current texture unit"))
 
 // ============================================================================
 //
@@ -1198,7 +1259,21 @@ PREFIX(Sphere,  tree,  "sphere",
        RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)),
        GROUP(graph)
        SYNOPSIS("sphere like")
-       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]")
+       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]"))
+PREFIX(Torus,  tree,  "torus",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth")
+       PARM(slices, integer, "number of slices")
+       PARM(stacks, integer, "number of stacks")
+       PARM(r, real, "radius"),
+       RTAO(torus(self, x, y, z, w, h, d, slices, stacks, r)),
+       GROUP(graph)
+       SYNOPSIS("torus like")
+       DESCRIPTION("torus[TODO]")
        RETURNS(tree, ""))
 PREFIX(Cube,  tree,  "cube",
        PARM(x, real, "x-coordinate")
@@ -1657,7 +1732,44 @@ PREFIX(FrameTexture,  tree,  "frame_texture",
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
-       RETURNS(tree, "The result of 'prog' evaluation"))
+       RETURNS(tree, "The result of 'prog' evaluation"))       
+PREFIX(LinearGradient,  tree,  "linear_gradient",
+       PARM(start_x, real, "x-coordinate of the gradient start")
+       PARM(start_y, real, "y-coordinate of the gradient start")
+       PARM(end_x, real, "x-coordinate of the gradient end")
+       PARM(end_y, real, "y-coordinate of the gradient end")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(p, code, "The program that allow to define colors for the gradient"),
+       RTAO(linearGradient(context, self, start_x, start_y, end_x, end_y, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A linear gradient with content as colors")
+       DESCRIPTION("Make a linear gradient")
+       RETURNS(tree, "The id of current gradient"))
+PREFIX(RadialGradient,  tree,  "radial_gradient",
+       PARM(center_x, real, "x-coordinate of the gradient center")
+       PARM(center_y, real, "y-coordinate of the gradient center")
+       PARM(radius, real, "gradient radius")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(p, code, "The program that allow to define colors for the gradient"),
+       RTAO(radialGradient(context, self, center_x, center_y, radius, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A radial gradient with content as colors")
+       DESCRIPTION("Make a radial gradient")
+       RETURNS(tree, "The id of current gradient"))
+PREFIX(ConicalGradient,  tree,  "conical_gradient",
+       PARM(center_x, real, "x-coordinate of the gradient center")
+       PARM(center_y, real, "y-coordinate of the gradient center")
+       PARM(angle, real, "gradient angle")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(p, code, "The program that allow to define colors for the gradient"),
+       RTAO(conicalGradient(context, self, center_x, center_y, angle, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A conical gradient with content as colors")
+       DESCRIPTION("Make a conical gradient")
+       RETURNS(tree, "The id of current gradient"))
 PREFIX(Url,  tree,  "url",
        PARM(x,real, )
        PARM(y,real, )
@@ -2098,7 +2210,6 @@ PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real,),
        GROUP(lighting)
        SYNOPSIS("Select the shininess of the material")
        DESCRIPTION(""))
-
 PREFIX(MaterialBackAmbient, tree, "material_back_ambient",
        PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
        RTAO(material(self, GL_BACK, GL_AMBIENT, r, g, b, a)),
@@ -2168,14 +2279,45 @@ PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
        GROUP(graph:shading)
        SYNOPSIS("Return the shader compilation log")
        DESCRIPTION(""))
+PREFIX(GeometryInputType, integer, "geometry_shader_input", ,
+       RTAO(geometryInputType(self)),
+       SYNOPSIS("Get geometry shader input type")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryInputType, boolean, "geometry_shader_input",
+       PARM(type, integer, "Input type"),
+       RTAO(setGeometryInputType(self, type)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader input type")
+       DESCRIPTION(""))
+PREFIX(GeometryOutputType, integer, "geometry_shader_output", ,
+       RTAO(geometryOutputType(self)),
+       SYNOPSIS("Get geometry shader output type")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryOutputType, boolean, "geometry_shader_output",
+       PARM(type, integer, "Output type"),
+       RTAO(setGeometryOutputType(self, type)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader output type")
+       DESCRIPTION(""))
+PREFIX(GeometryOutputCount, integer, "geometry_shader_count", ,
+       RTAO(geometryOutputCount(self)),
+       SYNOPSIS("Get geometry shader vertices count")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryOutputCount, boolean, "geometry_shader_count",
+       PARM(count, integer, "output count"),
+       RTAO(setGeometryOutputCount(self, count)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader vertices count")
+       DESCRIPTION(""))
 PREFIX(ShaderSet, tree, "shader_set",
        PARM(t, source, "Assignment to a shader variable"),
        RTAO(shaderSet(context, self, t)),
        GROUP(lighting)
        SYNOPSIS("Set a shader uniform or attribute value")
        DESCRIPTION(""));
-
-
 
 // ============================================================================
 //

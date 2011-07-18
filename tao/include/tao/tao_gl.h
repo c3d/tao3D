@@ -22,7 +22,7 @@
 // ****************************************************************************
 
 #ifndef CONFIG_MACOSX
-#  include <GL/glew.h>
+#  include <tao/GL/glew.h>
 #else
 #  define glewInit()
 #endif

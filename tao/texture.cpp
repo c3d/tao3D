@@ -50,7 +50,6 @@ ImageTextureInfo::~ImageTextureInfo()
 // ----------------------------------------------------------------------------
 {}
 
-
 static inline ImageTextureInfo::Texture computeDefaultTexture()
 // ----------------------------------------------------------------------------
 //   A texture that we use when the given source image is invalid
@@ -166,8 +165,6 @@ GLuint ImageTextureInfo::bind(text file)
 
     return texinfo.id;
 }
-
-
 
 // ============================================================================
 // 

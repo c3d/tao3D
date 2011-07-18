@@ -1,0 +1,30 @@
+// ****************************************************************************
+//  traces.tbl                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     This table defines the debug traces for the "lens flare" module
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+#ifndef XL_TRACE_GROUP
+#define XL_TRACE_GROUP LensFlare
+#endif
+
+TRACE(builtins)
+TRACE(lens)
+

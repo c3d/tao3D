@@ -30,6 +30,7 @@
 #include "save.h"
 #include "tree-clone.h"
 #include "coords3d.h"
+#include "matrix.h"
 #include "opcodes.h"
 #include "drawing.h"
 #include "activity.h"
@@ -395,6 +396,7 @@ public:
     Real_p      getZNear(Tree_p self);
     Name_p      setZFar(Tree_p self, double zf);
     Real_p      getZFar(Tree_p self);
+    Infix_p     currentModelMatrix(Tree_p self);
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
@@ -426,11 +428,21 @@ public:
                              double h, double s, double v, double a);
     Tree_p      fillColorCmyk(Tree_p self,
                               double c, double m, double y, double k, double a);
-    Tree_p      fillTexture(Tree_p self, text fileName);
-    Tree_p      fillAnimatedTexture(Tree_p self, text fileName);
-    Tree_p      fillTextureFromSVG(Tree_p self, text svg);
+    Tree_p      fillColorGradient(Tree_p self,
+                                  Real_p pos, double r, double g, double b, double a);
+
+    Integer*    fillTextureUnit(Tree_p self, GLuint texUnit);
+    Integer*    fillTextureId(Tree_p self, GLuint texId);
+    Integer*    fillTexture(Tree_p self, text fileName);
+    Integer*    fillAnimatedTexture(Tree_p self, text fileName);
+    Integer*    fillTextureFromSVG(Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
+    Integer*    textureWidth(Tree_p self);
+    Integer*    textureHeight(Tree_p self);
+    Integer*    textureType(Tree_p self);
+    Integer*    textureId(Tree_p self);
+    Integer*    textureUnit(Tree_p self);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
     Tree_p      light(Tree_p self, GLenum function, GLfloat value);
     Tree_p      light(Tree_p self, GLenum function,
@@ -445,6 +457,12 @@ public:
     Tree_p      shaderFromFile(Tree_p self, ShaderKind kind, text file);
     Tree_p      shaderSet(Context *, Tree_p self, Tree_p code);
     Text_p      shaderLog(Tree_p self);
+    Name_p      setGeometryInputType(Tree_p self, uint inputType);
+    Integer*    geometryInputType(Tree_p self);
+    Name_p      setGeometryOutputType(Tree_p self, uint outputType);
+    Integer*    geometryOutputType(Tree_p self);
+    Name_p      setGeometryOutputCount(Tree_p self, uint outputCount);
+    Integer*    geometryOutputCount(Tree_p self);
 
     // Generating a path
     Tree_p      newPath(Context *c, Tree_p self, Tree_p t);
@@ -498,7 +516,7 @@ public:
                         Real_p cx, Real_p cy, Real_p w, Real_p h,
                         Real_p r, Real_p ax, Real_p ay, Real_p d);
 
-    Tree_p      picturePacker(Tree_p self,
+    Integer*    picturePacker(Tree_p self,
                               uint tw, uint th,
                               uint iw, uint ih,
                               uint pw, uint ph,
@@ -511,7 +529,11 @@ public:
     Tree_p      sphere(Tree_p self,
                        Real_p cx, Real_p cy, Real_p cz,
                        Real_p w, Real_p, Real_p d,
-                       Integer_p nslices, Integer_p nstacks);
+                       Integer_p nslices, Integer_p nstacks);    
+    Tree_p      torus(Tree_p self,
+                       Real_p x, Real_p y, Real_p z,
+                       Real_p w, Real_p h, Real_p d,
+                       Integer_p nslices, Integer_p nstacks, double ratio);
     Tree_p      cube(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
                      Real_p w, Real_p h, Real_p d);
     Tree_p      cone(Tree_p self, Real_p cx, Real_p cy, Real_p cz,
@@ -581,23 +603,33 @@ public:
 
     // Frames and widgets
     Tree_p      status(Tree_p self, text t);
-    Tree_p      framePaint(Context *context, Tree_p self,
+    Integer*    framePaint(Context *context, Tree_p self,
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
-    Tree_p      frameTexture(Context *context, Tree_p self,
+    Integer*    frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog);
-    Tree_p      thumbnail(Context *, Tree_p self, scale s, double i, text page);
+    Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
+    Integer*    linearGradient(Context *context, Tree_p self,
+                               Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
+                               double w, double h, Tree_p prog);
+    Integer*    radialGradient(Context *context, Tree_p self,
+                               Real_p center_x, Real_p center_y, Real_p radius,
+                               double w, double h, Tree_p prog);
+    Integer*    conicalGradient(Context *context, Tree_p self,
+                                Real_p center_x, Real_p center_y, Real_p angle,
+                                double w, double h, Tree_p prog);
+
     Name_p      offlineRendering(Tree_p self);
 
     Tree_p      urlPaint(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                          text_p s, integer_p p);
-    Tree_p      urlTexture(Tree_p self,
+    Integer*    urlTexture(Tree_p self,
                            double x, double y,
                            Text_p s, Integer_p p);
 
     Tree_p      lineEdit(Tree_p self, Real_p x,Real_p y,
                          Real_p w,Real_p h, text_p s);
-    Tree_p      lineEditTexture(Tree_p self, double x, double y, Text_p s);
+    Integer*    lineEditTexture(Tree_p self, double x, double y, Text_p s);
 
     Tree_p      textEdit(Context *context, Tree_p self,
                          Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
@@ -608,19 +640,19 @@ public:
                                Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      pushButton(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                            text_p name, text_p lbl, Tree_p act);
-    Tree_p      pushButtonTexture(Tree_p self, double w, double h,
+    Integer*    pushButtonTexture(Tree_p self, double w, double h,
                                   text_p name, Text_p lbl, Tree_p act);
     Tree_p      radioButton(Tree_p self, Real_p x,Real_p y, Real_p w,Real_p h,
                             text_p name, text_p lbl,
                             Text_p selected, Tree_p act);
-    Tree_p      radioButtonTexture(Tree_p self, double w, double h,
+    Integer*    radioButtonTexture(Tree_p self, double w, double h,
                                    text_p name, Text_p lbl,
                                    Text_p selected, Tree_p act);
     Tree_p      checkBoxButton(Tree_p self,
                                Real_p x,Real_p y, Real_p w, Real_p h,
                                text_p name, text_p lbl, Text_p  marked,
                                Tree_p act);
-    Tree_p      checkBoxButtonTexture(Tree_p self,
+    Integer*    checkBoxButtonTexture(Tree_p self,
                                       double w, double h,
                                       text_p name, Text_p lbl,
                                       Text_p  marked, Tree_p act);
@@ -632,7 +664,7 @@ public:
     Tree_p      colorChooser(Tree_p self,
                              Real_p x, Real_p y, Real_p w, Real_p h,
                              Tree_p action);
-    Tree_p      colorChooserTexture(Tree_p self,
+    Integer*    colorChooserTexture(Tree_p self,
                                     double w, double h,
                                     Tree_p action);
 
@@ -640,7 +672,7 @@ public:
     Tree_p      fontChooser(Tree_p self,
                             Real_p x, Real_p y, Real_p w, Real_p h,
                             Tree_p action);
-    Tree_p      fontChooserTexture(Tree_p self,
+    Integer*    fontChooserTexture(Tree_p self,
                                    double w, double h,
                                    Tree_p action);
 
@@ -648,7 +680,7 @@ public:
     Tree_p      fileChooser(Tree_p self,
                             Real_p x, Real_p y, Real_p w, Real_p h,
                             Tree_p action);
-    Tree_p      fileChooserTexture(Tree_p self,
+    Integer*    fileChooserTexture(Tree_p self,
                                     double w, double h,
                                     Tree_p action);
     Tree_p      setFileDialogAction(Tree_p self, Tree_p action);
@@ -659,7 +691,7 @@ public:
     Tree_p      groupBox(Context *context, Tree_p self,
                          Real_p x,Real_p y, Real_p w,Real_p h,
                          text_p lbl, Tree_p buttons);
-    Tree_p      groupBoxTexture(Tree_p self,
+    Integer*    groupBoxTexture(Tree_p self,
                                 double w, double h,
                                 Text_p lbl);
 
@@ -667,15 +699,15 @@ public:
                       Real_p x, Real_p y, Real_p w, Real_p h,
                       Text_p url);
 
-    Tree_p      movieTexture(Tree_p self, Text_p url);
+    Integer*    movieTexture(Tree_p self, Text_p url);
 
-    Tree_p      image(Context *context,
+    Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
-    Tree_p      image(Context *context,
+    Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, text filename);
     Tree_p      listFiles(Context *context, Tree_p self, Tree_p pattern);
-    Tree_p      imagePx(Context *context,
+    Integer*      imagePx(Context *context,
                         Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                         text filename);
     Infix_p     imageSize(Context *context,
@@ -782,6 +814,7 @@ private:
 
     // Rendering
     QColor                clearCol;
+    QGradient*            gradient;
     SpaceLayout *         space;
     Layout *              layout;
     GraphicPath *         path;
@@ -820,6 +853,7 @@ private:
     GLdouble              focusProjection[16], focusModel[16];
     GLint                 focusViewport[4];
     uint                  keyboardModifiers;
+
 
     // Menus and widgets
     QMenu                *currentMenu;
@@ -882,8 +916,8 @@ private:
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;
     int                   offlineRenderingHeight;
-
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
+
 private:
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);

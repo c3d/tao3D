@@ -76,6 +76,8 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "3D Shape", "Forme 3D"
     tr "Sphere", "Sphere"
     tr "Insert sphere", "Insérer une sphère"
+    tr "Torus", "Torus"
+    tr "Insert torus", "Insérer un torus"
     tr "Cube", "Cube"
     tr "Insert cube", "Insérer un cube"
     tr "Cone", "Cône"

@@ -89,6 +89,22 @@ struct ModuleApi
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
 
+    // Allow to set coordinates to a texture unit for a drawing.
+    // These coordinates must be specified before to enable textures.
+    // A value of -1 sets the specified coordinates to all units.
+    bool (*SetTexCoords)(int unit, double* texCoord);
+
+    // Allow to set a new texture in Tao thanks to its id and its type.
+    bool (*SetTexture)(unsigned int id, unsigned int type);
+
+    // Allow to set fill color during a drawing according
+    // to the current layout attributes.
+    bool (*SetFillColor)();
+
+    // Allow to set line color during a drawing according
+    // to the current layout attributes.
+    bool (*SetLineColor)();
+
     // ------------------------------------------------------------------------
     //   API for display modules
     // ------------------------------------------------------------------------
@@ -253,6 +269,7 @@ extern "C"
     // Called once immediately after the module library is loaded.
     // Return 0 on success.
     // [Optional]
+    // [ModuleInfo is only valable during this call]
     int module_init(const Tao::ModuleApi *a, const Tao::ModuleInfo *m);
 
     // Called when module is imported to let the module extend the XL symbol

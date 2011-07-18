@@ -50,11 +50,14 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      fillTexture(0), lightId(GL_LIGHT0), programId(0),
-      wrapS(false), wrapT(false), printing(false),
+      textureUnits(1), previousUnits(0),
+      lightId(GL_LIGHT0), programId(0),
+      printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0)
-{}
+{
+    fillTextures.clear();
+}
 
 
 LayoutState::LayoutState(const LayoutState &o)
@@ -70,11 +73,12 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        fillTexture(o.fillTexture),
+        textureUnits(o.textureUnits),
+        previousUnits(o.previousUnits),
+        fillTextures(o.fillTextures),
+        model(o.model),
         lightId(o.lightId),
-        programId(o.programId),
-        wrapS(o.wrapS),
-        wrapT(o.wrapT),
+        programId(o.programId),        
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
@@ -142,7 +146,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false),hasTransform(false), hasTextureMatrix(0),
       hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false),
       items(), display(widget), idx(-1),
@@ -156,7 +160,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTransform(o.hasTransform), hasTextureMatrix(o.hasTextureMatrix),
       hasLighting(false), hasMaterial(false),
       isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display), idx(-1),
@@ -206,7 +210,7 @@ void Layout::Clear()
     hasMatrix = false;
     has3D = false;
     hasAttributes = false;
-
+    hasTextureMatrix = 0;
     ClearAttributes();
 
     refreshEvents.clear();
@@ -233,6 +237,9 @@ void Layout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -254,6 +261,9 @@ void Layout::DrawSelection(Layout *where)
         child->DrawSelection(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -276,6 +286,9 @@ void Layout::Identify(Layout *where)
         child->Identify(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -614,30 +627,32 @@ void Layout::Inherit(Layout *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-    font            = where->font;
-    alongX          = where->alongX;
-    alongY          = where->alongY;
-    alongZ          = where->alongZ;
-    left            = where->left;
-    right           = where->right;
-    top             = where->top;
-    bottom          = where->bottom;
-    visibility      = where->visibility;
-    lineWidth       = where->lineWidth;
-    lineColor       = where->lineColor;
-    fillColor       = where->fillColor;
-    fillTexture     = where->fillTexture;
-    lightId         = where->lightId;
-    programId       = where->programId;
-    wrapS           = where->wrapS;
-    wrapT           = where->wrapT;
-    printing        = where->printing;
-    planarRotation  = where->planarRotation;
-    planarScale     = where->planarScale;
-    has3D           = where->has3D;
-    hasPixelBlur    = where->hasPixelBlur;
-    groupDrag       = where->groupDrag;
-    hasMaterial     = where->hasMaterial;
+    font             = where->font;
+    alongX           = where->alongX;
+    alongY           = where->alongY;
+    alongZ           = where->alongZ;
+    left             = where->left;
+    right            = where->right;
+    top              = where->top;
+    bottom           = where->bottom;
+    visibility       = where->visibility;
+    lineWidth        = where->lineWidth;
+    lineColor        = where->lineColor;
+    fillColor        = where->fillColor;
+    textureUnits     = where->textureUnits;
+    previousUnits    = where->previousUnits;
+    fillTextures     = where->fillTextures;
+    model            = where->model;
+    lightId          = where->lightId;
+    programId        = where->programId;
+    printing         = where->printing;
+    planarRotation   = where->planarRotation;
+    planarScale      = where->planarScale;
+    has3D            = where->has3D;
+    hasPixelBlur     = where->hasPixelBlur;
+    groupDrag        = where->groupDrag;
+    hasMaterial      = where->hasMaterial;
+    hasTransform     = where->hasTransform;
 }
 
 

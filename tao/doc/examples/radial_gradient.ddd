@@ -1,0 +1,11 @@
+
+radial_grad -> 
+    color "white" 
+    radial_gradient 250, 250, 250, 700, 700, 
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+        gradient_color 1, 1.0, 0.0, 0.0, 1.0 
+
+    rectangle 0, 0, 250, 250 
+
+radial_grad

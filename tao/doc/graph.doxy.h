@@ -18,6 +18,16 @@
  *
  * All color component are express as a percentage, so values are between 0.0 and 1.0 inclusive.
  * Texture and color are combined (they are not exclusive).
+ *
+ * @par Multitexturing
+ *
+ * Multitexturing is the use of more than one texture at a time on a same primitive.
+ * For instance, the following code (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>) draws a rectangle using the combinaison of
+ * wall and spot textures in order to create a nice lighting effect.
+ *
+ * @include multitexturing.ddd
+ * @image html multitexturing.png "Multitexturing demo: multitexturing.ddd"
+ *
  * @{
  */
 
@@ -295,6 +305,74 @@ line_color_cymk (c:real, y:real, m:real, k:real, a:real);
 line_color_cymk (c:real, y:real, m:real, k:real);
 
 /**
+ * Creates a stop point in the current gradient at the given position with the given color.
+ *
+ * @param pos position of stop point in the current gradient. The value must be in the range 0 to 1.
+ * @param r red component of the color
+ * @param g green component of the color
+ * @param b blue component of the color
+ * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ */
+gradient_color (pos:real, r:real, g:real, b:real, a:real);
+
+/**
+ * Make a linear gradient.
+ * Draw a linear gradient with colors specified in the body
+ * thanks to @ref gradient_color.
+ *
+ *  - @p start_x and @p start_y are the coordinates of the gradient start.
+ *  - @p end_x and @p end_y are the coordinates of the gradient end.
+ *  - @p w and @p h are the width and height of the resulting texture.
+ *
+ * @image html "images/linear_gradient.png"
+ *
+ * Code used to produce this image :
+ * <a href="examples/linear_gradient.ddd">linear_gradient.ddd</a>
+ *
+ * @note This gradient is generated as a new texture.
+ * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ */
+linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:real, body:tree);
+
+/**
+ * Make a radial gradient.
+ * Draw a radial gradient with colors specified in the body
+ * thanks to @ref gradient_color.
+ *
+ *  - @p cx and @p cy are the coordinates of the gradient center.
+ *  - @p r is the gradient radius.
+ *  - @p w and @p h are the width and height of the resulting texture.
+ *
+ * @image html "images/radial_gradient.png"
+ *
+ * Code used to produce this image :
+ * <a href="examples/radial_gradient.ddd">radial_gradient.ddd</a>
+ *
+ * @note This gradient is generated as a new texture.
+ * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ */
+radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
+
+/**
+ * Make a conical gradient.
+ * Draw a conical gradient with colors specified in the body
+ * thanks to @ref gradient_color.
+ *
+ *  - @p cx and @p cy are the coordinates of the gradient center.
+ *  - @p teta is the gradient angle. This one must be specified in degrees between 0 and 360.
+ *  - @p w and @p h are the width and height of the resulting texture.
+ *
+ * @image html "images/conical_gradient.png"
+ *
+ * Code used to produce this image :
+ * <a href="examples/conical_gradient.ddd">conical_gradient.ddd</a>
+ *
+ * @note This gradient is generated as a new texture.
+ * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ */
+conical_gradient (cx:real, cy:real, teta:real, w:real, h:real, body:tree);
+
+/**
  * Selects the texture.
  * Build a GL texture out of image file @p filename, and make it the current
  * texture.
@@ -316,6 +394,59 @@ line_color_cymk (c:real, y:real, m:real, k:real);
  * to render animated SVG files.
  */
 texture(filename:text);
+
+/**
+ * Selects the texture by its id.
+ * Build a GL texture out of an @p id.
+ * @note @c texture @c 0 deactivate the texture binded on the current unit.
+ */
+texture(id:integer);
+
+/**
+ * Get current texture id.
+ * @return [integer] current texture id
+ */
+texture();
+
+/**
+ * Get current texture width.
+ * @return [integer] current texture width
+ */
+texture_width();
+
+/**
+ * Get current texture height.
+ * @return [integer] current texture height
+ */
+texture_height();
+
+/**
+ * Get current texture type.
+ * @return [integer] current texture type
+ *
+ * @note Returned type is defined in OpenGL specifications.
+ * @see http://www.opengl.org/registry/#specfiles
+ */
+texture_type();
+
+
+/**
+ * Selects current the texture unit.
+ * Set the current texture unit to @p unit.
+ *
+ * Default value is 0.
+ *
+ * @note Only the fourth texture units can be used without shaders. The maximum number of texture units and coordinates depend on the graphic card.
+ * @note @c shader_set can be used to link texture unit with a sampler inside shaders.
+ * @see OpenGL documentation about GL_MAX_TEXTURE_COORDS, GL_MAX_TEXTURE_IMAGE_UNITS and GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.
+ */
+texture_unit (unit:integer);
+
+/**
+ * Get current texture unit.
+ * @return [integer] current texture unit
+ */
+texture_unit();
 
 /**
  * Create a GL animated texture.
@@ -889,6 +1020,29 @@ sphere x, y, z, d, d, d, 25, 25
 @endcode
  */
 sphere (x:real, y:real, z:real, r:real);
+
+/**
+ * Draws a torus.
+ *
+ * The torus is divided in @p slices and @p stacks. The higher the value of
+ * these parametres are, the smoother the torus is (and longer the drawing is).
+ * The torus's @p w, @p h and @p d are not aimed to be equals.
+ * The minor radius of the torus is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0.
+ * If @p r is 0 the drawing is a sort of opened cylinder, if @p r is 1 the torus is closed.
+
+ */
+torus (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer, r:real);
+
+/**
+ * Draws a torus.
+ *
+ * Torus with diameter @p d located at (@p x, @p y, @p z).
+ * Shorcut to
+@code
+torus x, y, z, d, d, d, 25, 25, r
+@endcode
+ */
+torus (x:real, y:real, z:real, d:real, r:real);
 
 /**
  * Draws a cone.

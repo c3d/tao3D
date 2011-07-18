@@ -1,0 +1,76 @@
+// ****************************************************************************
+//  lens_flare.tbl                                                 Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Definition of the interface between XLR and native code
+//     for the "lens flare" module.
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+#include "lens_flare.h"
+
+PREFIX(LensFlare,  tree, "lens_flare",
+       PARM(p, code, "The program that represent the content of the frame"),
+       return lens_flare(context, self, p),
+       GROUP(module.LensFlare)
+       SYNOPSIS("Produce a lens flare")
+       DESCRIPTION("Produce a lens flare. "
+                   "This effect is defined by its source, its target, and its flares, "
+                   "specified in the @p tree."))
+
+PREFIX(LensFlareSource,  tree, "lens_flare_source",
+       PARM(x, real, "x-coordinate of the lens flare source")
+       PARM(y, real, "y-coordinate of the lens flare source")
+       PARM(z, real, "z-coordinate of the lens flare source"),
+       return lens_flare_source(self, x, y, z),
+       GROUP(module.LensFlare)
+       SYNOPSIS("Set the lens flare source")
+       DESCRIPTION("Set the lens flare source."))
+
+PREFIX(LensFlareTarget,  tree, "lens_flare_target",
+       PARM(x, real, "x-coordinate of the lens flare target")
+       PARM(y, real, "y-coordinate of the lens flare target")
+       PARM(z, real, "z-coordinate of the lens flare target"),
+       return lens_flare_target(self, x, y, z),
+       GROUP(module.LensFlare)
+       SYNOPSIS("Set the lens flare target")
+       DESCRIPTION("Set the lens flare target."))
+
+PREFIX(AddFlare,  tree, "add_flare",
+       PARM(id, integer, "id of the flare")
+       PARM(loc, real, "location of the flare")
+       PARM(scale, real, "scale of the flare")
+       PARM(r, real, "The red componant of the color")
+       PARM(g, real, "The blue componant of the color")
+       PARM(b, real, "The green componant of the color")
+       PARM(a, real, "Alpha channel: the transparency of the color. "),
+       return add_flare(self, id, loc, scale, r, g, b, a),
+       GROUP(module.LensFlare)
+       SYNOPSIS("Add a flare to the current effect")
+       DESCRIPTION("Add a flare to the current lens flare. "
+                   "This flare is defined by its texture @a id,"
+                   "its relative @a location, its @a scale, "
+                   "and its @a color."))
+
+PREFIX(LensFlareDepthTest,  tree, "lens_flare_depth_test",
+       PARM(mode, symbol, "on or off"),
+       return lens_flare_depth_test(self, mode),
+       GROUP(module.LensFlare)
+       SYNOPSIS("Enable or disable depth test on lens flare")
+       DESCRIPTION("Enable or disable depth test on lens flare. "
+                   "This depth test is defined specifically for this effect."))

@@ -42,6 +42,7 @@
 #include "layout.h"
 #include "layout_cache.h"
 #include "tao_gl.h"
+#include "statistics.h"
 
 #include <QImage>
 #include <QTimeLine>
@@ -98,7 +99,6 @@ class Widget : public QGLWidget
 {
     Q_OBJECT
 public:
-    typedef std::list<int>              frame_times;
     typedef std::vector<double>         attribute_args;
     typedef std::map<GLuint, uint>      selection_map;
     enum ShaderKind { VERTEX, FRAGMENT, GEOMETRY };
@@ -229,7 +229,6 @@ public:
     // Timing
     ulonglong   now();
     void        printStatistics();
-    void        updateStatistics();
     bool        hasAnimations(void)     { return animated; }
 
     // Selection
@@ -886,9 +885,7 @@ private:
     double                dfltRefresh;
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
-    QTime                 stats_start;
-    int                   stats_interval;
-    frame_times           stats;
+    Statistics            stats;
     ulonglong             nextSave, nextSync;
 #ifndef CFG_NOGIT
     ulonglong             nextCommit, nextPull;

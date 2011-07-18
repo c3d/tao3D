@@ -126,7 +126,8 @@ HEADERS += widget.h \
     templates.h \
     module_info_dialog.h \
     display_driver.h \
-    include/tao/matrix.h
+    include/tao/matrix.h \
+    statistics.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -185,7 +186,8 @@ SOURCES += tao_main.cpp \
     dir.cpp \
     templates.cpp \
     module_info_dialog.cpp \
-    display_driver.cpp
+    display_driver.cpp \
+    statistics.cpp
 
 # Check compile-time options
 
@@ -363,4 +365,3 @@ QMAKE_EXTRA_TARGETS += lrelease
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
-

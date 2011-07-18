@@ -179,7 +179,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
       dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
-      stats_interval(5000),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
       nextCommit(nextSave),
@@ -344,7 +343,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pageStartTime(o.pageStartTime), frozenTime(o.frozenTime),
       startTime(o.startTime),
       currentTime(o.currentTime),
-      stats_interval(o.stats_interval), stats(o.stats),
       nextSave(o.nextSave), nextSync(o.nextSync),
 #ifndef CFG_NOGIT
       nextCommit(o.nextCommit),
@@ -658,11 +656,9 @@ void Widget::draw()
     }
 
     // Run current display algorithm
+    stats.begin(Statistics::DRAW);
     displayDriver->display();
-
-    // One more complete view rendered
-    if (bShowStatistics)
-        updateStatistics();
+    stats.end(Statistics::DRAW);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -749,11 +745,15 @@ bool Widget::refreshNow(QEvent *event)
             std::cerr << "Partial refresh due to event: "
                       << LayoutState::ToText(event->type()) << "\n";
 
+        stats.begin(Statistics::GC);
         XL::GarbageCollector::Collect();
+        stats.end(Statistics::GC);
 
         // Layout::Refresh needs current != NULL
         TaoSave saveCurrent(current, this);
+        stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
+        stats.end(Statistics::EXEC);
 
         if (changed)
             processProgramEvents();
@@ -833,7 +833,9 @@ void Widget::runProgram()
 {
     setCurrentTime();
 
+    stats.begin(Statistics::GC);
     XL::GarbageCollector::Collect();
+    stats.end(Statistics::GC);
 
     // Don't run anything if we detected errors running previously
     if (inError)
@@ -847,6 +849,8 @@ void Widget::runProgram()
     focusWidget = NULL;
     id = idDepth = 0;
 
+    stats.begin(Statistics::EXEC);
+
     // Run the XL program associated with this widget
     XL::Save<Layout *> saveLayout(layout, space);
     space->Clear();
@@ -855,6 +859,8 @@ void Widget::runProgram()
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
     if (Tree *prog = xlProgram->tree)
         xlProgram->context->Evaluate(prog);
+
+    stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
     if (XL::MAIN->HadErrors())
@@ -1746,8 +1752,7 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    stats.clear();
-    stats_start.start();
+    stats.reset();
 #ifdef MACOSX_DISPLAYLINK
     droppedFrames = 0;
 #endif
@@ -3659,12 +3664,9 @@ void Widget::printStatistics()
 // ----------------------------------------------------------------------------
 {
     char fps[6] = "---.-";
-    int elapsed = stats_start.elapsed();
-    if (elapsed >= stats_interval)
-    {
-        double n = (double)stats.size() * 1000 / stats_interval;
+    double n = stats.fps();
+    if (n >= 0)
         snprintf(fps, sizeof(fps), "%5.1f", n);
-    }
     char dropped[20] = "";
 #ifdef MACOSX_DISPLAYLINK
     snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
@@ -3675,23 +3677,28 @@ void Widget::printStatistics()
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
-    RasterText::printf("%dx%dx%d  %s fps%s", vw, vh, stereoPlanes, fps,
+    RasterText::printf("%dx%dx%d %s fps%s", vw, vh, stereoPlanes, fps,
                        dropped);
+
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
+    if (n >= 0)
+    {
+        int xa, xm, da, dm, ga, gm;
+        xa = stats.averageTime(Statistics::EXEC);
+        xm = stats.maxTime(Statistics::EXEC);
+        da = stats.averageTime(Statistics::DRAW);
+        dm = stats.maxTime(Statistics::DRAW);
+        ga = stats.averageTime(Statistics::GC);
+        gm = stats.maxTime(Statistics::GC);
+        RasterText::printf("Avg/peak (ms): Exec %3d/%3d Draw %3d/%3d "
+                           "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+    }
+    else
+    {
+        RasterText::printf("Avg/peak (ms): Exec ---/--- Draw ---/--- "
+                           "GC ---/---");
+    }
 }
-
-
-void Widget::updateStatistics()
-// ----------------------------------------------------------------------------
-//    Update statistics when a frame has been drawn
-// ----------------------------------------------------------------------------
-{
-    int now = stats_start.elapsed();
-    stats.push_back(now);
-    while (now - stats.front() > stats_interval)
-        stats.pop_front();
-}
-
-
 
 // ============================================================================
 //
@@ -5028,7 +5035,7 @@ Name_p Widget::showStatistics(Tree_p self, bool ss)
     bool prev = bShowStatistics;
     bShowStatistics = ss;
     if (ss)
-        stats_start.start();
+        stats.reset();
     return prev ? XL::xl_true : XL::xl_false;
 }
 

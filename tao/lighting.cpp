@@ -127,13 +127,22 @@ void ShaderValue::Draw(Layout *where)
 
             //Get type of current uniform variable
             GLint size = 0;
+			GLint length = 0;
             GLchar* uniformName = new GLchar[uniformMaxLength];
             for(int index = 0; index < uniformActive; index++)
             {
-                glGetActiveUniform( where->programId, index, uniformMaxLength + 1, NULL, &size, (GLenum*) &type, uniformName);
+                glGetActiveUniform( where->programId, index, uniformMaxLength + 1, &length, &size, (GLenum*) &type, uniformName);
+				
+				// If uniform is an array, compare just name without []
+				if(length >= 3 && uniformName[length - 1] == ']')
+					if(! strncmp(uniformName,name->value.c_str(), length - 3))
+						break;
+				
+				// Otherwise juste compare
                 if(! strcmp(uniformName,name->value.c_str()))
                     break;
             }
+			std::cout << uniformName << std::endl;
             delete uniformName;
 
             switch (type)

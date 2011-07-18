@@ -104,7 +104,7 @@ public:
     bool         hasGLMultisample, hasFBOMultisample;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
-    bool         hasGLStereoBuffers;x
+    bool         hasGLStereoBuffers;
     QString      lang;
 
 private:

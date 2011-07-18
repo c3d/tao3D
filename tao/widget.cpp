@@ -6034,7 +6034,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     if(texUnit >= TaoApp->maxTextureCoords)
     {
         Ooops("Invalid texture unit to transform $1", self);
-        return false;
+        return XL::xl_false;
     }
 
     layout->hasTextureMatrix |= 1 << texUnit;

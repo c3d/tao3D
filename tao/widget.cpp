@@ -274,7 +274,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 }
 
 
-struct PurgeNewWidget : XL::Action
+struct PurgeGLContextSensitiveInfo : XL::Action
 // ----------------------------------------------------------------------------
 //   Delete all Info structures that are invalid when the GL context is changed
 // ----------------------------------------------------------------------------
@@ -410,8 +410,19 @@ Widget::Widget(Widget &o, const QGLFormat &format)
         hideCursor();
 
     // Invalidate any program info that depends on the old GL context
-    PurgeNewWidget purge;
+    PurgeGLContextSensitiveInfo purge;
     xlProgram->tree->Do(purge);
+    // Do it also on imported files
+    import_set iset;
+    (void)ImportedFilesChanged(iset, false);
+    {
+        import_set::iterator it;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            sf.tree->Do(purge);
+        }
+    }
 
     // REVISIT:
     // Texture and glyph cache do not support multiple GL contexts. So,

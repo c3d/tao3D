@@ -27,7 +27,6 @@
 #include <QPair>
 #include <QList>
 #include <Qtime>
-#include <map>   // remove
 
 TAO_BEGIN
 
@@ -39,23 +38,27 @@ public:
         EXEC, GC, DRAW,
         LAST_OP
     };
-    typedef std::list<int> frame_times;  // QList?
+    typedef QList<int> frame_times;
     typedef QPair<int, int> date_val;
     typedef QList<date_val> durations;
 
 public:
-    Statistics() : interval(5000) { reset(); }
+    Statistics(bool enabled = false)
+        : enabled(enabled), interval(5000) { reset(); }
 
 public:
     void    begin(Operation op);
     void    end(Operation op);
     void    reset();
+    bool    enable(bool on = true);
+    bool    isEnabled();
 
     double  fps();
     int     averageTime(Operation op);
     int     maxTime(Operation op);
 
 protected:
+    bool        enabled;
     int         interval;   // Measuring interval (ms)
     QTime       intervalTimer;
 

@@ -178,7 +178,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
-      currentTime(DBL_MAX),
+      currentTime(DBL_MAX), stats(),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
       nextCommit(nextSave),
@@ -191,7 +191,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      savedCursorShape(Qt::ArrowCursor), bShowStatistics(false),
+      savedCursorShape(Qt::ArrowCursor),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
@@ -342,7 +342,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       dfltRefresh(o.dfltRefresh),
       pageStartTime(o.pageStartTime), frozenTime(o.frozenTime),
       startTime(o.startTime),
-      currentTime(o.currentTime),
+      currentTime(o.currentTime), stats(o.stats.isEnabled()),
       nextSave(o.nextSave), nextSync(o.nextSync),
 #ifndef CFG_NOGIT
       nextCommit(o.nextCommit),
@@ -357,7 +357,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
-      savedCursorShape(o.savedCursorShape), bShowStatistics(o.bShowStatistics),
+      savedCursorShape(o.savedCursorShape),
       renderFramesCanceled(o.renderFramesCanceled),
       inOfflineRendering(o.inOfflineRendering),
       offlineRenderingWidth(o.offlineRenderingWidth),
@@ -590,7 +590,7 @@ void Widget::drawActivities()
     glEnable(GL_DEPTH_TEST);
 
     // Show FPS as text overlay
-    if (bShowStatistics)
+    if (stats.isEnabled())
         printStatistics();
 }
 
@@ -5032,10 +5032,7 @@ Name_p Widget::showStatistics(Tree_p self, bool ss)
 //   Display or hide performance statistics (frames per second)
 // ----------------------------------------------------------------------------
 {
-    bool prev = bShowStatistics;
-    bShowStatistics = ss;
-    if (ss)
-        stats.reset();
+    bool prev = stats.enable(ss);
     return prev ? XL::xl_true : XL::xl_false;
 }
 
@@ -5045,7 +5042,7 @@ Name_p Widget::toggleShowStatistics(Tree_p self)
 //   Toggle display of statistics
 // ----------------------------------------------------------------------------
 {
-    return showStatistics(self, !bShowStatistics);
+    return showStatistics(self, !stats.isEnabled());
 }
 
 

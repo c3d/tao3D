@@ -42,11 +42,37 @@ void Statistics::reset()
 }
 
 
+bool Statistics::enable(bool on)
+// ----------------------------------------------------------------------------
+//    Enable or disable statistics collection, return previous state
+// ----------------------------------------------------------------------------
+{
+    bool ret = enabled;
+    if (enabled == on)
+        return ret;
+    if (!enabled)
+        reset();
+    enabled = on;
+    return ret;
+}
+
+
+bool Statistics::isEnabled()
+// ----------------------------------------------------------------------------
+//    Return enabled state
+// ----------------------------------------------------------------------------
+{
+    return enabled;
+}
+
+
 void Statistics::begin(Operation)
 // ----------------------------------------------------------------------------
 //    Start measurement
 // ----------------------------------------------------------------------------
 {
+    if (!enabled)
+        return;
     timer.start();
 }
 
@@ -56,6 +82,9 @@ void Statistics::end(Operation op)
 //    End measurement
 // ----------------------------------------------------------------------------
 {
+    if (!enabled)
+        return;
+
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
     int now = intervalTimer.elapsed();
@@ -80,9 +109,9 @@ void Statistics::end(Operation op)
     if (op == DRAW)
     {
         // A new frame is out, update FPS record
-        frames.push_back(now);
-        while (now - frames.front() > interval)
-            frames.pop_front();
+        frames.append(now);
+        while (now - frames.first() > interval)
+            frames.removeFirst();
     }
 }
 
@@ -92,7 +121,7 @@ double Statistics::fps()
 //    Average frames per second during last 'interval' seconds
 // ----------------------------------------------------------------------------
 {
-    if (intervalTimer.elapsed() < interval)
+    if (!enabled || intervalTimer.elapsed() < interval)
         return -1.0;
     return (double)frames.size() * 1000 / interval;
 }
@@ -105,7 +134,7 @@ int Statistics::averageTime(Operation op)
 {
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
-    if (intervalTimer.elapsed() < interval)
+    if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
 
     durations &d = data[op];
@@ -122,7 +151,7 @@ int Statistics::maxTime(Operation op)
 {
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
-    if (intervalTimer.elapsed() < interval)
+    if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
 
     return max[op];

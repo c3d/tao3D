@@ -27,6 +27,7 @@ XL_DEFINE_TRACES
 
 LensFlare* lens;
 
+
 Tree_p lens_flare(Context *context, Tree_p, Tree_p prog)
 // ----------------------------------------------------------------------------
 //    Generate a lens flare
@@ -34,7 +35,7 @@ Tree_p lens_flare(Context *context, Tree_p, Tree_p prog)
 {
     lens = new LensFlare();
     context->Evaluate(prog);
-    LensFlare::tao->scheduleRender(LensFlare::render_callback, lens);
+    LensFlare::tao->addToLayout(LensFlare::render_callback, lens, LensFlare::delete_callback);
 
     return xl_true;
 }

@@ -16,6 +16,8 @@ struct Matrix4
     {
         if(loadIdentity)
             LoadIdentity();
+        else
+            type = UNKNOWN;
     }
 
     Matrix4(const coord *data)

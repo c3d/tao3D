@@ -86,6 +86,14 @@ interpolate_zangle S:real, TZ:real, Z:real ->
     rotatez Z
 
 
+interpolate_scale S:real, TScale:real, Scale:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate scale
+// ----------------------------------------------------------------------------
+    interpolate S, TScale, Scale
+    scale Scale, Scale, Scale
+
+
 
 // ============================================================================
 // 

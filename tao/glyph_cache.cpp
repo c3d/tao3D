@@ -156,7 +156,8 @@ GlyphCache::GlyphCache()
       maxFontSize(64),
       antiAliasMargin(1),
       fontScaling(2.0),
-      lastFont(NULL)
+      lastFont(NULL),
+      GLcontext(QGLContext::currentContext())
 {
     glGenTextures(1, &texture);
     image.fill(0);
@@ -168,6 +169,11 @@ GlyphCache::~GlyphCache()
 //   Release the texture we were using
 // ----------------------------------------------------------------------------
 {
+    // Don't delete texture if context has been changed
+    // REVISIT glyph cache should support multiple contexts
+    if (GLcontext != QGLContext::currentContext())
+        return;
+
     glDeleteTextures(1, &texture);
     for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
         delete (*it).second;

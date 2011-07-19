@@ -119,7 +119,6 @@ namespace Tao {
 // ============================================================================
 
 static Point3 defaultCameraPosition(0, 0, 6000);
-static bool bogusQuadBuffers = false;
 
 
 
@@ -132,13 +131,8 @@ static inline QGLFormat TaoGLFormat()
     QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
-         QGL::StencilBuffer     |
          QGL::AlphaChannel      |
          QGL::AccumBuffer);
-    if (TaoApp->hasGLStereoBuffers &&
-        !QSettings().value("DisableStereoscopy", false).toBool() &&
-        XL::MAIN->options.enable_stereoscopy)
-        options |= QGL::StereoBuffers;
     if (TaoApp->hasGLMultisample)
         options |= QGL::SampleBuffers;
     QGLFormat format(options);
@@ -164,7 +158,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
-      stereoMode(stereoHARDWARE), stereoscopic(0), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -178,6 +171,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #ifdef MACOSX_DISPLAYLINK
       displayLink(NULL), displayLinkStarted(false),
       pendingDisplayLinkEvent(false),
+      stereoBuffersEnabled(TaoGLFormat().testOption(QGL::StereoBuffers)),
       stereoSkip(0), holdOff(false), droppedFrames(0),
 #else
       timer(),
@@ -185,7 +179,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
       dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
       currentTime(DBL_MAX),
-      stats_interval(5000),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
       nextCommit(nextSave),
@@ -200,7 +193,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), bShowStatistics(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
-      editCursor(NULL)
+      editCursor(NULL),
+      isInvalid(false)
 {
     setObjectName(QString("Widget"));
     memset(focusProjection, 0, sizeof focusProjection);
@@ -248,7 +242,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Prepare activity to process mouse events even when no click is made
     // (but for performance reasons, mouse tracking is enabled only when program
     // execution asks for MouseMove events)
-    new MouseFocusTracker("Focus tracking", this);
+    mouseFocusTracker = new MouseFocusTracker("Focus tracking", this);
 
     // Find which page overscaling to use
     while (printOverscaling < 8 &&
@@ -274,7 +268,174 @@ Widget::Widget(Window *parent, SourceFile *sf)
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &(TaoApp->maxTextureUnits));
 
     // Create the object we will use to render frames
-    displayDriver = new DisplayDriver(this);
+    current = this;
+    displayDriver = new DisplayDriver;
+}
+
+
+struct PurgeGLContextSensitiveInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete all Info structures that are invalid when the GL context is changed
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        what->Purge<ImageTextureInfo>();
+        what->Purge<TextureIdInfo>();
+        what->Purge<ShaderProgramInfo>();
+        return what;
+    }
+};
+
+
+Widget::Widget(Widget &o, const QGLFormat &format)
+// ----------------------------------------------------------------------------
+//   Create a copy of a widget [with a different QGLFormat]. INVALIDATES o.
+// ----------------------------------------------------------------------------
+    : QGLWidget(format, o.parentWidget()),
+      xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
+      mustUpdateDialogs(o.mustUpdateDialogs),
+      runOnNextDraw(true), clearCol(o.clearCol),
+      space(NULL), layout(NULL), path(o.path), table(o.table),
+      pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
+      flowName(o.flowName), flows(o.flows), pageName(o.pageName),
+      lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
+      pageLinks(o.pageLinks), pageNames(o.pageNames),
+      newPageNames(o.newPageNames),
+      pageId(o.pageId), pageFound(o.pageFound), pageShown(o.pageFound),
+      pageTotal(o.pageTotal), pageToPrint(o.pageToPrint),
+      pageTree(o.pageTree),
+      currentShape(o.currentShape), currentGridLayout(o.currentGridLayout),
+      currentShaderProgram(NULL),
+      currentGroup(o.currentGroup),
+      glyphCache(),
+      fontFileMgr(o.fontFileMgr),
+      drawAllPages(o.drawAllPages), animated(o.animated),
+      doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
+      displayDriver(o.displayDriver),
+      activities(NULL),
+      id(o.id), focusId(o.focusId), maxId(o.maxId),
+      idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
+      selection(o.selection), selectionTrees(o.selectionTrees),
+      selectNextTime(o.selectNextTime), actionMap(o.actionMap),
+      hadSelection(o.hadSelection), selectionChanged(o.selectionChanged),
+      w_event(o.w_event), focusWidget(o.focusWidget),
+      keyboardModifiers(o.keyboardModifiers),
+      currentMenu(o.currentMenu), currentMenuBar(o.currentMenuBar),
+      currentToolBar(o.currentToolBar),
+      orderedMenuElements(o.orderedMenuElements), order(o.order),
+      colorAction(o.colorAction), fontAction(o.fontAction),
+      colorName(o.colorName), selectionColor(o.selectionColor),
+      originalColor(o.originalColor),
+      lastMouseX(o.lastMouseX), lastMouseY(o.lastMouseY),
+      lastMouseButtons(o.lastMouseButtons),
+      mouseCoordinatesInfo(o.mouseCoordinatesInfo),
+#ifdef MACOSX_DISPLAYLINK
+      displayLink(NULL), displayLinkStarted(false),
+      pendingDisplayLinkEvent(false),
+      stereoBuffersEnabled(format.testOption(QGL::StereoBuffers)),
+      stereoSkip(o.stereoSkip), holdOff(o.holdOff),
+      droppedFrames(o.droppedFrames),
+#else
+      timer(),
+#endif
+      dfltRefresh(o.dfltRefresh),
+      pageStartTime(o.pageStartTime), frozenTime(o.frozenTime),
+      startTime(o.startTime),
+      currentTime(o.currentTime),
+      nextSave(o.nextSave), nextSync(o.nextSync),
+#ifndef CFG_NOGIT
+      nextCommit(o.nextCommit),
+      nextPull(o.nextPull),
+#endif
+      pagePrintTime(o.pagePrintTime), printOverscaling(o.printOverscaling),
+      printer(o.printer),
+      currentFileDialog(o.currentFileDialog),
+      zNear(o.zNear), zFar(o.zFar), scaling(o.scaling),
+      zoom(o.zoom), eyeDistance(o.eyeDistance),
+      cameraPosition(o.cameraPosition),
+      cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
+      panX(o.panX), panY(o.panY),
+      dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
+      savedCursorShape(o.savedCursorShape), bShowStatistics(o.bShowStatistics),
+      renderFramesCanceled(o.renderFramesCanceled),
+      inOfflineRendering(o.inOfflineRendering),
+      offlineRenderingWidth(o.offlineRenderingWidth),
+      offlineRenderingHeight(o.offlineRenderingHeight),
+      toDialogLabel(o.toDialogLabel),
+      inDraw(o.inDraw), changeReason(o.changeReason),
+      editCursor(o.editCursor),
+      isInvalid(false)
+{
+    setObjectName(QString("Widget"));
+
+    memcpy(focusProjection, o.focusProjection, sizeof(focusProjection));
+    memcpy(focusModel, o.focusModel, sizeof(focusModel));
+    memcpy(focusViewport, o.focusViewport, sizeof(focusViewport));
+
+    // Make sure we don't fill background with crap
+    setAutoFillBackground(false);
+
+    // Make this the current context for OpenGL
+    makeCurrent();
+
+    // Create new layout to draw into
+    space = new SpaceLayout(this);
+    layout = space;
+
+    // Prepare the idle timer
+    connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
+    idleTimer.start(100);
+
+    // Receive notifications for focus
+    connect(qApp, SIGNAL(focusChanged (QWidget *, QWidget *)),
+            this,  SLOT(appFocusChanged(QWidget *, QWidget *)));
+    setFocusPolicy(Qt::StrongFocus);
+
+    // Prepare the menubar
+    connect(currentMenuBar, SIGNAL(triggered(QAction*)),
+            this,           SLOT(userMenu(QAction*)));
+
+    // Prepare new mouse tracking activity
+    mouseFocusTracker = new MouseFocusTracker("Focus tracking", this);
+
+    std::map<text, text>::iterator i;
+    for (i = o.xlTranslations.begin(); i != o.xlTranslations.end(); i++)
+        xlTranslations[(*i).first] = (*i).second;
+
+    // Hide mouse cursor if it was hidden in previous widget
+    if (o.cursor().shape() == Qt::BlankCursor)
+        hideCursor();
+
+    // Invalidate any program info that depends on the old GL context
+    PurgeGLContextSensitiveInfo purge;
+    xlProgram->tree->Do(purge);
+    // Do it also on imported files
+    import_set iset;
+    (void)ImportedFilesChanged(iset, false);
+    {
+        import_set::iterator it;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            sf.tree->Do(purge);
+        }
+    }
+
+    // REVISIT:
+    // Texture and glyph cache do not support multiple GL contexts. So,
+    // clear them here so that textures or GL lists created with the
+    // previous context are not re-used with the new.
+    ImageTextureInfo::textures.clear();
+    o.glyphCache.Clear();
+
+    // Now, o has become invalid ; make sure it can't be redrawn before being
+    // deleted (NB: QMainWindow::setCentralWidget deletes previous widget
+    // asynchronously)
+    o.space->Clear();
+    o.isInvalid = true;
+
+    current = this;
 }
 
 Widget::~Widget()
@@ -285,6 +446,8 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     delete space;
     delete path;
+    delete mouseFocusTracker;
+    // REVISIT: delete activities?
 
 #ifdef MACOSX_DISPLAYLINK
     if (displayLink)
@@ -295,6 +458,8 @@ Widget::~Widget()
         displayLink = NULL;
     }
 #endif
+
+    RasterText::purge(QGLWidget::context());
 }
 
 
@@ -490,23 +655,10 @@ void Widget::draw()
         runProgram();
     }
 
-
     // Run current display algorithm
-    stereoscopic = 1; // FIXME - REVISIT:
-                      // Without this, mouse tracking won't work if display
-                      // function is not legacyDraw().
-                      // But, in any case setting stereoscopic = 1 is not
-                      // the solution, because we don't want to record mouse
-                      // coordinates multiple times when rendering for multiple
-                      // point of views.
-                      // What interface do we need to export to the display
-                      // modules?
+    stats.begin(Statistics::DRAW);
     displayDriver->display();
-
-
-    // One more complete view rendered
-    if (bShowStatistics)
-        updateStatistics();
+    stats.end(Statistics::DRAW);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -534,242 +686,6 @@ void Widget::draw()
         if (!window->isReadOnly)
             updateProgramSource();
     }
-}
-
-
-void Widget::legacyDraw()
-// ----------------------------------------------------------------------------
-//    Legacy code before display modules. Still the default rendered.
-// ----------------------------------------------------------------------------
-{
-    // Draw the space with all the drawings in it
-    // If we are in stereoscopic mode, we draw twice, once for each eye
-    uint w = width(), h = height();
-
-    setGlClearColor();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-    // Generate depth map if necessary
-    static QGLShaderProgram *depthMapper = NULL;
-    if (stereoMode == stereoDEPTHMAP)
-    {
-        static char shaderSource[] =
-            "uniform float Multiplier;"
-            "uniform float Zd;"
-            "uniform float vz;"
-            "uniform float Offset;"
-            "uniform sampler2D tex;"
-
-            "void main(void)"
-            "{"
-            "vec2 texCoord = gl_TexCoord[0].st;"
-            "vec4 fragColor = gl_Color * texture2D(tex, texCoord);"
-            "if (fragColor.a <= 0.01)"
-            "    discard;"
-            "float Z = gl_FragCoord.z;"
-            "float disparity = Multiplier * (1.0- vz/(Z-Zd+vz))+Offset;"
-            "gl_FragColor = vec4(disparity, disparity, disparity, 1.0);"
-            "}";
-
-        if (!depthMapper)
-        {
-            QGLShaderProgram *pgm = new QGLShaderProgram();
-            if (pgm->addShaderFromSourceCode(QGLShader::Fragment, shaderSource))
-            {
-                GLuint programId = pgm->programId();
-#define SET(x, value)                                                   \
-                do                                                      \
-                {                                                       \
-                    float x = value;                                    \
-                    GLint uid = glGetUniformLocation(programId, #x);    \
-                    glUniform1fv(uid, 1, &x);                           \
-                } while(0)
-                pgm->bind();
-                SET(Multiplier, -1.55 * 1960.37 / 255);
-                SET(Zd, 0.467481);
-                SET(vz, 7.655192);
-                SET(Offset, 127.5 / 255 + 0.55);
-#undef SET
-                depthMapper = pgm;
-                glShowErrors();
-            }
-        }
-    }
-
-    int planes = stereoMode == stereoDEPTHMAP ? 1 : stereoPlanes;
-    if (bogusQuadBuffers && planes == 1 && stereoMode == stereoHARDWARE)
-        planes = 2;
-    for (stereoscopic = 1; stereoscopic <= planes; stereoscopic++)
-    {
-        // Select the buffer in which we draw
-        if (stereoPlanes > 1)
-        {
-            switch (stereoMode)
-            {
-            case stereoHARDWARE:
-                if (stereoscopic == 1)
-                    glDrawBuffer(GL_BACK_LEFT);
-                else if (stereoscopic == 2)
-                    glDrawBuffer(GL_BACK_RIGHT);
-                setGlClearColor();
-                glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glDisable(GL_STENCIL_TEST);
-                break;
-            case stereoHSPLIT:
-            case stereoVSPLIT:
-            case stereoDEPTHMAP:
-                glDrawBuffer(GL_BACK);
-                glDisable(GL_STENCIL_TEST);
-                break;
-            default:
-                glStencilFunc(GL_EQUAL, stereoscopic, 63);
-                glEnable(GL_STENCIL_TEST);
-                glDrawBuffer(GL_BACK);
-                break;
-            }
-        }
-        else
-        {
-            if (!bogusQuadBuffers)
-                glDrawBuffer(GL_BACK);
-            else if (stereoscopic == 1)
-                glDrawBuffer(GL_BACK_LEFT);
-            else if (stereoscopic == 2)
-                glDrawBuffer(GL_BACK_RIGHT);
-
-            glDisable(GL_STENCIL_TEST);
-        }
-
-        // Draw the current buffer
-        setup(w, h);
-        glClear(GL_DEPTH_BUFFER_BIT);
-
-        drawScene();
-
-        IFTRACE(memory)
-            std::cerr << "Draw, count = " << space->count
-                      << " buffer " << (int) stereoscopic << '\n';
-
-        if (stereoMode == stereoDEPTHMAP && depthMapper)
-        {
-            setup(w, h);
-            glViewport(w/2, 0, w/2, h);
-            id = idDepth = 0;
-            depthMapper->bind();
-            XL::Save<uint> setPgmId(Layout::globalProgramId,
-                                    depthMapper->programId());
-            glClearColor (0, 0, 0, 1);
-            glScissor(w/2, 0, w/2, h);
-            glEnable(GL_SCISSOR_TEST);
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-            glDisable(GL_SCISSOR_TEST);
-            glDisable(GL_TEXTURE_2D);
-            space->ClearAttributes();
-            space->Draw(NULL);
-            glViewport(0, 0, w/2, h);
-            glUseProgram(0);
-        }
-
-        // Show FPS as text overlay
-        if (bShowStatistics)
-            printStatistics();
-
-        // Draw object selections, manipulators
-        drawSelection();
-
-        // Draw selection rectangle, chooser
-        drawActivities();
-
-//        if (stereoMode == stereoDEPTHMAP && depthMapper)
-//        {
-//            glDisable(GL_DEPTH_TEST);
-//            glViewport(w/2, 0, w/2, h);
-//            id = idDepth = 0;
-//            depthMapper->bind();
-//            XL::Save<uint> setPgmId(Layout::globalProgramId,
-//                                    depthMapper->programId());
-//            glScissor(w/2, 0, w/2, h);
-//            glEnable(GL_SCISSOR_TEST);
-//            selectionSpace.Draw(NULL);
-//            glDisable(GL_SCISSOR_TEST);
-//            glUseProgram(0);
-//            glEnable(GL_DEPTH_TEST);
-//        }
-    }
-
-    // Generate header for depth map display, if necessary
-    if (stereoMode == stereoDEPTHMAP)
-    {
-        static uchar wowvxHeader[32] =
-        {
-            0xF1,               // Header ID
-            0x01,               // Digital signage
-            0x40,               // Depth factor
-            0x80,               // Offset (middle)
-            0x00,               // Offset and depth from type
-            0x00,               // Reserved
-            0xC4, 0x2D,         // CRC32 (slightly redundant, isn't it?
-            0xD3, 0xAF,
-
-            0xF2,               // Header 2
-            0x14, 0x00,         // 2D+Depth
-            0x00,               // Reserved
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x00,
-            0x36, 0x95,         // CRC32
-            0x82, 0x21
-        };
-        static uchar wowvxBluePixels[32 * 8 * 2 * 2] = { 0 };
-        if (wowvxBluePixels[3] == 0)
-        {
-            // Pre-compute the pixels (silly encoding)
-            uchar *ptr = wowvxBluePixels;
-            for (uint row = 0; row < 32; row++)
-            {
-                uint byte = wowvxHeader[row];
-                for (uint bit = 0; bit < 8; bit++)
-                {
-                    uchar bluePx = ((byte << bit) & 0x80) ? 0xFF : 0x00;
-                    *ptr++ = bluePx;  // B
-                    *ptr++ = 0;       // B odd
-                }
-            }
-        }
-
-        // Draw the pixels on screen
-        glViewport(0, 0, w/2, h);
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluOrtho2D(0, w/2, 0, h);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glDisable(GL_LIGHTING);
-        glDisable(GL_DEPTH_TEST);
-        glRasterPos2i(0, h-1);
-        glColor4f (1, 1, 1, 1);
-        glDrawPixels(32 * 8 * 2, 1, GL_BLUE, GL_UNSIGNED_BYTE, wowvxBluePixels);
-    }
-
-    // Motion blur
-    if (blurFactor > 0.0 && (stereoPlanes == 1 || stereoMode != stereoHARDWARE))
-    {
-        glAccum(GL_MULT, blurFactor);
-        glAccum(GL_ACCUM, 1.0 - blurFactor);
-        glAccum(GL_RETURN, 1.0);
-    }
-
 }
 
 
@@ -829,11 +745,15 @@ bool Widget::refreshNow(QEvent *event)
             std::cerr << "Partial refresh due to event: "
                       << LayoutState::ToText(event->type()) << "\n";
 
+        stats.begin(Statistics::GC);
         XL::GarbageCollector::Collect();
+        stats.end(Statistics::GC);
 
         // Layout::Refresh needs current != NULL
         TaoSave saveCurrent(current, this);
+        stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
+        stats.end(Statistics::EXEC);
 
         if (changed)
             processProgramEvents();
@@ -913,7 +833,9 @@ void Widget::runProgram()
 {
     setCurrentTime();
 
+    stats.begin(Statistics::GC);
     XL::GarbageCollector::Collect();
+    stats.end(Statistics::GC);
 
     // Don't run anything if we detected errors running previously
     if (inError)
@@ -927,15 +849,18 @@ void Widget::runProgram()
     focusWidget = NULL;
     id = idDepth = 0;
 
+    stats.begin(Statistics::EXEC);
+
     // Run the XL program associated with this widget
     XL::Save<Layout *> saveLayout(layout, space);
     space->Clear();
-    setMouseTracking(false);
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
     if (Tree *prog = xlProgram->tree)
         xlProgram->context->Evaluate(prog);
+
+    stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
     if (XL::MAIN->HadErrors())
@@ -1011,8 +936,6 @@ void Widget::print(QPrinter *prt)
     // Set the current printer while drawing
     TaoSave saveCurrent(current, this);
     XL::Save<QPrinter *> savePrinter(printer, prt);
-    XL::Save<char> disableStereoscopy1(stereoPlanes, 1);
-    XL::Save<char> disableStereoscopy2(stereoscopic, 1);
     XL::Save<text> savePage(pageName, "");
 
     // Identify the page range
@@ -1052,8 +975,6 @@ void Widget::print(QPrinter *prt)
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::Save<char> saveStereo1(stereoPlanes, 1);
-        XL::Save<char> saveStereo2(stereoscopic, 1);
         XL::Save<double> saveZoom(zoom, 1);
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
@@ -1689,16 +1610,6 @@ void Widget::enableAnimations(bool enable)
 }
 
 
-void Widget::enableStereoscopy(bool enable)
-// ----------------------------------------------------------------------------
-//   Enable or disable stereoscopy on the page
-// ----------------------------------------------------------------------------
-{
-    stereoPlanes = enable ? 2 : 1;
-    updateGL();
-}
-
-
 void Widget::showHandCursor(bool enabled)
 // ----------------------------------------------------------------------------
 //   Switch panning mode on/off
@@ -1841,13 +1752,10 @@ void Widget::resizeGL(int width, int height)
 // ----------------------------------------------------------------------------
 {
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
-    stats.clear();
-    stats_start.start();
+    stats.reset();
 #ifdef MACOSX_DISPLAYLINK
     droppedFrames = 0;
 #endif
-    if (stereoMode > stereoHARDWARE)
-        setupStereoStencil(width, height);
 
     TaoSave saveCurrent(current, this);
     QEvent r(QEvent::Resize);
@@ -1862,6 +1770,8 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
+    if (isInvalid)
+        return;
     if (!printer)
     {
         draw();
@@ -1894,24 +1804,6 @@ void Widget::setup(double w, double h, const Box *picking)
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
 
-    if (stereoPlanes > 1)
-    {
-        switch (stereoMode)
-        {
-        case stereoHSPLIT:
-        case stereoDEPTHMAP:
-            vw /= 2;
-            if (stereoscopic == 2)
-                vx = vw;
-            break;
-        case stereoVSPLIT:
-            vh /= 2;
-            if (stereoscopic == 1)
-                vy = vh;
-        default:
-            break;
-        }
-    }
     glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
@@ -1948,10 +1840,7 @@ void Widget::resetModelviewMatrix()
     glLoadIdentity();
 
     // Position the camera
-    double eyeX = cameraPosition.x;
-    if (stereoPlanes > 1)
-        eyeX += eyeDistance * (stereoscopic - 0.5 * stereoPlanes);
-    gluLookAt(eyeX, cameraPosition.y, cameraPosition.z,
+    gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
               cameraTarget.x, cameraTarget.y ,cameraTarget.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
@@ -2004,106 +1893,6 @@ void Widget::setupGL()
 }
 
 
-void Widget::setupStereoStencil(double w, double h)
-// ----------------------------------------------------------------------------
-//   For interlaced output, generate a stencil with every other line
-// ----------------------------------------------------------------------------
-{
-    if (stereoMode >= stereoHORIZONTAL)
-    {
-        // Setup the initial viewport and projection for drawing in stencil
-        glViewport(0, 0, w, h);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-        glMatrixMode(GL_PROJECTION);
-        glLoadIdentity();
-        gluOrtho2D(0,w,0,h);
-        glMatrixMode(GL_MODELVIEW);
-        glLoadIdentity();
-
-        // Prepare to draw in stencil buffer
-        glDrawBuffer(GL_BACK);
-        glEnable(GL_STENCIL_TEST);
-        glClearStencil(0);
-        glClear(GL_STENCIL_BUFFER_BIT);
-        glDisable(GL_DEPTH_TEST);
-
-        // Line properties
-        glColor4f(1.0, 1.0, 1.0, 1.0);
-        glLineWidth(1);
-        glDisable(GL_LINE_SMOOTH);
-        glDisable(GL_MULTISAMPLE);
-
-        uint numLines = 0;
-        switch(stereoMode)
-        {
-        case stereoHORIZONTAL:
-            numLines = h;
-            break;
-        case stereoVERTICAL:
-            numLines = w;
-            break;
-        case stereoDIAGONAL:
-        case stereoANTI_DIAGONAL:
-            numLines = w + h;
-            break;
-        case stereoALIOSCOPY:
-            numLines = 3 * (w + h);
-            break;
-        case stereoHARDWARE:
-        case stereoHSPLIT:
-        case stereoVSPLIT:
-        case stereoDEPTHMAP:
-            break;
-        }
-
-        for (char s = 0; s < stereoPlanes; s++)
-        {
-            // Ignore contents, set value to current line
-            glStencilFunc(GL_ALWAYS, s+1, 63);
-            glStencilOp (GL_REPLACE, GL_REPLACE, GL_REPLACE); // Copy to stencil
-            glBegin (GL_LINES);
-            for (uint x = s; x < numLines; x += stereoPlanes)
-            {
-                switch(stereoMode)
-                {
-                case stereoHORIZONTAL:
-                    glVertex2f (0, x);
-                    glVertex2f (w, x);
-                    break;
-                case stereoVERTICAL:
-                    glVertex2f (x, 0);
-                    glVertex2f (x, h);
-                    break;
-                case stereoDIAGONAL:
-                    glVertex2f (0, x);
-                    glVertex2f (x, 0);
-                    break;
-                case stereoANTI_DIAGONAL:
-                    glVertex2f (0, h-x);
-                    glVertex2f (x, h);
-                    break;
-                case stereoALIOSCOPY:
-                    glVertex2f (0, x);
-                    glVertex2f (x/3.0, 0);
-                    break;
-                case stereoHARDWARE:
-                case stereoHSPLIT:
-                case stereoVSPLIT:
-                case stereoDEPTHMAP:
-                    break;
-                }
-            }
-            glEnd();
-        }
-
-        // Protect stencil from now on
-        glStencilOp (GL_KEEP, GL_KEEP, GL_KEEP);
-        glFlush();
-    } // if stereoMode
-}
-
-
 uint Widget::showGlErrors()
 // ----------------------------------------------------------------------------
 //   Display all OpenGL errors in the error window
@@ -2115,29 +1904,29 @@ uint Widget::showGlErrors()
     uint errorsFound = 0;
     while (err != GL_NO_ERROR)
     {
-        std::ostringstream cerr;
+        QString msg;
         errorsFound++;
         if (!count)
         {
-            cerr << "GL Error: " << (char *) gluErrorString(err)
-                 << " [error code: " << err << "]";
+            char *p = (char *) gluErrorString(err);
+            msg = tr("GL Error: %1 [error code: %2]")
+                    .arg(QString::fromLocal8Bit(p)).arg(err);
             last = err;
         }
         if (err != last || count == 100)
         {
-            cerr << "GL Error: error " << last << " repeated "
-                 << count << " times";
+            msg += tr("GL Error: error %1 repeated %2 times")
+                     .arg(last).arg(count);
             count = 0;
         }
         else
         {
             count++;
         }
-        text msg = cerr.str();
         if (msg.length())
         {
             Window *window = (Window *) parentWidget();
-            window->addError(+msg);
+            window->addError(msg);
         }
         err = glGetError();
     }
@@ -2825,7 +2614,7 @@ void Widget::displayLinkEvent()
 {
     // Stereoscopy with quad buffers: scene refresh rate is half of screen
     // frequency
-    if (XL::MAIN->options.enable_stereoscopy && (++stereoSkip % 2 == 0))
+    if (stereoBuffersEnabled && (++stereoSkip % 2 == 0))
         return;
 
     // Post event to main thread (have no more than one event pending,
@@ -3875,12 +3664,9 @@ void Widget::printStatistics()
 // ----------------------------------------------------------------------------
 {
     char fps[6] = "---.-";
-    int elapsed = stats_start.elapsed();
-    if (elapsed >= stats_interval)
-    {
-        double n = (double)stats.size() * 1000 / stats_interval;
+    double n = stats.fps();
+    if (n >= 0)
         snprintf(fps, sizeof(fps), "%5.1f", n);
-    }
     char dropped[20] = "";
 #ifdef MACOSX_DISPLAYLINK
     snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
@@ -3891,23 +3677,28 @@ void Widget::printStatistics()
     glGetIntegerv(GL_VIEWPORT, vp);
     vx = vp[0]; vy = vp[1]; vw = vp[2]; vh = vp[3];
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10);
-    RasterText::printf("%dx%dx%d  %s fps%s", vw, vh, stereoPlanes, fps,
+    RasterText::printf("%dx%dx%d %s fps%s", vw, vh, stereoPlanes, fps,
                        dropped);
+
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
+    if (n >= 0)
+    {
+        int xa, xm, da, dm, ga, gm;
+        xa = stats.averageTime(Statistics::EXEC);
+        xm = stats.maxTime(Statistics::EXEC);
+        da = stats.averageTime(Statistics::DRAW);
+        dm = stats.maxTime(Statistics::DRAW);
+        ga = stats.averageTime(Statistics::GC);
+        gm = stats.maxTime(Statistics::GC);
+        RasterText::printf("Avg/peak (ms): Exec %3d/%3d Draw %3d/%3d "
+                           "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+    }
+    else
+    {
+        RasterText::printf("Avg/peak (ms): Exec ---/--- Draw ---/--- "
+                           "GC ---/---");
+    }
 }
-
-
-void Widget::updateStatistics()
-// ----------------------------------------------------------------------------
-//    Update statistics when a frame has been drawn
-// ----------------------------------------------------------------------------
-{
-    int now = stats_start.elapsed();
-    stats.push_back(now);
-    while (now - stats.front() > stats_interval)
-        stats.pop_front();
-}
-
-
 
 // ============================================================================
 //
@@ -5244,7 +5035,7 @@ Name_p Widget::showStatistics(Tree_p self, bool ss)
     bool prev = bShowStatistics;
     bShowStatistics = ss;
     if (ss)
-        stats_start.start();
+        stats.reset();
     return prev ? XL::xl_true : XL::xl_false;
 }
 
@@ -5299,7 +5090,7 @@ XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
     cameraPosition.y += dy;
     cameraTarget.x += dx;
     cameraTarget.y += dy;
-    setup(width(), height());
+    setup(width(), height()); // Remove?
     return XL::xl_true;
 }
 
@@ -5530,10 +5321,6 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
     bool ok = displayDriver->setDisplayFunction(+name);
     if (ok)
     {
-        std::string pov = displayDriver->getOption("PointsOfView");
-        if (pov == "")
-            pov = "1";
-        stereoPlanes = (+pov).toInt();
         updateGL();
         return XL::xl_true;
     }
@@ -5542,113 +5329,48 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 }
 
 
-#ifndef CFG_NOSTEREO
-
 XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
-//   Enable or disable stereoscopie mode
+//   Enable or disable stereoscopic mode
 // ----------------------------------------------------------------------------
 {
-    bool oldState = hasStereoscopy();
-    bool newState = false;
+    bool oldState = !displayDriver->isCurrentDisplayFunctionSameAs("2D");
+    text newState;
     if (name == XL::xl_false || name->value == "no" || name->value == "none")
     {
-        newState = false;
-        stereoMode = stereoHARDWARE;
+        newState = "2D";
     }
     else if (name == XL::xl_true || name->value == "hardware")
     {
-        newState = true;
-        stereoMode = stereoHARDWARE;
+        newState = "quadstereo";
     }
     else if (name->value == "hsplit")
     {
-        newState = true;
-        stereoMode = stereoHSPLIT;
+        newState = "hsplitstereo";
     }
     else if (name->value == "vsplit")
     {
-        newState = true;
-        stereoMode = stereoVSPLIT;
+        newState = "vsplitstereo";
     }
     else if (name->value == "interlace" || name->value == "interlaced" ||
              name->value == "interleave" || name->value == "interleaved")
     {
-        newState = true;
-        stereoMode = stereoHORIZONTAL;
-    }
-    else if (name->value == "vertical")
-    {
-        newState = true;
-        stereoMode = stereoVERTICAL;
-    }
-    else if (name->value == "diagonal")
-    {
-        newState = true;
-        stereoMode = stereoDIAGONAL;
-    }
-    else if (name->value == "antidiagonal")
-    {
-        newState = true;
-        stereoMode = stereoANTI_DIAGONAL;
+        newState = "hintstereo";
     }
     else if (name->value == "alioscopy")
     {
-        newState = true;
-        stereoMode = stereoALIOSCOPY;
-        stereoPlanes = 8;
-    }
-    else if (name->value == "depthmap" || name->value == "philips")
-    {
-        newState = true;
-        stereoMode = stereoDEPTHMAP;
-        stereoPlanes = 1;
-    }
-    else if (name->value == "bogusquadbuffers")
-    {
-        bogusQuadBuffers = true;
-        displayDriver->setOption("bogusquadbuffers", "on");
+        newState = "alioscopy";
     }
     else
     {
         std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
     }
 
-    if (oldState != newState)
-    {
-        if (!newState)
-            stereoPlanes = 1;
-        else if (stereoPlanes == 1)
-            stereoPlanes = 2;
-    }
-    if (stereoMode > stereoHARDWARE)
-        setupStereoStencil(width(), height());
-
-    emit stereoModeChanged(stereoMode, stereoPlanes);
+    if (newState != "")
+        displayDriver->setDisplayFunction(+newState);
 
     return oldState ? XL::xl_true : XL::xl_false;
 }
-
-
-XL::Name_p Widget::setStereoPlanes(XL::Tree_p self, uint planes)
-// ----------------------------------------------------------------------------
-//   Set the number of planes
-// ----------------------------------------------------------------------------
-{
-    bool changed = (planes != (uint)stereoPlanes);
-    if (planes > 1)
-    {
-        stereoPlanes = planes;
-        if (stereoMode > stereoHARDWARE)
-            setupStereoStencil(width(), height());
-    }
-    if (changed)
-        emit stereoModeChanged(stereoMode, stereoPlanes);
-
-    return XL::xl_true;
-}
-
-#endif
 
 
 XL::Integer_p  Widget::polygonOffset(Tree_p self,
@@ -8313,8 +8035,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::Save<char> saveStereo1(stereoPlanes, 1);
-        XL::Save<char> saveStereo2(stereoscopic, 1);
         XL::Save<double> saveZoom(zoom, 1);
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
@@ -8381,8 +8101,6 @@ Integer* Widget::thumbnail(Context *context,
         XL::Save<Point3> saveCenter(cameraTarget, cameraTarget);
         XL::Save<Point3> saveEye(cameraPosition, cameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, cameraUpVector);
-        XL::Save<char> saveStereo1(stereoPlanes, 1);
-        XL::Save<char> saveStereo2(stereoscopic, 1);
         XL::Save<double> saveZoom(zoom, zoom);
         XL::Save<double> saveScaling(scaling, scaling * s);
         XL::Save<text> savePage(pageName, page);
@@ -10702,11 +10420,20 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
     if (name->value == "git")
         return XL::xl_false;
 #endif
-#ifdef CFG_NOSTEREO
-    if (name->value == "stereoscopy")
-        return XL::xl_false;
-#endif
     return XL::xl_true;
+}
+
+
+Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
+// ----------------------------------------------------------------------------
+//   Check if a display mode is available
+// ----------------------------------------------------------------------------
+{
+    text n = name->value;
+    QStringList all = DisplayDriver::allDisplayFunctions();
+    if (all.contains(+n))
+        return XL::xl_true;
+    return XL::xl_false;
 }
 
 

@@ -23,17 +23,12 @@
 // ****************************************************************************
 
 
-//#include "tao/module_api.h"
 #include "tao.h"
 #include "display_driver.h"
-#include "widget.h"
-#include "tao/module_api.h"
 #include "frame.h"
+#include "tao/module_api.h"
+#include <QStringList>
 #include <QMap>
-
-QT_BEGIN_NAMESPACE
-class QGLShaderProgram;
-QT_END_NAMESPACE
 
 TAO_BEGIN
 
@@ -45,7 +40,7 @@ class DisplayDriver
 public:
 
 public:
-    DisplayDriver(Widget *widget);
+    DisplayDriver();
     ~DisplayDriver();
 
     // Methods used by Tao
@@ -73,6 +68,7 @@ public:
     static void         setGlClearColor();
     static void         setupGl();
     static void         showGlErrors();
+    static bool         setStereo(bool on);
     static void         getCamera(Point3 *pos, Point3 *target, Vector3 *up);
     static int          renderHeight();
     static int          renderWidth();
@@ -83,6 +79,8 @@ public:
     static void         setProjectionMatrix(int w, int h,
                                             int i = 1, int numCameras = 1);
     static void         setModelViewMatrix (int i = 1, int numCameras = 1);
+    static void         setStereoPlanes(int planes);
+    static void         doMouseTracking(bool on);
 
 protected:
     static std::ostream & debug();
@@ -91,17 +89,9 @@ protected:
 
     // Plain double-buffered OpenGL (2D)
 
-    struct BackBufferParams
-    {
-        BackBufferParams() : bogusQuadBuffer(false) {}
-        bool bogusQuadBuffer;
-    };
     static void         displayBackBuffer(void *);
     static void *       backBufferUse();
     static void         backBufferUnuse(void *arg);
-    static bool         backBufferSetOpt(void * obj,
-                                         std::string name,
-                                         std::string val);
 
     // 2D rendering to framebuffer object then to OpenGL framebuffer.
     // (Enables antialised output on some platforms that do not support
@@ -110,7 +100,7 @@ protected:
     struct BackBufferFBOParams
     {
         BackBufferFBOParams(int w, int h)
-            : w(w), h(h), bogusQuadBuffer(false), fbo(NULL)
+            : w(w), h(h), fbo(NULL)
         {
             fbo = new FrameInfo(w, h);
         }
@@ -129,15 +119,11 @@ protected:
         }
 
         int          w, h;
-        bool         bogusQuadBuffer;
         FrameInfo *  fbo;
     };
     static void         displayBackBufferFBO(void *);
     static void *       backBufferFBOUse();
     static void         backBufferFBOUnuse(void *arg);
-    static bool         backBufferFBOSetOpt(void * obj,
-                                            std::string name,
-                                            std::string val);
 
 
     static double       stereoDelta(int i, int numCameras);
@@ -172,7 +158,6 @@ protected:
     typedef QMap<QString, DisplayParams>  display_map;
 
 protected:
-    Widget *              widget;
     DisplayParams         current;
 
 protected:

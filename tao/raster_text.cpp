@@ -27,7 +27,7 @@
 
 TAO_BEGIN
 
-RasterText * RasterText::instance = NULL;
+QMap<const QGLContext *, RasterText *> RasterText::instances;
 RasterText::Cleanup RasterText::cleanup;
 
 static GLubyte rasters[][13] = {
@@ -147,6 +147,12 @@ RasterText::~RasterText()
 //   Destruction
 // ----------------------------------------------------------------------------
 {
+    QGLContext *current = (QGLContext *)QGLContext::currentContext();
+    QGLContext *context = (QGLContext *)instances.key(this, NULL);
+    Q_ASSERT(context || !"Delete RasterText instance not in map");
+    context->makeCurrent();
+    glDeleteLists(32+fontOffset, 95);
+    current->makeCurrent();
 }
 
 
@@ -157,7 +163,7 @@ void RasterText::makeRasterFont()
 {
     GLuint i;
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    fontOffset = glGenLists (128);
+    fontOffset = glGenLists (95);
     for (i = 32; i < 127; i++) {
         glNewList(i+fontOffset, GL_COMPILE);
             glBitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
@@ -166,16 +172,27 @@ void RasterText::makeRasterFont()
 }
 
 
+RasterText::RasterText * RasterText::instance()
+// ----------------------------------------------------------------------------
+//   Create/return the RasterText instance for the current GL context
+// ----------------------------------------------------------------------------
+{
+    const QGLContext *ctx = QGLContext::currentContext();
+    if (!instances.contains(ctx))
+        instances[ctx] = new RasterText();
+    return instances[ctx];
+}
+
+
 int RasterText::printf(const char *format...)
 // ----------------------------------------------------------------------------
 //   Display text at current position
 // ----------------------------------------------------------------------------
 {
-    if (!instance)
-        instance = new RasterText();
-
     if (!format)
         return 0;
+
+    RasterText *inst = instance();
 
     char text[256];
     va_list ap;
@@ -195,15 +212,15 @@ int RasterText::printf(const char *format...)
 
     // Draw background
     glColor4f(0.0, 0.0, 0.0, 0.5);
-    glWindowPos2d(instance->pos.x, instance->pos.y);
+    glWindowPos2d(inst->pos.x, inst->pos.y);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (int i = 0; i < 2*len; i++)
         glBitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
     // Draw text
     glColor3f(1.0, 1.0, 1.0);
-    glWindowPos2d(instance->pos.x + 2, instance->pos.y + 1);
-    glListBase(instance->fontOffset);
+    glWindowPos2d(inst->pos.x + 2, inst->pos.y + 1);
+    glListBase(inst->fontOffset);
     glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
 
     // Restore GL state
@@ -220,10 +237,20 @@ void RasterText::moveTo(coord x, coord y)
 //   Set position for next message (2D window coordinates)
 // ----------------------------------------------------------------------------
 {
-    if (!instance)
-        instance = new RasterText();
+     instance()->pos = Point(x, y);
+}
 
-    instance->pos = Point(x, y);
+
+void RasterText::purge(const QGLContext *context)
+// ----------------------------------------------------------------------------
+//   Purge instance associated to GL context
+// ----------------------------------------------------------------------------
+{
+    if (instances.contains(context))
+    {
+        delete instances[context];
+        instances.remove(context);
+    }
 }
 
 TAO_END

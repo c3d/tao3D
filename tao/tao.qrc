@@ -25,5 +25,6 @@
         <file>images/info.png</file>
         <file>html/module_info_dialog.html</file>
         <file>html/module_info_dialog_fr.html</file>
+        <file>images/tao_picto.png</file>
     </qresource>
 </RCC>

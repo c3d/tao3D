@@ -140,8 +140,8 @@ void LensFlare::Draw()
 
     // Restore previous bend settings.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
 
     // Restore OpenGL depth test
     glEnable(GL_DEPTH_TEST);

@@ -50,15 +50,18 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      fillTexture(0), lightId(GL_LIGHT0), programId(0),
-      wrapS(false), wrapT(false), printing(false),
+      textureUnits(1), previousUnits(0),
+      lightId(GL_LIGHT0), programId(0),
+      printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasTextureMatrix(false),
       hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false)
-{}
+{
+    fillTextures.clear();
+}
 
 
 LayoutState::LayoutState(const LayoutState &o)
@@ -73,11 +76,12 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        fillTexture(o.fillTexture),
+        textureUnits(o.textureUnits),
+        previousUnits(o.previousUnits),
+        fillTextures(o.fillTextures),
+        model(o.model),
         lightId(o.lightId),
-        programId(o.programId),
-        wrapS(o.wrapS),
-        wrapT(o.wrapT),
+        programId(o.programId),        
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
@@ -85,8 +89,8 @@ LayoutState::LayoutState(const LayoutState &o)
         scaleId(o.scaleId),
         hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
         hasAttributes(o.hasAttributes), hasTextureMatrix(o.hasTextureMatrix),
-        hasLighting(o.hasLighting), hasMaterial(o.hasMaterial),
-        isSelection(o.isSelection), groupDrag(o.groupDrag)
+        hasLighting(false), hasMaterial(false),
+        isSelection(o.isSelection), groupDrag(false)
 {}
 
 
@@ -232,6 +236,9 @@ void Layout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -253,6 +260,9 @@ void Layout::DrawSelection(Layout *where)
         child->DrawSelection(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -275,6 +285,9 @@ void Layout::Identify(Layout *where)
         child->Identify(this);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 
@@ -639,7 +652,10 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth       = where->lineWidth;
     lineColor       = where->lineColor;
     fillColor       = where->fillColor;
+    textureUnits    = where->textureUnits;
+    previousUnits   = where->previousUnits;
     fillTexture     = where->fillTexture;
+    model           = where->model;
     lightId         = where->lightId;
     programId       = where->programId;
     wrapS           = where->wrapS;
@@ -654,11 +670,13 @@ void LayoutState::InheritState(LayoutState *where)
     hasMaterial     = where->hasMaterial;
     // For optimized drawing, we keep track of what changes
     //hasMatrix       = where->hasMatrix;
-    hasAttributes   = where->hasAttributes;
+    //hasAttributes   = where->hasAttributes;
     //hasTextureMatrix= where->hasTextureMatrix;
-    hasLighting     = where->hasLighting;
+    //  hasLighting     = where->hasLighting;
     hasMaterial     = where->hasMaterial;
-    isSelection     = where->isSelection;
+//    isSelection     = where->isSelection;
+    hasTransform     = where->hasTransform;
+
 }
 
 void LayoutState::toDebugString(std::ostream &out) const

@@ -9,7 +9,7 @@ include Makefile.config
 QMAKE_LIBDIR_QT_SANE="$(QMAKE_LIBDIR_QT:\\=/)"
 
 # Path to the Nullsoft Scriptable Install System (NSIS) compiler
-MAKENSIS = "/c/Program Files/NSIS/makensis"
+MAKENSIS = makensis
 RM_RF = rm -rf
 BITMAPS = inst_header.bmp uninst_header.bmp inst_welcome_finish.bmp uninst_welcome_finish.bmp
 

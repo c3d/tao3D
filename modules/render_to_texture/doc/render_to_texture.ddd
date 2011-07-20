@@ -1,0 +1,41 @@
+import RenderToTexture 1.0 
+shader -> 
+    shader_program 
+        vertex_shader <<
+            void main()
+            {
+               gl_Position = ftransform();
+               gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;
+            }
+        >> 
+        fragment_shader <<
+            uniform sampler2D colorMap;
+            void main (void)
+            {
+               vec4 texel = texture2D(colorMap, gl_TexCoord[0].st);
+               gl_FragColor = vec4(texel.r * 0.8, texel.gb, 1.0);
+            }
+        >>
+
+//Classic code
+example_1 ->
+    color 0.4096, 1.0, 1.0, 1.0
+    rectangle 0, 0, 500, 750
+ 
+//Render to texture several times in order to apply same effect
+example_2 ->
+    color "white" 
+    EFFECT -> shader 
+    render_to_texture EFFECT 
+    render_to_texture EFFECT 
+    render_to_texture EFFECT 
+    render_to_texture EFFECT 
+    rectangle 0, 0, 500, 750
+
+//Apply several times the same effect thanks to an iterative render
+example_3 ->
+    color "white" 
+    EFFECT -> shader 
+    MAX_ITER := 4 
+    iterate_render EFFECT 
+    rectangle 0, 0, 500, 750

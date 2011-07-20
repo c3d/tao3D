@@ -43,7 +43,7 @@ struct PerFontGlyphCache
 //    Cache storing glyph information for a specific font
 // ----------------------------------------------------------------------------
 {
-    PerFontGlyphCache(const QFont &font);
+    PerFontGlyphCache(const QFont &font, const uint64 texUnits);
     ~PerFontGlyphCache();
 
 public:
@@ -69,7 +69,8 @@ protected:
 
 protected:
     friend class GlyphCache;
-    QFont       font;
+    QFont       font;    
+    uint64      texUnits;
     CodeMap     codes;
     TextMap     texts;
     qreal       ascent, descent, leading;
@@ -96,18 +97,18 @@ public:
     uint        Height()       { return packer.Height(); }
     uint        Texture()      { if (dirty) GenerateTexture(); return texture; }
 
-    PerFont *   FindFont(const QFont &font, bool create = false);
+    PerFont *   FindFont(const QFont &font, const uint64 texUnit, bool create = false);
 
-    bool        Find(const QFont &font, uint code, GlyphEntry&,
+    bool        Find(const QFont &font, const uint64 texUnit, uint code, GlyphEntry&,
                      bool create=false, bool interior=false, scale lineWidth=0);
-    bool        Find(const QFont &font, text word, GlyphEntry&,
+    bool        Find(const QFont &font, const uint64 texUnit, text word, GlyphEntry&,
                      bool create=false, bool interior=false, scale lineWidth=0);
     void        Allocate(uint width, uint height, Rect &rect);
 
     void        GenerateTexture();
-    qreal       Ascent(const QFont &font);
-    qreal       Descent(const QFont &font);
-    qreal       Leading(const QFont &font);
+    qreal       Ascent(const QFont &font, const uint64 texUnit);
+    qreal       Descent(const QFont &font, const uint64 texUnit);
+    qreal       Leading(const QFont &font, const uint64 texUnit);
     void        ScaleDown(GlyphEntry &entry, scale fontScale);
 
 protected:
@@ -115,8 +116,9 @@ protected:
     // Two fonts with slightly differing size are considered equivalent
     struct Key
     {
-        Key(const QFont &font): font(font) {}
+        Key(const QFont &font,const uint64 texUnits): font(font), texUnits(texUnits) {}
         QFont font;
+        uint64 texUnits;
 
         uint fontSizeOrder(const QFont &font) const
         {
@@ -167,13 +169,20 @@ protected:
             return 0;
         }
 
+        int compare(const uint64 u1, const uint64 u2) const
+        {
+            if(int unit = order(u1, u2))
+                return unit;
+            return 0;
+        }
+
         bool operator==(const Key &o) const
         {
-            return compare(font, o.font) == 0;
+            return ((compare(font, o.font) == 0) && (compare(texUnits, o.texUnits) == 0));
         }
         bool operator<(const Key &o) const
         {
-            return compare(font, o.font) < 0;
+            return ((compare(font, o.font) < 0) || (compare(texUnits, o.texUnits) < 0));
         }
     };
 

@@ -102,18 +102,19 @@ void TextUnit::DrawCached(Layout *where)
 //   Draw text span using cached textures
 // ----------------------------------------------------------------------------
 {
-    Widget     *widget = where->Display();
-    GlyphCache &glyphs = widget->glyphs();
-    Point3      pos    = where->offset;
-    Text *      ttree  = source;
-    text        str    = ttree->value;
-    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
-    TextSelect *sel    = widget->textSelection();
-    QFont      &font   = where->font;
-    coord       x      = pos.x;
-    coord       y      = pos.y;
-    coord       z      = pos.z;
-    uint        charId = ~0U;
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text *      ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    uint64      texUnits = where->textureUnits;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+    uint        charId   = ~0U;
 
     GlyphCache::GlyphEntry  glyph;
     std::vector<Point3>     quads;
@@ -140,18 +141,18 @@ void TextUnit::DrawCached(Layout *where)
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
-            scale spacing = height + glyphs.Leading(font);
+            scale height = glyphs.Ascent(font, texUnits) + glyphs.Descent(font, texUnits);
+            scale spacing = height + glyphs.Leading(font ,texUnits);
             x = 0;
             y -= spacing * glyphs.fontScaling;
         }
         else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, false))
+            if (!glyphs.Find(font, texUnits, unicode, glyph, false))
             {
                 // Try to create the glyph
-                if (!glyphs.Find(font, unicode, glyph, true))
+                if (!glyphs.Find(font, texUnits, unicode, glyph, true))
                     continue;
             }
 
@@ -213,21 +214,22 @@ void TextUnit::DrawDirect(Layout *where)
 //   Draw the given text directly using Qt paths
 // ----------------------------------------------------------------------------
 {
-    Widget     *widget = where->Display();
-    GlyphCache &glyphs = widget->glyphs();
-    Point3      pos    = where->offset;
-    Text *      ttree  = source;
-    text        str    = ttree->value;
-    bool        canSel = ttree->Position() != XL::Tree::NOWHERE;
-    TextSelect *sel    = widget->textSelection();
-    QFont      &font   = where->font;
-    coord       x      = pos.x;
-    coord       y      = pos.y;
-    coord       z      = pos.z;
-    scale       lw     = where->lineWidth;
-    bool        skip   = false;
-    uint        i, max = str.length();
-    uint        charId = ~0U;
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    Point3      pos      = where->offset;
+    Text *      ttree    = source;
+    text        str      = ttree->value;
+    bool        canSel   = ttree->Position() != XL::Tree::NOWHERE;
+    TextSelect *sel      = widget->textSelection();
+    QFont      &font     = where->font;
+    uint64      texUnits = where->textureUnits;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
+    scale       lw       = where->lineWidth;
+    bool        skip     = false;
+    uint        i, max   = str.length();
+    uint        charId   = ~0U;
 
     // Disable drawing of lines if we don't see them.
     if (where->lineColor.alpha <= 0)
@@ -248,22 +250,21 @@ void TextUnit::DrawDirect(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
-
         if (canSel)
             charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font) + glyphs.Descent(font);
-            scale spacing = height + glyphs.Leading(font);
+            scale height = glyphs.Ascent(font, texUnits) + glyphs.Descent(font, texUnits);
+            scale spacing = height + glyphs.Leading(font, texUnits);
             x = 0;
             y -= spacing * glyphs.fontScaling;
         }
         else
         {
             // Find the glyph in the glyph cache
-            if (!glyphs.Find(font, unicode, glyph, true, true, lw))
+            if (!glyphs.Find(font, texUnits, unicode, glyph, true, true, lw))
                 continue;
 
             GLMatrixKeeper save;
@@ -299,6 +300,8 @@ void TextUnit::DrawSelection(Layout *where)
     Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
+    QFont      &font         = where->font;    
+    uint64      texUnits     = where->textureUnits;
     Point3      pos          = where->offset;
     coord       x            = pos.x;
     coord       y            = pos.y;
@@ -307,8 +310,8 @@ void TextUnit::DrawSelection(Layout *where)
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
     uint        charId       = ~0U;
-    scale       ascent       = glyphs.Ascent(where->font);
-    scale       descent      = glyphs.Descent(where->font);
+    scale       ascent       = glyphs.Ascent(font, texUnits);
+    scale       descent      = glyphs.Descent(font, texUnits);
     scale       height       = ascent + descent;
     GlyphCache::GlyphEntry  glyph;
     QString     selectedText;
@@ -332,7 +335,7 @@ void TextUnit::DrawSelection(Layout *where)
             charId = where->CharacterId();
 
         // Fetch data about that glyph
-        if (!glyphs.Find(where->font, unicode, glyph, false))
+        if (!glyphs.Find(font, texUnits, unicode, glyph, false))
             continue;
 
         if (sel && canSel)
@@ -397,7 +400,7 @@ void TextUnit::DrawSelection(Layout *where)
         // Advance to next character
         if (unicode == '\n')
         {
-            scale spacing = height + glyphs.Leading(where->font);
+            scale spacing = height + glyphs.Leading(font,texUnits);
             x = 0;
             y -= spacing;
             textWidth = 0;
@@ -459,14 +462,15 @@ void TextUnit::Identify(Layout *where)
     TextSelect *sel       = widget->textSelection();
     uint        charId    = ~0U;
     QFont      &font      = where->font;
+    uint64      texUnits  = where->textureUnits;
     Point3      pos       = where->offset;
     coord       x         = pos.x;
     coord       y         = pos.y;
     coord       z         = pos.z;
     uint        first     = start;
     scale       textWidth = 0;
-    scale       ascent    = glyphs.Ascent(font);
-    scale       descent   = glyphs.Descent(font);
+    scale       ascent    = glyphs.Ascent(font, texUnits);
+    scale       descent   = glyphs.Descent(font, texUnits);
     scale       height    = ascent + descent;
     scale       sd        = descent ;
     scale       sh        = height;
@@ -502,7 +506,7 @@ void TextUnit::Identify(Layout *where)
             charId = where->CharacterId();
 
         // Fetch data about that glyph
-        if (!glyphs.Find(font, unicode, glyph, false))
+        if (!glyphs.Find(font, texUnits, unicode, glyph, false))
             continue;
 
         if (canSel)
@@ -524,7 +528,7 @@ void TextUnit::Identify(Layout *where)
         // Advance to next character
         if (unicode == '\n')
         {
-            scale spacing = height + glyphs.Leading(font);
+            scale spacing = height + glyphs.Leading(font, texUnits);
             x = 0;
             y -= spacing;
             textWidth = 0;
@@ -544,7 +548,7 @@ void TextUnit::Identify(Layout *where)
     {
         charId++;
         glLoadName(charId | Widget::CHARACTER_SELECTED);
-        if (glyphs.Find(font, ' ', glyph, false))
+        if (glyphs.Find(font, ' ', texUnits, glyph, false))
         {
             sd = glyph.scalingFactor * descent;
             sh = glyph.scalingFactor * height;
@@ -615,18 +619,19 @@ Box3 TextUnit::Bounds(Layout *where)
 //   Return the smallest box that surrounds the text
 // ----------------------------------------------------------------------------
 {
-    Widget     *widget  = where->Display();
-    GlyphCache &glyphs  = widget->glyphs();
-    text        str     = source->value;
-    QFont      &font    = where->font;
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    text        str      = source->value;
+    QFont      &font     = where->font;
+    uint64      texUnits = where->textureUnits;
     Box3        result;
-    scale       ascent  = glyphs.Ascent(font);
-    scale       descent = glyphs.Descent(font);
-    scale       leading = glyphs.Leading(font);
-    Point3      pos     = where->offset;
-    coord       x       = pos.x;
-    coord       y       = pos.y;
-    coord       z       = pos.z;
+    scale       ascent   = glyphs.Ascent(font, texUnits);
+    scale       descent  = glyphs.Descent(font, texUnits);
+    scale       leading  = glyphs.Leading(font, texUnits);
+    Point3      pos      = where->offset;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
 
@@ -638,7 +643,7 @@ Box3 TextUnit::Bounds(Layout *where)
         bool  newLine  = unicode == '\n';
 
         // Find the glyph in the glyph cache
-        if (!glyphs.Find(font, unicode, glyph, true))
+        if (!glyphs.Find(font, texUnits, unicode, glyph, true))
             continue;
 
         scale sa = ascent * glyph.scalingFactor;
@@ -657,9 +662,8 @@ Box3 TextUnit::Bounds(Layout *where)
             result |= Point3(charX1, y + sa, z);
             result |= Point3(charX1, y - sd - sl, z);
 
-            scale height = glyphs.Ascent(font) +
-                           glyphs.Descent(font);
-            scale spacing = height + glyphs.Leading(font);
+            scale height = glyphs.Ascent(font, texUnits) + glyphs.Descent(font, texUnits);
+            scale spacing = height + glyphs.Leading(font, texUnits);
             x = 0;
             y -= spacing * glyph.scalingFactor;
         }
@@ -682,17 +686,19 @@ Box3 TextUnit::Space(Layout *where)
 //   Return the box that surrounds the text, including leading
 // ----------------------------------------------------------------------------
 {
-    Widget     *widget  = where->Display();
-    GlyphCache &glyphs  = widget->glyphs();
-    text        str     = source->value;
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    text        str      = source->value;
+    QFont      &font     = where->font;
+    uint64      texUnits = where->textureUnits;
     Box3        result;
-    scale       ascent  = glyphs.Ascent(where->font);
-    scale       descent = glyphs.Descent(where->font);
-    scale       leading = glyphs.Leading(where->font);
-    Point3      pos     = where->offset;
-    coord       x       = pos.x;
-    coord       y       = pos.y;
-    coord       z       = pos.z;
+    scale       ascent   = glyphs.Ascent(font, texUnits);
+    scale       descent  = glyphs.Descent(font, texUnits);
+    scale       leading  = glyphs.Leading(font, texUnits);
+    Point3      pos      = where->offset;
+    coord       x        = pos.x;
+    coord       y        = pos.y;
+    coord       z        = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
 
@@ -704,7 +710,7 @@ Box3 TextUnit::Space(Layout *where)
         bool  newLine  = unicode == '\n';
 
         // Find the glyph in the glyph cache
-        if (!glyphs.Find(where->font, unicode, glyph, true))
+        if (!glyphs.Find(font, texUnits, unicode, glyph, true))
             continue;
 
         scale sa = ascent * glyph.scalingFactor;
@@ -820,10 +826,12 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
 //   Return the size of all the spaces at the end of the value
 // ----------------------------------------------------------------------------
 {
-    Widget     *widget = where->Display();
-    GlyphCache &glyphs = widget->glyphs();
-    text        str    = source->value;
-    uint        pos    = str.length();
+    Widget     *widget   = where->Display();
+    GlyphCache &glyphs   = widget->glyphs();
+    QFont      &font     = where->font;
+    uint64      texUnits = where->textureUnits;
+    text        str      = source->value;
+    uint        pos      = str.length();
     Box3        box;
     if (pos > end)
         pos = end;
@@ -837,7 +845,7 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
         // Find the glyph in the glyph cache
         GlyphCache::GlyphEntry  glyph;
         uint  unicode  = XL::Utf8Code(str, pos);
-        if (!glyphs.Find(where->font, unicode, glyph, true))
+        if (!glyphs.Find(font, texUnits, unicode, glyph, true))
             continue;
 
         // Enter the geometry coordinates

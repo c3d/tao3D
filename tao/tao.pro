@@ -125,7 +125,8 @@ HEADERS += widget.h \
     dir.h \
     templates.h \
     module_info_dialog.h \
-    display_driver.h
+    display_driver.h \
+    include/tao/matrix.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -362,3 +363,4 @@ QMAKE_EXTRA_TARGETS += lrelease
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+

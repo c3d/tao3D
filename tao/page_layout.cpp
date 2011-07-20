@@ -499,6 +499,9 @@ void PageLayout::Draw(Layout *where)
         child->Draw(flow);
     }
     PopLayout(this);
+
+    if(where)
+       where->previousUnits = textureUnits;
 }
 
 

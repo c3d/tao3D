@@ -118,6 +118,7 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
 // ----------------------------------------------------------------------------
 {
     XL_INIT_TRACES();
+    glewInit();
     LensFlare::tao = api;
 
     return 0;

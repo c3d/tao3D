@@ -26,14 +26,13 @@
 #include "flare.h"
 
 const ModuleApi *LensFlare::tao = NULL;
-
 // ============================================================================
 //
 //    Lens Flare
 //
 // ============================================================================
 
-LensFlare::LensFlare() : depth_test(true), target(0, 0, 0), source(0, 0, 0)
+LensFlare::LensFlare() : depth_test(false), target(0, 0, 0), source(0, 0, 0)
 // ----------------------------------------------------------------------------
 //   Construction
 // ----------------------------------------------------------------------------
@@ -113,21 +112,21 @@ void LensFlare::Draw()
 //   and heading toward the defined target.
 // ----------------------------------------------------------------------------
 {
-    // Disable current depth_test to avoid
-    // display problem with flares
-    glDisable(GL_DEPTH_TEST);
-
-    glEnable(GL_TEXTURE_2D);
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-    // Compute lens direction
-    Vector3 lens_dir = target  - source;
-
     // Determine manually if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.
     if(! isOccluded(source))
     {
+        // Disable current depth_test to avoid
+        // display problem with flares
+        glDisable(GL_DEPTH_TEST);
+
+        glEnable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+        // Compute lens direction
+        Vector3 lens_dir = target  - source;
+
         glDepthMask(GL_FALSE);
         for(uint i = 0; i < lens_flare.size(); i++)
         {
@@ -136,15 +135,15 @@ void LensFlare::Draw()
             DrawFlare(lens_flare[i], pos);
         }
         glDepthMask(GL_TRUE);
-    }
 
-    // Restore previous bend settings.
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_BLEND);
-    glDisable(GL_TEXTURE_2D);
+        // Restore previous bend settings.
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        glDisable(GL_BLEND);
+        glDisable(GL_TEXTURE_2D);
 
-    // Restore OpenGL depth test
-    glEnable(GL_DEPTH_TEST);
+        // Restore OpenGL depth test
+        glEnable(GL_DEPTH_TEST);
+   }
 }
 
 void LensFlare::DrawFlare(Flare flare, Vector3 pos)
@@ -186,26 +185,24 @@ bool LensFlare::isOccluded(Vector3 p)
 {
     if(depth_test)
     {
-        GLint viewport[4];							// Space for viewport data
-        GLdouble mvmatrix[16], projmatrix[16];					// Space for transform matrix
-        GLdouble winx, winy, winz;						// Space for returned projected coords
-        GLdouble flareZ;							// Store the transformed flare Z
-        GLfloat bufferZ;							// Store the read Z from the buffer
+        GLuint query = 0;
+        GLuint result = 0;
 
-        glGetIntegerv (GL_VIEWPORT, viewport);					// Get actual viewport
-        glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);				// Get actual model view matrix
-        glGetDoublev (GL_PROJECTION_MATRIX, projmatrix);			// Get actual projection matrix
+        // Create queries
+        glGenQueries(1, &query);
+        glBeginQuery(GL_SAMPLES_PASSED, query);
+        glBegin(GL_QUADS);
+        // Draw sun flare
+        glVertex3f(p.x - 5, p.y - 5, p.z);
+        glVertex3f(p.x + 5, p.y - 5, p.z);
+        glVertex3f(p.x + 5, p.y + 5, p.z);
+        glVertex3f(p.x - 5, p.y + 5, p.z);
 
-        // This asks OGL to guess the 2D position of a 3D point inside the viewport
-        gluProject(p.x, p.y, p.z, mvmatrix, projmatrix, viewport, &winx, &winy, &winz);
-        flareZ = winz;
+        glEnd();
+        glEndQuery(GL_SAMPLES_PASSED);
+        glGetQueryObjectuiv(query, GL_QUERY_RESULT, &result);
 
-        // Read back one pixel from the depth buffer (exactly where source should be drawn)
-        glReadPixels(winx, winy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &bufferZ);
-
-        // If the buffer Z is lower than the flare guessed Z then don't draw
-        // This means there is something in front of our source.
-        if (bufferZ < flareZ)
+        if(result <= 0)
             return true;
     }
 

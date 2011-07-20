@@ -142,7 +142,6 @@ void ShaderValue::Draw(Layout *where)
                 if(! strcmp(uniformName,name->value.c_str()))
                     break;
             }
-			std::cout << uniformName << std::endl;
             delete uniformName;
 
             switch (type)

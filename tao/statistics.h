@@ -38,7 +38,6 @@ public:
         EXEC, GC, DRAW,
         LAST_OP
     };
-    typedef QList<int> frame_times;
     typedef QPair<int, int> date_val;
     typedef QList<date_val> durations;
 
@@ -62,10 +61,7 @@ protected:
     int         interval;   // Measuring interval (ms)
     QTime       intervalTimer;
 
-    // FPS measurement
-    frame_times frames;     // Frames shown during last interval
-
-    // Timing for other events
+    // Timing information for each event
     QTime       timer[LAST_OP];
     durations   data[LAST_OP];
     int         total[LAST_OP];

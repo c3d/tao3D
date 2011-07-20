@@ -3703,11 +3703,12 @@ void Widget::printStatistics()
     RasterText::printf("%dx%dx%d %s fps%s", vw, vh, stereoPlanes, fps,
                        dropped);
 
-    static const char *gcw = NULL;
-    if (!gcw)
+    static const char *gcs1 = NULL, *gcs2 = NULL;
+    if (!gcs1)
     {
         // "GCw" is GC wait time, included in Draw time
-        gcw = XL::MAIN->options.threaded_gc ? "GCw" : "GC";
+        gcs1 = XL::MAIN->options.threaded_gc ? "(GCw" : "GC";
+        gcs2 = XL::MAIN->options.threaded_gc ? ")" : "";
     }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
@@ -3719,13 +3720,13 @@ void Widget::printStatistics()
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTime(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
-        RasterText::printf("Avg/peak (ms): Exec %3d/%3d Draw %3d/%3d "
-                           "%s %3d/%3d", xa, xm, da, dm, gcw, ga, gm);
+        RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                           "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);
     }
     else
     {
-        RasterText::printf("Avg/peak (ms): Exec ---/--- Draw ---/--- "
-                           "%s ---/---", gcw);
+        RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                           "%s ---/---%s", gcs1, gcs2);
     }
 }
 

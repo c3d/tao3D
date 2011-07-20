@@ -30,7 +30,6 @@ void Statistics::reset()
 //    Reset statistics and start a new measurement
 // ----------------------------------------------------------------------------
 {
-    frames.clear();
     for (int i = 0; i < LAST_OP; i++)
     {
         data[i].clear();
@@ -99,7 +98,7 @@ void Statistics::end(Operation op)
     durations &d = data[op];
     d.append(val);
     total[op] += elapsed;
-    while (now - d.first().first > interval)
+    while (now - d.first().first >= interval)
         total[op] -= d.takeFirst().second;
 
     // Update max if current value is larger, or peak interval has expired
@@ -107,14 +106,6 @@ void Statistics::end(Operation op)
     {
         max[op] = elapsed;
         lastMaxTime[op] = now;
-    }
-
-    if (op == DRAW)
-    {
-        // A new frame is out, update FPS record
-        frames.append(now);
-        while (now - frames.first() > interval)
-            frames.removeFirst();
     }
 }
 
@@ -126,7 +117,7 @@ double Statistics::fps()
 {
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1.0;
-    return (double)frames.size() * 1000 / interval;
+    return (double)data[DRAW].size() * 1000 / interval;
 }
 
 

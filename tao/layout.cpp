@@ -53,7 +53,11 @@ LayoutState::LayoutState()
       fillTexture(0), lightId(GL_LIGHT0), programId(0),
       wrapS(false), wrapT(false), printing(false),
       planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0)
+      rotationId(0), translationId(0), scaleId(0),
+      hasPixelBlur(false), hasMatrix(false), has3D(false),
+      hasAttributes(false), hasTextureMatrix(false),
+      hasLighting(false), hasMaterial(false),
+      isSelection(false), groupDrag(false)
 {}
 
 
@@ -64,8 +68,7 @@ LayoutState::LayoutState(const LayoutState &o)
       : offset(o.offset),
         font(o.font),
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
-        left(o.left), right(o.right),
-        top(o.top), bottom(o.bottom),
+        left(o.left), right(o.right), top(o.top), bottom(o.bottom),
         visibility(o.visibility),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
@@ -78,18 +81,27 @@ LayoutState::LayoutState(const LayoutState &o)
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
-        rotationId(o.rotationId),
-        translationId(o.translationId),
-        scaleId(o.scaleId)
+        rotationId(o.rotationId), translationId(o.translationId),
+        scaleId(o.scaleId),
+        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
+        hasAttributes(o.hasAttributes), hasTextureMatrix(o.hasTextureMatrix),
+        hasLighting(o.hasLighting), hasMaterial(o.hasMaterial),
+        isSelection(o.isSelection), groupDrag(o.groupDrag)
 {}
 
 
-void LayoutState::ClearAttributes()
+void LayoutState::ClearAttributes(bool all)
 // ----------------------------------------------------------------------------
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
 {
     LayoutState zero;
+    if (!all)
+    {
+        // Save state modified by Add or before
+        zero.hasMatrix = hasMatrix;
+        zero.hasTextureMatrix = hasTextureMatrix;
+    }
     *this = zero;
 }
 
@@ -141,10 +153,6 @@ Layout::Layout(Widget *widget)
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
-      hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false),
-      hasLighting(false), hasMaterial(false),
-      isSelection(false), groupDrag(false),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
@@ -155,10 +163,6 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
-      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTextureMatrix(false),
-      hasLighting(false), hasMaterial(false),
-      isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
@@ -202,12 +206,7 @@ void Layout::Clear()
     items.clear();
 
     // Initial state has no rotation or attribute changes
-    hasPixelBlur = false;
-    hasMatrix = false;
-    has3D = false;
-    hasAttributes = false;
-
-    ClearAttributes();
+    ClearAttributes(true);
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
@@ -327,7 +326,12 @@ void Layout::Add(Drawing *d)
 {
     items.push_back(d);
     if (d->IsAttribute())
+    {
+        // Only update layout state, not GL
+        GLAllStateKeeper glSave(glSaveBits(), hasMatrix,
+                                false, hasTextureMatrix);
         d->Draw(this);
+    }
 }
 
 
@@ -613,10 +617,6 @@ void Layout::Inherit(Layout *where)
     // Add offset of parent to the one we have
     offset = where->Offset();
     LayoutState::InheritState(where);
-    has3D           = where->has3D;
-    hasPixelBlur    = where->hasPixelBlur;
-    groupDrag       = where->groupDrag;
-    hasMaterial     = where->hasMaterial;
 }
 
 void LayoutState::InheritState(LayoutState *where)
@@ -647,9 +647,21 @@ void LayoutState::InheritState(LayoutState *where)
     printing        = where->printing;
     planarRotation  = where->planarRotation;
     planarScale     = where->planarScale;
+
+    has3D           = where->has3D;
+    hasPixelBlur    = where->hasPixelBlur;
+    groupDrag       = where->groupDrag;
+    hasMaterial     = where->hasMaterial;
+    // For optimized drawing, we keep track of what changes
+    //hasMatrix       = where->hasMatrix;
+    hasAttributes   = where->hasAttributes;
+    //hasTextureMatrix= where->hasTextureMatrix;
+    hasLighting     = where->hasLighting;
+    hasMaterial     = where->hasMaterial;
+    isSelection     = where->isSelection;
 }
 
-void LayoutState::toDebugString(std::ostream &out)
+void LayoutState::toDebugString(std::ostream &out) const
 {
     out << "LayoutState["<<this<<"]\n";
     out << "\tfont            = " << font.toString().toStdString() << std::endl;

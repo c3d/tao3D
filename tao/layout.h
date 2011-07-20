@@ -27,7 +27,7 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
-#include "attributes.h"
+//#include "attributes.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -50,11 +50,11 @@ public:
     typedef std::set<QEvent::Type>              qevent_ids;
 
 public:
-    void                ClearAttributes();
+    void                ClearAttributes(bool all = false);
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
     void                InheritState(LayoutState *other);
-    void                toDebugString(std::ostream &out);
+    void                toDebugString(std::ostream &out) const;
 
 public:
     Vector3             offset;
@@ -74,6 +74,18 @@ public:
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+
+    // For optimized drawing, we keep track of what changes
+    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
+    bool                hasMatrix       : 1;
+    bool                has3D           : 1;
+    bool                hasAttributes   : 1;
+    bool                hasTextureMatrix: 1;
+    bool                hasLighting     : 1;
+    bool                hasMaterial     : 1;
+    bool                isSelection     : 1;
+    bool                groupDrag       : 1;
+
 };
 
 
@@ -135,17 +147,6 @@ public:
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-
-    // For optimized drawing, we keep track of what changes
-    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
-    bool                hasMatrix       : 1;
-    bool                has3D           : 1;
-    bool                hasAttributes   : 1;
-    bool                hasTextureMatrix: 1;
-    bool                hasLighting     : 1;
-    bool                hasMaterial     : 1;
-    bool                isSelection     : 1;
-    bool                groupDrag       : 1;
 
     GLbitfield glSaveBits()
     {

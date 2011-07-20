@@ -25,6 +25,7 @@
 #include "layout.h"
 #include "shapes.h"
 #include "justification.h"
+#include "attributes.h"
 TAO_BEGIN
 
 struct LayoutLine : Drawing

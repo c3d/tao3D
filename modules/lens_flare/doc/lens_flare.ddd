@@ -1,9 +1,9 @@
-import LensFlare 1.0 
+import LensFlare 1.0
 
 // Black background
-clear_color 0.0, 0.0, 0.0, 1.0 
+clear_color 0.0, 0.0, 0.0, 1.0
 
-sun_flare -> 
+sun_flare ->
 locally
     // Define flare textures
     FLARE0 -> texture FLARES_DIR & "sun_flare0.jpg"

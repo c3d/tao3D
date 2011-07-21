@@ -138,6 +138,23 @@ int Statistics::averageTime(Operation op)
 }
 
 
+int Statistics::averageTimePerFrame(Operation op)
+// ----------------------------------------------------------------------------
+//    Average duration of operation, per frame, during last 'interval' seconds
+// ----------------------------------------------------------------------------
+{
+    Q_ASSERT(op >= 0 && op < LAST_OP);
+
+    if (!enabled || intervalTimer.elapsed() < interval)
+        return -1;
+
+    int frames = data[DRAW].size();
+    if (!frames)
+        return -1.0;
+    return total[op]/frames;
+}
+
+
 int Statistics::maxTime(Operation op)
 // ----------------------------------------------------------------------------
 //    Maximum duration of specified operation during last 'interval' seconds

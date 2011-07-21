@@ -3714,11 +3714,11 @@ void Widget::printStatistics()
     if (n >= 0)
     {
         int xa, xm, da, dm, ga, gm;
-        xa = stats.averageTime(Statistics::EXEC);
+        xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
-        da = stats.averageTime(Statistics::DRAW);
+        da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
-        ga = stats.averageTime(Statistics::GC);
+        ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
         RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
                            "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);

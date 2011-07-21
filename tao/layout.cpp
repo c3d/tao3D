@@ -56,7 +56,7 @@ LayoutState::LayoutState()
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTextureMatrix(false),
+      hasAttributes(false), hasTransform(false), hasTextureMatrix(false),
       hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false)
 {
@@ -78,17 +78,17 @@ LayoutState::LayoutState(const LayoutState &o)
         fillColor(o.fillColor),
         textureUnits(o.textureUnits),
         previousUnits(o.previousUnits),
-        fillTextures(o.fillTextures),
         model(o.model),
         lightId(o.lightId),
-        programId(o.programId),        
+        programId(o.programId),
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
         rotationId(o.rotationId), translationId(o.translationId),
         scaleId(o.scaleId),
         hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes), hasTextureMatrix(o.hasTextureMatrix),
+        hasAttributes(o.hasAttributes), hasTransform(o.hasTransform),
+        hasTextureMatrix(o.hasTextureMatrix),
         hasLighting(false), hasMaterial(false),
         isSelection(o.isSelection), groupDrag(false)
 {}
@@ -654,12 +654,9 @@ void LayoutState::InheritState(LayoutState *where)
     fillColor       = where->fillColor;
     textureUnits    = where->textureUnits;
     previousUnits   = where->previousUnits;
-    fillTexture     = where->fillTexture;
     model           = where->model;
     lightId         = where->lightId;
     programId       = where->programId;
-    wrapS           = where->wrapS;
-    wrapT           = where->wrapT;
     printing        = where->printing;
     planarRotation  = where->planarRotation;
     planarScale     = where->planarScale;
@@ -668,14 +665,13 @@ void LayoutState::InheritState(LayoutState *where)
     hasPixelBlur    = where->hasPixelBlur;
     groupDrag       = where->groupDrag;
     hasMaterial     = where->hasMaterial;
-    // For optimized drawing, we keep track of what changes
+    hasTransform    = where->hasTransform;
+
     //hasMatrix       = where->hasMatrix;
     //hasAttributes   = where->hasAttributes;
     //hasTextureMatrix= where->hasTextureMatrix;
-    //  hasLighting     = where->hasLighting;
-    hasMaterial     = where->hasMaterial;
-//    isSelection     = where->isSelection;
-    hasTransform     = where->hasTransform;
+    //hasLighting     = where->hasLighting;
+    //isSelection     = where->isSelection;
 
 }
 
@@ -694,11 +690,8 @@ void LayoutState::toDebugString(std::ostream &out) const
     out << "\tlineWidth       = " << lineWidth << std::endl;
     out << "\tlineColor       = " << lineColor << std::endl;
     out << "\tfillColor       = " << fillColor << std::endl;
-    out << "\tfillTexture     = " << fillTexture << std::endl;
     out << "\tlightId         = " << lightId << std::endl;
     out << "\tprogramId       = " << programId << std::endl;
-    out << "\twrapS           = " << wrapS << std::endl;
-    out << "\twrapT           = " << wrapT << std::endl;
     out << "\tprinting        = " << printing << std::endl;
     out << "\tplanarRotation  = " << planarRotation << std::endl;
     out << "\tplanarScale     = " << planarScale << std::endl;

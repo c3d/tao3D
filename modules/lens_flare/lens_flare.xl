@@ -35,6 +35,7 @@ locally
     FLARE5 -> texture FLARES_DIR & "sun_flare5.jpg"
     FLARE6 -> texture FLARES_DIR & "sun_flare6.jpg"
     lens_flare
+        lens_flare_depth_test ON
         lens_flare_source sx, sy, sz
         lens_flare_target tx, ty, tz
         add_flare FLARE0, 0, 3, 1, 1, 1, 1
@@ -63,14 +64,15 @@ locally
     FLARE4 -> texture FLARES_DIR & "white_flare4.jpg"
     FLARE5 -> texture FLARES_DIR & "white_flare5.jpg"
     lens_flare
+        lens_flare_depth_test ON
         lens_flare_source sx, sy, sz
         lens_flare_target tx, ty, tz
-        add_flare FLARE0, 0.0, 0.6, 1.0, 1.0, 1.0, 1.0
-        add_flare FLARE1, 0.0, 0.6, 1.0, 1.0, 1.0, 1.0
-        add_flare FLARE2, 0.2, 0.15, 1.0, 1.0, 1.0, 0.1
-        add_flare FLARE3, 0.3, 0.07, 1.0, 1.0, 1.0, 0.2
-        add_flare FLARE2, 0.45, 0.15, 1.0, 1.0, 1.0, 0.2
-        add_flare FLARE3, 0.55, 0.07, 1.0, 1.0, 1.0, 0.1
-        add_flare FLARE3, 0.65, 0.1, 1.0, 1.0, 1.0, 0.2
-        add_flare FLARE4, 0.85, 0.05, 1.0, 1.0, 1.0, 0.5
-        add_flare FLARE5, 0.95, 0.3, 1.0, 1.0, 1.0, 0.2
+        add_flare FLARE0, 0, 3, 3.0, 1, 1, 1.0
+        add_flare FLARE1, 0.01, 1.5, 1, 1, 1, 1.0
+        add_flare FLARE2, 0.25, 1.125, 1, 1, 1, 0.1
+        add_flare FLARE3, 0.35, 0.35, 1, 1, 1, 0.2
+        add_flare FLARE2, 0.45, 0.75, 1, 1, 1, 0.2
+        add_flare FLARE3, 0.6, 0.35, 1, 1, 1, 0.1
+        add_flare FLARE3, 0.7, 0.5, 1, 1, 1, 0.2
+        add_flare FLARE4, 0.85, 0.25, 1, 1, 1, 0.4
+        add_flare FLARE5, 0.95, 1.5, 1, 1, 1, 0.2

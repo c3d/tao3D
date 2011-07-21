@@ -13,7 +13,8 @@ locally
     FLARE4 -> texture FLARES_DIR & "sun_flare4.jpg"
     FLARE5 -> texture FLARES_DIR & "sun_flare5.jpg"
     FLARE6 -> texture FLARES_DIR & "sun_flare6.jpg"
-    lens_flare_depth_test ON
+    lens_flare
+        lens_flare_depth_test ON
         lens_flare_source 200, 200, -500
         lens_flare_target -100, -100, 500
         add_flare FLARE0, 0, 3, 1, 1, 1, 1

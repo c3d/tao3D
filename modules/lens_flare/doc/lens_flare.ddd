@@ -4,15 +4,7 @@ import LensFlare 1.0
 clear_color 0.0, 0.0, 0.0, 1.0 
 
 sun_flare -> 
-locally 
-    // Define flare textures
-    FLARE0 -> texture FLARES_DIR & "sun_flare0.jpg" 
-    FLARE1 -> texture FLARES_DIR & "sun_flare1.jpg" 
-    FLARE2 -> texture FLARES_DIR & "sun_flare2.jpg" 
-    FLARE3 -> texture FLARES_DIR & "sun_flare3.jpg" 
-    FLARE4 -> texture FLARES_DIR & "sun_flare4.jpg" 
-    FLARE5 -> texture FLARES_DIR & "sun_flare5.jpg" 
-    FLARE6 -> texture FLARES_DIR & "sun_flare6.jpg" 
+locally
     lens_flare_depth_test ON
         lens_flare_source 200, 200, -500
         lens_flare_target -100, -100, 500

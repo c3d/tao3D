@@ -32,7 +32,7 @@ const ModuleApi *LensFlare::tao = NULL;
 //
 // ============================================================================
 
-LensFlare::LensFlare() : depth_test(false), target(0, 0, 0), source(0, 0, 0)
+LensFlare::LensFlare() : depth_test(true), target(0, 0, 0), source(0, 0, 0)
 // ----------------------------------------------------------------------------
 //   Construction
 // ----------------------------------------------------------------------------
@@ -114,36 +114,45 @@ void LensFlare::Draw()
 {
     // Determine manually if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.
-    if(! isOccluded(source))
+    bool occluded = isOccluded(source);
+
+    glEnable(GL_TEXTURE_2D);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+
+    // Compute lens direction
+    Vector3 lens_dir = target  - source;
+
+    glDepthMask(GL_FALSE);
+    for(uint i = 0; i < lens_flare.size(); i++)
     {
-        // Disable current depth_test to avoid
-        // display problem with flares
-        glDisable(GL_DEPTH_TEST);
-
-        glEnable(GL_TEXTURE_2D);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE);
-
-        // Compute lens direction
-        Vector3 lens_dir = target  - source;
-
-        glDepthMask(GL_FALSE);
-        for(uint i = 0; i < lens_flare.size(); i++)
+        // Draw flares at the source position without depth test
+        if(lens_flare[i].loc == 0)
         {
             // Interpolate position of the current flare
             Vector3 pos = source + lens_flare[i].loc * lens_dir;
             DrawFlare(lens_flare[i], pos);
         }
-        glDepthMask(GL_TRUE);
+        else if(! occluded)
+        {
+            // Disable current depth_test to avoid
+            // display problem with flares
+            glDisable(GL_DEPTH_TEST);
 
-        // Restore previous bend settings.
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_BLEND);
-        glDisable(GL_TEXTURE_2D);
+            // Interpolate position of the current flare
+            Vector3 pos = source + lens_flare[i].loc * lens_dir;
+            DrawFlare(lens_flare[i], pos);
 
-        // Restore OpenGL depth test
-        glEnable(GL_DEPTH_TEST);
-   }
+            // Restore OpenGL depth test
+            glEnable(GL_DEPTH_TEST);
+        }
+    }
+    glDepthMask(GL_TRUE);
+
+    // Restore previous bend settings.
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glDisable(GL_BLEND);
+    glDisable(GL_TEXTURE_2D);
 }
 
 void LensFlare::DrawFlare(Flare flare, Vector3 pos)

@@ -12,6 +12,7 @@ sun_flare ->
         FLARE3 -> texture FLARES_DIR & "sun_flare3.jpg"
         FLARE4 -> texture FLARES_DIR & "sun_flare4.jpg"
         FLARE5 -> texture FLARES_DIR & "sun_flare5.jpg"
+        FLARE5 -> texture FLARES_DIR & "sun_flare6.jpg"
         // Create lens flare
         lens_flare
             // Define parameters
@@ -19,7 +20,8 @@ sun_flare ->
             lens_flare_target -100, -100, 500
             // Add flares
             add_flare FLARE0, 0, 0.6, 1, 1, 1, 1
-            add_flare FLARE1, 0, 0.5, 1, 0.8, 0.8, 0.5
+            add_flare FLARE6, 0.01, 0.7, 1, 0.8, 0.8, 0.7
+            add_flare FLARE1, 0, 0.9, 1, 0.8, 0.8, 0.5
             add_flare FLARE2, 0.25, 0.25, 1, 1, 0.7, 0.3
             add_flare FLARE3, 0.35, 0.07, 1, 1, 1, 0.5
             add_flare FLARE2, 0.45, 0.15, 1, 1, 0.7, 0.3

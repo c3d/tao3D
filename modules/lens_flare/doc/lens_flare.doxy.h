@@ -55,7 +55,7 @@ lens_flare(contents:tree);
 /**
  * Enable or disable the depth test for the lens flare.
  *
- * @param mode is @c ON or @c OFF.
+ * @param mode is @c ON or @c OFF. Its default value is ON.
  *
  */
 lens_flare_depth_test(mode:name);
@@ -83,6 +83,8 @@ lens_flare_target(x:real, y:real, z:real);
  * @param g green component of the flare color.
  * @param b blue component of the flare color.
  * @param a alpha-channel, transparency of the flare color. 0 is transparent and 1 is opaque.
+ *
+ * @note Flares, which are located on the source, are not subject to the depth test.
  */
 add_flare(id:integer, loc:real, scale:real, r:real, g:real, b:real, a:real);
 

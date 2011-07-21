@@ -9761,7 +9761,8 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     if (current)
     {
         Window *window = (Window *) current->parentWidget();
-        window->addError(+err.Message());
+        text message = err.Position() + ": " + err.Message();
+        window->addError(+err.Position() + " : " + +err.Message());
         err.Display();
     }
     else

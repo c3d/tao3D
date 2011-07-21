@@ -4896,10 +4896,13 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 
 Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
-//   Resize the main window to the specified size.
+//   Resize the main widget to the specified size.
 // ----------------------------------------------------------------------------
 {
-    ((QMainWindow*)parent())->resize(width->value, height->value);
+    QSize delta = QSize(width->value, height->value) - geometry().size();
+    QWidget *win = parentWidget();
+    win->resize(win->size() + delta);
+    win->updateGeometry();
     return XL::xl_true;
 }
 

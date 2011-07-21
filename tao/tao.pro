@@ -33,11 +33,6 @@ QT += webkit \
     svg \
     phonon
 
-QMAKE_CFLAGS += -Werror
-QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g \
-    \$(CXXFLAGS_\$%)
-
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
     XLRDIR = Contents/MacOS

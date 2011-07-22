@@ -51,7 +51,7 @@ void PushDialog::accept()
 //    Publish the current project to the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::setOverrideCursor(Qt::BusyCursor);
 
     proc = repo->asyncPush(repo->lastPublishTo = Url());
     if (!proc)

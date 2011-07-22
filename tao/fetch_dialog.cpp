@@ -51,7 +51,7 @@ void FetchDialog::accept()
 //    Fetch from the previously chosen remote
 // ----------------------------------------------------------------------------
 {
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+    QApplication::setOverrideCursor(Qt::BusyCursor);
 
     proc = repo->asyncFetch(repo->lastFetchUrl = Url());
     if (!proc)

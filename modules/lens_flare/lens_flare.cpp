@@ -35,7 +35,7 @@ Tree_p lens_flare(Context *context, Tree_p, Tree_p prog)
 {
     lens = new LensFlare();
     context->Evaluate(prog);
-    LensFlare::tao->scheduleRender(LensFlare::render_callback, lens);
+    LensFlare::tao->addToLayout(LensFlare::render_callback, lens, LensFlare::delete_callback);
 
     return xl_true;
 }
@@ -118,6 +118,7 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
 // ----------------------------------------------------------------------------
 {
     XL_INIT_TRACES();
+    glewInit();
     LensFlare::tao = api;
 
     return 0;

@@ -654,7 +654,6 @@ PREFIX(SetDisplayFunction,  boolean,  "display_mode",
        RTAO(setDisplayMode(self, name)),
        SYNOPSIS("Select a display mode (2D, split stereoscopy, etc.)")
        RETURNS(boolean, "True on success."))
-#ifndef CFG_NOSTEREO
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off or mode name"),
        RTAO(enableStereoscopy(self, mode)),
@@ -662,7 +661,6 @@ PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
        RETURNS(boolean, "True if previous state was on."))
-#endif
 PREFIX(EyeDistance,  boolean,  "eye_distance",
        PARM(e, real, ),
        RTAO(setEyeDistance(self, e)),

@@ -727,6 +727,52 @@ bool Window::setStereo(bool on)
 }
 
 
+void Window::addDisplayModeMenu(QString mode, QString label)
+// ----------------------------------------------------------------------------
+//    Add an entry to the View > Display mode menu (if it does not exist yet)
+// ----------------------------------------------------------------------------
+{
+    if (!displayModeToAction.contains(mode))
+    {
+        QAction *act = new QAction(label, this);
+        act->setCheckable(true);
+        if (mode == "2D")
+            act->setChecked(true);
+        act->setData(mode);
+        connect(act, SIGNAL(triggered(bool)),
+                this, SLOT(displayModeTriggered(bool)));
+        displayModeToAction.insert(mode, act);
+        displayModes->addAction(act);
+        displayModeMenu->addAction(act);
+    }
+}
+
+
+void Window::displayModeTriggered(bool on)
+// ----------------------------------------------------------------------------
+//    Called when an entry of the display mode menu is clicked
+// ----------------------------------------------------------------------------
+{
+    if (!on)
+        return;
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action)
+        taoWidget->setDisplayMode(NULL, +action->data().toString());
+}
+
+
+void Window::updateDisplayModeCheckMark(QString mode)
+// ----------------------------------------------------------------------------
+//    Called when an entry of the display mode menu is clicked
+// ----------------------------------------------------------------------------
+{
+    if (!displayModeToAction.contains(mode))
+        return;
+    QAction *act = displayModeToAction[mode];
+    act->setChecked(true);
+}
+
+
 void Window::clearRecentFileList()
 // ----------------------------------------------------------------------------
 //    Clear the list of recently opened files
@@ -1480,6 +1526,8 @@ void Window::createMenus()
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
+    displayModeMenu = viewMenu->addMenu(tr("Display mode"));
+    displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
     menuBar()->addSeparator();

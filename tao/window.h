@@ -35,6 +35,7 @@
 
 QT_BEGIN_NAMESPACE
 class QAction;
+class QActionGroup;
 class QMenu;
 class QTextEdit;
 class QSplashScreen;
@@ -85,6 +86,7 @@ public:
     QString  currentProjectFolderPath();
     bool     needNewWindow();
     bool     setStereo(bool on);
+    void     addDisplayModeMenu(QString mode, QString label);
 
     bool isUntitled;
     bool isReadOnly;
@@ -115,6 +117,7 @@ public slots:
     void clearErrors();
     void renderToFile();
     void adjustToScreenResolution(int screen);
+    void updateDisplayModeCheckMark(QString mode);
 
 signals:
 #ifndef CFG_NOGIT
@@ -160,6 +163,7 @@ private slots:
     void onlineDoc();
     void documentWasModified();
     void checkFiles();
+    void displayModeTriggered(bool on);
 
 private:
     void     createActions();
@@ -215,6 +219,9 @@ private:
     QMenu            *openRecentMenu;
     QMenu            *editMenu;
     QMenu            *viewMenu;
+    QMenu            *displayModeMenu;
+    QActionGroup     *displayModes;
+    QMap<QString, QAction *> displayModeToAction;
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;

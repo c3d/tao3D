@@ -49,13 +49,17 @@ GeneralPage::GeneralPage(QWidget *parent)
     grid->addWidget(combo, 1, 2);
     QStringList languages = installedLanguages();
     combo->addItem(tr("(System Language)"));
-    // Unfortunately, languages are always in english: vote for QTBUG-1587.
     foreach (QString lang, languages)
     {
-        QLocale locale(lang);
-        // For our purpose "C" means invalid
-        if (locale.name() != "C")
-            combo->addItem(QLocale::languageToString(locale.language()),
+        QString langName;
+        if (lang == "en")
+            langName = "English";
+        else
+        if (lang == "fr")
+            langName = QString::fromUtf8("Fran\303\247ais");
+
+        if (langName != "")
+            combo->addItem(langName,
                            lang);
     }
     QString saved = QSettings().value("uiLanguage", "C").toString();
@@ -68,13 +72,13 @@ GeneralPage::GeneralPage(QWidget *parent)
     connect(combo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(setLanguage(int)));
 
-    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
-    noStereo = new QCheckBox;
-    grid->addWidget(noStereo, 2, 2);
-    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
-    noStereo->setChecked(disable);
-    connect(noStereo, SIGNAL(toggled(bool)),
-            this,     SLOT(disableStereoBuffers(bool)));
+//    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
+//    noStereo = new QCheckBox;
+//    grid->addWidget(noStereo, 2, 2);
+//    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
+//    noStereo->setChecked(disable);
+//    connect(noStereo, SIGNAL(toggled(bool)),
+//            this,     SLOT(disableStereoBuffers(bool)));
 
     group->setLayout(grid);
 
@@ -124,21 +128,6 @@ void GeneralPage::setLanguage(int index)
     QSettings().setValue("uiLanguage", lang);
 }
 
-
-void GeneralPage::disableStereoBuffers(bool disable)
-// ----------------------------------------------------------------------------
-//   Save the "disable stereoscopy" setting
-// ----------------------------------------------------------------------------
-{
-    message->setText(tr("The change will take effect after a restart "
-                        "of the application."));
-    if (!disable)
-    {
-        QSettings().remove("DisableStereoscopy");
-        return;
-    }
-    QSettings().setValue("DisableStereoscopy", true);
-}
 
 // ============================================================================
 //

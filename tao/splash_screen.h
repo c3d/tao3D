@@ -54,6 +54,8 @@ protected:
     virtual void drawContents(QPainter *painter);
     virtual bool event(QEvent *e);
 
+    void         showCredits();
+
     QString      message;
     QLabel *     label;
     bool         mbPressed, urlClicked;

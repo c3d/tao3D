@@ -37,6 +37,7 @@
 #include "module_manager.h"
 #include "traces.h"
 #include "display_driver.h"
+#include "gc_thread.h"
 
 #include <QString>
 #include <QSettings>
@@ -78,7 +79,6 @@ Application::Application(int & argc, char ** argv)
     setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
-    setWindowIcon(QIcon(":/images/tao.png"));
 
     // Load translations, based on current locale. Preferences may override
     // current locale.
@@ -142,6 +142,16 @@ Application::Application(int & argc, char ** argv)
 
     // Load settings
     loadDebugTraceSettings();
+
+    // Create and start garbage collection thread
+    gcThread = new GCThread;
+    if (xlr->options.threaded_gc)
+    {
+        IFTRACE(memory)
+            std::cerr << "Threaded GC is enabled\n";
+        gcThread->moveToThread(gcThread);
+        gcThread->start();
+    }
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -246,6 +256,24 @@ Application::Application(int & argc, char ** argv)
     // We're ready to go
     if (!savedUri.isEmpty())
         loadUri(savedUri);
+}
+
+
+Application::~Application()
+// ----------------------------------------------------------------------------
+//   Delete the Tao application
+// ----------------------------------------------------------------------------
+{
+    if (gcThread)
+    {
+        IFTRACE(memory)
+            std::cerr << "Stopping GC thread...\n";
+        gcThread->quit();
+        gcThread->wait();
+        IFTRACE(memory)
+            std::cerr << "GC thread stopped\n";
+        delete gcThread;
+    }
 }
 
 

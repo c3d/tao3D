@@ -54,16 +54,54 @@ struct Cube : Shape3
 };
 
 
-struct Sphere : Cube
+struct Mesh
+// ----------------------------------------------------------------------------
+//   Generic mesh data
+// ----------------------------------------------------------------------------
+{
+    std::vector<Point3> vertices;
+    std::vector<Point3> normals;
+    std::vector<Point>  textures;
+};
+
+struct SphereMesh : Mesh
+// ----------------------------------------------------------------------------
+//   A unit-radius sphere, represented as a mesh
+// ----------------------------------------------------------------------------
+{
+    SphereMesh(uint slices, uint stacks);
+};
+
+struct MeshBased : Cube
+// ----------------------------------------------------------------------------
+//   Common drawing code for mesh-based shapes
+// ----------------------------------------------------------------------------
+{
+    MeshBased(const Box3 &bounds) : Cube(bounds) {}
+    void Draw(Mesh *mesh, Layout *where);
+};
+
+struct Sphere : MeshBased
 // ----------------------------------------------------------------------------
 //   Draw a sphere or ellipsoid
 // ----------------------------------------------------------------------------
 {
-    Sphere(Box3 bounds, uint sl, uint st) : Cube(bounds), slices(sl), stacks(st) {}
+    Sphere(Box3 bounds, uint sl, uint st) : MeshBased(bounds),
+                                            slices(sl), stacks(st) {}
     virtual void        Draw(Layout *where);
 
 private:
     uint    slices, stacks;
+
+private:
+    // Cache of unit radius spheres
+    // (they differ by the number of subdivisions onhy)
+
+    enum { MAX_SPHERES = 10 };
+    typedef std::pair<uint, uint> Key;
+    typedef std::map<Key, Mesh *> SphereCache;
+
+    static SphereCache cache;
 };
 
 struct Torus : Cube

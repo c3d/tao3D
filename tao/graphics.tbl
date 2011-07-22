@@ -281,6 +281,13 @@ PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
        SYNOPSIS("Check if a functionality is available")
        DESCRIPTION("Check if a specific Tao feature is available with the current version of the program")
        RETURNS( boolean, "True if the feature is compiled in, false otherwise.") )
+PREFIX(HasDisplayMode,  boolean,  "has_display_mode",
+       PARM(name, symbol, "The name of the display mode to test"),
+       RTAO(hasDisplayMode(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a display mode is available")
+       DESCRIPTION("Check if a specific display mode is available and can be used")
+       RETURNS(boolean, "True if the mode is available, false otherwise.") )
 
 
 
@@ -652,11 +659,6 @@ PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off or mode name"),
        RTAO(enableStereoscopy(self, mode)),
        GROUP(gui)
-       SYNOPSIS("Enable or disable stereoscopie mode")
-       DESCRIPTION("Enable or disable stereoscopie mode")
-       RETURNS(boolean, "True if previous state was on."))
-PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer, "on or off"),
-       RTAO(setStereoPlanes(self, cnt)), GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
        RETURNS(boolean, "True if previous state was on."))

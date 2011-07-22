@@ -201,6 +201,8 @@ public:
     uint        antiAliasMargin;
     scale       fontScaling;
     PerFont *   lastFont;
+    const
+    QGLContext *GLcontext;
 };
 
 TAO_END

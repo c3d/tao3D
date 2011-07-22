@@ -33,6 +33,8 @@
 #include <QLabel>
 #include <QDesktopServices>
 #include <QUrl>
+#include <QPointer>
+#include <QMessageBox>
 
 namespace Tao {
 
@@ -57,9 +59,11 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                        "</style></head><body>"
                        "\302\251 2010-2011 "
                        "<a href=\"http://taodyne.com\">Taodyne SAS</a>. "
-                       "%1"
+                       "%1 "
+                       "<a href=\"credits:\">%2</a>."
                        "</body></html>";
-    label = new QLabel(trUtf8(cop).arg(tr("All rights reserved.")), this);
+    label = new QLabel(trUtf8(cop).arg(tr("All rights reserved."))
+                                  .arg(tr("Credits")), this);
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
     label->move(270, 280);
@@ -71,8 +75,13 @@ void SplashScreen::openUrl(QString url)
 //    Open Url
 // ----------------------------------------------------------------------------
 {
-    QDesktopServices::openUrl(QUrl(url));
     urlClicked = true;
+    if (url.startsWith("credits"))
+    {
+        showCredits();
+        return;
+    }
+    QDesktopServices::openUrl(QUrl(url));
 }
 
 
@@ -164,6 +173,71 @@ void SplashScreen::showMessage(const QString &message, int, const QColor &)
     this->message = message;
     QCoreApplication::processEvents();
     repaint();
+}
+
+
+void SplashScreen::showCredits()
+// ----------------------------------------------------------------------------
+//    Show credits dialog. Largely inspired from QMessageBox::aboutQt().
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_WS_MAC
+    static QPointer<QMessageBox> oldMsgBox;
+
+    if (oldMsgBox) {
+        oldMsgBox->show();
+        oldMsgBox->raise();
+        oldMsgBox->activateWindow();
+        return;
+    }
+#endif
+
+    QString title = tr("Tao Presentations - Credits");
+    QString translatedTextCreditsCaption;
+    translatedTextCreditsCaption = tr(
+        "<h3>Credits</h3>"
+        "<p>This program uses the following components.</p>"
+        );
+    QString translatedTextCreditsText;
+    translatedTextCreditsText = tr(
+        "<h3>Qt %1</h3>"
+        "<p>Qt is a C++ toolkit for cross-platform application "
+        "development.</p>"
+        "<p>Qt is a Nokia product. See "
+        "<a href=\"http://qt.nokia.com/\">qt.nokia.com</a> for more "
+        "information.</p>"
+        "<h3>LLVM</h3>"
+        "<p>The LLVM Project is a collection of modular and reusable compiler "
+        "and toolchain technologies.</p>"
+        "<p>See <a href=\"http://llvm.org/\">llvm.org</a> for more "
+        "information.</p>"
+        "<h3>XLR</h3>"
+        "<p>XLR is a dynamically-compiled language based on parse tree "
+        "rewrites.</p>"
+        "<p>See <a href=\"http://xlr.sf.net/\">xlr.sf.net</a> for more "
+        "information.</p>"
+        ).arg(QT_VERSION_STR);
+    QMessageBox *msgBox = new QMessageBox;
+    msgBox->setAttribute(Qt::WA_DeleteOnClose);
+    msgBox->setWindowTitle(title);
+    msgBox->setText(translatedTextCreditsCaption);
+    msgBox->setInformativeText(translatedTextCreditsText);
+
+    QPixmap pm(":/images/tao_picto.png");
+    if (!pm.isNull())
+    {
+        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
+                                   Qt::SmoothTransformation);
+        msgBox->setIconPixmap(scaled);
+    }
+
+    msgBox->raise();
+#ifdef Q_WS_MAC
+    oldMsgBox = msgBox;
+    msgBox->show();
+#else
+    msgBox->exec();
+#endif
 }
 
 }

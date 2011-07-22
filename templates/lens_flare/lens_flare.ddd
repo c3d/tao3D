@@ -38,6 +38,7 @@ milkyway R ->
 
 d -> window_height
 t -> time locally
+page "lens flare",
 locally
     milkyway 11000
     sun 100, 300, -300 + 8 * page_time

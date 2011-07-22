@@ -13,7 +13,7 @@
 # "make install" will copy the templates to the staging directory
 
 TEMPLATE = subdirs
-SUBDIRS  = blank pythagorean_theorem hello_world guess_game mandelbrot lens_flare
+SUBDIRS  = blank pythagorean_theorem hello_world guess_game mandelbrot lens_flare filters
 
 # Some templates depend on module availability
 include (../modules/module_list.pri)

@@ -76,6 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
+#include "gc_thread.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -178,7 +179,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
-      currentTime(DBL_MAX),
+      currentTime(DBL_MAX), stats(),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
       nextCommit(nextSave),
@@ -191,7 +192,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      savedCursorShape(Qt::ArrowCursor), bShowStatistics(false),
+      savedCursorShape(Qt::ArrowCursor),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
@@ -270,6 +271,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
+
+    // Garbage collection is run by the GCThread object, either in the main
+    // thread or in its own thread
+    connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
 }
 
 
@@ -342,7 +347,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       dfltRefresh(o.dfltRefresh),
       pageStartTime(o.pageStartTime), frozenTime(o.frozenTime),
       startTime(o.startTime),
-      currentTime(o.currentTime),
+      currentTime(o.currentTime), stats(o.stats.isEnabled()),
       nextSave(o.nextSave), nextSync(o.nextSync),
 #ifndef CFG_NOGIT
       nextCommit(o.nextCommit),
@@ -357,7 +362,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
-      savedCursorShape(o.savedCursorShape), bShowStatistics(o.bShowStatistics),
+      savedCursorShape(o.savedCursorShape),
       renderFramesCanceled(o.renderFramesCanceled),
       inOfflineRendering(o.inOfflineRendering),
       offlineRenderingWidth(o.offlineRenderingWidth),
@@ -436,6 +441,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     o.isInvalid = true;
 
     current = this;
+
+    // Garbage collection is run by the GCThread object, either in the main
+    // thread or in its own thread
+    connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
 }
 
 Widget::~Widget()
@@ -557,9 +566,24 @@ void Widget::drawScene()
 //   Draw all objects in the scene
 // ----------------------------------------------------------------------------
 {
+    if (XL::MAIN->options.threaded_gc)
+    {
+        // Start asynchronous garbage collection
+        TaoApp->gcThread->clearCollectDone();
+        emit runGC();
+    }
+
     id = idDepth = 0;
     space->ClearAttributes();
     space->Draw(NULL);
+
+    if (XL::MAIN->options.threaded_gc)
+    {
+        // Record wait time till asynchronous garbage collection completes
+        stats.begin(Statistics::GC);
+        TaoApp->gcThread->waitCollectDone();
+        stats.end(Statistics::GC);
+    }
 }
 
 
@@ -590,7 +614,7 @@ void Widget::drawActivities()
     glEnable(GL_DEPTH_TEST);
 
     // Show FPS as text overlay
-    if (bShowStatistics)
+    if (stats.isEnabled())
         printStatistics();
 }
 
@@ -653,6 +677,14 @@ void Widget::draw()
     {
         runOnNextDraw = false;
         runProgram();
+    }
+
+    if (!XL::MAIN->options.threaded_gc)
+    {
+        // Record time for synchronous garbage collection
+        stats.begin(Statistics::GC);
+        emit runGC();
+        stats.end(Statistics::GC);
     }
 
     // Run current display algorithm
@@ -744,11 +776,6 @@ bool Widget::refreshNow(QEvent *event)
         IFTRACE(layoutevents)
             std::cerr << "Partial refresh due to event: "
                       << LayoutState::ToText(event->type()) << "\n";
-
-        stats.begin(Statistics::GC);
-        XL::GarbageCollector::Collect();
-        stats.end(Statistics::GC);
-
         // Layout::Refresh needs current != NULL
         TaoSave saveCurrent(current, this);
         stats.begin(Statistics::EXEC);
@@ -832,10 +859,6 @@ void Widget::runProgram()
 // ----------------------------------------------------------------------------
 {
     setCurrentTime();
-
-    stats.begin(Statistics::GC);
-    XL::GarbageCollector::Collect();
-    stats.end(Statistics::GC);
 
     // Don't run anything if we detected errors running previously
     if (inError)
@@ -3680,6 +3703,13 @@ void Widget::printStatistics()
     RasterText::printf("%dx%dx%d %s fps%s", vw, vh, stereoPlanes, fps,
                        dropped);
 
+    static const char *gcs1 = NULL, *gcs2 = NULL;
+    if (!gcs1)
+    {
+        // "GCw" is GC wait time, included in Draw time
+        gcs1 = XL::MAIN->options.threaded_gc ? "(GCw" : "GC";
+        gcs2 = XL::MAIN->options.threaded_gc ? ")" : "";
+    }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
@@ -3690,13 +3720,13 @@ void Widget::printStatistics()
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTime(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
-        RasterText::printf("Avg/peak (ms): Exec %3d/%3d Draw %3d/%3d "
-                           "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+        RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                           "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);
     }
     else
     {
-        RasterText::printf("Avg/peak (ms): Exec ---/--- Draw ---/--- "
-                           "GC ---/---");
+        RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                           "%s ---/---%s", gcs1, gcs2);
     }
 }
 
@@ -5032,10 +5062,7 @@ Name_p Widget::showStatistics(Tree_p self, bool ss)
 //   Display or hide performance statistics (frames per second)
 // ----------------------------------------------------------------------------
 {
-    bool prev = bShowStatistics;
-    bShowStatistics = ss;
-    if (ss)
-        stats.reset();
+    bool prev = stats.enable(ss);
     return prev ? XL::xl_true : XL::xl_false;
 }
 
@@ -5045,7 +5072,7 @@ Name_p Widget::toggleShowStatistics(Tree_p self)
 //   Toggle display of statistics
 // ----------------------------------------------------------------------------
 {
-    return showStatistics(self, !bShowStatistics);
+    return showStatistics(self, !stats.isEnabled());
 }
 
 
@@ -9479,7 +9506,8 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     if (current)
     {
         Window *window = (Window *) current->parentWidget();
-        window->addError(+err.Message());
+        text message = err.Position() + ": " + err.Message();
+        window->addError(+err.Position() + " : " + +err.Message());
         err.Display();
     }
     else

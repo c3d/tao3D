@@ -253,7 +253,9 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
     QTextStream in(&file);
     in.setCodec("UTF-8");
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
     loadInProgress = true;
     srcEdit->setPlainText(in.readAll());
     loadInProgress = false;
@@ -600,7 +602,7 @@ bool Window::saveFonts()
 
     struct SOC
     {
-         SOC() { QApplication::setOverrideCursor(Qt::WaitCursor); }
+         SOC() { QApplication::setOverrideCursor(Qt::BusyCursor); }
         ~SOC() { QApplication::restoreOverrideCursor(); }
     } soc;
 
@@ -1716,7 +1718,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         return false;
 #endif
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
 
     if (openProj && repo)
     {
@@ -1766,7 +1770,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     else
     {
-        QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
 
         showMessage(msg.arg(tr("Caching code")));
         taoWidget->preloadSelectionCode();
@@ -1924,7 +1930,9 @@ bool Window::saveFile(const QString &fileName)
     {
         QTextStream out(&file);
         out.setCodec("UTF-8");
-        QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
 #ifndef CFG_NOSRCEDIT
         out << srcEdit->toPlainText();
 #else

@@ -30,7 +30,6 @@ void Statistics::reset()
 //    Reset statistics and start a new measurement
 // ----------------------------------------------------------------------------
 {
-    frames.clear();
     for (int i = 0; i < LAST_OP; i++)
     {
         data[i].clear();
@@ -42,12 +41,41 @@ void Statistics::reset()
 }
 
 
-void Statistics::begin(Operation)
+bool Statistics::enable(bool on)
+// ----------------------------------------------------------------------------
+//    Enable or disable statistics collection, return previous state
+// ----------------------------------------------------------------------------
+{
+    bool ret = enabled;
+    if (enabled == on)
+        return ret;
+    if (!enabled)
+        reset();
+    enabled = on;
+    return ret;
+}
+
+
+bool Statistics::isEnabled()
+// ----------------------------------------------------------------------------
+//    Return enabled state
+// ----------------------------------------------------------------------------
+{
+    return enabled;
+}
+
+
+void Statistics::begin(Operation op)
 // ----------------------------------------------------------------------------
 //    Start measurement
 // ----------------------------------------------------------------------------
 {
-    timer.start();
+    if (!enabled)
+        return;
+
+    Q_ASSERT(op >= 0 && op < LAST_OP);
+
+    timer[op].start();
 }
 
 
@@ -56,10 +84,13 @@ void Statistics::end(Operation op)
 //    End measurement
 // ----------------------------------------------------------------------------
 {
+    if (!enabled)
+        return;
+
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
     int now = intervalTimer.elapsed();
-    int elapsed = timer.elapsed();
+    int elapsed = timer[op].elapsed();
 
     // Append measurement to list, keeping only 'interval' seconds of data.
     // Keep total up-to-date.
@@ -67,7 +98,7 @@ void Statistics::end(Operation op)
     durations &d = data[op];
     d.append(val);
     total[op] += elapsed;
-    while (now - d.first().first > interval)
+    while (now - d.first().first >= interval)
         total[op] -= d.takeFirst().second;
 
     // Update max if current value is larger, or peak interval has expired
@@ -75,14 +106,6 @@ void Statistics::end(Operation op)
     {
         max[op] = elapsed;
         lastMaxTime[op] = now;
-    }
-
-    if (op == DRAW)
-    {
-        // A new frame is out, update FPS record
-        frames.push_back(now);
-        while (now - frames.front() > interval)
-            frames.pop_front();
     }
 }
 
@@ -92,9 +115,9 @@ double Statistics::fps()
 //    Average frames per second during last 'interval' seconds
 // ----------------------------------------------------------------------------
 {
-    if (intervalTimer.elapsed() < interval)
+    if (!enabled || intervalTimer.elapsed() < interval)
         return -1.0;
-    return (double)frames.size() * 1000 / interval;
+    return (double)data[DRAW].size() * 1000 / interval;
 }
 
 
@@ -105,7 +128,7 @@ int Statistics::averageTime(Operation op)
 {
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
-    if (intervalTimer.elapsed() < interval)
+    if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
 
     durations &d = data[op];
@@ -122,7 +145,7 @@ int Statistics::maxTime(Operation op)
 {
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
-    if (intervalTimer.elapsed() < interval)
+    if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
 
     return max[op];

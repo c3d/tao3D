@@ -163,7 +163,7 @@ void RasterText::makeRasterFont()
 {
     GLuint i;
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    fontOffset = glGenLists (95);
+    fontOffset = glGenLists (128);
     for (i = 32; i < 127; i++) {
         glNewList(i+fontOffset, GL_COMPILE);
             glBitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);

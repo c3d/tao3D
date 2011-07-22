@@ -127,7 +127,8 @@ HEADERS += widget.h \
     module_info_dialog.h \
     display_driver.h \
     include/tao/matrix.h \
-    statistics.h
+    statistics.h \
+    gc_thread.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -187,7 +188,8 @@ SOURCES += tao_main.cpp \
     templates.cpp \
     module_info_dialog.cpp \
     display_driver.cpp \
-    statistics.cpp
+    statistics.cpp \
+    gc_thread.cpp
 
 # Check compile-time options
 

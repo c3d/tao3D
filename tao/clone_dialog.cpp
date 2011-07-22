@@ -98,6 +98,7 @@ void CloneDialog::accept()
     cancelButton->setText("Abort");
     cloneOutput->append(tr("Starting...\n"));
     setCursor(Qt::BusyCursor);
+
     connect(repo.data(), SIGNAL(asyncCloneComplete(void *, QString)),
             this, SLOT(endClone(void *, QString)));
     proc = repo->asyncClone(url, newFolder);

@@ -46,3 +46,6 @@ OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,dis
 
 OPTION(norepo, "Disable GIT repository", ;)
 OPTION(nogit, "Synonym for -norepo", ;)
+
+OPTVAR(threaded_gc, bool, true)
+OPTION(nomtgc, "Do not run XL garbage collection in a separate thread", threaded_gc = false)

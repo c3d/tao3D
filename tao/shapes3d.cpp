@@ -193,26 +193,66 @@ void Cube::Draw(Layout *where)
 
 // ============================================================================
 //
+//    Mesh
+//
+// ============================================================================
+
+void MeshBased::Draw(Mesh *mesh, Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the mesh within the bounding box
+// ----------------------------------------------------------------------------
+{
+    Point3 p = bounds.Center() + where->Offset();
+    glPushMatrix();
+    glPushAttrib(GL_ENABLE_BIT);
+    glEnable(GL_NORMALIZE);
+    glTranslatef(p.x, p.y, p.z);
+    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
+
+    glEnableClientState(GL_VERTEX_ARRAY);
+    glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
+
+    glEnableClientState(GL_NORMAL_ARRAY);
+    glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+
+    //Active texture coordinates for all used units
+    std::map<uint, TextureState>::iterator it;
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        if(((*it).second).id)
+            enableTexCoord((*it).first, &mesh->textures[0].x);
+
+    setTexture(where);
+
+    if (setFillColor(where))
+        glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+    if (setLineColor(where))
+        glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
+
+    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
+        if(((*it).second).id)
+            disableTexCoord((*it).first);
+
+    glDisableClientState(GL_NORMAL_ARRAY);
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    glPopAttrib();
+    glPopMatrix();
+}
+
+// ============================================================================
+//
 //    Sphere shape
 //
 // ============================================================================
 
-void Sphere::Draw(Layout *where)
+SphereMesh::SphereMesh(uint slices, uint stacks)
 // ----------------------------------------------------------------------------
-//    Draw the sphere within the bounding box
+//    Construct a unit sphere with given number of slices and stacks
 // ----------------------------------------------------------------------------
 {
-    Point3 p = bounds.Center() + where->Offset();
-    scale w = bounds.Width();
-    scale h = bounds.Height();
-    scale d = bounds.Depth();
-
-    std::vector<Point3> vertices;
-    std::vector<Point3> normals;
-    std::vector<Point>  textures;
-
     double radius = 0.5;
-    for (uint j = 0; j < stacks; j++) {
+    for (uint j = 0; j < stacks; j++)
+    {
         GLfloat phi      = M_PI * j / stacks;
         GLfloat incr_phi = M_PI * (j + 1) / stacks;
 
@@ -224,51 +264,60 @@ void Sphere::Draw(Layout *where)
 
         for (uint i = 0; i <= slices; i++) {
             GLfloat theta  = 2 * M_PI * i / slices;
-            // Compute teta components (add an offset to be adaptated to the old version)
+            // Compute teta components (add an offset to be adaptated to the
+            // old version)
             float sinTheta = sin(theta - M_PI/2);
             float cosTheta = cos(theta - M_PI/2) ;
 
             // First vertex
-            textures.push_back(Point(1 - (double) i / slices, 1 - (double) (j+1) / stacks));
-            normals.push_back(Point3(cosTheta * sinIncrPhi, cosIncrPhi, sinTheta * sinIncrPhi));
-            vertices.push_back(p + Point3(w * radius * cosTheta * sinIncrPhi,
-                                          h * radius * cosIncrPhi,
-                                          d * radius * sinTheta * sinIncrPhi));
+            textures.push_back(Point(1 - (double) i / slices,
+                                     1 - (double) (j+1) / stacks));
+            normals.push_back(Point3(cosTheta * sinIncrPhi, cosIncrPhi,
+                                     sinTheta * sinIncrPhi));
+            vertices.push_back(Point3(radius * cosTheta * sinIncrPhi,
+                                      radius * cosIncrPhi,
+                                      radius * sinTheta * sinIncrPhi));
 
             // Second vertex
-            textures.push_back(Point(1 - (double) i / slices, 1 - (double) j / stacks));
-            normals.push_back(Point3(cosTheta * sinPhi, cosPhi, sinTheta * sinPhi));
-            vertices.push_back(p + Point3(w * radius * cosTheta * sinPhi,
-                                          h * radius * cosPhi,
-                                          d * radius * sinTheta * sinPhi));
+            textures.push_back(Point(1 - (double) i / slices,
+                                     1 - (double) j / stacks));
+            normals.push_back(Point3(cosTheta * sinPhi, cosPhi,
+                                     sinTheta * sinPhi));
+            vertices.push_back(Point3(radius * cosTheta * sinPhi,
+                                      radius * cosPhi,
+                                      radius * sinTheta * sinPhi));
         }
     }
+}
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
+Sphere::SphereCache Sphere::cache;
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+void Sphere::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the sphere within the bounding box
+// ----------------------------------------------------------------------------
+{
+    Mesh * mesh = NULL;
+    Key key(slices, stacks);
+    SphereCache::iterator found = cache.find(key);
+    if (found == cache.end())
+    {
+        // Prune the map if it gets too big
+        while (cache.size() > MAX_SPHERES)
+        {
+            SphereCache::iterator first = cache.begin();
+            delete (*first).second;
+            cache.erase(first);
+        }
+        mesh = new SphereMesh(slices, stacks);
+        cache[key] = mesh;
+    }
+    else
+    {
+        mesh = (*found).second;
+    }
 
-    //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, &textures[0].x);
-
-    setTexture(where);
-
-    if (setFillColor(where))
-        glDrawArrays(GL_QUAD_STRIP, 0, textures.size());
-    if (setLineColor(where))
-        glDrawArrays(GL_LINE_LOOP, 0, textures.size());
-
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            disableTexCoord((*it).first);
-
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    MeshBased::Draw(mesh, where);
 }
 
 // ============================================================================

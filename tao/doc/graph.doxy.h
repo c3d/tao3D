@@ -1004,7 +1004,9 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
  * The sphere is divided in @p slices and @p stacks. The higher the value of
  * these parametres are, the smoother the sphere is (and longer the drawing is).
  * The sphere's @p w, @p h and @p d are not aimed to be equals. One can draw a
- * water-melon with the sphere primitive
+ * water-melon with the sphere primitive.
+ * The @p w, @p h and @p d parameters are the dimensions along the @p x, @p y and
+ * @p z axis, respectively.
  * @image html sphere.png
 
  */

@@ -26,28 +26,31 @@
 #include "flare.h"
 
 const ModuleApi *LensFlare::tao  = NULL;
-      GLuint     LensFlare::query = 0;
+
 // ============================================================================
 //
 //    Lens Flare
 //
 // ============================================================================
 
-LensFlare::LensFlare() : depth_test(true), target(0, 0, 0), source(0, 0, 0)
+LensFlare::LensFlare()
 // ----------------------------------------------------------------------------
 //   Construction
 // ----------------------------------------------------------------------------
+    : query(0), depth_test(true), test_size(5), target(0, 0, 0), source(0, 0, 0)
 {
 }
+
 
 LensFlare::~LensFlare()
 // ----------------------------------------------------------------------------
 //   Destruction
 // ----------------------------------------------------------------------------
 {
-    if(! query)
+    if (query)
         glDeleteQueries(1, &query);
 }
+
 
 void LensFlare::render_callback(void *arg)
 // ----------------------------------------------------------------------------
@@ -57,6 +60,7 @@ void LensFlare::render_callback(void *arg)
     ((LensFlare *)arg)->Draw();
 }
 
+
 void LensFlare::delete_callback(void *arg)
 // ----------------------------------------------------------------------------
 //   Delete callback: destroy object
@@ -64,6 +68,7 @@ void LensFlare::delete_callback(void *arg)
 {
     delete (LensFlare *)arg;
 }
+
 
 void LensFlare::setTarget(Vector3 position)
 // ----------------------------------------------------------------------------
@@ -73,6 +78,7 @@ void LensFlare::setTarget(Vector3 position)
     target = position;
 }
 
+
 void LensFlare::setSource(Vector3 position)
 // ----------------------------------------------------------------------------
 //   Define position of the lens flare source light
@@ -81,17 +87,19 @@ void LensFlare::setSource(Vector3 position)
     source = position;
 }
 
+
 void LensFlare::enableDephTest(bool enable)
 // ----------------------------------------------------------------------------
 //   Enable or disable manual depth test for the lens flare
 // ----------------------------------------------------------------------------
 {
-    if(! query)
+    if(!query)
         glGenQueries(1, &query);
     depth_test = enable;
 }
 
-void LensFlare::addFlare(GLuint id, float location, float scale, GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+void LensFlare::addFlare(GLuint id, float location, float scale,
+                         GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 // ----------------------------------------------------------------------------
 //   Create a new flare and add it to the others.
 // ----------------------------------------------------------------------------
@@ -113,11 +121,12 @@ void LensFlare::addFlare(GLuint id, float location, float scale, GLfloat r, GLfl
 
 void LensFlare::Draw()
 // ----------------------------------------------------------------------------
-//   Draw a lens flare centred at the source position
-//   and heading toward the defined target.
+//   Draw the lens flare
 // ----------------------------------------------------------------------------
+//   We draw a lens flare centered at the source position and heading
+//   toward the defined target.
 {
-    // Determine manually if the source is occluded by a previous object.
+    // Manually determine if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.
     bool occluded = isOccluded(source);
 
@@ -159,6 +168,7 @@ void LensFlare::Draw()
     glDisable(GL_BLEND);
     glDisable(GL_TEXTURE_2D);
 }
+
 
 void LensFlare::DrawFlare(Flare flare, Vector3 pos)
 // ----------------------------------------------------------------------------
@@ -205,10 +215,10 @@ bool LensFlare::isOccluded(Vector3 p)
         glBegin(GL_QUADS);
 
         // Draw sun flare
-        glVertex3f(p.x - 0.5, p.y - 0.5, p.z);
-        glVertex3f(p.x + 0.5, p.y - 0.5, p.z);
-        glVertex3f(p.x + 0.5, p.y + 0.5, p.z);
-        glVertex3f(p.x - 0.5, p.y + 0.5, p.z);
+        glVertex3f(p.x - test_size, p.y - test_size, p.z);
+        glVertex3f(p.x + test_size, p.y - test_size, p.z);
+        glVertex3f(p.x + test_size, p.y + test_size, p.z);
+        glVertex3f(p.x - test_size, p.y + test_size, p.z);
 
         glEnd();
         glEndQuery(GL_SAMPLES_PASSED);

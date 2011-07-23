@@ -25,7 +25,8 @@
 #include <math.h>
 #include "flare.h"
 
-const ModuleApi *LensFlare::tao = NULL;
+const ModuleApi *LensFlare::tao  = NULL;
+      GLuint     LensFlare::query = 0;
 // ============================================================================
 //
 //    Lens Flare
@@ -44,6 +45,8 @@ LensFlare::~LensFlare()
 //   Destruction
 // ----------------------------------------------------------------------------
 {
+    if(! query)
+        glDeleteQueries(1, &query);
 }
 
 void LensFlare::render_callback(void *arg)
@@ -83,6 +86,8 @@ void LensFlare::enableDephTest(bool enable)
 //   Enable or disable manual depth test for the lens flare
 // ----------------------------------------------------------------------------
 {
+    if(! query)
+        glGenQueries(1, &query);
     depth_test = enable;
 }
 
@@ -194,18 +199,16 @@ bool LensFlare::isOccluded(Vector3 p)
 {
     if(depth_test)
     {
-        GLuint query = 0;
         GLuint result = 0;
 
-        // Create queries
-        glGenQueries(1, &query);
         glBeginQuery(GL_SAMPLES_PASSED, query);
         glBegin(GL_QUADS);
+
         // Draw sun flare
-        glVertex3f(p.x - 5, p.y - 5, p.z);
-        glVertex3f(p.x + 5, p.y - 5, p.z);
-        glVertex3f(p.x + 5, p.y + 5, p.z);
-        glVertex3f(p.x - 5, p.y + 5, p.z);
+        glVertex3f(p.x - 0.5, p.y - 0.5, p.z);
+        glVertex3f(p.x + 0.5, p.y - 0.5, p.z);
+        glVertex3f(p.x + 0.5, p.y + 0.5, p.z);
+        glVertex3f(p.x - 0.5, p.y + 0.5, p.z);
 
         glEnd();
         glEndQuery(GL_SAMPLES_PASSED);

@@ -9,7 +9,7 @@ sun X, Y, Z ->
 
 earth R ->
     locally
-        material_ambient 0.3, 0.3, 0.3, 1.0
+        material_ambient 0.4, 0.4, 0.4, 1.0
         material_diffuse 1.0, 1.0, 1.0, 1.0
         texture "earth.bmp"
         rotatey 5 * page_time + 10
@@ -17,8 +17,8 @@ earth R ->
 
 moon R ->
     locally
-        material_ambient 0.3, 0.3, 0.3, 1
-        material_diffuse 1.0, 1.0, 1.0, 1.0
+        material_ambient 0.3, 0.3, 0.2, 1.0
+        material_diffuse 1.0, 1.0, 0.8, 1.0
         texture "moon.jpg"
         rotatez 75
         rotatey 15 * page_time + 10
@@ -38,10 +38,11 @@ milkyway R ->
 
 d -> window_height
 t -> time locally
-locally
-    milkyway 11000
-    sun 100, 300, -300 + 8 * page_time
-    moon d * 20%
-    earth d * 60%
-translatey 15 * page_time
-sun_flare 100, 0, -1000, -150, -150 - 15 * page_time, 2000
+page "lens flare",
+    locally
+        milkyway 11000
+        sun 100, 300, -300 + 200 * abs (sin (page_time * 0.04))
+        moon d * 20%
+        earth d * 60%
+    translatey 500 * abs (sin (page_time * 0.04))
+    sun_flare 100, 0, -1000, -150, -500 * abs (sin (page_time * 0.04)), 2000

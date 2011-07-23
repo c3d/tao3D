@@ -76,6 +76,7 @@ public:
     static const Tao::ModuleApi *tao;
 
 private:
+    static GLuint query;
     // List of attached flares
     vector<Flare> lens_flare;
     // Depth test status

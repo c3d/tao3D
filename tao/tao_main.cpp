@@ -43,15 +43,19 @@
 #include <QFileInfo>
 #include <QTimer>
 
-#include <execinfo.h>
-#include <dlfcn.h>
 #include <signal.h>
 #include <iomanip>
 
+#ifndef CONFIG_MINGW
+#include <execinfo.h>
+#include <dlfcn.h>
+#endif
 
 #ifdef CONFIG_MINGW
 #include <windows.h>
 static void win_redirect_io();
+typedef void (*sig_t) (int);
+#define SIGSTKSZ        4096
 #endif
 
 static void cleanup();

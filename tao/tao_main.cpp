@@ -174,6 +174,26 @@ void install_signal_handler(sig_t handler)
 }
 
 
+#ifdef CONFIG_MINGW
+int backtrace(void **addr, int max)
+// ----------------------------------------------------------------------------
+//    We are working on it for Windows...
+// ----------------------------------------------------------------------------
+{
+#define BT(n)   if (max > n) addr[n] = __builtin_return_address(n)
+    BT(0);
+    BT(1);
+    BT(2);
+    BT(3);
+    BT(4);
+    BT(5);
+    BT(6);
+    BT(7);
+    return max < 8 ? max : 8;
+}
+#endif
+
+
 void signal_handler(int sigid)
 // ----------------------------------------------------------------------------
 //   Signal handler

@@ -35,6 +35,7 @@
 #include "tao_utf8.h"
 #include "gc.h"
 #include "tao_main.h"
+#include "flight_recorder.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -54,6 +55,9 @@ int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
 {
     using namespace Tao;
+
+    Tao::FlightRecorder::recorder = new Tao::FlightRecorder;
+    RECORD("Tao Starting");
 
     Q_INIT_RESOURCE(tao);
 
@@ -77,7 +81,12 @@ int main(int argc, char **argv)
             ret = tao.exec();
         // Note: keep this inside a block so that ~Application gets called!
     }
+
+    RECORD("Cleaning up");
     cleanup();
+
+
+
 
     // HACK: it seems that cleanup() does not clean everything, at least on
     // Windows -- without the exit() call, the windows build crashes at exit

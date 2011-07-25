@@ -54,6 +54,7 @@ public:
 
     double  fps();
     int     averageTime(Operation op);
+    int     averageTimePerFrame(Operation op);
     int     maxTime(Operation op);
 
 protected:

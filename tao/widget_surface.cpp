@@ -841,6 +841,7 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
         media->stop();
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
+        Tao::Widget::Tao()->makeCurrent();
     }
 
     QSize hint = player->sizeHint();

@@ -252,10 +252,169 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%APPDATA%\\Tao Presentations</tt> on Windows,
+ * The user's Tao folder is <tt>%%APPDATA%\\Tao Presentations</tt> on Windows,
  * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
  * The application folder is where Tao Presentation is installed.
  * 
+ * @section secExtensions Adding Extensions
+ *
+ * The extensible nature of Tao Presentation helps you define and organize your
+ * own re-usable pieces of documents. There are several ways of organising your
+ * files.
+ *
+ * @subsection secImport The import statement
+ *
+ * The simplest way to group your own presentations in a reuseable fashion, is
+ * to use the @c import keyword to refer to an external file from any Tao
+ * document.
+ *
+ * For instance, let's assume that you are writing a presentation
+ * called @c SalesReport.ddd. In this document, you want to include some
+ * introductory slides, then actual sales report for two regions: the US and
+ * Europe. You would like to be able to tailor your presentation to your
+ * audience and show only the US report, or only the Europe part, or
+ * the whole presentation.
+ *
+ * One way of doing this is to create three files: @c SalesReport.ddd
+ * (the main document), @c US.ddd (the slides for the US region) and
+ * @c Europe.ddd (for Europe), and use the @c import statement:
+ * @code
+// SalesReport.ddd
+
+page "Introduction",
+    // ...
+
+import "US.ddd"
+import "Europe.ddd"
+ * @endcode
+ * With this technique, you can open any of the three @c .ddd files
+ * and thus show exactly the information you want.
+ *
+ * Note that imported files need not be complete, standalone presentations.
+ * You may use the @c import keyword to bring in definitions or
+ * utilities you want to re-use often. Consider for instance the
+ * following example:
+ * @code
+// Example.ddd
+import "my_definitions.xl"
+page "Introduction",
+    text_box 0, 0, window_width, window_height,
+        vertical_align_center
+        align_center
+        my_text_color
+        text "This is "
+        my_highlight "highlighted"
+        text " text"
+ * @endcode
+ * @code
+// my_definitions.xl
+my_text_color -> color "black"
+my_highlight T:text ->
+    color "red"
+    text T
+    my_text_color
+ * @endcode
+ * Just make sure that the file @c my_definitions.xl is located in the same
+ * directory as the main document, @c Example.ddd (or any other file that
+ * imports it). All the
+ * definitions you need are in one central location, @c may_definitions.xl.
+ *
+ * @note It is customary to give your files a @c .xl extension when they
+ * contain XL code, but are not complete Tao Presentation documents (which
+ * preferably take the @c .ddd extension).
+ *
+ * @subsection secUserDirectory The Next Step: User Definitions
+ *
+ * The @c import keyword is fine to help you group custom definitions
+ * in a file along with your main document. But on its own, is not very
+ * convenient when you need to share definitions
+ * between completely different documents. For this situation, we would like to
+ * have one central location where we could store our @c .xl files, and
+ * use them from any Tao document.
+ *
+ * Well, the @c import statement allows just that. Simply use the @c xl:
+ * search path prefix. For instance, create a file called
+ * @c my_definitions.xl, save it in the user-specific Tao folder
+ * (see @ref secSearchPaths "above"), and use it as follows:
+ * @code
+import "xl:my_definitions.xl"
+ * @endcode
+ *
+ * @subsection secUserModule User Modules
+ *
+ * Let's assume that you have written some nice XL definitions for
+ * Tao Presentations, and you would like to share them with other users of
+ * the program. Then you're ready to create a
+ * @ref Modules "Tao Presentations module".
+ *
+ * There are several advantages to using a module rather than a simple
+ * XL file stored in the user's Tao folder:
+ *  - You can add a description, your name and your web site in a standard
+ * way, so that these information appear in the module preference dialog.
+ *  - A module has a version number. This makes it easier to detect
+ * compatibility problems with old documents, as your module changes.
+ * It also enables the automatic upgrade of your installed modules if
+ * you have downloaded them from a network location (through the
+ * "Check for updates" button in the module preference dialog). For more
+ * information on module version numbers, see the @ref import primitive.
+ *  - Modules can contain native code in the form of shared libraries,
+ * which makes them a very powerful way to extend the Tao program. Native
+ * modules are not covered in this documentation but in the Tao Module SDK,
+ * which is available <a href="mailto:contact@taodyne.com">on request</a>.
+ *
+ * @subsubsection secCreatingModule Creating A Module
+ *
+ * To create a new module, you may use a copy of an existing module as a
+ * starting point. The Tao Visuals module is a good candidate for that
+ * purpose; here is how to proceed.
+ *  - Locate the folder of the the Tao Visuals module: open the preference
+ * dialog, click Module options, then click the info icon for to the
+ * Tao Visuals entry. An information page opens. Click the link next
+ * to "Installed in:" to open a file browser window in the module folder.
+ *  - Copy the whole @c tao_visuals folder into the @c modules folder
+ * of your user account. More specifically, you should end up with:
+ *    - Windows: <tt>%%APPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *      To open <tt>%%APPDATA%</tt> easily on Windows, just type <tt>%%APPDATA%</tt>
+ *      in the Start menu.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
+ *     To open <tt>$HOME</tt> on MacOSX, open a new Finder window.
+ *    - <tt>$HOME/.tao/modules/tao_visuals</tt> on Linux.
+ *  - Rename the module. You must rename the directory
+ * as well as the main XL %file: <tt>tao_visuals/tao_visuals.xl</tt> should become
+ * <tt>my_module/my_module.xl</tt>.
+ *  - Edit the module's contents. Change the identifier (<tt>id=</tt>). Use a
+ * Universally Unique Identifier (UUID) to make sure your module won't conflict
+ * with any To module. You may use the @c uuidgen command or find a website
+ * that will do that for you. Change the @c name, @c description,
+ * @c import_name, @c version etc. as you wish. You may also provide
+ * translations. And, of course, replace all the definitions by your own.
+ *  - Provide your own icon (<tt>icon.png</tt>) or just delete the icon file if
+ * you don't have an icon handy.
+ *  - Restart Tao Presentations and check the module info page: your module
+ * should normally be in the list. If it isn't, check the troubleshooting
+ * instructions below.
+ *
+ * @subsubsection secModuleTS Troubleshooting Modules
+ *
+ * You can check which modules are detected by selecting the Preferences menu
+ * (Tao Presentations>Preferences on MacOSX, Help>Preferences on Windows).
+ * In this dialog box you can also disable or enable modules.
+ *
+ * Modules from the user's home directory are loaded first, followed by
+ * modules in the application directory. Therefore, if two modules with the
+ * same identifier are found under both locations, the user's one is preferred
+ * and the other one is ignored.
+ *
+ * Module debugging can be turned on as follows:
+ * - Select the Debug group in the Preferences dialog, click the "modules"
+ *   checkbox, click "Save". Restart Tao.
+ * - Through the command line option: <tt>-tmodules</tt>
+ *
+ * Debug traces are sent to the standard error output (@c stderr). Their
+ * final destination depends on the platform and whether you started Tao from
+ * a command line prompt or using the graphical user interface, as explained
+ * below.
+ *
  * @section secPlatformNotes Platform Notes
  *
  * @subsection secStdoutStderr Standard Output, Standard Error
@@ -276,12 +435,6 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * normally redirected to the file @c tao.log in the @c Tao folder under the
  * current users's document folder. This file is overwritten each time the
  * application is started.
- *
- * Errors are normally shown in the application's graphical user interface,
- * either with dialog boxes or in the error display pane. However some
- * diagnostic message are sent only to the @c tao.log %file:
- *  - Debug traces,
- *  - Messages sent by the write and writeln builtins.
  *
  * However, if the application is started from a command prompt the standard
  * output and standard error will remain connected to the command prompt

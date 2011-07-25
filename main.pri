@@ -19,8 +19,12 @@ win32:DEFINES      += CONFIG_MINGW
 linux-g++*:DEFINES += CONFIG_LINUX
 
 QMAKE_CFLAGS           += -Werror
-QMAKE_CXXFLAGS         += -Werror -ggdb
-QMAKE_CXXFLAGS_RELEASE += -g \$(CXXFLAGS_\$%)
+QMAKE_CXXFLAGS         += -Werror
+QMAKE_CXXFLAGS_DEBUG   += -ggdb
+!win32:QMAKE_CXXFLAGS_RELEASE += -ggdb
+
+# Don't strip symbols on Windows to help crash analysis
+win32:QMAKE_LFLAGS_RELEASE -= -Wl,-s
 
 # Adding 'c++tbl' option with lowered optimization level
 c++tbl.output = ${QMAKE_FILE_BASE}.o

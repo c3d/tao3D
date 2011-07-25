@@ -153,6 +153,7 @@ signals:
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
     void        runGC();
+    void        displayModeChanged(QString newMode);
 
 public:
     // OpenGL and drawing
@@ -401,6 +402,7 @@ public:
 
     Name_p      enableAnimations(Tree_p self, bool fs);
     Name_p      setDisplayMode(XL::Tree_p self, text name);
+    Name_p      addDisplayModeToMenu(XL::Tree_p self, text mode, text label);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);

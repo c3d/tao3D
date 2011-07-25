@@ -271,6 +271,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
+    connect(this, SIGNAL(displayModeChanged(QString)),
+            parent, SLOT(updateDisplayModeCheckMark(QString)));
 
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
@@ -441,6 +443,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     o.isInvalid = true;
 
     current = this;
+
+    Window *win = (Window *)parent();
+    connect(this, SIGNAL(displayModeChanged(QString)),
+            win, SLOT(updateDisplayModeCheckMark(QString)));
 
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
@@ -3714,11 +3720,11 @@ void Widget::printStatistics()
     if (n >= 0)
     {
         int xa, xm, da, dm, ga, gm;
-        xa = stats.averageTime(Statistics::EXEC);
+        xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
-        da = stats.averageTime(Statistics::DRAW);
+        da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
-        ga = stats.averageTime(Statistics::GC);
+        ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
         RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
                            "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);
@@ -4896,10 +4902,13 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 
 Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
-//   Resize the main window to the specified size.
+//   Resize the main widget to the specified size.
 // ----------------------------------------------------------------------------
 {
-    ((QMainWindow*)parent())->resize(width->value, height->value);
+    QSize delta = QSize(width->value, height->value) - geometry().size();
+    QWidget *win = parentWidget();
+    win->resize(win->size() + delta);
+    win->updateGeometry();
     return XL::xl_true;
 }
 
@@ -5343,16 +5352,29 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 //   Select a display function
 // ----------------------------------------------------------------------------
 {
-    if (displayDriver->isCurrentDisplayFunctionSameAs(+name))
+    QString newName = +name;
+    if (displayDriver->isCurrentDisplayFunctionSameAs(newName))
         return XL::xl_true;
-    bool ok = displayDriver->setDisplayFunction(+name);
+    bool ok = displayDriver->setDisplayFunction(newName);
     if (ok)
     {
+        emit displayModeChanged(newName);
         updateGL();
         return XL::xl_true;
     }
     std::cerr << "Could not select display mode " << name << "\n";
     return XL::xl_false;
+}
+
+
+XL::Name_p Widget::addDisplayModeToMenu(XL::Tree_p self, text mode, text label)
+// ----------------------------------------------------------------------------
+//   Add a display mode entry to the view menu
+// ----------------------------------------------------------------------------
+{
+    Window *window = (Window *) parentWidget();
+    window->addDisplayModeMenu(+mode, +label);
+    return XL::xl_true;
 }
 
 
@@ -5394,7 +5416,7 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
     }
 
     if (newState != "")
-        displayDriver->setDisplayFunction(+newState);
+        setDisplayMode(NULL, newState);
 
     return oldState ? XL::xl_true : XL::xl_false;
 }

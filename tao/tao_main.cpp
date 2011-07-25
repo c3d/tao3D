@@ -138,12 +138,19 @@ void install_signal_handler(sig_t handler)
     signal_handler_log_file = +dir.absoluteFilePath("tao_flight_recorder.log");
 
     // Insert signal handlers
+#ifdef CONFIG_MINGW
+    static int sigids[] = { SIGINT, SIGILL, SIGABRT,
+                            SIGFPE, SIGSEGV, SIGTERM };
+#else
     static int sigids[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
                             SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE, SIGTERM,
                             SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF };
+#endif
+
     for (uint sig = 0; sig < sizeof(sigids) / sizeof(sigids[0]); sig++)
         signal(sigids[sig], handler);
 
+#ifndef CONFIG_MINGW
     if (handler != (sig_t) SIG_DFL)
     {
         // Define alternate stack for signal handler
@@ -164,6 +171,7 @@ void install_signal_handler(sig_t handler)
             sigaction(SIGSEGV, &act, NULL);
         }
     }
+#endif
 }
 
 

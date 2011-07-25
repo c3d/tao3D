@@ -1,0 +1,96 @@
+import Shading 1.0
+import ObjectLoader 1.0
+
+// Main settings
+zoom 1.0
+font "Forte"
+font_size 100
+light 0
+light_position 500, 500, 500
+OBJECT -> "mushroom.obj"
+
+page "cel shading",
+    text_box 500, 75, 1000, 30,
+        align_center
+        text "Cell shading"
+    locally
+        // Cel shading settings
+        cel_color 1.0, 1.0, 0.8
+        cel_shading
+        sphere 0, -700, 0, 2000, 1000, 2000, 25, 25
+    locally
+        translatez -200
+        rotatey -90
+        // Cel shading settings
+        cel_color 0.5, 1.0, 0.5
+        cel_shading
+        object 0, -300, 0, 750, 750, 750, OBJECT
+    locally
+        translatex -300
+        rotatey 220
+        rotatez -10
+        // Cel shading settings
+        cel_color 1.0, 0.5, 0.5
+        cel_shading
+        object 0, -300, 0, 400, 400, 400, OBJECT
+    locally
+        translatex 200
+        rotatez -10
+        rotatey -35
+        // Cel shading settings
+        cel_color 0.5, 0.5, 1.0
+        cel_shading
+        object 50, -250, 0, 200, 200, 200, OBJECT
+    if page_time > 5 then
+        goto_page "gooch shading"
+
+page "gooch shading",
+    text_box 500, 75, 1000, 30,
+        align_center
+        text "Gooch shading"
+    locally
+        // Gooch shading settings
+        cool_color 0.3, 0.3, 0.1
+        cool_diffuse 0.45
+        warm_color 0.8, 0.8, 0.6
+        warm_diffuse 0.45
+        surface_color 0.8, 0.8, 0.6
+        gooch_shading
+        sphere 0, -700, 0, 2000, 1000, 2000, 25, 25
+    locally
+        translatez -200
+        rotatey -90
+        // Gooch shading settings
+        cool_color 0.0, 0.1, 0.4
+        cool_diffuse 0.45
+        warm_color 0.3, 0.8, 0.3
+        warm_diffuse 0.45
+        surface_color 0.75, 0.75, 0.75
+        gooch_shading
+        object 0, -300, 0, 750, 750, 750, OBJECT
+    locally
+        translatex -300
+        rotatey 220
+        rotatez -10
+        // Gooch shading settings
+        cool_color 0.1, 0.4, 0.1
+        cool_diffuse 0.45
+        warm_color 0.8, 0.3, 0.3
+        warm_diffuse 0.45
+        surface_color 0.75, 0.75, 0.75
+        gooch_shading
+        object 0, -300, 0, 400, 400, 400, OBJECT
+    locally
+        translatex 200
+        rotatez -10
+        rotatey -35
+        // Gooch shading settings
+        cool_color 0.4, 0.1, 0.1
+        cool_diffuse 0.45
+        warm_color 0.3, 0.3, 0.8
+        warm_diffuse 0.45
+        surface_color 0.75, 0.75, 0.75
+        gooch_shading
+        object 50, -250, 0, 200, 200, 200, OBJECT
+    if page_time > 5 then
+        goto_page "cel shading"

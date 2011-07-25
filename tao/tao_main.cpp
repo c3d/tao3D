@@ -122,7 +122,10 @@ void cleanup()
 
 
 static text signal_handler_log_file = "tao_flight_recorder.log";
+
+#ifndef CONFIG_MINGW
 static char sig_alt_stack[SIGSTKSZ];
+#endif
 
 
 void install_signal_handler(sig_t handler)

@@ -54,7 +54,6 @@
 #ifdef CONFIG_MINGW
 #include <windows.h>
 static void win_redirect_io();
-typedef void (*sig_t) (int);
 #define SIGSTKSZ        4096
 #endif
 
@@ -211,10 +210,12 @@ void signal_handler(int sigid)
         out << setw(4)  << i << ' '
             << setw(18) << addresses[i] << ' ';
 
+#ifndef CONFIG_MINGW
         Dl_info info;
         if (dladdr(addresses[i], &info))
             out << setw(32) << setiosflags(ios::left)
                 << info.dli_sname << " @ " << info.dli_fname;
+#endif
 
         out << '\n';
     }

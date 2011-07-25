@@ -52,6 +52,10 @@ struct Main : public XL::Main
 
 TAO_END
 
+#ifdef CONFIG_MINGW
+typedef void (*sig_t) (int);
+#endif
+
 extern void signal_handler(int sig);
 extern void install_signal_handler(sig_t);
 

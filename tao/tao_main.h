@@ -27,6 +27,7 @@
 
 #include "tao.h"
 #include "main.h"
+#include <signal.h>
 
 TAO_BEGIN
 

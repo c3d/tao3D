@@ -43,15 +43,18 @@
 #include <QFileInfo>
 #include <QTimer>
 
-#include <execinfo.h>
-#include <dlfcn.h>
 #include <signal.h>
 #include <iomanip>
 
+#ifndef CONFIG_MINGW
+#include <execinfo.h>
+#include <dlfcn.h>
+#endif
 
 #ifdef CONFIG_MINGW
 #include <windows.h>
 static void win_redirect_io();
+#define SIGSTKSZ        4096
 #endif
 
 static void cleanup();
@@ -119,7 +122,10 @@ void cleanup()
 
 
 static text signal_handler_log_file = "tao_flight_recorder.log";
+
+#ifndef CONFIG_MINGW
 static char sig_alt_stack[SIGSTKSZ];
+#endif
 
 
 void install_signal_handler(sig_t handler)
@@ -134,12 +140,19 @@ void install_signal_handler(sig_t handler)
     signal_handler_log_file = +dir.absoluteFilePath("tao_flight_recorder.log");
 
     // Insert signal handlers
+#ifdef CONFIG_MINGW
+    static int sigids[] = { SIGINT, SIGILL, SIGABRT,
+                            SIGFPE, SIGSEGV, SIGTERM };
+#else
     static int sigids[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
                             SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE, SIGTERM,
                             SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF };
+#endif
+
     for (uint sig = 0; sig < sizeof(sigids) / sizeof(sigids[0]); sig++)
         signal(sigids[sig], handler);
 
+#ifndef CONFIG_MINGW
     if (handler != (sig_t) SIG_DFL)
     {
         // Define alternate stack for signal handler
@@ -160,7 +173,28 @@ void install_signal_handler(sig_t handler)
             sigaction(SIGSEGV, &act, NULL);
         }
     }
+#endif
 }
+
+
+#ifdef CONFIG_MINGW
+int backtrace(void **addr, int max)
+// ----------------------------------------------------------------------------
+//    We are working on it for Windows...
+// ----------------------------------------------------------------------------
+{
+#define BT(n)   if (max > n) addr[n] = __builtin_return_address(n)
+    BT(0);
+    BT(1);
+    BT(2);
+    BT(3);
+    BT(4);
+    BT(5);
+    BT(6);
+    BT(7);
+    return max < 8 ? max : 8;
+}
+#endif
 
 
 void signal_handler(int sigid)
@@ -199,10 +233,12 @@ void signal_handler(int sigid)
         out << setw(4)  << i << ' '
             << setw(18) << addresses[i] << ' ';
 
+#ifndef CONFIG_MINGW
         Dl_info info;
         if (dladdr(addresses[i], &info))
             out << setw(32) << setiosflags(ios::left)
                 << info.dli_sname << " @ " << info.dli_fname;
+#endif
 
         out << '\n';
     }

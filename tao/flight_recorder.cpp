@@ -47,7 +47,7 @@ void FlightRecorder::Dump(std::ostream &out)
         Entry &e = records[rindex % records.size()];
         out << setw(4) << windex - rindex << ' '
             << setw(16) << e.what << ' '
-            << setw(16) << hex << (intptr_t) e.caller << ' ';
+            << setw(18) << e.caller << ' ';
         if (e.label1[0])
             out << e.label1 << '=' << e.arg1 << ' ';
         if (e.label2[0])

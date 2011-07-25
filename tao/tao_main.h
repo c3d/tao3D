@@ -1,3 +1,5 @@
+#ifndef TAO_MAIN_H
+#define TAO_MAIN_H
 // ****************************************************************************
 //  tao_main.h                                                      Tao project
 // ****************************************************************************
@@ -49,3 +51,8 @@ struct Main : public XL::Main
 };
 
 TAO_END
+
+extern void signal_handler(int sig);
+extern void install_signal_handler(sig_t);
+
+#endif // TAO_MAIN_H

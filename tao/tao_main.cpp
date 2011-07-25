@@ -36,11 +36,18 @@
 #include "gc.h"
 #include "tao_main.h"
 #include "flight_recorder.h"
+#include "tao_utf8.h"
 
 #include <QApplication>
 #include <QGLWidget>
 #include <QFileInfo>
 #include <QTimer>
+
+#include <execinfo.h>
+#include <dlfcn.h>
+#include <signal.h>
+#include <iomanip>
+
 
 #ifdef CONFIG_MINGW
 #include <windows.h>
@@ -48,6 +55,7 @@ static void win_redirect_io();
 #endif
 
 static void cleanup();
+
 
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
@@ -58,6 +66,7 @@ int main(int argc, char **argv)
 
     Tao::FlightRecorder::recorder = new Tao::FlightRecorder;
     RECORD("Tao Starting");
+    install_signal_handler(signal_handler);
 
     Q_INIT_RESOURCE(tao);
 
@@ -85,9 +94,6 @@ int main(int argc, char **argv)
     RECORD("Cleaning up");
     cleanup();
 
-
-
-
     // HACK: it seems that cleanup() does not clean everything, at least on
     // Windows -- without the exit() call, the windows build crashes at exit
     exit(ret);
@@ -109,6 +115,108 @@ void cleanup()
     // No more global refs, deleting GC will purge everything
     XL::GarbageCollector::Delete();
 }
+
+
+
+static text signal_handler_log_file = "tao_flight_recorder.log";
+static char sig_alt_stack[SIGSTKSZ];
+
+
+void install_signal_handler(sig_t handler)
+// ----------------------------------------------------------------------------
+//   Install a signal handler for all "dangerous" signals
+// ----------------------------------------------------------------------------
+{
+    // Record correct path for log file
+    using namespace Tao;
+    QDir dir(Tao::Application::defaultProjectFolderPath());
+    dir.mkpath(dir.absolutePath());
+    signal_handler_log_file = +dir.absoluteFilePath("tao_flight_recorder.log");
+
+    // Insert signal handlers
+    static int sigids[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
+                            SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE, SIGTERM,
+                            SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF };
+    for (uint sig = 0; sig < sizeof(sigids) / sizeof(sigids[0]); sig++)
+        signal(sigids[sig], handler);
+
+    if (handler != (sig_t) SIG_DFL)
+    {
+        // Define alternate stack for signal handler
+        stack_t stk;
+        stk.ss_sp = sig_alt_stack;
+        stk.ss_size = SIGSTKSZ;
+        stk.ss_flags = 0;
+        if (sigaltstack(&stk, NULL) != 0)
+        {
+            fprintf(stderr, "WARNING: Could not set alternate stack");
+        }
+        else
+        {
+            struct sigaction act;
+            act.sa_handler = handler;
+            act.sa_flags = SA_ONSTACK | SA_NODEFER | SA_SIGINFO;
+            sigemptyset(&act.sa_mask);
+            sigaction(SIGSEGV, &act, NULL);
+        }
+    }
+}
+
+
+void signal_handler(int sigid)
+// ----------------------------------------------------------------------------
+//   Signal handler
+// ----------------------------------------------------------------------------
+{
+    using namespace std;
+
+    // Show something if we get there, even if we abort
+    std::cerr << "RECEIVED SIGNAL " << sigid
+              << " FROM " << __builtin_return_address(0)
+              << " DUMP IN " << signal_handler_log_file
+              << "\n";
+
+    // Prevent recursion in the signal handler
+    static int recursive = 0;
+    if (recursive)
+        _Exit(-77);
+    recursive = 0;
+
+
+    // Open directory file
+    std::ofstream out(signal_handler_log_file.c_str());
+
+    // Record which signal
+    out << "RECEIVED SIGNAL " << sigid
+        << " FROM " << __builtin_return_address(0)
+        << '\n';
+
+    // Backtrace
+    void *addresses[128];
+    int count = backtrace(addresses, 128);
+    for (int i = 0; i < count; i++)
+    {
+        out << setw(4)  << i << ' '
+            << setw(18) << addresses[i] << ' ';
+
+        Dl_info info;
+        if (dladdr(addresses[i], &info))
+            out << setw(32) << setiosflags(ios::left)
+                << info.dli_sname << " @ " << info.dli_fname;
+
+        out << '\n';
+    }
+
+    // Dump the flight recorder
+    Tao::FlightRecorder::recorder->Dump(out);
+
+    // Flush the output log
+    out.close();
+
+    // Install the default signal handler and resume
+    install_signal_handler((sig_t) SIG_DFL);
+}
+
 
 #ifdef CONFIG_MINGW
 void win_redirect_io()

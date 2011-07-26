@@ -153,6 +153,9 @@ void install_signal_handler(sig_t handler)
         text logfile = +dir.absoluteFilePath("tao-dump-" + dateTimeS + ".log");
         strncpy(sig_handler_log, logfile.c_str(), sizeof sig_handler_log);
 
+#if 0
+        // Disabled alt-stack, as it doesn't help with catching stack overflows
+        // on MacOSX as intended, but also prevents backtrace() from working
 #ifndef CONFIG_MINGW
         static char sig_alt_stack[SIGSTKSZ];
 
@@ -169,11 +172,12 @@ void install_signal_handler(sig_t handler)
         {
             struct sigaction act;
             act.sa_handler = handler;
-            act.sa_flags = SA_ONSTACK | SA_NODEFER | SA_SIGINFO;
+            act.sa_flags = SA_ONSTACK | SA_NODEFER;
             sigemptyset(&act.sa_mask);
             sigaction(SIGSEGV, &act, NULL);
         }
-#endif
+#endif // CONFIG_MINGW
+#endif // if 0
     }
 }
 
@@ -244,11 +248,14 @@ void signal_handler(int sigid)
             buffer[size++] = '\n';
 
         write (fd, buffer, size);
+        write (2, buffer, size);
     }
         
     // Dump the flight recorder
     write (fd, "\n\n", 2);
-    XL::FlightRecorder::SDump(fd);
+    write (2, "\n\n", 2);
+    XL::FlightRecorder::SDump(fd, false);
+    XL::FlightRecorder::SDump(2, true);
 
     // Close the output stream
     close(fd);

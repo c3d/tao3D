@@ -132,6 +132,9 @@ Application::Application(int & argc, char ** argv)
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
+                              
+    // Now time to install the "persistent" error handler
+    install_first_exception_handler();
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();

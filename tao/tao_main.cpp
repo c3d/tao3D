@@ -54,12 +54,11 @@
 
 #ifdef CONFIG_MINGW
 #include <windows.h>
+#include <imagehlp.h>
 static void win_redirect_io();
-#define SIGSTKSZ        4096
 #endif
 
 static void cleanup();
-
 
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
@@ -122,6 +121,225 @@ void cleanup()
 
 
 
+#ifdef CONFIG_MINGW
+// Installed when the program starts
+static PTOP_LEVEL_EXCEPTION_FILTER TopLevelExceptionFilter = NULL;
+static LPEXCEPTION_POINTERS TopLevelExceptionPointers = NULL;
+
+// Installed after LLVM installs its own, so that we get first dib
+static PTOP_LEVEL_EXCEPTION_FILTER PrimaryExceptionFilter = NULL;
+static LPEXCEPTION_POINTERS PrimaryExceptionPointers = NULL;
+
+
+static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep) 
+// ----------------------------------------------------------------------------
+//   Call signal handler on unhandled exception
+// ----------------------------------------------------------------------------
+{
+	if (!TopLevelExceptionPointers && !PrimaryExceptionPointers)
+    {
+		TopLevelExceptionPointers = ep;
+        signal_handler(SIGSEGV);
+    }
+	
+	// Allow dialog box to pop up allowing choice to start debugger.
+	if (TopLevelExceptionFilter)
+		return (*TopLevelExceptionFilter)(ep);
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+static BOOL WINAPI TaoConsoleCtrlHandler(DWORD dwCtrlType)
+// ----------------------------------------------------------------------------
+//   Call signal handler on Control-C
+// ----------------------------------------------------------------------------
+{
+	signal_handler(SIGINT);
+	return FALSE; // Kill me, please, I'm running on Windows!
+}
+
+
+static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep) 
+// ----------------------------------------------------------------------------
+//   Call signal handler on unhandled exception before LLVM does
+// ----------------------------------------------------------------------------
+{
+	if (!PrimaryExceptionPointers)
+    {
+		PrimaryExceptionPointers = ep;
+        signal_handler(SIGSEGV);
+    }
+        
+	// Allow dialog box to pop up allowing choice to start debugger.
+	if (PrimaryExceptionFilter)
+		return (*PrimaryExceptionFilter)(ep);
+	return EXCEPTION_CONTINUE_SEARCH;
+}
+
+
+static void TaoStackTrace(int fd)
+// ----------------------------------------------------------------------------
+//    We are working on it for Windows...
+// ----------------------------------------------------------------------------
+{
+#ifdef _WIN64
+	// TODO: provide a x64 friendly version of the following
+#else
+
+	LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
+    if (!ep)
+        ep = TopLevelExceptionPointers;
+	if (ep)
+	{
+		static char buffer[512];
+	
+		// Initialize the STACKFRAME structure.
+		STACKFRAME StackFrame;
+		memset(&StackFrame, 0, sizeof(StackFrame));
+
+		StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
+		StackFrame.AddrPC.Mode = AddrModeFlat;
+		StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
+		StackFrame.AddrStack.Mode = AddrModeFlat;
+		StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
+		StackFrame.AddrFrame.Mode = AddrModeFlat;
+
+		HANDLE hProcess = GetCurrentProcess();
+		HANDLE hThread = GetCurrentThread();
+
+		// Initialize the symbol handler.
+		SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
+		SymInitialize(hProcess, NULL, TRUE);
+
+		while (true)
+		{
+			if (!StackWalk(IMAGE_FILE_MACHINE_I386, hProcess, hThread, &StackFrame,
+						   ep->ContextRecord, NULL, SymFunctionTableAccess,
+						   SymGetModuleBase, NULL))
+				break;
+
+			if (StackFrame.AddrFrame.Offset == 0)
+				break;
+
+			// Print the PC in hexadecimal.
+			DWORD PC = StackFrame.AddrPC.Offset;
+			size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
+
+			// Print the parameters.  Assume there are four.
+			size += snprintf(buffer + size, sizeof buffer - size,
+							 " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
+							 StackFrame.Params[0], StackFrame.Params[1],
+							 StackFrame.Params[2], StackFrame.Params[3]);
+			write (fd, buffer, size);
+			write (2, buffer, size);
+
+			// Verify the PC belongs to a module in this process.
+			if (!SymGetModuleBase(hProcess, PC))
+			{
+				char msg[] = "<unknown module>";
+				write (fd, msg, sizeof msg - 1);
+				write (2, msg, sizeof msg - 1);
+				continue;
+			}
+
+			// Print the symbol name.
+			IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
+			memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
+			symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
+			symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
+
+			DWORD dwDisp;
+			if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
+			{
+				write(fd, "\n", 1);
+                write(2, "\n", 1);
+				continue;
+			}
+
+			buffer[511] = 0;
+			if (dwDisp > 0)
+				size = snprintf(buffer, sizeof buffer,
+								", %s()+%04lu", symbol->Name, dwDisp);
+			else
+				size = snprintf(buffer, sizeof buffer,
+								", %s", symbol->Name);
+			
+
+			// Print the source file and line number information.
+			IMAGEHLP_LINE line;
+			memset(&line, 0, sizeof(line));
+			line.SizeOfStruct = sizeof(line);
+			if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
+			{
+				size += snprintf(buffer + size, sizeof buffer - size,
+								 ", %s, line %lu", line.FileName, line.LineNumber);
+				if (dwDisp > 0)
+					size += snprintf(buffer + size, sizeof buffer - size,
+								     "+%04lu", dwDisp);
+			}
+
+			if (size < sizeof buffer)
+				buffer[size++] = '\n';
+			write (fd, buffer, size);
+			write (2, buffer, size);
+		} // while(true)
+	}
+#endif // WIN64
+}
+
+
+void win_redirect_io()
+// ----------------------------------------------------------------------------
+//   Send stdout and stderr to parent console if we have one, or to a file
+// ----------------------------------------------------------------------------
+{
+    if (AttachConsole(ATTACH_PARENT_PROCESS))
+    {
+        // Log to console of parent process
+        freopen("CON", "a", stdout);
+        freopen("CON", "a", stderr);
+    }
+    else
+    {
+        // Parent has no console, log to a file
+        QDir dir(Tao::Application::defaultProjectFolderPath());
+        dir.mkpath(dir.absolutePath());
+        QString path = dir.absoluteFilePath("tao.log");
+
+        const char *f = path.toStdString().c_str();
+        FILE *fp = fopen(f, "w");
+        if (fp)
+        {
+            fclose(fp);
+            freopen(f, "a", stdout);
+            freopen(f, "a", stderr);
+        }
+    }
+}
+
+
+void install_first_exception_handler(void)
+// ----------------------------------------------------------------------------
+//   Install an unhandled exception handler that happens before LLVM
+// ----------------------------------------------------------------------------
+{
+	// Windows-specific ugliness
+	PrimaryExceptionFilter = SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
+	SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
+}
+
+
+#else // Real operating systems below
+
+void install_first_exception_handler(void)
+// ----------------------------------------------------------------------------
+//   Install an unhandled exception handler that happens before LLVM
+// ----------------------------------------------------------------------------
+{
+}
+
+#endif // CONFIG_MINGW
+
+
 static char sig_handler_log[512];
 
 void install_signal_handler(sig_t handler)
@@ -178,28 +396,14 @@ void install_signal_handler(sig_t handler)
         }
 #endif // CONFIG_MINGW
 #endif // if 0
-    }
-}
-
 
 #ifdef CONFIG_MINGW
-int backtrace(void **addr, int max)
-// ----------------------------------------------------------------------------
-//    We are working on it for Windows...
-// ----------------------------------------------------------------------------
-{
-#define BT(n)   if (max > n) addr[n] = __builtin_return_address(n)
-    BT(0);
-    BT(1);
-    BT(2);
-    BT(3);
-    BT(4);
-    BT(5);
-    BT(6);
-    BT(7);
-    return max < 8 ? max : 8;
+	// Windows-specific ugliness
+	TopLevelExceptionFilter = SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
+	SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
+#endif // CONFIG_MINGW
+    }
 }
-#endif
 
 
 void signal_handler(int sigid)
@@ -212,12 +416,13 @@ void signal_handler(int sigid)
 
     // Show something if we get there, even if we abort
     size_t size = snprintf(buffer, sizeof buffer,
-                           "RECEIVED SIGNAL %d FROM %p - DUMP IN %s\n"
+                           "RECEIVED SIGNAL %d FROM %p\n"
+						   "DUMP IN %s\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log);
-    write(2, buffer, size);
+   	write(2, buffer, size);
 
     // Prevent recursion in the signal handler
     static int recursive = 0;
@@ -226,10 +431,19 @@ void signal_handler(int sigid)
     recursive = 1;
 
     // Open stream for location where we'll write information
+#ifdef CONFIG_MINGW
+	// Can't have : in the time
+	for (char *ptr = sig_handler_log + 2; *ptr; ptr++)
+		if (*ptr == ':')
+			*ptr = '-';
+#endif
     int fd = open(sig_handler_log, O_WRONLY|O_CREAT, 0666);
-    write (fd, buffer, size);
+	write (fd, buffer, size);
 
     // Backtrace
+#ifdef CONFIG_MINGW
+	TaoStackTrace(fd);
+#else // Real operating systems
     void *addresses[128];
     int count = backtrace(addresses, 128);
     for (int i = 0; i < count; i++)
@@ -237,19 +451,18 @@ void signal_handler(int sigid)
         size = snprintf(buffer, sizeof buffer,
                         "%4d %18p ", i, addresses[i]);
             
-#ifndef CONFIG_MINGW
         Dl_info info;
         if (dladdr(addresses[i], &info))
             size += snprintf(buffer + size, sizeof buffer - size,
                              "%32s [%s]",
                              info.dli_sname, info.dli_fname);
-#endif
         if (size < sizeof buffer)
             buffer[size++] = '\n';
 
         write (fd, buffer, size);
         write (2, buffer, size);
     }
+#endif // Test which (non-) operating system we have
         
     // Dump the flight recorder
     write (fd, "\n\n", 2);
@@ -264,37 +477,6 @@ void signal_handler(int sigid)
     install_signal_handler((sig_t) SIG_DFL);
 }
 
-
-#ifdef CONFIG_MINGW
-void win_redirect_io()
-// ----------------------------------------------------------------------------
-//   Send stdout and stderr to parent console if we have one, or to a file
-// ----------------------------------------------------------------------------
-{
-    if (AttachConsole(ATTACH_PARENT_PROCESS))
-    {
-        // Log to console of parent process
-        freopen("CON", "a", stdout);
-        freopen("CON", "a", stderr);
-    }
-    else
-    {
-        // Parent has no console, log to a file
-        QDir dir(Tao::Application::defaultProjectFolderPath());
-        dir.mkpath(dir.absolutePath());
-        QString path = dir.absoluteFilePath("tao.log");
-
-        const char *f = path.toStdString().c_str();
-        FILE *fp = fopen(f, "w");
-        if (fp)
-        {
-            fclose(fp);
-            freopen(f, "a", stdout);
-            freopen(f, "a", stderr);
-        }
-    }
-}
-#endif
 
 TAO_BEGIN
 text Main::SearchFile(text file)

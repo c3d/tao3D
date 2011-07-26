@@ -30,6 +30,10 @@ refresh 2
 // Filter number
 filter -> 6
 
+// Global scaling
+S -> window_width / 1900
+scale S, S, 1.0
+
 none_button ->
 active_widget
     color "white"

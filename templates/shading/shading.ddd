@@ -3,11 +3,15 @@ import ObjectLoader 1.0
 
 // Main settings
 zoom 1.0
-font "Forte"
+font "LeckerliOne"
 font_size 100
 light 0
 light_position 500, 500, 500
 OBJECT -> "mushroom.obj"
+
+// Global scaling
+S -> window_width / 1800
+scale S, S, 1.0
 
 page "cel shading",
     text_box 500, 75, 1000, 30,

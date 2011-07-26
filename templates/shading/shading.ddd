@@ -14,9 +14,10 @@ S -> window_width / 1800
 scale S, S, 1.0
 
 page "cel shading",
-    text_box 500, 75, 1000, 30,
+    text_box 500, 550, 1000, 30,
         align_center
         text "Cell shading"
+    rotatey 20 * time
     locally
         // Cel shading settings
         cel_color 1.0, 1.0, 0.8
@@ -49,9 +50,10 @@ page "cel shading",
         goto_page "gooch shading"
 
 page "gooch shading",
-    text_box 500, 75, 1000, 30,
+    text_box 500, 550, 1000, 30,
         align_center
         text "Gooch shading"
+    rotatey 20 * time
     locally
         // Gooch shading settings
         cool_color 0.3, 0.3, 0.1

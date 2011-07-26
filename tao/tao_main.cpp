@@ -222,7 +222,7 @@ void signal_handler(int sigid)
     recursive = 1;
 
     // Open stream for location where we'll write information
-    int fd = open(sig_handler_log, O_WRONLY|O_CREAT, S_IRUSR);
+    int fd = open(sig_handler_log, O_WRONLY|O_CREAT, 0666);
     write (fd, buffer, size);
 
     // Backtrace

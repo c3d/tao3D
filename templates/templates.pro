@@ -21,5 +21,7 @@ contains (MODULES, slides):SUBDIRS += simple_slides
 contains (MODULES, object_loader):contains(MODULES, tao_visuals):SUBDIRS += pigs_fly
 contains (MODULES, slideshow_3d):SUBDIRS += photo_viewer
 contains (MODULES, lens_flare):SUBDIRS += lens_flare
+contains (MODULES, filters):SUBDIRS += filters
+contains (MODULES, shading):SUBDIRS += shading
 
 message(Templates to install: $$SUBDIRS)

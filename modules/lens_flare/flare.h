@@ -76,10 +76,12 @@ public:
     static const Tao::ModuleApi *tao;
 
 private:
+    GLuint query;
     // List of attached flares
     vector<Flare> lens_flare;
     // Depth test status
     bool          depth_test;
+    float         test_size;
     // Define source and target of the lens flare
     Vector3       target, source;
 };

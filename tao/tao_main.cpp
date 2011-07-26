@@ -67,8 +67,8 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
-    Tao::FlightRecorder::recorder = new Tao::FlightRecorder;
-    RECORD("Tao Starting");
+    XL::FlightRecorder::Initialize();
+    RECORD(ALWAYS, "Tao Starting");
     install_signal_handler(signal_handler);
 
     Q_INIT_RESOURCE(tao);
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
         // Note: keep this inside a block so that ~Application gets called!
     }
 
-    RECORD("Cleaning up");
+    RECORD(ALWAYS, "Cleaning up");
     cleanup();
 
     // HACK: it seems that cleanup() does not clean everything, at least on
@@ -244,7 +244,7 @@ void signal_handler(int sigid)
     }
 
     // Dump the flight recorder
-    Tao::FlightRecorder::recorder->Dump(out);
+    XL::FlightRecorder::SDump(out);
 
     // Flush the output log
     out.close();

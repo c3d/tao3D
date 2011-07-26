@@ -33,6 +33,7 @@ HEADERS += \
     ../tao/xlr/xlr/lcs.h \
     ../tao/xlr/xlr/include/action.h \
     ../tao/xlr/xlr/include/base.h \
+    ../tao/xlr/xlr/include/flight_recorder.h \
     ../tao/xlr/xlr/include/basics.h \
     ../tao/xlr/xlr/include/bfs.h \
     ../tao/xlr/xlr/include/configuration.h \
@@ -62,6 +63,7 @@ HEADERS += \
     ../tao/xlr/xlr/include/utf8.h
 
 SOURCES += \
+    ../tao/xlr/xlr/flight_recorder.cpp \
     ../tao/xlr/xlr/compiler.cpp \
     ../tao/xlr/xlr/compiler-gc.cpp				\
     ../tao/xlr/xlr/compiler-llvm.cpp				\

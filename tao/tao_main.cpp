@@ -44,7 +44,8 @@
 #include <QTimer>
 
 #include <signal.h>
-#include <iomanip>
+#include <stdio.h>
+#include <fcntl.h>
 
 #ifndef CONFIG_MINGW
 #include <execinfo.h>
@@ -121,24 +122,13 @@ void cleanup()
 
 
 
-static text signal_handler_log_file = "tao_flight_recorder.log";
-
-#ifndef CONFIG_MINGW
-static char sig_alt_stack[SIGSTKSZ];
-#endif
-
+static char sig_handler_log[512];
 
 void install_signal_handler(sig_t handler)
 // ----------------------------------------------------------------------------
 //   Install a signal handler for all "dangerous" signals
 // ----------------------------------------------------------------------------
 {
-    // Record correct path for log file
-    using namespace Tao;
-    QDir dir(Tao::Application::defaultProjectFolderPath());
-    dir.mkpath(dir.absolutePath());
-    signal_handler_log_file = +dir.absoluteFilePath("tao_flight_recorder.log");
-
     // Insert signal handlers
 #ifdef CONFIG_MINGW
     static int sigids[] = { SIGINT, SIGILL, SIGABRT,
@@ -152,9 +142,20 @@ void install_signal_handler(sig_t handler)
     for (uint sig = 0; sig < sizeof(sigids) / sizeof(sigids[0]); sig++)
         signal(sigids[sig], handler);
 
-#ifndef CONFIG_MINGW
     if (handler != (sig_t) SIG_DFL)
     {
+        // Record correct path for log file
+        using namespace Tao;
+        QDir dir(Tao::Application::defaultProjectFolderPath());
+        dir.mkpath(dir.absolutePath());
+        QDateTime dateTime = QDateTime::currentDateTime();
+        QString dateTimeS = dateTime.toString(Qt::ISODate);
+        text logfile = +dir.absoluteFilePath("tao-dump-" + dateTimeS + ".log");
+        strncpy(sig_handler_log, logfile.c_str(), sizeof sig_handler_log);
+
+#ifndef CONFIG_MINGW
+        static char sig_alt_stack[SIGSTKSZ];
+
         // Define alternate stack for signal handler
         stack_t stk;
         stk.ss_sp = sig_alt_stack;
@@ -172,8 +173,8 @@ void install_signal_handler(sig_t handler)
             sigemptyset(&act.sa_mask);
             sigaction(SIGSEGV, &act, NULL);
         }
-    }
 #endif
+    }
 }
 
 
@@ -203,51 +204,54 @@ void signal_handler(int sigid)
 // ----------------------------------------------------------------------------
 {
     using namespace std;
+    static char buffer[512];
 
     // Show something if we get there, even if we abort
-    std::cerr << "RECEIVED SIGNAL " << sigid
-              << " FROM " << __builtin_return_address(0)
-              << " DUMP IN " << signal_handler_log_file
-              << "\n";
+    size_t size = snprintf(buffer, sizeof buffer,
+                           "RECEIVED SIGNAL %d FROM %p - DUMP IN %s\n"
+                           "\n\n"
+                           "STACK TRACE:\n",
+                           sigid, __builtin_return_address(0),
+                           sig_handler_log);
+    write(2, buffer, size);
 
     // Prevent recursion in the signal handler
     static int recursive = 0;
     if (recursive)
         _Exit(-77);
-    recursive = 0;
+    recursive = 1;
 
-
-    // Open directory file
-    std::ofstream out(signal_handler_log_file.c_str());
-
-    // Record which signal
-    out << "RECEIVED SIGNAL " << sigid
-        << " FROM " << __builtin_return_address(0)
-        << '\n';
+    // Open stream for location where we'll write information
+    int fd = open(sig_handler_log, O_WRONLY|O_CREAT, S_IRUSR);
+    write (fd, buffer, size);
 
     // Backtrace
     void *addresses[128];
     int count = backtrace(addresses, 128);
     for (int i = 0; i < count; i++)
     {
-        out << setw(4)  << i << ' '
-            << setw(18) << addresses[i] << ' ';
-
+        size = snprintf(buffer, sizeof buffer,
+                        "%4d %18p ", i, addresses[i]);
+            
 #ifndef CONFIG_MINGW
         Dl_info info;
         if (dladdr(addresses[i], &info))
-            out << setw(32) << setiosflags(ios::left)
-                << info.dli_sname << " @ " << info.dli_fname;
+            size += snprintf(buffer + size, sizeof buffer - size,
+                             "%32s [%s]",
+                             info.dli_sname, info.dli_fname);
 #endif
+        if (size < sizeof buffer)
+            buffer[size++] = '\n';
 
-        out << '\n';
+        write (fd, buffer, size);
     }
-
+        
     // Dump the flight recorder
-    XL::FlightRecorder::SDump(out);
+    write (fd, "\n\n", 2);
+    XL::FlightRecorder::SDump(fd);
 
-    // Flush the output log
-    out.close();
+    // Close the output stream
+    close(fd);
 
     // Install the default signal handler and resume
     install_signal_handler((sig_t) SIG_DFL);

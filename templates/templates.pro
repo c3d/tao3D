@@ -14,6 +14,7 @@
 
 TEMPLATE = subdirs
 SUBDIRS  = blank pythagorean_theorem hello_world guess_game mandelbrot
+
 # Some templates depend on module availability
 include (../modules/module_list.pri)
 contains (MODULES, slides):SUBDIRS += simple_slides

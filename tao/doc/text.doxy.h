@@ -89,13 +89,6 @@
  *     <tr><td>Unkempt</td><td>Regular</td></tr>
  * </table>
  *
- * @bug [#325] On MacOSX, some font families cannot be rendered, due to
- * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-11145">QTBUG-11145</a>.
- *      The correction of this bug expected in QT 4.8.
- * @bug [#325] On MacOSX, font styles other than "Normal", "Bold", "Italic" and
- *     "Bold Italic" cannot be selected. This is caused by
- * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
- *
  * @par Using additional fonts
  *
  * All the fonts installed on the computer are available for use by Tao. So, if

@@ -98,13 +98,14 @@ struct Material : Light
 };
 
 
+extern std::vector<QObject *> pendingDeleteGL;
 struct ShaderProgramInfo : XL::Info
 // ----------------------------------------------------------------------------
 //   Hold info associated to a tree
 // ----------------------------------------------------------------------------
 {
     ShaderProgramInfo(QGLShaderProgram *program): program(program) {}
-    ~ShaderProgramInfo() { delete program; }
+    ~ShaderProgramInfo() { pendingDeleteGL.push_back(program); }
     typedef QGLShaderProgram *data_t;
     operator data_t() { return program; }
     QGLShaderProgram *program;

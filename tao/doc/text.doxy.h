@@ -77,9 +77,11 @@
  *  </tr>
  *     <tr><th>Family</th><th>Styles</th></tr>
  *     <tr><td>Allerta</td><td>Stencil</td></tr>
+ *     <tr><td>Chewy</td><td>Regular</td></tr>
  *     <tr><td>Geo</td><td>Regular</td></tr>
  *     <tr><td>Kenia</td><td>Regular</td></tr>
  *     <tr><td>Kranky</td><td>Regular</td></tr>
+ *     <tr><td>LeckerliOne</td><td>Regular</td></tr>
  *     <tr><td>Lobster</td><td>Regular</td></tr>
  *     <tr><td>Luckiest Guy</td><td>Regular</td></tr>
  *     <tr><td>Mountains of Christmas</td><td>Regular</td></tr>

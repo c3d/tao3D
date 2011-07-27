@@ -31,6 +31,7 @@
 namespace Tao {
 
 std::map<int, double*> ModuleRenderer::texList;
+Layout* ModuleRenderer::currentLayout = NULL;
 
 ModuleRenderer::~ModuleRenderer()
 // ----------------------------------------------------------------------------
@@ -103,7 +104,7 @@ bool ModuleRenderer::SetFillColor()
 //   to the current layout attributes
 // ----------------------------------------------------------------------------
 {
-    return Shape::setFillColor(Widget::Tao()->layout);
+    return Shape::setFillColor(currentLayout);
 }
 
 bool ModuleRenderer::SetLineColor()
@@ -112,7 +113,7 @@ bool ModuleRenderer::SetLineColor()
 //   to the current layout attributes
 // ----------------------------------------------------------------------------
 {
-    return Shape::setLineColor(Widget::Tao()->layout);
+    return Shape::setLineColor(currentLayout);
 }
 
 void ModuleRenderer::Draw(Layout *where)
@@ -124,6 +125,7 @@ void ModuleRenderer::Draw(Layout *where)
         if(texList[i] && where->fillTextures[i].id)
             Shape::enableTexCoord(i, texList[i]);
 
+    currentLayout  = where;
     Shape::setTexture(where);
 
     callback(arg);

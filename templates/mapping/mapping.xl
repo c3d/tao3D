@@ -1,0 +1,102 @@
+import Animate 1.0
+
+// Global window scaling
+window_scale -> min (window_width / 1408, window_height / 768)
+
+// ============================================================================
+//
+//   Key configuration
+//
+// ============================================================================
+key "Right" -> skip 1
+key "Left" -> skip -1
+key "Space" -> skip 1
+
+
+title ->
+// ----------------------------------------------------------------------------
+//   Show the title for a given page
+// ----------------------------------------------------------------------------
+    align 0.2
+    vertical_align 0.5
+    locally
+        color_hsv 40, 0.9, 0.9, 0.9
+        font "Times New Roman", 60
+        text_box -300, 300, 750, 150,
+            align 0
+            vertical_align 0.5
+            text page_label
+
+background s:real ->
+// ----------------------------------------------------------------------------
+//   Display the mapping theme
+// ----------------------------------------------------------------------------
+    zoom 1.0 / s
+    scale window_scale * s, window_scale * s, 1
+    color "white"
+    locally
+        translatez -10000
+        image 0, 0, 4.9, 4.9, "fond.png"
+
+contents x:real, y:real, B ->
+// ----------------------------------------------------------------------------
+//   Show a given contents
+// ----------------------------------------------------------------------------
+    compute_smooth_step
+    locally
+        align 0.0
+        vertical_align 0.3, 0.0
+        font "Times New Roman", 32
+        text_box x, y, 1500, 540, B
+
++X:text ->
+// ----------------------------------------------------------------------------
+//   Add a text to a current content
+// ----------------------------------------------------------------------------
+    margins 0, 0
+    paragraph_space 0, 20
+    paragraph_break
+    color_hsv 40, 0.9, 0.9 * exp (-5 * (highest_step - smooth_step) ^ 2), 0.9
+    text X
+
+distance (x1, y1, x2, y2) -> ((x2 - x1) ^ 2 + (y2 - y1) ^ 2) * 0.1
+factor (cx, cy) -> -expm1 (-distance (cx, cy, mouse_x, mouse_y) * 0.001)
+highlight cx:real, cy:real, f:real, r:boolean ->
+    translate cx * 0.5 * (1 + f), cy * 0.5 * (1 + f), 900 * (1 - f)
+    if r = true then
+        rotatex 20 * time
+    scale 2 - f, 2 - f, 2 - f
+
+result_highlight cx:real, cy:real ->
+// ----------------------------------------------------------------------------
+//   Highlight the result of a mapping
+// ----------------------------------------------------------------------------
+    highlight cx, cy, factor (cx, cy), true
+
+map_highlight x:real, y:real, name:text ->
+// ----------------------------------------------------------------------------
+//   Set and highlight a given texture at a given position
+// ----------------------------------------------------------------------------
+    locally
+        highlight x, y, factor (x, y), false
+        color "white"
+        texture name
+        rectangle 0, 0, 100, 100
+
+mapping ->
+// ----------------------------------------------------------------------------
+//   Draw a mapping arrow
+// ----------------------------------------------------------------------------
+    shape
+        color_hsv 40, 0.9, 0.9, 0.9
+        arrow 75, 0, 200, 150, 44, 32%
+
+white_light X, Y, Z ->
+// ----------------------------------------------------------------------------
+//   Set a white light at a given position
+// ----------------------------------------------------------------------------
+    light 0
+    light_ambient 0, 0, 0, 1
+    light_diffuse 0.9, 0.9, 0.9, 1
+    light_specular 0.6, 0.6, 0.6, 1
+    light_position X, Y, Z

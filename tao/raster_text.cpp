@@ -172,7 +172,7 @@ void RasterText::makeRasterFont()
 }
 
 
-RasterText::RasterText * RasterText::instance()
+RasterText* RasterText::instance()
 // ----------------------------------------------------------------------------
 //   Create/return the RasterText instance for the current GL context
 // ----------------------------------------------------------------------------

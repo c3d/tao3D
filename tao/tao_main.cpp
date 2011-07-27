@@ -191,6 +191,7 @@ static void TaoStackTrace(int fd)
 	if (ep)
 	{
 		static char buffer[512];
+        int two = fileno(stderr);
 	
 		// Initialize the STACKFRAME structure.
 		STACKFRAME StackFrame;
@@ -230,14 +231,14 @@ static void TaoStackTrace(int fd)
 							 StackFrame.Params[0], StackFrame.Params[1],
 							 StackFrame.Params[2], StackFrame.Params[3]);
 			write (fd, buffer, size);
-			write (2, buffer, size);
+			write (two, buffer, size);
 
 			// Verify the PC belongs to a module in this process.
 			if (!SymGetModuleBase(hProcess, PC))
 			{
 				char msg[] = "<unknown module>";
 				write (fd, msg, sizeof msg - 1);
-				write (2, msg, sizeof msg - 1);
+				write (two, msg, sizeof msg - 1);
 				continue;
 			}
 
@@ -251,7 +252,7 @@ static void TaoStackTrace(int fd)
 			if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
 			{
 				write(fd, "\n", 1);
-                write(2, "\n", 1);
+                write(two, "\n", 1);
 				continue;
 			}
 
@@ -280,7 +281,7 @@ static void TaoStackTrace(int fd)
 			if (size < sizeof buffer)
 				buffer[size++] = '\n';
 			write (fd, buffer, size);
-			write (2, buffer, size);
+			write (two, buffer, size);
 		} // while(true)
 	}
 #endif // WIN64
@@ -413,6 +414,7 @@ void signal_handler(int sigid)
 {
     using namespace std;
     static char buffer[512];
+    int two = fileno(stderr);
 
     // Show something if we get there, even if we abort
     size_t size = snprintf(buffer, sizeof buffer,
@@ -422,7 +424,7 @@ void signal_handler(int sigid)
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log);
-   	write(2, buffer, size);
+   	write(two, buffer, size);
 
     // Prevent recursion in the signal handler
     static int recursive = 0;
@@ -460,15 +462,15 @@ void signal_handler(int sigid)
             buffer[size++] = '\n';
 
         write (fd, buffer, size);
-        write (2, buffer, size);
+        write (two, buffer, size);
     }
 #endif // Test which (non-) operating system we have
         
     // Dump the flight recorder
     write (fd, "\n\n", 2);
-    write (2, "\n\n", 2);
+    write (two, "\n\n", 2);
     XL::FlightRecorder::SDump(fd, false);
-    XL::FlightRecorder::SDump(2, true);
+    XL::FlightRecorder::SDump(two, true);
 
     // Close the output stream
     close(fd);

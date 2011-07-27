@@ -1,0 +1,180 @@
+import Mapping 1.0
+import "mapping.xl"
+
+page "Alpha Mapping",
+// ----------------------------------------------------------------------------
+//   Alpha mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -150, 100, "metal.jpg"
+    contents 100, -200,
+        at_step 3
+        +"An alpha map on texture unit 1"
+    at_step 4
+    map_highlight -150, -100, "alphaMap.jpg"
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        texture_unit 0
+        texture "metal.jpg"
+        texture_unit 1
+        texture "alphaMap.jpg"
+        alpha_mapping 0.15
+        result_highlight 400, 0
+        cube 0, 0, 0, 300, 300, 300
+
+page "Normal Mapping",
+// ----------------------------------------------------------------------------
+//   Normal mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -150, 100, "face.jpg"
+    contents 100, -200,
+        at_step 3
+        +"A normal map on texture unit 1"
+    at_step 4
+    map_highlight -150, -100, "normalMap.jpg"
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        white_light 0, 0, 50
+        material_ambient 0.3, 0.3, 0.3, 1
+        material_diffuse 1.0, 1.0, 1.0, 1.0
+        material_specular 0.3, 0.3, 0.3, 1.0
+        material_shininess 70
+        color "white"
+        texture_unit 0
+        texture "face.jpg"
+        texture_unit 1
+        texture "normalMap.jpg"
+        result_highlight 400, 0
+        normal_mapping
+        rectangle 0, 0, 300, 300
+
+
+page "Displacement Mapping",
+// ----------------------------------------------------------------------------
+//   Displacement mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -100, 100, "ground.png"
+    contents 100, -200,
+        at_step 3
+        +"A displacement map on texture unit 1"
+    at_step 4
+    map_highlight -100, -100, "displacementMap.png"
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        texture_unit 0
+        texture "ground.png"
+        texture_unit 1
+        texture "displacementMap.png"
+        displacement_mapping 100 * exp (-5 * (highest_step - smooth_step) ^ 2)
+        result_highlight 400, 0
+        plane 0, 0, 300, 300, 100, 100
+
+page "Noise Mapping",
+// ----------------------------------------------------------------------------
+//   Noise mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -150, 100, "freeSky.jpg"
+    contents 100, -200,
+        at_step 3
+        +"A noise map on texture unit 1"
+    at_step 4
+    map_highlight -150, -100, "noiseMap.jpg"
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        texture_unit 0
+        texture "freeSky.jpg"
+        texture_unit 1
+        texture "noiseMap.jpg"
+        result_highlight 400, 0
+        noise_mapping 3 * sin time
+        rectangle 0, 0, 300, 300
+
+
+page "Sphere Mapping",
+// ----------------------------------------------------------------------------
+//   Sphere mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -150, 100, "tiles.jpg"
+    contents 100, -200,
+        at_step 3
+        +"A sphere map on texture unit 1"
+    at_step 4
+    map_highlight -150, -100, "sphereMap.jpg"
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        texture_unit 0
+        texture "tiles.jpg"
+        texture_unit 1
+        texture "sphereMap.jpg"
+        result_highlight 400, 0
+        sphere_mapping 0.2
+        sphere 0, 0, 0, 300
+
+
+page "Reflection Mapping",
+// ----------------------------------------------------------------------------
+//   Reflection mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -150, 100, "tiles.jpg"
+    contents 100, -200,
+        at_step 3
+        +"A reflection map on texture unit 1"
+    at_step 4
+    map_highlight -150, -100, "reflectionMap.jpg"
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        texture_unit 0
+        texture "tiles.jpg"
+        texture_unit 1
+        texture "reflectionMap.jpg"
+        result_highlight 400, 0
+        reflection_mapping 0.3
+        rectangle 0, 0, 300, 300
+

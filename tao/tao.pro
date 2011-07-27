@@ -47,6 +47,7 @@ macx {
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc
+    LIBS += -limagehlp
 }
 linux-g++* {
     LIBS += -lXss

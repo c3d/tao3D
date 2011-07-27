@@ -1,3 +1,5 @@
+#ifndef TAO_MAIN_H
+#define TAO_MAIN_H
 // ****************************************************************************
 //  tao_main.h                                                      Tao project
 // ****************************************************************************
@@ -25,6 +27,7 @@
 
 #include "tao.h"
 #include "main.h"
+#include <signal.h>
 
 TAO_BEGIN
 
@@ -49,3 +52,13 @@ struct Main : public XL::Main
 };
 
 TAO_END
+
+#ifdef CONFIG_MINGW
+typedef void (*sig_t) (int);
+#endif
+
+extern void signal_handler(int sig);
+extern void install_signal_handler(sig_t);
+extern void install_first_exception_handler(void);
+
+#endif // TAO_MAIN_H

@@ -289,6 +289,7 @@ struct PurgeGLContextSensitiveInfo : XL::Action
     virtual Tree *Do (Tree *what)
     {
         what->Purge<ImageTextureInfo>();
+        what->Purge<SvgRendererInfo>();
         what->Purge<TextureIdInfo>();
         what->Purge<ShaderProgramInfo>();
         return what;

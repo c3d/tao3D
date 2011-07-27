@@ -24,5 +24,6 @@ contains (MODULES, lens_flare):SUBDIRS += lens_flare
 contains (MODULES, filters):SUBDIRS += filters
 contains (MODULES, shading):SUBDIRS += shading
 contains (MODULES, movie_credits):SUBDIRS += movie
+contains (MODULES, mapping):SUBDIRS += mapping
 
 message(Templates to install: $$SUBDIRS)

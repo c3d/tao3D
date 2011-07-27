@@ -1151,6 +1151,16 @@ void Window::onlineDoc()
 }
 
 
+void Window::onlineDocTaodyne()
+// ----------------------------------------------------------------------------
+//    Open the online documentation page on taodyne.com
+// ----------------------------------------------------------------------------
+{
+    QString url("http://taodyne.com/doc/1.0/");
+    QDesktopServices::openUrl(url);
+}
+
+
 void Window::documentWasModified()
 // ----------------------------------------------------------------------------
 //   Record when the document was modified
@@ -1397,6 +1407,14 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
+    onlineDocTaodyneAct = new QAction(tr("&Online Documentation "
+                                         "(taodyne.com)"), this);
+    onlineDocTaodyneAct->setStatusTip(tr("Open the Online Documentation "
+                                         "on the Taodyne website"));
+    onlineDocTaodyneAct->setObjectName("onlineDocTaodyne");
+    connect(onlineDocTaodyneAct, SIGNAL(triggered()),
+            this, SLOT(onlineDocTaodyne()));
+
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
@@ -1539,6 +1557,7 @@ void Window::createMenus()
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(onlineDocAct);
+    helpMenu->addAction(onlineDocTaodyneAct);
 }
 
 

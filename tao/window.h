@@ -161,6 +161,7 @@ private slots:
     void about();
     void preferences();
     void onlineDoc();
+    void onlineDocTaodyne();
     void documentWasModified();
     void checkFiles();
     void displayModeTriggered(bool on);
@@ -255,6 +256,7 @@ private:
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *onlineDocAct;
+    QAction          *onlineDocTaodyneAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QUndoView        *undoView;

@@ -27,7 +27,7 @@ QMAKE_CXXFLAGS_DEBUG   += -ggdb
 win32:QMAKE_LFLAGS_RELEASE -= -Wl,-s
 
 # Adding 'c++tbl' option with lowered optimization level
-c++tbl.output = ${QMAKE_FILE_BASE}.o
+c++tbl.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o
 c++tbl.commands = $(CXX) \
     -c \
     $(CXXFLAGS:-O2=) \

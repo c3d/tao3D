@@ -3,6 +3,15 @@
 # ******************************************************************************
 # File Description:
 # Qt build file for tao documentation
+#
+# make doc
+#    Build the client-side documentation
+# make webdoc
+#    Build the server-side documentation for upload to taodyne.com
+#    (same as plain HTML doc but with PHP search enabled).
+#    Output is in ./webhtml
+# make install
+#    Build and install client-side documention
 # ******************************************************************************
 # This software is property of Taodyne SAS - Confidential
 # Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -30,6 +39,9 @@ equals(HAS_DOXYGEN, true) {
   doc.commands = doxygen
   doc.depends = cp_examples cp_xlref version
 
+  webdoc.commands = ( cat Doxyfile ; echo \"SERVER_BASED_SEARCH = YES\" ; echo \"HTML_OUTPUT = webhtml\" ) | doxygen -
+  webdoc.depends = cp_examples cp_xlref version
+
   cp_examples.commands = mkdir -p html/examples ; \
                          cp ../tao/doc/examples/*.ddd html/examples/ ; \
                          for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ 2>/dev/null || : ; done
@@ -43,7 +55,7 @@ equals(HAS_DOXYGEN, true) {
     xlref.depends = XLRef.tm
   }
 
-  clean.commands = /bin/rm -rf html/ qch/
+  clean.commands = /bin/rm -rf html/ webhtml/ qch/
 
   install.path = $$APPINST/doc
   install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
@@ -53,7 +65,7 @@ equals(HAS_DOXYGEN, true) {
   version.commands = V=`git describe --tags --always --dirty=-dirty`; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
   version.depends = FORCE
 
-  QMAKE_EXTRA_TARGETS += doc cp_examples cp_xlref xlref clean version
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_xlref xlref clean version
 
   INSTALLS += install
 

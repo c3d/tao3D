@@ -271,6 +271,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
+    current = NULL; // #1180
     connect(this, SIGNAL(displayModeChanged(QString)),
             parent, SLOT(updateDisplayModeCheckMark(QString)));
 
@@ -288,6 +289,7 @@ struct PurgeGLContextSensitiveInfo : XL::Action
     virtual Tree *Do (Tree *what)
     {
         what->Purge<ImageTextureInfo>();
+        what->Purge<SvgRendererInfo>();
         what->Purge<TextureIdInfo>();
         what->Purge<ShaderProgramInfo>();
         return what;

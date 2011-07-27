@@ -9,6 +9,7 @@ locally
 rotatez -23
 locally
     texture "earth.bmp"
+    texture_wrap true, true
     rotatey 5 * page_time + 250
     sphere 0, 0, 0, 400
 locally

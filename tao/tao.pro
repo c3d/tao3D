@@ -25,8 +25,7 @@ INC = . \
     xlr/xlr/include
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
-LIBS += -L../libxlr -lxlr
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr
 QT += webkit \
     network \
     opengl \

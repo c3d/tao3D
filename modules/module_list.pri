@@ -13,6 +13,7 @@
        lorem_ipsum      \
        object_loader    \
        tao_visuals      \
+       movie_credits    \
        digital_clock    \
        slides           \
        animate          \

@@ -23,5 +23,6 @@ contains (MODULES, slideshow_3d):SUBDIRS += photo_viewer
 contains (MODULES, lens_flare):SUBDIRS += lens_flare
 contains (MODULES, filters):SUBDIRS += filters
 contains (MODULES, shading):SUBDIRS += shading
+contains (MODULES, movie_credits):SUBDIRS += movie
 
 message(Templates to install: $$SUBDIRS)

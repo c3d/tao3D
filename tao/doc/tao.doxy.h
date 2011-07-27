@@ -13,6 +13,11 @@
  *
  * The reference pages also contain some examples.
  *
+ * @note The latest version of this documentation is available online at
+ * http://taodyne.com/doc/1.0/ with <b>full text search</b> capability.
+ *
+ * You may find more information and the latest news about Tao Presentations on
+ * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
  * @section secCredits Credits
  *
  * Tao Presentations uses the following components:
@@ -26,9 +31,6 @@
  *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
- *
- * You may find more information and the latest news about Tao Presentations on
- * our web site: <a href="http://taodyne.com/">taodyne.com</a>.
  *
  * @section secGettingStarted Getting started
  *

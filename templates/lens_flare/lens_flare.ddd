@@ -12,6 +12,7 @@ earth R ->
         material_ambient 0.4, 0.4, 0.4, 1.0
         material_diffuse 1.0, 1.0, 1.0, 1.0
         texture "earth.bmp"
+        texture_wrap true, true
         rotatey 5 * page_time + 10
         sphere 0, 0, 0, R
 
@@ -20,6 +21,7 @@ moon R ->
         material_ambient 0.3, 0.3, 0.2, 1.0
         material_diffuse 1.0, 1.0, 0.8, 1.0
         texture "moon.jpg"
+        texture_wrap true, true
         rotatez 75
         rotatey 15 * page_time + 10
         translatex 1000
@@ -37,7 +39,6 @@ milkyway R ->
         sphere 0, 0, 0, R
 
 d -> window_height
-t -> time locally
 page "lens flare",
     locally
         milkyway 11000

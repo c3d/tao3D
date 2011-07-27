@@ -435,9 +435,9 @@ public:
 
     Integer*    fillTextureUnit(Tree_p self, GLuint texUnit);
     Integer*    fillTextureId(Tree_p self, GLuint texId);
-    Integer*    fillTexture(Tree_p self, text fileName);
-    Integer*    fillAnimatedTexture(Tree_p self, text fileName);
-    Integer*    fillTextureFromSVG(Tree_p self, text svg);
+    Integer*    fillTexture(Context *, Tree_p self, text fileName);
+    Integer*    fillAnimatedTexture(Context *, Tree_p self, text fileName);
+    Integer*    fillTextureFromSVG(Context *, Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);

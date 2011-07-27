@@ -5782,6 +5782,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
     return new XL::Integer(texUnit);
 }
 
+
 Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an id
@@ -5803,7 +5804,8 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
     return new XL::Integer(texId);
 }
 
-Integer* Widget::fillTexture(Tree_p self, text img)
+
+Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
@@ -5813,6 +5815,9 @@ Integer* Widget::fillTexture(Tree_p self, text img)
 
     if (img != "")
     {
+        ADJUST_CONTEXT_FOR_INTERPRETER(context);
+        img  = context->ResolvePrefixedPath(img);
+
         ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
         if (!rinfo)
         {
@@ -5836,8 +5841,7 @@ Integer* Widget::fillTexture(Tree_p self, text img)
 }
 
 
-
-Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
+Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
@@ -5849,6 +5853,9 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
 
     if (img != "")
     {
+        ADJUST_CONTEXT_FOR_INTERPRETER(context);
+        img = context->ResolvePrefixedPath(img);
+
         AnimatedTextureInfo *rinfo = self->GetInfo<AnimatedTextureInfo>();
         if (!rinfo)
         {
@@ -5870,7 +5877,8 @@ Integer* Widget::fillAnimatedTexture(Tree_p self, text img)
     return new Integer(texId, self->Position());
 }
 
-Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
+
+Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //    Draw an image in SVG format
 // ----------------------------------------------------------------------------
@@ -5884,6 +5892,9 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 
     if (img != "")
     {
+        ADJUST_CONTEXT_FOR_INTERPRETER(context);
+        img = context->ResolvePrefixedPath(img);
+
         SvgRendererInfo *rinfo = self->GetInfo<SvgRendererInfo>();
         if (!rinfo)
         {
@@ -5908,7 +5919,7 @@ Integer* Widget::fillTextureFromSVG(Tree_p self, text img)
 
 
 Integer* Widget::image(Context *context,
-                     Tree_p self, Real_p x, Real_p y, text filename)
+                       Tree_p self, Real_p x, Real_p y, text filename)
 //----------------------------------------------------------------------------
 //  Make an image with default size
 //----------------------------------------------------------------------------
@@ -5919,8 +5930,8 @@ Integer* Widget::image(Context *context,
 
 
 Integer* Widget::image(Context *context,
-                     Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
-                     text filename)
+                       Tree_p self, Real_p x, Real_p y, Real_p sxp, Real_p syp,
+                       text filename)
 //----------------------------------------------------------------------------
 //  Make an image
 //----------------------------------------------------------------------------
@@ -5966,8 +5977,8 @@ Integer* Widget::image(Context *context,
 
 
 Integer* Widget::imagePx(Context *context,
-                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
-                       text filename)
+                         Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
+                         text filename)
 //----------------------------------------------------------------------------
 //  Make an image
 //----------------------------------------------------------------------------

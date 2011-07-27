@@ -181,4 +181,9 @@ void ShaderValue::Draw(Layout *where)
     }
 }
 
+// Objects pushed from the GC thread, to be deleted in the main thread due to
+// GL thread-safety issues (muliple threads can't enter GL simultaneously on
+// the same context)
+std::vector<QObject *> pendingDeleteGL = std::vector<QObject *>();
+
 TAO_END

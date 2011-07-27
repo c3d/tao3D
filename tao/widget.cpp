@@ -590,6 +590,13 @@ void Widget::drawScene()
         TaoApp->gcThread->waitCollectDone();
         stats.end(Statistics::GC);
     }
+
+    // Delete objects that have GL resources, pushed by GC
+    while (!pendingDeleteGL.empty())
+    {
+        delete pendingDeleteGL.back();
+        pendingDeleteGL.pop_back();
+    }
 }
 
 

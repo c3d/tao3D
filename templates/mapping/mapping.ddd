@@ -178,3 +178,53 @@ page "Reflection Mapping",
         reflection_mapping 0.3
         rectangle 0, 0, 300, 300
 
+page "Cube Mapping",
+// ----------------------------------------------------------------------------
+//   Reflection mapping
+// ----------------------------------------------------------------------------
+    background 5.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -150, 100, "tiles.jpg"
+    contents 100, -200,
+        at_step 3
+        +"A cube map on texture unit 1"
+    at_step 4
+    locally
+        // Transformation must bee need before apply effect
+        highlight -150, -100, factor (-150, -100), true
+        color "white"
+        cube_map
+            cube_map_flip false, false
+            cube_map_face 0, "right.bmp"
+            cube_map_face 1, "left.bmp"
+            cube_map_face 2, "top.bmp"
+            cube_map_face 3, "bottom.bmp"
+            cube_map_face 4, "front.bmp"
+            cube_map_face 5, "back.bmp"
+        texture_transform
+            scale 1, -1, 1
+        cube 0, 0, 0, 100, 100, 100
+    at_step 5
+    mapping
+    at_step 6
+    locally
+        texture_unit 0
+        texture "tiles.jpg"
+        texture_unit 1
+        // Transformation must bee need before apply effect
+        result_highlight 400, 0
+        cube_map
+            cube_map_flip false, false
+            cube_map_face 0, "right.bmp"
+            cube_map_face 1, "left.bmp"
+            cube_map_face 2, "top.bmp"
+            cube_map_face 3, "bottom.bmp"
+            cube_map_face 4, "front.bmp"
+            cube_map_face 5, "back.bmp"
+        cube_mapping 0.3
+        cube 0, 0, 0, 300, 300, 300
+

@@ -64,6 +64,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
+text Application::constructorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -174,6 +175,37 @@ Application::Application(int & argc, char ** argv)
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
+
+    {
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        // Ask graphic card constructor to OpenGL
+        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+        int vendorNum = 0;
+
+        // Search in constructors list
+        for(int i = 0; i < LAST; i++)
+        {
+            if(! vendor.compare(constructorsList[i]))
+            {
+                vendorNum = i;
+                break;
+            }
+        }
+
+        switch(vendorNum)
+        {
+        case 0: constructor = ATI; break;
+        case 1: constructor = NVIDIA; break;
+        case 2: constructor = INTEL; break;
+        }
+
+        //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
+        glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
+
+    }
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())
     {
@@ -227,9 +259,6 @@ Application::Application(int & argc, char ** argv)
         dialog.showMessage(tr("This system does not support GL sample buffers."
                               " Shapes and large text may look jaggy."));
     }
-
-    maxTextureCoords = 1;
-    maxTextureUnits = 1;
 
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::available())

@@ -1850,6 +1850,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         loadInProgress = false;
 #endif
         taoWidget->refreshNow();
+        taoWidget->refresh(0);
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }

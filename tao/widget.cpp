@@ -457,6 +457,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
+
+    runProgram();
 }
 
 Widget::~Widget()

@@ -94,6 +94,14 @@ interpolate_scale S:real, TScale:real, Scale:real ->
     scale Scale, Scale, Scale
 
 
+interpolate_scale2 S:real, TScale:real, Scale:real ->
+// ----------------------------------------------------------------------------
+//   Interpolate scale on X and Y only
+// ----------------------------------------------------------------------------
+    interpolate S, TScale, Scale
+    scale Scale, Scale, 1
+
+
 
 // ============================================================================
 // 

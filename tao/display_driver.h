@@ -81,6 +81,7 @@ public:
     static void         setModelViewMatrix (int i = 1, int numCameras = 1);
     static void         setStereoPlanes(int planes);
     static void         doMouseTracking(bool on);
+    static void         setMouseTrackingViewport(int x, int y, int w, int h);
 
 protected:
     static std::ostream & debug();

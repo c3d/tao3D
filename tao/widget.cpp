@@ -159,6 +159,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true),
+      doMouseTracking(true), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -201,6 +202,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     memset(focusProjection, 0, sizeof focusProjection);
     memset(focusModel, 0, sizeof focusModel);
     memset(focusViewport, 0, sizeof focusViewport);
+    memset(mouseTrackingViewport, 0, sizeof mouseTrackingViewport);
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -381,6 +383,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     memcpy(focusProjection, o.focusProjection, sizeof(focusProjection));
     memcpy(focusModel, o.focusModel, sizeof(focusModel));
     memcpy(focusViewport, o.focusViewport, sizeof(focusViewport));
+    memcpy(mouseTrackingViewport, o.mouseTrackingViewport,
+           sizeof(mouseTrackingViewport));
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -733,6 +737,10 @@ void Widget::draw()
         if (!window->isReadOnly)
             updateProgramSource();
     }
+
+    // The viewport used for mouse projection is (potentially) set by the
+    // display function, clear it for next frame
+    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
 }
 
 
@@ -3904,7 +3912,16 @@ void Widget::recordProjection(GLdouble *proj, GLdouble *model, GLint *viewport)
 
     glGetDoublev(GL_PROJECTION_MATRIX, proj);
     glGetDoublev(GL_MODELVIEW_MATRIX, model);
-    glGetIntegerv(GL_VIEWPORT, viewport);
+    viewport[0] = mouseTrackingViewport[0];
+    viewport[1] = mouseTrackingViewport[1];
+    viewport[2] = mouseTrackingViewport[2];
+    viewport[3] = mouseTrackingViewport[3];
+    if (viewport[2] == 0 && viewport[3] == 0)
+    {
+        // mouseTrackingViewport not set (by display module), default to
+        // current viewport
+        glGetIntegerv(GL_VIEWPORT, viewport);
+    }
 }
 
 

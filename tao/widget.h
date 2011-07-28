@@ -838,6 +838,7 @@ private:
     bool                  drawAllPages;
     bool                  animated;
     bool                  doMouseTracking;
+    GLint                 mouseTrackingViewport[4];
     int                   stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;

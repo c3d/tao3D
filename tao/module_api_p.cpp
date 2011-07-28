@@ -65,6 +65,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     zoom                         = DisplayDriver::zoom;
     eyeSeparation                = DisplayDriver::eyeSeparation;
     doMouseTracking              = DisplayDriver::doMouseTracking;
+    setMouseTrackingViewport     = DisplayDriver::setMouseTrackingViewport;
 
     // Framebuffer API
     newFrameBufferObject       = FrameInfo::newFrameBufferObject;

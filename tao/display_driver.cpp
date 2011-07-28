@@ -591,6 +591,16 @@ void DisplayDriver::doMouseTracking(bool on)
 }
 
 
+void DisplayDriver::setMouseTrackingViewport(int x, int y, int w, int h)
+// ----------------------------------------------------------------------------
+//   Set the viewport that will be used to project mouse cursor
+// ----------------------------------------------------------------------------
+{
+    GLint *v = Widget::Tao()->mouseTrackingViewport;
+    v[0] = x; v[1] = y; v[2] = w; v[3] = h;
+}
+
+
 void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 // ----------------------------------------------------------------------------
 //   Set frustum for the given camera

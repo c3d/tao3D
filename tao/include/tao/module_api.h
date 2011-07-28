@@ -46,7 +46,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   7
+#define TAO_MODULE_API_CURRENT   8
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -205,8 +205,17 @@ struct ModuleApi
     double (*eyeSeparation)();
 
     // Tell Tao if the current point of view is to be used for selection/
-    // mouse activities.
+    // mouse activities. When rendering multiple views per frame, you
+    // normally set this for only one view.
+    // When this setting is true, the drawScene() call will unproject the
+    // mouse coordinates into the 3D space.
     void   (*doMouseTracking)(bool on);
+
+    // Override viewport setting during mouse tracking.
+    // This viewport is used in drawScene() when doMouseTracking(true), and
+    // only for the current frame.
+    // The current GL viewport is used by default.
+    void   (*setMouseTrackingViewport)(int x, int y, int w, int h);
 
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture

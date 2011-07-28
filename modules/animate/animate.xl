@@ -156,6 +156,14 @@ skip_to S:real  ->
     step := S
 
 
+skip_directly_to S:real  ->
+// ----------------------------------------------------------------------------
+//   Skip directly to given animation step
+// ----------------------------------------------------------------------------
+    step := S
+    smooth_step := S
+
+
 step_scale N:integer ->
 // ----------------------------------------------------------------------------
 //    Adjust scale for current animation step

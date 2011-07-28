@@ -165,6 +165,15 @@ skip_to(real Position);
 
 
 /**
+ * Skip directly to a given step in the animation without transition
+ *
+ * Skip to the given position in the animation. @see skip_to
+ * backwards.
+ */
+skip_directly_to(real Position);
+
+
+/**
  * Zoom around a particular position in the animation
  *
  * Return a scaling factor that depends on how far @a N is from the current

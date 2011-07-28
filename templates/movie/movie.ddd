@@ -1,0 +1,164 @@
+import MovieCredits 1.0
+import TaoVisuals 1.0
+
+page "Taodyne presents",
+// ----------------------------------------------------------------------------
+//   "Taodyne presents" flying towards viewer
+// ----------------------------------------------------------------------------
+    fade_in  Value:real, Dur:real  -> -expm1(-5 * Value / Dur)
+    mc_swc_background
+    translatez -55000 + 57000 * fade_in(page_time, 8)
+    text_box 0, 0, 800, 600,
+        align 0.5
+        vertical_align 0.5
+
+        font "Babes in Toyland NF", "Arial", 64
+        line_color 0, 1, 0.08, 0.7
+        color 0.2, 1, 0.15, 0.28
+        line_width 3
+        text "Taodyne Presents"
+        paragraph_break
+        text "a Tao Presentations production"
+    after 10,
+        text_box 100, -200, 600, 200,
+            color "yellow", sin time
+            font "Arial", 24
+            text "Hint: Hit the page-down or down key to change pages"
+        
+
+page "On a screen nearby", 
+// ----------------------------------------------------------------------------
+//   Display a white screen
+// ----------------------------------------------------------------------------
+    mc_swc_background
+
+    text_box 0, 0, 800, 600,
+        font "Arial", 50
+        vertical_align 0.5
+        color 60%, 80%, 95%, 70%
+        line_color 40%, 50%, 70%, 60%
+        text "At this very moment"
+        paragraph_break
+        text "on a computer screen nearby"
+
+
+page "Star Wars Crawl",
+// ----------------------------------------------------------------------------
+//   A page illustrating a Star-Wars style crawl
+// ----------------------------------------------------------------------------
+
+    // This part displays the text
+    mc_star_wars_crawl 25,
+        title T:text -> align 0.5; text T
+        line T:text -> paragraph_break; align 0, 1; text T
+
+        title "A NEW HOPE FOR PRESENTATIONS"
+        line "The world of presentations is in chaos. The ancient power of bullet points is gone. Kids born with iPads in their hands don't believe in this old religion anymore"
+        line "But a glimmer of hope remains. Hidden in a remote place called Taodyne, three computer gurus versed in ancient computer science found a new way to jolt your audience."
+        line "The fight has just begun, a fight for the freedom to put some creativity back in presentations. To win this battle, Taodyne needs your help...."
+
+    // This part displays the Taodyne ship showing up after 28 seconds
+    mc_star_wars_crawl_ship 28, 2000,
+        locally
+            rotatex 100 * page_time
+            color "grey"
+            sphere 0, 0, 0, 800, 800, 100, 50, 50
+            color "white"
+            texture "picto_tao.png"
+            texture_transform
+                translate -1, -0.5, 0
+                scale 3, 2, 3
+            sphere 0, 0, 0, 810, 810, 110, 50, 50
+
+        // Fire back with the Taodyne colors
+        fire N:integer ->
+            locally
+                light_ambient 1, 1, 1, 1
+                rotatey 1 - 0.5 * N
+                translatez (page_time + sin (N * page_time)^2) mod 2 * 60000
+                rotatex 90
+                color tao_color N
+                scale 1, 2, 1
+                rounded_rectangle 0, 0, 50, 800, 50
+
+        tao_color 0 -> "#AA0022"
+        tao_color 1 -> "#DD3311"
+        tao_color 2 -> "#EEAA11"
+        tao_color 3 -> "#88BB00"
+        tao_color 4 -> "#229988"
+        fire with 0..4
+
+
+    // Pursuing ship, Borg cube style, showing up after 35 seconds
+    mc_star_wars_crawl_ship 35, 1000,
+        locally
+            frame_texture 300, 300,
+                align 0.5
+                vertical_align 0.5
+                color "black"
+                rectangle 0, 0, 800, 800
+                text_box 0, 0, 300, 300,
+                    font "Courier", 36
+                    color "green"
+                    line_color "lightgreen", sin time^2
+                    line_width 2
+                    if page_time mod 2 < 1 then
+                        text "Boring Presentations"
+                    else
+                        text "Borg Presentations"
+            color "white"
+            rotatey 12 * page_time
+            cube 0, 0, 0, 500, 500, 500
+
+
+page "Final Credits",
+// ----------------------------------------------------------------------------
+//    Page showing the final credits
+// ----------------------------------------------------------------------------
+    mc_swc_background
+    adjust X:real ->
+        translatez 500
+        rotatey -45 * X
+        translatez -500
+    adjust 2*mouse_x / window_width
+    mc_credits 50, 100,
+
+        // Cast section, 150 pixels high
+        mc_credits_section 200,
+            font "Baskerville", "Times", 40
+            text "CAST"
+            paragraph_break
+            text "In Order of Appearance"
+
+        // Credits for this contents
+        color_hsv 20 * time, 0.3, 0.9, 0.8
+        mc_credit "Application Design", "Christophe de Dinechin"
+        mc_credit "Module interface", "Jérôme Forissier"
+        mc_credit "Improved text layout", "Catherine Burvelle"
+
+        color "white"
+        mc_credits_section 80,
+            text "Technical support"
+
+        mc_credits_section 250,
+            align 0.5
+            vertical_align 0.5
+            anchor
+               color "white", 0.6
+               rounded_rectangle 0, 0, 400, 190, 20
+               color "white"
+               image 0, 0, 0.3, 0.3, "image:Taodyne_geeks_en.png"
+
+
+        mc_credits_section 80,
+            text "TIPS"
+        mc_credit "Mouse movement", "Adjust screen position"
+        mc_credit "Key up/down", "Change pages"
+        mc_credit "Control-G", "Go to a given page"
+        mc_credit "", "(that's Command-G on a Mac)"
+        
+        mc_credits_section 120,
+            text "Special Thanks"
+        mc_credit "Family support", "Christine and Jean-Luc"
+        mc_credit "Friends and Advisors", "Jean-Marc, Edouard, Sylvain, Patrick, Hubert"
+        mc_credit "Incubator", "Incubateur Paca Est (France)"

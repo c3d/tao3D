@@ -867,7 +867,7 @@ PREFIX(FillTextureId,  integer,  "texture",
        DESCRIPTION(""))
 PREFIX(FillTexture,  integer,  "texture",
        PARM(n, text, "The image filename."),
-       RTAO(fillTexture(self, n)),
+       RTAO(fillTexture(context, self, n)),
        GROUP(graph:attribute)
        SYNOPSIS("Create a GL texture")
        DESCRIPTION("Build a GL texture out of an image file.\n"
@@ -885,14 +885,14 @@ PREFIX(FillTexture,  integer,  "texture",
                    "XPM X11 Pixmap"))
 PREFIX(FillTextureSVG,  integer, "svg",
        PARM(img, text, "The image filename."),
-       RTAO(fillTextureFromSVG(self, img)),
+       RTAO(fillTextureFromSVG(context, self, img)),
        GROUP(graph)
        SYNOPSIS("Create a texture from an SVG")
        DESCRIPTION("Draw an image from an SVG format")
        RETURNS(tree, ""))
 PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
        PARM(n, text, "The animation filename."),
-       RTAO(fillAnimatedTexture(self, n)),
+       RTAO(fillAnimatedTexture(context, self, n)),
        GROUP(graph:attribute)
        SYNOPSIS("Create a GL animated texture")
        DESCRIPTION("Build a GL texture images from an animated image file. Supported format are:\n\

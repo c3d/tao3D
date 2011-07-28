@@ -136,16 +136,16 @@ static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
 //   Call signal handler on unhandled exception
 // ----------------------------------------------------------------------------
 {
-	if (!TopLevelExceptionPointers && !PrimaryExceptionPointers)
+    if (!TopLevelExceptionPointers && !PrimaryExceptionPointers)
     {
-		TopLevelExceptionPointers = ep;
+        TopLevelExceptionPointers = ep;
         signal_handler(SIGSEGV);
     }
-	
-	// Allow dialog box to pop up allowing choice to start debugger.
-	if (TopLevelExceptionFilter)
-		return (*TopLevelExceptionFilter)(ep);
-	return EXCEPTION_CONTINUE_SEARCH;
+    
+    // Allow dialog box to pop up allowing choice to start debugger.
+    if (TopLevelExceptionFilter)
+        return (*TopLevelExceptionFilter)(ep);
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 static BOOL WINAPI TaoConsoleCtrlHandler(DWORD dwCtrlType)
@@ -153,8 +153,8 @@ static BOOL WINAPI TaoConsoleCtrlHandler(DWORD dwCtrlType)
 //   Call signal handler on Control-C
 // ----------------------------------------------------------------------------
 {
-	signal_handler(SIGINT);
-	return FALSE; // Kill me, please, I'm running on Windows!
+    signal_handler(SIGINT);
+    return FALSE; // Kill me, please, I'm running on Windows!
 }
 
 
@@ -163,16 +163,16 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 //   Call signal handler on unhandled exception before LLVM does
 // ----------------------------------------------------------------------------
 {
-	if (!PrimaryExceptionPointers)
+    if (!PrimaryExceptionPointers)
     {
-		PrimaryExceptionPointers = ep;
+        PrimaryExceptionPointers = ep;
         signal_handler(SIGSEGV);
     }
         
-	// Allow dialog box to pop up allowing choice to start debugger.
-	if (PrimaryExceptionFilter)
-		return (*PrimaryExceptionFilter)(ep);
-	return EXCEPTION_CONTINUE_SEARCH;
+    // Allow dialog box to pop up allowing choice to start debugger.
+    if (PrimaryExceptionFilter)
+        return (*PrimaryExceptionFilter)(ep);
+    return EXCEPTION_CONTINUE_SEARCH;
 }
 
 
@@ -182,108 +182,109 @@ static void TaoStackTrace(int fd)
 // ----------------------------------------------------------------------------
 {
 #ifdef _WIN64
-	// TODO: provide a x64 friendly version of the following
+    // TODO: provide a x64 friendly version of the following
 #else
 
-	LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
+    LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
     if (!ep)
         ep = TopLevelExceptionPointers;
-	if (ep)
-	{
-		static char buffer[512];
+    if (ep)
+    {
+        static char buffer[512];
         int two = fileno(stderr);
-	
-		// Initialize the STACKFRAME structure.
-		STACKFRAME StackFrame;
-		memset(&StackFrame, 0, sizeof(StackFrame));
+    
+        // Initialize the STACKFRAME structure.
+        STACKFRAME StackFrame;
+        memset(&StackFrame, 0, sizeof(StackFrame));
 
-		StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
-		StackFrame.AddrPC.Mode = AddrModeFlat;
-		StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
-		StackFrame.AddrStack.Mode = AddrModeFlat;
-		StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
-		StackFrame.AddrFrame.Mode = AddrModeFlat;
+        StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
+        StackFrame.AddrPC.Mode = AddrModeFlat;
+        StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
+        StackFrame.AddrStack.Mode = AddrModeFlat;
+        StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
+        StackFrame.AddrFrame.Mode = AddrModeFlat;
 
-		HANDLE hProcess = GetCurrentProcess();
-		HANDLE hThread = GetCurrentThread();
+        HANDLE hProcess = GetCurrentProcess();
+        HANDLE hThread = GetCurrentThread();
 
-		// Initialize the symbol handler.
-		SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
-		SymInitialize(hProcess, NULL, TRUE);
+        // Initialize the symbol handler.
+        SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
+        SymInitialize(hProcess, NULL, TRUE);
 
-		while (true)
-		{
-			if (!StackWalk(IMAGE_FILE_MACHINE_I386, hProcess, hThread, &StackFrame,
-						   ep->ContextRecord, NULL, SymFunctionTableAccess,
-						   SymGetModuleBase, NULL))
-				break;
+        while (true)
+        {
+            if (!StackWalk(IMAGE_FILE_MACHINE_I386,
+                           hProcess, hThread, &StackFrame,
+                           ep->ContextRecord, NULL, SymFunctionTableAccess,
+                           SymGetModuleBase, NULL))
+                break;
 
-			if (StackFrame.AddrFrame.Offset == 0)
-				break;
+            if (StackFrame.AddrFrame.Offset == 0)
+                break;
 
-			// Print the PC in hexadecimal.
-			DWORD PC = StackFrame.AddrPC.Offset;
-			size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
+            // Print the PC in hexadecimal.
+            DWORD PC = StackFrame.AddrPC.Offset;
+            size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
 
-			// Print the parameters.  Assume there are four.
-			size += snprintf(buffer + size, sizeof buffer - size,
-							 " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
-							 StackFrame.Params[0], StackFrame.Params[1],
-							 StackFrame.Params[2], StackFrame.Params[3]);
-			write (fd, buffer, size);
-			write (two, buffer, size);
+            // Print the parameters.  Assume there are four.
+            size += snprintf(buffer + size, sizeof buffer - size,
+                             " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
+                             StackFrame.Params[0], StackFrame.Params[1],
+                             StackFrame.Params[2], StackFrame.Params[3]);
+            write (fd, buffer, size);
+            write (two, buffer, size);
 
-			// Verify the PC belongs to a module in this process.
-			if (!SymGetModuleBase(hProcess, PC))
-			{
-				char msg[] = "<unknown module>";
-				write (fd, msg, sizeof msg - 1);
-				write (two, msg, sizeof msg - 1);
-				continue;
-			}
+            // Verify the PC belongs to a module in this process.
+            if (!SymGetModuleBase(hProcess, PC))
+            {
+                char msg[] = "<unknown module>";
+                write (fd, msg, sizeof msg - 1);
+                write (two, msg, sizeof msg - 1);
+                continue;
+            }
 
-			// Print the symbol name.
-			IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
-			memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
-			symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
-			symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
+            // Print the symbol name.
+            IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
+            memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
+            symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
+            symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
 
-			DWORD dwDisp;
-			if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
-			{
-				write(fd, "\n", 1);
+            DWORD dwDisp;
+            if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
+            {
+                write(fd, "\n", 1);
                 write(two, "\n", 1);
-				continue;
-			}
+                continue;
+            }
 
-			buffer[511] = 0;
-			if (dwDisp > 0)
-				size = snprintf(buffer, sizeof buffer,
-								", %s()+%04lu", symbol->Name, dwDisp);
-			else
-				size = snprintf(buffer, sizeof buffer,
-								", %s", symbol->Name);
-			
+            buffer[511] = 0;
+            if (dwDisp > 0)
+                size = snprintf(buffer, sizeof buffer,
+                                ", %s()+%04lu", symbol->Name, dwDisp);
+            else
+                size = snprintf(buffer, sizeof buffer,
+                                ", %s", symbol->Name);
+            
 
-			// Print the source file and line number information.
-			IMAGEHLP_LINE line;
-			memset(&line, 0, sizeof(line));
-			line.SizeOfStruct = sizeof(line);
-			if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
-			{
-				size += snprintf(buffer + size, sizeof buffer - size,
-								 ", %s, line %lu", line.FileName, line.LineNumber);
-				if (dwDisp > 0)
-					size += snprintf(buffer + size, sizeof buffer - size,
-								     "+%04lu", dwDisp);
-			}
+            // Print the source file and line number information.
+            IMAGEHLP_LINE line;
+            memset(&line, 0, sizeof(line));
+            line.SizeOfStruct = sizeof(line);
+            if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
+            {
+                size += snprintf(buffer + size, sizeof buffer - size,
+                                 ", %s, line %lu", line.FileName, line.LineNumber);
+                if (dwDisp > 0)
+                    size += snprintf(buffer + size, sizeof buffer - size,
+                                     "+%04lu", dwDisp);
+            }
 
-			if (size < sizeof buffer)
-				buffer[size++] = '\n';
-			write (fd, buffer, size);
-			write (two, buffer, size);
-		} // while(true)
-	}
+            if (size < sizeof buffer)
+                buffer[size++] = '\n';
+            write (fd, buffer, size);
+            write (two, buffer, size);
+        } // while(true)
+    }
 #endif // WIN64
 }
 
@@ -323,9 +324,9 @@ void install_first_exception_handler(void)
 //   Install an unhandled exception handler that happens before LLVM
 // ----------------------------------------------------------------------------
 {
-	// Windows-specific ugliness
-	PrimaryExceptionFilter = SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
-	SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
+    // Windows-specific ugliness
+    PrimaryExceptionFilter = SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
+    SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 }
 
 
@@ -399,9 +400,9 @@ void install_signal_handler(sig_t handler)
 #endif // if 0
 
 #ifdef CONFIG_MINGW
-	// Windows-specific ugliness
-	TopLevelExceptionFilter = SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
-	SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
+    // Windows-specific ugliness
+    TopLevelExceptionFilter = SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
+    SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 #endif // CONFIG_MINGW
     }
 }
@@ -419,12 +420,12 @@ void signal_handler(int sigid)
     // Show something if we get there, even if we abort
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
-						   "DUMP IN %s\n"
+                           "DUMP IN %s\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log);
-   	write(two, buffer, size);
+    write(two, buffer, size);
 
     // Prevent recursion in the signal handler
     static int recursive = 0;
@@ -434,17 +435,17 @@ void signal_handler(int sigid)
 
     // Open stream for location where we'll write information
 #ifdef CONFIG_MINGW
-	// Can't have : in the time
-	for (char *ptr = sig_handler_log + 2; *ptr; ptr++)
-		if (*ptr == ':')
-			*ptr = '-';
+    // Can't have : in the time
+    for (char *ptr = sig_handler_log + 2; *ptr; ptr++)
+        if (*ptr == ':')
+            *ptr = '-';
 #endif
     int fd = open(sig_handler_log, O_WRONLY|O_CREAT, 0666);
-	write (fd, buffer, size);
+    write (fd, buffer, size);
 
     // Backtrace
 #ifdef CONFIG_MINGW
-	TaoStackTrace(fd);
+    TaoStackTrace(fd);
 #else // Real operating systems
     void *addresses[128];
     int count = backtrace(addresses, 128);
@@ -468,9 +469,7 @@ void signal_handler(int sigid)
         
     // Dump the flight recorder
     write (fd, "\n\n", 2);
-    write (two, "\n\n", 2);
     XL::FlightRecorder::SDump(fd, false);
-    XL::FlightRecorder::SDump(two, true);
 
     // Close the output stream
     close(fd);

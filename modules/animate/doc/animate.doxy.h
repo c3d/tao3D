@@ -25,57 +25,79 @@ refresh 0.01
 /**
  * Interpolate a variable
  *
- * Interpolate variable @a X to reach value @a TX with speed of change @a S.
+ * Interpolate variable @a X to reach value @a TargetX with speed of change @a S.
  */
-interpolate(S:real, TX:real, X:real);
+interpolate(real S, real TargetX, real X);
 
 /**
  * Interpolate three variables
  *
  * Interpolate variable @a X, @a Y and @a Z to reach values
- * @a TX, @a TY and @a TZ with speed of change @a S.
+ * @a TargetX, @a TargetY and @a TargetZ with speed of change @a S.
  */
-interpolate(S:real, TX:real, TY:real, TZ:real, X:real, Y:real, Z:real);
+interpolate(real S, real TargetX, real TargetY, real TargetZ, real X, real Y, real Z);
 
 /**
  * Interpolate a position
  *
  * Interpolate variable @a X, @a Y and @a Z to reach values
- * @a TX, @a TY and @a TZ with speed of change @a S, and use the
+ * @a TargetX, @a TargetY and @a TargetZ with speed of change @a S, and use the
  * result as a position. After the call, the coordinate systems is
  * centered on that new position.
  */
-interpolate_position(S:real, TX:real, TY:real, TZ:real, X:real, Y:real, Z:real);
+interpolate_position(real S, real TargetX, real TargetY, real TargetZ, real X, real Y, real Z);
+
+/**
+ * Interpolate a scale along X, Y and Z axis
+ *
+ * Interpolate variable @a Scale to reach value @a TargetScale with
+ * speed of change @a S, and use the result as a global scale along X,
+ * Y and Z axis.
+ *
+ * The @ref interpolate_scale2 performs the same operation on X and Y only
+ */
+interpolate_scale(real S, real TargetScale, real Scale)
+
+/**
+ * Interpolate a scale along X and Y axis
+ *
+ * Interpolate variable @a Scale to reach value @a TargetScale with
+ * speed of change @a S, and use the result as a global scale along X,
+ * and Y axis.
+ *
+ * The @ref interpolate_scale performs the same operation on X, Y and Z
+ */
+interpolate_scale2(real S, real TargetScale, real Scale)
 
 /**
  * Interpolate a rotation around X axis
  *
- * Interpolate variable @a X to reach value @a TX with speed of change @a S,
+ * Interpolate variable @a X to reach value @a TargetX with speed of change @a S,
  * then use the resulting value as a rotation angle. After the call,
  * the coordinate systems will have been rotated along the X axis by
  * @a X degrees.
  */
-interpolate_xangle(S:real, TX:real, X:real);
+interpolate_xangle(real S, real TargetX, real X);
 
 /**
  * Interpolate a rotation around Y axis
  *
- * Interpolate variable @a X to reach value @a TX with speed of change @a S,
+ * Interpolate variable @a X to reach value @a TargetX with speed of change @a S,
  * then use the resulting value as a rotation angle. After the call,
  * the coordinate systems will have been rotated along the Y axis by
  * @a X degrees.
  */
-interpolate_yangle(S:real, TX:real, X:real);
+interpolate_yangle(real S, real TargetX, real X);
 
 /**
  * Interpolate a rotation around Z axis
  *
- * Interpolate variable @a X to reach value @a TX with speed of change @a S,
+ * Interpolate variable @a X to reach value @a TargetX with speed of change @a S,
  * then use the resulting value as a rotation angle. After the call,
  * the coordinate systems will have been rotated along the Z axis by
  * @a X degrees.
  */
-interpolate_zangle(S:real, TX:real, X:real);
+interpolate_zangle(real S, real TargetX, real X);
 
 
 /**
@@ -90,7 +112,7 @@ interpolate_zangle(S:real, TX:real, X:real);
  circle 0, 0, 100
  @endcode
 */
-real fade_in(Value:real, Duration:real);
+real fade_in(real Value, real Duration);
 
 
 /**
@@ -105,7 +127,7 @@ real fade_in(Value:real, Duration:real);
  circle 0, 0, 100
  @endcode
 */
-real fade_out(Value:real, Duration:real);
+real fade_out(real Value, real Duration);
 
 
 /**
@@ -131,7 +153,7 @@ real smooth_step = 0.0;
  * are used to move forward in the animation, and negative values to move
  * backwards.
  */
-skip(Amount:real);
+skip(real Amount);
 
 /**
  * Skip directly to a given step in the animation
@@ -139,7 +161,16 @@ skip(Amount:real);
  * Skip to the given position in the animation. @see skip
  * backwards.
  */
-skip_to(Position:real);
+skip_to(real Position);
+
+
+/**
+ * Skip directly to a given step in the animation without transition
+ *
+ * Skip to the given position in the animation. @see skip_to
+ * backwards.
+ */
+skip_directly_to(real Position);
 
 
 /**
@@ -148,7 +179,7 @@ skip_to(Position:real);
  * Return a scaling factor that depends on how far @a N is from the current
  * position of the animation (as given by @ref step).
  */
-step_scale(N:integer);
+step_scale(integer N);
 
 
 /**

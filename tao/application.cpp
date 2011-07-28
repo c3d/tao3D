@@ -104,10 +104,12 @@ Application::Application(int & argc, char ** argv)
         exit(0);
     }
     bool showSplash = true;
-    if (cmdLineArguments.contains("-nosplash") || cmdLineArguments.contains("-h"))
+    if (cmdLineArguments.contains("-nosplash") ||
+        cmdLineArguments.contains("-h"))
         showSplash = false;
 
-    if (cmdLineArguments.contains("-norepo") || cmdLineArguments.contains("-nogit"))
+    if (cmdLineArguments.contains("-norepo") ||
+        cmdLineArguments.contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
     // Show splash screen
@@ -141,6 +143,7 @@ Application::Application(int & argc, char ** argv)
     EnterGraphics();
 
     // Activate basic compilation
+    xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
     xlr->SetupCompiler();
 
     // Load settings

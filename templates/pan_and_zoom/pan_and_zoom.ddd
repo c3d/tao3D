@@ -35,6 +35,8 @@ page "Example with Pan and Zoom",
                 paragraph_break
                 font_size 40
                 text "Use Right and Left to navigate"
+                paragraph_break
+                text "Return to zoom out"
         paz 100, 145, 45, 25,
             paz_box 400, 200, text "Intuitive..."
         paz 105, 135, 0, 25,

@@ -3,7 +3,7 @@ import Animate 1.0
 
 key "Left" -> skip -1
 key "Right" -> skip 1
-key "Return" -> skip_directly_to 0
+key "Return" -> skip_directly_to 0 ; reset_view
 
 
 draw_selection X -> false

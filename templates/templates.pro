@@ -25,5 +25,6 @@ contains (MODULES, filters):SUBDIRS += filters
 contains (MODULES, shading):SUBDIRS += shading
 contains (MODULES, movie_credits):SUBDIRS += movie
 contains (MODULES, mapping):SUBDIRS += mapping
+contains (MODULES, pan_and_zoom):SUBDIRS += pan_and_zoom
 
 message(Templates to install: $$SUBDIRS)

@@ -1,0 +1,108 @@
+import PanAndZoom 1.0
+import Animate 1.0
+
+key "Left" -> skip -1
+key "Right" -> skip 1
+key "Return" -> skip_directly_to 0
+
+
+draw_selection X -> false
+draw_text_selection X -> false
+draw_widget_selection X -> false
+
+
+page "Example with Pan and Zoom",
+// ----------------------------------------------------------------------------
+//   A simple example
+// ----------------------------------------------------------------------------
+    // Scale to the dimensions of the background picture 5184x3456x0.2
+    win_scale -> max(window_width / 1036, window_height / 691)
+    scale3 S:real -> scale S, S, S
+    scale3 win_scale
+
+    paz_page
+        // Default settings
+        color "white"
+        font "Arial", 64
+
+        // Background image
+        paz 0, 0, 0, 1,
+            translatez -5
+            image 0, 0, 0.2, 0.2, "Background.jpg"
+        paz 0, 150, 0, 3,
+            paz_rbox 800, 300,
+                text "Pan and Zoom"
+                paragraph_break
+                font_size 40
+                text "Use Right and Left to navigate"
+        paz 100, 145, 45, 25,
+            paz_box 400, 200, text "Intuitive..."
+        paz 105, 135, 0, 25,
+            paz_box 400, 200, text "Interesting..."
+        paz 100, 125, -45, 25,
+            paz_box 400, 200, text "Fun..."
+        paz 83.7, 137, -90, 150,
+            color "purple", 0.4
+            paz_box 1000, 200, text "Press ALT key to see coordinates"
+        paz 79.8, 136, -90, 150,
+            color "purple", 0.4
+            font_size 48
+            paz_box 1000, 200, text "Click on a shape to go there directly"
+        paz 180, 60, -5, 5,
+            paz_rbox 800, 200, text "New storytelling"
+        paz 110, 0, 5, 10,
+            paz_box 900, 200, text "Right on your computer"
+        paz 110, -8, 5, 15,
+            paz_box 900, 200, text "(not in the cloud)"
+        paz 94, -33, 10, 65,
+            image 0, 0, 1, 1, "Corsica4.jpg"
+        paz 98.2, -35.5, 100, 300,
+            text "Reveal"
+        paz 56, -36, 10, 60,
+            image 0, 0, 1, 1, "Corsica1.jpg"
+        paz 30, -36, -10, 60,
+            image 0, 0, 1, 1, "Corsica2.jpg"
+        paz 0, -36, 0, 60,
+            image 0, 0, 1, 1, "Corsica3.jpg"
+        paz 35 + 35 * sin (0.3 * time), -50, 0, 10,
+            paz_box 900, 200, text "Explore!"
+        paz -310, 0, -3, 5,
+            paz_rbox 600, 200, text "Grab attention"
+        paz -230, -72, -5, 10,
+            paz_box 200, 100,
+                color "grey", sin time^2
+                text "Highlight!"
+        paz -400, -57, 5, 10,
+            paz_box 200, 100,
+                color "grey", cos time^2
+                text "Brighten!"
+        paz -315, -70, 0, 80,
+            image 0, 0, 0.6, 0.6, "Corsica5.jpg"
+        paz -315, -95, 0, 80,
+            image 0, 0, 0.6, 0.6, "Corsica6.jpg"
+        paz -318, -140, 0, 80,
+            image 0, 0, 0.6, 0.6, "Corsica7.jpg"
+        paz 0, -100, 0, (if paz_between(-3, 3) then 3 else 8),
+            paz_rbox 900, 200, text "Enjoy a large display space"
+
+        paz 355, -100, 15, 5,
+            scale 0.5, 0.5, 1
+            paz_rbox 900, 200, text "Explore, little by little"
+        paz 428, -89, -3, 60,
+            show 0.3 + 0.7*fade_out(paz_index - smooth_step - 1, 1)
+            image 0, 0, 0.7, 0.7, "CorsicaB1.jpg"
+        paz 426, -101, 10, 300,
+            image 0, 0, 0.7, 0.7, "CorsicaB2.jpg"
+        paz 435, -106, 10, 300,
+            image 0, 0, 0.7, 0.7, "CorsicaB3.jpg"
+        paz 453, -114, 8, 200,
+            image 0, 0, 0.7, 0.7, "CorsicaB4.jpg"
+        paz 451, -125, 12, 200,
+            image 0, 0, 0.7, 0.7, "CorsicaB5.jpg"
+        paz 443, -112, 9, 200,
+            image 0, 0, 0.7, 0.7, "CorsicaB6.jpg"
+        paz 410, -120, 0, 10,
+            paz_cond
+                paz_rbox 500, 200,
+                    font_size 40
+                    text "Let your imagination roam free"

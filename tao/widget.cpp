@@ -264,10 +264,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
 
-    //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
-    glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &(TaoApp->maxTextureCoords));
-    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &(TaoApp->maxTextureUnits));
-
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
@@ -5780,6 +5776,16 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
         Ooops("Invalid texture unit $1", self);
         return 0;
     }
+
+    if(texUnit && (TaoApp->constructor == ATI))
+    {
+        glActiveTexture(GL_TEXTURE0 + texUnit);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
     layout->currentTexture.unit = texUnit;
     return new XL::Integer(texUnit);
 }

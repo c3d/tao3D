@@ -28,7 +28,6 @@
 #include <QStringList>
 #include <QTranslator>
 
-
 namespace Tao {
 
 struct Widget;
@@ -37,12 +36,21 @@ struct SplashScreen;
 struct ModuleManager;
 struct GCThread;
 
+enum Constructor {
+    ATI = 0,
+    NVIDIA = 1,
+    INTEL = 2,
+    LAST = 3
+};
 
 class Application : public QApplication
 // ----------------------------------------------------------------------------
 //    The main Tao application
 // ----------------------------------------------------------------------------
 {
+public:
+    static text constructorsList[LAST];
+
     Q_OBJECT
 
 public:
@@ -104,8 +112,9 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
+    Constructor  constructor;
     uint         maxTextureCoords;
-    uint         maxTextureUnits;
+    uint         maxTextureUnits;    
     QString      lang;
     GCThread *   gcThread;
 

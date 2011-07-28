@@ -64,34 +64,6 @@ page "Normal Mapping",
         rectangle 0, 0, 300, 300
 
 
-page "Displacement Mapping",
-// ----------------------------------------------------------------------------
-//   Displacement mapping
-// ----------------------------------------------------------------------------
-    background 1.0
-    title
-    contents 100, 0,
-        at_step 1
-        +"A color map on texture unit 0"
-    at_step 2
-    map_highlight -100, 100, "ground.png"
-    contents 100, -200,
-        at_step 3
-        +"A displacement map on texture unit 1"
-    at_step 4
-    map_highlight -100, -100, "displacementMap.png"
-    at_step 5
-    mapping
-    at_step 6
-    locally
-        texture_unit 0
-        texture "ground.png"
-        texture_unit 1
-        texture "displacementMap.png"
-        displacement_mapping 100 * exp (-5 * (highest_step - smooth_step) ^ 2)
-        result_highlight 400, 0
-        plane 0, 0, 300, 300, 100, 100
-
 page "Noise Mapping",
 // ----------------------------------------------------------------------------
 //   Noise mapping

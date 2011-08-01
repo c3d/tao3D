@@ -89,7 +89,7 @@ bool Shape3::setLineColor(Layout *where)
     return false;
 }
 
-Vector3& Shape3::calculateNormal(const Point3& v1,const Point3& v2,const Point3& v3)
+Vector3& Mesh::calculateNormal(const Point3& v1,const Point3& v2,const Point3& v3)
 // ----------------------------------------------------------------------------
 //    Compute normal of specified triangle
 // ----------------------------------------------------------------------------
@@ -326,23 +326,14 @@ void Sphere::Draw(Layout *where)
 //
 // ============================================================================
 
-void Torus::Draw(Layout *where)
+TorusMesh::TorusMesh(uint slices, uint stacks, double ratio)
 // ----------------------------------------------------------------------------
-//    Draw the torus within the bounding box
+//    Construct a unit torus with given number of slices, stacks and ratio
 // ----------------------------------------------------------------------------
 {
-    Point3 p = bounds.Center() + where->Offset();
     double minRadius = ratio * 0.25;
     double majRadius = 0.25;
     double thickness = 0.25;
-
-    scale w = bounds.Width();
-    scale h = bounds.Height();
-    scale d = bounds.Depth();
-
-    std::vector<Vector3> vertices;
-    std::vector<Vector3> normals;
-    std::vector<Vector>  textures;
 
     for (uint j = 0; j < stacks; j++) {
         GLfloat phi      = 2 * M_PI * j / stacks;
@@ -363,44 +354,48 @@ void Torus::Draw(Layout *where)
             // First vertex
             textures.push_back(Vector((double) i / slices, (double) (j+1) / stacks));
             normals.push_back(Vector3( sinTheta * cosIncrPhi, sinIncrPhi,  cosTheta * cosIncrPhi));
-            vertices.push_back(p + Vector3(w * (majRadius + minRadius * cosIncrPhi) * sinTheta,
-                                           h * (thickness * sinIncrPhi),
-                                           d * (majRadius + minRadius * cosIncrPhi) * cosTheta));
+            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
+                                       (thickness * sinIncrPhi),
+                                       (majRadius + minRadius * cosIncrPhi) * cosTheta));
 
             // Second vertex
             textures.push_back(Vector((double) i / slices, (double) j / stacks));
             normals.push_back(Vector3(sinTheta * cosPhi, sinPhi, cosTheta * cosPhi));
-            vertices.push_back(p + Vector3(w * (majRadius + minRadius * cosPhi) * sinTheta,
-                                           h * (thickness * sinPhi),
-                                           d * (majRadius + minRadius * cosPhi) * cosTheta));
+            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
+                                       (thickness * sinPhi),
+                                       (majRadius + minRadius * cosPhi) * cosTheta));
         }
     }
+}
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
+Torus::TorusCache Torus::cache;
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+void Torus::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the torus within the bounding box
+// ----------------------------------------------------------------------------
+{
+    Mesh * mesh = NULL;
+    Key key(slices, stacks, ratio);
+    TorusCache::iterator found = cache.find(key);
+    if (found == cache.end())
+    {
+        // Prune the map if it gets too big
+        while (cache.size() > MAX_TORUS)
+        {
+            TorusCache::iterator first = cache.begin();
+            delete (*first).second;
+            cache.erase(first);
+        }
+        mesh = new TorusMesh(slices, stacks, ratio);
+        cache[key] = mesh;
+    }
+    else
+    {
+        mesh = (*found).second;
+    }
 
-    //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, &textures[0].x);
-
-    setTexture(where);
-
-    if (setFillColor(where))
-        glDrawArrays(GL_QUAD_STRIP, 0, textures.size());
-    if (setLineColor(where))
-        glDrawArrays(GL_LINE_LOOP, 0, textures.size());
-
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            disableTexCoord((*it).first);
-
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    MeshBased::Draw(mesh, where);
 }
 
 // ============================================================================
@@ -409,20 +404,11 @@ void Torus::Draw(Layout *where)
 //
 // ============================================================================
 
-void Cone::Draw(Layout *where)
+ConeMesh::ConeMesh(double ratio)
 // ----------------------------------------------------------------------------
-//   Draw the cone within the bounding box
+//    Construct a (possibly truncated) unit cone - Limit case is a cylinder
 // ----------------------------------------------------------------------------
 {
-    Point3 p = bounds.Center() + where->Offset();
-    scale w = bounds.Width();
-    scale h = bounds.Height();
-    scale d = bounds.Depth();
-
-    std::vector<Point3> vertices;
-    std::vector<Point3> normals;
-    std::vector<Point>  textures;
-
     for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
     {
         double ca = cos(a);
@@ -430,14 +416,11 @@ void Cone::Draw(Layout *where)
 
         double s = a / (2 * M_PI);
         textures.push_back(Point(s, 0));
-        vertices.push_back(Point3(p.x + w/2* ca, p.y + h/2 * sa, p.z - d/2));
+        vertices.push_back(Point3(ca, sa, -0.5));
 
         textures.push_back(Point(s, 1));
-        vertices.push_back(Point3(p.x + w/2* ca * ratio, p.y + h/2 * sa * ratio, p.z + d/2));
+        vertices.push_back(Point3(ca * ratio, sa * ratio, 0.5));
     }
-
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, &vertices[0].x);
 
     // Compute normal of each vertex according to those calculate for neighbouring faces
     // NOTE: First and last normals are the same because of QUAD_STRIP
@@ -459,31 +442,36 @@ void Cone::Draw(Layout *where)
     }
     normals.push_back(normals[0]);
     normals.push_back(normals[0]);
+}
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_DOUBLE, 0, &normals[0].x);
+Cone::ConeCache Cone::cache;
 
-    //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, &textures[0].x);
+void Cone::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//    Draw the cone within the bounding box
+// ----------------------------------------------------------------------------
+{
+    Mesh * mesh = NULL;
+    Key key(ratio);
+    ConeCache::iterator found = cache.find(key);
+    if (found == cache.end())
+    {
+        // Prune the map if it gets too big
+        while (cache.size() > MAX_CONES)
+        {
+            ConeCache::iterator first = cache.begin();
+            delete (*first).second;
+            cache.erase(first);
+        }
+        mesh = new ConeMesh(ratio);
+        cache[key] = mesh;
+    }
+    else
+    {
+        mesh = (*found).second;
+    }
 
-    setTexture(where);
-
-    if (setFillColor(where))
-        glDrawArrays(GL_QUAD_STRIP, 0, vertices.size());
-    if (setLineColor(where))
-        // REVISIT: Inefficient and incorrect with alpha
-        for (uint i = 3; i <= vertices.size(); i++)
-            glDrawArrays(GL_LINE_LOOP, 0, i);
-
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            disableTexCoord((*it).first);
-
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
- }
+    MeshBased::Draw(mesh, where);
+}
 
 TAO_END

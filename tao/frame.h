@@ -76,7 +76,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
 
 
 template<typename Index>
-struct MultiFrameInfo : XL::Info
+struct MultiFrameInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //   Records a number of frameinfos indexed on some value
 // ----------------------------------------------------------------------------
@@ -85,6 +85,7 @@ struct MultiFrameInfo : XL::Info
 
     MultiFrameInfo() {}
     ~MultiFrameInfo() {}
+    virtual void Delete() { trash.push_back(this); }
 
     FrameInfo &frame(Index what)                { return map[what]; }
     frame_map   map;

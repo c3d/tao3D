@@ -26,6 +26,7 @@
 #include "tree.h"
 #include "widget.h"
 #include "tao_gl.h"
+#include "info_trash_can.h"
 
 TAO_BEGIN
 
@@ -70,7 +71,7 @@ public:
     QMovie movie;
 };
 
-struct TextureIdInfo : XL::Info
+struct TextureIdInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //   Info recording a given texture ID in a tree
 // ----------------------------------------------------------------------------
@@ -82,6 +83,10 @@ struct TextureIdInfo : XL::Info
     ~TextureIdInfo()
     {
         glDeleteTextures(1, &textureId);
+    }
+    virtual void Delete()
+    {
+        trash.push_back(this);
     }
     GLuint bind()
     {

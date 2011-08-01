@@ -27,6 +27,7 @@
 #include "tao_tree.h"
 #include "coords.h"
 #include "tao_gl.h"
+#include "info_trash_can.h"
 #include <phonon>
 
 class QWidget;
@@ -37,7 +38,7 @@ struct Widget;
 struct Layout;
 
 
-struct WidgetSurface : QObject, XL::Info
+struct WidgetSurface : QObject, XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Hold information about the the widget associated to a given tree
 // ----------------------------------------------------------------------------
@@ -48,6 +49,7 @@ public:
 
     WidgetSurface(Tree *t, QWidget *widget);
     virtual ~WidgetSurface();
+    virtual void Delete() { trash.push_back(this); }
 
     operator            data_t() { return this; }
     void                resize(uint width, uint height);

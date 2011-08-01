@@ -5376,6 +5376,7 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 //   Select a display function
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this); // #1223
     QString newName = +name;
     if (displayDriver->isCurrentDisplayFunctionSameAs(newName))
         return XL::xl_true;

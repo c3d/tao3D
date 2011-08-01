@@ -77,6 +77,7 @@
 #include "dir.h"
 #include "display_driver.h"
 #include "gc_thread.h"
+#include "info_trash_can.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -430,6 +431,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
             sf.tree->Do(purge);
         }
     }
+    // Drop the garbage
+    InfoTrashCan::Empty();
 
     // REVISIT:
     // Texture and glyph cache do not support multiple GL contexts. So,
@@ -596,11 +599,7 @@ void Widget::drawScene()
     }
 
     // Delete objects that have GL resources, pushed by GC
-    while (!pendingDeleteGL.empty())
-    {
-        delete pendingDeleteGL.back();
-        pendingDeleteGL.pop_back();
-    }
+    InfoTrashCan::Empty();
 }
 
 
@@ -864,13 +863,24 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 }
 
 
-bool Widget::refreshOn(int event_type)
+bool Widget::refreshOn(int event_type, double next_refresh)
 // ----------------------------------------------------------------------------
 //   Module interface to refreshOn
 // ----------------------------------------------------------------------------
 {
-    Tao()->refreshOn((QEvent::Type)event_type);
+    if (next_refresh == -1.0)
+        next_refresh = DBL_MAX;
+    Tao()->refreshOn((QEvent::Type)event_type, next_refresh);
     return true;
+}
+
+
+double Widget::currentTimeAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to currentTime()
+// ----------------------------------------------------------------------------
+{
+    return Tao()->CurrentTime();
 }
 
 
@@ -5377,6 +5387,7 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 //   Select a display function
 // ----------------------------------------------------------------------------
 {
+    TaoSave saveCurrent(current, this); // #1223
     QString newName = +name;
     if (displayDriver->isCurrentDisplayFunctionSameAs(newName))
         return XL::xl_true;

@@ -26,12 +26,13 @@
 #include "tree.h"
 #include "gl_keepers.h"
 #include "module_api.h"
+#include "info_trash_can.h"
 #include <map>
 #include <QImage>
 
 TAO_BEGIN
 
-struct FrameInfo : XL::Info
+struct FrameInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Information about a given frame being rendered in a dynamic texture
 // ----------------------------------------------------------------------------
@@ -45,6 +46,7 @@ struct FrameInfo : XL::Info
     FrameInfo(uint width = 512, uint height = 512);
     FrameInfo(const FrameInfo &other);
     ~FrameInfo();
+    virtual void Delete() { trash.push_back(this); }
 
     void        resize(uint width, uint height);
     void        begin();

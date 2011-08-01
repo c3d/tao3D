@@ -532,7 +532,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
             ModuleInfoPrivate m = readModule(moduleDir);
             if (m.id != "")
             {
-                emit checking(QString::fromStdString(m.name));
+                emit checking(+m.name);
 
                 if (!modules.contains(+m.id))
                 {

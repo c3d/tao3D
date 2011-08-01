@@ -90,8 +90,8 @@ tree light(id:integer, enable:boolean);
 light(id:integer);
 
 /**
- * Return current light id.
- * The default value is -1 if there is no enabled light.
+ * Return a bits mask with current lights ids.
+ * The default value is 0 if there is no enabled light.
  */
 integer light_id();
 

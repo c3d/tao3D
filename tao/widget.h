@@ -926,7 +926,8 @@ private:
     void                  refreshOn(QEvent::Type type,
                                     double nextRefresh = DBL_MAX);
 public:
-    static bool           refreshOn(int event_type);
+    static bool           refreshOn(int event_type, double next_refresh);
+    static double         currentTimeAPI();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
 

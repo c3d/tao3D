@@ -864,13 +864,24 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 }
 
 
-bool Widget::refreshOn(int event_type)
+bool Widget::refreshOn(int event_type, double next_refresh)
 // ----------------------------------------------------------------------------
 //   Module interface to refreshOn
 // ----------------------------------------------------------------------------
 {
-    Tao()->refreshOn((QEvent::Type)event_type);
+    if (next_refresh == -1.0)
+        next_refresh = DBL_MAX;
+    Tao()->refreshOn((QEvent::Type)event_type, next_refresh);
     return true;
+}
+
+
+double Widget::currentTimeAPI()
+// ----------------------------------------------------------------------------
+//   Module interface to currentTime()
+// ----------------------------------------------------------------------------
+{
+    return Tao()->CurrentTime();
 }
 
 

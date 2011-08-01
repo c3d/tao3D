@@ -46,7 +46,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   8
+#define TAO_MODULE_API_CURRENT   9
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -77,9 +77,20 @@ struct ModuleApi
     bool (*scheduleRender)(render_fn callback, void *arg);
 
     // Request that current layout be refreshed on specified event
-    // If event_type is QEvent::Timer, refresh will occur after the default
-    // refresh interval
-    bool (*refreshOn)(int event_type);
+    // If event_type is QEvent::Timer, next_refresh is used to specify when
+    // the next refresh should occur:
+    //   - if next_refresh is -1.0, refresh will occur after the
+    // "default refresh" period (cf. builtin default_refresh). Unless the
+    // default_refresh value is changed, this means: as soon as possible.
+    //   - if next_refresh is not -1.0, it is the absolute date of the
+    // next refresh. Use currentTime() if needed, for instance to request
+    // a refresh in 5 seconds, set next_refresh = currentTime() + 5.0.
+    // When event_type is not QEvent::Timer, next_refresh is ignored.
+    bool (*refreshOn)(int event_type, double next_refresh);
+
+    // Return the current time, in seconds. The returned value normally
+    // has millisecond precision.
+    double (*currentTime)();
 
     // Like scheduleRender, but current layout takes ownership of arg:
     // when layout is destroyed, delete_fn is called with arg.

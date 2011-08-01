@@ -36,6 +36,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 {
     scheduleRender   = ModuleRenderer::ScheduleRender;
     refreshOn        = Widget::refreshOn;
+    currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
     addControlBox    = Widget::addControlBox;
 

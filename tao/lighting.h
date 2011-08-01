@@ -27,6 +27,7 @@
 #include "color.h"
 #include "attributes.h"
 #include "tao_gl.h"
+#include "info_trash_can.h"
 #include <vector>
 #include <QGLShaderProgram>
 
@@ -98,18 +99,19 @@ struct Material : Light
 };
 
 
-extern std::vector<QObject *> pendingDeleteGL;
-struct ShaderProgramInfo : XL::Info
+struct ShaderProgramInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //   Hold info associated to a tree
 // ----------------------------------------------------------------------------
 {
     ShaderProgramInfo(QGLShaderProgram *program): program(program) {}
-    ~ShaderProgramInfo() { pendingDeleteGL.push_back(program); }
+    ~ShaderProgramInfo() { delete program; }
+    virtual void Delete() { trash.push_back(this); }
     typedef QGLShaderProgram *data_t;
     operator data_t() { return program; }
     QGLShaderProgram *program;
 };
+
 
 
 struct ShaderProgram : Lighting

@@ -77,6 +77,7 @@
 #include "dir.h"
 #include "display_driver.h"
 #include "gc_thread.h"
+#include "info_trash_can.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -430,6 +431,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
             sf.tree->Do(purge);
         }
     }
+    // Drop the garbage
+    InfoTrashCan::Empty();
 
     // REVISIT:
     // Texture and glyph cache do not support multiple GL contexts. So,
@@ -596,11 +599,7 @@ void Widget::drawScene()
     }
 
     // Delete objects that have GL resources, pushed by GC
-    while (!pendingDeleteGL.empty())
-    {
-        delete pendingDeleteGL.back();
-        pendingDeleteGL.pop_back();
-    }
+    InfoTrashCan::Empty();
 }
 
 

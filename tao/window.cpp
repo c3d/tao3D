@@ -557,20 +557,27 @@ again:
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
 
-    // We create an additional subfolder (same name as the file, without
-    // extension) if Git is enabled and the selected folder is NOT
-    // a Git repository.
-    // This is to avoid adding unwanted stuff to the repo. See #1232.
-    // Otherwise, save file normally.
+    // #1232
+    // To avoid adding unwanted stuff to the repo, we sometimes
+    // create an additional subfolder (same name as the file, without
+    // extension)
     bool createSubFolder = false;
+    bool isRepo = false;
+    bool gitEnabled = false;
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::no_repo)
     {
+        gitEnabled = true;
         repository_ptr r = RepositoryFactory::repository(projpath);
-        if (r == NULL)
-            createSubFolder = true;
+        isRepo = (r != NULL);
     }
 #endif
+    QDir targetDir = QDir(QFileInfo(fileName).absoluteDir());
+    QDir taoDir = QDir(Application::defaultProjectFolderPath());
+    bool isEmpty = (targetDir.count() == 2);  // "." and ".."
+    bool isTaoDir = (targetDir == taoDir);
+    if (isTaoDir || (gitEnabled && !isEmpty && !isRepo))
+        createSubFolder = true;
 
     if (createSubFolder)
     {

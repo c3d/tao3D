@@ -4036,6 +4036,7 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
+        where->currentLights = 0;
         where->textureUnits = 1;
         where->previousUnits = 0;
         where->lineColor = Color(0,0,0,0);
@@ -6210,11 +6211,20 @@ Integer* Widget::textureUnit(Tree_p self)
     return new Integer(layout->currentTexture.unit);
 }
 
+Integer_p Widget::lightId(Tree_p self)
+// ----------------------------------------------------------------------------
+//  Return the current light id
+// ----------------------------------------------------------------------------
+{
+    return new Integer(layout->currentLights);
+}
+
 Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 // ----------------------------------------------------------------------------
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
+    layout->currentLights |= 1 << id;
     layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
@@ -7636,6 +7646,8 @@ static inline JustificationChange::Axis jaxis(uint a)
     case 2: return JustificationChange::AlongZ;
     }
 }
+
+
 
 
 Tree_p Widget::align(Tree_p self, scale center, scale justify, scale spread,

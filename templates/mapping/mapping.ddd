@@ -150,6 +150,7 @@ page "Reflection Mapping",
         reflection_mapping 0.3
         rectangle 0, 0, 300, 300
 
+
 page "Cube Mapping",
 // ----------------------------------------------------------------------------
 //   Reflection mapping
@@ -166,7 +167,7 @@ page "Cube Mapping",
         +"A cube map on texture unit 1"
     at_step 4
     locally
-        // Transformation must bee need before apply effect
+        // Transformation must be done before to apply the effect
         highlight -150, -100, factor (-150, -100), true
         color "white"
         cube_map
@@ -187,7 +188,7 @@ page "Cube Mapping",
         texture_unit 0
         texture "tiles.jpg"
         texture_unit 1
-        // Transformation must bee need before apply effect
+        // Transformation must be done before to apply the effect
         result_highlight 400, 0
         cube_map
             cube_map_flip false, false

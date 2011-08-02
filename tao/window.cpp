@@ -554,30 +554,37 @@ again:
     if (fileName.isEmpty())
         return false;
 
-    // Avoid saving in the Tao folder (and thus creating a repository with all
-    // the Tao documents inside...)
-    // Note that on MacOSX, in some circumstances, user may involontarily
-    // select the Tao folder as a target even though he/she wanted to create
-    // a subfolder -- see http://bugreports.qt.nokia.com/browse/QTBUG-13526.
-    {
-        QDir dir = QDir(QFileInfo(fileName).absoluteDir());
-        QDir taoDir = QDir(Application::defaultProjectFolderPath());
-        if (dir == taoDir)
-        {
-            int r = QMessageBox::warning(this, tr("Confirm folder"),
-                        tr("Saving in the Tao document folder is not "
-                           "recommended. You should create a subfolder "
-                           "instead.\n"
-                           "Do you want to proceed anyway? Click No to "
-                           "choose another location."),
-                           QMessageBox::Yes | QMessageBox::No);
-            if (r != QMessageBox::Yes)
-                goto again;
-        }
-    }
-
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
+
+    // We create an additional subfolder (same name as the file, without
+    // extension) if Git is enabled and the selected folder is NOT
+    // a Git repository.
+    // This is to avoid adding unwanted stuff to the repo. See #1232.
+    // Otherwise, save file normally.
+    bool createSubFolder = false;
+#ifndef CFG_NOGIT
+    if (!RepositoryFactory::no_repo)
+    {
+        repository_ptr r = RepositoryFactory::repository(projpath);
+        if (r == NULL)
+            createSubFolder = true;
+    }
+#endif
+
+    if (createSubFolder)
+    {
+        int lastdot = fileNameOnly.lastIndexOf(".");
+        QString subdir = fileNameOnly.left(lastdot);
+        if (subdir.isEmpty())
+            goto again;
+        bool ok = QDir(projpath).mkdir(subdir);
+        if (!ok)
+            return false;
+        projpath += "/" + subdir;
+        fileName = projpath + "/" + fileNameOnly;
+    }
+
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::no_repo)
         if (!openProject(projpath, fileNameOnly, false))

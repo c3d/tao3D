@@ -599,13 +599,15 @@ QString Uri::repoUri()
 // ----------------------------------------------------------------------------
 //    Convert URI into a project URI suitable for use by the Repository class
 // ----------------------------------------------------------------------------
-//    Change tao: scheme to ssh:, and remove query/fragment info
+//    Translate tao: and taos: schemes, and remove query/fragment info
 //    tao://example.com/some/project/path?d=main.ddd
-//      => ssh://example.com/some/project/path        (tao: is ssh: by default)
+//      => git://example.com/some/project/path
 {
     QUrl uri(*this);
     uri.setEncodedQuery(QByteArray());
     if (uri.scheme() == "tao")
+        uri.setScheme("git");
+    else if (uri.scheme() == "taos")
         uri.setScheme("ssh");
 
     return uri.toString();

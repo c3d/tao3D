@@ -1233,7 +1233,7 @@ QString GitRepository::url()
         return "";
 
     QString hostname = QHostInfo::localHostName();
-    QString url = QString("tao://%1%2").arg(hostname).arg(path);
+    QString url = QString("taos://%1%2").arg(hostname).arg(path);
     return url;
 }
 

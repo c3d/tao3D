@@ -186,8 +186,10 @@ void TemplateChooserPage::initializePage()
 // ----------------------------------------------------------------------------
 {
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
-    QDir dir(TaoApp->applicationDirPath() + "/templates");
-    wiz->templates = Templates(dir);
+    QList<QDir> dirs;
+    dirs << QDir(TaoApp->applicationDirPath() + "/templates")
+         << QDir(TaoApp->defaultTaoPreferencesFolderPath() + "/templates");
+    wiz->templates = Templates(dirs);
     foreach (Template tmpl, wiz->templates)
     {
         QListWidgetItem *t = new QListWidgetItem(templateListWidget);

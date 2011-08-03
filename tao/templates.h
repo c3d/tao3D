@@ -94,9 +94,11 @@ class Templates : public QList<Template>
 public:
     Templates() {}
     Templates(const QDir &dir);
+    Templates(const QList<QDir> &dirs);
 
 private:
     std::ostream& debug();
+    void          read(const QDir &dir);
 
 private:
     QDir dir;  // Parent directory

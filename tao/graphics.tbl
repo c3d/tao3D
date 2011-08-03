@@ -2091,6 +2091,12 @@ PREFIX(MovieTexture,  tree,  "movie_texture",
 //   Lighting
 //
 // ============================================================================
+PREFIX(CurrentLightId,  tree,  "light_id",,
+       RTAO(lightId(self)),
+       GROUP(lighting)
+       SYNOPSIS("Return current light id")
+       DESCRIPTION("Return current light id")
+       RETURNS(tree, "The current light id"))
 
 PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),

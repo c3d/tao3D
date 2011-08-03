@@ -89,6 +89,11 @@ tree light(id:integer, enable:boolean);
  */
 light(id:integer);
 
+/**
+ * Return a bits mask with current lights ids.
+ * The default value is 0 if there is no enabled light.
+ */
+integer light_id();
 
 /**
  * Sets the color and intensity of the ambient emission of the current light.

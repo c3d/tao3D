@@ -122,6 +122,9 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     templateListWidget->setWordWrap(true);
     connect(templateListWidget, SIGNAL(itemSelectionChanged()),
             this, SLOT(updateDescription()));
+    NewDocumentWizard *wiz = (NewDocumentWizard *)parent;
+    connect(templateListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+            wiz, SLOT(next()));
 
     registerField("templateIdx*", templateListWidget);
 

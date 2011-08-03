@@ -25,6 +25,7 @@
 
 #include "new_document_wizard.h"
 #include "application.h"
+#include "repository.h"
 
 namespace Tao {
 
@@ -90,6 +91,9 @@ void NewDocumentWizard::accept()
         }
         docPath = newPath;
     }
+
+    // Create project to avoid prompt when document is first opened
+    RepositoryFactory::repository(dstPath, RepositoryFactory::Create);
 
     QDialog::accept();
 }

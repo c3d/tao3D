@@ -121,36 +121,6 @@ page "Sphere Mapping",
         sphere_mapping 0.2
         sphere 0, 0, 0, 300
 
-
-page "Reflection Mapping",
-// ----------------------------------------------------------------------------
-//   Reflection mapping
-// ----------------------------------------------------------------------------
-    background 1.0
-    title
-    contents 100, 0,
-        at_step 1
-        +"A color map on texture unit 0"
-    at_step 2
-    map_highlight -150, 100, "tiles.jpg"
-    contents 100, -200,
-        at_step 3
-        +"A reflection map on texture unit 1"
-    at_step 4
-    map_highlight -150, -100, "reflectionMap.jpg"
-    at_step 5
-    mapping
-    at_step 6
-    locally
-        texture_unit 0
-        texture "tiles.jpg"
-        texture_unit 1
-        texture "reflectionMap.jpg"
-        result_highlight 400, 0
-        reflection_mapping 0.3
-        rectangle 0, 0, 300, 300
-
-
 page "Cube Mapping",
 // ----------------------------------------------------------------------------
 //   Reflection mapping

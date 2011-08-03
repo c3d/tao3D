@@ -6224,7 +6224,11 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    layout->currentLights |= 1 << id;
+    if(enable)
+        layout->currentLights |= 1 << id;
+    else
+        layout->currentLights ^= 1 << id;
+
     layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;

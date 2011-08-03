@@ -54,8 +54,8 @@ NL="\n"
 [ "$HTML" ] && NL="<br>"
 
 
-FIXED=`git log --pretty=oneline $TAG1..$TAG2 | grep -e '[Ff]ixes #' | sed 's/.*[Ff]ixes #\([0-9][0-9]*\).*/\1/' | sort -n$REVERT | uniq`
-CLOSED=`git log --pretty=oneline $TAG1..$TAG2 | grep -e '[Cc]loses #' | sed 's/.*[Cc]loses #\([0-9][0-9]*\).*/\1/' | sort -n$REVERT | uniq`
+FIXED=`git log --pretty=oneline $TAG1..$TAG2 | grep -e '[Ff]ixe\?s\? *#' | sed 's/.*[Ff]ixe\?s\? *#\([0-9][0-9]*\).*/\1/' | sort -n$REVERT | uniq`
+CLOSED=`git log --pretty=oneline $TAG1..$TAG2 | grep -e '[Cc]loses\? *#' | sed 's/.*[Cc]loses\? *#\([0-9][0-9]*\).*/\1/' | sort -n$REVERT | uniq`
 FIXED_AND_CLOSED=`for i in $FIXED $CLOSED ; do echo $i ; done | sort -n$REVERT`
 ALL=`git log --pretty=oneline $TAG1..$TAG2 | awk '{ split($0, array) ; for (item in array) { if (match($item, "#[0-9][0-9]+")) { print substr($item, RSTART+1, RLENGTH-1) } } }' | sort -n$REVERT | uniq`
 

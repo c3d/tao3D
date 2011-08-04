@@ -18,19 +18,6 @@
  *
  * You may find more information and the latest news about Tao Presentations on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
- * @section secCredits Credits
- *
- * Tao Presentations uses the following components:
- *
- *   - <b>Qt</b>: Qt is a C++ toolkit for cross-platform application
- *   development. Qt is a Nokia product. See
- *   <a href="http://qt.nokia.com/">qt.nokia.com</a> for more information.
- *   - <b>LLVM</b>: The LLVM Project is a collection of modular and reusable
- *   compiler and toolchain technologies. See
- *   <a href="http://llvm.org/">llvm.org</a> for more information.
- *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
- *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
- *   information.
  *
  * @section secGettingStarted Getting started
  *
@@ -38,6 +25,15 @@
  * sample documents and change them to your liking. This documentation is
  * there to help you understand specific aspects of the document description
  * language as you progress.
+ *
+ * But first, you may want to watch the following introduction video
+ * (french commentary):
+ *
+ * @htmlonly
+   <iframe width="560" height="349"
+    src="http://www.youtube.com/embed/LpPwjB46E5I?rel=0&iv_load_policy=3"
+    frameborder="0" allowfullscreen></iframe>
+ * @endhtmlonly
  *
  * A number of examples are available as @a templates. To create a new Tao
  * document from a template, click <tt>File > New from Template Chooser...</tt>
@@ -452,6 +448,19 @@ import "xl:my_definitions.xl"
  * and standard error will remain connected to the terminal window, and
  * will not appear in the console.
  *
+ * @section secCredits Credits
+ *
+ * Tao Presentations uses the following components:
+ *
+ *   - <b>Qt</b>: Qt is a C++ toolkit for cross-platform application
+ *   development. Qt is a Nokia product. See
+ *   <a href="http://qt.nokia.com/">qt.nokia.com</a> for more information.
+ *   - <b>LLVM</b>: The LLVM Project is a collection of modular and reusable
+ *   compiler and toolchain technologies. See
+ *   <a href="http://llvm.org/">llvm.org</a> for more information.
+ *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
+ *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
+ *   information.
  */
 /**
  * @~french

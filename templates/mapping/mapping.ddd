@@ -140,7 +140,7 @@ page "Cube Mapping",
         // Transformation must be done before to apply the effect
         highlight -150, -100, factor (-150, -100), true
         color "white"
-        cube_map
+        cube_map 512,
             cube_map_flip false, false
             cube_map_face 0, "right.bmp"
             cube_map_face 1, "left.bmp"
@@ -160,7 +160,7 @@ page "Cube Mapping",
         texture_unit 1
         // Transformation must be done before to apply the effect
         result_highlight 400, 0
-        cube_map
+        cube_map 512,
             cube_map_flip false, false
             cube_map_face 0, "right.bmp"
             cube_map_face 1, "left.bmp"
@@ -169,5 +169,5 @@ page "Cube Mapping",
             cube_map_face 4, "front.bmp"
             cube_map_face 5, "back.bmp"
         cube_mapping 0.3
-        cube 0, 0, 0, 300, 300, 300
+        torus 0, 0, 0, 300, 300, 300, 40, 40, 0.5
 

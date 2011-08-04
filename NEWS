@@ -1,6 +1,17 @@
 Change log for Tao Presentations
 --------------------------------
 
+1.0-beta5
+
+#1246 Documentation: add link to youtube tutorial
+#1245 Allow selection of a template by double-clicking
+#1244 Do not ask for project creation when a document is created from a template
+#1232 "Save as" into non empty folder may take a long time and result in "index.lock: file exists"
+#1229 ModuleApi: add timeout parameter to refreshOn. Export currentTime.
+#1227 Accented characters (é) in module names incorrectly displayed on splash screen
+#1223 Crash when selecting View > Display mode menu
+#1217 Crash on frame texture
+
 1.0-beta4
 
 #1212 Blank screen on file open

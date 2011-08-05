@@ -15,8 +15,9 @@ TEMPLATE = subdirs
 
 kit.commands   = make -f Makefile.linux
 clean.commands = make -f Makefile.linux clean
+distclean.depends = clean
 
-QMAKE_EXTRA_TARGETS = kit clean
+QMAKE_EXTRA_TARGETS = kit clean distclean
 
 include (../../main_defs.pri)
 QMAKE_SUBSTITUTES = Makefile.config.in

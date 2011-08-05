@@ -1,5 +1,16 @@
-Change log for Tao Presentations
+ï»¿Change log for Tao Presentations
 --------------------------------
+
+1.0-beta5
+
+#1246 Documentation: add link to youtube tutorial
+#1245 Allow selection of a template by double-clicking
+#1244 Do not ask for project creation when a document is created from a template
+#1232 "Save as" into non empty folder may take a long time and result in "index.lock: file exists"
+#1229 ModuleApi: add timeout parameter to refreshOn. Export currentTime.
+#1227 Accented characters (Ã©) in module names incorrectly displayed on splash screen
+#1223 Crash when selecting View > Display mode menu
+#1217 Crash on frame texture
 
 1.0-beta4
 
@@ -73,10 +84,10 @@ Change log for Tao Presentations
 #1075 frame primitive not refreshed, error "Unexpected NULL ctx/body in non-root layout"
 #1074 Crash in Imagina demo in xl_textUnit
 #1073 Unnecessary compilations on a continuous basis
-#1069 Switching to Ç Cannes È stereoscopy requires Enable stereoscopy first
+#1069 Switching to Â« Cannes Â» stereoscopy requires Enable stereoscopy first
 #1066 Improve smoothness of animations
 #1026 MacOSX: crash in libunwind::CFI_Parser
-#1020 Chooser doesn't match é and e
+#1020 Chooser doesn't match Ã© and e
 #1005 page_thumbnail not refreshed
 
 1.0-beta2

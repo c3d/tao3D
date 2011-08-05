@@ -62,6 +62,17 @@ XLSourceEdit::~XLSourceEdit()
 }
 
 
+QString XLSourceEdit::workaroundRendererBugs(QString txt)
+// ----------------------------------------------------------------------------
+//   Workaround for some XL rendering issues (#336, #338)
+// ----------------------------------------------------------------------------
+{
+    return txt.replace(QRegExp("^\n"), "")
+              .replace(QRegExp(" \n"), "\n")
+              .replace(QRegExp(" $"), "");
+}
+
+
 void XLSourceEdit::setPlainTextKeepCursor(const QString &txt)
 // ----------------------------------------------------------------------------
 //   Update the text, try not to change the scrollbars and cursor positions
@@ -131,7 +142,7 @@ void XLSourceEdit::render(XL::Tree_p prog, std::set<XL::Tree_p> *selected)
     setSelectedRanges(sel);
 
     txt = rendererOut.str();
-    setPlainTextKeepCursor(+txt);
+    setPlainTextKeepCursor(workaroundRendererBugs(+txt));
 }
 
 

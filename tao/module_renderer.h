@@ -51,8 +51,10 @@ struct ModuleRenderer : Drawing
                               ModuleApi::delete_fn del);
 
     // Set drawing attributes
-    static bool   SetTexture(unsigned int id, unsigned int type);
-    static bool   SetTexCoords(int unit, double* texCoord);
+    static bool   SetTextures();
+    static bool   BindTexture(unsigned int id, unsigned int type);
+    static bool   BindTexCoords(double* texCoord);
+    static bool   UnBindTexCoords();
     static bool   SetFillColor();
     static bool   SetLineColor();
 
@@ -61,7 +63,6 @@ private:
     void *                 arg;
     ModuleApi::delete_fn   del;
     static Layout* currentLayout;
-    static std::map<int, double*> texList;
 };
 
 }

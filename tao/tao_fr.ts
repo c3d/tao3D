@@ -284,7 +284,7 @@
         <translation>Commande &quot;git&quot; introuvable ou non valide</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="52"/>
+        <location filename="splash_screen.cpp" line="42"/>
         <source>Version %1</source>
         <translation>Version %1</translation>
     </message>
@@ -1355,34 +1355,44 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::SplashScreen</name>
     <message>
-        <location filename="splash_screen.cpp" line="65"/>
+        <location filename="splash_screen.cpp" line="56"/>
         <source>All rights reserved.</source>
         <translation>Tous droits réservés.</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="66"/>
+        <location filename="splash_screen.cpp" line="57"/>
         <source>Credits</source>
         <translation>Remerciements</translation>
     </message>
+    <message>
+        <location filename="splash_screen.cpp" line="58"/>
+        <source>News</source>
+        <translation>Nouveautés</translation>
+    </message>
     <message utf8="true">
-        <location filename="splash_screen.cpp" line="145"/>
+        <location filename="splash_screen.cpp" line="137"/>
         <source>&lt;font color=&quot;%1&quot;&gt;by Catherine Burvelle, Jérôme Forissier and Christophe de Dinechin,&lt;br&gt;with help from Anne Lempereur and Lionel Schaffhauser.&lt;/font&gt;</source>
         <translation>&lt;font color=&quot;%1&quot;&gt;par Catherine Burvelle, Jérôme Forissier et Christophe de Dinechin,&lt;br&gt;avec l&apos;aide d&apos;Anne Lempereur et Lionel Schaffhauser.&lt;/font&gt;</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="195"/>
+        <location filename="splash_screen.cpp" line="187"/>
         <source>Tao Presentations - Credits</source>
         <translation>Tao Presentations - Remerciements</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="197"/>
+        <location filename="splash_screen.cpp" line="189"/>
         <source>&lt;h3&gt;Credits&lt;/h3&gt;&lt;p&gt;This program uses the following components.&lt;/p&gt;</source>
         <translation>&lt;h3&gt;Remerciements&lt;/h3&gt;&lt;p&gt;Ce programme utilise les composants suivants:&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="202"/>
+        <location filename="splash_screen.cpp" line="194"/>
         <source>&lt;h3&gt;Qt %1&lt;/h3&gt;&lt;p&gt;Qt is a C++ toolkit for cross-platform application development.&lt;/p&gt;&lt;p&gt;Qt is a Nokia product. See &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; for more information.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.&lt;/p&gt;&lt;p&gt;See &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; for more information.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR is a dynamically-compiled language based on parse tree rewrites.&lt;/p&gt;&lt;p&gt;See &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; for more information.&lt;/p&gt;</source>
         <translation>&lt;h3&gt;Qt %1&lt;/h3&gt;&lt;p&gt;Qt est une boîte à outils C++ pour le développement d&apos;applications multi-plateforme.&lt;/p&gt;&lt;p&gt;Qt est un produit de Nokia. Cf. &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;Le projet LLVM est un ensemble de technologies de compilation et d&apos;outils modulaires et réutilisables.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR est un langage compilé dynamiquement basé sur des réécritures d&apos;arbres.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="splash_screen.cpp" line="251"/>
+        <source>Tao Presentations - What&apos;s new?</source>
+        <translation>Tao Presentations - Quoi de neuf ?</translation>
     </message>
 </context>
 <context>
@@ -1500,12 +1510,12 @@ Code : %1
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10061"/>
+        <location filename="widget.cpp" line="10057"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10062"/>
+        <location filename="widget.cpp" line="10058"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

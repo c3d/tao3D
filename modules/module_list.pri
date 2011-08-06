@@ -28,6 +28,7 @@
        display_splitstereo \
        display_intstereo \
        display_alioscopy \
+       shaders/monjori  \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

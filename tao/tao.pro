@@ -331,6 +331,14 @@ revtarget.depends = $$SOURCES \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
 
+# Automatic embedding of changelog file (NEWS)
+system(cp ../NEWS ./NEWS)
+QMAKE_CLEAN += NEWS
+changelog.target = NEWS
+changelog.commands = cp ../NEWS .
+changelog.depends = ../NEWS
+QMAKE_EXTRA_TARGETS += changelog
+
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}

@@ -128,7 +128,7 @@ void ShaderValue::Draw(Layout *where)
             //Get type of current uniform variable
             GLint size = 0;
 			GLint length = 0;
-            GLchar* uniformName = new GLchar[uniformMaxLength];
+            GLchar* uniformName = new GLchar[uniformMaxLength + 1];
             for(int index = 0; index < uniformActive; index++)
             {
                 glGetActiveUniform( where->programId, index, uniformMaxLength + 1, &length, &size, (GLenum*) &type, uniformName);
@@ -142,7 +142,7 @@ void ShaderValue::Draw(Layout *where)
                 if(! strcmp(uniformName,name->value.c_str()))
                     break;
             }
-            delete uniformName;
+            delete[] uniformName;
 
             switch (type)
             {

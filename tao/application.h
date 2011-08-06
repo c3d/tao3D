@@ -112,9 +112,11 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
-    Constructor  constructor;
+    Constructor  constructorCards;
     uint         maxTextureCoords;
-    uint         maxTextureUnits;    
+    uint         maxTextureUnits;
+    text         GLVersionAvailable;
+    text         GLExtensionsAvailable;
     QString      lang;
     GCThread *   gcThread;
 

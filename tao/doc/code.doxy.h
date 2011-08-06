@@ -118,6 +118,23 @@ checkout (t:text);
 is_available (name:text);
 
 /**
+ * Get current OpenGL version.
+ * Return the current OpenGL version available in Tao.
+ *
+ * @returns name of the current OpenGL version.
+ */
+GL_version();
+
+/**
+ * Checks if an OpenGL extension is available in Tao.
+ *
+ * @p name is the name of the OpenGL extension to test.
+ *
+ * @returns true if the extension is available in, false otherwise.
+ */
+is_ext_available (name:text);
+
+/**
  * Checks if we are currently rendering to file.
  */
 offline_rendering ();

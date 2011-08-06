@@ -4682,7 +4682,6 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
     return XL::xl_true;
 }
 
-
 Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 //   Evaluate the child tree while preserving the current state
@@ -4946,6 +4945,7 @@ Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
     win->updateGeometry();
     return XL::xl_true;
 }
+
 
 XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
@@ -5808,7 +5808,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
         return 0;
     }
 
-    if(texUnit && (TaoApp->constructor == ATI))
+    if(texUnit && (TaoApp->constructorCards == ATI))
     {
         glActiveTexture(GL_TEXTURE0 + texUnit);
         glMatrixMode(GL_TEXTURE);
@@ -10545,6 +10545,24 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
     return XL::xl_true;
 }
 
+
+XL::Text_p Widget::GLVersion(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return OpenGL supported version
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(TaoApp->GLVersionAvailable);
+}
+
+
+XL::Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Check is an OpenGL extensions is supported
+// ----------------------------------------------------------------------------
+{
+    bool isAvailable = (strstr(TaoApp->GLExtensionsAvailable.c_str(), name.c_str()) != NULL);
+    return isAvailable ? XL::xl_true : XL::xl_false;
+}
 
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------

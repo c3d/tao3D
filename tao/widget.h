@@ -758,7 +758,11 @@ public:
     Real_p      fromPx(Tree_p self, double px);
 
     Tree_p      constant(Tree_p self, Tree_p tree);
-    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
+
+    // Misc
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);    
+    Text_p      GLVersion(XL::Tree_p self);
+    Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
 
     // z order management

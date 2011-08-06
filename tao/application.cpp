@@ -197,16 +197,27 @@ Application::Application(int & argc, char ** argv)
 
         switch(vendorNum)
         {
-        case 0: constructor = ATI; break;
-        case 1: constructor = NVIDIA; break;
-        case 2: constructor = INTEL; break;
+        case 0: constructorCards = ATI; break;
+        case 1: constructorCards = NVIDIA; break;
+        case 2: constructorCards = INTEL; break;
         }
 
-        //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
+
+        const GLubyte *str;
+        // Get OpenGL supported version
+        str = glGetString(GL_VERSION);
+        GLVersionAvailable = (const char*) str;
+
+        // Get OpenGL supported extentions
+        str = glGetString(GL_EXTENSIONS);
+        GLExtensionsAvailable = (const char*) str;
+
+        // Get number of maximum texture units and coords in fragment shaders
+        // (texture units are limited to 4 otherwise)
         glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
-
     }
+
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())
     {

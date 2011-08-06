@@ -25,6 +25,7 @@
 
 #include "new_document_wizard.h"
 #include "application.h"
+#include "repository.h"
 
 namespace Tao {
 
@@ -91,6 +92,9 @@ void NewDocumentWizard::accept()
         docPath = newPath;
     }
 
+    // Create project to avoid prompt when document is first opened
+    RepositoryFactory::repository(dstPath, RepositoryFactory::Create);
+
     QDialog::accept();
 }
 
@@ -118,6 +122,9 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     templateListWidget->setWordWrap(true);
     connect(templateListWidget, SIGNAL(itemSelectionChanged()),
             this, SLOT(updateDescription()));
+    NewDocumentWizard *wiz = (NewDocumentWizard *)parent;
+    connect(templateListWidget, SIGNAL(itemDoubleClicked(QListWidgetItem*)),
+            wiz, SLOT(next()));
 
     registerField("templateIdx*", templateListWidget);
 

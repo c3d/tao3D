@@ -554,30 +554,44 @@ again:
     if (fileName.isEmpty())
         return false;
 
-    // Avoid saving in the Tao folder (and thus creating a repository with all
-    // the Tao documents inside...)
-    // Note that on MacOSX, in some circumstances, user may involontarily
-    // select the Tao folder as a target even though he/she wanted to create
-    // a subfolder -- see http://bugreports.qt.nokia.com/browse/QTBUG-13526.
-    {
-        QDir dir = QDir(QFileInfo(fileName).absoluteDir());
-        QDir taoDir = QDir(Application::defaultProjectFolderPath());
-        if (dir == taoDir)
-        {
-            int r = QMessageBox::warning(this, tr("Confirm folder"),
-                        tr("Saving in the Tao document folder is not "
-                           "recommended. You should create a subfolder "
-                           "instead.\n"
-                           "Do you want to proceed anyway? Click No to "
-                           "choose another location."),
-                           QMessageBox::Yes | QMessageBox::No);
-            if (r != QMessageBox::Yes)
-                goto again;
-        }
-    }
-
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
+
+    // #1232
+    // To avoid adding unwanted stuff to the repo, we sometimes
+    // create an additional subfolder (same name as the file, without
+    // extension)
+    bool createSubFolder = false;
+    bool isRepo = false;
+    bool gitEnabled = false;
+#ifndef CFG_NOGIT
+    if (!RepositoryFactory::no_repo)
+    {
+        gitEnabled = true;
+        repository_ptr r = RepositoryFactory::repository(projpath);
+        isRepo = (r != NULL);
+    }
+#endif
+    QDir targetDir = QDir(QFileInfo(fileName).absoluteDir());
+    QDir taoDir = QDir(Application::defaultProjectFolderPath());
+    bool isEmpty = (targetDir.count() == 2);  // "." and ".."
+    bool isTaoDir = (targetDir == taoDir);
+    if (isTaoDir || (gitEnabled && !isEmpty && !isRepo))
+        createSubFolder = true;
+
+    if (createSubFolder)
+    {
+        int lastdot = fileNameOnly.lastIndexOf(".");
+        QString subdir = fileNameOnly.left(lastdot);
+        if (subdir.isEmpty())
+            goto again;
+        bool ok = QDir(projpath).mkdir(subdir);
+        if (!ok)
+            return false;
+        projpath += "/" + subdir;
+        fileName = projpath + "/" + fileNameOnly;
+    }
+
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::no_repo)
         if (!openProject(projpath, fileNameOnly, false))

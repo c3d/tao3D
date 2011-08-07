@@ -1,0 +1,28 @@
+// Create a title slide
+title_slide "Title slide"
+
+// Create a simple slide
+slide "Simple slide",
+    * "First level bullet"
+    - "Second level bullet"
+
+// Create a transition slide
+transition_slide "Transition slide"
+
+// Create a picture slide
+picture_slide "Picture slide",
+    translatez 400
+    rotatey 90 * sin time ^ 18
+    image 0, 0, 0.5, 0.5, "Picture.svg"
+
+// Create a two-column slide
+two_column_slide "Two columns slide", {
+    * "Left column"
+    - "Second level bullet"
+}, {
+    color_hsv 20 * time, 1, 1
+    circle 0, 0, 100
+    circle 100, 100, 50
+    circle -100, 100, 50
+}
+

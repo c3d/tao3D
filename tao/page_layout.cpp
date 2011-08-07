@@ -588,7 +588,7 @@ void PageLayout::Draw(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 

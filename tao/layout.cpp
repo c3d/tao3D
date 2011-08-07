@@ -51,13 +51,12 @@ LayoutState::LayoutState()
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
       currentLights(0),
-      textureUnits(1), previousUnits(0),
+      textureUnits(1),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0)
 {
-    fillTextures.clear();
 }
 
 
@@ -76,7 +75,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillColor(o.fillColor),
         currentLights(o.currentLights),
         textureUnits(o.textureUnits),
-        previousUnits(o.previousUnits),
+        previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),
         model(o.model),
         lightId(o.lightId),
@@ -242,7 +241,7 @@ void Layout::Draw(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 
@@ -266,7 +265,7 @@ void Layout::DrawSelection(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 
@@ -291,7 +290,7 @@ void Layout::Identify(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 
@@ -644,7 +643,7 @@ void Layout::Inherit(Layout *where)
     fillColor        = where->fillColor;
     currentLights    = where->currentLights;
     textureUnits     = where->textureUnits;
-    previousUnits    = where->previousUnits;
+    previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
     model            = where->model;
     lightId          = where->lightId;

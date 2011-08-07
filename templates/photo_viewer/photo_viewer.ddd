@@ -1,4 +1,4 @@
-import SlideShow3D 1.0 
+import SlideShow3D
 
 window_scale -> min (window_width / 1024, window_height / 768) 
 

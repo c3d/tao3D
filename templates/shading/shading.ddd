@@ -1,5 +1,5 @@
-import Shading 1.0
-import ObjectLoader 1.0
+import Shading
+import ObjectLoader
 
 // Main settings
 translatey -100

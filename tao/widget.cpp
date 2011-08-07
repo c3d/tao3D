@@ -262,7 +262,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     }
 
     // Initialize start time
-    pageStartTime = startTime = frozenTime = CurrentTime();
+    resetTimes();
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
@@ -764,7 +764,7 @@ bool Widget::refreshNow(QEvent *event)
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
         pageName = gotoPageName;
-        frozenTime = pageStartTime = startTime = CurrentTime();
+        resetTimes();
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == gotoPageName)
                 pageShown = p + 1;
@@ -1168,7 +1168,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           << "Goto page request: '" << gotoPageName
                           << "' from '" << pageName << "'\n";
             pageName = gotoPageName;
-            frozenTime = pageStartTime = startTime = CurrentTime();
+            resetTimes();
             for (uint p = 0; p < pageNames.size(); p++)
                 if (pageNames[p] == gotoPageName)
                     pageShown = p + 1;

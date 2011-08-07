@@ -13,18 +13,12 @@
 # "make install" will copy the templates to the staging directory
 
 TEMPLATE = subdirs
-SUBDIRS  = blank pythagorean_theorem hello_world guess_game mandelbrot custom_slides
 
-# Some templates depend on module availability
-include (../modules/module_list.pri)
-contains (MODULES, slides):SUBDIRS += simple_slides
-contains (MODULES, object_loader):contains(MODULES, tao_visuals):SUBDIRS += pigs_fly
-contains (MODULES, slideshow_3d):SUBDIRS += photo_viewer
-contains (MODULES, lens_flare):SUBDIRS += lens_flare
-contains (MODULES, filters):SUBDIRS += filters
-contains (MODULES, shading):SUBDIRS += shading
-contains (MODULES, movie_credits):SUBDIRS += movie
-contains (MODULES, mapping):SUBDIRS += mapping
-contains (MODULES, pan_and_zoom):SUBDIRS += pan_and_zoom
+include(template_list.pri)
+SUBDIRS  = $$TEMPLATES
 
-message(Templates to install: $$SUBDIRS)
+isEmpty(SUBDIRS) {
+    message(Templates to install: (none))
+} else {
+    message(Templates to install: $$SUBDIRS)
+}

@@ -1020,7 +1020,7 @@ Emplacement : %2</translation>
         <location filename="module_manager.cpp" line="1058"/>
         <source>Module %1 cannot be initialized.
 %2</source>
-        <translation>Le module %1 ne peut être initislisé.</translation>
+        <translation>Le module %1 ne peut être initalisé.</translation>
     </message>
 </context>
 <context>

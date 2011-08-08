@@ -48,13 +48,9 @@ TAO_BEGIN
 //
 // ============================================================================
 
-// Text globally looks better and is less buggy with bitmap cache enabled
-// on Windows and disabled on MacOSX. See #745.
-#if defined(Q_OS_WIN)
-bool TextUnit::cacheEnabled = true;
-#else
+// Bitmap cache is enabled globally on platforms that do not support
+// GL multisampling
 bool TextUnit::cacheEnabled = false;
-#endif
 
 void TextUnit::Draw(Layout *where)
 // ----------------------------------------------------------------------------

@@ -215,6 +215,7 @@ void LayoutLine::Draw(Layout *where)
         XL::Save<coord> saveX(ll->offset.x, ll->offset.x+place.position);
         child->Draw(ll);
     }
+
     IFTRACE(justify)
             std::cerr << "<-LayoutLine:"<<this<<":Draw\n";
 }
@@ -815,7 +816,7 @@ TextFlow::TextFlow(Layout *layout, text flowName)
 // ----------------------------------------------------------------------------
     : Layout(*layout), flowName(flowName), currentIterator(items.begin())
 {
-    IFTRACE(justify)
+    //IFTRACE(justify)
             std::cerr << "TextFlow::TextFlow[" << this
             << "] flowname " << flowName << std::endl;
 }
@@ -913,7 +914,9 @@ AnchorLayout::AnchorLayout(Widget *widget)
 //   Create an anchor layout
 // ----------------------------------------------------------------------------
     : Layout(widget)
-{}
+{
+    std::cerr << "AnchorLayout::AnchorLayout " << this <<std::endl;
+}
 
 
 AnchorLayout::AnchorLayout(const AnchorLayout &o)
@@ -921,7 +924,9 @@ AnchorLayout::AnchorLayout(const AnchorLayout &o)
 //   Create a copy of an anchor layout
 // ----------------------------------------------------------------------------
     : Layout(o)
-{}
+{
+    std::cerr << "AnchorLayout::AnchorLayout " << this <<std::endl;
+}
 
 
 AnchorLayout::~AnchorLayout()
@@ -944,8 +949,8 @@ void AnchorLayout::Draw(Layout *where)
     }
 
     Vector3 &o = where->offset;
-    IFTRACE(justify)
-            std::cerr << "AnchorLayout::Draw(Layout *" << where
+    //IFTRACE(justify)
+            std::cerr << "AnchorLayout:"<<this<<":Draw(Layout *" << where
             << ") translate to " << o <<std::endl;
     glTranslatef(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());

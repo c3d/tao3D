@@ -77,7 +77,7 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        currentLights(o.currentLights),
+        currentTexture(o.currentTexture),
         textureUnits(o.textureUnits),
         previousUnits(o.previousUnits),
         model(o.model),
@@ -654,7 +654,7 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth       = where->lineWidth;
     lineColor       = where->lineColor;
     fillColor       = where->fillColor;
-    currentLights   = where->currentLights;
+    currentTexture  = where->currentTexture;
     textureUnits    = where->textureUnits;
     previousUnits   = where->previousUnits;
     fillTextures    = where->fillTextures;

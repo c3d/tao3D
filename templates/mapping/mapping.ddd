@@ -1,4 +1,4 @@
-import Mapping 1.0
+import Mapping
 import "mapping.xl"
 
 page "Alpha Mapping",

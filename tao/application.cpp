@@ -38,6 +38,7 @@
 #include "traces.h"
 #include "display_driver.h"
 #include "gc_thread.h"
+#include "text_drawing.h"
 
 #include <QString>
 #include <QSettings>
@@ -251,6 +252,8 @@ Application::Application(int & argc, char ** argv)
                           << hasFBOMultisample
                           << " (samples per pixel: " << samples << ")\n";
         }
+        // Enable font bitmap cache only if we don't have multisampling
+        TextUnit::cacheEnabled = !(hasGLMultisample || hasFBOMultisample);
     }
     if (!hasGLMultisample)
     {

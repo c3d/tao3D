@@ -55,6 +55,14 @@
 #   modules="none +my_module"
 #     Build only my_module
 #
+#   templates=none
+#   templates=all
+#   templates=+my_template
+#   templates=-my_template
+#   templates=all -my_template
+#   templates=none +my_template
+#     Select which templates to install. Similar to 'modules' above.
+#
 # 2. To build:
 #
 #   $ make             # build everything

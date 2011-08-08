@@ -232,6 +232,8 @@ public:
     ulonglong   now();
     void        printStatistics();
     bool        hasAnimations(void)     { return animated; }
+    void        resetTimes() { pageStartTime = startTime = frozenTime
+                               = CurrentTime(); }
 
     // Selection
     GLuint      selectionId()           { return ++id; }

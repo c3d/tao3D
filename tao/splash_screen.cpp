@@ -200,7 +200,7 @@ void SplashScreen::showCredits()
         );
     QString translatedTextCreditsText;
     translatedTextCreditsText = tr(
-        "<h3>Qt</h3>"
+        "<h3>Qt %1</h3>"
         "<p>Qt is a C++ toolkit for cross-platform application "
         "development.</p>"
         "<p>Qt is a Nokia product. See "
@@ -216,7 +216,7 @@ void SplashScreen::showCredits()
         "rewrites.</p>"
         "<p>See <a href=\"http://xlr.sf.net/\">xlr.sf.net</a> for more "
         "information.</p>"
-        );
+        ).arg(QT_VERSION_STR);
     QMessageBox *msgBox = new QMessageBox;
     msgBox->setAttribute(Qt::WA_DeleteOnClose);
     msgBox->setWindowTitle(title);

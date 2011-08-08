@@ -35,6 +35,7 @@
 
 QT_BEGIN_NAMESPACE
 class QAction;
+class QActionGroup;
 class QMenu;
 class QTextEdit;
 class QSplashScreen;
@@ -84,6 +85,8 @@ public:
 #endif
     QString  currentProjectFolderPath();
     bool     needNewWindow();
+    bool     setStereo(bool on);
+    void     addDisplayModeMenu(QString mode, QString label);
 
     bool isUntitled;
     bool isReadOnly;
@@ -97,7 +100,6 @@ public:
 public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
-    void toggleStereoscopy();
     bool toggleSlideShow();
 #ifndef CFG_NOSRCEDIT
     void sourceViewBecameVisible(bool visible);
@@ -115,7 +117,7 @@ public slots:
     void clearErrors();
     void renderToFile();
     void adjustToScreenResolution(int screen);
-    void updateStereoscopyAct(int mode, int planes);
+    void updateDisplayModeCheckMark(QString mode);
 
 signals:
 #ifndef CFG_NOGIT
@@ -159,8 +161,10 @@ private slots:
     void about();
     void preferences();
     void onlineDoc();
+    void onlineDocTaodyne();
     void documentWasModified();
     void checkFiles();
+    void displayModeTriggered(bool on);
 
 private:
     void     createActions();
@@ -216,6 +220,9 @@ private:
     QMenu            *openRecentMenu;
     QMenu            *editMenu;
     QMenu            *viewMenu;
+    QMenu            *displayModeMenu;
+    QActionGroup     *displayModes;
+    QMap<QString, QAction *> displayModeToAction;
     QToolBar         *fileToolBar;
     QToolBar         *editToolBar;
     QToolBar         *viewToolBar;
@@ -249,9 +256,9 @@ private:
     QAction          *aboutAct;
     QAction          *preferencesAct;
     QAction          *onlineDocAct;
+    QAction          *onlineDocTaodyneAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
-    QAction          *viewStereoscopyAct;
     QUndoView        *undoView;
     QAction          *undoAction;
     QAction          *redoAction;

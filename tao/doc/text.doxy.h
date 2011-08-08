@@ -77,9 +77,11 @@
  *  </tr>
  *     <tr><th>Family</th><th>Styles</th></tr>
  *     <tr><td>Allerta</td><td>Stencil</td></tr>
+ *     <tr><td>Chewy</td><td>Regular</td></tr>
  *     <tr><td>Geo</td><td>Regular</td></tr>
  *     <tr><td>Kenia</td><td>Regular</td></tr>
  *     <tr><td>Kranky</td><td>Regular</td></tr>
+ *     <tr><td>LeckerliOne</td><td>Regular</td></tr>
  *     <tr><td>Lobster</td><td>Regular</td></tr>
  *     <tr><td>Luckiest Guy</td><td>Regular</td></tr>
  *     <tr><td>Mountains of Christmas</td><td>Regular</td></tr>
@@ -88,13 +90,6 @@
  *     <tr><td>UnifrakturMaguntia</td><td>Book</td></tr>
  *     <tr><td>Unkempt</td><td>Regular</td></tr>
  * </table>
- *
- * @bug [#325] On MacOSX, some font families cannot be rendered, due to
- * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-11145">QTBUG-11145</a>.
- *      The correction of this bug expected in QT 4.8.
- * @bug [#325] On MacOSX, font styles other than "Normal", "Bold", "Italic" and
- *     "Bold Italic" cannot be selected. This is caused by
- * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
  *
  * @par Using additional fonts
  *

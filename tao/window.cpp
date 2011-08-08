@@ -117,8 +117,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Create the main widget for displaying Tao stuff
     taoWidget = new Widget(this);
     setCentralWidget(taoWidget);
-    connect(taoWidget, SIGNAL(stereoModeChanged(int,int)),
-            this, SLOT(updateStereoscopyAct(int,int)));
 
     // Undo/redo management
     undoStack = new QUndoStack();
@@ -255,7 +253,9 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
     QTextStream in(&file);
     in.setCodec("UTF-8");
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
     loadInProgress = true;
     srcEdit->setPlainText(in.readAll());
     loadInProgress = false;
@@ -328,25 +328,6 @@ void Window::toggleAnimations()
     bool enable = !taoWidget->hasAnimations();
     taoWidget->enableAnimations(enable);
     viewAnimationsAct->setChecked(enable);
-}
-
-
-void Window::toggleStereoscopy()
-// ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
-// ----------------------------------------------------------------------------
-{
-    bool enable = !taoWidget->hasStereoscopy();
-    taoWidget->enableStereoscopy(enable);
-}
-
-
-void Window::updateStereoscopyAct(int, int)
-// ----------------------------------------------------------------------------
-//   Check or uncheck stereoscopy action
-// ----------------------------------------------------------------------------
-{
-    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
 }
 
 
@@ -573,30 +554,44 @@ again:
     if (fileName.isEmpty())
         return false;
 
-    // Avoid saving in the Tao folder (and thus creating a repository with all
-    // the Tao documents inside...)
-    // Note that on MacOSX, in some circumstances, user may involontarily
-    // select the Tao folder as a target even though he/she wanted to create
-    // a subfolder -- see http://bugreports.qt.nokia.com/browse/QTBUG-13526.
-    {
-        QDir dir = QDir(QFileInfo(fileName).absoluteDir());
-        QDir taoDir = QDir(Application::defaultProjectFolderPath());
-        if (dir == taoDir)
-        {
-            int r = QMessageBox::warning(this, tr("Confirm folder"),
-                        tr("Saving in the Tao document folder is not "
-                           "recommended. You should create a subfolder "
-                           "instead.\n"
-                           "Do you want to proceed anyway? Click No to "
-                           "choose another location."),
-                           QMessageBox::Yes | QMessageBox::No);
-            if (r != QMessageBox::Yes)
-                goto again;
-        }
-    }
-
     QString projpath = QFileInfo(fileName).absolutePath();
     QString fileNameOnly = QFileInfo(fileName).fileName();
+
+    // #1232
+    // To avoid adding unwanted stuff to the repo, we sometimes
+    // create an additional subfolder (same name as the file, without
+    // extension)
+    bool createSubFolder = false;
+    bool isRepo = false;
+    bool gitEnabled = false;
+#ifndef CFG_NOGIT
+    if (!RepositoryFactory::no_repo)
+    {
+        gitEnabled = true;
+        repository_ptr r = RepositoryFactory::repository(projpath);
+        isRepo = (r != NULL);
+    }
+#endif
+    QDir targetDir = QDir(QFileInfo(fileName).absoluteDir());
+    QDir taoDir = QDir(Application::defaultProjectFolderPath());
+    bool isEmpty = (targetDir.count() == 2);  // "." and ".."
+    bool isTaoDir = (targetDir == taoDir);
+    if (isTaoDir || (gitEnabled && !isEmpty && !isRepo))
+        createSubFolder = true;
+
+    if (createSubFolder)
+    {
+        int lastdot = fileNameOnly.lastIndexOf(".");
+        QString subdir = fileNameOnly.left(lastdot);
+        if (subdir.isEmpty())
+            goto again;
+        bool ok = QDir(projpath).mkdir(subdir);
+        if (!ok)
+            return false;
+        projpath += "/" + subdir;
+        fileName = projpath + "/" + fileNameOnly;
+    }
+
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::no_repo)
         if (!openProject(projpath, fileNameOnly, false))
@@ -621,7 +616,7 @@ bool Window::saveFonts()
 
     struct SOC
     {
-         SOC() { QApplication::setOverrideCursor(Qt::WaitCursor); }
+         SOC() { QApplication::setOverrideCursor(Qt::BusyCursor); }
         ~SOC() { QApplication::restoreOverrideCursor(); }
     } soc;
 
@@ -721,6 +716,76 @@ void Window::openRecentFile()
     QAction *action = qobject_cast<QAction *>(sender());
     if (action)
         open(action->data().toString());
+}
+
+
+bool Window::setStereo(bool on)
+// ----------------------------------------------------------------------------
+//    Enable/disable quad buffer stereoscopy for the current GL widget
+// ----------------------------------------------------------------------------
+{
+    QGLFormat current = taoWidget->format();
+    bool stereo = current.stereo();
+    if (stereo == on)
+        return true;
+
+    QGLFormat newFormat(current);
+    newFormat.setStereo(on);
+    IFTRACE(displaymode)
+        std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
+    taoWidget = new Widget(*taoWidget, newFormat);
+    setCentralWidget(taoWidget);
+    taoWidget->show();
+    taoWidget->setFocus();
+    taoWidget->makeCurrent();
+
+    return true;
+}
+
+
+void Window::addDisplayModeMenu(QString mode, QString label)
+// ----------------------------------------------------------------------------
+//    Add an entry to the View > Display mode menu (if it does not exist yet)
+// ----------------------------------------------------------------------------
+{
+    if (!displayModeToAction.contains(mode))
+    {
+        QAction *act = new QAction(label, this);
+        act->setCheckable(true);
+        if (mode == "2D")
+            act->setChecked(true);
+        act->setData(mode);
+        connect(act, SIGNAL(triggered(bool)),
+                this, SLOT(displayModeTriggered(bool)));
+        displayModeToAction.insert(mode, act);
+        displayModes->addAction(act);
+        displayModeMenu->addAction(act);
+    }
+}
+
+
+void Window::displayModeTriggered(bool on)
+// ----------------------------------------------------------------------------
+//    Called when an entry of the display mode menu is clicked
+// ----------------------------------------------------------------------------
+{
+    if (!on)
+        return;
+    QAction *action = qobject_cast<QAction *>(sender());
+    if (action)
+        taoWidget->setDisplayMode(NULL, +action->data().toString());
+}
+
+
+void Window::updateDisplayModeCheckMark(QString mode)
+// ----------------------------------------------------------------------------
+//    Called when an entry of the display mode menu is clicked
+// ----------------------------------------------------------------------------
+{
+    if (!displayModeToAction.contains(mode))
+        return;
+    QAction *act = displayModeToAction[mode];
+    act->setChecked(true);
 }
 
 
@@ -1100,6 +1165,16 @@ void Window::onlineDoc()
 }
 
 
+void Window::onlineDocTaodyne()
+// ----------------------------------------------------------------------------
+//    Open the online documentation page on taodyne.com
+// ----------------------------------------------------------------------------
+{
+    QString url("http://taodyne.com/doc/1.0/");
+    QDesktopServices::openUrl(url);
+}
+
+
 void Window::documentWasModified()
 // ----------------------------------------------------------------------------
 //   Record when the document was modified
@@ -1346,6 +1421,14 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
+    onlineDocTaodyneAct = new QAction(tr("&Online Documentation "
+                                         "(taodyne.com)"), this);
+    onlineDocTaodyneAct->setStatusTip(tr("Open the Online Documentation "
+                                         "on the Taodyne website"));
+    onlineDocTaodyneAct->setObjectName("onlineDocTaodyne");
+    connect(onlineDocTaodyneAct, SIGNAL(triggered()),
+            this, SLOT(onlineDocTaodyne()));
+
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
@@ -1359,14 +1442,6 @@ void Window::createActions()
     viewAnimationsAct->setObjectName("viewAnimations");
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
-
-    viewStereoscopyAct = new QAction(tr("Stereoscopy"), this);
-    viewStereoscopyAct->setStatusTip(tr("Switch stereoscopy on or off"));
-    viewStereoscopyAct->setCheckable(true);
-    viewStereoscopyAct->setChecked(taoWidget->hasStereoscopy());
-    viewStereoscopyAct->setObjectName("viewStereoscopy");
-    connect(viewStereoscopyAct, SIGNAL(triggered()),
-            this, SLOT(toggleStereoscopy()));
 
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
@@ -1485,8 +1560,8 @@ void Window::createMenus()
     viewMenu->addAction(errorDock->toggleViewAction());
     viewMenu->addAction(slideShowAct);
     viewMenu->addAction(viewAnimationsAct);
-    if (XL::MAIN->options.enable_stereoscopy)
-        viewMenu->addAction(viewStereoscopyAct);
+    displayModeMenu = viewMenu->addMenu(tr("Display mode"));
+    displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
     menuBar()->addSeparator();
@@ -1496,6 +1571,7 @@ void Window::createMenus()
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(onlineDocAct);
+    helpMenu->addAction(onlineDocTaodyneAct);
 }
 
 
@@ -1723,7 +1799,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         return false;
 #endif
 
-    QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+    QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
 
     if (openProj && repo)
     {
@@ -1773,7 +1851,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     else
     {
-        QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
 
         showMessage(msg.arg(tr("Caching code")));
         taoWidget->preloadSelectionCode();
@@ -1784,6 +1864,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         loadInProgress = false;
 #endif
         taoWidget->refreshNow();
+        taoWidget->refresh(0);
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }
@@ -1931,7 +2012,9 @@ bool Window::saveFile(const QString &fileName)
     {
         QTextStream out(&file);
         out.setCodec("UTF-8");
-        QApplication::setOverrideCursor(Qt::WaitCursor);
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
 #ifndef CFG_NOSRCEDIT
         out << srcEdit->toPlainText();
 #else

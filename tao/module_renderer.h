@@ -61,6 +61,7 @@ private:
     ModuleApi::render_fn   callback;
     void *                 arg;
     ModuleApi::delete_fn   del;
+    static Layout* currentLayout;
     static std::map<int, double*> texList;
 };
 

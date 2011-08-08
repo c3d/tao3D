@@ -28,25 +28,34 @@
 #include <QStringList>
 #include <QTranslator>
 
-
 namespace Tao {
 
 struct Widget;
 struct Window;
 struct SplashScreen;
 struct ModuleManager;
+struct GCThread;
 
+enum Constructor {
+    ATI = 0,
+    NVIDIA = 1,
+    INTEL = 2,
+    LAST = 3
+};
 
 class Application : public QApplication
 // ----------------------------------------------------------------------------
 //    The main Tao application
 // ----------------------------------------------------------------------------
 {
+public:
+    static text constructorsList[LAST];
+
     Q_OBJECT
 
 public:
     Application(int & argc, char ** argv);
-    virtual ~Application() {}
+    virtual ~Application();
 
     void           internalCleanEverythingAsIfTaoWereNeverRun();
     static QString defaultProjectFolderPath();
@@ -103,9 +112,11 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
+    Constructor  constructor;
     uint         maxTextureCoords;
-    uint         maxTextureUnits;
+    uint         maxTextureUnits;    
     QString      lang;
+    GCThread *   gcThread;
 
 private:
     QStringList  pathList;

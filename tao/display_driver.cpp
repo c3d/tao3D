@@ -26,6 +26,7 @@
 #include "tao_utf8.h"
 #include "base.h"
 #include "application.h"
+#include "window.h"
 #include <iostream>
 
 
@@ -35,37 +36,22 @@ namespace Tao {
 DisplayDriver::display_map DisplayDriver::map;
 
 
-static void legacyDraw(void *)
-// ----------------------------------------------------------------------------
-//   Link to previous implementation of all display functions in Widget
-// ----------------------------------------------------------------------------
-//   Remove this when all supported formats are moved out of widget.cpp
-{
-    Widget::Tao()->legacyDraw();
-}
-
-
 DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
 {
-    registerDisplayFunction("2Dplain",           displayBackBuffer,
-                                                 backBufferUse,
-                                                 backBufferUnuse,
-                                                 backBufferSetOpt);
+    registerDisplayFunction("2Dplain", displayBackBuffer,
+                                       NULL, NULL, NULL);
 
-    registerDisplayFunction("2DFBO",             displayBackBufferFBO,
-                                                 backBufferFBOUse,
-                                                 backBufferFBOUnuse,
-                                                 backBufferFBOSetOpt);
+    registerDisplayFunction("2DFBO",   displayBackBufferFBO,
+                                       backBufferFBOUse,
+                                       backBufferFBOUnuse,
+                                       NULL);
 
     text name2D = useFBO() ? "2DFBO" : "2Dplain";
     registerDisplayFunctionAlias("2D", name2D);
-
-    // Compatibility -- to be removed
-    registerDisplayFunction("legacy",            legacyDraw);
-    registerDisplayFunction("default",           legacyDraw);
+    registerDisplayFunctionAlias("default", "2D");
 
     // Function to be used initially
     setDisplayFunction("default");
@@ -108,6 +94,8 @@ bool DisplayDriver::setDisplayFunction(QString name)
         return true;
     if (map.contains(name))
     {
+        DisplayParams save = current;
+
         if (current.unuse)
             current.unuse(current.obj);
 
@@ -118,6 +106,27 @@ bool DisplayDriver::setDisplayFunction(QString name)
                     << "@" << (void*)current.fn << "\n";
         if (current.use)
             current.obj = current.use();
+
+        if (current.obj == (void*)(~0L))
+        {
+            IFTRACE(displaymode)
+                debug() << "Display function initialization error, "
+                           "restoring previous function\n";
+            current = save;
+            if (current.use)
+                current.obj = current.use();
+            found = false;
+        }
+        else
+        {
+            // Defaults
+            int planes = 1;
+            text t = getOption("PointsOfView");
+            if (t != "")
+                planes = (+t).toInt();
+            setStereoPlanes(planes);
+            doMouseTracking(true);
+        }
     }
     return found;
 }
@@ -226,96 +235,40 @@ std::ostream & DisplayDriver::debug()
 // ============================================================================
 
 
-void DisplayDriver::displayBackBuffer(void *obj)
+void DisplayDriver::displayBackBuffer(void *)
 // ----------------------------------------------------------------------------
 //   Default, usual 2D rendering into OpenGL back buffer
 // ----------------------------------------------------------------------------
 {
-    BackBufferParams * o = (BackBufferParams *)obj;
-    Q_ASSERT(obj || !"Back buffer display routine received NULL object");
-
     // Are we rendering to the default framebuffer, or a FBO?
     GLint fbname = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
 
-    int n = o->bogusQuadBuffer ? 2 : 1;
+    // Setup viewport
+    int w = renderWidth();
+    int h = renderHeight();
+    glViewport(0, 0, w, h);
 
-    for (int i = 1; i <= n; i++)
-    {
-        // Setup viewport
-        int w = renderWidth();
-        int h = renderHeight();
-        glViewport(0, 0, w, h);
+    // Setup projection and modelview matrices
+    setProjectionMatrix(w, h);
+    setModelViewMatrix();
 
-        // Setup projection and modelview matrices
-        setProjectionMatrix(w, h);
-        setModelViewMatrix();
+    // If no FBO is bound, select draw buffer
+    if (!fbname)
+        glDrawBuffer(GL_BACK);
 
-        // If no FBO is bound, select draw buffer
-        if (!fbname)
-        {
-            if (o->bogusQuadBuffer)
-                glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
-            else
-                glDrawBuffer(GL_BACK);
-        }
+    // Clear color and depth information
+    setGlClearColor();
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // Clear color and depth information
-        setGlClearColor();
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // Set suitable GL parameters for drawing
+    setupGl();
 
-        // Set suitable GL parameters for drawing
-        setupGl();
-
-        // Draw scene, selection, and activities
-        drawScene();
-        drawSelection();
-        drawActivities();
-    }
+    // Draw scene, selection, and activities
+    drawScene();
+    drawSelection();
+    drawActivities();
 }
-
-
-void * DisplayDriver::backBufferUse()
-// ----------------------------------------------------------------------------
-//   2D back buffer display is about to be used: allocate context
-// ----------------------------------------------------------------------------
-{
-    return new BackBufferParams;
-}
-
-
-void DisplayDriver::backBufferUnuse(void *obj)
-// ----------------------------------------------------------------------------
-//   Done with 2D back buffer display
-// ----------------------------------------------------------------------------
-{
-    delete (BackBufferParams *)obj;
-}
-
-
-bool DisplayDriver::backBufferSetOpt(void * obj,
-                                     std::string name,
-                                     std::string val)
-// ----------------------------------------------------------------------------
-//   Parse module option
-// ----------------------------------------------------------------------------
-{
-    bool ok = false;
-    BackBufferParams * o = (BackBufferParams *)obj;
-    if (name == "bogusquadbuffers")
-    {
-        ok = true;
-        if (val == "1" || val == "on")
-            o->bogusQuadBuffer = true;
-        else
-        if (val == "" || val == "0" || val == "off")
-            o->bogusQuadBuffer = false;
-        else
-            ok = false;
-    }
-    return ok;
-}
-
 
 
 void DisplayDriver::displayBackBufferFBO(void *obj)
@@ -369,37 +322,29 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
-    int n = o->bogusQuadBuffer ? 2 : 1;
+    // Select draw buffer
+    glDrawBuffer(GL_BACK);
 
-    for (int i = 1; i <= n; i++)
-    {
-        // Select draw buffer
-        if (o->bogusQuadBuffer)
-            glDrawBuffer(i == 1 ? GL_BACK_LEFT : GL_BACK_RIGHT);
-        else
-            glDrawBuffer(GL_BACK);
+    // Clear depth information, disable color blending so that texture alpha
+    // is ignored
+    glClear(GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_BLEND);
 
-        // Clear depth information, disable color blending so that texture alpha
-        // is ignored
-        glClear(GL_DEPTH_BUFFER_BIT);
-        glDisable(GL_BLEND);
+    // Not sure why, but without this I often have a blank screen
+    glDisable(GL_POLYGON_OFFSET_FILL);
+    glDisable(GL_POLYGON_OFFSET_LINE);
+    glDisable(GL_POLYGON_OFFSET_POINT);
 
-        // Not sure why, but without this I often have a blank screen
-        glDisable(GL_POLYGON_OFFSET_FILL);
-        glDisable(GL_POLYGON_OFFSET_LINE);
-        glDisable(GL_POLYGON_OFFSET_POINT);
-
-        glBegin(GL_QUADS);
-        glTexCoord2i( 0 , 0);
-        glVertex2i  (-1, -1);
-        glTexCoord2i( 1 , 0);
-        glVertex2i  ( 1, -1);
-        glTexCoord2i( 1,  1);
-        glVertex2i  ( 1,  1);
-        glTexCoord2i( 0,  1);
-        glVertex2i  (-1,  1);
-        glEnd();
-    }
+    glBegin(GL_QUADS);
+    glTexCoord2i( 0 , 0);
+    glVertex2i  (-1, -1);
+    glTexCoord2i( 1 , 0);
+    glVertex2i  ( 1, -1);
+    glTexCoord2i( 1,  1);
+    glVertex2i  ( 1,  1);
+    glTexCoord2i( 0,  1);
+    glVertex2i  (-1,  1);
+    glEnd();
 }
 
 
@@ -421,30 +366,6 @@ void DisplayDriver::backBufferFBOUnuse(void *obj)
 // ----------------------------------------------------------------------------
 {
     delete (BackBufferFBOParams *)obj;
-}
-
-
-bool DisplayDriver::backBufferFBOSetOpt(void * obj,
-                                        std::string name,
-                                        std::string val)
-// ----------------------------------------------------------------------------
-//   Parse module option
-// ----------------------------------------------------------------------------
-{
-    bool ok = false;
-    BackBufferFBOParams * o = (BackBufferFBOParams *)obj;
-    if (name == "bogusquadbuffers")
-    {
-        ok = true;
-        if (val == "1" || val == "on")
-            o->bogusQuadBuffer = true;
-        else
-        if (val == "" || val == "0" || val == "off")
-            o->bogusQuadBuffer = false;
-        else
-            ok = false;
-    }
-    return ok;
 }
 
 
@@ -504,7 +425,7 @@ bool DisplayDriver::registerDisplayFunctionAlias(std::string name,
     DisplayParams p = map[nam] = map[oth];
 
     IFTRACE(displaymode)
-        debug() << "Creating alias for display function: " << name
+        debug() << "Registering alias: " << name
                 << " => " << other << "@" << (void*)p.fn << "\n";
     return true;
 }
@@ -561,6 +482,16 @@ void DisplayDriver::showGlErrors()
 // ----------------------------------------------------------------------------
 {
     Widget::Tao()->showGlErrors();
+}
+
+
+bool DisplayDriver::setStereo(bool on)
+// ----------------------------------------------------------------------------
+//   Enable or disable quad buffers for current widget
+// ----------------------------------------------------------------------------
+{
+    Window * window = (Window*)Widget::Tao()->parentWidget();
+    return window->setStereo(on);
 }
 
 
@@ -639,6 +570,34 @@ double DisplayDriver::eyeSeparation()
 // ----------------------------------------------------------------------------
 {
     return Widget::Tao()->eyeDistance;
+}
+
+
+void DisplayDriver::setStereoPlanes(int planes)
+// ----------------------------------------------------------------------------
+//   Set the number of views per frame (for statistics)
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->stereoPlanes = planes;
+}
+
+
+void DisplayDriver::doMouseTracking(bool on)
+// ----------------------------------------------------------------------------
+//   Is current view useable for selection?
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->doMouseTracking = on;
+}
+
+
+void DisplayDriver::setMouseTrackingViewport(int x, int y, int w, int h)
+// ----------------------------------------------------------------------------
+//   Set the viewport that will be used to project mouse cursor
+// ----------------------------------------------------------------------------
+{
+    GLint *v = Widget::Tao()->mouseTrackingViewport;
+    v[0] = x; v[1] = y; v[2] = w; v[3] = h;
 }
 
 

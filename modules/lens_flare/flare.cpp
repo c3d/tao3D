@@ -25,7 +25,7 @@
 #include <math.h>
 #include "flare.h"
 
-const ModuleApi *LensFlare::tao = NULL;
+const ModuleApi *LensFlare::tao  = NULL;
 
 // ============================================================================
 //
@@ -33,19 +33,24 @@ const ModuleApi *LensFlare::tao = NULL;
 //
 // ============================================================================
 
-LensFlare::LensFlare() : depth_test(true), target(0, 0, 0), source(0, 0, 0)
+LensFlare::LensFlare()
 // ----------------------------------------------------------------------------
 //   Construction
 // ----------------------------------------------------------------------------
+    : query(0), depth_test(true), test_size(5), target(0, 0, 0), source(0, 0, 0)
 {
 }
+
 
 LensFlare::~LensFlare()
 // ----------------------------------------------------------------------------
 //   Destruction
 // ----------------------------------------------------------------------------
 {
+    if (query)
+        glDeleteQueries(1, &query);
 }
+
 
 void LensFlare::render_callback(void *arg)
 // ----------------------------------------------------------------------------
@@ -55,6 +60,7 @@ void LensFlare::render_callback(void *arg)
     ((LensFlare *)arg)->Draw();
 }
 
+
 void LensFlare::delete_callback(void *arg)
 // ----------------------------------------------------------------------------
 //   Delete callback: destroy object
@@ -62,6 +68,7 @@ void LensFlare::delete_callback(void *arg)
 {
     delete (LensFlare *)arg;
 }
+
 
 void LensFlare::setTarget(Vector3 position)
 // ----------------------------------------------------------------------------
@@ -71,6 +78,7 @@ void LensFlare::setTarget(Vector3 position)
     target = position;
 }
 
+
 void LensFlare::setSource(Vector3 position)
 // ----------------------------------------------------------------------------
 //   Define position of the lens flare source light
@@ -79,15 +87,19 @@ void LensFlare::setSource(Vector3 position)
     source = position;
 }
 
+
 void LensFlare::enableDephTest(bool enable)
 // ----------------------------------------------------------------------------
 //   Enable or disable manual depth test for the lens flare
 // ----------------------------------------------------------------------------
 {
+    if(!query)
+        glGenQueries(1, &query);
     depth_test = enable;
 }
 
-void LensFlare::addFlare(GLuint id, float location, float scale, GLfloat r, GLfloat g, GLfloat b, GLfloat a)
+void LensFlare::addFlare(GLuint id, float location, float scale,
+                         GLfloat r, GLfloat g, GLfloat b, GLfloat a)
 // ----------------------------------------------------------------------------
 //   Create a new flare and add it to the others.
 // ----------------------------------------------------------------------------
@@ -109,13 +121,14 @@ void LensFlare::addFlare(GLuint id, float location, float scale, GLfloat r, GLfl
 
 void LensFlare::Draw()
 // ----------------------------------------------------------------------------
-//   Draw a lens flare centred at the source position
-//   and heading toward the defined target.
+//   Draw the lens flare
 // ----------------------------------------------------------------------------
+//   We draw a lens flare centered at the source position and heading
+//   toward the defined target.
 {
-    // Disable current depth_test to avoid
-    // display problem with flares
-    glDisable(GL_DEPTH_TEST);
+    // Manually determine if the source is occluded by a previous object.
+    // If it is, we draw no one of the flares.
+    bool occluded = isOccluded(source);
 
     glEnable(GL_TEXTURE_2D);
     glEnable(GL_BLEND);
@@ -124,28 +137,38 @@ void LensFlare::Draw()
     // Compute lens direction
     Vector3 lens_dir = target  - source;
 
-    // Determine manually if the source is occluded by a previous object.
-    // If it is, we draw no one of the flares.
-    if(! isOccluded(source))
+    glDepthMask(GL_FALSE);
+    for(uint i = 0; i < lens_flare.size(); i++)
     {
-        glDepthMask(GL_FALSE);
-        for(uint i = 0; i < lens_flare.size(); i++)
+        // Draw flares at the source position without depth test
+        if(lens_flare[i].loc == 0)
         {
             // Interpolate position of the current flare
             Vector3 pos = source + lens_flare[i].loc * lens_dir;
             DrawFlare(lens_flare[i], pos);
         }
-        glDepthMask(GL_TRUE);
+        else if(! occluded)
+        {
+            // Disable current depth_test to avoid
+            // display problem with flares
+            glDisable(GL_DEPTH_TEST);
+
+            // Interpolate position of the current flare
+            Vector3 pos = source + lens_flare[i].loc * lens_dir;
+            DrawFlare(lens_flare[i], pos);
+
+            // Restore OpenGL depth test
+            glEnable(GL_DEPTH_TEST);
+        }
     }
+    glDepthMask(GL_TRUE);
 
     // Restore previous bend settings.
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDisable(GL_TEXTURE_2D);
     glDisable(GL_BLEND);
-
-    // Restore OpenGL depth test
-    glEnable(GL_DEPTH_TEST);
+    glDisable(GL_TEXTURE_2D);
 }
+
 
 void LensFlare::DrawFlare(Flare flare, Vector3 pos)
 // ----------------------------------------------------------------------------
@@ -186,26 +209,22 @@ bool LensFlare::isOccluded(Vector3 p)
 {
     if(depth_test)
     {
-        GLint viewport[4];							// Space for viewport data
-        GLdouble mvmatrix[16], projmatrix[16];					// Space for transform matrix
-        GLdouble winx, winy, winz;						// Space for returned projected coords
-        GLdouble flareZ;							// Store the transformed flare Z
-        GLfloat bufferZ;							// Store the read Z from the buffer
+        GLuint result = 0;
 
-        glGetIntegerv (GL_VIEWPORT, viewport);					// Get actual viewport
-        glGetDoublev (GL_MODELVIEW_MATRIX, mvmatrix);				// Get actual model view matrix
-        glGetDoublev (GL_PROJECTION_MATRIX, projmatrix);			// Get actual projection matrix
+        glBeginQuery(GL_SAMPLES_PASSED, query);
+        glBegin(GL_QUADS);
 
-        // This asks OGL to guess the 2D position of a 3D point inside the viewport
-        gluProject(p.x, p.y, p.z, mvmatrix, projmatrix, viewport, &winx, &winy, &winz);
-        flareZ = winz;
+        // Draw sun flare
+        glVertex3f(p.x - test_size, p.y - test_size, p.z);
+        glVertex3f(p.x + test_size, p.y - test_size, p.z);
+        glVertex3f(p.x + test_size, p.y + test_size, p.z);
+        glVertex3f(p.x - test_size, p.y + test_size, p.z);
 
-        // Read back one pixel from the depth buffer (exactly where source should be drawn)
-        glReadPixels(winx, winy, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &bufferZ);
+        glEnd();
+        glEndQuery(GL_SAMPLES_PASSED);
+        glGetQueryObjectuiv(query, GL_QUERY_RESULT, &result);
 
-        // If the buffer Z is lower than the flare guessed Z then don't draw
-        // This means there is something in front of our source.
-        if (bufferZ < flareZ)
+        if(result <= 0)
             return true;
     }
 

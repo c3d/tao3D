@@ -405,9 +405,6 @@ void ModuleManager::setEnabled(QString id, bool enabled)
         return;
     if (enabled && !m_p->loaded)
         load(m_p->context, *m_p);
-    else
-    if (!enabled && m_p->loaded)
-        unload(m_p->context, *m_p);
 }
 
 
@@ -464,24 +461,6 @@ QStringList ModuleManager::anonymousXL()
     return files;
 }
 
-
-static bool HACK_NoUnload = true;    // See FIXME below
-
-bool ModuleManager::unloadAll(Context *context)
-// ----------------------------------------------------------------------------
-//   Unload all currently loaded modules
-// ----------------------------------------------------------------------------
-{
-    HACK_NoUnload = false;
-    bool ok = true;
-    foreach (ModuleInfoPrivate m, modules)
-    {
-        modules[+m.id].context = NULL;
-        if (m.loaded)
-            ok &= unload(context, m);
-    }
-    return ok;
-}
 
 
 QList<ModuleManager::ModuleInfoPrivate> ModuleManager::allModules()
@@ -553,7 +532,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
             ModuleInfoPrivate m = readModule(moduleDir);
             if (m.id != "")
             {
-                emit checking(QString::fromStdString(m.name));
+                emit checking(+m.name);
 
                 if (!modules.contains(+m.id))
                 {
@@ -934,104 +913,6 @@ bool ModuleManager::isCompatible(QLibrary * lib)
             debug() << "      Version mismatch!\n";
         warnBinaryModuleIncompatible(lib);
     }
-    return ok;
-}
-
-
-bool ModuleManager::unload(Context *context, const ModuleInfoPrivate &m)
-// ----------------------------------------------------------------------------
-//   Unload one module
-// ----------------------------------------------------------------------------
-{
-    // FIXME: unload is normally disabled because there is no way to remove
-    // primitives from the XL runtime
-    if (HACK_NoUnload)
-        return false;
-
-    bool ok = true;
-
-    IFTRACE(modules)
-        debug() << "Unloading module: " << m.toText() << "\n";
-
-    ok = unloadXL(context, m);
-    if (ok)
-        ok = unloadNative(context, m);
-    return ok;
-}
-
-
-bool ModuleManager::unloadNative(Context *context, const ModuleInfoPrivate &m)
-// ----------------------------------------------------------------------------
-//   Unload the native code of a module
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(modules)
-        debug() << "  Unloading native library\n";
-
-    bool ok = true;
-
-    ModuleInfoPrivate * m_p = moduleById(m.id);
-    if (!m_p || !m_p->hasNative)
-        return ok;
-
-    QLibrary * lib = m_p->native;
-    if (!lib)
-        return ok;
-
-    Tao::delete_symbols_fn ds;
-    ds = (Tao::delete_symbols_fn)lib->resolve("delete_symbols");
-    if (ds)
-    {
-        IFTRACE(modules)
-            debug() << "    Calling delete_symbols\n";
-        ok &= ds(context);
-    }
-    Tao::module_exit_fn me;
-    me = (Tao::module_exit_fn)lib->resolve("module_exit");
-    if (me)
-    {
-        IFTRACE(modules)
-            debug() << "    Calling module_exit\n";
-        ok &= me();
-    }
-
-    IFTRACE(modules)
-        debug() << "    Unloading library\n";
-    m_p->native->unload();
-    m_p->native->deleteLater();
-    m_p->native = NULL;
-    return ok;
-}
-
-
-bool ModuleManager::unloadXL(Context *, const ModuleInfoPrivate &m)
-// ----------------------------------------------------------------------------
-//   Unload the XL code of a module
-// ----------------------------------------------------------------------------
-{
-    bool ok = true;
-    IFTRACE(modules)
-        debug() << "  Unloading XL code\n";
-
-    ModuleInfoPrivate * m_p = moduleById(m.id);
-    if (!m_p)
-        return ok;
-
-    QString xlPath = m_p->xlPath();
-    XL::source_files::iterator it = XL::MAIN->files.find(+xlPath);
-    XL::source_files::iterator end = XL::MAIN->files.end();
-    if (it != end)
-    {
-        XL::SourceFile &sf = (*it).second;
-        if (sf.context->Bound(new XL::Name("module_exit")))
-        {
-            IFTRACE(modules)
-                debug() << "    Calling XL module_exit\n";
-            XL::XLCall("module_exit")(&sf);
-        }
-    }
-
-    m_p->loaded = false;
     return ok;
 }
 

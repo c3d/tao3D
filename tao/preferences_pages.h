@@ -32,7 +32,6 @@ class QLineEdit;
 class QStackedWidget;
 class QProgressBar;
 class QComboBox;
-class QCheckBox;
 class QLabel;
 QT_END_NAMESPACE
 
@@ -53,11 +52,9 @@ private:
 
 private slots:
     void         setLanguage(int index);
-    void         disableStereoBuffers(bool disable);
 
 private:
     QComboBox *  combo;
-    QCheckBox *  noStereo;
     QLabel *     message;
 };
 

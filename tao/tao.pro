@@ -25,18 +25,12 @@ INC = . \
     xlr/xlr/include
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-win32:LIBS += -L../libxlr/release -L../libxlr/debug  # REVISIT
-LIBS += -L../libxlr -lxlr
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr
 QT += webkit \
     network \
     opengl \
     svg \
     phonon
-
-QMAKE_CFLAGS += -Werror
-QMAKE_CXXFLAGS += -Werror
-QMAKE_CXXFLAGS_RELEASE += -g \
-    \$(CXXFLAGS_\$%)
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -53,6 +47,7 @@ macx {
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc
+    LIBS += -limagehlp
 }
 linux-g++* {
     LIBS += -lXss
@@ -126,7 +121,10 @@ HEADERS += widget.h \
     templates.h \
     module_info_dialog.h \
     display_driver.h \
-    include/tao/matrix.h
+    include/tao/matrix.h \
+    statistics.h \
+    gc_thread.h \
+    info_trash_can.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -185,7 +183,10 @@ SOURCES += tao_main.cpp \
     dir.cpp \
     templates.cpp \
     module_info_dialog.cpp \
-    display_driver.cpp
+    display_driver.cpp \
+    statistics.cpp \
+    gc_thread.cpp \
+    info_trash_can.cpp
 
 # Check compile-time options
 
@@ -363,4 +364,3 @@ QMAKE_EXTRA_TARGETS += lrelease
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
-

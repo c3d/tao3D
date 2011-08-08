@@ -96,6 +96,7 @@ public:
     Color               lineColor;
     Color               fillColor;
     TextureState        currentTexture;
+    uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units
     uint64              previousUnits; //Previous used texture units
     tex_list            fillTextures;

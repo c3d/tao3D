@@ -15,10 +15,13 @@ Here is a step-by-tep guide.
   For instance for Qt 4.7.2, the default path is C:\Qt\2010.05.
 
 - Install msysgit from http://code.google.com/p/msysgit/downloads/list
-  You should pick the "full installer" version to get a version of make,
-  which will prove useful for building LLVM (LLVM wants gmake to build).
-  At the end of the installation, create a shortcut on the desktop with the
-  command:
+  You should pick the "Full installer (self-contained)" version to get a
+  version of make. If the setup program installs by default in
+  C:\Program files, then you picked the wrong version. The good one installs
+  by default under C:\msysgit.
+
+  At the end of the installation, a shell window opens automatically. Follow
+  the instruction to create a shortcut on the desktop: type:
   $ /share/msysGit/add-shortcut.tcl Desktop
 
 - Optional: install doxygen (to compile the Tao documentation).

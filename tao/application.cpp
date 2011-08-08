@@ -37,6 +37,7 @@
 #include "module_manager.h"
 #include "traces.h"
 #include "display_driver.h"
+#include "gc_thread.h"
 
 #include <QString>
 #include <QSettings>
@@ -63,6 +64,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
+text Application::constructorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -103,10 +105,12 @@ Application::Application(int & argc, char ** argv)
         exit(0);
     }
     bool showSplash = true;
-    if (cmdLineArguments.contains("-nosplash") || cmdLineArguments.contains("-h"))
+    if (cmdLineArguments.contains("-nosplash") ||
+        cmdLineArguments.contains("-h"))
         showSplash = false;
 
-    if (cmdLineArguments.contains("-norepo") || cmdLineArguments.contains("-nogit"))
+    if (cmdLineArguments.contains("-norepo") ||
+        cmdLineArguments.contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
     // Show splash screen
@@ -131,16 +135,30 @@ Application::Application(int & argc, char ** argv)
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
+                              
+    // Now time to install the "persistent" error handler
+    install_first_exception_handler();
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();
     EnterGraphics();
 
     // Activate basic compilation
+    xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
     xlr->SetupCompiler();
 
     // Load settings
     loadDebugTraceSettings();
+
+    // Create and start garbage collection thread
+    gcThread = new GCThread;
+    if (xlr->options.threaded_gc)
+    {
+        IFTRACE(memory)
+            std::cerr << "Threaded GC is enabled\n";
+        gcThread->moveToThread(gcThread);
+        gcThread->start();
+    }
 
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
@@ -157,6 +175,37 @@ Application::Application(int & argc, char ** argv)
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
+
+    {
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        // Ask graphic card constructor to OpenGL
+        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+        int vendorNum = 0;
+
+        // Search in constructors list
+        for(int i = 0; i < LAST; i++)
+        {
+            if(! vendor.compare(constructorsList[i]))
+            {
+                vendorNum = i;
+                break;
+            }
+        }
+
+        switch(vendorNum)
+        {
+        case 0: constructor = ATI; break;
+        case 1: constructor = NVIDIA; break;
+        case 2: constructor = INTEL; break;
+        }
+
+        //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
+        glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
+
+    }
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())
     {
@@ -211,9 +260,6 @@ Application::Application(int & argc, char ** argv)
                               " Shapes and large text may look jaggy."));
     }
 
-    maxTextureCoords = 1;
-    maxTextureUnits = 1;
-
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::available())
     {
@@ -245,6 +291,24 @@ Application::Application(int & argc, char ** argv)
     // We're ready to go
     if (!savedUri.isEmpty())
         loadUri(savedUri);
+}
+
+
+Application::~Application()
+// ----------------------------------------------------------------------------
+//   Delete the Tao application
+// ----------------------------------------------------------------------------
+{
+    if (gcThread)
+    {
+        IFTRACE(memory)
+            std::cerr << "Stopping GC thread...\n";
+        gcThread->quit();
+        gcThread->wait();
+        IFTRACE(memory)
+            std::cerr << "GC thread stopped\n";
+        delete gcThread;
+    }
 }
 
 
@@ -286,10 +350,7 @@ void Application::cleanup()
     if (screenSaverBlocked)
         blockScreenSaver(false);
     if (moduleManager)
-    {
-        moduleManager->unloadAll(XL::MAIN->context);
         moduleManager->saveConfig();
-    }
 }
 
 

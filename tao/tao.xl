@@ -78,9 +78,7 @@ main_chooser ->
     chooser_choice tr "Toggle full screen", {toggle_slide_show}
     chooser_choice tr "Enter full screen", {slide_show true}
     chooser_choice tr "Exit full screen", {slide_show false}
-    if is_available stereoscopy then
-        chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
-        chooser_choice tr "Disable stereoscopy", {enable_stereoscopy false}
+    stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice tr "Enable VSync", {enable_vsync true}
     chooser_choice tr "Disable VSync", {enable_vsync false}
@@ -96,8 +94,6 @@ main_chooser ->
     if current_repository then
         chooser_choice tr "Checkout...", {branch_chooser}
     chooser_commands "chooser_command_", ""
-    if is_available stereoscopy then
-        stereoscopy_settings
     chooser_choice tr "Texture...", {texture_chooser}
     window_choices
 
@@ -117,27 +113,19 @@ increase_eye_distance -> eye_distance eye_distance * 1.5
 decrease_eye_distance -> eye_distance eye_distance * 0.75
 
 stereoscopy_settings ->
-    chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
-    chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
-    chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
-    chooser_choice tr "Enable stereoscopy (vertical interleave)", {enable_stereoscopy vertical}
-    chooser_choice tr "Enable stereoscopy (diagonal interleave)", {enable_stereoscopy diagonal}
-    chooser_choice tr "Enable stereoscopy (back interleave)", {enable_stereoscopy antidiagonal}
-    chooser_choice tr "Enable stereoscopy (Cannes)", {enable_stereoscopy alioscopy; eye_distance 30.0}
-    chooser_choice tr "Enable stereoscopy (Depth map)", {enable_stereoscopy depthmap}
+    if has_display_mode quadstereo then
+        chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
+    if has_display_mode hsplitstereo then
+        chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
+    if has_display_mode vsplitstereo then
+        chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
+    if has_display_mode hintstereo then
+        chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
+    if has_display_mode alioscopy then
+        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy; eye_distance 30.0}
+    chooser_choice tr "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice tr "Increase eye distance", {increase_eye_distance}
     chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
-    chooser_choice tr "Set 2 stereo planes", {stereoscopy_planes 2}
-    chooser_choice tr "Set 3 stereo planes", {stereoscopy_planes 3}
-    chooser_choice tr "Set 4 stereo planes", {stereoscopy_planes 4}
-    chooser_choice tr "Set 5 stereo planes", {stereoscopy_planes 5}
-    chooser_choice tr "Set 6 stereo planes", {stereoscopy_planes 6}
-    chooser_choice tr "Set 7 stereo planes", {stereoscopy_planes 7}
-    chooser_choice tr "Set 8 stereo planes", {stereoscopy_planes 8}
-    chooser_choice tr "Set 9 stereo planes", {stereoscopy_planes 9}
-    chooser_choice tr "Set 10 stereo planes", {stereoscopy_planes 10}
-
-    chooser_choice tr "Activate ATI Macs quad buffer workaround", {enable_stereoscopy bogusquadbuffers}
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28
@@ -949,14 +937,6 @@ menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
     window_size 1920, 1080
 }
 
-menu_display_mode ->
-    menu   "TAO_VIEW_MENU", ""
-    submenu "TAO_VIEW_MENU:displaymode", tr "Display mode"
-    menu_item "TAO_VIEW_MENU:displaymode > 2D", tr "2D",
-        display_mode "2D"
-    menu_item "TAO_VIEW_MENU:displaymode > legacy", tr "Legacy (default)",
-        display_mode "legacy"
-
 window_choices ->
     chooser_choice "800 x 600",
         window_size 800, 600
@@ -975,4 +955,5 @@ menu_insert
 menu_format
 menu_arrange
 menu_window
-menu_display_mode
+
+add_display_mode_to_menu "2D", tr "2D"

@@ -22,6 +22,10 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+PREFIX(Crash, tree, "crash", ,
+       *((int *) 0) = 0;
+       return NULL, )
+
 // ============================================================================
 //
 // Getting attributes
@@ -281,6 +285,13 @@ PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
        SYNOPSIS("Check if a functionality is available")
        DESCRIPTION("Check if a specific Tao feature is available with the current version of the program")
        RETURNS( boolean, "True if the feature is compiled in, false otherwise.") )
+PREFIX(HasDisplayMode,  boolean,  "has_display_mode",
+       PARM(name, symbol, "The name of the display mode to test"),
+       RTAO(hasDisplayMode(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a display mode is available")
+       DESCRIPTION("Check if a specific display mode is available and can be used")
+       RETURNS(boolean, "True if the mode is available, false otherwise.") )
 
 
 
@@ -647,7 +658,12 @@ PREFIX(SetDisplayFunction,  boolean,  "display_mode",
        RTAO(setDisplayMode(self, name)),
        SYNOPSIS("Select a display mode (2D, split stereoscopy, etc.)")
        RETURNS(boolean, "True on success."))
-#ifndef CFG_NOSTEREO
+PREFIX(AddDisplayModeToMenu,  boolean,  "add_display_mode_to_menu",
+       PARM(name, text, "The name of the display mode")
+       PARM(label, text, "The name of the menu entry"),
+       RTAO(addDisplayModeToMenu(self, name, label)),
+       SYNOPSIS("Adds an entry for the display mode to the view menu")
+       RETURNS(boolean, "True on success."))
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        PARM(mode, symbol, "on or off or mode name"),
        RTAO(enableStereoscopy(self, mode)),
@@ -655,12 +671,6 @@ PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
        RETURNS(boolean, "True if previous state was on."))
-PREFIX(StereoPlanes, boolean, "stereoscopy_planes", PARM(cnt, integer, "on or off"),
-       RTAO(setStereoPlanes(self, cnt)), GROUP(gui)
-       SYNOPSIS("Enable or disable stereoscopie mode")
-       DESCRIPTION("Enable or disable stereoscopie mode")
-       RETURNS(boolean, "True if previous state was on."))
-#endif
 PREFIX(EyeDistance,  boolean,  "eye_distance",
        PARM(e, real, ),
        RTAO(setEyeDistance(self, e)),
@@ -857,7 +867,7 @@ PREFIX(FillTextureId,  integer,  "texture",
        DESCRIPTION(""))
 PREFIX(FillTexture,  integer,  "texture",
        PARM(n, text, "The image filename."),
-       RTAO(fillTexture(self, n)),
+       RTAO(fillTexture(context, self, n)),
        GROUP(graph:attribute)
        SYNOPSIS("Create a GL texture")
        DESCRIPTION("Build a GL texture out of an image file.\n"
@@ -875,14 +885,14 @@ PREFIX(FillTexture,  integer,  "texture",
                    "XPM X11 Pixmap"))
 PREFIX(FillTextureSVG,  integer, "svg",
        PARM(img, text, "The image filename."),
-       RTAO(fillTextureFromSVG(self, img)),
+       RTAO(fillTextureFromSVG(context, self, img)),
        GROUP(graph)
        SYNOPSIS("Create a texture from an SVG")
        DESCRIPTION("Draw an image from an SVG format")
        RETURNS(tree, ""))
 PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
        PARM(n, text, "The animation filename."),
-       RTAO(fillAnimatedTexture(self, n)),
+       RTAO(fillAnimatedTexture(context, self, n)),
        GROUP(graph:attribute)
        SYNOPSIS("Create a GL animated texture")
        DESCRIPTION("Build a GL texture images from an animated image file. Supported format are:\n\
@@ -2072,6 +2082,12 @@ PREFIX(MovieTexture,  tree,  "movie_texture",
 //   Lighting
 //
 // ============================================================================
+PREFIX(CurrentLightId,  tree,  "light_id",,
+       RTAO(lightId(self)),
+       GROUP(lighting)
+       SYNOPSIS("Return current light id")
+       DESCRIPTION("Return current light id")
+       RETURNS(tree, "The current light id"))
 
 PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),

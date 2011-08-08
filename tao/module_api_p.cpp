@@ -36,6 +36,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 {
     scheduleRender   = ModuleRenderer::ScheduleRender;
     refreshOn        = Widget::refreshOn;
+    currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
     addControlBox    = Widget::addControlBox;
 
@@ -46,22 +47,26 @@ ModuleApiPrivate::ModuleApiPrivate()
     SetLineColor     = ModuleRenderer::SetLineColor;
 
     // Display module API
-    registerDisplayFunction = DisplayDriver::registerDisplayFunction;
-    setGlClearColor         = DisplayDriver::setGlClearColor;
-    setupGl                 = DisplayDriver::setupGl;
-    showGlErrors            = DisplayDriver::showGlErrors;
-    setProjectionMatrix     = DisplayDriver::setProjectionMatrix;
-    setModelViewMatrix      = DisplayDriver::setModelViewMatrix;
-    drawScene               = DisplayDriver::drawScene;
-    drawSelection           = DisplayDriver::drawSelection;
-    drawActivities          = DisplayDriver::drawActivities;
-    getCamera               = DisplayDriver::getCamera;
-    renderHeight            = DisplayDriver::renderHeight;
-    renderWidth             = DisplayDriver::renderWidth;
-    zNear                   = DisplayDriver::zNear;
-    zFar                    = DisplayDriver::zFar;
-    zoom                    = DisplayDriver::zoom;
-    eyeSeparation           = DisplayDriver::eyeSeparation;
+    registerDisplayFunction      = DisplayDriver::registerDisplayFunction;
+    registerDisplayFunctionAlias = DisplayDriver::registerDisplayFunctionAlias;
+    setGlClearColor              = DisplayDriver::setGlClearColor;
+    setupGl                      = DisplayDriver::setupGl;
+    showGlErrors                 = DisplayDriver::showGlErrors;
+    setStereo                    = DisplayDriver::setStereo;
+    setProjectionMatrix          = DisplayDriver::setProjectionMatrix;
+    setModelViewMatrix           = DisplayDriver::setModelViewMatrix;
+    drawScene                    = DisplayDriver::drawScene;
+    drawSelection                = DisplayDriver::drawSelection;
+    drawActivities               = DisplayDriver::drawActivities;
+    getCamera                    = DisplayDriver::getCamera;
+    renderHeight                 = DisplayDriver::renderHeight;
+    renderWidth                  = DisplayDriver::renderWidth;
+    zNear                        = DisplayDriver::zNear;
+    zFar                         = DisplayDriver::zFar;
+    zoom                         = DisplayDriver::zoom;
+    eyeSeparation                = DisplayDriver::eyeSeparation;
+    doMouseTracking              = DisplayDriver::doMouseTracking;
+    setMouseTrackingViewport     = DisplayDriver::setMouseTrackingViewport;
 
     // Framebuffer API
     newFrameBufferObject       = FrameInfo::newFrameBufferObject;

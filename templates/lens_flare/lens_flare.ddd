@@ -1,0 +1,49 @@
+import LensFlare 1.0
+clear_color 0, 0, 0, 0
+
+sun X, Y, Z ->
+    light 0
+    light_ambient 0.0, 0.0, 0.0, 1.0
+    light_diffuse 1.0, 1.0, 1.0, 1.0
+    light_position X, Y, Z
+
+earth R ->
+    locally
+        material_ambient 0.4, 0.4, 0.4, 1.0
+        material_diffuse 1.0, 1.0, 1.0, 1.0
+        texture "earth.bmp"
+        texture_wrap true, true
+        rotatey 5 * page_time + 10
+        sphere 0, 0, 0, R
+
+moon R ->
+    locally
+        material_ambient 0.3, 0.3, 0.2, 1.0
+        material_diffuse 1.0, 1.0, 0.8, 1.0
+        texture "moon.jpg"
+        texture_wrap true, true
+        rotatez 75
+        rotatey 15 * page_time + 10
+        translatex 1000
+        sphere 0, 0, 0, R
+
+milkyway R ->
+    locally
+        material_ambient 0.3, 0.3, 0.3, 1
+        material_diffuse 1.0, 1.0, 1.0, 1.0
+        texture_wrap true, true
+        texture_transform {scale 5, 5, 5}
+        texture "milkyway.jpg"
+        rotatey 0.02 * page_time + 90
+        scale 1, -1, 1
+        sphere 0, 0, 0, R
+
+d -> window_height
+page "lens flare",
+    locally
+        milkyway 11000
+        sun 100, 300, -300 + 200 * abs (sin (page_time * 0.04))
+        moon d * 20%
+        earth d * 60%
+    translatey 500 * abs (sin (page_time * 0.04))
+    sun_flare 100, 0, -1000, -150, -500 * abs (sin (page_time * 0.04)), 2000

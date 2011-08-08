@@ -1,0 +1,117 @@
+﻿Change log for Tao Presentations
+--------------------------------
+
+1.0-beta5
+
+#1246 Documentation: add link to youtube tutorial
+#1245 Allow selection of a template by double-clicking
+#1244 Do not ask for project creation when a document is created from a template
+#1232 "Save as" into non empty folder may take a long time and result in "index.lock: file exists"
+#1229 ModuleApi: add timeout parameter to refreshOn. Export currentTime.
+#1227 Accented characters (é) in module names incorrectly displayed on splash screen
+#1223 Crash when selecting View > Display mode menu
+#1217 Crash on frame texture
+
+1.0-beta4
+
+#1212 Blank screen on file open
+#1209 Add skip_directly_to
+#1208 Add interpolate_scale2
+#1199 Context::ResolvePrefixedPath is very very slow
+#1198 Add link to the Tao documentation on taodyne.com
+#1197 'texture' doesn't resolve prefixed paths correctly
+#1195 Small (1px) gap visible on earth in Hello World template
+#1193 Implement Materials Module (Gold, Glass, Water, Iron, Silver, ....)
+#1192 Implement Mapping module (Alpha Mapping, Displacement Mapping, Normal Mapping, Cube Environment Mapping, ....)
+#1191 Implement Lens Flare module
+#1190 Implement Shading module (Cel Shading, Gooch Shading)
+#1189 Implement Filters module (Gaussian, Mean, Emboss, Sharpness, Laplacian, Black & White, Erode)
+#1188 Pan-and-Zoom (Prezi-style) module
+#1187 Star Wars module
+#1186 Enable search box in user documentation
+#1181 Add signal handlers that dump information about what happened
+#1179 Flight recorder
+#1174 Make sure that the "Wait" cursor looks modern
+#1168 Error messages in error window don't show line numbers
+#1163 Window size menu does not correctly set the size of the paint area
+#1160 Animate : Add function to animate scale
+#1157 Document how modules are loaded
+#1156 Progress icon of ObjectLoader module modified by active shader program
+#1152 Missing texture when movie_texture is used
+#1131 Combo box to select UI language should be multilingual
+#1130 'and' not translated in french version of about box
+#1129 GL error message not localized, 'é' character not shown on Windows
+#1126 MacOSX: error message "QPixmap::scaled: Pixmap is a null pixmap" on startup
+#1116 Add copyright info for LLVM, XLR, ... in about box and documentation
+#1113 Add enable_glyph_cache control to the chooser
+#1106 High use of slow code path in TypeAllocator::Acquire and TypeAllocator::Release
+#1104 gotoPage does not work in offline rendering mode
+#1102 Run GC in a separate thread to reduce impact on animations
+#1101 Fix behavior of forward and backward keys
+#1099 Anchor layout can't be drawn in NULL layout
+#1096 Improve antialiasing on some platforms by better detecting OpenGL features
+#1095 Framebuffer multisampling not enabled on Windows
+#1094 Update animation module
+#1093 Return texture ID from texture functions
+#1092 Windows: incorrect rendering into frame_texture
+#1090 load_tsv caches compiled trees only once
+#1089 First line in load_data contains only one element
+#1088 Reloading a program with load_csv statements fails
+#1085 Modularize display functions
+#1084 Support Alioscopy displays as specified in their technical documentation
+#1072 Runtime error if UTF-8 file contains a BOM
+#1002 Serious display bug on latest Macs
+#978  Cannot configure input and output of geometry shaders
+#935  Render to frames shows /frames directory on Windows
+#862  Addition of cylinder normals
+#723  Can't do offline rendering of 3D stereoscopic video
+#396  Add linear, radial and conical gradient
+
+1.0-beta3.14
+
+#1087 Movies don't restart when the slide restarts
+#1086 MacOSX: command chooser is slow
+#1083 Vertical split : eyes are swapped by default
+
+1.0-beta3
+
+#1082 Add search box to module list
+#1081 3D Object Loader module: upgrade GLC_Lib to 2.1.0
+#1080 Module manager should not load native libraries until needed
+#1078 Defective refresh after goto_page
+#1077 Animations do not resume where they were stopped
+#1076 FPS display has a severe impact on performance
+#1075 frame primitive not refreshed, error "Unexpected NULL ctx/body in non-root layout"
+#1074 Crash in Imagina demo in xl_textUnit
+#1073 Unnecessary compilations on a continuous basis
+#1069 Switching to « Cannes » stereoscopy requires Enable stereoscopy first
+#1066 Improve smoothness of animations
+#1026 MacOSX: crash in libunwind::CFI_Parser
+#1020 Chooser doesn't match é and e
+#1005 page_thumbnail not refreshed
+
+1.0-beta2
+
+#1065 Time not shown on page 9 of Pigs Fly template
+#1063 Splash screen: "All rights reserved" not translated into french
+#1062 Internationalize module information
+#1061 'anchor' doesn't propagate events to enclosing layout
+#1060 Translation/rotations in an 'anchor' don't work as expected
+#1059 Add module information dialog to preference page
+#1058 Crash with infinite recursion printing a page with page_thumbnail
+#1057 Improve error reporting when module load fails
+#1056 Add feature to resize the screen, with menu/chooser entries for predefined sizes
+#1055 Add keyboard shortcuts for stereoscopic adjustments
+#1054 page_thumbnail destroys application menus
+#1053 Access to field after deleting chooser
+#1052 Add some basic packaging for Linux
+#1044 Windows installer should propose creation of desktop shortcut and quick launch item
+#1042 Add index to online documentation
+#1041 Move 'locally' documentation along with "shape" and "active_widget"
+#1040 Not able to change object color from GUI
+#1034 Default should be to keep warning about configuration
+#1021 Get an empty file when saving
+#1002 Serious display bug on latest Macs
+#879 Ctrl-S does not save file if source editor has focus
+
+1.0-beta

@@ -398,7 +398,6 @@ public:
 
     bool                init();
     bool                loadAll(Context *context);
-    bool                unloadAll(Context *context);
     bool                loadAnonymousNative(Context *context);
     QStringList                anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
@@ -491,10 +490,6 @@ private:
     bool                loadXL(Context *, const ModuleInfoPrivate &m);
     bool                loadNative(Context *, const ModuleInfoPrivate &m);
     bool                isCompatible(QLibrary * lib);
-
-    bool                unload(Context *, const ModuleInfoPrivate &m);
-    bool                unloadXL(Context *, const ModuleInfoPrivate &m);
-    bool                unloadNative(Context *, const ModuleInfoPrivate &m);
 
     static
     std::ostream &      debug();

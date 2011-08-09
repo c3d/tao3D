@@ -583,6 +583,8 @@ void PageLayout::Draw(Layout *where)
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
         XL::Save<coord> saveY(offset.y, offset.y + place.position);
+        GLAllStateKeeper glSave(glSaveBits(),
+                                hasMatrix, false, hasTextureMatrix);
         child->Draw(this);
     }
     PopLayout(this);
@@ -638,6 +640,8 @@ void PageLayout::DrawSelection(Layout *where)
         {
             // No text selection, just draw children directly
             XL::Save<coord> saveY(offset.y, offset.y + place.position);
+            GLAllStateKeeper glSave(glSaveBits(),
+                                    hasMatrix, false, hasTextureMatrix);
             child->DrawSelection(this);
         }
         else
@@ -646,6 +650,8 @@ void PageLayout::DrawSelection(Layout *where)
             sel->processLineBreak();
             lineStart = widget->selectionCurrentId();
             XL::Save<coord> saveY(offset.y, offset.y + place.position);
+            GLAllStateKeeper glSave(glSaveBits(),
+                                    hasMatrix, false, hasTextureMatrix);
             child->DrawSelection(this);
             offset.y = saveY.saved;
             lineEnd = widget->selectionCurrentId();
@@ -708,6 +714,8 @@ void PageLayout::Identify(Layout *where)
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
         XL::Save<coord> saveY(offset.y, offset.y + place.position);
+        GLAllStateKeeper glSave(glSaveBits(),
+                                hasMatrix, false, hasTextureMatrix);
         child->Identify(this);
     }
     PopLayout(this);

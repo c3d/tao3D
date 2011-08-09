@@ -73,7 +73,6 @@ void ResetTransform::Draw(Layout *where)
     where->has3D = false;
 }
 
-void printMatrix(GLint model = -1);
 void Rotation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Rotation in a drawing
@@ -82,8 +81,9 @@ void Rotation::Draw(Layout *where)
     // BUG? fmod required to avoid incorrect rotations with large values
     // (>1290000000)
     amount = fmod(amount, 360.0);
-    std::cerr << "Rotation::Draw on "<< where << " with amount % 360 "<< amount << std::endl;
-    printMatrix();
+//    std::cerr << "Rotation::Draw on "<< where << " with amount % 360 "
+//            << amount << std::endl;
+//    printMatrix();
     glRotated(amount, xaxis, yaxis, zaxis);
     double amod90 = fmod(amount, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
@@ -106,10 +106,11 @@ void Translation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "Translate::Draw on " << where << " xaxis is " << xaxis <<std::endl;
-    printMatrix();
+//    std::cerr << "Translate::Draw on " << where << " xaxis is " << xaxis
+//            << std::endl;
+//    printMatrix();
     glTranslatef(xaxis, yaxis, zaxis);
-    printMatrix();
+//    printMatrix();
     if (zaxis != 0.0)
         where->hasPixelBlur = true;
     where->offset = Point3();
@@ -150,6 +151,9 @@ void MoveToRel::Draw(Layout *where)
 }
 
 void printMatrix(GLint model)
+// ----------------------------------------------------------------------------
+//    Print GL matrix on stderr
+// ----------------------------------------------------------------------------
 {
     GLdouble matrix[16];
     GLint cur = 0;
@@ -158,15 +162,20 @@ void printMatrix(GLint model)
     if (model != -1 && model != cur)
     {
         glMatrixMode(model);
-        cur = model;
         std::cerr << "Matrix mode set to " << model <<std::endl;
+        glGetDoublev(model, matrix);
+        glMatrixMode(cur);
+        std::cerr << "Matrix mode restored to " << cur <<std::endl;
     }
-    glGetDoublev(cur, matrix);
+    else
+        glGetDoublev(cur, matrix);
+
     for (int i = 0; i < 16; i+=4)
     {
         std::cerr << matrix[i] << "  " << matrix[i+1] << "  " << matrix[i+2]
                 << "  " <<matrix[i+3] << "  " <<std::endl;
     }
+
 }
 
 TAO_END

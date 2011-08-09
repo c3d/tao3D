@@ -306,7 +306,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       runOnNextDraw(true), clearCol(o.clearCol),
       space(NULL), layout(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
-      flowName(o.flowName), flows(o.flows), pageName(o.pageName),
+      currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
       pageLinks(o.pageLinks), pageNames(o.pageNames),
       newPageNames(o.newPageNames),
@@ -5885,7 +5885,7 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
-{       
+{
     uint texUnit = 0;
     uint texId = 0;
 

@@ -343,8 +343,7 @@ void Layout::Add(Drawing *d)
     if (d->IsAttribute())
     {
         // Only update layout state, not GL
-        GLAllStateKeeper glSave(glSaveBits(), hasMatrix,
-                                false, hasTextureMatrix);
+        GLAllStateKeeper glSave;
         d->Draw(this);
     }
 }

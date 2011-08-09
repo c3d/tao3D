@@ -511,6 +511,7 @@ void PageLayout::DrawSelection(Layout *where)
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
 {
+//    std::cerr << "PageLayout::DrawSelection\n"; // CaB
     // Remember the initial selection ID
     Widget     *widget   = where->Display();
     TextSelect *sel      = widget->textSelection();
@@ -612,6 +613,7 @@ void PageLayout::Identify(Layout */*where*/)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
+//    std::cerr << "PageLayout::Identify\n"; // CaB
     // Inherit state from our parent layout if there is one and compute layout
     Compute(flow);
 
@@ -816,7 +818,7 @@ TextFlow::TextFlow(Layout *layout, text flowName)
 // ----------------------------------------------------------------------------
     : Layout(*layout), flowName(flowName), currentIterator(items.begin())
 {
-    //IFTRACE(justify)
+    IFTRACE(justify)
             std::cerr << "TextFlow::TextFlow[" << this
             << "] flowname " << flowName << std::endl;
 }
@@ -914,9 +916,7 @@ AnchorLayout::AnchorLayout(Widget *widget)
 //   Create an anchor layout
 // ----------------------------------------------------------------------------
     : Layout(widget)
-{
-    std::cerr << "AnchorLayout::AnchorLayout " << this <<std::endl;
-}
+{}
 
 
 AnchorLayout::AnchorLayout(const AnchorLayout &o)
@@ -924,9 +924,7 @@ AnchorLayout::AnchorLayout(const AnchorLayout &o)
 //   Create a copy of an anchor layout
 // ----------------------------------------------------------------------------
     : Layout(o)
-{
-    std::cerr << "AnchorLayout::AnchorLayout " << this <<std::endl;
-}
+{}
 
 
 AnchorLayout::~AnchorLayout()
@@ -949,9 +947,10 @@ void AnchorLayout::Draw(Layout *where)
     }
 
     Vector3 &o = where->offset;
-    //IFTRACE(justify)
+    IFTRACE(justify)
             std::cerr << "AnchorLayout:"<<this<<":Draw(Layout *" << where
             << ") translate to " << o <<std::endl;
+
     glTranslatef(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Draw(where);

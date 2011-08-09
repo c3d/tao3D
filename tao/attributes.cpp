@@ -109,7 +109,8 @@ void FillTexture::Draw(Layout *where)
     if(glUnit < TaoApp->maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
-        where->fillTextures[glUnit].id = glName;
+        where->fillTextures[glUnit].unit = glUnit;
+        where->fillTextures[glUnit].id   = glName;
         where->fillTextures[glUnit].type = glType;
     }
 }

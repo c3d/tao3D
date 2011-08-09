@@ -285,6 +285,19 @@ PREFIX(TaoFeatureAvailable,  boolean,  "is_available",
        SYNOPSIS("Check if a functionality is available")
        DESCRIPTION("Check if a specific Tao feature is available with the current version of the program")
        RETURNS( boolean, "True if the feature is compiled in, false otherwise.") )
+PREFIX(GLVersion,  text,  "GL_version",,
+       RTAO(GLVersion(self)),
+       GROUP(misc)
+       SYNOPSIS("")
+       DESCRIPTION("Determine current supported version")
+       RETURNS( text, "name of current OpenGL version") )
+PREFIX(isGLExtensionAvailable,  boolean,  "is_ext_available",
+       PARM(name, text, "The name of the extention to test"),
+       RTAO(isGLExtensionAvailable(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if an OpenGL extension is available")
+       DESCRIPTION("Check if a specific OpenGL extension is available with the current version of the program")
+       RETURNS( boolean, "True if the extension is available, false otherwise.") )
 PREFIX(HasDisplayMode,  boolean,  "has_display_mode",
        PARM(name, symbol, "The name of the display mode to test"),
        RTAO(hasDisplayMode(self, name)),

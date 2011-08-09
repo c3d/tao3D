@@ -269,9 +269,9 @@ Application::Application(int & argc, char ** argv)
     if (!hasGLMultisample)
     {
         ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Multisample support"));
-        dialog.showMessage(tr("This system does not support GL sample buffers."
-                              " Shapes and large text may look jaggy."));
+        dialog.setWindowTitle(tr("Information"));
+        dialog.showMessage(tr("On this system, graphics and text edges may "
+                              "look jagged."));
     }
 
 #ifndef CFG_NOGIT

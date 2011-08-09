@@ -3,10 +3,7 @@ import Flares
 page "Flares", 
     color "white" 
     locally 
-        flare_shader_time -> stime 
-        flare_shader 
-        shader_set resolution := (window_width; window_height)
-        shader_set saturation := 2.0 * (0.5 + mouse_x / window_width)
+        flare stime, saturation
         fullscreen_quad 
     locally 
         color "white"
@@ -38,3 +35,5 @@ stime ->
     cur_time := cur_time + (page_time - prev) * 750 * (0.5 + mouse_y / window_height)
     prev := page_time
     cur_time
+
+saturation -> 2.0 * (0.5 + mouse_x / window_width)

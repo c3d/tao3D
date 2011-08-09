@@ -24,6 +24,7 @@
 #include "uri.h"
 #include "repository.h"
 #include "application.h"
+#include "destination_folder_dialog.h"
 #include <QSettings>
 #include <QDir>
 #include <QProgressDialog>
@@ -97,7 +98,7 @@ bool Uri::get()
     bool ok = true;
     QString uri = toString();
     IFTRACE(uri)
-        std::cerr << "Resolving URI: " << +uri << "\n";
+        debug() << "Resolving URI: " << +uri << "\n";
 
     QString path;
     if (isLocal())
@@ -105,30 +106,50 @@ bool Uri::get()
         // Local URI, just translate it into a local path
         path = documentOrProjectPath();
         IFTRACE(uri)
-            std::cerr << "URI resolves to local path: " << +path << "\n";
+            debug() << "URI resolves to local path: " << +path << "\n";
         emit docReady(path);
     }
     else
     {
         // Remote URI: needs download (clone or fetch)
-        emit progressMessage(tr("Downloading %1...").arg(uri));
         QStringList projects = localProjects();
-        clone = projects.isEmpty();
+        IFTRACE(uri)
+        {
+            if (!projects.isEmpty())
+            {
+                QString msg = projects.join(" ");
+                debug() << "Known URI, project(s): " << +msg << "\n";
+            }
+        }
+        QString defaultPath = newProject();
+
+        DestinationFolderDialog dialog(defaultPath, projects);
+        dialog.setWindowTitle(tr("Document download"));
+        dialog.exec();
+        project = dialog.target();
+        if (project.isEmpty())
+            return false;
+
+        emit progressMessage(tr("Downloading %1...").arg(uri));
+
+        IFTRACE(uri)
+            debug() << "Destination folder: " << +project << "\n";
+
+        clone = !projects.contains(project);
         if (clone)
         {
-            // Never seen this URI: clone this URI into a new project
+            // Clone this URI into a new project
             IFTRACE(uri)
-                    std::cerr << "URI is not mapped to a local project\n";
+                debug() << "Cloning URI into new local project: "
+                          << +project << "\n";
             ok = cloneAndCheckout();
         }
         else
         {
             // Just update existing project by fetching from remote repository
             IFTRACE(uri)
-            {
-                QString msg = projects.join(" ");
-                std::cerr << "Known URI, project(s): " << +msg << "\n";
-            }
+                debug() << "Fecthing into existing project: " << +project
+                          << "\n";
             ok = fetchAndCheckout();
         }
     }
@@ -150,7 +171,7 @@ void Uri::refreshSettings()
     int total = 0, deleted = 0, added = 0;
 
     IFTRACE2(settings, uri)
-        std::cerr << "Cleaning obsolete {URI -> local project} mappings\n";
+        debug() << "Cleaning obsolete {URI -> local project} mappings\n";
     emit progressMessage(tr("Checking known URIs"));
 
     QSettings settings;
@@ -184,11 +205,11 @@ void Uri::refreshSettings()
                 QByteArray ba;
                 ba.append(key);
                 text uri = +QUrl::fromPercentEncoding(ba);
-                std::cerr << " {" << uri << " -> " << +project << "} ";
+                debug() << " {" << uri << " -> " << +project << "} ";
                 if (exists)
-                    std::cerr << "[keep]\n";
+                    debug() << "[keep]\n";
                 else
-                    std::cerr << "[deleted]\n";
+                    debug() << "[deleted]\n";
             }
         }
         if (projects.isEmpty())
@@ -197,11 +218,11 @@ void Uri::refreshSettings()
             settings.setValue(key, projects);
     }
     IFTRACE2(settings, uri)
-        std::cerr << " (" << deleted << "/" << total
+        debug() << " (" << deleted << "/" << total
                   << " deleted/total)\n";
 
     IFTRACE2(settings, uri)
-        std::cerr << "Scanning user's Tao document directory\n";
+        debug() << "Scanning user's Tao document directory\n";
     emit progressMessage(tr("Checking URIs from document directory"));
 
     total = 0;
@@ -213,7 +234,7 @@ void Uri::refreshSettings()
         {
             QString projDir = QDir(dir.filePath(project)).absolutePath();
             IFTRACE2(settings, uri)
-                std::cerr << " " << +projDir;
+                debug() << " " << +projDir;
 
             repository_ptr repo =
                 RepositoryFactory::repository(projDir,
@@ -221,11 +242,11 @@ void Uri::refreshSettings()
             if (!repo)
             {
                 IFTRACE2(settings, uri)
-                    std::cerr << " [not a Git repository]\n";
+                    debug() << " [not a Git repository]\n";
                 continue;
             }
             IFTRACE2(settings, uri)
-                std::cerr << "\n";
+                debug() << "\n";
             QStringList remotes = repo->remotes();
             foreach (QString remote, remotes)
             {
@@ -239,11 +260,11 @@ void Uri::refreshSettings()
                         added++;
                     IFTRACE2(settings, uri)
                     {
-                        std::cerr << "  {" << +uri << " -> "
+                        debug() << "  {" << +uri << " -> "
                                   << +projDir << "}";
                         if (ok)
-                            std::cerr << " [added]";
-                        std::cerr << "\n";
+                            debug() << " [added]";
+                        debug() << "\n";
                     }
                 }
             }
@@ -251,7 +272,7 @@ void Uri::refreshSettings()
     }
 
     IFTRACE2(settings, uri)
-        std::cerr << " (" << added << "/" << total
+        debug() << " (" << added << "/" << total
                   << " added/total)\n";
 
     settings.endGroup();
@@ -323,6 +344,7 @@ QStringList Uri::localProjects()
     foreach (QString project, projects)
         if (project.isEmpty() || !QDir(project).exists())
             projects.removeOne(project);
+    projects.sort();
     return projects;
 }
 
@@ -373,17 +395,7 @@ bool Uri::fetchAndCheckout()
 //    Display a progress dialog and use Repository to fetch remote project
 // ----------------------------------------------------------------------------
 {
-    QStringList projects = localProjects();
-    project = projects.first();
-    if (projects.size() > 1)
-    {
-        bool ok;
-        project = QInputDialog::getItem(NULL, tr("Select local project"),
-                                     tr("Where do you want to save the remote "
-                                        "document?"), projects, 0, false, &ok);
-        if (!ok)
-            return false;
-    }
+    Q_ASSERT(!project.isEmpty());
 
     // Prepare Repository object to fetch project
     repo = RepositoryFactory::repository(project,
@@ -401,7 +413,7 @@ bool Uri::fetchAndCheckout()
     // Prepare fetch process
     QString repoUri = this->repoUri();
     IFTRACE(uri)
-        std::cerr << "Fetching from " << +repoUri << "\n";
+        debug() << "Fetching from " << +repoUri << "\n";
 
     QString remote = repo->remoteWithFetchUrl(repoUri);
     if (remote.isEmpty())
@@ -414,7 +426,7 @@ bool Uri::fetchAndCheckout()
         }
         while (!repo->remoteFetchUrl(remote).isEmpty());
         IFTRACE(uri)
-            std::cerr << "Creating remote: " << +remote << "\n";
+            debug() << "Creating remote: " << +remote << "\n";
         repo->addRemote(remote, repoUri);
     }
 
@@ -440,8 +452,8 @@ bool Uri::cloneAndCheckout()
 //    Clone new URI into a new project
 // ----------------------------------------------------------------------------
 {
-    // Prepare Repository object to clone project
-    project = newProject();
+    Q_ASSERT(!project.isEmpty());
+
     repo = RepositoryFactory::repository(project, RepositoryFactory::Clone);
     if (!repo)
         return showRepoErrorDialog();
@@ -457,7 +469,7 @@ bool Uri::cloneAndCheckout()
     // Prepare clone process
     QString repoUri = this->repoUri();
     IFTRACE(uri)
-        std::cerr << "Cloning from " << +repoUri << "\n";
+        debug() << "Cloning from " << +repoUri << "\n";
     proc = repo->asyncClone(repoUri, project);
     if (!proc)
         return false;
@@ -542,7 +554,7 @@ bool Uri::checkout()
     QString co = localRev(rev);
 
     IFTRACE(uri)
-        std::cerr << "Checking out " << +rev << " (locally: " << +co << ")\n";
+        debug() << "Checking out " << +rev << " (locally: " << +co << ")\n";
 
     Q_ASSERT(repo);
     bool ok = (repo && repo->checkout(+co));
@@ -649,7 +661,7 @@ QString Uri::newProject()
     }
     while (exists);
     IFTRACE(uri)
-        std::cerr << "Will clone into " << +project << "\n";
+        debug() << "Suggested new path to download to: " << +project << "\n";
     return project;
 }
 
@@ -676,6 +688,16 @@ QString Uri::docPath(QString project)
             path = project + "/" + list.first();
     }
     return path;
+}
+
+
+std::ostream & Uri::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[Uri] ";
+    return std::cerr;
 }
 
 }

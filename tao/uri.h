@@ -35,6 +35,7 @@
 #include <QString>
 #include <QStringList>
 #include <QProgressDialog>
+#include <iostream>
 
 
 namespace Tao {
@@ -85,6 +86,9 @@ protected slots:
     void                  onDownloadFinished(int exitCode, QProcess::ExitStatus exitStatus);
     void                  onDownloadError(QProcess::ProcessError error);
     void                  abortDownload();
+
+private:
+    std::ostream&         debug();
 
 private:
     repository_ptr        repo;

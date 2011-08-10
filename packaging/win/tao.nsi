@@ -177,7 +177,9 @@ Function RegisterURIScheme
   WriteRegStr HKCR "$0\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
   WriteRegStr HKCR "$0\shell" "" ""
   WriteRegStr HKCR "$0\shell\Open" "" ""
-  WriteRegStr HKCR "$0\shell\Open\command" "" "$INSTDIR\Tao.exe $\"%1$\""
+  WriteRegStr HKCR "$0\shell\Open\command" "" "$INSTDIR\Tao.exe"
+  WriteRegStr HKCR "$0\shell\Open\ddeexec" "" "[open($\"%1$\")]"
+  WriteRegStr HKCR "$0\shell\Open\ddeexec\Application" "" "Tao"
   Pop $R0
 
 FunctionEnd
@@ -194,7 +196,9 @@ Function RegisterFileExtension
   WriteRegStr HKCR "TaoPresentations.Document\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
   WriteRegStr HKCR "TaoPresentations.Document\shell" "" ""
   WriteRegStr HKCR "TaoPresentations.Document\shell\Open" "" ""
-  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\command" "" "$INSTDIR\Tao.exe $\"%1$\""
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\command" "" "$INSTDIR\Tao.exe"
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\ddeexec" "" "[open($\"%1$\")]"
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\ddeexec\Application" "" "Tao"
   Pop $R0
 
 FunctionEnd

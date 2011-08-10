@@ -60,6 +60,10 @@ extern "C" void UpdateSystemActivity(uint8_t);
 #elif defined(CONFIG_LINUX)
 #include <X11/extensions/scrnsaver.h>
 #endif
+#if defined(Q_OS_WIN32)
+#include "dde_widget.h"
+#endif
+
 
 XL_DEFINE_TRACES
 
@@ -75,8 +79,24 @@ Application::Application(int & argc, char ** argv)
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), doNotEnterEventLoop(false)
+      moduleManager(NULL), doNotEnterEventLoop(false),
+      appInitialized(false)
 {
+#if defined(Q_OS_WIN32)
+    // DDEWidget handles file/URI open request from the system (double click on
+    // .ddd file, click on a Tao URI).
+    // It is created ASAP to minimize risk of timeout (Windows7 waits no more
+    // than ~2 seconds after launching the process and before showing an error
+    // dialog "There was a problem sending a command to the program").
+    // Prevent window from being drawn by show()
+    dde.setAttribute(Qt::WA_DontShowOnScreen);
+    // show() is required or widget won't receive winEvent()
+    dde.show();
+    // Mark window 'not visible' to Qt, or closing the last top-level window
+    // would not cause the application to exit
+    dde.hide();
+#endif
+
     // Set some useful parameters for the application
     setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
@@ -303,6 +323,7 @@ Application::Application(int & argc, char ** argv)
         checkModules();
 
     // We're ready to go
+    appInitialized = true;
     if (!savedUri.isEmpty())
         loadUri(savedUri);
 }
@@ -479,7 +500,7 @@ void Application::loadUri(QString uri)
 //   Create a new window to load a document from a Tao URI
 // ----------------------------------------------------------------------------
 {
-    if (!xlr)
+    if (!appInitialized)
     {
         // Event delivered before Application constructor could complete.
         // Save URI, constructor will open it

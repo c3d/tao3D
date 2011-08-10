@@ -190,6 +190,11 @@ SOURCES += tao_main.cpp \
     info_trash_can.cpp \
     destination_folder_dialog.cpp
 
+win32 {
+    HEADERS += dde_widget.h
+    SOURCES += dde_widget.cpp
+}
+
 # Check compile-time options
 
 contains(DEFINES, CFG_NOGIT) {

@@ -7382,6 +7382,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
 
     this->currentFlowName = flowName;
     TextFlow *flow = new TextFlow(layout, flowName);
+    flow->id = selectionId();
     flow->body = prog;
     flow->ctx = context;
     flows[flowName] = flow;

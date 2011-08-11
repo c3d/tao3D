@@ -1,0 +1,40 @@
+import Flares 
+
+page "Flares", 
+    color "white" 
+    locally 
+        flare_shader_time -> stime 
+        flare_shader 
+        shader_set resolution := (window_width; window_height)
+        shader_set saturation := 2.0 * (0.5 + mouse_x / window_width)
+        fullscreen_quad 
+    locally 
+        color "white"
+        text_box 0, 0, window_width * 75% , window_height, 
+            font "Orbitron", 56 * (window_width / 1200)
+            vertical_align_center 
+            align_center 
+            description_text tao_language 
+
+description_text "fr" -> 
+    text "Déplacez la souris :"
+    paragraph_break
+    text " * Horizontalement pour changer la couleur"
+    paragraph_break
+    text " * Verticalement pour régler la vitesse"
+
+description_text T:text -> 
+    text "Move the mouse:"
+    paragraph_break
+    text " * Left/right to change color saturation"
+    paragraph_break
+    text " * Up/down to change animation speed"
+
+fullscreen_quad -> rectangle 0, 0, window_width, window_height 
+
+stime ->
+    cur_time -> 0.0
+    prev -> 0.0 
+    cur_time := cur_time + (page_time - prev) * 750 * (0.5 + mouse_y / window_height)
+    prev := page_time
+    cur_time

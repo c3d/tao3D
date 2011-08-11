@@ -1,0 +1,37 @@
+import Monjori
+import Animate
+
+key "Return" -> goto_page page_name 1 
+
+page "Intro",
+    compute_smooth_step
+    draw_background
+    locally
+        show fade_between(page_time, 1.0, 4.0)
+        color 0.1, 0.1, 0.1, 0.8 
+        fullscreen_quad
+        text_box 0, 0, window_width*75%, window_height, 
+            color "white" 
+            font "Ubuntu", 72 * (window_width / 1200) 
+            vertical_align_center 
+            align_center 
+            description_text tao_language
+
+description_text "fr" ->
+    text "Effet obtenu grâce à un shader GLSL appelé "
+    italic
+    text "Monjori" 
+
+description_text T:text ->
+    text "Background effect drawn by a GLSL shader called "
+    italic
+    text "Monjori" 
+
+fullscreen_quad -> rectangle 0, 0, window_width, window_height
+
+draw_background ->
+    locally
+        monjori_shader
+        shader_set time := (time mod 5000) * 0.1
+        shader_set resolution := (window_width ; window_height)
+        fullscreen_quad

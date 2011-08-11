@@ -20,7 +20,8 @@ DEFAULT_TEMPLATES =   \
     pan_and_zoom
 
 OTHER_TEMPLATES =     \
-    monjori
+    monjori \
+    flares
 
 # Process qmake command line variable: 'templates'
 # Allows to add/remove templates to/from the default value above
@@ -76,3 +77,5 @@ include (../modules/module_list.pri)
 !contains (MODULES, movie_credits):TEMPLATES -= movie
 !contains (MODULES, mapping):TEMPLATES -= mapping
 !contains (MODULES, pan_and_zoom):TEMPLATES -= pan_and_zoom
+!contains (MODULES, shaders/monjori):TEMPLATES -= monjori
+!contains (MODULES, shaders/flares):TEMPLATES -= flares

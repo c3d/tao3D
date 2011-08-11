@@ -44,47 +44,27 @@ bool Shape::setTexture(Layout *where)
 // ----------------------------------------------------------------------------
 {
     //Determine unused texture units according to the previous one to desactive them
-    uint64 unusedUnits = (where->previousUnits & where->textureUnits) ^ where->previousUnits;
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
-        GLenum type = where->fillTextures[i].type;
+        bool hasCurrent = where->fillTextures.count(i);
+        bool hasPrevious = where->previousTextures.count(i);
 
         //Check if the current texture unit is really used
-        if((where->fillTextures.count(i)) && (where->textureUnits & (1 << i)))
+        if(hasPrevious && (! hasCurrent))
         {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glEnable(type);
-            glBindTexture(type, (where->fillTextures[i]).id);
-            if (where->hasPixelBlur)
-            {
-                glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-            }
-            else
-            {
-                glTexParameteri(type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                glTexParameteri(type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-            }
-            glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
-
-            // Wrap if texture 2D
-            if(type == GL_TEXTURE_2D)
-            {
-                GLuint wrapS = (where->fillTextures[i]).wrapS ? GL_REPEAT : GL_CLAMP;
-                GLuint wrapT = (where->fillTextures[i]).wrapT ? GL_REPEAT : GL_CLAMP;
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
-            }
-
-            if (TaoApp->hasGLMultisample)
-                glEnable(GL_MULTISAMPLE);
-
+            unbindTexture(where->previousTextures[i]);
         }
-        else if(unusedUnits & (1 << i))
+        else if(hasCurrent && (where->textureUnits & (1 << i)))
         {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(type, 0);
-            glDisable(type);
+            if(hasPrevious)
+            {
+                if(where->fillTextures[i].type != where->previousTextures[i].type)
+                {
+                    unbindTexture(where->previousTextures[i]);
+                }
+            }
+
+            bindTexture(where->fillTextures[i], where->hasPixelBlur);
         }
     }
 
@@ -94,10 +74,54 @@ bool Shape::setTexture(Layout *where)
         glUseProgram(where->programId);
 
     //Update used texture units
-    where->previousUnits = where->textureUnits;
+    where->previousTextures = where->fillTextures;
 
     return !(where->fillTextures.empty());
 }
+
+void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
+// ----------------------------------------------------------------------------
+//    Bind the given texture
+// ----------------------------------------------------------------------------
+{
+    glActiveTexture(GL_TEXTURE0 + texture.unit);
+    glEnable(texture.type);
+    glBindTexture(texture.type, texture.id);
+    if (hasPixelBlur)
+    {
+        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    }
+    else
+    {
+        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    }
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+    // Wrap if texture 2D
+    if(texture.type == GL_TEXTURE_2D)
+    {
+        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP;
+        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP;
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+    }
+
+    if (TaoApp->hasGLMultisample)
+        glEnable(GL_MULTISAMPLE);
+}
+
+void Shape::unbindTexture(TextureState& texture)
+// ----------------------------------------------------------------------------
+//    Unbind the given texture
+// ----------------------------------------------------------------------------
+{
+    glActiveTexture(GL_TEXTURE0 + texture.unit);
+    glBindTexture(texture.type, 0);
+    glDisable(texture.type);
+}
+
 
 void Shape::enableTexCoord(uint unit, void *texCoord)
 // ----------------------------------------------------------------------------

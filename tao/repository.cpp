@@ -391,7 +391,10 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
     {
         if (mode == Clone)
         {
-            errors = QObject::tr("Can't clone into an existing repository");
+            QString native = QDir::toNativeSeparators(QDir(path).
+                                                      absolutePath());
+            errors = QObject::tr("Can't clone into an existing "
+                                 "repository: %1").arg(native);
             delete git;
             return NULL;
         }

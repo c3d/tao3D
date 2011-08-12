@@ -2458,7 +2458,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Save location
     lastMouseX = x;
     lastMouseY = y;
-    lastMouseButtons = button;
+    lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton)
@@ -2519,7 +2519,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     // Save location
     lastMouseX = x;
     lastMouseY = y;
-    lastMouseButtons = button;
+    lastMouseButtons = event->buttons();
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
@@ -4657,6 +4657,7 @@ Integer_p Widget::mouseButtons(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseButtonPress);
+    refreshOn(QEvent::MouseButtonRelease);
     return new Integer(lastMouseButtons);
 }
 

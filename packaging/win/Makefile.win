@@ -2,7 +2,7 @@
 #
 # Usage:
 #   make
-#
+#   make prepare    # Prepare application in build_root
 #   make clean
 
 include Makefile.config
@@ -24,7 +24,7 @@ all: tao_install $(BITMAPS) version.nsh
 rn: $(BITMAPS) version.nsh
 	$(run-nsis)
 
-tao_install:
+prepare tao_install:
 	[ -d build_root ] || mkdir -p build_root
 	cd ../.. && make install
 	cp -Rp $(INSTROOT)/* build_root

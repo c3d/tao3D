@@ -1208,7 +1208,7 @@ void Window::onlineDocTaodyne()
 //    Open the online documentation page on taodyne.com
 // ----------------------------------------------------------------------------
 {
-    QString url("http://taodyne.com/doc/1.0/");
+    QString url("http://taodyne.com/taopresentations/1.0/doc/");
     QDesktopServices::openUrl(url);
 }
 

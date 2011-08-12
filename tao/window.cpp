@@ -1866,6 +1866,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         bool animated = taoWidget->hasAnimations();
         taoWidget->enableAnimations(NULL, false);
         taoWidget->resetTimes();
+        taoWidget->resetView();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
         if (animated)

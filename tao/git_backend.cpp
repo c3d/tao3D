@@ -103,6 +103,8 @@ again:
     {
         text errors, output;
         gitCommand = resolveExePath(it.next());
+        if (gitCommand.isEmpty())
+            continue;
         Process cmd(gitCommand, QStringList("--version"));
         if (cmd.done(&errors, &output))
         {
@@ -240,6 +242,11 @@ QString GitRepository::checkExe(QString cmd)
         IFTRACE(process)
             std::cerr << "Executable found, canonical path: " << +path << "\n";
         return path;
+    }
+    else
+    {
+        IFTRACE(process)
+            std::cerr << "Not found or not executable\n";
     }
 
 #ifdef CONFIG_MINGW
@@ -1233,7 +1240,7 @@ QString GitRepository::url()
         return "";
 
     QString hostname = QHostInfo::localHostName();
-    QString url = QString("tao://%1%2").arg(hostname).arg(path);
+    QString url = QString("taos://%1%2").arg(hostname).arg(path);
     return url;
 }
 

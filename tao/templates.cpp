@@ -225,6 +225,25 @@ Templates::Templates(const QDir &dir)
 // ----------------------------------------------------------------------------
     : dir(dir)
 {
+    read(dir);
+}
+
+
+Templates::Templates(const QList<QDir> &dirs)
+// ----------------------------------------------------------------------------
+//   Find document templates in several directories
+// ----------------------------------------------------------------------------
+{
+    foreach(QDir d, dirs)
+        read(d);
+}
+
+
+void Templates::read(const QDir &dir)
+// ----------------------------------------------------------------------------
+//   Find document templates in a directory
+// ----------------------------------------------------------------------------
+{
     IFTRACE(templates)
         debug() << "Looking for templates in " << +dir.absolutePath()
                 << "\n";

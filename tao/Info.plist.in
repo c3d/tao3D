@@ -26,6 +26,7 @@
 				<key>CFBundleURLSchemes</key>
 				<array>
 					<string>tao</string>
+					<string>taos</string>
 				</array>
 			</dict>
 		</array>

@@ -17,10 +17,11 @@
 TEMPLATE = subdirs
 
 kit.commands   = make -f Makefile.win
+prepare.commands   = make -f Makefile.win prepare
 clean.commands = make -f Makefile.win clean
 distclean.depends = clean
 
-QMAKE_EXTRA_TARGETS = kit clean distclean
+QMAKE_EXTRA_TARGETS = kit prepare clean distclean
 
 include (../../main_defs.pri)
 QMAKE_SUBSTITUTES = Makefile.config.in

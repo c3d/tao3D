@@ -153,6 +153,8 @@ private slots:
     void selectiveUndo();
     void clone();
     void onDocReady(QString path);
+    void onNewTemplateInstalled(QString path);
+    void onTemplateUpToDate(QString path);
     void onUriGetFailed();
     void checkDetachedHead();
     void reloadCurrentFile();

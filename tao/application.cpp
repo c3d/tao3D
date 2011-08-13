@@ -60,6 +60,10 @@ extern "C" void UpdateSystemActivity(uint8_t);
 #elif defined(CONFIG_LINUX)
 #include <X11/extensions/scrnsaver.h>
 #endif
+#if defined(Q_OS_WIN32)
+#include "dde_widget.h"
+#endif
+
 
 XL_DEFINE_TRACES
 
@@ -75,8 +79,24 @@ Application::Application(int & argc, char ** argv)
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), doNotEnterEventLoop(false)
+      moduleManager(NULL), doNotEnterEventLoop(false),
+      appInitialized(false)
 {
+#if defined(Q_OS_WIN32)
+    // DDEWidget handles file/URI open request from the system (double click on
+    // .ddd file, click on a Tao URI).
+    // It is created ASAP to minimize risk of timeout (Windows7 waits no more
+    // than ~2 seconds after launching the process and before showing an error
+    // dialog "There was a problem sending a command to the program").
+    // Prevent window from being drawn by show()
+    dde.setAttribute(Qt::WA_DontShowOnScreen);
+    // show() is required or widget won't receive winEvent()
+    dde.show();
+    // Mark window 'not visible' to Qt, or closing the last top-level window
+    // would not cause the application to exit
+    dde.hide();
+#endif
+
     // Set some useful parameters for the application
     setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
@@ -197,16 +217,27 @@ Application::Application(int & argc, char ** argv)
 
         switch(vendorNum)
         {
-        case 0: constructor = ATI; break;
-        case 1: constructor = NVIDIA; break;
-        case 2: constructor = INTEL; break;
+        case 0: constructorCards = ATI; break;
+        case 1: constructorCards = NVIDIA; break;
+        case 2: constructorCards = INTEL; break;
         }
 
-        //Get number of maximum texture units and coords in fragment shaders (texture units are limited to 4 otherwise)
+
+        const GLubyte *str;
+        // Get OpenGL supported version
+        str = glGetString(GL_VERSION);
+        GLVersionAvailable = (const char*) str;
+
+        // Get OpenGL supported extentions
+        str = glGetString(GL_EXTENSIONS);
+        GLExtensionsAvailable = (const char*) str;
+
+        // Get number of maximum texture units and coords in fragment shaders
+        // (texture units are limited to 4 otherwise)
         glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
-
     }
+
     // Basic sanity tests to check if we can actually run
     if (!QGLFormat::hasOpenGL())
     {
@@ -258,9 +289,9 @@ Application::Application(int & argc, char ** argv)
     if (!hasGLMultisample)
     {
         ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Multisample support"));
-        dialog.showMessage(tr("This system does not support GL sample buffers."
-                              " Shapes and large text may look jaggy."));
+        dialog.setWindowTitle(tr("Information"));
+        dialog.showMessage(tr("On this system, graphics and text edges may "
+                              "look jagged."));
     }
 
 #ifndef CFG_NOGIT
@@ -292,6 +323,7 @@ Application::Application(int & argc, char ** argv)
         checkModules();
 
     // We're ready to go
+    appInitialized = true;
     if (!savedUri.isEmpty())
         loadUri(savedUri);
 }
@@ -468,7 +500,7 @@ void Application::loadUri(QString uri)
 //   Create a new window to load a document from a Tao URI
 // ----------------------------------------------------------------------------
 {
-    if (!xlr)
+    if (!appInitialized)
     {
         // Event delivered before Application constructor could complete.
         // Save URI, constructor will open it

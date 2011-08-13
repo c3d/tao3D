@@ -124,7 +124,8 @@ HEADERS += widget.h \
     include/tao/matrix.h \
     statistics.h \
     gc_thread.h \
-    info_trash_can.h
+    info_trash_can.h \
+    destination_folder_dialog.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -186,7 +187,13 @@ SOURCES += tao_main.cpp \
     display_driver.cpp \
     statistics.cpp \
     gc_thread.cpp \
-    info_trash_can.cpp
+    info_trash_can.cpp \
+    destination_folder_dialog.cpp
+
+win32 {
+    HEADERS += dde_widget.h
+    SOURCES += dde_widget.cpp
+}
 
 # Check compile-time options
 

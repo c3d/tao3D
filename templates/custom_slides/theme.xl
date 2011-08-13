@@ -1,0 +1,196 @@
+// Define what is a slide : a page with a background and a scaled contents
+// consisting of a title, a body and a foreground.
+// The body is defined by the Body argument to "slide"
+slide Title:text, Body ->
+   page Title,
+       slide_background "SlideBackground.jpg"
+       scale_contents
+       slide_title
+       slide_body Body
+       slide_footer
+
+// Define what a title slide is
+title_slide Title:text ->
+    page Title,
+        slide_background "TitleBackground.jpg"
+        scale_contents
+        title_slide_title
+        
+// Define what a transition slide is
+transition_slide Title:text ->
+    page Title,
+        slide_background "TransitionBackground.jpg"
+        scale_contents
+        title_slide_title
+        slide_footer
+
+// Define what a picture slide is
+// We draw an empty slide body on top of which we draw the picture
+picture_slide Title:text, Body ->
+    page Title,
+        slide_background "PictureSlideBackground.jpg"
+        scale_contents
+        slide_title
+        locally
+            slide_body ""
+            color "white"
+            translate 0, -50, 0
+            Body
+        slide_footer
+
+// Define what a two-column slide is
+// This style draws bullet points on the left and a picture / drawing
+// in the right column
+two_column_slide Title:text, TextBody, PictureBody ->
+    page Title,
+        slide_background "TwoColumnsBackground.jpg"
+        scale_contents
+        slide_title
+        slide_text_box -250, -50, 400, 400,
+            body_style
+            vertical_align 0.3
+            TextBody
+        slide_text_box 250, -50, 400, 400, ""
+        locally
+            translate 250, -50, 0
+            color "white"
+            PictureBody
+            
+        
+
+// Define what the background is: A scaled picture colorized in white.
+// Adjust the name and size of the picture. Most image file formats will work.
+slide_background File ->
+    locally
+        scale_background
+        color "white"
+        image 0, 0, 1, 1, File
+
+// Define what the slide footer looks like:
+// We draw three overlapping text boxes with different horizontal alignments
+// On the left (align 0), we place copyright information
+// On the right (align 1), we place page information
+// In the middle, slightly to the right (align 0.7), we place the date
+slide_footer ->
+    X -> 0
+    Y -> -350
+    W -> 900
+    H -> 50
+    text_box X, Y, W, H,
+        footer_style
+        align 0
+        text "(C) 2011 Your Name Here"
+    text_box X, Y, W, H,
+        footer_style
+        align 1
+        text "Page " & text page_number & "/" & text page_count
+    text_box X, Y, W, H,
+        footer_style
+        align 0.7
+        text month_name month & " " & text day & ", " & text year
+        month_name N:integer -> ("January", "February", "March",
+                                 "April", "May", "June", "July",
+                                 "August", "September", "October", 
+                                 "November", "December") at N
+
+
+// Define how we draw the slide title
+// We draw a styled text box with the label of the current page
+slide_title ->
+    slide_text_box 0, 300, 900, 100,
+       title_style
+       align 0.2
+       vertical_align 0.5
+       text page_label
+
+// Define how we draw the title on a title slide
+// We draw a styled text box with the label of the current page
+title_slide_title ->
+    slide_text_box 0, 0, 900, 300,
+       title_style
+       align 0.2
+       vertical_align 0.3
+       text page_label
+
+// Define how we draw the body of a slide
+// We draw a styled text box with the supplied Body
+slide_body Body ->
+    slide_text_box 0, -50, 900, 400,
+        body_style
+        vertical_align 0.3
+        Body
+
+// Define how we draw a bullet:
+// We set a margin of 40 pixels on the left to fit within the styled box.
+// We then go the the beginning of a paragraph, and "anchor" a circle.
+// "Anchoring" means that you draw something relative to a text position.
+// Here we draw a small red circle
+* T:text ->
+    margins 40, 0
+    paragraph_break
+    anchor
+        color "red"
+        circle -20, 10, 8
+    text T
+
+
+// Level two bullets : same principel with different margin and a smaller
+// circle for the bullet
+- T:text ->
+    margins 80, 0
+    paragraph_break
+    anchor
+        color "blue"
+        circle -15, 8, 5
+    text T
+
+
+// Logical dimensions for the slide. You can put anything you want here,
+// but the aspect ratio should match that of the background picture and be
+// close to the aspect ratio of the screens you are going to use.
+// This will be used to define the logical coordinates of anything that 
+// follows "scale_contents". For example, we placed our text boxes on this
+// 1024x768 grid.
+slide_width -> 1024.0
+slide_height -> 768.0
+
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture ("max").
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents ("min").
+scale2 S:real -> scale S, S, 1
+scale_background -> scale2 max(window_width/slide_width, window_height/slide_height)
+scale_contents -> scale2 min(window_width/slide_width, window_height/slide_height)
+
+// Text style for the footer
+footer_style ->
+    font "Yanone Kaffeesatz", 25, bold
+    color "green"
+
+// Text style for the title
+title_style ->
+    font "Lobster", 80
+    line_color "blue"
+    line_width 2
+    color "blue", 20%
+
+// Text style for the body
+body_style ->
+    font "Ubuntu", 30
+    color "black"
+
+// Adorned text box we use for title and body elements.
+// We draw a semi-transparent rounded rectangle around a text box that
+// contains the given Body
+// You can of course draw nothing, or draw a rectangle, have a background
+// texture what you draw, etc.
+slide_text_box X:real, Y:real, W:real, H:real, Body ->
+    locally
+        color "white", 50%
+        line_color "red"
+        line_width 3
+        rounded_rectangle X, Y, W+10, H+10, 10
+    text_box X, Y, W, H, Body
+

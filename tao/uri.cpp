@@ -24,6 +24,7 @@
 #include "uri.h"
 #include "repository.h"
 #include "application.h"
+#include "destination_folder_dialog.h"
 #include <QSettings>
 #include <QDir>
 #include <QProgressDialog>
@@ -33,46 +34,46 @@
 
 
 
-// QSettings group name, where we will store associations
+// QSettings group names, where we will store associations
 // (URI -> local project path).
-// This is to keep track of URIs so that next time an URI is open, we just
+// This is to keep track of URIs so that next time an URI is open, we can
 // update the local project with "git fetch" instead of cloning the remote
 // repository altogether.
+//
+// Known URIs for regular documents (default)
 #define KNOWN_URIS_GROUP "KnownURIs"
+// Known URIs for templates
+#define KNOWN_URIS_TMPL_GROUP "KnownURIsTemplates"
 
 namespace Tao {
 
 
-bool Uri::doRefresh = true;
+QSet<QString> Uri::refreshed;
 
 
 Uri::Uri()
     : QUrl(), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0),
-      aborted(false)
+      aborted(false), settingsGroup(KNOWN_URIS_GROUP), op(NONE)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
 {
-    if (doRefresh)
-    {
-        doRefresh = false;
-        refreshSettings();
-    }
+    checkRefresh();
 }
 
 
 Uri::Uri(QString uri)
     : QUrl(uri), repo(NULL), done(false), progress(NULL), proc(NULL), pos(0),
-      aborted(false)
+      aborted(false), settingsGroup(KNOWN_URIS_GROUP), op(NONE)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
 {
-    if (doRefresh)
-    {
-        doRefresh = false;
-        refreshSettings();
-    }
+    if (!isValid())
+        return;
+    if (hasQueryItem("t"))
+        settingsGroup = KNOWN_URIS_TMPL_GROUP;
+    checkRefresh();
 }
 
 
@@ -97,7 +98,7 @@ bool Uri::get()
     bool ok = true;
     QString uri = toString();
     IFTRACE(uri)
-        std::cerr << "Resolving URI: " << +uri << "\n";
+        debug() << "Resolving URI: " << +uri << "\n";
 
     QString path;
     if (isLocal())
@@ -105,34 +106,116 @@ bool Uri::get()
         // Local URI, just translate it into a local path
         path = documentOrProjectPath();
         IFTRACE(uri)
-            std::cerr << "URI resolves to local path: " << +path << "\n";
+            debug() << "URI resolves to local path: " << +path << "\n";
         emit docReady(path);
     }
     else
     {
         // Remote URI: needs download (clone or fetch)
-        emit progressMessage(tr("Downloading %1...").arg(uri));
         QStringList projects = localProjects();
-        clone = projects.isEmpty();
-        if (clone)
+        IFTRACE(uri)
         {
-            // Never seen this URI: clone this URI into a new project
-            IFTRACE(uri)
-                    std::cerr << "URI is not mapped to a local project\n";
-            ok = cloneAndCheckout();
+            if (!projects.isEmpty())
+            {
+                QString msg = projects.join(" ");
+                debug() << "Known URI, project(s): " << +msg << "\n";
+            }
+        }
+
+        if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
+        {
+            // We're downlading a template
+
+            if (projects.isEmpty())
+            {
+                // Template not previously cloned
+                QString path = newProject();
+                if (path.isEmpty())
+                {
+                    // Folder with same name already exists: just error out
+                    QString native =
+                        QDir::toNativeSeparators(QDir(path).absolutePath());
+                    QString title = tr("Cannot install template");
+                    QString msg = tr("Folder %1 already exists").arg(native);
+                    QMessageBox::warning(NULL, title, msg);
+                    return false;
+                }
+
+                // OK to clone
+                project = path;
+                IFTRACE(uri)
+                    debug() << "Cloning URI into new local template: "
+                              << +project << "\n";
+                ok = cloneAndCheckout();
+            }
+            else
+            {
+                if (projects.size() > 1)
+                {
+                    std::cerr << "Warning: several folders share the same "
+                        "template URI. Re-run with -turi for details.\n";
+                }
+                // Update existing template by fetching from remote
+                // repository
+                project = projects[0];
+                IFTRACE(uri)
+                    debug() << "Fecthing into existing template: " << +project
+                              << "\n";
+                ok = fetchAndCheckout();
+            }
         }
         else
         {
-            // Just update existing project by fetching from remote repository
+            // We're downlading a regular document
+
+            QString defaultPath = newProject();
+            DestinationFolderDialog dialog(defaultPath, projects);
+            dialog.setWindowTitle(tr("Document download"));
+            dialog.exec();
+            project = dialog.target();
+            if (project.isEmpty())
+                return false;
+
+            emit progressMessage(tr("Downloading %1...").arg(uri));
+
             IFTRACE(uri)
+                debug() << "Destination folder: " << +project << "\n";
+
+            clone = !projects.contains(project);
+           if (clone)
             {
-                QString msg = projects.join(" ");
-                std::cerr << "Known URI, project(s): " << +msg << "\n";
+                // Clone this URI into a new project
+                IFTRACE(uri)
+                    debug() << "Cloning URI into new local project: "
+                              << +project << "\n";
+                ok = cloneAndCheckout();
             }
-            ok = fetchAndCheckout();
+            else
+            {
+                // Just update existing project by fetching from remote
+                // repository
+                IFTRACE(uri)
+                    debug() << "Fecthing into existing project: " << +project
+                              << "\n";
+                ok = fetchAndCheckout();
+            }
         }
     }
+
     return ok;
+}
+
+
+void Uri::checkRefresh()
+// ----------------------------------------------------------------------------
+//    Make sure user settings have been read once
+// ----------------------------------------------------------------------------
+{
+    if (!refreshed.contains(settingsGroup))
+    {
+        refreshed.insert(settingsGroup);
+        refreshSettings();
+    }
 }
 
 
@@ -150,26 +233,17 @@ void Uri::refreshSettings()
     int total = 0, deleted = 0, added = 0;
 
     IFTRACE2(settings, uri)
-        std::cerr << "Cleaning obsolete {URI -> local project} mappings\n";
+        debug() << "Cleaning obsolete {URI -> local project} mappings "
+                << "for group " << +settingsGroup << "\n";
     emit progressMessage(tr("Checking known URIs"));
 
     QSettings settings;
-    settings.beginGroup(KNOWN_URIS_GROUP);
+    settings.beginGroup(settingsGroup);
 
     QStringList keys = settings.childKeys();
     foreach (QString key, keys)
     {
         QStringList projects = settings.value(key).toStringList();
-        if (projects.isEmpty())
-        {
-            // Compatibility with previous implementation which would store
-            // only one local project path per URI
-            // Settings will be converted to the new format when this method
-            // returns
-            QString project = settings.value(key).toString();
-            if (!project.isEmpty())
-                projects.append(project);
-        }
         total += projects.size();
         foreach (QString project, projects)
         {
@@ -184,7 +258,7 @@ void Uri::refreshSettings()
                 QByteArray ba;
                 ba.append(key);
                 text uri = +QUrl::fromPercentEncoding(ba);
-                std::cerr << " {" << uri << " -> " << +project << "} ";
+                debug() << " {" << uri << " -> " << +project << "} ";
                 if (exists)
                     std::cerr << "[keep]\n";
                 else
@@ -197,15 +271,19 @@ void Uri::refreshSettings()
             settings.setValue(key, projects);
     }
     IFTRACE2(settings, uri)
-        std::cerr << " (" << deleted << "/" << total
+        debug() << " (" << deleted << "/" << total
                   << " deleted/total)\n";
 
+    QString folder = parentFolderForDownload();
+    if (folder.isEmpty())
+        return;
+
     IFTRACE2(settings, uri)
-        std::cerr << "Scanning user's Tao document directory\n";
-    emit progressMessage(tr("Checking URIs from document directory"));
+        debug() << "Looking for new URIs in directory: " << +folder << "\n";
+    emit progressMessage(tr("Looking for new URIs [%1]").arg(folder));
 
     total = 0;
-    QDir dir(Application::defaultProjectFolderPath());
+    QDir dir(folder);
     if (dir.isReadable())
     {
         QStringList subdirs = dir.entryList(QDir::Dirs | QDir::NoDotAndDotDot);
@@ -213,7 +291,7 @@ void Uri::refreshSettings()
         {
             QString projDir = QDir(dir.filePath(project)).absolutePath();
             IFTRACE2(settings, uri)
-                std::cerr << " " << +projDir;
+                debug() << " " << +projDir;
 
             repository_ptr repo =
                 RepositoryFactory::repository(projDir,
@@ -239,10 +317,12 @@ void Uri::refreshSettings()
                         added++;
                     IFTRACE2(settings, uri)
                     {
-                        std::cerr << "  {" << +uri << " -> "
+                        debug() << "  {" << +uri << " -> "
                                   << +projDir << "}";
                         if (ok)
                             std::cerr << " [added]";
+                        else
+                            std::cerr << " [known]";
                         std::cerr << "\n";
                     }
                 }
@@ -251,7 +331,7 @@ void Uri::refreshSettings()
     }
 
     IFTRACE2(settings, uri)
-        std::cerr << " (" << added << "/" << total
+        debug() << " (" << added << "/" << total
                   << " added/total)\n";
 
     settings.endGroup();
@@ -277,6 +357,21 @@ QString Uri::rev()
     if (rev.isEmpty())
         return QString("master");
     return rev;
+}
+
+
+QString Uri::parentFolderForDownload()
+// ----------------------------------------------------------------------------
+//    Return the parent folder to use by default when cloning
+// ----------------------------------------------------------------------------
+{
+    QString folder;
+    if (settingsGroup == KNOWN_URIS_GROUP)
+        folder = Application::defaultProjectFolderPath();
+    else if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
+        folder = Application::defaultTaoPreferencesFolderPath() + "/templates";
+
+    return folder;
 }
 
 
@@ -313,6 +408,47 @@ bool Uri::isLocal()
 }
 
 
+void Uri::setUrl(const QString & url)
+// ----------------------------------------------------------------------------
+//    Change URL
+// ----------------------------------------------------------------------------
+{
+    QUrl::setUrl(url);
+    if (hasQueryItem("t"))
+        settingsGroup = KNOWN_URIS_TMPL_GROUP;
+    else
+        settingsGroup = KNOWN_URIS_GROUP;
+    checkRefresh();
+}
+
+
+void Uri::setUrl(const QString & url, ParsingMode parsingMode)
+// ----------------------------------------------------------------------------
+//    Change URL
+// ----------------------------------------------------------------------------
+{
+    QUrl::setUrl(url, parsingMode);
+    if (hasQueryItem("t"))
+        settingsGroup = KNOWN_URIS_TMPL_GROUP;
+    else
+        settingsGroup = KNOWN_URIS_GROUP;
+    checkRefresh();
+}
+
+
+void Uri::setQueryItems(const QList<QPair<QString, QString> > & query)
+// ----------------------------------------------------------------------------
+//    Update query string
+// ----------------------------------------------------------------------------
+{
+    QUrl::setQueryItems(query);
+    if (hasQueryItem("t"))
+        settingsGroup = KNOWN_URIS_TMPL_GROUP;
+    else
+        settingsGroup = KNOWN_URIS_GROUP;
+}
+
+
 QStringList Uri::localProjects()
 // ----------------------------------------------------------------------------
 //    Return paths of local projects if URI was cloned in the past, or empty
@@ -323,6 +459,7 @@ QStringList Uri::localProjects()
     foreach (QString project, projects)
         if (project.isEmpty() || !QDir(project).exists())
             projects.removeOne(project);
+    projects.sort();
     return projects;
 }
 
@@ -373,23 +510,15 @@ bool Uri::fetchAndCheckout()
 //    Display a progress dialog and use Repository to fetch remote project
 // ----------------------------------------------------------------------------
 {
-    QStringList projects = localProjects();
-    project = projects.first();
-    if (projects.size() > 1)
-    {
-        bool ok;
-        project = QInputDialog::getItem(NULL, tr("Select local project"),
-                                     tr("Where do you want to save the remote "
-                                        "document?"), projects, 0, false, &ok);
-        if (!ok)
-            return false;
-    }
+    Q_ASSERT(!project.isEmpty());
 
     // Prepare Repository object to fetch project
     repo = RepositoryFactory::repository(project,
                                          RepositoryFactory::OpenExisting);
     if (!repo)
         return showRepoErrorDialog();
+
+    op = FETCHING;
 
     // Prepare progress dialog
     progress = new QProgressDialog(tr("Opening %1...").arg(toString()),
@@ -401,7 +530,7 @@ bool Uri::fetchAndCheckout()
     // Prepare fetch process
     QString repoUri = this->repoUri();
     IFTRACE(uri)
-        std::cerr << "Fetching from " << +repoUri << "\n";
+        debug() << "Fetching from " << +repoUri << "\n";
 
     QString remote = repo->remoteWithFetchUrl(repoUri);
     if (remote.isEmpty())
@@ -414,7 +543,7 @@ bool Uri::fetchAndCheckout()
         }
         while (!repo->remoteFetchUrl(remote).isEmpty());
         IFTRACE(uri)
-            std::cerr << "Creating remote: " << +remote << "\n";
+            debug() << "Creating remote: " << +remote << "\n";
         repo->addRemote(remote, repoUri);
     }
 
@@ -440,11 +569,13 @@ bool Uri::cloneAndCheckout()
 //    Clone new URI into a new project
 // ----------------------------------------------------------------------------
 {
-    // Prepare Repository object to clone project
-    project = newProject();
+    Q_ASSERT(!project.isEmpty());
+
     repo = RepositoryFactory::repository(project, RepositoryFactory::Clone);
     if (!repo)
         return showRepoErrorDialog();
+
+    op = CLONING;
 
     // Prepare progress dialog
     QString uri = toString();
@@ -457,7 +588,7 @@ bool Uri::cloneAndCheckout()
     // Prepare clone process
     QString repoUri = this->repoUri();
     IFTRACE(uri)
-        std::cerr << "Cloning from " << +repoUri << "\n";
+        debug() << "Cloning from " << +repoUri << "\n";
     proc = repo->asyncClone(repoUri, project);
     if (!proc)
         return false;
@@ -542,7 +673,7 @@ bool Uri::checkout()
     QString co = localRev(rev);
 
     IFTRACE(uri)
-        std::cerr << "Checking out " << +rev << " (locally: " << +co << ")\n";
+        debug() << "Checking out " << +rev << " (locally: " << +co << ")\n";
 
     Q_ASSERT(repo);
     bool ok = (repo && repo->checkout(+co));
@@ -554,7 +685,27 @@ bool Uri::checkout()
 
     addLocalProject(project);
 
-    emit docReady(docPath(project));
+    if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
+    {
+        QString path;
+        path = QDir::toNativeSeparators(QDir(project).absolutePath());
+        switch (op)
+        {
+        case CLONING:
+            emit templateCloned(path);
+            break;
+        case FETCHING:
+            emit templateFetched(path);
+            break;
+        default:
+            std::cerr << "URI checkout: unexpected op state\n";
+        }
+    }
+    else
+    {
+        emit docReady(docPath(project));
+    }
+
     return true;
 }
 
@@ -599,13 +750,15 @@ QString Uri::repoUri()
 // ----------------------------------------------------------------------------
 //    Convert URI into a project URI suitable for use by the Repository class
 // ----------------------------------------------------------------------------
-//    Change tao: scheme to ssh:, and remove query/fragment info
+//    Translate tao: and taos: schemes, and remove query/fragment info
 //    tao://example.com/some/project/path?d=main.ddd
-//      => ssh://example.com/some/project/path        (tao: is ssh: by default)
+//      => git://example.com/some/project/path
 {
     QUrl uri(*this);
     uri.setEncodedQuery(QByteArray());
     if (uri.scheme() == "tao")
+        uri.setScheme("git");
+    else if (uri.scheme() == "taos")
         uri.setScheme("ssh");
 
     return uri.toString();
@@ -620,7 +773,7 @@ QString Uri::keyName()
     QString uri = repoUri();
     QByteArray ba = QUrl::toPercentEncoding(uri);
     QString name(ba);
-    return KNOWN_URIS_GROUP "/" + name;
+    return settingsGroup + "/" + name;
 }
 
 
@@ -628,8 +781,11 @@ QString Uri::newProject()
 // ----------------------------------------------------------------------------
 //    Return the path to use when cloning URI into a new project
 // ----------------------------------------------------------------------------
+//    For a document:
 //    This is: <user's tao directory>/<remote project name>
 //    If path already exists, append a number
+//    For a template:
+//    This is: <user's template directory</remote project name>
 {
     QString project;
     QString remoteName = path().section('/', -1);
@@ -637,17 +793,23 @@ QString Uri::newProject()
     int count = 1;
     if (remoteName.isEmpty())
         remoteName = tr("Temp");
+    QString folder = parentFolderForDownload();
     do
     {
         QString dir = remoteName;
         if (exists)
             dir = QString("%1_%2").arg(remoteName).arg(count++);
-        project = Application::defaultProjectFolderPath() + "/" + dir;
+        project = folder + "/" + dir;
         exists = QFileInfo(project).exists();
+        if (exists && settingsGroup == KNOWN_URIS_TMPL_GROUP)
+        {
+            // We don't want several copies of the same template
+            return "";
+        }
     }
     while (exists);
     IFTRACE(uri)
-        std::cerr << "Will clone into " << +project << "\n";
+        debug() << "Suggested new path to download to: " << +project << "\n";
     return project;
 }
 
@@ -674,6 +836,16 @@ QString Uri::docPath(QString project)
             path = project + "/" + list.first();
     }
     return path;
+}
+
+
+std::ostream & Uri::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[Uri] ";
+    return std::cerr;
 }
 
 }

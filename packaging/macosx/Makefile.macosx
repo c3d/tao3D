@@ -45,6 +45,7 @@
 #
 # Usage:
 #   make kit
+#   make prepare    # Prepare application in build_root for .dmg creation
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
@@ -68,8 +69,10 @@ tao.dmg: tmp.dmg
 	hdiutil convert -format UDBZ -o $@ tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
 
+prepare: .tao_install_ts .git_install_ts .cp_template_ts
+
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
-tmp.dmg: .tao_install_ts .git_install_ts .cp_template_ts
+tmp.dmg: prepare
 	hdiutil create tmp.dmg -fs HFSX -format UDRW -srcfolder build_root -volname "Tao Presentations"
 	hdiutil attach tmp.dmg
 	SetFile -a C "/Volumes/Tao Presentations"
@@ -111,7 +114,6 @@ clean.tao_install_deps:
 ########
 
 .tao_install_prog_ts:
-	rm -rf build_root
 	mkdir -p build_root
 	cd ../.. && make install
 	cp -Rp $(INSTROOT)/* build_root

@@ -181,6 +181,13 @@ int main(int argc, char *argv[])
     DEBUGP(L"Waiting for child to end\n");
     WaitForSingleObject(pi.hProcess, INFINITE);
     DEBUGP(L"Process ended\n");
+
+    //
+    // Read child process exit status
+    //
+
+    DWORD status = 0;
+    GetExitCodeProcess(pi.hProcess, &status);
     CloseHandle(pi.hProcess);
 
     //
@@ -197,8 +204,9 @@ int main(int argc, char *argv[])
     // We're done
     //
 
+    DEBUGP(L"Return status = %d", status);
     _flushall();
-    return 0;
+    return status;
 }
 
 

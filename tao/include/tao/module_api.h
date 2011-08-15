@@ -100,13 +100,13 @@ struct ModuleApi
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
 
-    // Allow to bind specified texture coordinates before a drawing
+    // Allow to enable specified texture coordinates before a drawing
     // according to current application parameters.
     // After drawing, texture coordinates have to be unbind.
-    bool (*BindTexCoords)(double* texCoord);
+    bool (*EnableTexCoords)(double* texCoord);
 
-    // Allow to unbind texture coordinates after a drawing.
-    bool (*UnBindTexCoords)();
+    // Allow to disable texture coordinates after a drawing.
+    bool (*DisableTexCoords)();
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
     bool (*BindTexture)(unsigned int id, unsigned int type);

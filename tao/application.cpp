@@ -69,7 +69,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::constructorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
+text Application::manufacturersList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -202,24 +202,24 @@ Application::Application(int & argc, char ** argv)
         gl.makeCurrent();
 
         // Ask graphic card constructor to OpenGL
-        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
-        int vendorNum = 0;
+        text manufacturer = text ( (const char*)glGetString ( GL_VENDOR ) );
+        int manufacturerNum = 0;
 
         // Search in constructors list
         for(int i = 0; i < LAST; i++)
         {
-            if(! vendor.compare(constructorsList[i]))
+            if(! manufacturer.compare(manufacturersList[i]))
             {
-                vendorNum = i;
+                manufacturerNum = i;
                 break;
             }
         }
 
-        switch(vendorNum)
+        switch(manufacturerNum)
         {
-        case 0: constructorCards = ATI; break;
-        case 1: constructorCards = NVIDIA; break;
-        case 2: constructorCards = INTEL; break;
+        case 0: cardManufacturer = ATI; break;
+        case 1: cardManufacturer = NVIDIA; break;
+        case 2: cardManufacturer = INTEL; break;
         }
 
 

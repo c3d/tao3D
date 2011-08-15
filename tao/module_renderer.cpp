@@ -61,31 +61,31 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     return true;
 }
 
-bool ModuleRenderer::BindTexCoords(double* texCoord)
+bool ModuleRenderer::EnableTexCoords(double* texCoord)
 // ----------------------------------------------------------------------------
-//   Bind the texture coordinates in the ModuleRenderer according
-//   to the current layout attributes
+//   Enable specified coordinates for active textures in the current layout
 // ----------------------------------------------------------------------------
 {
     if(! texCoord)
         return false;
 
     std::map<uint, TextureState>::iterator it;
-    for(it = currentLayout->fillTextures.begin(); it != currentLayout->fillTextures.end(); it++)
+    for(it = currentLayout->fillTextures.begin();
+        it != currentLayout->fillTextures.end(); it++)
         if(((*it).second).id)
             Shape::enableTexCoord((*it).first, texCoord);
 
     return true;
 }
 
-bool ModuleRenderer::UnBindTexCoords()
+bool ModuleRenderer::DisableTexCoords()
 // ----------------------------------------------------------------------------
-//   Unbind the texture coordinates in the ModuleRenderer according
-//   to the current layout attributes
+//   Disable coordinates for active textures in the current layout
 // ----------------------------------------------------------------------------
 {
     std::map<uint, TextureState>::iterator it;
-    for(it = currentLayout->fillTextures.begin(); it != currentLayout->fillTextures.end(); it++)
+    for(it = currentLayout->fillTextures.begin();
+        it != currentLayout->fillTextures.end(); it++)
         if(((*it).second).id)
             Shape::disableTexCoord((*it).first);
 

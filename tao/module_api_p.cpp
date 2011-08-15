@@ -43,8 +43,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     //Drawing paramaters
     SetTextures      = ModuleRenderer::SetTextures;
     BindTexture      = ModuleRenderer::BindTexture;
-    BindTexCoords    = ModuleRenderer::BindTexCoords;
-    UnBindTexCoords  = ModuleRenderer::UnBindTexCoords;
+    EnableTexCoords  = ModuleRenderer::EnableTexCoords;
+    DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
 

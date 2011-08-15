@@ -40,7 +40,7 @@ struct SplashScreen;
 struct ModuleManager;
 struct GCThread;
 
-enum Constructor {
+enum Manufacturer {
     ATI = 0,
     NVIDIA = 1,
     INTEL = 2,
@@ -53,7 +53,7 @@ class Application : public QApplication
 // ----------------------------------------------------------------------------
 {
 public:
-    static text constructorsList[LAST];
+    static text manufacturersList[LAST];
 
     Q_OBJECT
 
@@ -116,7 +116,7 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
-    Constructor  constructorCards;
+    Manufacturer cardManufacturer;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
     text         GLVersionAvailable;

@@ -1,0 +1,50 @@
+Here are the steps to create a new (official) release of Tao Presentations
+
+Once:
+
+- Make sure Qt translations are up-to-date
+  $ cd tao
+  $ make lupdate
+  Look at the output of lupdate, and edit tao_fr.ts as needed.
+  After editing tao_fr.ts:
+  $ make lrelease
+  Commit your translations (both tao_fr.ts AND tao_fr.qm need to be committed).
+- Make sure tao.xl translations are up-to-date
+  $ ./extract_tr.pl -ref tao_fr.xl tao.xl
+  If the command returns nothing, there is nothing to do, otherwise append
+  translations to tao_fr.xl, and commit.
+- There is no easy way to make sure other translations (e.g., module/template
+  descriptions) are up-to-date :(
+
+On all platforms:
+
+- Create a temporary tag, for instance:
+  $ git tag 1.0-beta5 
+- Clean work directory
+  $ make distclean
+- Run qmake
+  [MacOSX]
+  $ qmake -r -spec macx-g++ CONFIG+="x86 release"
+  [Windows]
+  $ qmake -r -spec win32-g++ CONFIG+="release"
+  [Linux]
+  $ qmake -r CONFIG+="release"
+- Build
+  $ make -j5 install
+- Build the kits
+  [MacOSX]
+  $ cd packaging/macosx
+  $ make kit
+  [Windows]
+  $ cd packaging/win
+  $ make kit
+  [Linux]
+  $ cd packaging/linux
+  $ make kit
+ 
+Once:
+
+- Create an annotated tag with the MD5 hash of all kits.
+  Take inspiration from 'git show 1.0-beta4' for instance. 
+  $ git tag -a 1.0-beta5 
+

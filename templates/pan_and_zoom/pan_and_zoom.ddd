@@ -1,5 +1,5 @@
-import PanAndZoom 1.0
-import Animate 1.0
+import PanAndZoom
+import Animate
 
 key "Left" -> skip -1
 key "Right" -> skip 1

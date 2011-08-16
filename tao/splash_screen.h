@@ -55,6 +55,7 @@ protected:
     virtual bool event(QEvent *e);
 
     void         showCredits();
+    void         showChangelog();
 
     QString      message;
     QLabel *     label;

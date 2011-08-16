@@ -51,7 +51,7 @@ LayoutState::LayoutState()
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
       currentLights(0),
-      textureUnits(1), previousUnits(0),
+      textureUnits(1),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
@@ -61,7 +61,6 @@ LayoutState::LayoutState()
       hasLighting(false), hasMaterial(false),
       isSelection(false), groupDrag(false)
 {
-    fillTextures.clear();
 }
 
 
@@ -79,7 +78,8 @@ LayoutState::LayoutState(const LayoutState &o)
         fillColor(o.fillColor),
         currentTexture(o.currentTexture),
         textureUnits(o.textureUnits),
-        previousUnits(o.previousUnits),
+        previousTextures(o.previousTextures),
+        fillTextures(o.fillTextures),
         model(o.model),
         lightId(o.lightId),
         programId(o.programId),
@@ -240,7 +240,7 @@ void Layout::Draw(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 
@@ -264,7 +264,7 @@ void Layout::DrawSelection(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 
@@ -289,7 +289,7 @@ void Layout::Identify(Layout *where)
     PopLayout(this);
 
     if(where)
-       where->previousUnits = textureUnits;
+       where->previousTextures = previousTextures;
 }
 
 
@@ -638,41 +638,33 @@ void LayoutState::InheritState(LayoutState *where)
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
-    font            = where->font;
-    alongX          = where->alongX;
-    alongY          = where->alongY;
-    alongZ          = where->alongZ;
-    left            = where->left;
-    right           = where->right;
-    top             = where->top;
-    bottom          = where->bottom;
-    visibility      = where->visibility;
-    lineWidth       = where->lineWidth;
-    lineColor       = where->lineColor;
-    fillColor       = where->fillColor;
-    currentTexture  = where->currentTexture;
-    textureUnits    = where->textureUnits;
-    previousUnits   = where->previousUnits;
-    fillTextures    = where->fillTextures;
-    model           = where->model;
-    lightId         = where->lightId;
-    programId       = where->programId;
-    printing        = where->printing;
-    planarRotation  = where->planarRotation;
-    planarScale     = where->planarScale;
-
-    has3D           = where->has3D;
-    hasPixelBlur    = where->hasPixelBlur;
-    groupDrag       = where->groupDrag;
-    hasMaterial     = where->hasMaterial;
-    hasTransform    = where->hasTransform;
-
-    //hasMatrix       = where->hasMatrix;
-    //hasAttributes   = where->hasAttributes;
-    //hasTextureMatrix= where->hasTextureMatrix;
-    //hasLighting     = where->hasLighting;
-    //isSelection     = where->isSelection;
-
+    font             = where->font;
+    alongX           = where->alongX;
+    alongY           = where->alongY;
+    alongZ           = where->alongZ;
+    left             = where->left;
+    right            = where->right;
+    top              = where->top;
+    bottom           = where->bottom;
+    visibility       = where->visibility;
+    lineWidth        = where->lineWidth;
+    lineColor        = where->lineColor;
+    fillColor        = where->fillColor;
+    currentLights    = where->currentLights;
+    textureUnits     = where->textureUnits;
+    previousTextures = where->previousTextures;
+    fillTextures     = where->fillTextures;
+    model            = where->model;
+    lightId          = where->lightId;
+    programId        = where->programId;
+    printing         = where->printing;
+    planarRotation   = where->planarRotation;
+    planarScale      = where->planarScale;
+    has3D            = where->has3D;
+    hasPixelBlur     = where->hasPixelBlur;
+    groupDrag        = where->groupDrag;
+    hasMaterial      = where->hasMaterial;
+    hasTransform     = where->hasTransform;
 }
 
 void LayoutState::toDebugString(std::ostream &out) const

@@ -52,6 +52,13 @@ public:
 public:
     Templates templates;
     QString   docPath;
+
+protected slots:
+    void         pageChanged(int id);
+    void         openWebPage();
+
+protected:
+    QPushButton *moreButton;
 };
 
 

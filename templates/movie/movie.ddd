@@ -1,5 +1,5 @@
-import MovieCredits 1.0
-import TaoVisuals 1.0
+import MovieCredits
+import TaoVisuals
 
 page "Taodyne presents",
 // ----------------------------------------------------------------------------

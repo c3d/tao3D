@@ -28,7 +28,7 @@
 
 
 TAO_BEGIN
-
+struct TextureState;
 struct Layout;
 
 struct Drawing

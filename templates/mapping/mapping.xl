@@ -1,4 +1,4 @@
-import Animate 1.0
+import Animate
 
 // Global window scaling
 window_scale -> min (window_width / 1408, window_height / 768)

@@ -1,4 +1,4 @@
-import Slides 1.0
+import Slides
 
 // Work around to Bug#1032
 syntax ( PREFIX 370 !* !- !+ )

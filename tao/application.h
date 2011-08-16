@@ -23,6 +23,10 @@
 // ****************************************************************************
 
 #include "main.h"
+#include <QtGlobal> // for Q_OS_WIN32
+#if defined (Q_OS_WIN32)
+#include "dde_widget.h"
+#endif
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
@@ -112,9 +116,11 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
-    Constructor  constructor;
+    Constructor  constructorCards;
     uint         maxTextureCoords;
-    uint         maxTextureUnits;    
+    uint         maxTextureUnits;
+    text         GLVersionAvailable;
+    text         GLExtensionsAvailable;
     QString      lang;
     GCThread *   gcThread;
 
@@ -135,6 +141,10 @@ private:
     ModuleManager * moduleManager;
     bool         doNotEnterEventLoop;
     QTranslator  translator, qtTranslator;
+    bool         appInitialized;
+#if defined (Q_OS_WIN32)
+    DDEWidget    dde;
+#endif
 };
 
 #define TaoApp  ((Application *) qApp)

@@ -24,17 +24,7 @@
 #include "version.h"
 #include "splash_screen.h"
 
-#include <QSplashScreen>
-#include <QPixmap>
-#include <QBitmap>
-#include <QPainter>
-#include <QTextDocument>
-#include <QCoreApplication>
-#include <QLabel>
-#include <QDesktopServices>
-#include <QUrl>
-#include <QPointer>
-#include <QMessageBox>
+#include <QtGui>
 
 namespace Tao {
 
@@ -60,10 +50,12 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                        "\302\251 2010-2011 "
                        "<a href=\"http://taodyne.com\">Taodyne SAS</a>. "
                        "%1 "
-                       "<a href=\"credits:\">%2</a>."
+                       "<a href=\"credits:\">%2</a>. "
+                       "<a href=\"changelog:\">%3</a>."
                        "</body></html>";
     label = new QLabel(trUtf8(cop).arg(tr("All rights reserved."))
-                                  .arg(tr("Credits")), this);
+                                  .arg(tr("Credits"))
+                                  .arg(tr("News")), this);
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
     label->move(270, 280);
@@ -77,10 +69,10 @@ void SplashScreen::openUrl(QString url)
 {
     urlClicked = true;
     if (url.startsWith("credits"))
-    {
-        showCredits();
-        return;
-    }
+        return showCredits();
+    else if (url.startsWith("changelog"))
+        return showChangelog();
+
     QDesktopServices::openUrl(QUrl(url));
 }
 
@@ -237,6 +229,51 @@ void SplashScreen::showCredits()
     msgBox->show();
 #else
     msgBox->exec();
+#endif
+}
+
+void SplashScreen::showChangelog()
+// ----------------------------------------------------------------------------
+//    Show changelog dialog. Inspired from showCredits().
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_WS_MAC
+    static QPointer<QDialog> oldDialog;
+
+    if (oldDialog) {
+        oldDialog->show();
+        oldDialog->raise();
+        oldDialog->activateWindow();
+        return;
+    }
+#endif
+
+    QString title = tr("Tao Presentations - What's new?");
+    QString changelogText;
+    QFile changelog(":/NEWS");
+    if (changelog.open(QFile::ReadOnly | QFile::Text))
+    {
+        QByteArray ba = changelog.readAll();
+        changelogText = QString::fromUtf8(ba.data(), ba.length());
+    }
+    QDialog *dialog = new QDialog;
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->setWindowTitle(title);
+    QTextEdit *edit = new QTextEdit;
+    edit->setPlainText(changelogText);
+    edit->setLineWrapMode(QTextEdit::NoWrap);
+    edit->setReadOnly(true);
+    QVBoxLayout *layout = new QVBoxLayout;
+    layout->addWidget(edit);
+    dialog->setLayout(layout);
+    dialog->resize(650, 550);
+
+    dialog->raise();
+#ifdef Q_WS_MAC
+    oldDialog = dialog;
+    dialog->show();
+#else
+    dialog->exec();
 #endif
 }
 

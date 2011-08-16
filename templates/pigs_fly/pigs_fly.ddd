@@ -6,8 +6,8 @@
 // them according to their licensing terms.
 // See plane/README.txt and piggy/README.txt for details.
 
-import ObjectLoader 1.0
-import TaoVisuals 1.0
+import ObjectLoader
+import TaoVisuals
 
 logo_page "Intro Logo" 
 title_page "Step 1: Type this", "in any old text editor" 

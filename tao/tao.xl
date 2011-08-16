@@ -189,7 +189,6 @@ draw_chooser_match m1:text /** m1 desc **/, m2:text /** m2 desc **/, m3:text /**
     text m3
 
 // Defaults
-no_texture               -> texture      ""
 color "default"          -> color        0.0, 0.0, 0.0, 1.0
 color "fill"             -> color        0.2, 0.6, 1.0, 0.5
 color "line"             -> color        0.0, 0.0, 0.0, 0.0
@@ -205,7 +204,6 @@ no_line_color            -> line_color   0.0, 0.0, 0.0, 0.0
 line_width "default"     -> line_width   4
 font "default"           -> font "Times New Roman", 24
 
-no_texture
 color       "default"
 line_color  "default"
 line_width  "default"

@@ -30,7 +30,6 @@
 
 namespace Tao {
 
-std::map<int, double*> ModuleRenderer::texList;
 Layout* ModuleRenderer::currentLayout = NULL;
 
 ModuleRenderer::~ModuleRenderer()
@@ -62,30 +61,50 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     return true;
 }
 
-bool ModuleRenderer::SetTexCoords(int unit, double* texCoord)
+bool ModuleRenderer::BindTexCoords(double* texCoord)
 // ----------------------------------------------------------------------------
-//   Set the texture coordinates in the ModuleRenderer according
+//   Bind the texture coordinates in the ModuleRenderer according
 //   to the current layout attributes
 // ----------------------------------------------------------------------------
 {
-    int maxTexCoord = TaoApp->maxTextureCoords;
-    if(unit >= -1 && unit < maxTexCoord)
-    {
-        if(unit == -1)
-            for(int i = 0; i < maxTexCoord; i++)
-                texList[i] = texCoord;
-        else
-            texList[unit] = texCoord;
+    if(! texCoord)
+        return false;
 
-        return true;
-    }
+    std::map<uint, TextureState>::iterator it;
+    for(it = currentLayout->fillTextures.begin(); it != currentLayout->fillTextures.end(); it++)
+        if(((*it).second).id)
+            Shape::enableTexCoord((*it).first, texCoord);
 
-    return false;
+    return true;
 }
 
-bool ModuleRenderer::SetTexture(unsigned int id, unsigned int type)
+bool ModuleRenderer::UnBindTexCoords()
 // ----------------------------------------------------------------------------
-//   Set the texture in the ModuleRenderer according
+//   Unbind the texture coordinates in the ModuleRenderer according
+//   to the current layout attributes
+// ----------------------------------------------------------------------------
+{
+    std::map<uint, TextureState>::iterator it;
+    for(it = currentLayout->fillTextures.begin(); it != currentLayout->fillTextures.end(); it++)
+        if(((*it).second).id)
+            Shape::disableTexCoord((*it).first);
+
+    return true;
+}
+
+bool ModuleRenderer::SetTextures()
+// ----------------------------------------------------------------------------
+//   Apply the textures in the ModuleRenderer according
+//   to the current layout attributes
+// ----------------------------------------------------------------------------
+{
+    return Shape::setTexture(currentLayout);
+}
+
+
+bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
+// ----------------------------------------------------------------------------
+//   Bind the texture in the ModuleRenderer according
 //   to the current layout attributes
 // ----------------------------------------------------------------------------
 {
@@ -121,18 +140,9 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
-    for(uint i = 0; i < texList.size(); i++)
-        if(texList[i] && where->fillTextures[i].id)
-            Shape::enableTexCoord(i, texList[i]);
-
     currentLayout  = where;
-    Shape::setTexture(where);
 
     callback(arg);
-
-    for(uint i = 0; i < texList.size(); i++)
-        if(texList[i] && where->fillTextures[i].id)
-            Shape::disableTexCoord(i);
 }
 
 }

@@ -622,9 +622,6 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    // Reset the index of characters
-    charId = 0;
-
     if (!where)
         return;
 

@@ -122,7 +122,8 @@ void TextUnit::DrawCached(Layout *where)
 
 
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
+                   (sel && sel->textBoxId &&
+                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
         canSel = false;
 
     // Compute per-char spread
@@ -235,7 +236,8 @@ void TextUnit::DrawDirect(Layout *where)
     if (where->lineColor.alpha <= 0)
         lw = 0;
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
+                   (sel && sel->textBoxId &&
+                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
         canSel = false;
 
     GlyphCache::GlyphEntry  glyph;
@@ -287,6 +289,8 @@ void TextUnit::DrawDirect(Layout *where)
 
     where->offset = Point3(x, y, z);
 }
+
+
 void TextUnit::DrawSelection(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw the selection for any selected character
@@ -300,7 +304,7 @@ void TextUnit::DrawSelection(Layout *where)
     Text *      ttree        = source;
     text        str          = ttree->value;
     bool        canSel       = ttree->Position() != XL::Tree::NOWHERE;
-    QFont      &font         = where->font;    
+    QFont      &font         = where->font;
     uint64      texUnits     = where->textureUnits;
     Point3      pos          = where->offset;
     coord       x            = pos.x;
@@ -318,7 +322,8 @@ void TextUnit::DrawSelection(Layout *where)
 
     // A number of cases where we can't select text
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
+                   (sel && sel->textBoxId &&
+                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
         canSel = false;
 
     // Find length of text span and compute per-char spread
@@ -485,7 +490,8 @@ void TextUnit::Identify(Layout *where)
 
     // A number of cases where we can't select text
     if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId && where->id != sel->textBoxId)))
+                   (sel && sel->textBoxId &&
+                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
         canSel = false;
 
     // Find length of text span and compute per-char spread
@@ -884,7 +890,6 @@ int TextUnit::PerformEditOperation(Widget *widget, uint i)
     uint        eos           = i;
     text        str           = source->value;
     uint        entryLen      = str.length();
-
     if (!sel->length() && !length)
     {
         sel->replace = false;
@@ -1659,6 +1664,7 @@ void TextSelect::updateSelection()
     uint s = start(), e = end(), marker = Widget::CHARACTER_SELECTED;
     for (uint i = s; i <= e; i++)
         widget->select(i | marker, marker);
+
     if (textBoxId)
     {
         widget->select(textBoxId, Widget::CONTAINER_OPENED);

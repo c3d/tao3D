@@ -104,7 +104,6 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
             uint    size    = ptr[0];
             GLuint *selPtr  = ptr + 3;
             GLuint *selNext = selPtr + size;
-
             if (ptr[3] && ptr[1] <= depth)
             {
                 depth = ptr[1];
@@ -364,9 +363,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     else
     {
         Idle();
-        Activity *next = this->next;
         delete this;
-        return next;
+        return the_next;
     }
 
 
@@ -470,9 +468,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (selected)
             return new Drag(widget);
     }
-
-    return the_next;
-    //return NULL;                // We dealt with the event
+    return NULL;                // We dealt with the event
 }
 
 

@@ -433,7 +433,6 @@ PageLayout::~PageLayout()
         delete ll;
     }
     lines.clear();
-//    std::cerr << "PageLayout::~PageLayout()\n";
 }
 
 
@@ -511,7 +510,6 @@ void PageLayout::DrawSelection(Layout *where)
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "PageLayout::DrawSelection\n"; // CaB
     // Remember the initial selection ID
     Widget     *widget   = where->Display();
     TextSelect *sel      = widget->textSelection();
@@ -613,7 +611,6 @@ void PageLayout::Identify(Layout */*where*/)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "PageLayout::Identify\n"; // CaB
     // Inherit state from our parent layout if there is one and compute layout
     Compute(flow);
 
@@ -784,11 +781,12 @@ void PageLayout::Compute(Layout */*where*/)
     current = lines.begin();
     page.Adjust(top, bottom, this->alongY, this);
     lastFlowPoint = *(flow->getCurrentIterator());
-    IFTRACE(justify)
-        page.Dump("Page justification");
 
     IFTRACE(justify)
-            std::cerr << "<-PageLayout::Compute ["<< this <<"]\n";
+    {
+        page.Dump("Page justification");
+        std::cerr << "<-PageLayout::Compute ["<< this <<"]\n";
+    }
 }
 
 
@@ -880,6 +878,7 @@ void TextFlow::Draw(Layout *where)
 //   Check if the original layout has remaining elements
 // ----------------------------------------------------------------------------
 {
+    charId = 0;
     Inherit(where);
     resetIterator();
     return ;
@@ -891,6 +890,7 @@ void TextFlow::DrawSelection(Layout *)
 //   Draw the selection
 // ----------------------------------------------------------------------------
 {
+    charId = 0;
     return;
 }
 
@@ -900,6 +900,7 @@ void TextFlow::Identify(Layout *)
 //   Identify elements of the layout
 // ----------------------------------------------------------------------------
 {
+    charId = 0;
     return;
 }
 

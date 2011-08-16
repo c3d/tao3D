@@ -149,8 +149,9 @@ public:
 
 public:
     text                flowName;
+    std::set<uint>      textBoxIds;
 private:
-    Drawings::iterator currentIterator;
+    Drawings::iterator  currentIterator;
 };
 
 

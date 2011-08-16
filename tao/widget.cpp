@@ -7350,11 +7350,13 @@ Tree_p  Widget::textBox(Tree_p self, text flowName,
     PageLayout *tbox = new PageLayout(this, flow);
     this->currentFlowName = flowName;
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    tbox->id = selectionId();
     layout->Add(tbox);
 
     if (currentShape)
+    {
+        flow->textBoxIds.insert(layout->id);
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    }
 
     return XL::xl_true;
 }

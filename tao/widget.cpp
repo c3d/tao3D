@@ -2008,6 +2008,7 @@ Context *Widget::context()
 
 
 
+
 // ============================================================================
 //
 //   Widget basic events (painting, mause, ...)
@@ -4153,8 +4154,8 @@ Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
             Tree_p action = (*foundAction).second;
 
             // Set event mouse coordinates (bug #937, #1013)
-            MouseCoordinatesInfo *m = action->GetInfo<MouseCoordinatesInfo>();
-            XL::Save<MouseCoordinatesInfo *> s(mouseCoordinatesInfo, m);
+            CoordinatesInfo *m = action->GetInfo<CoordinatesInfo>();
+            XL::Save<CoordinatesInfo *> s(mouseCoordinatesInfo, m);
 
             // Adjust coordinates with latest event information
             m->coordinates = unproject(x, y, 0,
@@ -4629,7 +4630,7 @@ Real_p Widget::mouseX(Tree_p self)
         return new Real(mouseCoordinatesInfo->coordinates.x);
     refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
-    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
         return new Real(info->coordinates.x);
     return new Real(0.0);
 }
@@ -4645,7 +4646,7 @@ Real_p Widget::mouseY(Tree_p self)
         return new Real(mouseCoordinatesInfo->coordinates.y);
     refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
-    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
         return new Real(info->coordinates.y);
     return new Real(0.0);
 }
@@ -9477,6 +9478,10 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         QStringList branches = repo->branches();
         foreach (QString branch, branches)
         {
+
+
+
+
             Tree *action = new Prefix(prefix, new Text(+branch));
             action->SetSymbols(self->Symbols());
             chooser->AddItem(label + +branch + "...", action);
@@ -10579,7 +10584,19 @@ Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
     return XL::xl_false;
 }
 
+Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
+// ----------------------------------------------------------------------------
+//   Convert a screen position to an xyz world coordinates
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    Tree* result = XL::xl_real_list(self, 3, &pos.x);
+    layout->Add(new ConvertScreenCoordinates(self, x, y));
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
+        result = XL::xl_real_list(self, 3, &info->coordinates.x);
 
+    return result->AsInfix();
+}
 
 // ============================================================================
 //

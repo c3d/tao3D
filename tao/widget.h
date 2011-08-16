@@ -75,7 +75,7 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
-struct MouseCoordinatesInfo;
+struct CoordinatesInfo;
 struct MouseFocusTracker;
 struct DisplayDriver;
 
@@ -766,6 +766,7 @@ public:
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
+    Infix_p     getWorldCoordinates(Tree_p, Real_p x, Real_p y);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -877,7 +878,7 @@ private:
     QFont                 selectionFont;
     QColor                originalColor;
     int                   lastMouseX, lastMouseY, lastMouseButtons;
-    MouseCoordinatesInfo *mouseCoordinatesInfo;
+    CoordinatesInfo*      mouseCoordinatesInfo;
     MouseFocusTracker *   mouseFocusTracker;
 
     // Timing

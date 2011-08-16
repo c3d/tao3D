@@ -72,5 +72,14 @@ real zoom();
 zoom(real z);
 
 /**
+ * Convert a screen position to world coordinates.
+ * Transform a screen position defined by (@p x, @p y) to world
+ * coordinates according to the current depth buffer.
+ *
+ * @return 3 real values, separated by commas.
+ */
+infix get_world_coordinates(x:integer, y:integer);
+
+/**
  * @}
  */

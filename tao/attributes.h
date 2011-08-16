@@ -268,8 +268,7 @@ struct DepthTest : Attribute
     bool enable;
 };
 
-
-struct MouseCoordinatesInfo : XL::Info
+struct CoordinatesInfo : XL::Info
 // ----------------------------------------------------------------------------
 //   Record unprojected mouse coordinates
 // ----------------------------------------------------------------------------
@@ -279,7 +278,6 @@ struct MouseCoordinatesInfo : XL::Info
     GLint       viewport[4];
 };
 
-
 struct RecordMouseCoordinates : Attribute
 // ----------------------------------------------------------------------------
 //    Record the mouse coordinates in current projection matrix for a tree
@@ -288,6 +286,18 @@ struct RecordMouseCoordinates : Attribute
     RecordMouseCoordinates(Tree *self): self(self) {}
     virtual void Draw(Layout *where);
     Tree_p self;
+};
+
+struct ConvertScreenCoordinates : Attribute
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+{
+    ConvertScreenCoordinates(Tree *self, coord x, coord y): self(self), x(x), y(y) {}
+    virtual void Draw(Layout *where);
+    virtual void DrawSelection(Layout *)        {}
+    virtual void Identify(Layout *)        {}
+    Tree_p self;
+    coord x,y;
 };
 
 TAO_END

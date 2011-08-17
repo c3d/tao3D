@@ -5812,7 +5812,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 
     // Fig a bug with ATI drivers which set texture matrices
     // to null instead of identity
-    if(texUnit && (TaoApp->cardManufacturer == ATI))
+    if(texUnit && (TaoApp->vendorID == ATI))
     {
         glActiveTexture(GL_TEXTURE0 + texUnit);
         glMatrixMode(GL_TEXTURE);

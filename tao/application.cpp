@@ -69,7 +69,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::manufacturersList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
+text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -202,24 +202,24 @@ Application::Application(int & argc, char ** argv)
         gl.makeCurrent();
 
         // Ask graphic card constructor to OpenGL
-        text manufacturer = text ( (const char*)glGetString ( GL_VENDOR ) );
-        int manufacturerNum = 0;
+        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+        int vendorNum = 0;
 
         // Search in constructors list
         for(int i = 0; i < LAST; i++)
         {
-            if(! manufacturer.compare(manufacturersList[i]))
+            if(! vendor.compare(vendorsList[i]))
             {
-                manufacturerNum = i;
+                vendorNum = i;
                 break;
             }
         }
 
-        switch(manufacturerNum)
+        switch(vendorNum)
         {
-        case 0: cardManufacturer = ATI; break;
-        case 1: cardManufacturer = NVIDIA; break;
-        case 2: cardManufacturer = INTEL; break;
+        case 0: vendorID = ATI; break;
+        case 1: vendorID = NVIDIA; break;
+        case 2: vendorID = INTEL; break;
         }
 
 
@@ -231,6 +231,10 @@ Application::Application(int & argc, char ** argv)
         // Get OpenGL supported extentions
         str = glGetString(GL_EXTENSIONS);
         GLExtensionsAvailable = (const char*) str;
+
+        // Get OpenGL renderer (GPU)
+        str = glGetString(GL_RENDERER);
+        GLRenderer = (const char*) str;
 
         // Get number of maximum texture units and coords in fragment shaders
         // (texture units are limited to 4 otherwise)

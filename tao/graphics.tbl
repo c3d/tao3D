@@ -999,6 +999,13 @@ PREFIX(TextureUnit,  tree,  "texture_unit",,
        SYNOPSIS("Return current texture unit")
        DESCRIPTION("Return current texture unit")
        RETURNS(tree, "The current texture unit"))
+PREFIX(HasTexture, tree,  "has_texture",
+       PARM(unit, integer, "texture unit checked"),
+       RTAO(hasTexture(self, unit)),
+       GROUP(graph)
+       SYNOPSIS("Return result of evaluation.")
+       DESCRIPTION("Return result of evaluation.")
+       RETURNS(tree, "Return result of evaluation."))
 
 // ============================================================================
 //

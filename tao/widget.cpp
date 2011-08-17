@@ -4038,7 +4038,7 @@ static inline void resetLayout(Layout *where)
     {
         where->lineWidth = 1;
         where->currentLights = 0;
-        where->textureUnits = 1;
+        where->textureUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
         where->fillTextures.clear();
@@ -5821,6 +5821,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
         glActiveTexture(GL_TEXTURE0);
     }
 
+    layout->textureUnits |= 1 << texUnit;
     layout->currentTexture.unit = texUnit;
     return new XL::Integer(texUnit);
 }
@@ -6206,6 +6207,27 @@ Integer* Widget::textureId(Tree_p self)
 {
    return new Integer(layout->currentTexture.id);
 }
+
+
+
+Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
+// ----------------------------------------------------------------------------
+//   Return the texture id set at the specified unit
+// ----------------------------------------------------------------------------
+{
+    if(unit > TaoApp->maxTextureUnits)
+    {
+        Ooops("Invalid texture unit $1", self);
+        return 0;
+    }
+
+    uint hasTexture = layout->textureUnits & (1 << unit);
+    if(hasTexture)
+        return XL::xl_true;
+
+    return XL::xl_false;
+}
+
 
 Integer* Widget::textureUnit(Tree_p self)
 // ----------------------------------------------------------------------------

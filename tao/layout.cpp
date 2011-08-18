@@ -77,6 +77,7 @@ LayoutState::LayoutState(const LayoutState &o)
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         currentTexture(o.currentTexture),
+        currentLights(o.currentLights),
         textureUnits(o.textureUnits),
         previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),

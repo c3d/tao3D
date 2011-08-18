@@ -779,9 +779,10 @@ TextUnit *TextUnit::Break(BreakOrder &order, uint &size)
         {
             // Create two text spans, the first one containing the split
             uint next = XL::Utf8Next(str, i);
-            TextUnit *result = (next < max && next < end)
-                ? new TextUnit(source, next, end)
-                : NULL;
+            TextUnit *result = NULL;
+            if (next < max && next < end)
+                result = new TextUnit(source, next, end);
+
             order = charOrder;
             end = next;
             return result;

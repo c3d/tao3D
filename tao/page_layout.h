@@ -131,7 +131,10 @@ public:
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
+    virtual void        Clear();
     virtual text        getType() { return "Textflow";}
+    void                addBox(PageLayout *b) { boxes.insert(b); }
+    void                removeBox(PageLayout *b) { boxes.erase(b); }
 
     Drawings::iterator * getCurrentIterator() { return &currentIterator;}
     Drawing            * getCurrentElement();
@@ -148,8 +151,10 @@ public:
     }
 
 public:
-    text                flowName;
-    std::set<uint>      textBoxIds;
+    text                  flowName;
+    std::set<uint>        textBoxIds; // Set of layoutID for selection
+    std::set<PageLayout*> boxes; // Set of boxes displaying this text flow
+
 private:
     Drawings::iterator  currentIterator;
 };

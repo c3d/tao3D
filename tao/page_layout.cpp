@@ -269,8 +269,10 @@ void LayoutLine::RefreshLayouts(Layout::Layouts &out)
 {
     LineJustifier::Places &ps = line.places;
     for (LineJustifier::PlacesIterator p = ps.begin(); p != ps.end(); p++)
+    {
         if (Layout *layout = dynamic_cast<Layout*>((*p).item))
             out.push_back(layout);
+    }
 }
 
 
@@ -403,6 +405,9 @@ PageLayout::PageLayout(Widget *widget, TextFlow *flow)
     flow(flow),lines(), current(lines.begin()),
     page(&lines,&current), lastFlowPoint(*(flow->getCurrentIterator()))
 {
+    IFTRACE(justify)
+            std::cerr << "PageLayout::PageLayout " << this << std::endl;
+    flow->addBox(this);
     Inherit(widget->layout);
     Inherit(flow);
 }
@@ -415,6 +420,9 @@ PageLayout::PageLayout(const PageLayout &o)
     : Layout(o), space(), flow(o.flow),lines(), current(lines.begin()),
     page(&lines, &current), lastFlowPoint(*(flow->getCurrentIterator()))
 {
+    IFTRACE(justify)
+            std::cerr << "PageLayout::PageLayout " << this << std::endl;
+    flow->addBox(this);
     Inherit(flow);
     space |= Point3(0,0,0);
 }
@@ -425,16 +433,15 @@ PageLayout::~PageLayout()
 //    Destroy the page layout
 // ----------------------------------------------------------------------------
 {
-    LayoutLine *ll = NULL;
+    IFTRACE(justify)
+            std::cerr << "PageLayout::~PageLayout " << this << std::endl;
+    if (flow)
+        flow->removeBox(this);
 
-    for  (Items::iterator  l = lines.begin(); l != lines.end(); l++)
-    {
-        ll = (*l);
-        delete ll;
-    }
-    lines.clear();
+    flow = NULL;
+
+    Clear();
 }
-
 
 
 void PageLayout::AddLine(LayoutLine *d)
@@ -469,6 +476,15 @@ void PageLayout::Clear()
 //   When we clear a page layout, we need to also clear placed items
 // ----------------------------------------------------------------------------
 {
+    LayoutLine *ll = NULL;
+
+    for  (Items::iterator  l = lines.begin(); l != lines.end(); l++)
+    {
+        ll = (*l);
+        delete ll;
+    }
+
+    lines.clear();
     page.Clear();
     Layout::Clear();
 }
@@ -504,6 +520,7 @@ void PageLayout::Draw(Layout *where)
 
     if(where)
        where->previousTextures = previousTextures;
+
 }
 
 
@@ -774,6 +791,8 @@ void PageLayout::Compute(Layout */*where*/)
             if (page_height > top - bottom)
             {
                 flow->rewindFlow(line->flowRewindPoint);
+                delete line;
+                line = NULL;
                 break;
             }
             // Remember the line for vertical layout
@@ -783,6 +802,11 @@ void PageLayout::Compute(Layout */*where*/)
                 break;
             // Get next line if there is anything left to layout
             line = line->Remaining();
+        }
+        if (line)
+        {
+            delete line;
+            line = NULL;
         }
     }
     // Now that we have all lines, do the vertical layout
@@ -835,6 +859,11 @@ TextFlow::~TextFlow()
 //    If we got a child, then we need to delete it
 // ----------------------------------------------------------------------------
 {
+    for (std::set<PageLayout*>::iterator i = boxes.begin(); i != boxes.end(); i++)
+        (*i)->flow = NULL;
+
+    Clear();
+    boxes.clear();
 }
 
 void TextFlow::insertAfterCurrent(Drawing *d)
@@ -854,7 +883,7 @@ void TextFlow::insertAfterCurrent(Drawing *d)
 
 Drawing * TextFlow::getCurrentElement()
 // ----------------------------------------------------------------------------
-//
+// Returns the current drawing being displayed.
 // ----------------------------------------------------------------------------
 {
     if (! items.size()) return NULL;
@@ -865,7 +894,7 @@ Drawing * TextFlow::getCurrentElement()
 
 bool TextFlow::atEnd()
 // ----------------------------------------------------------------------------
-//
+// True if there is nothing left to be displayed.
 // ----------------------------------------------------------------------------
 {
     return (currentIterator == items.end()) || (items.empty());
@@ -874,7 +903,7 @@ bool TextFlow::atEnd()
 
 void TextFlow::resetIterator()
 // ----------------------------------------------------------------------------
-//
+// Set the flow iterator to the first drawing to be displayed.
 // ----------------------------------------------------------------------------
 {
     currentIterator = items.begin();
@@ -912,6 +941,18 @@ void TextFlow::Identify(Layout *)
     return;
 }
 
+
+void TextFlow::Clear()
+// ----------------------------------------------------------------------------
+//   Reset the layout to the initial setup
+// ----------------------------------------------------------------------------
+{
+    for (std::set<PageLayout*>::iterator i = boxes.begin(); i != boxes.end(); i++)
+        (*i)->Clear();
+
+    textBoxIds.clear();
+    Layout::Clear();
+}
 
 
 // ============================================================================

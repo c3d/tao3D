@@ -560,8 +560,6 @@ void Widget::setupPage()
     w_event = NULL;
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
-    //flowName = "";
-    //flows.clear();
     IFTRACE(pages)
         std::cerr << "setupPage: found=" << pageFound
                   << " id=" << pageId << "\n";

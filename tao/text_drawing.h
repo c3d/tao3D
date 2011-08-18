@@ -45,6 +45,13 @@ struct TextUnit : Shape
             toDebugString(std::cerr);
         }
     }
+    virtual ~TextUnit()
+    {
+        source = NULL;
+        IFTRACE(justify)
+            std::cerr << "<->TextUnit::~TextUnit["<<this<<"]\n";
+    }
+
     virtual void        Draw(Layout *where);
     virtual void        DrawCached(Layout *where);
     virtual void        Identify(Layout *where);

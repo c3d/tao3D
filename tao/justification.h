@@ -108,9 +108,11 @@ struct Justifier
 
 public:
     Justifier(Items *flow, ItemsIterator *start):
-            items(flow), item_start(start), places(), numItems(0), order(Drawing::NoBreak) {}
+            items(flow), item_start(start), places(),
+            numItems(0), order(Drawing::NoBreak) {}
     Justifier(const Justifier &j):
-            items(j.items), item_start(j.item_start), places(), numItems(0), order(Drawing::NoBreak) {}
+            items(j.items), item_start(j.item_start),
+            places(), numItems(0), order(Drawing::NoBreak) {}
     ~Justifier() { Clear(); }
 
     // Position items in the layout

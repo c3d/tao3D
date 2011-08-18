@@ -2119,12 +2119,12 @@ PREFIX(MovieTexture,  tree,  "movie_texture",
 //   Lighting
 //
 // ============================================================================
-PREFIX(CurrentLightId,  tree,  "light_id",,
-       RTAO(lightId(self)),
+PREFIX(LightsMask,  tree,  "lights_mask",,
+       RTAO(lightsMask(self)),
        GROUP(lighting)
-       SYNOPSIS("Return current light id")
-       DESCRIPTION("Return current light id")
-       RETURNS(tree, "The current light id"))
+       SYNOPSIS("Return a bitmask of all current activated lights")
+       DESCRIPTION("Return a bitmask of all current activated lights")
+       RETURNS(tree, "Return a bitmask of all current activated lights"))
 
 PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),

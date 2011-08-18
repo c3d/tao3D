@@ -6237,9 +6237,9 @@ Integer* Widget::textureUnit(Tree_p self)
     return new Integer(layout->currentTexture.unit);
 }
 
-Integer_p Widget::lightId(Tree_p self)
+Integer_p Widget::lightsMask(Tree_p self)
 // ----------------------------------------------------------------------------
-//  Return the current light id
+//  Return a bitmask of all current activated lights
 // ----------------------------------------------------------------------------
 {
     return new Integer(layout->currentLights);

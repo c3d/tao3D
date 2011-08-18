@@ -67,6 +67,21 @@ mouse_x ();
 mouse_y ();
 
 /**
+ * Returns the current X position of the mouse in screen coordinates.
+ * Coordinates are in pixels. The left of the display area is at X coordinate
+ * 0, while the right is at X = @ref window_width.
+ */
+screen_mouse_x ();
+
+/**
+ * Returns the current Y position of the mouse in screen coordinates.
+ * Coordinates are in pixels. The bottom of the display area is at Y coordinate
+ * 0, while the top is at X = @ref window_height.
+ */
+screen_mouse_y ();
+
+
+/**
  * Mouse wheel handling.
  * With control key down, zoum in or out. Otherwise call @c pan
  */

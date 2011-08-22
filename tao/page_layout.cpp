@@ -403,7 +403,8 @@ PageLayout::PageLayout(Widget *widget, TextFlow *flow)
     : Layout(widget),
     space(),
     flow(flow),lines(), current(lines.begin()),
-    page(&lines,&current), lastFlowPoint(*(flow->getCurrentIterator()))
+    page(&lines,&current), lastFlowPoint(*(flow->getCurrentIterator())),
+    selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
@@ -418,7 +419,8 @@ PageLayout::PageLayout(const PageLayout &o)
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
     : Layout(o), space(), flow(o.flow),lines(), current(lines.begin()),
-    page(&lines, &current), lastFlowPoint(*(flow->getCurrentIterator()))
+    page(&lines, &current), lastFlowPoint(*(flow->getCurrentIterator())),
+    selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
@@ -499,7 +501,7 @@ void PageLayout::Draw(Layout *where)
 //   taking the layout offset from the placed position
 {
     flow->offset = where->Offset();
-
+    flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
     Compute(flow);
 
@@ -535,6 +537,7 @@ void PageLayout::DrawSelection(Layout *where)
     uint        selected = widget->selected(id);
     GLuint      lineStart, lineEnd;
 
+    flow->currentTextBox = this;
     flow->offset = where->Offset();
     id = where->id;
     // Inherit state from our parent layout if there is one and compute layout
@@ -634,6 +637,7 @@ void PageLayout::Identify(Layout */*where*/)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
+    flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
     Compute(flow);
 
@@ -846,7 +850,7 @@ TextFlow::TextFlow(Layout *layout, text flowName)
 // ----------------------------------------------------------------------------
 //   Create a page layout overflow rectangle
 // ----------------------------------------------------------------------------
-    : Layout(*layout), flowName(flowName), currentIterator(items.begin())
+    : Layout(*layout), flowName(flowName), currentTextBox(NULL), currentIterator(items.begin())
 {
     IFTRACE(justify)
             std::cerr << "TextFlow::TextFlow[" << this

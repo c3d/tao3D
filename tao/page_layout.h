@@ -100,6 +100,7 @@ public:
     Items::iterator  current;
     PageJustifier       page;
     Drawings::iterator  lastFlowPoint;
+    uint                selectId; // Selection Id of its englobing layout.
 
 };
 
@@ -154,6 +155,7 @@ public:
     text                  flowName;
     std::set<uint>        textBoxIds; // Set of layoutID for selection
     std::set<PageLayout*> boxes; // Set of boxes displaying this text flow
+    PageLayout *          currentTextBox; // The pageLayout that is currently inuse.
 
 private:
     Drawings::iterator  currentIterator;

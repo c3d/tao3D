@@ -227,13 +227,19 @@ void TextUnit::DrawDirect(Layout *where)
     bool        skip     = false;
     uint        i, max   = str.length();
     uint        charId   = ~0U;
+    TextFlow  * flow     = NULL;
 
     // Disable drawing of lines if we don't see them.
     if (where->lineColor.alpha <= 0)
         lw = 0;
-    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId &&
-                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
+    if ((flow = dynamic_cast<TextFlow*>(where)) && canSel)
+    {
+        if (!flow->currentTextBox->selectId || IsMarkedConstant(ttree) ||
+            (sel && sel->textBoxId &&
+             flow->textBoxIds.count(sel->textBoxId) == 0 ))
+            canSel = false;
+    }
+    else
         canSel = false;
 
     GlyphCache::GlyphEntry  glyph;
@@ -313,13 +319,19 @@ void TextUnit::DrawSelection(Layout *where)
     scale       ascent       = glyphs.Ascent(font, texUnits);
     scale       descent      = glyphs.Descent(font, texUnits);
     scale       height       = ascent + descent;
+    TextFlow   *flow         = NULL;
     GlyphCache::GlyphEntry  glyph;
     QString     selectedText;
 
     // A number of cases where we can't select text
-    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId &&
-                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
+    if ((flow = dynamic_cast<TextFlow*>(where)) && canSel)
+    {
+        if (!flow->currentTextBox->selectId || IsMarkedConstant(ttree) ||
+            (sel && sel->textBoxId &&
+             flow->textBoxIds.count(sel->textBoxId) == 0 ))
+            canSel = false;
+    }
+    else
         canSel = false;
 
     // Find length of text span and compute per-char spread
@@ -480,14 +492,20 @@ void TextUnit::Identify(Layout *where)
     coord       charX2    = x;
     coord       charY1    = y;
     coord       charY2    = y;
+    TextFlow   *flow      = NULL;
 
     GlyphCache::GlyphEntry  glyph;
     Point3                  quad[4];
 
     // A number of cases where we can't select text
-    if (canSel && (!where->id || IsMarkedConstant(ttree) ||
-                   (sel && sel->textBoxId &&
-                    ((TextFlow*)where)->textBoxIds.count(sel->textBoxId) == 0 )))
+    if ((flow = dynamic_cast<TextFlow*>(where)) && canSel)
+    {
+        if (!flow->currentTextBox->selectId || IsMarkedConstant(ttree) ||
+            (sel && sel->textBoxId &&
+             flow->textBoxIds.count(sel->textBoxId) == 0 ))
+            canSel = false;
+    }
+    else
         canSel = false;
 
     // Find length of text span and compute per-char spread
@@ -946,6 +964,10 @@ int TextUnit::PerformEditOperation(Widget *widget, uint i)
         sel->point += deltaSelection;
     }
     uint exitLen = source->value.length();
+
+    // Reload the program
+    widget->updateProgramSource();
+
     return exitLen - entryLen;
 }
 
@@ -1056,7 +1078,8 @@ void TextUnit::PerformInsertOperation(Layout * l,
 
         // Reload the program
         widget->reloadProgram();
-        widget->refresh(0.4);
+        widget->runOnNextDraw = true;
+
     }
 }
 

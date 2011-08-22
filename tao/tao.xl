@@ -567,7 +567,7 @@ menu_item "menu:insert > text box", tr "Text Box",
             //line_color "font"
             font "default"
             text_box 0, 0, 100, 100,
-                text tr "Text"
+                text "Text"
 submenu   "menu:insert > shape", tr "2D Shape"
 menu_item "menu:insert > shape > line ---", tr "Line",
     insert tr "Insert line",

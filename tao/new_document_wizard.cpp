@@ -67,7 +67,7 @@ void NewDocumentWizard::openWebPage()
 //   Open the templates web page in a browser window and close the wizard
 // ----------------------------------------------------------------------------
 {
-    QString url("http://taodyne.com/tao/templates/");
+    QString url("http://taodyne.com/taopresentations/1.0/templates/");
     QDesktopServices::openUrl(url);
     reject();
 }

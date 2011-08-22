@@ -149,6 +149,10 @@ Launch Tao with valgrind (it is very very slow)
 
 Prerequisites to build Tao: Qt 4.7.2, LLVM 2.9, libxss-dev.
 
+ - On Ubuntu 11.04, you may install the full Qt distribution and libxss-dev with:
+   $ sudo apt-get install qt-creator libxss-dev
+   You still need to build LLVM from sources as explained below since version
+   2.9 is not currently (August 2001) available pre-packaged.
  - Building Qt 4.7.2 from sources (qt-everywhere-opensource-src-4.7.2.tar.gz)
    Make sure you have the following packages (they do not come with the
    default install of Ubuntu 11.04):

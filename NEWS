@@ -1,6 +1,32 @@
 ﻿Change log for Tao Presentations
 --------------------------------
 
+1.0-beta6
+
+#1287 mouse_buttons doesn't deal with release events
+#1281 Windows: Double clicking a .ddd file or clicking tao: URL should not start a new process
+#1279 Do not mention GL multisampling in warning dialog
+#1278 Zoom not reset on file load
+#1268 Create template for Flares shader module
+#1267 Add Flares shader module
+#1266 Page start time not reset on file load
+#1265 Add basic shaders in case where advanced are no supported
+#1264 Create template for Monjori shader module
+#1263 Add Monjori shader module
+#1262 Templates: remove "1.0" in import directives
+#1258 cube_map is not deactivated correctly
+#1256 Crash or hang due to memory corruption when using shaders
+#1255 Add changelog to about box
+#1254 Easy to customize template for slides
+#1242 Add download link to new document wizard
+#1240 Support per-user document templates
+#1239 Add support for download of document templates
+#1238 Make tao:// use the Git protocol and create taos:// for Git over SSH
+#1235 Add lights support in Mapping and Materials modules
+#1105 Windows: improve text rendering by better detecting when not to enable bitmap glyph cache
+#338  Extra space added at end of lines when saving document
+#336  Empty first line added when saving document
+
 1.0-beta5
 
 #1246 Documentation: add link to youtube tutorial

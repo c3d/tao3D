@@ -4652,6 +4652,26 @@ Real_p Widget::mouseY(Tree_p self)
 }
 
 
+Integer_p Widget::screenMouseX(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the X position of the mouse in screen (pixel) coordinates
+// ----------------------------------------------------------------------------
+{
+    refreshOn(QEvent::MouseMove);
+    return new Integer(lastMouseX);
+}
+
+
+Integer_p Widget::screenMouseY(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the Y position of the mouse in screen (pixel) coordinates
+// ----------------------------------------------------------------------------
+{
+    refreshOn(QEvent::MouseMove);
+    return new Integer(lastMouseY);
+}
+
+
 Integer_p Widget::mouseButtons(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the buttons of the last mouse event

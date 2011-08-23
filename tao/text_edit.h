@@ -38,7 +38,8 @@ public:
     XL::Infix * fromHTML(QString html);
 
     XL::Infix * docToTree(const QTextDocument &doc );
-    XL::Infix * blockToTree(const QTextBlock &block, XL::Infix *parent );
+    XL::Infix * blockToTree(const QTextBlock &block, XL::Infix *parent,
+                            qreal indentWidth );
     XL::Infix * fragmentToTree(const QTextFragment &fragment, XL::Infix *parent );
 
     XL::Infix * getHead() { return head;}
@@ -53,6 +54,7 @@ protected:
 // Helper function
 bool modifyBlockFormat(QTextBlockFormat &blockFormat,  Layout * where);
 bool modifyCharFormat(QTextCharFormat &format, Layout * where);
+XL::Prefix * color_to_tree(QColor const&color, text name);
 
 TAO_END
 #endif // PORTABILITY_H

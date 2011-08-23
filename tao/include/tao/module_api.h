@@ -225,7 +225,7 @@ struct ModuleApi
     // mouse activities. When rendering multiple views per frame, you
     // normally set this for only one view.
     // When this setting is true, the drawScene() call will unproject the
-    // mouse coordinates into the 3D space.
+    // mouse coordinates into the 3D space. It is true by default.
     void   (*doMouseTracking)(bool on);
 
     // Override viewport setting during mouse tracking.

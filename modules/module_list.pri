@@ -32,6 +32,7 @@
        shaders/flares  \
        slideshow_3d
     OTHER_MODULES =     \
+        display_2dplusdepth \
         hello_world     \
         taoTester
 } else {

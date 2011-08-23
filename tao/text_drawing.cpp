@@ -972,7 +972,7 @@ int TextUnit::PerformEditOperation(Widget *widget, uint i)
 }
 
 
-void TextUnit::PerformInsertOperation(Layout * l,
+void TextUnit::PerformInsertOperation(Layout * /* l */,
                                       Widget * widget,
                                       uint     position)
 // ----------------------------------------------------------------------------
@@ -983,50 +983,36 @@ void TextUnit::PerformInsertOperation(Layout * l,
     if (sel->replacement_tree &&
         widget->markChange("Clipboard content pasted"))
     {
-        XL::Infix * tail = sel->replacement_tree->AsInfix();
-        XL::Infix * head = tail;
+        TreeList list;
         // Cut the span at the current position
-        text endOfSpan = source->value.substr(position);
+        text endOfSpan  = source->value.substr(position);
+        text headOfSpan = source->value.substr(0, position);
+        // Begining of previous text
+        if (headOfSpan.size())
+        {
+            XL::Prefix *headOfText= new XL::Prefix(new XL::Name("text"),
+                                        new XL::Text(headOfSpan,
+                                                     source->opening,
+                                                     source->closing));
+            list.push_back(headOfText);
+        }
+
+        // Text to insert
+        XL::Prefix * insertedTextSpan =
+                new XL::Prefix(new XL::Name("text_span"),
+                               new XL::Block(sel->replacement_tree->AsInfix(),
+                                             XL::Block::indent,
+                                             XL::Block::unindent));
+        list.push_back(insertedTextSpan);
+
+        // End of previous text
         if (endOfSpan.size())
         {
-            // Duplicate the Layout env of the current span
-            QTextCursor cursor(new QTextDocument(""));
-            QTextBlockFormat bf = cursor.blockFormat();
-            QTextCharFormat cf  = cursor.charFormat();
-            modifyBlockFormat(bf, l);
-            modifyCharFormat(cf, l);
-            cursor.mergeBlockFormat(bf);
-            cursor.mergeCharFormat(cf);
-            // Get text from sel->point to end of this text_span.
-            cursor.insertText(+endOfSpan);
-            // Delete the end of the current text_span
-            source->value.erase(position);
-
-            // generate the tree for the end of the span
-            text_portability p;
-            head = p.docToTree(*cursor.document());
-
-            // Go to the bottom of the replacement tree
-            XL::Infix * temp = sel->replacement_tree->AsInfix();
-            while (temp && temp->right != XL::xl_nil)
-            {
-                temp = temp->right->AsInfix();
-            }
-            // Hang the tree representing the end of the span to
-            // the bottom of the replacement_tree
-            if (temp)
-                temp->right = head;
-
-            // Update head and tail
-            tail = p.getTail();
-            head = sel->replacement_tree->AsInfix();
-        }
-        if (source->value.size())
-        {
-            head = new XL::Infix("\n",
-                              new XL::Prefix(new XL::Name("text"),
-                                             new XL::Text((XL::Text*)source)),
-                              head);
+            XL::Prefix *endOfText = new XL::Prefix(new XL::Name("text"),
+                                       new XL::Text(endOfSpan,
+                                                    source->opening,
+                                                    source->closing));
+            list.push_back(endOfText);
         }
 
         sel->replacement_tree = NULL;
@@ -1041,39 +1027,49 @@ void TextUnit::PerformInsertOperation(Layout * l,
         char lastChar = getGrandParent.path.at(getGrandParent.path.size() - 1);
 
         XL::Infix   *inf  = grandParent->AsInfix();
-        XL::Block   *bl   = grandParent->AsBlock();
-        XL::Prefix  *pre  = grandParent->AsPrefix();
-        XL::Postfix *post = grandParent->AsPostfix();
         if (inf)
         {
             if (lastChar == 'l')
             {
+                list.push_back(inf->right);
+                XL::Infix * head = (XL::Infix*)xl_list_to_tree(list, "\n");
+
                 inf->left = head->left;
-                tail->right = inf->right;
                 inf->right = head->right;
             }
             else
+            {
+                XL::Infix * head = (XL::Infix*)xl_list_to_tree(list, "\n");
                 inf->right = head;
+            }
         }
-        else if (bl)
+        else
         {
-            bl->child = head;
-        }
-        else if (pre)
-        {
-            if (lastChar == 'l')
-                pre->left = head;
-            else
-                pre->right = head;
-        }
-        else if (post)
-        {
-            if (lastChar == 'l')
-                post->left = head;
-            else
-                post->right = head;
-        }
+            XL::Infix   *head = (XL::Infix*)xl_list_to_tree(list, "\n");
 
+            XL::Block   *bl   = grandParent->AsBlock();
+            XL::Prefix  *pre  = grandParent->AsPrefix();
+            XL::Postfix *post = grandParent->AsPostfix();
+
+            if (bl)
+            {
+                bl->child = head;
+            }
+            else if (pre)
+            {
+                if (lastChar == 'l')
+                    pre->left = head;
+                else
+                    pre->right = head;
+            }
+            else if (post)
+            {
+                if (lastChar == 'l')
+                    post->left = head;
+                else
+                    post->right = head;
+            }
+        }
         sel->moveTo(sel->start());
 
         // Reload the program

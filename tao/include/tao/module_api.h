@@ -46,8 +46,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   9
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   10
+#define TAO_MODULE_API_AGE       1
 
 // ========================================================================
 //
@@ -263,6 +263,15 @@ struct ModuleApi
     //   glBindTexture(GL_TEXTURE_2D, id);
     //   glEnable(GL_TEXTURE_2D);
     unsigned int       (*frameBufferObjectToTexture)(ModuleApi::fbo * obj);
+
+    // Make a framebuffer attachment available as a GL_TEXTURE_2d texture.
+    // The attachment parameter must be one of the following:
+    //   GL_COLOR_ATTACHMENT0: returned texture contains the FBO color buffer
+    //   GL_DEPTH_ATTACHMENT: returned texture contains the FBO depth buffer
+    // Note that contrary to frameBufferObjectToTexture above, the texture
+    // is NOT bound nor enabled.
+    unsigned int       (*frameBufferAttachmentToTexture)(ModuleApi::fbo * obj,
+                                                         int attachment);
 };
 
 }

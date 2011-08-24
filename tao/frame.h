@@ -42,6 +42,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
 {
     typedef FrameInfo *data_t;
     typedef std::map<const QGLContext *, QGLFramebufferObject *> fbo_map;
+    typedef std::map<const QGLContext *, GLuint> tex_map;
 
     FrameInfo(uint width = 512, uint height = 512);
     FrameInfo(const FrameInfo &other);
@@ -52,6 +53,8 @@ struct FrameInfo : XL::Info, InfoTrashCan
     void        begin();
     void        end();
     GLuint      bind();
+    GLuint      texture();
+    GLuint      depthTexture();
     void        checkGLContext();
     QImage      toImage();
 
@@ -59,9 +62,11 @@ struct FrameInfo : XL::Info, InfoTrashCan
     double  refreshTime;
     fbo_map render_fbos;
     fbo_map texture_fbos;
+    tex_map depth_textures;
 
 #define render_fbo  render_fbos[QGLContext::currentContext()]
 #define texture_fbo texture_fbos[QGLContext::currentContext()]
+#define depth_tex   depth_textures[QGLContext::currentContext()]
 
     // Static methods exported by the module interface. See module_api.h.
 
@@ -72,6 +77,11 @@ struct FrameInfo : XL::Info, InfoTrashCan
     static void               bindFrameBufferObject(ModuleApi::fbo * obj);
     static void               releaseFrameBufferObject(ModuleApi::fbo * obj);
     static unsigned int       frameBufferObjectToTexture(ModuleApi::fbo * obj);
+    static unsigned int       frameBufferAttachmentToTexture(ModuleApi::fbo *,
+                                                             int attachment);
+protected:
+    void        resizeDepthTexture(uint w, uint h);
+    void        copyToDepthTexture();
 };
 
 

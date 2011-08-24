@@ -77,6 +77,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     bindFrameBufferObject      = FrameInfo::bindFrameBufferObject;
     releaseFrameBufferObject   = FrameInfo::releaseFrameBufferObject;
     frameBufferObjectToTexture = FrameInfo::frameBufferObjectToTexture;
+    frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
 }
 
 TAO_END

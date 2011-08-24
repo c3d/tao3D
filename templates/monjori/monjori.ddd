@@ -31,7 +31,5 @@ fullscreen_quad -> rectangle 0, 0, window_width, window_height
 
 draw_background ->
     locally
-        monjori_shader
-        shader_set time := (time mod 5000) * 0.1
-        shader_set resolution := (window_width ; window_height)
+        monjori (time mod 5000) * 0.1
         fullscreen_quad

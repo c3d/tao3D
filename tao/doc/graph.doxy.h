@@ -500,12 +500,6 @@ texture_transform (body:tree);
  */
 texture_wrap (s:boolean, t:boolean);
 
-/**
- * Resets the texture.
- * Clears the texture.
- */
-no_texture();
-
 /** @} */
 
 /**

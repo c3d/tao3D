@@ -7494,6 +7494,13 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
+    QFont &font = layout->font;
+    font.setStyle(QFont::StyleNormal);
+    font.setWeight(QFont::Normal);
+    font.setStretch(QFont::Unstretched);
+    font.setUnderline(false);
+    font.setStrikeOut(false);
+    font.setOverline(false);
     FontParsingAction parseFont(context, layout->font);
     description->Do(parseFont);
     layout->font = parseFont.font;

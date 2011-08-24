@@ -45,39 +45,29 @@ XL::Infix* text_portability::docToTree(const QTextDocument &doc)
 //   Translate a QTextDocument into XL::Tree
 // ----------------------------------------------------------------------------
 {
-    XL::Infix *t = NULL;
     IFTRACE(clipboard)
             std::cerr << "-> text_portability::docToTree\n";
 
+    // The first node will be hanged under the right leg of this dummy infix.
     XL::Infix *first = new XL::Infix("\n", XL::xl_nil, XL::xl_nil);
+    XL::Infix *t = first;
 
     for ( QTextBlock block = doc.firstBlock();
          block.isValid();
          block = block.next())
     {
-        if (!t)
-        {
-            t = blockToTree( block, first, doc.indentWidth() );
-        }
-        else
-        {
-            // TODO Remove from here, inserted in block_to_tree // CaB
-            // Insert a paragraph_break between two blocks
-            t->right = new XL::Infix("\n", new XL::Name("paragraph_break"),
-                                     XL::xl_nil);
-            t = blockToTree( block, t->right->AsInfix(), doc.indentWidth() );
-        }
+        t = blockToTree( block, t, doc.indentWidth() );
+
         for (QTextBlock::Iterator it = block.begin(); !it.atEnd(); ++it)
         {
             const QTextFragment fragment = it.fragment();
             t = fragmentToTree(fragment, t);
         }
     }
-    head = first->right->AsInfix();
-    tail = t;
+
     IFTRACE(clipboard)
             std::cerr << "<- text_portability::docToTree\n";
-    return head;
+    return first->right->AsInfix();
 }
 
 

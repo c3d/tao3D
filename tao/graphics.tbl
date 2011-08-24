@@ -271,7 +271,7 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        RTAO(shapeAction(self,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
-       DESCRIPTION("Associate the specified code to the mouse over"))       
+       DESCRIPTION("Associate the specified code to the mouse over"))
 PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
        PARM(t,code, "The code to execute"),
        RTAO(shapeAction(self,"release",t)),
@@ -1472,13 +1472,13 @@ PREFIX(FontOverline,  tree,  "overline",
        RTAO(fontOverline(self, a)),
        GROUP(text:font)
        SYNOPSIS("Overline attribute of the font")
-       DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the underline, it's on or off."))
+       DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the overline, it's on or off."))
 PREFIX(FontStrikeout,  tree,  "strikeout",
        PARM(a, real, "Strikeout values: 0 is off, values > 0 are on."),
        RTAO(fontStrikeout(self, a)),
        GROUP(text:font)
        SYNOPSIS("Strikeout attribute of the font")
-       DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the underline, it's on or off."))
+       DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the strikeoutline, it's on or off."))
 PREFIX(FontStretch,  tree,  "stretch",
        PARM(s,real, "The font stretching factor. Value range is from 0 to 4000, with 100 = 100%"),
        RTAO(fontStretch(self,s)),
@@ -1744,7 +1744,7 @@ PREFIX(FrameTexture,  tree,  "frame_texture",
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
-       RETURNS(tree, "The result of 'prog' evaluation"))       
+       RETURNS(tree, "The result of 'prog' evaluation"))
 PREFIX(LinearGradient,  tree,  "linear_gradient",
        PARM(start_x, real, "x-coordinate of the gradient start")
        PARM(start_y, real, "y-coordinate of the gradient start")

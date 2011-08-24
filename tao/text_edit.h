@@ -33,21 +33,13 @@ TAO_BEGIN
 struct text_portability
 {
 public:
-    text_portability(): head(NULL), tail(NULL){}
-    //QString toHTML();
+    text_portability() {}
     XL::Infix * fromHTML(QString html);
 
     XL::Infix * docToTree(const QTextDocument &doc );
     XL::Infix * blockToTree(const QTextBlock &block, XL::Infix *parent,
                             qreal indentWidth );
     XL::Infix * fragmentToTree(const QTextFragment &fragment, XL::Infix *parent );
-
-    XL::Infix * getHead() { return head;}
-    XL::Infix * getTail() { return tail;}
-
-protected:
-    XL::Infix_p head;
-    XL::Infix_p tail;
 
 };
 

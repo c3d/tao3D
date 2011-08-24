@@ -331,6 +331,8 @@ public:
     Real_p      every(Context *context, double delay, double duration, Tree_p code);
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
+    Integer_p   screenMouseX(Tree_p self);
+    Integer_p   screenMouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
     Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
 

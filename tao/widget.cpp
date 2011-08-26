@@ -10596,6 +10596,53 @@ Name_p Widget::hasDisplayModeText(Tree_p self, text name)
 }
 
 
+Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Set a display option
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            ADJUST_CONTEXT_FOR_INTERPRETER(context);
+            XL::Symbols *symbols = self->Symbols();
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            if (symbols)
+                arg->SetSymbols(symbols);
+            arg = context->Evaluate(arg);
+            if (Integer *it = arg->AsInteger())
+                arg = new Real(it->value);
+            std::string strval;
+            if (Real *rt = arg->AsReal())
+            {
+                std::ostringstream oss;
+                oss << rt->value;
+                strval = oss.str();
+            }
+            else if (Text *tt = arg->AsText())
+            {
+                strval = tt->value;
+            }
+            else
+            {
+                Ooops("display_set value $1 is not a string and not a number",
+                      arg);
+                return XL::xl_false;
+            }
+            displayDriver->setOption(name->value, strval);
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed display_set statement $1", code);
+    return XL::xl_false;
+}
+
+
 
 // ============================================================================
 //

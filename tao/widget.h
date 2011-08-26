@@ -768,6 +768,7 @@ public:
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
     Name_p      hasDisplayModeText(Tree_p self, text name);
+    Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 
     // z order management
     Name_p      bringToFront(Tree_p self);

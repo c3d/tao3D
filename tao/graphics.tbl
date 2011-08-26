@@ -2359,6 +2359,11 @@ PREFIX(ShaderSet, tree, "shader_set",
        GROUP(lighting)
        SYNOPSIS("Set a shader uniform or attribute value")
        DESCRIPTION(""));
+PREFIX(DisplaySet, tree, "display_set",
+       PARM(t, source, "Assignment to a display variable"),
+       RTAO(displaySet(context, self, t)),
+       SYNOPSIS("Set an option in the current display function/module")
+       DESCRIPTION(""));
 
 // ============================================================================
 //

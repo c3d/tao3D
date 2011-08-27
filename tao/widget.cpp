@@ -194,7 +194,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      savedCursorShape(Qt::ArrowCursor),
+      savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
@@ -366,6 +366,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
       savedCursorShape(o.savedCursorShape),
+      mouseCursorHidden(o.mouseCursorHidden),
       renderFramesCanceled(o.renderFramesCanceled),
       inOfflineRendering(o.inOfflineRendering),
       offlineRenderingWidth(o.offlineRenderingWidth),
@@ -416,6 +417,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Hide mouse cursor if it was hidden in previous widget
     if (o.cursor().shape() == Qt::BlankCursor)
         hideCursor();
+    if (o.mouseCursorHidden)
+        QWidget::setCursor(Qt::BlankCursor);
 
     // Invalidate any program info that depends on the old GL context
     PurgeGLContextSensitiveInfo purge;
@@ -1688,6 +1691,31 @@ void Widget::hideCursor()
         // Be notified when we need to restore cursor
         setMouseTracking(true);
     }
+}
+
+
+void Widget::setCursor(const QCursor &cursor)
+// ----------------------------------------------------------------------------
+//   Really set mouse cursor if cursor is not hidden, otherwise simulate.
+// ----------------------------------------------------------------------------
+{
+    if (mouseCursorHidden)
+    {
+        cachedCursor = cursor;
+        return;
+    }
+    QWidget::setCursor(cursor);
+}
+
+
+QCursor Widget::cursor() const
+// ----------------------------------------------------------------------------
+//   Return current mouse cursor if cursor is not hidden, otherwise simulate.
+// ----------------------------------------------------------------------------
+{
+    if (mouseCursorHidden)
+        return cachedCursor;
+    return QWidget::cursor();
 }
 
 
@@ -5120,6 +5148,30 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
             setMouseTracking(false);
     }
     return oldAutoHide ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::enableMouseCursor(XL::Tree_p self, bool on)
+// ----------------------------------------------------------------------------
+//   Enable or disable visibility of mouse cursor
+// ----------------------------------------------------------------------------
+{
+    bool old = !mouseCursorHidden;
+    if (on != old)
+    {
+        mouseCursorHidden = !on;
+        if (mouseCursorHidden)
+        {
+            cachedCursor = QWidget::cursor();
+            QWidget::setCursor(Qt::BlankCursor);
+        }
+        else
+        {
+            QWidget::setCursor(cachedCursor);
+            cachedCursor = Qt::BlankCursor;
+        }
+    }
+    return old ? XL::xl_true : XL::xl_false;
 }
 
 

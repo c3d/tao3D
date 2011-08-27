@@ -137,6 +137,8 @@ public slots:
     void        enableAnimations(bool enable);
     void        showHandCursor(bool enabled);
     void        hideCursor();
+    void        setCursor(const QCursor &);
+    QCursor     cursor() const;
     void        resetView();
     void        zoomIn();
     void        zoomOut();
@@ -380,6 +382,7 @@ public:
     Name_p      toggleSlideShow(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
+    Name_p      enableMouseCursor(XL::Tree_p self, bool on);
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
@@ -923,6 +926,8 @@ private:
     bool                  dragging;
     bool                  bAutoHideCursor;
     Qt::CursorShape       savedCursorShape;
+    QCursor               cachedCursor;
+    bool                  mouseCursorHidden;
     bool                  renderFramesCanceled;
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;

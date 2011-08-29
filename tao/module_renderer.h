@@ -57,6 +57,7 @@ struct ModuleRenderer : Drawing
     static bool   DisableTexCoords();
     static bool   SetFillColor();
     static bool   SetLineColor();
+    static bool   HasPixelBlur(bool enable);
 
 private:
     ModuleApi::render_fn   callback;

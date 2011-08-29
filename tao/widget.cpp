@@ -5868,6 +5868,12 @@ Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
+    if(! gradient)
+    {
+        Ooops("No gradient defined $1", self);
+        return 0;
+    }
+
     QColor color;
     color.setRgbF(r, g, b, a);
     gradient->setColorAt(pos, color);
@@ -8407,6 +8413,8 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     painter.fillRect(QRect(0, 0, w, h), (*gradient));
     painter.end();
 
+    delete gradient;
+
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
     layout->currentTexture.width  = w;
@@ -8452,6 +8460,8 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     painter.fillRect(QRect(0, 0, w, h), (*gradient));
     painter.end();
 
+    delete gradient;
+
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
     layout->currentTexture.width  = w;
@@ -8463,6 +8473,7 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
     return new XL::Integer(texId);
 }
 
@@ -8496,6 +8507,8 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     // Draw gradient in a rectangle
     painter.fillRect(QRect(0, 0, w, h), (*gradient));
     painter.end();
+
+    delete gradient;
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();

@@ -114,6 +114,7 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     Widget::Tao()->layout->currentTexture.type = type;
 
     Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
+    Widget::Tao()->layout->hasAttributes = true;
     return false;
 }
 

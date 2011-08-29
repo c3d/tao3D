@@ -301,11 +301,11 @@ void RecordMouseCoordinates::Draw(Layout *where)
     Widget *widget = where->Display();
     if (widget->mouseTracking())
     {
-        MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
+        CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>();
         if (!info)
         {
-            info = new MouseCoordinatesInfo;
-            self->SetInfo<MouseCoordinatesInfo>(info);
+            info = new CoordinatesInfo;
+            self->SetInfo<CoordinatesInfo>(info);
         }
 
         widget->recordProjection(info->projection, info->model, info->viewport);
@@ -314,5 +314,36 @@ void RecordMouseCoordinates::Draw(Layout *where)
         info->coordinates = pos;
     }
 }
+
+void ConvertScreenCoordinates::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Convert screen coordinates to world coordinates
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>();
+    if (!info)
+    {
+        info = new CoordinatesInfo;
+        self->SetInfo<CoordinatesInfo>(info);
+    }
+
+    widget->recordProjection(info->projection, info->model, info->viewport);
+
+    Point3 win, pos;
+    GLfloat pixelDepth;
+
+    // Map object coordinates to window coordinates
+    gluProject(x, y, 0, info->model, info->projection, info->viewport, &win.x, &win.y, &win.z);
+
+    // Read depth buffer
+    glReadPixels( win.x, win.y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &pixelDepth );
+
+    // Map window coordinates to object coordinates
+    gluUnProject( win.x, win.y, pixelDepth, info->model, info->projection, info->viewport, &pos.x, &pos.y, &pos.z);
+
+    info->coordinates = pos;
+}
+
 
 TAO_END

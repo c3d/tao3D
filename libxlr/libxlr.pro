@@ -60,7 +60,8 @@ HEADERS += \
     ../tao/xlr/xlr/include/traces_base.h \
     ../tao/xlr/xlr/include/tree.h \
     ../tao/xlr/xlr/include/types.h \
-    ../tao/xlr/xlr/include/utf8.h
+    ../tao/xlr/xlr/include/utf8.h \
+    ../tao/xlr/xlr/utf8_ifstream.h
 
 SOURCES += \
     ../tao/xlr/xlr/flight_recorder.cpp \

@@ -411,6 +411,12 @@ texture(id:integer);
 texture();
 
 /**
+ * Check if a texture is bound at the specified unit.
+ * @return true if a texture is bound, false otherwise.
+ */
+has_texture();
+
+/**
  * Get current texture width.
  * @return [integer] current texture width
  */

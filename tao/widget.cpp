@@ -5312,7 +5312,6 @@ Name_p Widget::setCameraPosition(Tree_p self, coord x, coord y, coord z)
         cameraPosition.x = x;
         cameraPosition.y = y;
         cameraPosition.z = z;
-        refresh(0);
     }
     return XL::xl_true;
 }

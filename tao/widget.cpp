@@ -76,6 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
+#include "licence.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
 
@@ -7838,7 +7839,10 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(GITREV);
+    text ver = GITREV;
+    if (!Licences::Has("Tao Presentations"))
+        ver += " (UNLICENCED)";
+    return new XL::Text(ver);
 }
 
 

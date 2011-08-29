@@ -58,6 +58,7 @@ HEADERS += widget.h \
     include/tao/tao_gl.h \
     window.h \
     application.h \
+    licence.h \
     frame.h \
     svg.h \
     texture.h \
@@ -160,6 +161,7 @@ SOURCES += tao_main.cpp \
     repository.cpp \
     git_backend.cpp \
     application.cpp \
+    licence.cpp \
     font.cpp \
     drag.cpp \
     error_message_dialog.cpp \

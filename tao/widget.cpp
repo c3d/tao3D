@@ -4686,6 +4686,9 @@ Integer_p Widget::screenMouseX(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
+    QPoint m = QWidget::mapFromGlobal(QCursor::pos());
+    lastMouseX = m.x();
+    lastMouseY = m.y();
     return new Integer(lastMouseX);
 }
 
@@ -4696,6 +4699,9 @@ Integer_p Widget::screenMouseY(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
+    QPoint m = QWidget::mapFromGlobal(QCursor::pos());
+    lastMouseX = m.x();
+    lastMouseY = m.y();
     return new Integer(lastMouseY);
 }
 

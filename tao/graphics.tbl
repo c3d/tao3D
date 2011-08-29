@@ -226,6 +226,13 @@ PREFIX(Every50Pct, real, "every",
                    "of one millisecond. The specified code evaluates for "
                    "approximately 50% of the time."))
 
+PREFIX(EnableMouseCursor,  boolean,  "enable_mouse_cursor",
+       PARM(on, boolean, "true or false"),
+       RTAO(enableMouseCursor(self, on)),
+       GROUP()
+       SYNOPSIS("Enable or disable the mouse cursor (pointer)")
+       DESCRIPTION("Shows or hide the mouse cursor. The mouse remains operational.")
+       RETURNS(boolean, "True if previous state was on."))
 PREFIX(MouseX,  real,  "mouse_x", , RTAO(mouseX(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse x-coordinate")

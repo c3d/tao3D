@@ -2,6 +2,7 @@ import Materials 1.0
 import Mapping 1.0
 import ObjectLoader 1.0
 zoom 0.15
+refresh_on TimerEvent
 
 /*
 * Define cube map textures.
@@ -31,6 +32,7 @@ mouse_move ->
 
     camera_position 14000 * sin (0.005 * Cx), Cy, 14000 * cos (0.005 * Cx)
     camera_target 0, 500, 0
+    no_refresh_on MouseMoveEvent
 
 draw_environment ->
     /*

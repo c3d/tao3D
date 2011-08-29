@@ -194,7 +194,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      savedCursorShape(Qt::ArrowCursor),
+      savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
@@ -366,6 +366,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
       savedCursorShape(o.savedCursorShape),
+      mouseCursorHidden(o.mouseCursorHidden),
       renderFramesCanceled(o.renderFramesCanceled),
       inOfflineRendering(o.inOfflineRendering),
       offlineRenderingWidth(o.offlineRenderingWidth),
@@ -416,6 +417,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Hide mouse cursor if it was hidden in previous widget
     if (o.cursor().shape() == Qt::BlankCursor)
         hideCursor();
+    if (o.mouseCursorHidden)
+        QWidget::setCursor(Qt::BlankCursor);
 
     // Invalidate any program info that depends on the old GL context
     PurgeGLContextSensitiveInfo purge;
@@ -1688,6 +1691,31 @@ void Widget::hideCursor()
         // Be notified when we need to restore cursor
         setMouseTracking(true);
     }
+}
+
+
+void Widget::setCursor(const QCursor &cursor)
+// ----------------------------------------------------------------------------
+//   Really set mouse cursor if cursor is not hidden, otherwise simulate.
+// ----------------------------------------------------------------------------
+{
+    if (mouseCursorHidden)
+    {
+        cachedCursor = cursor;
+        return;
+    }
+    QWidget::setCursor(cursor);
+}
+
+
+QCursor Widget::cursor() const
+// ----------------------------------------------------------------------------
+//   Return current mouse cursor if cursor is not hidden, otherwise simulate.
+// ----------------------------------------------------------------------------
+{
+    if (mouseCursorHidden)
+        return cachedCursor;
+    return QWidget::cursor();
 }
 
 
@@ -4657,6 +4685,9 @@ Integer_p Widget::screenMouseX(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
+    QPoint m = QWidget::mapFromGlobal(QCursor::pos());
+    lastMouseX = m.x();
+    lastMouseY = m.y();
     return new Integer(lastMouseX);
 }
 
@@ -4667,6 +4698,9 @@ Integer_p Widget::screenMouseY(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseMove);
+    QPoint m = QWidget::mapFromGlobal(QCursor::pos());
+    lastMouseX = m.x();
+    lastMouseY = m.y();
     return new Integer(lastMouseY);
 }
 
@@ -5122,6 +5156,30 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 }
 
 
+XL::Name_p Widget::enableMouseCursor(XL::Tree_p self, bool on)
+// ----------------------------------------------------------------------------
+//   Enable or disable visibility of mouse cursor
+// ----------------------------------------------------------------------------
+{
+    bool old = !mouseCursorHidden;
+    if (on != old)
+    {
+        mouseCursorHidden = !on;
+        if (mouseCursorHidden)
+        {
+            cachedCursor = QWidget::cursor();
+            QWidget::setCursor(Qt::BlankCursor);
+        }
+        else
+        {
+            QWidget::setCursor(cachedCursor);
+            cachedCursor = Qt::BlankCursor;
+        }
+    }
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 Name_p Widget::showStatistics(Tree_p self, bool ss)
 // ----------------------------------------------------------------------------
 //   Display or hide performance statistics (frames per second)
@@ -5253,7 +5311,6 @@ Name_p Widget::setCameraPosition(Tree_p self, coord x, coord y, coord z)
         cameraPosition.x = x;
         cameraPosition.y = y;
         cameraPosition.z = z;
-        refresh(0);
     }
     return XL::xl_true;
 }

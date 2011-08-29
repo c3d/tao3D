@@ -738,6 +738,14 @@ bool Window::setStereo(bool on)
     IFTRACE(displaymode)
         std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
     taoWidget = new Widget(*taoWidget, newFormat);
+    connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
+            SLOT(showHandCursor(bool)));
+    connect(zoomInAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomIn()));
+    connect(zoomOutAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomOut()));
+    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
+            SLOT(resetView()));
     setCentralWidget(taoWidget);
     taoWidget->show();
     taoWidget->setFocus();

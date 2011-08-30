@@ -537,7 +537,7 @@ public:
     Tree_p      sphere(Tree_p self,
                        Real_p cx, Real_p cy, Real_p cz,
                        Real_p w, Real_p, Real_p d,
-                       Integer_p nslices, Integer_p nstacks);    
+                       Integer_p nslices, Integer_p nstacks);
     Tree_p      torus(Tree_p self,
                        Real_p x, Real_p y, Real_p z,
                        Real_p w, Real_p h, Real_p d,
@@ -552,7 +552,6 @@ public:
     Tree_p      textBox(Tree_p self, text flowName,
                         Real_p x, Real_p y, Real_p w, Real_p h);
     Tree_p      textFlow(Context *context, Tree_p self, text name, Tree_p child);
-//    Text_p      textFlow(Tree_p self, text name);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
@@ -764,7 +763,7 @@ public:
     Tree_p      constant(Tree_p self, Tree_p tree);
 
     // Misc
-    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);    
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);

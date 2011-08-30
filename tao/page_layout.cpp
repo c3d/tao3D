@@ -403,11 +403,11 @@ PageLayout::PageLayout(Widget *widget, TextFlow *flow)
     : Layout(widget),
     space(),
     flow(flow),lines(), current(lines.begin()),
-    page(&lines,&current), lastFlowPoint(*(flow->getCurrentIterator())),
-    selectId(0)
+    page(&lines,&current), selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
+    lastFlowPoint = *(flow->getCurrentIterator());
     flow->addBox(this);
     Inherit(widget->layout);
     Inherit(flow);
@@ -419,11 +419,11 @@ PageLayout::PageLayout(const PageLayout &o)
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
     : Layout(o), space(), flow(o.flow),lines(), current(lines.begin()),
-    page(&lines, &current), lastFlowPoint(*(flow->getCurrentIterator())),
-    selectId(0)
+    page(&lines, &current), selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
+    lastFlowPoint = *(flow->getCurrentIterator());
     flow->addBox(this);
     Inherit(flow);
     space |= Point3(0,0,0);

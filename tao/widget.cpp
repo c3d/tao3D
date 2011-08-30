@@ -7409,12 +7409,16 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
         }
     }
 
-    this->currentFlowName = flowName;
-    TextFlow *flow = new TextFlow(layout, flowName);
+    currentFlowName = flowName;
+    int i = 0;
+    while (flows.count(currentFlowName) != 0)
+        currentFlowName = +QString("%1_%2").arg(+flowName).arg(++i);
+
+    TextFlow *flow = new TextFlow(layout, currentFlowName);
     flow->id = selectionId();
     flow->body = prog;
     flow->ctx = context;
-    flows[flowName] = flow;
+    flows[currentFlowName] = flow;
 
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
@@ -7941,12 +7945,15 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
         body->SetSymbols(self->Symbols());
 
     // Define a new text layout
-    Tree_p result = textFlow(context, self, "defaultTableCell", body);
-    TextFlow *flow = flows["defaultTableCell"];
+    text cellName = "defaultTableCell";
+    int i = 0;
+    while (flows.count(cellName) != 0)
+        cellName = +QString("defaultTableCell_%2").arg(++i);
+    Tree_p result = textFlow(context, self,cellName , body);
+    TextFlow *flow = flows[cellName];
     PageLayout *tbox = new PageLayout(this, flow);
     tbox->space = Box3(0, 0, 0, w, h, 0);
     table->Add(tbox);
-//    flows[flowName] = tbox;
 
 //    XL::Save<Layout *> save(layout, tbox);
 //    Tree_p result = context->Evaluate(body);

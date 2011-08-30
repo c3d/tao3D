@@ -260,6 +260,9 @@ PREFIX(MouseButtons,  integer,  "mouse_buttons", , RTAO(mouseButtons(self)),
                    "0x00000008	(X11 only) First X button.\n"
                    "0x00000010  (X11 only) Second X button.\n")
        RETURNS(integer, "Button state of the last mouse event"))
+PREFIX(EnableSelection, boolean, "enable_selection_rectangle",
+       PARM(sre, boolean, "Enable selection rectangle"),
+       RTAO(enableSelectionRectangle(self, sre)), )
 PREFIX(ShapeAction,  tree,  "on",
        PARM(action_name, text, "The action name")
        PARM(action_code, code, "The code to execute"),

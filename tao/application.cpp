@@ -39,6 +39,7 @@
 #include "display_driver.h"
 #include "gc_thread.h"
 #include "text_drawing.h"
+#include "licence.h"
 
 #include <QString>
 #include <QSettings>
@@ -51,6 +52,7 @@
 #include <QtWebKit>
 #include <QProcessEnvironment>
 #include <QStringList>
+
 
 #if defined(CONFIG_MINGW)
 #include <windows.h>
@@ -159,6 +161,15 @@ Application::Application(int & argc, char ** argv)
                               
     // Now time to install the "persistent" error handler
     install_first_exception_handler();
+
+    // Check licence (in XL directory path)
+    QFileInfo licence("xl:licence.taokey");
+    if (licence.exists())
+    {
+        text lpath = +licence.canonicalFilePath();
+        Licences::AddLicenceFile(lpath.c_str());
+    }
+    Licences::Check("Tao Presentations");
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();

@@ -76,6 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
+#include "licence.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
 
@@ -159,7 +160,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false), animated(true),
+      drawAllPages(false), animated(true), selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
@@ -905,6 +906,7 @@ void Widget::runProgram()
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
     id = idDepth = 0;
+    selectionRectangleEnabled = true;
 
     stats.begin(Statistics::EXEC);
 
@@ -2490,7 +2492,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (button == Qt::LeftButton)
+    if (selectionRectangleEnabled && button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
@@ -2611,8 +2613,9 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (button == Qt::LeftButton && (!activities || !activities->next))
-        new Selection(this);
+    if (selectionRectangleEnabled)
+        if (button == Qt::LeftButton && (!activities || !activities->next))
+            new Selection(this);
 
     // Save location
     lastMouseX = x;
@@ -5460,6 +5463,17 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
+XL::Name_p Widget::enableSelectionRectangle(XL::Tree_p self, bool sre)
+// ----------------------------------------------------------------------------
+//   Enable or disable selection rectangle
+// ----------------------------------------------------------------------------
+{
+    bool old = selectionRectangleEnabled;
+    selectionRectangleEnabled = sre;
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Select a display function
@@ -7912,7 +7926,10 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(GITREV);
+    text ver = GITREV;
+    if (!Licences::Has("Tao Presentations"))
+        ver += " (UNLICENCED)";
+    return new XL::Text(ver);
 }
 
 

@@ -408,6 +408,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+    Name_p      enableSelectionRectangle(Tree_p self, bool enable);
     Name_p      setDisplayMode(XL::Tree_p self, text name);
     Name_p      addDisplayModeToMenu(XL::Tree_p self, text mode, text label);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
@@ -851,6 +852,7 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
     int                   stereoPlanes;

@@ -256,7 +256,7 @@ void Licences::addLicenceFile(kstring licfname)
                     };
                     for (uint m = 0; m < 12; m++)
                     {
-                        if (item.substr(1, 3) == months[m])
+                        if (item.substr(0, 3) == months[m])
                         {
                             month = m+1;
                             state = EXPIRY_YEAR;
@@ -283,7 +283,8 @@ void Licences::addLicenceFile(kstring licfname)
             break;
 
         case EXPIRY_YEAR:
-            if (tok == XL::tokSYMBOL && scanner.TokenText() == "/")
+            if (tok == XL::tokSYMBOL && (scanner.TokenText() == "/" ||
+                                         scanner.TokenText() == "-"))
             {
                 // Skip
             }

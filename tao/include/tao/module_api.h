@@ -122,6 +122,11 @@ struct ModuleApi
     // to the current layout attributes.
     bool (*SetLineColor)();
 
+    // Allow to enable or deactivate pixel blur
+    // on textures of the current layout.
+    // It corresponds to GL_LINEAR/GL_NEAREST parameters.
+    bool (*HasPixelBlur)(bool enable);
+
     // ------------------------------------------------------------------------
     //   API for display modules
     // ------------------------------------------------------------------------

@@ -707,11 +707,11 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      movie(Tree_p self,
+    Tree_p      movie(Context *context, Tree_p self,
                       Real_p x, Real_p y, Real_p w, Real_p h,
-                      Text_p url);
+                      text url);
 
-    Integer*    movieTexture(Tree_p self, Text_p url);
+    Integer*    movieTexture(Context *context, Tree_p self, text url);
 
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,

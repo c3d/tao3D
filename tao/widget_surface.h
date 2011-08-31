@@ -316,6 +316,7 @@ public:
     virtual GLuint bind(XL::Text *url);
 public:
     text url;
+    text lastError;
     Phonon::AudioOutput *audio;
     Phonon::MediaObject *media;
 };

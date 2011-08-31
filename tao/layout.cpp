@@ -50,7 +50,6 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentLights(0),
       textureUnits(0),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
@@ -73,7 +72,6 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        currentLights(o.currentLights),
         textureUnits(o.textureUnits),
         previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),
@@ -147,8 +145,8 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false),hasTransform(false), hasTextureMatrix(0),
-      hasLighting(false), hasMaterial(false),
+      hasAttributes(false),hasTransform(false),hasTextureMatrix(0),
+      hasLighting(false), hasMaterial(false), currentLights(0),
       isSelection(false), groupDrag(false),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
@@ -161,8 +159,10 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTransform(o.hasTransform), hasTextureMatrix(o.hasTextureMatrix),
-      hasLighting(false), hasMaterial(false),
+      hasAttributes(false), hasTransform(o.hasTransform),
+      hasTextureMatrix(o.hasTextureMatrix),
+      hasLighting(false), hasMaterial(false),      
+      currentLights(o.currentLights),
       isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
@@ -213,6 +213,7 @@ void Layout::Clear()
     hasAttributes = false;
     hasTransform = false;
     hasTextureMatrix = 0;
+    currentLights = 0;
     ClearAttributes();
 
     refreshEvents.clear();
@@ -455,6 +456,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             // Clear old contents of the layout, drop all children
             Clear();
 
+            // Inherit attributes
+            Inherit(parent);
+
             // Set new layout as the current layout in the current Widget
             XL::Save<Layout *> saveLayout(widget->layout, this);
 
@@ -641,7 +645,6 @@ void Layout::Inherit(Layout *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
-    currentLights    = where->currentLights;
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
@@ -653,6 +656,7 @@ void Layout::Inherit(Layout *where)
     planarScale      = where->planarScale;
     has3D            = where->has3D;
     hasPixelBlur     = where->hasPixelBlur;
+    currentLights    = where->currentLights;
     groupDrag        = where->groupDrag;
     hasTransform     = where->hasTransform;
 }

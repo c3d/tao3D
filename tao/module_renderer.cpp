@@ -114,6 +114,7 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     Widget::Tao()->layout->currentTexture.type = type;
 
     Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
+    Widget::Tao()->layout->hasAttributes = true;
     return false;
 }
 
@@ -133,6 +134,15 @@ bool ModuleRenderer::SetLineColor()
 // ----------------------------------------------------------------------------
 {
     return Shape::setLineColor(currentLayout);
+}
+
+bool ModuleRenderer::HasPixelBlur(bool enable)
+// ----------------------------------------------------------------------------
+// Allow to enable or deactivate pixel blur.
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->layout->hasPixelBlur = enable;
+    return true;
 }
 
 void ModuleRenderer::Draw(Layout *where)

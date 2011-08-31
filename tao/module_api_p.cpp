@@ -47,6 +47,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
+    HasPixelBlur     = ModuleRenderer::HasPixelBlur;
 
     // Display module API
     registerDisplayFunction      = DisplayDriver::registerDisplayFunction;

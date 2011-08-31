@@ -93,7 +93,6 @@ public:
     Color               lineColor;
     Color               fillColor;
     TextureState        currentTexture;
-    uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
@@ -174,6 +173,7 @@ public:
     uint64              hasTextureMatrix; // 64 texture units
     bool                hasLighting     : 1;
     bool                hasMaterial     : 1;
+    uint64              currentLights; //Current used lights
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
 

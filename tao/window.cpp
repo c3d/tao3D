@@ -269,7 +269,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
 void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
-//   Update the text edit widget with updates we made
+//   Append error string to error window
 // ----------------------------------------------------------------------------
 {
     // Ugly workaround to bug #775
@@ -279,7 +279,7 @@ void Window::addError(QString txt)
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
     errorDock->show();
-    statusBar()->showMessage(txt);
+    // Before trying to show the error in the status bar, see #970
 }
 
 

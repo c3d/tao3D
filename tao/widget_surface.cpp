@@ -839,9 +839,19 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     {
         url = urlTree->value;
         media->stop();
+        if (url == "")
+            return textureId;
+        IFTRACE(fileload)
+            std::cerr << "Loading media: " << url << "\n";
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
         Tao::Widget::Tao()->makeCurrent();
+    }
+
+    if (media->state() == Phonon::ErrorState && lastError == "")
+    {
+        lastError = +media->errorString();
+        return 0;
     }
 
     QSize hint = player->sizeHint();

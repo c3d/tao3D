@@ -9467,14 +9467,15 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 }
 
 
-Tree_p Widget::movie(Tree_p self,
-                     Real_p x, Real_p y, Real_p sx, Real_p sy, Text_p url)
+Tree_p Widget::movie(Context *context, Tree_p self,
+                     Real_p x, Real_p y, Real_p sx, Real_p sy, text name)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    movieTexture(self, url);
+    if (!movieTexture(context, self, name))
+        return XL::xl_false;
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     double w = sx * surface->width();
     double h = sy * surface->height();
@@ -9486,11 +9487,35 @@ Tree_p Widget::movie(Tree_p self,
 }
 
 
-Integer* Widget::movieTexture(Tree_p self, Text_p url)
+Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    if (name != "")
+    {
+        QRegExp re("[a-z]+://");
+        if (re.indexIn(+name) == -1)
+        {
+            name = context->ResolvePrefixedPath(name);
+            Window *window = (Window *)parentWidget();
+            QFileInfo inf(window->currentProjectFolderPath(), +name);
+            if (!inf.isReadable())
+            {
+                text err = "File not found or unreadable: " + name + ": $1";
+                XL::Ooops(err, self);
+                return NULL;
+            }
+            name =
+#if defined(Q_OS_WIN)
+                    "file:///"
+#else
+                    "file://"
+#endif
+                    + +inf.absoluteFilePath();
+        }
+    }
+
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
@@ -9500,7 +9525,14 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     }
 
     // Resize to requested size, and bind texture
-    layout->currentTexture.id     = surface->bind(url);
+    layout->currentTexture.id     = surface->bind(new Text(name));
+    if (!layout->currentTexture.id)
+    {
+        QString err;
+        err = tr("Cannot play: $1\nError: %1").arg(+surface->lastError);
+        XL::Ooops(+err, self);
+        return NULL;
+    }
     layout->currentTexture.width  = surface->width();
     layout->currentTexture.height = surface->height();
     layout->currentTexture.type   = GL_TEXTURE_2D;

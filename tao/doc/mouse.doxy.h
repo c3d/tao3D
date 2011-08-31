@@ -1,14 +1,8 @@
 /**
- * @addtogroup mouse
+ * @addtogroup mouse Mouse and selection
  * @ingroup TaoBuiltins
- * This group deals with mouse location and mouse events.
- *
- * Mouse location is expressed in pixel in the window. 
- * The coordinate (0,0) is the center of the window. 
- * - x > 0 goes toward the right
- * - y > 0 goes toward the top 
- *
- * The mouse has always z-coordinate equal to 0.
+ * This group deals with mouse location, mouse events and item
+ * selection.
  *
  * @{
  */
@@ -57,12 +51,34 @@ on_mouseover (t:tree);
 mouse_buttons ();
 
 /**
- * Returns the current X position of the mouse.
+ * Returns the current X position of the mouse in the local frame.
+ * The returned value is the X coordinate of the mouse pointer after
+ * projection in the plane Z=0 for the current geometric transformation.
+ * In other words, if you draw a point at coordinates (mouse_x, mouse_y)
+ * it will always follow the mouse. But the value you get is usually not
+ * the position of the mouse in screen coordinates.
+ *
+ * Note however that the default zoom level and camera position are such
+ * that mouse_y corresponds to pixels with (X=0, Y=0) being the center of
+ * the screen, the positive X-axis pointing right, and the positive Y-axis
+ * pointing up.
+ * @see screen_mouse_x
  */
 mouse_x ();
 
 /**
- * Returns the current Y position of the mouse.
+ * Returns the current Y position of the mouse in the local frame.
+ * The returned value is the Y coordinate of the mouse pointer after
+ * projection in the plane Z=0 for the current geometric transformation.
+ * In other words, if you draw a point at coordinates (mouse_x, mouse_y)
+ * it will always follow the mouse. But the value you get is usually not
+ * the position of the mouse in screen coordinates.
+ *
+ * Note however that the default zoom level and camera position are such
+ * that mouse_y corresponds to pixels with (X=0, Y=0) being the center of
+ * the screen, the positive X-axis pointing right, and the positive Y-axis
+ * pointing up.
+ * @see screen_mouse_y
  */
 mouse_y ();
 
@@ -86,5 +102,13 @@ screen_mouse_y ();
  * With control key down, zoum in or out. Otherwise call @c pan
  */
 wheel_event (x, y);
+
+
+/**
+ * Enable or disable the selection rectangle.
+ * This primitive controls whether a selection rectangle is drawn as the left
+ * mouse button is pressed and the mouse is dragged.
+ */
+enable_selection_rectangle (on:boolean);
 
 /** @} */

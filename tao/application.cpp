@@ -39,6 +39,7 @@
 #include "display_driver.h"
 #include "gc_thread.h"
 #include "text_drawing.h"
+#include "licence.h"
 
 #include <QString>
 #include <QSettings>
@@ -51,6 +52,7 @@
 #include <QtWebKit>
 #include <QProcessEnvironment>
 #include <QStringList>
+
 
 #if defined(CONFIG_MINGW)
 #include <windows.h>
@@ -69,7 +71,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::constructorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
+text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -160,6 +162,15 @@ Application::Application(int & argc, char ** argv)
     // Now time to install the "persistent" error handler
     install_first_exception_handler();
 
+    // Check licence (in XL directory path)
+    QFileInfo licence("xl:licence.taokey");
+    if (licence.exists())
+    {
+        text lpath = +licence.canonicalFilePath();
+        Licences::AddLicenceFile(lpath.c_str());
+    }
+    Licences::Check("Tao Presentations");
+
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();
     EnterGraphics();
@@ -208,7 +219,7 @@ Application::Application(int & argc, char ** argv)
         // Search in constructors list
         for(int i = 0; i < LAST; i++)
         {
-            if(! vendor.compare(constructorsList[i]))
+            if(! vendor.compare(vendorsList[i]))
             {
                 vendorNum = i;
                 break;
@@ -217,9 +228,9 @@ Application::Application(int & argc, char ** argv)
 
         switch(vendorNum)
         {
-        case 0: constructorCards = ATI; break;
-        case 1: constructorCards = NVIDIA; break;
-        case 2: constructorCards = INTEL; break;
+        case 0: vendorID = ATI; break;
+        case 1: vendorID = NVIDIA; break;
+        case 2: vendorID = INTEL; break;
         }
 
 
@@ -231,6 +242,10 @@ Application::Application(int & argc, char ** argv)
         // Get OpenGL supported extentions
         str = glGetString(GL_EXTENSIONS);
         GLExtensionsAvailable = (const char*) str;
+
+        // Get OpenGL renderer (GPU)
+        str = glGetString(GL_RENDERER);
+        GLRenderer = (const char*) str;
 
         // Get number of maximum texture units and coords in fragment shaders
         // (texture units are limited to 4 otherwise)

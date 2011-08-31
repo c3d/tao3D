@@ -100,13 +100,13 @@ struct ModuleApi
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
 
-    // Allow to bind specified texture coordinates before a drawing
+    // Allow to enable specified texture coordinates before a drawing
     // according to current application parameters.
     // After drawing, texture coordinates have to be unbind.
-    bool (*BindTexCoords)(double* texCoord);
+    bool (*EnableTexCoords)(double* texCoord);
 
-    // Allow to unbind texture coordinates after a drawing.
-    bool (*UnBindTexCoords)();
+    // Allow to disable texture coordinates after a drawing.
+    bool (*DisableTexCoords)();
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
     bool (*BindTexture)(unsigned int id, unsigned int type);
@@ -121,6 +121,11 @@ struct ModuleApi
     // Allow to set line color during a drawing according
     // to the current layout attributes.
     bool (*SetLineColor)();
+
+    // Allow to enable or deactivate pixel blur
+    // on textures of the current layout.
+    // It corresponds to GL_LINEAR/GL_NEAREST parameters.
+    bool (*HasPixelBlur)(bool enable);
 
     // ------------------------------------------------------------------------
     //   API for display modules

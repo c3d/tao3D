@@ -1,0 +1,90 @@
+#ifndef LICENCE_H
+#define LICENCE_H
+// ****************************************************************************
+//  licence.h                                                       Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Licence check for Tao Presentation
+// 
+//     Sources for information:
+//     - http://www.sentientfood.com/display_story.php?articleid=3
+//     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+#include "base.h"
+
+#include <vector>
+#include <QRegExp>
+#include <QDateTime>
+
+
+namespace Tao
+{
+
+struct Licences
+// ----------------------------------------------------------------------------
+//   Class checking the avaiable licence for a given module ID or function
+// ----------------------------------------------------------------------------
+{
+    static void AddLicenceFile(kstring lfile)
+    {
+        return LM().addLicenceFile(lfile);
+    }
+
+    static bool Has(text feature)
+    {
+        return LM().licenceRemainingDays(feature) > 0;
+    }
+
+    static int RemainingDays(text feature)
+    {
+        return LM().licenceRemainingDays(feature);
+    }
+
+    static void WarnUnlicenced(text feature, int days);
+
+    static bool Check(text feature)
+    {
+        int days = RemainingDays(feature);
+        if (days <= 0)
+            WarnUnlicenced(feature, days);
+        return days >= 0;
+    }
+
+private:
+    struct Licence
+    {
+        QRegExp         features;
+        QDate           expiry;
+    };
+    std::vector<Licence>licences;
+    text                name;
+    text                company;
+    text                address;
+    text                email;
+
+private:
+    Licences();
+    ~Licences();
+    static Licences &LM();
+
+    void addLicenceFile(kstring licfname);
+    int  licenceRemainingDays(text feature);
+    void licenceError(kstring file, kstring reason);
+    text digest(std::vector<Licence> &licences);
+};
+
+}
+
+#endif // LICENCE_H

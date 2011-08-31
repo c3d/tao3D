@@ -76,7 +76,7 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
-struct MouseCoordinatesInfo;
+struct CoordinatesInfo;
 struct MouseFocusTracker;
 struct DisplayDriver;
 
@@ -138,6 +138,8 @@ public slots:
     void        enableAnimations(bool enable);
     void        showHandCursor(bool enabled);
     void        hideCursor();
+    void        setCursor(const QCursor &);
+    QCursor     cursor() const;
     void        resetView();
     void        zoomIn();
     void        zoomOut();
@@ -381,6 +383,7 @@ public:
     Name_p      toggleSlideShow(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
+    Name_p      enableMouseCursor(XL::Tree_p self, bool on);
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
@@ -406,6 +409,7 @@ public:
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+    Name_p      enableSelectionRectangle(Tree_p self, bool enable);
     Name_p      setDisplayMode(XL::Tree_p self, text name);
     Name_p      addDisplayModeToMenu(XL::Tree_p self, text mode, text label);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
@@ -450,7 +454,8 @@ public:
     Integer*    textureType(Tree_p self);
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
-    Integer_p   lightId(Tree_p self);
+    Tree_p      hasTexture(Tree_p self, GLuint unit);
+    Integer_p   lightsMask(Tree_p self);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
     Tree_p      light(Tree_p self, GLenum function, GLfloat value);
     Tree_p      light(Tree_p self, GLenum function,
@@ -767,6 +772,7 @@ public:
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
+    Infix_p     getWorldCoordinates(Tree_p, Real_p x, Real_p y);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -846,6 +852,7 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
     int                   stereoPlanes;
@@ -879,7 +886,7 @@ private:
     QFont                 selectionFont;
     QColor                originalColor;
     int                   lastMouseX, lastMouseY, lastMouseButtons;
-    MouseCoordinatesInfo *mouseCoordinatesInfo;
+    CoordinatesInfo*      mouseCoordinatesInfo;
     MouseFocusTracker *   mouseFocusTracker;
 
     // Timing
@@ -921,6 +928,8 @@ private:
     bool                  dragging;
     bool                  bAutoHideCursor;
     Qt::CursorShape       savedCursorShape;
+    QCursor               cachedCursor;
+    bool                  mouseCursorHidden;
     bool                  renderFramesCanceled;
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;

@@ -411,6 +411,12 @@ texture(id:integer);
 texture();
 
 /**
+ * Check if a texture is bound at the specified unit.
+ * @return true if a texture is bound, false otherwise.
+ */
+has_texture();
+
+/**
  * Get current texture width.
  * @return [integer] current texture width
  */
@@ -493,12 +499,6 @@ texture_transform (body:tree);
  * @see OpenGL documentation about GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T
  */
 texture_wrap (s:boolean, t:boolean);
-
-/**
- * Resets the texture.
- * Clears the texture.
- */
-no_texture();
 
 /** @} */
 

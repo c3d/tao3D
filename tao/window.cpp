@@ -269,7 +269,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
 void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
-//   Update the text edit widget with updates we made
+//   Append error string to error window
 // ----------------------------------------------------------------------------
 {
     // Ugly workaround to bug #775
@@ -279,7 +279,7 @@ void Window::addError(QString txt)
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
     errorDock->show();
-    statusBar()->showMessage(txt);
+    // Before trying to show the error in the status bar, see #970
 }
 
 
@@ -738,6 +738,14 @@ bool Window::setStereo(bool on)
     IFTRACE(displaymode)
         std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
     taoWidget = new Widget(*taoWidget, newFormat);
+    connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
+            SLOT(showHandCursor(bool)));
+    connect(zoomInAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomIn()));
+    connect(zoomOutAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomOut()));
+    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
+            SLOT(resetView()));
     setCentralWidget(taoWidget);
     taoWidget->show();
     taoWidget->setFocus();

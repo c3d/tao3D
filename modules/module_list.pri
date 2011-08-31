@@ -30,6 +30,7 @@
        display_alioscopy \
        shaders/monjori  \
        shaders/flares  \
+       shaders/sinuous  \
        slideshow_3d
     OTHER_MODULES =     \
         hello_world     \

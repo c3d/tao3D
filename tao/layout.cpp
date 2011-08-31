@@ -50,8 +50,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentLights(0),
-      textureUnits(1),
+      textureUnits(0),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
@@ -461,6 +460,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             // Clear old contents of the layout, drop all children
             Clear();
 
+            // Inherit attributes
+            Inherit(parent);
+
             // Set new layout as the current layout in the current Widget
             XL::Save<Layout *> saveLayout(widget->layout, this);
 
@@ -651,7 +653,6 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
-    currentLights    = where->currentLights;
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
@@ -663,6 +664,7 @@ void LayoutState::InheritState(LayoutState *where)
     planarScale      = where->planarScale;
     has3D            = where->has3D;
     hasPixelBlur     = where->hasPixelBlur;
+    currentLights    = where->currentLights;
     groupDrag        = where->groupDrag;
     hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;

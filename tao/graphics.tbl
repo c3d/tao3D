@@ -226,6 +226,13 @@ PREFIX(Every50Pct, real, "every",
                    "of one millisecond. The specified code evaluates for "
                    "approximately 50% of the time."))
 
+PREFIX(EnableMouseCursor,  boolean,  "enable_mouse_cursor",
+       PARM(on, boolean, "true or false"),
+       RTAO(enableMouseCursor(self, on)),
+       GROUP()
+       SYNOPSIS("Enable or disable the mouse cursor (pointer)")
+       DESCRIPTION("Shows or hide the mouse cursor. The mouse remains operational.")
+       RETURNS(boolean, "True if previous state was on."))
 PREFIX(MouseX,  real,  "mouse_x", , RTAO(mouseX(self)),
        GROUP(mouse)
        SYNOPSIS("Mouse x-coordinate")
@@ -253,6 +260,9 @@ PREFIX(MouseButtons,  integer,  "mouse_buttons", , RTAO(mouseButtons(self)),
                    "0x00000008	(X11 only) First X button.\n"
                    "0x00000010  (X11 only) Second X button.\n")
        RETURNS(integer, "Button state of the last mouse event"))
+PREFIX(EnableSelection, boolean, "enable_selection_rectangle",
+       PARM(sre, boolean, "Enable selection rectangle"),
+       RTAO(enableSelectionRectangle(self, sre)), )
 PREFIX(ShapeAction,  tree,  "on",
        PARM(action_name, text, "The action name")
        PARM(action_code, code, "The code to execute"),
@@ -307,6 +317,14 @@ PREFIX(HasDisplayMode,  boolean,  "has_display_mode",
        SYNOPSIS("Check if a display mode is available")
        DESCRIPTION("Check if a specific display mode is available and can be used")
        RETURNS(boolean, "True if the mode is available, false otherwise.") )
+PREFIX(GetWorldCoordinates,  infix,  "get_world_coordinates",
+       PARM(x, real, "x-coordinates on the screen")
+       PARM(y, real, "y-coordinates on the screen"),
+       RTAO(getWorldCoordinates(self, x, y)),
+       GROUP(misc)
+       SYNOPSIS("Convert screen to world coordinates")
+       DESCRIPTION("Convert screen to world coordinates")
+       RETURNS(infix, "World coordinates of the given screen position.") )
 
 
 
@@ -993,6 +1011,13 @@ PREFIX(TextureUnit,  tree,  "texture_unit",,
        SYNOPSIS("Return current texture unit")
        DESCRIPTION("Return current texture unit")
        RETURNS(tree, "The current texture unit"))
+PREFIX(HasTexture, tree,  "has_texture",
+       PARM(unit, integer, "texture unit checked"),
+       RTAO(hasTexture(self, unit)),
+       GROUP(graph)
+       SYNOPSIS("Return result of evaluation.")
+       DESCRIPTION("Return result of evaluation.")
+       RETURNS(tree, "Return result of evaluation."))
 
 // ============================================================================
 //
@@ -2097,12 +2122,12 @@ PREFIX(MovieTexture,  tree,  "movie_texture",
 //   Lighting
 //
 // ============================================================================
-PREFIX(CurrentLightId,  tree,  "light_id",,
-       RTAO(lightId(self)),
+PREFIX(LightsMask,  tree,  "lights_mask",,
+       RTAO(lightsMask(self)),
        GROUP(lighting)
-       SYNOPSIS("Return current light id")
-       DESCRIPTION("Return current light id")
-       RETURNS(tree, "The current light id"))
+       SYNOPSIS("Return a bitmask of all current activated lights")
+       DESCRIPTION("Return a bitmask of all current activated lights")
+       RETURNS(tree, "Return a bitmask of all current activated lights"))
 
 PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),

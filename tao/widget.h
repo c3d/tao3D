@@ -948,6 +948,7 @@ public:
     static double         currentTimeAPI();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    void eraseFlow(text flowName){ flows.erase(flowName);}
 
 private:
     void                  processProgramEvents();

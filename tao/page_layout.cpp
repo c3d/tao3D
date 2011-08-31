@@ -868,6 +868,7 @@ TextFlow::~TextFlow()
 
     Clear();
     boxes.clear();
+    display->eraseFlow(flowName);
 }
 
 void TextFlow::insertAfterCurrent(Drawing *d)

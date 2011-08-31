@@ -50,6 +50,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
+      currentLights(0),
       textureUnits(0),
       lightId(GL_LIGHT0), programId(0),
       printing(false),

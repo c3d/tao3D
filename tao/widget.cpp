@@ -9569,18 +9569,20 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
         surface->lastError = "";
         return new Integer(0, self->Position());
     }
-    layout->currentTexture.width  = surface->width();
-    layout->currentTexture.height = surface->height();
-    layout->currentTexture.type   = GL_TEXTURE_2D;
+    if (layout->currentTexture.id != 0)
+    {
+        layout->currentTexture.width  = surface->width();
+        layout->currentTexture.height = surface->height();
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        uint texUnit = layout->currentTexture.unit;
+        uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
-    layout->hasAttributes = true;
-
+        layout->Add(new FillTexture(texId, texUnit));
+        layout->hasAttributes = true;
+    }
     refreshOn(QEvent::Timer);
-    return new Integer(texId, self->Position());
+    return new Integer(layout->currentTexture.id, self->Position());
 }
 
 

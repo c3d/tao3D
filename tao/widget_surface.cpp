@@ -837,6 +837,11 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
 
     if (urlTree->value != url)
     {
+        if (url != "")
+        {
+            IFTRACE(fileload)
+                std::cerr << "Stopping media: " << url << "\n";
+        }
         url = urlTree->value;
         media->stop();
         if (url == "")
@@ -846,12 +851,9 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
         Tao::Widget::Tao()->makeCurrent();
-    }
 
-    if (media->state() == Phonon::ErrorState && lastError == "")
-    {
-        lastError = +media->errorString();
-        return 0;
+        if (media->state() == Phonon::ErrorState)
+            lastError = +media->errorString();
     }
 
     QSize hint = player->sizeHint();

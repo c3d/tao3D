@@ -9525,12 +9525,8 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
             name = context->ResolvePrefixedPath(name);
             Window *window = (Window *)parentWidget();
             QFileInfo inf(window->currentProjectFolderPath(), +name);
-            if (!inf.isReadable())
+            if (inf.isReadable())
             {
-                text err = "File not found or unreadable: " + name + ": $1";
-                XL::Ooops(err, self);
-                return NULL;
-            }
             name =
 #if defined(Q_OS_WIN)
                     "file:///"
@@ -9538,6 +9534,7 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
                     "file://"
 #endif
                     + +inf.absoluteFilePath();
+            }
         }
     }
 
@@ -9551,12 +9548,17 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
 
     // Resize to requested size, and bind texture
     layout->currentTexture.id     = surface->bind(new Text(name));
-    if (!layout->currentTexture.id)
+    if (surface->lastError != "")
     {
-        QString err;
-        err = tr("Cannot play: $1\nError: %1").arg(+surface->lastError);
-        XL::Ooops(+err, self);
-        return NULL;
+        XL::Ooops("Cannot play: $1", self);
+        text err = "Media player error: ";
+        err.append(surface->lastError);
+        XL::Ooops(err, self);
+        text err2 = "Path or URL: ";
+        err2.append(surface->url);
+        XL::Ooops(err2, self);
+        surface->lastError = "";
+        return new Integer(0, self->Position());
     }
     layout->currentTexture.width  = surface->width();
     layout->currentTexture.height = surface->height();

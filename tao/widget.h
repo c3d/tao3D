@@ -304,6 +304,7 @@ public:
     QStringList fontFiles();
 
     void        purgeTreeInfo();
+    void        runPurgeAction(XL::Action &action);
 
 public:
     // XLR entry points

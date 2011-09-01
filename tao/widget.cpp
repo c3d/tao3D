@@ -423,20 +423,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Invalidate any program info that depends on the old GL context
     PurgeGLContextSensitiveInfo purge;
-    xlProgram->tree->Do(purge);
-    // Do it also on imported files
-    import_set iset;
-    (void)ImportedFilesChanged(iset, false);
-    {
-        import_set::iterator it;
-        for (it = iset.begin(); it != iset.end(); it++)
-        {
-            XL::SourceFile &sf = **it;
-            sf.tree->Do(purge);
-        }
-    }
-    // Drop the garbage
-    InfoTrashCan::Empty();
+    runPurgeAction(purge);
 
     // REVISIT:
     // Texture and glyph cache do not support multiple GL contexts. So,
@@ -489,26 +476,13 @@ Widget::~Widget()
 }
 
 
-struct PurgeXLInfo : XL::Action
+void Widget::runPurgeAction(XL::Action &purge)
 // ----------------------------------------------------------------------------
-//   Delete all Info structures in a tree
-// ----------------------------------------------------------------------------
-{
-    virtual Tree *Do (Tree *what)
-    {
-        what->Purge<XL::Info>();
-        return what;
-    }
-};
-
-void Widget::purgeTreeInfo()
-// ----------------------------------------------------------------------------
-//   Delete all XL::Info associated with the current program
+//   Recurse "purge info" action on whole program including imports
 // ----------------------------------------------------------------------------
 {
     if (!xlProgram || !xlProgram->tree)
         return;
-    PurgeXLInfo purge;
     xlProgram->tree->Do(purge);
     // Do it also on imported files
     import_set iset;
@@ -521,7 +495,31 @@ void Widget::purgeTreeInfo()
             sf.tree->Do(purge);
         }
     }
+    // Drop the garbage
     InfoTrashCan::Empty();
+}
+
+
+struct PurgeXLInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete all Info structures in a tree
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        what->Purge<XL::Info>();
+        return what;
+    }
+};
+
+
+void Widget::purgeTreeInfo()
+// ----------------------------------------------------------------------------
+//   Delete all XL::Info associated with the current program
+// ----------------------------------------------------------------------------
+{
+    PurgeXLInfo purge;
+    runPurgeAction(purge);
 }
 
 

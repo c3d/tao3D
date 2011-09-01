@@ -510,6 +510,17 @@ void Widget::purgeTreeInfo()
         return;
     PurgeXLInfo purge;
     xlProgram->tree->Do(purge);
+    // Do it also on imported files
+    import_set iset;
+    (void)ImportedFilesChanged(iset, false);
+    {
+        import_set::iterator it;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            sf.tree->Do(purge);
+        }
+    }
     InfoTrashCan::Empty();
 }
 

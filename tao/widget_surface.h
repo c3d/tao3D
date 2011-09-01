@@ -38,7 +38,7 @@ struct Widget;
 struct Layout;
 
 
-struct WidgetSurface : QObject, XL::Info, InfoTrashCan
+struct WidgetSurface : QObject, TaoInfo, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Hold information about the the widget associated to a given tree
 // ----------------------------------------------------------------------------

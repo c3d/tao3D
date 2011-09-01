@@ -181,7 +181,7 @@ Window::~Window()
 // ----------------------------------------------------------------------------
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
-    taoWidget->purgeTreeInfo();
+    taoWidget->purgeTaoInfo();
 }
 
 
@@ -1868,7 +1868,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     showMessage(msg.arg(tr("Document")));
 
     // Clean previous program
-    taoWidget->purgeTreeInfo();
+    taoWidget->purgeTaoInfo();
 
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
@@ -1884,6 +1884,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::restoreOverrideCursor();
 
+    setCurrentFile(fileName);
     if (hadError)
     {
         // File not found, or parse error
@@ -1925,7 +1926,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(tr("File loaded"), 2000);
     }
     isUntitled = false;
-    setCurrentFile(fileName);
     setReadOnly(isReadOnly);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);

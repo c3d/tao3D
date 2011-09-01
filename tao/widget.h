@@ -303,8 +303,7 @@ public:
     GlyphCache &glyphs()    { return glyphCache; }
     QStringList fontFiles();
 
-    void        purgeTreeInfo();
-    void        runPurgeAction(XL::Action &action);
+    void        purgeTaoInfo();
 
 public:
     // XLR entry points
@@ -940,6 +939,7 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);

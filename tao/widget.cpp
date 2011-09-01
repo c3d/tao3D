@@ -500,25 +500,25 @@ void Widget::runPurgeAction(XL::Action &purge)
 }
 
 
-struct PurgeXLInfo : XL::Action
+struct PurgeTaoInfo : XL::Action
 // ----------------------------------------------------------------------------
-//   Delete all Info structures in a tree
+//   Delete all TaoInfo structures in a tree
 // ----------------------------------------------------------------------------
 {
     virtual Tree *Do (Tree *what)
     {
-        what->Purge<XL::Info>();
+        what->Purge<Tao::TaoInfo>();
         return what;
     }
 };
 
 
-void Widget::purgeTreeInfo()
+void Widget::purgeTaoInfo()
 // ----------------------------------------------------------------------------
-//   Delete all XL::Info associated with the current program
+//   Delete all TaoInfo associated with the current program
 // ----------------------------------------------------------------------------
 {
-    PurgeXLInfo purge;
+    PurgeTaoInfo purge;
     runPurgeAction(purge);
 }
 
@@ -3250,7 +3250,7 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
-            purgeTreeInfo();
+            purgeTaoInfo();
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;

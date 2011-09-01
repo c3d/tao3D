@@ -3250,6 +3250,7 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
+            purgeTreeInfo();
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;

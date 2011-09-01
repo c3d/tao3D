@@ -9473,7 +9473,6 @@ Tree_p Widget::movie(Context *context, Tree_p self,
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
     if (!movieTexture(context, self, name))
         return XL::xl_false;
     VideoSurface *surface = self->GetInfo<VideoSurface>();
@@ -9483,6 +9482,7 @@ Tree_p Widget::movie(Context *context, Tree_p self,
     if (currentShape)
         layout->Add(new ImageManipulator(currentShape, x, y, sx, sy, w, h));
 
+    refreshOn(QEvent::Timer);
     return XL::xl_true;
 }
 
@@ -9543,6 +9543,7 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
+    refreshOn(QEvent::Timer);
     return new Integer(texId, self->Position());
 }
 

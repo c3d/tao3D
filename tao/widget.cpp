@@ -489,6 +489,31 @@ Widget::~Widget()
 }
 
 
+struct PurgeXLInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete all Info structures in a tree
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        what->Purge<XL::Info>();
+        return what;
+    }
+};
+
+void Widget::purgeTreeInfo()
+// ----------------------------------------------------------------------------
+//   Delete all XL::Info associated with the current program
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram || !xlProgram->tree)
+        return;
+    PurgeXLInfo purge;
+    xlProgram->tree->Do(purge);
+    InfoTrashCan::Empty();
+}
+
+
 // ============================================================================
 //
 //   Slots

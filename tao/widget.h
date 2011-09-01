@@ -303,6 +303,8 @@ public:
     GlyphCache &glyphs()    { return glyphCache; }
     QStringList fontFiles();
 
+    void        purgeTreeInfo();
+
 public:
     // XLR entry points
     static Widget *Tao()                { assert(current); return current; }

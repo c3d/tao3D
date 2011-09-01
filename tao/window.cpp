@@ -181,6 +181,7 @@ Window::~Window()
 // ----------------------------------------------------------------------------
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
+    taoWidget->purgeTreeInfo();
 }
 
 
@@ -1865,6 +1866,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         addError(e);
     ffm.UnloadEmbeddedFonts(prev);
     showMessage(msg.arg(tr("Document")));
+
+    // Clean previous program
+    taoWidget->purgeTreeInfo();
 
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in

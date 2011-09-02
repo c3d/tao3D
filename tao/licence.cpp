@@ -81,11 +81,10 @@ void Licences::addLicenceFile(kstring licfname)
     std::vector<Licence> additional;
 
     // Now analyze what we got from the input text
-    std::ifstream lictext (licfname);
     XL::Syntax syntax;
     XL::Positions positions;
     XL::Errors errors;
-    XL::Scanner scanner(lictext, syntax, positions, errors);
+    XL::Scanner scanner(licfname, syntax, positions, errors);
     Licence licence;
     bool had_features = false;
     int day = 0, month = 0, year = 0;
@@ -139,10 +138,10 @@ void Licences::addLicenceFile(kstring licfname)
                 else if (item == "digest")
                     state = DIGEST;
                 else
-                    licenceError(licfname, "Invalid tag");
+                    licenceError(licfname, tr("Invalid tag"));
                 break;
             default:
-                licenceError(licfname, "Invalid token");
+                licenceError(licfname, tr("Invalid token"));
                 break;
             } // switch(token for TAG state)
             break;
@@ -160,7 +159,7 @@ void Licences::addLicenceFile(kstring licfname)
             }
             else
             {
-                licenceError(licfname, "Invalid digest");
+                licenceError(licfname, tr("Invalid digest"));
                 state = DONE;
             }
             break;
@@ -175,11 +174,11 @@ void Licences::addLicenceFile(kstring licfname)
                 if (PVAR == "")                                         \
                     PVAR = item;                                        \
                 else if (item != PVAR)                                  \
-                    licenceError(licfname, "Inconsistent "  #PVAR);     \
+                    licenceError(licfname, tr("Inconsistent %1").arg(#PVAR)); \
             }                                                           \
             else                                                        \
             {                                                           \
-                licenceError(licfname, "Invalid "  #PVAR);              \
+                licenceError(licfname, tr("Invalid %1").arg(#PVAR));    \
                 state = DONE;                                           \
             }                                                           \
             break;
@@ -195,7 +194,7 @@ void Licences::addLicenceFile(kstring licfname)
             }                                                           \
             else                                                        \
             {                                                           \
-                licenceError(licfname, "Invalid "  #PVAR);              \
+                licenceError(licfname, tr("Invalid %1").arg(#PVAR));    \
                 state = DONE;                                           \
             }                                                           \
             break;
@@ -215,7 +214,7 @@ void Licences::addLicenceFile(kstring licfname)
             }
             else
             {
-                licenceError(licfname, "Invalid features pattern");
+                licenceError(licfname, tr("Invalid features pattern"));
                 state = DONE;
             }
             break;
@@ -227,13 +226,13 @@ void Licences::addLicenceFile(kstring licfname)
                 state = EXPIRY_MONTH;
                 if (day < 1 || day > 31)
                 {
-                    licenceError(licfname, "Invalid day");
+                    licenceError(licfname, tr("Invalid day"));
                     state = DONE;
                 }
             }
             else
              {
-                licenceError(licfname, "Invalid expiry day");
+                licenceError(licfname, tr("Invalid expiry day"));
                 state = DONE;
             }
             break;
@@ -265,7 +264,7 @@ void Licences::addLicenceFile(kstring licfname)
                     }
                     if (state != EXPIRY_YEAR)
                     {
-                        licenceError(licfname, "Invalid month name");
+                        licenceError(licfname, tr("Invalid month name"));
                         state = DONE;
                     }
                 }
@@ -276,7 +275,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = EXPIRY_YEAR;
                 if (month < 1 || month > 12)
                 {
-                    licenceError(licfname, "Invalid expiry month");
+                    licenceError(licfname, tr("Invalid expiry month"));
                     state = DONE;
                 }
             }
@@ -293,7 +292,7 @@ void Licences::addLicenceFile(kstring licfname)
                 year = scanner.IntegerValue();
                 if (year < 2011 || year > 2099)
                 {
-                    licenceError(licfname, "Invalid year");
+                    licenceError(licfname, tr("Invalid year"));
                     state = DONE;
                 }
                 licence.expiry = QDate(year, month, day);
@@ -301,7 +300,7 @@ void Licences::addLicenceFile(kstring licfname)
             }
             else
             {
-                licenceError(licfname, "Invalid expiry year");
+                licenceError(licfname, tr("Invalid expiry year"));
                 state = DONE;
             }
             break;
@@ -423,28 +422,28 @@ int Licences::licenceRemainingDays(text feature)
 }
 
 
-void Licences::licenceError(kstring file, kstring reason)
+void Licences::licenceError(kstring file, QString reason)
 // ----------------------------------------------------------------------------
 //   We had a problem with the licences - Quick exit
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Licence error", reason, 0, file, 0);
+    RECORD(ALWAYS, "Licence error", (+reason).c_str(), 0, file, 0);
     licences.clear();
 
 #ifdef KEYGEN
     std::cerr << "Error reading licence file " << file
-              << ": " << reason << "\n";
+              << ": " << +reason << "\n";
 #else
     QMessageBox oops;
     oops.setIcon(QMessageBox::Critical);
-    oops.setWindowTitle(oops.tr("Error reading licence files"));
-    oops.setText(oops.tr ("There is a problem with licence file '%1'.\n"
-                          "The following error was detected: %2\n"
-                          "The program will now terminate. "
-                          "You need to remove the offending licence file "
-                          "before trying to run the application again. "
-                          "Please contact Taodyne to obtain valid "
-                          "licence files.")
+    oops.setWindowTitle(tr("Error reading licence files"));
+    oops.setText(tr("There is a problem with licence file '%1'.\n"
+                    "The following error was detected: %2\n"
+                    "The program will now terminate. "
+                    "You need to remove the offending licence file "
+                    "before trying to run the application again. "
+                    "Please contact Taodyne to obtain valid "
+                    "licence files.")
                  .arg(file).arg(reason));
     oops.addButton(QMessageBox::Close);
     oops.exec();
@@ -463,16 +462,16 @@ void Licences::WarnUnlicenced(text feature, int days)
     {
         QMessageBox oops;
         oops.setIcon(QMessageBox::Warning);
-        oops.setWindowTitle(oops.tr("Not licenced"));
+        oops.setWindowTitle(tr("Not licenced"));
         if (days == 0)
-            oops.setText(oops.tr ("You do not have a valid licence for %1. "
-                                  "Please contact Taodyne to obtain valid "
-                                  "licence files.").arg(+feature));
+            oops.setText(tr("You do not have a valid licence for %1. "
+                            "Please contact Taodyne to obtain valid "
+                            "licence files.").arg(+feature));
         else
-            oops.setText(oops.tr ("You no longer have a valid licence for %1. "
-                                  "The licence you had expired %2 days ago. "
-                                  "Please contact Taodyne to obtain valid "
-                                  "licence files.").arg(+feature).arg(-days));
+            oops.setText(tr("You no longer have a valid licence for %1. "
+                            "The licence you had expired %2 days ago. "
+                            "Please contact Taodyne to obtain valid "
+                            "licence files.").arg(+feature).arg(-days));
         oops.addButton(QMessageBox::Close);
         oops.exec();
     }

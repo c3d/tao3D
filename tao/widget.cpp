@@ -6554,31 +6554,40 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
             Name *name = infix->left->AsName();
-            TreeList args;
             Tree *arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
-            Infix *iarg = arg->AsInfix();
-            if (iarg &&
-                (iarg->name == "," || iarg->name == "\n" || iarg->name == ";"))
-                XL::xl_infix_to_list(iarg, args);
-            else
-                args.push_back(arg);
 
+            // Transform the input arguments into a list of values
             ShaderValue::Values values;
-            uint i, max = args.size();
-            for (i = 0; i < max; i++)
+            while (arg)
             {
-                arg = args[i];
+                Tree *value = arg;
+                Infix *iarg = arg->AsInfix();
+                if (iarg &&
+                    (iarg->name == "," ||
+                     iarg->name == "\n" ||
+                     iarg->name == ";"))
+                {
+                    value = iarg->left;
+                    arg = iarg->right;
+                }
+                else
+                {
+                    arg = NULL;
+                }
+
+                // Evaluate the argument in the proper context
                 if (symbols)
-                    arg->SetSymbols(symbols);
-                arg = context->Evaluate(arg);
-                if (Integer *it = arg->AsInteger())
-                    arg = new Real(it->value);
-                if (Real *rt = arg->AsReal())
+                    value->SetSymbols(symbols);
+                value = context->Evaluate(value);
+
+                if (Integer *it = value->AsInteger())
+                    values.push_back(it->value);
+                else if (Real *rt = value->AsReal())
                     values.push_back(rt->value);
                 else
-                    Ooops("Shader value $1 is not a number", arg);
+                    Ooops("Shader value $1 is not a number", value);
             }
 
             layout->Add(new ShaderValue(name, values));

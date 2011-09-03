@@ -5546,41 +5546,50 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 //   Enable or disable stereoscopic mode
 // ----------------------------------------------------------------------------
 {
+    text n = name->value;
+    if (name ==  XL::xl_false)
+      n = "false";
+    else if (name ==  XL::xl_true)
+      n = "true";
+    return enableStereoscopyText(self, n);
+}
+
+
+XL::Name_p Widget::enableStereoscopyText(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Enable or disable stereoscopic mode
+// ----------------------------------------------------------------------------
+{
     bool oldState = !displayDriver->isCurrentDisplayFunctionSameAs("2D");
-    text newState;
-    if (name == XL::xl_false || name->value == "no" || name->value == "none")
+    text newState = name;
+
+    // Testing on/off values and legacy names
+    if (name == "false" || name == "no" || name == "none")
     {
         newState = "2D";
     }
-    else if (name == XL::xl_true || name->value == "hardware")
+    else if (name == "true" || name == "hardware")
     {
         newState = "quadstereo";
     }
-    else if (name->value == "hsplit")
+    else if (name == "hsplit")
     {
         newState = "hsplitstereo";
     }
-    else if (name->value == "vsplit")
+    else if (name == "vsplit")
     {
         newState = "vsplitstereo";
     }
-    else if (name->value == "interlace" || name->value == "interlaced" ||
-             name->value == "interleave" || name->value == "interleaved")
+    else if (name == "interlace" || name == "interlaced" ||
+             name == "interleave" || name == "interleaved")
     {
         newState = "hintstereo";
     }
-    else if (name->value == "alioscopy")
-    {
-        newState = "alioscopy";
-    }
-    else
-    {
-        std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
-    }
 
-    if (newState != "")
+    if (hasDisplayModeText(NULL, newState))
         setDisplayMode(NULL, newState);
-
+    else
+        std::cerr << "Stereoscopy mode " << name << " is unknown\n";
     return oldState ? XL::xl_true : XL::xl_false;
 }
 
@@ -10781,14 +10790,23 @@ XL::Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
 
+
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Check if a display mode is available
 // ----------------------------------------------------------------------------
 {
-    text n = name->value;
+    return hasDisplayModeText(self, name->value);
+}
+
+
+Name_p Widget::hasDisplayModeText(Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Check if a display mode is available
+// ----------------------------------------------------------------------------
+{
     QStringList all = DisplayDriver::allDisplayFunctions();
-    if (all.contains(+n))
+    if (all.contains(+name))
         return XL::xl_true;
     return XL::xl_false;
 }
@@ -10806,6 +10824,55 @@ Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
 
     return result->AsInfix();
 }
+
+
+Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Set a display option
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            ADJUST_CONTEXT_FOR_INTERPRETER(context);
+            XL::Symbols *symbols = self->Symbols();
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            if (symbols)
+                arg->SetSymbols(symbols);
+            arg = context->Evaluate(arg);
+            if (Integer *it = arg->AsInteger())
+                arg = new Real(it->value);
+            std::string strval;
+            if (Real *rt = arg->AsReal())
+            {
+                std::ostringstream oss;
+                oss << rt->value;
+                strval = oss.str();
+            }
+            else if (Text *tt = arg->AsText())
+            {
+                strval = tt->value;
+            }
+            else
+            {
+                Ooops("display_set value $1 is not a string and not a number",
+                      arg);
+                return XL::xl_false;
+            }
+            displayDriver->setOption(name->value, strval);
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed display_set statement $1", code);
+    return XL::xl_false;
+}
+
+
 
 // ============================================================================
 //

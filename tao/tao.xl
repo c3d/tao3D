@@ -122,6 +122,8 @@ stereoscopy_settings ->
         chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
     if has_display_mode alioscopy then
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy; eye_distance 30.0}
+    if has_display_mode "2dplusdepth" then
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
     chooser_choice tr "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice tr "Increase eye distance", {increase_eye_distance}
     chooser_choice tr "Decrease eye distance", {decrease_eye_distance}

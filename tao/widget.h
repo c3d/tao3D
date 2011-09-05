@@ -303,6 +303,8 @@ public:
     GlyphCache &glyphs()    { return glyphCache; }
     QStringList fontFiles();
 
+    void        purgeTaoInfo();
+
 public:
     // XLR entry points
     static Widget *Tao()                { assert(current); return current; }
@@ -412,6 +414,7 @@ public:
     Name_p      setDisplayMode(XL::Tree_p self, text name);
     Name_p      addDisplayModeToMenu(XL::Tree_p self, text mode, text label);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
+    Name_p      enableStereoscopyText(Tree_p self, text name);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
@@ -774,6 +777,8 @@ public:
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
     Infix_p     getWorldCoordinates(Tree_p, Real_p x, Real_p y);
+    Name_p      hasDisplayModeText(Tree_p self, text name);
+    Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -937,6 +942,7 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);

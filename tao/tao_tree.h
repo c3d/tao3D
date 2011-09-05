@@ -69,6 +69,8 @@ typedef XL::Context_p      Context_p;
 
 typedef XL::SourceFile     SourceFile;
 
+struct  TaoInfo : XL::Info {};
+
 TAO_END
 
 #endif // TAO_TREE_H

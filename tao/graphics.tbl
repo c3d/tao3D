@@ -325,6 +325,13 @@ PREFIX(GetWorldCoordinates,  infix,  "get_world_coordinates",
        SYNOPSIS("Convert screen to world coordinates")
        DESCRIPTION("Convert screen to world coordinates")
        RETURNS(infix, "World coordinates of the given screen position.") )
+PREFIX(HasDisplayModeText,  boolean,  "has_display_mode",
+       PARM(name, text, "The name of the display mode to test"),
+       RTAO(hasDisplayModeText(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a display mode is available")
+       DESCRIPTION("Check if a specific display mode is available and can be used")
+       RETURNS(boolean, "True if the mode is available, false otherwise.") )
 
 
 
@@ -698,8 +705,15 @@ PREFIX(AddDisplayModeToMenu,  boolean,  "add_display_mode_to_menu",
        SYNOPSIS("Adds an entry for the display mode to the view menu")
        RETURNS(boolean, "True on success."))
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
-       PARM(mode, symbol, "on or off or mode name"),
+       PARM(mode, symbol, "true or false or mode name"),
        RTAO(enableStereoscopy(self, mode)),
+       GROUP(gui)
+       SYNOPSIS("Enable or disable stereoscopie mode")
+       DESCRIPTION("Enable or disable stereoscopie mode")
+       RETURNS(boolean, "True if previous state was on."))
+PREFIX(EnableStereoscopyText,  boolean,  "enable_stereoscopy",
+       PARM(mode, text, "true or false or mode name"),
+       RTAO(enableStereoscopyText(self, mode)),
        GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
@@ -2371,6 +2385,11 @@ PREFIX(ShaderSet, tree, "shader_set",
        RTAO(shaderSet(context, self, t)),
        GROUP(lighting)
        SYNOPSIS("Set a shader uniform or attribute value")
+       DESCRIPTION(""));
+PREFIX(DisplaySet, tree, "display_set",
+       PARM(t, source, "Assignment to a display variable"),
+       RTAO(displaySet(context, self, t)),
+       SYNOPSIS("Set an option in the current display function/module")
        DESCRIPTION(""));
 
 // ============================================================================

@@ -4,7 +4,7 @@
 # Windows: FILEVERSION, PRODUCTVERSION, and FileVersion are built using
 # $$MAJOR, $$MINOR and $$RELEASE
 VERSION = "1.0.0"
-message(Version is $$VERSION)
+!build_pass:message(Version is $$VERSION)
 MAJOR = $$replace(VERSION, "\\.[0-9]+\\.[0-9]+\$", "")
 MINOR = $$replace(VERSION, "^[0-9]+\\.", "")
 MINOR = $$replace(MINOR, "\\.[0-9]+\$", "")

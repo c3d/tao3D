@@ -40,6 +40,7 @@
 #include "gc_thread.h"
 #include "text_drawing.h"
 #include "licence.h"
+#include "version.h"
 
 #include <QString>
 #include <QSettings>
@@ -169,7 +170,7 @@ Application::Application(int & argc, char ** argv)
         text lpath = +licence.canonicalFilePath();
         Licences::AddLicenceFile(lpath.c_str());
     }
-    Licences::Check("Tao Presentations");
+    Licences::Check("Tao Presentations " GITREV);
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();

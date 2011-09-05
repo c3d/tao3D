@@ -68,6 +68,11 @@ void TextUnit::Draw(Layout *where)
     uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);
     bool        dbgDirect  = (widget->lastModifiers() & dbgMod) == dbgMod;
 
+    // If there is no texture, we need to use unit 0
+    // to set glyph texture
+    if(! where->textureUnits)
+        where->textureUnits = 1;
+
     if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect &&
         cacheEnabled)
         DrawCached(where);

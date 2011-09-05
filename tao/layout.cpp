@@ -108,6 +108,8 @@ void LayoutState::ClearAttributes(bool all)
         // Save state modified by Add or before
         zero.hasMatrix = hasMatrix;
         zero.hasTextureMatrix = hasTextureMatrix;
+        zero.hasAttributes = hasAttributes;
+        zero.hasLighting = hasLighting;
     }
     *this = zero;
 }

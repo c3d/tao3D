@@ -4069,7 +4069,7 @@ static inline void resetLayout(Layout *where)
     if (where)
     {
         where->lineWidth = 1;
-        //where->currentLights = 0;
+        where->currentLights = 0;
         where->textureUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
@@ -7492,7 +7492,7 @@ Tree_p  Widget::textBox(Tree_p self, text flowName,
 
 
 Tree_p Widget::textFlow(Context *context, Tree_p self,
-                        text flowName, Tree_p prog)
+                        Text_p flowName, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Overflow text box for the rest of the current text flow
 // ----------------------------------------------------------------------------
@@ -7512,10 +7512,23 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     }
 
     currentFlowName = flowName;
-    int i = 0;
-    while (flows.count(currentFlowName) != 0)
-        currentFlowName = +QString("%1_%2").arg(+flowName).arg(++i);
-
+    if (flows.count(currentFlowName))
+    {
+        QString toto = +currentFlowName;
+        QRegExp reg("_(\\d+)$");
+        uint i = 0;
+        int id = 0;
+        if ((id = toto.indexOf(reg)) != -1)
+        {
+            i = reg.cap(1).toInt();
+            if (i>flows.size())
+                i = flows.size();
+            toto.truncate(id);
+        }
+        while (flows.count(currentFlowName) != 0)
+            currentFlowName = +QString("%1_%2").arg(toto).arg(++i);
+        flowName->value = currentFlowName;
+    }
     TextFlow *flow = new TextFlow(layout, currentFlowName);
     flow->id = selectionId();
     flow->body = prog;
@@ -8051,10 +8064,11 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
 
     // Define a new text layout
     text cellName = "defaultTableCell";
-    int i = 0;
+    int i = flows.size();
     while (flows.count(cellName) != 0)
-        cellName = +QString("defaultTableCell_%2").arg(++i);
-    Tree_p result = textFlow(context, self,cellName , body);
+        cellName = +QString("defaultTableCell_%1").arg(++i);
+    XL::Text * cell = new XL::Text(cellName);
+    Tree_p result = textFlow(context, self,cell , body);
     TextFlow *flow = flows[cellName];
     PageLayout *tbox = new PageLayout(this, flow);
     tbox->space = Box3(0, 0, 0, w, h, 0);

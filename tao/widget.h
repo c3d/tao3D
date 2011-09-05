@@ -556,7 +556,7 @@ public:
     // Text and font
     Tree_p      textBox(Tree_p self, text flowName,
                         Real_p x, Real_p y, Real_p w, Real_p h);
-    Tree_p      textFlow(Context *context, Tree_p self, text name, Tree_p child);
+    Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);

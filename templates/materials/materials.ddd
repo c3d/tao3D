@@ -1,6 +1,5 @@
 import Materials 1.0
 import Mapping 1.0
-import ObjectLoader 1.0
 zoom 0.15
 refresh_on TimerEvent
 
@@ -65,49 +64,70 @@ draw_materials ->
     * Draw materials set
     */
     translatey 800
-
     // Middle circle
     locally
+        translate -3000, 0, 0
         jade
-        sphere -3000, 0, 0, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate -1500, 0, -2000
         gold
-        sphere -1500, 0, -2000, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate -1500, 0, 2000
         glass
-        sphere -1500, 0, 2000, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate 1000, 0, 2000
         water
-        sphere 1000, 0, 2000, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate 3000, 0, 500
         emerald
-        sphere 3000, 0, 0, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate 1000, 0, -2000
         ruby
-        sphere 1000, 0, -2000, 500
+        sphere 0, 0, 0, 500
 
     // Top circle
     locally
+        translate 0, 750, 1250
         wood 100
-        sphere 0, 750, 1250, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate -1250, 750, -750
         granite 100
-        sphere -1250, 750, -750, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate 1250, 750, -750
         marble 100
-        sphere 1250, 750, -750, 500
-
+        sphere 0, 0, 0, 500
     // Bottom circle
     locally
+        translate 0, -750, -750
         bronze
-        sphere 0, -750, -750, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate -1250, -750, 1250
         silver
-        sphere -1250, -750, 1250, 500
+        sphere 0, 0, 0, 500
+    locally
+        translate 1250, -750, 1250
         iron
-        sphere 1250, -750, 1250, 500
+        sphere 0, 0, 0, 500
 
     // Top final
     locally
+        translate 0, 1500, 0
         plastic 1.0, 0.5, 0.5
-        sphere 0, 1500, 0, 500
+        sphere 0, 0, 0, 500
 
     // Bottom final
     locally
+        translate 0, -1500, 0
         chrome
-        sphere 0, -1500, 0, 500
+        sphere 0, 0, 0, 500
 
 draw_environment
 draw_light

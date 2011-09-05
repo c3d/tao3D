@@ -7528,8 +7528,8 @@ Tree_p  Widget::textBox(Tree_p self, text flowName,
         return XL::xl_false;
 
     TextFlow *flow = flows[flowName];
-    PageLayout *tbox = new PageLayout(this, flow);
     this->currentFlowName = flowName;
+    PageLayout *tbox = new PageLayout(this, flow);
     tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
     layout->Add(tbox);
 
@@ -7564,10 +7564,10 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
         }
     }
 
-    currentFlowName = flowName;
-    if (flows.count(currentFlowName))
+    text computedFlowName = flowName;
+    if (flows.count(computedFlowName))
     {
-        QString toto = +currentFlowName;
+        QString toto = +computedFlowName;
         QRegExp reg("_(\\d+)$");
         uint i = 0;
         int id = 0;
@@ -7578,21 +7578,25 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
                 i = flows.size();
             toto.truncate(id);
         }
-        while (flows.count(currentFlowName) != 0)
-            currentFlowName = +QString("%1_%2").arg(toto).arg(++i);
-        flowName->value = currentFlowName;
+        while (flows.count(computedFlowName) != 0)
+            computedFlowName = +QString("%1_%2").arg(toto).arg(++i);
+        flowName->value = computedFlowName;
     }
-    TextFlow *flow = new TextFlow(layout, currentFlowName);
+    currentFlowName = computedFlowName;
+    TextFlow *flow = new TextFlow(layout, computedFlowName);
     flow->id = selectionId();
     flow->body = prog;
     flow->ctx = context;
-    flows[currentFlowName] = flow;
+    flows[computedFlowName] = flow;
 
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
 
     Tree *result = currentContext->Evaluate(prog);
     flow->resetIterator();
+    // Protection agains recursive call of textFlow with same flowname.
+    currentFlowName = computedFlowName;
+    flowName->value = computedFlowName;
     return result;
 }
 

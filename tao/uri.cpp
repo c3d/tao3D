@@ -253,6 +253,26 @@ void Uri::refreshSettings()
                 projects.removeOne(project);
                 deleted++;
             }
+#if defined(Q_OS_WIN)
+            else
+            {
+                // "Repair" code for #1341. Can be later removed safely.
+                if (project.contains("/"))
+                {
+                    projects.removeOne(project);
+                    project = QDir::toNativeSeparators(project);
+                    projects.append(project);
+                    IFTRACE2(settings, uri)
+                    {
+                        QByteArray ba;
+                        ba.append(key);
+                        text uri = +QUrl::fromPercentEncoding(ba);
+                        debug() << " {" << uri << " -> " << +project << "} ";
+                        std::cerr << "[converted]\n";
+                    }
+                }
+            }
+#endif
             IFTRACE2(settings, uri)
             {
                 QByteArray ba;
@@ -265,6 +285,12 @@ void Uri::refreshSettings()
                     std::cerr << "[deleted]\n";
             }
         }
+
+        int dups = projects.removeDuplicates();
+        if (dups)
+            IFTRACE2(settings, uri)
+                debug() << "Removed " << dups << " duplicate paths\n";
+
         if (projects.isEmpty())
             settings.remove(key);
         else
@@ -290,6 +316,7 @@ void Uri::refreshSettings()
         foreach (QString project, subdirs)
         {
             QString projDir = QDir(dir.filePath(project)).absolutePath();
+            projDir = QDir::toNativeSeparators(projDir);
             IFTRACE2(settings, uri)
                 debug() << " " << +projDir;
 
@@ -464,7 +491,7 @@ QStringList Uri::localProjects()
 }
 
 
-bool Uri::addLocalProject(const QString &path)
+bool Uri::addLocalProject(QString path)
 // ----------------------------------------------------------------------------
 //    Associate current URI with a local project path
 // ----------------------------------------------------------------------------
@@ -472,6 +499,7 @@ bool Uri::addLocalProject(const QString &path)
     bool added = false;
     QSettings settings;
     QStringList projects = settings.value(keyName()).toStringList();
+    path = QDir::toNativeSeparators(path);
     if (!projects.contains(path))
     {
         projects.append(path);

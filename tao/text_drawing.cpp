@@ -77,6 +77,11 @@ void TextUnit::Draw(Layout *where)
         toDebugString(std::cerr);
     }
 
+    // If there is no texture, we need to use unit 0
+    // to set glyph texture
+    if(! where->textureUnits)
+        where->textureUnits = 1;
+
     if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect &&
         cacheEnabled)
         DrawCached(where);

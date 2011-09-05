@@ -423,20 +423,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Invalidate any program info that depends on the old GL context
     PurgeGLContextSensitiveInfo purge;
-    xlProgram->tree->Do(purge);
-    // Do it also on imported files
-    import_set iset;
-    (void)ImportedFilesChanged(iset, false);
-    {
-        import_set::iterator it;
-        for (it = iset.begin(); it != iset.end(); it++)
-        {
-            XL::SourceFile &sf = **it;
-            sf.tree->Do(purge);
-        }
-    }
-    // Drop the garbage
-    InfoTrashCan::Empty();
+    runPurgeAction(purge);
 
     // REVISIT:
     // Texture and glyph cache do not support multiple GL contexts. So,
@@ -486,6 +473,53 @@ Widget::~Widget()
 #endif
 
     RasterText::purge(QGLWidget::context());
+}
+
+
+void Widget::runPurgeAction(XL::Action &purge)
+// ----------------------------------------------------------------------------
+//   Recurse "purge info" action on whole program including imports
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram || !xlProgram->tree)
+        return;
+    xlProgram->tree->Do(purge);
+    // Do it also on imported files
+    import_set iset;
+    (void)ImportedFilesChanged(iset, false);
+    {
+        import_set::iterator it;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            sf.tree->Do(purge);
+        }
+    }
+    // Drop the garbage
+    InfoTrashCan::Empty();
+}
+
+
+struct PurgeTaoInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete all TaoInfo structures in a tree
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        what->Purge<Tao::TaoInfo>();
+        return what;
+    }
+};
+
+
+void Widget::purgeTaoInfo()
+// ----------------------------------------------------------------------------
+//   Delete all TaoInfo associated with the current program
+// ----------------------------------------------------------------------------
+{
+    PurgeTaoInfo purge;
+    runPurgeAction(purge);
 }
 
 
@@ -3217,6 +3251,7 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
+            purgeTaoInfo();
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
@@ -5513,41 +5548,50 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 //   Enable or disable stereoscopic mode
 // ----------------------------------------------------------------------------
 {
+    text n = name->value;
+    if (name ==  XL::xl_false)
+      n = "false";
+    else if (name ==  XL::xl_true)
+      n = "true";
+    return enableStereoscopyText(self, n);
+}
+
+
+XL::Name_p Widget::enableStereoscopyText(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Enable or disable stereoscopic mode
+// ----------------------------------------------------------------------------
+{
     bool oldState = !displayDriver->isCurrentDisplayFunctionSameAs("2D");
-    text newState;
-    if (name == XL::xl_false || name->value == "no" || name->value == "none")
+    text newState = name;
+
+    // Testing on/off values and legacy names
+    if (name == "false" || name == "no" || name == "none")
     {
         newState = "2D";
     }
-    else if (name == XL::xl_true || name->value == "hardware")
+    else if (name == "true" || name == "hardware")
     {
         newState = "quadstereo";
     }
-    else if (name->value == "hsplit")
+    else if (name == "hsplit")
     {
         newState = "hsplitstereo";
     }
-    else if (name->value == "vsplit")
+    else if (name == "vsplit")
     {
         newState = "vsplitstereo";
     }
-    else if (name->value == "interlace" || name->value == "interlaced" ||
-             name->value == "interleave" || name->value == "interleaved")
+    else if (name == "interlace" || name == "interlaced" ||
+             name == "interleave" || name == "interleaved")
     {
         newState = "hintstereo";
     }
-    else if (name->value == "alioscopy")
-    {
-        newState = "alioscopy";
-    }
-    else
-    {
-        std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
-    }
 
-    if (newState != "")
+    if (hasDisplayModeText(NULL, newState))
         setDisplayMode(NULL, newState);
-
+    else
+        std::cerr << "Stereoscopy mode " << name << " is unknown\n";
     return oldState ? XL::xl_true : XL::xl_false;
 }
 
@@ -7966,7 +8010,7 @@ Text_p Widget::taoVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     text ver = GITREV;
-    if (!Licences::Has("Tao Presentations"))
+    if (!Licences::Has("Tao Presentations " GITREV))
         ver += " (UNLICENCED)";
     return new XL::Text(ver);
 }
@@ -9512,14 +9556,14 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 }
 
 
-Tree_p Widget::movie(Tree_p self,
-                     Real_p x, Real_p y, Real_p sx, Real_p sy, Text_p url)
+Tree_p Widget::movie(Context *context, Tree_p self,
+                     Real_p x, Real_p y, Real_p sx, Real_p sy, text name)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    movieTexture(self, url);
+    if (!movieTexture(context, self, name))
+        return XL::xl_false;
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     double w = sx * surface->width();
     double h = sy * surface->height();
@@ -9527,15 +9571,37 @@ Tree_p Widget::movie(Tree_p self,
     if (currentShape)
         layout->Add(new ImageManipulator(currentShape, x, y, sx, sy, w, h));
 
+    refreshOn(QEvent::Timer);
     return XL::xl_true;
 }
 
 
-Integer* Widget::movieTexture(Tree_p self, Text_p url)
+Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    if (name != "")
+    {
+        QRegExp re("[a-z]+://");
+        if (re.indexIn(+name) == -1)
+        {
+            name = context->ResolvePrefixedPath(name);
+            Window *window = (Window *)parentWidget();
+            QFileInfo inf(window->currentProjectFolderPath(), +name);
+            if (inf.isReadable())
+            {
+            name =
+#if defined(Q_OS_WIN)
+                    "file:///"
+#else
+                    "file://"
+#endif
+                    + +inf.absoluteFilePath();
+            }
+        }
+    }
+
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
@@ -9545,18 +9611,33 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     }
 
     // Resize to requested size, and bind texture
-    layout->currentTexture.id     = surface->bind(url);
-    layout->currentTexture.width  = surface->width();
-    layout->currentTexture.height = surface->height();
-    layout->currentTexture.type   = GL_TEXTURE_2D;
+    layout->currentTexture.id     = surface->bind(new Text(name));
+    if (surface->lastError != "")
+    {
+        XL::Ooops("Cannot play: $1", self);
+        text err = "Media player error: ";
+        err.append(surface->lastError);
+        XL::Ooops(err, self);
+        text err2 = "Path or URL: ";
+        err2.append(surface->url);
+        XL::Ooops(err2, self);
+        surface->lastError = "";
+        return new Integer(0, self->Position());
+    }
+    if (layout->currentTexture.id != 0)
+    {
+        layout->currentTexture.width  = surface->width();
+        layout->currentTexture.height = surface->height();
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        uint texUnit = layout->currentTexture.unit;
+        uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
-    layout->hasAttributes = true;
-
-    return new Integer(texId, self->Position());
+        layout->Add(new FillTexture(texId, texUnit));
+        layout->hasAttributes = true;
+    }
+    refreshOn(QEvent::Timer);
+    return new Integer(layout->currentTexture.id, self->Position());
 }
 
 
@@ -10745,14 +10826,23 @@ XL::Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
 
+
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Check if a display mode is available
 // ----------------------------------------------------------------------------
 {
-    text n = name->value;
+    return hasDisplayModeText(self, name->value);
+}
+
+
+Name_p Widget::hasDisplayModeText(Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Check if a display mode is available
+// ----------------------------------------------------------------------------
+{
     QStringList all = DisplayDriver::allDisplayFunctions();
-    if (all.contains(+n))
+    if (all.contains(+name))
         return XL::xl_true;
     return XL::xl_false;
 }
@@ -10770,6 +10860,55 @@ Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
 
     return result->AsInfix();
 }
+
+
+Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Set a display option
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            ADJUST_CONTEXT_FOR_INTERPRETER(context);
+            XL::Symbols *symbols = self->Symbols();
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            if (symbols)
+                arg->SetSymbols(symbols);
+            arg = context->Evaluate(arg);
+            if (Integer *it = arg->AsInteger())
+                arg = new Real(it->value);
+            std::string strval;
+            if (Real *rt = arg->AsReal())
+            {
+                std::ostringstream oss;
+                oss << rt->value;
+                strval = oss.str();
+            }
+            else if (Text *tt = arg->AsText())
+            {
+                strval = tt->value;
+            }
+            else
+            {
+                Ooops("display_set value $1 is not a string and not a number",
+                      arg);
+                return XL::xl_false;
+            }
+            displayDriver->setOption(name->value, strval);
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed display_set statement $1", code);
+    return XL::xl_false;
+}
+
+
 
 // ============================================================================
 //

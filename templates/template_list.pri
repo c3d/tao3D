@@ -21,6 +21,7 @@ DEFAULT_TEMPLATES =   \
     pan_and_zoom
 
 OTHER_TEMPLATES =     \
+    balls \
     monjori \
     flares
 

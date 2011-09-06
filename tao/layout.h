@@ -27,6 +27,7 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
+//#include "attributes.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -79,9 +80,11 @@ public:
 
 
 public:
-    void                ClearAttributes();
+    void                ClearAttributes(bool all = false);
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
+    void                InheritState(LayoutState *other);
+    void                toDebugString(std::ostream &out) const;
 
 public:
     Vector3             offset;
@@ -93,6 +96,7 @@ public:
     Color               lineColor;
     Color               fillColor;
     TextureState        currentTexture;
+    uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
@@ -104,6 +108,18 @@ public:
     double              planarScale;
     uint                rotationId, translationId, scaleId;
 
+    // For optimized drawing, we keep track of what changes
+    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
+    bool                hasMatrix       : 1;
+    bool                has3D           : 1;
+    bool                hasAttributes   : 1;
+    bool                hasTransform    : 1;
+    uint64              hasTextureMatrix; // 64 texture units
+    bool                hasLighting     : 1;
+    bool                hasMaterial     : 1;
+    bool                isSelection     : 1;
+    bool                groupDrag       : 1;
+
 };
 
 
@@ -112,7 +128,7 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Drawing *>      Drawings;
+    typedef std::list<Drawing *>      Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -153,29 +169,18 @@ public:
     double              NextRefresh();
 
     LayoutState &       operator=(const LayoutState &o);
-    void                Inherit(Layout *other);
+    virtual void        Inherit(Layout *other);
     void                PushLayout(Layout *where);
     void                PopLayout(Layout *where);
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();
 
+    virtual text        getType(){ return "Layout";}
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-    // For optimized drawing, we keep track of what changes
-    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
-    bool                hasMatrix       : 1;
-    bool                has3D           : 1;
-    bool                hasAttributes   : 1;
-    bool                hasTransform    : 1;
-    uint64              hasTextureMatrix; // 64 texture units
-    bool                hasLighting     : 1;
-    bool                hasMaterial     : 1;
-    uint64              currentLights; //Current used lights
-    bool                isSelection     : 1;
-    bool                groupDrag       : 1;
 
     GLbitfield glSaveBits()
     {

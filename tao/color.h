@@ -82,7 +82,7 @@ struct Color
         alpha *= s;
         return *this;
     }
-    
+
     Color& operator /=(scale s)
     {
         red   /= s;
@@ -155,6 +155,13 @@ inline Color operator /(const Color& l, scale s)
     Color result(l);
     result /= s;
     return result;
+}
+
+inline std::ostream& operator <<(std::ostream &out, const Color &color)
+{
+    out << "Color (" << color.red << ", " << color.green << ", "
+            << color.blue << ", " << color.alpha << ") ";
+    return out;
 }
 
 TAO_END

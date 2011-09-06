@@ -50,11 +50,16 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
+      currentLights(0),
       textureUnits(0),
       lightId(GL_LIGHT0), programId(0),
       printing(false),
       planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0)
+      rotationId(0), translationId(0), scaleId(0),
+      hasPixelBlur(false), hasMatrix(false), has3D(false),
+      hasAttributes(false), hasTransform(false), hasTextureMatrix(false),
+      hasLighting(false), hasMaterial(false),
+      isSelection(false), groupDrag(false)
 {
 }
 
@@ -66,33 +71,46 @@ LayoutState::LayoutState(const LayoutState &o)
       : offset(o.offset),
         font(o.font),
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
-        left(o.left), right(o.right),
-        top(o.top), bottom(o.bottom),
+        left(o.left), right(o.right), top(o.top), bottom(o.bottom),
         visibility(o.visibility),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
+        currentTexture(o.currentTexture),
+        currentLights(o.currentLights),
         textureUnits(o.textureUnits),
         previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),
         model(o.model),
         lightId(o.lightId),
-        programId(o.programId),        
+        programId(o.programId),
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
-        rotationId(o.rotationId),
-        translationId(o.translationId),
-        scaleId(o.scaleId)
+        rotationId(o.rotationId), translationId(o.translationId),
+        scaleId(o.scaleId),
+        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
+        hasAttributes(o.hasAttributes), hasTransform(o.hasTransform),
+        hasTextureMatrix(o.hasTextureMatrix),
+        hasLighting(false), hasMaterial(false),
+        isSelection(o.isSelection), groupDrag(false)
 {}
 
 
-void LayoutState::ClearAttributes()
+void LayoutState::ClearAttributes(bool all)
 // ----------------------------------------------------------------------------
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
 {
     LayoutState zero;
+    if (!all)
+    {
+        // Save state modified by Add or before
+        zero.hasMatrix = hasMatrix;
+        zero.hasTextureMatrix = hasTextureMatrix;
+        zero.hasAttributes = hasAttributes;
+        zero.hasLighting = hasLighting;
+    }
     *this = zero;
 }
 
@@ -144,10 +162,6 @@ Layout::Layout(Widget *widget)
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
-      hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false),hasTransform(false),hasTextureMatrix(0),
-      hasLighting(false), hasMaterial(false), currentLights(0),
-      isSelection(false), groupDrag(false),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
@@ -158,12 +172,6 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
-      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTransform(o.hasTransform),
-      hasTextureMatrix(o.hasTextureMatrix),
-      hasLighting(false), hasMaterial(false),      
-      currentLights(o.currentLights),
-      isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
@@ -207,14 +215,7 @@ void Layout::Clear()
     items.clear();
 
     // Initial state has no rotation or attribute changes
-    hasPixelBlur = false;
-    hasMatrix = false;
-    has3D = false;
-    hasAttributes = false;
-    hasTransform = false;
-    hasTextureMatrix = 0;
-    currentLights = 0;
-    ClearAttributes();
+    ClearAttributes(true);
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
@@ -342,6 +343,12 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+    if (d->IsAttribute())
+    {
+        // Only update layout state, not GL
+        GLAllStateKeeper glSave;
+        d->Draw(this);
+    }
 }
 
 
@@ -621,15 +628,19 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    // Reset the index of characters
-    charId = 0;
-
     if (!where)
         return;
 
     // Add offset of parent to the one we have
     offset = where->Offset();
+    LayoutState::InheritState(where);
+}
 
+void LayoutState::InheritState(LayoutState *where)
+// ----------------------------------------------------------------------------
+//   Inherit state from some other layoutState except offset
+// ----------------------------------------------------------------------------
+{
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
@@ -658,9 +669,32 @@ void Layout::Inherit(Layout *where)
     hasPixelBlur     = where->hasPixelBlur;
     currentLights    = where->currentLights;
     groupDrag        = where->groupDrag;
+    hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;
 }
 
+void LayoutState::toDebugString(std::ostream &out) const
+{
+    out << "LayoutState["<<this<<"]\n";
+    out << "\tfont            = " << font.toString().toStdString() << std::endl;
+//    out << "\talongX          = " << alongX << std::endl;
+//    out << "\talongY          = " << alongY << std::endl;
+//    out << "\talongZ          = " << alongZ << std::endl;
+    out << "\tleft            = " << left << std::endl;
+    out << "\tright           = " << right << std::endl;
+    out << "\ttop             = " << top << std::endl;
+    out << "\tbottom          = " << bottom << std::endl;
+    out << "\tvisibility      = " << visibility << std::endl;
+    out << "\tlineWidth       = " << lineWidth << std::endl;
+    out << "\tlineColor       = " << lineColor << std::endl;
+    out << "\tfillColor       = " << fillColor << std::endl;
+    out << "\tlightId         = " << lightId << std::endl;
+    out << "\tprogramId       = " << programId << std::endl;
+    out << "\tprinting        = " << printing << std::endl;
+    out << "\tplanarRotation  = " << planarRotation << std::endl;
+    out << "\tplanarScale     = " << planarScale << std::endl;
+
+}
 
 void Layout::PushLayout(Layout *where)
 // ----------------------------------------------------------------------------

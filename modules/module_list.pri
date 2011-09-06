@@ -36,7 +36,8 @@
     OTHER_MODULES =     \
         display_2dplusdepth \
         hello_world     \
-        taoTester
+        taoTester    \
+        tao_synchro
 } else {
     # We're building inside the Tao SDK. Only some modules are available.
     DEFAULT_MODULES = hello_world lorem_ipsum object_loader

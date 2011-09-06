@@ -38,7 +38,20 @@ struct TextUnit : Shape
 // ----------------------------------------------------------------------------
 {
     TextUnit(Text *source, uint start = 0, uint end = ~0)
-        : Shape(), source(source), start(start), end(end) {}
+        : Shape(), source(source), start(start), end(end) {
+        IFTRACE(justify)
+        {
+            std::cerr << "<->TextUnit::TextUnit["<<this<<"]";
+            toDebugString(std::cerr);
+        }
+    }
+    virtual ~TextUnit()
+    {
+        source = NULL;
+        IFTRACE(justify)
+            std::cerr << "<->TextUnit::~TextUnit["<<this<<"]\n";
+    }
+
     virtual void        Draw(Layout *where);
     virtual void        DrawCached(Layout *where);
     virtual void        Identify(Layout *where);
@@ -47,7 +60,9 @@ struct TextUnit : Shape
     virtual TextUnit *  Break(BreakOrder &order, uint &sz);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
+    virtual text        getType()      { return "TextUnit"; }
 
+    void toDebugString(std::ostream &out);
 protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
@@ -55,6 +70,7 @@ protected:
     void                PerformInsertOperation(Layout * l,
                                                Widget * widget,
                                                uint     position);
+
 public:
     Text_p              source;
     uint                start, end;

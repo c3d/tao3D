@@ -137,15 +137,6 @@ Application::Application(int & argc, char ** argv)
         cmdLineArguments.contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
-    // Show splash screen
-    if (showSplash)
-    {
-        splash = new SplashScreen();
-        splash->show();
-        splash->raise();
-        QApplication::processEvents();
-    }
-
     // Setup the XL runtime environment
     // Do it soon because debug traces are activated by this
     XL_INIT_TRACES();
@@ -160,16 +151,27 @@ Application::Application(int & argc, char ** argv)
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
                               
-    // Now time to install the "persistent" error handler
-    install_first_exception_handler();
-
-    // Check licence (in XL directory path)
+    // Load licence (in XL directory path)
     QFileInfo licence("xl:licence.taokey");
     if (licence.exists())
     {
         text lpath = +licence.canonicalFilePath();
         Licences::AddLicenceFile(lpath.c_str());
     }
+
+    // Show splash screen
+    if (showSplash)
+    {
+        splash = new SplashScreen();
+        splash->show();
+        splash->raise();
+        QApplication::processEvents();
+    }
+
+    // Now time to install the "persistent" error handler
+    install_first_exception_handler();
+
+    // Check licence
     Licences::Check("Tao Presentations " GITREV);
 
     // Initialize the graphics just below contents of basics.tbl

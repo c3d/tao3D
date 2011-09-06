@@ -65,6 +65,16 @@ public:
         return days >= 0;
     }
 
+    static text Name()
+    {
+        return LM().name;
+    }
+
+    static text Company()
+    {
+        return LM().company;
+    }
+
 private:
     struct Licence
     {

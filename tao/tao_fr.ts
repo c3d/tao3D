@@ -284,7 +284,7 @@
         <translation>Commande &quot;git&quot; introuvable ou non valide</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="42"/>
+        <location filename="splash_screen.cpp" line="66"/>
         <source>Version %1</source>
         <translation>Version %1</translation>
     </message>
@@ -373,78 +373,78 @@
 <context>
     <name>Tao::Application</name>
     <message>
-        <location filename="application.cpp" line="260"/>
+        <location filename="application.cpp" line="262"/>
         <source>OpenGL support</source>
         <translation>Support d&apos;OpenGL</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="261"/>
+        <location filename="application.cpp" line="263"/>
         <source>This system doesn&apos;t support OpenGL.</source>
         <translation>Ce système ne dispose pas d&apos;OpenGL.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="268"/>
+        <location filename="application.cpp" line="270"/>
         <source>Framebuffer support</source>
         <translation>Support de framebuffer</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="269"/>
+        <location filename="application.cpp" line="271"/>
         <source>This system does not support framebuffers. Performance may not be optimal. Consider updating the OpenGL drivers.</source>
         <translation>Ce système ne dispose pas de framebuffers, ce qui peut réduire les performances. Vérifiez si les pilotes OpenGL sont à jour.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="308"/>
+        <location filename="application.cpp" line="310"/>
         <source>Information</source>
         <translation>Information</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="309"/>
+        <location filename="application.cpp" line="311"/>
         <source>On this system, graphics and text edges may look jagged.</source>
         <translation>Sur cet ordinateur, il se peut que les graphiques et le texte apparaissent légèrement dentelés.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="387"/>
+        <location filename="application.cpp" line="389"/>
         <source>Checking modules [%1]</source>
         <translation>Vérification des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="541"/>
+        <location filename="application.cpp" line="543"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="542"/>
+        <location filename="application.cpp" line="544"/>
         <source>Could not open %1.
 </source>
         <translation>Impossible d&apos;ouvrir %1.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="676"/>
+        <location filename="application.cpp" line="678"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="691"/>
+        <location filename="application.cpp" line="693"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="869"/>
+        <location filename="application.cpp" line="871"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="997"/>
-        <location filename="application.cpp" line="1013"/>
-        <location filename="application.cpp" line="1026"/>
-        <location filename="application.cpp" line="1039"/>
+        <location filename="application.cpp" line="999"/>
+        <location filename="application.cpp" line="1015"/>
+        <location filename="application.cpp" line="1028"/>
+        <location filename="application.cpp" line="1041"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="998"/>
+        <location filename="application.cpp" line="1000"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -455,7 +455,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1014"/>
+        <location filename="application.cpp" line="1016"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -464,7 +464,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1027"/>
+        <location filename="application.cpp" line="1029"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -473,7 +473,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1040"/>
+        <location filename="application.cpp" line="1042"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -948,73 +948,73 @@ Voulez-vous me montrer où elle se trouve ?</translation>
 <context>
     <name>Tao::Licences</name>
     <message>
-        <location filename="licence.cpp" line="141"/>
+        <location filename="licence.cpp" line="143"/>
         <source>Invalid tag</source>
         <translation>Directive invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="144"/>
+        <location filename="licence.cpp" line="146"/>
         <source>Invalid token</source>
         <translation>Mot inattendu</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="162"/>
+        <location filename="licence.cpp" line="164"/>
         <source>Invalid digest</source>
         <translation>Clé invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="177"/>
+        <location filename="licence.cpp" line="179"/>
         <source>Inconsistent %1</source>
         <translation>Champ %1 incohérent</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="181"/>
-        <location filename="licence.cpp" line="197"/>
+        <location filename="licence.cpp" line="183"/>
+        <location filename="licence.cpp" line="199"/>
         <source>Invalid %1</source>
         <translation>Champ %1 invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="217"/>
+        <location filename="licence.cpp" line="219"/>
         <source>Invalid features pattern</source>
         <translation>Format incorrect pour le champ features</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="229"/>
+        <location filename="licence.cpp" line="231"/>
         <source>Invalid day</source>
         <translation>Jour invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="235"/>
+        <location filename="licence.cpp" line="237"/>
         <source>Invalid expiry day</source>
         <translation>Jour d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="267"/>
+        <location filename="licence.cpp" line="269"/>
         <source>Invalid month name</source>
         <translation>Mois invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="278"/>
+        <location filename="licence.cpp" line="280"/>
         <source>Invalid expiry month</source>
         <translation>Mois d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="295"/>
+        <location filename="licence.cpp" line="297"/>
         <source>Invalid year</source>
         <translation>Année invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="303"/>
+        <location filename="licence.cpp" line="305"/>
         <source>Invalid expiry year</source>
         <translation>Année d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="439"/>
+        <location filename="licence.cpp" line="441"/>
         <source>Error reading licence files</source>
         <translation>Erreur lors de la lecture des fichiers de licence</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="440"/>
+        <location filename="licence.cpp" line="442"/>
         <source>There is a problem with licence file &apos;%1&apos;.
 The following error was detected: %2
 The program will now terminate. You need to remove the offending licence file before trying to run the application again. Please contact Taodyne to obtain valid licence files.</source>
@@ -1023,17 +1023,17 @@ L&apos;erreur suivante est survenue : %2
 Le programme va maintenant se terminer. Veuillez supprimer le fichier qui pose problème avant de relancer l&apos;application. Merci de contacter Taodyne pour obtenir des fichiers de licence valides.</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="465"/>
+        <location filename="licence.cpp" line="467"/>
         <source>Not licenced</source>
         <translation>Pas de licence</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="467"/>
+        <location filename="licence.cpp" line="469"/>
         <source>You do not have a valid licence for %1. Please contact Taodyne to obtain valid licence files.</source>
         <translation>Vous n&apos;avez pas de licence valide pour &apos;%1&apos;. Merci de contacter Taodyne pour obtenir des fichiers de licence valides.</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="471"/>
+        <location filename="licence.cpp" line="473"/>
         <source>You no longer have a valid licence for %1. The licence you had expired %2 days ago. Please contact Taodyne to obtain valid licence files.</source>
         <translation>Votre licence pour &apos;%1&apos; n&apos;est plus valide. Elle a expiré il y a %2 jours. Merci de contacter Taodyne pour obtenir des fichiers de licence valides.</translation>
     </message>
@@ -1487,42 +1487,47 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::SplashScreen</name>
     <message>
-        <location filename="splash_screen.cpp" line="56"/>
+        <location filename="splash_screen.cpp" line="80"/>
         <source>All rights reserved.</source>
         <translation>Tous droits réservés.</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="57"/>
+        <location filename="splash_screen.cpp" line="81"/>
         <source>Credits</source>
         <translation>Remerciements</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="58"/>
+        <location filename="splash_screen.cpp" line="82"/>
         <source>News</source>
         <translation>Nouveautés</translation>
     </message>
-    <message utf8="true">
-        <location filename="splash_screen.cpp" line="137"/>
-        <source>&lt;font color=&quot;%1&quot;&gt;by Catherine Burvelle, Jérôme Forissier and Christophe de Dinechin,&lt;br&gt;with help from Anne Lempereur and Lionel Schaffhauser.&lt;/font&gt;</source>
-        <translation>&lt;font color=&quot;%1&quot;&gt;par Catherine Burvelle, Jérôme Forissier et Christophe de Dinechin,&lt;br&gt;avec l&apos;aide d&apos;Anne Lempereur et Lionel Schaffhauser.&lt;/font&gt;</translation>
+    <message>
+        <location filename="splash_screen.cpp" line="53"/>
+        <source>This product is licensed to:</source>
+        <translation>Licence d&apos;utilisation accordée à:</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="187"/>
+        <location filename="splash_screen.cpp" line="61"/>
+        <source>UNLICENSED</source>
+        <translation>ÉVALUATION</translation>
+    </message>
+    <message>
+        <location filename="splash_screen.cpp" line="207"/>
         <source>Tao Presentations - Credits</source>
         <translation>Tao Presentations - Remerciements</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="189"/>
+        <location filename="splash_screen.cpp" line="209"/>
         <source>&lt;h3&gt;Credits&lt;/h3&gt;&lt;p&gt;This program uses the following components.&lt;/p&gt;</source>
         <translation>&lt;h3&gt;Remerciements&lt;/h3&gt;&lt;p&gt;Ce programme utilise les composants suivants:&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="194"/>
+        <location filename="splash_screen.cpp" line="214"/>
         <source>&lt;h3&gt;Qt %1&lt;/h3&gt;&lt;p&gt;Qt is a C++ toolkit for cross-platform application development.&lt;/p&gt;&lt;p&gt;Qt is a Nokia product. See &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; for more information.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;The LLVM Project is a collection of modular and reusable compiler and toolchain technologies.&lt;/p&gt;&lt;p&gt;See &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; for more information.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR is a dynamically-compiled language based on parse tree rewrites.&lt;/p&gt;&lt;p&gt;See &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; for more information.&lt;/p&gt;</source>
         <translation>&lt;h3&gt;Qt %1&lt;/h3&gt;&lt;p&gt;Qt est une boîte à outils C++ pour le développement d&apos;applications multi-plateforme.&lt;/p&gt;&lt;p&gt;Qt est un produit de Nokia. Cf. &lt;a href=&quot;http://qt.nokia.com/&quot;&gt;qt.nokia.com&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;&lt;h3&gt;LLVM&lt;/h3&gt;&lt;p&gt;Le projet LLVM est un ensemble de technologies de compilation et d&apos;outils modulaires et réutilisables.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://llvm.org/&quot;&gt;llvm.org&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;&lt;h3&gt;XLR&lt;/h3&gt;&lt;p&gt;XLR est un langage compilé dynamiquement basé sur des réécritures d&apos;arbres.&lt;/p&gt;&lt;p&gt;Cf. &lt;a href=&quot;http://xlr.sf.net/&quot;&gt;xlr.sf.net&lt;/a&gt; pour plus d&apos;informations.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="splash_screen.cpp" line="251"/>
+        <location filename="splash_screen.cpp" line="271"/>
         <source>Tao Presentations - What&apos;s new?</source>
         <translation>Tao Presentations - Quoi de neuf ?</translation>
     </message>
@@ -1647,12 +1652,17 @@ Code : %1
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10278"/>
+        <location filename="widget.cpp" line="7984"/>
+        <source> (UNLICENSED)</source>
+        <translation> (ÉVALUATION)</translation>
+    </message>
+    <message>
+        <location filename="widget.cpp" line="10287"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10279"/>
+        <location filename="widget.cpp" line="10288"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

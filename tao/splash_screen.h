@@ -25,6 +25,7 @@
 
 #include <QWidget>
 #include <QSplashScreen>
+#include <QTextDocument>
 
 class QLabel;
 
@@ -60,6 +61,7 @@ protected:
     QString      message;
     QLabel *     label;
     bool         mbPressed, urlClicked;
+    QTextDocument licencedTo;
 
 signals:
     void dismissed();

@@ -7979,10 +7979,10 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    text ver = GITREV;
+    QString ver = GITREV;
     if (!Licences::Has("Tao Presentations " GITREV))
-        ver += " (UNLICENCED)";
-    return new XL::Text(ver);
+        ver += tr(" (UNLICENSED)");
+    return new XL::Text(+ver);
 }
 
 

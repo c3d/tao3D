@@ -182,7 +182,8 @@ protected:
         }
         bool operator<(const Key &o) const
         {
-            return ((compare(font, o.font) < 0) || (compare(texUnits, o.texUnits) < 0));
+            return ((compare(font, o.font) < 0) || ((compare(font, o.font) == 0) &&
+                                                    (compare(texUnits, o.texUnits) < 0)));
         }
     };
 

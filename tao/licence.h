@@ -32,11 +32,14 @@
 namespace Tao
 {
 
-struct Licences
+struct Licences : public QObject
 // ----------------------------------------------------------------------------
 //   Class checking the avaiable licence for a given module ID or function
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
+public:
     static void AddLicenceFile(kstring lfile)
     {
         return LM().addLicenceFile(lfile);
@@ -62,6 +65,16 @@ struct Licences
         return days >= 0;
     }
 
+    static text Name()
+    {
+        return LM().name;
+    }
+
+    static text Company()
+    {
+        return LM().company;
+    }
+
 private:
     struct Licence
     {
@@ -81,7 +94,7 @@ private:
 
     void addLicenceFile(kstring licfname);
     int  licenceRemainingDays(text feature);
-    void licenceError(kstring file, kstring reason);
+    void licenceError(kstring file, QString reason);
     text digest(std::vector<Licence> &licences);
 };
 

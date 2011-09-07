@@ -84,6 +84,7 @@ SUBDIRS  = libxlr tao modules ssh_ask_pass keygen tests doc templates packaging
 win32:SUBDIRS += detach
 
 tao.depends = libxlr
+keygen.depends = libxlr
 modules.depends = tao
 tests.depends = tao
 templates.depends = tao

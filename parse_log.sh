@@ -14,7 +14,7 @@ usage(){
     echo "  -s      Split bug fixes and features in two separate lists. Implies -f." 
     echo "  -q      Quiet: just list(s) of numbers (no text)." 
     echo "  -a      Sort IDs in ascending order (default is descending order)." 
-    echo "  -html   Generate HTML output (link IDs to Redmine)."
+    echo "  -plain  Generate plain text output rather than HTML (with links to Redmine)."
     exit 1
 }
 
@@ -25,6 +25,7 @@ fi
 HASH=1
 REVERT=r
 SHOW_ALL=1
+HTML=1
 while [ "$1" ] ; do
   case "$1" in
     -f) SHOW_ALL="";;
@@ -32,7 +33,8 @@ while [ "$1" ] ; do
     -h) HASH="";;
     -q) QUIET=1;;
     -a) REVERT="";;
-    -html) HTML="1";;
+    -plain) HTML="";;
+    -html) HTML="1";; # Legacy option
     *)
       if [ -z "$TAG1" ] ; then
         TAG1="$1"

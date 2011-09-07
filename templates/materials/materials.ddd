@@ -1,0 +1,135 @@
+import Materials 1.0
+import Mapping 1.0
+zoom 0.15
+refresh_on TimerEvent
+
+/*
+* Define cube map textures.
+* Images from http://www.codemonsters.de/home/content.php?show=cubemaps
+*/
+RIGHT  -> "brightday2_negative_x.png"
+LEFT   -> "brightday2_positive_x.png"
+TOP    -> "brightday2_positive_y.png"
+BOTTOM -> "brightday2_negative_y.png"
+FRONT  -> "brightday2_positive_z.png"
+BACK   -> "brightday2_negative_z.png"
+
+mouse_move ->
+    /*
+    *  Define movement of the mouse
+    */
+    Cx -> 0.0
+    Cy -> 0.0
+    Sx -> screen_mouse_x - window_width / 2
+    Sy -> screen_mouse_y - window_height / 2
+    Cx := Cx + (Sx - Cx) * 0.005
+
+    if (Cy < 10000) and (Cy > -10000) then
+        Cy := Cy - Sy * 0.1
+    else
+        Cy := Cy + Sy * 0.1
+
+    camera_position 14000 * sin (0.005 * Cx), Cy, 14000 * cos (0.005 * Cx)
+    camera_target 0, 500, 0
+    no_refresh_on MouseMoveEvent
+
+draw_environment ->
+    /*
+    *  Define cube map environment
+    */
+    z_far 100000
+    color "white"
+    cube_map 1024,
+        cube_map_flip true, true
+        cube_map_face 0, RIGHT
+        cube_map_face 1, LEFT
+        cube_map_face 2, TOP
+        cube_map_face 3, BOTTOM
+        cube_map_face 4, FRONT
+        cube_map_face 5, BACK
+    cube 0, 0, 0, 60000, 60000, 60000
+
+draw_light ->
+    /*
+    * Define a far light
+    */
+    light 0
+    light_position -15000, 15000, 0
+    light_ambient 0.5, 0.5, 0.5, 1.0
+    light_diffuse 1.0, 1.0, 1.0, 1.0
+    light_specular 0.5, 0.5, 0.5, 1.0
+
+draw_materials ->
+    /*
+    * Draw materials set
+    */
+    translatey 800
+    // Middle circle
+    locally
+        translate -3000, 0, 0
+        jade
+        sphere 0, 0, 0, 500
+    locally
+        translate -1500, 0, -2000
+        gold
+        sphere 0, 0, 0, 500
+    locally
+        translate -1500, 0, 2000
+        glass
+        sphere 0, 0, 0, 500
+    locally
+        translate 1000, 0, 2000
+        water
+        sphere 0, 0, 0, 500
+    locally
+        translate 3000, 0, 500
+        emerald
+        sphere 0, 0, 0, 500
+    locally
+        translate 1000, 0, -2000
+        ruby
+        sphere 0, 0, 0, 500
+
+    // Top circle
+    locally
+        translate 0, 750, 1250
+        wood 100
+        sphere 0, 0, 0, 500
+    locally
+        translate -1250, 750, -750
+        granite 100
+        sphere 0, 0, 0, 500
+    locally
+        translate 1250, 750, -750
+        marble 100
+        sphere 0, 0, 0, 500
+    // Bottom circle
+    locally
+        translate 0, -750, -750
+        bronze
+        sphere 0, 0, 0, 500
+    locally
+        translate -1250, -750, 1250
+        silver
+        sphere 0, 0, 0, 500
+    locally
+        translate 1250, -750, 1250
+        iron
+        sphere 0, 0, 0, 500
+
+    // Top final
+    locally
+        translate 0, 1500, 0
+        plastic 1.0, 0.5, 0.5
+        sphere 0, 0, 0, 500
+
+    // Bottom final
+    locally
+        translate 0, -1500, 0
+        chrome
+        sphere 0, 0, 0, 500
+
+draw_environment
+draw_light
+mouse_move
+draw_materials

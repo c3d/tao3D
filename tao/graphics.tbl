@@ -283,7 +283,7 @@ PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
        RTAO(shapeAction(self,"mouseover",t)),
        GROUP(mouse)
        SYNOPSIS("Associate code with mouse over")
-       DESCRIPTION("Associate the specified code to the mouse over"))       
+       DESCRIPTION("Associate the specified code to the mouse over"))
 PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
        PARM(t,code, "The code to execute"),
        RTAO(shapeAction(self,"release",t)),
@@ -325,6 +325,13 @@ PREFIX(GetWorldCoordinates,  infix,  "get_world_coordinates",
        SYNOPSIS("Convert screen to world coordinates")
        DESCRIPTION("Convert screen to world coordinates")
        RETURNS(infix, "World coordinates of the given screen position.") )
+PREFIX(HasDisplayModeText,  boolean,  "has_display_mode",
+       PARM(name, text, "The name of the display mode to test"),
+       RTAO(hasDisplayModeText(self, name)),
+       GROUP(misc)
+       SYNOPSIS("Check if a display mode is available")
+       DESCRIPTION("Check if a specific display mode is available and can be used")
+       RETURNS(boolean, "True if the mode is available, false otherwise.") )
 
 
 
@@ -698,8 +705,15 @@ PREFIX(AddDisplayModeToMenu,  boolean,  "add_display_mode_to_menu",
        SYNOPSIS("Adds an entry for the display mode to the view menu")
        RETURNS(boolean, "True on success."))
 PREFIX(EnableStereoscopy,  boolean,  "enable_stereoscopy",
-       PARM(mode, symbol, "on or off or mode name"),
+       PARM(mode, symbol, "true or false or mode name"),
        RTAO(enableStereoscopy(self, mode)),
+       GROUP(gui)
+       SYNOPSIS("Enable or disable stereoscopie mode")
+       DESCRIPTION("Enable or disable stereoscopie mode")
+       RETURNS(boolean, "True if previous state was on."))
+PREFIX(EnableStereoscopyText,  boolean,  "enable_stereoscopy",
+       PARM(mode, text, "true or false or mode name"),
+       RTAO(enableStereoscopyText(self, mode)),
        GROUP(gui)
        SYNOPSIS("Enable or disable stereoscopie mode")
        DESCRIPTION("Enable or disable stereoscopie mode")
@@ -1378,32 +1392,23 @@ PREFIX(TruncatedCone,  tree,  "truncated_cone",
 // ============================================================================
 
 PREFIX(TextBox,  tree,  "text_box",
-       PARM(x, real, "x-coordinate")
-       PARM(y, real, "y-coordinate")
-       PARM(w, real, "width")
-       PARM(h, real, "height")
-       PARM(t, code, "text description"),
-       RTAO(textBox(context, self, x, y, w, h, t)),
-       GROUP(text:graph)
-       SYNOPSIS("Create a new page layout")
-       DESCRIPTION("Create a new page layout and render text in it.")
-       RETURNS(tree, "t evaluation result"))
-PREFIX(TextOverflow,  tree,  "text_overflow",
+       PARM(t, text, "Flow name to be displayed in this box")
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
        PARM(w, real, "width")
        PARM(h, real, "height"),
-       RTAO(textOverflow(self, x, y, w, h)),
+       RTAO(textBox(self, t, x, y, w, h)),
+       GROUP(text:graph)
+       SYNOPSIS("Create a new page layout")
+       DESCRIPTION("Create a new page layout and render text in it.")
+       RETURNS(tree, "t evaluation result"))
+PREFIX(TextOverflow,  tree,  "text_flow",
+       PARM(n, text, "The name of the current flow")
+       PARM(t, code, "Flow description"),
+       RTAO(textFlow(context, self, n, t)),
        GROUP(text:graph)
        SYNOPSIS("Overflow text box")
-       DESCRIPTION("Overflow text box for the rest of the current text flow"))
-PREFIX(TextFlow,  tree,  "text_flow",
-       PARM(n, text, "The name of the current flow"),
-       RTAO(textFlow(self, n)),
-       GROUP(text)
-       SYNOPSIS("Names the flow")
-       DESCRIPTION("Set the name of the current text flow")
-       RETURNS(tree, "The previous name. [TODO: The name of the previous flow or the previous name of the current flow ?]"))
+       DESCRIPTION("Text flow description"))
 PREFIX(TextSpan,  tree, "text_span",
        PARM(t, code, "The text to insert"),
        RTAO(textSpan(context, self, t)),
@@ -1508,13 +1513,13 @@ PREFIX(FontOverline,  tree,  "overline",
        RTAO(fontOverline(self, a)),
        GROUP(text:font)
        SYNOPSIS("Overline attribute of the font")
-       DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the underline, it's on or off."))
+       DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the overline, it's on or off."))
 PREFIX(FontStrikeout,  tree,  "strikeout",
        PARM(a, real, "Strikeout values: 0 is off, values > 0 are on."),
        RTAO(fontStrikeout(self, a)),
        GROUP(text:font)
        SYNOPSIS("Strikeout attribute of the font")
-       DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the underline, it's on or off."))
+       DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the strikeoutline, it's on or off."))
 PREFIX(FontStretch,  tree,  "stretch",
        PARM(s,real, "The font stretching factor. Value range is from 0 to 4000, with 100 = 100%"),
        RTAO(fontStretch(self,s)),
@@ -1780,7 +1785,7 @@ PREFIX(FrameTexture,  tree,  "frame_texture",
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
-       RETURNS(tree, "The result of 'prog' evaluation"))       
+       RETURNS(tree, "The result of 'prog' evaluation"))
 PREFIX(LinearGradient,  tree,  "linear_gradient",
        PARM(start_x, real, "x-coordinate of the gradient start")
        PARM(start_y, real, "y-coordinate of the gradient start")
@@ -2113,13 +2118,13 @@ PREFIX(Movie,  tree,  "movie",
        PARM(w,real, "width")
        PARM(h,real, "height")
        PARM(u,text, "The URL of the movie to play."),
-       RTAO(movie(self, x, y, w, h, u)),
+       RTAO(movie(context, self, x, y, w, h, u)),
        GROUP(widget)
        SYNOPSIS("Play a movie")
        DESCRIPTION("Display a movie in the rectangle specified by the given coordinates. Supported movie formats depend on the operating system."))
 PREFIX(MovieTexture,  tree,  "movie_texture",
        PARM(u,text, "The URL of the movie to play"),
-       RTAO(movieTexture(self, u)),
+       RTAO(movieTexture(context, self, u)),
        GROUP(widget)
        SYNOPSIS("Create a texture from a video.")
        DESCRIPTION("Create a dynamic texture from the given movie."))
@@ -2371,6 +2376,11 @@ PREFIX(ShaderSet, tree, "shader_set",
        RTAO(shaderSet(context, self, t)),
        GROUP(lighting)
        SYNOPSIS("Set a shader uniform or attribute value")
+       DESCRIPTION(""));
+PREFIX(DisplaySet, tree, "display_set",
+       PARM(t, source, "Assignment to a display variable"),
+       RTAO(displaySet(context, self, t)),
+       SYNOPSIS("Set an option in the current display function/module")
        DESCRIPTION(""));
 
 // ============================================================================

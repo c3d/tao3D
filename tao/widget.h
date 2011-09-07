@@ -41,6 +41,7 @@
 #include "font_file_manager.h"
 #include "layout.h"
 #include "layout_cache.h"
+#include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
 
@@ -299,9 +300,11 @@ public:
     Tree *      shapeAction(text n, GLuint id, int x, int y);
 
     // Text flows and text management
-    PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+    TextFlow *  pageLayoutFlow(text name) { return flows[name]; }
     GlyphCache &glyphs()    { return glyphCache; }
     QStringList fontFiles();
+
+    void        purgeTaoInfo();
 
 public:
     // XLR entry points
@@ -412,6 +415,7 @@ public:
     Name_p      setDisplayMode(XL::Tree_p self, text name);
     Name_p      addDisplayModeToMenu(XL::Tree_p self, text mode, text label);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
+    Name_p      enableStereoscopyText(Tree_p self, text name);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
@@ -541,7 +545,7 @@ public:
     Tree_p      sphere(Tree_p self,
                        Real_p cx, Real_p cy, Real_p cz,
                        Real_p w, Real_p, Real_p d,
-                       Integer_p nslices, Integer_p nstacks);    
+                       Integer_p nslices, Integer_p nstacks);
     Tree_p      torus(Tree_p self,
                        Real_p x, Real_p y, Real_p z,
                        Real_p w, Real_p h, Real_p d,
@@ -553,11 +557,9 @@ public:
                      double ratio);
 
     // Text and font
-    Tree_p      textBox(Context *context, Tree_p self,
-                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
-    Tree_p      textOverflow(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h);
-    Text_p      textFlow(Tree_p self, text name);
+    Tree_p      textBox(Tree_p self, text flowName,
+                        Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
@@ -707,11 +709,11 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      movie(Tree_p self,
+    Tree_p      movie(Context *context, Tree_p self,
                       Real_p x, Real_p y, Real_p w, Real_p h,
-                      Text_p url);
+                      text url);
 
-    Integer*    movieTexture(Tree_p self, Text_p url);
+    Integer*    movieTexture(Context *context, Tree_p self, text url);
 
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
@@ -769,11 +771,13 @@ public:
     Tree_p      constant(Tree_p self, Tree_p tree);
 
     // Misc
-    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);    
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
     Infix_p     getWorldCoordinates(Tree_p, Real_p x, Real_p y);
+    Name_p      hasDisplayModeText(Tree_p self, text name);
+    Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -810,11 +814,12 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class PageLayout;
     friend class DisplayDriver;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
-    typedef std::map<text, PageLayout*>      flow_map;
+    typedef std::map<text, TextFlow*>        flow_map;
     typedef std::map<text, text>             page_map;
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
@@ -837,7 +842,7 @@ private:
     GraphicPath *         path;
     Table *               table;
     scale                 pageW, pageH, blurFactor;
-    text                  flowName;
+    text                  currentFlowName;
     flow_map              flows;
     text                  pageName, lastPageName, gotoPageName;
     page_map              pageLinks;
@@ -937,6 +942,7 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
@@ -948,6 +954,7 @@ public:
     static double         currentTimeAPI();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    void eraseFlow(text flowName){ flows.erase(flowName);}
 
 private:
     void                  processProgramEvents();

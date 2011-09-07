@@ -181,6 +181,7 @@ Window::~Window()
 // ----------------------------------------------------------------------------
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
+    taoWidget->purgeTaoInfo();
 }
 
 
@@ -269,7 +270,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
 void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
-//   Update the text edit widget with updates we made
+//   Append error string to error window
 // ----------------------------------------------------------------------------
 {
     // Ugly workaround to bug #775
@@ -279,7 +280,7 @@ void Window::addError(QString txt)
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
     errorDock->show();
-    statusBar()->showMessage(txt);
+    // Before trying to show the error in the status bar, see #970
 }
 
 
@@ -1866,6 +1867,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     ffm.UnloadEmbeddedFonts(prev);
     showMessage(msg.arg(tr("Document")));
 
+    // Clean previous program
+    taoWidget->purgeTaoInfo();
+
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -1880,6 +1884,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::restoreOverrideCursor();
 
+    setCurrentFile(fileName);
     if (hadError)
     {
         // File not found, or parse error
@@ -1921,7 +1926,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(tr("File loaded"), 2000);
     }
     isUntitled = false;
-    setCurrentFile(fileName);
     setReadOnly(isReadOnly);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);

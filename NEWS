@@ -1,7 +1,47 @@
 ï»¿Change log for Tao Presentations
 --------------------------------
 
-1.0-beta6
+1.0-beta7 (07-Sep-2011)
+
+#1375 Add flying balls template (glass/metal demo)
+#1373 Add support for anaglyph display
+#1371 WARNING: Tree [error...] was not compiled
+#1370 NULL-deref crash when evaluation misses a case
+#1366 Document movie and movie_texture
+#1349 movie and movie_texture: video not animated if layout doe not depend on time
+#1346 movie and movie_texture do not accept absolute, relative or qualified paths but only URLs
+#1344 Crash on text flow name duplication
+#1341 Windows: open URI: folder selection dialog shows same path with forward and backward slashes
+#1340 Document enable_selection_rectangle primitive
+#1338 Gradient features : bad memory management and crash risk
+#1336 Licence checking mechanism
+#1335 Add a template for materials module
+#1333 View toolbar inactive after switching to stereoscopic display (quad buffer)
+#1329 Add some procedural textures to materials module
+#1327 Module API: add function to get framebuffer object depth as a texture
+#1326 text rendering: Underline remains after font change
+#1323 Preserve bullet lists when copying/pasting from HTML into a text_box
+#1317 "Toggle hand cursor" appears twice in command menu
+#1312 ObjectLoader: no error message when file is not found
+#1311 camera_position causes implicit refresh_on TimerEvent
+#1310 Improve color documentation
+#1308 Linux: Impossible to use ObjectLoader module due to undefined symbol __glewUseProgram
+#1305 z_near and z_far should be documented with camera settings
+#1304 Warning in documentations concerning mapping must be specified for all effects
+#1303 Bug with mixed color in cube mapping
+#1296 Shader for sinusoidal color patterns
+#1295 Add primitive enable_selection_rectangle
+#1293 Add get_world_coordinates to get Z position at given mouse coordinates
+#1292 Documentation bug: description of mouse coordinates
+#1290 Add primitives that give mouse position in screen coordinates (screen_mouse_x and screen_mouse_y)
+#1288 Add primitive enable_mouse_cursor to show/hide mouse pointer
+#1283 Windows: can't open file with accented characters in the path
+#1165 Textures disappearing when texture_transform with scale is used
+#1151 Closing window does not quit application if document contains movie_texture
+#1043 Add text_span and para_span primitives
+#970  Windows: syntax errors sometimes cause an application crash
+
+1.0-beta6 (17-Aug-2011)
 
 #1287 mouse_buttons doesn't deal with release events
 #1281 Windows: Double clicking a .ddd file or clicking tao: URL should not start a new process
@@ -27,18 +67,18 @@
 #338  Extra space added at end of lines when saving document
 #336  Empty first line added when saving document
 
-1.0-beta5
+1.0-beta5 (08-Aug-2011)
 
 #1246 Documentation: add link to youtube tutorial
 #1245 Allow selection of a template by double-clicking
 #1244 Do not ask for project creation when a document is created from a template
 #1232 "Save as" into non empty folder may take a long time and result in "index.lock: file exists"
 #1229 ModuleApi: add timeout parameter to refreshOn. Export currentTime.
-#1227 Accented characters (Ã©) in module names incorrectly displayed on splash screen
+#1227 Accented characters (é) in module names incorrectly displayed on splash screen
 #1223 Crash when selecting View > Display mode menu
 #1217 Crash on frame texture
 
-1.0-beta4
+1.0-beta4 (30-Jul-2011)
 
 #1212 Blank screen on file open
 #1209 Add skip_directly_to
@@ -66,7 +106,7 @@
 #1152 Missing texture when movie_texture is used
 #1131 Combo box to select UI language should be multilingual
 #1130 'and' not translated in french version of about box
-#1129 GL error message not localized, 'Ã©' character not shown on Windows
+#1129 GL error message not localized, 'é' character not shown on Windows
 #1126 MacOSX: error message "QPixmap::scaled: Pixmap is a null pixmap" on startup
 #1116 Add copyright info for LLVM, XLR, ... in about box and documentation
 #1113 Add enable_glyph_cache control to the chooser
@@ -93,13 +133,13 @@
 #723  Can't do offline rendering of 3D stereoscopic video
 #396  Add linear, radial and conical gradient
 
-1.0-beta3.14
+1.0-beta3.14 (15-Jun-2011)
 
 #1087 Movies don't restart when the slide restarts
 #1086 MacOSX: command chooser is slow
 #1083 Vertical split : eyes are swapped by default
 
-1.0-beta3
+1.0-beta3 (09-Jun-2011)
 
 #1082 Add search box to module list
 #1081 3D Object Loader module: upgrade GLC_Lib to 2.1.0
@@ -110,13 +150,13 @@
 #1075 frame primitive not refreshed, error "Unexpected NULL ctx/body in non-root layout"
 #1074 Crash in Imagina demo in xl_textUnit
 #1073 Unnecessary compilations on a continuous basis
-#1069 Switching to Â« Cannes Â» stereoscopy requires Enable stereoscopy first
+#1069 Switching to « Cannes » stereoscopy requires Enable stereoscopy first
 #1066 Improve smoothness of animations
 #1026 MacOSX: crash in libunwind::CFI_Parser
-#1020 Chooser doesn't match Ã© and e
+#1020 Chooser doesn't match é and e
 #1005 page_thumbnail not refreshed
 
-1.0-beta2
+1.0-beta2 (20-May-2011)
 
 #1065 Time not shown on page 9 of Pigs Fly template
 #1063 Splash screen: "All rights reserved" not translated into french
@@ -140,4 +180,4 @@
 #1002 Serious display bug on latest Macs
 #879 Ctrl-S does not save file if source editor has focus
 
-1.0-beta
+1.0-beta (06-May-2011)

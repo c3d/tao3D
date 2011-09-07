@@ -46,8 +46,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   9
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   10
+#define TAO_MODULE_API_AGE       1
 
 // ========================================================================
 //
@@ -121,6 +121,11 @@ struct ModuleApi
     // Allow to set line color during a drawing according
     // to the current layout attributes.
     bool (*SetLineColor)();
+
+    // Allow to enable or deactivate pixel blur
+    // on textures of the current layout.
+    // It corresponds to GL_LINEAR/GL_NEAREST parameters.
+    bool (*HasPixelBlur)(bool enable);
 
     // ------------------------------------------------------------------------
     //   API for display modules
@@ -225,7 +230,7 @@ struct ModuleApi
     // mouse activities. When rendering multiple views per frame, you
     // normally set this for only one view.
     // When this setting is true, the drawScene() call will unproject the
-    // mouse coordinates into the 3D space.
+    // mouse coordinates into the 3D space. It is true by default.
     void   (*doMouseTracking)(bool on);
 
     // Override viewport setting during mouse tracking.
@@ -263,6 +268,15 @@ struct ModuleApi
     //   glBindTexture(GL_TEXTURE_2D, id);
     //   glEnable(GL_TEXTURE_2D);
     unsigned int       (*frameBufferObjectToTexture)(ModuleApi::fbo * obj);
+
+    // Make a framebuffer attachment available as a GL_TEXTURE_2d texture.
+    // The attachment parameter must be one of the following:
+    //   GL_COLOR_ATTACHMENT0: returned texture contains the FBO color buffer
+    //   GL_DEPTH_ATTACHMENT: returned texture contains the FBO depth buffer
+    // Note that contrary to frameBufferObjectToTexture above, the texture
+    // is NOT bound nor enabled.
+    unsigned int       (*frameBufferAttachmentToTexture)(ModuleApi::fbo * obj,
+                                                         int attachment);
 };
 
 }

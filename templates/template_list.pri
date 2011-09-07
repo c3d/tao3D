@@ -17,9 +17,11 @@ DEFAULT_TEMPLATES =   \
     shading \
     movie \
     mapping \
+    materials \
     pan_and_zoom
 
 OTHER_TEMPLATES =     \
+    balls \
     monjori \
     flares
 

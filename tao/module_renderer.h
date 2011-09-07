@@ -42,6 +42,7 @@ struct ModuleRenderer : Drawing
         : Drawing(), callback(callback), arg(arg), del(del) {}
     virtual ~ModuleRenderer();
 
+    virtual text  getType() { return "ModuleRenderer";}
     // Drawing interface
     virtual void  Draw(Layout *where);
 
@@ -57,6 +58,7 @@ struct ModuleRenderer : Drawing
     static bool   DisableTexCoords();
     static bool   SetFillColor();
     static bool   SetLineColor();
+    static bool   HasPixelBlur(bool enable);
 
 private:
     ModuleApi::render_fn   callback;

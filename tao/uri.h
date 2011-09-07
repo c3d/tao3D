@@ -89,7 +89,7 @@ protected:
     void                  checkRefresh();
     void                  refreshSettings();
     void                  clearLocalProject();
-    bool                  addLocalProject(const QString &path);
+    bool                  addLocalProject(QString path);
     QStringList           localProjects();
 
     bool                  fetchAndCheckout();

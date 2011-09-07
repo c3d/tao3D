@@ -27,6 +27,7 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
+//#include "attributes.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -44,12 +45,13 @@ struct TextureState
 //   The state of the texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
-    bool        wrapS, wrapT;
-    GLuint        id;
-    GLuint        unit;
-    GLuint        width;
-    GLuint        height;
+    TextureState(): wrapS(false), wrapT(false),
+                    id(0), unit(0), width(0),
+                    height(0), type(GL_TEXTURE_2D) {}
+
+    bool          wrapS, wrapT;
+    GLuint        id, unit;
+    GLuint        width, height;
     GLenum        type;
 };
 
@@ -58,7 +60,9 @@ struct ModelState
 //   The state of the model we want to preserve
 // ----------------------------------------------------------------------------
 {
-    ModelState(): tx(0), ty(0), tz(0), sx(1), sy(1), sz(1), rotation(1, 0, 0, 0) {}
+    ModelState(): tx(0), ty(0), tz(0),
+                  sx(1), sy(1), sz(1),
+                  rotation(1, 0, 0, 0) {}
 
     float tx, ty, tz;     // Translate parameters
     float sx, sy, sz;     // Scaling parameters
@@ -79,9 +83,11 @@ public:
 
 
 public:
-    void                ClearAttributes();
+    void                ClearAttributes(bool all = false);
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
+    void                InheritState(LayoutState *other);
+    void                toDebugString(std::ostream &out) const;
 
 public:
     Vector3             offset;
@@ -105,6 +111,18 @@ public:
     double              planarScale;
     uint                rotationId, translationId, scaleId;
 
+    // For optimized drawing, we keep track of what changes
+    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
+    bool                hasMatrix       : 1;
+    bool                has3D           : 1;
+    bool                hasAttributes   : 1;
+    bool                hasTransform    : 1;
+    uint64              hasTextureMatrix; // 64 texture units
+    bool                hasLighting     : 1;
+    bool                hasMaterial     : 1;
+    bool                isSelection     : 1;
+    bool                groupDrag       : 1;
+
 };
 
 
@@ -113,7 +131,7 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Drawing *>      Drawings;
+    typedef std::list<Drawing *>      Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -154,28 +172,18 @@ public:
     double              NextRefresh();
 
     LayoutState &       operator=(const LayoutState &o);
-    void                Inherit(Layout *other);
+    virtual void        Inherit(Layout *other);
     void                PushLayout(Layout *where);
     void                PopLayout(Layout *where);
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();
 
+    virtual text        getType(){ return "Layout";}
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-    // For optimized drawing, we keep track of what changes
-    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
-    bool                hasMatrix       : 1;
-    bool                has3D           : 1;
-    bool                hasAttributes   : 1;
-    bool                hasTransform    : 1;
-    uint64              hasTextureMatrix; // 64 texture units
-    bool                hasLighting     : 1;
-    bool                hasMaterial     : 1;
-    bool                isSelection     : 1;
-    bool                groupDrag       : 1;
 
     GLbitfield glSaveBits()
     {

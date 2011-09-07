@@ -154,7 +154,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
-      pageName(""),
+      currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
       pageTree(NULL),
       currentShape(NULL), currentGridLayout(NULL),
@@ -307,7 +307,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       runOnNextDraw(true), clearCol(o.clearCol),
       space(NULL), layout(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
-      flowName(o.flowName), flows(o.flows), pageName(o.pageName),
+      currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
       pageLinks(o.pageLinks), pageNames(o.pageNames),
       newPageNames(o.newPageNames),
@@ -423,20 +423,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Invalidate any program info that depends on the old GL context
     PurgeGLContextSensitiveInfo purge;
-    xlProgram->tree->Do(purge);
-    // Do it also on imported files
-    import_set iset;
-    (void)ImportedFilesChanged(iset, false);
-    {
-        import_set::iterator it;
-        for (it = iset.begin(); it != iset.end(); it++)
-        {
-            XL::SourceFile &sf = **it;
-            sf.tree->Do(purge);
-        }
-    }
-    // Drop the garbage
-    InfoTrashCan::Empty();
+    runPurgeAction(purge);
 
     // REVISIT:
     // Texture and glyph cache do not support multiple GL contexts. So,
@@ -486,6 +473,53 @@ Widget::~Widget()
 #endif
 
     RasterText::purge(QGLWidget::context());
+}
+
+
+void Widget::runPurgeAction(XL::Action &purge)
+// ----------------------------------------------------------------------------
+//   Recurse "purge info" action on whole program including imports
+// ----------------------------------------------------------------------------
+{
+    if (!xlProgram || !xlProgram->tree)
+        return;
+    xlProgram->tree->Do(purge);
+    // Do it also on imported files
+    import_set iset;
+    (void)ImportedFilesChanged(iset, false);
+    {
+        import_set::iterator it;
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            sf.tree->Do(purge);
+        }
+    }
+    // Drop the garbage
+    InfoTrashCan::Empty();
+}
+
+
+struct PurgeTaoInfo : XL::Action
+// ----------------------------------------------------------------------------
+//   Delete all TaoInfo structures in a tree
+// ----------------------------------------------------------------------------
+{
+    virtual Tree *Do (Tree *what)
+    {
+        what->Purge<Tao::TaoInfo>();
+        return what;
+    }
+};
+
+
+void Widget::purgeTaoInfo()
+// ----------------------------------------------------------------------------
+//   Delete all TaoInfo associated with the current program
+// ----------------------------------------------------------------------------
+{
+    PurgeTaoInfo purge;
+    runPurgeAction(purge);
 }
 
 
@@ -564,8 +598,6 @@ void Widget::setupPage()
     w_event = NULL;
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
-    flowName = "";
-    flows.clear();
     IFTRACE(pages)
         std::cerr << "setupPage: found=" << pageFound
                   << " id=" << pageId << "\n";
@@ -902,6 +934,9 @@ void Widget::runProgram()
     //Clean actionMap
     actionMap.clear();
     dfltRefresh = optimalDefaultRefresh();
+
+    // Clean text flow
+    flows.clear();
 
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
@@ -3216,6 +3251,7 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
+            purgeTaoInfo();
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
@@ -5512,41 +5548,50 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 //   Enable or disable stereoscopic mode
 // ----------------------------------------------------------------------------
 {
+    text n = name->value;
+    if (name ==  XL::xl_false)
+      n = "false";
+    else if (name ==  XL::xl_true)
+      n = "true";
+    return enableStereoscopyText(self, n);
+}
+
+
+XL::Name_p Widget::enableStereoscopyText(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Enable or disable stereoscopic mode
+// ----------------------------------------------------------------------------
+{
     bool oldState = !displayDriver->isCurrentDisplayFunctionSameAs("2D");
-    text newState;
-    if (name == XL::xl_false || name->value == "no" || name->value == "none")
+    text newState = name;
+
+    // Testing on/off values and legacy names
+    if (name == "false" || name == "no" || name == "none")
     {
         newState = "2D";
     }
-    else if (name == XL::xl_true || name->value == "hardware")
+    else if (name == "true" || name == "hardware")
     {
         newState = "quadstereo";
     }
-    else if (name->value == "hsplit")
+    else if (name == "hsplit")
     {
         newState = "hsplitstereo";
     }
-    else if (name->value == "vsplit")
+    else if (name == "vsplit")
     {
         newState = "vsplitstereo";
     }
-    else if (name->value == "interlace" || name->value == "interlaced" ||
-             name->value == "interleave" || name->value == "interleaved")
+    else if (name == "interlace" || name == "interlaced" ||
+             name == "interleave" || name == "interleaved")
     {
         newState = "hintstereo";
     }
-    else if (name->value == "alioscopy")
-    {
-        newState = "alioscopy";
-    }
-    else
-    {
-        std::cerr << "Stereoscopy mode " << name->value << " is unknown\n";
-    }
 
-    if (newState != "")
+    if (hasDisplayModeText(NULL, newState))
         setDisplayMode(NULL, newState);
-
+    else
+        std::cerr << "Stereoscopy mode " << name << " is unknown\n";
     return oldState ? XL::xl_true : XL::xl_false;
 }
 
@@ -5798,9 +5843,7 @@ Tree_p Widget::fillColorName(Tree_p self, text name, double a)
 {
     CHECK_0_1_RANGE(a);
     QColor c = colorByName(name);
-    FillColor * fillColor = new FillColor(c.redF(), c.greenF(), c.blueF(), a);
-    layout->fillColor = fillColor->color;
-    layout->Add(fillColor);
+    layout->Add(new FillColor(c.redF(), c.greenF(), c.blueF(), a));
     return XL::xl_true;
 }
 
@@ -5814,7 +5857,6 @@ Tree_p Widget::fillColorRgb(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(g);
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
-
     layout->Add(new FillColor(r, g, b, a));
     return XL::xl_true;
 }
@@ -5834,7 +5876,7 @@ Tree_p Widget::fillColorHsl(Tree_p self, double h, double s, double l, double a)
 
     QColor hsl;
     hsl.setHslF(h, s, l);
-    layout->Add(new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
+    layout->Add( new FillColor(hsl.redF(), hsl.greenF(), hsl.blueF(), a));
     return XL::xl_true;
 }
 
@@ -5858,7 +5900,8 @@ Tree_p Widget::fillColorHsv(Tree_p self, double h, double s, double v, double a)
 }
 
 
-Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y, double k, double a)
+Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y,
+                             double k, double a)
 // ----------------------------------------------------------------------------
 //    Set the CMYK color for fill
 // ----------------------------------------------------------------------------
@@ -5882,6 +5925,12 @@ Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
     CHECK_0_1_RANGE(g);
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
+
+    if(! gradient)
+    {
+        Ooops("No gradient defined $1", self);
+        return 0;
+    }
 
     QColor color;
     color.setRgbF(r, g, b, a);
@@ -5980,7 +6029,7 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
 // ----------------------------------------------------------------------------
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
-{       
+{
     uint texUnit = 0;
     uint texId = 0;
 
@@ -7469,12 +7518,41 @@ void Widget::updateCursor(Text_p t)
         editCursor->insertText(+t->value);
 }
 
-Tree_p  Widget::textBox(Context *context, Tree_p self,
-                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog)
+Tree_p  Widget::textBox(Tree_p self, text flowName,
+                        Real_p x, Real_p y, Real_p w, Real_p h)
 // ----------------------------------------------------------------------------
 //   Create a new page layout and render text in it
 // ----------------------------------------------------------------------------
 {
+    if (flows.count(flowName) == 0)
+        return XL::xl_false;
+
+    TextFlow *flow = flows[flowName];
+    this->currentFlowName = flowName;
+    PageLayout *tbox = new PageLayout(this, flow);
+    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    layout->Add(tbox);
+
+    if (currentShape)
+    {
+        flow->textBoxIds.insert(layout->id);
+        tbox->selectId = layout->id;
+        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    }
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textFlow(Context *context, Tree_p self,
+                        Text_p flowName, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Overflow text box for the rest of the current text flow
+// ----------------------------------------------------------------------------
+{
+    // Creation du PageJustifier
+    // Enregistrement du flow
+    // Evaluation du prog
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     if (XL::MAIN->options.enable_layout_cache)
@@ -7486,46 +7564,42 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
         }
     }
 
-    PageLayout *tbox = new PageLayout(this);
-    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
-    layout->AddChild(selectionId(), prog, context, tbox);
-    flows[flowName] = tbox;
+    text computedFlowName = flowName;
+    if (flows.count(computedFlowName))
+    {
+        QString toto = +computedFlowName;
+        QRegExp reg("_(\\d+)$");
+        uint i = 0;
+        int id = 0;
+        if ((id = toto.indexOf(reg)) != -1)
+        {
+            i = reg.cap(1).toInt();
+            if (i>flows.size())
+                i = flows.size();
+            toto.truncate(id);
+        }
+        while (flows.count(computedFlowName) != 0)
+            computedFlowName = +QString("%1_%2").arg(toto).arg(++i);
+        flowName->value = computedFlowName;
+    }
+    currentFlowName = computedFlowName;
+    TextFlow *flow = new TextFlow(layout, computedFlowName);
+    flow->id = selectionId();
+    flow->body = prog;
+    flow->ctx = context;
+    flows[computedFlowName] = flow;
 
-    if (currentShape)
-        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
+    layout->Add(flow);
+    XL::Save<Layout *> save(layout, flow);
 
-    XL::Save<Layout *> save(layout, tbox);
     Tree *result = currentContext->Evaluate(prog);
+    flow->resetIterator();
+    // Protection agains recursive call of textFlow with same flowname.
+    currentFlowName = computedFlowName;
+    flowName->value = computedFlowName;
     return result;
 }
 
-
-Tree_p Widget::textOverflow(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h)
-// ----------------------------------------------------------------------------
-//   Overflow text box for the rest of the current text flow
-// ----------------------------------------------------------------------------
-{
-    // Add page layout overflow rectangle
-    PageLayoutOverflow *overflow =
-        new PageLayoutOverflow(Box(x - w/2, y-h/2, w, h), this, flowName);
-    layout->Add(overflow);
-    if (currentShape)
-        layout->Add(new ControlRectangle(currentShape, x, y, w, h));
-
-    return XL::xl_true;
-}
-
-
-XL::Text_p Widget::textFlow(Tree_p self, text name)
-// ----------------------------------------------------------------------------
-//    Set the name of the current text flow
-// ----------------------------------------------------------------------------
-{
-    text oldName = flowName;
-    flowName = name;
-    return new XL::Text(oldName);
-}
 
 Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
@@ -7533,15 +7607,17 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
 {
     // to be preserved : Font, color, line_color, texture, alignement, linewidth, rotation, scale
-    //LayoutState state = *layout;
-//    XL::Save<LayoutState *> saveLayout(layout, layout);
-    Layout *childLayout = layout->AddChild(layout->id, child, context);
-    XL::Save<Layout *> saveLayout(layout, childLayout);
-
-    Tree_p result = context->Evaluate(child);
-
-    // offset should not be repositionned like before this evaluation
-    saveLayout.saved->offset = childLayout->offset;
+    TextFlow *flow = flows[currentFlowName];
+    BlockLayout *childLayout = new BlockLayout(flow);
+    childLayout->body = child;
+    childLayout->ctx = context;
+    layout->Add(childLayout);
+    Tree_p result;
+    {
+        XL::Save<Layout *> saveLayout(layout, childLayout);
+        result = context->Evaluate(child);
+    }
+    layout->Add(childLayout->getRevertLayout());
     return result;
 }
 
@@ -7614,6 +7690,13 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
+    QFont &font = layout->font;
+    font.setStyle(QFont::StyleNormal);
+    font.setWeight(QFont::Normal);
+    font.setStretch(QFont::Unstretched);
+    font.setUnderline(false);
+    font.setStrikeOut(false);
+    font.setOverline(false);
     FontParsingAction parseFont(context, layout->font);
     description->Do(parseFont);
     layout->font = parseFont.font;
@@ -7930,10 +8013,10 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    text ver = GITREV;
-    if (!Licences::Has("Tao Presentations"))
-        ver += " (UNLICENCED)";
-    return new XL::Text(ver);
+    QString ver = GITREV;
+    if (!Licences::Has("Tao Presentations " GITREV))
+        ver += tr(" (UNLICENSED)");
+    return new XL::Text(+ver);
 }
 
 
@@ -8037,13 +8120,19 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
         body->SetSymbols(self->Symbols());
 
     // Define a new text layout
-    PageLayout *tbox = new PageLayout(this);
+    text cellName = "defaultTableCell";
+    int i = flows.size();
+    while (flows.count(cellName) != 0)
+        cellName = +QString("defaultTableCell_%1").arg(++i);
+    XL::Text * cell = new XL::Text(cellName);
+    Tree_p result = textFlow(context, self,cell , body);
+    TextFlow *flow = flows[cellName];
+    PageLayout *tbox = new PageLayout(this, flow);
     tbox->space = Box3(0, 0, 0, w, h, 0);
     table->Add(tbox);
-    flows[flowName] = tbox;
 
-    XL::Save<Layout *> save(layout, tbox);
-    Tree_p result = context->Evaluate(body);
+//    XL::Save<Layout *> save(layout, tbox);
+//    Tree_p result = context->Evaluate(body);
     table->NextCell();
     return result;
 }
@@ -8434,6 +8523,8 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     painter.fillRect(QRect(0, 0, w, h), (*gradient));
     painter.end();
 
+    delete gradient;
+
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
     layout->currentTexture.width  = w;
@@ -8479,6 +8570,8 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     painter.fillRect(QRect(0, 0, w, h), (*gradient));
     painter.end();
 
+    delete gradient;
+
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
     layout->currentTexture.width  = w;
@@ -8490,6 +8583,7 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
     return new XL::Integer(texId);
 }
 
@@ -8523,6 +8617,8 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     // Draw gradient in a rectangle
     painter.fillRect(QRect(0, 0, w, h), (*gradient));
     painter.end();
+
+    delete gradient;
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -9464,14 +9560,14 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 }
 
 
-Tree_p Widget::movie(Tree_p self,
-                     Real_p x, Real_p y, Real_p sx, Real_p sy, Text_p url)
+Tree_p Widget::movie(Context *context, Tree_p self,
+                     Real_p x, Real_p y, Real_p sx, Real_p sy, text name)
 // ----------------------------------------------------------------------------
 //   Make a video player
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    movieTexture(self, url);
+    if (!movieTexture(context, self, name))
+        return XL::xl_false;
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     double w = sx * surface->width();
     double h = sy * surface->height();
@@ -9479,15 +9575,37 @@ Tree_p Widget::movie(Tree_p self,
     if (currentShape)
         layout->Add(new ImageManipulator(currentShape, x, y, sx, sy, w, h));
 
+    refreshOn(QEvent::Timer);
     return XL::xl_true;
 }
 
 
-Integer* Widget::movieTexture(Tree_p self, Text_p url)
+Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    if (name != "")
+    {
+        QRegExp re("[a-z]+://");
+        if (re.indexIn(+name) == -1)
+        {
+            name = context->ResolvePrefixedPath(name);
+            Window *window = (Window *)parentWidget();
+            QFileInfo inf(window->currentProjectFolderPath(), +name);
+            if (inf.isReadable())
+            {
+            name =
+#if defined(Q_OS_WIN)
+                    "file:///"
+#else
+                    "file://"
+#endif
+                    + +inf.absoluteFilePath();
+            }
+        }
+    }
+
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
@@ -9497,18 +9615,33 @@ Integer* Widget::movieTexture(Tree_p self, Text_p url)
     }
 
     // Resize to requested size, and bind texture
-    layout->currentTexture.id     = surface->bind(url);
-    layout->currentTexture.width  = surface->width();
-    layout->currentTexture.height = surface->height();
-    layout->currentTexture.type   = GL_TEXTURE_2D;
+    layout->currentTexture.id     = surface->bind(new Text(name));
+    if (surface->lastError != "")
+    {
+        XL::Ooops("Cannot play: $1", self);
+        text err = "Media player error: ";
+        err.append(surface->lastError);
+        XL::Ooops(err, self);
+        text err2 = "Path or URL: ";
+        err2.append(surface->url);
+        XL::Ooops(err2, self);
+        surface->lastError = "";
+        return new Integer(0, self->Position());
+    }
+    if (layout->currentTexture.id != 0)
+    {
+        layout->currentTexture.width  = surface->width();
+        layout->currentTexture.height = surface->height();
+        layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
-    uint texId   = layout->currentTexture.id;
+        uint texUnit = layout->currentTexture.unit;
+        uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
-    layout->hasAttributes = true;
-
-    return new Integer(texId, self->Position());
+        layout->Add(new FillTexture(texId, texUnit));
+        layout->hasAttributes = true;
+    }
+    refreshOn(QEvent::Timer);
+    return new Integer(layout->currentTexture.id, self->Position());
 }
 
 
@@ -10697,14 +10830,23 @@ XL::Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
 
+
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Check if a display mode is available
 // ----------------------------------------------------------------------------
 {
-    text n = name->value;
+    return hasDisplayModeText(self, name->value);
+}
+
+
+Name_p Widget::hasDisplayModeText(Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Check if a display mode is available
+// ----------------------------------------------------------------------------
+{
     QStringList all = DisplayDriver::allDisplayFunctions();
-    if (all.contains(+n))
+    if (all.contains(+name))
         return XL::xl_true;
     return XL::xl_false;
 }
@@ -10722,6 +10864,55 @@ Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
 
     return result->AsInfix();
 }
+
+
+Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
+// ----------------------------------------------------------------------------
+//   Set a display option
+// ----------------------------------------------------------------------------
+{
+    if (Infix *infix = code->AsInfix())
+    {
+        if (infix->name == ":=")
+        {
+            ADJUST_CONTEXT_FOR_INTERPRETER(context);
+            XL::Symbols *symbols = self->Symbols();
+            Name *name = infix->left->AsName();
+            TreeList args;
+            Tree *arg = infix->right;
+            if (Block *block = arg->AsBlock())
+                arg = block->child;
+            if (symbols)
+                arg->SetSymbols(symbols);
+            arg = context->Evaluate(arg);
+            if (Integer *it = arg->AsInteger())
+                arg = new Real(it->value);
+            std::string strval;
+            if (Real *rt = arg->AsReal())
+            {
+                std::ostringstream oss;
+                oss << rt->value;
+                strval = oss.str();
+            }
+            else if (Text *tt = arg->AsText())
+            {
+                strval = tt->value;
+            }
+            else
+            {
+                Ooops("display_set value $1 is not a string and not a number",
+                      arg);
+                return XL::xl_false;
+            }
+            displayDriver->setOption(name->value, strval);
+            return XL::xl_true;
+        }
+    }
+    Ooops("Malformed display_set statement $1", code);
+    return XL::xl_false;
+}
+
+
 
 // ============================================================================
 //

@@ -47,6 +47,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
+    HasPixelBlur     = ModuleRenderer::HasPixelBlur;
 
     // Display module API
     registerDisplayFunction      = DisplayDriver::registerDisplayFunction;
@@ -77,6 +78,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     bindFrameBufferObject      = FrameInfo::bindFrameBufferObject;
     releaseFrameBufferObject   = FrameInfo::releaseFrameBufferObject;
     frameBufferObjectToTexture = FrameInfo::frameBufferObjectToTexture;
+    frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
 }
 
 TAO_END

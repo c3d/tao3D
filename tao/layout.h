@@ -44,12 +44,13 @@ struct TextureState
 //   The state of the texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
-    bool        wrapS, wrapT;
-    GLuint        id;
-    GLuint        unit;
-    GLuint        width;
-    GLuint        height;
+    TextureState(): wrapS(false), wrapT(false),
+                    id(0), unit(0), width(0),
+                    height(0), type(GL_TEXTURE_2D) {}
+
+    bool          wrapS, wrapT;
+    GLuint        id, unit;
+    GLuint        width, height;
     GLenum        type;
 };
 
@@ -58,7 +59,9 @@ struct ModelState
 //   The state of the model we want to preserve
 // ----------------------------------------------------------------------------
 {
-    ModelState(): tx(0), ty(0), tz(0), sx(1), sy(1), sz(1), rotation(1, 0, 0, 0) {}
+    ModelState(): tx(0), ty(0), tz(0),
+                  sx(1), sy(1), sz(1),
+                  rotation(1, 0, 0, 0) {}
 
     float tx, ty, tz;     // Translate parameters
     float sx, sy, sz;     // Scaling parameters

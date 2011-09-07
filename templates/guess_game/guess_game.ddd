@@ -121,7 +121,7 @@ page "game",
             font_color := "red"
 
     // The text box that shows the result
-    text_box 0, -200, 300, 20,
+    text_box 0, -200, 300, 50,
         align_center
         color font_color
         text display

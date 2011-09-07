@@ -1,4 +1,5 @@
-import LoremIpsum 1.0
+
+import LoremIpsum 1.0 
 
 lorem_ipsum_box x, y -> 
     color "white" 
@@ -7,7 +8,7 @@ lorem_ipsum_box x, y ->
     color "font" 
     line_color "font" 
     font "default" 
-    text_box x, y, 475, 315, do 
+    text_box x, y, 475, 315,
         text lorem_ipsum 50 
 
 lorem_ipsum_quad_box x, y -> 
@@ -17,24 +18,26 @@ lorem_ipsum_quad_box x, y ->
     line_color 0.505303, 1, 0.678096, 1.0 
     rectangle x, y + 80, 475, 78 
     line_color 0.505303, 0.873304, 1, 1.0 
-    rectangle x, y , 475, 78 
+    rectangle x, y, 475, 78 
     line_color 1, 0.873304, 0.678096, 1.0 
     rectangle x, y - 80, 475, 78 
     color "font" 
     line_color "font" 
     font "default" 
     font_size 14 
-    text_flow "quad_box" & text x & text y 
-    text_box x, y + 160, 475, 78, do 
+    flowName -> ""
+    flowName := "quad_box" & text x & text y
+    text_flow flowName,
         text lorem_ipsum 195 
-    text_overflow x, y+80, 475, 78 
-    text_overflow x, y , 475, 78 
-    text_overflow x, y - 80, 475, 78 
+        
+    text_box flowName, x, y + 160, 475, 78
+    text_box flowName, x, y + 80, 475, 78 
+    text_box flowName, x, y, 475, 78 
+    text_box flowName, x, y - 80, 475, 78 
 
 //goto_page "textJustification" -> goto_page "align_top"
-
 //page "align_top", do 
-page "textJustification", do 
+page "textJustification",
     vertical_align_top 
 
     align_left 
@@ -62,7 +65,7 @@ page "textJustification", do
     align_full_spread 
     lorem_ipsum_box 329, -310
  
-page "align_center", do 
+page "align_center",
     vertical_align_center 
 
     align_left 
@@ -90,7 +93,7 @@ page "align_center", do
     align_full_spread 
     lorem_ipsum_box 329, -310
  
-page "align_bottom", do 
+page "align_bottom",
     vertical_align_bottom 
 
     align_left 
@@ -118,7 +121,7 @@ page "align_bottom", do
     align_full_spread 
     lorem_ipsum_box 329, -310
  
-page "align_justify", do 
+page "align_justify",
     vertical_align_justify 
 
     align_left 
@@ -146,7 +149,7 @@ page "align_justify", do
     align_full_spread 
     lorem_ipsum_quad_box 329, -350
  
-page "align_spread", do 
+page "align_spread",
     vertical_align_spread 
 
     align_left 

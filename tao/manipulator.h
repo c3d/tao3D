@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  manipulator.h                                                   Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //    Helper class used to assign GL names to individual graphic shapes
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -42,6 +42,7 @@ struct Manipulator : Drawing
 {
     typedef const Point3 &      kPoint3;
 
+    virtual text        getType() {return "Manipulator";}
     Manipulator(Tree *self);
 
     virtual void        Draw(Layout *layout);

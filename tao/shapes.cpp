@@ -43,27 +43,35 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
-    //Determine unused texture units according to the previous one to desactive them
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
+        //Determine if there is a current and previous texture
         bool hasCurrent = where->fillTextures.count(i);
         bool hasPrevious = where->previousTextures.count(i);
 
-        //Check if the current texture unit is really used
+        // If there is a previous texture and no current
+        // then unbind this one.
         if(hasPrevious && (! hasCurrent))
         {
+            // Unbind the previous texture
             unbindTexture(where->previousTextures[i]);
         }
         else if(hasCurrent && (where->textureUnits & (1 << i)))
         {
+            // If there is a previous texture with a different type
+            // of the current then unbind the previous before to bind the
+            // current.
             if(hasPrevious)
             {
-                if(where->fillTextures[i].type != where->previousTextures[i].type)
+                if(where->fillTextures[i].type !=
+                        where->previousTextures[i].type)
                 {
+                    // Unbind the previous texture
                     unbindTexture(where->previousTextures[i]);
                 }
             }
 
+            // Bind the current texture
             bindTexture(where->fillTextures[i], where->hasPixelBlur);
         }
     }

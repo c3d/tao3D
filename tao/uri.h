@@ -15,13 +15,16 @@
 //        ssh://example.net/path/to/my/project
 //        git://example.net/path/to/my/project
 //        etc.
-//      - Tao scheme (currently defaults to git over ssh)
-//        tao://example.net/path/to/my/
+//      - Tao schemes
+//        tao://example.net/path/to/my/project   (Git protocol, same as git:)
+//        taos://example.net/path/to/my/project  (Git over ssh, same as ssh:)
 //
 //    URIs may contain additional parameters:
 //        tao://example.net/project?d=main.ddd   (open main.ddd)
 //        tao://example.net/project?r=mybranch   (checkout branch 'mybranch')
 //        tao://example.net/project?r=bb8cb4a    (checkout commit bb8cb4a)
+//        tao://example.net/project?t            (remote doc is a template,
+//                                                save in template folders)
 //
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
@@ -35,6 +38,7 @@
 #include <QString>
 #include <QStringList>
 #include <QProgressDialog>
+#include <iostream>
 
 
 namespace Tao {
@@ -54,15 +58,27 @@ public:
     bool                  get();
     bool                  isLocal();
 
+public:
+    void                  setUrl(const QString & url);
+    void                  setUrl(const QString & url, ParsingMode parsingMode);
+    void                  setQueryItems(const QList<QPair<QString, QString> >
+                                        & query);
+
 signals:
     void                  progressMessage(QString message);
     void                  docReady(QString path);
     void                  getFailed();
+    void                  templateCloned(QString path);
+    void                  templateFetched(QString path);
+
+protected:
+    enum Operation { NONE, CLONING, FETCHING };
 
 protected:
     QString               fileName();
     QString               rev();
 
+    QString               parentFolderForDownload();
     QString               documentOrProjectPath();
     QString               keyName();
     QString               newProject();
@@ -70,6 +86,7 @@ protected:
     QString               repoUri();
     bool                  showRepoErrorDialog();
 
+    void                  checkRefresh();
     void                  refreshSettings();
     void                  clearLocalProject();
     bool                  addLocalProject(const QString &path);
@@ -87,6 +104,9 @@ protected slots:
     void                  abortDownload();
 
 private:
+    std::ostream&         debug();
+
+private:
     repository_ptr        repo;
     bool                  done;
     QProgressDialog *     progress;
@@ -96,9 +116,11 @@ private:
     QString               project;
     bool                  aborted;
     bool                  clone;
+    QString               settingsGroup;
+    Operation             op;
 
 private:
-   static bool            doRefresh;
+   static QSet<QString>   refreshed;
 };
 
 }

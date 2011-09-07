@@ -30,15 +30,53 @@
 namespace Tao {
 
 NewDocumentWizard::NewDocumentWizard(QWidget *parent)
+// ----------------------------------------------------------------------------
+//   Create the wizard
+// ----------------------------------------------------------------------------
     : QWizard(parent)
 {
+    setWindowTitle(tr("New Document"));
+
+    moreButton = new QPushButton(tr("More from the web..."));
+    connect(moreButton, SIGNAL(clicked()), this, SLOT(openWebPage()));
+    setButton(QWizard::CustomButton1, moreButton);
+
+    QPushButton *next =
+            dynamic_cast<QPushButton *>(button(QWizard::NextButton));
+    Q_ASSERT(next);
+    next->setDefault(true);
+
     addPage(new TemplateChooserPage(this));
     addPage(new DocumentNameAndLocationPage(this));
 
-    setWindowTitle(tr("New Document"));
+    connect(this, SIGNAL(currentIdChanged(int)), this, SLOT(pageChanged(int)));
 }
 
+
+void NewDocumentWizard::pageChanged(int id)
+// ----------------------------------------------------------------------------
+//   Show the "More from the web..." button only on first page
+// ----------------------------------------------------------------------------
+{
+    setOption(QWizard::HaveCustomButton1, id == 0);
+}
+
+
+void NewDocumentWizard::openWebPage()
+// ----------------------------------------------------------------------------
+//   Open the templates web page in a browser window and close the wizard
+// ----------------------------------------------------------------------------
+{
+    QString url("http://taodyne.com/taopresentations/1.0/templates/");
+    QDesktopServices::openUrl(url);
+    reject();
+}
+
+
 void NewDocumentWizard::accept()
+// ----------------------------------------------------------------------------
+//   Copy template into user's document folder
+// ----------------------------------------------------------------------------
 {
     QString docName = field("docName").toString();
     QString docLocation = field("docLocation").toString();
@@ -99,6 +137,9 @@ void NewDocumentWizard::accept()
 }
 
 TemplateChooserPage::TemplateChooserPage(QWidget *parent)
+// ----------------------------------------------------------------------------
+//   Create the template selection page
+// ----------------------------------------------------------------------------
     : QWizardPage(parent)
 {
     setTitle(tr("Template Chooser"));
@@ -138,11 +179,17 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     setLayout(layout);
 }
 
+
 void TemplateChooserPage::initializePage()
+// ----------------------------------------------------------------------------
+//   Fill the template list with the templates we find on the disk
+// ----------------------------------------------------------------------------
 {
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
-    QDir dir(TaoApp->applicationDirPath() + "/templates");
-    wiz->templates = Templates(dir);
+    QList<QDir> dirs;
+    dirs << QDir(TaoApp->applicationDirPath() + "/templates")
+         << QDir(TaoApp->defaultTaoPreferencesFolderPath() + "/templates");
+    wiz->templates = Templates(dirs);
     foreach (Template tmpl, wiz->templates)
     {
         QListWidgetItem *t = new QListWidgetItem(templateListWidget);
@@ -158,7 +205,11 @@ void TemplateChooserPage::initializePage()
     templateListWidget->setCurrentRow(0);
 }
 
+
 void TemplateChooserPage::updateDescription()
+// ----------------------------------------------------------------------------
+//   Set the description text for the currently slected item
+// ----------------------------------------------------------------------------
 {
     QString desc;
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
@@ -171,7 +222,11 @@ void TemplateChooserPage::updateDescription()
     description->setText(desc);
 }
 
+
 void TemplateChooserPage::doSearch()
+// ----------------------------------------------------------------------------
+//   Show or hide items, depending on wether they match current search string
+// ----------------------------------------------------------------------------
 {
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
     QString searchString = search->text();
@@ -189,7 +244,11 @@ void TemplateChooserPage::doSearch()
     templateListWidget->setCurrentRow(firstShown);
 }
 
+
 DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
+// ----------------------------------------------------------------------------
+//   Create the page where user can select the destination folder
+// ----------------------------------------------------------------------------
     : QWizardPage(parent)
 {
     setTitle(tr("Document Name and Location"));
@@ -223,7 +282,11 @@ DocumentNameAndLocationPage::DocumentNameAndLocationPage(QWidget *parent)
     setLayout(layout);
 }
 
+
 void DocumentNameAndLocationPage::initializePage()
+// ----------------------------------------------------------------------------
+//   Fill the page where user can select the destination folder
+// ----------------------------------------------------------------------------
 {
     docLocationLineEdit->setText(Application::defaultProjectFolderPath());
 
@@ -247,7 +310,11 @@ void DocumentNameAndLocationPage::initializePage()
     }
 }
 
+
 void DocumentNameAndLocationPage::chooseLocation()
+// ----------------------------------------------------------------------------
+//   Open a folder selection dialog to select target folder
+// ----------------------------------------------------------------------------
 {
     QString location = QFileDialog::getExistingDirectory(this,
                            tr("Choose Document Location"),

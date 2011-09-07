@@ -76,6 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
+#include "licence.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
 
@@ -159,7 +160,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false), animated(true),
+      drawAllPages(false), animated(true), selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlanes(1),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
@@ -194,7 +195,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
-      savedCursorShape(Qt::ArrowCursor),
+      savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
@@ -366,6 +367,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
       savedCursorShape(o.savedCursorShape),
+      mouseCursorHidden(o.mouseCursorHidden),
       renderFramesCanceled(o.renderFramesCanceled),
       inOfflineRendering(o.inOfflineRendering),
       offlineRenderingWidth(o.offlineRenderingWidth),
@@ -416,6 +418,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Hide mouse cursor if it was hidden in previous widget
     if (o.cursor().shape() == Qt::BlankCursor)
         hideCursor();
+    if (o.mouseCursorHidden)
+        QWidget::setCursor(Qt::BlankCursor);
 
     // Invalidate any program info that depends on the old GL context
     PurgeGLContextSensitiveInfo purge;
@@ -902,6 +906,7 @@ void Widget::runProgram()
     // Reset the selection id for the various elements being drawn
     focusWidget = NULL;
     id = idDepth = 0;
+    selectionRectangleEnabled = true;
 
     stats.begin(Statistics::EXEC);
 
@@ -1691,6 +1696,31 @@ void Widget::hideCursor()
 }
 
 
+void Widget::setCursor(const QCursor &cursor)
+// ----------------------------------------------------------------------------
+//   Really set mouse cursor if cursor is not hidden, otherwise simulate.
+// ----------------------------------------------------------------------------
+{
+    if (mouseCursorHidden)
+    {
+        cachedCursor = cursor;
+        return;
+    }
+    QWidget::setCursor(cursor);
+}
+
+
+QCursor Widget::cursor() const
+// ----------------------------------------------------------------------------
+//   Return current mouse cursor if cursor is not hidden, otherwise simulate.
+// ----------------------------------------------------------------------------
+{
+    if (mouseCursorHidden)
+        return cachedCursor;
+    return QWidget::cursor();
+}
+
+
 void Widget::resetView()
 // ----------------------------------------------------------------------------
 //   Restore default view parameters (zoom, position etc.)
@@ -2005,6 +2035,7 @@ Context *Widget::context()
 {
     return xlProgram->context;
 }
+
 
 
 
@@ -2458,10 +2489,10 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Save location
     lastMouseX = x;
     lastMouseY = y;
-    lastMouseButtons = button;
+    lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (button == Qt::LeftButton)
+    if (selectionRectangleEnabled && button == Qt::LeftButton)
         new Selection(this);
 
     // Send the click to all activities
@@ -2519,7 +2550,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     // Save location
     lastMouseX = x;
     lastMouseY = y;
-    lastMouseButtons = button;
+    lastMouseButtons = event->buttons();
 
     // Check if there is an activity that deals with it
     for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
@@ -2582,8 +2613,9 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     uint    button      = (uint) event->button();
     int     x           = event->x();
     int     y           = event->y();
-    if (button == Qt::LeftButton && (!activities || !activities->next))
-        new Selection(this);
+    if (selectionRectangleEnabled)
+        if (button == Qt::LeftButton && (!activities || !activities->next))
+            new Selection(this);
 
     // Save location
     lastMouseX = x;
@@ -4037,11 +4069,11 @@ static inline void resetLayout(Layout *where)
     {
         where->lineWidth = 1;
         where->currentLights = 0;
-        where->textureUnits = 1;
-        where->previousUnits = 0;
+        where->textureUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
-        (where->fillTextures).clear();
+        where->fillTextures.clear();
+        where->previousTextures.clear();
     }
 }
 
@@ -4153,8 +4185,8 @@ Tree * Widget::shapeAction(text n, GLuint id, int x, int y)
             Tree_p action = (*foundAction).second;
 
             // Set event mouse coordinates (bug #937, #1013)
-            MouseCoordinatesInfo *m = action->GetInfo<MouseCoordinatesInfo>();
-            XL::Save<MouseCoordinatesInfo *> s(mouseCoordinatesInfo, m);
+            CoordinatesInfo *m = action->GetInfo<CoordinatesInfo>();
+            XL::Save<CoordinatesInfo *> s(mouseCoordinatesInfo, m);
 
             // Adjust coordinates with latest event information
             m->coordinates = unproject(x, y, 0,
@@ -4629,7 +4661,7 @@ Real_p Widget::mouseX(Tree_p self)
         return new Real(mouseCoordinatesInfo->coordinates.x);
     refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
-    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
         return new Real(info->coordinates.x);
     return new Real(0.0);
 }
@@ -4645,9 +4677,35 @@ Real_p Widget::mouseY(Tree_p self)
         return new Real(mouseCoordinatesInfo->coordinates.y);
     refreshOn(QEvent::MouseMove);
     layout->Add(new RecordMouseCoordinates(self));
-    if (MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>())
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
         return new Real(info->coordinates.y);
     return new Real(0.0);
+}
+
+
+Integer_p Widget::screenMouseX(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the X position of the mouse in screen (pixel) coordinates
+// ----------------------------------------------------------------------------
+{
+    refreshOn(QEvent::MouseMove);
+    QPoint m = QWidget::mapFromGlobal(QCursor::pos());
+    lastMouseX = m.x();
+    lastMouseY = m.y();
+    return new Integer(lastMouseX);
+}
+
+
+Integer_p Widget::screenMouseY(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the Y position of the mouse in screen (pixel) coordinates
+// ----------------------------------------------------------------------------
+{
+    refreshOn(QEvent::MouseMove);
+    QPoint m = QWidget::mapFromGlobal(QCursor::pos());
+    lastMouseX = m.x();
+    lastMouseY = m.y();
+    return new Integer(lastMouseY);
 }
 
 
@@ -4657,6 +4715,7 @@ Integer_p Widget::mouseButtons(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     refreshOn(QEvent::MouseButtonPress);
+    refreshOn(QEvent::MouseButtonRelease);
     return new Integer(lastMouseButtons);
 }
 
@@ -4681,7 +4740,6 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 
     return XL::xl_true;
 }
-
 
 Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------
@@ -4947,6 +5005,7 @@ Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
     return XL::xl_true;
 }
 
+
 XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 //   Change the delta we use for the depth
@@ -5101,6 +5160,30 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 }
 
 
+XL::Name_p Widget::enableMouseCursor(XL::Tree_p self, bool on)
+// ----------------------------------------------------------------------------
+//   Enable or disable visibility of mouse cursor
+// ----------------------------------------------------------------------------
+{
+    bool old = !mouseCursorHidden;
+    if (on != old)
+    {
+        mouseCursorHidden = !on;
+        if (mouseCursorHidden)
+        {
+            cachedCursor = QWidget::cursor();
+            QWidget::setCursor(Qt::BlankCursor);
+        }
+        else
+        {
+            QWidget::setCursor(cachedCursor);
+            cachedCursor = Qt::BlankCursor;
+        }
+    }
+    return old ? XL::xl_true : XL::xl_false;
+}
+
+
 Name_p Widget::showStatistics(Tree_p self, bool ss)
 // ----------------------------------------------------------------------------
 //   Display or hide performance statistics (frames per second)
@@ -5232,7 +5315,6 @@ Name_p Widget::setCameraPosition(Tree_p self, coord x, coord y, coord z)
         cameraPosition.x = x;
         cameraPosition.y = y;
         cameraPosition.z = z;
-        refresh(0);
     }
     return XL::xl_true;
 }
@@ -5379,6 +5461,17 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
     if (oldFs != fs)
         window->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
+}
+
+
+XL::Name_p Widget::enableSelectionRectangle(XL::Tree_p self, bool sre)
+// ----------------------------------------------------------------------------
+//   Enable or disable selection rectangle
+// ----------------------------------------------------------------------------
+{
+    bool old = selectionRectangleEnabled;
+    selectionRectangleEnabled = sre;
+    return old ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -5808,7 +5901,9 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
         return 0;
     }
 
-    if(texUnit && (TaoApp->constructor == ATI))
+    // Fig a bug with ATI drivers which set texture matrices
+    // to null instead of identity
+    if(texUnit && (TaoApp->vendorID == ATI))
     {
         glActiveTexture(GL_TEXTURE0 + texUnit);
         glMatrixMode(GL_TEXTURE);
@@ -5817,6 +5912,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
         glActiveTexture(GL_TEXTURE0);
     }
 
+    layout->textureUnits |= 1 << texUnit;
     layout->currentTexture.unit = texUnit;
     return new XL::Integer(texUnit);
 }
@@ -6203,6 +6299,27 @@ Integer* Widget::textureId(Tree_p self)
    return new Integer(layout->currentTexture.id);
 }
 
+
+
+Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
+// ----------------------------------------------------------------------------
+//   Return the texture id set at the specified unit
+// ----------------------------------------------------------------------------
+{
+    if(unit > TaoApp->maxTextureUnits)
+    {
+        Ooops("Invalid texture unit $1", self);
+        return 0;
+    }
+
+    uint hasTexture = layout->textureUnits & (1 << unit);
+    if(hasTexture)
+        return XL::xl_true;
+
+    return XL::xl_false;
+}
+
+
 Integer* Widget::textureUnit(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current texture unit
@@ -6211,9 +6328,9 @@ Integer* Widget::textureUnit(Tree_p self)
     return new Integer(layout->currentTexture.unit);
 }
 
-Integer_p Widget::lightId(Tree_p self)
+Integer_p Widget::lightsMask(Tree_p self)
 // ----------------------------------------------------------------------------
-//  Return the current light id
+//  Return a bitmask of all current activated lights
 // ----------------------------------------------------------------------------
 {
     return new Integer(layout->currentLights);
@@ -6224,7 +6341,11 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    layout->currentLights |= 1 << id;
+    if(enable)
+        layout->currentLights |= 1 << id;
+    else
+        layout->currentLights ^= 1 << id;
+
     layout->hasLighting = true;
     layout->Add(new LightId(id, enable));
     return XL::xl_true;
@@ -6393,31 +6514,40 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
             Name *name = infix->left->AsName();
-            TreeList args;
             Tree *arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
-            Infix *iarg = arg->AsInfix();
-            if (iarg &&
-                (iarg->name == "," || iarg->name == "\n" || iarg->name == ";"))
-                XL::xl_infix_to_list(iarg, args);
-            else
-                args.push_back(arg);
 
+            // Transform the input arguments into a list of values
             ShaderValue::Values values;
-            uint i, max = args.size();
-            for (i = 0; i < max; i++)
+            while (arg)
             {
-                arg = args[i];
+                Tree *value = arg;
+                Infix *iarg = arg->AsInfix();
+                if (iarg &&
+                    (iarg->name == "," ||
+                     iarg->name == "\n" ||
+                     iarg->name == ";"))
+                {
+                    value = iarg->left;
+                    arg = iarg->right;
+                }
+                else
+                {
+                    arg = NULL;
+                }
+
+                // Evaluate the argument in the proper context
                 if (symbols)
-                    arg->SetSymbols(symbols);
-                arg = context->Evaluate(arg);
-                if (Integer *it = arg->AsInteger())
-                    arg = new Real(it->value);
-                if (Real *rt = arg->AsReal())
+                    value->SetSymbols(symbols);
+                value = context->Evaluate(value);
+
+                if (Integer *it = value->AsInteger())
+                    values.push_back(it->value);
+                else if (Real *rt = value->AsReal())
                     values.push_back(rt->value);
                 else
-                    Ooops("Shader value $1 is not a number", arg);
+                    Ooops("Shader value $1 is not a number", value);
             }
 
             layout->Add(new ShaderValue(name, values));
@@ -7800,7 +7930,10 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(GITREV);
+    text ver = GITREV;
+    if (!Licences::Has("Tao Presentations"))
+        ver += " (UNLICENCED)";
+    return new XL::Text(ver);
 }
 
 
@@ -9470,6 +9603,10 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
         QStringList branches = repo->branches();
         foreach (QString branch, branches)
         {
+
+
+
+
             Tree *action = new Prefix(prefix, new Text(+branch));
             action->SetSymbols(self->Symbols());
             chooser->AddItem(label + +branch + "...", action);
@@ -10542,6 +10679,24 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
 }
 
 
+XL::Text_p Widget::GLVersion(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return OpenGL supported version
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(TaoApp->GLVersionAvailable);
+}
+
+
+XL::Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
+// ----------------------------------------------------------------------------
+//   Check is an OpenGL extensions is supported
+// ----------------------------------------------------------------------------
+{
+    bool isAvailable = (strstr(TaoApp->GLExtensionsAvailable.c_str(), name.c_str()) != NULL);
+    return isAvailable ? XL::xl_true : XL::xl_false;
+}
+
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Check if a display mode is available
@@ -10554,7 +10709,19 @@ Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
     return XL::xl_false;
 }
 
+Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
+// ----------------------------------------------------------------------------
+//   Convert a screen position to an xyz world coordinates
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    Tree* result = XL::xl_real_list(self, 3, &pos.x);
+    layout->Add(new ConvertScreenCoordinates(self, x, y));
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
+        result = XL::xl_real_list(self, 3, &info->coordinates.x);
 
+    return result->AsInfix();
+}
 
 // ============================================================================
 //

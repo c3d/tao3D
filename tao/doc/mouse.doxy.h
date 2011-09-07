@@ -57,14 +57,41 @@ on_mouseover (t:tree);
 mouse_buttons ();
 
 /**
- * Returns the current X position of the mouse.
+ * Returns the current X position of the mouse in the local frame.
+ * The returned value is the X coordinate of the mouse pointer after
+ * projection in the plane Z=0 for the current geometric transformation.
+ * In other words, if you draw a point at coordinates (mouse_x, mouse_y)
+ * it will always follow the mouse. But the value you get is not the
+ * position of the mouse in screen coordinates.
+ * @see screen_mouse_x
  */
 mouse_x ();
 
 /**
- * Returns the current Y position of the mouse.
+ * Returns the current Y position of the mouse in the local frame.
+ * The returned value is the Y coordinate of the mouse pointer after
+ * projection in the plane Z=0 for the current geometric transformation.
+ * In other words, if you draw a point at coordinates (mouse_x, mouse_y)
+ * it will always follow the mouse. But the value you get is not the
+ * position of the mouse in screen coordinates.
+ * @see screen_mouse_y
  */
 mouse_y ();
+
+/**
+ * Returns the current X position of the mouse in screen coordinates.
+ * Coordinates are in pixels. The left of the display area is at X coordinate
+ * 0, while the right is at X = @ref window_width.
+ */
+screen_mouse_x ();
+
+/**
+ * Returns the current Y position of the mouse in screen coordinates.
+ * Coordinates are in pixels. The bottom of the display area is at Y coordinate
+ * 0, while the top is at X = @ref window_height.
+ */
+screen_mouse_y ();
+
 
 /**
  * Mouse wheel handling.

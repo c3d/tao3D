@@ -409,6 +409,10 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(showMessage(QString)));
                 connect(uri, SIGNAL(docReady(QString)),
                         this, SLOT(onDocReady(QString)));
+                connect(uri, SIGNAL(templateCloned(QString)),
+                        this, SLOT(onNewTemplateInstalled(QString)));
+                connect(uri, SIGNAL(templateFetched(QString)),
+                        this, SLOT(onTemplateUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
                 bool ok = uri->get();  // Will emit a signal when done
@@ -734,6 +738,14 @@ bool Window::setStereo(bool on)
     IFTRACE(displaymode)
         std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
     taoWidget = new Widget(*taoWidget, newFormat);
+    connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
+            SLOT(showHandCursor(bool)));
+    connect(zoomInAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomIn()));
+    connect(zoomOutAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomOut()));
+    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
+            SLOT(resetView()));
     setCentralWidget(taoWidget);
     taoWidget->show();
     taoWidget->setFocus();
@@ -1068,6 +1080,40 @@ void Window::onDocReady(QString path)
     emit openFinished(ok);
 }
 
+
+void Window::onNewTemplateInstalled(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that a new template was installed
+// ----------------------------------------------------------------------------
+{
+    QString title = tr("New template installed");
+    QString msg = tr("A new template was installed.");
+    QString infoMsg = tr("The template will appear in the new document dialog."
+                         " Files were installed in folder %1.").arg(path);
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(infoMsg);
+    msgBox.exec();
+}
+
+
+void Window::onTemplateUpToDate(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing template is up-to-date
+// ----------------------------------------------------------------------------
+{
+    QString title = tr("Template is up-to-date");
+    QString msg = tr("The template is up-to-date.");
+    QString infoMsg = tr("The template is in folder %1.").arg(path);
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(infoMsg);
+    msgBox.exec();
+}
+
+
 void Window::reloadCurrentFile()
 // ----------------------------------------------------------------------------
 //    Reload the current document when user has switched branches
@@ -1170,7 +1216,7 @@ void Window::onlineDocTaodyne()
 //    Open the online documentation page on taodyne.com
 // ----------------------------------------------------------------------------
 {
-    QString url("http://taodyne.com/doc/1.0/");
+    QString url("http://taodyne.com/taopresentations/1.0/doc/");
     QDesktopServices::openUrl(url);
 }
 
@@ -1866,6 +1912,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         bool animated = taoWidget->hasAnimations();
         taoWidget->enableAnimations(NULL, false);
         taoWidget->resetTimes();
+        taoWidget->resetView();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
         if (animated)

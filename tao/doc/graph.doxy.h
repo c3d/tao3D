@@ -11,7 +11,7 @@
 
 
 /**
- * @defgroup graph_env Graphical environment
+ * @defgroup graph_env Graphical environment (line and fill colors, textures)
  * @ingroup Graphics
  * Opening environment to handle graphical objects and their attributes.
  * This groups also holds attribute information like color, line width, texture, etc...
@@ -70,7 +70,7 @@ anchor (t:tree);
 /**
  * Selects the line width for shape outlines.
  *
- * @c line_width @c "default" reset the line width to its default value.
+ * @c line_width @c "default" reset the line width to The default value.
  * @p lw is the width in pixels
  */
 line_width (lw:real);
@@ -109,7 +109,7 @@ line_stipple(pattern:integer, factor:integer);
  *   - a color defined by a module (like @ref tao_visuals.doxy.h::color "Tao Visuals")
  *
  * @param colorname is the name of the color
- * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. Its default value is 1.0.
+ * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. The default value is 1.0.
  */
 color (colorname:text, alpha:real);
 
@@ -122,11 +122,11 @@ color (colorname:text);
 /**
  * Selects a color by its red, green, blue and alpha-channel value.
  *
- * @param r red component of the color
- * @param g green component of the color
- * @param b blue component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param r red component of the color, in the range 0.0 to 1.0.
+ * @param g green component of the color, in the range 0.0 to 1.0.
+ * @param b blue component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 color (r:real, g:real, b:real, a:real);
 
@@ -139,11 +139,11 @@ color (r:real, g:real, b:real);
 /**
  * Selects the color by its hue, saturation, lightness, and alpha-channel (transparency) components.
  *
- * @param h hue component of the color
- * @param s saturation component of the color
- * @param l lightness component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param h hue component of the color,  in degrees (in the range 0.0 to 360.0).
+ * @param s saturation component of the color, in the range 0.0 to 1.0.
+ * @param l lightness component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 color_hsl (h:real, s:real, l:real, a:real);
 
@@ -156,11 +156,11 @@ color_hsl (h:real, s:real, l:real);
 /**
  * Selects the color by its hue, saturation, value, and alpha-channel (transparency) components.
  *
- * @param h hue component of the color
- * @param s saturation component of the color
- * @param v value component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param h hue component of the color, in degrees (in the range 0.0 to 360.0).
+ * @param s saturation component of the color, in the range 0.0 to 1.0.
+ * @param v value component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 color_hsv (h:real, s:real, v:real, a:real);
 
@@ -173,12 +173,12 @@ color_hsv (h:real, s:real, v:real);
 /**
  * Selects the color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
  *
- * @param c cyan component of the color
- * @param y yellow component of the color
- * @param m magenta component of the color
- * @param k black component of the color
+ * @param c cyan component of the color, in the range 0.0 to 1.0.
+ * @param y yellow component of the color, in the range 0.0 to 1.0.
+ * @param m magenta component of the color, in the range 0.0 to 1.0.
+ * @param k black component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * The default value is 1.0.
  */
 color_cymk (c:real, y:real, m:real, k:real, a:real);
 
@@ -195,8 +195,9 @@ color_cymk (c:real, y:real, m:real, k:real);
 no_color ();
 
 /**
- * Set the background color.
- * Set the RGB clear (background) color
+ * Specifies the clear values for the color buffers.
+ * This color is used to fill the drawing area (screen or window) before
+ * anything is drawn. As such it can be considered the background color.
  */
 clear_color (r:real, g:real, b:real, a:real);
 
@@ -225,7 +226,8 @@ no_line_color ();
  * but relevent colors for the line of a glyph and the fill of a glyph.
  *
  * @param colorname is the name of the color
- * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. Its default value is 1.0.
+ * @param alpha is the transparency factor. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 line_color (colorname:text, alpha:real);
 
@@ -238,11 +240,11 @@ line_color (colorname:text);
 /**
  * Selects a line color by its red, green, blue and alpha-channel value.
  *
- * @param r red component of the color
- * @param g green component of the color
- * @param b blue component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param r red component of the color, in the range 0.0 to 1.0.
+ * @param g green component of the color, in the range 0.0 to 1.0.
+ * @param b blue component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 line_color (r:real, g:real, b:real, a:real);
 
@@ -255,11 +257,11 @@ line_color (r:real, g:real, b:real);
 /**
  * Selects the line_color by its hue, saturation, lightness, and alpha-channel (transparency) components.
  *
- * @param h hue component of the color
- * @param s saturation component of the color
- * @param l lightness component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param h hue component of the color, in degrees (in the range 0.0 to 360.0).
+ * @param s saturation component of the color, in the range 0.0 to 1.0.
+ * @param l lightness component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 line_color_hsl (h:real, s:real, l:real, a:real);
 
@@ -272,11 +274,11 @@ line_color_hsl (h:real, s:real, l:real);
 /**
  * Selects the line_color by its hue, saturation, value, and alpha-channel (transparency) components.
  *
- * @param h hue component of the color
- * @param s saturation component of the color
- * @param v value component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param h hue component of the color, in degrees (in the range 0.0 to 360.0).
+ * @param s saturation component of the color, in the range 0.0 to 1.0.
+ * @param v value component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 line_color_hsv (h:real, s:real, v:real, a:real);
 
@@ -289,12 +291,12 @@ line_color_hsv (h:real, s:real, v:real);
 /**
  * Selects the line_color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
  *
- * @param c cyan component of the color
- * @param y yellow component of the color
- * @param m magenta component of the color
- * @param k black component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
- * Its default value is 1.0.
+ * @param c cyan component of the color, in the range 0.0 to 1.0.
+ * @param y yellow component of the color, in the range 0.0 to 1.0.
+ * @param m magenta component of the color, in the range 0.0 to 1.0.
+ * @param k black component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ * The default value is 1.0.
  */
 line_color_cymk (c:real, y:real, m:real, k:real, a:real);
 
@@ -307,11 +309,11 @@ line_color_cymk (c:real, y:real, m:real, k:real);
 /**
  * Creates a stop point in the current gradient at the given position with the given color.
  *
- * @param pos position of stop point in the current gradient. The value must be in the range 0 to 1.
- * @param r red component of the color
- * @param g green component of the color
- * @param b blue component of the color
- * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
+ * @param pos position of stop point in the current gradient, in the range 0.0 to 1.0.
+ * @param r red component of the color, in the range 0.0 to 1.0.
+ * @param g green component of the color, in the range 0.0 to 1.0.
+ * @param b blue component of the color, in the range 0.0 to 1.0.
+ * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  */
 gradient_color (pos:real, r:real, g:real, b:real, a:real);
 
@@ -407,6 +409,12 @@ texture(id:integer);
  * @return [integer] current texture id
  */
 texture();
+
+/**
+ * Check if a texture is bound at the specified unit.
+ * @return true if a texture is bound, false otherwise.
+ */
+has_texture();
 
 /**
  * Get current texture width.

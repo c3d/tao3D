@@ -72,5 +72,42 @@ real zoom();
 zoom(real z);
 
 /**
+ * Sets the distance from the viewer to the near clipping plane (zNear).
+ * The zNear value is always positive and non-zero.
+ */
+z_near(zn:real);
+
+/**
+ * Returns the distance from the viewer to the near clipping plane (zNear).
+ * The zNear value is always positive and non-zero. The default value
+ * is 1000.0.
+ * @return [real] current zNear value.
+ */
+z_near();
+
+/**
+ * Sets the distance from the viewer to the far clipping plane (zFar).
+ * The zFar value is always positive and non-zero.
+ */
+z_far(zf:real);
+
+/**
+ * Returns the distance from the viewer to the far clipping plane (zFar).
+ * The zFar value is always positive and non-zero. The default value is
+ * 56000.0.
+ * @return [real] current zFar value.
+ */
+z_far();
+
+/**
+ * Convert a screen position to world coordinates.
+ * Transform a screen position defined by (@p x, @p y) to world
+ * coordinates according to the current depth buffer.
+ *
+ * @return 3 real values, separated by commas.
+ */
+infix get_world_coordinates(x:integer, y:integer);
+
+/**
  * @}
  */

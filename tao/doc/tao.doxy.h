@@ -14,7 +14,8 @@
  * The reference pages also contain some examples.
  *
  * @note The latest version of this documentation is available online at
- * http://taodyne.com/doc/1.0/ with <b>full text search</b> capability.
+ * http://taodyne.com/taopresentations/1.0/doc/ with <b>full text search</b>
+ * capability.
  *
  * You may find more information and the latest news about Tao Presentations on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.

@@ -1,6 +1,8 @@
 ; tao.nsi
 ;
 ; Tao NSIS installation script.
+;
+; NOTE: Encoding for this file MUST BE ISO-8859-1, NOT UTF-8
 
 ;--------------------------------
 
@@ -87,7 +89,7 @@ RequestExecutionLevel admin
 ; Language strings - English
 LangString sec_tao       ${LANG_ENGLISH} "Tao Presentations (required)"
 LangString sec_shortcuts ${LANG_ENGLISH} "Start Menu Shortcuts"
-LangString sec_register  ${LANG_ENGLISH} "Register tao: links and .ddd files"
+LangString sec_register  ${LANG_ENGLISH} "Register Tao links and .ddd extension"
 LangString tao_document  ${LANG_ENGLISH} "Tao Presentations Document"
 LangString reg_fileext   ${LANG_ENGLISH} "Registering $0 file extension"
 LangString reg_uri       ${LANG_ENGLISH} "Registering $0: URI scheme"
@@ -100,9 +102,9 @@ LangString create_qlaunch ${LANG_ENGLISH} "Create quick launch shortcut"
 ; Language strings - French
 LangString sec_tao       ${LANG_FRENCH} "Tao Presentations (requis)"
 LangString sec_shortcuts ${LANG_FRENCH} "Raccourcis du menu Démarrer"
-LangString sec_register  ${LANG_FRENCH} "Associations tao: et .ddd"
+LangString sec_register  ${LANG_FRENCH} "Liens Tao et extension .ddd"
 LangString tao_document  ${LANG_FRENCH} "Document Tao Presentations"
-LangString reg_fileext   ${LANG_FRENCH} "Association l'extension $0"
+LangString reg_fileext   ${LANG_FRENCH} "Association de l'extension $0"
 LangString reg_uri       ${LANG_FRENCH} "Association des URIs $0:"
 LangString unreg_fileext ${LANG_FRENCH} "Suppression de l'extension $0"
 LangString unreg_uri     ${LANG_FRENCH} "Suppression des URIs $0:"
@@ -156,6 +158,8 @@ Section $(sec_register)
 
   push "tao"
   call RegisterURIScheme
+  push "taos"
+  call RegisterURIScheme
   push ".ddd"
   call RegisterFileExtension
   call RefreshShellIcons
@@ -173,7 +177,9 @@ Function RegisterURIScheme
   WriteRegStr HKCR "$0\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
   WriteRegStr HKCR "$0\shell" "" ""
   WriteRegStr HKCR "$0\shell\Open" "" ""
-  WriteRegStr HKCR "$0\shell\Open\command" "" "$INSTDIR\Tao.exe $\"%1$\""
+  WriteRegStr HKCR "$0\shell\Open\command" "" "$INSTDIR\Tao.exe"
+  WriteRegStr HKCR "$0\shell\Open\ddeexec" "" "[open($\"%1$\")]"
+  WriteRegStr HKCR "$0\shell\Open\ddeexec\Application" "" "Tao"
   Pop $R0
 
 FunctionEnd
@@ -190,7 +196,9 @@ Function RegisterFileExtension
   WriteRegStr HKCR "TaoPresentations.Document\DefaultIcon" "" "$INSTDIR\Tao.exe,1"
   WriteRegStr HKCR "TaoPresentations.Document\shell" "" ""
   WriteRegStr HKCR "TaoPresentations.Document\shell\Open" "" ""
-  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\command" "" "$INSTDIR\Tao.exe $\"%1$\""
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\command" "" "$INSTDIR\Tao.exe"
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\ddeexec" "" "[open($\"%1$\")]"
+  WriteRegStr HKCR "TaoPresentations.Document\shell\Open\ddeexec\Application" "" "Tao"
   Pop $R0
 
 FunctionEnd

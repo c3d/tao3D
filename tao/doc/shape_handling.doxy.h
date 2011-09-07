@@ -57,28 +57,6 @@ send_backward();
 send_to_back();
 
 /**
- * Set zNear.
- */
-z_near(zn:real);
-
-/**
- * Get zNear.
- * @return [real] current zNear value.
- */
-z_near();
-
-/**
- * Set zFar.
- */
-z_far(zf:real);
-
-/**
- * Get zFar.
- * @return [real] current zFar value.
- */
-z_far();
-
-/**
  * Set the polygon offset factors.
  * @param f0 factor base
  * @param f1, factor increment

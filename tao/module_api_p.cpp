@@ -41,8 +41,10 @@ ModuleApiPrivate::ModuleApiPrivate()
     addControlBox    = Widget::addControlBox;
 
     //Drawing paramaters
-    SetTexture       = ModuleRenderer::SetTexture;
-    SetTexCoords     = ModuleRenderer::SetTexCoords;
+    SetTextures      = ModuleRenderer::SetTextures;
+    BindTexture      = ModuleRenderer::BindTexture;
+    EnableTexCoords  = ModuleRenderer::EnableTexCoords;
+    DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
 

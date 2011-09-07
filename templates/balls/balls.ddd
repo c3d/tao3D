@@ -1,0 +1,153 @@
+/***
+* This document is an example of use of some
+* materials effect.
+**/
+import Mapping
+import Materials
+import Animate
+
+zoom 0.25
+
+Speed -> 1
+Style -> "Refraction"
+
+D -> window_width * 2
+P -> 1.5 * D
+R -> window_width / 8
+
+// Keyboard
+key "F1" ->
+    Style := "Refraction"
+key "F2" ->
+    Style := "Reflection"
+key "Right" ->
+    skip 1
+key "Left" ->
+    skip -1   
+
+// ------------------------------------------------- //
+//                  PAGES                            //
+// ------------------------------------------------- //
+
+// Intro scene
+page "Intro",
+    color "white"
+    environment_cube Style
+    show fade_between (page_time, 1.0, 4.0)
+    HUD
+    if page_time > 5.0 then
+        goto_page "Spheres"
+
+// Main scene
+page "Spheres",
+    refresh_on TimerEvent
+    color "white"
+    Camera
+    environment_cube Style
+    light 0
+    spheres 20
+
+// ------------------------------------------------- //
+//                  FUNCTIONS                        //
+// ------------------------------------------------- //
+
+description_text "fr" ->
+    text "Utiliser les touches suivantes pour changer le type de matériaux"
+    paragraph_break
+    text " * F1 pour la réfraction"
+    paragraph_break
+    text " * F2 pour la réflexion"
+
+description_text T:text ->
+    text "Use following keys to change type of materials"
+    paragraph_break
+    text " * F1 for refraction"
+    paragraph_break
+    text " * F2 for reflection"
+
+HUD ->
+    color "black"
+    camera_position 0, 0, 3200
+    translatez 2500
+    no_refresh_on MouseMoveEvent
+    z_near 1
+    text_box 0, 0, window_width * 75%, window_height,
+        font "Orbitron", 60 * (window_width / 1200)
+        vertical_align_center
+        align_center
+        description_text tao_language
+
+// Environment
+environment_cube "Refraction" ->
+    locally
+        cmap_refract
+        cube 0, 0, 0, 50000, 50000, 50000
+
+// Environment
+environment_cube "Reflection" ->
+    locally
+        cmap_reflect
+        cube 0, 0, 0, 50000, 50000, 50000
+
+// Cube map for refraction
+// Images by Jochum Skoglund
+cmap_refract ->
+    color "white"
+    cube_map 1024,
+        cube_map_flip true, true
+        cube_map_face 0, "refract/nx.jpg" // right
+        cube_map_face 1, "refract/px.jpg" // left
+        cube_map_face 2, "refract/py.jpg" // top
+        cube_map_face 3, "refract/ny.jpg" // bottom
+        cube_map_face 4, "refract/pz.jpg" // front
+        cube_map_face 5, "refract/nz.jpg" // back
+
+
+// Cube map for reflection
+// Images by Paul Debevec
+cmap_reflect ->
+    color "white"
+    cube_map 1024,
+        cube_map_flip true, true
+        cube_map_face 0, "reflect/nx.png" // right
+        cube_map_face 1, "reflect/px.png" // left
+        cube_map_face 2, "reflect/py.png" // top
+        cube_map_face 3, "reflect/ny.png" // bottom
+        cube_map_face 4, "reflect/pz.png" // front
+        cube_map_face 5, "reflect/nz.png" // back
+
+
+// Camera position
+Camera ->
+    Cx -> -230.856
+    Cy -> -341.539
+    locally
+        Sx -> screen_mouse_x - window_width / 2
+        Sy -> screen_mouse_y - window_height / 2
+        Cx := Cx + (Sx - Cx) * 0.05
+        Cy := Cy + (Sy - Cy) * 0.05
+        camera_position 10 * Cx, -10 * Cy, 3200
+        refresh_on TimerEvent
+        no_refresh_on MouseMoveEvent
+        z_near 1
+
+// "Spiral" spheres
+// Distribution of the spheres
+tm_s -> page_time * Speed
+spheres_spiral 0, Max -> nil
+spheres_spiral N:integer, Max:integer ->
+    locally
+        K -> 0.05
+        K := (real N) / Max
+        translate K * D * cos (tm_s + N * 0.8), K * D * sin (tm_s + N * 0.82), K * P * sin (tm_s + N * 0.8)
+        if Style = "Reflection" then
+            cmap_reflect
+            fresnel_material 0.0, 1.12, 10.0
+        else
+            cmap_refract
+            fresnel_material 0.0, 1.12, 0.01
+        sphere 0, 0, 0, R * (1 + 0.3 * (N mod 3))
+    spheres_spiral N - 1, Max
+
+spheres N:integer ->
+    spheres_spiral N, N

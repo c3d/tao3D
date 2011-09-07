@@ -127,6 +127,8 @@ void Licences::addLicenceFile(kstring licfname)
                 item = scanner.TokenText();
                 if (item == "name")
                     state = NAME;
+                else if (item == "company")
+                    state = COMPANY;
                 else if (item == "address")
                     state = ADDRESS;
                 else if (item == "email")

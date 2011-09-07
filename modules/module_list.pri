@@ -24,6 +24,7 @@
        materials        \
        lens_flare       \
        mapping          \
+       display_anaglyph \
        display_quadstereo \
        display_splitstereo \
        display_intstereo \

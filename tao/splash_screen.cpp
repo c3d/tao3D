@@ -22,7 +22,9 @@
 // ****************************************************************************
 
 #include "version.h"
+#include "licence.h"
 #include "splash_screen.h"
+#include "tao_utf8.h"
 
 #include <QtGui>
 
@@ -38,6 +40,28 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 //    Splash screen constructor: load the Tao bitmap and show program version
 // ----------------------------------------------------------------------------
 {
+    // Read licence info
+    QString s;
+    if (Licences::Has("Tao Presentations " GITREV))
+    {
+        QString name = +Licences::Name();
+        QString company = +Licences::Company();
+        if (name != "" || company != "")
+        {
+            s = QString("<font color=\"" TEXT_COLOR "\">%1</font>")
+                .arg(QString("<b>%1</b><br>%2<br>%3")
+                     .arg(tr("This product is licensed to:"))
+                     .arg(name).arg(company));
+            licencedTo.setHtml(s);
+        }
+    }
+    else
+    {
+        s = QString("<font color=\"" TEXT_COLOR "\">%2</font>")
+            .arg(tr("UNLICENSED"));
+        licencedTo.setHtml(s);
+    }
+
     setMask(QPixmap(":/images/splash.png").mask());
     QString version(QObject::tr("Version %1").arg(GITREV));
     showMessage(version);
@@ -127,22 +151,17 @@ void SplashScreen::drawContents(QPainter *painter)
 // ----------------------------------------------------------------------------
 {
     QSplashScreen::drawContents(painter);
+    QRect clip;
 
-    int x = 270, y = 230, w = 500, h = 225;
-    QTextDocument doc;
-    QRect clip = rect();
-    clip.setRect(0, 0, w, h);
-    painter->save();
-    painter->translate(x, y);
-    doc.setHtml(trUtf8("<font color=\"%1\">"
-            "by "
-            "Catherine Burvelle, "
-            "J\303\251r\303\264me Forissier and "
-            "Christophe de Dinechin,<br>"
-            "with help from Anne Lempereur and Lionel Schaffhauser."
-           "</font>").arg(TEXT_COLOR));
-    doc.drawContents(painter, clip);
-    painter->restore();
+    int x = 270, y = 220, w = 500, h = 225;
+    if (!licencedTo.isEmpty())
+    {
+        clip.setRect(0, 0, w, h);
+        painter->save();
+        painter->translate(x, y);
+        licencedTo.drawContents(painter, clip);
+        painter->restore();
+    }
 
     QString msg;
     msg = QString("<font color=\"" TEXT_COLOR "\">%1</font>").arg(message);
@@ -152,6 +171,7 @@ void SplashScreen::drawContents(QPainter *painter)
     h = 20;
     clip.setRect(0, 0, w, h);
     painter->translate(x, y);
+    QTextDocument doc;
     doc.setHtml(msg);
     doc.drawContents(painter, clip);
 }

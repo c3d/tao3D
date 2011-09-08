@@ -3827,7 +3827,18 @@ void Widget::printStatistics()
         RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
                            "%s ---/---%s", gcs1, gcs2);
     }
+
+    // Display garbage collection statistics
+    XL::GarbageCollector *gc = XL::GarbageCollector::Singleton();
+    uint tot  = 0, alloc = 0, freed = 0;
+    gc->Statistics(tot, alloc, freed);
+
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
+    RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
+                       tot>>10, alloc>>10, freed>>10);
 }
+
+
 
 // ============================================================================
 //

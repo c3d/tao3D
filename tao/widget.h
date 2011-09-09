@@ -816,6 +816,7 @@ private:
     friend class Layout;
     friend class PageLayout;
     friend class DisplayDriver;
+    friend class GCThread;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;

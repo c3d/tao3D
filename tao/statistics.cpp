@@ -75,6 +75,7 @@ void Statistics::begin(Operation op)
 
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
+    running[op] = true;
     timer[op].start();
 }
 
@@ -88,6 +89,10 @@ void Statistics::end(Operation op)
         return;
 
     Q_ASSERT(op >= 0 && op < LAST_OP);
+
+    if (!running[op])
+        return;
+    running[op] = false;
 
     int now = intervalTimer.elapsed();
     int elapsed = timer[op].elapsed();
@@ -117,7 +122,7 @@ double Statistics::fps()
 {
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1.0;
-    return (double)data[DRAW].size() * 1000 / interval;
+    return (double)data[FRAME].size() * 1000 / interval;
 }
 
 
@@ -148,7 +153,7 @@ int Statistics::averageTimePerFrame(Operation op)
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
 
-    int frames = data[DRAW].size();
+    int frames = data[FRAME].size();
     if (!frames)
         return -1.0;
     return total[op]/frames;

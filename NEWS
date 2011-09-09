@@ -1,5 +1,4 @@
-ï»¿Change log for Tao Presentations
---------------------------------
+Change log for Tao Presentations
 
 1.0-beta7 (07-Sep-2011)
 
@@ -74,7 +73,7 @@
 #1244 Do not ask for project creation when a document is created from a template
 #1232 "Save as" into non empty folder may take a long time and result in "index.lock: file exists"
 #1229 ModuleApi: add timeout parameter to refreshOn. Export currentTime.
-#1227 Accented characters (é) in module names incorrectly displayed on splash screen
+#1227 Accented characters (Ã©) in module names incorrectly displayed on splash screen
 #1223 Crash when selecting View > Display mode menu
 #1217 Crash on frame texture
 
@@ -106,7 +105,7 @@
 #1152 Missing texture when movie_texture is used
 #1131 Combo box to select UI language should be multilingual
 #1130 'and' not translated in french version of about box
-#1129 GL error message not localized, 'é' character not shown on Windows
+#1129 GL error message not localized, 'Ã©' character not shown on Windows
 #1126 MacOSX: error message "QPixmap::scaled: Pixmap is a null pixmap" on startup
 #1116 Add copyright info for LLVM, XLR, ... in about box and documentation
 #1113 Add enable_glyph_cache control to the chooser
@@ -150,10 +149,10 @@
 #1075 frame primitive not refreshed, error "Unexpected NULL ctx/body in non-root layout"
 #1074 Crash in Imagina demo in xl_textUnit
 #1073 Unnecessary compilations on a continuous basis
-#1069 Switching to « Cannes » stereoscopy requires Enable stereoscopy first
+#1069 Switching to Â« Cannes Â» stereoscopy requires Enable stereoscopy first
 #1066 Improve smoothness of animations
 #1026 MacOSX: crash in libunwind::CFI_Parser
-#1020 Chooser doesn't match é and e
+#1020 Chooser doesn't match Ã© and e
 #1005 page_thumbnail not refreshed
 
 1.0-beta2 (20-May-2011)

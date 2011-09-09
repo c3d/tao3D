@@ -629,9 +629,11 @@ void Widget::drawScene()
     if (XL::MAIN->options.threaded_gc)
     {
         // Record wait time till asynchronous garbage collection completes
-        stats.begin(Statistics::GC);
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::GC_WAIT);
         TaoApp->gcThread->waitCollectDone();
-        stats.end(Statistics::GC);
+        stats.end(Statistics::GC_WAIT);
+        stats.begin(Statistics::DRAW);
     }
 
     // Delete objects that have GL resources, pushed by GC
@@ -732,17 +734,14 @@ void Widget::draw()
     }
 
     if (!XL::MAIN->options.threaded_gc)
-    {
-        // Record time for synchronous garbage collection
-        stats.begin(Statistics::GC);
         emit runGC();
-        stats.end(Statistics::GC);
-    }
 
     // Run current display algorithm
+    stats.begin(Statistics::FRAME);
     stats.begin(Statistics::DRAW);
     displayDriver->display();
     stats.end(Statistics::DRAW);
+    stats.end(Statistics::FRAME);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -3805,27 +3804,46 @@ void Widget::printStatistics()
     static const char *gcs1 = NULL, *gcs2 = NULL;
     if (!gcs1)
     {
-        // "GCw" is GC wait time, included in Draw time
+        // "GCw" is GC wait time
         gcs1 = XL::MAIN->options.threaded_gc ? "(GCw" : "GC";
         gcs2 = XL::MAIN->options.threaded_gc ? ")" : "";
     }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
-        int xa, xm, da, dm, ga, gm;
+        int xa, xm, da, dm, ga, gm, wa, wm;
         xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
         da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
-        RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                           "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);
+        if (XL::MAIN->options.threaded_gc)
+        {
+            wa = stats.averageTimePerFrame(Statistics::GC_WAIT);
+            wm = stats.maxTime(Statistics::GC_WAIT);
+            RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                               "GCw %3d/%3d (GC %3d/%3d)", xa, xm, da, dm,
+                               wa, wm, ga, gm);
+        }
+        else
+        {
+            RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                               "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+        }
     }
     else
     {
-        RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
-                           "%s ---/---%s", gcs1, gcs2);
+        if (XL::MAIN->options.threaded_gc)
+        {
+            RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "GCw ---/--- (GC ---/---)");
+        }
+        else
+        {
+            RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "GC ---/---");
+        }
     }
 
     // Display garbage collection statistics
@@ -8394,9 +8412,13 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
         frame.begin();
         layout->Draw(NULL);
         frame.end();
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
 
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
@@ -8474,9 +8496,13 @@ Integer* Widget::thumbnail(Context *context,
             context->Evaluate(prog);
 
         // Draw the layout in the frame context
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
         frame.begin();
         layout->Draw(NULL);
         frame.end();
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
 
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);

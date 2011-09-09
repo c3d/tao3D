@@ -34,6 +34,7 @@ shader_program
  * @include shaders.ddd
  *
  * @image html shaders.png "Shaders demo: shaders.ddd"
+ *
  * @{
  */
 
@@ -44,6 +45,15 @@ shader_program
  * of code in which you may use @ref vertex_shader, @ref vertex_shader_file,
  * @ref fragment_shader, @ref fragment_shader_file, @ref geometry_shader, and/or
  * @ref geometry_shader_file to create individual shaders.
+ *
+ * @attention No texture is activated by defaut. In order to use
+ * texture coordinates in a shader without texture, it is necessary to
+ * set an empty one just before with the following sample code.
+ @code
+ // Set a empty texture in order to activate the
+ // texture coordinates on the current texture unit.
+ texture ""
+ @endcode
  */
 boolean shader_program(c:code);
 
@@ -82,6 +92,95 @@ boolean geometry_shader(src:text);
  * The shader source is read from file @p f.
  */
 boolean geometry_shader_file(f:text);
+
+/**
+ * Get geometry shader input type.
+ *
+ * Get geometry shader input type as an integer.
+ * The input type is one of the following value :
+ *  - GL_POINTS =  0
+ *  - GL_LINES = 1
+ *  - GL_TRIANGLES = 4
+ *  - GL_LINES_ADJACENCY_EXT = 10
+ *  - GL_TRIANGLES_ADJACENCY_EXT = 12
+ *
+ * @return Current input type
+ */
+integer geometry_shader_input();
+
+/**
+ * Set geometry shader input type.
+ *
+ * Specified geometry shader input type as an integer.
+ *
+ * The input type have to be one of the following value :
+ *  - GL_POINTS =  0
+ *  - GL_LINES = 1
+ *  - GL_TRIANGLES = 4
+ *  - GL_LINES_ADJACENCY_EXT = 10
+ *  - GL_TRIANGLES_ADJACENCY_EXT = 12
+ *
+ * @param type geometry shader input type
+ *
+ */
+boolean geometry_shader_input(type:integer);
+
+/**
+ * Get geometry shader output type.
+ *
+ * Get geometry shader output type as an integer.
+ *
+ * The output type is one of the following value :
+ *  - GL_POINTS =  0
+ *  - GL_LINE_STRIP = 3
+ *  - GL_TRIANGLE_STRIP = 5
+ *
+ * @return Current output type
+ */
+integer geometry_shader_output();
+
+/**
+ * Set geometry shader output type.
+ *
+ * Specified geometry shader output type as an integer.
+ *
+ * The output type have to be one of the following value :
+ *  - GL_POINTS =  0
+ *  - GL_LINE_STRIP = 3
+ *  - GL_TRIANGLE_STRIP = 5
+ *
+ * @param type geometry shader output type
+ *
+ */
+boolean geometry_shader_output(type:integer);
+
+/**
+ * Get geometry shader maximum output vertices.
+ *
+ * Get geometry shader vertices count. It corresponds to the maximum number of points
+ * any instance of the shader will emit.
+ *
+ * The limit of ouput vertices is based on the number scalar values in the output type.
+ * However, the total number of these values can not exceed 1024 (GLSL specifications).
+ *
+ * @return Maximum output vertices.
+ */
+integer geometry_shader_count();
+
+/**
+ * Set geometry shader maximum output vertices.
+ *
+ * Specify geometry shader vertices count. It corresponds to the maximum number of points
+ * any instance of the shader will emit.
+ *
+ * The limit of ouput vertices is based on the number scalar values in the output type.
+ * However, the total number of these values can not exceed 1024 (GLSL specifications).
+ *
+ * @param n maximum output shader vertices.
+ *
+ */
+boolean geometry_shader_count(n:integer);
+
 
 /**
  * Sets uniform or attribute variables in the current shader program.

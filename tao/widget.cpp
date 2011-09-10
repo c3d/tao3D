@@ -2526,8 +2526,13 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (selectionRectangleEnabled && button == Qt::LeftButton)
-        new Selection(this);
+    if (button == Qt::LeftButton)
+    {
+        if (selectionRectangleEnabled)
+            new Selection(this);
+        else if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+            shapeAction("click", id, x, y);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;

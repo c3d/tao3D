@@ -4928,9 +4928,7 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 {
     if(! layout->hasTransform)
     {
-        // Update the current model rotation
-        Quaternion q;
-        layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+        layout->model.Rotate(ra, rx, ry, rz);
     }
 
     layout->Add(new Rotation(ra, rx, ry, rz));
@@ -4974,9 +4972,7 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
     if(! layout->hasTransform)
     {
         // Update the current model translation
-        layout->model.tx += tx;
-        layout->model.ty += ty;
-        layout->model.tz += tz;
+        layout->model.Translate(tx, ty, tz);
     }
 
     layout->Add(new Translation(tx, ty, tz));
@@ -5019,9 +5015,7 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     if(! layout->hasTransform)
     {
         // Update the current model scaling
-        layout->model.sx *= sx;
-        layout->model.sy *= sy;
-        layout->model.sz *= sz;
+        layout->model.Scale(sx, sy, sz);
     }
 
     layout->Add(new Scale(sx, sy, sz));
@@ -5469,12 +5463,7 @@ Infix_p Widget::currentModelMatrix(Tree_p self)
 //   Return the current model matrix which convert from object space to world space
 // ----------------------------------------------------------------------------
 {
-    Matrix4 matrix;
-    matrix.Scale(layout->model.sx, layout->model.sy, layout->model.sz);
-    matrix.Rotate(layout->model.rotation);
-    matrix.Translate(layout->model.tx, layout->model.ty, layout->model.tz);
-
-    Tree *result = xl_real_list(self, 16, matrix.Data());
+    Tree *result = xl_real_list(self, 16, layout->model.Data());
     return result->AsInfix();
 }
 

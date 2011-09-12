@@ -37,6 +37,7 @@
 #include "tao_main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
+#include "version.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -421,6 +422,7 @@ void signal_handler(int sigid)
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
+                           "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),

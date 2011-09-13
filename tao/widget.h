@@ -837,8 +837,10 @@ private:
 
     // Rendering
     QGradient*            gradient;
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
+    FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
     scale                 pageW, pageH, blurFactor;

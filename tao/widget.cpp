@@ -151,7 +151,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true), clearCol(255, 255, 255, 255),
+      runOnNextDraw(true),
       space(NULL), layout(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
@@ -304,7 +304,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), clearCol(o.clearCol),
+      runOnNextDraw(true),
       space(NULL), layout(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
@@ -675,12 +675,11 @@ void Widget::drawActivities()
 
 void Widget::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the widget
+//   Call glClearColor with the color specified in the top-level layout
 // ----------------------------------------------------------------------------
 {
-    qreal r, g, b, a;
-    clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+    Color c = space->clearColor;
+    glClearColor (c.red, c.green, c.blue, c.alpha);
 }
 
 
@@ -3080,7 +3079,6 @@ void Widget::updateProgram(XL::SourceFile *source)
         return;
     space->Clear();
     dfltRefresh = optimalDefaultRefresh();
-    clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
@@ -5711,7 +5709,7 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
-    clearCol.setRgbF(r, g, b, a);
+    layout->clearColor.Set(r, g, b, a);
     return XL::xl_true;
 }
 
@@ -8387,7 +8385,9 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // Clear the background and setup initial state
         frame.resize(w,h);
         setup(w, h);
+        layout->clearColor = frame.clearColor;
         result = context->Evaluate(prog);
+        frame.clearColor = layout->clearColor;
 
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);

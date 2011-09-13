@@ -63,6 +63,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
     fbo_map render_fbos;
     fbo_map texture_fbos;
     tex_map depth_textures;
+    Color   clearColor;
 
 #define render_fbo  render_fbos[QGLContext::currentContext()]
 #define texture_fbo texture_fbos[QGLContext::currentContext()]

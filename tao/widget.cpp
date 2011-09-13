@@ -2525,8 +2525,13 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (selectionRectangleEnabled && button == Qt::LeftButton)
-        new Selection(this);
+    if (button == Qt::LeftButton)
+    {
+        if (selectionRectangleEnabled)
+            new Selection(this);
+        else if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+            shapeAction("click", id, x, y);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
@@ -3843,7 +3848,18 @@ void Widget::printStatistics()
                                "GC ---/---");
         }
     }
+
+    // Display garbage collection statistics
+    XL::GarbageCollector *gc = XL::GarbageCollector::Singleton();
+    uint tot  = 0, alloc = 0, freed = 0;
+    gc->Statistics(tot, alloc, freed);
+
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
+    RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
+                       tot>>10, alloc>>10, freed>>10);
 }
+
+
 
 // ============================================================================
 //
@@ -10943,18 +10959,36 @@ Name_p Widget::hasDisplayModeText(Tree_p self, text name)
     return XL::xl_false;
 }
 
-Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
+
+Real_p Widget::getWorldZ(Tree_p self, Real_p x, Real_p y)
 // ----------------------------------------------------------------------------
-//   Convert a screen position to an xyz world coordinates
+//   Get the depth buffer value in world coordinate for X and Y
 // ----------------------------------------------------------------------------
 {
     Point3 pos;
-    Tree* result = XL::xl_real_list(self, 3, &pos.x);
+    double value = 0.0;
     layout->Add(new ConvertScreenCoordinates(self, x, y));
     if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
-        result = XL::xl_real_list(self, 3, &info->coordinates.x);
+        value = info->coordinates.z;
+    return new XL::Real(value, self->Position());
+}
 
-    return result->AsInfix();
+
+Real_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y,
+                                   Real_p wx, Real_p wy, Real_p wz)
+// ----------------------------------------------------------------------------
+//   Get the depth buffer value in world coordinate for X and Y
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    layout->Add(new ConvertScreenCoordinates(self, x, y));
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
+    {
+        wx->value = info->coordinates.x;
+        wy->value = info->coordinates.y;
+        wz->value = info->coordinates.z;
+    }
+    return wz;
 }
 
 

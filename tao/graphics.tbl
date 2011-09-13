@@ -317,14 +317,25 @@ PREFIX(HasDisplayMode,  boolean,  "has_display_mode",
        SYNOPSIS("Check if a display mode is available")
        DESCRIPTION("Check if a specific display mode is available and can be used")
        RETURNS(boolean, "True if the mode is available, false otherwise.") )
-PREFIX(GetWorldCoordinates,  infix,  "get_world_coordinates",
+PREFIX(GetWorldZ,  real,  "depth_at",
        PARM(x, real, "x-coordinates on the screen")
        PARM(y, real, "y-coordinates on the screen"),
-       RTAO(getWorldCoordinates(self, x, y)),
+       RTAO(getWorldZ(self, x, y)),
        GROUP(misc)
-       SYNOPSIS("Convert screen to world coordinates")
-       DESCRIPTION("Convert screen to world coordinates")
-       RETURNS(infix, "World coordinates of the given screen position.") )
+       SYNOPSIS("Get Z depth at given coordinates")
+       DESCRIPTION("Get Z depth at given coordinates")
+       RETURNS(infix, "Z depth at given coordinates.") )
+PREFIX(GetWorldCoordinates,  real,  "world_coordinates",
+       PARM(x, real, "x-coordinates on the screen")
+       PARM(y, real, "y-coordinates on the screen")
+       PARM(wx, real, "x-coordinates on the screen")
+       PARM(wy, real, "y-coordinates on the screen")
+       PARM(wz, real, "z-coordinates on the screen"),
+       RTAO(getWorldCoordinates(self, x, y, wx, wy, wz)),
+       GROUP(misc)
+       SYNOPSIS("Get Z depth at given coordinates")
+       DESCRIPTION("Get Z depth at given coordinates")
+       RETURNS(infix, "Z depth at given coordinates.") )
 PREFIX(HasDisplayModeText,  boolean,  "has_display_mode",
        PARM(name, text, "The name of the display mode to test"),
        RTAO(hasDisplayModeText(self, name)),

@@ -775,7 +775,9 @@ public:
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
-    Infix_p     getWorldCoordinates(Tree_p, Real_p x, Real_p y);
+    Real_p      getWorldZ(Tree_p, Real_p x, Real_p y);
+    Real_p      getWorldCoordinates(Tree_p, Real_p x, Real_p y,
+                                    Real_p wx, Real_p wy, Real_p wz);
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 

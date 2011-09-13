@@ -31,7 +31,8 @@
        display_alioscopy \
        shaders/monjori  \
        shaders/flares  \
-       shaders/sinuous  \
+       shaders/sinuous \
+       shaders/sparks  \
        slideshow_3d
     OTHER_MODULES =     \
         display_2dplusdepth \

@@ -409,7 +409,7 @@ ConeMesh::ConeMesh(double ratio)
 //    Construct a (possibly truncated) unit cone - Limit case is a cylinder
 // ----------------------------------------------------------------------------
 {
-    for (double a = 0; a <= 2 * M_PI; a += M_PI / 10)
+    for (double a = 0; a <= 2 * M_PI; a += M_PI / 30)
     {
         double ca = cos(a);
         double sa = sin(a);
@@ -422,10 +422,13 @@ ConeMesh::ConeMesh(double ratio)
         vertices.push_back(Point3(ca * ratio, sa * ratio, 0.5));
     }
 
-    // Compute normal of each vertex according to those calculate for neighbouring faces
+    // Compute normal of each vertex according to those calculate for
+    // neighbouring faces
     // NOTE: First and last normals are the same because of QUAD_STRIP
     Vector3 previousFaceNorm, nextFaceNorm;
-    previousFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
+    previousFaceNorm = calculateNormal(vertices[vertices.size() - 2],
+                                       vertices[vertices.size() - 1],
+                                       vertices[0]);
     nextFaceNorm = calculateNormal(vertices[0], vertices[1], vertices[2]);
     normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
     normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
@@ -433,9 +436,13 @@ ConeMesh::ConeMesh(double ratio)
     {
         previousFaceNorm = nextFaceNorm;
         if(i < vertices.size() - 2)
-            nextFaceNorm = calculateNormal(vertices[i], vertices[i + 1], vertices[i + 2]);
+            nextFaceNorm = calculateNormal(vertices[i],
+                                           vertices[i + 1],
+                                           vertices[i + 2]);
         else
-            nextFaceNorm = calculateNormal(vertices[vertices.size() - 2], vertices[vertices.size() - 1], vertices[0]);
+            nextFaceNorm = calculateNormal(vertices[vertices.size() - 2],
+                                           vertices[vertices.size() - 1],
+                                           vertices[0]);
 
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
@@ -443,6 +450,7 @@ ConeMesh::ConeMesh(double ratio)
     normals.push_back(normals[0]);
     normals.push_back(normals[0]);
 }
+
 
 Cone::ConeCache Cone::cache;
 

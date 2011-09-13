@@ -98,6 +98,7 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
+    Color               clearColor;
     TextureState        currentTexture;
     uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units

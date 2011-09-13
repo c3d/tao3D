@@ -34,6 +34,7 @@ void Statistics::reset()
     {
         data[i].clear();
         total[i] = 0;
+        frameTotal[i] = 0;
         max[i] = 0;
         lastMaxTime[i] = 0;
     }
@@ -106,11 +107,19 @@ void Statistics::end(Operation op)
     while (now - d.first().first >= interval)
         total[op] -= d.takeFirst().second;
 
-    // Update max if current value is larger, or peak interval has expired
-    if (elapsed > max[op] || (now - lastMaxTime[op]) >= interval)
+    frameTotal[op] += elapsed;
+    if (op == FRAME)
     {
-        max[op] = elapsed;
-        lastMaxTime[op] = now;
+        for (int i = 0; i < LAST_OP; i++)
+        {
+            // Update max if current value is larger, or peak interval has expired
+            if (frameTotal[i] > max[i] || (now - lastMaxTime[i]) >= interval)
+            {
+                max[i] = frameTotal[i];
+                lastMaxTime[i] = now;
+            }
+            frameTotal[i] = 0;
+        }
     }
 }
 

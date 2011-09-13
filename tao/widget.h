@@ -838,7 +838,6 @@ private:
     bool                  runOnNextDraw;
 
     // Rendering
-    QColor                clearCol;
     QGradient*            gradient;
     SpaceLayout *         space;
     Layout *              layout;

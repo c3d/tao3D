@@ -32,7 +32,7 @@ FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : w(w), h(h), refreshTime(-1)
+    : w(w), h(h), refreshTime(-1), clearColor(1, 1, 1, 0)
 {
     resize(w, h);
 }
@@ -42,7 +42,8 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor - Don't copy the framebuffers
 // ----------------------------------------------------------------------------
-    : XL::Info(o), w(o.w), h(o.h), refreshTime(o.refreshTime)
+    : XL::Info(o), w(o.w), h(o.h), refreshTime(o.refreshTime),
+      clearColor(o.clearColor)
 {
     resize(w, h);
 }
@@ -176,7 +177,8 @@ void FrameInfo::begin()
     glShowErrors();
 
     glDisable(GL_TEXTURE_2D);
-    glClearColor(1,1,1,0);
+    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
+                 clearColor.alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

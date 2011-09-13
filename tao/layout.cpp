@@ -50,6 +50,7 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
+      clearColor(1,1,1,1),      // White
       currentLights(0),
       textureUnits(0),
       lightId(GL_LIGHT0), programId(0),
@@ -76,6 +77,7 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
+	clearColor(o.clearColor),
         currentTexture(o.currentTexture),
         currentLights(o.currentLights),
         textureUnits(o.textureUnits),
@@ -110,6 +112,7 @@ void LayoutState::ClearAttributes(bool all)
         zero.hasTextureMatrix = hasTextureMatrix;
         zero.hasAttributes = hasAttributes;
         zero.hasLighting = hasLighting;
+        zero.clearColor = clearColor;
     }
     *this = zero;
 }
@@ -656,6 +659,7 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
+    clearColor       = where->clearColor;
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;

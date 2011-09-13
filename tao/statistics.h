@@ -65,7 +65,7 @@ protected:
     // Timing information for each event
     QTime       timer[LAST_OP];
     durations   data[LAST_OP];
-    int         total[LAST_OP];
+    int         total[LAST_OP], frameTotal[LAST_OP];
     int         max[LAST_OP];
     int         lastMaxTime[LAST_OP];
     bool        running[LAST_OP];

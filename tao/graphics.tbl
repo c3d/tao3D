@@ -1788,7 +1788,7 @@ PREFIX(Frame,  tree,  "frame",
        SYNOPSIS("A frame with a content")
        DESCRIPTION("Draw a frame with the described content in 'prog'. This frame as no displayed border. It makes a texture of size (w,h) using 'frame_texture', and map it on a rectangle at (x) location.")
        RETURNS(tree, "The result of 'prog' evaluation"))
-PREFIX(FrameTexture,  tree,  "frame_texture",
+PREFIX(FrameTexture,  integer,  "frame_texture",
        PARM(w,real, "width")
        PARM(h,real, "height")
        PARM(p, code, "The program that represent the content of the frame"),
@@ -1797,6 +1797,15 @@ PREFIX(FrameTexture,  tree,  "frame_texture",
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
        RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(FrameDepthTexture,  integer,  "frame_texture_with_depth",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p, true)),
+       GROUP(widget)
+       SYNOPSIS("Request depth texture for a frame_texture")
+       DESCRIPTION("Ensure that a frame_texture generates a depth texture")
+       RETURNS(tree, "The ID of the depth texture"))
 PREFIX(LinearGradient,  tree,  "linear_gradient",
        PARM(start_x, real, "x-coordinate of the gradient start")
        PARM(start_y, real, "y-coordinate of the gradient start")

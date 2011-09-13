@@ -151,8 +151,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true),
-      space(NULL), layout(NULL), path(NULL), table(NULL),
+      runOnNextDraw(true), clearCol(255, 255, 255, 255),
+      space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -304,8 +304,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true),
-      space(NULL), layout(NULL), path(o.path), table(o.table),
+      runOnNextDraw(true), clearCol(o.clearCol),
+      space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
@@ -675,11 +675,12 @@ void Widget::drawActivities()
 
 void Widget::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the top-level layout
+//   Call glClearColor with the color specified in the widget
 // ----------------------------------------------------------------------------
 {
-    Color c = space->clearColor;
-    glClearColor (c.red, c.green, c.blue, c.alpha);
+    qreal r, g, b, a;
+    clearCol.getRgbF(&r, &g, &b, &a);
+    glClearColor (r, g, b, a);
 }
 
 
@@ -3084,6 +3085,7 @@ void Widget::updateProgram(XL::SourceFile *source)
         return;
     space->Clear();
     dfltRefresh = optimalDefaultRefresh();
+    clearCol.setRgb(255, 255, 255, 255);
 
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
@@ -5728,7 +5730,7 @@ static inline QColor colorByName(text name)
 
 Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
-//    Set the RGB clear (background) color
+//    Set the clear (background) color for current FrameInfo or for the Widget
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(r);
@@ -5736,7 +5738,10 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
-    layout->clearColor.Set(r, g, b, a);
+    if (frameInfo)
+        frameInfo->clearColor.Set(r, g, b, a);
+    else
+        clearCol.setRgbF(r, g, b, a);
     return XL::xl_true;
 }
 
@@ -8396,13 +8401,15 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
     uint id = selectionId();
-    FrameInfo &frame = multiframe->frame(id);
+    FrameInfo *pFrame = &multiframe->frame(id);
+    FrameInfo &frame = *pFrame;
 
     Layout *parent = layout;
     do
     {
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
@@ -8412,9 +8419,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // Clear the background and setup initial state
         frame.resize(w,h);
         setup(w, h);
-        layout->clearColor = frame.clearColor;
         result = context->Evaluate(prog);
-        frame.clearColor = layout->clearColor;
 
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);

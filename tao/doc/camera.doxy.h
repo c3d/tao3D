@@ -102,11 +102,23 @@ z_far();
 /**
  * Convert a screen position to world coordinates.
  * Transform a screen position defined by (@p x, @p y) to world
- * coordinates according to the current depth buffer.
+ * coordinates @p wx, @p wy and @p wz. The depth at the given location
+ * is given by the current value of the OpenGL depth buffer.
+ * The parameters @p wx, @p wy and @p wz are modified.
+ * To simply obtain the depth, use the @ref depth_at function.
  *
- * @return 3 real values, separated by commas.
+ * @return a real number corresponding to the Z position
  */
-infix get_world_coordinates(x:integer, y:integer);
+real world_coordinates(x:real, y:real, wx:real, wy:real, wz:real);
+
+/**
+ * Get the Z position corresponding to the given coordinates @p x and @p y.
+ * The Z position is computed from the OpenGL depth buffer.
+ * To obtain the three coordinates, use @ref world_coordinates.
+ *
+ * @return the Z position at the given coordinates
+ */
+real depth_at(x:real, y:real);
 
 /**
  * @}

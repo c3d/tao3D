@@ -196,8 +196,37 @@ no_color ();
 
 /**
  * Specifies the clear values for the color buffers.
+ * When this primitive is called in the root layout (that is, outside of
+ * any @ref locally block or similar), it sets the clear color for the
+ * main drawing area.
  * This color is used to fill the drawing area (screen or window) before
  * anything is drawn. As such it can be considered the background color.
+ *
+ * When the primitive is called inside a @ref frame or @ref frame_texture
+ * block, it sets the clear color of the local drawing buffer, which can
+ * have subtle effects on the rendering. The default
+ * clear color of a @ref frame_texture is transparent white, (1, 1, 1, 0).
+ * In some cases you may want to change this color. For instance, look
+ * at the border of the characters in the following example, with and
+ * without the @ref clear_color line in the @ref frame_texture block.
+ * @code
+clear_color 1, 1, 1, 1
+color "black"
+rectangle 0, 0, 600, 200
+color "white"
+frame_texture 600, 200,
+    // Try commenting out the following line
+    clear_color 0, 0, 0, 0
+    text_box 0, 0, 600, 200,
+        color "blue"
+        font "Times", 96
+        align_center
+        vertical_align_center
+        text "Hello"
+    color 1, 0, 0, 75%
+    circle 200, 0, 50
+rectangle 0, 0, 600, 200
+ * @endcode
  */
 clear_color (r:real, g:real, b:real, a:real);
 

@@ -315,9 +315,10 @@ void RecordMouseCoordinates::Draw(Layout *where)
     }
 }
 
+
 void ConvertScreenCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Convert screen coordinates to world coordinates
+//   Convert screen coordinates to world coordinates (get Z depth)
 // ----------------------------------------------------------------------------
 {
     Widget *widget = where->Display();
@@ -330,20 +331,24 @@ void ConvertScreenCoordinates::Draw(Layout *where)
 
     widget->recordProjection(info->projection, info->model, info->viewport);
 
-    Point3 win, pos;
+    Point3 win;
     GLfloat pixelDepth;
 
     // Map object coordinates to window coordinates
-    gluProject(x, y, 0, info->model, info->projection, info->viewport, &win.x, &win.y, &win.z);
+    gluProject(x, y, 0,
+               info->model, info->projection, info->viewport,
+               &win.x, &win.y, &win.z);
 
     // Read depth buffer
-    glReadPixels( win.x, win.y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT, &pixelDepth );
+    glReadPixels(win.x, win.y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 &pixelDepth);
 
     // Map window coordinates to object coordinates
-    gluUnProject( win.x, win.y, pixelDepth, info->model, info->projection, info->viewport, &pos.x, &pos.y, &pos.z);
-
-    info->coordinates = pos;
+    gluUnProject(win.x, win.y, pixelDepth,
+                 info->model, info->projection, info->viewport,
+                 &info->coordinates.x,
+                 &info->coordinates.y,
+                 &info->coordinates.z);
 }
-
 
 TAO_END

@@ -621,7 +621,7 @@ public:
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog);
+                             double w, double h, Tree_p prog, bool depth=false);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
@@ -775,7 +775,9 @@ public:
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
-    Infix_p     getWorldCoordinates(Tree_p, Real_p x, Real_p y);
+    Real_p      getWorldZ(Tree_p, Real_p x, Real_p y);
+    Real_p      getWorldCoordinates(Tree_p, Real_p x, Real_p y,
+                                    Real_p wx, Real_p wy, Real_p wz);
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 
@@ -816,6 +818,7 @@ private:
     friend class Layout;
     friend class PageLayout;
     friend class DisplayDriver;
+    friend class GCThread;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
@@ -835,10 +838,11 @@ private:
     bool                  runOnNextDraw;
 
     // Rendering
-    QColor                clearCol;
     QGradient*            gradient;
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
+    FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
     scale                 pageW, pageH, blurFactor;

@@ -152,7 +152,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
-      space(NULL), layout(NULL), path(NULL), table(NULL),
+      space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -305,7 +305,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
       runOnNextDraw(true), clearCol(o.clearCol),
-      space(NULL), layout(NULL), path(o.path), table(o.table),
+      space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
@@ -629,9 +629,11 @@ void Widget::drawScene()
     if (XL::MAIN->options.threaded_gc)
     {
         // Record wait time till asynchronous garbage collection completes
-        stats.begin(Statistics::GC);
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::GC_WAIT);
         TaoApp->gcThread->waitCollectDone();
-        stats.end(Statistics::GC);
+        stats.end(Statistics::GC_WAIT);
+        stats.begin(Statistics::DRAW);
     }
 
     // Delete objects that have GL resources, pushed by GC
@@ -732,17 +734,14 @@ void Widget::draw()
     }
 
     if (!XL::MAIN->options.threaded_gc)
-    {
-        // Record time for synchronous garbage collection
-        stats.begin(Statistics::GC);
         emit runGC();
-        stats.end(Statistics::GC);
-    }
 
     // Run current display algorithm
+    stats.begin(Statistics::FRAME);
     stats.begin(Statistics::DRAW);
     displayDriver->display();
     stats.end(Statistics::DRAW);
+    stats.end(Statistics::FRAME);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -2527,8 +2526,13 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (selectionRectangleEnabled && button == Qt::LeftButton)
-        new Selection(this);
+    if (button == Qt::LeftButton)
+    {
+        if (selectionRectangleEnabled)
+            new Selection(this);
+        else if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+            shapeAction("click", id, x, y);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
@@ -3805,27 +3809,46 @@ void Widget::printStatistics()
     static const char *gcs1 = NULL, *gcs2 = NULL;
     if (!gcs1)
     {
-        // "GCw" is GC wait time, included in Draw time
+        // "GCw" is GC wait time
         gcs1 = XL::MAIN->options.threaded_gc ? "(GCw" : "GC";
         gcs2 = XL::MAIN->options.threaded_gc ? ")" : "";
     }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
-        int xa, xm, da, dm, ga, gm;
+        int xa, xm, da, dm, ga, gm, wa, wm;
         xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
         da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
-        RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                           "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);
+        if (XL::MAIN->options.threaded_gc)
+        {
+            wa = stats.averageTimePerFrame(Statistics::GC_WAIT);
+            wm = stats.maxTime(Statistics::GC_WAIT);
+            RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                               "GCw %3d/%3d (GC %3d/%3d)", xa, xm, da, dm,
+                               wa, wm, ga, gm);
+        }
+        else
+        {
+            RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                               "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+        }
     }
     else
     {
-        RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
-                           "%s ---/---%s", gcs1, gcs2);
+        if (XL::MAIN->options.threaded_gc)
+        {
+            RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "GCw ---/--- (GC ---/---)");
+        }
+        else
+        {
+            RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "GC ---/---");
+        }
     }
 
     // Display garbage collection statistics
@@ -5707,7 +5730,7 @@ static inline QColor colorByName(text name)
 
 Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
-//    Set the RGB clear (background) color
+//    Set the clear (background) color for current FrameInfo or for the Widget
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(r);
@@ -5715,7 +5738,10 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
-    clearCol.setRgbF(r, g, b, a);
+    if (frameInfo)
+        frameInfo->clearColor.Set(r, g, b, a);
+    else
+        clearCol.setRgbF(r, g, b, a);
     return XL::xl_true;
 }
 
@@ -7406,7 +7432,8 @@ Tree_p Widget::torus(Tree_p self,
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d),
+                          slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -8344,7 +8371,6 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-
     Layout *childLayout = layout->AddChild(0, prog, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Integer_p tex = frameTexture(context, self, w, h, prog);
@@ -8358,7 +8384,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                            double w, double h, Tree_p prog)
+                              double w, double h, Tree_p prog, bool withDepth)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -8375,13 +8401,15 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
     uint id = selectionId();
-    FrameInfo &frame = multiframe->frame(id);
+    FrameInfo *pFrame = &multiframe->frame(id);
+    FrameInfo &frame = *pFrame;
 
     Layout *parent = layout;
     do
     {
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
@@ -8394,12 +8422,19 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
+
         frame.begin();
         layout->Draw(NULL);
         frame.end();
 
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
+
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
+
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
@@ -8416,6 +8451,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
+    if (withDepth)
+    {
+        uint depthTexId = frame.depthTexture();
+        fillTextureUnit(self, texUnit+1);
+        layout->Add(new FillTexture(depthTexId, texUnit+1));
+        fillTextureUnit(self, texUnit);
+    }
 
     return new Integer(texId, self->Position());
 }
@@ -8474,9 +8517,13 @@ Integer* Widget::thumbnail(Context *context,
             context->Evaluate(prog);
 
         // Draw the layout in the frame context
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
         frame.begin();
         layout->Draw(NULL);
         frame.end();
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
 
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
@@ -10862,18 +10909,36 @@ Name_p Widget::hasDisplayModeText(Tree_p self, text name)
     return XL::xl_false;
 }
 
-Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
+
+Real_p Widget::getWorldZ(Tree_p self, Real_p x, Real_p y)
 // ----------------------------------------------------------------------------
-//   Convert a screen position to an xyz world coordinates
+//   Get the depth buffer value in world coordinate for X and Y
 // ----------------------------------------------------------------------------
 {
     Point3 pos;
-    Tree* result = XL::xl_real_list(self, 3, &pos.x);
+    double value = 0.0;
     layout->Add(new ConvertScreenCoordinates(self, x, y));
     if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
-        result = XL::xl_real_list(self, 3, &info->coordinates.x);
+        value = info->coordinates.z;
+    return new XL::Real(value, self->Position());
+}
 
-    return result->AsInfix();
+
+Real_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y,
+                                   Real_p wx, Real_p wy, Real_p wz)
+// ----------------------------------------------------------------------------
+//   Get the depth buffer value in world coordinate for X and Y
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    layout->Add(new ConvertScreenCoordinates(self, x, y));
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
+    {
+        wx->value = info->coordinates.x;
+        wy->value = info->coordinates.y;
+        wz->value = info->coordinates.z;
+    }
+    return wz;
 }
 
 

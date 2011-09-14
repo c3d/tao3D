@@ -24,6 +24,7 @@
 #include "base.h"
 #include "gc_thread.h"
 #include "gc.h"
+#include "widget.h"
 #include <QEvent>
 #include <QTime>
 #include <iostream>
@@ -35,9 +36,13 @@ void GCThread::collect()
 //   Run garbage collection
 // ----------------------------------------------------------------------------
 {
+    Widget *w = (Widget *)sender();
+
     QTime t;
     t.start();
+    w->stats.begin(Statistics::GC);
     XL::GarbageCollector::Collect();
+    w->stats.end(Statistics::GC);
     IFTRACE(memory)
         debug() << "Collect time " << t.elapsed() << " ms\n";
     mutex.lock();

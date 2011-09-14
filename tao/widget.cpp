@@ -2526,8 +2526,13 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (selectionRectangleEnabled && button == Qt::LeftButton)
-        new Selection(this);
+    if (button == Qt::LeftButton)
+    {
+        if (selectionRectangleEnabled)
+            new Selection(this);
+        else if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+            shapeAction("click", id, x, y);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
@@ -3845,7 +3850,18 @@ void Widget::printStatistics()
                                "GC ---/---");
         }
     }
+
+    // Display garbage collection statistics
+    XL::GarbageCollector *gc = XL::GarbageCollector::Singleton();
+    uint tot  = 0, alloc = 0, freed = 0;
+    gc->Statistics(tot, alloc, freed);
+
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
+    RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
+                       tot>>10, alloc>>10, freed>>10);
 }
+
+
 
 // ============================================================================
 //
@@ -7416,7 +7432,8 @@ Tree_p Widget::torus(Tree_p self,
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d),
+                          slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -8354,7 +8371,6 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-
     Layout *childLayout = layout->AddChild(0, prog, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Integer_p tex = frameTexture(context, self, w, h, prog);
@@ -8368,7 +8384,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                            double w, double h, Tree_p prog)
+                              double w, double h, Tree_p prog, bool withDepth)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -8408,14 +8424,17 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
+
         frame.begin();
         layout->Draw(NULL);
         frame.end();
+
         stats.end(Statistics::DRAW);
         stats.begin(Statistics::EXEC);
 
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
+
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
@@ -8432,6 +8451,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
+    if (withDepth)
+    {
+        uint depthTexId = frame.depthTexture();
+        fillTextureUnit(self, texUnit+1);
+        layout->Add(new FillTexture(depthTexId, texUnit+1));
+        fillTextureUnit(self, texUnit);
+    }
 
     return new Integer(texId, self->Position());
 }
@@ -10882,18 +10909,36 @@ Name_p Widget::hasDisplayModeText(Tree_p self, text name)
     return XL::xl_false;
 }
 
-Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
+
+Real_p Widget::getWorldZ(Tree_p self, Real_p x, Real_p y)
 // ----------------------------------------------------------------------------
-//   Convert a screen position to an xyz world coordinates
+//   Get the depth buffer value in world coordinate for X and Y
 // ----------------------------------------------------------------------------
 {
     Point3 pos;
-    Tree* result = XL::xl_real_list(self, 3, &pos.x);
+    double value = 0.0;
     layout->Add(new ConvertScreenCoordinates(self, x, y));
     if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
-        result = XL::xl_real_list(self, 3, &info->coordinates.x);
+        value = info->coordinates.z;
+    return new XL::Real(value, self->Position());
+}
 
-    return result->AsInfix();
+
+Real_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y,
+                                   Real_p wx, Real_p wy, Real_p wz)
+// ----------------------------------------------------------------------------
+//   Get the depth buffer value in world coordinate for X and Y
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    layout->Add(new ConvertScreenCoordinates(self, x, y));
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
+    {
+        wx->value = info->coordinates.x;
+        wy->value = info->coordinates.y;
+        wz->value = info->coordinates.z;
+    }
+    return wz;
 }
 
 

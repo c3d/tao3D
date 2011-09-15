@@ -343,12 +343,7 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
-    if (d->IsAttribute())
-    {
-        // Only update layout state, not GL
-        GLAllStateKeeper glSave;
-        d->Draw(this);
-    }
+    d->Evaluate(this);
 }
 
 

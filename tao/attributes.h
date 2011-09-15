@@ -66,6 +66,7 @@ struct ColorAttribute : Attribute
     ColorAttribute(float r, float g, float b, float a):
         Attribute(), color(r, g, b, a) {}
     Color color;
+    virtual void        Evaluate(Layout *l)     { Draw(l); }
     virtual text        Type() { return "ColorAttribute";}
 };
 
@@ -183,6 +184,7 @@ struct FontChange : Attribute
     FontChange(QFont font): Attribute(), font(font) {}
     virtual void Draw(Layout *where);
     QFont font;
+    virtual void        Evaluate(Layout *l)     { Draw(l); }
     virtual text        Type() { return "FontChange";}
 };
 
@@ -197,6 +199,7 @@ struct JustificationChange : Attribute
     virtual void        Draw(Layout *where);
     float amount;
     Axis  axis;
+    virtual void        Evaluate(Layout *l)     { Draw(l); }
     virtual text        Type() { return "JustificationChange";}
 };
 
@@ -266,6 +269,7 @@ struct HorizontalMarginChange : Attribute
     HorizontalMarginChange(coord l, coord r): left(l), right(r) {}
     virtual void Draw(Layout *where);
     coord left, right;
+    virtual void Evaluate(Layout *l)     { Draw(l); }
     virtual text Type() { return "HorizontalMarginChange";}
 };
 
@@ -278,6 +282,7 @@ struct VerticalMarginChange : Attribute
     VerticalMarginChange(coord t, coord b): top(t), bottom(b) {}
     virtual void Draw(Layout *where);
     coord top, bottom;
+    virtual void Evaluate(Layout *l)     { Draw(l); }
     virtual text Type() { return "VerticalMarginChange";}
 };
 

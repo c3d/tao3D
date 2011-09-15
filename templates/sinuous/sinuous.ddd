@@ -15,7 +15,7 @@ page "Intro",
         color 0.1, 0.1, 0.1, 0.8
         fullscreen_quad
         text_box 0, 0, window_width * 75%, window_height,
-            color "white"
+            color "black"
             font "Ubuntu", 72 * (window_width / 1200)
             vertical_align_center
             align_center

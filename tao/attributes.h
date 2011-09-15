@@ -292,6 +292,7 @@ struct DepthTest : Attribute
     virtual text        getType() { return "DepthTest";}
 };
 
+
 struct CoordinatesInfo : XL::Info
 // ----------------------------------------------------------------------------
 //   Record unprojected mouse coordinates
@@ -300,8 +301,8 @@ struct CoordinatesInfo : XL::Info
     Point3      coordinates;
     GLdouble    projection[16], model[16];
     GLint       viewport[4];
-    virtual text        getType() { return "MouseCoordinatesInfo";}
 };
+
 
 struct RecordMouseCoordinates : Attribute
 // ----------------------------------------------------------------------------

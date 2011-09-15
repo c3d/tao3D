@@ -99,7 +99,8 @@ struct FillTexture : Attribute
 //    Record a texture change
 // ----------------------------------------------------------------------------
 {
-    FillTexture(uint glName, uint glUnit, GLenum glType = GL_TEXTURE_2D): Attribute(), glName(glName), glUnit(glUnit), glType(glType) {}
+    FillTexture(uint glName, uint glUnit, GLenum glType = GL_TEXTURE_2D)
+        : Attribute(), glName(glName), glUnit(glUnit), glType(glType) {}
     virtual void Draw(Layout *where);
     uint   glName;
     uint   glUnit;
@@ -113,7 +114,8 @@ struct TextureWrap : Attribute
 //    Record a texture wrapping setting
 // ----------------------------------------------------------------------------
 {
-    TextureWrap(bool s, bool t, uint glUnit): Attribute(), s(s), t(t), glUnit(glUnit) {}
+    TextureWrap(bool s, bool t, uint glUnit)
+        : Attribute(), s(s), t(t), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
     bool s, t;
     uint  glUnit;
@@ -125,7 +127,8 @@ struct TextureTransform : Attribute
 //    Record a texture transform
 // ----------------------------------------------------------------------------
 {
-    TextureTransform(bool enable, uint glUnit): Attribute(), enable(enable), glUnit(glUnit) {}
+    TextureTransform(bool enable, uint glUnit)
+        : Attribute(), enable(enable), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
     bool  enable;
     uint  glUnit;
@@ -311,11 +314,14 @@ struct RecordMouseCoordinates : Attribute
     virtual text        getType() { return "RecordMouseCoordinates";}
 };
 
+
 struct ConvertScreenCoordinates : Attribute
 // ----------------------------------------------------------------------------
+//   Conversion to world coordinates
 // ----------------------------------------------------------------------------
 {
-    ConvertScreenCoordinates(Tree *self, coord x, coord y): self(self), x(x), y(y) {}
+    ConvertScreenCoordinates(Tree *self, coord x, coord y)
+        : self(self), x(x), y(y) {}
     virtual void Draw(Layout *where);
     virtual void DrawSelection(Layout *)        {}
     virtual void Identify(Layout *)        {}

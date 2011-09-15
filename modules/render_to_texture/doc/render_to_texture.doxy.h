@@ -12,7 +12,7 @@
  *
  * @{
  *
- * @note To improve performance in Tao, it is recommended to render to files the result texture before to reload it in Tao.
+ * @note To improve performance, it is recommended to render to files the result texture before to reload it in Tao.
  */
 
 /**

@@ -33,6 +33,7 @@
 #include <QFont>
 #include <QEvent>
 #include <float.h>
+#include "matrix.h"
 
 #define MAX_TEX_UNITS 64
 
@@ -53,20 +54,6 @@ struct TextureState
     GLuint        id, unit;
     GLuint        width, height;
     GLenum        type;
-};
-
-struct ModelState
-// ----------------------------------------------------------------------------
-//   The state of the model we want to preserve
-// ----------------------------------------------------------------------------
-{
-    ModelState(): tx(0), ty(0), tz(0),
-                  sx(1), sy(1), sz(1),
-                  rotation(1, 0, 0, 0) {}
-
-    float tx, ty, tz;     // Translate parameters
-    float sx, sy, sz;     // Scaling parameters
-    Quaternion rotation;  // Rotation parameters
 };
 
 struct LayoutState
@@ -103,7 +90,7 @@ public:
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
-    ModelState          model;
+    Matrix4             model;
     uint                lightId;
     uint                programId;
     bool                printing : 1;

@@ -64,6 +64,8 @@ mandelbrot_shader ->
 // ----------------------------------------------------------------------------
 //   Setup the OpenGL shader for the Mandelbrot set
 // ----------------------------------------------------------------------------
+    // Set a empty texture in order to define the texture coordinates
+    texture ""
 
     shader_program
 
@@ -174,9 +176,6 @@ draw_mandelbrot ->
 //    How to draw the Mandelbrot set
 // ----------------------------------------------------------------------------
     locally
-        // Set a empty texture in order to define the texture coordinates
-        texture ""
-
         // Select the Mandelbrot shader program
         mandelbrot_shader
 

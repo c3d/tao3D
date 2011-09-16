@@ -1,5 +1,6 @@
 import RenderToTexture 1.0 
 shader -> 
+    texture ""
     shader_program 
         vertex_shader <<
             void main()
@@ -17,12 +18,12 @@ shader ->
             }
         >>
 
-//Classic code
+// Classic code
 example_1 ->
     color 0.4096, 1.0, 1.0, 1.0
     rectangle 0, 0, 500, 750
  
-//Render to texture several times in order to apply same effect
+// Render to texture several times in order to apply same effect
 example_2 ->
     color "white" 
     EFFECT -> shader 
@@ -32,7 +33,7 @@ example_2 ->
     render_to_texture EFFECT 
     rectangle 0, 0, 500, 750
 
-//Apply several times the same effect thanks to an iterative render
+// Apply several times the same effect thanks to an iterative render
 example_3 ->
     color "white" 
     EFFECT -> shader 

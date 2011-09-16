@@ -7421,7 +7421,8 @@ Tree_p Widget::torus(Tree_p self,
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d),
+                          slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -8359,7 +8360,6 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-
     Layout *childLayout = layout->AddChild(0, prog, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Integer_p tex = frameTexture(context, self, w, h, prog);
@@ -8373,7 +8373,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                            double w, double h, Tree_p prog)
+                              double w, double h, Tree_p prog, bool withDepth)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -8413,14 +8413,17 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
+
         frame.begin();
         layout->Draw(NULL);
         frame.end();
+
         stats.end(Statistics::DRAW);
         stats.begin(Statistics::EXEC);
 
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
+
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
@@ -8437,6 +8440,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
+    if (withDepth)
+    {
+        uint depthTexId = frame.depthTexture();
+        fillTextureUnit(self, texUnit+1);
+        layout->Add(new FillTexture(depthTexId, texUnit+1));
+        fillTextureUnit(self, texUnit);
+    }
 
     return new Integer(texId, self->Position());
 }

@@ -155,8 +155,8 @@ LayoutLine::LayoutLine(coord left, coord right, TextFlow *flow)
 //   Create a new line of drawing elements
 // ----------------------------------------------------------------------------
     : line(flow->getItems(), flow->getCurrentIterator()), left(left),
-    right(right), perSolid(0.0), flow(flow),
-    flowRewindPoint(*(flow->getCurrentIterator()))
+      right(right), perSolid(0.0), flow(flow),
+      flowRewindPoint(*(flow->getCurrentIterator()))
 {
     IFTRACE(justify)
             std::cerr << "##### "<<left <<" ##### new LayoutLine L-R " << this
@@ -169,7 +169,7 @@ LayoutLine::LayoutLine(const LayoutLine &o)
 //   Copy a line
 // ----------------------------------------------------------------------------
     : Drawing(o), line(o.line), left(o.left), right(o.right), flow(o.flow),
-    flowRewindPoint(*(flow->getCurrentIterator()))
+      flowRewindPoint(*(flow->getCurrentIterator()))
 {
     IFTRACE(justify)
             std::cerr << "##### "<<left <<" ##### new LayoutLine " << this
@@ -204,7 +204,7 @@ void LayoutLine::Draw(Layout *where)
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
         IFTRACE(justify)
-                std::cerr << "LayoutLine::Draw child is " << child->getType() << std::endl;
+                std::cerr << "LayoutLine::Draw child is " << child->Type() << std::endl;
 
         Layout * ll = dynamic_cast<Layout*>(child);
 
@@ -401,9 +401,9 @@ PageLayout::PageLayout(Widget *widget, TextFlow *flow)
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget),
-    space(),
-    flow(flow),lines(), current(lines.begin()),
-    page(&lines,&current), selectId(0)
+      space(),
+      flow(flow),lines(), current(lines.begin()),
+      page(&lines,&current), selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
@@ -419,7 +419,7 @@ PageLayout::PageLayout(const PageLayout &o)
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
     : Layout(o), space(), flow(o.flow),lines(), current(lines.begin()),
-    page(&lines, &current), selectId(0)
+      page(&lines, &current), selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;

@@ -7655,7 +7655,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
         XL::Save<Layout *> saveLayout(layout, childLayout);
         result = context->Evaluate(child);
     }
-    layout->Add(childLayout->getRevertLayout());
+    layout->Add(childLayout->Revert());
     return result;
 }
 

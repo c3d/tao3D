@@ -60,9 +60,9 @@ struct TextUnit : Shape
     virtual TextUnit *  Break(BreakOrder &order, uint &sz);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
-    virtual text        getType()      { return "TextUnit"; }
+    virtual text        Type()      { return "TextUnit"; }
 
-    void toDebugString(std::ostream &out);
+    void                toDebugString(std::ostream &out);
 protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);

@@ -9047,8 +9047,8 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     ColorTreeClone replacer(col);
-    Tree *toBeEvaluated = colorAction;
-    XL::Symbols *symbols = toBeEvaluated->Symbols();
+    Tree_p toBeEvaluated = colorAction;
+    XL::Symbols_p symbols = toBeEvaluated->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(symbols);
 
@@ -9148,7 +9148,7 @@ void Widget::fontChanged(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     FontTreeClone replacer(ft);
-    XL::Tree *toBeEvaluated = fontAction;
+    XL::Tree_p toBeEvaluated = fontAction;
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(fontAction->Symbols());
 
@@ -9325,7 +9325,7 @@ void Widget::updateFileDialog(Tree *properties, Tree *context)
 
     if (!properties->Symbols())
         properties->SetSymbols(context->Symbols());
-    XL::Tree *toBeEvaluated = map.Replace(properties);
+    XL::Tree_p toBeEvaluated = map.Replace(properties);
     XL::MAIN->context->Evaluate(toBeEvaluated);
 
 }
@@ -9451,7 +9451,7 @@ void Widget::fileChosen(const QString & filename)
     map["file_path"] = +file.canonicalFilePath();
     map["rel_file_path"] = +relFilePath;
 
-    XL::Tree *toBeEvaluated = map.Replace(fileAction);
+    XL::Tree_p toBeEvaluated = map.Replace(fileAction);
     toBeEvaluated->SetSymbols(fileAction->Symbols());
 
     // Evaluate the input tree
@@ -9532,7 +9532,7 @@ Tree_p Widget::buttonGroup(Context *context, Tree_p self,
 
     NameToNameReplacement map;
     map["action"] = "button_group_action";
-    XL::Tree *toBeEvaluated = map.Replace(buttons);
+    XL::Tree_p toBeEvaluated = map.Replace(buttons);
 
     // Evaluate the input tree
     context->Evaluate(toBeEvaluated);
@@ -10549,7 +10549,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     }
     else
     {
-        if (Tree *program = xlProgram->tree)
+        if (Tree_p program = xlProgram->tree)
         {
             SetAttributeAction setAttrib(name, attribute, this, shape);
             program->Do(setAttrib);

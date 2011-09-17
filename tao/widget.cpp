@@ -1833,7 +1833,7 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     TaoSave saveCurrent(current, this);
-    XL::Tree *t = var.value<XL::Tree_p>();
+    XL::Tree_p t = var.value<XL::Tree_p>();
     if (t)
         xlProgram->context->Evaluate(t); // Typically will insert something...
 }
@@ -3740,7 +3740,7 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
     XL::TreeList::iterator i;
     for (i = treeArgs.begin(); i != treeArgs.end(); i++)
     {
-        Tree *arg = *i;
+        Tree_p arg = *i;
         if (!arg->IsConstant())
             arg = context->Evaluate(arg);
         if (XL::Real *asReal = arg->AsReal())
@@ -4204,7 +4204,7 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 }
 
 
-void Widget::drawTree(Layout *where, Context *context, Tree *code)
+void Widget::drawTree(Layout *where, Context *context, Tree_p code)
 // ----------------------------------------------------------------------------
 //    Draw some tree, e.g. cell fill and border
 // ----------------------------------------------------------------------------
@@ -6253,7 +6253,7 @@ Infix_p Widget::imageSize(Context *context,
 
 
 static void list_files(Context *context, Dir &current,
-                       Tree *self, Tree *patterns, Tree_p *&parent)
+                       Tree_p self, Tree_p patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
 // ----------------------------------------------------------------------------
@@ -6599,8 +6599,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
         {
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
-            Name *name = infix->left->AsName();
-            Tree *arg = infix->right;
+            Name_p name = infix->left->AsName();
+            Tree_p arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
 
@@ -6608,8 +6608,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             ShaderValue::Values values;
             while (arg)
             {
-                Tree *value = arg;
-                Infix *iarg = arg->AsInfix();
+                Tree_p value = arg;
+                Infix_p iarg = arg->AsInfix();
                 if (iarg &&
                     (iarg->name == "," ||
                      iarg->name == "\n" ||
@@ -7503,22 +7503,23 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 
     // Update document with prog
     editCursor = new QTextCursor(new QTextDocument(""));
+    QTextDocument *doc = editCursor->document()->clone();
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    Tree *result = currentContext->Evaluate(prog);
+    Tree_p result = currentContext->Evaluate(prog);
 
     // Get or build the current frame if we don't have one
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
     if (!surface)
     {
-        surface = new TextEditSurface(editCursor->document()->clone(),
+        surface = new TextEditSurface(doc,
                                       prog->AsBlock(), this);
         prog->SetInfo<TextEditSurface> (surface);
     }
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(editCursor->document()->clone());
+    layout->currentTexture.id     = surface->bind(doc);
     layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
@@ -7630,7 +7631,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
 
-    Tree *result = currentContext->Evaluate(prog);
+    Tree_p result = currentContext->Evaluate(prog);
     flow->resetIterator();
     // Protection agains recursive call of textFlow with same flowname.
     currentFlowName = computedFlowName;
@@ -7644,7 +7645,8 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current text format state
 // ----------------------------------------------------------------------------
 {
-    // to be preserved : Font, color, line_color, texture, alignement, linewidth, rotation, scale
+    // To be preserved:
+    // Font, color, line_color, texture, alignement, linewidth, rotation, scale
     TextFlow *flow = flows[currentFlowName];
     BlockLayout *childLayout = new BlockLayout(flow);
     childLayout->body = child;
@@ -8169,8 +8171,6 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
     tbox->space = Box3(0, 0, 0, w, h, 0);
     table->Add(tbox);
 
-//    XL::Save<Layout *> save(layout, tbox);
-//    Tree_p result = context->Evaluate(body);
     table->NextCell();
     return result;
 }
@@ -8513,7 +8513,7 @@ Integer* Widget::thumbnail(Context *context,
         setup(w, h);
 
         // Evaluate the program, not the context files (bug #1054)
-        if (Tree *prog = xlProgram->tree)
+        if (Tree_p prog = xlProgram->tree)
             context->Evaluate(prog);
 
         // Draw the layout in the frame context
@@ -8551,7 +8551,8 @@ Integer* Widget::thumbnail(Context *context,
 }
 
 Integer* Widget::linearGradient(Context *context, Tree_p self,
-                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
+                                Real_p start_x, Real_p start_y,
+                                Real_p end_x, Real_p end_y,
                                 double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Generate a texture to draw a linear gradient
@@ -8597,8 +8598,10 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     return new XL::Integer(texId);
 }
 
+
 Integer* Widget::radialGradient(Context *context, Tree_p self,
-                                Real_p center_x, Real_p center_y, Real_p radius,
+                                Real_p center_x, Real_p center_y,
+                                Real_p radius,
                                 double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Generate a texture to draw a radial gradient
@@ -8629,6 +8632,7 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     painter.end();
 
     delete gradient;
+    gradient = NULL;
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8646,7 +8650,8 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 }
 
 Integer* Widget::conicalGradient(Context *context, Tree_p self,
-                                 Real_p center_x, Real_p center_y, Real_p angle,
+                                 Real_p center_x, Real_p center_y,
+                                 Real_p angle,
                                  double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Generate a texture to draw a conical gradient
@@ -10953,9 +10958,9 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
         {
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
-            Name *name = infix->left->AsName();
+            Name_p name = infix->left->AsName();
             TreeList args;
-            Tree *arg = infix->right;
+            Tree_p arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
             if (symbols)

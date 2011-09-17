@@ -4962,9 +4962,7 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 {
     if(! layout->hasTransform)
     {
-        // Update the current model rotation
-        Quaternion q;
-        layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+        layout->model.Rotate(ra, rx, ry, rz);
     }
 
     layout->Add(new Rotation(ra, rx, ry, rz));
@@ -5008,9 +5006,7 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
     if(! layout->hasTransform)
     {
         // Update the current model translation
-        layout->model.tx += tx;
-        layout->model.ty += ty;
-        layout->model.tz += tz;
+        layout->model.Translate(tx, ty, tz);
     }
 
     layout->Add(new Translation(tx, ty, tz));
@@ -5053,9 +5049,7 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     if(! layout->hasTransform)
     {
         // Update the current model scaling
-        layout->model.sx *= sx;
-        layout->model.sy *= sy;
-        layout->model.sz *= sz;
+        layout->model.Scale(sx, sy, sz);
     }
 
     layout->Add(new Scale(sx, sy, sz));
@@ -5503,12 +5497,7 @@ Infix_p Widget::currentModelMatrix(Tree_p self)
 //   Return the current model matrix which convert from object space to world space
 // ----------------------------------------------------------------------------
 {
-    Matrix4 matrix;
-    matrix.Scale(layout->model.sx, layout->model.sy, layout->model.sz);
-    matrix.Rotate(layout->model.rotation);
-    matrix.Translate(layout->model.tx, layout->model.ty, layout->model.tz);
-
-    Tree *result = xl_real_list(self, 16, matrix.Data());
+    Tree *result = xl_real_list(self, 16, layout->model.Data());
     return result->AsInfix();
 }
 
@@ -8558,6 +8547,10 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a linear gradient
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
     if (!multiframe)
@@ -8568,21 +8561,42 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
-    // Define a painter to draw in current frame
-    FramePainter painter(&frame);
+    Layout *parent = layout;
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
-    // Define our gradient type
-    gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
 
-    // Evaluate the program
-    setup(w, h);
-    context->Evaluate(prog);
+        // Define a painter to draw in current frame
+        FramePainter painter(&frame);
 
-    // Draw gradient in a rectangle
-    painter.fillRect(QRect(0, 0, w, h), (*gradient));
-    painter.end();
+        // Define our gradient type
+        gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
 
-    delete gradient;
+        // Evaluate the program
+        result = context->Evaluate(prog);
+
+        // Draw gradient in a rectangle
+        painter.fillRect(0, 0, w, h, (*gradient));
+
+        delete gradient;
+        gradient = NULL;
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8595,7 +8609,8 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
 
@@ -8607,6 +8622,10 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a radial gradient
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
     if (!multiframe)
@@ -8617,22 +8636,42 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
-    // Define a painter to draw in current frame
-    FramePainter painter(&frame);
+    Layout *parent = layout;
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
-    // Define our gradient type
-    gradient = new QRadialGradient(center_x, center_y, radius);
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
 
-    // Evaluate the program
-    setup(w, h);
-    context->Evaluate(prog);
+        // Define a painter to draw in current frame
+        FramePainter painter(&frame);
 
-    // Draw gradient in a rectangle
-    painter.fillRect(QRect(0, 0, w, h), (*gradient));
-    painter.end();
+        // Define our gradient type
+        gradient = new QRadialGradient(center_x, center_y, radius);
 
-    delete gradient;
-    gradient = NULL;
+        // Evaluate the program
+        result = context->Evaluate(prog);
+
+        // Draw gradient in a rectangle
+        painter.fillRect(0, 0, w, h, (*gradient));
+
+        delete gradient;
+        gradient = NULL;
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8646,8 +8685,9 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new XL::Integer(texId);
+    return new Integer(texId, self->Position());
 }
+
 
 Integer* Widget::conicalGradient(Context *context, Tree_p self,
                                  Real_p center_x, Real_p center_y,
@@ -8657,6 +8697,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a conical gradient
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
     if (!multiframe)
@@ -8667,21 +8711,42 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
-    // Define a painter to draw in current frame
-    FramePainter painter(&frame);
+    Layout *parent = layout;
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
-    // Define our gradient type
-    gradient = new QConicalGradient(center_x, center_y, angle);
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
 
-    // Evaluate the program
-    setup(w, h);
-    context->Evaluate(prog);
+        // Define a painter to draw in current frame
+        FramePainter painter(&frame);
 
-    // Draw gradient in a rectangle
-    painter.fillRect(QRect(0, 0, w, h), (*gradient));
-    painter.end();
+        // Define our gradient type
+        gradient = new QConicalGradient(center_x, center_y, angle);
 
-    delete gradient;
+        // Evaluate the program
+        result = context->Evaluate(prog);
+
+        // Draw gradient in a rectangle
+        painter.fillRect(0, 0, w, h, (*gradient));
+
+        delete gradient;
+        gradient = NULL;
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8694,8 +8759,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
+
 
 Name_p Widget::offlineRendering(Tree_p self)
 // ----------------------------------------------------------------------------

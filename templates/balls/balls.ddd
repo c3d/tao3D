@@ -23,7 +23,7 @@ key "F2" ->
 key "Right" ->
     skip 1
 key "Left" ->
-    skip -1   
+    skip -1 
 
 // ------------------------------------------------- //
 //                  PAGES                            //
@@ -52,18 +52,18 @@ page "Spheres",
 // ------------------------------------------------- //
 
 description_text "fr" ->
-    text "Utiliser les touches suivantes pour changer le type de matériaux"
+    text "Utilisez les touches suivantes pour changer le matériau :"
     paragraph_break
-    text " * F1 pour la réfraction"
+    text " * F1 : verre"
     paragraph_break
-    text " * F2 pour la réflexion"
+    text " * F2 : métal"
 
 description_text T:text ->
-    text "Use following keys to change type of materials"
+    text "Press key to change material:"
     paragraph_break
-    text " * F1 for refraction"
+    text " * F1 for glass"
     paragraph_break
-    text " * F2 for reflection"
+    text " * F2 for metal"
 
 HUD ->
     color "black"

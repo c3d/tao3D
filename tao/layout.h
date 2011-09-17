@@ -33,6 +33,7 @@
 #include <QFont>
 #include <QEvent>
 #include <float.h>
+#include "matrix.h"
 
 #define MAX_TEX_UNITS 64
 
@@ -105,7 +106,7 @@ public:
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
-    ModelState          model;
+    Matrix4             model;
     uint                lightId;
     uint                programId;
     bool                printing : 1;

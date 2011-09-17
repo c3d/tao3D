@@ -1,3 +1,15 @@
+import Monjori
+import Flares
+
+locally
+    translatez -6000
+    if mouse_x > 0 then
+        monjori (mouse_x + mouse_y) * 0.01 + time mod 86400
+    else
+        flare mouse_x * (time mod 5), mouse_y * (time mod 7.3123)
+    no_refresh_on TimerEvent
+    rectangle 0, 0, 2 * window_width, 2 * window_height
+
 text_box 0, 0, window_width, window_height,
     font "Ubuntu", 80, bold
     line_width 2 
@@ -18,7 +30,9 @@ text_box 0, 0, window_width, window_height,
     vertical_align_bottom
     font "Arial", 28 
     align_center 
-    color "darkgreen"
+    color "white"
+    line_color "black"
+    line_width 1
     help_message tao_language
 
 help_message "fr" ->

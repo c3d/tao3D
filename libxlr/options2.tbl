@@ -48,8 +48,13 @@ OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,dis
                "for a list of all available modes.",
        rendering_options = STRING)
 
+#ifdef CFG_NOGIT
+OPTION(norepo, "Not used", ;)
+OPTION(nogit, "Not used", ;)
+#else
 OPTION(norepo, "Disable GIT repository", ;)
 OPTION(nogit, "Synonym for -norepo", ;)
+#endif
 
 OPTVAR(threaded_gc, bool, true)
 OPTION(nomtgc, "Do not run XL garbage collection in a separate thread", threaded_gc = false)

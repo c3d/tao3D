@@ -247,7 +247,7 @@ title_font_size Theme:text ->
 // ----------------------------------------------------------------------------
 //   Default font size for titles
 // ----------------------------------------------------------------------------
-    font_size 84
+    font_size 80
 
 
 title_font_weight Theme:text ->

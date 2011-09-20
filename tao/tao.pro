@@ -278,7 +278,9 @@ contains(DEFINES, CFG_NOSRCEDIT) {
         xl_source_edit.cpp \
         xl_highlighter.cpp
 }
-
+contains(DEFINES, CFG_NORELOAD) {
+    message("Automatic document reload is disabled")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 

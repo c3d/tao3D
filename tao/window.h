@@ -217,7 +217,9 @@ private:
     bool              slideShowMode;
     bool              unifiedTitleAndToolBarOnMac;
 
+#ifndef CFG_NORELOAD
     QTimer            fileCheckTimer;
+#endif
     QMenu            *fileMenu;
     QMenu            *openRecentMenu;
     QMenu            *editMenu;

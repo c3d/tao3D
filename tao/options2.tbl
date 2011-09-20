@@ -8,8 +8,12 @@ OPTVAR(sync_interval, ulong,   500)
 OPTVAR(save_interval, ulong,   1000)
 OPTVAR(commit_interval, ulong, 5000)
 OPTVAR(pull_interval, ulong, 5000)
+#ifdef CFG_NORELOAD
+OPTION(autosync, "Not used", )
+#else
 OPTION(autosync, "Interval for automatic file sync in milliseconds",
        sync_interval = INTEGER(1000, 100000))
+#endif
 OPTION(autosave, "Interval for automatic save in milliseconds",
        save_interval = INTEGER(1000, 100000))
 OPTION(autocommit, "Interval for automatic commit in milliseconds",

@@ -542,7 +542,6 @@ void Widget::dawdle()
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repo = repository();
-    Main       *xlr  = Main::MAIN;
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
@@ -579,14 +578,16 @@ void Widget::dawdle()
     }
 #endif
 
+#ifndef CFG_NORELOAD
+    // REVISIT: redundant with Window::checkFiles()?
     // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
     if (syncDelay < 0)
     {
         refreshProgram();
-        syncDelay = tick + xlr->options.sync_interval * 1000;
+        syncDelay = tick + Main::MAIN->options.sync_interval * 1000;
     }
-
+#endif
 }
 
 

@@ -41,6 +41,8 @@
 #   DEFINES+=CFG_NODISPLAYLINK
 #     (MacOSX) Do not use a Core Video display link to refresh the display, but
 #     a QBasicTimer (like other platforms).
+#   DEFINES+=CFG_NORELOAD
+#     Disable automatic reload when files change (.ddd, .xl)
 #
 #   modules=none
 #     Do not build any Tao module

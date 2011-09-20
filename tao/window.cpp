@@ -89,7 +89,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #endif
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       unifiedTitleAndToolBarOnMac(false), // see #678 below
-      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
+#ifndef CFG_NORELOAD
+      fileCheckTimer(this),
+#endif
+      splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
 #ifndef CFG_NOSRCEDIT
@@ -165,9 +168,11 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     XL::SourceFile &sf = xlRuntime->files[+sourceFile];
     taoWidget->xlProgram = &sf;
 
+#ifndef CFG_NORELOAD
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+#endif
 
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),

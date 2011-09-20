@@ -139,7 +139,7 @@ text_flow "First",
     text "Some long text"
 
 // Then, later:
-text_box "First", -100, 0, 200, 400,
+text_box "First", -100, 0, 200, 400
 text_box "First",  100, 0, 200, 400  // Continuation of 1st text box
 @endcode
  *

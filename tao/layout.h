@@ -33,6 +33,7 @@
 #include <QFont>
 #include <QEvent>
 #include <float.h>
+#include "matrix.h"
 
 #define MAX_TEX_UNITS 64
 
@@ -55,6 +56,7 @@ struct TextureState
     GLenum        type;
 };
 
+
 struct ModelState
 // ----------------------------------------------------------------------------
 //   The state of the model we want to preserve
@@ -68,6 +70,7 @@ struct ModelState
     float sx, sy, sz;     // Scaling parameters
     Quaternion rotation;  // Rotation parameters
 };
+
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -103,7 +106,7 @@ public:
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
-    ModelState          model;
+    Matrix4             model;
     uint                lightId;
     uint                programId;
     bool                printing : 1;
@@ -131,7 +134,7 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::list<Drawing *>      Drawings;
+    typedef std::list<Drawing *>        Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -179,7 +182,7 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
-    virtual text        getType(){ return "Layout";}
+    virtual text        Type(){ return "Layout";}
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;

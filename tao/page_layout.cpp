@@ -26,6 +26,7 @@
 #include "justification.hpp"
 #include "gl_keepers.h"
 #include "window.h"
+#include "path3d.h"
 #include <QFontMetrics>
 #include <QFont>
 TAO_BEGIN
@@ -155,8 +156,8 @@ LayoutLine::LayoutLine(coord left, coord right, TextFlow *flow)
 //   Create a new line of drawing elements
 // ----------------------------------------------------------------------------
     : line(flow->getItems(), flow->getCurrentIterator()), left(left),
-    right(right), perSolid(0.0), flow(flow),
-    flowRewindPoint(*(flow->getCurrentIterator()))
+      right(right), perSolid(0.0), flow(flow),
+      flowRewindPoint(*(flow->getCurrentIterator()))
 {
     IFTRACE(justify)
             std::cerr << "##### "<<left <<" ##### new LayoutLine L-R " << this
@@ -169,7 +170,7 @@ LayoutLine::LayoutLine(const LayoutLine &o)
 //   Copy a line
 // ----------------------------------------------------------------------------
     : Drawing(o), line(o.line), left(o.left), right(o.right), flow(o.flow),
-    flowRewindPoint(*(flow->getCurrentIterator()))
+      flowRewindPoint(*(flow->getCurrentIterator()))
 {
     IFTRACE(justify)
             std::cerr << "##### "<<left <<" ##### new LayoutLine " << this
@@ -204,7 +205,7 @@ void LayoutLine::Draw(Layout *where)
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
         IFTRACE(justify)
-                std::cerr << "LayoutLine::Draw child is " << child->getType() << std::endl;
+                std::cerr << "LayoutLine::Draw child is " << child->Type() << std::endl;
 
         Layout * ll = dynamic_cast<Layout*>(child);
 
@@ -401,9 +402,9 @@ PageLayout::PageLayout(Widget *widget, TextFlow *flow)
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget),
-    space(),
-    flow(flow),lines(), current(lines.begin()),
-    page(&lines,&current), selectId(0)
+      space(),
+      flow(flow),lines(), current(lines.begin()),
+      page(&lines,&current), selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
@@ -419,7 +420,7 @@ PageLayout::PageLayout(const PageLayout &o)
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
     : Layout(o), space(), flow(o.flow),lines(), current(lines.begin()),
-    page(&lines, &current), selectId(0)
+      page(&lines, &current), selectId(0)
 {
     IFTRACE(justify)
             std::cerr << "PageLayout::PageLayout " << this << std::endl;
@@ -504,6 +505,33 @@ void PageLayout::Draw(Layout *where)
     flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
     Compute(flow);
+    if (page.places.size() == 0)
+    {
+        // text box is empty, because
+        //  - either there is nothing (left) in the flow,
+        //  - either the smallest piece of content is wider than the box.
+        // Draw a striked rectangle.
+
+        // set line width
+        LineWidth lw(3);
+        // set colors
+        LineColor line(0.8, 0.8, 0.8, 0.7);
+        FillColor fill(0.2, 0.2, 0.2, 0.1);
+        // create path
+        TesselatedPath path(GLU_TESS_WINDING_ODD);
+        path.moveTo(Point3(space.Left(), space.Top(), space.Front()));
+        path.lineTo(Point3(space.Left(), space.Bottom(), space.Front()));
+        path.lineTo(Point3(space.Right(), space.Bottom(), space.Front()));
+        path.lineTo(Point3(space.Right(), space.Top(), space.Front()));
+        path.close();
+        path.lineTo(Point3(space.Right(), space.Bottom(), space.Front()));
+        // Draw line width, colors and path
+        lw.Draw(where);
+        line.Draw(where);
+        fill.Draw(where);
+        path.Draw(where);
+       return;
+    }
 
     // Display all items
     PushLayout(this);

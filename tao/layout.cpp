@@ -343,12 +343,7 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
-    if (d->IsAttribute())
-    {
-        // Only update layout state, not GL
-        GLAllStateKeeper glSave;
-        d->Draw(this);
-    }
+    d->Evaluate(this);
 }
 
 
@@ -673,13 +668,14 @@ void LayoutState::InheritState(LayoutState *where)
     hasTransform     = where->hasTransform;
 }
 
+
 void LayoutState::toDebugString(std::ostream &out) const
+// ----------------------------------------------------------------------------
+//   Show debug information
+// ----------------------------------------------------------------------------
 {
     out << "LayoutState["<<this<<"]\n";
     out << "\tfont            = " << font.toString().toStdString() << std::endl;
-//    out << "\talongX          = " << alongX << std::endl;
-//    out << "\talongY          = " << alongY << std::endl;
-//    out << "\talongZ          = " << alongZ << std::endl;
     out << "\tleft            = " << left << std::endl;
     out << "\tright           = " << right << std::endl;
     out << "\ttop             = " << top << std::endl;
@@ -693,8 +689,8 @@ void LayoutState::toDebugString(std::ostream &out) const
     out << "\tprinting        = " << printing << std::endl;
     out << "\tplanarRotation  = " << planarRotation << std::endl;
     out << "\tplanarScale     = " << planarScale << std::endl;
-
 }
+
 
 void Layout::PushLayout(Layout *where)
 // ----------------------------------------------------------------------------

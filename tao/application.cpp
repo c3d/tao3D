@@ -209,6 +209,14 @@ Application::Application(int & argc, char ** argv)
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
+    
+    // Basic sanity tests to check if we can actually run
+    if (!QGLFormat::hasOpenGL())
+    {
+        QMessageBox::warning(NULL, tr("OpenGL support"),
+                             tr("This system doesn't support OpenGL."));
+        ::exit(1);
+    }
 
 
     {
@@ -256,13 +264,6 @@ Application::Application(int & argc, char ** argv)
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
-    // Basic sanity tests to check if we can actually run
-    if (!QGLFormat::hasOpenGL())
-    {
-        QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL."));
-        exit(1);
-    }
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
         // Check frame buffer support (non-fatal)

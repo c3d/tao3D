@@ -152,7 +152,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
-      space(NULL), layout(NULL), path(NULL), table(NULL),
+      space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -305,7 +305,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
       runOnNextDraw(true), clearCol(o.clearCol),
-      space(NULL), layout(NULL), path(o.path), table(o.table),
+      space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
@@ -629,9 +629,11 @@ void Widget::drawScene()
     if (XL::MAIN->options.threaded_gc)
     {
         // Record wait time till asynchronous garbage collection completes
-        stats.begin(Statistics::GC);
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::GC_WAIT);
         TaoApp->gcThread->waitCollectDone();
-        stats.end(Statistics::GC);
+        stats.end(Statistics::GC_WAIT);
+        stats.begin(Statistics::DRAW);
     }
 
     // Delete objects that have GL resources, pushed by GC
@@ -732,17 +734,14 @@ void Widget::draw()
     }
 
     if (!XL::MAIN->options.threaded_gc)
-    {
-        // Record time for synchronous garbage collection
-        stats.begin(Statistics::GC);
         emit runGC();
-        stats.end(Statistics::GC);
-    }
 
     // Run current display algorithm
+    stats.begin(Statistics::FRAME);
     stats.begin(Statistics::DRAW);
     displayDriver->display();
     stats.end(Statistics::DRAW);
+    stats.end(Statistics::FRAME);
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -1834,7 +1833,7 @@ void Widget::userMenu(QAction *p_action)
         return;
 
     TaoSave saveCurrent(current, this);
-    XL::Tree *t = var.value<XL::Tree_p>();
+    XL::Tree_p t = var.value<XL::Tree_p>();
     if (t)
         xlProgram->context->Evaluate(t); // Typically will insert something...
 }
@@ -2527,8 +2526,13 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (selectionRectangleEnabled && button == Qt::LeftButton)
-        new Selection(this);
+    if (button == Qt::LeftButton)
+    {
+        if (selectionRectangleEnabled)
+            new Selection(this);
+        else if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+            shapeAction("click", id, x, y);
+    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
@@ -3736,7 +3740,7 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
     XL::TreeList::iterator i;
     for (i = treeArgs.begin(); i != treeArgs.end(); i++)
     {
-        Tree *arg = *i;
+        Tree_p arg = *i;
         if (!arg->IsConstant())
             arg = context->Evaluate(arg);
         if (XL::Real *asReal = arg->AsReal())
@@ -3805,29 +3809,59 @@ void Widget::printStatistics()
     static const char *gcs1 = NULL, *gcs2 = NULL;
     if (!gcs1)
     {
-        // "GCw" is GC wait time, included in Draw time
+        // "GCw" is GC wait time
         gcs1 = XL::MAIN->options.threaded_gc ? "(GCw" : "GC";
         gcs2 = XL::MAIN->options.threaded_gc ? ")" : "";
     }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
-        int xa, xm, da, dm, ga, gm;
+        int xa, xm, da, dm, ga, gm, wa, wm;
         xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
         da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
-        RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                           "%s %3d/%3d%s", xa, xm, da, dm, gcs1, ga, gm, gcs2);
+        if (XL::MAIN->options.threaded_gc)
+        {
+            wa = stats.averageTimePerFrame(Statistics::GC_WAIT);
+            wm = stats.maxTime(Statistics::GC_WAIT);
+            RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                               "GCw %3d/%3d (GC %3d/%3d)", xa, xm, da, dm,
+                               wa, wm, ga, gm);
+        }
+        else
+        {
+            RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
+                               "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+        }
     }
     else
     {
-        RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
-                           "%s ---/---%s", gcs1, gcs2);
+        if (XL::MAIN->options.threaded_gc)
+        {
+            RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "GCw ---/--- (GC ---/---)");
+        }
+        else
+        {
+            RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "GC ---/---");
+        }
     }
+
+    // Display garbage collection statistics
+    XL::GarbageCollector *gc = XL::GarbageCollector::Singleton();
+    uint tot  = 0, alloc = 0, freed = 0;
+    gc->Statistics(tot, alloc, freed);
+
+    RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
+    RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
+                       tot>>10, alloc>>10, freed>>10);
 }
+
+
 
 // ============================================================================
 //
@@ -4170,20 +4204,15 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 }
 
 
-void Widget::drawTree(Layout *where, Context *context, Tree *code)
+Layout *Widget::drawTree(Layout *where, Context *context, Tree_p code)
 // ----------------------------------------------------------------------------
-//    Draw some tree, e.g. cell fill and border
+//    Draw some tree, e.g. cell fill and border, return new layout
 // ----------------------------------------------------------------------------
 {
-    SpaceLayout selectionSpace(this);
-
-    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
-    GLAttribKeeper     saveGL;
-    glDisable(GL_DEPTH_TEST);
+    Layout *result = where->NewChild();
+    XL::Save<Layout *> saveLayout(layout, result);
     context->Evaluate(code);
-
-    selectionSpace.Draw(where);
-    glEnable(GL_DEPTH_TEST);
+    return result;
 }
 
 
@@ -4928,9 +4957,7 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 {
     if(! layout->hasTransform)
     {
-        // Update the current model rotation
-        Quaternion q;
-        layout->model.rotation *= q.FromAngleAndAxis(ra, rx, ry, rz);
+        layout->model.Rotate(ra, rx, ry, rz);
     }
 
     layout->Add(new Rotation(ra, rx, ry, rz));
@@ -4974,9 +5001,7 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
     if(! layout->hasTransform)
     {
         // Update the current model translation
-        layout->model.tx += tx;
-        layout->model.ty += ty;
-        layout->model.tz += tz;
+        layout->model.Translate(tx, ty, tz);
     }
 
     layout->Add(new Translation(tx, ty, tz));
@@ -5019,9 +5044,7 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
     if(! layout->hasTransform)
     {
         // Update the current model scaling
-        layout->model.sx *= sx;
-        layout->model.sy *= sy;
-        layout->model.sz *= sz;
+        layout->model.Scale(sx, sy, sz);
     }
 
     layout->Add(new Scale(sx, sy, sz));
@@ -5469,12 +5492,7 @@ Infix_p Widget::currentModelMatrix(Tree_p self)
 //   Return the current model matrix which convert from object space to world space
 // ----------------------------------------------------------------------------
 {
-    Matrix4 matrix;
-    matrix.Scale(layout->model.sx, layout->model.sy, layout->model.sz);
-    matrix.Rotate(layout->model.rotation);
-    matrix.Translate(layout->model.tx, layout->model.ty, layout->model.tz);
-
-    Tree *result = xl_real_list(self, 16, matrix.Data());
+    Tree *result = xl_real_list(self, 16, layout->model.Data());
     return result->AsInfix();
 }
 
@@ -5696,7 +5714,7 @@ static inline QColor colorByName(text name)
 
 Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
 // ----------------------------------------------------------------------------
-//    Set the RGB clear (background) color
+//    Set the clear (background) color for current FrameInfo or for the Widget
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(r);
@@ -5704,7 +5722,10 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
-    clearCol.setRgbF(r, g, b, a);
+    if (frameInfo)
+        frameInfo->clearColor.Set(r, g, b, a);
+    else
+        clearCol.setRgbF(r, g, b, a);
     return XL::xl_true;
 }
 
@@ -6216,7 +6237,7 @@ Infix_p Widget::imageSize(Context *context,
 
 
 static void list_files(Context *context, Dir &current,
-                       Tree *self, Tree *patterns, Tree_p *&parent)
+                       Tree_p self, Tree_p patterns, Tree_p *&parent)
 // ----------------------------------------------------------------------------
 //   Append files matching patterns (relative to directory current) to parent
 // ----------------------------------------------------------------------------
@@ -6562,8 +6583,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
         {
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
-            Name *name = infix->left->AsName();
-            Tree *arg = infix->right;
+            Name_p name = infix->left->AsName();
+            Tree_p arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
 
@@ -6571,8 +6592,8 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
             ShaderValue::Values values;
             while (arg)
             {
-                Tree *value = arg;
-                Infix *iarg = arg->AsInfix();
+                Tree_p value = arg;
+                Infix_p iarg = arg->AsInfix();
                 if (iarg &&
                     (iarg->name == "," ||
                      iarg->name == "\n" ||
@@ -7395,7 +7416,8 @@ Tree_p Widget::torus(Tree_p self,
 //    A simple torus
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d), slices, stacks, ratio));
+    layout->Add(new Torus(Box3(x-w/2, y-h/2, z-d/2, w,h,d),
+                          slices, stacks, ratio));
     if (currentShape)
         layout->Add(new ControlBox(currentShape, x, y, z, w, h, d));
     return XL::xl_true;
@@ -7465,22 +7487,23 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 
     // Update document with prog
     editCursor = new QTextCursor(new QTextDocument(""));
+    QTextDocument *doc = editCursor->document()->clone();
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    Tree *result = currentContext->Evaluate(prog);
+    Tree_p result = currentContext->Evaluate(prog);
 
     // Get or build the current frame if we don't have one
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
     if (!surface)
     {
-        surface = new TextEditSurface(editCursor->document()->clone(),
+        surface = new TextEditSurface(doc,
                                       prog->AsBlock(), this);
         prog->SetInfo<TextEditSurface> (surface);
     }
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(editCursor->document()->clone());
+    layout->currentTexture.id     = surface->bind(doc);
     layout->currentTexture.width  = w;
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
@@ -7592,7 +7615,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
 
-    Tree *result = currentContext->Evaluate(prog);
+    Tree_p result = currentContext->Evaluate(prog);
     flow->resetIterator();
     // Protection agains recursive call of textFlow with same flowname.
     currentFlowName = computedFlowName;
@@ -7606,7 +7629,8 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current text format state
 // ----------------------------------------------------------------------------
 {
-    // to be preserved : Font, color, line_color, texture, alignement, linewidth, rotation, scale
+    // To be preserved:
+    // Font, color, line_color, texture, alignement, linewidth, rotation, scale
     TextFlow *flow = flows[currentFlowName];
     BlockLayout *childLayout = new BlockLayout(flow);
     childLayout->body = child;
@@ -7617,7 +7641,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
         XL::Save<Layout *> saveLayout(layout, childLayout);
         result = context->Evaluate(child);
     }
-    layout->Add(childLayout->getRevertLayout());
+    layout->Add(childLayout->Revert());
     return result;
 }
 
@@ -8072,10 +8096,6 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
 {
     Table *tbl = new Table(this, context, x, y, r, c);
     XL::Save<Table *> saveTable(table, tbl);
-    layout->Add(tbl);
-
-    if (currentShape)
-        layout->Add(new TableManipulator(currentShape, x, y, tbl));
 
     // Patch the symbol table with short versions of table_xyz functions
     if (Prefix *prefix = self->AsPrefix())
@@ -8104,7 +8124,14 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
         }
     }
 
-    return context->Evaluate(body);
+    Tree_p result = context->Evaluate(body);
+
+    // After we evaluated the body, add element to the layout
+    layout->Add(tbl);
+    if (currentShape)
+        layout->Add(new TableManipulator(currentShape, x, y, tbl));
+
+    return result;
 }
 
 
@@ -8131,8 +8158,6 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
     tbox->space = Box3(0, 0, 0, w, h, 0);
     table->Add(tbox);
 
-//    XL::Save<Layout *> save(layout, tbox);
-//    Tree_p result = context->Evaluate(body);
     table->NextCell();
     return result;
 }
@@ -8333,7 +8358,6 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-
     Layout *childLayout = layout->AddChild(0, prog, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Integer_p tex = frameTexture(context, self, w, h, prog);
@@ -8347,7 +8371,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                            double w, double h, Tree_p prog)
+                              double w, double h, Tree_p prog, bool withDepth)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -8364,13 +8388,15 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         self->SetInfo< MultiFrameInfo<uint> > (multiframe);
     }
     uint id = selectionId();
-    FrameInfo &frame = multiframe->frame(id);
+    FrameInfo *pFrame = &multiframe->frame(id);
+    FrameInfo &frame = *pFrame;
 
     Layout *parent = layout;
     do
     {
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
@@ -8383,12 +8409,19 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
+
         frame.begin();
         layout->Draw(NULL);
         frame.end();
 
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
+
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
+
         // Delete the layout (it's not a child of the outer layout)
         delete layout;
         layout = NULL;
@@ -8405,6 +8438,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
+
+    if (withDepth)
+    {
+        uint depthTexId = frame.depthTexture();
+        fillTextureUnit(self, texUnit+1);
+        layout->Add(new FillTexture(depthTexId, texUnit+1));
+        fillTextureUnit(self, texUnit);
+    }
 
     return new Integer(texId, self->Position());
 }
@@ -8459,13 +8500,17 @@ Integer* Widget::thumbnail(Context *context,
         setup(w, h);
 
         // Evaluate the program, not the context files (bug #1054)
-        if (Tree *prog = xlProgram->tree)
+        if (Tree_p prog = xlProgram->tree)
             context->Evaluate(prog);
 
         // Draw the layout in the frame context
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
         frame.begin();
         layout->Draw(NULL);
         frame.end();
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
 
         // Parent layout should refresh when layout would need to
         parent->RefreshOn(layout);
@@ -8493,12 +8538,17 @@ Integer* Widget::thumbnail(Context *context,
 }
 
 Integer* Widget::linearGradient(Context *context, Tree_p self,
-                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
+                                Real_p start_x, Real_p start_y,
+                                Real_p end_x, Real_p end_y,
                                 double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Generate a texture to draw a linear gradient
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
     if (!multiframe)
@@ -8509,21 +8559,42 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
-    // Define a painter to draw in current frame
-    FramePainter painter(&frame);
+    Layout *parent = layout;
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
-    // Define our gradient type
-    gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
 
-    // Evaluate the program
-    setup(w, h);
-    context->Evaluate(prog);
+        // Define a painter to draw in current frame
+        FramePainter painter(&frame);
 
-    // Draw gradient in a rectangle
-    painter.fillRect(QRect(0, 0, w, h), (*gradient));
-    painter.end();
+        // Define our gradient type
+        gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
 
-    delete gradient;
+        // Evaluate the program
+        result = context->Evaluate(prog);
+
+        // Draw gradient in a rectangle
+        painter.fillRect(0, 0, w, h, (*gradient));
+
+        delete gradient;
+        gradient = NULL;
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8536,16 +8607,23 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
 
+
 Integer* Widget::radialGradient(Context *context, Tree_p self,
-                                Real_p center_x, Real_p center_y, Real_p radius,
+                                Real_p center_x, Real_p center_y,
+                                Real_p radius,
                                 double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Generate a texture to draw a radial gradient
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
     if (!multiframe)
@@ -8556,21 +8634,42 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
-    // Define a painter to draw in current frame
-    FramePainter painter(&frame);
+    Layout *parent = layout;
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
-    // Define our gradient type
-    gradient = new QRadialGradient(center_x, center_y, radius);
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
 
-    // Evaluate the program
-    setup(w, h);
-    context->Evaluate(prog);
+        // Define a painter to draw in current frame
+        FramePainter painter(&frame);
 
-    // Draw gradient in a rectangle
-    painter.fillRect(QRect(0, 0, w, h), (*gradient));
-    painter.end();
+        // Define our gradient type
+        gradient = new QRadialGradient(center_x, center_y, radius);
 
-    delete gradient;
+        // Evaluate the program
+        result = context->Evaluate(prog);
+
+        // Draw gradient in a rectangle
+        painter.fillRect(0, 0, w, h, (*gradient));
+
+        delete gradient;
+        gradient = NULL;
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8584,16 +8683,22 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
 
-    return new XL::Integer(texId);
+    return new Integer(texId, self->Position());
 }
 
+
 Integer* Widget::conicalGradient(Context *context, Tree_p self,
-                                 Real_p center_x, Real_p center_y, Real_p angle,
+                                 Real_p center_x, Real_p center_y,
+                                 Real_p angle,
                                  double w, double h, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Generate a texture to draw a conical gradient
 // ----------------------------------------------------------------------------
 {
+    Tree_p result = XL::xl_false;
+    if (w < 16) w = 16;
+    if (h < 16) h = 16;
+
     // Get or build the current frame if we don't have one
     MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
     if (!multiframe)
@@ -8604,21 +8709,42 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     uint id = selectionId();
     FrameInfo &frame = multiframe->frame(id);
 
-    // Define a painter to draw in current frame
-    FramePainter painter(&frame);
+    Layout *parent = layout;
+    do
+    {
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveZoom(zoom, 1);
+        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
-    // Define our gradient type
-    gradient = new QConicalGradient(center_x, center_y, angle);
+        // Clear the background and setup initial state
+        frame.resize(w,h);
+        setup(w, h);
 
-    // Evaluate the program
-    setup(w, h);
-    context->Evaluate(prog);
+        // Define a painter to draw in current frame
+        FramePainter painter(&frame);
 
-    // Draw gradient in a rectangle
-    painter.fillRect(QRect(0, 0, w, h), (*gradient));
-    painter.end();
+        // Define our gradient type
+        gradient = new QConicalGradient(center_x, center_y, angle);
 
-    delete gradient;
+        // Evaluate the program
+        result = context->Evaluate(prog);
+
+        // Draw gradient in a rectangle
+        painter.fillRect(0, 0, w, h, (*gradient));
+
+        delete gradient;
+        gradient = NULL;
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
     layout->currentTexture.id     = frame.bind();
@@ -8631,8 +8757,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId, texUnit));
     layout->hasAttributes = true;
-    return new XL::Integer(texId);
+
+    return new Integer(texId, self->Position());
 }
+
 
 Name_p Widget::offlineRendering(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -8989,8 +9117,8 @@ void Widget::colorChanged(const QColor & col)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     ColorTreeClone replacer(col);
-    Tree *toBeEvaluated = colorAction;
-    XL::Symbols *symbols = toBeEvaluated->Symbols();
+    Tree_p toBeEvaluated = colorAction;
+    XL::Symbols_p symbols = toBeEvaluated->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(symbols);
 
@@ -9090,7 +9218,7 @@ void Widget::fontChanged(const QFont& ft)
 
     // The tree to be evaluated needs its own symbol table before evaluation
     FontTreeClone replacer(ft);
-    XL::Tree *toBeEvaluated = fontAction;
+    XL::Tree_p toBeEvaluated = fontAction;
     toBeEvaluated = toBeEvaluated->Do(replacer);
     toBeEvaluated->SetSymbols(fontAction->Symbols());
 
@@ -9267,7 +9395,7 @@ void Widget::updateFileDialog(Tree *properties, Tree *context)
 
     if (!properties->Symbols())
         properties->SetSymbols(context->Symbols());
-    XL::Tree *toBeEvaluated = map.Replace(properties);
+    XL::Tree_p toBeEvaluated = map.Replace(properties);
     XL::MAIN->context->Evaluate(toBeEvaluated);
 
 }
@@ -9393,7 +9521,7 @@ void Widget::fileChosen(const QString & filename)
     map["file_path"] = +file.canonicalFilePath();
     map["rel_file_path"] = +relFilePath;
 
-    XL::Tree *toBeEvaluated = map.Replace(fileAction);
+    XL::Tree_p toBeEvaluated = map.Replace(fileAction);
     toBeEvaluated->SetSymbols(fileAction->Symbols());
 
     // Evaluate the input tree
@@ -9474,7 +9602,7 @@ Tree_p Widget::buttonGroup(Context *context, Tree_p self,
 
     NameToNameReplacement map;
     map["action"] = "button_group_action";
-    XL::Tree *toBeEvaluated = map.Replace(buttons);
+    XL::Tree_p toBeEvaluated = map.Replace(buttons);
 
     // Evaluate the input tree
     context->Evaluate(toBeEvaluated);
@@ -10491,7 +10619,7 @@ XL::Name_p Widget::setAttribute(Tree_p self,
     }
     else
     {
-        if (Tree *program = xlProgram->tree)
+        if (Tree_p program = xlProgram->tree)
         {
             SetAttributeAction setAttrib(name, attribute, this, shape);
             program->Do(setAttrib);
@@ -10851,18 +10979,36 @@ Name_p Widget::hasDisplayModeText(Tree_p self, text name)
     return XL::xl_false;
 }
 
-Infix_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y)
+
+Real_p Widget::getWorldZ(Tree_p self, Real_p x, Real_p y)
 // ----------------------------------------------------------------------------
-//   Convert a screen position to an xyz world coordinates
+//   Get the depth buffer value in world coordinate for X and Y
 // ----------------------------------------------------------------------------
 {
     Point3 pos;
-    Tree* result = XL::xl_real_list(self, 3, &pos.x);
+    double value = 0.0;
     layout->Add(new ConvertScreenCoordinates(self, x, y));
     if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
-        result = XL::xl_real_list(self, 3, &info->coordinates.x);
+        value = info->coordinates.z;
+    return new XL::Real(value, self->Position());
+}
 
-    return result->AsInfix();
+
+Real_p Widget::getWorldCoordinates(Tree_p self, Real_p x, Real_p y,
+                                   Real_p wx, Real_p wy, Real_p wz)
+// ----------------------------------------------------------------------------
+//   Get the depth buffer value in world coordinate for X and Y
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    layout->Add(new ConvertScreenCoordinates(self, x, y));
+    if (CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>())
+    {
+        wx->value = info->coordinates.x;
+        wy->value = info->coordinates.y;
+        wz->value = info->coordinates.z;
+    }
+    return wz;
 }
 
 
@@ -10877,9 +11023,9 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
         {
             ADJUST_CONTEXT_FOR_INTERPRETER(context);
             XL::Symbols *symbols = self->Symbols();
-            Name *name = infix->left->AsName();
+            Name_p name = infix->left->AsName();
             TreeList args;
-            Tree *arg = infix->right;
+            Tree_p arg = infix->right;
             if (Block *block = arg->AsBlock())
                 arg = block->child;
             if (symbols)

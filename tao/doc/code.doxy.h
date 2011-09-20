@@ -113,7 +113,7 @@ checkout (t:text);
  *   - @b stereoscopy support for stereoscopic 3D displays (active or passive
  *       glasses, for instance)
  *
- * @returns true if the feature is compiled in, false otherwise.
+ * @returns True if the feature is compiled in, false otherwise.
  */
 is_available (name:text);
 
@@ -121,7 +121,7 @@ is_available (name:text);
  * Get current OpenGL version.
  * Return the current OpenGL version available in Tao.
  *
- * @returns name of the current OpenGL version.
+ * @returns Name of the current OpenGL version.
  */
 GL_version();
 
@@ -130,7 +130,7 @@ GL_version();
  *
  * @p name is the name of the OpenGL extension to test.
  *
- * @returns true if the extension is available in, false otherwise.
+ * @returns True if the extension is available in, false otherwise.
  */
 is_ext_available (name:text);
 

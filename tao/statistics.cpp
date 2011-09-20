@@ -34,6 +34,7 @@ void Statistics::reset()
     {
         data[i].clear();
         total[i] = 0;
+        frameTotal[i] = 0;
         max[i] = 0;
         lastMaxTime[i] = 0;
     }
@@ -75,6 +76,7 @@ void Statistics::begin(Operation op)
 
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
+    running[op] = true;
     timer[op].start();
 }
 
@@ -89,6 +91,10 @@ void Statistics::end(Operation op)
 
     Q_ASSERT(op >= 0 && op < LAST_OP);
 
+    if (!running[op])
+        return;
+    running[op] = false;
+
     int now = intervalTimer.elapsed();
     int elapsed = timer[op].elapsed();
 
@@ -101,11 +107,19 @@ void Statistics::end(Operation op)
     while (now - d.first().first >= interval)
         total[op] -= d.takeFirst().second;
 
-    // Update max if current value is larger, or peak interval has expired
-    if (elapsed > max[op] || (now - lastMaxTime[op]) >= interval)
+    frameTotal[op] += elapsed;
+    if (op == FRAME)
     {
-        max[op] = elapsed;
-        lastMaxTime[op] = now;
+        for (int i = 0; i < LAST_OP; i++)
+        {
+            // Update max if current value is larger, or peak interval has expired
+            if (frameTotal[i] > max[i] || (now - lastMaxTime[i]) >= interval)
+            {
+                max[i] = frameTotal[i];
+                lastMaxTime[i] = now;
+            }
+            frameTotal[i] = 0;
+        }
     }
 }
 
@@ -117,7 +131,7 @@ double Statistics::fps()
 {
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1.0;
-    return (double)data[DRAW].size() * 1000 / interval;
+    return (double)data[FRAME].size() * 1000 / interval;
 }
 
 
@@ -148,7 +162,7 @@ int Statistics::averageTimePerFrame(Operation op)
     if (!enabled || intervalTimer.elapsed() < interval)
         return -1;
 
-    int frames = data[DRAW].size();
+    int frames = data[FRAME].size();
     if (!frames)
         return -1.0;
     return total[op]/frames;

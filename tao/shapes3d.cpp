@@ -166,8 +166,12 @@ void Cube::Draw(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_FLOAT, 0, normals);
+    // Set normals only if we have lights or shaders
+    if(where->currentLights || where->programId)
+    {
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, 0, normals);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -187,7 +191,9 @@ void Cube::Draw(Layout *where)
         if(((*it).second).id)
             disableTexCoord((*it).first);
 
-    glDisableClientState(GL_NORMAL_ARRAY);
+    if(where->currentLights || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
     glDisableClientState(GL_VERTEX_ARRAY);
 }
 
@@ -205,15 +211,19 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     Point3 p = bounds.Center() + where->Offset();
     glPushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
-    glEnable(GL_NORMALIZE);
     glTranslatef(p.x, p.y, p.z);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
 
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+    // Set normals only if we have lights or shaders
+    if(where->currentLights || where->programId)
+    {
+        glEnable(GL_NORMALIZE);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -221,6 +231,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         if(((*it).second).id)
             enableTexCoord((*it).first, &mesh->textures[0].x);
 
+    // Apply textures
     setTexture(where);
 
     if (setFillColor(where))
@@ -232,7 +243,9 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         if(((*it).second).id)
             disableTexCoord((*it).first);
 
-    glDisableClientState(GL_NORMAL_ARRAY);
+    if(where->currentLights || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
     glDisableClientState(GL_VERTEX_ARRAY);
 
     glPopAttrib();

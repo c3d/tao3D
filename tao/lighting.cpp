@@ -38,6 +38,7 @@ void LightId::Draw(Layout *where)
     where->lightId = GL_LIGHT0 + id;
     if (enable)
     {
+        where->currentLights |= 1 << id;
         glEnable(where->lightId);
         glEnable(GL_LIGHTING);
         glEnable(GL_COLOR_MATERIAL);
@@ -46,7 +47,13 @@ void LightId::Draw(Layout *where)
     }
     else
     {
+        where->currentLights ^= 1 << id;
         glDisable(where->lightId);
+        if(! where->currentLights)
+        {
+            glDisable(GL_LIGHTING);
+            glDisable(GL_COLOR_MATERIAL);
+        }
     }
 }
 

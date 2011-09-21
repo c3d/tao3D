@@ -10230,7 +10230,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         }
         else
         {
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             if (par == currentMenuBar)
                 before = ((Window*)parent())->shareMenu->menuAction();
 #else

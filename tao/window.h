@@ -138,11 +138,13 @@ private slots:
     void consolidate();
     void openRecentFile();
     void clearRecentFileList();
+#ifndef CFG_NOEDIT
     void cut();
     void copy();
     void paste();
     void onFocusWidgetChanged(QWidget *old, QWidget *now);
     void checkClipboard();
+#endif
 #ifndef CFG_NOGIT
     void setPullUrl();
     void fetch();
@@ -158,6 +160,8 @@ private slots:
     void onUriGetFailed();
     void checkDetachedHead();
     void reloadCurrentFile();
+#endif
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     void clearUndoStack();
 #endif
     void about();
@@ -186,10 +190,12 @@ private:
     Window  *findWindow(const QString &fileName);
     bool     updateProgram(const QString &filename);
     void     resetTaoMenus();
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     bool     populateUndoStack();
-    void     warnNoRepo();
     void     enableProjectSharingMenus();
+#endif
+#ifndef CFG_NOGIT
+    void     warnNoRepo();
 #endif
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
@@ -222,13 +228,17 @@ private:
 #endif
     QMenu            *fileMenu;
     QMenu            *openRecentMenu;
+#ifndef CFG_NOEDIT
     QMenu            *editMenu;
+#endif
     QMenu            *viewMenu;
     QMenu            *displayModeMenu;
     QActionGroup     *displayModes;
     QMap<QString, QAction *> displayModeToAction;
     QToolBar         *fileToolBar;
+#ifndef CFG_NOEDIT
     QToolBar         *editToolBar;
+#endif
     QToolBar         *viewToolBar;
     GitToolBar       *gitToolBar;
     QAction          *newDocAct;
@@ -243,11 +253,10 @@ private:
     QAction          *pageSetupAct;
     QAction          *closeAct;
     QAction          *exitAct;
-    QAction          *cutAct;
-    QAction          *copyAct;
-    QAction          *pasteAct;
 #ifndef CFG_NOGIT
     QAction          *openUriAct;
+#endif
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     QAction          *setPullUrlAct;
     QAction          *pushAct;
     QAction          *fetchAct;
@@ -264,8 +273,13 @@ private:
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QUndoView        *undoView;
+#ifndef CFG_NOEDIT
+    QAction          *cutAct;
+    QAction          *copyAct;
+    QAction          *pasteAct;
     QAction          *undoAction;
     QAction          *redoAction;
+#endif
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
     QAction          *handCursorAct;
@@ -288,7 +302,7 @@ private:
 
 public:
     QPrinter         *printer;
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     QMenu            *shareMenu;
 #endif
     QMenu            *helpMenu;

@@ -200,7 +200,7 @@ win32 {
 # Check compile-time options
 
 contains(DEFINES, CFG_NOGIT) {
-    message("Document history and sharing with Git is disabled")
+    !build_pass:message("Document history and sharing with Git is disabled")
 } else {
     HEADERS += \
         ansi_textedit.h \
@@ -266,10 +266,10 @@ contains(DEFINES, CFG_NOGIT) {
         diff_dialog.ui
 }
 contains(DEFINES, CFG_NOSTEREO) {
-    message("Stereoscopic display support is disabled")
+    !build_pass:message("Stereoscopic display support is disabled")
 }
 contains(DEFINES, CFG_NOSRCEDIT) {
-    message("Document source editor is disabled")
+    !build_pass:message("Document source editor is disabled")
 } else {
     HEADERS += \
         xl_source_edit.h \
@@ -279,10 +279,10 @@ contains(DEFINES, CFG_NOSRCEDIT) {
         xl_highlighter.cpp
 }
 contains(DEFINES, CFG_NORELOAD) {
-    message("Automatic document reload is disabled")
+    !build_pass:message("Automatic document reload is disabled")
 }
 contains(DEFINES, CFG_NOEDIT) {
-    message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
+    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
 }
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp

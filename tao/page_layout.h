@@ -36,6 +36,7 @@ struct LayoutLine : Drawing
 //   The layout does, and is ultimately responsible for deleting them.
 {
     typedef Justifier<Drawing *>        LineJustifier;
+    typedef Layout::Drawings            Drawings;
 
 public:
                         LayoutLine(coord left, coord right, TextFlow *flow);
@@ -53,17 +54,17 @@ public:
 
     void                Compute(Layout *where);
     LayoutLine *        Remaining();
-    virtual text        getType() { return "LayoutLine";}
+    virtual text        Type() { return "LayoutLine";}
 
 public:
     LineJustifier       line;
     coord               left, right, perSolid;
     TextFlow          * flow;
-    std::list<Drawing*>::iterator  flowRewindPoint;
+    Drawings::iterator  flowRewindPoint;
 };
 
-typedef Justifier<LayoutLine *>     PageJustifier;
 
+typedef Justifier<LayoutLine *>     PageJustifier;
 struct PageLayout : Layout
 // ----------------------------------------------------------------------------
 //   A 2D layout specialized for placing text and 2D shapes on pages
@@ -90,34 +91,34 @@ public:
     virtual PageLayout *Remaining();
 
     virtual void        Compute(Layout *where);
-    virtual text        getType() { return "PageLayout";}
+    virtual text        Type() { return "PageLayout";}
 
 public:
     // Space requested for the layout
     Box3                space;
     TextFlow *          flow;
     Items               lines;
-    Items::iterator  current;
+    Items::iterator     current;
     PageJustifier       page;
     Drawings::iterator  lastFlowPoint;
     uint                selectId; // Selection Id of its englobing layout.
-
 };
 
 
 struct RevertLayoutState : LayoutState, Attribute
+// ----------------------------------------------------------------------------
+//   Restore a previously saved layout state in the enclosing layout
+// ----------------------------------------------------------------------------
 {
-    RevertLayoutState(LayoutState &o):LayoutState(o){}
+    RevertLayoutState(LayoutState &o) : LayoutState(o){}
     virtual void  Draw(Layout *where)
     {
         offset = where->Offset();
         where->InheritState(this);
     }
 
-    virtual text getType() { return "RevertLayoutState";}
+    virtual text Type() { return "RevertLayoutState";}
 };
-
-
 
 
 struct TextFlow : Layout
@@ -133,7 +134,7 @@ public:
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
     virtual void        Clear();
-    virtual text        getType() { return "Textflow";}
+    virtual text        Type() { return "Textflow";}
     void                addBox(PageLayout *b) { boxes.insert(b); }
     void                removeBox(PageLayout *b) { boxes.erase(b); }
 
@@ -155,7 +156,7 @@ public:
     text                  flowName;
     std::set<uint>        textBoxIds; // Set of layoutID for selection
     std::set<PageLayout*> boxes; // Set of boxes displaying this text flow
-    PageLayout *          currentTextBox; // The pageLayout that is currently inuse.
+    PageLayout *          currentTextBox; // The currently used pageLayout
 
 private:
     Drawings::iterator  currentIterator;
@@ -185,12 +186,11 @@ struct BlockLayout : Layout
     {
     }
     virtual void         Add(Drawing *child) { flow->Add(child);}
-    virtual text         getType() { return "BlockLayout";}
-    RevertLayoutState *  getRevertLayout() {return revert;}
+    virtual text         Type() { return "BlockLayout";}
+    RevertLayoutState *  Revert() {return revert;}
 
     TextFlow          *flow;
     RevertLayoutState *revert;
-
 };
 
 
@@ -210,7 +210,7 @@ struct AnchorLayout : Layout
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
-    virtual text        getType() { return "AnchorLayout";}
+    virtual text        Type() { return "AnchorLayout";}
 };
 
 

@@ -56,6 +56,22 @@ struct TextureState
     GLenum        type;
 };
 
+
+struct ModelState
+// ----------------------------------------------------------------------------
+//   The state of the model we want to preserve
+// ----------------------------------------------------------------------------
+{
+    ModelState(): tx(0), ty(0), tz(0),
+                  sx(1), sy(1), sz(1),
+                  rotation(1, 0, 0, 0) {}
+
+    float tx, ty, tz;     // Translate parameters
+    float sx, sy, sz;     // Scaling parameters
+    Quaternion rotation;  // Rotation parameters
+};
+
+
 struct LayoutState
 // ----------------------------------------------------------------------------
 //   The state we want to preserve in a layout
@@ -118,7 +134,7 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::list<Drawing *>      Drawings;
+    typedef std::list<Drawing *>        Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -166,7 +182,7 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
-    virtual text        getType(){ return "Layout";}
+    virtual text        Type(){ return "Layout";}
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;

@@ -38,9 +38,11 @@ public:
     {
         while (!trash.empty())
         {
-            delete trash.back();
+            XL::Info *tmp = trash.back();
             trash.pop_back();
+            delete tmp;
         }
+
     }
 
 protected:

@@ -1884,7 +1884,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::restoreOverrideCursor();
 
-    setCurrentFile(fileName);
+    setCurrentFile(fileName); // #1346
     if (hadError)
     {
         // File not found, or parse error
@@ -1926,6 +1926,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(tr("File loaded"), 2000);
     }
     isUntitled = false;
+    setCurrentFile(fileName); // #1439
     setReadOnly(isReadOnly);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);

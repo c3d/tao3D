@@ -1,5 +1,34 @@
 Change log for Tao Presentations
 
+1.0-beta8 (19-Sep-2011)
+
+#1439 Recent file list not updated
+#1438 Mouse position not correctly tracked in anaglyph mode
+#1437 Incorrect source code highlighting for selected object
+#1436 Simple slides template: missing titles
+#1428 frame_texture not visible
+#1427 Add Sparks module and template
+#1425 Add template and documentation for Sinuous module
+#1424 mouse_x and mouse_y return wrong values during drag
+#1423 Materials: wood doesn't display correctly on 2D shapes
+#1422 Shader modules Monjori and Flares do not support texture_transform
+#1420 Write documentation for module Flares
+#1419 Write documentation for module Monjori
+#1406 Crash when changing shape color
+#1405 Crash in ~VideoSurface on Tao closing
+#1402 Way to disable ObjectLoader transformations
+#1400 Add frame_texture_with_depth to get depth out of a frame_texture
+#1399 Text in frame_texture on dark background always has a visible lighter border
+#1392 Make get_world_coordinates more usable
+#1391 on_click doesn't work when selection rectangle is disabled
+#1386 Statistics bug: some drawing time is counted as execution time
+#1383 Show GC statistics in the FPS display
+#1382 Gradients are not resized correctly
+#1381 Crash on Linux when displaying through VNC
+#1378 Crash when a function has the same name as a variable
+#1377 Upgrade to Qt 4.7.4
+#1182 ObjectLoader: current color/material properties ignored
+
 1.0-beta7 (07-Sep-2011)
 
 #1375 Add flying balls template (glass/metal demo)
@@ -28,7 +57,7 @@ Change log for Tao Presentations
 #1305 z_near and z_far should be documented with camera settings
 #1304 Warning in documentations concerning mapping must be specified for all effects
 #1303 Bug with mixed color in cube mapping
-#1296 Shader for sinusoidal color patterns
+#1296 Sinuous shader for sinusoidal color patterns
 #1295 Add primitive enable_selection_rectangle
 #1293 Add get_world_coordinates to get Z position at given mouse coordinates
 #1292 Documentation bug: description of mouse coordinates

@@ -41,6 +41,7 @@ struct Table : Layout
 
     virtual void        Draw(Layout *);
     virtual void        DrawSelection(Layout *);
+    virtual void        Evaluate(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
@@ -54,15 +55,16 @@ public:
     Real_p                 x, y;
     uint                   rows, columns;
     uint                   row, column;
-    TreeList               cellFill, cellBorder;
     Box                    margins;
     std::vector<scale>     columnWidth;
     std::vector<scale>     rowHeight;
     std::vector<coord>     columnOffset;
     std::vector<coord>     rowOffset;
     Box3                   bounds;
-    Tree_p                 fill, border;
     Box                    cellBox;
+    Tree_p                 fill, border;
+    TreeList               cellFill, cellBorder;
+    Layouts                fills, borders;
 };
 
 TAO_END

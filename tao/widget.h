@@ -288,7 +288,7 @@ public:
     TextSelect *textSelection();
     void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
-    void        drawTree(Layout *where, Context *context, Tree *code);
+    Layout *    drawTree(Layout *where, Context *context, Tree_p code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     bool        mouseTracking() { return doMouseTracking; }
 

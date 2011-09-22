@@ -86,8 +86,9 @@ while [ $# -ne 0 ] ; do
   [ "$done" ] && break
 done
 
+# Make the edition string available to project files
 if [ "$EDITION" ] ; then
-  EDITION_FLAGS="DEFINES+=\"TAO_EDITION=$EDITION\" $EDITION_FLAGS"
+  EDITION_FLAGS="TAO_EDITION=\"$EDITION\" $EDITION_FLAGS"
 fi
 
 # Default QMake flags for each OS

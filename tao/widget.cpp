@@ -10536,7 +10536,7 @@ XL::Tree_p Widget::removeSelection()
 //    Remove the selection from the tree and return a copy of it
 // ----------------------------------------------------------------------------
 {
-    XL::Tree *tree = copySelection();
+    XL::Tree_p tree = copySelection();
     if (!tree)
         return NULL;
     deleteSelection();

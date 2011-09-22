@@ -965,7 +965,9 @@ void Window::fetch()
         return warnNoRepo();
 
     FetchDialog dialog(repo.data(), this);
+#ifndef CFG_NOEDIT
     connect(&dialog, SIGNAL(fetched()), gitToolBar, SLOT(refresh()));
+#endif
     dialog.exec();
 }
 
@@ -2262,14 +2264,17 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             this->repo = repo;
 
+
             // For undo/redo: widget has to be notified when document
             // is succesfully committed into repository
             // REVISIT: should slot be in Window rather than Widget?
             connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                     taoWidget,  SLOT(commitSuccess(QString, QString)));
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             // Also be notified when changes come from remote sync (pull)
             connect(repo.data(), SIGNAL(asyncPullComplete()),
                     this, SLOT(clearUndoStack()));
+#endif
             // REVISIT
             // Do not populate undo stack with current Git history to avoid
             // making it possible to undo some operations like document
@@ -2284,8 +2289,10 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
                 emit projectUrlChanged(url);
             if (repo != oldRepo)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     gitToolBar, SLOT(refresh()));
+#endif
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }

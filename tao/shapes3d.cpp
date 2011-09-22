@@ -210,11 +210,6 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 {
     Point3 p = bounds.Center() + where->Offset();
 
-    // Optimize drawing of convex
-    // shapes with backface culling
-    // (doesn't need to draw back faces)
-    glEnable(GL_CULL_FACE);
-
     glPushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
     glTranslatef(p.x, p.y, p.z);
@@ -241,19 +236,30 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Apply textures
     setTexture(where);
 
-    // Use painter algorithm to draw transparency
-    // This was made necessary by Bug #1403.
-    scale v = where->visibility * where->fillColor.alpha;
-    if(v != 1.0)
+    scale v = 0;
+    if(! where->programId)
     {
-        glCullFace(GL_FRONT);
-        glDepthMask(false);
-        if (setFillColor(where))
-            glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+        // Optimize drawing of convex
+        // shapes in case of no shaders thanks to
+        // backface culling (doesn't need to draw back faces)
+        v = where->visibility * where->fillColor.alpha;
+        glEnable(GL_CULL_FACE);
+        if(v != 1.0)
+        {
+            // Use painter algorithm to apply correctly
+            // transparency on shapes
+            // This was made necessary by Bug #1403.
+            glCullFace(GL_FRONT);
+            // Read Only mode of depth buffer
+            glDepthMask(false);
+
+            if (setFillColor(where))
+                glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+
+            glCullFace(GL_BACK);
+        }
     }
 
-    // Normal Drawing
-    glCullFace(GL_BACK);
     if (setFillColor(where))
         glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
@@ -268,15 +274,18 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     if(where->currentLights || where->programId)
         glDisableClientState(GL_NORMAL_ARRAY);
 
-    if(v != 1.0)
-        glDepthMask(true);
+    // Disable cullface
+    if(! where->programId)
+    {
+        glDisable(GL_CULL_FACE);
+        if(v != 1.0)
+            glDepthMask(true);
+    }
 
     glDisableClientState(GL_VERTEX_ARRAY);
 
     glPopAttrib();
     glPopMatrix();
-
-    glDisable(GL_CULL_FACE);
 }
 
 // ============================================================================
@@ -393,17 +402,17 @@ TorusMesh::TorusMesh(uint slices, uint stacks, double ratio)
 
             // First vertex
             textures.push_back(Vector((double) i / slices, (double) (j+1) / stacks));
-            normals.push_back(Vector3( sinTheta * cosIncrPhi, sinIncrPhi,  cosTheta * cosIncrPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
-                                       (thickness * sinIncrPhi),
-                                       (majRadius + minRadius * cosIncrPhi) * cosTheta));
+            normals.push_back(Vector3( cosTheta * cosIncrPhi, sinTheta * cosIncrPhi, sinIncrPhi));
+            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * cosTheta,
+                                       (majRadius + minRadius * cosIncrPhi) * sinTheta,
+                                       (thickness * sinIncrPhi)));
 
             // Second vertex
             textures.push_back(Vector((double) i / slices, (double) j / stacks));
-            normals.push_back(Vector3(sinTheta * cosPhi, sinPhi, cosTheta * cosPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
-                                       (thickness * sinPhi),
-                                       (majRadius + minRadius * cosPhi) * cosTheta));
+            normals.push_back(Vector3(cosTheta * cosPhi, sinTheta * cosPhi, sinPhi));
+            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * cosTheta,
+                                       (majRadius + minRadius * cosPhi) * sinTheta,
+                                       (thickness * sinPhi)));
         }
     }
 }

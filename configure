@@ -5,28 +5,41 @@ usage() {
   echo "Usage: configure [options] [edition name] [QMake options]"
   echo ""
   echo "Runs QMake to configure the build environment for some pre-defined"
-  echo "configurations of Tao Presentations."
-  echo "This involves:"
-  echo "  - Selecting build options (enabling or disabling some features in the program)"
-  echo "  - Selecting which modules will be built and packaged"
-  echo "  - Selecting which templates will be included"
-  echo "  - Defining the TAO_EDITION. Edition is shown on the splash screen and in the"
+  echo "configurations of Tao Presentations. configure will:"
+  echo ""
+  echo "  - Select build options (enabling or disabling some features in the program)"
+  echo "  - Select which modules will be built and packaged"
+  echo "  - Select which templates will be included"
+  echo "  - Define TAO_EDITION. Edition is shown on the splash screen and in the"
   echo "    about box. It also has an impact on licence generation and verification."
-  echo "Please look at the QMake \"Project MESSAGE\" output for detailed information on"
+  echo ""
+  echo "Please look at the QMake 'Project MESSAGE' output for detailed information on"
   echo "what will be included in the build."
   echo ""
   echo "Options:"
-  echo "  --debug     Build in debug mode (default is release)"
+  echo ""
+  echo "  --debug         Build in debug mode (default is release)"
+  echo "  --with-licence  For editions that normally contain no licence: force "
+  echo "                  generation of a valid 120-day licence. "
   echo ""
   echo "Edition Name:"
-  echo "  viewer      Configure for Tao Presentations Viewer"
-  echo "  creative    Configure for Tao Presentations Creative"
-  echo "  pro         Configure for Tao Presentations Pro"
-  echo "  <empty>     Configure for an internal build"
-  echo "              Replicates our 'beta' build. Almost all features are enabled,"
-  echo "              and a 120-day temporary licence is created."
+  echo ""
+  echo "  viewer      Configure for Tao Presentations Viewer."
+  echo "              Licence for:"
+  echo "              'Tao Presentations Viewer <latest tag>.*', no expiration date."
+  echo "  creative    Configure for Tao Presentations Creative."
+  echo "              No licence, install unsigned template for:"
+  echo "              'Tao Presentations Creative (latest tag).*', no expiration date."
+  echo "  pro         Configure for Tao Presentations Pro."
+  echo "              No licence, install unsigned template for:"
+  echo "              'Tao Presentations Pro (latest tag).*', no expiration date."
+  echo "  <empty>     Configure for an internal build."
+  echo "              Replicates our 'beta' build: most features are enabled,"
+  echo "              Licence for:"
+  echo "              'Tao Presentations <latest tag>.*', valid for 120 days."
   echo ""
   echo "QMake options:"
+  echo ""
   echo "  Any other option is passed unmodified to Qmake, after the options added by"
   echo "  this configure script."
   echo ""
@@ -64,6 +77,10 @@ while [ $# -ne 0 ] ; do
       ;;
     --debug)
       DEBUG_FLAGS="CONFIG-=release"
+      shift
+      ;;
+    --with-lic*)
+      LICENCE_FLAGS="LICENCE_VALIDITY=120"
       shift
       ;;
     viewer)
@@ -106,6 +123,6 @@ osflags() {
   esac
 }
 
-QMAKE_COMMAND="qmake -r `osflags` $DEBUG_FLAGS $EDITION_FLAGS $*"
+QMAKE_COMMAND="qmake -r `osflags` $DEBUG_FLAGS $LICENCE_FLAGS $EDITION_FLAGS $*"
 echo $QMAKE_COMMAND
 eval $QMAKE_COMMAND

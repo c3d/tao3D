@@ -172,7 +172,7 @@ Application::Application(int & argc, char ** argv)
     install_first_exception_handler();
 
     // Check licence
-    Licences::Check("Tao Presentations " GITREV);
+    Licences::Check(TAO_LICENCE_STR);
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();

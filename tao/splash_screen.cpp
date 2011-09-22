@@ -42,7 +42,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 {
     // Read licence info
     QString s;
-    if (Licences::Has("Tao Presentations " GITREV))
+    if (Licences::Has(TAO_LICENCE_STR))
     {
         QString name = +Licences::Name();
         QString company = +Licences::Company();

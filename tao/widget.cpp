@@ -8046,7 +8046,7 @@ Text_p Widget::taoVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     QString ver = GITREV;
-    if (!Licences::Has("Tao Presentations " GITREV))
+    if (!Licences::Has(TAO_LICENCE_STR))
         ver += tr(" (UNLICENSED)");
     return new XL::Text(+ver);
 }

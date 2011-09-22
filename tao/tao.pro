@@ -200,7 +200,7 @@ win32 {
 # Check compile-time options
 
 contains(DEFINES, CFG_NOGIT) {
-    message("Document history and sharing with Git is disabled")
+    !build_pass:message("Document history and sharing with Git is disabled")
 } else {
     HEADERS += \
         ansi_textedit.h \
@@ -266,10 +266,10 @@ contains(DEFINES, CFG_NOGIT) {
         diff_dialog.ui
 }
 contains(DEFINES, CFG_NOSTEREO) {
-    message("Stereoscopic display support is disabled")
+    !build_pass:message("Stereoscopic display support is disabled")
 }
 contains(DEFINES, CFG_NOSRCEDIT) {
-    message("Document source editor is disabled")
+    !build_pass:message("Document source editor is disabled")
 } else {
     HEADERS += \
         xl_source_edit.h \
@@ -278,7 +278,12 @@ contains(DEFINES, CFG_NOSRCEDIT) {
         xl_source_edit.cpp \
         xl_highlighter.cpp
 }
-
+contains(DEFINES, CFG_NORELOAD) {
+    !build_pass:message("Automatic document reload is disabled")
+}
+contains(DEFINES, CFG_NOEDIT) {
+    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 
@@ -308,7 +313,6 @@ RESOURCES += tao.qrc
 
 # Files loaded at runtime
 SUPPORT_FILES = xlr/xlr/builtins.xl \
-    tao.xl \
     tao_fr.xl \
     xl.syntax \
     xl.stylesheet \
@@ -319,6 +323,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
+    tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \
     graphics.tbl \
@@ -347,6 +352,19 @@ changelog.target = NEWS
 changelog.commands = cp ../NEWS .
 changelog.depends = ../NEWS
 QMAKE_EXTRA_TARGETS += changelog
+
+# Pre-processing of tao.xl.in to obtain tao.xl
+# preprocessor.pl comes from http://software.hixie.ch/utilities/unix/preprocessor/
+!system(perl -e "exit"):error("Can't execute perl")
+DEFS = $$join(DEFINES, " -D", " -D")
+tao_xl.target = tao.xl
+tao_xl.commands = perl preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
+tao_xl.files = tao.xl
+tao_xl.path = $$APPINST
+tao_xl.depends = tao.xl.in
+INSTALLS += tao_xl
+QMAKE_EXTRA_TARGETS += tao_xl
+QMAKE_CLEAN += tao.xl
 
 # What to install
 xl_files.path  = $$APPINST

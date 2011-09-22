@@ -3140,6 +3140,8 @@ void Widget::updateProgramSource(bool notWhenHidden)
         !xlProgram || sourceChanged())
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
+#else
+    Q_UNUSED(notWhenHidden);
 #endif
 }
 

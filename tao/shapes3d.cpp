@@ -209,11 +209,18 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
+
+    // Optimize drawing of convex
+    // shapes with backface culling
+    // (doesn't need to draw back faces)
+    glEnable(GL_CULL_FACE);
+
     glPushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
     glTranslatef(p.x, p.y, p.z);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
 
+    // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
 
@@ -234,22 +241,42 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Apply textures
     setTexture(where);
 
+    // Use painter algorithm to draw transparency
+    // This was made necessary by Bug #1403.
+    scale v = where->visibility * where->fillColor.alpha;
+    if(v != 1.0)
+    {
+        glCullFace(GL_FRONT);
+        glDepthMask(false);
+        if (setFillColor(where))
+            glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+    }
+
+    // Normal Drawing
+    glCullFace(GL_BACK);
     if (setFillColor(where))
         glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
         glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
 
+    // Disable texture coordinates
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
             disableTexCoord((*it).first);
 
+    // Disable normals
     if(where->currentLights || where->programId)
         glDisableClientState(GL_NORMAL_ARRAY);
+
+    if(v != 1.0)
+        glDepthMask(true);
 
     glDisableClientState(GL_VERTEX_ARRAY);
 
     glPopAttrib();
     glPopMatrix();
+
+    glDisable(GL_CULL_FACE);
 }
 
 // ============================================================================

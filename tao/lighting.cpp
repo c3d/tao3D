@@ -75,6 +75,11 @@ void Material::Draw(Layout *where)
     where->hasMaterial = true;
     glDisable(GL_COLOR_MATERIAL);
     glMaterialfv(face, function, &args[0]);
+
+    // Determine is the diffuse material
+    // is visible or not (use for transparency)
+    if(function == GL_DIFFUSE)
+        where->visibility = args[args.size() - 1];
 }
 
 

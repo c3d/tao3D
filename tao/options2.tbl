@@ -8,8 +8,12 @@ OPTVAR(sync_interval, ulong,   500)
 OPTVAR(save_interval, ulong,   1000)
 OPTVAR(commit_interval, ulong, 5000)
 OPTVAR(pull_interval, ulong, 5000)
+#ifdef CFG_NORELOAD
+OPTION(autosync, "Not used", )
+#else
 OPTION(autosync, "Interval for automatic file sync in milliseconds",
        sync_interval = INTEGER(1000, 100000))
+#endif
 OPTION(autosave, "Interval for automatic save in milliseconds",
        save_interval = INTEGER(1000, 100000))
 OPTION(autocommit, "Interval for automatic commit in milliseconds",
@@ -44,8 +48,13 @@ OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,dis
                "for a list of all available modes.",
        rendering_options = STRING)
 
+#ifdef CFG_NOGIT
+OPTION(norepo, "Not used", ;)
+OPTION(nogit, "Not used", ;)
+#else
 OPTION(norepo, "Disable GIT repository", ;)
 OPTION(nogit, "Synonym for -norepo", ;)
+#endif
 
 OPTVAR(threaded_gc, bool, true)
 OPTION(nomtgc, "Do not run XL garbage collection in a separate thread", threaded_gc = false)

@@ -83,7 +83,7 @@ Here is a step-by-tep guide.
 
 - Build Tao
   $ cd ~/tao
-  $ qmake -r -spec win32-g++  # append 'CONFIG+=release' for a releas build
+  $ ./configure
   $ make -j2 install  # will put the application under the "install" directory
 
 - Optional: configure Qt Creator to build and run Tao from the Qt Creator IDE.
@@ -116,12 +116,12 @@ x86_64 build (64 bit)
     $ sudo make install
   - Configure Tao as follows:
     $ export PATH=/usr/local/bin:$PATH
-    $ qmake -r -spec macx-g++  # append 'CONFIG+=release' for release
+    $ ./configure CONFIG-=x86
     $ make -j3 install
     $ cd packaging/macosx
     $ make kit
 
-x86 build (32 bit)
+x86 and x86_64 build (32 and 64 bit)
 
 Configure and build LLVM as follows (will install in
 ~/work/inst/llvm, use a different path if you wish):
@@ -143,7 +143,7 @@ Configure and build LLVM as follows (will install in
         DARWIN_VERSION=10.5
   - Configure and build Tao as follows:
     $ export PATH=~/work/inst/llvm/bin:$PATH
-    $ qmake -r -spec macx-g++ CONFIG+=x86 # append 'CONFIG+=release' for release
+    $ ./configure 
     $ make -j3 install
     $ cd packaging/macosx
     $ make kit
@@ -153,8 +153,8 @@ Valgrind usage
 Install valgrind (version > 3.6.0)
   $ sudo port install valgrind
 
-Build Tao whiteout Git repository
-  $ qmake -r DEFINES+=CFG_NOGIT 
+Build Tao without Git repository
+  $ ./configure DEFINES+=CFG_NOGIT 
   $ make -j3 install
 
 Launch Tao with valgrind (it is very very slow)
@@ -190,8 +190,8 @@ too.
      $ make -j3
      $ sudo make install
  - Configure and build Tao as follows:
-   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.2/bin:$PATH
-   $ qmake -r # append 'CONFIG+=release' for release
+   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.4/bin:$PATH
+   $ ./configure
    $ make -j3 install
    $ cd packaging/linux
    $ make kit

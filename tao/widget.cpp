@@ -1528,6 +1528,8 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
     if (!markChange("Selection sent to back"))
         return XL::xl_false;    // Source code was edited
 
+    XL::Symbols *symbols = xlProgram->tree->Symbols();
+
     Tree * select = removeSelection();
     if (!select)
         return XL::xl_false;
@@ -1554,9 +1556,15 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
         if (XL::Block *block = (*top)->AsBlock())
             top = &block->child;
     }
-
-    XL::Symbols *symbols = (*top)->Symbols();
-    *top = new XL::Infix("\n", select, *top);
+    if (*top)
+    {
+        symbols = (*top)->Symbols();
+        *top = new XL::Infix("\n", select, *top);
+    }
+    else
+    {
+        *top = select;
+    }
     (*top)->SetSymbols(symbols);
 
     // Reload the program and mark the changes

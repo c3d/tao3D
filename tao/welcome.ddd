@@ -1,14 +1,33 @@
-import Monjori
-import Flares
+beta N:integer ->
+    select_font 0 -> font "Ubuntu"
+    select_font 1 -> font "Bentham"
+    select_font 2 -> font "Ubuntu"
+    select_font 3 -> font "Tangerine"
+    select_font 4 -> font "Lobster"
+    select_font 5 -> font "Droid Sans"
+    select_font 6 -> font "UnifrakturMaguntia/Book"
+    Nfonts -> 7
+    locally
+        W -> window_width
+        H -> window_height
+        Z -> 0.0
+        Z := -177.0 * N
+        Zcam -> camera_position at 3
+        S -> (Zcam - Z)/Zcam
+        WW -> S*(W+400)
+        default_refresh 5.0
+        translate (50 * page_time + (N * 451.0)) mod WW - WW/2, (N * 2311.0) mod H - H/2, Z
+        text_box 0, 0, 300, 300,
+            align_center
+            vertical_align_center
+            select_font (N mod Nfonts)
+            if (N mod 2) = 0 then
+                italic
+            font_size 25 + (N * 37.0) mod 200
+            color 0.0, 1.0, 0.2, 0.1 + 0.8/(1.0 - Z/400)
+            text "Beta8"
 
-locally
-    translatez -6000
-    if mouse_x > 0 then
-        monjori (mouse_x + mouse_y) * 0.01 + time mod 86400
-    else
-        flare mouse_x * (time mod 5), mouse_y * (time mod 7.3123)
-    no_refresh_on TimerEvent
-    rectangle 0, 0, 2 * window_width, 2 * window_height
+beta with 1..30
 
 text_box 0, 0, window_width, window_height,
     font "Ubuntu", 80, bold

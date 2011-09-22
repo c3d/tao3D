@@ -87,8 +87,8 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 #ifdef TAO_EDITION
     const char * ed = "<html><head><style type=text/css>"
             "body {color:\"" TEXT_COLOR "\"}"
-            "</style></head><body>%1 Edition</body></html>";
-    edition = new QLabel(trUtf8(ed).arg(TAO_EDITION), this);
+            "</style></head><body>%1</body></html>";
+    edition = new QLabel(trUtf8(ed).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
     edition->move(25, 280);
 #endif
 }

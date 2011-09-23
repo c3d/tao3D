@@ -289,3 +289,8 @@ SOURCES = \
     $${SRC}/zinflate.cpp \
     $${SRC}/zlib.cpp
 
+# Kludge so that "make install" builds the binary
+install.commands = :
+install.path = .
+install.depends = $$TARGET
+INSTALLS += install

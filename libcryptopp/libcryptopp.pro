@@ -25,7 +25,7 @@ CONFIG(release, debug|release):DEFINES += NDEBUG
 macx:DEFINES += CRYPTOPP_DISABLE_ASM
 
 # Source directory (content of ZIP file downloaded from http://www.cryptopp.com/)
-SRC = cryptopp561
+SRC = cryptopp
 
 INCLUDEPATH = $${SRC}
 DEPENDPATH += $${SRC}

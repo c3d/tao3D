@@ -84,12 +84,12 @@
 include(main.pri)
 
 TEMPLATE = subdirs
-SUBDIRS  = libxlr tao modules ssh_ask_pass keygen tests doc templates packaging
+SUBDIRS  = libxlr tao modules ssh_ask_pass keygen tests doc templates packaging libcryptopp
 
 win32:SUBDIRS += detach
 
-tao.depends = libxlr
-keygen.depends = libxlr
+tao.depends = libxlr libcryptopp
+keygen.depends = libxlr libcryptopp
 modules.depends = tao
 tests.depends = tao
 templates.depends = tao

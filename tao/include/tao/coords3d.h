@@ -235,6 +235,52 @@ inline Vector3 operator^ (const Vector3& l, const Vector3 &r)
 }
 
 
+// ============================================================================
+//
+//   A basic triangle class
+//
+// ============================================================================
+
+struct Triangle
+// ----------------------------------------------------------------------------
+//    Define a triangle
+// ----------------------------------------------------------------------------
+{
+    Triangle() {}
+    Triangle(const Point3& v1,
+             const Point3& v2,
+             const Point3& v3) : v1(v1), v2(v2), v3(v3) {}
+    Triangle(const Triangle& t) : v1(t.v1), v2(t.v2), v3(t.v3) {}
+
+
+    Vector3& computeNormal()
+    // ----------------------------------------------------------------------------
+    //    Compute normal of the triangle
+    // ----------------------------------------------------------------------------
+    {
+        Point3 a;
+        Point3 b;
+        Vector3 normal;
+
+        a.x = v1.x - v2.x;
+        a.y = v1.y - v2.y;
+        a.z = v1.z - v2.z;
+
+        b.x = v2.x - v3.x;
+        b.y = v2.y - v3.y;
+        b.z = v2.z - v3.z;
+
+        normal.x = (a.y * b.z) - (a.z * b.y);
+        normal.y = (a.z * b.x) - (a.x * b.z);
+        normal.z = (a.x * b.y) - (a.y * b.x);
+
+        return normal.Normalize();
+    }
+
+public:
+    Point3 v1, v2, v3;
+};
+
 
 // ============================================================================
 //

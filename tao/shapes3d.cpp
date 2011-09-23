@@ -89,29 +89,7 @@ bool Shape3::setLineColor(Layout *where)
     return false;
 }
 
-Vector3& Mesh::calculateNormal(const Point3& v1,const Point3& v2,const Point3& v3)
-// ----------------------------------------------------------------------------
-//    Compute normal of specified triangle
-// ----------------------------------------------------------------------------
-{
-    Point3 a;
-    Point3 b;
-    Vector3 normal;
 
-    a.x = v1.x - v2.x;
-    a.y = v1.y - v2.y;
-    a.z = v1.z - v2.z;
-
-    b.x = v2.x - v3.x;
-    b.y = v2.y - v3.y;
-    b.z = v2.z - v3.z;
-
-    normal.x = (a.y * b.z) - (a.z * b.y);
-    normal.y = (a.z * b.x) - (a.x * b.z);
-    normal.z = (a.x * b.y) - (a.y * b.x);
-
-    return normal.Normalize();
-}
 
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
@@ -236,8 +214,8 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Apply textures
     setTexture(where);
 
-    scale v = 0;
-    if(! where->programId)
+    scale v = 1.0;
+    if(! where->programId && culling)
     {
         // Optimize drawing of convex
         // shapes in case of no shaders thanks to
@@ -265,6 +243,9 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     if (setLineColor(where))
         glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
 
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+
     // Disable texture coordinates
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
@@ -275,14 +256,12 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         glDisableClientState(GL_NORMAL_ARRAY);
 
     // Disable cullface
-    if(! where->programId)
+    if(! where->programId && culling)
     {
         glDisable(GL_CULL_FACE);
         if(v != 1.0)
             glDepthMask(true);
     }
-
-    glDisableClientState(GL_VERTEX_ARRAY);
 
     glPopAttrib();
     glPopMatrix();
@@ -475,23 +454,25 @@ ConeMesh::ConeMesh(double ratio)
     // neighbouring faces
     // NOTE: First and last normals are the same because of QUAD_STRIP
     Vector3 previousFaceNorm, nextFaceNorm;
-    previousFaceNorm = calculateNormal(vertices[vertices.size() - 2],
-                                       vertices[vertices.size() - 1],
-                                       vertices[0]);
-    nextFaceNorm = calculateNormal(vertices[0], vertices[1], vertices[2]);
+    Triangle lastTriangle(vertices[vertices.size() - 2],
+                          vertices[vertices.size() - 1],
+                          vertices[0]);
+    Triangle firstTriangle(vertices[0],
+                           vertices[1],
+                           vertices[2]);
+
+    previousFaceNorm = lastTriangle.computeNormal();
+    nextFaceNorm     = firstTriangle.computeNormal();
     normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
     normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+
     for(unsigned int i = 2; i < vertices.size() - 2; i +=2)
     {
         previousFaceNorm = nextFaceNorm;
-        if(i < vertices.size() - 2)
-            nextFaceNorm = calculateNormal(vertices[i],
-                                           vertices[i + 1],
-                                           vertices[i + 2]);
-        else
-            nextFaceNorm = calculateNormal(vertices[vertices.size() - 2],
-                                           vertices[vertices.size() - 1],
-                                           vertices[0]);
+        Triangle triangle(vertices[i],
+                          vertices[i + 1],
+                          vertices[i + 2]);
+        nextFaceNorm = triangle.computeNormal();
 
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));

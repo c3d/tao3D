@@ -112,6 +112,6 @@ distclean_inst_sdk.commands = rm -rf ./install ./sdk
 distclean.depends = distclean_inst_sdk
 QMAKE_EXTRA_TARGETS += distclean distclean_inst_sdk
 
-kit.commands = (cd packaging; \$(MAKE) kit)
+kit.commands = \$(MAKE) -C packaging kit
 kit.depends = FORCE
 QMAKE_EXTRA_TARGETS += kit

@@ -16,9 +16,9 @@
 
 TEMPLATE = subdirs
 
-kit.commands   = make -f Makefile.win
-prepare.commands   = make -f Makefile.win prepare
-clean.commands = make -f Makefile.win clean
+kit.commands   = $(MAKE) -f Makefile.win
+prepare.commands   = $(MAKE) -f Makefile.win prepare
+clean.commands = $(MAKE) -f Makefile.win clean
 distclean.depends = clean
 
 QMAKE_EXTRA_TARGETS = kit prepare clean distclean

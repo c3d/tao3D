@@ -43,7 +43,7 @@ $(TAO)/Tao.bin: $(TAO) install
 	chmod +x $(TAO)/Tao
 
 install: $(TAO)
-	(cd ../.. && make install) && cp -Rp ../../install/* $(TAO)
+	(cd ../.. && $(MAKE) install) && cp -Rp ../../install/* $(TAO)
 
 clean:
 	rm -rf $(TAO)

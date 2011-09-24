@@ -25,10 +25,15 @@ HEADERS += ../tao/licence.h
 CONFIG  += console static
 CONFIG  -= app_bundle
 
-INC = . ../tao ../tao/include ../tao/include/tao ../tao/xlr/xlr/include
+# Turn off warnings caused by Crypto++ headers (unused parameters)
+CONFIG += warn_off
+QMAKE_CXXFLAGS -= -Werror
+
+INC = . ../tao ../tao/include ../tao/include/tao ../tao/xlr/xlr/include \
+      ../libcryptopp ../keygen
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-LIBS += -L../libxlr/\$(DESTDIR) -lxlr
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 
 # REVISIT Move into tao.pro
 # "make install" will generate and copy a temporary licence (licence.taokey)

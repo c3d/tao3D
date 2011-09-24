@@ -4207,20 +4207,15 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 }
 
 
-void Widget::drawTree(Layout *where, Context *context, Tree_p code)
+Layout *Widget::drawTree(Layout *where, Context *context, Tree_p code)
 // ----------------------------------------------------------------------------
-//    Draw some tree, e.g. cell fill and border
+//    Draw some tree, e.g. cell fill and border, return new layout
 // ----------------------------------------------------------------------------
 {
-    SpaceLayout selectionSpace(this);
-
-    XL::Save<Layout *> saveLayout(layout, &selectionSpace);
-    GLAttribKeeper     saveGL;
-    glDisable(GL_DEPTH_TEST);
+    Layout *result = where->NewChild();
+    XL::Save<Layout *> saveLayout(layout, result);
     context->Evaluate(code);
-
-    selectionSpace.Draw(where);
-    glEnable(GL_DEPTH_TEST);
+    return result;
 }
 
 
@@ -8104,10 +8099,6 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
 {
     Table *tbl = new Table(this, context, x, y, r, c);
     XL::Save<Table *> saveTable(table, tbl);
-    layout->Add(tbl);
-
-    if (currentShape)
-        layout->Add(new TableManipulator(currentShape, x, y, tbl));
 
     // Patch the symbol table with short versions of table_xyz functions
     if (Prefix *prefix = self->AsPrefix())
@@ -8136,7 +8127,14 @@ Tree_p Widget::newTable(Context *context, Tree_p self,
         }
     }
 
-    return context->Evaluate(body);
+    Tree_p result = context->Evaluate(body);
+
+    // After we evaluated the body, add element to the layout
+    layout->Add(tbl);
+    if (currentShape)
+        layout->Add(new TableManipulator(currentShape, x, y, tbl));
+
+    return result;
 }
 
 

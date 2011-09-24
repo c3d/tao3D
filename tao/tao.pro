@@ -22,10 +22,12 @@ TEMPLATE = app
 INC = . \
     include \
     include/tao \
-    xlr/xlr/include
+    xlr/xlr/include \
+    ../libcryptopp \
+    ../keygen
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-LIBS += -L../libxlr/\$(DESTDIR) -lxlr
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += webkit \
     network \
     opengl \
@@ -161,7 +163,6 @@ SOURCES += tao_main.cpp \
     repository.cpp \
     git_backend.cpp \
     application.cpp \
-    licence.cpp \
     font.cpp \
     drag.cpp \
     error_message_dialog.cpp \
@@ -286,6 +287,7 @@ contains(DEFINES, CFG_NOEDIT) {
 }
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
+NOWARN_SOURCES += licence.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \

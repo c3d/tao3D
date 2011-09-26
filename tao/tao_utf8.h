@@ -39,6 +39,7 @@ inline QString operator +(text s)
     return QString::fromUtf8(s.data(), s.length());
 }
 
+
 inline text operator +(QString s)
 // ----------------------------------------------------------------------------
 //   Quickly convert from QString to text

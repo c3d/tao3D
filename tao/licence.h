@@ -95,7 +95,11 @@ private:
     void addLicenceFile(kstring licfname);
     int  licenceRemainingDays(text feature);
     void licenceError(kstring file, QString reason);
-    text digest(std::vector<Licence> &licences);
+    text toText(std::vector<Licence> &licences);
+#ifdef KEYGEN
+    text sign(std::vector<Licence> &licences);
+#endif
+    bool verify(std::vector<Licence> &licences, text signature);
 };
 
 }

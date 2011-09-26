@@ -89,7 +89,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #endif
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       unifiedTitleAndToolBarOnMac(false), // see #678 below
-      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
+#ifndef CFG_NORELOAD
+      fileCheckTimer(this),
+#endif
+      splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
 #ifndef CFG_NOSRCEDIT
@@ -154,20 +157,24 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
             return;
     }
 
+#ifndef CFG_NOEDIT
     // Cut/Copy/Paste actions management
     connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(onFocusWidgetChanged(QWidget*,QWidget*)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()),
             this, SLOT(checkClipboard()));
     checkClipboard();
+#endif
 
     // Create the main widget to display Tao stuff
     XL::SourceFile &sf = xlRuntime->files[+sourceFile];
     taoWidget->xlProgram = &sf;
 
+#ifndef CFG_NORELOAD
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+#endif
 
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
@@ -815,6 +822,8 @@ void Window::clearRecentFileList()
 }
 
 
+#ifndef CFG_NOEDIT
+
 void Window::cut()
 // ----------------------------------------------------------------------------
 //    Cut the current selection into the clipboard
@@ -903,6 +912,7 @@ void Window::checkClipboard()
     pasteAct->setEnabled(enable);
 }
 
+#endif // CFG_NOEDIT
 
 #ifndef CFG_NOGIT
 
@@ -955,7 +965,9 @@ void Window::fetch()
         return warnNoRepo();
 
     FetchDialog dialog(repo.data(), this);
+#ifndef CFG_NOEDIT
     connect(&dialog, SIGNAL(fetched()), gitToolBar, SLOT(refresh()));
+#endif
     dialog.exec();
 }
 
@@ -1123,6 +1135,9 @@ void Window::reloadCurrentFile()
     loadFile(curFile, false);
 }
 
+#endif // CFG_NOGIT
+
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 
 bool Window::populateUndoStack()
 // ----------------------------------------------------------------------------
@@ -1151,7 +1166,7 @@ void Window::clearUndoStack()
     undoStack->clear();
 }
 
-#endif // CFG_NOGIT
+#endif // !CFG_NOGIT && !CFG_NOEDIT
 
 void Window::about()
 // ----------------------------------------------------------------------------
@@ -1368,6 +1383,7 @@ void Window::createActions()
     exitAct->setMenuRole(QAction::QuitRole);
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
+#ifndef CFG_NOEDIT
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
     cutAct->setShortcuts(QKeySequence::Cut);
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
@@ -1391,8 +1407,9 @@ void Window::createActions()
     pasteAct->setIconVisibleInMenu(false);
     pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
+#endif
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
@@ -1490,6 +1507,7 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
+#ifndef CFG_NOEDIT
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
 #ifndef CFG_NOSRCEDIT
@@ -1504,6 +1522,7 @@ void Window::createActions()
 
     redoAction = undoStack->createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
+#endif
 
     // Icon copied from:
     // /Developer/Documentation/Qt/html/images/cursor-openhand.png
@@ -1577,6 +1596,7 @@ void Window::createMenus()
     clearRecentAct->setEnabled(false);
     updateRecentFileActions();
 
+#ifndef CFG_NOEDIT
     editMenu = menuBar()->addMenu(tr("&Edit"));
     editMenu->setObjectName(EDIT_MENU_NAME);
     editMenu->addAction(undoAction);
@@ -1585,8 +1605,9 @@ void Window::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+#endif
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     shareMenu = menuBar()->addMenu(tr("&Share"));
     shareMenu->setObjectName(SHARE_MENU_NAME);
     shareMenu->addAction(cloneAct);
@@ -1639,6 +1660,7 @@ void Window::createToolBars()
     if (view)
         view->addAction(fileToolBar->toggleViewAction());
 
+#ifndef CFG_NOEDIT
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->setObjectName("editToolBar");
     editToolBar->addAction(cutAct);
@@ -1647,6 +1669,7 @@ void Window::createToolBars()
     editToolBar->hide();
     if (view)
         view->addAction(editToolBar->toggleViewAction());
+#endif
 
     viewToolBar = addToolBar(tr("View"));
     viewToolBar->setObjectName("viewToolBar");
@@ -1658,7 +1681,7 @@ void Window::createToolBars()
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     gitToolBar = new GitToolBar(tr("Git Tools"), this);
     gitToolBar->setObjectName("gitToolbar");
     connect(this, SIGNAL(projectChanged(Repository*)),
@@ -1801,7 +1824,7 @@ void Window::setReadOnly(bool ro)
 #ifndef CFG_NOSRCEDIT
     srcEdit->setReadOnly(ro);
 #endif
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
@@ -2134,7 +2157,7 @@ void Window::markChanged(bool changed)
 }
 
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 void Window::enableProjectSharingMenus()
 // ----------------------------------------------------------------------------
 //   Activate the Git-related actions
@@ -2148,7 +2171,9 @@ void Window::enableProjectSharingMenus()
     selectiveUndoAct->setEnabled(true);
     diffAct->setEnabled(true);
 }
+#endif
 
+#ifndef CFG_NOGIT
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
 //   Find and open a project (= SCM repository)
@@ -2239,30 +2264,35 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             this->repo = repo;
 
+
             // For undo/redo: widget has to be notified when document
             // is succesfully committed into repository
             // REVISIT: should slot be in Window rather than Widget?
             connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                     taoWidget,  SLOT(commitSuccess(QString, QString)));
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             // Also be notified when changes come from remote sync (pull)
             connect(repo.data(), SIGNAL(asyncPullComplete()),
                     this, SLOT(clearUndoStack()));
+#endif
             // REVISIT
             // Do not populate undo stack with current Git history to avoid
             // making it possible to undo some operations like document
             // creation... (these commits are not easy to identify
             // currently)
             // populateUndoStack();
-
+#ifndef CFG_NOEDIT
             enableProjectSharingMenus();
-
+#endif
             QString url = repo->url();
             if (url != oldUrl)
                 emit projectUrlChanged(url);
             if (repo != oldRepo)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     gitToolBar, SLOT(refresh()));
+#endif
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }

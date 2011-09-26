@@ -560,6 +560,8 @@ submenu n:text, l:text                  -> submenu n, l, ""
 
 menu_item name:text, label:text, todo:block -> menu_item name, label, "", false, "false", todo
 
+#ifndef CFG_NOEDIT
+
 menu_insert -> {
 menubar
 menu      "menu:insert", tr "Insert"
@@ -921,6 +923,8 @@ menu_item "menu:select:arrange > ungroup", tr "Ungroup",
     ungroup_selection
 }
 
+#endif
+
 menu_window -> {
 menu   "TAO_VIEW_MENU", ""
 submenu "TAO_VIEW_MENU:windowsize", tr "Window size"
@@ -952,9 +956,11 @@ window_choices ->
     chooser_choice "1920 x 1080",
         window_size 1920, 1080
 
+#ifndef CFG_NOEDIT
 menu_insert
 menu_format
 menu_arrange
+#endif
 menu_window
 
 add_display_mode_to_menu "2D", tr "2D"

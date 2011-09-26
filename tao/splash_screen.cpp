@@ -42,7 +42,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 {
     // Read licence info
     QString s;
-    if (Licences::Has("Tao Presentations " GITREV))
+    if (Licences::Has(TAO_LICENCE_STR))
     {
         QString name = +Licences::Name();
         QString company = +Licences::Company();
@@ -83,6 +83,14 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
     label->move(270, 280);
+
+#ifdef TAO_EDITION
+    const char * ed = "<html><head><style type=text/css>"
+            "body {color:\"" TEXT_COLOR "\"}"
+            "</style></head><body>%1</body></html>";
+    edition = new QLabel(trUtf8(ed).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
+    edition->move(25, 280);
+#endif
 }
 
 

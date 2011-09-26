@@ -131,6 +131,6 @@ target.path = $$LIBINST
 INSTALLS    = target
 
 # Compile with valgrind hooks by default
-contains(DEFINES, NVALGRIND):message(Compiling libxlr without Valgrind hooks)
+!build_pass:contains(DEFINES, NVALGRIND):message(Compiling libxlr without Valgrind hooks)
 
 macx:QMAKE_LFLAGS_SONAME = -install_name$${LITERAL_WHITESPACE}@rpath/

@@ -12,9 +12,9 @@
 
 TEMPLATE = subdirs
 
-kit.commands   = make -f Makefile.macosx
-prepare.commands   = make -f Makefile.macosx prepare
-clean.commands = make -f Makefile.macosx clean
+kit.commands   = $(MAKE) -f Makefile.macosx
+prepare.commands   = $(MAKE) -f Makefile.macosx prepare
+clean.commands = $(MAKE) -f Makefile.macosx clean
 distclean.depends = clean
 
 QMAKE_EXTRA_TARGETS = kit prepare clean distclean

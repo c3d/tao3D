@@ -542,7 +542,6 @@ void Widget::dawdle()
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repo = repository();
-    Main       *xlr  = Main::MAIN;
 
     if (xlProgram->changed && xlProgram->readOnly)
     {
@@ -579,14 +578,16 @@ void Widget::dawdle()
     }
 #endif
 
+#ifndef CFG_NORELOAD
+    // REVISIT: redundant with Window::checkFiles()?
     // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
     if (syncDelay < 0)
     {
         refreshProgram();
-        syncDelay = tick + xlr->options.sync_interval * 1000;
+        syncDelay = tick + Main::MAIN->options.sync_interval * 1000;
     }
-
+#endif
 }
 
 
@@ -3139,6 +3140,8 @@ void Widget::updateProgramSource(bool notWhenHidden)
         !xlProgram || sourceChanged())
         return;
     window->srcEdit->render(xlProgram->tree, &selectionTrees);
+#else
+    Q_UNUSED(notWhenHidden);
 #endif
 }
 
@@ -8038,7 +8041,7 @@ Text_p Widget::taoVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     QString ver = GITREV;
-    if (!Licences::Has("Tao Presentations " GITREV))
+    if (!Licences::Has(TAO_LICENCE_STR))
         ver += tr(" (UNLICENSED)");
     return new XL::Text(+ver);
 }
@@ -10227,7 +10230,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         }
         else
         {
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             if (par == currentMenuBar)
                 before = ((Window*)parent())->shareMenu->menuAction();
 #else

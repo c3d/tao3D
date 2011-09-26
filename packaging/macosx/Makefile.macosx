@@ -115,7 +115,7 @@ clean.tao_install_deps:
 
 .tao_install_prog_ts:
 	mkdir -p build_root
-	cd ../.. && make install
+	cd ../.. && $(MAKE) install
 	cp -Rp $(INSTROOT)/* build_root
 
 clean.tao_install_prog:
@@ -130,7 +130,7 @@ clean.tao: clean.tao_install
 ########
 
 .git_install_ts: .git_build_ts
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
 	rm -rf $(GIT_DEST) ; mkdir -p "$(GIT_DEST)"
 	mv $(GIT_DESTDIR)/usr/local/* "$(GIT_DEST)"
 	touch $@
@@ -142,8 +142,8 @@ clean.git_install:
 ########
 
 .git_build_ts: .git_extract_ts
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms)
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms)
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
 	touch .git_build_ts
 
 clean.git_build:

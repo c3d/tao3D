@@ -13,3 +13,8 @@
 TEMPLATE = subdirs
 macx:SUBDIRS = macosx
 win32:SUBDIRS = win
+linux-g++*:SUBDIRS = linux
+
+kit.commands = \$(MAKE) -C $$SUBDIRS kit
+kit.depends = FORCE
+QMAKE_EXTRA_TARGETS += kit

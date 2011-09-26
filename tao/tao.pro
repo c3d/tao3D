@@ -331,7 +331,8 @@ OTHER_FILES +=  \
     graphics.tbl \
     Info.plist.in \
     html/module_info_dialog.html \
-    html/module_info_dialog_fr.html
+    html/module_info_dialog_fr.html \
+    tao_fr.ts
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \

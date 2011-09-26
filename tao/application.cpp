@@ -219,6 +219,13 @@ Application::Application(int & argc, char ** argv)
                              tr("This system doesn't support OpenGL 2.0."));
         ::exit(1);
     }
+    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+    {
+        QMessageBox::warning(NULL, tr("FBO support"),
+                             tr("This system doesn't support Frame Buffer "
+                                "Objects."));
+        ::exit(1);
+    }
 
 
     {
@@ -266,15 +273,6 @@ Application::Application(int & argc, char ** argv)
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
-    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-    {
-        // Check frame buffer support (non-fatal)
-        ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Framebuffer support"));
-        dialog.showMessage(tr("This system does not support framebuffers."
-                              " Performance may not be optimal."
-                              " Consider updating the OpenGL drivers."));
-    }
     {
         QGLWidget gl(QGLFormat(QGL::StereoBuffers));
         hasGLStereoBuffers = gl.format().stereo();

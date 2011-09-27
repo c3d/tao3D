@@ -80,10 +80,12 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
+      maxTextureCoords(0), maxTextureUnits(0),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
       appInitialized(false)
+
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -150,7 +152,7 @@ Application::Application(int & argc, char ** argv)
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
-                              
+
     // Load licence (in XL directory path)
     QFileInfo licence("xl:licence.taokey");
     if (licence.exists())
@@ -209,12 +211,19 @@ Application::Application(int & argc, char ** argv)
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
-    
+
     // Basic sanity tests to check if we can actually run
-    if (!QGLFormat::hasOpenGL())
+    if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
         QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL."));
+                             tr("This system doesn't support OpenGL 2.0."));
+        ::exit(1);
+    }
+    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+    {
+        QMessageBox::warning(NULL, tr("FBO support"),
+                             tr("This system doesn't support Frame Buffer "
+                                "Objects."));
         ::exit(1);
     }
 
@@ -264,15 +273,6 @@ Application::Application(int & argc, char ** argv)
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
-    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-    {
-        // Check frame buffer support (non-fatal)
-        ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Framebuffer support"));
-        dialog.showMessage(tr("This system does not support framebuffers."
-                              " Performance may not be optimal."
-                              " Consider updating the OpenGL drivers."));
-    }
     {
         QGLWidget gl(QGLFormat(QGL::StereoBuffers));
         hasGLStereoBuffers = gl.format().stereo();

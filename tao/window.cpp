@@ -419,8 +419,16 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(onDocReady(QString)));
                 connect(uri, SIGNAL(templateCloned(QString)),
                         this, SLOT(onNewTemplateInstalled(QString)));
-                connect(uri, SIGNAL(templateFetched(QString)),
+                connect(uri, SIGNAL(templateUpdated(QString)),
+                        this, SLOT(onTemplateUpdated(QString)));
+                connect(uri, SIGNAL(templateUpToDate(QString)),
                         this, SLOT(onTemplateUpToDate(QString)));
+                connect(uri, SIGNAL(moduleCloned(QString)),
+                        this, SLOT(onNewModuleInstalled(QString)));
+                connect(uri, SIGNAL(moduleUpdated(QString)),
+                        this, SLOT(onModuleUpdated(QString)));
+                connect(uri, SIGNAL(moduleUpToDate(QString)),
+                        this, SLOT(onModuleUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
                 bool ok = uri->get();  // Will emit a signal when done
@@ -1119,6 +1127,72 @@ void Window::onTemplateUpToDate(QString path)
     QString title = tr("Template is up-to-date");
     QString msg = tr("The template is up-to-date.");
     QString infoMsg = tr("The template is in folder %1.").arg(path);
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(infoMsg);
+    msgBox.exec();
+}
+
+
+void Window::onTemplateUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing template was updated
+// ----------------------------------------------------------------------------
+{
+    QString title = tr("Template was updated");
+    QString msg = tr("The template was updated.");
+    QString infoMsg = tr("The template is in folder %1.").arg(path);
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(infoMsg);
+    msgBox.exec();
+}
+
+
+void Window::onNewModuleInstalled(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that a new module was installed
+// ----------------------------------------------------------------------------
+{
+    QString title = tr("New module installed");
+    QString msg = tr("A new module was installed.");
+    QString infoMsg = tr("The module will be visible in the preference dialog "
+                         "and can be used after restarting the application."
+                         " Files were installed in folder %1.").arg(path);
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(infoMsg);
+    msgBox.exec();
+}
+
+
+void Window::onModuleUpToDate(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module is up-to-date
+// ----------------------------------------------------------------------------
+{
+    QString title = tr("Module is up-to-date");
+    QString msg = tr("The module is up-to-date.");
+    QString infoMsg = tr("The module is in folder %1.").arg(path);
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(infoMsg);
+    msgBox.exec();
+}
+
+
+void Window::onModuleUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module was updated
+// ----------------------------------------------------------------------------
+{
+    QString title = tr("Module was updated");
+    QString msg = tr("The module was updated.");
+    QString infoMsg = tr("The module is in folder %1.").arg(path);
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(title);
     msgBox.setText(msg);

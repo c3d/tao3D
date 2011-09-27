@@ -68,8 +68,18 @@ signals:
     void                  progressMessage(QString message);
     void                  docReady(QString path);
     void                  getFailed();
+
+    void                  cloned(QString path);
+    void                  updated(QString path);
+    void                  upToDate(QString path);
+
     void                  templateCloned(QString path);
-    void                  templateFetched(QString path);
+    void                  templateUpdated(QString path);
+    void                  templateUpToDate(QString path);
+
+    void                  moduleCloned(QString path);
+    void                  moduleUpdated(QString path);
+    void                  moduleUpToDate(QString path);
 
 protected:
     enum Operation { NONE, CLONING, FETCHING };
@@ -86,6 +96,7 @@ protected:
     QString               repoUri();
     bool                  showRepoErrorDialog();
 
+    void                  setSettingsGroup();
     void                  checkRefresh();
     void                  refreshSettings();
     void                  clearLocalProject();
@@ -118,6 +129,7 @@ private:
     bool                  clone;
     QString               settingsGroup;
     Operation             op;
+    QString               savedHead;
 
 private:
    static QSet<QString>   refreshed;

@@ -180,6 +180,7 @@ public:
     virtual process_p   asyncClone(QString cloneUrl, QString newFolder) = 0;
     virtual process_p   asyncFetch(QString what)        = 0;
     virtual text        version()                       = 0;
+    virtual text        head()                          = 0;
     virtual bool        isClean()                       = 0;
     virtual QString     url()                           = 0;
     virtual bool        gc()                            = 0;

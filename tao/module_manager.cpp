@@ -577,6 +577,23 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
 }
 
 
+void ModuleManager::refreshModuleProperties(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Read module directory. If module is known, its refresh entry
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "Refreshing module properties for " << +moduleDir << "\n";
+
+    ModuleInfoPrivate m = readModule(moduleDir);
+    if (m.id != "" && modules.contains(+m.id))
+    {
+        ModuleInfoPrivate & existing = modules[+m.id];
+        existing.copyPublicProperties(m);
+    }
+}
+
+
 ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
 // ----------------------------------------------------------------------------
 //   Read module directory and return module info. Set m.id == "" on error.
@@ -619,8 +636,17 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
             cause = tr("Could not parse %1").arg(xlPath);
         }
     }
-    if (m.id == "")
+    if (m.id != "")
+    {
+        // We have a valid module. Try to get its version from Git.
+        double git_ver = parseVersion(+gitVersion(moduleDir));
+        if (git_ver != -1)
+            m.ver = git_ver;
+    }
+    else
+    {
         warnInvalidModule(moduleDir, cause);
+    }
     return m;
 }
 
@@ -1126,32 +1152,31 @@ bool CheckForUpdate::start()
 {
     IFTRACE(modules)
         debug() << "Start checking for updates, module "
-                << m.toText() << "\n";
+                << m.toText() << "\nCurrent version " << m.ver << "\n";
 
     bool inProgress = false;
-    repo = RepositoryFactory::repository(+m.path);
+    repo = RepositoryFactory::repository(+m.path,
+                                         RepositoryFactory::OpenExistingHere);
     if (repo && repo->valid())
     {
         QStringList tags = repo->tags();
         if (!tags.isEmpty())
         {
-            uint major = (uint) floor(m.ver);
-            uint minor = (uint) (m.ver * 100) % 100;
-            uint patch = (uint) (m.ver * 10000) % 100;
-            QString ver1 = QString("%1.%2.%3").arg(major).arg(minor).arg(patch);
-            QString ver2 = QString("%1.%2").arg(major).arg(minor);
-            QString ver3 = QString("%1").arg(major);
-            if (tags.contains(ver1)||tags.contains(ver2)||tags.contains(ver3))
+            foreach (QString t, tags)
             {
-                proc = repo->asyncGetRemoteTags("origin");
-                connect(repo.data(),
-                        SIGNAL(asyncGetRemoteTagsComplete(QStringList)),
-                        this,
-                        SLOT(processRemoteTags(QStringList)));
-                repo->dispatch(proc);
-                inProgress = true;
+                if (m.ver == ModuleManager::parseVersion(+t))
+                {
+                    proc = repo->asyncGetRemoteTags("origin");
+                    connect(repo.data(),
+                            SIGNAL(asyncGetRemoteTagsComplete(QStringList)),
+                            this,
+                            SLOT(processRemoteTags(QStringList)));
+                    repo->dispatch(proc);
+                    inProgress = true;
+                    break;
+                }
             }
-            else
+            if (!inProgress)
             {
                 IFTRACE(modules)
                     debug() << "N/A (current module version not tagged)\n";
@@ -1160,7 +1185,7 @@ bool CheckForUpdate::start()
         else
         {
             IFTRACE(modules)
-                    debug() << "N/A (no local tags)\n";
+                debug() << "N/A (no local tags)\n";
         }
     }
     else

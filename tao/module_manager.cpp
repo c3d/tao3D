@@ -1164,7 +1164,8 @@ bool CheckForUpdate::start()
         {
             foreach (QString t, tags)
             {
-                if (m.ver == ModuleManager::parseVersion(+t))
+                double tval = ModuleManager::parseVersion(+t);
+                if (m.ver == tval)
                 {
                     proc = repo->asyncGetRemoteTags("origin");
                     connect(repo.data(),
@@ -1179,7 +1180,8 @@ bool CheckForUpdate::start()
             if (!inProgress)
             {
                 IFTRACE(modules)
-                    debug() << "N/A (current module version not tagged)\n";
+                    debug() << "N/A (current module version does not match "
+                               "a tag)\n";
             }
         }
         else

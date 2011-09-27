@@ -642,12 +642,86 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
         double git_ver = parseVersion(+gitVersion(moduleDir));
         if (git_ver != -1)
             m.ver = git_ver;
+        // Check if there is a pending update
+        if (applyPendingUpdate(m))
+        {
+            git_ver = parseVersion(+gitVersion(moduleDir));
+            if (git_ver != -1)
+                m.ver = git_ver;
+        }
     }
     else
     {
         warnInvalidModule(moduleDir, cause);
     }
     return m;
+}
+
+
+bool ModuleManager::hasPendingUpdate(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Check if latest local tag is newer than current version
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "Checking for pending update in " << +moduleDir << "\n";
+
+    double current = parseVersion(+gitVersion(moduleDir));
+    double latest = parseVersion(+latestTag(moduleDir));
+    if (current == -1 || latest == -1)
+        return false;
+
+    bool hasUpdate;
+    hasUpdate = (latest != current &&
+            Repository::versionGreaterOrEqual(latest, current));
+    return hasUpdate;
+}
+
+
+QString ModuleManager::latestTag(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Return latest local tag or ""
+// ----------------------------------------------------------------------------
+{
+    QString latest;
+    RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
+    repository_ptr repo = RepositoryFactory::repository(moduleDir, mode);
+    if (repo && repo->valid())
+    {
+        QStringList tags = repo->tags();
+        if (!tags.isEmpty())
+        {
+            latest = tags[0];
+            foreach (QString tag, tags)
+                if (Repository::versionGreaterOrEqual(tag, latest))
+                    latest = tag;
+        }
+    }
+    return latest;
+}
+
+
+bool ModuleManager::applyPendingUpdate(const ModuleInfoPrivate &m)
+// ----------------------------------------------------------------------------
+//   Checkout latest local tag if current version is not latest
+// ----------------------------------------------------------------------------
+{
+    bool hasUpdate = hasPendingUpdate(+m.path);
+    if (hasUpdate)
+    {
+        QString latest = latestTag(+m.path);
+        double current = parseVersion(+gitVersion(+m.path));
+        double latestVer = parseVersion(+latest);
+        IFTRACE(modules)
+            debug() << "Installing pending update: " << current
+                    << " -> " << latestVer << "\n";
+        emit updating(+m.name);
+        RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
+        repository_ptr repo = RepositoryFactory::repository(+m.path, mode);
+        repo->checkout(+latest);
+        return true;
+    }
+    return false;
 }
 
 
@@ -1340,21 +1414,15 @@ bool UpdateModule::start()
 
 void UpdateModule::onFinished(int exitCode, QProcess::ExitStatus status)
 // ----------------------------------------------------------------------------
-//   Checkout latest tag and emit complete signal
+//   emit complete signal
 // ----------------------------------------------------------------------------
 {
     bool ok = (status ==  QProcess::NormalExit && exitCode == 0);
     if (ok)
     {
-        repo->checkout(m.latest);
-        QString ver = mm.gitVersion(+m.path);
-        ok = (ver == +m.latest);
-        if (ok)
-        {
-            ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
-            p->ver = ModuleManager::parseVersion(+ver);
-            p->updateAvailable = false;
-        }
+        // NB: Defer checkout on next restart, because module may be in use
+        ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
+        p->updateAvailable = false;
     }
     emit complete(ok);
 }

@@ -416,9 +416,12 @@ public:
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);
+    bool                hasPendingUpdate(QString moduleDir);
+    QString             latestTag(QString moduleDir);
 
 signals:
     void                checking(QString name);
+    void                updating(QString name);
 
 private:
     ModuleManager()  {}
@@ -479,6 +482,7 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfoPrivate>   newModules(QString parentDir);
     ModuleInfoPrivate          readModule(QString moduleDir);
+    bool                applyPendingUpdate(const ModuleInfoPrivate &m);
     QString             gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);

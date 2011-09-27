@@ -95,10 +95,10 @@ public:
 private slots:
     void         toggleModule();
     void         findUpdates();
-    void         onCFUComplete();
+    void         onCFUComplete(bool updatesAvailable);
     void         endCheckForUpdate();
     void         updateOne();
-    void         onUpdateOneComplete();
+    void         onUpdateOneComplete(bool success);
     void         onCellClicked(int row, int col);
     void         doSearch();
 
@@ -111,6 +111,7 @@ private:
     QTableWidget *                           table;
     QLineEdit *                              search;
     QStackedWidget *                         sw;
+    QLabel *                                 lb;
     QProgressBar *                           pb;
     bool                                     findUpdatesInProgress;
 };

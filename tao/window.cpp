@@ -1110,7 +1110,7 @@ void Window::onNewTemplateInstalled(QString path)
     QString title = tr("New template installed");
     QString msg = tr("A new template was installed.");
     QString infoMsg = tr("The template will appear in the new document dialog."
-                         " Files were installed in folder %1.").arg(path);
+                         "\nFiles were installed in folder %1.").arg(path);
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(title);
     msgBox.setText(msg);
@@ -1159,8 +1159,8 @@ void Window::onNewModuleInstalled(QString path)
     QString title = tr("New module installed");
     QString msg = tr("A new module was installed.");
     QString infoMsg = tr("The module will be visible in the preference dialog "
-                         "and can be used after restarting the application."
-                         " Files were installed in folder %1.").arg(path);
+                         "and can be used after restarting the application.\n"
+                         "Files were installed in folder %1.").arg(path);
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(title);
     msgBox.setText(msg);
@@ -1191,8 +1191,9 @@ void Window::onModuleUpdated(QString path)
 // ----------------------------------------------------------------------------
 {
     QString title = tr("Module was updated");
-    QString msg = tr("The module was updated.");
-    QString infoMsg = tr("The module is in folder %1.").arg(path);
+    QString msg = tr("A module update was downloaded.");
+    QString infoMsg = tr("The update will be installed when the application "
+                         "restarts.\nThe module is in folder %1.").arg(path);
     QMessageBox msgBox(this);
     msgBox.setWindowTitle(title);
     msgBox.setText(msg);

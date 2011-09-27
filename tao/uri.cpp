@@ -674,6 +674,19 @@ void Uri::onDownloadFinished(int exitCode, QProcess::ExitStatus exitStatus)
         return;
     }
 
+    if (op == FETCHING && settingsGroup == KNOWN_URIS_MOD_GROUP)
+    {
+        // Do not checkout after fetching a module, because it may be in use
+        ModuleManager *mmgr = ModuleManager::moduleManager();
+        bool pending = mmgr->hasPendingUpdate(project);
+        QString path;
+        path = QDir::toNativeSeparators(QDir(project).absolutePath());
+        if (pending)
+            emit moduleUpdated(path);
+        else
+            emit moduleUpToDate(path);
+        return;
+    }
     checkout();
 }
 

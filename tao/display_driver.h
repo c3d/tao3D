@@ -24,7 +24,6 @@
 
 
 #include "tao.h"
-#include "display_driver.h"
 #include "frame.h"
 #include "tao/module_api.h"
 #include <QStringList>

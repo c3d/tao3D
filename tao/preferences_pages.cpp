@@ -167,8 +167,9 @@ DebugPage::DebugPage(QWidget *parent)
     connect(deselectAll, SIGNAL(clicked()), this, SLOT(disableAllTraces()));
     buttonsLayout->addWidget(deselectAll);
     buttonsLayout->addSpacing(12);
-    QPushButton *save = new QPushButton(tr("Save for next run"));
-    connect(save, SIGNAL(clicked()), TaoApp, SLOT(saveDebugTraceSettings()));
+    save = new QPushButton(tr("Save for next run"));
+    save->setEnabled(false);
+    connect(save, SIGNAL(clicked()), this, SLOT(saveClicked()));
     buttonsLayout->addWidget(save);
     buttonsWidget->setLayout(buttonsLayout);
 
@@ -206,6 +207,8 @@ void DebugPage::toggleTrace(bool on)
     QString toggled = b->text();
 
     XL::Traces::enable(+toggled, on);
+
+    save->setEnabled(true);
 }
 
 
@@ -244,6 +247,16 @@ void DebugPage::disableAllTraces()
 // ----------------------------------------------------------------------------
 {
     toggleAllTraces(false);
+}
+
+
+void DebugPage::saveClicked()
+// ----------------------------------------------------------------------------
+//   Save trace settings
+// ----------------------------------------------------------------------------
+{
+    TaoApp->saveDebugTraceSettings();
+    save->setEnabled(false);
 }
 
 #ifndef CFG_NOMODPREF

@@ -33,6 +33,7 @@ class QStackedWidget;
 class QProgressBar;
 class QComboBox;
 class QLabel;
+class QPushButton;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -77,6 +78,10 @@ private slots:
     void         toggleTrace(bool on);
     void         enableAllTraces();
     void         disableAllTraces();
+    void         saveClicked();
+
+private:
+    QPushButton *save;
 };
 
 

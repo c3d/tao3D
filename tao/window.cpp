@@ -1102,6 +1102,18 @@ void Window::onDocReady(QString path)
 }
 
 
+void Window::showInfoDialog(QString title, QString msg, QString info)
+// ----------------------------------------------------------------------------
+//    Show a dialog box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(info);
+    msgBox.exec();
+}
+
 void Window::onNewTemplateInstalled(QString path)
 // ----------------------------------------------------------------------------
 //    Show a dialog box to confirm that a new template was installed
@@ -1113,11 +1125,7 @@ void Window::onNewTemplateInstalled(QString path)
     QString msg = tr("A new template was installed.");
     QString infoMsg = tr("The template will appear in the new document dialog."
                          "\nFiles were installed in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1131,11 +1139,7 @@ void Window::onTemplateUpToDate(QString path)
     QString title = tr("Template is up-to-date");
     QString msg = tr("The template is up-to-date.");
     QString infoMsg = tr("The template is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1149,11 +1153,7 @@ void Window::onTemplateUpdated(QString path)
     QString title = tr("Template was updated");
     QString msg = tr("The template was updated.");
     QString infoMsg = tr("The template is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1169,11 +1169,7 @@ void Window::onNewModuleInstalled(QString path)
     QString infoMsg = tr("The module will be visible in the preference dialog "
                          "and can be used after restarting the application.\n"
                          "Files were installed in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1187,11 +1183,7 @@ void Window::onModuleUpToDate(QString path)
     QString title = tr("Module is up-to-date");
     QString msg = tr("The module is up-to-date.");
     QString infoMsg = tr("The module is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1206,11 +1198,7 @@ void Window::onModuleUpdated(QString path)
     QString msg = tr("A module update was downloaded.");
     QString infoMsg = tr("The update will be installed when the application "
                          "restarts.\nThe module is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    showInfoDialog(title, msg, infoMsg);
 }
 
 

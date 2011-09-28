@@ -591,6 +591,17 @@ void Application::onOpenFinished(bool ok)
         splash->close();
         splash->deleteLater();
         splash = NULL;
+        Window * win = findFirstTaoWindow();
+        if (win && win->isUntitled)
+        {
+            // E.g., start Tao by clicking on a module or template link,
+            // or give a template / module URL on the command line.
+            // Load welcome screen now
+            QFileInfo tutorial("system:welcome.ddd");
+            QString tuto = tutorial.canonicalFilePath();
+            win->setWindowModified(false); // Prevent "Save?" question
+            win->open(tuto, true);
+        }
         emit allWindowsReady();
     }
 }

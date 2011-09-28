@@ -1107,6 +1107,8 @@ void Window::onNewTemplateInstalled(QString path)
 //    Show a dialog box to confirm that a new template was installed
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
     QString title = tr("New template installed");
     QString msg = tr("A new template was installed.");
     QString infoMsg = tr("The template will appear in the new document dialog."
@@ -1124,6 +1126,8 @@ void Window::onTemplateUpToDate(QString path)
 //    Show a dialog box to confirm that an existing template is up-to-date
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
     QString title = tr("Template is up-to-date");
     QString msg = tr("The template is up-to-date.");
     QString infoMsg = tr("The template is in folder %1.").arg(path);
@@ -1140,6 +1144,8 @@ void Window::onTemplateUpdated(QString path)
 //    Show a dialog box to confirm that an existing template was updated
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
     QString title = tr("Template was updated");
     QString msg = tr("The template was updated.");
     QString infoMsg = tr("The template is in folder %1.").arg(path);
@@ -1156,6 +1162,8 @@ void Window::onNewModuleInstalled(QString path)
 //    Show a dialog box to confirm that a new module was installed
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
     QString title = tr("New module installed");
     QString msg = tr("A new module was installed.");
     QString infoMsg = tr("The module will be visible in the preference dialog "
@@ -1174,6 +1182,8 @@ void Window::onModuleUpToDate(QString path)
 //    Show a dialog box to confirm that an existing module is up-to-date
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
     QString title = tr("Module is up-to-date");
     QString msg = tr("The module is up-to-date.");
     QString infoMsg = tr("The module is in folder %1.").arg(path);
@@ -1190,6 +1200,8 @@ void Window::onModuleUpdated(QString path)
 //    Show a dialog box to confirm that an existing module was updated
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
     QString title = tr("Module was updated");
     QString msg = tr("A module update was downloaded.");
     QString infoMsg = tr("The update will be installed when the application "

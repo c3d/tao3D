@@ -112,7 +112,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
             {
                 name_found = true;
                 inst_v = m.ver;
-                if (Repository::versionMatches(m.ver, m_v))
+                if (versionMatches(m.ver, m_v))
                 {
                     version_found = true;
                     if (!m.enabled)
@@ -663,17 +663,16 @@ bool ModuleManager::hasPendingUpdate(QString moduleDir)
 //   Check if latest local tag is newer than current version
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(modules)
-        debug() << "Checking for pending update in " << +moduleDir << "\n";
+    bool hasUpdate = false;
 
     double current = parseVersion(+gitVersion(moduleDir));
-    double latest = parseVersion(+latestTag(moduleDir));
-    if (current == -1 || latest == -1)
-        return false;
+    double latest_local = parseVersion(+latestTag(moduleDir));
+    if (current != -1 && latest_local != -1)
+        hasUpdate = (latest_local > current);
 
-    bool hasUpdate;
-    hasUpdate = (latest != current &&
-            Repository::versionGreaterOrEqual(latest, current));
+    IFTRACE(modules)
+        debug() << (hasUpdate ? "Has" : "No") << " pending update\n";
+
     return hasUpdate;
 }
 
@@ -713,7 +712,7 @@ bool ModuleManager::applyPendingUpdate(const ModuleInfoPrivate &m)
         double current = parseVersion(+gitVersion(+m.path));
         double latestVer = parseVersion(+latest);
         IFTRACE(modules)
-            debug() << "Installing pending update: " << current
+            debug() << "Installing update: " << current
                     << " -> " << latestVer << "\n";
         emit updating(+m.name);
         RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
@@ -1177,8 +1176,8 @@ double ModuleManager::parseVersion(Tree *versionId)
 // ----------------------------------------------------------------------------
 //   Version numbers can have one of three forms:
 //   - An integer value, e.g 1, which is the same as 1.0
-//   - A real value, e.g. 1.0203, which is major 1, minor 2, patch-level 3
-//   - A text value with dot-separated fields, e.g. 1.2.3 or 1.02.03
+//   - A real value, e.g.  1.0203,
+//   - A text value, e.g. "1.0203"
 {
     if (Integer *iver = versionId->AsInteger())
         return iver->value;
@@ -1197,19 +1196,33 @@ double ModuleManager::parseVersion(text versionId)
 //    Parse the text form of version numbers
 // ----------------------------------------------------------------------------
 {
-    uint major = 0, minor = 0, patch = 0;
+    double ver = -1.0;
     kstring sver = versionId.c_str();
-    if (sscanf(sver, "%u.%u.%u", &major, &minor, &patch) == 3)
-        if (minor < 100 && patch < 100)
-            return major + 0.01 * minor + 0.0001 * patch;
-    if (sscanf(sver, "%u.%u", &major, &minor) == 2)
-        if (minor < 100)
-            return major + 0.01 * minor;
-    if (sscanf(sver, "%u", &major) == 1)
-        return major;
+    sscanf(sver, "%lf", &ver);
+    return ver;
+}
 
-    // Return an invalid version
-    return -1.0;
+
+bool ModuleManager::versionGreaterOrEqual(text ver, text ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref
+// ----------------------------------------------------------------------------
+{
+    double v = parseVersion(ver), r = parseVersion(ref);
+    return (v >= r);
+}
+
+
+bool ModuleManager::versionMatches(double ver, double ref)
+// ----------------------------------------------------------------------------
+//   Return true if ver.major == ref.major and ver.minor >= ref.minor
+// ----------------------------------------------------------------------------
+{
+    double verMajor = floor(ver);
+    double refMajor = floor(ref);
+    double verMinor = ver - verMajor;
+    double refMinor = ref - refMajor;
+    return verMajor == refMajor && verMinor >= refMinor;
 }
 
 
@@ -1225,8 +1238,11 @@ bool CheckForUpdate::start()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(modules)
+    {
         debug() << "Start checking for updates, module "
-                << m.toText() << "\nCurrent version " << m.ver << "\n";
+                << m.toText() << "\n";
+        debug() << "Current version " << m.ver << "\n";
+    }
 
     bool inProgress = false;
     repo = RepositoryFactory::repository(+m.path,
@@ -1291,15 +1307,13 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
         double current = m.ver;
         QString latest = tags[0];
         foreach (QString tag, tags)
-            if (Repository::versionGreaterOrEqual(tag, latest))
+            if (ModuleManager::versionGreaterOrEqual(+tag, +latest))
                 latest = tag;
 
-        // Warning: remote tag (text string) 1.2 is parsed as (real value) 1.02
-        mm.modules[+m.id].latest = +latest;
         double latestVer = ModuleManager::parseVersion(+latest);
+        mm.modules[+m.id].latest = latestVer;
 
-        hasUpdate = (latestVer != current &&
-                     Repository::versionGreaterOrEqual(latestVer, current));
+        hasUpdate = (latestVer > current);
 
         IFTRACE(modules)
         {

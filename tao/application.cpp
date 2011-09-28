@@ -374,6 +374,8 @@ void Application::checkModules()
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
+    connect(moduleManager, SIGNAL(updating(QString)),
+            this, SLOT(updatingModule(QString)));
     moduleManager->init();
     // Load only auto-load modules (the ones that do not have an import_name)
     moduleManager->loadAnonymousNative(XL::MAIN->context);
@@ -388,6 +390,19 @@ void Application::checkingModule(QString name)
     if (splash)
     {
         QString msg = QString(tr("Checking modules [%1]")).arg(name);
+        splash->showMessage(msg);
+    }
+}
+
+
+void Application::updatingModule(QString name)
+// ----------------------------------------------------------------------------
+//   Show module being updated
+// ----------------------------------------------------------------------------
+{
+    if (splash)
+    {
+        QString msg = QString(tr("Updating modules [%1]")).arg(name);
         splash->showMessage(msg);
     }
 }
@@ -576,6 +591,17 @@ void Application::onOpenFinished(bool ok)
         splash->close();
         splash->deleteLater();
         splash = NULL;
+        Window * win = findFirstTaoWindow();
+        if (win && win->isUntitled)
+        {
+            // E.g., start Tao by clicking on a module or template link,
+            // or give a template / module URL on the command line.
+            // Load welcome screen now
+            QFileInfo tutorial("system:welcome.ddd");
+            QString tuto = tutorial.canonicalFilePath();
+            win->setWindowModified(false); // Prevent "Save?" question
+            win->open(tuto, true);
+        }
         emit allWindowsReady();
     }
 }

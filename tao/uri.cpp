@@ -25,6 +25,7 @@
 #include "repository.h"
 #include "application.h"
 #include "destination_folder_dialog.h"
+#include "module_manager.h"
 #include <QSettings>
 #include <QDir>
 #include <QProgressDialog>
@@ -44,6 +45,8 @@
 #define KNOWN_URIS_GROUP "KnownURIs"
 // Known URIs for templates
 #define KNOWN_URIS_TMPL_GROUP "KnownURIsTemplates"
+// Known URIs for modules
+#define KNOWN_URIS_MOD_GROUP "KnownURIsModules"
 
 namespace Tao {
 
@@ -71,9 +74,7 @@ Uri::Uri(QString uri)
 {
     if (!isValid())
         return;
-    if (hasQueryItem("t"))
-        settingsGroup = KNOWN_URIS_TMPL_GROUP;
-    checkRefresh();
+    setSettingsGroup();
 }
 
 
@@ -122,20 +123,25 @@ bool Uri::get()
             }
         }
 
-        if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
+        if (settingsGroup == KNOWN_URIS_TMPL_GROUP ||
+            settingsGroup == KNOWN_URIS_MOD_GROUP)
         {
-            // We're downlading a template
+            // We're downlading a template or a module
 
             if (projects.isEmpty())
             {
-                // Template not previously cloned
+                // Remote not previously cloned
                 QString path = newProject();
                 if (path.isEmpty())
                 {
                     // Folder with same name already exists: just error out
                     QString native =
                         QDir::toNativeSeparators(QDir(path).absolutePath());
-                    QString title = tr("Cannot install template");
+                    QString title;
+                    if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
+                        title = tr("Cannot install template");
+                    else if (settingsGroup == KNOWN_URIS_MOD_GROUP)
+                        title = tr("Cannot install module");
                     QString msg = tr("Folder %1 already exists").arg(native);
                     QMessageBox::warning(NULL, title, msg);
                     return false;
@@ -144,7 +150,7 @@ bool Uri::get()
                 // OK to clone
                 project = path;
                 IFTRACE(uri)
-                    debug() << "Cloning URI into new local template: "
+                    debug() << "Cloning URI into new local folder: "
                               << +project << "\n";
                 ok = cloneAndCheckout();
             }
@@ -153,13 +159,13 @@ bool Uri::get()
                 if (projects.size() > 1)
                 {
                     std::cerr << "Warning: several folders share the same "
-                        "template URI. Re-run with -turi for details.\n";
+                        "URI. Re-run with -turi for details.\n";
                 }
-                // Update existing template by fetching from remote
+                // Update existing template/module by fetching from remote
                 // repository
                 project = projects[0];
                 IFTRACE(uri)
-                    debug() << "Fecthing into existing template: " << +project
+                    debug() << "Fecthing into existing folder: " << +project
                               << "\n";
                 ok = fetchAndCheckout();
             }
@@ -397,7 +403,8 @@ QString Uri::parentFolderForDownload()
         folder = Application::defaultProjectFolderPath();
     else if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
         folder = Application::defaultTaoPreferencesFolderPath() + "/templates";
-
+    else if (settingsGroup == KNOWN_URIS_MOD_GROUP)
+        folder = Application::defaultTaoPreferencesFolderPath() + "/modules";
     return folder;
 }
 
@@ -435,17 +442,28 @@ bool Uri::isLocal()
 }
 
 
+void Uri::setSettingsGroup()
+// ----------------------------------------------------------------------------
+//    Helper function to avoid code duplication
+// ----------------------------------------------------------------------------
+{
+    if (hasQueryItem("t"))
+        settingsGroup = KNOWN_URIS_TMPL_GROUP;
+    else if (hasQueryItem("m"))
+        settingsGroup = KNOWN_URIS_MOD_GROUP;
+    else
+        settingsGroup = KNOWN_URIS_GROUP;
+    checkRefresh();
+}
+
+
 void Uri::setUrl(const QString & url)
 // ----------------------------------------------------------------------------
 //    Change URL
 // ----------------------------------------------------------------------------
 {
     QUrl::setUrl(url);
-    if (hasQueryItem("t"))
-        settingsGroup = KNOWN_URIS_TMPL_GROUP;
-    else
-        settingsGroup = KNOWN_URIS_GROUP;
-    checkRefresh();
+    setSettingsGroup();
 }
 
 
@@ -455,11 +473,7 @@ void Uri::setUrl(const QString & url, ParsingMode parsingMode)
 // ----------------------------------------------------------------------------
 {
     QUrl::setUrl(url, parsingMode);
-    if (hasQueryItem("t"))
-        settingsGroup = KNOWN_URIS_TMPL_GROUP;
-    else
-        settingsGroup = KNOWN_URIS_GROUP;
-    checkRefresh();
+    setSettingsGroup();
 }
 
 
@@ -469,10 +483,7 @@ void Uri::setQueryItems(const QList<QPair<QString, QString> > & query)
 // ----------------------------------------------------------------------------
 {
     QUrl::setQueryItems(query);
-    if (hasQueryItem("t"))
-        settingsGroup = KNOWN_URIS_TMPL_GROUP;
-    else
-        settingsGroup = KNOWN_URIS_GROUP;
+    setSettingsGroup();
 }
 
 
@@ -554,6 +565,9 @@ bool Uri::fetchAndCheckout()
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
     connect(progress, SIGNAL(canceled()), this, SLOT(abortDownload()));
+
+    // Save current HEAD to detect update vs. no-op
+    savedHead = +repo->head();
 
     // Prepare fetch process
     QString repoUri = this->repoUri();
@@ -660,6 +674,19 @@ void Uri::onDownloadFinished(int exitCode, QProcess::ExitStatus exitStatus)
         return;
     }
 
+    if (op == FETCHING && settingsGroup == KNOWN_URIS_MOD_GROUP)
+    {
+        // Do not checkout after fetching a module, because it may be in use
+        ModuleManager *mmgr = ModuleManager::moduleManager();
+        bool pending = mmgr->hasPendingUpdate(project);
+        QString path;
+        path = QDir::toNativeSeparators(QDir(project).absolutePath());
+        if (pending)
+            emit moduleUpdated(path);
+        else
+            emit moduleUpToDate(path);
+        return;
+    }
     checkout();
 }
 
@@ -713,25 +740,51 @@ bool Uri::checkout()
 
     addLocalProject(project);
 
-    if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
-    {
-        QString path;
-        path = QDir::toNativeSeparators(QDir(project).absolutePath());
-        switch (op)
-        {
-        case CLONING:
-            emit templateCloned(path);
-            break;
-        case FETCHING:
-            emit templateFetched(path);
-            break;
-        default:
-            std::cerr << "URI checkout: unexpected op state\n";
-        }
-    }
-    else
+    if (settingsGroup == KNOWN_URIS_GROUP)
     {
         emit docReady(docPath(project));
+        return true;
+    }
+
+    QString path;
+    path = QDir::toNativeSeparators(QDir(project).absolutePath());
+    if (settingsGroup == KNOWN_URIS_TMPL_GROUP)
+    {
+        connect(this, SIGNAL(cloned(QString)),
+                this, SIGNAL(templateCloned(QString)));
+        connect(this, SIGNAL(updated(QString)),
+                this, SIGNAL(templateUpdated(QString)));
+        connect(this, SIGNAL(upToDate(QString)),
+                this, SIGNAL(templateUpToDate(QString)));
+    }
+    else if (settingsGroup == KNOWN_URIS_MOD_GROUP)
+    {
+        connect(this, SIGNAL(cloned(QString)),
+                this, SIGNAL(moduleCloned(QString)));
+        connect(this, SIGNAL(updated(QString)),
+                this, SIGNAL(moduleUpdated(QString)));
+        connect(this, SIGNAL(upToDate(QString)),
+                this, SIGNAL(moduleUpToDate(QString)));
+    }
+
+    switch (op)
+    {
+    case CLONING:
+        emit cloned(path);
+        break;
+    case FETCHING:
+        if (savedHead != +repo->head())
+            emit updated(path);
+        else
+            emit upToDate(path);
+        // Refresh even if module was up-to-date because we may have fetched
+        // a higher tag that points to the same commit (although it is
+        // unlikely)
+        ModuleManager::moduleManager()->refreshModuleProperties(path);
+        savedHead = "";
+        break;
+    default:
+        break;
     }
 
     return true;
@@ -829,9 +882,10 @@ QString Uri::newProject()
             dir = QString("%1_%2").arg(remoteName).arg(count++);
         project = folder + "/" + dir;
         exists = QFileInfo(project).exists();
-        if (exists && settingsGroup == KNOWN_URIS_TMPL_GROUP)
+        if (exists && (settingsGroup == KNOWN_URIS_TMPL_GROUP ||
+                       settingsGroup == KNOWN_URIS_MOD_GROUP))
         {
-            // We don't want several copies of the same template
+            // We don't want several copies of the same template/module
             return "";
         }
     }

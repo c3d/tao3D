@@ -167,8 +167,9 @@ DebugPage::DebugPage(QWidget *parent)
     connect(deselectAll, SIGNAL(clicked()), this, SLOT(disableAllTraces()));
     buttonsLayout->addWidget(deselectAll);
     buttonsLayout->addSpacing(12);
-    QPushButton *save = new QPushButton(tr("Save for next run"));
-    connect(save, SIGNAL(clicked()), TaoApp, SLOT(saveDebugTraceSettings()));
+    save = new QPushButton(tr("Save for next run"));
+    save->setEnabled(false);
+    connect(save, SIGNAL(clicked()), this, SLOT(saveClicked()));
     buttonsLayout->addWidget(save);
     buttonsWidget->setLayout(buttonsLayout);
 
@@ -206,6 +207,8 @@ void DebugPage::toggleTrace(bool on)
     QString toggled = b->text();
 
     XL::Traces::enable(+toggled, on);
+
+    save->setEnabled(true);
 }
 
 
@@ -244,6 +247,16 @@ void DebugPage::disableAllTraces()
 // ----------------------------------------------------------------------------
 {
     toggleAllTraces(false);
+}
+
+
+void DebugPage::saveClicked()
+// ----------------------------------------------------------------------------
+//   Save trace settings
+// ----------------------------------------------------------------------------
+{
+    TaoApp->saveDebugTraceSettings();
+    save->setEnabled(false);
 }
 
 #ifndef CFG_NOMODPREF
@@ -305,7 +318,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     cfuLayout->addWidget(findUpdates);
     cfuLayout->addSpacing(12);
     sw = new QStackedWidget;
-    sw->insertWidget(0, new QFrame);
+    sw->insertWidget(0, (lb = new QLabel));
     sw->insertWidget(1, (pb = new QProgressBar));
     sw->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     cfuLayout->addWidget(sw);
@@ -344,7 +357,7 @@ void ModulesPage::findUpdates()
 
     sw->setCurrentIndex(1);
     CheckAllForUpdate *cafu = new CheckAllForUpdate(*mmgr);
-    connect(cafu, SIGNAL(complete(bool)), this, SLOT(onCFUComplete()));
+    connect(cafu, SIGNAL(complete(bool)), this, SLOT(onCFUComplete(bool)));
     connect(cafu, SIGNAL(minimum(int)),   pb,   SLOT(setMinimum(int)));
     connect(cafu, SIGNAL(maximum(int)),   pb,   SLOT(setMaximum(int)));
     connect(cafu, SIGNAL(progress(int)),  pb,   SLOT(setValue(int)));
@@ -425,11 +438,15 @@ void ModulesPage::updateTable()
 }
 
 
-void ModulesPage::onCFUComplete()
+void ModulesPage::onCFUComplete(bool updatesAvailable)
 // ----------------------------------------------------------------------------
 //   Leave time for progress bar to show 100%
 // ----------------------------------------------------------------------------
 {
+    if (updatesAvailable)
+        lb->setText(tr("Updates are available."));
+    else
+        lb->setText(tr("All modules are up-to-date."));
     QTimer::singleShot(200, this, SLOT(endCheckForUpdate()));
 }
 
@@ -455,12 +472,12 @@ void ModulesPage::updateOne()
     ModuleManager::ModuleInfoPrivate m = modules[row];
     act->setEnabled(false);
     UpdateModule *up = new UpdateModule(*mmgr, +m.id);
-    connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete()));
+    connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete(bool)));
     up->start();
 }
 
 
-void ModulesPage::onUpdateOneComplete()
+void ModulesPage::onUpdateOneComplete(bool success)
 // ----------------------------------------------------------------------------
 //   Delete module updater object, refresh module list
 // ----------------------------------------------------------------------------
@@ -468,6 +485,8 @@ void ModulesPage::onUpdateOneComplete()
     UpdateModule *up = (UpdateModule *)sender();
     up->deleteLater();
     updateTable();
+    if (success)
+        lb->setText(tr("Updates are ready to install on restart."));
 }
 
 

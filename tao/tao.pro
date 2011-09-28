@@ -391,11 +391,11 @@ macx {
 
 TRANSLATIONS = tao_fr.ts
 
-lupdate.commands = lupdate -verbose tao.pro
+lupdate.commands = lupdate -verbose *.cpp *.h *.ui -ts $$TRANSLATIONS
 lupdate.depends  = FORCE
 QMAKE_EXTRA_TARGETS += lupdate
 
-lrelease.commands = lrelease tao.pro
+lrelease.commands = lrelease $$TRANSLATIONS
 lrelease.depends  = FORCE
 QMAKE_EXTRA_TARGETS += lrelease
 

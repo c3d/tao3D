@@ -84,6 +84,7 @@ signals:
 public slots:
     void           saveDebugTraceSettings();
     void           checkingModule(QString name);
+    void           updatingModule(QString name);
 
 protected:
     void           saveSettings();

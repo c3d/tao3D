@@ -157,6 +157,10 @@ private slots:
     void onDocReady(QString path);
     void onNewTemplateInstalled(QString path);
     void onTemplateUpToDate(QString path);
+    void onTemplateUpdated(QString path);
+    void onNewModuleInstalled(QString path);
+    void onModuleUpToDate(QString path);
+    void onModuleUpdated(QString path);
     void onUriGetFailed();
     void checkDetachedHead();
     void reloadCurrentFile();
@@ -200,6 +204,7 @@ private:
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     showMessage(QString message, int timeout);
+    void     showInfoDialog(QString title, QString msg, QString info);
     void     closeToolWindows();
 
 

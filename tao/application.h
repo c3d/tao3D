@@ -110,7 +110,6 @@ protected:
     static QString defaultUserDocumentsFolderPath();
     static QString appDataPath();
     static bool    createDefaultProjectFolder();
-    static bool    createDefaultLicenseFolder();
 
 public:
     void         updateSearchPaths(QString path = "");

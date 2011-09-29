@@ -389,6 +389,12 @@ macx {
   INSTALLS   += target
 }
 
+# Create license directory
+licdir.commands = mkdir -p $$APPINST/licenses
+licdir.path = .
+licdir.depends = FORCE
+INSTALLS += licdir
+
 
 TRANSLATIONS = tao_fr.ts
 

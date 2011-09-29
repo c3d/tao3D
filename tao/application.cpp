@@ -153,14 +153,15 @@ Application::Application(int & argc, char ** argv)
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
 
-    // Create license folder, if it does not exist
-    createDefaultLicenseFolder();
-
-    // Load licence
-    QFileInfo licence(QDir(defaultLicenseFolderPath()), "licence.taokey");
-    if (licence.exists())
+    // Load licenses
+    QDir dir(Application::defaultLicenseFolderPath());
+    QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                               QDir::Files);
+    foreach (QFileInfo licence, licences)
     {
         text lpath = +licence.canonicalFilePath();
+        IFTRACE(fileload)
+            std::cerr << "Loading license file: " << lpath << "\n";
         Licences::AddLicenceFile(lpath.c_str());
     }
 
@@ -1009,15 +1010,6 @@ bool Application::createDefaultProjectFolder()
 {
     return QDir().mkdir(defaultProjectFolderPath());
 }
-
-bool Application::createDefaultLicenseFolder()
-// ----------------------------------------------------------------------------
-//    Create default license folder
-// ----------------------------------------------------------------------------
-{
-    return QDir().mkdir(defaultLicenseFolderPath());
-}
-
 
 bool Application::createDefaultTaoPrefFolder()
 // ----------------------------------------------------------------------------

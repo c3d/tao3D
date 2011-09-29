@@ -505,7 +505,7 @@ void PageLayout::Draw(Layout *where)
     flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
     Compute(flow);
-    if (page.places.size() == 0)
+    if (page.places.size() == 0 && ! flow->atEnd())
     {
         // text box is empty, because
         //  - either there is nothing (left) in the flow,

@@ -90,8 +90,8 @@ SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
 win32:SUBDIRS += detach
 
 tao.depends = libxlr libcryptopp
-tao_sign.depends = libxlr libcryptopp
-keygen.depends = libcryptopp
+tao_sign.depends = libxlr libcryptopp tao
+keygen.depends = libcryptopp tao
 modules.depends = tao
 tests.depends = tao
 templates.depends = tao

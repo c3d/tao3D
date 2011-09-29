@@ -115,13 +115,14 @@ public:
     uint                rotationId, translationId, scaleId;
 
     // For optimized drawing, we keep track of what changes
+    uint64              hasTextureMatrix; // 64 texture units
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
     bool                hasAttributes   : 1;
-    bool                hasTransform    : 1;
-    uint64              hasTextureMatrix; // 64 texture units
     bool                hasLighting     : 1;
+    bool                hasBlending     : 1;
+    bool                hasTransform    : 1;
     bool                hasMaterial     : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
@@ -195,6 +196,8 @@ public:
             bits |= (GL_LINE_BIT | GL_TEXTURE_BIT);
         if (hasLighting)
             bits |= GL_LIGHTING_BIT;
+        if (hasBlending)
+            bits |= GL_COLOR_BUFFER_BIT;
         return bits;
     }
 

@@ -609,7 +609,9 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 }
 
 
-void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode, GLenum tesselation)
+void GraphicPath::Draw(const Vector3 &offset,
+                       const uint64 texUnits,
+                       GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
@@ -797,11 +799,24 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
 
                         IFTRACE(paths)
                         {
-                            std::cerr << "P0 #" << i << " = x:" << p0.x << ", y:" << p0.y << ", z:" << p0.z << std::endl;
-                            std::cerr << "P1 #" << (i+i1)%size << " = x:" << p1.x << ", y:" << p1.y << ", z:" << p1.z << std::endl;
-                            std::cerr << "P2 #" << (i+i1+i2)%size << " = x:" << p2.x << ", y:" << p2.y << ", z:" << p2.z << std::endl;
-                            std::cerr << "V1 (P1 - P0) = x:" << v1.x << ", y:" << v1.y << ", z:" << v1.z << std::endl;
-                            std::cerr << "V2 (P2 - P1) = x:" << v2.x << ", y:" << v2.y << ", z:" << v2.z << std::endl;
+                            std::cerr << "P0 #" << i
+                                      << " = x:" << p0.x
+                                      << ", y:" << p0.y
+                                      << ", z:" << p0.z << std::endl;
+                            std::cerr << "P1 #" << (i+i1)%size 
+                                      << " = x:" << p1.x
+                                      << ", y:" << p1.y << ", z:"
+                                      << p1.z << std::endl;
+                            std::cerr << "P2 #" << (i+i1+i2) % size
+                                      << " = x:" << p2.x
+                                      << ", y:" << p2.y
+                                      << ", z:" << p2.z << std::endl;
+                            std::cerr << "V1 (P1 - P0) = x:" << v1.x
+                                      << ", y:" << v1.y
+                                      << ", z:" << v1.z << std::endl;
+                            std::cerr << "V2 (P2 - P1) = x:" << v2.x
+                                      << ", y:" << v2.y
+                                      << ", z:" << v2.z << std::endl;
                         }
 
                         if ((i1 + i2) < size)
@@ -815,7 +830,10 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                                 data[j%size].normal = vn;
 
                                 IFTRACE(paths)
-                                    std::cerr << "Normal #" << j%size << " = x:" << vn.x << ", y:" << vn.y << ", z:" << vn.z << std::endl;
+                                    std::cerr << "Normal #" << j % size
+                                              << " = x:" << vn.x
+                                              << ", y:" << vn.y
+                                              << ", z:" << vn.z << std::endl;
                             }
                         }
 
@@ -836,7 +854,8 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
                             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3,GL_DOUBLE, sizeof(VertexData), tdata);
+                            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
+                                              tdata);
                         }
                     }
 

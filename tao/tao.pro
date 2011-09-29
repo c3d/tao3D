@@ -325,6 +325,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
+    licence.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \

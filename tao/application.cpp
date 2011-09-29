@@ -153,8 +153,11 @@ Application::Application(int & argc, char ** argv)
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
 
-    // Load licence (in XL directory path)
-    QFileInfo licence("xl:licence.taokey");
+    // Create license folder, if it does not exist
+    createDefaultLicenseFolder();
+
+    // Load licence
+    QFileInfo licence(QDir(defaultLicenseFolderPath()), "licence.taokey");
     if (licence.exists())
     {
         text lpath = +licence.canonicalFilePath();
@@ -951,6 +954,15 @@ QString Application::defaultTaoFontsFolderPath()
 }
 
 
+QString Application::defaultLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    The folder where Tao looks for license files on startup
+// ----------------------------------------------------------------------------
+{
+    return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
+}
+
+
 QString Application::defaultUserImagesFolderPath()
 // ----------------------------------------------------------------------------
 //    Try to guess the best Images folder to use by default
@@ -996,6 +1008,14 @@ bool Application::createDefaultProjectFolder()
 // ----------------------------------------------------------------------------
 {
     return QDir().mkdir(defaultProjectFolderPath());
+}
+
+bool Application::createDefaultLicenseFolder()
+// ----------------------------------------------------------------------------
+//    Create default license folder
+// ----------------------------------------------------------------------------
+{
+    return QDir().mkdir(defaultLicenseFolderPath());
 }
 
 

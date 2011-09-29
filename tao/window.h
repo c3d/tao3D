@@ -170,6 +170,7 @@ private slots:
 #endif
     void about();
     void preferences();
+    void licenses();
     void onlineDoc();
     void onlineDocTaodyne();
     void documentWasModified();
@@ -273,6 +274,7 @@ private:
 #endif
     QAction          *aboutAct;
     QAction          *preferencesAct;
+    QAction          *licensesAct;
     QAction          *onlineDocAct;
     QAction          *onlineDocTaodyneAct;
     QAction          *slideShowAct;

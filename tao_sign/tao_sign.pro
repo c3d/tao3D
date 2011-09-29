@@ -87,9 +87,9 @@ QMAKE_SUBSTITUTES = licence.taokey.notsigned.in
   win32:DEP = \$(DESTDIR_TARGET)
 
   licence.target = licence.taokey
-  licence.commands = cp licence.taokey.notsigned licence.taokey ; $${SIGN_CMD} licence.taokey || rm licence.taokey ; cp licence.taokey \"$$APPINST\"
+  licence.commands = cp licence.taokey.notsigned licence.taokey ; $${SIGN_CMD} licence.taokey || rm licence.taokey ; cp licence.taokey \"$$APPINST/licenses\"
   licence.files = licence.taokey
-  licence.path = $$APPINST
+  licence.path = $$APPINST/licenses
   licence.depends = $$DEP
 
   INSTALLS += licence
@@ -99,6 +99,6 @@ QMAKE_SUBSTITUTES = licence.taokey.notsigned.in
 } else {
   # Install unsigned template
   licence.files = licence.taokey.notsigned
-  licence.path = $$APPINST
+  licence.path = $$APPINST/licenses
   INSTALLS += licence
 }

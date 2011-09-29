@@ -67,6 +67,7 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
+    static QString defaultLicenseFolderPath();
 
 public:
     QStringList    pathCompletions();
@@ -109,6 +110,7 @@ protected:
     static QString defaultUserDocumentsFolderPath();
     static QString appDataPath();
     static bool    createDefaultProjectFolder();
+    static bool    createDefaultLicenseFolder();
 
 public:
     void         updateSearchPaths(QString path = "");

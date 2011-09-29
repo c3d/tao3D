@@ -1275,6 +1275,70 @@ void Window::preferences()
 }
 
 
+void Window::licenses()
+// ----------------------------------------------------------------------------
+//    Show Licenses dialog. Largely inspired from QMessageBox::aboutQt().
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_WS_MAC
+    static QPointer<QMessageBox> oldMsgBox;
+
+    if (oldMsgBox) {
+        oldMsgBox->show();
+        oldMsgBox->raise();
+        oldMsgBox->activateWindow();
+        return;
+    }
+#endif
+
+    QString title = tr("Licensing");
+    QString caption;
+    caption = tr("<h3>Tao Presentation Licenses</h3>");
+
+    QString prefix;
+#if defined(Q_OS_WIN)
+    prefix = "file:///";
+#else
+    prefix = "file://";
+#endif
+    QString msg;
+    msg = tr(
+                "<h3>To add new licenses</h3>"
+                "<p>If you received license files (with the .taokey "
+                "extension), copy them into the license folder and "
+                "restart the application. Your new licenses will be "
+                "loaded automatically.</p>"
+                "<center><a href=\"%1%2\">"
+                "Open the license folder</a></center>"
+                ).arg(prefix).arg(Application::defaultLicenseFolderPath());
+
+    QMessageBox *msgBox = new QMessageBox;
+    msgBox->setAttribute(Qt::WA_DeleteOnClose);
+    msgBox->setWindowTitle(title);
+    msgBox->setText(caption);
+    msgBox->setInformativeText(msg);
+
+    // The padlock icon is a merge of:
+    // http://www.openclipart.org/detail/17931 (public domain)
+    // and our Tao pictogram
+    QPixmap pm(":/images/tao_padlock.svg");
+    if (!pm.isNull())
+    {
+        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
+                                   Qt::SmoothTransformation);
+        msgBox->setIconPixmap(scaled);
+    }
+
+    msgBox->raise();
+#ifdef Q_WS_MAC
+    oldMsgBox = msgBox;
+    msgBox->show();
+#else
+    msgBox->exec();
+#endif
+}
+
+
 void Window::onlineDoc()
 // ----------------------------------------------------------------------------
 //    Open the online documentation page
@@ -1555,6 +1619,12 @@ void Window::createActions()
     preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
+    licensesAct = new QAction(tr("&Licenses..."), this);
+    licensesAct->setStatusTip(tr("View or add license files"));
+    licensesAct->setObjectName("licenses");
+    licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
+
     onlineDocAct = new QAction(tr("&Online Documentation"), this);
     onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
     onlineDocAct->setObjectName("onlineDoc");
@@ -1713,6 +1783,7 @@ void Window::createMenus()
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
+    helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(onlineDocTaodyneAct);
 }

@@ -36,12 +36,15 @@ INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 
 # Convenience script to run signing program
-macx:SIGN_CMD  = export DYLD_LIBRARY_PATH=../libxlr ; ./tao_sign
-linux-g++*:SIGN_CMD = export LD_LIBRARY_PATH=../libxlr ; ./tao_sign
-win32:SIGN_CMD = export PATH=\$\$PATH:../libxlr/\$(DESTDIR); \$(DESTDIR_TARGET)
-QMAKE_SUBSTITUTES += tao_sign.sh.in
-QMAKE_DISTCLEAN += tao_sign.sh
-QMAKE_POST_LINK = chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
+macx:SIGN_CMD  = export DYLD_LIBRARY_PATH=$$PWD/../libxlr ; $$PWD/tao_sign \\\"\\\$$@\\\"
+linux-g++*:SIGN_CMD = export LD_LIBRARY_PATH=$$PWD/../libxlr ; $$PWD/tao_sign \\\"\\\$$@\\\"
+win32 {
+  HERE = $$system(bash -c 'pwd | sed \'s@\\([a-zA-Z]\\):@/\\1@\'')
+  # This is one of the most convoluted script/make/qmake line I've ever written...
+  SIGN_CMD = export PATH=\\\"\\\$$PATH:$$HERE/../libxlr/\\\"\$(DESTDIR); \\\"$$HERE/\\\"\$(DESTDIR_TARGET) \\\"\\\$$@\\\"
+}
+QMAKE_CLEAN += tao_sign.sh
+QMAKE_POST_LINK = echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
 
 
 # REVISIT Move into tao.pro

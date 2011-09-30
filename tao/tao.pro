@@ -390,7 +390,7 @@ macx {
 }
 
 # Create license directory
-licdir.commands = mkdir -p $$APPINST/licenses
+licdir.commands = mkdir -p \"$${APPINST}/licenses\"
 licdir.path = .
 licdir.depends = FORCE
 INSTALLS += licdir

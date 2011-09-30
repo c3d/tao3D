@@ -23,8 +23,10 @@
 //        tao://example.net/project?d=main.ddd   (open main.ddd)
 //        tao://example.net/project?r=mybranch   (checkout branch 'mybranch')
 //        tao://example.net/project?r=bb8cb4a    (checkout commit bb8cb4a)
-//        tao://example.net/project?t            (remote doc is a template,
-//                                                save in template folders)
+//        tao://example.net/project?t            (remote is a template, save
+//                                                in user's template folder)
+//        tao://example.net/project?m            (remote is a module, save
+//                                                in user's module folder)
 //
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential

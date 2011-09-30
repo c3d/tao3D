@@ -780,7 +780,8 @@ bool Uri::checkout()
         // Refresh even if module was up-to-date because we may have fetched
         // a higher tag that points to the same commit (although it is
         // unlikely)
-        ModuleManager::moduleManager()->refreshModuleProperties(path);
+        if (settingsGroup == KNOWN_URIS_MOD_GROUP)
+            ModuleManager::moduleManager()->refreshModuleProperties(path);
         savedHead = "";
         break;
     default:

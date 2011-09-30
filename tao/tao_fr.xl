@@ -26,6 +26,7 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Enable stereoscopy (Alioscopy)", "Activer stéréoscopie (Alioscopy)"
     tr "Enable stereoscopy (2D-plus-Depth)", "Activer stéréoscopie (2D-plus-Depth)"
     tr "Enable stereoscopy (anaglyph)", "Activer stéréoscopie (anaglyphe)"
+    tr "Enable stereoscopy (checkerboard)", "Activer stéréoscopie (damier)"
     tr "Increase eye distance", "Augmenter effet 3D"
     tr "Decrease eye distance", "Réduire effet 3D"
     tr "Set 2 stereo planes", "Points de vue stéréo: 2"

@@ -29,6 +29,7 @@
        display_splitstereo \
        display_intstereo \
        display_alioscopy \
+       display_checkerboard \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \

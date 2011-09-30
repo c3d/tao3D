@@ -1121,11 +1121,10 @@ void Window::onNewTemplateInstalled(QString path)
 {
     emit openFinished(true);
 
+    QString name = QDir(path).dirName();
     QString title = tr("New template installed");
-    QString msg = tr("A new template was installed.");
-    QString infoMsg = tr("The template will appear in the new document dialog."
-                         "\nFiles were installed in folder %1.").arg(path);
-    showInfoDialog(title, msg, infoMsg);
+    QString msg = tr("A new template \"%1\" was installed.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1136,10 +1135,10 @@ void Window::onTemplateUpToDate(QString path)
 {
     emit openFinished(true);
 
+    QString name = QDir(path).dirName();
     QString title = tr("Template is up-to-date");
-    QString msg = tr("The template is up-to-date.");
-    QString infoMsg = tr("The template is in folder %1.").arg(path);
-    showInfoDialog(title, msg, infoMsg);
+    QString msg = tr("The template \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1150,10 +1149,10 @@ void Window::onTemplateUpdated(QString path)
 {
     emit openFinished(true);
 
+    QString name = QDir(path).dirName();
     QString title = tr("Template was updated");
-    QString msg = tr("The template was updated.");
-    QString infoMsg = tr("The template is in folder %1.").arg(path);
-    showInfoDialog(title, msg, infoMsg);
+    QString msg = tr("The template \"%1\" was updated.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1164,11 +1163,20 @@ void Window::onNewModuleInstalled(QString path)
 {
     emit openFinished(true);
 
+    QString name = QDir(path).dirName();
     QString title = tr("New module installed");
-    QString msg = tr("A new module was installed.");
-    QString infoMsg = tr("The module will be visible in the preference dialog "
-                         "and can be used after restarting the application.\n"
-                         "Files were installed in folder %1.").arg(path);
+    QString msg = tr("A new module \"%1\" was installed.").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The module will be visible in the preference "
+                         "dialog and can be used after restarting the "
+                         "application.</p>"
+                         "<p>If you received a license file for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
     showInfoDialog(title, msg, infoMsg);
 }
 
@@ -1180,10 +1188,10 @@ void Window::onModuleUpToDate(QString path)
 {
     emit openFinished(true);
 
+    QString name = QDir(path).dirName();
     QString title = tr("Module is up-to-date");
-    QString msg = tr("The module is up-to-date.");
-    QString infoMsg = tr("The module is in folder %1.").arg(path);
-    showInfoDialog(title, msg, infoMsg);
+    QString msg = tr("The module \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1194,10 +1202,19 @@ void Window::onModuleUpdated(QString path)
 {
     emit openFinished(true);
 
+    QString name = QDir(path).dirName();
     QString title = tr("Module was updated");
-    QString msg = tr("A module update was downloaded.");
-    QString infoMsg = tr("The update will be installed when the application "
-                         "restarts.\nThe module is in folder %1.").arg(path);
+    QString msg = tr("A module update was downloaded for \"%1\".").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The update will be installed when the "
+                         "application restarts.</p>"
+                         "<p>If you received a new license for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
     showInfoDialog(title, msg, infoMsg);
 }
 

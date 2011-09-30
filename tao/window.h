@@ -205,7 +205,7 @@ private:
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     showMessage(QString message, int timeout);
-    void     showInfoDialog(QString title, QString msg, QString info);
+    void     showInfoDialog(QString title, QString msg, QString info = "");
     void     closeToolWindows();
 
 

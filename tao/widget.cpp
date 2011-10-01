@@ -5664,7 +5664,6 @@ Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
         updateGL();
         return XL::xl_true;
     }
-    std::cerr << "Could not select display mode " << name << "\n";
     return XL::xl_false;
 }
 

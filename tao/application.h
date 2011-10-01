@@ -67,6 +67,7 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
+    static QString defaultLicenseFolderPath();
 
 public:
     QStringList    pathCompletions();

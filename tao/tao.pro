@@ -325,6 +325,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
+    licence.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \
@@ -387,6 +388,12 @@ macx {
   target.path = $$INSTROOT
   INSTALLS   += target
 }
+
+# Create license directory
+licdir.commands = mkdir -p \"$${APPINST}/licenses\"
+licdir.path = .
+licdir.depends = FORCE
+INSTALLS += licdir
 
 
 TRANSLATIONS = tao_fr.ts

@@ -170,6 +170,7 @@ private slots:
 #endif
     void about();
     void preferences();
+    void licenses();
     void onlineDoc();
     void onlineDocTaodyne();
     void documentWasModified();
@@ -204,7 +205,7 @@ private:
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     showMessage(QString message, int timeout);
-    void     showInfoDialog(QString title, QString msg, QString info);
+    void     showInfoDialog(QString title, QString msg, QString info = "");
     void     closeToolWindows();
 
 
@@ -273,6 +274,7 @@ private:
 #endif
     QAction          *aboutAct;
     QAction          *preferencesAct;
+    QAction          *licensesAct;
     QAction          *onlineDocAct;
     QAction          *onlineDocTaodyneAct;
     QAction          *slideShowAct;

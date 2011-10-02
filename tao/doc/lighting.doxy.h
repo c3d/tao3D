@@ -99,6 +99,8 @@ integer lights_mask();
  * Sets the color and intensity of the ambient emission of the current light.
  * Equivalent to the OpenGL call:
  * <tt>glLightfv(id, GL_AMBIENT, {r, g, b, a})</tt>
+ *
+ * @note The default color is black for all lights.
  */
 light_ambient(r:real, g:real, b:real, a:real);
 
@@ -107,6 +109,8 @@ light_ambient(r:real, g:real, b:real, a:real);
  * Sets the color and intensity of the diffuse emission of the current light.
  * Equivalent to the OpenGL call:
  * <tt>glLightfv(id, GL_DIFFUSE, {r, g, b, a})</tt>
+ *
+ * @note The default color is white for light 0 and black for the others.
  */
 light_diffuse(r:real, g:real, b:real, a:real);
 
@@ -115,6 +119,8 @@ light_diffuse(r:real, g:real, b:real, a:real);
  * Sets the color and intensity of the specular emission of the current light.
  * Equivalent to the OpenGL call:
  * <tt>glLightfv(id, GL_SPECULAR, {r, g, b, a})</tt>
+ *
+ * @note The default color is white for light 0 and black for the others.
  */
 light_specular(r:real, g:real, b:real, a:real);
 

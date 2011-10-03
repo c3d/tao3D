@@ -94,7 +94,6 @@
 #include <QVariant>
 #include <QtWebKit>
 #include <sys/time.h>
-#include <sys/stat.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -3207,10 +3206,9 @@ void Widget::refreshProgram()
         {
             XL::SourceFile &sf = **it;
             text fname = sf.name;
-            struct stat st;
-            stat (fname.c_str(), &st);
+            time_t modified = QFileInfo(+fname).lastModified().toTime_t();
 
-            if ((st.st_mtime > sf.modified))
+            if (modified > sf.modified)
             {
                 IFTRACE(filesync)
                     std::cerr << "File " << fname << " changed\n";
@@ -3230,7 +3228,7 @@ void Widget::refreshProgram()
                 }
 
                 // Make sure we reload only once (bug #533)
-                sf.modified = st.st_mtime;
+                sf.modified = modified;
 
                 if (!replacement)
                 {
@@ -3424,9 +3422,8 @@ bool Widget::writeIfChanged(XL::SourceFile &sf)
                 std::cerr << "Changed " << fname << "\n";
 
             // Record time when file was changed
-            struct stat st;
-            stat (fname.c_str(), &st);
-            sf.modified = st.st_mtime;
+            QDateTime modified = QFileInfo(+fname).lastModified();
+            sf.modified = modified.toTime_t();
 
             return true;
         }

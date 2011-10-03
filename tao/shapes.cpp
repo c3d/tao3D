@@ -87,6 +87,7 @@ bool Shape::setTexture(Layout *where)
     return !(where->fillTextures.empty());
 }
 
+
 void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
 //    Bind the given texture
@@ -120,6 +121,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
         glEnable(GL_MULTISAMPLE);
 }
 
+
 void Shape::unbindTexture(TextureState& texture)
 // ----------------------------------------------------------------------------
 //    Unbind the given texture
@@ -141,6 +143,7 @@ void Shape::enableTexCoord(uint unit, void *texCoord)
     glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
 }
 
+
 void Shape::disableTexCoord(uint unit)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
@@ -149,6 +152,7 @@ void Shape::disableTexCoord(uint unit)
     glClientActiveTexture( GL_TEXTURE0 + unit);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+
 
 bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
@@ -212,6 +216,8 @@ void Shape::Draw(Layout *where)
     Draw(path);
     path.Draw(where);
 }
+
+
 
 // ============================================================================
 //

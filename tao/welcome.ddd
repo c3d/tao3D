@@ -24,8 +24,8 @@ beta N:integer ->
             if (N mod 2) = 0 then
                 italic
             font_size 25 + (N * 37.0) mod 200
-            color 0.0, 1.0, 0.2, 0.1 + 0.8/(1.0 - Z/400)
-            text "Beta8"
+            color 0.0, 0.2, 1.0, 0.1 + 0.8/(1.0 - Z/400)
+            text "Beta9"
 
 beta with 1..30
 

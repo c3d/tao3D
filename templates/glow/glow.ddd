@@ -1,0 +1,95 @@
+/**
+* This document presents an example of the glow module
+* applied on some effect of the others module.
+**/
+import Glow
+import Sparks
+import Monjori
+import Flares
+
+clear_color 0, 0, 0, 1
+
+page "Flares",
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.7, 0.7, 0
+                scale 2, 2, 2
+                translate -0.8, -0.8, 0
+            flares 400 * time, 2.0
+            rectangle 0, 0, 700, 700
+        rectangle -450, 0, 700, 700
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.7, 0.7, 0
+                scale 2, 2, 2
+                translate -0.8, -0.8, 0
+            flares 400 * time, 2.0
+            rectangle 0, 0, 700, 700
+        radial_glow 15, 1.0, 1.5, 1.0, 100, 100
+        rectangle 450, 0, 700, 700
+    legend
+
+page "Monjori",
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.5, 0.5, 0
+                rotatez 5 * time
+                translate -0.5, -0.5, 0
+            monjori (time mod 5000) * 0.5
+            rectangle 0, 0, 700, 700
+        rectangle -450, 0, 700, 700
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.5, 0.5, 0
+                rotatez 5 * time
+                translate -0.5, -0.5, 0
+            monjori (time mod 5000) * 0.5
+            rectangle 0, 0, 700, 700
+        radial_glow 15, 1.0, 1.0, 1.5, 100, 100
+        rectangle 450, 0, 700, 700
+    legend
+
+page "Sparks",
+    locally
+        color "white"
+        frame_texture 700, 700,
+            color 0.0, 0.7, 1.0, 1.0
+            sparks_color 0.1, 0.1, 0.1, 1.0
+            sparks page_time * 0.5, 0.55, 0.55
+            rectangle 0, 0, 700, 700
+        rectangle -450, 0, 700, 700
+    locally
+        color "white"
+        frame_texture 700, 700,
+            color 0.0, 0.7, 1.0, 1.0
+            sparks_color 0.1, 0.1, 0.1, 1.0
+            sparks page_time * 0.5, 0.55, 0.55
+            rectangle 0, 0, 700, 700
+        radial_glow 15, 1.0, 2.0, 0.5, 100, 100
+        rectangle 450, 0, 700, 700
+    legend
+
+// Set the legend of the page
+legend ->
+    locally
+        text_box -450, -400, 500, 500,
+            align 0.5
+            vertical_align 0.5
+            font_size 45
+            color "white"
+            text "Before glow"
+    locally
+        text_box 450, -400, 500, 500,
+            align 0.5
+            vertical_align 0.5
+            font_size 45
+            color "white"
+            text "After glow"

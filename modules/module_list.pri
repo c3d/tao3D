@@ -34,6 +34,7 @@
        shaders/flares  \
        shaders/sinuous \
        shaders/sparks  \
+       shaders/glow  \
        slideshow_3d
     OTHER_MODULES =     \
         display_2dplusdepth \

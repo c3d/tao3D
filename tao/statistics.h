@@ -35,7 +35,7 @@ struct Statistics
 public:
     enum Operation
     {
-        EXEC, GC, GC_WAIT, DRAW, FRAME,
+        EXEC, GC, GC_WAIT, DRAW, SELECT, FRAME,
         LAST_OP
     };
     typedef QPair<int, int> date_val;

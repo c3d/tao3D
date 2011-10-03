@@ -43,6 +43,10 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
+    // Do not bother with textures if in Identify phase
+    if (where->InIdentify())
+        return !where->fillTextures.empty();
+
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
         //Determine if there is a current and previous texture
@@ -216,6 +220,17 @@ void Shape::Draw(Layout *where)
     Draw(path);
     path.Draw(where);
 }
+
+
+void Shape::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a simplified version of the shape for selection purpose
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    path.Draw(where, GL_SELECT);
+}    
 
 
 

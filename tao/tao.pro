@@ -22,10 +22,12 @@ TEMPLATE = app
 INC = . \
     include \
     include/tao \
-    xlr/xlr/include
+    xlr/xlr/include \
+    ../libcryptopp \
+    ../keygen
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-LIBS += -L../libxlr/\$(DESTDIR) -lxlr
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += webkit \
     network \
     opengl \
@@ -161,7 +163,6 @@ SOURCES += tao_main.cpp \
     repository.cpp \
     git_backend.cpp \
     application.cpp \
-    licence.cpp \
     font.cpp \
     drag.cpp \
     error_message_dialog.cpp \
@@ -286,6 +287,7 @@ contains(DEFINES, CFG_NOEDIT) {
 }
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
+NOWARN_SOURCES += licence.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -323,13 +325,15 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
+    licence.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \
     graphics.tbl \
     Info.plist.in \
     html/module_info_dialog.html \
-    html/module_info_dialog_fr.html
+    html/module_info_dialog_fr.html \
+    tao_fr.ts
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \
@@ -339,7 +343,7 @@ FORMS += error_message_dialog.ui \
 QMAKE_CLEAN += version.h
 PRE_TARGETDEPS += version.h
 revtarget.target = version.h
-revtarget.commands = ./updaterev.sh
+revtarget.commands = ./updaterev.sh "$${TAO_EDITION}"
 revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS
@@ -385,14 +389,20 @@ macx {
   INSTALLS   += target
 }
 
+# Create license directory
+licdir.commands = mkdir -p \"$${APPINST}/licenses\"
+licdir.path = .
+licdir.depends = FORCE
+INSTALLS += licdir
+
 
 TRANSLATIONS = tao_fr.ts
 
-lupdate.commands = lupdate -verbose tao.pro
+lupdate.commands = lupdate -verbose *.cpp *.h *.ui -ts $$TRANSLATIONS
 lupdate.depends  = FORCE
 QMAKE_EXTRA_TARGETS += lupdate
 
-lrelease.commands = lrelease tao.pro
+lrelease.commands = lrelease $$TRANSLATIONS
 lrelease.depends  = FORCE
 QMAKE_EXTRA_TARGETS += lrelease
 

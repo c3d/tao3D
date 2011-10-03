@@ -13,17 +13,6 @@ window_scale -> min (window_width / 1408, window_height / 768)
 key "Return" -> goto_page page_name 1
 
 page "Intro",
-    compute_smooth_step
-    locally
-        show fade_between (page_time, 1.0, 4.0)
-        color 0.1, 0.1, 0.1, 0.8
-        fullscreen_quad
-        text_box 0, 0, window_width * 75%, window_height,
-            color "white"
-            font "Ubuntu", 72 * (window_width / 1200)
-            vertical_align_center
-            align_center
-            description_text tao_language
     // Top right effect
     scale window_scale, window_scale, 1
     locally
@@ -49,6 +38,19 @@ page "Intro",
         sparks_color 1.0, 0.1, 0.1, 1.0
         sparks page_time * 0.3, 0.15, 0.15
         rectangle 300, -200, 300, 300
+    compute_smooth_step
+    locally
+        show fade_between (page_time, 1.0, 4.0)
+        color 0.1, 0.1, 0.1, 0.8
+        fullscreen_quad
+        text_box 0, 0, window_width * 75%, window_height,
+            color "white"
+            line_color "black"
+            line_width 1
+            font "Ubuntu", 72 * (window_width / 1200)
+            vertical_align_center
+            align_center
+            description_text tao_language
 
 page "Font",
     compute_smooth_step

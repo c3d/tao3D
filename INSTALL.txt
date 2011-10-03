@@ -34,7 +34,7 @@ Here is a step-by-tep guide.
   the instruction to create a shortcut on the desktop: type:
   $ /share/msysGit/add-shortcut.tcl Desktop
 
-- Optional: install doxygen (to compile the Tao documentation).
+- Recommended: install Doxygen (to compile the Tao documentation).
   http://www.stack.nl/~dimitri/doxygen/download.html
   Then make sure the "doxygen" command is in your Windows PATH.
 
@@ -83,48 +83,23 @@ Here is a step-by-tep guide.
 
 - Build Tao
   $ cd ~/tao
-  $ qmake -r -spec win32-g++  # append 'CONFIG+=release' for a releas build
-  $ make -j2 install  # will put the application under the "install" directory
-
-- Optional: configure Qt Creator to build and run Tao from the Qt Creator IDE.
-  This is not needed if you are OK with building from the command line.
-  * Open main.pro
-  * Update PATH (in Projects/Build Settings/Build Environment):
-    prepend C:\llvm\bin;C:\msysgit\msysgit\bin;C:\msysgit\msysgit\mingw\lib
-    With this PATH, Qt Creator will be able to find llvm-config, bash, git.
-  * Change the default make specification to use:
-    C:\msysgit\msysgit\mingw\bin\mingw32-make.exe
-  * Set application and application current directory in
-    Projects/Run Settings: the application is Tao.exe under the install
-    directory. So, before you can run Tao you must execute the "install"
-    target.
+  $ ./configure
+  Then,
+  $ make          # Build Tao
+  or
+  $ make install  # Build Tao and install in ./install
 
 - Optional: install the Nullsoft Scriptable Install System (NSIS) from
   http://nsis.sourceforge.net/Download.
   Not needed if you don't want to create an installer (taosetup.exe).
   Once NSIS is installed you can build the installer with:
-  $ cd packaging/win
-  $ make kit
+  $ make kit  # Build Tao and create installer in ./packaging/win
 
 *** MacOSX ***
 
-x86_64 build (64 bit)
-
-  - Configure LLVM as follows:
-    $ ./configure --enable-optimized  # will install in /usr/local
-    $ make -j3
-    $ sudo make install
-  - Configure Tao as follows:
-    $ export PATH=/usr/local/bin:$PATH
-    $ qmake -r -spec macx-g++  # append 'CONFIG+=release' for release
-    $ make -j3 install
-    $ cd packaging/macosx
-    $ make kit
-
-x86 build (32 bit)
-
 Configure and build LLVM as follows (will install in
-~/work/inst/llvm, use a different path if you wish):
+~/work/inst/llvm, use a different path if you wish, default is
+/usr/local):
     $ ./configure --prefix=$HOME/work/inst/llvm \
         --enable-optimized \
         UNIVERSAL=1 \
@@ -143,19 +118,22 @@ Configure and build LLVM as follows (will install in
         DARWIN_VERSION=10.5
   - Configure and build Tao as follows:
     $ export PATH=~/work/inst/llvm/bin:$PATH
-    $ qmake -r -spec macx-g++ CONFIG+=x86 # append 'CONFIG+=release' for release
-    $ make -j3 install
-    $ cd packaging/macosx
-    $ make kit
+    $ ./configure
+    Then,
+    $ make          # Build Tao
+    or
+    $ make install  # Build Tao and install in ./install
+    or
+    $ make kit      # Build Tao and create .dmg in ./packaging/macosx
 
 Valgrind usage
 
 Install valgrind (version > 3.6.0)
   $ sudo port install valgrind
 
-Build Tao whiteout Git repository
-  $ qmake -r DEFINES+=CFG_NOGIT 
-  $ make -j3 install
+Build Tao without Git repository
+  $ ./configure DEFINES+=CFG_NOGIT 
+  $ make install
 
 Launch Tao with valgrind (it is very very slow)
   $ valgrind -q --tool=memcheck --suppressions=~/Work/tao/taoValgrindSupp.txt --dsymutil=yes  ~/Work/tao/install/Tao\ Presentations.app/Contents/MacOS/Tao\ Presentations
@@ -190,8 +168,12 @@ too.
      $ make -j3
      $ sudo make install
  - Configure and build Tao as follows:
-   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.2/bin:$PATH
-   $ qmake -r # append 'CONFIG+=release' for release
-   $ make -j3 install
-   $ cd packaging/linux
-   $ make kit
+   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.4/bin:$PATH
+   $ ./configure
+   Then,
+   $ make          # Build everything
+   or
+   $ make install  # Build and install in ./install
+   or
+   $ make kit      # Build and create installer in ./packaging/linux
+

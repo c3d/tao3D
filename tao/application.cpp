@@ -80,10 +80,12 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
+      maxTextureCoords(0), maxTextureUnits(0),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
       appInitialized(false)
+
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -150,12 +152,16 @@ Application::Application(int & argc, char ** argv)
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
-                              
-    // Load licence (in XL directory path)
-    QFileInfo licence("xl:licence.taokey");
-    if (licence.exists())
+
+    // Load licenses
+    QDir dir(Application::defaultLicenseFolderPath());
+    QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                               QDir::Files);
+    foreach (QFileInfo licence, licences)
     {
         text lpath = +licence.canonicalFilePath();
+        IFTRACE(fileload)
+            std::cerr << "Loading license file: " << lpath << "\n";
         Licences::AddLicenceFile(lpath.c_str());
     }
 
@@ -172,7 +178,7 @@ Application::Application(int & argc, char ** argv)
     install_first_exception_handler();
 
     // Check licence
-    Licences::Check("Tao Presentations " GITREV);
+    Licences::Check(TAO_LICENCE_STR);
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();
@@ -209,12 +215,19 @@ Application::Application(int & argc, char ** argv)
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
-    
+
     // Basic sanity tests to check if we can actually run
-    if (!QGLFormat::hasOpenGL())
+    if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
         QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL."));
+                             tr("This system doesn't support OpenGL 2.0."));
+        ::exit(1);
+    }
+    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+    {
+        QMessageBox::warning(NULL, tr("FBO support"),
+                             tr("This system doesn't support Frame Buffer "
+                                "Objects."));
         ::exit(1);
     }
 
@@ -264,15 +277,6 @@ Application::Application(int & argc, char ** argv)
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
-    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-    {
-        // Check frame buffer support (non-fatal)
-        ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Framebuffer support"));
-        dialog.showMessage(tr("This system does not support framebuffers."
-                              " Performance may not be optimal."
-                              " Consider updating the OpenGL drivers."));
-    }
     {
         QGLWidget gl(QGLFormat(QGL::StereoBuffers));
         hasGLStereoBuffers = gl.format().stereo();
@@ -374,6 +378,8 @@ void Application::checkModules()
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
+    connect(moduleManager, SIGNAL(updating(QString)),
+            this, SLOT(updatingModule(QString)));
     moduleManager->init();
     // Load only auto-load modules (the ones that do not have an import_name)
     moduleManager->loadAnonymousNative(XL::MAIN->context);
@@ -388,6 +394,19 @@ void Application::checkingModule(QString name)
     if (splash)
     {
         QString msg = QString(tr("Checking modules [%1]")).arg(name);
+        splash->showMessage(msg);
+    }
+}
+
+
+void Application::updatingModule(QString name)
+// ----------------------------------------------------------------------------
+//   Show module being updated
+// ----------------------------------------------------------------------------
+{
+    if (splash)
+    {
+        QString msg = QString(tr("Updating modules [%1]")).arg(name);
         splash->showMessage(msg);
     }
 }
@@ -576,6 +595,17 @@ void Application::onOpenFinished(bool ok)
         splash->close();
         splash->deleteLater();
         splash = NULL;
+        Window * win = findFirstTaoWindow();
+        if (win && win->isUntitled)
+        {
+            // E.g., start Tao by clicking on a module or template link,
+            // or give a template / module URL on the command line.
+            // Load welcome screen now
+            QFileInfo tutorial("system:welcome.ddd");
+            QString tuto = tutorial.canonicalFilePath();
+            win->setWindowModified(false); // Prevent "Save?" question
+            win->open(tuto, true);
+        }
         emit allWindowsReady();
     }
 }
@@ -925,6 +955,15 @@ QString Application::defaultTaoFontsFolderPath()
 }
 
 
+QString Application::defaultLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    The folder where Tao looks for license files on startup
+// ----------------------------------------------------------------------------
+{
+    return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
+}
+
+
 QString Application::defaultUserImagesFolderPath()
 // ----------------------------------------------------------------------------
 //    Try to guess the best Images folder to use by default
@@ -971,7 +1010,6 @@ bool Application::createDefaultProjectFolder()
 {
     return QDir().mkdir(defaultProjectFolderPath());
 }
-
 
 bool Application::createDefaultTaoPrefFolder()
 // ----------------------------------------------------------------------------

@@ -1,0 +1,128 @@
+#!/bin/sh
+
+usage() {
+  (
+  echo "Usage: configure [options] [edition name] [QMake options]"
+  echo ""
+  echo "Runs QMake to configure the build environment for some pre-defined"
+  echo "configurations of Tao Presentations. configure will:"
+  echo ""
+  echo "  - Select build options (enabling or disabling some features in the program)"
+  echo "  - Select which modules will be built and packaged"
+  echo "  - Select which templates will be included"
+  echo "  - Define TAO_EDITION. Edition is shown on the splash screen and in the"
+  echo "    about box. It also has an impact on licence generation and verification."
+  echo ""
+  echo "Please look at the QMake 'Project MESSAGE' output for detailed information on"
+  echo "what will be included in the build."
+  echo ""
+  echo "Options:"
+  echo ""
+  echo "  --debug         Build in debug mode (default is release)"
+  echo "  --with-licence  For editions that normally contain no licence: force "
+  echo "                  generation of a valid 120-day licence. "
+  echo ""
+  echo "Edition Name:"
+  echo ""
+  echo "  viewer      Configure for Tao Presentations Viewer."
+  echo "              Licence for:"
+  echo "              'Tao Presentations Viewer <latest tag>.*', no expiration date."
+  echo "  creative    Configure for Tao Presentations Creative."
+  echo "              No licence, install unsigned template for:"
+  echo "              'Tao Presentations Creative (latest tag).*', no expiration date."
+  echo "  pro         Configure for Tao Presentations Pro."
+  echo "              No licence, install unsigned template for:"
+  echo "              'Tao Presentations Pro (latest tag).*', no expiration date."
+  echo "  <empty>     Configure for an internal build."
+  echo "              Replicates our 'beta' build: most features are enabled,"
+  echo "              Licence for:"
+  echo "              'Tao Presentations <latest tag>.*', valid for 120 days."
+  echo ""
+  echo "QMake options:"
+  echo ""
+  echo "  Any other option is passed unmodified to Qmake, after the options added by"
+  echo "  this configure script."
+  echo ""
+  echo "Examples:"
+  echo ""
+  echo "  ./configure --debug"
+  echo "              Configure for an internal build (= same as Tao beta), debug mode"
+  echo "  ./configure pro"
+  echo "              Configure for Pro edition, release mode"
+  echo "  ./configure --debug viewer"
+  echo "              Configure for Viewer edition, debug mode"
+  echo "  ./configure viewer modules+=+display_2dplusdepth"
+  echo "              Add module display_2dplusdepth to the modules normally selected"
+  echo "              for the Viewer edition. Note the two + signs, before and after"
+  echo "              the = sign. The first one means: append to the 'modules'"
+  echo "              variable, do not overwrite it. As a result the module selected"
+  echo "              for the Viewer edition are in effect and simply modified by the"
+  echo "              option. The second + sign is processed by module_list.pri, see "
+  echo "              this file for details."
+  echo "  ./configure pro CONFIG-=x86"
+  echo "              Configure for a 64-bit release build on MacOSX (x86 is selected"
+  echo "              by default)"
+  ) >&2
+  exit 0
+}
+
+EDITION_FLAGS=
+DEBUG_FLAGS="CONFIG+=release"
+
+done=
+while [ $# -ne 0 ] ; do
+  case "$1" in
+    -h|--help)
+      usage
+      ;;
+    --debug)
+      DEBUG_FLAGS="CONFIG-=release"
+      shift
+      ;;
+    --with-lic*)
+      LICENCE_FLAGS="LICENCE_VALIDITY=120"
+      shift
+      ;;
+    viewer)
+      EDITION="Viewer"
+      EDITION_FLAGS='DEFINES+="CFG_NOEDIT CFG_NOSRCEDIT CFG_NORELOAD" modules="-display_quadstereo -display_splitstereo -display_intstereo -display_alioscopy"'
+      shift ; done=1
+      ;;
+    creative)
+      EDITION="Creative"
+      shift ; done=1
+      ;;
+    pro)
+      EDITION="Pro"
+      shift ; done=1
+      ;;
+    *)
+      done=1
+      ;;
+  esac
+  [ "$done" ] && break
+done
+
+# Make the edition string available to project files
+if [ "$EDITION" ] ; then
+  EDITION_FLAGS="TAO_EDITION=\"$EDITION\" $EDITION_FLAGS"
+fi
+
+# Default QMake flags for each OS
+osflags() {
+  UNAME=`uname`
+  case "$UNAME" in
+    Darwin)
+      echo "-spec macx-g++ CONFIG+=x86"
+      ;;
+    MINGW*)
+      echo "-spec win32-g++"
+      ;;
+    Linux*)
+      ;;
+  esac
+}
+
+QMAKE_COMMAND="qmake -r `osflags` $DEBUG_FLAGS $LICENCE_FLAGS $EDITION_FLAGS $*"
+echo $QMAKE_COMMAND
+eval $QMAKE_COMMAND

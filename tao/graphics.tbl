@@ -497,6 +497,22 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        SYNOPSIS("Disable OpenGL depth test")
        DESCRIPTION("Deactivate the OpenGL depth test for polygons.")
        RETURNS(boolean, "The previous state of depth testing"))
+PREFIX(BlendFunction, boolean, "blend_function",
+       PARM(src, text, "")
+       PARM(dst, text, ""),
+       RTAO(blendFunction(self, src, dst)),
+       SYNOPSIS("Set the blend function"))
+PREFIX(BlendFunctionSeparate, boolean, "blend_function_separate",
+       PARM(src, text, "")
+       PARM(dst, text, "")
+       PARM(srca, text, "")
+       PARM(dsta, text, ""),
+       RTAO(blendFunctionSeparate(self, src, dst, srca, dsta)),
+       SYNOPSIS("Set the blend function separately for color and alpha"))
+PREFIX(BlendEquation, boolean, "blend_equation",
+       PARM(eq, text, ""),
+       RTAO(blendEquation(self, eq)),
+       SYNOPSIS("Set the blend function separately for color and alpha"))
 PREFIX(Refresh, tree, "refresh",
        PARM(interval, real, "Interval in seconds"),
        RTAO(refresh(self, interval)),

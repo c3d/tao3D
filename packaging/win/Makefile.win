@@ -26,7 +26,7 @@ rn: $(BITMAPS) version.nsh
 
 prepare tao_install:
 	[ -d build_root ] || mkdir -p build_root
-	cd ../.. && make install
+	cd ../.. && $(MAKE) install
 	cp -Rp $(INSTROOT)/* build_root
 	./copy_deps "$(QMAKE_LIBDIR_QT_SANE)"
 

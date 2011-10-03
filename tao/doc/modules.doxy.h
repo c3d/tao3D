@@ -23,15 +23,14 @@ import MyModule 1.0
  *
  * Version numbers can have one of three forms:
  *  - An integer value, e.g. 1, which is the same as 1.0
- *  - A real value, e.g. 1.0203, which is major 1, minor 2, patch-level 3
- *  - A text value with dot-separated fields, e.g. "1.2.3" which is the same
- *    as "1.02.03".
+ *  - A real value, e.g., 1.023
+ *  - A text value, e.g., "1.023"
  *
  * Version matching is a major/minor match. For a module to load, the module
  * major must be equal to the requested major (the integer part of the
- * version, when represented as a real value), and the module minor must be
+ * version), and the module minor must be
  * greater or equal to the requested minor (the fractional part of the
- * version, when represented as a real value).
+ * version).
  *
  * If the version is not specified, it is assumed to be 1.0.
  *

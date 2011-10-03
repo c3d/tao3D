@@ -45,6 +45,7 @@ struct ModuleRenderer : Drawing
     virtual text  Type() { return "ModuleRenderer";}
     // Drawing interface
     virtual void  Draw(Layout *where);
+    virtual void  Identify(Layout *where);
 
     // Exported to ModuleApi
     static bool   ScheduleRender(ModuleApi::render_fn callback, void *arg);

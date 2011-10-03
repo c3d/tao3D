@@ -61,6 +61,7 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     return true;
 }
 
+
 bool ModuleRenderer::EnableTexCoords(double* texCoord)
 // ----------------------------------------------------------------------------
 //   Enable specified coordinates for active textures in the current layout
@@ -78,6 +79,7 @@ bool ModuleRenderer::EnableTexCoords(double* texCoord)
     return true;
 }
 
+
 bool ModuleRenderer::DisableTexCoords()
 // ----------------------------------------------------------------------------
 //   Disable coordinates for active textures in the current layout
@@ -92,10 +94,10 @@ bool ModuleRenderer::DisableTexCoords()
     return true;
 }
 
+
 bool ModuleRenderer::SetTextures()
 // ----------------------------------------------------------------------------
-//   Apply the textures in the ModuleRenderer according
-//   to the current layout attributes
+//   Apply the textures as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setTexture(currentLayout);
@@ -104,8 +106,7 @@ bool ModuleRenderer::SetTextures()
 
 bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
 // ----------------------------------------------------------------------------
-//   Bind the texture in the ModuleRenderer according
-//   to the current layout attributes
+//   Bind the texture as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
     GLuint unit = Widget::Tao()->layout->currentTexture.unit;
@@ -118,32 +119,34 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     return false;
 }
 
+
 bool ModuleRenderer::SetFillColor()
 // ----------------------------------------------------------------------------
-//   Set the fill color in the ModuleRenderer according
-//   to the current layout attributes
+//   Set the fill color as defined by the current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setFillColor(currentLayout);
 }
 
+
 bool ModuleRenderer::SetLineColor()
 // ----------------------------------------------------------------------------
-//   Set the the outline color in the ModuleRenderer according
-//   to the current layout attributes
+//   Set the the outline color as defined by the current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setLineColor(currentLayout);
 }
 
+
 bool ModuleRenderer::HasPixelBlur(bool enable)
 // ----------------------------------------------------------------------------
-// Allow to enable or deactivate pixel blur.
+//   Enable or deactivate pixel blur.
 // ----------------------------------------------------------------------------
 {
     Widget::Tao()->layout->hasPixelBlur = enable;
     return true;
 }
+
 
 void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -151,7 +154,18 @@ void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     currentLayout  = where;
+    callback(arg);
+}
 
+
+void ModuleRenderer::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify object under cursor
+// ----------------------------------------------------------------------------
+{
+    XL::Save<bool> inIdentify(where->inIdentify, true);
+    glUseProgram(0); // Necessary for #1464
+    currentLayout = where;
     callback(arg);
 }
 

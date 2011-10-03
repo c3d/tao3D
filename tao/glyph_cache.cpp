@@ -258,8 +258,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         QFontMetricsF fm(scaled);
         QChar qc(code);
         QRectF bounds = fm.boundingRect(qc);
-        // #1161 Workaround font metric bug in TeX Gyre Advantor
-        if (qc == ' ' && (bounds.width() == 0 || bounds.height() == 0))
+        // #1161 Workaround font metric bug in TeX Gyre Adventor
+        if (qc == ' ' && font.family() == "TeX Gyre Adventor")
             bounds = fm.boundingRect(QChar('l'));
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());

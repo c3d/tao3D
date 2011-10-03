@@ -69,6 +69,9 @@ void GroupLayout::DrawSelection(Layout *where)
     }
     else if (sel)
     {
+        // Select itself
+        widget->select(self);
+
         // We are in "group drag" mode (we will drag children as well)
         groupDrag = true;
 

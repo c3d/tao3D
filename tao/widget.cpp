@@ -1128,6 +1128,15 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 //    Render frames to PNG files
 // ----------------------------------------------------------------------------
 {
+    // Create output directory if needed
+    if (!QFileInfo(dir).exists())
+        QDir().mkdir(dir);
+    if (!QFileInfo(dir).isDir())
+        return;
+
+    TaoSave saveCurrent(current, this);
+
+    // Select display. Requires current != NULL.
     QString prevDisplay;
     if (disp != "" && !displayDriver->isCurrentDisplayFunctionSameAs(disp))
     {
@@ -1144,14 +1153,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             prevDisplay = displayDriver->getDisplayFunction();
         displayDriver->setDisplayFunction("2D");
     }
-
-    // Create output directory if needed
-    if (!QFileInfo(dir).exists())
-        QDir().mkdir(dir);
-    if (!QFileInfo(dir).isDir())
-        return;
-
-    TaoSave saveCurrent(current, this);
 
     // Set the initial time we want to set and freeze animations
     XL::Save<double> setPageTime(pageStartTime, start_time);

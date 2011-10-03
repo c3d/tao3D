@@ -135,6 +135,7 @@ static inline QGLFormat TaoGLFormat()
     QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
+         QGL::StencilBuffer     |
          QGL::AlphaChannel      |
          QGL::AccumBuffer);
     if (TaoApp->hasGLMultisample)

@@ -16,6 +16,7 @@ Change log for Tao Presentations
 #1452 Command chooser search ignores space key
 #1451 Empty text box is not empty
 #1444 Licence installation (.taokey file)
+#1435 Selection rectangle flashes in pan and zoom template
 #1431 Crash on "Send to back"
 #1429 Crash when moving table
 #1407 Switching off the last light does not disable lighting

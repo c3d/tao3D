@@ -147,7 +147,7 @@ private:
 
         bool operator==(const Key &o) const
         {
-            return ((slices == o.slices) && (stacks == o.stacks) && (fabs(ratio - o.ratio) < EPSILON));
+            return ((slices == o.slices) && (stacks == o.stacks) && (fabs(ratio - o.ratio) < TAO_EPSILON));
         }
 
         bool operator<(const Key &o) const

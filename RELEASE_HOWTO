@@ -22,24 +22,9 @@ On all platforms:
   $ git tag 1.0-beta5 
 - Clean work directory
   $ make distclean
-- Run qmake
-  [MacOSX]
-  $ qmake -r -spec macx-g++ CONFIG+="x86 release"
-  [Windows]
-  $ qmake -r -spec win32-g++ CONFIG+="release"
-  [Linux]
-  $ qmake -r CONFIG+="release"
-- Build
+- Build and make kits
+  $ ./configure
   $ make -j5 install
-- Build the kits
-  [MacOSX]
-  $ cd packaging/macosx
-  $ make kit
-  [Windows]
-  $ cd packaging/win
-  $ make kit
-  [Linux]
-  $ cd packaging/linux
   $ make kit
  
 Once:
@@ -48,3 +33,7 @@ Once:
   Take inspiration from 'git show 1.0-beta4' for instance. 
   $ git tag -a 1.0-beta5 
 
+- Upload files to the Taodyne web site, do not forget to update
+  the release name (beta9) in:
+    www/application/frontend/language/english/beta_lang.php
+    www/application/frontend/language/french/beta_lang.php

@@ -74,7 +74,7 @@ Tree *FontParsingAction::DoText(Text *what)
     if (!exactMatch)
     {
         text desc = what->value;
-        IFTRACE(fonts)
+        IFTRACE(fontparsing)
             std::cerr << "Parsing font description: '" <<  desc << "'\n";
         size_t slash = desc.find('/');
         if (slash != std::string::npos)
@@ -82,7 +82,7 @@ Tree *FontParsingAction::DoText(Text *what)
             // Parse string as "family/style"
             text family = desc.substr(0, slash);
             text style = desc.substr(slash + 1, std::string::npos);
-            IFTRACE(fonts)
+            IFTRACE(fontparsing)
                 std::cerr << "  Font family='" << family
                           << "' style='" << style << "'\n";
             int size = font.pointSize();
@@ -99,6 +99,8 @@ Tree *FontParsingAction::DoText(Text *what)
             font.setFamily(+family);
         }
         exactMatch = font.exactMatch();
+        IFTRACE(fontparsing)
+            std::cerr << "Exact match: " << exactMatch << "\n";
     }
     return what;
 }

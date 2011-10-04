@@ -26,7 +26,7 @@
 #include "hash.h"
 #include "sha1_ostream.h"
 #include "widget.h"
-#include <sys/stat.h>
+#include "tao_utf8.h"
 #include <iostream>
 #include <sstream>
 
@@ -63,10 +63,8 @@ bool ImportedFilesChanged(import_set &done,
                 if (!prev_hash.empty() && sf.hash != prev_hash)
                     sf.changed = true;
             }
-            struct stat st;
-            st.st_mtime = sf.modified;
-            stat (sf.name.c_str(), &st);
-            if (st.st_mtime > sf.modified)
+            time_t modified = QFileInfo(+sf.name).lastModified().toTime_t();
+            if (modified > sf.modified)
                 result = true;
         }
     }

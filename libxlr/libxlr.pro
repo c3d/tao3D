@@ -61,7 +61,7 @@ HEADERS += \
     ../tao/xlr/xlr/include/tree.h \
     ../tao/xlr/xlr/include/types.h \
     ../tao/xlr/xlr/include/utf8.h \
-    ../tao/xlr/xlr/utf8_ifstream.h
+    ../tao/xlr/xlr/utf8_fileutils.h
 
 SOURCES += \
     ../tao/xlr/xlr/flight_recorder.cpp \

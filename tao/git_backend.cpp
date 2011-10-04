@@ -754,14 +754,15 @@ void GitRepository::checkCurrentBranch()
 // ----------------------------------------------------------------------------
 {
     QString head = path + "/.git/HEAD";
-    struct stat st;
-    if (stat((+head).c_str(), &st) < 0)
+    QFileInfo fi(head);
+    if (!fi.isReadable())
         return;
+    time_t mtime = fi.lastModified().toTime_t();
     if (currentBranchMtime == 0)
-        currentBranchMtime = st.st_mtime;
-    if (st.st_mtime <= currentBranchMtime)
+        currentBranchMtime = mtime;
+    if (mtime <= currentBranchMtime)
         return;
-    currentBranchMtime = st.st_mtime;
+    currentBranchMtime = mtime;
     emit branchChanged(+branch());
 }
 

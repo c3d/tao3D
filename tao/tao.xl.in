@@ -120,6 +120,10 @@ stereoscopy_settings ->
         chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
     if has_display_mode hintstereo then
         chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}
+    if has_display_mode hframepacking then
+        chooser_choice tr "Enable stereoscopy (horizontal frame packing)", {enable_stereoscopy hframepacking}
+    if has_display_mode vsplitstereo then
+        chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
     if has_display_mode alioscopy then
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy; eye_distance 30.0}
     if has_display_mode "2dplusdepth" then

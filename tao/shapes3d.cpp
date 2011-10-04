@@ -89,29 +89,6 @@ bool Shape3::setLineColor(Layout *where)
     return false;
 }
 
-Vector3& Mesh::calculateNormal(const Point3& v1,const Point3& v2,const Point3& v3)
-// ----------------------------------------------------------------------------
-//    Compute normal of specified triangle
-// ----------------------------------------------------------------------------
-{
-    Point3 a;
-    Point3 b;
-    Vector3 normal;
-
-    a.x = v1.x - v2.x;
-    a.y = v1.y - v2.y;
-    a.z = v1.z - v2.z;
-
-    b.x = v2.x - v3.x;
-    b.y = v2.y - v3.y;
-    b.z = v2.z - v3.z;
-
-    normal.x = (a.y * b.z) - (a.z * b.y);
-    normal.y = (a.z * b.x) - (a.x * b.z);
-    normal.z = (a.x * b.y) - (a.y * b.x);
-
-    return normal.Normalize();
-}
 
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
@@ -120,6 +97,7 @@ Box3 Cube::Bounds(Layout *where)
 {
     return bounds + where->offset;
 }
+
 
 void Cube::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -166,8 +144,12 @@ void Cube::Draw(Layout *where)
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, vertices);
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_FLOAT, 0, normals);
+    // Set normals only if we have lights or shaders
+    if(where->currentLights || where->programId)
+    {
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_FLOAT, 0, normals);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -187,9 +169,13 @@ void Cube::Draw(Layout *where)
         if(((*it).second).id)
             disableTexCoord((*it).first);
 
-    glDisableClientState(GL_NORMAL_ARRAY);
+    if(where->currentLights || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
     glDisableClientState(GL_VERTEX_ARRAY);
 }
+
+
 
 // ============================================================================
 //
@@ -203,17 +189,23 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 // ----------------------------------------------------------------------------
 {
     Point3 p = bounds.Center() + where->Offset();
+
     glPushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
-    glEnable(GL_NORMALIZE);
     glTranslatef(p.x, p.y, p.z);
     glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
 
+    // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
 
-    glEnableClientState(GL_NORMAL_ARRAY);
-    glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+    // Set normals only if we have lights or shaders
+    if(where->currentLights || where->programId)
+    {
+        glEnable(GL_NORMALIZE);
+        glEnableClientState(GL_NORMAL_ARRAY);
+        glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+    }
 
     //Active texture coordinates for all used units
     std::map<uint, TextureState>::iterator it;
@@ -221,19 +213,57 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         if(((*it).second).id)
             enableTexCoord((*it).first, &mesh->textures[0].x);
 
+    // Apply textures
     setTexture(where);
+
+    scale v = 1.0;
+    if(! where->programId && culling)
+    {
+        // Optimize drawing of convex
+        // shapes in case of no shaders thanks to
+        // backface culling (doesn't need to draw back faces)
+        v = where->visibility * where->fillColor.alpha;
+        glEnable(GL_CULL_FACE);
+        if(v != 1.0)
+        {
+            // Use painter algorithm to apply correctly
+            // transparency on shapes
+            // This was made necessary by Bug #1403.
+            glCullFace(GL_FRONT);
+            // Read Only mode of depth buffer
+            glDepthMask(false);
+
+            if (setFillColor(where))
+                glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+
+            glCullFace(GL_BACK);
+        }
+    }
 
     if (setFillColor(where))
         glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
         glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
 
+
+    glDisableClientState(GL_VERTEX_ARRAY);
+
+    // Disable texture coordinates
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
             disableTexCoord((*it).first);
 
-    glDisableClientState(GL_NORMAL_ARRAY);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    // Disable normals
+    if(where->currentLights || where->programId)
+        glDisableClientState(GL_NORMAL_ARRAY);
+
+    // Disable cullface
+    if(! where->programId && culling)
+    {
+        glDisable(GL_CULL_FACE);
+        if(v != 1.0)
+            glDepthMask(true);
+    }
 
     glPopAttrib();
     glPopMatrix();
@@ -289,6 +319,7 @@ SphereMesh::SphereMesh(uint slices, uint stacks)
         }
     }
 }
+
 
 Sphere::SphereCache Sphere::cache;
 
@@ -353,20 +384,21 @@ TorusMesh::TorusMesh(uint slices, uint stacks, double ratio)
 
             // First vertex
             textures.push_back(Vector((double) i / slices, (double) (j+1) / stacks));
-            normals.push_back(Vector3( sinTheta * cosIncrPhi, sinIncrPhi,  cosTheta * cosIncrPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * sinTheta,
-                                       (thickness * sinIncrPhi),
-                                       (majRadius + minRadius * cosIncrPhi) * cosTheta));
+            normals.push_back(Vector3( cosTheta * cosIncrPhi, sinTheta * cosIncrPhi, sinIncrPhi));
+            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * cosTheta,
+                                       (majRadius + minRadius * cosIncrPhi) * sinTheta,
+                                       (thickness * sinIncrPhi)));
 
             // Second vertex
             textures.push_back(Vector((double) i / slices, (double) j / stacks));
-            normals.push_back(Vector3(sinTheta * cosPhi, sinPhi, cosTheta * cosPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * sinTheta,
-                                       (thickness * sinPhi),
-                                       (majRadius + minRadius * cosPhi) * cosTheta));
+            normals.push_back(Vector3(cosTheta * cosPhi, sinTheta * cosPhi, sinPhi));
+            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * cosTheta,
+                                       (majRadius + minRadius * cosPhi) * sinTheta,
+                                       (thickness * sinPhi)));
         }
     }
 }
+
 
 Torus::TorusCache Torus::cache;
 
@@ -426,23 +458,25 @@ ConeMesh::ConeMesh(double ratio)
     // neighbouring faces
     // NOTE: First and last normals are the same because of QUAD_STRIP
     Vector3 previousFaceNorm, nextFaceNorm;
-    previousFaceNorm = calculateNormal(vertices[vertices.size() - 2],
-                                       vertices[vertices.size() - 1],
-                                       vertices[0]);
-    nextFaceNorm = calculateNormal(vertices[0], vertices[1], vertices[2]);
+    Triangle lastTriangle(vertices[vertices.size() - 2],
+                          vertices[vertices.size() - 1],
+                          vertices[0]);
+    Triangle firstTriangle(vertices[0],
+                           vertices[1],
+                           vertices[2]);
+
+    previousFaceNorm = lastTriangle.computeNormal();
+    nextFaceNorm     = firstTriangle.computeNormal();
     normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
     normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
+
     for(unsigned int i = 2; i < vertices.size() - 2; i +=2)
     {
         previousFaceNorm = nextFaceNorm;
-        if(i < vertices.size() - 2)
-            nextFaceNorm = calculateNormal(vertices[i],
-                                           vertices[i + 1],
-                                           vertices[i + 2]);
-        else
-            nextFaceNorm = calculateNormal(vertices[vertices.size() - 2],
-                                           vertices[vertices.size() - 1],
-                                           vertices[0]);
+        Triangle triangle(vertices[i],
+                          vertices[i + 1],
+                          vertices[i + 2]);
+        nextFaceNorm = triangle.computeNormal();
 
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));

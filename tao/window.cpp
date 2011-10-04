@@ -419,8 +419,16 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(onDocReady(QString)));
                 connect(uri, SIGNAL(templateCloned(QString)),
                         this, SLOT(onNewTemplateInstalled(QString)));
-                connect(uri, SIGNAL(templateFetched(QString)),
+                connect(uri, SIGNAL(templateUpdated(QString)),
+                        this, SLOT(onTemplateUpdated(QString)));
+                connect(uri, SIGNAL(templateUpToDate(QString)),
                         this, SLOT(onTemplateUpToDate(QString)));
+                connect(uri, SIGNAL(moduleCloned(QString)),
+                        this, SLOT(onNewModuleInstalled(QString)));
+                connect(uri, SIGNAL(moduleUpdated(QString)),
+                        this, SLOT(onModuleUpdated(QString)));
+                connect(uri, SIGNAL(moduleUpToDate(QString)),
+                        this, SLOT(onModuleUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
                 bool ok = uri->get();  // Will emit a signal when done
@@ -1094,20 +1102,29 @@ void Window::onDocReady(QString path)
 }
 
 
+void Window::showInfoDialog(QString title, QString msg, QString info)
+// ----------------------------------------------------------------------------
+//    Show a dialog box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(info);
+    msgBox.exec();
+}
+
 void Window::onNewTemplateInstalled(QString path)
 // ----------------------------------------------------------------------------
 //    Show a dialog box to confirm that a new template was installed
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
     QString title = tr("New template installed");
-    QString msg = tr("A new template was installed.");
-    QString infoMsg = tr("The template will appear in the new document dialog."
-                         " Files were installed in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    QString msg = tr("A new template \"%1\" was installed.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1116,14 +1133,89 @@ void Window::onTemplateUpToDate(QString path)
 //    Show a dialog box to confirm that an existing template is up-to-date
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
     QString title = tr("Template is up-to-date");
-    QString msg = tr("The template is up-to-date.");
-    QString infoMsg = tr("The template is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    QString msg = tr("The template \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onTemplateUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing template was updated
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Template was updated");
+    QString msg = tr("The template \"%1\" was updated.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onNewModuleInstalled(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that a new module was installed
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("New module installed");
+    QString msg = tr("A new module \"%1\" was installed.").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The module will be visible in the preference "
+                         "dialog and can be used after restarting the "
+                         "application.</p>"
+                         "<p>If you received a license file for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
+    showInfoDialog(title, msg, infoMsg);
+}
+
+
+void Window::onModuleUpToDate(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module is up-to-date
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Module is up-to-date");
+    QString msg = tr("The module \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onModuleUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module was updated
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Module was updated");
+    QString msg = tr("A module update was downloaded for \"%1\".").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The update will be installed when the "
+                         "application restarts.</p>"
+                         "<p>If you received a new license for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1197,6 +1289,70 @@ void Window::preferences()
 // ----------------------------------------------------------------------------
 {
     PreferencesDialog(this).exec();
+}
+
+
+void Window::licenses()
+// ----------------------------------------------------------------------------
+//    Show Licenses dialog. Largely inspired from QMessageBox::aboutQt().
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_WS_MAC
+    static QPointer<QMessageBox> oldMsgBox;
+
+    if (oldMsgBox) {
+        oldMsgBox->show();
+        oldMsgBox->raise();
+        oldMsgBox->activateWindow();
+        return;
+    }
+#endif
+
+    QString title = tr("Licensing");
+    QString caption;
+    caption = tr("<h3>Tao Presentation Licenses</h3>");
+
+    QString prefix;
+#if defined(Q_OS_WIN)
+    prefix = "file:///";
+#else
+    prefix = "file://";
+#endif
+    QString msg;
+    msg = tr(
+                "<h3>To add new licenses</h3>"
+                "<p>If you received license files (with the .taokey "
+                "extension), copy them into the license folder and "
+                "restart the application. Your new licenses will be "
+                "loaded automatically.</p>"
+                "<center><a href=\"%1%2\">"
+                "Open the license folder</a></center>"
+                ).arg(prefix).arg(Application::defaultLicenseFolderPath());
+
+    QMessageBox *msgBox = new QMessageBox;
+    msgBox->setAttribute(Qt::WA_DeleteOnClose);
+    msgBox->setWindowTitle(title);
+    msgBox->setText(caption);
+    msgBox->setInformativeText(msg);
+
+    // The padlock icon is a merge of:
+    // http://www.openclipart.org/detail/17931 (public domain)
+    // and our Tao pictogram
+    QPixmap pm(":/images/tao_padlock.svg");
+    if (!pm.isNull())
+    {
+        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
+                                   Qt::SmoothTransformation);
+        msgBox->setIconPixmap(scaled);
+    }
+
+    msgBox->raise();
+#ifdef Q_WS_MAC
+    oldMsgBox = msgBox;
+    msgBox->show();
+#else
+    msgBox->exec();
+#endif
 }
 
 
@@ -1480,6 +1636,12 @@ void Window::createActions()
     preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
+    licensesAct = new QAction(tr("&Licenses..."), this);
+    licensesAct->setStatusTip(tr("View or add license files"));
+    licensesAct->setObjectName("licenses");
+    licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
+
     onlineDocAct = new QAction(tr("&Online Documentation"), this);
     onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
     onlineDocAct->setObjectName("onlineDoc");
@@ -1638,6 +1800,7 @@ void Window::createMenus()
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
+    helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(onlineDocTaodyneAct);
 }

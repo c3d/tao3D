@@ -294,8 +294,45 @@ struct DepthTest : Attribute
 {
     DepthTest(bool enable): enable(enable) {}
     virtual void Draw(Layout *where);
+    virtual text Type() { return "DepthTest";}
     bool enable;
-    virtual text        Type() { return "DepthTest";}
+};
+
+
+struct BlendFunc : Attribute
+// ----------------------------------------------------------------------------
+//   Change the blend function
+// ----------------------------------------------------------------------------
+{
+    BlendFunc(GLenum sf, GLenum df): sfactor(sf), dfactor(df) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "BlendFunc"; }
+    GLenum sfactor, dfactor;
+};
+
+
+struct BlendFuncSeparate : BlendFunc
+// ----------------------------------------------------------------------------
+//   Change the blend function separately for alpha and color
+// ----------------------------------------------------------------------------
+{
+    BlendFuncSeparate(GLenum sf, GLenum df, GLenum sfa, GLenum dfa)
+        : BlendFunc(sf, df), sfalpha(sfa), dfalpha(dfa) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "BlendFuncSeparate"; }
+    GLenum sfalpha, dfalpha;
+};
+
+
+struct BlendEquation : Attribute
+// ----------------------------------------------------------------------------
+//   Change the blend equation
+// ----------------------------------------------------------------------------
+{
+    BlendEquation(GLenum be) : equation(be) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "BlendEquation"; }
+    GLenum equation;
 };
 
 

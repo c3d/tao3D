@@ -29,10 +29,12 @@
        display_splitstereo \
        display_intstereo \
        display_alioscopy \
+       display_checkerboard \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \
        shaders/sparks  \
+       shaders/glow  \
        slideshow_3d
     OTHER_MODULES =     \
         display_2dplusdepth \

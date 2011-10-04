@@ -1208,6 +1208,24 @@ text GitRepository::version()
 }
 
 
+text GitRepository::head()
+// ----------------------------------------------------------------------------
+//    Return a unique identifier for the current repo state (HEAD SHA-1)
+// ----------------------------------------------------------------------------
+{
+    text output, result;
+    waitForAsyncProcessCompletion();
+    QStringList args;
+    args << "rev-parse" << "HEAD";
+    GitProcess cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
+    if (ok)
+        result = output;
+    return result;
+}
+
+
 bool GitRepository::isClean()
 // ----------------------------------------------------------------------------
 //    Is working directory is clean or dirty?

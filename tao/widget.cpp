@@ -96,6 +96,7 @@
 #include <sys/time.h>
 #include <sys/stat.h>
 #include <string.h>
+#include <ctype.h>
 
 #include <QtGui>
 
@@ -134,6 +135,7 @@ static inline QGLFormat TaoGLFormat()
     QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
+         QGL::StencilBuffer     |
          QGL::AlphaChannel      |
          QGL::AccumBuffer);
     if (TaoApp->hasGLMultisample)
@@ -450,6 +452,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     runProgram();
 }
+
 
 Widget::~Widget()
 // ----------------------------------------------------------------------------
@@ -3830,25 +3833,31 @@ void Widget::printStatistics()
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
-        int xa, xm, da, dm, ga, gm, wa, wm;
+        int xa, xm, da, dm, ga, gm, wa, wm, sa, sm;
         xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
         da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
+        sa = stats.averageTimePerFrame(Statistics::SELECT);
+        sm = stats.maxTime(Statistics::SELECT);
         if (XL::MAIN->options.threaded_gc)
         {
             wa = stats.averageTimePerFrame(Statistics::GC_WAIT);
             wm = stats.maxTime(Statistics::GC_WAIT);
             RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                               "GCw %3d/%3d (GC %3d/%3d)", xa, xm, da, dm,
+                               "Select %3d/%3d "
+                               "GCw %3d/%3d (GC %3d/%3d)",
+                               xa, xm, da, dm,
+                               sa, sm,
                                wa, wm, ga, gm);
         }
         else
         {
             RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                               "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+                               "Select %3d/%3d "
+                               "GC %3d/%3d", xa, xm, da, dm, sa, sm, ga, gm);
         }
     }
     else
@@ -3856,11 +3865,13 @@ void Widget::printStatistics()
         if (XL::MAIN->options.threaded_gc)
         {
             RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "Select ---/--- "
                                "GCw ---/--- (GC ---/---)");
         }
         else
         {
             RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "Select ---/--- "
                                "GC ---/---");
         }
     }
@@ -5079,12 +5090,119 @@ Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
 }
 
 
-XL::Name_p Widget::depthTest(XL::Tree_p self, bool enable)
+static bool fuzzy_equal(kstring ref, kstring test)
+// ----------------------------------------------------------------------------
+//   Check if 'test' matches 'ref'
+// ----------------------------------------------------------------------------
+{
+    for(;;)
+    {
+        char r = *ref++;
+        char t = *test++;
+        if (!r && !t)
+            return true;
+        if (!r || !t)
+            return false;
+        if (toupper(r) != toupper(t))
+        {
+            if (r == '_')
+            {
+                if (t == ' ' || t == '-')
+                    continue;
+                test--;
+                continue;
+            }
+            return false;
+        }
+    }
+    return false;               // Impossible
+}
+
+
+static GLenum TextToGLEnum(text t, GLenum e)
+// ----------------------------------------------------------------------------
+//   Compute the GL enum corresponding to the input text
+// ----------------------------------------------------------------------------
+{
+    kstring s = t.c_str();
+
+#define TEST_GLENUM(E) if (fuzzy_equal(#E, s)) e = GL_##E
+    TEST_GLENUM(ZERO);
+    TEST_GLENUM(ONE);
+    TEST_GLENUM(DST_COLOR);
+    TEST_GLENUM(ONE_MINUS_DST_COLOR);
+    TEST_GLENUM(SRC_ALPHA);
+    TEST_GLENUM(ONE_MINUS_SRC_ALPHA);
+    TEST_GLENUM(DST_ALPHA);
+    TEST_GLENUM(ONE_MINUS_DST_ALPHA);
+    TEST_GLENUM(SRC_ALPHA_SATURATE);
+    TEST_GLENUM(CONSTANT_COLOR);
+    TEST_GLENUM(ONE_MINUS_CONSTANT_COLOR);
+    TEST_GLENUM(CONSTANT_ALPHA);
+    TEST_GLENUM(ONE_MINUS_CONSTANT_ALPHA);
+
+    if (fuzzy_equal("ADD", s)) e = GL_FUNC_ADD;
+    if (fuzzy_equal("SUBTRACT", s)) e = GL_FUNC_SUBTRACT;
+    if (fuzzy_equal("REVERSE_SUBTRACT", s)) e = GL_FUNC_REVERSE_SUBTRACT;
+    TEST_GLENUM(FUNC_ADD);
+    TEST_GLENUM(FUNC_SUBTRACT);
+    TEST_GLENUM(FUNC_REVERSE_SUBTRACT);
+    TEST_GLENUM(MIN);
+    TEST_GLENUM(MAX);
+#undef TEST_GLENUM
+
+    return e;
+}
+
+
+Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 //   Change the delta we use for the depth
 // ----------------------------------------------------------------------------
 {
     layout->Add(new DepthTest(enable));
+    return XL::xl_true;
+}
+
+
+Name_p Widget::blendFunction(Tree_p self, text src, text dst)
+// ----------------------------------------------------------------------------
+//   Change the blend function
+// ----------------------------------------------------------------------------
+{
+    GLenum srcEnum = TextToGLEnum(src, GL_SRC_ALPHA);
+    GLenum dstEnum = TextToGLEnum(dst, GL_ONE_MINUS_SRC_ALPHA);
+    layout->Add(new BlendFunc(srcEnum, dstEnum));
+    layout->hasBlending = true;
+    return XL::xl_true;                
+}
+
+
+Name_p Widget::blendFunctionSeparate(Tree_p self,
+                                     text src, text dst,
+                                     text srca, text dsta)
+// ----------------------------------------------------------------------------
+//   Change the blend function separately for color and alpha
+// ----------------------------------------------------------------------------
+{
+    GLenum srcE  = TextToGLEnum(src, GL_SRC_ALPHA);
+    GLenum dstE  = TextToGLEnum(dst, GL_ONE_MINUS_SRC_ALPHA);
+    GLenum srcaE = TextToGLEnum(srca, GL_SRC_ALPHA);
+    GLenum dstaE = TextToGLEnum(dsta, GL_ONE_MINUS_SRC_ALPHA);
+    layout->Add(new BlendFuncSeparate(srcE, dstE, srcaE, dstaE));
+    layout->hasBlending = true;
+    return XL::xl_true;                
+}
+
+
+Name_p Widget::blendEquation(Tree_p self, text eq)
+// ----------------------------------------------------------------------------
+//   Change the blend equation
+// ----------------------------------------------------------------------------
+{
+    GLenum eqE = TextToGLEnum(eq, GL_FUNC_ADD);
+    layout->Add(new BlendEquation(eqE));
+    layout->hasBlending = true;
     return XL::xl_true;
 }
 
@@ -5154,7 +5272,7 @@ double Widget::optimalDefaultRefresh()
 
 #ifndef CFG_NOSRCEDIT
 
-XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
+Name_p Widget::showSource(XL::Tree_p self, bool show)
 // ----------------------------------------------------------------------------
 //   Show or hide source code
 // ----------------------------------------------------------------------------
@@ -5166,7 +5284,7 @@ XL::Name_p Widget::showSource(XL::Tree_p self, bool show)
 
 #endif
 
-XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
+Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
 // ----------------------------------------------------------------------------
@@ -5181,7 +5299,7 @@ XL::Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 }
 
 
-XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
+Name_p Widget::toggleFullScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Switch to full screen
 // ----------------------------------------------------------------------------
@@ -5190,7 +5308,7 @@ XL::Name_p Widget::toggleFullScreen(XL::Tree_p self)
 }
 
 
-XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
+Name_p Widget::toggleHandCursor(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Switch between hand and arrow cursor
 // ----------------------------------------------------------------------------
@@ -5201,7 +5319,7 @@ XL::Name_p Widget::toggleHandCursor(XL::Tree_p self)
 }
 
 
-XL::Name_p Widget::toggleAutoHideCursor(XL::Tree_p self)
+Name_p Widget::toggleAutoHideCursor(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Toggle auto-hide cursor mode
 // ----------------------------------------------------------------------------
@@ -5210,7 +5328,7 @@ XL::Name_p Widget::toggleAutoHideCursor(XL::Tree_p self)
 }
 
 
-XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
+Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 // ----------------------------------------------------------------------------
 //   Enable or disable auto-hiding of mouse cursor
 // ----------------------------------------------------------------------------
@@ -5233,7 +5351,7 @@ XL::Name_p Widget::autoHideCursor(XL::Tree_p self, bool ah)
 }
 
 
-XL::Name_p Widget::enableMouseCursor(XL::Tree_p self, bool on)
+Name_p Widget::enableMouseCursor(XL::Tree_p self, bool on)
 // ----------------------------------------------------------------------------
 //   Enable or disable visibility of mouse cursor
 // ----------------------------------------------------------------------------
@@ -5276,7 +5394,7 @@ Name_p Widget::toggleShowStatistics(Tree_p self)
 }
 
 
-XL::Name_p Widget::slideShow(XL::Tree_p self, bool ss)
+Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 // ----------------------------------------------------------------------------
 //   Switch to slide show mode
 // ----------------------------------------------------------------------------
@@ -5287,7 +5405,7 @@ XL::Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 }
 
 
-XL::Name_p Widget::toggleSlideShow(XL::Tree_p self)
+Name_p Widget::toggleSlideShow(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Toggle slide show mode
 // ----------------------------------------------------------------------------
@@ -5298,7 +5416,7 @@ XL::Name_p Widget::toggleSlideShow(XL::Tree_p self)
 }
 
 
-XL::Name_p Widget::resetView(XL::Tree_p self)
+Name_p Widget::resetView(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
@@ -5308,7 +5426,7 @@ XL::Name_p Widget::resetView(XL::Tree_p self)
 }
 
 
-XL::Name_p Widget::panView(Tree_p self, coord dx, coord dy)
+Name_p Widget::panView(Tree_p self, coord dx, coord dy)
 // ----------------------------------------------------------------------------
 //   Pan the current view by the current amount
 // ----------------------------------------------------------------------------
@@ -5519,7 +5637,7 @@ Integer_p Widget::lastModifiers(Tree_p self)
 }
 
 
-XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
+Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 //   Enable or disable animations
 // ----------------------------------------------------------------------------
@@ -5532,7 +5650,7 @@ XL::Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 }
 
 
-XL::Name_p Widget::enableSelectionRectangle(XL::Tree_p self, bool sre)
+Name_p Widget::enableSelectionRectangle(XL::Tree_p self, bool sre)
 // ----------------------------------------------------------------------------
 //   Enable or disable selection rectangle
 // ----------------------------------------------------------------------------
@@ -5543,7 +5661,7 @@ XL::Name_p Widget::enableSelectionRectangle(XL::Tree_p self, bool sre)
 }
 
 
-XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
+Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Select a display function
 // ----------------------------------------------------------------------------
@@ -5559,12 +5677,11 @@ XL::Name_p Widget::setDisplayMode(XL::Tree_p self, text name)
         updateGL();
         return XL::xl_true;
     }
-    std::cerr << "Could not select display mode " << name << "\n";
     return XL::xl_false;
 }
 
 
-XL::Name_p Widget::addDisplayModeToMenu(XL::Tree_p self, text mode, text label)
+Name_p Widget::addDisplayModeToMenu(XL::Tree_p self, text mode, text label)
 // ----------------------------------------------------------------------------
 //   Add a display mode entry to the view menu
 // ----------------------------------------------------------------------------
@@ -5575,7 +5692,7 @@ XL::Name_p Widget::addDisplayModeToMenu(XL::Tree_p self, text mode, text label)
 }
 
 
-XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
+Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
 //   Enable or disable stereoscopic mode
 // ----------------------------------------------------------------------------
@@ -5589,7 +5706,7 @@ XL::Name_p Widget::enableStereoscopy(XL::Tree_p self, Name_p name)
 }
 
 
-XL::Name_p Widget::enableStereoscopyText(XL::Tree_p self, text name)
+Name_p Widget::enableStereoscopyText(XL::Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Enable or disable stereoscopic mode
 // ----------------------------------------------------------------------------
@@ -5647,7 +5764,7 @@ XL::Integer_p  Widget::polygonOffset(Tree_p self,
 #include <OpenGL.h>
 #endif
 
-XL::Name_p Widget::enableVSync(Tree_p self, bool enable)
+Name_p Widget::enableVSync(Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 //   Enable or disable VSYNC (prevent tearing)
 // ----------------------------------------------------------------------------
@@ -7965,7 +8082,7 @@ Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 }
 
 
-XL::Name_p Widget::textEditKey(Tree_p self, text key)
+Name_p Widget::textEditKey(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the text editing activities
 // ----------------------------------------------------------------------------
@@ -10454,7 +10571,7 @@ Tree_p  Widget::separator(Tree_p self)
 //
 // ============================================================================
 
-XL::Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
+Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 //    Insert at the end of page or program
 // ----------------------------------------------------------------------------
@@ -10544,7 +10661,7 @@ XL::Tree_p Widget::copySelection()
 }
 
 
-XL::Name_p Widget::deleteSelection(Tree_p self, text key)
+Name_p Widget::deleteSelection(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //    Delete the selection (with text support)
 // ----------------------------------------------------------------------------
@@ -10583,7 +10700,7 @@ void Widget::deleteSelection()
 }
 
 
-XL::Name_p Widget::setAttribute(Tree_p self,
+Name_p Widget::setAttribute(Tree_p self,
                                 text name, Tree_p attribute,
                                 text shape)
 // ----------------------------------------------------------------------------
@@ -10960,12 +11077,14 @@ XL::Text_p Widget::GLVersion(XL::Tree_p self)
 }
 
 
-XL::Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
+Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
 // ----------------------------------------------------------------------------
 //   Check is an OpenGL extensions is supported
 // ----------------------------------------------------------------------------
 {
-    bool isAvailable = (strstr(TaoApp->GLExtensionsAvailable.c_str(), name.c_str()) != NULL);
+    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring req = name.c_str();
+    bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
 

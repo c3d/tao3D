@@ -295,6 +295,36 @@ void DepthTest::Draw(Layout *)
 }
 
 
+void BlendFunc::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend function
+// ----------------------------------------------------------------------------
+{
+    glBlendFunc(sfactor, dfactor);
+    where->hasBlending = true;
+}
+
+
+void BlendFuncSeparate::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend function separately for alpha and color
+// ----------------------------------------------------------------------------
+{
+    glBlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
+    where->hasBlending = true;
+}
+
+
+void BlendEquation::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend equation
+// ----------------------------------------------------------------------------
+{
+    glBlendEquation(equation);
+    where->hasBlending = true;
+}
+
+
 void RecordMouseCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Record the widget mouse coordinates in a tree info

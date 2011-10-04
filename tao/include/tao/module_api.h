@@ -46,8 +46,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   10
-#define TAO_MODULE_API_AGE       1
+#define TAO_MODULE_API_CURRENT   11
+#define TAO_MODULE_API_AGE       2
 
 // ========================================================================
 //
@@ -277,6 +277,13 @@ struct ModuleApi
     // is NOT bound nor enabled.
     unsigned int       (*frameBufferAttachmentToTexture)(ModuleApi::fbo * obj,
                                                          int attachment);
+
+    // ------------------------------------------------------------------------
+    //   Licence checking
+    // ------------------------------------------------------------------------
+
+    // Return true if a valid license is found for the requested feature name
+    bool (*hasLicense)(std::string featureName);
 };
 
 }

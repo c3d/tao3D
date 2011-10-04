@@ -33,6 +33,7 @@ class QStackedWidget;
 class QProgressBar;
 class QComboBox;
 class QLabel;
+class QPushButton;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -77,6 +78,10 @@ private slots:
     void         toggleTrace(bool on);
     void         enableAllTraces();
     void         disableAllTraces();
+    void         saveClicked();
+
+private:
+    QPushButton *save;
 };
 
 
@@ -95,10 +100,10 @@ public:
 private slots:
     void         toggleModule();
     void         findUpdates();
-    void         onCFUComplete();
+    void         onCFUComplete(bool updatesAvailable);
     void         endCheckForUpdate();
     void         updateOne();
-    void         onUpdateOneComplete();
+    void         onUpdateOneComplete(bool success);
     void         onCellClicked(int row, int col);
     void         doSearch();
 
@@ -111,6 +116,7 @@ private:
     QTableWidget *                           table;
     QLineEdit *                              search;
     QStackedWidget *                         sw;
+    QLabel *                                 lb;
     QProgressBar *                           pb;
     bool                                     findUpdatesInProgress;
 };

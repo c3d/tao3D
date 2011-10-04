@@ -105,6 +105,7 @@ struct MoveToRel : MoveTo
     virtual void Draw(Layout *where);
 };
 
+
 void printMatrix(GLint model = -1);
 // ----------------------------------------------------------------------------
 //    Print GL matrix on stderr

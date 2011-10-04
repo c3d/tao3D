@@ -175,7 +175,7 @@ development version);
 (3) The remote name "origin" must be a valid repository and must have at
 least one tag (annotated or not);
 (4) The highest local tag must be strictly lower than the highest remote
-tag. Comparison is performed by ModuleManager::parseVersion().
+tag.
 
   6.2. Maintaining a module repository
 
@@ -308,7 +308,7 @@ public:
         bool    enabled;
 
         // Runtime attributes
-        text    latest;
+        double  latest;
         // loaded is set to true when xl file is imported and
         //           set to false when xl file is unloaded
         bool    loaded;
@@ -404,6 +404,7 @@ public:
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }
     bool                saveConfig();
+    void                refreshModuleProperties(QString moduleDir);
 
     virtual bool        askRemove(const ModuleInfoPrivate &m,
                                   QString reason = "");
@@ -415,9 +416,14 @@ public:
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);
+    static bool         versionGreaterOrEqual(text ver, text ref);
+    static bool         versionMatches(double ver, double ref);
+    bool                hasPendingUpdate(QString moduleDir);
+    QString             latestTag(QString moduleDir);
 
 signals:
     void                checking(QString name);
+    void                updating(QString name);
 
 private:
     ModuleManager()  {}
@@ -478,6 +484,7 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfoPrivate>   newModules(QString parentDir);
     ModuleInfoPrivate          readModule(QString moduleDir);
+    bool                applyPendingUpdate(const ModuleInfoPrivate &m);
     QString             gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);

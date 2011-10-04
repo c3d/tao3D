@@ -58,5 +58,9 @@ QMAKE_EXTRA_COMPILERS += c++nowarn
 
 # No -p by default on Windows-mingw. Our make install needs -p.
 win32:QMAKE_MKDIR = mkdir -p
+# "make clean" on windows cleans both debug and release files. Since we build
+# debug OR release but not both, this results in ugly (and ignored) error
+# messages. Avoid them.
+win32:QMAKE_DEL_FILE = rm -f
 
 QMAKE_EXTRA_TARGETS += doc

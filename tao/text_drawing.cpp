@@ -260,7 +260,8 @@ void TextUnit::DrawDirect(Layout *where)
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font, texUnits) + glyphs.Descent(font, texUnits);
+            scale height = glyphs.Ascent(font, texUnits)
+                         + glyphs.Descent(font, texUnits);
             scale spacing = height + glyphs.Leading(font, texUnits);
             x = 0;
             y -= spacing * glyphs.fontScaling;

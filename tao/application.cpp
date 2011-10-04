@@ -153,11 +153,15 @@ Application::Application(int & argc, char ** argv)
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
 
-    // Load licence (in XL directory path)
-    QFileInfo licence("xl:licence.taokey");
-    if (licence.exists())
+    // Load licenses
+    QDir dir(Application::defaultLicenseFolderPath());
+    QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                               QDir::Files);
+    foreach (QFileInfo licence, licences)
     {
         text lpath = +licence.canonicalFilePath();
+        IFTRACE(fileload)
+            std::cerr << "Loading license file: " << lpath << "\n";
         Licences::AddLicenceFile(lpath.c_str());
     }
 
@@ -374,6 +378,8 @@ void Application::checkModules()
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
+    connect(moduleManager, SIGNAL(updating(QString)),
+            this, SLOT(updatingModule(QString)));
     moduleManager->init();
     // Load only auto-load modules (the ones that do not have an import_name)
     moduleManager->loadAnonymousNative(XL::MAIN->context);
@@ -388,6 +394,19 @@ void Application::checkingModule(QString name)
     if (splash)
     {
         QString msg = QString(tr("Checking modules [%1]")).arg(name);
+        splash->showMessage(msg);
+    }
+}
+
+
+void Application::updatingModule(QString name)
+// ----------------------------------------------------------------------------
+//   Show module being updated
+// ----------------------------------------------------------------------------
+{
+    if (splash)
+    {
+        QString msg = QString(tr("Updating modules [%1]")).arg(name);
         splash->showMessage(msg);
     }
 }
@@ -576,6 +595,17 @@ void Application::onOpenFinished(bool ok)
         splash->close();
         splash->deleteLater();
         splash = NULL;
+        Window * win = findFirstTaoWindow();
+        if (win && win->isUntitled)
+        {
+            // E.g., start Tao by clicking on a module or template link,
+            // or give a template / module URL on the command line.
+            // Load welcome screen now
+            QFileInfo tutorial("system:welcome.ddd");
+            QString tuto = tutorial.canonicalFilePath();
+            win->setWindowModified(false); // Prevent "Save?" question
+            win->open(tuto, true);
+        }
         emit allWindowsReady();
     }
 }
@@ -925,6 +955,15 @@ QString Application::defaultTaoFontsFolderPath()
 }
 
 
+QString Application::defaultLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    The folder where Tao looks for license files on startup
+// ----------------------------------------------------------------------------
+{
+    return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
+}
+
+
 QString Application::defaultUserImagesFolderPath()
 // ----------------------------------------------------------------------------
 //    Try to guess the best Images folder to use by default
@@ -971,7 +1010,6 @@ bool Application::createDefaultProjectFolder()
 {
     return QDir().mkdir(defaultProjectFolderPath());
 }
-
 
 bool Application::createDefaultTaoPrefFolder()
 // ----------------------------------------------------------------------------

@@ -42,6 +42,7 @@ struct Shape : Drawing
     Shape(): Drawing() {}
 
     virtual void        Draw(Layout *where);
+    virtual void        Identify(Layout *);
     virtual void        Draw(GraphicPath &path);
     virtual text        Type() { return "Shape";}
 

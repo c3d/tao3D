@@ -26,6 +26,7 @@
 #include "widget.h"
 #include "display_driver.h"
 #include "frame.h"
+#include "licence.h"
 
 TAO_BEGIN
 
@@ -79,6 +80,9 @@ ModuleApiPrivate::ModuleApiPrivate()
     releaseFrameBufferObject   = FrameInfo::releaseFrameBufferObject;
     frameBufferObjectToTexture = FrameInfo::frameBufferObjectToTexture;
     frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
+
+    // License checking
+    hasLicense = Licences::Has;
 }
 
 TAO_END

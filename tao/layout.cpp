@@ -36,6 +36,7 @@ scale Layout::factorIncrement = -0.01; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
 uint  Layout::globalProgramId = 0;
+bool  Layout::inIdentify      = false;
 
 
 LayoutState::LayoutState()
@@ -56,12 +57,12 @@ LayoutState::LayoutState()
       printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
+      hasTextureMatrix(false),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTransform(false), hasTextureMatrix(false),
-      hasLighting(false), hasMaterial(false),
+      hasAttributes(false), hasLighting(false), hasBlending(false),
+      hasTransform(false), hasMaterial(false),
       isSelection(false), groupDrag(false)
-{
-}
+{}
 
 
 LayoutState::LayoutState(const LayoutState &o)
@@ -89,10 +90,12 @@ LayoutState::LayoutState(const LayoutState &o)
         planarScale(o.planarScale),
         rotationId(o.rotationId), translationId(o.translationId),
         scaleId(o.scaleId),
-        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes), hasTransform(o.hasTransform),
         hasTextureMatrix(o.hasTextureMatrix),
-        hasLighting(false), hasMaterial(false),
+        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
+        hasAttributes(o.hasAttributes), 
+        hasLighting(false),
+        hasBlending(false),
+        hasTransform(o.hasTransform), hasMaterial(false),
         isSelection(o.isSelection), groupDrag(false)
 {}
 
@@ -276,6 +279,9 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
+    // Remember that we are in Identify mode
+    XL::Save<bool> saveIdenitfy(inIdentify, true);
+
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),

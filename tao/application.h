@@ -67,6 +67,7 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
+    static QString defaultLicenseFolderPath();
 
 public:
     QStringList    pathCompletions();
@@ -84,6 +85,7 @@ signals:
 public slots:
     void           saveDebugTraceSettings();
     void           checkingModule(QString name);
+    void           updatingModule(QString name);
 
 protected:
     void           saveSettings();

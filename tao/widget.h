@@ -364,6 +364,11 @@ public:
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
     Name_p      depthTest(Tree_p self, bool enable);
+    Name_p      blendFunction(Tree_p self, text src, text dst);
+    Name_p      blendFunctionSeparate(Tree_p self,
+                                      text src, text dst,
+                                      text srca, text dsta);
+    Name_p      blendEquation(Tree_p self, text eq);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);

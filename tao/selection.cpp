@@ -26,6 +26,7 @@
 #include "text_drawing.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include "statistics.h"
 #include <QtGui>
 #include <string.h>
 
@@ -72,6 +73,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     GLuint childSelected = 0;
     GLuint parentId      = 0;
     int    hits          = 0;
+
+    widget->stats.begin(Statistics::SELECT);
 
     GLuint *buffer = new GLuint[capacity];
     memset(buffer, 0, capacity * sizeof(GLuint));
@@ -144,6 +147,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
         *parentPtr = parentId;
 
     selected &= Widget::SELECTION_MASK;
+
+    widget->stats.end(Statistics::SELECT);
 
     return selected;
 }
@@ -221,7 +226,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
 //   Track focus as mouse moves
 // ----------------------------------------------------------------------------
 {
-    if (active)
+    if (true || active)
         return next;
 
     uint current = ObjectAtPoint(x, widget->height() - y);

@@ -183,7 +183,11 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
-    virtual text        Type(){ return "Layout";}
+    virtual text        Type() { return "Layout"; }
+
+    // Used to optimize away texturing and programs if in Identify
+    static bool         InIdentify()    { return inIdentify; }
+    
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
@@ -221,6 +225,7 @@ public:
     static scale        factorBase, factorIncrement;
     static scale        unitBase, unitIncrement;
     static uint         globalProgramId;
+    static bool         inIdentify;
 };
 
 TAO_END

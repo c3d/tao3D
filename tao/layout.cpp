@@ -36,6 +36,7 @@ scale Layout::factorIncrement = -0.01; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
 uint  Layout::globalProgramId = 0;
+bool  Layout::inIdentify      = false;
 
 
 LayoutState::LayoutState()
@@ -278,6 +279,9 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
+    // Remember that we are in Identify mode
+    XL::Save<bool> saveIdenitfy(inIdentify, true);
+
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),

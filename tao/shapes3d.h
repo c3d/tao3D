@@ -139,7 +139,6 @@ private:
     // Cache of unit radius torus
     // (they differ by the number of subdivisions and their ratio)
 
-#define EPSILON 0.001
     struct Key
     {
         Key(uint slices, uint stacks, double ratio): slices(slices), stacks(stacks), ratio(ratio) {}

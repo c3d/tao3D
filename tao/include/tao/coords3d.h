@@ -25,6 +25,7 @@
 #include "coords.h"
 #include <iostream>
 
+#define EPSILON 0.0001
 
 TAO_BEGIN
 
@@ -62,7 +63,7 @@ struct Point3
     }
     bool operator == (const Point3&o) const
     {
-        return x == o.x && y == o.y && z == o.z;
+        return ((fabs(x - o.x) < EPSILON) && (fabs(y - o.y) < EPSILON) && (fabs(z - o.z) < EPSILON));
     }
     bool operator != (const Point3&o) const
     {

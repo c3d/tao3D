@@ -226,7 +226,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
 //   Track focus as mouse moves
 // ----------------------------------------------------------------------------
 {
-    if (true || active)
+    if (active)
         return next;
 
     uint current = ObjectAtPoint(x, widget->height() - y);
@@ -244,7 +244,6 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
             // Forward 'focus-in' to current item
             widget->focusId = current;
         }
-        widget->updateGL();
     }
     widget->shapeAction("mouseover", current, x, y);
 

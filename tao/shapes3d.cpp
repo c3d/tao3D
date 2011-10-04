@@ -90,7 +90,6 @@ bool Shape3::setLineColor(Layout *where)
 }
 
 
-
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape
@@ -98,6 +97,7 @@ Box3 Cube::Bounds(Layout *where)
 {
     return bounds + where->offset;
 }
+
 
 void Cube::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -174,6 +174,8 @@ void Cube::Draw(Layout *where)
 
     glDisableClientState(GL_VERTEX_ARRAY);
 }
+
+
 
 // ============================================================================
 //
@@ -318,6 +320,7 @@ SphereMesh::SphereMesh(uint slices, uint stacks)
     }
 }
 
+
 Sphere::SphereCache Sphere::cache;
 
 void Sphere::Draw(Layout *where)
@@ -395,6 +398,7 @@ TorusMesh::TorusMesh(uint slices, uint stacks, double ratio)
         }
     }
 }
+
 
 Torus::TorusCache Torus::cache;
 

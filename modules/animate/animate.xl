@@ -75,7 +75,7 @@ interpolate_yangle S:real, TY:real, Y:real ->
 //    Interpolate a rotation angle along Y (vertical axis)
 // ----------------------------------------------------------------------------
     interpolate S, TY, Y
-    rotatez Y
+    rotatey Y
 
 
 interpolate_zangle S:real, TZ:real, Z:real ->

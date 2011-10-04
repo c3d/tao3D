@@ -43,6 +43,10 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
+    // Do not bother with textures if in Identify phase
+    if (where->InIdentify())
+        return !where->fillTextures.empty();
+
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
         //Determine if there is a current and previous texture
@@ -87,6 +91,7 @@ bool Shape::setTexture(Layout *where)
     return !(where->fillTextures.empty());
 }
 
+
 void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
 //    Bind the given texture
@@ -120,6 +125,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
         glEnable(GL_MULTISAMPLE);
 }
 
+
 void Shape::unbindTexture(TextureState& texture)
 // ----------------------------------------------------------------------------
 //    Unbind the given texture
@@ -141,6 +147,7 @@ void Shape::enableTexCoord(uint unit, void *texCoord)
     glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
 }
 
+
 void Shape::disableTexCoord(uint unit)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
@@ -149,6 +156,7 @@ void Shape::disableTexCoord(uint unit)
     glClientActiveTexture( GL_TEXTURE0 + unit);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+
 
 bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
@@ -212,6 +220,19 @@ void Shape::Draw(Layout *where)
     Draw(path);
     path.Draw(where);
 }
+
+
+void Shape::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a simplified version of the shape for selection purpose
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    path.Draw(where, GL_SELECT);
+}    
+
+
 
 // ============================================================================
 //

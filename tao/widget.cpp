@@ -452,6 +452,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     runProgram();
 }
 
+
 Widget::~Widget()
 // ----------------------------------------------------------------------------
 //   Destroy the widget
@@ -3827,25 +3828,31 @@ void Widget::printStatistics()
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {
-        int xa, xm, da, dm, ga, gm, wa, wm;
+        int xa, xm, da, dm, ga, gm, wa, wm, sa, sm;
         xa = stats.averageTimePerFrame(Statistics::EXEC);
         xm = stats.maxTime(Statistics::EXEC);
         da = stats.averageTimePerFrame(Statistics::DRAW);
         dm = stats.maxTime(Statistics::DRAW);
         ga = stats.averageTimePerFrame(Statistics::GC);
         gm = stats.maxTime(Statistics::GC);
+        sa = stats.averageTimePerFrame(Statistics::SELECT);
+        sm = stats.maxTime(Statistics::SELECT);
         if (XL::MAIN->options.threaded_gc)
         {
             wa = stats.averageTimePerFrame(Statistics::GC_WAIT);
             wm = stats.maxTime(Statistics::GC_WAIT);
             RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                               "GCw %3d/%3d (GC %3d/%3d)", xa, xm, da, dm,
+                               "Select %3d/%3d "
+                               "GCw %3d/%3d (GC %3d/%3d)",
+                               xa, xm, da, dm,
+                               sa, sm,
                                wa, wm, ga, gm);
         }
         else
         {
             RasterText::printf("Avg/peak ms: Exec %3d/%3d Draw %3d/%3d "
-                               "GC %3d/%3d", xa, xm, da, dm, ga, gm);
+                               "Select %3d/%3d "
+                               "GC %3d/%3d", xa, xm, da, dm, sa, sm, ga, gm);
         }
     }
     else
@@ -3853,11 +3860,13 @@ void Widget::printStatistics()
         if (XL::MAIN->options.threaded_gc)
         {
             RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "Select ---/--- "
                                "GCw ---/--- (GC ---/---)");
         }
         else
         {
             RasterText::printf("Avg/peak ms: Exec ---/--- Draw ---/--- "
+                               "Select ---/--- "
                                "GC ---/---");
         }
     }

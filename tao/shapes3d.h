@@ -63,6 +63,7 @@ struct Mesh
     std::vector<Point>  textures;
 };
 
+
 struct SphereMesh : Mesh
 // ----------------------------------------------------------------------------
 //   A unit-radius sphere, represented as a mesh

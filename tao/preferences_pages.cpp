@@ -288,12 +288,13 @@ ModulesPage::ModulesPage(QWidget *parent)
     QVBoxLayout *vbLayout = new QVBoxLayout;
 
     table = new QTableWidget;
-    table->setColumnCount(6);
+    table->setColumnCount(7);
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(2, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(3, new QTableWidgetItem("Name"));
     table->setHorizontalHeaderItem(4, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(6, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(5, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
@@ -389,13 +390,14 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 0, item);
 
-        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
-        QToolButton *b = new QToolButton;
-        QAction *act = new QAction(txt, this);
-        act->setData(QVariant(row));
-        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
-        b->setDefaultAction(act);
-        table->setCellWidget(row, 1, b);
+        item = new QTableWidgetItem;
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setIcon(QIcon(":/images/general.png"));
+        Qt::ItemFlags pFlag = Qt::NoItemFlags;
+        if (m.enabled && m.show_preferences)
+            pFlag = Qt::ItemIsEnabled;
+        item->setFlags(pFlag);
+        table->setItem(row, 1, item);
 
         if (m.icon == "")
             m.icon = ":/images/modules.png";
@@ -417,6 +419,14 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 4, item);
 
+        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
+        QToolButton *b = new QToolButton;
+        QAction *act = new QAction(txt, this);
+        act->setData(QVariant(row));
+        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
+        b->setDefaultAction(act);
+        table->setCellWidget(row, 5, b);
+
         QWidget *widget = NULL;
         if (m.updateAvailable)
         {
@@ -428,7 +438,7 @@ void ModulesPage::updateTable()
             b->setDefaultAction(act);
             widget = b;
         }
-        table->setCellWidget(row, 5, widget);
+        table->setCellWidget(row, 6, widget);
 
         row++;
     }
@@ -495,13 +505,21 @@ void ModulesPage::onCellClicked(int row, int col)
 //   Show info box when info icon is clicked
 // ----------------------------------------------------------------------------
 {
-    if (col)
-        return;
     ModuleManager::ModuleInfoPrivate m = modules[row];
-    ModuleInfoDialog dialog(m, this);
-    dialog.resize(500, 400);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
+    if (col == 0)
+    {
+        // Info icon clicked
+        ModuleInfoDialog dialog(m, this);
+        dialog.resize(500, 400);
+        dialog.setWindowModality(Qt::WindowModal);
+        dialog.exec();
+    }
+    else if (col == 1)
+    {
+        // Configuration icon clicked
+        if (m.show_preferences)
+            m.show_preferences();
+    }
 }
 
 

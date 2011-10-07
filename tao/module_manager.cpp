@@ -962,8 +962,14 @@ bool ModuleManager::loadNative(Context * /*context*/,
                     mi(&api, &m);
                 }
 
-                if (m_p)
-                    m_p->native = lib;
+                m_p->show_preferences =
+                    (module_preferences_fn) lib->resolve("show_preferences");
+                if (m_p->show_preferences)
+                {
+                    IFTRACE(modules)
+                        debug() << "    Resolved show_preferences function\n";
+                }
+                m_p->native = lib;
             }
         }
         else

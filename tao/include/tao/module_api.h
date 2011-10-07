@@ -306,6 +306,7 @@ namespace Tao
     typedef int (*enter_symbols_fn) (XL::Context *);
     typedef int (*delete_symbols_fn)(XL::Context *);
     typedef int (*module_exit_fn)   ();
+    typedef int (*module_preferences_fn) ();
 }
 
 extern "C"
@@ -337,6 +338,14 @@ extern "C"
     // Return 0 on success.
     // [Optional]
     int module_exit();
+
+    // Called when the user wants to access the module's
+    // configuration/preference page.
+    // This function may use the Qt GUI to show a configuration
+    // dialog, and may save settings using the QSettings class.
+    // Return 0 on success.
+    // [Optional]
+    int show_preferences();
 }
 
 #endif // TAO_MODULE_API_H

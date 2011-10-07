@@ -466,7 +466,6 @@ bool Application::processCommandLine()
 #if defined(Q_OS_MACX)
         // BUG#1503
         window->show();
-        window->hide();
 #endif
         int st = window->open(sourceFile);
         window->markChanged(false);

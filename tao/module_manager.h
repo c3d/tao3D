@@ -270,6 +270,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QLibrary>
 #include <QDir>
 #include <QTextStream>
+#include <QTranslator>
 #include <iostream>
 
 
@@ -323,6 +324,7 @@ public:
         bool    inError;
         QString source; // .xl content, non-null only after full text search
         module_preferences_fn show_preferences;
+        QTranslator * translator;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {

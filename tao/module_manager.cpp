@@ -969,6 +969,22 @@ bool ModuleManager::loadNative(Context * /*context*/,
                     IFTRACE(modules)
                         debug() << "    Resolved show_preferences function\n";
                 }
+
+                QTranslator * translator = new QTranslator;
+                QString tr_name = m.dirname() + "_" + TaoApp->lang;
+                if (translator->load(tr_name, +m.path))
+                {
+                    Application::installTranslator(translator);
+                    m_p->translator = translator;
+                    IFTRACE(modules)
+                        debug() << "    Translations loaded: " << +tr_name
+                                << "\n";
+                }
+                else
+                {
+                    delete translator;
+                }
+
                 m_p->native = lib;
             }
         }

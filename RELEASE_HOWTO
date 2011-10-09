@@ -9,6 +9,7 @@ Once:
   After editing tao_fr.ts:
   $ make lrelease
   Commit your translations (both tao_fr.ts AND tao_fr.qm need to be committed).
+  Do the same for all modules that have *.ts files.
 - Make sure tao.xl translations are up-to-date
   $ ./extract_tr.pl -ref tao_fr.xl tao.xl
   If the command returns nothing, there is nothing to do, otherwise append

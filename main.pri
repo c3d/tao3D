@@ -14,6 +14,8 @@
 include(main_defs.pri)
 
 DEFINES            += DEBUG
+# Make assert() a no-op in release mode
+CONFIG(release, debug|release):DEFINES *= NDEBUG
 macx:DEFINES       += CONFIG_MACOSX
 win32:DEFINES      += CONFIG_MINGW
 linux-g++*:DEFINES += CONFIG_LINUX

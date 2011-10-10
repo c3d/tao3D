@@ -288,12 +288,13 @@ ModulesPage::ModulesPage(QWidget *parent)
     QVBoxLayout *vbLayout = new QVBoxLayout;
 
     table = new QTableWidget;
-    table->setColumnCount(6);
+    table->setColumnCount(7);
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(2, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(3, new QTableWidgetItem("Name"));
     table->setHorizontalHeaderItem(4, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(6, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(5, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
@@ -389,13 +390,14 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 0, item);
 
-        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
-        QToolButton *b = new QToolButton;
-        QAction *act = new QAction(txt, this);
-        act->setData(QVariant(row));
-        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
-        b->setDefaultAction(act);
-        table->setCellWidget(row, 1, b);
+        item = new QTableWidgetItem;
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setIcon(QIcon(":/images/general.png"));
+        Qt::ItemFlags pFlag = Qt::NoItemFlags;
+        if (m.enabled && m.show_preferences)
+            pFlag = Qt::ItemIsEnabled;
+        item->setFlags(pFlag);
+        table->setItem(row, 1, item);
 
         if (m.icon == "")
             m.icon = ":/images/modules.png";
@@ -417,6 +419,14 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 4, item);
 
+        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
+        QToolButton *b = new QToolButton;
+        QAction *act = new QAction(txt, this);
+        act->setData(QVariant(row));
+        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
+        b->setDefaultAction(act);
+        table->setCellWidget(row, 5, b);
+
         QWidget *widget = NULL;
         if (m.updateAvailable)
         {
@@ -428,7 +438,7 @@ void ModulesPage::updateTable()
             b->setDefaultAction(act);
             widget = b;
         }
-        table->setCellWidget(row, 5, widget);
+        table->setCellWidget(row, 6, widget);
 
         row++;
     }
@@ -495,13 +505,21 @@ void ModulesPage::onCellClicked(int row, int col)
 //   Show info box when info icon is clicked
 // ----------------------------------------------------------------------------
 {
-    if (col)
-        return;
     ModuleManager::ModuleInfoPrivate m = modules[row];
-    ModuleInfoDialog dialog(m, this);
-    dialog.resize(500, 400);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
+    if (col == 0)
+    {
+        // Info icon clicked
+        ModuleInfoDialog dialog(m, this);
+        dialog.resize(500, 400);
+        dialog.setWindowModality(Qt::WindowModal);
+        dialog.exec();
+    }
+    else if (col == 1)
+    {
+        // Configuration icon clicked
+        if (m.show_preferences)
+            m.show_preferences();
+    }
 }
 
 
@@ -520,5 +538,84 @@ void ModulesPage::doSearch()
 }
 
 #endif // !CFG_NOMODPREF
+
+
+// ============================================================================
+//
+//   The performances page shows GL info and allows tweaking some parameters
+//
+// ============================================================================
+
+// QSettings group name to read/write performance-related preferences
+#define PERFORMANCES_GROUP "Performances"
+
+PerformancesPage::PerformancesPage(QWidget *parent)
+     : QWidget(parent)
+// ----------------------------------------------------------------------------
+//   Create the page
+// ----------------------------------------------------------------------------
+{
+    QGroupBox *info = new QGroupBox(trUtf8("OpenGL\302\256 information"));
+    QGridLayout *grid = new QGridLayout;
+    grid->addWidget(new QLabel(tr("Vendor:")), 1, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLVendor), 1, 2);
+    grid->addWidget(new QLabel(tr("Renderer:")), 2, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLRenderer), 2, 2);
+    grid->addWidget(new QLabel(tr("Version:")), 3, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLVersionAvailable), 3, 2);
+    info->setLayout(grid);
+
+    QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));
+    QVBoxLayout *settingsLayout = new QVBoxLayout;
+    QCheckBox *pps = new QCheckBox(tr("Enable per-pixel lighting"));
+    pps->setChecked(perPixelLighting());
+    connect(pps, SIGNAL(toggled(bool)),
+            this, SLOT(setPerPixelLighting(bool)));
+    settingsLayout->addWidget(pps);
+    settings->setLayout(settingsLayout);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(info);
+    mainLayout->addSpacing(12);
+    mainLayout->addWidget(settings);
+    mainLayout->addStretch(1);
+    setLayout(mainLayout);
+}
+
+
+void PerformancesPage::setPerPixelLighting(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == perPixelLightingDefault())
+        settings.remove("PerPixelLighting");
+    else
+        settings.setValue("PerPixelLighting", QVariant(on));
+}
+
+
+bool PerformancesPage::perPixelLighting()
+// ----------------------------------------------------------------------------
+//   Read setting
+// ----------------------------------------------------------------------------
+{
+    bool dflt = perPixelLightingDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool pps = settings.value("PerPixelLighting", QVariant(dflt)).toBool();
+    return pps;
+}
+
+
+bool PerformancesPage::perPixelLightingDefault()
+// ----------------------------------------------------------------------------
+//   Should per-pixel lighting be enabled by default?
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
 
 }

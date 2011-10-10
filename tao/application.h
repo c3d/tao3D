@@ -118,10 +118,11 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
-    text         GLVendor;
+    bool         useShaderLighting;
     Vendor       vendorID;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
+    text         GLVendor;
     text         GLRenderer;
     text         GLVersionAvailable;
     text         GLExtensionsAvailable;

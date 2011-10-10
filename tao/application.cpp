@@ -80,6 +80,7 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
+      useShaderLighting(false),
       maxTextureCoords(0), maxTextureUnits(0),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
@@ -256,7 +257,6 @@ Application::Application(int & argc, char ** argv)
         case 1: vendorID = NVIDIA; break;
         case 2: vendorID = INTEL; break;
         }
-
 
         const GLubyte *str;
         // Get OpenGL supported version

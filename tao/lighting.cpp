@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  lighting.cpp                                                    Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -26,9 +26,39 @@
 #include "lighting.h"
 #include "layout.h"
 #include "tao_gl.h"
-
+#include "application.h"
+#include "widget.h"
 
 TAO_BEGIN
+
+QGLShaderProgram *LightId::pgm = NULL;
+
+LightId::LightId(uint id, bool enable): Lighting(), id(id), enable(enable)
+{
+    if(! pgm)
+    {
+        pgm = new QGLShaderProgram();
+        QString path = Application::applicationDirPath();
+        if (!pgm->addShaderFromSourceFile(QGLShader::Vertex, path + "/lighting.vs"))
+        {
+            std::cerr << pgm->log().toStdString();
+            delete pgm;
+        }
+        if (!pgm->addShaderFromSourceFile(QGLShader::Fragment, path + "/lighting.fs"))
+        {
+            std::cerr << pgm->log().toStdString();
+            delete pgm;
+        }
+    }
+    shader = new ShaderProgram(pgm);
+}
+
+
+LightId::~LightId()
+{
+    delete shader;
+}
+
 
 void LightId::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -44,6 +74,15 @@ void LightId::Draw(Layout *where)
         glEnable(GL_COLOR_MATERIAL);
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+        if(TaoApp->useShaderLighting)
+        {
+            shader->Draw(where);
+            GLint lights = glGetUniformLocation(shader->program->programId(), "lights");
+            GLint textures = glGetUniformLocation(shader->program->programId(), "textures");
+            glUniform1i(lights, where->currentLights);
+            glUniform1i(textures, where->textureUnits);
+        }
     }
     else
     {
@@ -139,18 +178,18 @@ void ShaderValue::Draw(Layout *where)
 
             //Get type of current uniform variable
             GLint size = 0;
-			GLint length = 0;
+                        GLint length = 0;
             GLchar* uniformName = new GLchar[uniformMaxLength + 1];
             for(int index = 0; index < uniformActive; index++)
             {
                 glGetActiveUniform( where->programId, index, uniformMaxLength + 1, &length, &size, (GLenum*) &type, uniformName);
-				
-				// If uniform is an array, compare just name without []
-				if(length >= 3 && uniformName[length - 1] == ']')
-					if(! strncmp(uniformName,name->value.c_str(), length - 3))
-						break;
-				
-				// Otherwise juste compare
+
+                                // If uniform is an array, compare just name without []
+                                if(length >= 3 && uniformName[length - 1] == ']')
+                                        if(! strncmp(uniformName,name->value.c_str(), length - 3))
+                                                break;
+
+                                // Otherwise juste compare
                 if(! strcmp(uniformName,name->value.c_str()))
                     break;
             }

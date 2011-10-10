@@ -594,6 +594,8 @@ void PerformancesPage::setPerPixelLighting(bool on)
         settings.remove("PerPixelLighting");
     else
         settings.setValue("PerPixelLighting", QVariant(on));
+
+    TaoApp->useShaderLighting = on;
 }
 
 

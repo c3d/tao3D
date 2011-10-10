@@ -400,3 +400,7 @@ include(../translations.pri)
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+
+shaders.path = $$APPINST$
+shaders.files = lighting.vs lighting.fs
+INSTALLS += shaders

@@ -122,6 +122,19 @@ private:
 };
 #endif // !CFG_NOMODPREF
 
+
+class PerformancesPage : public QWidget
+// ----------------------------------------------------------------------------
+//   Show OpenGL information and allow configuration of performance parameters
+// ----------------------------------------------------------------------------
+{
+
+    Q_OBJECT
+
+public:
+    PerformancesPage(QWidget *parent = 0);
+};
+
 }
 
 #endif

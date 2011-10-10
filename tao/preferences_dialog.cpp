@@ -48,6 +48,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
 #ifndef CFG_NOMODPREF
     pagesWidget->addWidget(new ModulesPage);
 #endif
+    pagesWidget->addWidget(new PerformancesPage);
 #ifdef DEBUG
     pagesWidget->addWidget(new DebugPage);
 #endif
@@ -104,6 +105,16 @@ void PreferencesDialog::createIcons()
     modulesButton->setTextAlignment(Qt::AlignHCenter);
     modulesButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 #endif
+
+    // performances.png downloaded from:
+    // http://www.iconfinder.com/icondetails/47542/128/performance_settings_speed_icon
+    // Author: webiconset.com
+    // License: Free for commercial use (Do not redistribute)
+    QListWidgetItem *perfButton = new QListWidgetItem(contentsWidget);
+    perfButton->setIcon(QIcon(":/images/performances.png"));
+    perfButton->setText(tr("Performances"));
+    perfButton->setTextAlignment(Qt::AlignHCenter);
+    perfButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
 #ifdef DEBUG
     // bug.png downloaded from:

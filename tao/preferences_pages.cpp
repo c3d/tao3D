@@ -539,4 +539,19 @@ void ModulesPage::doSearch()
 
 #endif // !CFG_NOMODPREF
 
+
+// ============================================================================
+//
+//   The performances page shows GL info and allows tweaking some parameters
+//
+// ============================================================================
+
+PerformancesPage::PerformancesPage(QWidget *parent)
+     : QWidget(parent)
+// ----------------------------------------------------------------------------
+//   Create the page
+// ----------------------------------------------------------------------------
+{
+}
+
 }

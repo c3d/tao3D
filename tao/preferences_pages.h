@@ -135,12 +135,14 @@ class PerformancesPage : public QWidget
 public:
     PerformancesPage(QWidget *parent = 0);
 
+public:
+    static bool    perPixelLighting();
+
 protected slots:
     void           setPerPixelLighting(bool on);
 
 protected:
-    bool           perPixelLighting();
-    bool           perPixelLightingDefault();
+    static bool    perPixelLightingDefault();
 
 protected:
     QRadioButton * lightFixed;

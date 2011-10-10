@@ -546,12 +546,76 @@ void ModulesPage::doSearch()
 //
 // ============================================================================
 
+// QSettings group name to read/write performance-related preferences
+#define PERFORMANCES_GROUP "Performances"
+
 PerformancesPage::PerformancesPage(QWidget *parent)
      : QWidget(parent)
 // ----------------------------------------------------------------------------
 //   Create the page
 // ----------------------------------------------------------------------------
 {
+    QGroupBox *info = new QGroupBox(trUtf8("OpenGL\302\256 information"));
+    QGridLayout *grid = new QGridLayout;
+    grid->addWidget(new QLabel(tr("Vendor:")), 1, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLVendor), 1, 2);
+    grid->addWidget(new QLabel(tr("Renderer:")), 2, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLRenderer), 2, 2);
+    grid->addWidget(new QLabel(tr("Version:")), 3, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLVersionAvailable), 3, 2);
+    info->setLayout(grid);
+
+    QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));
+    QVBoxLayout *settingsLayout = new QVBoxLayout;
+    QCheckBox *pps = new QCheckBox(tr("Enable per-pixel lighting"));
+    pps->setChecked(perPixelLighting());
+    connect(pps, SIGNAL(toggled(bool)),
+            this, SLOT(setPerPixelLighting(bool)));
+    settingsLayout->addWidget(pps);
+    settings->setLayout(settingsLayout);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(info);
+    mainLayout->addSpacing(12);
+    mainLayout->addWidget(settings);
+    mainLayout->addStretch(1);
+    setLayout(mainLayout);
+}
+
+
+void PerformancesPage::setPerPixelLighting(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == perPixelLightingDefault())
+        settings.remove("PerPixelLighting");
+    else
+        settings.setValue("PerPixelLighting", QVariant(on));
+}
+
+
+bool PerformancesPage::perPixelLighting()
+// ----------------------------------------------------------------------------
+//   Read setting
+// ----------------------------------------------------------------------------
+{
+    bool dflt = perPixelLightingDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool pps = settings.value("PerPixelLighting", QVariant(dflt)).toBool();
+    return pps;
+}
+
+
+bool PerformancesPage::perPixelLightingDefault()
+// ----------------------------------------------------------------------------
+//   Should per-pixel lighting be enabled by default?
+// ----------------------------------------------------------------------------
+{
+    return false;
 }
 
 }

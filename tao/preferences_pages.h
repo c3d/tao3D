@@ -34,6 +34,7 @@ class QProgressBar;
 class QComboBox;
 class QLabel;
 class QPushButton;
+class QRadioButton;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -133,6 +134,18 @@ class PerformancesPage : public QWidget
 
 public:
     PerformancesPage(QWidget *parent = 0);
+
+protected slots:
+    void           setPerPixelLighting(bool on);
+
+protected:
+    bool           perPixelLighting();
+    bool           perPixelLightingDefault();
+
+protected:
+    QRadioButton * lightFixed;
+    QRadioButton * lightVShader;
+    QRadioButton * lightFShader;
 };
 
 }

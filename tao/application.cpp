@@ -237,13 +237,13 @@ Application::Application(int & argc, char ** argv)
         gl.makeCurrent();
 
         // Ask graphic card constructor to OpenGL
-        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
         // Search in constructors list
         for(int i = 0; i < LAST; i++)
         {
-            if(! vendor.compare(vendorsList[i]))
+            if(! GLVendor.compare(vendorsList[i]))
             {
                 vendorNum = i;
                 break;

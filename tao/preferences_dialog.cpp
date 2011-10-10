@@ -45,10 +45,10 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
 
     pagesWidget = new QStackedWidget;
     pagesWidget->addWidget(new GeneralPage);
+    pagesWidget->addWidget(new PerformancesPage);
 #ifndef CFG_NOMODPREF
     pagesWidget->addWidget(new ModulesPage);
 #endif
-    pagesWidget->addWidget(new PerformancesPage);
 #ifdef DEBUG
     pagesWidget->addWidget(new DebugPage);
 #endif
@@ -94,6 +94,16 @@ void PreferencesDialog::createIcons()
     generalButton->setTextAlignment(Qt::AlignHCenter);
     generalButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
+    // performances.png downloaded from:
+    // http://www.iconfinder.com/icondetails/47542/128/performance_settings_speed_icon
+    // Author: webiconset.com
+    // License: Free for commercial use (Do not redistribute)
+    QListWidgetItem *perfButton = new QListWidgetItem(contentsWidget);
+    perfButton->setIcon(QIcon(":/images/performances.png"));
+    perfButton->setText(tr("Performances"));
+    perfButton->setTextAlignment(Qt::AlignHCenter);
+    perfButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
 #ifndef CFG_NOMODPREF
     // modules.png downloaded from:
     // http://www.iconfinder.com/icondetails/17854/128/cubes_modules_icon
@@ -105,16 +115,6 @@ void PreferencesDialog::createIcons()
     modulesButton->setTextAlignment(Qt::AlignHCenter);
     modulesButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 #endif
-
-    // performances.png downloaded from:
-    // http://www.iconfinder.com/icondetails/47542/128/performance_settings_speed_icon
-    // Author: webiconset.com
-    // License: Free for commercial use (Do not redistribute)
-    QListWidgetItem *perfButton = new QListWidgetItem(contentsWidget);
-    perfButton->setIcon(QIcon(":/images/performances.png"));
-    perfButton->setText(tr("Performances"));
-    perfButton->setTextAlignment(Qt::AlignHCenter);
-    perfButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
 #ifdef DEBUG
     // bug.png downloaded from:

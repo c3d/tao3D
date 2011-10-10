@@ -572,6 +572,11 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     connect(pps, SIGNAL(toggled(bool)),
             this, SLOT(setPerPixelLighting(bool)));
     settingsLayout->addWidget(pps);
+    QCheckBox *vs = new QCheckBox(tr("Enable VSync"));
+    vs->setChecked(VSync());
+    connect(vs, SIGNAL(toggled(bool)),
+            this, SLOT(setVSync(bool)));
+    settingsLayout->addWidget(vs);
     settings->setLayout(settingsLayout);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -597,6 +602,21 @@ void PerformancesPage::setPerPixelLighting(bool on)
 }
 
 
+void PerformancesPage::setVSync(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == VSyncDefault())
+        settings.remove("VSync");
+    else
+        settings.setValue("VSync", QVariant(on));
+    TaoApp->enableVSync(on);
+}
+
+
 bool PerformancesPage::perPixelLighting()
 // ----------------------------------------------------------------------------
 //   Read setting
@@ -610,12 +630,34 @@ bool PerformancesPage::perPixelLighting()
 }
 
 
+bool PerformancesPage::VSync()
+// ----------------------------------------------------------------------------
+//   Read setting
+// ----------------------------------------------------------------------------
+{
+    bool dflt = VSyncDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool enabled = settings.value("VSync", QVariant(dflt)).toBool();
+    return enabled;
+}
+
+
 bool PerformancesPage::perPixelLightingDefault()
 // ----------------------------------------------------------------------------
 //   Should per-pixel lighting be enabled by default?
 // ----------------------------------------------------------------------------
 {
     return false;
+}
+
+
+bool PerformancesPage::VSyncDefault()
+// ----------------------------------------------------------------------------
+//   Should VSync be enabled by default?
+// ----------------------------------------------------------------------------
+{
+    return true;
 }
 
 }

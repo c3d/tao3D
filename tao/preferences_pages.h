@@ -137,12 +137,15 @@ public:
 
 public:
     static bool    perPixelLighting();
+    static bool    VSync();
 
 protected slots:
     void           setPerPixelLighting(bool on);
+    void           setVSync(bool on);
 
 protected:
     static bool    perPixelLightingDefault();
+    static bool    VSyncDefault();
 
 protected:
     QRadioButton * lightFixed;

@@ -79,6 +79,7 @@
 #include "licence.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
+#include "preferences_pages.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -140,8 +141,8 @@ static inline QGLFormat TaoGLFormat()
     if (TaoApp->hasGLMultisample)
         options |= QGL::SampleBuffers;
     QGLFormat format(options);
-    // Enable VSync by default
-    format.setSwapInterval(1);
+    int vsi = PerformancesPage::VSync() ? 1 : 0;
+    format.setSwapInterval(vsi);
     return format;
 }
 

@@ -365,6 +365,12 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
     if (no_repo) return NULL;
     // Try a Git repository first
     Repository *git = new GitRepository(path);
+    if (mode == OpenExistingHere && !git->pathIsRoot())
+    {
+        errors = QObject::tr("Path is not repository root");
+        delete git;
+        return NULL;
+    }
     if (git->valid())
     {
         if (mode == Clone)
@@ -375,16 +381,6 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
                                  "repository: %1").arg(native);
             delete git;
             return NULL;
-        }
-        else
-        if (mode == OpenExistingHere)
-        {
-            if (!git->pathIsRoot())
-            {
-                errors = QObject::tr("Path is not repository root");
-                delete git;
-                return NULL;
-            }
         }
         return git;
     }

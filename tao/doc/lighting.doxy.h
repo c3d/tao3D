@@ -137,6 +137,9 @@ light_position(x:real, y:real, z:real);
  * Sets the position of the current light.
  * Equivalent to the OpenGL call:
  * <tt>glLightfv(id, GL_POSITION, {x, y, z, w})</tt>
+ *
+ * If w = 0.0, then the light is infinitely far away (like a sun).\n
+ * If w = 1.0, then the light is at a fixed position (like a lamp).
  */
 light_position(x:real, y:real, z:real, w:real);
 

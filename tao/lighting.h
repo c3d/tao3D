@@ -113,6 +113,7 @@ struct LightId : Lighting
     ShaderProgram* shader;
 
     static QGLShaderProgram* pgm;
+    static bool failed;
 };
 
 

@@ -28,35 +28,56 @@
 #include "tao_gl.h"
 #include "application.h"
 #include "widget.h"
+#include "tao_utf8.h"
 
 TAO_BEGIN
 
 QGLShaderProgram *LightId::pgm = NULL;
+bool              LightId::failed = false;
 
-LightId::LightId(uint id, bool enable): Lighting(), id(id), enable(enable)
+LightId::LightId(uint id, bool enable)
+    : Lighting(), id(id), enable(enable), shader(NULL)
 {
-    if(! pgm)
+    if(!pgm && !failed)
     {
         pgm = new QGLShaderProgram();
         QString path = Application::applicationDirPath();
-        if (!pgm->addShaderFromSourceFile(QGLShader::Vertex, path + "/lighting.vs"))
+        QString vs = path + "/lighting.vs";
+        QString fs = path + "/lighting.fs";
+        bool ok = false;
+        if (pgm->addShaderFromSourceFile(QGLShader::Vertex, vs))
         {
-            std::cerr << pgm->log().toStdString();
-            delete pgm;
+            if (pgm->addShaderFromSourceFile(QGLShader::Fragment, fs))
+            {
+                ok = true;
+            }
+            else
+            {
+                std::cerr << "Error loading shader code: " << +fs << "\n";
+                std::cerr << +pgm->log();
+            }
         }
-        if (!pgm->addShaderFromSourceFile(QGLShader::Fragment, path + "/lighting.fs"))
+        else
         {
-            std::cerr << pgm->log().toStdString();
+            std::cerr << "Error loading shader code: " << +vs << "\n";
+            std::cerr << +pgm->log();
+        }
+        if (!ok)
+        {
             delete pgm;
+            pgm = NULL;
+            failed = true;
         }
     }
-    shader = new ShaderProgram(pgm);
+    if (pgm)
+        shader = new ShaderProgram(pgm);
 }
 
 
 LightId::~LightId()
 {
-    delete shader;
+    if (shader)
+        delete shader;
 }
 
 
@@ -75,7 +96,7 @@ void LightId::Draw(Layout *where)
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-        if(TaoApp->useShaderLighting)
+        if(TaoApp->useShaderLighting && shader)
         {
             shader->Draw(where);
             GLint lights = glGetUniformLocation(shader->program->programId(), "lights");

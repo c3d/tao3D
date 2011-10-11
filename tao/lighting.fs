@@ -226,13 +226,13 @@ void main (void)
     vec4 render_color = color;
 
     // Compute textures
-    if(textures & 1)
+    if((textures & 1) == 1)
         render_color *= texture2D(tex0, gl_TexCoord[0].st);
-    if(textures & 2)
+    if((textures & 2) == 2)
         render_color *= texture2D(tex1, gl_TexCoord[1].st);
-    if(textures & 4)
+    if((textures & 4) == 4)
         render_color *= texture2D(tex2, gl_TexCoord[2].st);
-    if(textures & 8)
+    if((textures & 8) == 8)
         render_color *= texture2D(tex3, gl_TexCoord[3].st);
 
     if(lights > 0)

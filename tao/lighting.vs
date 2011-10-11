@@ -34,4 +34,4 @@ void main(void)
 
     // Compute main color
     color = gl_Color;
-};
+}

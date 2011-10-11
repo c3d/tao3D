@@ -9840,8 +9840,18 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
-    if (name != "")
+    // Get or build the current frame if we don't have one
+    VideoSurface *surface = self->GetInfo<VideoSurface>();
+    if (!surface)
     {
+        surface = new VideoSurface();
+        self->SetInfo<VideoSurface> (surface);
+    }
+
+    if (name != surface->unresolvedName)
+    {
+        // name has not been converted to URL format, or has changed
+        surface->unresolvedName = name;
         QRegExp re("[a-z]+://");
         if (re.indexIn(+name) == -1)
         {
@@ -9860,13 +9870,10 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
             }
         }
     }
-
-    // Get or build the current frame if we don't have one
-    VideoSurface *surface = self->GetInfo<VideoSurface>();
-    if (!surface)
+    else
     {
-        surface = new VideoSurface(self, this);
-        self->SetInfo<VideoSurface> (surface);
+        // Raw name has not changed, no need to resolve again
+        name = surface->url;
     }
 
     // Resize to requested size, and bind texture

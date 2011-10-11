@@ -302,7 +302,7 @@ public slots:
 };
 
 
-struct VideoSurface : WidgetSurface
+struct VideoSurface : QObject, TaoInfo, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Display a Phonon::VideoWidget
 // ----------------------------------------------------------------------------
@@ -310,15 +310,25 @@ struct VideoSurface : WidgetSurface
     Q_OBJECT;
 public:
     typedef VideoSurface * data_t;
-    VideoSurface(XL::Tree *t, Widget *parent);
+    VideoSurface();
     ~VideoSurface();
-    operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *url);
+    virtual void           Delete() { trash.push_back(this); }
+    operator               data_t() { return this; }
+    virtual GLuint         bind(XL::Text *url);
+    int                    width()  { return video->width(); }
+    int                    height() { return video->height(); }
+protected:
+    GLuint                 texture();
+    std::ostream &         debug();
 public:
-    text url;
-    text lastError;
-    Phonon::AudioOutput *audio;
-    Phonon::MediaObject *media;
+    text                   url, unresolvedName, lastError;
+    Phonon::VideoWidget *  video;
+    Phonon::AudioOutput *  audio;
+    Phonon::MediaObject *  media;
+    bool                   useFBO;
+    QGLFramebufferObject * fbo;
+    GLuint                 textureId;
+    int                    w, h;
 };
 
 

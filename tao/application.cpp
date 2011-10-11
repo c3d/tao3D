@@ -678,6 +678,21 @@ void Application::blockScreenSaver(bool block)
 }
 
 
+void Application::enableVSync(bool on)
+// ----------------------------------------------------------------------------
+//   Propagate VSync setting to all Tao widgets
+// ----------------------------------------------------------------------------
+{
+    Window *window = NULL;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        window = dynamic_cast<Window *>(widget);
+        if (window)
+            window->taoWidget->enableVSync(NULL, on);
+    }
+}
+
+
 #if defined (CONFIG_MACOSX) || defined (CONFIG_LINUX)
 
 void Application::simulateUserActivity()

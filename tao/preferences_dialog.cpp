@@ -53,26 +53,26 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     pagesWidget->addWidget(new DebugPage);
 #endif
 
-    QPushButton *closeButton = new QPushButton(tr("Close"));
-    closeButton->setDefault(true);
-
     createIcons();
     contentsWidget->setCurrentRow(0);
-
-    connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
 
     QHBoxLayout *horizontalLayout = new QHBoxLayout;
     horizontalLayout->addWidget(contentsWidget);
     horizontalLayout->addWidget(pagesWidget, 1);
 
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addLayout(horizontalLayout);
+
+#if !defined(Q_OS_MACX)
+    QPushButton *closeButton = new QPushButton(tr("Close"));
+    closeButton->setDefault(true);
+    connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
     QHBoxLayout *buttonsLayout = new QHBoxLayout;
     buttonsLayout->addStretch(1);
     buttonsLayout->addWidget(closeButton);
-
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addLayout(horizontalLayout);
     mainLayout->addSpacing(12);
     mainLayout->addLayout(buttonsLayout);
+#endif
     setLayout(mainLayout);
 
     setWindowTitle(tr("Tao Preferences"));

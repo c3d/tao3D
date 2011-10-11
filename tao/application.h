@@ -78,6 +78,7 @@ public:
     Window *       findFirstTaoWindow();
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
+    void           enableVSync(bool on);
 
 signals:
     void           allWindowsReady();

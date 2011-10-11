@@ -36,7 +36,7 @@ class PreferencesDialog : public QDialog
     Q_OBJECT
 
 public:
-    PreferencesDialog(QWidget *parent);
+    PreferencesDialog(QWidget *parent = NULL);
 
 public slots:
     void changePage(QListWidgetItem *current, QListWidgetItem *previous);

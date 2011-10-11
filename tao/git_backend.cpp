@@ -1283,6 +1283,12 @@ bool GitRepository::pathIsRoot()
 //    Return true if path used to open repository is the top-level directory
 // ----------------------------------------------------------------------------
 {
+#if defined(Q_OS_MACX)
+    // Workaround bug#657
+    QProcess p;
+    p.start("more");
+    p.close();
+#endif
     return (QDir(path + "/.git").exists());
 }
 

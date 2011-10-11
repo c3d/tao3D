@@ -25,7 +25,7 @@ uniform sampler2D tex1;
 uniform sampler2D tex2;
 uniform sampler2D tex3;
 
-varying vec3 viewDir;
+varying vec4 viewDir;
 varying vec3 normal;
 varying vec4 color;
 
@@ -140,7 +140,6 @@ void computeSpotLight(int i)
 
     float attenuation = 1.0 / d;
 
-
     // See if point on surface is inside cone of illumination
     float spotDot = dot(-L, normalize(gl_LightSource[i].spotDirection));
 
@@ -202,15 +201,16 @@ void computeLight(int i)
 */
 void computeLighting()
 {
-    ambient  = vec4(0.0);
-    diffuse  = vec4(0.0);
-    specular = vec4(0.0);
+    ambient  = vec4 (0.0);
+    diffuse  = vec4 (0.0);
+    specular = vec4 (0.0);
+
     N = normalize(normal);
-    V = normalize(viewDir);
+    V = (vec3 (viewDir)) / viewDir.w;
 
     ambient  = gl_FrontLightModelProduct.sceneColor;
 
-    for(int i = 0; i < MAX_LIGHTS; i++)
+    for(int i = 0; i < 8; i++)
         if(bool(lights & (1 << i)))
             computeLight(i);
 
@@ -220,7 +220,8 @@ void computeLighting()
     specular *= gl_FrontMaterial.specular;
 }
 
-void main(void)
+
+void main (void)
 {
     vec4 render_color = color;
 
@@ -244,4 +245,4 @@ void main(void)
     }
 
     gl_FragColor = render_color;
-};
+}

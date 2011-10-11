@@ -14,7 +14,7 @@
 
 #extension GL_EXT_gpu_shader4 : enable
 
-varying vec3 viewDir;
+varying vec4 viewDir;
 varying vec3 normal;
 varying vec4 color;
 
@@ -24,7 +24,7 @@ void main(void)
 
     // Compute normal and world position
     normal  = gl_NormalMatrix * gl_Normal;
-    viewDir = -vec3(gl_ModelViewMatrix * gl_Vertex);
+    viewDir = gl_ModelViewMatrix * gl_Vertex;
 
     // Compute texture coordinates
     gl_TexCoord[0] = gl_TextureMatrix[0] * gl_MultiTexCoord0;

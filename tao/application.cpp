@@ -41,6 +41,7 @@
 #include "text_drawing.h"
 #include "licence.h"
 #include "version.h"
+#include "preferences_pages.h"
 
 #include <QString>
 #include <QSettings>
@@ -80,7 +81,6 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
-      useShaderLighting(false),
       maxTextureCoords(0), maxTextureUnits(0),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
@@ -232,6 +232,7 @@ Application::Application(int & argc, char ** argv)
         ::exit(1);
     }
 
+    useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
         QGLWidget gl;

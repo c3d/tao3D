@@ -99,6 +99,20 @@ struct ShaderValue : Lighting
     Values values;
 };
 
+struct PerPixelLighting : Lighting
+// ----------------------------------------------------------------------------
+//   Enable or disable per pixel lighting
+// ----------------------------------------------------------------------------
+{
+    PerPixelLighting(bool enable = true);
+    ~PerPixelLighting();
+    virtual void Draw(Layout *where);
+    bool enable;
+    ShaderProgram* shader;
+
+    static QGLShaderProgram* pgm;
+    static bool failed;
+};
 
 struct LightId : Lighting
 // ----------------------------------------------------------------------------
@@ -110,10 +124,7 @@ struct LightId : Lighting
     virtual void Draw(Layout *where);
     uint id;
     bool enable;
-    ShaderProgram* shader;
-
-    static QGLShaderProgram* pgm;
-    static bool failed;
+    PerPixelLighting* perPixelLighting;
 };
 
 

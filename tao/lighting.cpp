@@ -32,11 +32,13 @@
 
 TAO_BEGIN
 
-QGLShaderProgram *LightId::pgm = NULL;
-bool              LightId::failed = false;
+QGLShaderProgram *PerPixelLighting::pgm = NULL;
+bool              PerPixelLighting::failed = false;
 
-LightId::LightId(uint id, bool enable)
-    : Lighting(), id(id), enable(enable), shader(NULL)
+PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
+// ----------------------------------------------------------------------------
+//   Construction
+// ----------------------------------------------------------------------------
 {
     if(!pgm && !failed)
     {
@@ -73,11 +75,54 @@ LightId::LightId(uint id, bool enable)
         shader = new ShaderProgram(pgm);
 }
 
-
-LightId::~LightId()
+PerPixelLighting::~PerPixelLighting()
+// ----------------------------------------------------------------------------
+//   Destruction
+// ----------------------------------------------------------------------------
 {
     if (shader)
         delete shader;
+}
+
+void PerPixelLighting::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Enable or disable per pixel lighting
+// ----------------------------------------------------------------------------
+{
+    if(shader)
+    {
+        if(enable)
+        {
+            shader->Draw(where);
+            GLint lights = glGetUniformLocation(shader->program->programId(), "lights");
+            GLint textures = glGetUniformLocation(shader->program->programId(), "textures");
+            glUniform1i(lights, where->currentLights);
+            glUniform1i(textures, where->textureUnits);
+        }
+        else
+        {
+           pgm->release();
+           where->programId = 0;
+        }
+    }
+}
+
+
+LightId::LightId(uint id, bool enable) : Lighting(), id(id), enable(enable)
+// ----------------------------------------------------------------------------
+//   Construction
+// ----------------------------------------------------------------------------
+{
+    perPixelLighting = new PerPixelLighting();
+}
+
+
+LightId::~LightId()
+// ----------------------------------------------------------------------------
+//   Destruction
+// ----------------------------------------------------------------------------
+{
+    delete perPixelLighting;
 }
 
 
@@ -96,14 +141,8 @@ void LightId::Draw(Layout *where)
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-        if(TaoApp->useShaderLighting && shader)
-        {
-            shader->Draw(where);
-            GLint lights = glGetUniformLocation(shader->program->programId(), "lights");
-            GLint textures = glGetUniformLocation(shader->program->programId(), "textures");
-            glUniform1i(lights, where->currentLights);
-            glUniform1i(textures, where->textureUnits);
-        }
+        if(TaoApp->useShaderLighting)
+            perPixelLighting->Draw(where);
     }
     else
     {

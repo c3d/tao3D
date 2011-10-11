@@ -6533,6 +6533,15 @@ Integer_p Widget::lightsMask(Tree_p self)
     return new Integer(layout->currentLights);
 }
 
+Tree_p Widget::perPixelLighting(Tree_p self,  bool enable)
+// ----------------------------------------------------------------------------
+//  Enable or Disable per pixel lighting
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new PerPixelLighting(enable));
+    return XL::xl_true;
+}
+
 Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 // ----------------------------------------------------------------------------
 //   Select and enable or disable a light

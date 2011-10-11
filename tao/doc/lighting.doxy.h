@@ -90,6 +90,15 @@ tree light(id:integer, enable:boolean);
 light(id:integer);
 
 /**
+ * Enable or disable per pixel lighting.
+ * This type of lighting optimizes effectively performance and
+ * rendering of complex models on recent graphic cards.
+ *
+ * @note The default value is false.
+ */
+per_pixel_lighting(enable:boolean);
+
+/**
  * Return a bitmask of current enabled lights.
  * The default value is 0 if there is no current light.
  */

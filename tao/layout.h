@@ -101,18 +101,25 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
+
+    // Textures paramters
     TextureState        currentTexture;
-    uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
-    Matrix4             model;
+
+    // Lighting parameters
     uint                lightId;
+    uint64              currentLights; //Current used lights
+
     uint                programId;
     bool                printing : 1;
+
+    // Transformations
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+    Matrix4             model;
 
     // For optimized drawing, we keep track of what changes
     uint64              hasTextureMatrix; // 64 texture units

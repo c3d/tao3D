@@ -48,6 +48,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
+    SetShader        = ModuleRenderer::SetShader;
     HasPixelBlur     = ModuleRenderer::HasPixelBlur;
 
     // Display module API

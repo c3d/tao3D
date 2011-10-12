@@ -93,16 +93,13 @@ void PerPixelLighting::Draw(Layout *where)
     {
         if(enable)
         {
-            shader->Draw(where);
-            GLint lights = glGetUniformLocation(shader->program->programId(), "lights");
-            GLint textures = glGetUniformLocation(shader->program->programId(), "textures");
-            glUniform1i(lights, where->currentLights);
-            glUniform1i(textures, where->textureUnits);
+            pgm->bind();
+            where->perPixelLighting = pgm->programId();
         }
         else
         {
-           pgm->release();
-           where->programId = 0;
+            pgm->release();
+            where->perPixelLighting = 0;
         }
     }
 }

@@ -119,6 +119,17 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     return false;
 }
 
+bool ModuleRenderer::SetShader(int id)
+// ----------------------------------------------------------------------------
+//   Set the shader defined by its id to the current layout attributes
+// ----------------------------------------------------------------------------
+{
+    if(id >= 0)
+        currentLayout->programId = id;
+
+    return Shape::setShader(currentLayout);
+}
+
 
 bool ModuleRenderer::SetFillColor()
 // ----------------------------------------------------------------------------

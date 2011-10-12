@@ -114,6 +114,9 @@ struct ModuleApi
     // Allow to apply current textures during a drawing.
     bool (*SetTextures)();
 
+    // Allow to add a shader define by its id to a drawing.
+    bool (*SetShader)(int id);
+
     // Allow to set fill color during a drawing according
     // to the current layout attributes.
     bool (*SetFillColor)();
@@ -121,6 +124,7 @@ struct ModuleApi
     // Allow to set line color during a drawing according
     // to the current layout attributes.
     bool (*SetLineColor)();
+
 
     // Allow to enable or deactivate pixel blur
     // on textures of the current layout.

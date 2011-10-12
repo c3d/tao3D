@@ -59,6 +59,7 @@ struct ModuleRenderer : Drawing
     static bool   DisableTexCoords();
     static bool   SetFillColor();
     static bool   SetLineColor();
+    static bool   SetShader(int id);
     static bool   HasPixelBlur(bool enable);
 
 private:

@@ -80,17 +80,14 @@ bool Shape::setTexture(Layout *where)
         }
     }
 
-    if (where->globalProgramId)
-        glUseProgram(where->globalProgramId);
-    else
-        glUseProgram(where->programId);
+    // Active current shader
+    setShader(where);
 
     //Update used texture units
     where->previousTextures = where->fillTextures;
 
     return !(where->fillTextures.empty());
 }
-
 
 void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
@@ -201,6 +198,27 @@ bool Shape::setLineColor(Layout *where)
     }
     return false;
 }
+
+
+bool Shape::setShader(Layout *where)
+{
+    if(where->perPixelLighting && !where->programId)
+    {
+        where->programId = where->perPixelLighting;
+        GLint lights = glGetUniformLocation(where->programId, "lights");
+        GLint textures = glGetUniformLocation(where->programId, "textures");
+        glUniform1i(lights, where->currentLights);
+        glUniform1i(textures, where->textureUnits);
+    }
+
+    if (where->globalProgramId)
+        glUseProgram(where->globalProgramId);
+    else
+        glUseProgram(where->programId);
+
+    return true;
+}
+
 
 void Shape::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------

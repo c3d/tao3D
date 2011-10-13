@@ -22,6 +22,51 @@ vec4 specular;
 vec3 N;
 vec3 V;
 
+/*
+* Compute influence of the light i (equivalent to GL_LIGHTi),
+* which is positional because it depends of this position,
+*/
+void computePositionalLight(int i)
+{
+    // Difference between object and light position
+    vec3 L = gl_LightSource[i].position.xyz - V;
+
+    // Distance between object and light
+    float length = length(L);
+
+    L = normalize(L);
+
+    // Compute attenuation
+    float d = (gl_LightSource[i].constantAttenuation +
+               gl_LightSource[i].linearAttenuation * length +
+               gl_LightSource[i].quadraticAttenuation * length * length);
+
+    float attenuation = 1.0 / d;
+
+    // Compute ambient part
+    ambient += gl_LightSource[i].ambient
+               * attenuation;
+
+    // Diffuse coefficient
+    float nDotL = max(clamp(dot(L, N), 0.0, 1.0), 0.0);
+    if (nDotL > 0.0)
+    {
+        // Compute diffuse part
+        diffuse += gl_LightSource[i].diffuse
+                   * nDotL
+                   * attenuation;
+
+        // Compute specular coefficient
+        float nDotV = max(0.0, dot(N, gl_LightSource[i].halfVector.xyz));
+        if (nDotV > 0.0)
+        {
+            // Compute specular part
+            specular += gl_LightSource[i].specular
+                        * pow(nDotV, gl_FrontMaterial.shininess)
+                        * attenuation;
+        }
+    }
+}
 
 /*
 * Compute influence of the light i (equivalent to GL_LIGHTi),
@@ -54,6 +99,84 @@ void computeDirectionalLight(int i)
     }
 }
 
+/*
+* Compute influence of the light i (equivalent to GL_LIGHTi),
+* which is spot because it is represented by a cone,
+* (for instance: a lamp).
+*/
+void computeSpotLight(int i)
+{
+    // Difference between object and light position
+    vec3 L = gl_LightSource[i].position.xyz - V;
+
+    // Distance between object and light
+    float length = length(L);
+
+    L = normalize(L);
+
+    // Compute attenuation
+    float d = (gl_LightSource[i].constantAttenuation +
+               gl_LightSource[i].linearAttenuation * length +
+               gl_LightSource[i].quadraticAttenuation * length * length);
+
+    float attenuation = 1.0 / d;
+
+    // See if point on surface is inside cone of illumination
+    float spotDot = dot(-L, normalize(gl_LightSource[i].spotDirection));
+
+    // Attenuation of the spot
+    float spotAttenuation = 0.0;
+
+    if (spotDot >= gl_LightSource[i].spotCosCutoff)
+        spotAttenuation = pow(spotDot, gl_LightSource[i].spotExponent);
+
+    // Combine the spotlight and distance attenuation.
+    attenuation *= spotAttenuation;
+
+    // Compute ambient part
+    ambient += gl_LightSource[i].ambient
+               * attenuation;
+
+    // Diffuse coefficient
+    float nDotL = max(clamp(dot(L, N), 0.0, 1.0), 0.0);
+    if (nDotL > 0.0)
+    {
+        // Compute diffuse part
+        diffuse += gl_LightSource[i].diffuse
+                   * nDotL
+                   * attenuation;
+
+        // Compute specular coefficient
+        float nDotV = max(0.0, dot(N, gl_LightSource[i].halfVector.xyz));
+        if (nDotV > 0.0)
+        {
+            // Compute specular part
+            specular += gl_LightSource[i].specular
+                        * pow(nDotV, gl_FrontMaterial.shininess)
+                        * attenuation;
+        }
+    }
+}
+
+/*
+* Compute influence of the light i (equivalent to GL_LIGHT0 + i),
+* which can be a spot but also positional or directional.
+*/
+void computeLight(int i)
+{
+    if (gl_LightSource[i].spotCutoff != 180.0)
+    {
+        computeSpotLight(i);
+    }
+    else
+    {
+        if(gl_LightSource[i].position.w == 0.0)
+            computeDirectionalLight(i);
+        else
+            computePositionalLight(i);
+    }
+}
+
 vec4 computeLighting()
 {
     ambient  = vec4 (0.0);
@@ -63,7 +186,9 @@ vec4 computeLighting()
     N = normalize(normal);
     V = (vec3 (viewDir)) / viewDir.w;
 
-    computeDirectionalLight(0);
+    for(int i = 0; i < 8; i++)
+        if(bool(lights & (1 << i)))
+            computeLight(i);
 
     // Materials parts
     ambient  = gl_FrontMaterial.ambient * ambient;

@@ -801,19 +801,27 @@ bool GridGroupBox::event(QEvent *event)
 //
 // ============================================================================
 
-VideoSurface::VideoSurface(XL::Tree *t, Widget *parent)
+VideoSurface::VideoSurface()
 // ----------------------------------------------------------------------------
 //   Create the video player
 // ----------------------------------------------------------------------------
-    : WidgetSurface(t, new Phonon::VideoWidget(NULL)),
-      audio(new Phonon::AudioOutput(Phonon::VideoCategory, NULL)),
-      media(new Phonon::MediaObject(NULL))
+    : video(new Phonon::VideoWidget),
+      audio(new Phonon::AudioOutput(Phonon::VideoCategory)),
+      media(new Phonon::MediaObject),
+      useFBO(QGLFramebufferObject::hasOpenGLFramebufferObjects()),
+      fbo(NULL), textureId(0), w(0), h(0)
 {
-    (void) parent;
+    if (!useFBO)
+    {
+        IFTRACE(video)
+            debug() << "FBO not supported: will use QImage\n";
+        glGenTextures(1, &textureId);
+    }
     Phonon::createPath(media, audio);
-    Phonon::createPath(media, (Phonon::VideoWidget *) widget);
-    widget->setAttribute(Qt::WA_DontShowOnScreen);
-    widget->setVisible(true);
+    Phonon::createPath(media, video);
+    video->setAttribute(Qt::WA_DontShowOnScreen);
+    video->setVisible(true);
+    video->setAutoFillBackground(false);
 }
 
 
@@ -823,8 +831,24 @@ VideoSurface::~VideoSurface()
 // ----------------------------------------------------------------------------
 {
    media->stop();
+   delete video;
    delete audio;
    delete media;
+   if (textureId)
+       glDeleteTextures(1, &textureId);
+   if (fbo)
+       delete fbo;
+}
+
+
+GLuint VideoSurface::texture()
+// ----------------------------------------------------------------------------
+//    Return the identifier of the video texture
+// ----------------------------------------------------------------------------
+{
+    if (fbo)
+        return fbo->texture();
+    return textureId;
 }
 
 
@@ -834,18 +858,17 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
 // ----------------------------------------------------------------------------
 {
     Tao::Widget::Tao()->makeCurrent();
-    Phonon::VideoWidget *player = (Phonon::VideoWidget *) widget;
 
     if (urlTree->value != url)
     {
-        IFTRACE(fileload)
+        IFTRACE2(fileload, video)
             std::cerr << "Loading media: " << urlTree->value << "\n"
                       << "     previous: " << url << "\n";
 
         url = urlTree->value;
         media->stop();
         if (url == "")
-            return textureId;
+            return texture();
 
         media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
         media->play();
@@ -855,32 +878,60 @@ GLuint VideoSurface::bind(XL::Text *urlTree)
     }
 
     if (url == "")
-        return textureId;
+        return texture();
 
-    QSize hint = player->sizeHint();
+    QSize hint = video->sizeHint();
     if (hint.isValid())
     {
-        if (hint.width() != widget->width() ||
-            hint.height() != widget->height())
-            resize(hint.width(), hint.height());
+        if (hint.width() != w || hint.height() != h)
+        {
+            // Dimensions changed: resize widget, (re-)allocate FBO
 
-        QImage image(widget->width(), widget->height(),
-                     QImage::Format_ARGB32);
-        widget->setAutoFillBackground(false);
-        widget->render(&image);
+            w = hint.width();
+            h = hint.height();
+            IFTRACE(video)
+                debug() << "Video resolution: " << w << "x" << h << "\n";
 
-        // Generate the GL texture
-        image = QGLWidget::convertToGLFormat(image);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3,
-                     image.width(), image.height(), 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, image.bits());
+            video->resize(w, h);
+            if (useFBO)
+            {
+                IFTRACE(video)
+                    debug() << "Allocating FBO\n";
+                if (fbo)
+                    delete fbo;
+                fbo = new QGLFramebufferObject(w, h);
+            }
+        }
 
-        return textureId;
+        if (useFBO)
+        {
+            video->render(fbo);
+        }
+        else
+        {
+            QImage image(w, h, QImage::Format_ARGB32);
+            video->render(&image);
+            image = QGLWidget::convertToGLFormat(image);
+            glBindTexture(GL_TEXTURE_2D, textureId);
+            glTexImage2D(GL_TEXTURE_2D, 0, 3,
+                         image.width(), image.height(), 0, GL_RGBA,
+                         GL_UNSIGNED_BYTE, image.bits());
+        }
+        return texture();
     }
 
     // Default is to return no texture
     return 0;
+}
+
+
+std::ostream & VideoSurface::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[VideoSurface] ";
+    return std::cerr;
 }
 
 

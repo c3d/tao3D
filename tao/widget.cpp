@@ -105,8 +105,7 @@
 
 enum MacOSWidgetEventType
 {
-    DisplayLink = QEvent::User,
-    UpdateGL    = QEvent::User + 1,
+    DisplayLink = QEvent::User
 };
 #endif
 
@@ -2789,9 +2788,6 @@ bool Widget::event(QEvent *event)
         timerEvent(&e);
         return true;
         }
-    case UpdateGL:
-        refreshNow(event);
-        return true;
     case QEvent::MouseMove:
     case QEvent::KeyPress:
     case QEvent::KeyRelease:

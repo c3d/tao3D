@@ -826,8 +826,8 @@ void GraphicPath::Draw(const Vector3 &offset,
 
                         if ((i1 + i2) < size)
                         {
-                            vn = v1.Cross(v2);
-                            vn.Normalize();
+                            Triangle triangle(p0, p1, p2);
+                            vn = triangle.computeNormal();
 
                             for (uint j = (i + i1); j < (i + i1 + i2); j++)
                             {

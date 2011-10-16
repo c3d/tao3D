@@ -395,17 +395,12 @@ licdir.path = .
 licdir.depends = FORCE
 INSTALLS += licdir
 
-
 TRANSLATIONS = tao_fr.ts
-
-lupdate.commands = lupdate -verbose *.cpp *.h *.ui -ts $$TRANSLATIONS
-lupdate.depends  = FORCE
-QMAKE_EXTRA_TARGETS += lupdate
-
-lrelease.commands = lrelease $$TRANSLATIONS
-lrelease.depends  = FORCE
-QMAKE_EXTRA_TARGETS += lrelease
-
+include(../translations.pri)
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+
+shaders.path = $$APPINST$
+shaders.files = lighting.vs lighting.fs
+INSTALLS += shaders

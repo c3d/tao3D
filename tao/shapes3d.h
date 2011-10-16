@@ -140,7 +140,6 @@ private:
     // Cache of unit radius torus
     // (they differ by the number of subdivisions and their ratio)
 
-#define EPSILON 0.001
     struct Key
     {
         Key(uint slices, uint stacks, double ratio): slices(slices), stacks(stacks), ratio(ratio) {}
@@ -149,7 +148,7 @@ private:
 
         bool operator==(const Key &o) const
         {
-            return ((slices == o.slices) && (stacks == o.stacks) && (fabs(ratio - o.ratio) < EPSILON));
+            return ((slices == o.slices) && (stacks == o.stacks) && (fabs(ratio - o.ratio) < TAO_EPSILON));
         }
 
         bool operator<(const Key &o) const

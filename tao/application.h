@@ -78,6 +78,7 @@ public:
     Window *       findFirstTaoWindow();
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
+    void           enableVSync(bool on);
 
 signals:
     void           allWindowsReady();
@@ -118,9 +119,11 @@ public:
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
+    bool         useShaderLighting;
     Vendor       vendorID;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
+    text         GLVendor;
     text         GLRenderer;
     text         GLVersionAvailable;
     text         GLExtensionsAvailable;

@@ -90,6 +90,15 @@ tree light(id:integer, enable:boolean);
 light(id:integer);
 
 /**
+ * Enable or disable per pixel lighting.
+ * This type of lighting optimizes effectively performance and
+ * rendering of complex models on recent graphic cards.
+ *
+ * @note The default value is false.
+ */
+per_pixel_lighting(enable:boolean);
+
+/**
  * Return a bitmask of current enabled lights.
  * The default value is 0 if there is no current light.
  */
@@ -137,6 +146,9 @@ light_position(x:real, y:real, z:real);
  * Sets the position of the current light.
  * Equivalent to the OpenGL call:
  * <tt>glLightfv(id, GL_POSITION, {x, y, z, w})</tt>
+ *
+ * If w = 0.0, then the light is infinitely far away (like a sun).\n
+ * If w = 1.0, then the light is at a fixed position (like a lamp).
  */
 light_position(x:real, y:real, z:real, w:real);
 

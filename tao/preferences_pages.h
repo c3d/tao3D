@@ -34,6 +34,7 @@ class QProgressBar;
 class QComboBox;
 class QLabel;
 class QPushButton;
+class QRadioButton;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -121,6 +122,36 @@ private:
     bool                                     findUpdatesInProgress;
 };
 #endif // !CFG_NOMODPREF
+
+
+class PerformancesPage : public QWidget
+// ----------------------------------------------------------------------------
+//   Show OpenGL information and allow configuration of performance parameters
+// ----------------------------------------------------------------------------
+{
+
+    Q_OBJECT
+
+public:
+    PerformancesPage(QWidget *parent = 0);
+
+public:
+    static bool    perPixelLighting();
+    static bool    VSync();
+
+protected slots:
+    void           setPerPixelLighting(bool on);
+    void           setVSync(bool on);
+
+protected:
+    static bool    perPixelLightingDefault();
+    static bool    VSyncDefault();
+
+protected:
+    QRadioButton * lightFixed;
+    QRadioButton * lightVShader;
+    QRadioButton * lightFShader;
+};
 
 }
 

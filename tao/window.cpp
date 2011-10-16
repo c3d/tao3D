@@ -1288,7 +1288,15 @@ void Window::preferences()
 //    Show the Preferences dialog
 // ----------------------------------------------------------------------------
 {
-    PreferencesDialog(this).exec();
+    static QPointer<PreferencesDialog> prefs;
+    if (!prefs)
+    {
+        prefs = new PreferencesDialog;
+        connect(this, SIGNAL(destroyed()), prefs.data(), SLOT(close()));
+    }
+    prefs->show();
+    prefs->raise();
+    prefs->activateWindow();
 }
 
 

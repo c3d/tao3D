@@ -1,5 +1,32 @@
 Change log for Tao Presentations
 
+1.0-beta9 (04-Oct-2011)
+
+#1496 Offscreen rendering crash when using sidebysidestereo display mode
+#1495 Frame packing display
+#1493 Add selection time in timing statistics
+#1489 Animate module: interpolate_yangle rotates along z
+#1469 Checkerboard display module
+#1466 Disable "Save for next run" button once debug settings are saved
+#1464 Big slowdown on mouse move on some scene showing a 3D object with shader in active_widget
+#1463 Simplify module version
+#1462 Windows: files with accented characters not reloaded automatically when changed
+#1455 Require OpenGL 2.0 and Frame Buffer Objects to run
+#1453 Additive mode for displaying pictures
+#1452 Command chooser search ignores space key
+#1451 Empty text box is not empty
+#1444 Licence installation (.taokey file)
+#1435 Selection rectangle flashes in pan and zoom template
+#1431 Crash on "Send to back"
+#1429 Crash when moving table
+#1407 Switching off the last light does not disable lighting
+#1403 Sphere with transparency incorrectly rendered
+#1397 Add template and documentation for Glow module
+#1322 Windows: crash on startup
+#1241 Add support for module download
+#1161 TeX Gyre Adventor font doesn't show up
+#1123 Optimize shape drawing
+
 1.0-beta8 (19-Sep-2011)
 
 #1439 Recent file list not updated

@@ -2178,6 +2178,12 @@ PREFIX(LightsMask,  tree,  "lights_mask",,
        SYNOPSIS("Return a bitmask of all current activated lights")
        DESCRIPTION("Return a bitmask of all current activated lights")
        RETURNS(tree, "Return a bitmask of all current activated lights"))
+PREFIX(PerPixelLighting,  tree,  "per_pixel_lighting",
+       PARM(b, boolean,),
+       RTAO(perPixelLighting(self, b)),
+       GROUP(lighting)
+       SYNOPSIS("Enable or disable per pixel lighting")
+       DESCRIPTION(""))
 
 PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),

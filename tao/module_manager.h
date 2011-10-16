@@ -270,6 +270,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QLibrary>
 #include <QDir>
 #include <QTextStream>
+#include <QTranslator>
 #include <iostream>
 
 
@@ -296,12 +297,13 @@ public:
     {
         ModuleInfoPrivate() : ModuleInfo(), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false)
+            native(NULL), context(NULL), inError(false), show_preferences(NULL)
             {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false)
+              native(NULL), context(NULL), inError(false),
+              show_preferences(NULL)
             {}
 
         // Configuration attributes
@@ -321,6 +323,8 @@ public:
         XL::Context_p context;
         bool    inError;
         QString source; // .xl content, non-null only after full text search
+        module_preferences_fn show_preferences;
+        QTranslator * translator;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {

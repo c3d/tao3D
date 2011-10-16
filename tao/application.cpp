@@ -41,6 +41,7 @@
 #include "text_drawing.h"
 #include "licence.h"
 #include "version.h"
+#include "preferences_pages.h"
 
 #include <QString>
 #include <QSettings>
@@ -231,19 +232,20 @@ Application::Application(int & argc, char ** argv)
         ::exit(1);
     }
 
+    useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
         QGLWidget gl;
         gl.makeCurrent();
 
         // Ask graphic card constructor to OpenGL
-        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
         // Search in constructors list
         for(int i = 0; i < LAST; i++)
         {
-            if(! vendor.compare(vendorsList[i]))
+            if(! GLVendor.compare(vendorsList[i]))
             {
                 vendorNum = i;
                 break;
@@ -256,7 +258,6 @@ Application::Application(int & argc, char ** argv)
         case 1: vendorID = NVIDIA; break;
         case 2: vendorID = INTEL; break;
         }
-
 
         const GLubyte *str;
         // Get OpenGL supported version
@@ -463,6 +464,10 @@ bool Application::processCommandLine()
         window->deleteOnOpenFailed = true;
         connect(window, SIGNAL(openFinished(bool)),
                 this, SLOT(onOpenFinished(bool)));
+#if defined(Q_OS_MACX)
+        // BUG#1503
+        window->show();
+#endif
         int st = window->open(sourceFile);
         window->markChanged(false);
         switch (st)
@@ -669,6 +674,21 @@ void Application::blockScreenSaver(bool block)
 #elif defined(CONFIG_LINUX)
         XScreenSaverSuspend(xDisplay, False);
 #endif
+    }
+}
+
+
+void Application::enableVSync(bool on)
+// ----------------------------------------------------------------------------
+//   Propagate VSync setting to all Tao widgets
+// ----------------------------------------------------------------------------
+{
+    Window *window = NULL;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        window = dynamic_cast<Window *>(widget);
+        if (window)
+            window->taoWidget->enableVSync(NULL, on);
     }
 }
 

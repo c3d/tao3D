@@ -51,10 +51,9 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentLights(0),
       textureUnits(0),
-      lightId(GL_LIGHT0), programId(0),
-      printing(false),
+      lightId(GL_LIGHT0), currentLights(0),
+      programId(0), printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
       hasTextureMatrix(false),
@@ -78,18 +77,18 @@ LayoutState::LayoutState(const LayoutState &o)
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         currentTexture(o.currentTexture),
-        currentLights(o.currentLights),
         textureUnits(o.textureUnits),
         previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),
-        model(o.model),
         lightId(o.lightId),
+        currentLights(o.currentLights),
         programId(o.programId),
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
         rotationId(o.rotationId), translationId(o.translationId),
         scaleId(o.scaleId),
+        model(o.model),
         hasTextureMatrix(o.hasTextureMatrix),
         hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
         hasAttributes(o.hasAttributes), 
@@ -657,18 +656,23 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
+
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
-    model            = where->model;
+
     lightId          = where->lightId;
+    currentLights    = where->currentLights;
+
     programId        = where->programId;
     printing         = where->printing;
+
     planarRotation   = where->planarRotation;
     planarScale      = where->planarScale;
+    model            = where->model;
+
     has3D            = where->has3D;
     hasPixelBlur     = where->hasPixelBlur;
-    currentLights    = where->currentLights;
     groupDrag        = where->groupDrag;
     hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;

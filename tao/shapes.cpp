@@ -202,19 +202,22 @@ bool Shape::setLineColor(Layout *where)
 
 bool Shape::setShader(Layout *where)
 {
-    if(where->perPixelLighting && !where->programId)
-    {
-        where->programId = where->perPixelLighting;
-        GLint lights = glGetUniformLocation(where->programId, "lights");
-        GLint textures = glGetUniformLocation(where->programId, "textures");
-        glUniform1i(lights, where->currentLights);
-        glUniform1i(textures, where->textureUnits);
-    }
-
     if (where->globalProgramId)
         glUseProgram(where->globalProgramId);
     else
         glUseProgram(where->programId);
+
+    if(where->perPixelLighting == where->programId)
+    {
+        if(where->programId)
+        {
+            GLint lights = glGetUniformLocation(where->programId, "lights");
+            glUniform1i(lights, where->currentLights);
+
+            GLint textures = glGetUniformLocation(where->programId, "textures");
+            glUniform1i(textures, where->textureUnits);
+        }
+    }
 
     return true;
 }

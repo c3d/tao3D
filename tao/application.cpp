@@ -73,7 +73,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
+text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -242,7 +242,7 @@ Application::Application(int & argc, char ** argv)
         GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
-        // Search in constructors list
+        // Search in vendors list
         for(int i = 0; i < LAST; i++)
         {
             if(! GLVendor.compare(vendorsList[i]))

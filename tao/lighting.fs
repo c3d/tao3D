@@ -1,9 +1,25 @@
+/****************************************************************************
+**
+** Copyright (C) 2011 Taodyne.
+** All rights reserved.
+** Contact: Taodyne (contact@taodyne.com)
+**
+** This file is part of the Tao Presentations application, developped by Taodyne.
+** It can be only used in the software and these modules.
+**
+** If you have questions regarding the use of this file, please contact
+** Taodyne at contact@taodyne.com.
+**
+****************************************************************************/
 #extension GL_EXT_gpu_shader4 : enable
 
 // Bitmasks of activated lights
 // and textures
 uniform  int  textures;
 uniform  int  lights;
+
+// Graphic cards vendor
+uniform  int  vendor;
 
 // textures parameters
 uniform sampler2D tex0;
@@ -197,7 +213,16 @@ vec4 computeLighting()
 
     vec4 globalAmbient = gl_FrontLightModelProduct.sceneColor;
 
-    vec4 final_color =  vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a) + vec4(specular.rgb, 0.0);
+    // If the vendor is no ATI then we use classic calculation, otherwise
+    // we have to multiply by the scene color to fix a bug.
+    vec4 final_color;
+    if(vendor > 0)
+        final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a)
+                    + vec4(specular.rgb, 0.0);
+    else
+        final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a)
+                    * color + vec4(specular.rgb, 0.0);
+
     return final_color;
 }
 
@@ -211,7 +236,7 @@ void main (void)
        render_color = computeLighting();
     }
 
-    // Compute textures
+    // Compute activated textures
     if(bool(textures & 1))
         render_color *= texture2D(tex0, gl_TexCoord[0].st);
     if(bool(textures & 2))

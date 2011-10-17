@@ -93,13 +93,8 @@ void PerPixelLighting::Draw(Layout *where)
     {
         if(enable)
         {
-            pgm->bind();
-            where->perPixelLighting = pgm->programId();
-        }
-        else
-        {
-            pgm->release();
-            where->perPixelLighting = 0;
+            shader->Draw(where);
+            where->perPixelLighting = where->programId;
         }
     }
 }

@@ -202,19 +202,32 @@ bool Shape::setLineColor(Layout *where)
 
 bool Shape::setShader(Layout *where)
 {
-    if(where->perPixelLighting && !where->programId)
-    {
-        where->programId = where->perPixelLighting;
-        GLint lights = glGetUniformLocation(where->programId, "lights");
-        GLint textures = glGetUniformLocation(where->programId, "textures");
-        glUniform1i(lights, where->currentLights);
-        glUniform1i(textures, where->textureUnits);
-    }
-
     if (where->globalProgramId)
         glUseProgram(where->globalProgramId);
     else
         glUseProgram(where->programId);
+
+    if(where->perPixelLighting == where->programId)
+    {
+        if(where->programId)
+        {
+            GLint lights = glGetUniformLocation(where->programId, "lights");
+            if(! lights)
+            {
+                std::cerr << "Failed to set lights parameters in shader based lighting\n";
+                return false;
+            }
+            glUniform1i(lights, where->currentLights);
+
+            GLint textures = glGetUniformLocation(where->programId, "textures");
+            if(! textures)
+            {
+                std::cerr << "Failed to set textures parameters in shader based lighting\n";
+                return false;
+            }
+            glUniform1i(textures, where->textureUnits);
+        }
+    }
 
     return true;
 }

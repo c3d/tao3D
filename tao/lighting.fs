@@ -197,7 +197,7 @@ vec4 computeLighting()
 
     vec4 globalAmbient = gl_FrontLightModelProduct.sceneColor;
 
-    vec4 final_color =  vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a) * color + vec4(specular.rgb, 0.0);
+    vec4 final_color =  vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a) + vec4(specular.rgb, 0.0);
     return final_color;
 }
 

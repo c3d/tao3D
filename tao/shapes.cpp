@@ -212,19 +212,9 @@ bool Shape::setShader(Layout *where)
         if(where->programId)
         {
             GLint lights = glGetUniformLocation(where->programId, "lights");
-            if(! lights)
-            {
-                std::cerr << "Failed to set lights parameters in shader based lighting\n";
-                return false;
-            }
             glUniform1i(lights, where->currentLights);
 
             GLint textures = glGetUniformLocation(where->programId, "textures");
-            if(! textures)
-            {
-                std::cerr << "Failed to set textures parameters in shader based lighting\n";
-                return false;
-            }
             glUniform1i(textures, where->textureUnits);
         }
     }

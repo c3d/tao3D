@@ -1,6 +1,6 @@
 /**
  * @addtogroup AudioVideo Audio and video
- * @ingroup Graphics
+ * @ingroup Modules
  *
  * Play audio and video content.
  *

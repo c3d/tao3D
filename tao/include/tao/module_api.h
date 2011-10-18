@@ -24,6 +24,7 @@
 
 #include "tao/module_info.h"
 #include "coords3d.h"
+#include "info.h"
 
 // ========================================================================
 //
@@ -46,8 +47,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   11
-#define TAO_MODULE_API_AGE       2
+#define TAO_MODULE_API_CURRENT   12
+#define TAO_MODULE_API_AGE       0
 
 // ========================================================================
 //
@@ -109,7 +110,14 @@ struct ModuleApi
     bool (*DisableTexCoords)();
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
+    // For a 2D teexture, use BindTexture2D
+    // Always returns false.
     bool (*BindTexture)(unsigned int id, unsigned int type);
+
+    // Adds a "bind 2D texture" command to the current layout.
+    // width and height are the dimensions of the texture in pixels.
+    void (*BindTexture2D)(unsigned int id,
+                          unsigned int width, unsigned int height);
 
     // Allow to apply current textures during a drawing.
     bool (*SetTextures)();
@@ -126,6 +134,22 @@ struct ModuleApi
     // on textures of the current layout.
     // It corresponds to GL_LINEAR/GL_NEAREST parameters.
     bool (*HasPixelBlur)(bool enable);
+
+    // Mark object for deletion by the main thread.
+    // All classes derived from XL::Info that perform OpenGL calls in their
+    // destructor MUST use this function in their Delete() method, as follows:
+    // class Foo : public XL::Info
+    // {
+    //      Foo() { }
+    //     ~Foo() { /* Some OpenGL calls like glDeleteTextures... */ }
+    //     virtual void Delete() { tao->deferredDelete(this); }
+    // }
+    // Otherwise, the XL garbage collector may run the destructor in its own
+    // thread, possibly resulting in OpenGL thread conflicts.
+    void (*deferredDelete)(XL::Info * obj);
+
+    // Make the OpenGL context of the current Tao widget be the current context
+    void (*makeGLContextCurrent)();
 
     // ------------------------------------------------------------------------
     //   API for display modules
@@ -284,6 +308,13 @@ struct ModuleApi
 
     // Return true if a valid license is found for the requested feature name
     bool (*hasLicense)(std::string featureName);
+
+    // ------------------------------------------------------------------------
+    //   Current document info
+    // ------------------------------------------------------------------------
+
+    // Return the full path (native format) to the current document folder
+    std::string (*currentDocumentFolder)();
 };
 
 }

@@ -1,12 +1,10 @@
-#ifndef INFO_TRASH_CAN_H
-#define INFO_TRASH_CAN_H
 // ****************************************************************************
-//  info_trash_can.h                                              Tao project
+//  traces.tbl                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    A container for XL::Info objects. Used for deferred deletion.
+//     This table defines the debug traces for the AudioVideo module
 //
 //
 //
@@ -22,22 +20,11 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
-#include "tao.h"
-#include "tree.h"
+#ifndef XL_TRACE_GROUP
+#define XL_TRACE_GROUP AudioVideo
+#endif
 
+TRACE(builtins)
+TRACE(fileload)
+TRACE(video)
 
-TAO_BEGIN
-
-struct InfoTrashCan
-{
-public:
-    static void Empty();
-    static void DeferredDelete(XL::Info *obj);
-
-protected:
-    static std::vector<XL::Info *> trash;
-};
-
-TAO_END
-
-#endif // INFO_TRASH_CAN_H

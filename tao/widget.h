@@ -715,12 +715,6 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      movie(Context *context, Tree_p self,
-                      Real_p x, Real_p y, Real_p w, Real_p h,
-                      text url);
-
-    Integer*    movieTexture(Context *context, Tree_p self, text url);
-
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
@@ -962,8 +956,10 @@ private:
 public:
     static bool           refreshOn(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    static text           currentDocumentFolder();
     void eraseFlow(text flowName){ flows.erase(flowName);}
 
 private:

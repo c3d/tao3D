@@ -101,8 +101,11 @@ bool Template::copyTo(QDir &dst)
 //   Copy the template into dst
 // ----------------------------------------------------------------------------
 {
-    bool ok = recursiveCopy(dir, dst);
-    if (!ok)
+    // Delete destination directory. Ignore errors, because file may be
+    // currently open (in which case it will be overwritten and reloaded)
+    if (dst.exists())
+        Application::recursiveDelete(dst.absolutePath());
+    if (!recursiveCopy(dir, dst))
         return false;
     // Remove auxiliary files
     dst.remove("template.ini");

@@ -107,7 +107,6 @@ protected slots:
     void           onRenderingDone();
 
 protected:
-    static bool    recursiveDelete(QString path);
     static QString defaultUserDocumentsFolderPath();
     static QString appDataPath();
     static bool    createDefaultProjectFolder();
@@ -115,6 +114,7 @@ protected:
 public:
     void         updateSearchPaths(QString path = "");
     static bool  createDefaultTaoPrefFolder();
+    static bool  recursiveDelete(QString path);
 
 public:
     bool         hasGLMultisample, hasFBOMultisample;

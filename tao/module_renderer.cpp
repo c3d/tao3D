@@ -61,6 +61,19 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     return true;
 }
 
+bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
+                                  ModuleApi::render_fn identify, void *arg,
+                                  ModuleApi::delete_fn del)
+// ----------------------------------------------------------------------------
+//  Create a ModuleRendererPrivate object attached to current layout with
+//  identify function
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->layout->Add(new ModuleRenderer(callback, identify, arg, del));
+    return true;
+}
+
+
 
 bool ModuleRenderer::EnableTexCoords(double* texCoord)
 // ----------------------------------------------------------------------------
@@ -164,7 +177,7 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
-    currentLayout  = where;
+    currentLayout = where;
     callback(arg);
 }
 
@@ -177,7 +190,11 @@ void ModuleRenderer::Identify(Layout *where)
     XL::Save<bool> inIdentify(where->inIdentify, true);
     glUseProgram(0); // Necessary for #1464
     currentLayout = where;
-    callback(arg);
+
+    if(identify)
+        identify(arg);
+    else
+        callback(arg);
 }
 
 }

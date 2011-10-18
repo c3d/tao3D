@@ -39,6 +39,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     refreshOn        = Widget::refreshOn;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
+    AddToLayout2     = ModuleRenderer::AddToLayout2;
     addControlBox    = Widget::addControlBox;
 
     //Drawing paramaters

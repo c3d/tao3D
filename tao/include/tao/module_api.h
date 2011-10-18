@@ -96,6 +96,11 @@ struct ModuleApi
     // when layout is destroyed, delete_fn is called with arg.
     bool (*addToLayout)(render_fn callback, void *arg, delete_fn del);
 
+    // Like addToLayout, but uses an other callback to identify object
+    // under cursor.
+    bool (*AddToLayout2)(render_fn callback, render_fn identify,
+                         void *arg, delete_fn del);
+
     // Show a control box to manipulate the object
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);

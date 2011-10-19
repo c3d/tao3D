@@ -1,5 +1,20 @@
 Change log for Tao Presentations
 
+1.0-beta10 (19-Oct-2011)
+
+#1528 Add wireframe mode in object loader module (use color, line_color and line_width)
+#1525 Files not erased when creating a blank template
+#1524 Improve performance of movie and movie_texture
+#1515 Preference dialog: remove Close button on Mac
+#1514 Make preferences dialog non-modal
+#1512 ObjectLoader: make use of VBOs configurable
+#1511 Add Performances section to preference dialog
+#1508 Implement shader-based per-pixel lighting
+#1506 Crash when loading of large 3D object file completes
+#1505 ObjectLoader: use VBOs when available for better performance with large models
+#1503 GL error 1281 when opening file on the command line
+#1502 Normals are not correctly specified for polygon shape
+
 1.0-beta9 (04-Oct-2011)
 
 #1496 Offscreen rendering crash when using sidebysidestereo display mode

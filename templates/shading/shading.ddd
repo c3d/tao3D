@@ -2,7 +2,7 @@ import Shading
 import ObjectLoader
 
 // Main settings
-translatey -100
+translatey -200
 zoom 1.0
 font "LeckerliOne"
 font_size 100

@@ -9857,21 +9857,24 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
     {
         // name has not been converted to URL format, or has changed
         surface->unresolvedName = name;
-        QRegExp re("[a-z]+://");
-        if (re.indexIn(+name) == -1)
+        if (name != "")
         {
-            name = context->ResolvePrefixedPath(name);
-            Window *window = (Window *)parentWidget();
-            QFileInfo inf(window->currentProjectFolderPath(), +name);
-            if (inf.isReadable())
+            QRegExp re("[a-z]+://");
+            if (re.indexIn(+name) == -1)
             {
-            name =
-#if defined(Q_OS_WIN)
-                    "file:///"
-#else
-                    "file://"
-#endif
-                    + +inf.absoluteFilePath();
+                name = context->ResolvePrefixedPath(name);
+                Window *window = (Window *)parentWidget();
+                QFileInfo inf(window->currentProjectFolderPath(), +name);
+                if (inf.isReadable())
+                {
+                    name =
+        #if defined(Q_OS_WIN)
+                            "file:///"
+        #else
+                            "file://"
+        #endif
+                            + +inf.absoluteFilePath();
+                }
             }
         }
     }

@@ -36,13 +36,19 @@ struct ModuleRenderer : Drawing
 // ------------------------------------------------------------------------
 {
     ModuleRenderer(ModuleApi::render_fn callback, void * arg)
-        : Drawing(), callback(callback), arg(arg), del(NULL) {}
+        : Drawing(), callback(callback), identify(NULL), arg(arg), del(NULL) {}
     ModuleRenderer(ModuleApi::render_fn callback, void * arg,
                    ModuleApi::delete_fn del)
-        : Drawing(), callback(callback), arg(arg), del(del) {}
+        : Drawing(), callback(callback), identify(NULL), arg(arg), del(del) {}
+    ModuleRenderer(ModuleApi::render_fn callback,
+                   ModuleApi::render_fn identify, void * arg,
+                   ModuleApi::delete_fn del)
+        : Drawing(), callback(callback), identify(identify), arg(arg), del(del){}
+
     virtual ~ModuleRenderer();
 
     virtual text  Type() { return "ModuleRenderer";}
+
     // Drawing interface
     virtual void  Draw(Layout *where);
     virtual void  Identify(Layout *where);
@@ -51,6 +57,11 @@ struct ModuleRenderer : Drawing
     static bool   ScheduleRender(ModuleApi::render_fn callback, void *arg);
     static bool   AddToLayout(ModuleApi::render_fn callback, void *arg,
                               ModuleApi::delete_fn del);
+    static bool   AddToLayout2(ModuleApi::render_fn callback,
+                               ModuleApi::render_fn identify,
+                               void *arg,
+                               ModuleApi::delete_fn del);
+
 
     // Set drawing attributes
     static bool   SetTextures();
@@ -59,10 +70,11 @@ struct ModuleRenderer : Drawing
     static bool   DisableTexCoords();
     static bool   SetFillColor();
     static bool   SetLineColor();
+    static bool   SetShader(int id);
     static bool   HasPixelBlur(bool enable);
 
-private:
-    ModuleApi::render_fn   callback;
+private:    
+    ModuleApi::render_fn   callback, identify;
     void *                 arg;
     ModuleApi::delete_fn   del;
     static Layout* currentLayout;

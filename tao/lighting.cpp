@@ -94,16 +94,17 @@ void PerPixelLighting::Draw(Layout *where)
         if(enable)
         {
             shader->Draw(where);
-            GLint lights = glGetUniformLocation(shader->program->programId(), "lights");
-            GLint textures = glGetUniformLocation(shader->program->programId(), "textures");
-            glUniform1i(lights, where->currentLights);
-            glUniform1i(textures, where->textureUnits);
+            where->perPixelLighting = where->programId;
         }
         else
         {
-           pgm->release();
-           where->programId = 0;
+            // If there is no other shaders, then deactivate it
+            if(where->perPixelLighting == where->programId)
+                where->programId = 0;
+
+            where->perPixelLighting = 0;
         }
+
     }
 }
 

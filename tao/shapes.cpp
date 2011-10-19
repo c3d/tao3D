@@ -80,17 +80,14 @@ bool Shape::setTexture(Layout *where)
         }
     }
 
-    if (where->globalProgramId)
-        glUseProgram(where->globalProgramId);
-    else
-        glUseProgram(where->programId);
+    // Active current shader
+    setShader(where);
 
     //Update used texture units
     where->previousTextures = where->fillTextures;
 
     return !(where->fillTextures.empty());
 }
-
 
 void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
@@ -201,6 +198,39 @@ bool Shape::setLineColor(Layout *where)
     }
     return false;
 }
+
+
+bool Shape::setShader(Layout *where)
+{
+    // Activate current shader
+    if (where->globalProgramId)
+        glUseProgram(where->globalProgramId);
+    else
+        glUseProgram(where->programId);
+
+    // In order to improve performance of large and complex 3D models,
+    // we use a shader based ligting (Feature #1508), which need some uniform values
+    // to have an efficient behaviour.
+    if(where->perPixelLighting == where->programId)
+    {
+        if(where->programId)
+        {
+            GLint lights = glGetUniformLocation(where->programId, "lights");
+            glUniform1i(lights, where->currentLights);
+
+            GLint textures = glGetUniformLocation(where->programId, "textures");
+            glUniform1i(textures, where->textureUnits);
+
+            // Due to a bug with ATI drivers, we need to pass the name of the vendor
+            // in order to apply the correct fix in the shader
+            GLint vendor = glGetUniformLocation(where->programId, "vendor");
+            glUniform1i(vendor, TaoApp->vendorID);
+        }
+    }
+
+    return true;
+}
+
 
 void Shape::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------

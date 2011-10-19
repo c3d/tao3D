@@ -96,6 +96,11 @@ struct ModuleApi
     // when layout is destroyed, delete_fn is called with arg.
     bool (*addToLayout)(render_fn callback, void *arg, delete_fn del);
 
+    // Like addToLayout, but uses an other callback to identify object
+    // under cursor.
+    bool (*AddToLayout2)(render_fn callback, render_fn identify,
+                         void *arg, delete_fn del);
+
     // Show a control box to manipulate the object
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
@@ -114,6 +119,9 @@ struct ModuleApi
     // Allow to apply current textures during a drawing.
     bool (*SetTextures)();
 
+    // Allow to add a shader define by its id to a drawing.
+    bool (*SetShader)(int id);
+
     // Allow to set fill color during a drawing according
     // to the current layout attributes.
     bool (*SetFillColor)();
@@ -121,6 +129,7 @@ struct ModuleApi
     // Allow to set line color during a drawing according
     // to the current layout attributes.
     bool (*SetLineColor)();
+
 
     // Allow to enable or deactivate pixel blur
     // on textures of the current layout.

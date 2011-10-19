@@ -11,7 +11,6 @@
 ** Taodyne at contact@taodyne.com.
 **
 ****************************************************************************/
-
 #extension GL_EXT_gpu_shader4 : enable
 
 // Bitmasks of activated lights
@@ -19,27 +18,25 @@
 uniform  int  textures;
 uniform  int  lights;
 
+// Graphic cards vendor
+uniform  int  vendor;
+
 // textures parameters
 uniform sampler2D tex0;
 uniform sampler2D tex1;
 uniform sampler2D tex2;
 uniform sampler2D tex3;
 
+varying vec4 color;
 varying vec4 viewDir;
 varying vec3 normal;
-varying vec4 color;
 
-// lighting parameters
 vec4 ambient;
 vec4 diffuse;
 vec4 specular;
 
 vec3 N;
 vec3 V;
-
-// Maximum supported lights according to
-// OpenGL specifications
-const int MAX_LIGHTS = 8;
 
 /*
 * Compute influence of the light i (equivalent to GL_LIGHTi),
@@ -76,7 +73,7 @@ void computePositionalLight(int i)
                    * attenuation;
 
         // Compute specular coefficient
-        float nDotV = clamp(dot(reflect(-L, N), V), 0.0, 1.0);
+        float nDotV = max(0.0, dot(N, gl_LightSource[i].halfVector.xyz));
         if (nDotV > 0.0)
         {
             // Compute specular part
@@ -108,7 +105,7 @@ void computeDirectionalLight(int i)
         diffuse += gl_LightSource[i].diffuse * nDotL;
 
         // Compute specular coefficient
-        float nDotV = clamp(dot(reflect(-L, N), V), 0.0, 1.0);
+        float nDotV = max(0.0, dot(N, gl_LightSource[i].halfVector.xyz));
         if (nDotV > 0.0)
         {
             // Compute specular part
@@ -166,7 +163,7 @@ void computeSpotLight(int i)
                    * attenuation;
 
         // Compute specular coefficient
-        float nDotV = clamp(dot(reflect(-L, N), V), 0.0, 1.0);
+        float nDotV = max(0.0, dot(N, gl_LightSource[i].halfVector.xyz));
         if (nDotV > 0.0)
         {
             // Compute specular part
@@ -183,23 +180,20 @@ void computeSpotLight(int i)
 */
 void computeLight(int i)
 {
-    if (gl_LightSource[i].spotCutoff == 180.0)
+    if (gl_LightSource[i].spotCutoff != 180.0)
+    {
+        computeSpotLight(i);
+    }
+    else
     {
         if(gl_LightSource[i].position.w == 0.0)
             computeDirectionalLight(i);
         else
             computePositionalLight(i);
     }
-    else
-    {
-        computeSpotLight(i);
-    }
 }
 
-/*
-* Compute influences of all lights and materials in the scene.
-*/
-void computeLighting()
+vec4 computeLighting()
 {
     ambient  = vec4 (0.0);
     diffuse  = vec4 (0.0);
@@ -208,41 +202,49 @@ void computeLighting()
     N = normalize(normal);
     V = (vec3 (viewDir)) / viewDir.w;
 
-    ambient  = gl_FrontLightModelProduct.sceneColor;
-
     for(int i = 0; i < 8; i++)
         if(bool(lights & (1 << i)))
             computeLight(i);
 
     // Materials parts
-    ambient  *= gl_FrontMaterial.ambient;
-    diffuse  *= gl_FrontMaterial.diffuse;
-    specular *= gl_FrontMaterial.specular;
-}
+    ambient  = gl_FrontMaterial.ambient * ambient;
+    diffuse  = gl_FrontMaterial.diffuse * diffuse;
+    specular = gl_FrontMaterial.specular * specular;
 
+    vec4 globalAmbient = gl_FrontLightModelProduct.sceneColor;
+
+    // If the vendor is no ATI then we use classic calculation, otherwise
+    // we have to multiply by the scene color to fix a bug.
+    vec4 final_color;
+    if(vendor > 0)
+        final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a)
+                    + vec4(specular.rgb, 0.0);
+    else
+        final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a)
+                    * color + vec4(specular.rgb, 0.0);
+
+    return final_color;
+}
 
 void main (void)
 {
     vec4 render_color = color;
 
-    // Compute textures
-    if((textures & 1) == 1)
-        render_color *= texture2D(tex0, gl_TexCoord[0].st);
-    if((textures & 2) == 2)
-        render_color *= texture2D(tex1, gl_TexCoord[1].st);
-    if((textures & 4) == 4)
-        render_color *= texture2D(tex2, gl_TexCoord[2].st);
-    if((textures & 8) == 8)
-        render_color *= texture2D(tex3, gl_TexCoord[3].st);
-
     if(lights > 0)
     {
-       computeLighting();
-
-       // Compute final color
-       render_color *= (ambient + diffuse);
-       render_color += specular;
+      // Compute final color
+       render_color = computeLighting();
     }
+
+    // Compute activated textures
+    if(bool(textures & 1))
+        render_color *= texture2D(tex0, gl_TexCoord[0].st);
+    if(bool(textures & 2))
+        render_color *= texture2D(tex1, gl_TexCoord[1].st);
+    if(bool(textures & 4))
+        render_color *= texture2D(tex2, gl_TexCoord[2].st);
+    if(bool(textures & 8))
+        render_color *= texture2D(tex3, gl_TexCoord[3].st);
 
     gl_FragColor = render_color;
 }

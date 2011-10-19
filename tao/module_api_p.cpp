@@ -39,6 +39,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     refreshOn        = Widget::refreshOn;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
+    AddToLayout2     = ModuleRenderer::AddToLayout2;
     addControlBox    = Widget::addControlBox;
 
     //Drawing paramaters
@@ -48,6 +49,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
+    SetShader        = ModuleRenderer::SetShader;
     HasPixelBlur     = ModuleRenderer::HasPixelBlur;
 
     // Display module API

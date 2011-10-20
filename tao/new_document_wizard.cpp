@@ -88,7 +88,8 @@ void NewDocumentWizard::accept()
         QString dstPathNative = QDir::toNativeSeparators(dstPath);
         int r = QMessageBox::warning(this, tr("Folder exists"),
                     tr("Document folder:\n%1\nalready exists. "
-                       "Do you want to use it anyway?\n"
+                       "Do you want to use it anyway (current content "
+                       "will be deleted)?\n"
                        "Click No to choose another location.")
                        .arg(dstPathNative),
                        QMessageBox::Yes | QMessageBox::No);

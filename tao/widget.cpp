@@ -105,8 +105,7 @@
 
 enum MacOSWidgetEventType
 {
-    DisplayLink = QEvent::User,
-    UpdateGL    = QEvent::User + 1,
+    DisplayLink = QEvent::User
 };
 #endif
 
@@ -2789,9 +2788,6 @@ bool Widget::event(QEvent *event)
         timerEvent(&e);
         return true;
         }
-    case UpdateGL:
-        refreshNow(event);
-        return true;
     case QEvent::MouseMove:
     case QEvent::KeyPress:
     case QEvent::KeyRelease:
@@ -9814,33 +9810,43 @@ Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
-    if (name != "")
-    {
-        QRegExp re("[a-z]+://");
-        if (re.indexIn(+name) == -1)
-        {
-            name = context->ResolvePrefixedPath(name);
-            Window *window = (Window *)parentWidget();
-            QFileInfo inf(window->currentProjectFolderPath(), +name);
-            if (inf.isReadable())
-            {
-            name =
-#if defined(Q_OS_WIN)
-                    "file:///"
-#else
-                    "file://"
-#endif
-                    + +inf.absoluteFilePath();
-            }
-        }
-    }
-
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)
     {
-        surface = new VideoSurface(self, this);
+        surface = new VideoSurface();
         self->SetInfo<VideoSurface> (surface);
+    }
+
+    if (name != surface->unresolvedName)
+    {
+        // name has not been converted to URL format, or has changed
+        surface->unresolvedName = name;
+        if (name != "")
+        {
+            QRegExp re("[a-z]+://");
+            if (re.indexIn(+name) == -1)
+            {
+                name = context->ResolvePrefixedPath(name);
+                Window *window = (Window *)parentWidget();
+                QFileInfo inf(window->currentProjectFolderPath(), +name);
+                if (inf.isReadable())
+                {
+                    name =
+        #if defined(Q_OS_WIN)
+                            "file:///"
+        #else
+                            "file://"
+        #endif
+                            + +inf.absoluteFilePath();
+                }
+            }
+        }
+    }
+    else
+    {
+        // Raw name has not changed, no need to resolve again
+        name = surface->url;
     }
 
     // Resize to requested size, and bind texture

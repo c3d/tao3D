@@ -110,6 +110,7 @@ bool ModuleRenderer::DisableTexCoords()
 
 uint ModuleRenderer::TextureUnits()
 // ----------------------------------------------------------------------------
+//  Return bitmask of current activated texture units
 // ----------------------------------------------------------------------------
 {
     return currentLayout->textureUnits;
@@ -118,6 +119,7 @@ uint ModuleRenderer::TextureUnits()
 
 void ModuleRenderer::SetTextureUnits(uint texUnits)
 // ----------------------------------------------------------------------------
+//  Set bitmask of current activated texture units
 // ----------------------------------------------------------------------------
 {
     currentLayout->textureUnits = texUnits;

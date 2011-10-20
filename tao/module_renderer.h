@@ -64,13 +64,19 @@ struct ModuleRenderer : Drawing
 
 
     // Set drawing attributes
-    static bool   SetTextures();
-    static bool   BindTexture(unsigned int id, unsigned int type);
+
     static bool   EnableTexCoords(double* texCoord);
     static bool   DisableTexCoords();
+    static uint   TextureUnits();
+    static void   SetTextureUnits(uint texUnits);
+
+    static bool   SetTextures();
+    static bool   BindTexture(unsigned int id, unsigned int type);
+    static bool   SetShader(int id);
+
     static bool   SetFillColor();
     static bool   SetLineColor();
-    static bool   SetShader(int id);
+
     static bool   HasPixelBlur(bool enable);
 
 private:    

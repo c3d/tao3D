@@ -108,6 +108,22 @@ bool ModuleRenderer::DisableTexCoords()
 }
 
 
+uint ModuleRenderer::TextureUnits()
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+{
+    return currentLayout->textureUnits;
+}
+
+
+void ModuleRenderer::SetTextureUnits(uint texUnits)
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+{
+    currentLayout->textureUnits = texUnits;
+}
+
+
 bool ModuleRenderer::SetTextures()
 // ----------------------------------------------------------------------------
 //   Apply the textures as defined by current layout attributes

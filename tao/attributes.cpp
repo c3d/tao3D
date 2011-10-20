@@ -103,33 +103,56 @@ void FillColor::Draw(Layout *where)
 
 void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a texture change
+//   Remember the texture in the layout
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
+    where->textureUnits |= 1 << glUnit;
+
+    where->fillTextures[glUnit].unit = glUnit;
+    where->fillTextures[glUnit].id   = glName;
+    where->fillTextures[glUnit].type = glType;
+}
+
+void TextureUnit::Draw(Layout *where)
+// ------------------------------------------------------------- ---------------
+//   Remember the texture unit in the layout
+// ----------------------------------------------------------------------------
+{
+    // Fig a bug with ATI drivers which set texture matrices
+    // to null instead of identity
+    if(glUnit && (TaoApp->vendorID == ATI))
+    {
+        glActiveTexture(GL_TEXTURE0 + glUnit);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
     if(glUnit < TaoApp->maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
-        where->fillTextures[glUnit].unit = glUnit;
-        where->fillTextures[glUnit].id   = glName;
-        where->fillTextures[glUnit].type = glType;
+        where->currentTexture.unit = glUnit;
     }
 }
-
 
 void TextureWrap::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
     where->fillTextures[glUnit].wrapS = s;
     where->fillTextures[glUnit].wrapT = t;
 }
 
-void TextureTransform::Draw(Layout *)
+void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
         glMatrixMode(GL_TEXTURE);

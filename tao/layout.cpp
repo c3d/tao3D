@@ -662,6 +662,7 @@ void LayoutState::InheritState(LayoutState *where)
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
+    currentTexture   = where->currentTexture;
 
     lightId          = where->lightId;
     currentLights    = where->currentLights;

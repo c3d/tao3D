@@ -122,12 +122,10 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
 //   Bind the texture as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
-    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
-
     Widget::Tao()->layout->currentTexture.id = id;
     Widget::Tao()->layout->currentTexture.type = type;
 
-    Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
+    Widget::Tao()->layout->Add(new FillTexture(id, type));
     Widget::Tao()->layout->hasAttributes = true;
     return false;
 }

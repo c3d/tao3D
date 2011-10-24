@@ -79,6 +79,7 @@
 #include "licence.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
+#include "tao_info.h"
 #include "preferences_pages.h"
 
 #include <QDialog>
@@ -509,7 +510,7 @@ struct PurgeTaoInfo : XL::Action
 {
     virtual Tree *Do (Tree *what)
     {
-        what->Purge<Tao::TaoInfo>();
+        what->Purge<Tao::Info>();
         return what;
     }
 };
@@ -922,6 +923,30 @@ double Widget::currentTimeAPI()
 }
 
 
+void Widget::makeGLContextCurrent()
+// ----------------------------------------------------------------------------
+//   Make GL context of the current Tao widget the current GL context
+// ----------------------------------------------------------------------------
+{
+    Tao()->makeCurrent();
+}
+
+
+static QString errorHint(QString err)
+// ----------------------------------------------------------------------------
+//   Return a hint on how to fix error
+// ----------------------------------------------------------------------------
+{
+    if (err.contains("No rewrite"))
+    {
+        ModuleManager * mmgr = ModuleManager::moduleManager();
+        if (err.contains("movie") && mmgr->enabled("AudioVideo"))
+            return "Hint: Try adding 'import AudioVideo'";
+    }
+    return "";
+}
+
+
 void Widget::runProgram()
 // ----------------------------------------------------------------------------
 //   Run the  XL program
@@ -967,8 +992,16 @@ void Widget::runProgram()
         XL::MAIN->errors->Clear();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
-            text message = (*ei).Position() + ": " + (*ei).Message();
+            text pos = (*ei).Position();
+            text err = (*ei).Message();
+            text message = pos + ": " + err;
             window->addError(+message);
+            text hint = +errorHint(+err);
+            if (hint != "")
+            {
+                text message = pos + ": " + hint;
+                window->addError(+message);
+            }
         }
     }
 
@@ -9820,100 +9853,14 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 }
 
 
-Tree_p Widget::movie(Context *context, Tree_p self,
-                     Real_p x, Real_p y, Real_p sx, Real_p sy, text name)
+text Widget::currentDocumentFolder()
 // ----------------------------------------------------------------------------
-//   Make a video player
-// ----------------------------------------------------------------------------
-{
-    if (!movieTexture(context, self, name))
-        return XL::xl_false;
-    VideoSurface *surface = self->GetInfo<VideoSurface>();
-    double w = sx * surface->width();
-    double h = sy * surface->height();
-    layout->Add(new Rectangle(Box(x-w/2, y-h/2, w, h)));
-    if (currentShape)
-        layout->Add(new ImageManipulator(currentShape, x, y, sx, sy, w, h));
-
-    refreshOn(QEvent::Timer);
-    return XL::xl_true;
-}
-
-
-Integer* Widget::movieTexture(Context *context, Tree_p self, text name)
-// ----------------------------------------------------------------------------
-//   Make a video player texture
+//   Return native path to current document folder
 // ----------------------------------------------------------------------------
 {
-    // Get or build the current frame if we don't have one
-    VideoSurface *surface = self->GetInfo<VideoSurface>();
-    if (!surface)
-    {
-        surface = new VideoSurface();
-        self->SetInfo<VideoSurface> (surface);
-    }
-
-    if (name != surface->unresolvedName)
-    {
-        // name has not been converted to URL format, or has changed
-        surface->unresolvedName = name;
-        if (name != "")
-        {
-            QRegExp re("[a-z]+://");
-            if (re.indexIn(+name) == -1)
-            {
-                name = context->ResolvePrefixedPath(name);
-                Window *window = (Window *)parentWidget();
-                QFileInfo inf(window->currentProjectFolderPath(), +name);
-                if (inf.isReadable())
-                {
-                    name =
-        #if defined(Q_OS_WIN)
-                            "file:///"
-        #else
-                            "file://"
-        #endif
-                            + +inf.absoluteFilePath();
-                }
-            }
-        }
-    }
-    else
-    {
-        // Raw name has not changed, no need to resolve again
-        name = surface->url;
-    }
-
-    // Resize to requested size, and bind texture
-    layout->currentTexture.id     = surface->bind(new Text(name));
-    if (surface->lastError != "")
-    {
-        XL::Ooops("Cannot play: $1", self);
-        text err = "Media player error: ";
-        err.append(surface->lastError);
-        XL::Ooops(err, self);
-        text err2 = "Path or URL: ";
-        err2.append(surface->url);
-        XL::Ooops(err2, self);
-        surface->lastError = "";
-        return new Integer(0, self->Position());
-    }
-    if (layout->currentTexture.id != 0)
-    {
-        layout->currentTexture.width  = surface->width();
-        layout->currentTexture.height = surface->height();
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-
-        uint texUnit = layout->currentTexture.unit;
-        uint texId   = layout->currentTexture.id;
-
-        layout->Add(new FillTexture(texId, texUnit));
-        layout->hasAttributes = true;
-    }
-    refreshOn(QEvent::Timer);
-    return new Integer(layout->currentTexture.id, self->Position());
+    Window *window = (Window *)Tao()->parentWidget();
+    return +QDir::toNativeSeparators(window->currentProjectFolderPath());
 }
-
 
 
 // ============================================================================

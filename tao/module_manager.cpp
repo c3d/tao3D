@@ -408,6 +408,18 @@ void ModuleManager::setEnabled(QString id, bool enabled)
 }
 
 
+bool ModuleManager::enabled(QString importName)
+// ----------------------------------------------------------------------------
+//   Return true if module can be used (exists and is enabled)
+// ----------------------------------------------------------------------------
+{
+    foreach (ModuleInfoPrivate m, modules)
+        if (m.enabled && m.importName == +importName)
+            return true;
+    return false;
+}
+
+
 bool ModuleManager::loadAll(Context *context)
 // ----------------------------------------------------------------------------
 //   Load all enabled modules for current user

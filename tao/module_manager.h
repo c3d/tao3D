@@ -407,6 +407,7 @@ public:
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }
+    bool                enabled(QString importName);
     bool                saveConfig();
     void                refreshModuleProperties(QString moduleDir);
 

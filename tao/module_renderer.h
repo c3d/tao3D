@@ -66,6 +66,8 @@ struct ModuleRenderer : Drawing
     // Set drawing attributes
     static bool   SetTextures();
     static bool   BindTexture(unsigned int id, unsigned int type);
+    static void   BindTexture2D(unsigned int id, unsigned int width,
+                                unsigned int height);
     static bool   EnableTexCoords(double* texCoord);
     static bool   DisableTexCoords();
     static bool   SetFillColor();

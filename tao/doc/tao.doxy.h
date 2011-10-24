@@ -527,7 +527,6 @@ import "xl:my_definitions.xl"
  *
  * @~
  *
- * @todo Document movie / movie_texture?
  * @todo Document Git-related primitives (branch/commit chooser commands and
  *       checkout)?
  * @todo Document "error" primitives?

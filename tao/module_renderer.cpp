@@ -144,6 +144,24 @@ bool ModuleRenderer::SetShader(int id)
 }
 
 
+void ModuleRenderer::BindTexture2D(unsigned int id, unsigned int width,
+                                   unsigned int height)
+// ----------------------------------------------------------------------------
+//   Add 2D texture to current layout
+// ----------------------------------------------------------------------------
+{
+    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
+
+    Widget::Tao()->layout->currentTexture.id = id;
+    Widget::Tao()->layout->currentTexture.type = GL_TEXTURE_2D;
+    Widget::Tao()->layout->currentTexture.width = width;
+    Widget::Tao()->layout->currentTexture.height = height;
+
+    Widget::Tao()->layout->Add(new FillTexture(id, unit, GL_TEXTURE_2D));
+    Widget::Tao()->layout->hasAttributes = true;
+}
+
+
 bool ModuleRenderer::SetFillColor()
 // ----------------------------------------------------------------------------
 //   Set the fill color as defined by the current layout attributes

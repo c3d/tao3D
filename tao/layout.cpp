@@ -53,6 +53,7 @@ LayoutState::LayoutState()
       fillColor(0,0,0,1),       // Black
       textureUnits(0),
       lightId(GL_LIGHT0), currentLights(0),
+      perPixelLighting(0),
       programId(0), printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
@@ -82,6 +83,7 @@ LayoutState::LayoutState(const LayoutState &o)
         fillTextures(o.fillTextures),
         lightId(o.lightId),
         currentLights(o.currentLights),
+        perPixelLighting(o.perPixelLighting),
         programId(o.programId),
         printing(o.printing),
         planarRotation(o.planarRotation),
@@ -663,6 +665,7 @@ void LayoutState::InheritState(LayoutState *where)
 
     lightId          = where->lightId;
     currentLights    = where->currentLights;
+    perPixelLighting = where->perPixelLighting;
 
     programId        = where->programId;
     printing         = where->printing;

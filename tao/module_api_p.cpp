@@ -27,6 +27,7 @@
 #include "display_driver.h"
 #include "frame.h"
 #include "licence.h"
+#include "info_trash_can.h"
 
 TAO_BEGIN
 
@@ -39,16 +40,22 @@ ModuleApiPrivate::ModuleApiPrivate()
     refreshOn        = Widget::refreshOn;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
+    AddToLayout2     = ModuleRenderer::AddToLayout2;
     addControlBox    = Widget::addControlBox;
 
     //Drawing paramaters
     SetTextures      = ModuleRenderer::SetTextures;
     BindTexture      = ModuleRenderer::BindTexture;
+    BindTexture2D    = ModuleRenderer::BindTexture2D;
     EnableTexCoords  = ModuleRenderer::EnableTexCoords;
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
+    SetShader        = ModuleRenderer::SetShader;
     HasPixelBlur     = ModuleRenderer::HasPixelBlur;
+
+    deferredDelete   = InfoTrashCan::DeferredDelete;
+    makeGLContextCurrent = Widget::makeGLContextCurrent;
 
     // Display module API
     registerDisplayFunction      = DisplayDriver::registerDisplayFunction;
@@ -83,6 +90,9 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     // License checking
     hasLicense = Licences::Has;
+
+    // Current document info
+    currentDocumentFolder =  Widget::currentDocumentFolder;
 }
 
 TAO_END

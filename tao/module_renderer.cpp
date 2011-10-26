@@ -61,6 +61,19 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     return true;
 }
 
+bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
+                                  ModuleApi::render_fn identify, void *arg,
+                                  ModuleApi::delete_fn del)
+// ----------------------------------------------------------------------------
+//  Create a ModuleRendererPrivate object attached to current layout with
+//  identify function
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->layout->Add(new ModuleRenderer(callback, identify, arg, del));
+    return true;
+}
+
+
 
 bool ModuleRenderer::EnableTexCoords(double* texCoord)
 // ----------------------------------------------------------------------------
@@ -119,6 +132,35 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     return false;
 }
 
+bool ModuleRenderer::SetShader(int id)
+// ----------------------------------------------------------------------------
+//   Set the shader defined by its id to the current layout attributes
+// ----------------------------------------------------------------------------
+{
+    if(id >= 0)
+        currentLayout->programId = id;
+
+    return Shape::setShader(currentLayout);
+}
+
+
+void ModuleRenderer::BindTexture2D(unsigned int id, unsigned int width,
+                                   unsigned int height)
+// ----------------------------------------------------------------------------
+//   Add 2D texture to current layout
+// ----------------------------------------------------------------------------
+{
+    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
+
+    Widget::Tao()->layout->currentTexture.id = id;
+    Widget::Tao()->layout->currentTexture.type = GL_TEXTURE_2D;
+    Widget::Tao()->layout->currentTexture.width = width;
+    Widget::Tao()->layout->currentTexture.height = height;
+
+    Widget::Tao()->layout->Add(new FillTexture(id, unit, GL_TEXTURE_2D));
+    Widget::Tao()->layout->hasAttributes = true;
+}
+
 
 bool ModuleRenderer::SetFillColor()
 // ----------------------------------------------------------------------------
@@ -153,7 +195,7 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
-    currentLayout  = where;
+    currentLayout = where;
     callback(arg);
 }
 
@@ -166,7 +208,11 @@ void ModuleRenderer::Identify(Layout *where)
     XL::Save<bool> inIdentify(where->inIdentify, true);
     glUseProgram(0); // Necessary for #1464
     currentLayout = where;
-    callback(arg);
+
+    if(identify)
+        identify(arg);
+    else
+        callback(arg);
 }
 
 }

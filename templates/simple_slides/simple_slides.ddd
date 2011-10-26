@@ -79,6 +79,7 @@ slide "White On Gray (Slide)",
     - "Bullet level 2"
 
 picture_slide "White on Gray (3D)",
+    texture_wrap true, true
     color "white"
     texture "earth.bmp"
     rotatey 2.3 * time

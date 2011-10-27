@@ -36,7 +36,8 @@
        shaders/sinuous \
        shaders/sparks  \
        shaders/glow  \
-       slideshow_3d
+       slideshow_3d \
+       vlc_audio_video
     OTHER_MODULES =     \
         display_2dplusdepth \
         hello_world     \

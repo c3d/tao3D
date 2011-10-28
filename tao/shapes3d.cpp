@@ -104,7 +104,6 @@ void Cube::Draw(Layout *where)
 //    Draw the cube within the bounding box
 // ----------------------------------------------------------------------------
 {
-    Box3 b = bounds + where->Offset();
     coord xl = bounds.lower.x;
     coord yl = bounds.lower.y;
     coord zl = bounds.lower.z;

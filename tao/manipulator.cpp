@@ -129,8 +129,6 @@ void Manipulator::updateArg(Widget *, Tree *arg,
     Tree_p  source   = xl_source(arg); // Find the source expression
     Tree_p *ptr      = &source;
     bool    more     = true;
-    Tree_p *pptr     = NULL;
-    Tree_p *ppptr    = NULL;
     double  scale    = 1.0;
 
     // Check if we have an Infix +, if so walk down the left side
@@ -138,8 +136,6 @@ void Manipulator::updateArg(Widget *, Tree *arg,
     while (more)
     {
         more = false;
-        ppptr = pptr;
-        pptr = NULL;
         if (XL::Infix *infix = (*ptr)->AsInfix())
         {
             if (infix->name == "-")
@@ -186,7 +182,6 @@ void Manipulator::updateArg(Widget *, Tree *arg,
             {
                 if (name->value == "-")
                 {
-                    pptr = ptr;
                     ptr = &prefix->right;
                     more = true;
                     scale = -scale;
@@ -199,7 +194,6 @@ void Manipulator::updateArg(Widget *, Tree *arg,
             {
                 if (name->value == "%")
                 {
-                    pptr = ptr;
                     ptr = &postfix->left;
                     more = true;
                     scale /= 100;

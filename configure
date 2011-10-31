@@ -123,6 +123,4 @@ osflags() {
   esac
 }
 
-QMAKE_COMMAND="qmake -r `osflags` $DEBUG_FLAGS $LICENCE_FLAGS $EDITION_FLAGS $*"
-echo $QMAKE_COMMAND
-eval $QMAKE_COMMAND
+qmake -r `osflags` $DEBUG_FLAGS $LICENCE_FLAGS $EDITION_FLAGS "$@"

@@ -1412,7 +1412,7 @@ void Widget::copy()
     else  // Object selected
     {
         // Build a single tree from all the selected sub-trees
-        XL::Tree *tree = copySelection();
+        XL::Tree_p tree = copySelection();
 
         if (!tree) return;
 
@@ -1547,9 +1547,10 @@ Name_p Widget::bringToFront(Tree_p /*self*/)
 //   Bring the selected shape to front
 // ----------------------------------------------------------------------------
 {
-    Tree * select = removeSelection();
+    Tree_p select = copySelection();
     if (!select)
         return XL::xl_false;
+    deleteSelection();
 
     insert(NULL, select, "Selection brought to front");
     return XL::xl_true;
@@ -1566,9 +1567,11 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 
     XL::Symbols *symbols = xlProgram->tree->Symbols();
 
-    Tree * select = removeSelection();
+    Tree_p select = copySelection();
     if (!select)
         return XL::xl_false;
+
+    deleteSelection();
     // Make sure the new objects appear selected next time they're drawn
     selectStatements(select);
 
@@ -10611,17 +10614,6 @@ XL::Tree_p Widget::copySelection()
     return xlProgram->tree->Do(copy);
 }
 
-XL::Tree_p Widget::removeSelection()
-// ----------------------------------------------------------------------------
-//    Remove the selection from the tree and return a copy of it
-// ----------------------------------------------------------------------------
-{
-    XL::Tree_p tree = copySelection();
-    if (!tree)
-        return NULL;
-    deleteSelection();
-    return tree;
-}
 
 Name_p Widget::deleteSelection(Tree_p self, text key)
 // ----------------------------------------------------------------------------
@@ -10740,14 +10732,14 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
 }
 
 
-Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child)
+Tree_p Widget::updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p selected)
 // ----------------------------------------------------------------------------
 //   Replace 'child' with a group created from the selection
 // ----------------------------------------------------------------------------
 {
-    Name * groupName = new Name("group");
-    Tree * group = new Prefix(groupName,
-                              new Block(copySelection(), "I+", "I-"));
+    Name_p groupName = new Name("group");
+    Tree_p group = new Prefix(groupName,
+                              new Block(selected, "I+", "I-"));
 
     Infix * inf = parent->AsInfix();
     if (inf)
@@ -10803,10 +10795,11 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
     if (!hasSelection() || !markChange("Selection grouped"))
         return XL::xl_false;
 
+    Tree_p selected = copySelection();
     // Find the first non-selected ancestor of the first element
     //      in the selection set.
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
-    Tree * child = *sel;
+    Tree_p child = *sel;
     Tree * parent = NULL;
     do {
         XL::FindParentAction getParent(child);
@@ -10818,12 +10811,11 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
         return XL::xl_false;
 
     // Do the work
-    Tree * theGroup = updateParentWithGroupInPlaceOfChild(parent, child);
+    Tree_p theGroup = updateParentWithGroupInPlaceOfChild(parent, child, selected);
     if (!theGroup)
         return XL::xl_false;
 
     deleteSelection();
-
     selectStatements(theGroup);
 
     // Reload the program and mark the changes
@@ -10843,6 +10835,13 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent,
     Block * block = group->right->AsBlock();
     if (!block)
         return false;
+
+    // If the program is made only with this group
+    if (group == xlProgram->tree)
+    {
+        xlProgram->tree = block->child;
+        return true;
+    }
 
     if (inf)
     {
@@ -10895,6 +10894,7 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent,
     if (blockPar)
     {
         blockPar->child = block->child;
+
         return true;
     }
 
@@ -10912,26 +10912,26 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
+    for( ;sel != selectionTrees.end(); sel++)
+    {
+        Prefix * groupTree = (*sel)->AsPrefix();
+        if (!groupTree)
+            continue;
 
-    Prefix * groupTree = (*sel)->AsPrefix();
-    if (!groupTree)
-        return XL::xl_false;
+        Name * name = groupTree->left->AsName();
+        if (!name || name->value != "group")
+            continue;
 
-    Name * name = groupTree->left->AsName();
-    if (!name || name->value != "group")
-        return XL::xl_false;
+        XL::FindParentAction getParent(*sel);
+        Tree * parent = xlProgram->tree->Do(getParent);
+        // Check if we are not the only one
+        if (!parent)
+            continue;
 
-    XL::FindParentAction getParent(*sel);
-    Tree * parent = xlProgram->tree->Do(getParent);
-    // Check if we are not the only one
-    if (!parent)
-        return XL::xl_false;
-
-    bool res = updateParentWithChildrenInPlaceOfGroup(parent, groupTree);
-    if (!res)
-        return XL::xl_false;
-
-    selectStatements(groupTree->right);
+        bool res = updateParentWithChildrenInPlaceOfGroup(parent, groupTree);
+        if (!res)
+            continue;
+    }
 
     // Reload the program and mark the changes
     reloadProgram();

@@ -37,7 +37,8 @@ Box3 Attribute::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return Box3(where->offset, Vector3(0,0,0));
+    // Bug#130 Attribute has no bounds. (and not 0,0,0)
+    return Box3();
 }
 
 
@@ -47,7 +48,8 @@ Box3 Attribute::Space(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return Box3(where->offset, Vector3(0,0,0));
+    // Bug#130 Attribute takes no space. (and not 0,0,0)
+    return Box3();
 }
 
 

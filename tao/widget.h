@@ -760,7 +760,6 @@ public:
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      copySelection();
-    Tree_p      removeSelection();
     // Unit conversions
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
@@ -948,7 +947,7 @@ private:
 private:
     void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
-    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
+    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
     void                  refreshOn(QEvent::Type type,

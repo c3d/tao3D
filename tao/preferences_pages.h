@@ -107,8 +107,6 @@ private slots:
     void         onUpdateOneComplete(bool success);
     void         onCellClicked(int row, int col);
     void         doSearch();
-
-private:
     void         updateTable();
 
 private:

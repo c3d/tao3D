@@ -36,6 +36,7 @@ FILES_COMMON = \
 	main_defs.pri \
 	translations.pri \
 	modules \
+	modules/.gitignore \
 	modules/README_SDK \
 	modules/modules.pro \
 	modules/modules.pri \

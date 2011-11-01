@@ -428,7 +428,6 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         bool first = true;
         //bool penultimate = true;
         bool last = true;
-        Kind startKind = MOVE_TO;
         Kind endKind = MOVE_TO;
         Point3 startPoint;
         Point3 endPoint;
@@ -449,18 +448,15 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 switch ((*i).kind)
                 {
                 case MOVE_TO:
-                    startKind = MOVE_TO;
                     startPoint = (*i).position;
                     break;
                 case LINE_TO:
                 case CURVE_TO:
                     // First line
-                    startKind = LINE_TO;
                     startHeading = (*i).position - startPoint;
                     length = startHeading.Length();
                     if (length == 0)
                     {
-                        startKind = MOVE_TO;
                         startPoint = (*i).position;
                     }
                     else
@@ -482,12 +478,10 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                     break;
                 case CURVE_CONTROL:
                     // First curve
-                    startKind = CURVE_TO;
                     startHeading = (*i).position - startPoint;
                     length = startHeading.Length();
                     if (length == 0)
                     {
-                        startKind = MOVE_TO;
                         startPoint = (*i).position;
                     }
                     else

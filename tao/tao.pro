@@ -31,8 +31,7 @@ LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += webkit \
     network \
     opengl \
-    svg \
-    phonon
+    svg
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -128,7 +127,8 @@ HEADERS += widget.h \
     statistics.h \
     gc_thread.h \
     info_trash_can.h \
-    destination_folder_dialog.h
+    destination_folder_dialog.h \
+    include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \

@@ -330,6 +330,8 @@ ModulesPage::ModulesPage(QWidget *parent)
     mainLayout->addSpacing(12);
     mainLayout->addWidget(cfuWidget);
     setLayout(mainLayout);
+
+    connect(mmgr, SIGNAL(modulesChanged()), this, SLOT(updateTable()));
 }
 
 

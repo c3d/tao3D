@@ -409,6 +409,21 @@ void install_signal_handler(sig_t handler)
 }
 
 
+static void Write(int fd, const char *buf, size_t size)
+// ----------------------------------------------------------------------------
+//   write() wrapper
+// ----------------------------------------------------------------------------
+{
+    size_t left = size;
+    while (left)
+    {
+        size_t s = write(fd, buf + size - left, left);
+        if (s > 0)
+            left -= s;
+    }
+}
+
+
 void signal_handler(int sigid)
 // ----------------------------------------------------------------------------
 //   Signal handler
@@ -427,7 +442,7 @@ void signal_handler(int sigid)
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log);
-    size_t ignored = write(two, buffer, size);
+    Write(two, buffer, size);
 
     // Prevent recursion in the signal handler
     static int recursive = 0;
@@ -443,7 +458,7 @@ void signal_handler(int sigid)
             *ptr = '-';
 #endif
     int fd = open(sig_handler_log, O_WRONLY|O_CREAT, 0666);
-    ignored = write (fd, buffer, size);
+    Write(fd, buffer, size);
 
     // Backtrace
 #ifdef CONFIG_MINGW
@@ -464,13 +479,13 @@ void signal_handler(int sigid)
         if (size < sizeof buffer)
             buffer[size++] = '\n';
 
-        ignored = write (fd, buffer, size);
-        ignored = write (two, buffer, size);
+        Write(fd, buffer, size);
+        Write(two, buffer, size);
     }
 #endif // Test which (non-) operating system we have
         
     // Dump the flight recorder
-    ignored = write (fd, "\n\n", 2);
+    Write (fd, "\n\n", 2);
     XL::FlightRecorder::SDump(fd, false);
 
     // Close the output stream

@@ -2362,7 +2362,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (repo)
         oldUrl = repo->url();
 
-    bool created = false;
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
     {
@@ -2415,7 +2414,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             repo = RepositoryFactory::repository(path,
                                                  RepositoryFactory::Create);
-            created = (repo != NULL);
         }
     }
 

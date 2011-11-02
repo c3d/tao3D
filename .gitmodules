@@ -4,3 +4,9 @@
 [submodule "tao/tests"]
 	path = tao/tests
 	url = ssh://nano.taodyne.com/~ddd/Work/tests.git
+[submodule "modules/vlc_audio_video"]
+	path = modules/vlc_audio_video
+	url = ssh://nano.taodyne.com/~jerome/Work/vlc_audio_video
+[submodule "vlc_audio_video"]
+	path = vlc_audio_video
+	url = ./modules/vlc_audio_video

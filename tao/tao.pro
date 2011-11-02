@@ -31,8 +31,7 @@ LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += webkit \
     network \
     opengl \
-    svg \
-    phonon
+    svg
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET

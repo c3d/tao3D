@@ -30,7 +30,6 @@
 #include "tree_cloning.h"
 #include "text_edit.h"
 #include <QtWebKit>
-#include <phonon>
 #include <cstring>
 #include <string>
 

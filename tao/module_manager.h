@@ -429,6 +429,7 @@ public:
 signals:
     void                checking(QString name);
     void                updating(QString name);
+    void                modulesChanged();
 
 private:
     ModuleManager()  {}

@@ -3851,13 +3851,6 @@ void Widget::printStatistics()
     RasterText::printf("%dx%dx%d %s fps%s", vw, vh, stereoPlanes, fps,
                        dropped);
 
-    static const char *gcs1 = NULL, *gcs2 = NULL;
-    if (!gcs1)
-    {
-        // "GCw" is GC wait time
-        gcs1 = XL::MAIN->options.threaded_gc ? "(GCw" : "GC";
-        gcs2 = XL::MAIN->options.threaded_gc ? ")" : "";
-    }
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17);
     if (n >= 0)
     {

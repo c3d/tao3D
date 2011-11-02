@@ -29,7 +29,6 @@
 #include "tao_gl.h"
 #include "info_trash_can.h"
 #include "tao/tao_info.h"
-#include <phonon>
 
 class QWidget;
 

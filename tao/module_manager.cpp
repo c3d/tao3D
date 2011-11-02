@@ -998,6 +998,7 @@ bool ModuleManager::loadNative(Context * /*context*/,
                 }
 
                 m_p->native = lib;
+                emit modulesChanged();
             }
         }
         else

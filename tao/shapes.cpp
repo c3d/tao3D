@@ -231,8 +231,14 @@ bool Shape::setShader(Layout *where)
     return true;
 }
 
+// ============================================================================
+//
+//   Shape 2D
+//
+// ============================================================================
 
-void Shape::Draw(GraphicPath &path)
+
+void Shape2::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //    Draw the shape in a path
 // ----------------------------------------------------------------------------
@@ -241,7 +247,7 @@ void Shape::Draw(GraphicPath &path)
 }
 
 
-void Shape::Draw(Layout *where)
+void Shape2::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Draw the shape using a path
 // ----------------------------------------------------------------------------
@@ -252,7 +258,7 @@ void Shape::Draw(Layout *where)
 }
 
 
-void Shape::Identify(Layout *where)
+void Shape2::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw a simplified version of the shape for selection purpose
 // ----------------------------------------------------------------------------
@@ -260,9 +266,7 @@ void Shape::Identify(Layout *where)
     GraphicPath path;
     Draw(path);
     path.Draw(where, GL_SELECT);
-}    
-
-
+}
 
 // ============================================================================
 //

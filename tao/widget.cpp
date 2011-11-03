@@ -9651,6 +9651,7 @@ void Widget::fileChosen(const QString & filename)
 
     XL::Tree_p fileAction =
         currentFileDialog->property("TAO_ACTION").value<XL::Tree_p>();
+    currentFileDialog->close();
     if (!fileAction)
         return;
 

@@ -100,13 +100,25 @@ struct FillTexture : Attribute
 //    Record a texture change
 // ----------------------------------------------------------------------------
 {
-    FillTexture(uint glName, uint glUnit, GLenum glType = GL_TEXTURE_2D)
-        : Attribute(), glName(glName), glUnit(glUnit), glType(glType) {}
+    FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D)
+        : Attribute(), glName(glName), glType(glType) {}
     virtual void Draw(Layout *where);
     uint   glName;
-    uint   glUnit;
     GLenum glType;
     virtual text        Type() { return "FillTexture";}
+};
+
+
+struct TextureUnit : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture wrapping setting
+// ----------------------------------------------------------------------------
+{
+    TextureUnit(uint glUnit)
+        : Attribute(), glUnit(glUnit) {}
+    virtual void Draw(Layout *where);
+    uint  glUnit;
+    virtual text        Type() { return "TextureUnit";}
 };
 
 
@@ -115,11 +127,10 @@ struct TextureWrap : Attribute
 //    Record a texture wrapping setting
 // ----------------------------------------------------------------------------
 {
-    TextureWrap(bool s, bool t, uint glUnit)
-        : Attribute(), s(s), t(t), glUnit(glUnit) {}
+    TextureWrap(bool s, bool t)
+        : Attribute(), s(s), t(t) {}
     virtual void Draw(Layout *where);
     bool s, t;
-    uint  glUnit;
     virtual text        Type() { return "TextureWrap";}
 };
 
@@ -129,11 +140,10 @@ struct TextureTransform : Attribute
 //    Record a texture transform
 // ----------------------------------------------------------------------------
 {
-    TextureTransform(bool enable, uint glUnit)
-        : Attribute(), enable(enable), glUnit(glUnit) {}
+    TextureTransform(bool enable)
+        : Attribute(), enable(enable) {}
     virtual void Draw(Layout *where);
     bool  enable;
-    uint  glUnit;
     virtual text        Type() { return "TextureTransform";}
 };
 

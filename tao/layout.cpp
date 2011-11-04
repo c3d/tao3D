@@ -32,7 +32,7 @@ TAO_BEGIN
 
 int   Layout::polygonOffset   = 0;
 scale Layout::factorBase      = 0;
-scale Layout::factorIncrement = -0.01; // Experimental value
+scale Layout::factorIncrement = -0.001; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
 uint  Layout::globalProgramId = 0;
@@ -662,6 +662,7 @@ void LayoutState::InheritState(LayoutState *where)
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
+    currentTexture   = where->currentTexture;
 
     lightId          = where->lightId;
     currentLights    = where->currentLights;

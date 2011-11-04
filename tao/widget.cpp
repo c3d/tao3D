@@ -6123,19 +6123,10 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
         return 0;
     }
 
-    // Fig a bug with ATI drivers which set texture matrices
-    // to null instead of identity
-    if(texUnit && (TaoApp->vendorID == ATI))
-    {
-        glActiveTexture(GL_TEXTURE0 + texUnit);
-        glMatrixMode(GL_TEXTURE);
-        glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
-        glActiveTexture(GL_TEXTURE0);
-    }
-
+    layout->Add(new TextureUnit(texUnit));
     layout->textureUnits |= 1 << texUnit;
     layout->currentTexture.unit = texUnit;
+
     return new XL::Integer(texUnit);
 }
 
@@ -6151,12 +6142,10 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
         return 0;
     }
 
-    uint texUnit = layout->currentTexture.unit;
-
     layout->currentTexture.id   = id;
     layout->currentTexture.type = GL_TEXTURE_2D;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
     return new XL::Integer(texId);
 }
@@ -6167,7 +6156,6 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
 //     Build a GL texture out of an image file
 // ----------------------------------------------------------------------------
 {
-    uint texUnit = 0;
     uint texId = 0;
 
     if (img != "")
@@ -6187,11 +6175,10 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         layout->currentTexture.height = rinfo->height;
         layout->currentTexture.type   = GL_TEXTURE_2D;
 
-        texUnit = layout->currentTexture.unit;
-        texId   = layout->currentTexture.id;
+        texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -6203,7 +6190,6 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
 //     Build a GL texture out of a movie file
 // ----------------------------------------------------------------------------
 {
-    uint texUnit = 0;
     uint texId = 0;
 
     refreshOn(QEvent::Timer);
@@ -6224,11 +6210,10 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
         layout->currentTexture.height = rinfo->height;
         layout->currentTexture.type   = GL_TEXTURE_2D;
 
-        texUnit = layout->currentTexture.unit;
-        texId   = layout->currentTexture.id;
+        texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -6242,7 +6227,6 @@ Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
 //    The image may be animated, in which case we will get repaintNeeded()
 //    signals that we send to our 'draw()' so that we redraw as needed.
 {
-    uint texUnit = 0;
     uint texId = 0;
 
     refreshOn(QEvent::Timer);
@@ -6264,11 +6248,10 @@ Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
         layout->currentTexture.height = rinfo->h;
         layout->currentTexture.type   = GL_TEXTURE_2D;
 
-        texUnit = layout->currentTexture.unit;
         texId   = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -6313,7 +6296,6 @@ Integer* Widget::image(Context *context,
     layout->currentTexture.height = rinfo->height;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
     double w0 = rinfo->width;
@@ -6321,7 +6303,7 @@ Integer* Widget::image(Context *context,
     double w = w0 * sx;
     double h = h0 * sy;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
@@ -6459,8 +6441,7 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
 //   Record if we want to wrap textures or clamp them
 // ----------------------------------------------------------------------------
 {
-    uint texUnit = layout->currentTexture.unit;
-    layout->Add(new TextureWrap(s, t, texUnit));
+    layout->Add(new TextureWrap(s, t));
     return XL::xl_true;
 }
 
@@ -6470,7 +6451,6 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 {
     uint texUnit = layout->currentTexture.unit;
-
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
     if(texUnit >= TaoApp->maxTextureCoords)
@@ -6481,9 +6461,9 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 
     layout->hasTextureMatrix |= 1 << texUnit;
     layout->hasTransform = true;
-    layout->Add(new TextureTransform(true, texUnit));
+    layout->Add(new TextureTransform(true));
     Tree_p result = context->Evaluate(code);
-    layout->Add(new TextureTransform(false, texUnit));
+    layout->Add(new TextureTransform(false));
     layout->hasTransform = false;
     return result;
 }
@@ -6728,8 +6708,14 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
     QDir::setCurrent(window->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
+    if(! ok)
+    {
+        Ooops("Unable to open file in $1", self);
+        return XL::xl_false;
+    }
+
     QDir::setCurrent(savePath);
-    return ok ? XL::xl_true : XL::xl_false;
+    return XL::xl_true;
 }
 
 
@@ -7525,10 +7511,9 @@ Integer* Widget::picturePacker(Tree_p self,
     layout->currentTexture.height = ih;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     return new Integer(texId, self->Position());
 }
 
@@ -7669,10 +7654,9 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId,texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
     delete editCursor;
     editCursor = NULL;
@@ -8594,17 +8578,17 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     if (withDepth)
     {
+        uint texUnit = layout->currentTexture.unit;
         uint depthTexId = frame.depthTexture();
         fillTextureUnit(self, texUnit+1);
-        layout->Add(new FillTexture(depthTexId, texUnit+1));
+        layout->Add(new FillTexture(depthTexId));
         fillTextureUnit(self, texUnit);
     }
 
@@ -8689,10 +8673,9 @@ Integer* Widget::thumbnail(Context *context,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -8763,10 +8746,9 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -8838,10 +8820,9 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -8913,10 +8894,9 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -8973,10 +8953,9 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9023,10 +9002,9 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9069,10 +9047,9 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9117,10 +9094,9 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9165,10 +9141,9 @@ Integer* Widget::pushButtonTexture(Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9443,10 +9418,9 @@ Integer* Widget::colorChooserTexture(Tree_p self,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9496,10 +9470,9 @@ Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9737,10 +9710,9 @@ Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -9840,10 +9812,9 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
     layout->currentTexture.height = h;
     layout->currentTexture.type   = GL_TEXTURE_2D;
 
-    uint texUnit = layout->currentTexture.unit;
     uint texId   = layout->currentTexture.id;
 
-    layout->Add(new FillTexture(texId, texUnit));
+    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());

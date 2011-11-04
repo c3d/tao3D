@@ -49,6 +49,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     BindTexture2D    = ModuleRenderer::BindTexture2D;
     EnableTexCoords  = ModuleRenderer::EnableTexCoords;
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
+    TextureUnits     = ModuleRenderer::TextureUnits;
+    SetTextureUnits  = ModuleRenderer::SetTextureUnits;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
     SetShader        = ModuleRenderer::SetShader;

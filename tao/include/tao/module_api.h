@@ -114,6 +114,12 @@ struct ModuleApi
     // Allow to disable texture coordinates after a drawing.
     bool (*DisableTexCoords)();
 
+    // Get the bimasks of all activated texture units.
+    unsigned int (*TextureUnits)();
+
+    // Set the bimasks of all activated texture units.
+    void (*SetTextureUnits)(unsigned int textureUnits);
+
     // Allow to bind a new texture in Tao thanks to its id and its type.
     // For a 2D teexture, use BindTexture2D
     // Always returns false.

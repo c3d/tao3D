@@ -1285,9 +1285,7 @@ bool GitRepository::pathIsRoot()
 {
 #if defined(Q_OS_MACX)
     // Workaround bug#657
-    QProcess p;
-    p.start("more");
-    p.close();
+    QCoreApplication::processEvents();
 #endif
     return (QDir(path + "/.git").exists());
 }

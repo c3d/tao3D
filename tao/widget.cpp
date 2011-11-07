@@ -3246,7 +3246,9 @@ void Widget::refreshProgram()
             if (modified > sf.modified)
             {
                 IFTRACE(filesync)
-                    std::cerr << "File " << fname << " changed\n";
+                    std::cerr << "File " << fname << " changed ("
+                              << modified << " > " << sf.modified
+                              << " delta " << modified - sf.modified << ")\n";
 
                 Tree *replacement = NULL;
                 if (repo)

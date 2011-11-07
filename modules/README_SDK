@@ -17,7 +17,7 @@ I) Building and installing modules
  1. Build and install a local copy of the modules
 
 $ cd tao_sdk/modules
-$ qmake -r -spec macx-g++
+$ ./configure
 $ make install
 
 This will copy the modules under your "Application Support" directory:
@@ -39,7 +39,7 @@ Start Tao Presentations: the new modules will be detected automatically.
 In a MinGW shell window:
 
 $ cd tao_sdk/modules
-$ qmake -r -spec win32-g++
+$ ./configure
 $ make install
 
 This will copy the modules under your "Application Data" directory:
@@ -58,7 +58,7 @@ Start Tao Presentations. The new modules will be detected automatically.
  1. Build and install a local copy of the modules
 
 $ cd tao_sdk/modules
-$ qmake -r
+$ ./configure
 $ make install
 
 This will copy the modules under your home directory: "~/.tao/modules".
@@ -105,9 +105,7 @@ To add a new module:
     - Change the name, description, import_name, etc.
  4. Rename and adapt C++ source files and the .tbl file (if any). Update the
     .pro accordingly. You can provide your own icon for the module, too.
- 5. Add your module to the build configuration, either by editing
-    module_list.pri or by running qmake with option "modules=+your_module_dir".
- 6. Build as explained above.
+ 5. Run ./configure && make install
 
 
 V) Troubleshooting

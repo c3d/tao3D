@@ -497,6 +497,22 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        SYNOPSIS("Disable OpenGL depth test")
        DESCRIPTION("Deactivate the OpenGL depth test for polygons.")
        RETURNS(boolean, "The previous state of depth testing"))
+PREFIX(BlendFunction, boolean, "blend_function",
+       PARM(src, text, "")
+       PARM(dst, text, ""),
+       RTAO(blendFunction(self, src, dst)),
+       SYNOPSIS("Set the blend function"))
+PREFIX(BlendFunctionSeparate, boolean, "blend_function_separate",
+       PARM(src, text, "")
+       PARM(dst, text, "")
+       PARM(srca, text, "")
+       PARM(dsta, text, ""),
+       RTAO(blendFunctionSeparate(self, src, dst, srca, dsta)),
+       SYNOPSIS("Set the blend function separately for color and alpha"))
+PREFIX(BlendEquation, boolean, "blend_equation",
+       PARM(eq, text, ""),
+       RTAO(blendEquation(self, eq)),
+       SYNOPSIS("Set the blend function separately for color and alpha"))
 PREFIX(Refresh, tree, "refresh",
        PARM(interval, real, "Interval in seconds"),
        RTAO(refresh(self, interval)),
@@ -2132,23 +2148,6 @@ PREFIX(GroupBoxTexture,  tree,  "group_box_texture",
        SYNOPSIS("Texture group box.")
        DESCRIPTION("Make a texture out of a given group box."))
 
-PREFIX(Movie,  tree,  "movie",
-       PARM(x,real, "x-coordinate")
-       PARM(y,real, "y-coordinate")
-       PARM(w,real, "width")
-       PARM(h,real, "height")
-       PARM(u,text, "The URL of the movie to play."),
-       RTAO(movie(context, self, x, y, w, h, u)),
-       GROUP(widget)
-       SYNOPSIS("Play a movie")
-       DESCRIPTION("Display a movie in the rectangle specified by the given coordinates. Supported movie formats depend on the operating system."))
-PREFIX(MovieTexture,  tree,  "movie_texture",
-       PARM(u,text, "The URL of the movie to play"),
-       RTAO(movieTexture(context, self, u)),
-       GROUP(widget)
-       SYNOPSIS("Create a texture from a video.")
-       DESCRIPTION("Create a dynamic texture from the given movie."))
-
 
 
 // ============================================================================
@@ -2162,6 +2161,12 @@ PREFIX(LightsMask,  tree,  "lights_mask",,
        SYNOPSIS("Return a bitmask of all current activated lights")
        DESCRIPTION("Return a bitmask of all current activated lights")
        RETURNS(tree, "Return a bitmask of all current activated lights"))
+PREFIX(PerPixelLighting,  tree,  "per_pixel_lighting",
+       PARM(b, boolean,),
+       RTAO(perPixelLighting(self, b)),
+       GROUP(lighting)
+       SYNOPSIS("Enable or disable per pixel lighting")
+       DESCRIPTION(""))
 
 PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
        RTAO(lightId(self, l, b)),

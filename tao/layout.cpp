@@ -32,10 +32,11 @@ TAO_BEGIN
 
 int   Layout::polygonOffset   = 0;
 scale Layout::factorBase      = 0;
-scale Layout::factorIncrement = -0.01; // Experimental value
+scale Layout::factorIncrement = -0.001; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
 uint  Layout::globalProgramId = 0;
+bool  Layout::inIdentify      = false;
 
 
 LayoutState::LayoutState()
@@ -50,18 +51,18 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentLights(0),
       textureUnits(0),
-      lightId(GL_LIGHT0), programId(0),
-      printing(false),
+      lightId(GL_LIGHT0), currentLights(0),
+      perPixelLighting(0),
+      programId(0), printing(false),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
+      hasTextureMatrix(false),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false), hasTransform(false), hasTextureMatrix(false),
-      hasLighting(false), hasMaterial(false),
+      hasAttributes(false), hasLighting(false), hasBlending(false),
+      hasTransform(false), hasMaterial(false),
       isSelection(false), groupDrag(false)
-{
-}
+{}
 
 
 LayoutState::LayoutState(const LayoutState &o)
@@ -77,22 +78,25 @@ LayoutState::LayoutState(const LayoutState &o)
         lineColor(o.lineColor),
         fillColor(o.fillColor),
         currentTexture(o.currentTexture),
-        currentLights(o.currentLights),
         textureUnits(o.textureUnits),
         previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),
-        model(o.model),
         lightId(o.lightId),
+        currentLights(o.currentLights),
+        perPixelLighting(o.perPixelLighting),
         programId(o.programId),
         printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
         rotationId(o.rotationId), translationId(o.translationId),
         scaleId(o.scaleId),
-        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes), hasTransform(o.hasTransform),
+        model(o.model),
         hasTextureMatrix(o.hasTextureMatrix),
-        hasLighting(false), hasMaterial(false),
+        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
+        hasAttributes(o.hasAttributes), 
+        hasLighting(false),
+        hasBlending(false),
+        hasTransform(o.hasTransform), hasMaterial(false),
         isSelection(o.isSelection), groupDrag(false)
 {}
 
@@ -276,6 +280,9 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
+    // Remember that we are in Identify mode
+    XL::Save<bool> saveIdenitfy(inIdentify, true);
+
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
@@ -651,18 +658,25 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
+
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
-    model            = where->model;
+    currentTexture   = where->currentTexture;
+
     lightId          = where->lightId;
+    currentLights    = where->currentLights;
+    perPixelLighting = where->perPixelLighting;
+
     programId        = where->programId;
     printing         = where->printing;
+
     planarRotation   = where->planarRotation;
     planarScale      = where->planarScale;
+    model            = where->model;
+
     has3D            = where->has3D;
     hasPixelBlur     = where->hasPixelBlur;
-    currentLights    = where->currentLights;
     groupDrag        = where->groupDrag;
     hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;

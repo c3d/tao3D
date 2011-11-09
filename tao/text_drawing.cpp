@@ -110,7 +110,6 @@ void TextUnit::DrawCached(Layout *where)
     coord       x        = pos.x;
     coord       y        = pos.y;
     coord       z        = pos.z;
-    uint        charId   = ~0U;
 
     GlyphCache::GlyphEntry  glyph;
     std::vector<Point3>     quads;
@@ -131,9 +130,6 @@ void TextUnit::DrawCached(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
-
-        if (canSel)
-            charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
@@ -226,7 +222,6 @@ void TextUnit::DrawDirect(Layout *where)
     scale       lw       = where->lineWidth;
     bool        skip     = false;
     uint        i, max   = str.length();
-    uint        charId   = ~0U;
     TextFlow  * flow     = NULL;
 
     // Disable drawing of lines if we don't see them.
@@ -254,13 +249,12 @@ void TextUnit::DrawDirect(Layout *where)
     {
         uint  unicode  = XL::Utf8Code(str, i);
         bool  newLine  = unicode == '\n';
-        if (canSel)
-            charId = where->CharacterId();
 
         // Advance to next character
         if (newLine)
         {
-            scale height = glyphs.Ascent(font, texUnits) + glyphs.Descent(font, texUnits);
+            scale height = glyphs.Ascent(font, texUnits)
+                         + glyphs.Descent(font, texUnits);
             scale spacing = height + glyphs.Leading(font, texUnits);
             x = 0;
             y -= spacing * glyphs.fontScaling;
@@ -312,7 +306,6 @@ void TextUnit::DrawSelection(Layout *where)
     coord       x            = pos.x;
     coord       y            = pos.y;
     coord       z            = pos.z;
-    uint        first        = start;
     scale       textWidth    = 0;
     TextSelect *sel          = widget->textSelection();
     uint        charId       = ~0U;
@@ -417,7 +410,6 @@ void TextUnit::DrawSelection(Layout *where)
             x = 0;
             y -= spacing;
             textWidth = 0;
-            first = i;
         }
         else
         {
@@ -480,7 +472,6 @@ void TextUnit::Identify(Layout *where)
     coord       x         = pos.x;
     coord       y         = pos.y;
     coord       z         = pos.z;
-    uint        first     = start;
     scale       textWidth = 0;
     scale       ascent    = glyphs.Ascent(font, texUnits);
     scale       descent   = glyphs.Descent(font, texUnits);
@@ -552,7 +543,6 @@ void TextUnit::Identify(Layout *where)
             x = 0;
             y -= spacing;
             textWidth = 0;
-            first = i;
             charX1 = x;
         }
         else

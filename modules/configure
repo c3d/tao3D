@@ -1,0 +1,85 @@
+#!/bin/sh
+# This file is part of the Tao module SDK
+
+usage() {
+  (
+  echo "Usage: configure [options] [QMake options]"
+  echo ""
+  echo "The Tao SDK configuration script."
+  echo "Runs QMake to configure the build environment for Tao modules."
+  echo "configure will:"
+  echo ""
+  echo "  - Select which modules will be built and installed"
+  echo "  - Define OS-specific qmake options."
+  echo ""
+  echo "Please look at the QMake 'Project MESSAGE' output for detailed information on"
+  echo "what will be included in the build."
+  echo "Modules are installed in a user-specific directory and do NOT overwrite"
+  echo "the modules that come with Tao Presentations (but a user module has priority"
+  echo "on an application module at runtime). See the Tao documentation for details."
+  echo "make install will copy module files to:"
+  echo '  - Windows: %APPDATA%\Tao Presentations\modules'
+  echo '  - MacOSX:  $HOME/Library/Application Support/Tao Presentations/modules'
+  echo '  - Linux: $HOME/.tao/modules'
+  echo ""
+  echo "Options:"
+  echo ""
+  echo "  --debug         Build in debug mode (default is release)"
+  echo ""
+  echo "QMake options:"
+  echo ""
+  echo "  Any other option is passed unmodified to Qmake, after the options added by"
+  echo "  this configure script."
+  echo ""
+  echo "Examples:"
+  echo ""
+  echo "  ./configure --debug"
+  echo "              Configure to build all modules in debug mode"
+  echo "  ./configure modules+=-my_module"
+  echo "              Build all modules except my_module."
+  echo "              See module_list.pri for details on the syntax of the 'modules'"
+  echo "              variable."
+  echo "  ./configure modules=\"none +my_module\""
+  echo "              Build only my_module."
+  echo "  ./configure CONFIG-=x86"
+  echo "              Configure for a 64-bit release build on MacOSX (x86 is selected"
+  echo "              by default)"
+  ) >&2
+  exit 0
+}
+
+DEBUG_FLAGS="CONFIG+=release"
+
+done=
+while [ $# -ne 0 ] ; do
+  case "$1" in
+    -h|--help)
+      usage
+      ;;
+    --debug)
+      DEBUG_FLAGS="CONFIG-=release"
+      shift
+      ;;
+    *)
+      done=1
+      ;;
+  esac
+  [ "$done" ] && break
+done
+
+# Default QMake flags for each OS
+osflags() {
+  UNAME=`uname`
+  case "$UNAME" in
+    Darwin)
+      echo "-spec macx-g++ CONFIG+=x86"
+      ;;
+    MINGW*)
+      echo "-spec win32-g++"
+      ;;
+    Linux*)
+      ;;
+  esac
+}
+
+qmake -r `osflags` $DEBUG_FLAGS "$@"

@@ -89,7 +89,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #endif
       taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
       unifiedTitleAndToolBarOnMac(false), // see #678 below
-      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
+#ifndef CFG_NORELOAD
+      fileCheckTimer(this),
+#endif
+      splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
 #ifndef CFG_NOSRCEDIT
@@ -154,20 +157,24 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
             return;
     }
 
+#ifndef CFG_NOEDIT
     // Cut/Copy/Paste actions management
     connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(onFocusWidgetChanged(QWidget*,QWidget*)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()),
             this, SLOT(checkClipboard()));
     checkClipboard();
+#endif
 
     // Create the main widget to display Tao stuff
     XL::SourceFile &sf = xlRuntime->files[+sourceFile];
     taoWidget->xlProgram = &sf;
 
+#ifndef CFG_NORELOAD
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+#endif
 
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
@@ -412,8 +419,16 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(onDocReady(QString)));
                 connect(uri, SIGNAL(templateCloned(QString)),
                         this, SLOT(onNewTemplateInstalled(QString)));
-                connect(uri, SIGNAL(templateFetched(QString)),
+                connect(uri, SIGNAL(templateUpdated(QString)),
+                        this, SLOT(onTemplateUpdated(QString)));
+                connect(uri, SIGNAL(templateUpToDate(QString)),
                         this, SLOT(onTemplateUpToDate(QString)));
+                connect(uri, SIGNAL(moduleCloned(QString)),
+                        this, SLOT(onNewModuleInstalled(QString)));
+                connect(uri, SIGNAL(moduleUpdated(QString)),
+                        this, SLOT(onModuleUpdated(QString)));
+                connect(uri, SIGNAL(moduleUpToDate(QString)),
+                        this, SLOT(onModuleUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
                 bool ok = uri->get();  // Will emit a signal when done
@@ -815,6 +830,8 @@ void Window::clearRecentFileList()
 }
 
 
+#ifndef CFG_NOEDIT
+
 void Window::cut()
 // ----------------------------------------------------------------------------
 //    Cut the current selection into the clipboard
@@ -903,6 +920,7 @@ void Window::checkClipboard()
     pasteAct->setEnabled(enable);
 }
 
+#endif // CFG_NOEDIT
 
 #ifndef CFG_NOGIT
 
@@ -955,7 +973,9 @@ void Window::fetch()
         return warnNoRepo();
 
     FetchDialog dialog(repo.data(), this);
+#ifndef CFG_NOEDIT
     connect(&dialog, SIGNAL(fetched()), gitToolBar, SLOT(refresh()));
+#endif
     dialog.exec();
 }
 
@@ -1082,20 +1102,29 @@ void Window::onDocReady(QString path)
 }
 
 
+void Window::showInfoDialog(QString title, QString msg, QString info)
+// ----------------------------------------------------------------------------
+//    Show a dialog box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(info);
+    msgBox.exec();
+}
+
 void Window::onNewTemplateInstalled(QString path)
 // ----------------------------------------------------------------------------
 //    Show a dialog box to confirm that a new template was installed
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
     QString title = tr("New template installed");
-    QString msg = tr("A new template was installed.");
-    QString infoMsg = tr("The template will appear in the new document dialog."
-                         " Files were installed in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    QString msg = tr("A new template \"%1\" was installed.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1104,14 +1133,89 @@ void Window::onTemplateUpToDate(QString path)
 //    Show a dialog box to confirm that an existing template is up-to-date
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
     QString title = tr("Template is up-to-date");
-    QString msg = tr("The template is up-to-date.");
-    QString infoMsg = tr("The template is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    QString msg = tr("The template \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onTemplateUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing template was updated
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Template was updated");
+    QString msg = tr("The template \"%1\" was updated.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onNewModuleInstalled(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that a new module was installed
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("New module installed");
+    QString msg = tr("A new module \"%1\" was installed.").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The module will be visible in the preference "
+                         "dialog and can be used after restarting the "
+                         "application.</p>"
+                         "<p>If you received a license file for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
+    showInfoDialog(title, msg, infoMsg);
+}
+
+
+void Window::onModuleUpToDate(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module is up-to-date
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Module is up-to-date");
+    QString msg = tr("The module \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onModuleUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module was updated
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Module was updated");
+    QString msg = tr("A module update was downloaded for \"%1\".").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The update will be installed when the "
+                         "application restarts.</p>"
+                         "<p>If you received a new license for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
+    showInfoDialog(title, msg, infoMsg);
 }
 
 
@@ -1123,6 +1227,9 @@ void Window::reloadCurrentFile()
     loadFile(curFile, false);
 }
 
+#endif // CFG_NOGIT
+
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 
 bool Window::populateUndoStack()
 // ----------------------------------------------------------------------------
@@ -1151,7 +1258,7 @@ void Window::clearUndoStack()
     undoStack->clear();
 }
 
-#endif // CFG_NOGIT
+#endif // !CFG_NOGIT && !CFG_NOEDIT
 
 void Window::about()
 // ----------------------------------------------------------------------------
@@ -1181,7 +1288,79 @@ void Window::preferences()
 //    Show the Preferences dialog
 // ----------------------------------------------------------------------------
 {
-    PreferencesDialog(this).exec();
+    static QPointer<PreferencesDialog> prefs;
+    if (!prefs)
+    {
+        prefs = new PreferencesDialog;
+        connect(this, SIGNAL(destroyed()), prefs.data(), SLOT(close()));
+    }
+    prefs->show();
+    prefs->raise();
+    prefs->activateWindow();
+}
+
+
+void Window::licenses()
+// ----------------------------------------------------------------------------
+//    Show Licenses dialog. Largely inspired from QMessageBox::aboutQt().
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_WS_MAC
+    static QPointer<QMessageBox> oldMsgBox;
+
+    if (oldMsgBox) {
+        oldMsgBox->show();
+        oldMsgBox->raise();
+        oldMsgBox->activateWindow();
+        return;
+    }
+#endif
+
+    QString title = tr("Licensing");
+    QString caption;
+    caption = tr("<h3>Tao Presentation Licenses</h3>");
+
+    QString prefix;
+#if defined(Q_OS_WIN)
+    prefix = "file:///";
+#else
+    prefix = "file://";
+#endif
+    QString msg;
+    msg = tr(
+                "<h3>To add new licenses</h3>"
+                "<p>If you received license files (with the .taokey "
+                "extension), copy them into the license folder and "
+                "restart the application. Your new licenses will be "
+                "loaded automatically.</p>"
+                "<center><a href=\"%1%2\">"
+                "Open the license folder</a></center>"
+                ).arg(prefix).arg(Application::defaultLicenseFolderPath());
+
+    QMessageBox *msgBox = new QMessageBox;
+    msgBox->setAttribute(Qt::WA_DeleteOnClose);
+    msgBox->setWindowTitle(title);
+    msgBox->setText(caption);
+    msgBox->setInformativeText(msg);
+
+    // The padlock icon is a merge of:
+    // http://www.openclipart.org/detail/17931 (public domain)
+    // and our Tao pictogram
+    QPixmap pm(":/images/tao_padlock.svg");
+    if (!pm.isNull())
+    {
+        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
+                                   Qt::SmoothTransformation);
+        msgBox->setIconPixmap(scaled);
+    }
+
+    msgBox->raise();
+#ifdef Q_WS_MAC
+    oldMsgBox = msgBox;
+    msgBox->show();
+#else
+    msgBox->exec();
+#endif
 }
 
 
@@ -1368,6 +1547,7 @@ void Window::createActions()
     exitAct->setMenuRole(QAction::QuitRole);
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
+#ifndef CFG_NOEDIT
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
     cutAct->setShortcuts(QKeySequence::Cut);
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
@@ -1391,8 +1571,9 @@ void Window::createActions()
     pasteAct->setIconVisibleInMenu(false);
     pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
+#endif
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
@@ -1463,6 +1644,12 @@ void Window::createActions()
     preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
+    licensesAct = new QAction(tr("&Licenses..."), this);
+    licensesAct->setStatusTip(tr("View or add license files"));
+    licensesAct->setObjectName("licenses");
+    licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
+
     onlineDocAct = new QAction(tr("&Online Documentation"), this);
     onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
     onlineDocAct->setObjectName("onlineDoc");
@@ -1490,6 +1677,7 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
+#ifndef CFG_NOEDIT
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
 #ifndef CFG_NOSRCEDIT
@@ -1504,6 +1692,7 @@ void Window::createActions()
 
     redoAction = undoStack->createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
+#endif
 
     // Icon copied from:
     // /Developer/Documentation/Qt/html/images/cursor-openhand.png
@@ -1577,6 +1766,7 @@ void Window::createMenus()
     clearRecentAct->setEnabled(false);
     updateRecentFileActions();
 
+#ifndef CFG_NOEDIT
     editMenu = menuBar()->addMenu(tr("&Edit"));
     editMenu->setObjectName(EDIT_MENU_NAME);
     editMenu->addAction(undoAction);
@@ -1585,8 +1775,9 @@ void Window::createMenus()
     editMenu->addAction(cutAct);
     editMenu->addAction(copyAct);
     editMenu->addAction(pasteAct);
+#endif
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     shareMenu = menuBar()->addMenu(tr("&Share"));
     shareMenu->setObjectName(SHARE_MENU_NAME);
     shareMenu->addAction(cloneAct);
@@ -1617,6 +1808,7 @@ void Window::createMenus()
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
+    helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(onlineDocTaodyneAct);
 }
@@ -1639,6 +1831,7 @@ void Window::createToolBars()
     if (view)
         view->addAction(fileToolBar->toggleViewAction());
 
+#ifndef CFG_NOEDIT
     editToolBar = addToolBar(tr("Edit"));
     editToolBar->setObjectName("editToolBar");
     editToolBar->addAction(cutAct);
@@ -1647,6 +1840,7 @@ void Window::createToolBars()
     editToolBar->hide();
     if (view)
         view->addAction(editToolBar->toggleViewAction());
+#endif
 
     viewToolBar = addToolBar(tr("View"));
     viewToolBar->setObjectName("viewToolBar");
@@ -1658,7 +1852,7 @@ void Window::createToolBars()
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     gitToolBar = new GitToolBar(tr("Git Tools"), this);
     gitToolBar->setObjectName("gitToolbar");
     connect(this, SIGNAL(projectChanged(Repository*)),
@@ -1801,7 +1995,7 @@ void Window::setReadOnly(bool ro)
 #ifndef CFG_NOSRCEDIT
     srcEdit->setReadOnly(ro);
 #endif
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
@@ -2134,7 +2328,7 @@ void Window::markChanged(bool changed)
 }
 
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 void Window::enableProjectSharingMenus()
 // ----------------------------------------------------------------------------
 //   Activate the Git-related actions
@@ -2148,7 +2342,9 @@ void Window::enableProjectSharingMenus()
     selectiveUndoAct->setEnabled(true);
     diffAct->setEnabled(true);
 }
+#endif
 
+#ifndef CFG_NOGIT
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
 //   Find and open a project (= SCM repository)
@@ -2166,7 +2362,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (repo)
         oldUrl = repo->url();
 
-    bool created = false;
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
     {
@@ -2219,7 +2414,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             repo = RepositoryFactory::repository(path,
                                                  RepositoryFactory::Create);
-            created = (repo != NULL);
         }
     }
 
@@ -2239,30 +2433,35 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             this->repo = repo;
 
+
             // For undo/redo: widget has to be notified when document
             // is succesfully committed into repository
             // REVISIT: should slot be in Window rather than Widget?
             connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                     taoWidget,  SLOT(commitSuccess(QString, QString)));
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             // Also be notified when changes come from remote sync (pull)
             connect(repo.data(), SIGNAL(asyncPullComplete()),
                     this, SLOT(clearUndoStack()));
+#endif
             // REVISIT
             // Do not populate undo stack with current Git history to avoid
             // making it possible to undo some operations like document
             // creation... (these commits are not easy to identify
             // currently)
             // populateUndoStack();
-
+#ifndef CFG_NOEDIT
             enableProjectSharingMenus();
-
+#endif
             QString url = repo->url();
             if (url != oldUrl)
                 emit projectUrlChanged(url);
             if (repo != oldRepo)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     gitToolBar, SLOT(refresh()));
+#endif
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }

@@ -67,6 +67,7 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
+    static QString defaultLicenseFolderPath();
 
 public:
     QStringList    pathCompletions();
@@ -77,6 +78,7 @@ public:
     Window *       findFirstTaoWindow();
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
+    void           enableVSync(bool on);
 
 signals:
     void           allWindowsReady();
@@ -84,6 +86,7 @@ signals:
 public slots:
     void           saveDebugTraceSettings();
     void           checkingModule(QString name);
+    void           updatingModule(QString name);
 
 protected:
     void           saveSettings();
@@ -104,7 +107,6 @@ protected slots:
     void           onRenderingDone();
 
 protected:
-    static bool    recursiveDelete(QString path);
     static QString defaultUserDocumentsFolderPath();
     static QString appDataPath();
     static bool    createDefaultProjectFolder();
@@ -112,13 +114,16 @@ protected:
 public:
     void         updateSearchPaths(QString path = "");
     static bool  createDefaultTaoPrefFolder();
+    static bool  recursiveDelete(QString path);
 
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
+    bool         useShaderLighting;
     Vendor       vendorID;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
+    text         GLVendor;
     text         GLRenderer;
     text         GLVersionAvailable;
     text         GLExtensionsAvailable;

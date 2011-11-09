@@ -84,6 +84,7 @@ public:
     virtual process_p   asyncClone(QString cloneUrl, QString newFolder);
     virtual process_p   asyncFetch(QString what);
     virtual text        version();
+    virtual text        head();
     virtual bool        isClean();
     virtual QString     url();
     virtual bool        gc();

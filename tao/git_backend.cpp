@@ -754,14 +754,15 @@ void GitRepository::checkCurrentBranch()
 // ----------------------------------------------------------------------------
 {
     QString head = path + "/.git/HEAD";
-    struct stat st;
-    if (stat((+head).c_str(), &st) < 0)
+    QFileInfo fi(head);
+    if (!fi.isReadable())
         return;
+    time_t mtime = fi.lastModified().toTime_t();
     if (currentBranchMtime == 0)
-        currentBranchMtime = st.st_mtime;
-    if (st.st_mtime <= currentBranchMtime)
+        currentBranchMtime = mtime;
+    if (mtime <= currentBranchMtime)
         return;
-    currentBranchMtime = st.st_mtime;
+    currentBranchMtime = mtime;
     emit branchChanged(+branch());
 }
 
@@ -1208,6 +1209,24 @@ text GitRepository::version()
 }
 
 
+text GitRepository::head()
+// ----------------------------------------------------------------------------
+//    Return a unique identifier for the current repo state (HEAD SHA-1)
+// ----------------------------------------------------------------------------
+{
+    text output, result;
+    waitForAsyncProcessCompletion();
+    QStringList args;
+    args << "rev-parse" << "HEAD";
+    GitProcess cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
+    if (ok)
+        result = output;
+    return result;
+}
+
+
 bool GitRepository::isClean()
 // ----------------------------------------------------------------------------
 //    Is working directory is clean or dirty?
@@ -1264,6 +1283,10 @@ bool GitRepository::pathIsRoot()
 //    Return true if path used to open repository is the top-level directory
 // ----------------------------------------------------------------------------
 {
+#if defined(Q_OS_MACX)
+    // Workaround bug#657
+    QCoreApplication::processEvents();
+#endif
     return (QDir(path + "/.git").exists());
 }
 

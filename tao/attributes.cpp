@@ -37,7 +37,8 @@ Box3 Attribute::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return Box3(where->offset, Vector3(0,0,0));
+    // Bug#130 Attribute has no bounds. (and not 0,0,0)
+    return Box3();
 }
 
 
@@ -47,7 +48,8 @@ Box3 Attribute::Space(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return Box3(where->offset, Vector3(0,0,0));
+    // Bug#130 Attribute takes no space. (and not 0,0,0)
+    return Box3();
 }
 
 
@@ -103,33 +105,56 @@ void FillColor::Draw(Layout *where)
 
 void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a texture change
+//   Remember the texture in the layout
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
+    where->textureUnits |= 1 << glUnit;
+
+    where->fillTextures[glUnit].unit = glUnit;
+    where->fillTextures[glUnit].id   = glName;
+    where->fillTextures[glUnit].type = glType;
+}
+
+void TextureUnit::Draw(Layout *where)
+// ------------------------------------------------------------- ---------------
+//   Remember the texture unit in the layout
+// ----------------------------------------------------------------------------
+{
+    // Fig a bug with ATI drivers which set texture matrices
+    // to null instead of identity
+    if(glUnit && (TaoApp->vendorID == ATI))
+    {
+        glActiveTexture(GL_TEXTURE0 + glUnit);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
     if(glUnit < TaoApp->maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
-        where->fillTextures[glUnit].unit = glUnit;
-        where->fillTextures[glUnit].id   = glName;
-        where->fillTextures[glUnit].type = glType;
+        where->currentTexture.unit = glUnit;
     }
 }
-
 
 void TextureWrap::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
     where->fillTextures[glUnit].wrapS = s;
     where->fillTextures[glUnit].wrapT = t;
 }
 
-void TextureTransform::Draw(Layout *)
+void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
         glMatrixMode(GL_TEXTURE);
@@ -290,6 +315,36 @@ void DepthTest::Draw(Layout *)
         glEnable(GL_DEPTH_TEST);
     else
         glDisable(GL_DEPTH_TEST);
+}
+
+
+void BlendFunc::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend function
+// ----------------------------------------------------------------------------
+{
+    glBlendFunc(sfactor, dfactor);
+    where->hasBlending = true;
+}
+
+
+void BlendFuncSeparate::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend function separately for alpha and color
+// ----------------------------------------------------------------------------
+{
+    glBlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
+    where->hasBlending = true;
+}
+
+
+void BlendEquation::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend equation
+// ----------------------------------------------------------------------------
+{
+    glBlendEquation(equation);
+    where->hasBlending = true;
 }
 
 

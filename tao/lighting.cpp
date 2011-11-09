@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  lighting.cpp                                                    Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -26,9 +26,106 @@
 #include "lighting.h"
 #include "layout.h"
 #include "tao_gl.h"
-
+#include "application.h"
+#include "widget.h"
+#include "tao_utf8.h"
 
 TAO_BEGIN
+
+QGLShaderProgram *PerPixelLighting::pgm = NULL;
+bool              PerPixelLighting::failed = false;
+
+PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
+// ----------------------------------------------------------------------------
+//   Construction
+// ----------------------------------------------------------------------------
+{
+    if(!pgm && !failed)
+    {
+        pgm = new QGLShaderProgram();
+        QString path = Application::applicationDirPath();
+        QString vs = path + "/lighting.vs";
+        QString fs = path + "/lighting.fs";
+        bool ok = false;
+        if (pgm->addShaderFromSourceFile(QGLShader::Vertex, vs))
+        {
+            if (pgm->addShaderFromSourceFile(QGLShader::Fragment, fs))
+            {
+                ok = true;
+            }
+            else
+            {
+                std::cerr << "Error loading shader code: " << +fs << "\n";
+                std::cerr << +pgm->log();
+            }
+        }
+        else
+        {
+            std::cerr << "Error loading shader code: " << +vs << "\n";
+            std::cerr << +pgm->log();
+        }
+        if (!ok)
+        {
+            delete pgm;
+            pgm = NULL;
+            failed = true;
+        }
+    }
+    if (pgm)
+        shader = new ShaderProgram(pgm);
+}
+
+PerPixelLighting::~PerPixelLighting()
+// ----------------------------------------------------------------------------
+//   Destruction
+// ----------------------------------------------------------------------------
+{
+    if (shader)
+        delete shader;
+}
+
+void PerPixelLighting::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Enable or disable per pixel lighting
+// ----------------------------------------------------------------------------
+{
+    if(shader)
+    {
+        if(enable)
+        {
+            shader->Draw(where);
+            where->perPixelLighting = where->programId;
+        }
+        else
+        {
+            // If there is no other shaders, then deactivate it
+            if(where->perPixelLighting == where->programId)
+                where->programId = 0;
+
+            where->perPixelLighting = 0;
+        }
+
+    }
+}
+
+
+LightId::LightId(uint id, bool enable) : Lighting(), id(id), enable(enable)
+// ----------------------------------------------------------------------------
+//   Construction
+// ----------------------------------------------------------------------------
+{
+    perPixelLighting = new PerPixelLighting();
+}
+
+
+LightId::~LightId()
+// ----------------------------------------------------------------------------
+//   Destruction
+// ----------------------------------------------------------------------------
+{
+    delete perPixelLighting;
+}
+
 
 void LightId::Draw(Layout *where)
 // ----------------------------------------------------------------------------
@@ -38,15 +135,25 @@ void LightId::Draw(Layout *where)
     where->lightId = GL_LIGHT0 + id;
     if (enable)
     {
+        where->currentLights |= 1 << id;
         glEnable(where->lightId);
         glEnable(GL_LIGHTING);
         glEnable(GL_COLOR_MATERIAL);
         glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
         glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+
+        if(TaoApp->useShaderLighting)
+            perPixelLighting->Draw(where);
     }
     else
     {
+        where->currentLights ^= 1 << id;
         glDisable(where->lightId);
+        if(! where->currentLights)
+        {
+            glDisable(GL_LIGHTING);
+            glDisable(GL_COLOR_MATERIAL);
+        }
     }
 }
 
@@ -68,6 +175,11 @@ void Material::Draw(Layout *where)
     where->hasMaterial = true;
     glDisable(GL_COLOR_MATERIAL);
     glMaterialfv(face, function, &args[0]);
+
+    // Determine is the diffuse material
+    // is visible or not (use for transparency)
+    if(function == GL_DIFFUSE)
+        where->visibility = args[args.size() - 1];
 }
 
 
@@ -127,18 +239,18 @@ void ShaderValue::Draw(Layout *where)
 
             //Get type of current uniform variable
             GLint size = 0;
-			GLint length = 0;
+                        GLint length = 0;
             GLchar* uniformName = new GLchar[uniformMaxLength + 1];
             for(int index = 0; index < uniformActive; index++)
             {
                 glGetActiveUniform( where->programId, index, uniformMaxLength + 1, &length, &size, (GLenum*) &type, uniformName);
-				
-				// If uniform is an array, compare just name without []
-				if(length >= 3 && uniformName[length - 1] == ']')
-					if(! strncmp(uniformName,name->value.c_str(), length - 3))
-						break;
-				
-				// Otherwise juste compare
+
+                                // If uniform is an array, compare just name without []
+                                if(length >= 3 && uniformName[length - 1] == ']')
+                                        if(! strncmp(uniformName,name->value.c_str(), length - 3))
+                                                break;
+
+                                // Otherwise juste compare
                 if(! strcmp(uniformName,name->value.c_str()))
                     break;
             }

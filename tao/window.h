@@ -138,11 +138,13 @@ private slots:
     void consolidate();
     void openRecentFile();
     void clearRecentFileList();
+#ifndef CFG_NOEDIT
     void cut();
     void copy();
     void paste();
     void onFocusWidgetChanged(QWidget *old, QWidget *now);
     void checkClipboard();
+#endif
 #ifndef CFG_NOGIT
     void setPullUrl();
     void fetch();
@@ -155,13 +157,20 @@ private slots:
     void onDocReady(QString path);
     void onNewTemplateInstalled(QString path);
     void onTemplateUpToDate(QString path);
+    void onTemplateUpdated(QString path);
+    void onNewModuleInstalled(QString path);
+    void onModuleUpToDate(QString path);
+    void onModuleUpdated(QString path);
     void onUriGetFailed();
     void checkDetachedHead();
     void reloadCurrentFile();
+#endif
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     void clearUndoStack();
 #endif
     void about();
     void preferences();
+    void licenses();
     void onlineDoc();
     void onlineDocTaodyne();
     void documentWasModified();
@@ -186,14 +195,17 @@ private:
     Window  *findWindow(const QString &fileName);
     bool     updateProgram(const QString &filename);
     void     resetTaoMenus();
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     bool     populateUndoStack();
-    void     warnNoRepo();
     void     enableProjectSharingMenus();
+#endif
+#ifndef CFG_NOGIT
+    void     warnNoRepo();
 #endif
     void     updateRecentFileActions();
     void     updateContext(QString docPath);
     void     showMessage(QString message, int timeout);
+    void     showInfoDialog(QString title, QString msg, QString info = "");
     void     closeToolWindows();
 
 
@@ -217,16 +229,22 @@ private:
     bool              slideShowMode;
     bool              unifiedTitleAndToolBarOnMac;
 
+#ifndef CFG_NORELOAD
     QTimer            fileCheckTimer;
+#endif
     QMenu            *fileMenu;
     QMenu            *openRecentMenu;
+#ifndef CFG_NOEDIT
     QMenu            *editMenu;
+#endif
     QMenu            *viewMenu;
     QMenu            *displayModeMenu;
     QActionGroup     *displayModes;
     QMap<QString, QAction *> displayModeToAction;
     QToolBar         *fileToolBar;
+#ifndef CFG_NOEDIT
     QToolBar         *editToolBar;
+#endif
     QToolBar         *viewToolBar;
     GitToolBar       *gitToolBar;
     QAction          *newDocAct;
@@ -241,11 +259,10 @@ private:
     QAction          *pageSetupAct;
     QAction          *closeAct;
     QAction          *exitAct;
-    QAction          *cutAct;
-    QAction          *copyAct;
-    QAction          *pasteAct;
 #ifndef CFG_NOGIT
     QAction          *openUriAct;
+#endif
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     QAction          *setPullUrlAct;
     QAction          *pushAct;
     QAction          *fetchAct;
@@ -257,13 +274,19 @@ private:
 #endif
     QAction          *aboutAct;
     QAction          *preferencesAct;
+    QAction          *licensesAct;
     QAction          *onlineDocAct;
     QAction          *onlineDocTaodyneAct;
     QAction          *slideShowAct;
     QAction          *viewAnimationsAct;
     QUndoView        *undoView;
+#ifndef CFG_NOEDIT
+    QAction          *cutAct;
+    QAction          *copyAct;
+    QAction          *pasteAct;
     QAction          *undoAction;
     QAction          *redoAction;
+#endif
     QAction          *recentFileActs[MaxRecentFiles];
     QAction          *clearRecentAct;
     QAction          *handCursorAct;
@@ -286,7 +309,7 @@ private:
 
 public:
     QPrinter         *printer;
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     QMenu            *shareMenu;
 #endif
     QMenu            *helpMenu;

@@ -36,32 +36,51 @@ struct ModuleRenderer : Drawing
 // ------------------------------------------------------------------------
 {
     ModuleRenderer(ModuleApi::render_fn callback, void * arg)
-        : Drawing(), callback(callback), arg(arg), del(NULL) {}
+        : Drawing(), callback(callback), identify(NULL), arg(arg), del(NULL) {}
     ModuleRenderer(ModuleApi::render_fn callback, void * arg,
                    ModuleApi::delete_fn del)
-        : Drawing(), callback(callback), arg(arg), del(del) {}
+        : Drawing(), callback(callback), identify(NULL), arg(arg), del(del) {}
+    ModuleRenderer(ModuleApi::render_fn callback,
+                   ModuleApi::render_fn identify, void * arg,
+                   ModuleApi::delete_fn del)
+        : Drawing(), callback(callback), identify(identify), arg(arg), del(del){}
+
     virtual ~ModuleRenderer();
 
     virtual text  Type() { return "ModuleRenderer";}
+
     // Drawing interface
     virtual void  Draw(Layout *where);
+    virtual void  Identify(Layout *where);
 
     // Exported to ModuleApi
     static bool   ScheduleRender(ModuleApi::render_fn callback, void *arg);
     static bool   AddToLayout(ModuleApi::render_fn callback, void *arg,
                               ModuleApi::delete_fn del);
+    static bool   AddToLayout2(ModuleApi::render_fn callback,
+                               ModuleApi::render_fn identify,
+                               void *arg,
+                               ModuleApi::delete_fn del);
+
 
     // Set drawing attributes
     static bool   SetTextures();
     static bool   BindTexture(unsigned int id, unsigned int type);
+    static void   BindTexture2D(unsigned int id, unsigned int width,
+                                unsigned int height);
     static bool   EnableTexCoords(double* texCoord);
     static bool   DisableTexCoords();
+    static uint   TextureUnits();
+    static void   SetTextureUnits(uint texUnits);
+    static bool   SetShader(int id);
+
     static bool   SetFillColor();
     static bool   SetLineColor();
+
     static bool   HasPixelBlur(bool enable);
 
-private:
-    ModuleApi::render_fn   callback;
+private:    
+    ModuleApi::render_fn   callback, identify;
     void *                 arg;
     ModuleApi::delete_fn   del;
     static Layout* currentLayout;

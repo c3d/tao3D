@@ -175,7 +175,7 @@ development version);
 (3) The remote name "origin" must be a valid repository and must have at
 least one tag (annotated or not);
 (4) The highest local tag must be strictly lower than the highest remote
-tag. Comparison is performed by ModuleManager::parseVersion().
+tag.
 
   6.2. Maintaining a module repository
 
@@ -270,6 +270,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QLibrary>
 #include <QDir>
 #include <QTextStream>
+#include <QTranslator>
 #include <iostream>
 
 
@@ -296,19 +297,20 @@ public:
     {
         ModuleInfoPrivate() : ModuleInfo(), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false)
+            native(NULL), context(NULL), inError(false), show_preferences(NULL)
             {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false)
+              native(NULL), context(NULL), inError(false),
+              show_preferences(NULL)
             {}
 
         // Configuration attributes
         bool    enabled;
 
         // Runtime attributes
-        text    latest;
+        double  latest;
         // loaded is set to true when xl file is imported and
         //           set to false when xl file is unloaded
         bool    loaded;
@@ -321,6 +323,8 @@ public:
         XL::Context_p context;
         bool    inError;
         QString source; // .xl content, non-null only after full text search
+        module_preferences_fn show_preferences;
+        QTranslator * translator;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -403,7 +407,9 @@ public:
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }
+    bool                enabled(QString importName);
     bool                saveConfig();
+    void                refreshModuleProperties(QString moduleDir);
 
     virtual bool        askRemove(const ModuleInfoPrivate &m,
                                   QString reason = "");
@@ -415,9 +421,15 @@ public:
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);
+    static bool         versionGreaterOrEqual(text ver, text ref);
+    static bool         versionMatches(double ver, double ref);
+    bool                hasPendingUpdate(QString moduleDir);
+    QString             latestTag(QString moduleDir);
 
 signals:
     void                checking(QString name);
+    void                updating(QString name);
+    void                modulesChanged();
 
 private:
     ModuleManager()  {}
@@ -478,6 +490,7 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfoPrivate>   newModules(QString parentDir);
     ModuleInfoPrivate          readModule(QString moduleDir);
+    bool                applyPendingUpdate(const ModuleInfoPrivate &m);
     QString             gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);

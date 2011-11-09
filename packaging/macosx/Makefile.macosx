@@ -8,6 +8,7 @@
 #   - Standard Tao modules
 #   - All the files loaded by Tao at runtime (XL definitions,
 #     fonts, etc.)
+#   - The module SDK
 #
 # To build the package, this Makefile goes through the following
 # steps:
@@ -69,7 +70,7 @@ tao.dmg: tmp.dmg
 	hdiutil convert -format UDBZ -o $@ tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
 
-prepare: .tao_install_ts .git_install_ts .cp_template_ts
+prepare: .tao_install_ts .git_install_ts .cp_template_ts .cp_sdk_ts
 
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: prepare
@@ -78,7 +79,7 @@ tmp.dmg: prepare
 	SetFile -a C "/Volumes/Tao Presentations"
 	hdiutil detach "/Volumes/Tao Presentations"
 
-clean: clean.git clean.tao clean.dmg
+clean: clean.git clean.tao clean.dmg clean.cp_sdk
 
 veryclean: clean veryclean.git
 
@@ -95,6 +96,18 @@ clean.dmg: clean.cp_template
 
 clean.cp_template:
 	rm -f .cp_template_ts
+
+########
+
+.cp_sdk_ts:
+	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
+	$(MAKE) -C ../.. -f Makefile.sdk
+	cp -Rp ../../sdk "build_root/Tao Presentations.app/Contents/MacOS"
+	touch $@
+
+clean.cp_sdk:
+	rm -rf "build_root/Tao Presentations.app/Contents/MacOS/sdk"
+	rm -f .cp_sdk_ts
 
 ########
 
@@ -115,7 +128,7 @@ clean.tao_install_deps:
 
 .tao_install_prog_ts:
 	mkdir -p build_root
-	cd ../.. && make install
+	cd ../.. && $(MAKE) install
 	cp -Rp $(INSTROOT)/* build_root
 
 clean.tao_install_prog:
@@ -130,7 +143,7 @@ clean.tao: clean.tao_install
 ########
 
 .git_install_ts: .git_build_ts
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
 	rm -rf $(GIT_DEST) ; mkdir -p "$(GIT_DEST)"
 	mv $(GIT_DESTDIR)/usr/local/* "$(GIT_DEST)"
 	touch $@
@@ -142,8 +155,8 @@ clean.git_install:
 ########
 
 .git_build_ts: .git_extract_ts
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms)
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms)
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
 	touch .git_build_ts
 
 clean.git_build:

@@ -32,7 +32,9 @@ struct Shape3 : Shape
 // ----------------------------------------------------------------------------
 {
     Shape3(): Shape() {}
+    virtual void        Identify(Layout * l) { Draw(l); }
     virtual void        DrawSelection(Layout *layout);
+    virtual text        Type() { return "Shape 3D";}
 
 protected:
     bool                setFillColor(Layout *where);
@@ -61,10 +63,8 @@ struct Mesh
     std::vector<Point3> vertices;
     std::vector<Point3> normals;
     std::vector<Point>  textures;
-
-protected:
-    Vector3&            calculateNormal(const Point3& v1,const Point3& v2, const Point3& v3);
 };
+
 
 struct SphereMesh : Mesh
 // ----------------------------------------------------------------------------
@@ -95,8 +95,11 @@ struct MeshBased : Cube
 //   Common drawing code for mesh-based shapes
 // ----------------------------------------------------------------------------
 {
-    MeshBased(const Box3 &bounds) : Cube(bounds) {}
+    MeshBased(const Box3 &bounds, bool culling) : Cube(bounds), culling(culling) {}
     void Draw(Mesh *mesh, Layout *where);
+
+    // Define if mesh needs backface culling
+    bool culling;
 };
 
 struct Sphere : MeshBased
@@ -104,7 +107,7 @@ struct Sphere : MeshBased
 //   Draw a sphere or ellipsoid
 // ----------------------------------------------------------------------------
 {
-    Sphere(Box3 bounds, uint sl, uint st) : MeshBased(bounds),
+    Sphere(Box3 bounds, uint sl, uint st) : MeshBased(bounds, true),
                                             slices(sl), stacks(st) {}
     virtual void        Draw(Layout *where);
 
@@ -127,7 +130,7 @@ struct Torus : MeshBased
 //   Draw a torus
 // ----------------------------------------------------------------------------
 {
-    Torus(Box3 bounds, uint sl, uint st, double r) : MeshBased(bounds),
+    Torus(Box3 bounds, uint sl, uint st, double r) : MeshBased(bounds, true),
                                                      slices(sl), stacks(st), ratio(r) {}
     virtual void        Draw(Layout *where);
 
@@ -139,7 +142,6 @@ private:
     // Cache of unit radius torus
     // (they differ by the number of subdivisions and their ratio)
 
-#define EPSILON 0.001
     struct Key
     {
         Key(uint slices, uint stacks, double ratio): slices(slices), stacks(stacks), ratio(ratio) {}
@@ -148,7 +150,7 @@ private:
 
         bool operator==(const Key &o) const
         {
-            return ((slices == o.slices) && (stacks == o.stacks) && (fabs(ratio - o.ratio) < EPSILON));
+            return ((slices == o.slices) && (stacks == o.stacks) && (fabs(ratio - o.ratio) < TAO_EPSILON));
         }
 
         bool operator<(const Key &o) const
@@ -171,7 +173,7 @@ struct Cone : MeshBased
 //   Draw a (possibly truncated) cone - Limit case is a cylinder
 // ----------------------------------------------------------------------------
 {
-    Cone(Box3 bounds, double tipRatio = 0.0) : MeshBased(bounds), ratio(tipRatio) {}
+    Cone(Box3 bounds, double tipRatio = 0.0) : MeshBased(bounds, false), ratio(tipRatio) {}
     virtual void        Draw(Layout *where);
 
 private:

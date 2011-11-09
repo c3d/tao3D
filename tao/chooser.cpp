@@ -343,6 +343,10 @@ Activity *Chooser::Key(text key)
             keystrokes.erase(prev, position - prev);
         }
     }
+    else if (key == "Space")
+    {
+        keystrokes += " ";
+    }
     else if (Utf8Length(key) == 1)
     {
         keystrokes += key;

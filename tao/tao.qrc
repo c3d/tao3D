@@ -23,9 +23,11 @@
         <file>images/zoom_in.png</file>
         <file>images/zoom_out.png</file>
         <file>images/info.png</file>
+        <file>images/tao_picto.png</file>
+        <file>images/tao_padlock.svg</file>
+        <file>images/performances.png</file>
         <file>html/module_info_dialog.html</file>
         <file>html/module_info_dialog_fr.html</file>
-        <file>images/tao_picto.png</file>
         <file>NEWS</file>
     </qresource>
 </RCC>

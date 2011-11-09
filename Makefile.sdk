@@ -34,7 +34,10 @@ LOREM_IPSUM_FILES = \
 FILES_COMMON = \
 	main.pri \
 	main_defs.pri \
+	translations.pri \
 	modules \
+	modules/.gitignore \
+	modules/configure \
 	modules/README_SDK \
 	modules/modules.pro \
 	modules/modules.pri \

@@ -10,6 +10,7 @@
     # as the application ; they are not managed by Git (and therefore, each module
     # MUST have its own version attribute in <module_name>.xl).
     DEFAULT_MODULES =   \
+       audio_video      \
        lorem_ipsum      \
        object_loader    \
        tao_visuals      \
@@ -29,19 +30,23 @@
        display_splitstereo \
        display_intstereo \
        display_alioscopy \
+       display_checkerboard \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \
        shaders/sparks  \
-       slideshow_3d
+       shaders/glow  \
+       slideshow_3d \
+       vlc_audio_video
     OTHER_MODULES =     \
         display_2dplusdepth \
         hello_world     \
         taoTester    \
         tao_synchro
 } else {
-    # We're building inside the Tao SDK. Only some modules are available.
-    DEFAULT_MODULES = hello_world lorem_ipsum object_loader
+    # We're building inside the Tao SDK: default modules = all sub-directories
+    LSOUT=$$system(ls)
+    for(f, LSOUT):exists($${f}/$${f}.pro):DEFAULT_MODULES += $$f
     OTHER_MODULES =
 }
 

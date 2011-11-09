@@ -61,6 +61,20 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     return true;
 }
 
+bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
+                                  ModuleApi::render_fn identify, void *arg,
+                                  ModuleApi::delete_fn del)
+// ----------------------------------------------------------------------------
+//  Create a ModuleRendererPrivate object attached to current layout with
+//  identify function
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->layout->Add(new ModuleRenderer(callback, identify, arg, del));
+    return true;
+}
+
+
+
 bool ModuleRenderer::EnableTexCoords(double* texCoord)
 // ----------------------------------------------------------------------------
 //   Enable specified coordinates for active textures in the current layout
@@ -78,6 +92,7 @@ bool ModuleRenderer::EnableTexCoords(double* texCoord)
     return true;
 }
 
+
 bool ModuleRenderer::DisableTexCoords()
 // ----------------------------------------------------------------------------
 //   Disable coordinates for active textures in the current layout
@@ -92,10 +107,28 @@ bool ModuleRenderer::DisableTexCoords()
     return true;
 }
 
+
+uint ModuleRenderer::TextureUnits()
+// ----------------------------------------------------------------------------
+//  Return bitmask of current activated texture units
+// ----------------------------------------------------------------------------
+{
+    return currentLayout->textureUnits;
+}
+
+
+void ModuleRenderer::SetTextureUnits(uint texUnits)
+// ----------------------------------------------------------------------------
+//  Set bitmask of current activated texture units
+// ----------------------------------------------------------------------------
+{
+    currentLayout->textureUnits = texUnits;
+}
+
+
 bool ModuleRenderer::SetTextures()
 // ----------------------------------------------------------------------------
-//   Apply the textures in the ModuleRenderer according
-//   to the current layout attributes
+//   Apply the textures as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setTexture(currentLayout);
@@ -104,55 +137,96 @@ bool ModuleRenderer::SetTextures()
 
 bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
 // ----------------------------------------------------------------------------
-//   Bind the texture in the ModuleRenderer according
-//   to the current layout attributes
+//   Bind the texture as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
-    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
-
     Widget::Tao()->layout->currentTexture.id = id;
     Widget::Tao()->layout->currentTexture.type = type;
 
-    Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
+    Widget::Tao()->layout->Add(new FillTexture(id, type));
     Widget::Tao()->layout->hasAttributes = true;
     return false;
 }
 
+bool ModuleRenderer::SetShader(int id)
+// ----------------------------------------------------------------------------
+//   Set the shader defined by its id to the current layout attributes
+// ----------------------------------------------------------------------------
+{
+    if(id >= 0)
+        currentLayout->programId = id;
+
+    return Shape::setShader(currentLayout);
+}
+
+
+void ModuleRenderer::BindTexture2D(unsigned int id, unsigned int width,
+                                   unsigned int height)
+// ----------------------------------------------------------------------------
+//   Add 2D texture to current layout
+// ----------------------------------------------------------------------------
+{
+    Widget::Tao()->layout->currentTexture.id = id;
+    Widget::Tao()->layout->currentTexture.type = GL_TEXTURE_2D;
+    Widget::Tao()->layout->currentTexture.width = width;
+    Widget::Tao()->layout->currentTexture.height = height;
+
+    Widget::Tao()->layout->Add(new FillTexture(id, GL_TEXTURE_2D));
+    Widget::Tao()->layout->hasAttributes = true;
+}
+
+
 bool ModuleRenderer::SetFillColor()
 // ----------------------------------------------------------------------------
-//   Set the fill color in the ModuleRenderer according
-//   to the current layout attributes
+//   Set the fill color as defined by the current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setFillColor(currentLayout);
 }
 
+
 bool ModuleRenderer::SetLineColor()
 // ----------------------------------------------------------------------------
-//   Set the the outline color in the ModuleRenderer according
-//   to the current layout attributes
+//   Set the the outline color as defined by the current layout attributes
 // ----------------------------------------------------------------------------
 {
     return Shape::setLineColor(currentLayout);
 }
 
+
 bool ModuleRenderer::HasPixelBlur(bool enable)
 // ----------------------------------------------------------------------------
-// Allow to enable or deactivate pixel blur.
+//   Enable or deactivate pixel blur.
 // ----------------------------------------------------------------------------
 {
     Widget::Tao()->layout->hasPixelBlur = enable;
     return true;
 }
 
+
 void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
-    currentLayout  = where;
-
+    currentLayout = where;
     callback(arg);
+}
+
+
+void ModuleRenderer::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify object under cursor
+// ----------------------------------------------------------------------------
+{
+    XL::Save<bool> inIdentify(where->inIdentify, true);
+    glUseProgram(0); // Necessary for #1464
+    currentLayout = where;
+
+    if(identify)
+        identify(arg);
+    else
+        callback(arg);
 }
 
 }

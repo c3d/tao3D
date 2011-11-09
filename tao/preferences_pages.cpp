@@ -167,8 +167,9 @@ DebugPage::DebugPage(QWidget *parent)
     connect(deselectAll, SIGNAL(clicked()), this, SLOT(disableAllTraces()));
     buttonsLayout->addWidget(deselectAll);
     buttonsLayout->addSpacing(12);
-    QPushButton *save = new QPushButton(tr("Save for next run"));
-    connect(save, SIGNAL(clicked()), TaoApp, SLOT(saveDebugTraceSettings()));
+    save = new QPushButton(tr("Save for next run"));
+    save->setEnabled(false);
+    connect(save, SIGNAL(clicked()), this, SLOT(saveClicked()));
     buttonsLayout->addWidget(save);
     buttonsWidget->setLayout(buttonsLayout);
 
@@ -206,6 +207,8 @@ void DebugPage::toggleTrace(bool on)
     QString toggled = b->text();
 
     XL::Traces::enable(+toggled, on);
+
+    save->setEnabled(true);
 }
 
 
@@ -246,6 +249,16 @@ void DebugPage::disableAllTraces()
     toggleAllTraces(false);
 }
 
+
+void DebugPage::saveClicked()
+// ----------------------------------------------------------------------------
+//   Save trace settings
+// ----------------------------------------------------------------------------
+{
+    TaoApp->saveDebugTraceSettings();
+    save->setEnabled(false);
+}
+
 #ifndef CFG_NOMODPREF
 
 // ============================================================================
@@ -275,12 +288,13 @@ ModulesPage::ModulesPage(QWidget *parent)
     QVBoxLayout *vbLayout = new QVBoxLayout;
 
     table = new QTableWidget;
-    table->setColumnCount(6);
+    table->setColumnCount(7);
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(2, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(3, new QTableWidgetItem("Name"));
     table->setHorizontalHeaderItem(4, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(6, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(5, new QTableWidgetItem("Status"));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
@@ -305,7 +319,7 @@ ModulesPage::ModulesPage(QWidget *parent)
     cfuLayout->addWidget(findUpdates);
     cfuLayout->addSpacing(12);
     sw = new QStackedWidget;
-    sw->insertWidget(0, new QFrame);
+    sw->insertWidget(0, (lb = new QLabel));
     sw->insertWidget(1, (pb = new QProgressBar));
     sw->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Fixed);
     cfuLayout->addWidget(sw);
@@ -316,6 +330,8 @@ ModulesPage::ModulesPage(QWidget *parent)
     mainLayout->addSpacing(12);
     mainLayout->addWidget(cfuWidget);
     setLayout(mainLayout);
+
+    connect(mmgr, SIGNAL(modulesChanged()), this, SLOT(updateTable()));
 }
 
 
@@ -344,7 +360,7 @@ void ModulesPage::findUpdates()
 
     sw->setCurrentIndex(1);
     CheckAllForUpdate *cafu = new CheckAllForUpdate(*mmgr);
-    connect(cafu, SIGNAL(complete(bool)), this, SLOT(onCFUComplete()));
+    connect(cafu, SIGNAL(complete(bool)), this, SLOT(onCFUComplete(bool)));
     connect(cafu, SIGNAL(minimum(int)),   pb,   SLOT(setMinimum(int)));
     connect(cafu, SIGNAL(maximum(int)),   pb,   SLOT(setMaximum(int)));
     connect(cafu, SIGNAL(progress(int)),  pb,   SLOT(setValue(int)));
@@ -376,13 +392,14 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 0, item);
 
-        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
-        QToolButton *b = new QToolButton;
-        QAction *act = new QAction(txt, this);
-        act->setData(QVariant(row));
-        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
-        b->setDefaultAction(act);
-        table->setCellWidget(row, 1, b);
+        item = new QTableWidgetItem;
+        item->setTextAlignment(Qt::AlignCenter);
+        item->setIcon(QIcon(":/images/general.png"));
+        Qt::ItemFlags pFlag = Qt::NoItemFlags;
+        if (m.enabled && m.show_preferences)
+            pFlag = Qt::ItemIsEnabled;
+        item->setFlags(pFlag);
+        table->setItem(row, 1, item);
 
         if (m.icon == "")
             m.icon = ":/images/modules.png";
@@ -404,6 +421,14 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 4, item);
 
+        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
+        QToolButton *b = new QToolButton;
+        QAction *act = new QAction(txt, this);
+        act->setData(QVariant(row));
+        connect(act, SIGNAL(triggered()), this, SLOT(toggleModule()));
+        b->setDefaultAction(act);
+        table->setCellWidget(row, 5, b);
+
         QWidget *widget = NULL;
         if (m.updateAvailable)
         {
@@ -415,7 +440,7 @@ void ModulesPage::updateTable()
             b->setDefaultAction(act);
             widget = b;
         }
-        table->setCellWidget(row, 5, widget);
+        table->setCellWidget(row, 6, widget);
 
         row++;
     }
@@ -425,11 +450,15 @@ void ModulesPage::updateTable()
 }
 
 
-void ModulesPage::onCFUComplete()
+void ModulesPage::onCFUComplete(bool updatesAvailable)
 // ----------------------------------------------------------------------------
 //   Leave time for progress bar to show 100%
 // ----------------------------------------------------------------------------
 {
+    if (updatesAvailable)
+        lb->setText(tr("Updates are available."));
+    else
+        lb->setText(tr("All modules are up-to-date."));
     QTimer::singleShot(200, this, SLOT(endCheckForUpdate()));
 }
 
@@ -455,12 +484,12 @@ void ModulesPage::updateOne()
     ModuleManager::ModuleInfoPrivate m = modules[row];
     act->setEnabled(false);
     UpdateModule *up = new UpdateModule(*mmgr, +m.id);
-    connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete()));
+    connect(up, SIGNAL(complete(bool)), this, SLOT(onUpdateOneComplete(bool)));
     up->start();
 }
 
 
-void ModulesPage::onUpdateOneComplete()
+void ModulesPage::onUpdateOneComplete(bool success)
 // ----------------------------------------------------------------------------
 //   Delete module updater object, refresh module list
 // ----------------------------------------------------------------------------
@@ -468,6 +497,8 @@ void ModulesPage::onUpdateOneComplete()
     UpdateModule *up = (UpdateModule *)sender();
     up->deleteLater();
     updateTable();
+    if (success)
+        lb->setText(tr("Updates are ready to install on restart."));
 }
 
 
@@ -476,13 +507,21 @@ void ModulesPage::onCellClicked(int row, int col)
 //   Show info box when info icon is clicked
 // ----------------------------------------------------------------------------
 {
-    if (col)
-        return;
     ModuleManager::ModuleInfoPrivate m = modules[row];
-    ModuleInfoDialog dialog(m, this);
-    dialog.resize(500, 400);
-    dialog.setWindowModality(Qt::WindowModal);
-    dialog.exec();
+    if (col == 0)
+    {
+        // Info icon clicked
+        ModuleInfoDialog dialog(m, this);
+        dialog.resize(500, 400);
+        dialog.setWindowModality(Qt::WindowModal);
+        dialog.exec();
+    }
+    else if (col == 1)
+    {
+        // Configuration icon clicked
+        if (m.show_preferences)
+            m.show_preferences();
+    }
 }
 
 
@@ -501,5 +540,128 @@ void ModulesPage::doSearch()
 }
 
 #endif // !CFG_NOMODPREF
+
+
+// ============================================================================
+//
+//   The performances page shows GL info and allows tweaking some parameters
+//
+// ============================================================================
+
+// QSettings group name to read/write performance-related preferences
+#define PERFORMANCES_GROUP "Performances"
+
+PerformancesPage::PerformancesPage(QWidget *parent)
+     : QWidget(parent)
+// ----------------------------------------------------------------------------
+//   Create the page
+// ----------------------------------------------------------------------------
+{
+    QGroupBox *info = new QGroupBox(trUtf8("OpenGL\302\256 information"));
+    QGridLayout *grid = new QGridLayout;
+    grid->addWidget(new QLabel(tr("Vendor:")), 1, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLVendor), 1, 2);
+    grid->addWidget(new QLabel(tr("Renderer:")), 2, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLRenderer), 2, 2);
+    grid->addWidget(new QLabel(tr("Version:")), 3, 1);
+    grid->addWidget(new QLabel(+TaoApp->GLVersionAvailable), 3, 2);
+    info->setLayout(grid);
+
+    QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));
+    QVBoxLayout *settingsLayout = new QVBoxLayout;
+    QCheckBox *pps = new QCheckBox(tr("Enable per-pixel lighting"));
+    pps->setChecked(perPixelLighting());
+    connect(pps, SIGNAL(toggled(bool)),
+            this, SLOT(setPerPixelLighting(bool)));
+    settingsLayout->addWidget(pps);
+    QCheckBox *vs = new QCheckBox(tr("Enable VSync"));
+    vs->setChecked(VSync());
+    connect(vs, SIGNAL(toggled(bool)),
+            this, SLOT(setVSync(bool)));
+    settingsLayout->addWidget(vs);
+    settings->setLayout(settingsLayout);
+
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addWidget(info);
+    mainLayout->addSpacing(12);
+    mainLayout->addWidget(settings);
+    mainLayout->addStretch(1);
+    setLayout(mainLayout);
+}
+
+
+void PerformancesPage::setPerPixelLighting(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == perPixelLightingDefault())
+        settings.remove("PerPixelLighting");
+    else
+        settings.setValue("PerPixelLighting", QVariant(on));
+
+    TaoApp->useShaderLighting = on;
+}
+
+
+void PerformancesPage::setVSync(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == VSyncDefault())
+        settings.remove("VSync");
+    else
+        settings.setValue("VSync", QVariant(on));
+    TaoApp->enableVSync(on);
+}
+
+
+bool PerformancesPage::perPixelLighting()
+// ----------------------------------------------------------------------------
+//   Read setting
+// ----------------------------------------------------------------------------
+{
+    bool dflt = perPixelLightingDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool pps = settings.value("PerPixelLighting", QVariant(dflt)).toBool();
+    return pps;
+}
+
+
+bool PerformancesPage::VSync()
+// ----------------------------------------------------------------------------
+//   Read setting
+// ----------------------------------------------------------------------------
+{
+    bool dflt = VSyncDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool enabled = settings.value("VSync", QVariant(dflt)).toBool();
+    return enabled;
+}
+
+
+bool PerformancesPage::perPixelLightingDefault()
+// ----------------------------------------------------------------------------
+//   Should per-pixel lighting be enabled by default?
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+bool PerformancesPage::VSyncDefault()
+// ----------------------------------------------------------------------------
+//   Should VSync be enabled by default?
+// ----------------------------------------------------------------------------
+{
+    return true;
+}
 
 }

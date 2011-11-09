@@ -21,7 +21,7 @@ isEmpty(MODINSTPATH) {
       # In this case we want "make install" to install modules
       # directly into the user's module directory
       win32 {
-        APPDATA=$$system(bash -c \"cd $APPDATA ; pwd") # convert Win path to Mingw path
+        APPDATA=$$system(bash -c \"cd $APPDATA ; pwd\") # convert Win path to Mingw path
         MODINSTROOT = "$${APPDATA}/Tao Presentations/modules"
       }
       macx:MODINSTROOT = $$(HOME)"/Library/Application Support/Tao Presentations/modules"

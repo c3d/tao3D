@@ -31,19 +31,8 @@ TAO_BEGIN
 struct InfoTrashCan
 {
 public:
-    static void Empty()
-    // ------------------------------------------------------------------------
-    //   Empty the trash can
-    // ------------------------------------------------------------------------
-    {
-        while (!trash.empty())
-        {
-            XL::Info *tmp = trash.back();
-            trash.pop_back();
-            delete tmp;
-        }
-
-    }
+    static void Empty();
+    static void DeferredDelete(XL::Info *obj);
 
 protected:
     static std::vector<XL::Info *> trash;

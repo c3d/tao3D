@@ -101,27 +101,36 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
+
+    // Textures paramters
     TextureState        currentTexture;
-    uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
-    Matrix4             model;
+
+    // Lighting parameters
     uint                lightId;
+    uint64              currentLights; //Current used lights
+    uint                perPixelLighting;
+
     uint                programId;
     bool                printing : 1;
+
+    // Transformations
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+    Matrix4             model;
 
     // For optimized drawing, we keep track of what changes
+    uint64              hasTextureMatrix; // 64 texture units
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
     bool                hasAttributes   : 1;
-    bool                hasTransform    : 1;
-    uint64              hasTextureMatrix; // 64 texture units
     bool                hasLighting     : 1;
+    bool                hasBlending     : 1;
+    bool                hasTransform    : 1;
     bool                hasMaterial     : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
@@ -182,7 +191,11 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
-    virtual text        Type(){ return "Layout";}
+    virtual text        Type() { return "Layout"; }
+
+    // Used to optimize away texturing and programs if in Identify
+    static bool         InIdentify()    { return inIdentify; }
+    
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
@@ -195,6 +208,8 @@ public:
             bits |= (GL_LINE_BIT | GL_TEXTURE_BIT);
         if (hasLighting)
             bits |= GL_LIGHTING_BIT;
+        if (hasBlending)
+            bits |= GL_COLOR_BUFFER_BIT;
         return bits;
     }
 
@@ -218,6 +233,7 @@ public:
     static scale        factorBase, factorIncrement;
     static scale        unitBase, unitIncrement;
     static uint         globalProgramId;
+    static bool         inIdentify;
 };
 
 TAO_END

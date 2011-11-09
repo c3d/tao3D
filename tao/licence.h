@@ -55,14 +55,14 @@ public:
         return LM().licenceRemainingDays(feature);
     }
 
-    static void WarnUnlicenced(text feature, int days);
+    static void WarnUnlicenced(text feature, int days, bool critical);
 
-    static bool Check(text feature)
+    static bool Check(text feature, bool critical = false)
     {
         int days = RemainingDays(feature);
         if (days <= 0)
-            WarnUnlicenced(feature, days);
-        return days >= 0;
+            WarnUnlicenced(feature, days, critical);
+        return days > 0;
     }
 
     static text Name()
@@ -95,7 +95,11 @@ private:
     void addLicenceFile(kstring licfname);
     int  licenceRemainingDays(text feature);
     void licenceError(kstring file, QString reason);
-    text digest(std::vector<Licence> &licences);
+    text toText(std::vector<Licence> &licences);
+#ifdef KEYGEN
+    text sign(std::vector<Licence> &licences);
+#endif
+    bool verify(std::vector<Licence> &licences, text signature);
 };
 
 }

@@ -180,6 +180,7 @@ void LensFlare::DrawFlare(Flare flare, Vector3 pos)
     scale *= 128;
 
     glBindTexture(GL_TEXTURE_2D, flare.id);
+    tao->SetShader(0);
     glColor4f(flare.color[0],
               flare.color[1],
               flare.color[2],

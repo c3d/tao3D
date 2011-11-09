@@ -47,13 +47,13 @@ page "Normal Mapping",
     map_highlight -150, -100, "normalMap.jpg"
     at_step 5
     mapping
-    at_step 6
     locally
         white_light 0, 0, 50
         material_ambient 0.3, 0.3, 0.3, 1
         material_diffuse 1.0, 1.0, 1.0, 1.0
         material_specular 0.3, 0.3, 0.3, 1.0
         material_shininess 70
+        at_step 6
         color "white"
         texture_unit 0
         texture "face.jpg"

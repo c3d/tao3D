@@ -28,3 +28,4 @@ doc/Makefile
 doc/c_files
 doc/doc
 *.~?~
+/sdk

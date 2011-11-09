@@ -364,6 +364,11 @@ public:
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
     Name_p      depthTest(Tree_p self, bool enable);
+    Name_p      blendFunction(Tree_p self, text src, text dst);
+    Name_p      blendFunctionSeparate(Tree_p self,
+                                      text src, text dst,
+                                      text srca, text dsta);
+    Name_p      blendEquation(Tree_p self, text eq);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
@@ -459,6 +464,7 @@ public:
     Integer*    textureUnit(Tree_p self);
     Tree_p      hasTexture(Tree_p self, GLuint unit);
     Integer_p   lightsMask(Tree_p self);
+    Tree_p      perPixelLighting(Tree_p self,  bool enable);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
     Tree_p      light(Tree_p self, GLenum function, GLfloat value);
     Tree_p      light(Tree_p self, GLenum function,
@@ -709,12 +715,6 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      movie(Context *context, Tree_p self,
-                      Real_p x, Real_p y, Real_p w, Real_p h,
-                      text url);
-
-    Integer*    movieTexture(Context *context, Tree_p self, text url);
-
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
@@ -760,7 +760,6 @@ public:
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      copySelection();
-    Tree_p      removeSelection();
     // Unit conversions
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
@@ -948,7 +947,7 @@ private:
 private:
     void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
-    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
+    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
     void                  refreshOn(QEvent::Type type,
@@ -956,8 +955,10 @@ private:
 public:
     static bool           refreshOn(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    static text           currentDocumentFolder();
     void eraseFlow(text flowName){ flows.erase(flowName);}
 
 private:

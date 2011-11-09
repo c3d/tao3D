@@ -25,6 +25,7 @@
 #include "coords.h"
 #include <iostream>
 
+#define TAO_EPSILON 0.0001
 
 TAO_BEGIN
 
@@ -62,7 +63,9 @@ struct Point3
     }
     bool operator == (const Point3&o) const
     {
-        return x == o.x && y == o.y && z == o.z;
+        return ((fabs(x - o.x) < TAO_EPSILON) &&
+                (fabs(y - o.y) < TAO_EPSILON) &&
+                (fabs(z - o.z) < TAO_EPSILON));
     }
     bool operator != (const Point3&o) const
     {
@@ -234,6 +237,48 @@ inline Vector3 operator^ (const Vector3& l, const Vector3 &r)
     return result.Cross(r);
 }
 
+
+// ============================================================================
+//
+//   A basic triangle class
+//
+// ============================================================================
+
+struct Triangle
+// ----------------------------------------------------------------------------
+//    Define a triangle
+// ----------------------------------------------------------------------------
+{
+    Triangle() {}
+    Triangle(const Point3& v1,
+             const Point3& v2,
+             const Point3& v3) : v1(v1), v2(v2), v3(v3) {}
+    Triangle(const Triangle& t) : v1(t.v1), v2(t.v2), v3(t.v3) {}
+
+
+    Vector3& computeNormal()
+    // ----------------------------------------------------------------------------
+    //    Compute normal of the triangle
+    // ----------------------------------------------------------------------------
+    {
+        Vector3 a;
+        Vector3 b;
+        Vector3 normal;
+
+        a = v1 - v2;
+        b = v2 - v3;
+
+        if(a == b)
+            normal = Vector3(0.0, 0.0, -1.0);
+        else
+            normal = a.Cross(b);
+
+        return normal.Normalize();
+    }
+
+public:
+    Point3 v1, v2, v3;
+};
 
 
 // ============================================================================

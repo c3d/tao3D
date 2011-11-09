@@ -28,7 +28,7 @@
 #include "coords.h"
 #include "tao_gl.h"
 #include "info_trash_can.h"
-#include <phonon>
+#include "tao/tao_info.h"
 
 class QWidget;
 
@@ -38,7 +38,7 @@ struct Widget;
 struct Layout;
 
 
-struct WidgetSurface : QObject, TaoInfo, InfoTrashCan
+struct WidgetSurface : QObject, Tao::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Hold information about the the widget associated to a given tree
 // ----------------------------------------------------------------------------
@@ -299,26 +299,6 @@ public:
 
 public slots:
     void hideWidget();
-};
-
-
-struct VideoSurface : WidgetSurface
-// ----------------------------------------------------------------------------
-//    Display a Phonon::VideoWidget
-// ----------------------------------------------------------------------------
-{
-    Q_OBJECT;
-public:
-    typedef VideoSurface * data_t;
-    VideoSurface(XL::Tree *t, Widget *parent);
-    ~VideoSurface();
-    operator data_t() { return this; }
-    virtual GLuint bind(XL::Text *url);
-public:
-    text url;
-    text lastError;
-    Phonon::AudioOutput *audio;
-    Phonon::MediaObject *media;
 };
 
 

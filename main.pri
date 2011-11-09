@@ -14,6 +14,8 @@
 include(main_defs.pri)
 
 DEFINES            += DEBUG
+# Make assert() a no-op in release mode
+CONFIG(release, debug|release):DEFINES *= NDEBUG
 macx:DEFINES       += CONFIG_MACOSX
 win32:DEFINES      += CONFIG_MINGW
 linux-g++*:DEFINES += CONFIG_LINUX
@@ -43,7 +45,24 @@ c++tbl.dependency_type = TYPE_C
 c++tbl.input = CXXTBL_SOURCES
 QMAKE_EXTRA_COMPILERS += c++tbl
 
+# Build some files with warnings disabled
+c++nowarn.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o
+c++nowarn.commands = $(CXX) \
+    -c \
+    $(CXXFLAGS) -w \
+    $(INCPATH) \
+    ${QMAKE_FILE_NAME} \
+    -o \
+    ${QMAKE_FILE_OUT}
+c++nowarn.dependency_type = TYPE_C
+c++nowarn.input = NOWARN_SOURCES
+QMAKE_EXTRA_COMPILERS += c++nowarn
+
 # No -p by default on Windows-mingw. Our make install needs -p.
 win32:QMAKE_MKDIR = mkdir -p
+# "make clean" on windows cleans both debug and release files. Since we build
+# debug OR release but not both, this results in ugly (and ignored) error
+# messages. Avoid them.
+win32:QMAKE_DEL_FILE = rm -f
 
 QMAKE_EXTRA_TARGETS += doc

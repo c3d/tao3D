@@ -43,6 +43,10 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
+    // Do not bother with textures if in Identify phase
+    if (where->InIdentify())
+        return !where->fillTextures.empty();
+
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
         //Determine if there is a current and previous texture
@@ -76,10 +80,8 @@ bool Shape::setTexture(Layout *where)
         }
     }
 
-    if (where->globalProgramId)
-        glUseProgram(where->globalProgramId);
-    else
-        glUseProgram(where->programId);
+    // Active current shader
+    setShader(where);
 
     //Update used texture units
     where->previousTextures = where->fillTextures;
@@ -120,6 +122,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
         glEnable(GL_MULTISAMPLE);
 }
 
+
 void Shape::unbindTexture(TextureState& texture)
 // ----------------------------------------------------------------------------
 //    Unbind the given texture
@@ -141,6 +144,7 @@ void Shape::enableTexCoord(uint unit, void *texCoord)
     glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
 }
 
+
 void Shape::disableTexCoord(uint unit)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
@@ -149,6 +153,7 @@ void Shape::disableTexCoord(uint unit)
     glClientActiveTexture( GL_TEXTURE0 + unit);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+
 
 bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
@@ -194,7 +199,46 @@ bool Shape::setLineColor(Layout *where)
     return false;
 }
 
-void Shape::Draw(GraphicPath &path)
+
+bool Shape::setShader(Layout *where)
+{
+    // Activate current shader
+    if (where->globalProgramId)
+        glUseProgram(where->globalProgramId);
+    else
+        glUseProgram(where->programId);
+
+    // In order to improve performance of large and complex 3D models,
+    // we use a shader based ligting (Feature #1508), which need some uniform values
+    // to have an efficient behaviour.
+    if(where->perPixelLighting == where->programId)
+    {
+        if(where->programId)
+        {
+            GLint lights = glGetUniformLocation(where->programId, "lights");
+            glUniform1i(lights, where->currentLights);
+
+            GLint textures = glGetUniformLocation(where->programId, "textures");
+            glUniform1i(textures, where->textureUnits);
+
+            // Due to a bug with ATI drivers, we need to pass the name of the vendor
+            // in order to apply the correct fix in the shader
+            GLint vendor = glGetUniformLocation(where->programId, "vendor");
+            glUniform1i(vendor, TaoApp->vendorID);
+        }
+    }
+
+    return true;
+}
+
+// ============================================================================
+//
+//   Shape 2D
+//
+// ============================================================================
+
+
+void Shape2::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //    Draw the shape in a path
 // ----------------------------------------------------------------------------
@@ -203,7 +247,7 @@ void Shape::Draw(GraphicPath &path)
 }
 
 
-void Shape::Draw(Layout *where)
+void Shape2::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Draw the shape using a path
 // ----------------------------------------------------------------------------
@@ -211,6 +255,17 @@ void Shape::Draw(Layout *where)
     GraphicPath path;
     Draw(path);
     path.Draw(where);
+}
+
+
+void Shape2::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a simplified version of the shape for selection purpose
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    path.Draw(where, GL_SELECT);
 }
 
 // ============================================================================

@@ -166,6 +166,10 @@ Application::Application(int & argc, char ** argv)
         Licences::AddLicenceFile(lpath.c_str());
     }
 
+    // Check licence
+    if (!Licences::Check(TAO_LICENCE_STR, true))
+        ::exit(15);
+
     // Show splash screen
     if (showSplash)
     {
@@ -177,9 +181,6 @@ Application::Application(int & argc, char ** argv)
 
     // Now time to install the "persistent" error handler
     install_first_exception_handler();
-
-    // Check licence
-    Licences::Check(TAO_LICENCE_STR);
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();

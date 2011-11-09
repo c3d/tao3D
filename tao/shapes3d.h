@@ -32,7 +32,9 @@ struct Shape3 : Shape
 // ----------------------------------------------------------------------------
 {
     Shape3(): Shape() {}
+    virtual void        Identify(Layout * l) { Draw(l); }
     virtual void        DrawSelection(Layout *layout);
+    virtual text        Type() { return "Shape 3D";}
 
 protected:
     bool                setFillColor(Layout *where);

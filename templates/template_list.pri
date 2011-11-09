@@ -26,7 +26,8 @@ OTHER_TEMPLATES =     \
     flares \
     sinuous \
     sparks \
-    glow
+    glow \
+    YouCube
 
 # Process qmake command line variable: 'templates'
 # Allows to add/remove templates to/from the default value above
@@ -84,3 +85,4 @@ include (../modules/module_list.pri)
 !contains (MODULES, pan_and_zoom):TEMPLATES -= pan_and_zoom
 !contains (MODULES, shaders/monjori):TEMPLATES -= monjori
 !contains (MODULES, shaders/flares):TEMPLATES -= flares
+!contains (MODULES, vlc_audio_video):TEMPLATES -= YouCube

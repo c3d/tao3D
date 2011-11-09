@@ -47,7 +47,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   13
+#define TAO_MODULE_API_CURRENT   14
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -113,6 +113,12 @@ struct ModuleApi
 
     // Allow to disable texture coordinates after a drawing.
     bool (*DisableTexCoords)();
+
+    // Get the bimasks of all activated texture units.
+    unsigned int (*TextureUnits)();
+
+    // Set the bimasks of all activated texture units.
+    void (*SetTextureUnits)(unsigned int textureUnits);
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
     // For a 2D teexture, use BindTexture2D

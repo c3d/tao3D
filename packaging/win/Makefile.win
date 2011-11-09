@@ -28,7 +28,10 @@ prepare tao_install:
 	[ -d build_root ] || mkdir -p build_root
 	cd ../.. && $(MAKE) install
 	cp -Rp $(INSTROOT)/* build_root
+	rm -f build_root/modules/vlc_audio_video/lib/plugins/plugins.dat # See #1555
 	./copy_deps "$(QMAKE_LIBDIR_QT_SANE)"
+	$(MAKE) -C ../.. -f Makefile.sdk
+	cp -Rp ../../sdk build_root
 
 clean:
 	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh

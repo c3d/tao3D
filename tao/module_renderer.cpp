@@ -108,6 +108,24 @@ bool ModuleRenderer::DisableTexCoords()
 }
 
 
+uint ModuleRenderer::TextureUnits()
+// ----------------------------------------------------------------------------
+//  Return bitmask of current activated texture units
+// ----------------------------------------------------------------------------
+{
+    return currentLayout->textureUnits;
+}
+
+
+void ModuleRenderer::SetTextureUnits(uint texUnits)
+// ----------------------------------------------------------------------------
+//  Set bitmask of current activated texture units
+// ----------------------------------------------------------------------------
+{
+    currentLayout->textureUnits = texUnits;
+}
+
+
 bool ModuleRenderer::SetTextures()
 // ----------------------------------------------------------------------------
 //   Apply the textures as defined by current layout attributes
@@ -122,12 +140,10 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
 //   Bind the texture as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
-    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
-
     Widget::Tao()->layout->currentTexture.id = id;
     Widget::Tao()->layout->currentTexture.type = type;
 
-    Widget::Tao()->layout->Add(new FillTexture(id, unit, type));
+    Widget::Tao()->layout->Add(new FillTexture(id, type));
     Widget::Tao()->layout->hasAttributes = true;
     return false;
 }
@@ -150,14 +166,12 @@ void ModuleRenderer::BindTexture2D(unsigned int id, unsigned int width,
 //   Add 2D texture to current layout
 // ----------------------------------------------------------------------------
 {
-    GLuint unit = Widget::Tao()->layout->currentTexture.unit;
-
     Widget::Tao()->layout->currentTexture.id = id;
     Widget::Tao()->layout->currentTexture.type = GL_TEXTURE_2D;
     Widget::Tao()->layout->currentTexture.width = width;
     Widget::Tao()->layout->currentTexture.height = height;
 
-    Widget::Tao()->layout->Add(new FillTexture(id, unit, GL_TEXTURE_2D));
+    Widget::Tao()->layout->Add(new FillTexture(id, GL_TEXTURE_2D));
     Widget::Tao()->layout->hasAttributes = true;
 }
 

@@ -160,10 +160,17 @@ void Licences::addLicenceFile(kstring licfname)
             {
                 item = scanner.TextValue();
                 if (verify(additional, item))
+                {
                     licences.insert(licences.end(),
                                     additional.begin(), additional.end());
+                    state = TAG;
+                }
+                else
+                {
+                    licenceError(licfname, tr("Digest verification failed"));
+                    state = DONE;
+                }
                 additional.clear();                    
-                state = TAG;
             }
             else
             {
@@ -517,7 +524,7 @@ void Licences::licenceError(kstring file, QString reason)
 
 
 #ifndef KEYGEN
-void Licences::WarnUnlicenced(text feature, int days)
+void Licences::WarnUnlicenced(text feature, int days, bool critical)
 // ----------------------------------------------------------------------------
 //   Remind user that the application is not licenced
 // ----------------------------------------------------------------------------
@@ -525,7 +532,7 @@ void Licences::WarnUnlicenced(text feature, int days)
     if (days <= 0)
     {
         QMessageBox oops;
-        oops.setIcon(QMessageBox::Warning);
+        oops.setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
         oops.setWindowTitle(tr("Not licenced"));
         if (days == 0)
             oops.setText(tr("You do not have a valid licence for %1. "

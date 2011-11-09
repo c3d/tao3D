@@ -1,5 +1,22 @@
 Change log for Tao Presentations
 
+1.0-beta11 (08-Nov-2011)
+
+#1584 Add YouCube template
+#1576 Include the module SDK in the Tao package
+#1567 Windows: Tao keeps reloading document although files have not changed
+#1564 MacOSX: frequent hang during verification of modules
+#1558 Manipulators don't work any more on 3d shapes
+#1551 Module preference icon remains disabled
+#1529 Shaders in filters module work only with first texture unit
+#1523 Improve support for various video formats across platforms (VLCAudioVideo module)
+#1522 No error message when shader file is not found
+#1521 Windows: crash on image insertion on welcome screen
+#1432 Impossible to ungroup items
+#1350 Create a module for audio and video playback (AudioVideo)
+#1330 Document display module primitives
+#313 Group bounding box always includes 0,0
+
 1.0-beta10 (19-Oct-2011)
 
 #1528 Add wireframe mode in object loader module (use color, line_color and line_width)

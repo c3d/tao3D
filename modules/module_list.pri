@@ -44,8 +44,9 @@
         taoTester    \
         tao_synchro
 } else {
-    # We're building inside the Tao SDK. Only some modules are available.
-    DEFAULT_MODULES = hello_world lorem_ipsum object_loader
+    # We're building inside the Tao SDK: default modules = all sub-directories
+    LSOUT=$$system(ls)
+    for(f, LSOUT):exists($${f}/$${f}.pro):DEFAULT_MODULES += $$f
     OTHER_MODULES =
 }
 

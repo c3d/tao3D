@@ -46,6 +46,7 @@ PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
         QString path = Application::applicationDirPath();
         QString vs = path + "/lighting.vs";
         QString fs = path + "/lighting.fs";
+
         bool ok = false;
         if (pgm->addShaderFromSourceFile(QGLShader::Vertex, vs))
         {
@@ -188,7 +189,8 @@ void ShaderProgram::Draw(Layout *where)
 //   Activate the given shader program
 // ----------------------------------------------------------------------------
 {
-    if (!where->globalProgramId)
+
+    if (!where->globalProgramId && !where->InIdentify())
     {
         program->bind();
         where->programId = program->programId();
@@ -201,7 +203,7 @@ void ShaderValue::Draw(Layout *where)
 //   Set the shader value
 // ----------------------------------------------------------------------------
 {
-    if (where->programId)
+    if (where->programId && !where->InIdentify())
     {
         ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
         ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();

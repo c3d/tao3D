@@ -299,8 +299,7 @@ NOWARN_SOURCES += licence.cpp
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     !contains(DEFINES, CFG_NODISPLAYLINK):LIBS += -framework CoreVideo
-    LIBS += -framework \
-        ApplicationServices \
+    LIBS += -framework ApplicationServices -framework Foundation \
         -Wl,-macosx_version_min,10.5 \
         -Wl,-rpath,@executable_path/../Frameworks \
         -Wl,-rpath,$$QMAKE_LIBDIR_QT

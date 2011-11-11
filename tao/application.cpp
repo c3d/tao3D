@@ -83,10 +83,10 @@ Application::Application(int & argc, char ** argv)
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
       splash(NULL),
-      pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), doNotEnterEventLoop(false),
-      appInitialized(false)
-
+      pendingOpen(0), appInitialized(false),
+      hadWin(false), doNotEnterEventLoop(false), screenSaverBlocked(false),
+      xlr(NULL),
+      moduleManager(NULL)
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -512,6 +512,7 @@ bool Application::processCommandLine()
         splash = NULL;
     }
 
+    appInitialized = 2;
     if (hadWin && !pendingOpen)
     {
         emit allWindowsReady();

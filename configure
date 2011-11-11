@@ -59,7 +59,7 @@ usage() {
   echo "              for the Viewer edition are in effect and simply modified by the"
   echo "              option. The second + sign is processed by module_list.pri, see "
   echo "              this file for details."
-  echo "  ./configure pro CONFIG-=x86"
+  echo "  ./configure pro CONFIG-=x86_64"
   echo "              Configure for a 64-bit release build on MacOSX (x86 is selected"
   echo "              by default)"
   ) >&2
@@ -113,7 +113,7 @@ osflags() {
   UNAME=`uname`
   case "$UNAME" in
     Darwin)
-      echo "-spec macx-g++ CONFIG+=x86"
+      echo "-spec macx-g++ "
       ;;
     MINGW*)
       echo "-spec win32-g++"

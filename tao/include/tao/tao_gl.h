@@ -28,5 +28,6 @@
 #endif
 
 #include <QtOpenGL>
+#include <GL/glu.h>
 
 #endif // TAO_GL_H

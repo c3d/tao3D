@@ -350,6 +350,17 @@ protected:
     Real_p              x, y, z;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering manipulators in the symbols table
+// 
+// ============================================================================
+
+extern void EnterManipulators();
+extern void DeleteManipulators();
+
 TAO_END
 
 #endif // MANIPULATOR_H

@@ -322,6 +322,17 @@ public slots:
 
 };
 
+
+
+// ============================================================================
+// 
+//   Entering widget surfaces in the symbols table
+// 
+// ============================================================================
+
+extern void EnterWidgetSurfaces();
+extern void DeleteWidgetSurfaces();
+
 } // namespace Tao
 
 #endif // WIDGET_SURFACE_H

@@ -172,6 +172,17 @@ struct Material : Light
     GLenum      face;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering lighting primitives in the symbols table
+// 
+// ============================================================================
+
+extern void EnterLighting();
+extern void DeleteLighting();
+
 TAO_END
 
 #endif // LIGHTING_H

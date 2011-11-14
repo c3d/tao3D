@@ -36,10 +36,15 @@
 //
 // ============================================================================
 
+namespace Tao
+{
+
 // Top-level entry point: enter all basic operations in the context
 void EnterGraphics();
 
 // Top-level entry point: reset all global pointers related to graphics
 void DeleteGraphics();
+
+}
 
 #endif // GRAPHICS_H

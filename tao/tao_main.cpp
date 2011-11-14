@@ -27,6 +27,7 @@
 #endif
 
 #include "application.h"
+#include "init_cleanup.h"
 #include "main.h"
 #include "basics.h"
 #include "graphics.h"
@@ -58,8 +59,6 @@
 #include <imagehlp.h>
 static void win_redirect_io();
 #endif
-
-static void cleanup();
 
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
@@ -96,7 +95,7 @@ int main(int argc, char **argv)
     }
 
     RECORD(ALWAYS, "Cleaning up");
-    cleanup();
+    Cleanup();
 
     // HACK: it seems that cleanup() does not clean everything, at least on
     // Windows -- without the exit() call, the windows build crashes at exit
@@ -104,22 +103,6 @@ int main(int argc, char **argv)
 
     return ret;
 }
-
-
-void cleanup()
-// ----------------------------------------------------------------------------
-//   Cleaning up before exit
-// ----------------------------------------------------------------------------
-{
-    // First, discard ALL global (smart) pointers to XL types/names
-    XL::DeleteBasics();
-    DeleteGraphics();     // REVISIT: move to Tao:: namespace?
-    TaoFormulas::DeleteFormulas();
-
-    // No more global refs, deleting GC will purge everything
-    XL::GarbageCollector::Delete();
-}
-
 
 
 #ifdef CONFIG_MINGW
@@ -148,6 +131,7 @@ static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
         return (*TopLevelExceptionFilter)(ep);
     return EXCEPTION_CONTINUE_SEARCH;
 }
+
 
 static BOOL WINAPI TaoConsoleCtrlHandler(DWORD dwCtrlType)
 // ----------------------------------------------------------------------------
@@ -274,7 +258,8 @@ static void TaoStackTrace(int fd)
             if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
             {
                 size += snprintf(buffer + size, sizeof buffer - size,
-                                 ", %s, line %lu", line.FileName, line.LineNumber);
+                                 ", %s, line %lu",
+                                 line.FileName, line.LineNumber);
                 if (dwDisp > 0)
                     size += snprintf(buffer + size, sizeof buffer - size,
                                      "+%04lu", dwDisp);
@@ -326,7 +311,8 @@ void install_first_exception_handler(void)
 // ----------------------------------------------------------------------------
 {
     // Windows-specific ugliness
-    PrimaryExceptionFilter = SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
+    PrimaryExceptionFilter =
+        SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
     SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 }
 
@@ -402,7 +388,8 @@ void install_signal_handler(sig_t handler)
 
 #ifdef CONFIG_MINGW
     // Windows-specific ugliness
-    TopLevelExceptionFilter = SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
+    TopLevelExceptionFilter =
+        SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
     SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 #endif // CONFIG_MINGW
     }

@@ -265,6 +265,17 @@ struct FixedSizePoint : Shape2
     scale  radius;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering shapes in the symbols table
+// 
+// ============================================================================
+
+extern void EnterShapes();
+extern void DeleteShapes();
+
 TAO_END
 
 #endif // SHAPES_H

@@ -67,6 +67,17 @@ public:
     Layouts                fills, borders;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering shapes in the symbols table
+// 
+// ============================================================================
+
+extern void EnterTables();
+extern void DeleteTables();
+
 TAO_END
 
 #endif // TABLE_H

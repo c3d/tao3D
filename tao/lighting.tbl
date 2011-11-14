@@ -1,0 +1,281 @@
+// ****************************************************************************
+//  lighting.tbl                                                    Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//      Description of lighting primitives
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//   Lighting
+//
+// ============================================================================
+
+PREFIX(LightsMask,  tree,  "lights_mask",,
+       RTAO(lightsMask(self)),
+       GROUP(lighting)
+       SYNOPSIS("Return a bitmask of all current activated lights")
+       DESCRIPTION("Return a bitmask of all current activated lights")
+       RETURNS(tree, "Return a bitmask of all current activated lights"))
+PREFIX(PerPixelLighting,  tree,  "per_pixel_lighting",
+       PARM(b, boolean,),
+       RTAO(perPixelLighting(self, b)),
+       GROUP(lighting)
+       SYNOPSIS("Enable or disable per pixel lighting")
+       DESCRIPTION(""))
+
+PREFIX(LightID, tree, "light", PARM(l, integer,) PARM(b, boolean,),
+       RTAO(lightId(self, l, b)),
+       GROUP(lighting)
+       SYNOPSIS("Select which light we are working with")
+       DESCRIPTION(""))
+PREFIX(LightEnable, tree, "light", PARM(l, integer,),
+       RTAO(lightId(self, l, true)),
+       GROUP(lighting)
+       SYNOPSIS("Select which light we are working with")
+       DESCRIPTION(""))
+
+PREFIX(LightAmbient, tree, "light_ambient",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(light(self, GL_AMBIENT, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the ambient light")
+       DESCRIPTION(""))
+PREFIX(LightDiffuse, tree, "light_diffuse",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(light(self, GL_DIFFUSE, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the diffuse light")
+       DESCRIPTION(""))
+PREFIX(LightSpecular, tree, "light_specular",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(light(self, GL_SPECULAR, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the specular light")
+       DESCRIPTION(""))
+PREFIX(LightPosition3, tree, "light_position",
+       PARM(x, real,) PARM(y, real,) PARM(z, real,),
+       RTAO(light(self, GL_POSITION, x, y, z, 0)),
+       GROUP(lighting)
+       SYNOPSIS("Select the position of the light")
+       DESCRIPTION(""))
+PREFIX(LightPosition, tree, "light_position",
+       PARM(x, real,) PARM(y, real,) PARM(z, real,) PARM(w, real,),
+       RTAO(light(self, GL_POSITION, x, y, z, w)),
+       GROUP(lighting)
+       SYNOPSIS("Select the position of the light")
+       DESCRIPTION(""))
+PREFIX(LightSpotDirection, tree, "light_spot_direction",
+       PARM(x, real,) PARM(y, real,) PARM(z, real,),
+       RTAO(light(self, GL_SPOT_DIRECTION, x, y, z)),
+       GROUP(lighting)
+       SYNOPSIS("Select the direction of spot lights")
+       DESCRIPTION(""))
+PREFIX(LightSpotExponent, tree, "light_spot_exponent", PARM(x, real,),
+       RTAO(light(self, GL_SPOT_EXPONENT, x)),
+       GROUP(lighting)
+       SYNOPSIS("Select the cutoff exponent for spot lights")
+       DESCRIPTION(""))
+PREFIX(LightSpotCutoff, tree, "light_spot_cutoff", PARM(x, real,),
+       RTAO(light(self, GL_SPOT_CUTOFF, x)),
+       GROUP(lighting)
+       SYNOPSIS("Select the cutoff angle for spot lights")
+       DESCRIPTION(""))
+PREFIX(LightAttenuation, tree, "light_attenuation",
+       PARM(x, real,) PARM(y, real,) PARM(z, real,),
+       TAO(light(self, GL_CONSTANT_ATTENUATION, x));
+       TAO(light(self, GL_LINEAR_ATTENUATION, y));
+       TAO(light(self, GL_QUADRATIC_ATTENUATION, z));
+       return XL::xl_true,
+       GROUP(lighting)
+       SYNOPSIS("Select the light attenuation factor")
+       DESCRIPTION(""))
+
+PREFIX(MaterialAmbient, tree, "material_ambient",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_AMBIENT, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the ambient material")
+       DESCRIPTION(""))
+PREFIX(MaterialDiffuse, tree, "material_diffuse",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_DIFFUSE, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the diffuse material")
+       DESCRIPTION(""))
+PREFIX(MaterialSpecular, tree, "material_specular",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_SPECULAR, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the specular material")
+       DESCRIPTION(""))
+PREFIX(MaterialEmission, tree, "material_emission",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_EMISSION, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the emission of the material")
+       DESCRIPTION(""))
+PREFIX(MaterialShininess, tree, "material_shininess", PARM(x, real,),
+       RTAO(material(self, GL_FRONT_AND_BACK, GL_SHININESS, x)),
+       GROUP(lighting)
+       SYNOPSIS("Select the shininess of the material")
+       DESCRIPTION(""))
+
+PREFIX(MaterialFrontAmbient, tree, "material_front_ambient",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT, GL_AMBIENT, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the ambient material")
+       DESCRIPTION(""))
+PREFIX(MaterialFrontDiffuse, tree, "material_front_diffuse",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT, GL_DIFFUSE, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the diffuse material")
+       DESCRIPTION(""))
+PREFIX(MaterialFrontSpecular, tree, "material_front_specular",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT, GL_SPECULAR, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the specular material")
+       DESCRIPTION(""))
+PREFIX(MaterialFrontEmission, tree, "material_front_emission",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_FRONT, GL_EMISSION, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the emission of the material")
+       DESCRIPTION(""))
+PREFIX(MaterialFrontShininess, tree, "material_front_shininess", PARM(x, real,),
+       RTAO(material(self, GL_FRONT, GL_SHININESS, x)),
+       GROUP(lighting)
+       SYNOPSIS("Select the shininess of the material")
+       DESCRIPTION(""))
+PREFIX(MaterialBackAmbient, tree, "material_back_ambient",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_BACK, GL_AMBIENT, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the ambient material")
+       DESCRIPTION(""))
+PREFIX(MaterialBackDiffuse, tree, "material_back_diffuse",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_BACK, GL_DIFFUSE, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the diffuse material")
+       DESCRIPTION(""))
+PREFIX(MaterialBackSpecular, tree, "material_back_specular",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_BACK, GL_SPECULAR, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the specular material")
+       DESCRIPTION(""))
+PREFIX(MaterialBackEmission, tree, "material_back_emission",
+       PARM(r, real,) PARM(g, real,) PARM(b, real,) PARM(a, real,),
+       RTAO(material(self, GL_BACK, GL_EMISSION, r, g, b, a)),
+       GROUP(lighting)
+       SYNOPSIS("Select the emission of the material")
+       DESCRIPTION(""))
+PREFIX(MaterialBackShininess, tree, "material_back_shininess", PARM(x, real,),
+       RTAO(material(self, GL_BACK, GL_SHININESS, x)),
+       GROUP(lighting)
+       SYNOPSIS("Select the shininess of the material")
+       DESCRIPTION(""))
+
+PREFIX(ShaderProgram, tree, "shader_program", PARM(program, code,),
+       RTAO(shaderProgram(context, self, program)),
+       GROUP(lighting)
+       SYNOPSIS("Define a shader program")
+       DESCRIPTION(""))
+PREFIX(VertexShaderFromSource, tree, "vertex_shader", PARM(src, text,),
+       RTAO(shaderFromSource(self, Tao::Widget::VERTEX, src)),
+       GROUP(lighting)
+       SYNOPSIS("Define a vertex shader")
+       DESCRIPTION(""))
+PREFIX(VertexShaderFromFile, tree, "vertex_shader_file", PARM(file, text,),
+       RTAO(shaderFromFile(self, Tao::Widget::VERTEX, file)),
+       GROUP(lighting)
+       SYNOPSIS("Define a vertex shader")
+       DESCRIPTION(""))
+PREFIX(FragmentShaderFromSource, tree, "fragment_shader",
+       PARM(src, text, "Source code for the fragment shader"),
+       RTAO(shaderFromSource(self, Tao::Widget::FRAGMENT, src)),
+       GROUP(graph:shading)
+       SYNOPSIS("Define a fragment shader"))
+PREFIX(FragmentShaderFromFile, tree, "fragment_shader_file",
+       PARM(file, text, "Name of fragment shader file"),
+       RTAO(shaderFromFile(self, Tao::Widget::FRAGMENT, file)),
+       GROUP(graph:shading)
+       SYNOPSIS("Load a fragment shader from a file"))
+PREFIX(GeometryShaderFromSource, tree, "geometry_shader",
+       PARM(src, text, "Source code for the shader"),
+       RTAO(shaderFromSource(self, Tao::Widget::GEOMETRY, src)),
+       GROUP(graph:shading)
+       SYNOPSIS("Define a geometry shader"))
+PREFIX(GeometryShaderFromFile, tree, "geometry_shader_file",
+       PARM(file, text, "File name for the shader"),
+       RTAO(shaderFromFile(self, Tao::Widget::GEOMETRY, file)),
+       GROUP(graph:shading)
+       SYNOPSIS("Define a geometry shader"))
+PREFIX(ShaderLog, text, "shader_log", , RTAO(shaderLog(self)),
+       GROUP(graph:shading)
+       SYNOPSIS("Return the shader compilation log")
+       DESCRIPTION(""))
+PREFIX(GeometryInputType, integer, "geometry_shader_input", ,
+       RTAO(geometryInputType(self)),
+       SYNOPSIS("Get geometry shader input type")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryInputType, boolean, "geometry_shader_input",
+       PARM(type, integer, "Input type"),
+       RTAO(setGeometryInputType(self, type)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader input type")
+       DESCRIPTION(""))
+PREFIX(GeometryOutputType, integer, "geometry_shader_output", ,
+       RTAO(geometryOutputType(self)),
+       SYNOPSIS("Get geometry shader output type")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryOutputType, boolean, "geometry_shader_output",
+       PARM(type, integer, "Output type"),
+       RTAO(setGeometryOutputType(self, type)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader output type")
+       DESCRIPTION(""))
+PREFIX(GeometryOutputCount, integer, "geometry_shader_count", ,
+       RTAO(geometryOutputCount(self)),
+       SYNOPSIS("Get geometry shader vertices count")
+       GROUP(graph:shading)
+       DESCRIPTION(""))
+PREFIX(SetGeometryOutputCount, boolean, "geometry_shader_count",
+       PARM(count, integer, "output count"),
+       RTAO(setGeometryOutputCount(self, count)),
+       GROUP(graph:shading)
+       SYNOPSIS("Set geometry shader vertices count")
+       DESCRIPTION(""))
+PREFIX(ShaderSet, tree, "shader_set",
+       PARM(t, source, "Assignment to a shader variable"),
+       RTAO(shaderSet(context, self, t)),
+       GROUP(lighting)
+       SYNOPSIS("Set a shader uniform or attribute value")
+       DESCRIPTION(""));
+PREFIX(DisplaySet, tree, "display_set",
+       PARM(t, source, "Assignment to a display variable"),
+       RTAO(displaySet(context, self, t)),
+       SYNOPSIS("Set an option in the current display function/module")
+       DESCRIPTION(""));
+

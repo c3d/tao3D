@@ -1,0 +1,93 @@
+// ****************************************************************************
+//  chooser.tbl                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Chooser primitives
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//   Chooser
+//
+// ============================================================================
+
+PREFIX(Chooser,  tree,  "chooser",
+       PARM(n, text, "The caption of the chooser."),
+       RTAO(chooser(context, self, n)),
+       GROUP(code:chooser)
+       SYNOPSIS("")
+       DESCRIPTION("Create a chooser with the given caption. A chooser shows a selection among the possible commands"))
+PREFIX(ChooserChoice,  tree,  "chooser_choice",
+       PARM(n, text, "label of the command")
+       PARM(t, code, "the command"),
+       RTAO(chooserChoice(self, n, t)),
+       GROUP(code:chooser)
+       SYNOPSIS("Add a command in the chooser list.")
+       DESCRIPTION("Create a chooser item and associate a command"))
+PREFIX(ChooserCommands,  tree,  "chooser_commands",
+       PARM(p, text, "The prefix")
+       PARM(t,text, "The label"),
+       RTAO(chooserCommands(self, p, t)),
+       GROUP(code:chooser)
+       SYNOPSIS("Add all commands from the symbols list.")
+       DESCRIPTION(" Add all commands in the current symbol table that have the given prefix"))
+PREFIX(ChooserPages,  tree,  "chooser_pages",
+       PARM(p, symbol, "The prefix that will be added to the page name")
+       PARM(l, text, "The text that will be added as label prefix to the name of pages."),
+       RTAO(chooserPages(self, p, l)),
+       GROUP(code:chooser)
+       SYNOPSIS("pages added to the chooser")
+       DESCRIPTION("Add the list of pages to the chooser"))
+PREFIX(ChooserBranches,  tree,  "chooser_branches",
+       PARM(p, symbol, "The action to execute when branch is selected (will be passed branch name as text)")
+       PARM(l, text, "The text that will be added as label prefix to the name of branches."),
+       RTAO(chooserBranches(self, p, l)),
+       GROUP(code:chooser)
+       SYNOPSIS("branches added to the chooser")
+       DESCRIPTION("Add the list of project branches to the chooser"))
+PREFIX(ChooserCommits,  tree,  "chooser_commits",
+       PARM(b, text, "The branch name")
+       PARM(p, symbol, "The action to execute when commit is selected (will be passed commit ID as text)")
+       PARM(l, text, "The text that will be added as label prefix to the commit log."),
+       RTAO(chooserCommits(self, b, p, l)),
+       GROUP(code:chooser)
+       SYNOPSIS("commits added to the chooser")
+       DESCRIPTION("Add the branch history (commits) to the chooser"))
+PREFIX(Checkout,  tree,  "checkout",
+       PARM(t, text, "The name of the branch, or the commit ID, to checkout."),
+       RTAO(checkout(self, t)),
+       GROUP(code:checkout)
+       SYNOPSIS("")
+       DESCRIPTION("Checkout a branch or a commit"))
+PREFIX(CurrentRepository,  boolean,  "current_repository",,
+       RTAO(currentRepository(self)),
+       GROUP(code:checkout)
+       SYNOPSIS("Return true if we use a git repository with the current document")
+       DESCRIPTION("Return true if the current document is stored in a repository, Git functionality is compiled in, and not disabled on the command line"))
+PREFIX(ChooserCloseDocument, tree, "chooser_command_Close_current_document",
+       /* No param */,
+       RTAO(closeCurrentDocument(self)),
+       GROUP(chooser)
+       SYNOPSIS("")
+       DESCRIPTION("Close the current document window"))
+PREFIX(ChooserQuitTao, tree, "chooser_command_Quit_Tao",
+       /* No param */,
+       RTAO(quitTao(self)),
+       GROUP(chooser)
+       SYNOPSIS("")
+       DESCRIPTION("Quit the application"))

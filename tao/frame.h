@@ -115,6 +115,17 @@ struct FramePainter : QPainter
     GLStateKeeper save;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering shapes in the symbols table
+// 
+// ============================================================================
+
+extern void EnterFrames();
+extern void DeleteFrames();
+
 TAO_END
 
 #endif // FRAME_H

@@ -1,0 +1,102 @@
+// ****************************************************************************
+//  shapes3d.tbl                                                    Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Description of 3D shapes
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+
+// ============================================================================
+//
+//   3D primitives
+//
+// ============================================================================
+
+PREFIX(Sphere,  tree,  "sphere",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth")
+       PARM(slices, integer, "number of slices")
+       PARM(stacks, integer, "[TODO]"),
+       RTAO(sphere(self, x, y, z, w, h, d, slices, stacks)),
+       GROUP(graph)
+       SYNOPSIS("sphere like")
+       DESCRIPTION("GL sphere [TODO or ovoid ? Add the incidence of slices and stacks on the sphere rendering time.]"))
+PREFIX(Torus,  tree,  "torus",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth")
+       PARM(slices, integer, "number of slices")
+       PARM(stacks, integer, "number of stacks")
+       PARM(r, real, "radius"),
+       RTAO(torus(self, x, y, z, w, h, d, slices, stacks, r)),
+       GROUP(graph)
+       SYNOPSIS("torus like")
+       DESCRIPTION("torus[TODO]")
+       RETURNS(tree, ""))
+PREFIX(Cube,  tree,  "cube",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth"),
+       RTAO(cube(self, x, y, z, w, h, d)),
+       GROUP(graph)
+       SYNOPSIS("cube like")
+       DESCRIPTION("parallelepiped rectangle"))
+PREFIX(Cone,  tree,  "cone",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth"),
+       RTAO(cone(self, x, y, z, w, h, d, 0.0)),
+       GROUP(graph)
+       SYNOPSIS("cone")
+       DESCRIPTION("cone[TODO]"))
+PREFIX(Cylinder,  tree,  "cylinder",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth"),
+       RTAO(cone(self, x, y, z, w, h, d, 1.0)),
+       GROUP(graph)
+       SYNOPSIS("cylinder")
+       DESCRIPTION("cylinder[TODO]"))
+PREFIX(TruncatedCone,  tree,  "truncated_cone",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(z, real, "z-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height")
+       PARM(d, real, "depth")
+       PARM(r, real, "percentage of basis : 0.0 is a cone; 1.0 is a cylinder."),
+       RTAO(cone(self, x, y, z, w, h, d, r)),
+       GROUP(graph)
+       SYNOPSIS("truncated cone")
+       DESCRIPTION("truncated cone[TODO]"))

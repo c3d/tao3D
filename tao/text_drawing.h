@@ -181,6 +181,18 @@ struct TextSelect : Identify
 };
 
 
+
+
+
+// ============================================================================
+// 
+//   Entering text drawing in the symbols table
+// 
+// ============================================================================
+
+extern void EnterTextDrawing();
+extern void DeleteTextDrawing();
+
 TAO_END
 
 #endif // TEXT_DRAWING_H

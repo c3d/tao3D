@@ -383,6 +383,17 @@ struct ConvertScreenCoordinates : Attribute
     coord x,y;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering attributes in the symbols table
+// 
+// ============================================================================
+
+extern void EnterAttributes();
+extern void DeleteAttributes();
+
 TAO_END
 
 #endif // ATTRIBUTES_H

@@ -58,6 +58,9 @@ Tree *xl_process_module_import(Symbols *symbols, Tree *source, bool execute)
 }
 
 
+namespace Tao
+{
+
 void EnterGraphics()
 // ----------------------------------------------------------------------------
 //   Enter all the basic operations defined in graphics.tbl
@@ -77,4 +80,6 @@ void DeleteGraphics()
 {
 #include "opcodes_delete.h"
 #include "graphics.tbl"
+}
+
 }

@@ -407,3 +407,63 @@ FramePainter::~FramePainter()
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from frame.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "frame.tbl"
+
+namespace Tao
+{
+
+#include "frame.tbl"
+
+
+void EnterFrames()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "frame.tbl"
+}
+
+
+void DeleteFrames()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "frame.tbl"
+}
+
+}

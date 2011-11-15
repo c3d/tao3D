@@ -1,0 +1,289 @@
+// ****************************************************************************
+//  shapes.tbl                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Description of the individual shape primitives
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//   2D primitives (either standalone, or added to the current path)
+//
+// ============================================================================
+
+PREFIX(Point,  tree,  "point",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(z,real, "z-coordinate")
+       PARM(s,real, "THe size of the point"),
+       RTAO(fixedSizePoint(self, x, y, z, s)),
+       GROUP(graph:path)
+       SYNOPSIS("Draw a point")
+       DESCRIPTION("Draw a point with the given size"))
+PREFIX(Rectangle,  tree,  "rectangle",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of the rectangle")
+       PARM(h,real, "height of the rectangle"),
+       RTAO(rectangle(self, x, y, w, h)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Draw a rectangle")
+       DESCRIPTION("Draw a rectangle"))
+PREFIX(Triangle,  tree,  "triangle",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "base of the triangle")
+       PARM(h,real, "height of the triangle"),
+       RTAO(isoscelesTriangle(self, x, y, w, h)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Isocele triangle")
+       DESCRIPTION("Draw an isocele triangle"))
+PREFIX(RightTriangle,  tree,  "right_triangle",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "base of the triangle")
+       PARM(h,real, "height of the triangle"),
+       RTAO(rightTriangle(self, x, y, w, h)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Right triangle")
+       DESCRIPTION("Draw a right triangle"))
+PREFIX(Ellipse,  tree,  "ellipse",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of the ellipse")
+       PARM(h,real, "height of the ellipse"),
+       RTAO(ellipse(self, x, y, w, h)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Ellipse")
+       DESCRIPTION("Draw an ellipse centered around (cx,cy) size w * h"))
+PREFIX(EllipseArc,  tree,  "ellipse_arc",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of the ellipse")
+       PARM(h,real, "height of the ellipse")
+       PARM(start, real, "start angle")
+       PARM(sweep, real, "sweep angle"),
+       RTAO(ellipseArc(self, x, y, w, h, start, sweep)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Elliptic sector")
+       DESCRIPTION("Elliptic sector centered around (cx,cy) that occupies the given rectangle, beginning at the specified startAngle and extending sweepLength degrees counter-clockwise. Angles are specified in degrees. Clockwise arcs can be specified using negative angles."))
+PREFIX(RoundedRectangle,  tree,  "rounded_rectangle",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of the rectangle")
+       PARM(h,real, "height of the rectangle")
+       PARM(r, real, "corner radius"),
+       RTAO(roundedRectangle(self, x, y, w, h, r)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Rounded rectangle")
+       DESCRIPTION("Rounded rectangle with radius r for the rounded corners"))
+PREFIX(EllipticalRectangle,  tree,  "elliptical_rectangle",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of the rectangle")
+       PARM(h,real, "height of the rectangle")
+       PARM(r, real, "ration of the ellpitic sides"),
+       RTAO(ellipticalRectangle(self, x, y, w, h, r)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Elliptical rectangle")
+       DESCRIPTION("Elliptical rectangle with ratio r for the elliptic sides"))
+PREFIX(Arrow,  tree,  "arrow",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of  [TODO: what ?]")
+       PARM(h,real, "height of [TODO: what ?]")
+       PARM(ax, real, "[TODO]")
+       PARM(ay, real, "[TODO]"),
+       RTAO(arrow(self, x, y, w, h, ax, ay)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Draw an arraw")
+       DESCRIPTION("Draw an arraw"))
+PREFIX(DoubleArrow,  tree,  "double_arrow",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width of  [TODO: what ?]")
+       PARM(h,real, "height of [TODO: what ?]")
+       PARM(ax, real, "[TODO]")
+       PARM(ay, real, "[TODO]"),
+       RTAO(doubleArrow(self, x, y, w, h, ax, ay)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Double arraw")
+       DESCRIPTION("Draw a symetric double arraw"))
+PREFIX(StarPolygon,  tree,  "star_polygon",
+       PARM(x, real, "center x-coordinate")
+       PARM(y, real, "center y-coordinate")
+       PARM(w, real, "width of the star")
+       PARM(h, real, "height of the star")
+       PARM(p, integer, "Number of branch[TODO: is OK?]")
+       PARM(q, integer, "[TODO]"),
+       RTAO(starPolygon(self, x, y, w, h, p, q)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Draw a star")
+       DESCRIPTION("GL regular p-side star polygon {p/q} centered around (cx,cy)"))
+PREFIX(Star,  tree,  "star",
+       PARM(x, real, "center x-coordinate")
+       PARM(y, real, "center y-coordinate")
+       PARM(w, real, "width of the star")
+       PARM(h, real, "height of the star")
+       PARM(p, integer, "Number of branch[TODO: is OK?]")
+       PARM(r, real, "inner radius ratio"),
+       RTAO(star(self, x, y, w, h, p, r)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Draw a star")
+       DESCRIPTION("GL regular p-side star centered around (cx,cy) inner radius ratio r"))
+PREFIX(SpeechBalloon,  tree,  "speech_balloon",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(w, real, "width of the balloon")
+       PARM(h, real, "height of the balloon")
+       PARM(r, real, "radius")
+       PARM(ax, real, "[TODO]")
+       PARM(ay, real, "[TODO]"),
+       RTAO(speechBalloon(self, x, y, w, h, r, ax, ay)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("Speech balloon")
+       DESCRIPTION("Speech balloon with radius r for rounded corners, and point a for the tail"))
+PREFIX(Callout,  tree,  "callout",
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(w, real, "width of the callout")
+       PARM(h, real, "height of the callout")
+       PARM(r, real, "radius")
+       PARM(ax, real, "x-coordinate of point a")
+       PARM(ay, real, "y-coordinate of point a")
+       PARM(d, real, "[TODO]"),
+       RTAO(callout(self, x, y, w, h, r, ax, ay, d)),
+       GROUP(graph:path:shape)
+       SYNOPSIS("callout")
+       DESCRIPTION("Callout with radius r for corners, and point a, width b [TODO: is d or b] for the tail"))
+
+PREFIX(PicturePacker,  tree,  "picture_packer",
+       PARM(tw, integer, "width")
+       PARM(th, integer, "height")
+       PARM(iw, integer, "[TODO]")
+       PARM(ih, integer, )
+       PARM(pw, integer, )
+       PARM(ph, integer, )
+       PARM(t, code, ),
+       RTAO(picturePacker(self, tw, th, iw, ih, pw, ph, t)),
+       GROUP(graph:debug)
+       SYNOPSIS("Debug the bin packer")
+       DESCRIPTION("Debug the bin packer"))
+
+
+
+// ============================================================================
+//
+//   Generating a path
+//
+// ============================================================================
+
+PREFIX(Path,    tree,  "path",
+       PARM(t, code, "The definition of the path."),
+       RTAO(newPath(context, self, t)),
+       GROUP(graph:path)
+       SYNOPSIS("Start a path")
+       DESCRIPTION("Evaluate the child tree within a polygon")
+       RETURNS(tree, "The result of the child evaluation."))
+PREFIX(MoveTo,  tree,  "move_to",
+       PARM(x, real, "x-coordinate of the point to move to.")
+       PARM(y, real, "y-coordinate of the point to move to.")
+       PARM(z, real, "z-coordinate of the point to move to."),
+       RTAO(moveTo(self, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS("move to point")
+       DESCRIPTION("Add a 'moveTo' to the current path"))
+PREFIX(LineTo,  tree,  "line_to",
+       PARM(x, real, "x-coordinate of the point to line to.")
+       PARM(y, real, "y-coordinate of the point to line to.")
+       PARM(z, real, "z-coordinate of the point to line to."),
+       RTAO(lineTo(self, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS("line to point")
+       DESCRIPTION("Add a 'lineTo' to the current path"))
+PREFIX(QuadTo,  tree,  "quad_to",
+       PARM(cx, real, "x-coordinate of the control point.")
+       PARM(cy, real, "y-coordinate of the control point.")
+       PARM(cz, real, "z-coordinate of the control point.")
+       PARM(x, real, "x-coordinate of the point to finish to.")
+       PARM(y, real, "y-coordinate of the point to finish to.")
+       PARM(z, real, "z-coordinate of the point to finish to."),
+       RTAO(curveTo(self, cx, cy, cz, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS(" quadric curveTo")
+       DESCRIPTION("Add a quadric curveTo to the current path."))
+PREFIX(CubicTo,  tree,  "cubic_to",
+       PARM(c1x, real, "x-coordinate of the first control point.")
+       PARM(c1y, real, "y-coordinate of the first control point.")
+       PARM(c1z, real, "z-coordinate of the first control point.")
+       PARM(c2x, real, "x-coordinate of the second control point.")
+       PARM(c2y, real, "y-coordinate of the second control point.")
+       PARM(c2z, real, "z-coordinate of the second control point.")
+       PARM(x, real, "x-coordinate of the point to finish to.")
+       PARM(y, real, "y-coordinate of the point to finish to.")
+       PARM(z, real, "z-coordinate of the point to finish to."),
+       RTAO(curveTo(self, c1x, c1y, c1z, c2x, c2y, c2z, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS("cubic curveTo")
+       DESCRIPTION("Add a cubic curveTo to the current path"))
+PREFIX(MoveRel,  tree,  "move_relative",
+       PARM(x,real, "delta to move to on x-axis.")
+       PARM(y,real, "delta to move to on y-axis.")
+       PARM(z,real, "delta to move to on z-axis."),
+       RTAO(moveToRel(self, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS("relative moveTo")
+       DESCRIPTION("Add a relative moveTo"))
+PREFIX(LineRel,  tree,  "line_relative",
+       PARM(x,real, "delta to line to on x-axis.")
+       PARM(y,real, "delta to line to on y-axis.")
+       PARM(z,real, "delta to line to on z-axis."),
+       RTAO(lineToRel(self, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS("relative line to")
+       DESCRIPTION("Add a relative 'lineTo' to the current path")
+       RETURNS(tree, ""))
+PREFIX(PathTexCoord,  tree,  "path_texture",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(z,real, "z-coordinate"),
+       RTAO(pathTextureCoord(self, x, y, z)),
+       GROUP(graph:path)
+       SYNOPSIS("Not supported yet")
+       DESCRIPTION(" NOT SUPPORTED YET. Add a texture coordinate to the path. NOT SUPPORTED YET"))
+PREFIX(PathColor,  tree,  "path_color",
+       PARM(r, real, "The red componant of the color")
+       PARM(g, real, "The blue componant of the color")
+       PARM(b, real, "The green componant of the color")
+       PARM(a, real, "Alpha channel: the transparency of the color. "),
+       RTAO(pathColor(self, r,g,b, a)),
+       GROUP(graph:path)
+       SYNOPSIS("Not supported yet")
+       DESCRIPTION("NOT SUPPORTED YET. Add a color element to the path. NOT SUPPORTED YET. "))
+PREFIX(ClosePath,  tree,  "close_path", , RTAO(closePath(self)),
+       GROUP(graph:path)
+       SYNOPSIS("close the path")
+       DESCRIPTION("Close the path back to its origin"))
+PREFIX(EndpointsStyle,  tree,  "endpoints_style",
+       PARM(s, symbol, "start endpoint style")
+       PARM(e, symbol, "end endpoint style"),
+       RTAO(endpointsStyle(self, s, e)),
+       GROUP(graph:path)
+       SYNOPSIS("style of the path endpoints")
+       DESCRIPTION("Specify the style of the path endpoints. Supported values are : ARROWHEAD, ARROWHEAD, POINTER, DIAMOND, CIRCLE, SQUARE, BAR, CUP, FLETCHING, HOLLOW_CIRCLEHOLLOW_SQUARE.")
+       RETURNS(tree, ""))

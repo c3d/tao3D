@@ -68,6 +68,17 @@ public:
     XL::Tree_p   selected;
 };
 
+
+
+// ============================================================================
+// 
+//   Entering chooser items in the symbols table
+// 
+// ============================================================================
+
+extern void EnterChooser();
+extern void DeleteChooser();
+
 TAO_END
 
 #endif // CHOOSER_H

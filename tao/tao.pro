@@ -59,6 +59,7 @@ HEADERS += widget.h \
     include/tao/tao_gl.h \
     window.h \
     application.h \
+    init_cleanup.h \
     licence.h \
     frame.h \
     svg.h \
@@ -163,6 +164,7 @@ SOURCES += tao_main.cpp \
     repository.cpp \
     git_backend.cpp \
     application.cpp \
+    init_cleanup.cpp \
     font.cpp \
     drag.cpp \
     error_message_dialog.cpp \
@@ -329,6 +331,17 @@ OTHER_FILES +=  \
     $${SUPPORT_FILES} \
     traces.tbl \
     graphics.tbl \
+    attributes.tbl \
+    shapes.tbl \
+    shapes3d.tbl \
+    manipulator.tbl \
+    transforms.tbl \
+    text_drawing.tbl \
+    table.tbl \
+    widget_surface.tbl \
+    chooser.tbl \
+    frame.tbl \
+    lighting.tbl \
     Info.plist.in \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html \

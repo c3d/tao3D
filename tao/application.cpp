@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "application.h"
+#include "init_cleanup.h"
 #include "widget.h"
 #include "repository.h"
 #include "tao_utf8.h"
@@ -184,7 +185,7 @@ Application::Application(int & argc, char ** argv)
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();
-    EnterGraphics();
+    Initialize();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM

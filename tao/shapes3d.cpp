@@ -516,3 +516,63 @@ void Cone::Draw(Layout *where)
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from shapes3d.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "shapes3d.tbl"
+
+namespace Tao
+{
+
+#include "shapes3d.tbl"
+
+
+void EnterShapes3D()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "shapes3d.tbl"
+}
+
+
+void DeleteShapes3D()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "shapes3d.tbl"
+}
+
+}

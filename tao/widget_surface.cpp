@@ -813,3 +813,63 @@ void AbstractSliderSurface::valueChanged(int /* new_value */)
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from widget_surface.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "widget_surface.tbl"
+
+namespace Tao
+{
+
+#include "widget_surface.tbl"
+
+
+void EnterWidgetSurfaces()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "widget_surface.tbl"
+}
+
+
+void DeleteWidgetSurfaces()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "widget_surface.tbl"
+}
+
+}

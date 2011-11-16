@@ -118,8 +118,7 @@ void Licences::addLicenceFile(kstring licfname)
         case START:
             licence = Licence();
             had_features = false;
-            day = 5; month = 12; year = 1968;
-            licence.expiry = QDate(year, month, day);
+            licence.expiry = QDate();
             state = TAG;
             // Fall through on purpose
 
@@ -361,10 +360,13 @@ text Licences::toText(std::vector<Licence> &licences)
     for (i = 0; i < max; i++)
     {
         Licence &l = licences[i];
-        os << "expires "
-           << l.expiry.day() << "/"
-           << l.expiry.month() << "/"
-           << l.expiry.year() << "\n";
+        if (l.expiry.isValid())
+        {
+            os << "expires "
+               << l.expiry.day() << "/"
+               << l.expiry.month() << "/"
+               << l.expiry.year() << "\n";
+        }
         os << "features \"" << +l.features.pattern() << "\"\n";
     }
     return os.str();
@@ -482,7 +484,10 @@ int Licences::licenceRemainingDays(text feature)
         Licence &licence = *l;
         if (licence.features.exactMatch(qfun))
         {
-            result = today.daysTo(licence.expiry);
+            if (licence.expiry.isValid())
+                result = today.daysTo(licence.expiry);
+            else
+                result = INT_MAX - 1;
             if (result >= 0)
                 return result + 1; // If licence expires today, it's still OK
         }

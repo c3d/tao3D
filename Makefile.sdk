@@ -43,6 +43,7 @@ FILES_COMMON = \
 	modules/modules.pri \
 	modules/modules_defs.pri \
 	modules/module_list.pri \
+	modules/licenses.pri \
 	modules/tbl_wrap \
 	$(OBJECT_LOADER_FILES) \
 	$(HELLO_WORLD_FILES) \

@@ -1919,7 +1919,10 @@ void Widget::resizeGL(int width, int height)
 {
     // Can'd display before everything is setup, fixes #1601
     if (!TaoApp->fullyInitialized())
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
+    }
 
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
@@ -1941,7 +1944,10 @@ void Widget::paintGL()
 // ----------------------------------------------------------------------------
 {
     if (!TaoApp->fullyInitialized())
+    {
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
+    }
 
     if (isInvalid)
         return;
@@ -3489,6 +3495,7 @@ void Widget::commitSuccess(QString id, QString msg)
     Window *window = (Window *) parentWidget();
     window->undoStack->push(new UndoCommand(repository(), id, msg));
 }
+
 
 bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
@@ -6783,6 +6790,7 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     Ooops("Malformed shader_set statement $1", code);
     return XL::xl_false;
 }
+
 
 Text_p Widget::shaderLog(Tree_p self)
 // ----------------------------------------------------------------------------

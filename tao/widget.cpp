@@ -9848,6 +9848,23 @@ text Widget::currentDocumentFolder()
 }
 
 
+bool Widget::blink(double on, double off)
+// ----------------------------------------------------------------------------
+//   Return true for 'on' seconds then false for 'off' seconds
+// ----------------------------------------------------------------------------
+{
+    double time = Widget::currentTimeAPI();
+    double mod = fmod(time, on + off);
+    if (mod <= on)
+    {
+        refreshOn((int)QEvent::Timer, time + on - mod);
+        return true;
+    }
+    refreshOn((int)QEvent::Timer, time + on + off - mod);
+    return false;
+}
+
+
 // ============================================================================
 //
 //    Chooser

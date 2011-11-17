@@ -47,7 +47,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   14
+#define TAO_MODULE_API_CURRENT   15
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -323,6 +323,10 @@ struct ModuleApi
 
     // Return true if a valid license is found for the requested feature name
     bool (*hasLicense)(std::string featureName);
+
+    // Return true if (current_time % (on + off)) <= on, false otherwise.
+    // Note: calls refreshOn to refresh automatically on next transition.
+    bool (*blink)(double on, double off);
 
     // ------------------------------------------------------------------------
     //   Current document info

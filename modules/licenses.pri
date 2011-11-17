@@ -22,10 +22,13 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before licenses.pri)
   # Tao Presentations full build only (Taodyne)
   # Generate and sign temporary licenses, and install them into the Tao
   # licenses folder
-  exists(../tao_sign/expires.pri) {
+  exists(../tao_sign/expires.pri) {  # Tao full build
+
+    # Enable license checking in modules
+    DEFINES += USE_LICENSE
 
     include(../tao_sign/expires.pri)
-    !isEmpty(EXPIRES) {
+    !isEmpty(EXPIRES) {  # We want to create temporary licenses
 
       for(file, LICENSE_FILES):SIGNED_FILES += $$replace(file, .notsigned, )
       message("Will generate $$VALID-day(s) license(s) for module $$MODINSTDIR: $$SIGNED_FILES")

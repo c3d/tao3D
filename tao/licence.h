@@ -100,6 +100,7 @@ private:
     text sign(std::vector<Licence> &licences);
 #endif
     bool verify(std::vector<Licence> &licences, text signature);
+    std::ostream & debug();
 };
 
 }

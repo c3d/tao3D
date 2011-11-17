@@ -92,7 +92,7 @@ win32:SUBDIRS += detach
 tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp tao
 keygen.depends = libcryptopp tao
-modules.depends = tao
+modules.depends = tao tao_sign
 tests.depends = tao
 templates.depends = tao
 

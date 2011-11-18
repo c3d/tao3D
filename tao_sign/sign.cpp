@@ -25,6 +25,8 @@
 #include "licence.cpp"
 #include <iostream>
 
+XL_DEFINE_TRACES
+
 int main(int argc, char *argv[])
 // ----------------------------------------------------------------------------
 //    Generate key files for Tao

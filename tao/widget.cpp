@@ -164,6 +164,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlanes(1),
+      watermark(0), watermarkWidth(0), watermarkHeight(0),
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -324,6 +325,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       drawAllPages(o.drawAllPages), animated(o.animated),
       doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
+      watermark(0), watermarkWidth(0), watermarkHeight(0),
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -476,6 +478,8 @@ Widget::~Widget()
 #endif
 
     RasterText::purge(QGLWidget::context());
+    if (watermark)
+        glDeleteTextures(1, &watermark);
 }
 
 
@@ -9862,6 +9866,103 @@ bool Widget::blink(double on, double off)
     }
     refreshOn((int)QEvent::Timer, time + on + off - mod);
     return false;
+}
+
+
+void Widget::setWatermarkText(text t, int w, int h)
+// ----------------------------------------------------------------------------
+//   Create a texture and make it the watermark of the current widget
+// ----------------------------------------------------------------------------
+{
+    QImage image(w, h, QImage::Format_ARGB32);
+    image.fill(0); // Transparent black
+    QPainter painter;
+    painter.begin(&image);
+    QPainterPath path;
+    path.addText(0, 0, QFont("Ubuntu", 40), +t);
+    QRectF brect = path.boundingRect();
+    path.translate((w - brect.width())/2, (h - brect.height())/2);
+    painter.setBrush(QBrush(Qt::white));
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.drawPath(path);
+    painter.end();
+
+    // Generate the GL texture
+    QImage texture = QGLWidget::convertToGLFormat(image);
+    if (!watermark)
+        glGenTextures(1, &watermark);
+    glBindTexture(GL_TEXTURE_2D, watermark);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 w, h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texture.bits());
+
+    watermarkWidth = w;
+    watermarkHeight = h;
+
+    IFTRACE(fileload)
+        std::cerr << "Watermark created: text '" << t << "', texture id "
+                  << watermark << "\n";
+}
+
+
+void Widget::setWatermarkTextAPI(text t, int w, int h)
+// ----------------------------------------------------------------------------
+//   Export setWatermarkText to the module API
+// ----------------------------------------------------------------------------
+{
+    Tao()->setWatermarkText(t, w, h);
+}
+
+
+void Widget::drawWatermark()
+// ----------------------------------------------------------------------------
+//   Draw watermark texture
+// ----------------------------------------------------------------------------
+{
+    if (!watermark || !watermarkWidth || !watermarkHeight)
+        return;
+
+    float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
+    float tw = w/watermarkWidth, th = h/watermarkHeight;
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glColor4f(1.0, 1.0, 1.0, 0.2);
+    glBindTexture(GL_TEXTURE_2D, watermark);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glEnable(GL_TEXTURE_2D);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    float x1 = 1-tw/2, x2 = 1+tw/2;
+    float y1 = 1-th/2, y2 = 1+th/2;
+    glBegin(GL_QUADS);
+    glTexCoord2f(x1, y1);
+    glVertex2i  (-1, -1);
+    glTexCoord2f(x2, y1);
+    glVertex2i  ( 1, -1);
+    glTexCoord2f(x2, y2);
+    glVertex2i  ( 1,  1);
+    glTexCoord2f(x1, y2);
+    glVertex2i  (-1,  1);
+    glEnd();
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+}
+
+
+void Widget::drawWatermarkAPI()
+// ----------------------------------------------------------------------------
+//   Export drawWatermark to the module API
+// ----------------------------------------------------------------------------
+{
+    Tao()->drawWatermark();
 }
 
 

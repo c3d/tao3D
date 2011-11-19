@@ -47,7 +47,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   15
+#define TAO_MODULE_API_CURRENT   16
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -277,6 +277,14 @@ struct ModuleApi
     // only for the current frame.
     // The current GL viewport is used by default.
     void   (*setMouseTrackingViewport)(int x, int y, int w, int h);
+
+    // Set the text to be used as a watermark for the current widget.
+    // Creates a texture of (w x h) pixels and writes text, centered.
+    void   (*setWatermarkText)(std::string t, int w, int h);
+
+    // Draw a watermark on top of the current scene. GL depth test and depth
+    // mask are disabled. The text is set by setWatermarkText().
+    void   (*drawWatermark)();
 
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture

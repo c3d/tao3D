@@ -80,6 +80,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     eyeSeparation                = DisplayDriver::eyeSeparation;
     doMouseTracking              = DisplayDriver::doMouseTracking;
     setMouseTrackingViewport     = DisplayDriver::setMouseTrackingViewport;
+    setWatermarkText             = Widget::setWatermarkTextAPI;
+    drawWatermark                = Widget::drawWatermarkAPI;
 
     // Framebuffer API
     newFrameBufferObject       = FrameInfo::newFrameBufferObject;

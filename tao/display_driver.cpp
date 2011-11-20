@@ -639,10 +639,16 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     double delta = stereoDelta(i, numCameras);
-    double shift = eyeSeparation() * delta;
+    double shiftLength = eyeSeparation() * delta;
+    Vector3 toTarget = cameraTarget - cameraPosition;
+    Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
 
-    gluLookAt(cameraPosition.x + shift, cameraPosition.y, cameraPosition.z,
-              cameraTarget.x + shift, cameraTarget.y ,cameraTarget.z,
+    gluLookAt(cameraPosition.x + shift.x,
+              cameraPosition.y + shift.y,
+              cameraPosition.z + shift.z,
+              cameraTarget.x + shift.x,
+              cameraTarget.y + shift.y,
+              cameraTarget.z + shift.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 

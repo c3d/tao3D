@@ -325,7 +325,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       drawAllPages(o.drawAllPages), animated(o.animated),
       doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
-      watermark(0), watermarkWidth(0), watermarkHeight(0),
+      watermark(0), watermarkText(o.watermarkText),
+      watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -394,6 +395,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Reconstruct watermark texture, if needed
+    if (watermarkText != "")
+        setWatermarkText(watermarkText, watermarkWidth, watermarkHeight);
 
     // Create new layout to draw into
     space = new SpaceLayout(this);
@@ -9899,6 +9904,7 @@ void Widget::setWatermarkText(text t, int w, int h)
                  w, h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texture.bits());
 
+    watermarkText = t;
     watermarkWidth = w;
     watermarkHeight = h;
 

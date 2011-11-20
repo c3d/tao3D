@@ -867,6 +867,7 @@ private:
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
     GLuint                watermark;
+    text                  watermarkText;
     int                   watermarkWidth, watermarkHeight;
 
     // Selection

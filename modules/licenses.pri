@@ -31,7 +31,7 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before licenses.pri)
     !isEmpty(EXPIRES) {  # We want to create temporary licenses
 
       for(file, LICENSE_FILES):SIGNED_FILES += $$replace(file, .notsigned, )
-      message("Will generate $$VALID-day(s) license(s) for module $$MODINSTDIR: $$SIGNED_FILES")
+      !build_pass:message("Will generate $$VALID-day(s) license(s) for module $$MODINSTDIR: $$SIGNED_FILES")
 
       signed.path = $$APPINST/licenses
       signed.commands = for f in $$LICENSE_FILES ; do $$TAOTOPSRC/tao_sign/sign_temporary.sh \"$$EXPIRES\" \$\$f ; done ; cp $$SIGNED_FILES \"$$APPINST/licenses\"

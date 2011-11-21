@@ -46,6 +46,7 @@ void Initialize()
 //    Initialize application symbols
 // ----------------------------------------------------------------------------
 {
+    XL::EnterBasics();
     Tao::EnterGraphics();
     Tao::EnterAttributes();
     Tao::EnterShapes();

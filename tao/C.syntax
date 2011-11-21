@@ -1,0 +1,18 @@
+INFIX
+        41     ,
+
+PREFIX
+        30      extern ...
+        400     FUNCTION
+        450     short long unsigned signed
+
+POSTFIX
+        100     *
+
+BLOCK
+        500     '(' ')' '[' ']'
+
+COMMENT
+        "//" NEWLINE
+        "/*" "*/"
+

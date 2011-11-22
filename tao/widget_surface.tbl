@@ -1,0 +1,310 @@
+// ****************************************************************************
+//  widget_surface.tbl                                              Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//    Description of widget surfaces
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+PREFIX(Url,  tree,  "url",
+       PARM(x,real, )
+       PARM(y,real, )
+       PARM(w,real, )
+       PARM(h,real, )
+       PARM(u, text, ),
+       RTAO(urlPaint(self, x, y, w, h, u, NULL)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(UrlProgress,  tree,  "url",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(u, text, "The URL to display")
+       PARM(progress, integer, "[out] The progession of the load in output."),
+       RTAO(urlPaint(self, x, y, w, h, u, progress)),
+       GROUP(widget)
+       SYNOPSIS("Draw a web container")
+       DESCRIPTION("Load from the given URL a web page and draw it. It uses the QT webkit. "))
+PREFIX(UrlTexture,  tree,  "url_texture",
+       PARM(w,real, )
+       PARM(h,real, )
+       PARM(u, text, ),
+       RTAO(urlTexture(self, w, h, u, NULL)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(UrlTextureProgress,  tree,  "url_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(u, text, "The URL to display")
+       PARM(progress, integer, "The progession of the load. 0 if not provided"),
+       RTAO(urlTexture(self, w, h, u, progress)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given URL")
+       DESCRIPTION("Load from the given URL a web page and draw it. It uses the QT webkit. "))
+PREFIX(LineEdit,  tree,  "line_edit",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(u, text, "The text in the line edit widget. It is an in/out parameter."),
+       RTAO(lineEdit(self, x, y, w, h, u)),
+       GROUP(widget)
+       SYNOPSIS("Draw a line editor in the current frame")
+       DESCRIPTION("A line edit allows the user to enter and edit a single line of plain text with a useful collection of editing functions, including undo and redo, cut and paste, and drag and drop."))
+PREFIX(LineEditTexture,  tree,  "line_edit_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(u, text, "The text to insert in the line edit widget."),
+       RTAO(lineEditTexture(self, w, h, u)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given line editor")
+       DESCRIPTION(""))
+
+PREFIX(TextEdit,  tree,  "text_edit",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The description of the text"),
+       RTAO(textEdit(context, self, x, y, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("Draw a text editor in the current frame")
+       DESCRIPTION("A text edit allows the user to enter and edit some text with a useful collection of editing functions, including undo and redo, cut and paste, and drag and drop."))
+PREFIX(TextEditTexture,  tree,  "text_edit_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The text to insert in the text edit widget."),
+       RTAO(textEditTexture(context, self, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given editor")
+       DESCRIPTION(""))
+
+PREFIX(PushButton,  tree,  "push_button",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(n, text, "Name that uniquely identify this button")
+       PARM(l, text, "Label of the button")
+       PARM(a, code, "The action to perform when the button is clicked."),
+       RTAO(pushButton(self, x, y, w, h, n, l, a)),
+       GROUP(widget)
+       SYNOPSIS("A push button")
+       DESCRIPTION("Draw a simple push button in the curent frame. The look and feel of the button is platform dependant. "))
+PREFIX(PushButtonTexture,  tree,  "push_button_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(n, text, "Name that uniquely identify this button")
+       PARM(l, text, "Label of the button")
+       PARM(a, code, "The action to perform when the button is clicked."),
+       RTAO(pushButtonTexture(self, w, h, n, l, a)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given push button")
+       DESCRIPTION("Make a platform dependant texture out of a given push button"))
+
+PREFIX(RadioButton,  tree,  "radio_button",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(n, text, "Name that uniquely identify this button")
+       PARM(l, text, "Label of the button")
+       PARM(m, text, "True if the button is selected")
+       PARM(a, code, "The action to perform when the button state change from non-selected to selected."),
+       RTAO(radioButton(self, x, y, w, h, n, l, m, a)),
+       GROUP(widget)
+       SYNOPSIS("Draw a radio button")
+       DESCRIPTION("Draw a radio button in the curent frame. Associate the action to perform when the button state change from non-selected to selected. Radio buttons are mutually exclusive, if you want to have multiple groups of radio button, uses the button_group."))
+PREFIX(RadioButtonTexture,  tree,  "radio_button_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(n, text, "Name that uniquely identify this button")
+       PARM(l, text, "Label of the button")
+       PARM(m, text, "True if the button is selected")
+       PARM(a, code, "The action to perform when the button state change from non-selected to selected."),
+       RTAO(radioButtonTexture(self, w, h, n, l, m, a)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given radio button")
+       DESCRIPTION("Make a texture out of a given radio button"))
+
+PREFIX(CheckBoxButton,  tree,  "check_box_button",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(n, text, "Name that uniquely identify this button")
+       PARM(l, text, "Label of the button")
+       PARM(m, text, "True if the button is marked")
+       PARM(a, code, "The action to perform when the button state change from non-sed."),
+       RTAO(checkBoxButton(self, x, y, w, h, n, l, m, a)),
+       GROUP(widget)
+       SYNOPSIS("Draw a check button")
+       DESCRIPTION("Draw a check button in the curent frame"))
+PREFIX(CheckBoxButtonTexture,  tree,  "check_box_button_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(n, text, "Name that uniquely identify this button")
+       PARM(l, text, "Label of the button")
+       PARM(m, text, "True if the button is marked")
+       PARM(a, code, "The action to perform when the button state change from non-set to set"),
+       RTAO(checkBoxButtonTexture(self, w, h, n, l, m, a)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given checkbox button")
+       DESCRIPTION("Make a texture out of a given checkbox button"))
+
+PREFIX(ColorChooser,  tree,  "color_chooser",
+       PARM(x,real, )
+       PARM(y,real, )
+       PARM(w,real, )
+       PARM(h,real, )
+       PARM(t,tree, ),
+       RTAO(colorChooser(self, x, y, w, h, t)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(ColorChooserNow,  tree,  "color_chooser",
+       PARM(n, text, "x-coordinate")
+       PARM(t,tree, "y-coordinate"),
+       RTAO(colorChooser(self, n, t)),
+       GROUP(widget)
+       SYNOPSIS("Draw a color chooser")
+       DESCRIPTION("Pop a window with the platform dependant color chooser inside.\
+Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced in the given tree by the corresponding value in the selected color. Then the resulting tree is evaluated. \
+ 'name' is used to register and uses a color attribute : 'line_color' and 'color' are defined.  "))
+
+PREFIX(ColorChooserTexture,  tree,  "color_chooser_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(t,tree, "tree to update with new color"),
+       RTAO(colorChooserTexture(self, w, h, t)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given color chooser")
+       DESCRIPTION("Make a texture out of a given color chooser"))
+PREFIX(FontChooserNow,  tree,  "font_chooser",
+       PARM(t,tree, ),
+       RTAO(fontChooser(self, t)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(FontChooser,  tree,  "font_chooser",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(t,tree, "tree to update with new font"),
+       RTAO(fontChooser(self, x, y, w, h, t)),
+       GROUP(widget)
+       SYNOPSIS("font chooser")
+       DESCRIPTION("Pop a window with the platform dependant font chooser inside. \
+Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_slant', 'font_stretch', 'font_is_italic', and 'font_is_bold' are replaced by their corresponding values in the selected font. The resulting tree is then evaluated."))
+PREFIX(FontChooserTexture,  tree,  "font_chooser_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(t,tree, "tree to update with new font"),
+       RTAO(fontChooserTexture(self, w, h, t)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given color chooser")
+       DESCRIPTION("Make a texture out of a given color chooser"))
+PREFIX(FileChooser,  tree,  "file_chooser",
+       PARM(x,real, )
+       PARM(y,real, )
+       PARM(w,real, )
+       PARM(h,real, )
+       PARM(t,tree, ),
+       RTAO(fileChooser(self, x, y, w, h, t)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(FileChooserNow,  tree,  "file_chooser",
+       PARM(t,tree, "x-coordinate"),
+       RTAO(fileChooser(self, t)),
+       GROUP(widget)
+       SYNOPSIS("Draw a file chooser")
+       DESCRIPTION("Pop a window with the platform dependant file chooser inside. \
+The file_chooser can be parameterized with 4 atributes which are 'action', 'directory', 'label' and 'filter'. Those attributes are defined in the function with file_chooser_ prefix. \
+Once the file is selected, Names 'file_name', 'file_directory', 'file_path', and 'rel_file_path' are replaced by their corresponding values from the selected file."))
+PREFIX(FileChooserTexture,  tree,  "file_chooser_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(t,tree, "tree to update with new file"),
+       RTAO(fileChooserTexture(self, w, h, t)),
+       GROUP(widget)
+       SYNOPSIS("Make a texture out of a given file chooser")
+       DESCRIPTION("Make a texture out of a given file chooser"))
+PREFIX(SetFileDialogAction,  tree,  "file_chooser_action",
+       PARM(t, code, "The action to modify and execute when file is chosen."),
+       RTAO(setFileDialogAction(self, t)),
+       GROUP(widget)
+       SYNOPSIS("File chooser action")
+       DESCRIPTION("Set the action that will be execute when OK is pressed. Only available in a file chooser sub tree."))
+PREFIX(SetFileDialogDirectory,  tree,  "file_chooser_directory",
+       PARM(d, text, "directory name"),
+       RTAO(setFileDialogDirectory(self, d)),
+       GROUP(widget)
+       SYNOPSIS("File chooser directory")
+       DESCRIPTION("Set the directory to open first. Only available in a file chooser sub tree."))
+PREFIX(SetFileDialogFilter,  tree,  "file_chooser_filter",
+       PARM(d, text, "filter for file"),
+       RTAO(setFileDialogFilter(self, d)),
+       GROUP(widget)
+       SYNOPSIS("Set the file filters")
+       DESCRIPTION("Set the file filters (file pattern, e.g. *.img). Only available in a file chooser sub tree."))
+PREFIX(SetFileDialogLabel,  tree,  "file_chooser_label",
+       PARM(lbl, text, "The label for the file chooser dialog box.")
+       PARM(v, text, ),
+       RTAO(setFileDialogLabel(self, lbl, v)),
+       GROUP(widget)
+       SYNOPSIS("Set labels on a file dialog")
+       DESCRIPTION("Set labels on a file dialog. Only available in a file chooser sub tree."))
+
+PREFIX(ButtonGroup,  tree,  "button_group",
+       PARM(ex, boolean, "If true, the group is exclusive.")
+       PARM(b, code, "The code of buttons"),
+       RTAO(buttonGroup(context, self, ex, b)),
+       GROUP(widget)
+       SYNOPSIS("Create a button group.")
+       DESCRIPTION("Create a group. Buttons included in this group are mutually exclusive. It is useful to create multiple group of radio buttons"))
+
+PREFIX(Action,  tree,  "button_group_action",
+       PARM(act, code, "The action."),
+       RTAO(setButtonGroupAction(self, act)),
+       GROUP(widget)
+       SYNOPSIS("Action of the group")
+       DESCRIPTION("Set the action to be executed by the current buttonGroup.When a button in the group is clicked, this action is triggered as well as the button's action."))
+
+PREFIX(GroupBox,  tree,  "group_box",
+       PARM(x,real, "x-coordinate of this box")
+       PARM(y,real, "y-coordinate of this box")
+       PARM(w,real, "width of this box")
+       PARM(h,real, "height of this box")
+       PARM(lbl, text, "The label of the box")
+       PARM(b, code, "The tree describing the content of the box"),
+       RTAO(groupBox(context, self, x, y, w, h, lbl, b)),
+       GROUP(widget)
+       SYNOPSIS("group box")
+       DESCRIPTION("Draw a group box in the current frame. The x and y coordinate of widgets placed in this box are the colomn and row number. Total number of rows and columns is dynamic."))
+PREFIX(GroupBoxTexture,  tree,  "group_box_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(lbl, text, "The label of the box"),
+       RTAO(groupBoxTexture(self, w, h, lbl)),
+       GROUP(widget)
+       SYNOPSIS("Texture group box.")
+       DESCRIPTION("Make a texture out of a given group box."))

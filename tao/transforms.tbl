@@ -1,0 +1,114 @@
+// ****************************************************************************
+//  transforms.tbl                                                  Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Description of transforms
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//   Transforms
+//
+// ============================================================================
+
+PREFIX(ResetTransform,  tree,  "reset_transform", , RTAO(resetTransform(self)),
+       GROUP(graph:transform)
+       SYNOPSIS("Reset transform")
+       DESCRIPTION("Reset transform to original projection state."))
+
+PREFIX(RotateX,  tree,  "rotatex",
+       PARM(rx, real, "The angle of rotation in degree.[TODO : check the unit]"),
+       RTAO(rotatex(self, rx)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rotate around X")
+       DESCRIPTION("Rotate around X axis."))
+PREFIX(RotateY,  tree,  "rotatey",
+       PARM(ry, real, "The angle of rotation in degree.[TODO : check the unit]"),
+       RTAO(rotatey(self, ry)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rotate around Y")
+       DESCRIPTION("Rotate around Y axis."))
+PREFIX(RotateZ,  tree,  "rotatez",
+       PARM(rz, real, "The angle of rotation in degree.[TODO : check the unit]"),
+       RTAO(rotatez(self, rz)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rotate around Z")
+       DESCRIPTION("Rotate around Z axis."))
+PREFIX(Rotate,  tree,  "rotate",
+       PARM(ra, real, "[TODO : A-t-on une rotation autour de l'axe du temps ???]")
+       PARM(rx, real, "angle around X-axis")
+       PARM(ry, real, "angle around Y-axis")
+       PARM(rz, real, "angle around Z-axis"),
+       RTAO(rotate(self, ra, rx, ry, rz)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rotation")
+       DESCRIPTION("Rotation along an arbitrary axis"))
+
+PREFIX(TransX,  tree,  "translatex",
+       PARM(x, real, "x translation."),
+       RTAO(translatex(self, x)),
+       GROUP(graph:transform)
+       SYNOPSIS("Translate along X")
+       DESCRIPTION("Translate along X-axis"))
+PREFIX(TransY,  tree,  "translatey",
+       PARM(y, real, "y translation."),
+       RTAO(translatey(self, y)),
+       GROUP(graph:transform)
+       SYNOPSIS("Translate along Y")
+       DESCRIPTION("Translate along Y-axis"))
+PREFIX(TransZ,  tree,  "translatez",
+       PARM(z, real, "z translation."),
+       RTAO(translatez(self, z)),
+       GROUP(graph:transform)
+       SYNOPSIS("Translate along Z")
+       DESCRIPTION("Translate along Z-axis"))
+PREFIX(Translate,  tree,  "translate",
+       PARM(x, real, "x translation.")
+       PARM(y, real, "y translation.")
+       PARM(z, real, "z translation."),
+       RTAO(translate(self, x, y, z)),
+       GROUP(graph:transform)
+       SYNOPSIS("Translation along three axes")
+       DESCRIPTION("Translation along three axes"))
+
+PREFIX(ScaleX,  tree,  "scalex",
+       PARM(x, real, "scale factor."),
+       RTAO(rescalex(self, x)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rescale along X")
+       DESCRIPTION("Rescale along X-axis"))
+PREFIX(ScaleY,  tree,  "scaley",
+       PARM(y, real, "scale factor."),
+       RTAO(rescaley(self, y)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rescale along Y")
+       DESCRIPTION("Rescale along Y-axis"))
+PREFIX(ScaleZ,  tree,  "scalez",
+       PARM(z, real, "scale factor."),
+       RTAO(rescalez(self, z)),
+       GROUP(graph:transform)
+       SYNOPSIS("Rescale along Z")
+       DESCRIPTION("Rescale along Z-axis"))
+PREFIX(Scale,  tree,  "scale",
+       PARM(x, real, "x-scale factor.")
+       PARM(y, real, "y-scale factor.")
+       PARM(z, real, "z-scale factor."),
+       RTAO(rescale(self, x, y, z)),
+       GROUP(graph:transform)
+       SYNOPSIS("Scaling along three axes")
+       DESCRIPTION("Scaling along three axes"))

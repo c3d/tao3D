@@ -1,4 +1,5 @@
 #ifndef TAO_GL_H
+#define TAO_GL_H
 // ****************************************************************************
 //  tao_gl.h                                                        Tao project
 // ****************************************************************************
@@ -21,12 +22,26 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#ifndef CONFIG_MACOSX
+#ifndef CONFIG_MACOSX 
 #  include <tao/GL/glew.h>
 #else
 #  define glewInit()
 #endif
 
 #include <QtOpenGL>
+#ifdef CONFIG_MACOSX 
+#  include <OpenGL/glu.h>
+#else
+   // glu.h included by glew.h
+#endif
+
+inline bool glFramebufferIsValid()
+// ----------------------------------------------------------------------------
+//   Return true if current framebuffer is valid
+// ----------------------------------------------------------------------------
+//   This is unfortunately needed for bug #1658 on OSX Lion
+{
+    return glCheckFramebufferStatus(GL_FRAMEBUFFER)==GL_FRAMEBUFFER_COMPLETE;
+}
 
 #endif // TAO_GL_H

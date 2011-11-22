@@ -1,2 +1,2 @@
-expires $$EXPIRES
+$$EXPIRES_LINE
 features $$FEATURES

@@ -1786,5 +1786,64 @@ void TextSelect::processChar(uint charId, coord x, bool selected, uint code)
     }
 }
 
-
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from text_drawing.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "text_drawing.tbl"
+
+namespace Tao
+{
+
+#include "text_drawing.tbl"
+
+
+void EnterTextDrawing()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "text_drawing.tbl"
+}
+
+
+void DeleteTextDrawing()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "text_drawing.tbl"
+}
+
+}

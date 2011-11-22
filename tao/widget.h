@@ -866,6 +866,9 @@ private:
     int                   stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
+    GLuint                watermark;
+    text                  watermarkText;
+    int                   watermarkWidth, watermarkHeight;
 
     // Selection
     Activity *            activities;
@@ -959,7 +962,12 @@ public:
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
     static text           currentDocumentFolder();
+    static bool           blink(double on, double off);
     void eraseFlow(text flowName){ flows.erase(flowName);}
+    void                  setWatermarkText(text t, int w, int h);
+    static void           setWatermarkTextAPI(text t, int w, int h);
+    void                  drawWatermark();
+    static void           drawWatermarkAPI();
 
 private:
     void                  processProgramEvents();
@@ -1009,6 +1017,7 @@ inline void glShowErrors()
 {
     TAO(showGlErrors());
 }
+
 
 
 // ============================================================================

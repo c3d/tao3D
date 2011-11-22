@@ -1699,3 +1699,63 @@ bool ScaleManipulator::DrawHandles(Layout *layout)
 };
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from manipulators.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "manipulator.tbl"
+
+namespace Tao
+{
+
+#include "manipulator.tbl"
+
+
+void EnterManipulators()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "manipulator.tbl"
+}
+
+
+void DeleteManipulators()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "manipulator.tbl"
+}
+
+}

@@ -52,19 +52,8 @@ QMAKE_POST_LINK = echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # D
 # or just an unsigned licence template (licence.taokey.notsigned), depending
 # on project settings: LICENCE_VALIDITY, TAO_EDITION.
 
-!isEmpty(LICENCE_VALIDITY):VALID=$$LICENCE_VALIDITY
-isEmpty(TAO_EDITION):VALID=120  # Days
-!isEmpty(VALID) {
-  macx {
-    EXPIRES=$$system(LANG=C; date -u -j -f \"%s\" $(expr $(date +%s) + $$VALID \\* 86400 ) \"+%d-%h-%Y\")
-  } else {
-    # Linux, MinGW: GNU date
-    EXPIRES=$$system(bash -c \"LANG=C; date -d \\\"now + $$VALID days\\\" +%d-%h-%Y\")
-  }
-  SIGN=1
-} else {
-  EXPIRES="31-Dec-2099"  # See licence.cpp
-}
+include(expires.pri)
+!isEmpty(EXPIRES_LINE):SIGN=1
 contains(TAO_EDITION, Viewer):SIGN=1
 !isEmpty(TAO_EDITION):EDITION_STR="$$TAO_EDITION "
 LATEST_TAG=$$system(git describe --tags --abbrev=0)
@@ -75,7 +64,7 @@ LATEST_TAG=$$replace(LATEST_TAG, \\., \\.)
   !build_pass {
     message(--- We will install the following licence:)
     message(---)
-    message(--- expires $$EXPIRES)
+    !isEmpty(EXPIRES):message(--- expires $$EXPIRES)
     message(--- features $$FEATURES)
     isEmpty(SIGN) {
       message(--- License file will NOT be signed (template only))

@@ -47,7 +47,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   14
+#define TAO_MODULE_API_CURRENT   16
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -278,6 +278,14 @@ struct ModuleApi
     // The current GL viewport is used by default.
     void   (*setMouseTrackingViewport)(int x, int y, int w, int h);
 
+    // Set the text to be used as a watermark for the current widget.
+    // Creates a texture of (w x h) pixels and writes text, centered.
+    void   (*setWatermarkText)(std::string t, int w, int h);
+
+    // Draw a watermark on top of the current scene. GL depth test and depth
+    // mask are disabled. The text is set by setWatermarkText().
+    void   (*drawWatermark)();
+
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture
     // ------------------------------------------------------------------------
@@ -323,6 +331,10 @@ struct ModuleApi
 
     // Return true if a valid license is found for the requested feature name
     bool (*hasLicense)(std::string featureName);
+
+    // Return true if (current_time % (on + off)) <= on, false otherwise.
+    // Note: calls refreshOn to refresh automatically on next transition.
+    bool (*blink)(double on, double off);
 
     // ------------------------------------------------------------------------
     //   Current document info

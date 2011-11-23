@@ -136,19 +136,28 @@ public:
 public:
     static bool    perPixelLighting();
     static bool    VSync();
+    static int     texture2DMinFilter();
+    static int     texture2DMagFilter();
 
 protected slots:
     void           setPerPixelLighting(bool on);
     void           setVSync(bool on);
+    void           setTexture2DMinFilter(int value);
+    void           texture2DMinFilterChanged(int index);
+    void           setTexture2DMagFilter(int value);
+    void           texture2DMagFilterChanged(int index);
 
 protected:
     static bool    perPixelLightingDefault();
     static bool    VSyncDefault();
+    static int     texture2DMinFilterDefault();
+    static int     texture2DMagFilterDefault();
 
 protected:
     QRadioButton * lightFixed;
     QRadioButton * lightVShader;
     QRadioButton * lightFShader;
+    QComboBox    * magCombo, * minCombo;
 };
 
 }

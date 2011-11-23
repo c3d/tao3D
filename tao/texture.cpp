@@ -68,9 +68,11 @@ static inline ImageTextureInfo::Texture computeDefaultTexture()
 
         // Generate the GL texture
         glBindTexture(GL_TEXTURE_2D, result.id);
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      result.width, result.height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
+        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
     }
     return result;
 }
@@ -124,9 +126,11 @@ ImageTextureInfo::Texture ImageTextureInfo::load(text file)
             // Generate the GL texture
             glGenTextures(1, &texinfo.id);
             glBindTexture(GL_TEXTURE_2D, texinfo.id);
+            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
             glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                          texinfo.width, texinfo.height, 0, GL_RGBA,
                          GL_UNSIGNED_BYTE, texture.bits());
+            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
         }
         else
         {
@@ -155,8 +159,10 @@ GLuint ImageTextureInfo::bind(text file)
     Texture texinfo = load(file);
 
     glBindTexture(GL_TEXTURE_2D, texinfo.id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
+                    TaoApp->tex2DMagFilter);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
+                    TaoApp->tex2DMinFilter);
     glEnable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
         glEnable(GL_MULTISAMPLE);

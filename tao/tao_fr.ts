@@ -373,83 +373,83 @@
 <context>
     <name>Tao::Application</name>
     <message>
-        <location filename="application.cpp" line="224"/>
+        <location filename="application.cpp" line="225"/>
         <source>OpenGL support</source>
         <translation>Support d&apos;OpenGL</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="225"/>
+        <location filename="application.cpp" line="226"/>
         <source>This system doesn&apos;t support OpenGL 2.0.</source>
         <translation>Cet ordinateur ne permet pas de faire fonctionner l&apos;application (OpenGL 2.0 ou supérieur est requis).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="230"/>
+        <location filename="application.cpp" line="231"/>
         <source>FBO support</source>
         <translation>Support des FBOs</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="231"/>
+        <location filename="application.cpp" line="232"/>
         <source>This system doesn&apos;t support Frame Buffer Objects.</source>
         <translation>Cet ordinateur ne permet pas de faire fonctionner l&apos;application (la fonction FBO est requise).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="317"/>
+        <location filename="application.cpp" line="320"/>
         <source>Information</source>
         <translation>Information</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="318"/>
+        <location filename="application.cpp" line="321"/>
         <source>On this system, graphics and text edges may look jagged.</source>
         <translation>Sur cet ordinateur, il se peut que les graphiques et le texte apparaissent légèrement dentelés.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="398"/>
+        <location filename="application.cpp" line="401"/>
         <source>Checking modules [%1]</source>
         <translation>Vérification des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="411"/>
+        <location filename="application.cpp" line="414"/>
         <source>Updating modules [%1]</source>
         <translation>Mise à jour du module [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="569"/>
+        <location filename="application.cpp" line="573"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="570"/>
+        <location filename="application.cpp" line="574"/>
         <source>Could not open %1.
 </source>
         <translation>Impossible d&apos;ouvrir %1.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="730"/>
+        <location filename="application.cpp" line="734"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="745"/>
+        <location filename="application.cpp" line="749"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="923"/>
+        <location filename="application.cpp" line="927"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1059"/>
-        <location filename="application.cpp" line="1075"/>
-        <location filename="application.cpp" line="1088"/>
-        <location filename="application.cpp" line="1101"/>
+        <location filename="application.cpp" line="1063"/>
+        <location filename="application.cpp" line="1079"/>
+        <location filename="application.cpp" line="1092"/>
+        <location filename="application.cpp" line="1105"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1060"/>
+        <location filename="application.cpp" line="1064"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -460,7 +460,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1076"/>
+        <location filename="application.cpp" line="1080"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -469,7 +469,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1089"/>
+        <location filename="application.cpp" line="1093"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -478,7 +478,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1102"/>
+        <location filename="application.cpp" line="1106"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -718,22 +718,22 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DebugPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="146"/>
+        <location filename="preferences_pages.cpp" line="147"/>
         <source>Debug traces</source>
         <translation>Traces de debug</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="163"/>
+        <location filename="preferences_pages.cpp" line="164"/>
         <source>Select all</source>
         <translation>Tout sélectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="166"/>
+        <location filename="preferences_pages.cpp" line="167"/>
         <source>Deselect all</source>
         <translation>Tout déselectionner</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="170"/>
+        <location filename="preferences_pages.cpp" line="171"/>
         <source>Save for next run</source>
         <translation>Enregistrer</translation>
     </message>
@@ -857,22 +857,22 @@ Code : %1
 <context>
     <name>Tao::GeneralPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="45"/>
+        <location filename="preferences_pages.cpp" line="46"/>
         <source>General</source>
         <translation>Général</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="47"/>
+        <location filename="preferences_pages.cpp" line="48"/>
         <source>User interface language:</source>
         <translation>Langue de l&apos;interface utilisateur :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="51"/>
+        <location filename="preferences_pages.cpp" line="52"/>
         <source>(System Language)</source>
         <translation>(Langue du système)</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="120"/>
+        <location filename="preferences_pages.cpp" line="121"/>
         <source>The language change will take effect after a restart of the application.</source>
         <translation>Le changement de langue prendra effet après redémarrage de l&apos;application.</translation>
     </message>
@@ -953,78 +953,78 @@ Voulez-vous me montrer où elle se trouve ?</translation>
 <context>
     <name>Tao::Licences</name>
     <message>
-        <location filename="licence.cpp" line="149"/>
+        <location filename="licence.cpp" line="148"/>
         <source>Invalid tag</source>
         <translation>Directive invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="152"/>
+        <location filename="licence.cpp" line="151"/>
         <source>Invalid token</source>
         <translation>Mot inattendu</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="170"/>
+        <location filename="licence.cpp" line="169"/>
         <source>Digest verification failed</source>
-        <translation>La clé n'est pas celle attendue</translation>
+        <translation>La clé n&apos;est pas celle attendue</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="177"/>
+        <location filename="licence.cpp" line="176"/>
         <source>Invalid digest</source>
         <translation>Clé invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="192"/>
+        <location filename="licence.cpp" line="191"/>
         <source>Inconsistent %1</source>
         <translation>Champ %1 incohérent</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="196"/>
-        <location filename="licence.cpp" line="212"/>
+        <location filename="licence.cpp" line="195"/>
+        <location filename="licence.cpp" line="211"/>
         <source>Invalid %1</source>
         <translation>Champ %1 invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="232"/>
+        <location filename="licence.cpp" line="231"/>
         <source>Invalid features pattern</source>
         <translation>Format incorrect pour le champ features</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="244"/>
+        <location filename="licence.cpp" line="243"/>
         <source>Invalid day</source>
         <translation>Jour invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="250"/>
+        <location filename="licence.cpp" line="249"/>
         <source>Invalid expiry day</source>
         <translation>Jour d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="282"/>
+        <location filename="licence.cpp" line="281"/>
         <source>Invalid month name</source>
         <translation>Mois invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="293"/>
+        <location filename="licence.cpp" line="292"/>
         <source>Invalid expiry month</source>
         <translation>Mois d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="310"/>
+        <location filename="licence.cpp" line="309"/>
         <source>Invalid year</source>
         <translation>Année invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="318"/>
+        <location filename="licence.cpp" line="317"/>
         <source>Invalid expiry year</source>
         <translation>Année d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="510"/>
+        <location filename="licence.cpp" line="532"/>
         <source>Error reading licence files</source>
         <translation>Erreur lors de la lecture des fichiers de licence</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="511"/>
+        <location filename="licence.cpp" line="533"/>
         <source>There is a problem with licence file &apos;%1&apos;.
 The following error was detected: %2
 The program will now terminate. You need to remove the offending licence file before trying to run the application again. Please contact Taodyne to obtain valid licence files.</source>
@@ -1033,17 +1033,17 @@ L&apos;erreur suivante est survenue : %2
 Le programme va maintenant se terminer. Veuillez supprimer le fichier qui pose problème avant de relancer l&apos;application. Merci de contacter Taodyne pour obtenir des fichiers de licence valides.</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="536"/>
+        <location filename="licence.cpp" line="558"/>
         <source>Not licenced</source>
         <translation>Pas de licence</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="538"/>
+        <location filename="licence.cpp" line="560"/>
         <source>You do not have a valid licence for %1. Please contact Taodyne to obtain valid licence files.</source>
         <translation>Vous n&apos;avez pas de licence valide pour &apos;%1&apos;. Merci de contacter Taodyne pour obtenir des fichiers de licence valides.</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="542"/>
+        <location filename="licence.cpp" line="564"/>
         <source>You no longer have a valid licence for %1. The licence you had expired %2 days ago. Please contact Taodyne to obtain valid licence files.</source>
         <translation>Votre licence pour &apos;%1&apos; n&apos;est plus valide. Elle a expiré il y a %2 jours. Merci de contacter Taodyne pour obtenir des fichiers de licence valides.</translation>
     </message>
@@ -1163,47 +1163,47 @@ Emplacement : %2</translation>
 <context>
     <name>Tao::ModulesPage</name>
     <message>
-        <location filename="preferences_pages.cpp" line="280"/>
+        <location filename="preferences_pages.cpp" line="281"/>
         <source>Modules are disabled</source>
         <translation>Les modules sont désactivés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="287"/>
+        <location filename="preferences_pages.cpp" line="288"/>
         <source>Installed modules</source>
         <translation>Modules installés</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="308"/>
+        <location filename="preferences_pages.cpp" line="309"/>
         <source>Search</source>
         <translation>Recherche</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="315"/>
+        <location filename="preferences_pages.cpp" line="316"/>
         <source>Check for updates</source>
         <translation>Mises à jour</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="424"/>
+        <location filename="preferences_pages.cpp" line="425"/>
         <source>Disable</source>
         <translation>Désactiver</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="424"/>
+        <location filename="preferences_pages.cpp" line="425"/>
         <source>Enable</source>
         <translation>Activer</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="459"/>
+        <location filename="preferences_pages.cpp" line="460"/>
         <source>Updates are available.</source>
         <translation>Des mises à jour sont disponibles.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="461"/>
+        <location filename="preferences_pages.cpp" line="462"/>
         <source>All modules are up-to-date.</source>
         <translation>Tous les modules sont à jour.</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="501"/>
+        <location filename="preferences_pages.cpp" line="502"/>
         <source>Updates are ready to install on restart.</source>
         <translation>Les mises à jour seront installées au redémarrage.</translation>
     </message>
@@ -1254,39 +1254,49 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
 <context>
     <name>Tao::PerformancesPage</name>
     <message utf8="true">
-        <location filename="preferences_pages.cpp" line="560"/>
+        <location filename="preferences_pages.cpp" line="561"/>
         <source>OpenGL® information</source>
         <translation>Informations OpenGL®</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="562"/>
+        <location filename="preferences_pages.cpp" line="563"/>
         <source>Vendor:</source>
         <translation>Vendeur :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="564"/>
+        <location filename="preferences_pages.cpp" line="565"/>
         <source>Renderer:</source>
         <translation>Renderer :</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="566"/>
+        <location filename="preferences_pages.cpp" line="567"/>
         <source>Version:</source>
         <translation>Version :</translation>
     </message>
     <message utf8="true">
-        <location filename="preferences_pages.cpp" line="570"/>
+        <location filename="preferences_pages.cpp" line="571"/>
         <source>OpenGL® settings</source>
         <translation>Réglages OpenGL®</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="572"/>
+        <location filename="preferences_pages.cpp" line="573"/>
         <source>Enable per-pixel lighting</source>
         <translation>Activer l&apos;éclairage par pixel</translation>
     </message>
     <message>
-        <location filename="preferences_pages.cpp" line="577"/>
+        <location filename="preferences_pages.cpp" line="578"/>
         <source>Enable VSync</source>
         <translation>Activer VSync</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="583"/>
+        <source>2D texture magnification:</source>
+        <translation>Grossissement textures :</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="594"/>
+        <source>2D texture minifying:</source>
+        <translation>Réduction textures :</translation>
     </message>
 </context>
 <context>
@@ -1719,32 +1729,32 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="1119"/>
+        <location filename="widget.cpp" line="1128"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2078"/>
+        <location filename="widget.cpp" line="2100"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2084"/>
+        <location filename="widget.cpp" line="2106"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="8189"/>
+        <location filename="widget.cpp" line="8213"/>
         <source> (UNLICENSED)</source>
         <translation> (ÉVALUATION)</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10514"/>
+        <location filename="widget.cpp" line="10653"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10515"/>
+        <location filename="widget.cpp" line="10654"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

@@ -74,6 +74,7 @@ private:
 public:
     // Pointer to Tao functions
     static const Tao::ModuleApi *tao;
+    static string version;
 
 private:
     GLuint query;

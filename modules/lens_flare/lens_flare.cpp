@@ -28,6 +28,7 @@ XL_DEFINE_TRACES
 LensFlare* lens;
 
 
+
 Tree_p lens_flare(Context *context, Tree_p, Tree_p prog)
 // ----------------------------------------------------------------------------
 //    Generate a lens flare
@@ -112,7 +113,7 @@ Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
     return xl_true;
 }
 
-int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *info)
 // ----------------------------------------------------------------------------
 //   Initialize the Tao module
 // ----------------------------------------------------------------------------
@@ -120,6 +121,11 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
     XL_INIT_TRACES();
     glewInit();
     LensFlare::tao = api;
+
+    // Get version number
+    char v[21];
+    sprintf(v, "%f", info->ver);
+    LensFlare::version = v;
 
     return 0;
 }

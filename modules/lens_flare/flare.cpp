@@ -22,10 +22,12 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 #include <math.h>
 #include "flare.h"
 
-const ModuleApi *LensFlare::tao  = NULL;
+const ModuleApi *LensFlare::tao = NULL;
+string     LensFlare::version = "";
 
 // ============================================================================
 //
@@ -126,6 +128,15 @@ void LensFlare::Draw()
 //   We draw a lens flare centered at the source position and heading
 //   toward the defined target.
 {
+    static bool licensed, tested = false;
+    if (!tested)
+    {
+        licensed = tao->hasLicense("Mapping " + version);
+        tested = true;
+    }
+    if (!licensed && !tao->blink(1.0, 0.2))
+        return;
+
     // Manually determine if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.
     bool occluded = isOccluded(source);

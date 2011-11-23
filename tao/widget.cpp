@@ -8210,10 +8210,15 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    QString ver = GITREV;
-    if (!Licences::Has(TAO_LICENCE_STR))
-        ver += tr(" (UNLICENSED)");
-    return new XL::Text(+ver);
+    static text v = "";
+    if (v == "")
+    {
+        QString ver = GITREV;
+        if (!Licences::Has(TAO_LICENCE_STR))
+            ver += tr(" (UNLICENSED)");
+        v = +ver;
+    }
+    return new XL::Text(v);
 }
 
 

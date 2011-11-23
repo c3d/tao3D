@@ -94,6 +94,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     // License checking
     hasLicense = Licences::Has;
+    checkLicense = Licences::Check;
     blink      = Widget::blink;
 
     // Current document info

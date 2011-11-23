@@ -159,6 +159,7 @@ protected:
 
 protected:
     DisplayParams         current;
+    bool                  useInProgress;
 
 protected:
     static display_map    map;

@@ -235,6 +235,8 @@ Application::Application(int & argc, char ** argv)
     }
 
     useShaderLighting = PerformancesPage::perPixelLighting();
+    tex2DMinFilter = PerformancesPage::texture2DMinFilter();
+    tex2DMagFilter = PerformancesPage::texture2DMagFilter();
 
     {
         QGLWidget gl;

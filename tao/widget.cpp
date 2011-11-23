@@ -6205,7 +6205,7 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId));
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());

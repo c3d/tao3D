@@ -1929,7 +1929,8 @@ void Widget::resizeGL(int width, int height)
     // Can'd display before everything is setup, fixes #1601
     if (!TaoApp->fullyInitialized())
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if (glFramebufferIsValid())
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
     }
 
@@ -1954,7 +1955,8 @@ void Widget::paintGL()
 {
     if (!TaoApp->fullyInitialized())
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        if (glFramebufferIsValid())
+            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
     }
 
@@ -6203,7 +6205,7 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId));
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());

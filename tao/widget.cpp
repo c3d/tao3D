@@ -849,14 +849,14 @@ bool Widget::refreshNow(QEvent *event)
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
         stats.end(Statistics::EXEC);
-
-        if (changed)
-            processProgramEvents();
     }
 
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
+
+    if (changed)
+        processProgramEvents();
 
     return changed;
 }

@@ -27,7 +27,6 @@
 #include "flare.h"
 
 const ModuleApi *LensFlare::tao = NULL;
-string     LensFlare::version = "";
 
 // ============================================================================
 //
@@ -131,7 +130,7 @@ void LensFlare::Draw()
     static bool licensed, tested = false;
     if (!tested)
     {
-        licensed = tao->hasLicense("Mapping " + version);
+        licensed = tao->checkLicense("Mapping 1.0", false);
         tested = true;
     }
     if (!licensed && !tao->blink(1.0, 0.2))

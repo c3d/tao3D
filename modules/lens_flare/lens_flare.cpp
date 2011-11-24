@@ -122,11 +122,6 @@ int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *info)
     glewInit();
     LensFlare::tao = api;
 
-    // Get version number
-    char v[21];
-    sprintf(v, "%f", info->ver);
-    LensFlare::version = v;
-
     return 0;
 }
 

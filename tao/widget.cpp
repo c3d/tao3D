@@ -11157,6 +11157,17 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
 
+bool Widget::isGLExtensionAvailable(text name)
+// ----------------------------------------------------------------------------
+//   Module interface to isGLExtensionAvailable
+// ----------------------------------------------------------------------------
+{
+    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring req = name.c_str();
+    bool isAvailable = (strstr(avail, req) != NULL);
+    return isAvailable ? true : false;
+}
+
 
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------

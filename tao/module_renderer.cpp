@@ -203,6 +203,14 @@ bool ModuleRenderer::HasPixelBlur(bool enable)
     return true;
 }
 
+uint ModuleRenderer::EnabledLights()
+// ----------------------------------------------------------------------------
+//  Return a bitmask of all current enabled lights
+// ----------------------------------------------------------------------------
+{
+    return currentLayout->currentLights;
+}
+
 
 void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------

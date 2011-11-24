@@ -961,6 +961,7 @@ public:
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    static bool           isGLExtensionAvailable(text name);
     static text           currentDocumentFolder();
     static bool           blink(double on, double off);
     void eraseFlow(text flowName){ flows.erase(flowName);}

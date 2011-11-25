@@ -869,6 +869,12 @@ private:
     GLuint                watermark;
     text                  watermarkText;
     int                   watermarkWidth, watermarkHeight;
+#ifdef Q_OS_MACX
+    bool                  frameBufferReady();
+    char                  bFrameBufferReady;
+#else
+    bool                  frameBufferReady() { return true; }
+#endif
 
     // Selection
     Activity *            activities;

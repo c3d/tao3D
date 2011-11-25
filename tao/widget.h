@@ -1019,7 +1019,6 @@ inline void glShowErrors()
 }
 
 
-
 // ============================================================================
 //
 //   Action that returns a tree where all the selected trees are removed

@@ -47,7 +47,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   16
+#define TAO_MODULE_API_CURRENT   17
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -331,6 +331,13 @@ struct ModuleApi
 
     // Return true if a valid license is found for the requested feature name
     bool (*hasLicense)(std::string featureName);
+
+    // Return true if a valid license is found for the requested feature name,
+    // false otherwise. When no license is found, an information dialog
+    // is shown. 'critical' changes the appearance of the dialog (icon...).
+    // Set it to true if the feature won't work at all, or false if the module
+    // will work in degraded mode.
+    bool (*checkLicense)(std::string featureName, bool critical);
 
     // Return true if (current_time % (on + off)) <= on, false otherwise.
     // Note: calls refreshOn to refresh automatically on next transition.

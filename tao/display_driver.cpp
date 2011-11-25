@@ -248,6 +248,7 @@ std::ostream & DisplayDriver::debug()
 //
 // ============================================================================
 
+
 void DisplayDriver::displayBackBuffer(void *)
 // ----------------------------------------------------------------------------
 //   Default, usual 2D rendering into OpenGL back buffer

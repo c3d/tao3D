@@ -1926,10 +1926,6 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
-    // Can'd display before everything is setup, fixes #1601
-    if (!TaoApp->fullyInitialized())
-        return;
-
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
@@ -1949,9 +1945,6 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
-    if (!TaoApp->fullyInitialized())
-        return;
-
     if (isInvalid)
         return;
     if (!printer)
@@ -6154,7 +6147,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if ((!glIsTexture(texId)) && (texId != 0))
+    if((! glIsTexture(texId)) && (texId != 0))
     {
         Ooops("Invalid texture id $1", self);
         return 0;

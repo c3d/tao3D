@@ -5669,7 +5669,7 @@ Real_p Widget::getZFar(Tree_p self)
 
 Infix_p Widget::currentModelMatrix(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Return the current model matrix which convert from object space to world space
+//   Return the current model matrix converting from object to world space
 // ----------------------------------------------------------------------------
 {
     Tree *result = xl_real_list(self, 16, layout->model.Data());
@@ -5681,6 +5681,8 @@ Integer_p Widget::lastModifiers(Tree_p self)
 //   Return the current modifiers
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::KeyPress);
+    refreshOn(QEvent::KeyRelease);
     return new Integer(keyboardModifiers);
 }
 

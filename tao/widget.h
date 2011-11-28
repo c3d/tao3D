@@ -780,6 +780,11 @@ public:
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 
+    // License checks
+    Name_p      hasLicense(Tree_p self, Text_p feature);
+    Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
+    Name_p      blink(Tree_p self, Real_p on, Real_p off);
+
     // z order management
     Name_p      bringToFront(Tree_p self);
     Name_p      sendToBack(Tree_p self);

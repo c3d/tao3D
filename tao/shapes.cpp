@@ -29,7 +29,7 @@
 #include "application.h"
 #include "widget_surface.h"
 #include <QPainterPath>
-
+#include "lighting.h"
 TAO_BEGIN
 
 // ============================================================================
@@ -220,6 +220,9 @@ bool Shape::setLineColor(Layout *where)
 
 bool Shape::setShader(Layout *where)
 {
+    if(where->InIdentify())
+        return false;
+
     // Activate current shader
     if (where->globalProgramId)
         glUseProgram(where->globalProgramId);
@@ -239,10 +242,18 @@ bool Shape::setShader(Layout *where)
             GLint textures = glGetUniformLocation(where->programId, "textures");
             glUniform1i(textures, where->textureUnits);
 
-            // Due to a bug with ATI drivers, we need to pass the name of the vendor
-            // in order to apply the correct fix in the shader
             GLint vendor = glGetUniformLocation(where->programId, "vendor");
             glUniform1i(vendor, TaoApp->vendorID);
+
+            // Set texture units
+            GLint tex0 = glGetUniformLocation(where->programId, "tex0");
+            glUniform1i(tex0, 0);
+            GLint tex1 = glGetUniformLocation(where->programId, "tex1");
+            glUniform1i(tex1, 1);
+            GLint tex2 = glGetUniformLocation(where->programId, "tex2");
+            glUniform1i(tex2, 2);
+            GLint tex3 = glGetUniformLocation(where->programId, "tex3");
+            glUniform1i(tex3, 3);
         }
     }
 

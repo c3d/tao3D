@@ -78,6 +78,7 @@ struct ModuleRenderer : Drawing
     static bool   SetLineColor();
 
     static bool   HasPixelBlur(bool enable);
+    static uint   EnabledLights();
 
 private:    
     ModuleApi::render_fn   callback, identify;

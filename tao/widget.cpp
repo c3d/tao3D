@@ -849,14 +849,14 @@ bool Widget::refreshNow(QEvent *event)
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
         stats.end(Statistics::EXEC);
-
-        if (changed)
-            processProgramEvents();
     }
 
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
+
+    if (changed)
+        processProgramEvents();
 
     return changed;
 }
@@ -8212,10 +8212,15 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    QString ver = GITREV;
-    if (!Licences::Has(TAO_LICENCE_STR))
-        ver += tr(" (UNLICENSED)");
-    return new XL::Text(+ver);
+    static text v = "";
+    if (v == "")
+    {
+        QString ver = GITREV;
+        if (!Licences::Has(TAO_LICENCE_STR))
+            ver += tr(" (UNLICENSED)");
+        v = +ver;
+    }
+    return new XL::Text(v);
 }
 
 
@@ -9878,6 +9883,34 @@ bool Widget::blink(double on, double off)
 }
 
 
+Name_p Widget::blink(Tree_p self, Real_p on, Real_p off)
+// ----------------------------------------------------------------------------
+//   Export 'blink' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return blink(on->value, off->value) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::hasLicense(Tree_p self, Text_p feature)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::Has' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return Licences::Has(feature->value) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::Check' as a primitive
+// ----------------------------------------------------------------------------
+{
+    bool crit = (critical == XL::xl_true) ? true : false;
+    return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+}
+
+
 void Widget::setWatermarkText(text t, int w, int h)
 // ----------------------------------------------------------------------------
 //   Create a texture and make it the watermark of the current widget
@@ -11157,6 +11190,17 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
+}
+
+bool Widget::isGLExtensionAvailable(text name)
+// ----------------------------------------------------------------------------
+//   Module interface to isGLExtensionAvailable
+// ----------------------------------------------------------------------------
+{
+    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring req = name.c_str();
+    bool isAvailable = (strstr(avail, req) != NULL);
+    return isAvailable ? true : false;
 }
 
 

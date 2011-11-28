@@ -28,6 +28,7 @@ XL_DEFINE_TRACES
 LensFlare* lens;
 
 
+
 Tree_p lens_flare(Context *context, Tree_p, Tree_p prog)
 // ----------------------------------------------------------------------------
 //    Generate a lens flare

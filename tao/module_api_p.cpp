@@ -43,6 +43,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     AddToLayout2     = ModuleRenderer::AddToLayout2;
     addControlBox    = Widget::addControlBox;
 
+    isGLExtensionAvailable = Widget::isGLExtensionAvailable;
+
     //Drawing paramaters
     SetTextures      = ModuleRenderer::SetTextures;
     BindTexture      = ModuleRenderer::BindTexture;
@@ -55,6 +57,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     SetLineColor     = ModuleRenderer::SetLineColor;
     SetShader        = ModuleRenderer::SetShader;
     HasPixelBlur     = ModuleRenderer::HasPixelBlur;
+    EnabledLights    = ModuleRenderer::EnabledLights;
 
     deferredDelete   = InfoTrashCan::DeferredDelete;
     makeGLContextCurrent = Widget::makeGLContextCurrent;

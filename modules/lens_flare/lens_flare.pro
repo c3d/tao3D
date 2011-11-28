@@ -29,3 +29,12 @@ flares_img.path  = $$MODINSTPATH/images
 flares_img.files = images/*.jpg
 
 INSTALLS    += flares_img thismod_icon
+
+TRANSLATIONS = lens_flare_fr.ts
+include($${TAOTOPSRC}/translations.pri)
+translations.path = $$MODINSTPATH
+translations.files = *.qm
+INSTALLS += translations
+
+LICENSE_FILES = lens_flare.taokey.notsigned
+include(../licenses.pri)

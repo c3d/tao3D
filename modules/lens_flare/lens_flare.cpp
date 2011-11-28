@@ -113,7 +113,7 @@ Tree_p lens_flare_depth_test(Tree_p tree, Name_p name)
     return xl_true;
 }
 
-int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *info)
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
 // ----------------------------------------------------------------------------
 //   Initialize the Tao module
 // ----------------------------------------------------------------------------

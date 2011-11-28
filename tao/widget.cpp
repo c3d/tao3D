@@ -849,14 +849,14 @@ bool Widget::refreshNow(QEvent *event)
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
         stats.end(Statistics::EXEC);
-
-        if (changed)
-            processProgramEvents();
     }
 
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
+
+    if (changed)
+        processProgramEvents();
 
     return changed;
 }
@@ -11160,6 +11160,17 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
+}
+
+bool Widget::isGLExtensionAvailable(text name)
+// ----------------------------------------------------------------------------
+//   Module interface to isGLExtensionAvailable
+// ----------------------------------------------------------------------------
+{
+    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring req = name.c_str();
+    bool isAvailable = (strstr(avail, req) != NULL);
+    return isAvailable ? true : false;
 }
 
 

@@ -42,34 +42,35 @@ PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
 {
     if(!pgm && !failed)
     {
-	pgm = new QGLShaderProgram();
-	QString path = Application::applicationDirPath();
-	QString vs = path + "/lighting.vs";
-	QString fs = path + "/lighting.fs";
-	bool ok = false;
-	if (pgm->addShaderFromSourceFile(QGLShader::Vertex, vs))
-	{
-	    if (pgm->addShaderFromSourceFile(QGLShader::Fragment, fs))
-	    {
-		ok = true;
-	    }
-	    else
-	    {
-		std::cerr << "Error loading shader code: " << +fs << "\n";
-		std::cerr << +pgm->log();
-	    }
-	}
-	else
-	{
-	    std::cerr << "Error loading shader code: " << +vs << "\n";
-	    std::cerr << +pgm->log();
-	}
-	if (!ok)
-	{
-	    delete pgm;
-	    pgm = NULL;
-	    failed = true;
-	}
+        pgm = new QGLShaderProgram();
+        QString path = Application::applicationDirPath();
+        QString vs = path + "/lighting.vs";
+        QString fs = path + "/lighting.fs";
+
+        bool ok = false;
+        if (pgm->addShaderFromSourceFile(QGLShader::Vertex, vs))
+        {
+            if (pgm->addShaderFromSourceFile(QGLShader::Fragment, fs))
+            {
+                ok = true;
+            }
+            else
+            {
+                std::cerr << "Error loading shader code: " << +fs << "\n";
+                std::cerr << +pgm->log();
+            }
+        }
+        else
+        {
+            std::cerr << "Error loading shader code: " << +vs << "\n";
+            std::cerr << +pgm->log();
+        }
+        if (!ok)
+        {
+            delete pgm;
+            pgm = NULL;
+            failed = true;
+        }
     }
     if (pgm)
 	shader = new ShaderProgram(pgm);
@@ -188,7 +189,8 @@ void ShaderProgram::Draw(Layout *where)
 //   Activate the given shader program
 // ----------------------------------------------------------------------------
 {
-    if (!where->globalProgramId)
+
+    if (!where->globalProgramId && !where->InIdentify())
     {
 	program->bind();
 	where->programId = program->programId();
@@ -201,7 +203,7 @@ void ShaderValue::Draw(Layout *where)
 //   Set the shader value
 // ----------------------------------------------------------------------------
 {
-    if (where->programId)
+    if (where->programId && !where->InIdentify())
     {
 	ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
 	ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();

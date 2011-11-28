@@ -165,6 +165,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
+#ifdef Q_OS_MACX
+      bFrameBufferReady(false),
+#endif
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -327,6 +330,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(o.watermarkText),
       watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
+#ifdef Q_OS_MACX
+      bFrameBufferReady(false),
+#endif
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -1913,6 +1919,25 @@ void Widget::refresh(double delay)
 //
 // ============================================================================
 
+#ifdef Q_OS_MACX
+bool Widget::frameBufferReady()
+// ----------------------------------------------------------------------------
+//    On MacOSX Lion we must check if GL frame buffer can be used. See #1658.
+// ----------------------------------------------------------------------------
+{
+    if (bFrameBufferReady)
+        return true;
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+    {
+        bFrameBufferReady = true;
+        return true;
+    }
+
+    return false;
+}
+#endif
+
 void Widget::initializeGL()
 // ----------------------------------------------------------------------------
 //    Called once per rendering to setup the GL environment
@@ -1926,13 +1951,8 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
-    // Can'd display before everything is setup, fixes #1601
-    if (!TaoApp->fullyInitialized())
-    {
-        if (glFramebufferIsValid())
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (!frameBufferReady())
         return;
-    }
 
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
@@ -1953,13 +1973,8 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
-    if (!TaoApp->fullyInitialized())
-    {
-        if (glFramebufferIsValid())
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (!frameBufferReady())
         return;
-    }
-
     if (isInvalid)
         return;
     if (!printer)
@@ -3506,7 +3521,6 @@ void Widget::commitSuccess(QString id, QString msg)
     Window *window = (Window *) parentWidget();
     window->undoStack->push(new UndoCommand(repository(), id, msg));
 }
-
 
 bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
@@ -6163,7 +6177,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if ((!glIsTexture(texId)) && (texId != 0))
+    if((! glIsTexture(texId)) && (texId != 0))
     {
         Ooops("Invalid texture id $1", self);
         return 0;
@@ -6801,7 +6815,6 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     Ooops("Malformed shader_set statement $1", code);
     return XL::xl_false;
 }
-
 
 Text_p Widget::shaderLog(Tree_p self)
 // ----------------------------------------------------------------------------

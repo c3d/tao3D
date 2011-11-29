@@ -31,6 +31,10 @@
 #include <QStringList>
 #include <QVector>
 
+#ifdef Q_OS_WIN32
+#include <fcntl.h>
+unsigned int _CRT_fmode = _O_BINARY;
+#endif
 
 using namespace XL;
 

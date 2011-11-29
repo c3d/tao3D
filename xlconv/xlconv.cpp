@@ -29,6 +29,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <QStringList>
+#include <QVector>
 
 
 using namespace XL;
@@ -67,10 +68,18 @@ int main(int argc, char *argv[])
         exit(0);
     }
 
-    FlightRecorder::Initialize();
-    XL::MAIN = new Main(1, argv);
+    bool ropt = args.contains("-r");
+    if (ropt)
+        args.removeAll("-r");
 
-    if (!args.contains("-r"))
+    QVector<char *> xlargs;
+    foreach (QString a, args)
+        xlargs.append(strdup(a.toAscii().data()));
+
+    FlightRecorder::Initialize();
+    XL::MAIN = new Main(xlargs.size(), xlargs.data());
+
+    if (!ropt)
     {
         // Text to binary
 

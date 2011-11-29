@@ -24,7 +24,11 @@ CONFIG  += console static
 CONFIG  -= app_bundle
 QT += core
 
-INC = . ../tao/xlr/xlr/include
+# WARNING: do not remove ../libxlr from INC
+# Is essential so that ../libxlr/options2.tbl gets included
+# rather than ../tao/xlr/xlr/include/options2.xl (which is empty).
+# Otherwise, xlconv and libxlr have inconsistent definitions of XL::Main -> SEGV
+INC = . ../libxlr ../tao/xlr/xlr/include
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr

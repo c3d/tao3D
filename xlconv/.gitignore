@@ -1,2 +1,7 @@
 /xl.syntax
 /xl.stylesheet
+/Makefile
+/Makefile.Debug
+/Makefile.Release
+/xlconv
+/xlconv.sh

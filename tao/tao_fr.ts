@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1203"/>
+        <location filename="module_manager.cpp" line="1204"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible : </translation>
@@ -413,43 +413,43 @@
         <translation>Mise à jour du module [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="573"/>
+        <location filename="application.cpp" line="572"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="574"/>
+        <location filename="application.cpp" line="573"/>
         <source>Could not open %1.
 </source>
         <translation>Impossible d&apos;ouvrir %1.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="734"/>
+        <location filename="application.cpp" line="733"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="749"/>
+        <location filename="application.cpp" line="748"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="927"/>
+        <location filename="application.cpp" line="926"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1063"/>
-        <location filename="application.cpp" line="1079"/>
-        <location filename="application.cpp" line="1092"/>
-        <location filename="application.cpp" line="1105"/>
+        <location filename="application.cpp" line="1062"/>
+        <location filename="application.cpp" line="1078"/>
+        <location filename="application.cpp" line="1091"/>
+        <location filename="application.cpp" line="1104"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1064"/>
+        <location filename="application.cpp" line="1063"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -460,7 +460,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1080"/>
+        <location filename="application.cpp" line="1079"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -469,7 +469,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1093"/>
+        <location filename="application.cpp" line="1092"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -478,7 +478,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1106"/>
+        <location filename="application.cpp" line="1105"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -1086,22 +1086,22 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::ModuleManager</name>
     <message>
-        <location filename="module_manager.cpp" line="513"/>
+        <location filename="module_manager.cpp" line="514"/>
         <source>New module</source>
         <translation>Nouveau module</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="643"/>
+        <location filename="module_manager.cpp" line="644"/>
         <source>Missing ID, name or version</source>
         <translation>Identifiant, nom ou version manquant</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="648"/>
+        <location filename="module_manager.cpp" line="649"/>
         <source>Could not parse %1</source>
         <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1129"/>
+        <location filename="module_manager.cpp" line="1130"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -1112,8 +1112,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1134"/>
-        <location filename="module_manager.cpp" line="1155"/>
+        <location filename="module_manager.cpp" line="1135"/>
+        <location filename="module_manager.cpp" line="1156"/>
         <source>
 
 Reason: %1</source>
@@ -1122,14 +1122,14 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1136"/>
-        <location filename="module_manager.cpp" line="1157"/>
-        <location filename="module_manager.cpp" line="1194"/>
+        <location filename="module_manager.cpp" line="1137"/>
+        <location filename="module_manager.cpp" line="1158"/>
+        <location filename="module_manager.cpp" line="1195"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1151"/>
+        <location filename="module_manager.cpp" line="1152"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -1140,21 +1140,21 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1171"/>
+        <location filename="module_manager.cpp" line="1172"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1174"/>
+        <location filename="module_manager.cpp" line="1175"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1192"/>
+        <location filename="module_manager.cpp" line="1193"/>
         <source>Module %1 cannot be initialized.
 %2</source>
         <translation>Le module %1 ne peut être initalisé.</translation>
@@ -1291,12 +1291,45 @@ Choisisser Non pour sélectionner un autre emplacement.</translation>
     <message>
         <location filename="preferences_pages.cpp" line="583"/>
         <source>2D texture magnification:</source>
-        <translation>Grossissement textures :</translation>
+        <translation>Grossissement des textures :</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="585"/>
+        <location filename="preferences_pages.cpp" line="596"/>
+        <source>Pixellated</source>
+        <translation>Pixellisé</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="586"/>
+        <location filename="preferences_pages.cpp" line="597"/>
+        <source>Smooth</source>
+        <translation>Lissé</translation>
     </message>
     <message>
         <location filename="preferences_pages.cpp" line="594"/>
-        <source>2D texture minifying:</source>
-        <translation>Réduction textures :</translation>
+        <source>2D texture reduction:</source>
+        <oldsource>2D texture minifying:</oldsource>
+        <translation>Réduction des textures :</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="598"/>
+        <source>Resized, pixellated</source>
+        <translation>Réduit, pixellisé</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="600"/>
+        <source>Resized, smoothed</source>
+        <translation>Réduit, lissé</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="602"/>
+        <source>Interpolated, pixellated</source>
+        <translation>Interpolé, pixellisé</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="604"/>
+        <source>Interpolated, smoothed</source>
+        <translation>Interpolé, lissé</translation>
     </message>
 </context>
 <context>
@@ -1729,32 +1762,32 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="1128"/>
+        <location filename="widget.cpp" line="1134"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2100"/>
+        <location filename="widget.cpp" line="2117"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2106"/>
+        <location filename="widget.cpp" line="2123"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="8213"/>
+        <location filename="widget.cpp" line="8243"/>
         <source> (UNLICENSED)</source>
         <translation> (ÉVALUATION)</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10653"/>
+        <location filename="widget.cpp" line="10713"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="10654"/>
+        <location filename="widget.cpp" line="10714"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

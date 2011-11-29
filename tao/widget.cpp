@@ -5351,12 +5351,16 @@ Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 //   Switch to full screen
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
 #ifdef MACOSX_DISPLAYLINK
     CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
 #endif
+
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -5461,6 +5465,9 @@ Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 //   Switch to slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     Window *window = (Window *) parentWidget();
     bool oldMode = window->switchToSlideShow(ss);
     return oldMode ? XL::xl_true : XL::xl_false;
@@ -5472,6 +5479,9 @@ Name_p Widget::toggleSlideShow(XL::Tree_p self)
 //   Toggle slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     Window *window = (Window *) parentWidget();
     bool oldMode = window->toggleSlideShow();
     return oldMode ? XL::xl_true : XL::xl_false;

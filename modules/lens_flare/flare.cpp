@@ -130,7 +130,7 @@ void LensFlare::Draw()
     static bool licensed, tested = false;
     if (!tested)
     {
-        licensed = tao->checkLicense("Mapping 1.0", false);
+        licensed = tao->checkLicense("LensFlare 1.0", false);
         tested = true;
     }
     if (!licensed && !tao->blink(1.0, 0.2))

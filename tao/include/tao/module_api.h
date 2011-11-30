@@ -393,8 +393,15 @@ extern "C"
     // Called once immediately after the module library is loaded.
     // Return 0 on success.
     // [Optional]
-    // [ModuleInfo is only valable during this call]
+    // [ModuleInfo is only valid during this call]
     int module_init(const Tao::ModuleApi *a, const Tao::ModuleInfo *m);
+
+    // Predefined error codes for module_init
+    enum init_error
+    {
+        no_error = 0,
+        error_invalid_license
+    };
 
     // Called when module is imported to let the module extend the XL symbol
     // table (for instance, add new XL commands) in a given context.

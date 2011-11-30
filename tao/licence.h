@@ -34,7 +34,7 @@ namespace Tao
 
 struct Licences : public QObject
 // ----------------------------------------------------------------------------
-//   Class checking the avaiable licence for a given module ID or function
+//   Class checking the available licence for a given module ID or function
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT
@@ -45,6 +45,7 @@ public:
         return LM().addLicenceFile(lfile);
     }
 
+#ifndef KEYGEN
     static bool Has(text feature)
     {
         return LM().licenceRemainingDays(feature) > 0;
@@ -64,6 +65,7 @@ public:
             WarnUnlicenced(feature, days, critical);
         return days > 0;
     }
+#endif
 
     static text Name()
     {

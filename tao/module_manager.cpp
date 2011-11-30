@@ -122,8 +122,10 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     {
                         if (!m.native && !m.inError)
                         {
-                            loadNative(context, m);
+                            bool ok = loadNative(context, m);
                             m = *moduleById(m.id);
+                            if (!ok)
+                                break;
                         }
                         if (!m.native)
                             continue;
@@ -973,7 +975,14 @@ bool ModuleManager::loadNative(Context * /*context*/,
                 {
                     IFTRACE(modules)
                             debug() << "    Calling module_init\n";
-                    mi(&api, &m);
+                    int st = mi(&api, &m);
+                    if (st)
+                    {
+                        IFTRACE(modules)
+                            debug() << "      Error (return code: "
+                                    << st << ")\n";
+                        return false;
+                    }
                 }
 
                 m_p->show_preferences =

@@ -55,7 +55,9 @@ public:
         return LM().licenceRemainingDays(feature);
     }
 
+#ifndef KEYGEN
     static void WarnUnlicenced(text feature, int days, bool critical);
+#endif
 
     static bool Check(text feature, bool critical = false)
     {

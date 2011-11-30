@@ -95,6 +95,7 @@ keygen.depends = libcryptopp tao
 modules.depends = tao tao_sign xlconv
 tests.depends = tao
 templates.depends = tao
+xlconv.depends = libxlr
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.

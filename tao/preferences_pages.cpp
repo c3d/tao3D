@@ -582,8 +582,8 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     settingsLayout->addWidget(vs, 2, 1, 1, 2);
     settingsLayout->addWidget(new QLabel(tr("2D texture magnification:")), 3, 1);
     magCombo = new QComboBox;
-    magCombo->addItem("GL_NEAREST", QVariant(GL_NEAREST));
-    magCombo->addItem("GL_LINEAR", QVariant(GL_LINEAR));
+    magCombo->addItem(tr("Pixellated"), QVariant(GL_NEAREST));
+    magCombo->addItem(tr("Smooth"), QVariant(GL_LINEAR));
     QVariant magSaved = QVariant(texture2DMagFilter());
     int magIndex = magCombo->findData(magSaved);
     if (magIndex != -1)
@@ -591,17 +591,17 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     connect(magCombo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(texture2DMagFilterChanged(int)));
     settingsLayout->addWidget(magCombo, 3, 2);
-    settingsLayout->addWidget(new QLabel(tr("2D texture minifying:")), 4, 1);
+    settingsLayout->addWidget(new QLabel(tr("2D texture reduction:")), 4, 1);
     minCombo = new QComboBox;
-    minCombo->addItem("GL_NEAREST", QVariant(GL_NEAREST));
-    minCombo->addItem("GL_LINEAR", QVariant(GL_LINEAR));
-    minCombo->addItem("GL_NEAREST_MIPMAP_NEAREST",
+    minCombo->addItem(tr("Pixellated"), QVariant(GL_NEAREST));
+    minCombo->addItem(tr("Smooth"), QVariant(GL_LINEAR));
+    minCombo->addItem(tr("Resized, pixellated"),
                       QVariant(GL_NEAREST_MIPMAP_NEAREST));
-    minCombo->addItem("GL_LINEAR_MIPMAP_NEAREST",
-                      QVariant(GL_LINEAR_MIPMAP_NEAREST));
-    minCombo->addItem("GL_NEAREST_MIPMAP_LINEAR",
+    minCombo->addItem(tr("Resized, smoothed"),
                       QVariant(GL_NEAREST_MIPMAP_LINEAR));
-    minCombo->addItem("GL_LINEAR_MIPMAP_LINEAR",
+    minCombo->addItem(tr("Interpolated, pixellated"),
+                      QVariant(GL_LINEAR_MIPMAP_NEAREST));
+    minCombo->addItem(tr("Interpolated, smoothed"),
                       QVariant(GL_LINEAR_MIPMAP_LINEAR));
     QVariant minSaved = QVariant(texture2DMinFilter());
     int minIndex = minCombo->findData(minSaved);
@@ -777,7 +777,7 @@ int PerformancesPage::texture2DMinFilterDefault()
 //   Default minifying filter for 2D textures
 // ----------------------------------------------------------------------------
 {
-    return GL_LINEAR;
+    return GL_LINEAR_MIPMAP_LINEAR;
 }
 
 

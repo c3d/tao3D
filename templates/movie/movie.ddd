@@ -1,6 +1,7 @@
 import MovieCredits
 import TaoVisuals
 
+
 page "Taodyne presents",
 // ----------------------------------------------------------------------------
 //   "Taodyne presents" flying towards viewer
@@ -46,6 +47,7 @@ page "Star Wars Crawl",
 // ----------------------------------------------------------------------------
 //   A page illustrating a Star-Wars style crawl
 // ----------------------------------------------------------------------------
+    mc_size 1200, 2000
 
     // This part displays the text
     mc_star_wars_crawl 25,
@@ -115,6 +117,7 @@ page "Final Credits",
 // ----------------------------------------------------------------------------
 //    Page showing the final credits
 // ----------------------------------------------------------------------------
+    mc_size 1200, 2800
     mc_swc_background
     adjust X:real ->
         translatez 500
@@ -131,10 +134,11 @@ page "Final Credits",
             text "In Order of Appearance"
 
         // Credits for this contents
-        color_hsv 20 * time, 0.3, 0.9, 0.8
-        mc_credit "Application Design", "Christophe de Dinechin"
-        mc_credit "Module interface", "Jérôme Forissier"
-        mc_credit "Improved text layout", "Catherine Burvelle"
+        mc_credit "Story", "Christophe de Dinechin"
+        mc_credit "Screenplay", "Jérôme Forissier"
+        mc_credit "Director", "Catherine Burvelle"
+        mc_credit "Special effects", "Baptiste Soulisse"
+        mc_credit "Marketing", "Claire Hyvrier"
 
         color "white"
         mc_credits_section 80,
@@ -144,7 +148,7 @@ page "Final Credits",
             align 0.5
             vertical_align 0.5
             anchor
-               color "white", 0.6
+               color "black", 0.6
                rounded_rectangle 0, 0, 400, 190, 20
                color "white"
                image 0, 0, 0.3, 0.3, "image:Taodyne_geeks_en.png"
@@ -160,5 +164,5 @@ page "Final Credits",
         mc_credits_section 120,
             text "Special Thanks"
         mc_credit "Family support", "Christine and Jean-Luc"
-        mc_credit "Friends and Advisors", "Jean-Marc, Edouard, Sylvain, Patrick, Hubert"
+        mc_credit "Friends and Advisors", "Jean-Marc, Edouard, Sylvain, Patrick"
         mc_credit "Incubator", "Incubateur Paca Est (France)"

@@ -198,3 +198,36 @@ at_step N:integer ->
 // ----------------------------------------------------------------------------
     if N > highest_step then highest_step := N
     show fade_at(smooth_step, N)
+
+
+
+// ============================================================================
+// 
+//   Specifying the duration of pages
+// 
+// ============================================================================
+
+scheduled_duration -> 30.0 
+
+
+page_duration Duration:real, Name:text -> 
+// ----------------------------------------------------------------------------
+//   Go to the named page after the given duration
+// ----------------------------------------------------------------------------
+    scheduled_duration := Duration 
+    if page_time > Duration then 
+        goto_page Name 
+
+
+page_duration Duration:real, Page:integer ->
+// ----------------------------------------------------------------------------
+//   Go to a given page number after the given duration
+// ----------------------------------------------------------------------------
+    page_duration Duration, page_name Page 
+
+
+page_duration Duration:real ->
+// ----------------------------------------------------------------------------
+//   Go to the next page after the given duration
+// ----------------------------------------------------------------------------
+    page_duration Duration, page_number + 1 

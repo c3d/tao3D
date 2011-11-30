@@ -780,6 +780,11 @@ public:
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
 
+    // License checks
+    Name_p      hasLicense(Tree_p self, Text_p feature);
+    Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
+    Name_p      blink(Tree_p self, Real_p on, Real_p off);
+
     // z order management
     Name_p      bringToFront(Tree_p self);
     Name_p      sendToBack(Tree_p self);
@@ -866,6 +871,15 @@ private:
     int                   stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
+    GLuint                watermark;
+    text                  watermarkText;
+    int                   watermarkWidth, watermarkHeight;
+#ifdef Q_OS_MACX
+    bool                  frameBufferReady();
+    char                  bFrameBufferReady;
+#else
+    bool                  frameBufferReady() { return true; }
+#endif
 
     // Selection
     Activity *            activities;
@@ -958,8 +972,14 @@ public:
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    static bool           isGLExtensionAvailable(text name);
     static text           currentDocumentFolder();
+    static bool           blink(double on, double off);
     void eraseFlow(text flowName){ flows.erase(flowName);}
+    void                  setWatermarkText(text t, int w, int h);
+    static void           setWatermarkTextAPI(text t, int w, int h);
+    void                  drawWatermark();
+    static void           drawWatermarkAPI();
 
 private:
     void                  processProgramEvents();

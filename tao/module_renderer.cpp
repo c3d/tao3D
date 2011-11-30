@@ -199,10 +199,25 @@ bool ModuleRenderer::HasPixelBlur(bool enable)
 //   Enable or deactivate pixel blur.
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->layout->hasPixelBlur = enable;
+    currentLayout->hasPixelBlur = enable;
     return true;
 }
 
+uint ModuleRenderer::EnabledLights()
+// ----------------------------------------------------------------------------
+//  Return a bitmask of all current enabled lights
+// ----------------------------------------------------------------------------
+{
+    return currentLayout->currentLights;
+}
+
+Matrix4 ModuleRenderer::ModelMatrix()
+// ----------------------------------------------------------------------------
+//   Module interface for currentModelMatrix
+// ----------------------------------------------------------------------------
+{
+    return Widget::Tao()->layout->model;
+}
 
 void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------

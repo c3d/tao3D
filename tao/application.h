@@ -75,7 +75,6 @@ public:
     void           addPathCompletion(QString path);
     void           addUrlCompletion(QString url);
     bool           processCommandLine();
-    bool           fullyInitialized() { return appInitialized == 2; }
     Window *       findFirstTaoWindow();
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
@@ -121,6 +120,7 @@ public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
     bool         useShaderLighting;
+    int          tex2DMinFilter, tex2DMagFilter;
     Vendor       vendorID;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
@@ -136,19 +136,19 @@ private:
     QStringList  urlList;
     SplashScreen *splash;
     int          pendingOpen;
-    char         appInitialized;
     bool         hadWin;
-    bool         doNotEnterEventLoop;
-    bool         screenSaverBlocked;
     XL::source_names contextFiles;
     XL::Main *   xlr;
     QString      savedUri;
+    bool         screenSaverBlocked;
 #if defined (CONFIG_LINUX)
     Display *    xDisplay;
     QString      ssHeartBeatCommand;
 #endif
     ModuleManager * moduleManager;
+    bool         doNotEnterEventLoop;
     QTranslator  translator, qtTranslator;
+    bool         appInitialized;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;
 #endif

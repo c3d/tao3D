@@ -118,8 +118,7 @@ void Licences::addLicenceFile(kstring licfname)
         case START:
             licence = Licence();
             had_features = false;
-            day = 5; month = 12; year = 1968;
-            licence.expiry = QDate(year, month, day);
+            licence.expiry = QDate();
             state = TAG;
             // Fall through on purpose
 
@@ -361,10 +360,13 @@ text Licences::toText(std::vector<Licence> &licences)
     for (i = 0; i < max; i++)
     {
         Licence &l = licences[i];
-        os << "expires "
-           << l.expiry.day() << "/"
-           << l.expiry.month() << "/"
-           << l.expiry.year() << "\n";
+        if (l.expiry.isValid())
+        {
+            os << "expires "
+               << l.expiry.day() << "/"
+               << l.expiry.month() << "/"
+               << l.expiry.year() << "\n";
+        }
         os << "features \"" << +l.features.pattern() << "\"\n";
     }
     return os.str();
@@ -482,13 +484,33 @@ int Licences::licenceRemainingDays(text feature)
         Licence &licence = *l;
         if (licence.features.exactMatch(qfun))
         {
-            result = today.daysTo(licence.expiry);
+            if (licence.expiry.isValid())
+            {
+                result = today.daysTo(licence.expiry);
+                IFTRACE(lic)
+                {
+                    if (result >= 0)
+                        debug() << "'" << feature << "' valid, expires in "
+                                << result + 1 << " day(s)\n";
+                    else
+                        debug() << "'" << feature << "' expired "
+                                << result << " day(s) ago\n";
+                }
+            }
+            else
+            {
+                IFTRACE(lic)
+                    debug() << "'" << feature << "' valid, never expires\n";
+                result = INT_MAX - 1;
+            }
             if (result >= 0)
                 return result + 1; // If licence expires today, it's still OK
         }
     }
 
     // No licence matches, or they all expired.
+    IFTRACE(lic)
+        debug() << "'" << feature << "' not licensed\n";
     return result;
 }
 
@@ -548,6 +570,16 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
     }
 }
 #endif // KEYGEN
+
+
+std::ostream & Licences::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[Licences] ";
+    return std::cerr;
+}
 
 
 }

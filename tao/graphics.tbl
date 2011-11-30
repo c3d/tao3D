@@ -998,3 +998,14 @@ PREFIX(ImportModule, tree, "import",
        return Tao::ModuleManager::import(context, self, m, true),
        GROUP(modules)
        SYNOPSIS("Import a module from a file"))
+PREFIX(Blink, boolean,  "blink",
+       PARM(on, real, "Duration of first period, primitive returns true")
+       PARM(off, real, "Duration of second period, primitive returns false"),
+       RTAO(blink(self, on, off)),)
+PREFIX(HasLicense, boolean,  "has_license",
+       PARM(feature, text, "The feature name to check"),
+       RTAO(hasLicense(self, feature)),)
+PREFIX(CheckLicense, boolean,  "check_license",
+       PARM(feature, text, "The feature name to check")
+       PARM(critical, boolean, "Show warning (false) or error (true) dialog on no license?"),
+       RTAO(checkLicense(self, feature, critical)),)

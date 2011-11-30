@@ -318,6 +318,7 @@ RESOURCES += tao.qrc
 SUPPORT_FILES = xlr/xlr/builtins.xl \
     tao_fr.xl \
     xl.syntax \
+    C.syntax \
     xl.stylesheet \
     git.stylesheet \
     nocomment.stylesheet \

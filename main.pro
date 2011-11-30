@@ -85,16 +85,17 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen
+           packaging libcryptopp keygen xlconv
 
 win32:SUBDIRS += detach
 
 tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp tao
 keygen.depends = libcryptopp tao
-modules.depends = tao
+modules.depends = tao tao_sign xlconv
 tests.depends = tao
 templates.depends = tao
+xlconv.depends = libxlr
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.

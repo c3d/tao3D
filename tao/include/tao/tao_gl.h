@@ -21,13 +21,17 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#ifndef CONFIG_MACOSX
+#ifndef CONFIG_MACOSX 
 #  include <tao/GL/glew.h>
 #else
 #  define glewInit()
 #endif
 
 #include <QtOpenGL>
-#include <GL/glu.h>
+#ifdef CONFIG_MACOSX 
+#  include <OpenGL/glu.h>
+#else
+   // glu.h included by glew.h
+#endif
 
 #endif // TAO_GL_H

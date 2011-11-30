@@ -26,6 +26,7 @@
 #include "main.h"
 #include "application.h"
 #include "module_info_dialog.h"
+#include "tao_gl.h"
 
 
 namespace Tao {
@@ -568,17 +569,47 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     info->setLayout(grid);
 
     QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));
-    QVBoxLayout *settingsLayout = new QVBoxLayout;
+    QGridLayout *settingsLayout = new QGridLayout;
     QCheckBox *pps = new QCheckBox(tr("Enable per-pixel lighting"));
     pps->setChecked(perPixelLighting());
     connect(pps, SIGNAL(toggled(bool)),
             this, SLOT(setPerPixelLighting(bool)));
-    settingsLayout->addWidget(pps);
+    settingsLayout->addWidget(pps, 1, 1, 1, 2);
     QCheckBox *vs = new QCheckBox(tr("Enable VSync"));
     vs->setChecked(VSync());
     connect(vs, SIGNAL(toggled(bool)),
             this, SLOT(setVSync(bool)));
-    settingsLayout->addWidget(vs);
+    settingsLayout->addWidget(vs, 2, 1, 1, 2);
+    settingsLayout->addWidget(new QLabel(tr("2D texture magnification:")), 3, 1);
+    magCombo = new QComboBox;
+    magCombo->addItem(tr("Pixellated"), QVariant(GL_NEAREST));
+    magCombo->addItem(tr("Smooth"), QVariant(GL_LINEAR));
+    QVariant magSaved = QVariant(texture2DMagFilter());
+    int magIndex = magCombo->findData(magSaved);
+    if (magIndex != -1)
+        magCombo->setCurrentIndex(magIndex);
+    connect(magCombo, SIGNAL(currentIndexChanged(int)),
+            this,  SLOT(texture2DMagFilterChanged(int)));
+    settingsLayout->addWidget(magCombo, 3, 2);
+    settingsLayout->addWidget(new QLabel(tr("2D texture reduction:")), 4, 1);
+    minCombo = new QComboBox;
+    minCombo->addItem(tr("Pixellated"), QVariant(GL_NEAREST));
+    minCombo->addItem(tr("Smooth"), QVariant(GL_LINEAR));
+    minCombo->addItem(tr("Resized, pixellated"),
+                      QVariant(GL_NEAREST_MIPMAP_NEAREST));
+    minCombo->addItem(tr("Resized, smoothed"),
+                      QVariant(GL_NEAREST_MIPMAP_LINEAR));
+    minCombo->addItem(tr("Interpolated, pixellated"),
+                      QVariant(GL_LINEAR_MIPMAP_NEAREST));
+    minCombo->addItem(tr("Interpolated, smoothed"),
+                      QVariant(GL_LINEAR_MIPMAP_LINEAR));
+    QVariant minSaved = QVariant(texture2DMinFilter());
+    int minIndex = minCombo->findData(minSaved);
+    if (minIndex != -1)
+        minCombo->setCurrentIndex(minIndex);
+    connect(minCombo, SIGNAL(currentIndexChanged(int)),
+            this,  SLOT(texture2DMinFilterChanged(int)));
+    settingsLayout->addWidget(minCombo, 4, 2);
     settings->setLayout(settingsLayout);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -621,6 +652,56 @@ void PerformancesPage::setVSync(bool on)
 }
 
 
+void PerformancesPage::setTexture2DMinFilter(int value)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (value == texture2DMinFilterDefault())
+        settings.remove("Texture2DMinFilter");
+    else
+        settings.setValue("Texture2DMinFilter", QVariant(value));
+    TaoApp->tex2DMinFilter = value;
+}
+
+
+void PerformancesPage::texture2DMinFilterChanged(int index)
+// ----------------------------------------------------------------------------
+//   Set minifying filter from combo box index
+// ----------------------------------------------------------------------------
+{
+    int min = minCombo->itemData(index).toInt();
+    setTexture2DMinFilter(min);
+}
+
+
+void PerformancesPage::setTexture2DMagFilter(int value)
+// ----------------------------------------------------------------------------
+//   Save setting, update application
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (value == texture2DMagFilterDefault())
+        settings.remove("Texture2DMagFilter");
+    else
+        settings.setValue("Texture2DMagFilter", QVariant(value));
+    TaoApp->tex2DMagFilter = value;
+}
+
+
+void PerformancesPage::texture2DMagFilterChanged(int index)
+// ----------------------------------------------------------------------------
+//   Set magnification filter from combo box index
+// ----------------------------------------------------------------------------
+{
+    int mag = magCombo->itemData(index).toInt();
+    setTexture2DMagFilter(mag);
+}
+
+
 bool PerformancesPage::perPixelLighting()
 // ----------------------------------------------------------------------------
 //   Read setting
@@ -647,6 +728,32 @@ bool PerformancesPage::VSync()
 }
 
 
+int PerformancesPage::texture2DMinFilter()
+// ----------------------------------------------------------------------------
+//   Read setting for 2D texture minifying
+// ----------------------------------------------------------------------------
+{
+    int dflt = texture2DMinFilterDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    int ret = settings.value("Texture2DMinFilter", QVariant(dflt)).toInt();
+    return ret;
+}
+
+
+int PerformancesPage::texture2DMagFilter()
+// ----------------------------------------------------------------------------
+//   Read setting for 2D texture magnifying
+// ----------------------------------------------------------------------------
+{
+    int dflt = texture2DMagFilterDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    int ret = settings.value("Texture2DMagFilter", QVariant(dflt)).toInt();
+    return ret;
+}
+
+
 bool PerformancesPage::perPixelLightingDefault()
 // ----------------------------------------------------------------------------
 //   Should per-pixel lighting be enabled by default?
@@ -662,6 +769,24 @@ bool PerformancesPage::VSyncDefault()
 // ----------------------------------------------------------------------------
 {
     return true;
+}
+
+
+int PerformancesPage::texture2DMinFilterDefault()
+// ----------------------------------------------------------------------------
+//   Default minifying filter for 2D textures
+// ----------------------------------------------------------------------------
+{
+    return GL_LINEAR_MIPMAP_LINEAR;
+}
+
+
+int PerformancesPage::texture2DMagFilterDefault()
+// ----------------------------------------------------------------------------
+//   Default magnifying filter for 2D textures
+// ----------------------------------------------------------------------------
+{
+    return GL_LINEAR;
 }
 
 }

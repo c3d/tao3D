@@ -41,9 +41,8 @@ usage() {
   echo "              variable."
   echo "  ./configure modules=\"none +my_module\""
   echo "              Build only my_module."
-  echo "  ./configure CONFIG-=x86"
-  echo "              Configure for a 64-bit release build on MacOSX (x86 is selected"
-  echo "              by default)"
+  echo "  ./configure CONFIG+=x86"
+  echo "              Configure for a 32-bit release build on MacOSX (default is 64-bit)"
   ) >&2
   exit 0
 }

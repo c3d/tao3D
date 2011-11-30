@@ -40,6 +40,7 @@ DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
+    : useInProgress(false)
 {
     registerDisplayFunction("2Dplain", displayBackBuffer,
                                        NULL, NULL, NULL);
@@ -77,6 +78,11 @@ void DisplayDriver::display()
 //   Use currently active rendering function, or default, to draw scene
 // ----------------------------------------------------------------------------
 {
+    // Do not execute display callback if use callback has not returned yet.
+    // Typical case: use() shows a message box, which causes the main event
+    // loop to be re-entered, and thus display may be called again.
+    if (useInProgress)
+        return;
     Q_ASSERT(current.fn || !"No display function selected");
     return current.fn(current.obj);
 }
@@ -105,7 +111,11 @@ bool DisplayDriver::setDisplayFunction(QString name)
             debug() << "Selecting display function: " << +name
                     << "@" << (void*)current.fn << "\n";
         if (current.use)
+        {
+            useInProgress = true;
             current.obj = current.use();
+            useInProgress = false;
+        }
 
         if (current.obj == (void*)(~0L))
         {
@@ -114,7 +124,11 @@ bool DisplayDriver::setDisplayFunction(QString name)
                            "restoring previous function\n";
             current = save;
             if (current.use)
+            {
+                useInProgress = true;
                 current.obj = current.use();
+                useInProgress = false;
+            }
             found = false;
         }
         else
@@ -233,6 +247,7 @@ std::ostream & DisplayDriver::debug()
 //   Static display methods. To be later moved to modules, except default one.
 //
 // ============================================================================
+
 
 void DisplayDriver::displayBackBuffer(void *)
 // ----------------------------------------------------------------------------
@@ -639,10 +654,16 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     double delta = stereoDelta(i, numCameras);
-    double shift = eyeSeparation() * delta;
+    double shiftLength = eyeSeparation() * delta;
+    Vector3 toTarget = cameraTarget - cameraPosition;
+    Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
 
-    gluLookAt(cameraPosition.x + shift, cameraPosition.y, cameraPosition.z,
-              cameraTarget.x + shift, cameraTarget.y ,cameraTarget.z,
+    gluLookAt(cameraPosition.x + shift.x,
+              cameraPosition.y + shift.y,
+              cameraPosition.z + shift.z,
+              cameraTarget.x + shift.x,
+              cameraTarget.y + shift.y,
+              cameraTarget.z + shift.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 

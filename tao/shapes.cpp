@@ -29,7 +29,7 @@
 #include "application.h"
 #include "widget_surface.h"
 #include <QPainterPath>
-
+#include "lighting.h"
 TAO_BEGIN
 
 // ============================================================================
@@ -97,16 +97,34 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     glActiveTexture(GL_TEXTURE0 + texture.unit);
     glEnable(texture.type);
     glBindTexture(texture.type, texture.id);
-    if (hasPixelBlur)
+    GLint min, mag;
+    if (texture.type == GL_TEXTURE_2D)
     {
-        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        min = TaoApp->tex2DMinFilter;
+        mag = TaoApp->tex2DMagFilter;
+        if (!texture.mipmap)
+        {
+            if (min == GL_NEAREST_MIPMAP_NEAREST ||
+                min == GL_LINEAR_MIPMAP_NEAREST  ||
+                min == GL_NEAREST_MIPMAP_LINEAR  ||
+                min == GL_LINEAR_MIPMAP_LINEAR)
+                min = GL_LINEAR;
+            if (mag == GL_NEAREST_MIPMAP_NEAREST ||
+                mag == GL_LINEAR_MIPMAP_NEAREST  ||
+                mag == GL_NEAREST_MIPMAP_LINEAR  ||
+                mag == GL_LINEAR_MIPMAP_LINEAR)
+                mag = GL_LINEAR;
+        }
     }
     else
     {
-        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        if (hasPixelBlur)
+            min = mag = GL_LINEAR;
+        else
+            min = mag = GL_NEAREST;
     }
+    glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
+    glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
 
     // Wrap if texture 2D
@@ -202,6 +220,9 @@ bool Shape::setLineColor(Layout *where)
 
 bool Shape::setShader(Layout *where)
 {
+    if(where->InIdentify())
+        return false;
+
     // Activate current shader
     if (where->globalProgramId)
         glUseProgram(where->globalProgramId);
@@ -221,10 +242,18 @@ bool Shape::setShader(Layout *where)
             GLint textures = glGetUniformLocation(where->programId, "textures");
             glUniform1i(textures, where->textureUnits);
 
-            // Due to a bug with ATI drivers, we need to pass the name of the vendor
-            // in order to apply the correct fix in the shader
             GLint vendor = glGetUniformLocation(where->programId, "vendor");
             glUniform1i(vendor, TaoApp->vendorID);
+
+            // Set texture units
+            GLint tex0 = glGetUniformLocation(where->programId, "tex0");
+            glUniform1i(tex0, 0);
+            GLint tex1 = glGetUniformLocation(where->programId, "tex1");
+            glUniform1i(tex1, 1);
+            GLint tex2 = glGetUniformLocation(where->programId, "tex2");
+            glUniform1i(tex2, 2);
+            GLint tex3 = glGetUniformLocation(where->programId, "tex3");
+            glUniform1i(tex3, 3);
         }
     }
 

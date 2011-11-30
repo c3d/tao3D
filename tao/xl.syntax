@@ -1,6 +1,6 @@
 INFIX
         11      NEWLINE
-        21      ->
+        21      -> =>
         31      else into
         40      loop while until
         50      then require ensure
@@ -18,7 +18,7 @@ INFIX
         250     and or xor
         260     in at contains
         271     of to
-        280     ..
+        280     .. step
         290     = < > <= >= <>
         300     & |
         310     + -
@@ -30,6 +30,7 @@ INFIX
 PREFIX
         30      data
         40      loop while until
+        50      property constraint
         121     case if return yield transform
         350     not in out constant variable const var
         360     ! ~
@@ -57,3 +58,6 @@ COMMENT
         "/*|" "|*/"
         "/**" "**/"
         "//|" NEWLINE
+
+SYNTAX "C"
+        extern ;

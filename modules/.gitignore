@@ -6,3 +6,5 @@ lib*.dylib
 lib*.so
 lib*.so.*
 *.dll
+*.taokey
+*.xl.bin

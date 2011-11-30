@@ -164,6 +164,10 @@ Widget::Widget(Window *parent, SourceFile *sf)
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlanes(1),
+      watermark(0), watermarkWidth(0), watermarkHeight(0),
+#ifdef Q_OS_MACX
+      bFrameBufferReady(false),
+#endif
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -324,6 +328,11 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       drawAllPages(o.drawAllPages), animated(o.animated),
       doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
+      watermark(0), watermarkText(o.watermarkText),
+      watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
+#ifdef Q_OS_MACX
+      bFrameBufferReady(false),
+#endif
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -392,6 +401,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Make this the current context for OpenGL
     makeCurrent();
+
+    // Reconstruct watermark texture, if needed
+    if (watermarkText != "")
+        setWatermarkText(watermarkText, watermarkWidth, watermarkHeight);
 
     // Create new layout to draw into
     space = new SpaceLayout(this);
@@ -476,6 +489,8 @@ Widget::~Widget()
 #endif
 
     RasterText::purge(QGLWidget::context());
+    if (watermark)
+        glDeleteTextures(1, &watermark);
 }
 
 
@@ -840,14 +855,14 @@ bool Widget::refreshNow(QEvent *event)
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
         stats.end(Statistics::EXEC);
-
-        if (changed)
-            processProgramEvents();
     }
 
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
+
+    if (changed)
+        processProgramEvents();
 
     return changed;
 }
@@ -1904,6 +1919,25 @@ void Widget::refresh(double delay)
 //
 // ============================================================================
 
+#ifdef Q_OS_MACX
+bool Widget::frameBufferReady()
+// ----------------------------------------------------------------------------
+//    On MacOSX Lion we must check if GL frame buffer can be used. See #1658.
+// ----------------------------------------------------------------------------
+{
+    if (bFrameBufferReady)
+        return true;
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+    {
+        bFrameBufferReady = true;
+        return true;
+    }
+
+    return false;
+}
+#endif
+
 void Widget::initializeGL()
 // ----------------------------------------------------------------------------
 //    Called once per rendering to setup the GL environment
@@ -1917,8 +1951,7 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
-    // Can'd display before everything is setup, fixes #1601
-    if (!TaoApp->fullyInitialized())
+    if (!frameBufferReady())
         return;
 
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
@@ -1940,9 +1973,8 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
-    if (!TaoApp->fullyInitialized())
+    if (!frameBufferReady())
         return;
-
     if (isInvalid)
         return;
     if (!printer)
@@ -5319,12 +5351,16 @@ Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 //   Switch to full screen
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
 #ifdef MACOSX_DISPLAYLINK
     CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
 #endif
+
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -5429,6 +5465,9 @@ Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 //   Switch to slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     Window *window = (Window *) parentWidget();
     bool oldMode = window->switchToSlideShow(ss);
     return oldMode ? XL::xl_true : XL::xl_false;
@@ -5440,6 +5479,9 @@ Name_p Widget::toggleSlideShow(XL::Tree_p self)
 //   Toggle slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     Window *window = (Window *) parentWidget();
     bool oldMode = window->toggleSlideShow();
     return oldMode ? XL::xl_true : XL::xl_false;
@@ -5651,7 +5693,7 @@ Real_p Widget::getZFar(Tree_p self)
 
 Infix_p Widget::currentModelMatrix(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Return the current model matrix which convert from object space to world space
+//   Return the current model matrix converting from object to world space
 // ----------------------------------------------------------------------------
 {
     Tree *result = xl_real_list(self, 16, layout->model.Data());
@@ -5663,6 +5705,8 @@ Integer_p Widget::lastModifiers(Tree_p self)
 //   Return the current modifiers
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::KeyPress);
+    refreshOn(QEvent::KeyRelease);
     return new Integer(keyboardModifiers);
 }
 
@@ -6145,7 +6189,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if ((!glIsTexture(texId)) && (texId != 0))
+    if((! glIsTexture(texId)) && (texId != 0))
     {
         Ooops("Invalid texture id $1", self);
         return 0;
@@ -6187,7 +6231,7 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId));
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -8191,10 +8235,15 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    QString ver = GITREV;
-    if (!Licences::Has(TAO_LICENCE_STR))
-        ver += tr(" (UNLICENSED)");
-    return new XL::Text(+ver);
+    static text v = "";
+    if (v == "")
+    {
+        QString ver = GITREV;
+        if (!Licences::Has(TAO_LICENCE_STR))
+            ver += tr(" (UNLICENSED)");
+        v = +ver;
+    }
+    return new XL::Text(v);
 }
 
 
@@ -9840,6 +9889,149 @@ text Widget::currentDocumentFolder()
 }
 
 
+bool Widget::blink(double on, double off)
+// ----------------------------------------------------------------------------
+//   Return true for 'on' seconds then false for 'off' seconds
+// ----------------------------------------------------------------------------
+{
+    double time = Widget::currentTimeAPI();
+    double mod = fmod(time, on + off);
+    if (mod <= on)
+    {
+        refreshOn((int)QEvent::Timer, time + on - mod);
+        return true;
+    }
+    refreshOn((int)QEvent::Timer, time + on + off - mod);
+    return false;
+}
+
+
+Name_p Widget::blink(Tree_p self, Real_p on, Real_p off)
+// ----------------------------------------------------------------------------
+//   Export 'blink' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return blink(on->value, off->value) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::hasLicense(Tree_p self, Text_p feature)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::Has' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return Licences::Has(feature->value) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::Check' as a primitive
+// ----------------------------------------------------------------------------
+{
+    bool crit = (critical == XL::xl_true) ? true : false;
+    return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+}
+
+
+void Widget::setWatermarkText(text t, int w, int h)
+// ----------------------------------------------------------------------------
+//   Create a texture and make it the watermark of the current widget
+// ----------------------------------------------------------------------------
+{
+    QImage image(w, h, QImage::Format_ARGB32);
+    image.fill(0); // Transparent black
+    QPainter painter;
+    painter.begin(&image);
+    QPainterPath path;
+    path.addText(0, 0, QFont("Ubuntu", 40), +t);
+    QRectF brect = path.boundingRect();
+    path.translate((w - brect.width())/2, (h - brect.height())/2);
+    painter.setBrush(QBrush(Qt::white));
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.drawPath(path);
+    painter.end();
+
+    // Generate the GL texture
+    QImage texture = QGLWidget::convertToGLFormat(image);
+    if (!watermark)
+        glGenTextures(1, &watermark);
+    glBindTexture(GL_TEXTURE_2D, watermark);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 w, h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texture.bits());
+
+    watermarkText = t;
+    watermarkWidth = w;
+    watermarkHeight = h;
+
+    IFTRACE(fileload)
+        std::cerr << "Watermark created: text '" << t << "', texture id "
+                  << watermark << "\n";
+}
+
+
+void Widget::setWatermarkTextAPI(text t, int w, int h)
+// ----------------------------------------------------------------------------
+//   Export setWatermarkText to the module API
+// ----------------------------------------------------------------------------
+{
+    Tao()->setWatermarkText(t, w, h);
+}
+
+
+void Widget::drawWatermark()
+// ----------------------------------------------------------------------------
+//   Draw watermark texture
+// ----------------------------------------------------------------------------
+{
+    if (!watermark || !watermarkWidth || !watermarkHeight)
+        return;
+
+    float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
+    float tw = w/watermarkWidth, th = h/watermarkHeight;
+    glDisable(GL_DEPTH_TEST);
+    glDepthMask(GL_FALSE);
+    glColor4f(1.0, 1.0, 1.0, 0.2);
+    glBindTexture(GL_TEXTURE_2D, watermark);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glEnable(GL_TEXTURE_2D);
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
+    float x1 = 1-tw/2, x2 = 1+tw/2;
+    float y1 = 1-th/2, y2 = 1+th/2;
+    glBegin(GL_QUADS);
+    glTexCoord2f(x1, y1);
+    glVertex2i  (-1, -1);
+    glTexCoord2f(x2, y1);
+    glVertex2i  ( 1, -1);
+    glTexCoord2f(x2, y2);
+    glVertex2i  ( 1,  1);
+    glTexCoord2f(x1, y2);
+    glVertex2i  (-1,  1);
+    glEnd();
+    glEnable(GL_DEPTH_TEST);
+    glDepthMask(GL_TRUE);
+}
+
+
+void Widget::drawWatermarkAPI()
+// ----------------------------------------------------------------------------
+//   Export drawWatermark to the module API
+// ----------------------------------------------------------------------------
+{
+    Tao()->drawWatermark();
+}
+
+
 // ============================================================================
 //
 //    Chooser
@@ -11021,6 +11213,17 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
+}
+
+bool Widget::isGLExtensionAvailable(text name)
+// ----------------------------------------------------------------------------
+//   Module interface to isGLExtensionAvailable
+// ----------------------------------------------------------------------------
+{
+    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring req = name.c_str();
+    bool isAvailable = (strstr(avail, req) != NULL);
+    return isAvailable ? true : false;
 }
 
 

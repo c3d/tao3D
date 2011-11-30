@@ -155,6 +155,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
 
                     XL::xl_import(context, self, +xlPath, execute);
                     moduleById(m.id)->loaded = true;
+                    break;
                 }
             }
         }

@@ -186,7 +186,7 @@ page "filtering",
     else if filter = 6 then
         black_and_white
     else if filter = 7 then
-        erode 0, 1, 0.07
+        erode 0, 1, 0.3
 
     // Draw
     rectangle 0, 0, 750, 500

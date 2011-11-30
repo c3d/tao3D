@@ -58,6 +58,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     SetShader        = ModuleRenderer::SetShader;
     HasPixelBlur     = ModuleRenderer::HasPixelBlur;
     EnabledLights    = ModuleRenderer::EnabledLights;
+    ModelMatrix      = ModuleRenderer::ModelMatrix;
 
     deferredDelete   = InfoTrashCan::DeferredDelete;
     makeGLContextCurrent = Widget::makeGLContextCurrent;

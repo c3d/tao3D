@@ -24,6 +24,7 @@
 
 #include "tao/module_info.h"
 #include "coords3d.h"
+#include "matrix.h"
 #include "info.h"
 
 // ========================================================================
@@ -48,7 +49,7 @@
 //   since the last public release, then set age to 0.
 
 #define TAO_MODULE_API_CURRENT   17
-#define TAO_MODULE_API_AGE       1
+#define TAO_MODULE_API_AGE       2
 
 // ========================================================================
 //
@@ -111,7 +112,7 @@ struct ModuleApi
 
     // Allow to enable specified texture coordinates before a drawing
     // according to current application parameters.
-    // After drawing, texture coordinates have to be unbind.
+    // After drawing, texture coordinates have to be disable.
     bool (*EnableTexCoords)(double* texCoord);
 
     // Allow to disable texture coordinates after a drawing.
@@ -156,6 +157,9 @@ struct ModuleApi
 
     // Get the bimasks of all activated lights in the current layout.
     unsigned int (*EnabledLights)();
+
+    // Get the current model matrix.
+    Matrix4 (*ModelMatrix)();
 
     // Mark object for deletion by the main thread.
     // All classes derived from XL::Info that perform OpenGL calls in their

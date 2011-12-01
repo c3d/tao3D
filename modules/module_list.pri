@@ -30,6 +30,7 @@
        display_intstereo \
        display_alioscopy \
        display_checkerboard \
+       display_2dplusdepth \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \
@@ -38,7 +39,6 @@
        slideshow_3d \
        vlc_audio_video
     OTHER_MODULES =     \
-        display_2dplusdepth \
         hello_world     \
         taoTester    \
         tao_synchro

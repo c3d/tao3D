@@ -633,7 +633,7 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
     double distance = toTarget.Length();
     double nearRatio = zNear()/distance;
     double delta = stereoDelta(i, numCameras);
-    double shift = -(eyeSeparation() * delta) * nearRatio;
+    double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
     glFrustum (-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
 }

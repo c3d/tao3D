@@ -122,7 +122,7 @@ namespace Tao {
 //
 // ============================================================================
 
-static Point3 defaultCameraPosition(0, 0, 6000);
+static Point3 defaultCameraPosition(0, 0, 3000);
 
 
 
@@ -196,8 +196,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      zNear(1000.0), zFar(56000.0),
-      zoom(1.0), eyeDistance(10.0),
+      zNear(1500.0), zFar(10000.0),
+      zoom(1.0), eyeDistance(100.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
@@ -6828,6 +6828,7 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     return XL::xl_false;
 }
 
+
 Text_p Widget::shaderLog(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the log for the shader
@@ -6842,6 +6843,7 @@ Text_p Widget::shaderLog(Tree_p self)
     text message = +currentShaderProgram->log();
     return new Text(message);
 }
+
 
 Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
 // ----------------------------------------------------------------------------
@@ -6858,6 +6860,7 @@ Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
     return XL::xl_true;
 }
 
+
 Integer* Widget::geometryInputType(Tree_p self)
 // ----------------------------------------------------------------------------
 //   return input type of geometry shader
@@ -6870,6 +6873,7 @@ Integer* Widget::geometryInputType(Tree_p self)
     }
     return new XL::Integer(currentShaderProgram->geometryInputType());
 }
+
 
 Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 // ----------------------------------------------------------------------------
@@ -6884,9 +6888,12 @@ Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 
     switch(outputType)
     {
-    case GL_LINE_STRIP: currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
-    case GL_TRIANGLE_STRIP: currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
-    default : currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
+    case GL_LINE_STRIP:
+        currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
+    case GL_TRIANGLE_STRIP:
+        currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
+    default:
+        currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
     }
     return XL::xl_true;
 }
@@ -6937,6 +6944,8 @@ Integer* Widget::geometryOutputCount(Tree_p self)
 
     return new XL::Integer(currentShaderProgram->geometryOutputVertexCount());
 }
+
+
 
 // ============================================================================
 //

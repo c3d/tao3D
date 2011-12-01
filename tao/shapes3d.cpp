@@ -461,8 +461,8 @@ ConeMesh::ConeMesh(double ratio)
                           vertices[vertices.size() - 2],
                           vertices[0]);
     Triangle firstTriangle(vertices[0],
-                           vertices[2],
-                           vertices[1]);
+                           vertices[1],
+                           vertices[2]);
 
     previousFaceNorm = lastTriangle.computeNormal();
     nextFaceNorm     = firstTriangle.computeNormal();
@@ -473,8 +473,8 @@ ConeMesh::ConeMesh(double ratio)
     {
         previousFaceNorm = nextFaceNorm;
         Triangle triangle(vertices[i],
-                          vertices[i + 2],
-                          vertices[i + 1]);
+                          vertices[i + 1],
+                          vertices[i + 2]);
         nextFaceNorm = triangle.computeNormal();
 
         normals.push_back(((previousFaceNorm + nextFaceNorm)/2));

@@ -5,7 +5,7 @@ locally
     texture "milkyway.jpg"
     rotatey 0.02 * page_time + 90
     scale 1, -1, 1
-    sphere 0, 0, 0, 11000
+    sphere 10000
 rotatez -23
 locally
     texture "earth.bmp"

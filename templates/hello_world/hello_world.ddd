@@ -3,7 +3,7 @@ locally
     texture_wrap true, true
     texture_transform {scale 5, 5, 5}
     texture "milkyway.jpg"
-    rotatey 0.02 * page_time + 90
+    rotatey 0.02 * page_time + 100
     scale 1, -1, 1
     sphere 10000
 rotatez -23

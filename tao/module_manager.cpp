@@ -122,8 +122,10 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     {
                         if (!m.native && !m.inError)
                         {
-                            loadNative(context, m);
+                            bool ok = loadNative(context, m);
                             m = *moduleById(m.id);
+                            if (!ok)
+                                break;
                         }
                         if (!m.native)
                             continue;
@@ -270,7 +272,7 @@ bool ModuleManager::loadConfig()
     // Modules/<ID2>/Name = "Other module name"
     // Modules/<ID2>/Enabled = false
 
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << "Reading user's module configuration\n";
 
     QSettings settings;
@@ -293,7 +295,7 @@ bool ModuleManager::loadConfig()
         settings.endGroup();
     }
     settings.endGroup();
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << ids.size() << " module(s) configured\n";
     return true;
 }
@@ -304,9 +306,13 @@ bool ModuleManager::saveConfig()
 //   Save all modules into user's configuration
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(settings)
+        debug() << "Saving user's module configuration\n";
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
         ok &= addToConfig(m);
+    IFTRACE(settings)
+            debug() << modules.count() << " module(s) saved\n";
     return ok;
 }
 
@@ -316,7 +322,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
 //   Remove m from the list of configured modules
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << "Removing module " << m.toText() << " from configuration\n";
 
     modules.remove(+m.id);
@@ -326,7 +332,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
     settings.remove(+m.id);
     settings.endGroup();
 
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << "Module removed\n";
 
     return true;
@@ -350,9 +356,6 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
     settings.endGroup();
-
-    IFTRACE(modules)
-        debug() << "Module added\n";
 
     return true;
 }
@@ -386,7 +389,7 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     if (!m_p)
         return;
 
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << (enabled ? "En" : "Dis") << "abling module "
                 << m_p->toText() << "\n";
 
@@ -972,7 +975,14 @@ bool ModuleManager::loadNative(Context * /*context*/,
                 {
                     IFTRACE(modules)
                             debug() << "    Calling module_init\n";
-                    mi(&api, &m);
+                    int st = mi(&api, &m);
+                    if (st)
+                    {
+                        IFTRACE(modules)
+                            debug() << "      Error (return code: "
+                                    << st << ")\n";
+                        return false;
+                    }
                 }
 
                 m_p->show_preferences =

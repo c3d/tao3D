@@ -47,7 +47,7 @@ namespace Tao
 
 quint64 Licences::alreadyChecked = 0;
 quint64 Licences::licencesOK = 0;
-std::vector<text> Licences::featuresName;
+std::map<quint64, text> Licences::featuresName;
 
 
 Licences &Licences::LM()
@@ -66,9 +66,8 @@ Licences::Licences()
 // ----------------------------------------------------------------------------
     : licences()
 {
-    featuresName.push_back("NO_LICENCE");
-    featuresName.push_back("WEB");
-    featuresName.push_back("GUI");
+    featuresName[WEB] = "WEB";
+    featuresName[GUI] = "GUI";
 }
 
 

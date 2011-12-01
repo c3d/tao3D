@@ -101,7 +101,7 @@ private:
     // the result of the check.
     static quint64 alreadyChecked;
     static quint64 licencesOK;
-    static std::vector<text> featuresName;
+    static std::map<quint64, text> featuresName;
 
 private:
     Licences();

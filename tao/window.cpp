@@ -2503,6 +2503,7 @@ void Window::updateContext(QString docPath)
     XL::MAIN->LoadContextFiles(contextFileNames);
 }
 
+
 void Window::switchToFullScreen(bool fs)
 // ----------------------------------------------------------------------------
 //   Switch a window to full screen mode, hiding children

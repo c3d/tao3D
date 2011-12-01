@@ -196,7 +196,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      zNear(1500.0), zFar(10000.0),
+      zNear(1500.0), zFar(1e6),
       zoom(1.0), eyeDistance(100.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),

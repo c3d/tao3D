@@ -1,17 +1,17 @@
 // ****************************************************************************
 //  licence.cpp                                                     Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
+//
 //     Sources for information:
 //     - http://www.sentientfood.com/display_story.php?articleid=3
 //     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
-// 
-// 
-// 
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -45,6 +45,11 @@ using namespace CryptoPP;
 namespace Tao
 {
 
+quint64 Licences::alreadyChecked = 0;
+quint64 Licences::licencesOK = 0;
+std::vector<text> Licences::featuresName;
+
+
 Licences &Licences::LM()
 // ----------------------------------------------------------------------------
 //   Return a singleton for the Licences class
@@ -60,7 +65,11 @@ Licences::Licences()
 //   Initialize the licence manager by loading the licence file
 // ----------------------------------------------------------------------------
     : licences()
-{}
+{
+    featuresName.push_back("NO_LICENCE");
+    featuresName.push_back("WEB");
+    featuresName.push_back("GUI");
+}
 
 
 Licences::~Licences()
@@ -169,7 +178,7 @@ void Licences::addLicenceFile(kstring licfname)
                     licenceError(licfname, tr("Digest verification failed"));
                     state = DONE;
                 }
-                additional.clear();                    
+                additional.clear();
             }
             else
             {
@@ -232,7 +241,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = DONE;
             }
             break;
-            
+
         case EXPIRY_DAY:
             if (tok == XL::tokINTEGER)
             {
@@ -318,7 +327,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = DONE;
             }
             break;
-            
+
         } // switch(state)
 
         // Check if we have a complete licence, if so enter it
@@ -574,7 +583,7 @@ void Licences::licenceError(kstring file, QString reason)
     oops.addButton(QMessageBox::Close);
     oops.exec();
 #endif // KEYGEN
-    exit(15);    
+    exit(15);
 }
 
 
@@ -608,6 +617,30 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
         oops.exec();
     }
 }
+
+
+bool Licences::CheckOnce(quint64 feature, bool silent, bool critical)
+// ----------------------------------------------------------------------------
+//   Check only once the a licence, then return that result
+// ----------------------------------------------------------------------------
+{
+    if ( (alreadyChecked & feature) != feature)
+    {
+        bool res = false;
+        if (silent)
+            res = Has(featuresName[feature]);
+        else
+            res = Check(featuresName[feature], critical);
+
+        if (res)
+            licencesOK |= feature;
+
+        alreadyChecked |= feature;
+    }
+
+    return ((licencesOK & feature) == feature);
+}
+
 #endif // KEYGEN
 
 

@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  licence.h                                                       Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
+//
 //     Sources for information:
 //     - http://www.sentientfood.com/display_story.php?articleid=3
 //     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
-// 
-// 
-// 
-// 
+//
+//
+//
+//
 // ****************************************************************************
 // This document is released under the GNU General Public License.
 // See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
@@ -28,6 +28,10 @@
 #include <QRegExp>
 #include <QDateTime>
 
+// Features id for CheckOnce
+#define NO_FEATURE 0x00000000
+#define WEB        0x00000001
+#define GUI        0x00000002
 
 namespace Tao
 {
@@ -65,6 +69,10 @@ public:
             WarnUnlicenced(feature, days, critical);
         return days > 0;
     }
+
+    static bool CheckOnce(quint64 feature, bool silent = true,
+                          bool critical = false);
+
 #endif
 
     static text Name()
@@ -88,6 +96,12 @@ private:
     text                company;
     text                address;
     text                email;
+
+    // Used for CheckOnce : store if the feature has already been checked and
+    // the result of the check.
+    static quint64 alreadyChecked;
+    static quint64 licencesOK;
+    static std::vector<text> featuresName;
 
 private:
     Licences();

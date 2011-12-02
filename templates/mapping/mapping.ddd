@@ -1,5 +1,4 @@
 import Mapping
-import "mapping.xl"
 
 page "Alpha Mapping",
 // ----------------------------------------------------------------------------
@@ -62,6 +61,35 @@ page "Normal Mapping",
         result_highlight 400, 0
         normal_mapping
         rectangle 0, 0, 300, 300
+
+page "Displacement Mapping",
+// ----------------------------------------------------------------------------
+//   Displacement mapping
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -120, 100, "colorMap.png"
+    contents 100, -200,
+        at_step 3
+        +"A displacement map on texture unit 1"
+    at_step 4
+    map_highlight -120, -100, "displacementMap.png"
+    at_step 5
+    mapping
+    locally
+        at_step 6
+        color "white"
+        texture_unit 0
+        texture "colorMap.png"
+        texture_unit 1
+        texture "displacementMap.png"
+        result_highlight 400, 0
+        displacement_mapping 100 * exp (-5 * (highest_step - smooth_step) ^ 2)
+        plane 0, 0, 300, 300, 150, 150
 
 
 page "Noise Mapping",

@@ -7,6 +7,3 @@
 [submodule "modules/vlc_audio_video"]
 	path = modules/vlc_audio_video
 	url = git://gitorious.org/tao-presentation-modules/vlc_audio_video.git 
-[submodule "crypt"]
-	path = crypt
-	url = ./crypt

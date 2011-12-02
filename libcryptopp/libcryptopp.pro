@@ -79,7 +79,8 @@ SOURCES = \
     $${SRC}/xtr.cpp \
     $${SRC}/zdeflate.cpp \
     $${SRC}/zinflate.cpp \
-    $${SRC}/rsa.cpp
+    $${SRC}/rsa.cpp \
+    $${SRC}/gcm.cpp
 
 # Kludge so that "make install" builds the binary
 install.commands = :

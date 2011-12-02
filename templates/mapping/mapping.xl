@@ -36,7 +36,7 @@ background s:real ->
     color "white"
     locally
         translatez -10000
-        image 0, 0, 4.9, 4.9, "fond.png"
+        image 0, 0, 8, 8, "fond.png"
 
 contents x:real, y:real, B ->
 // ----------------------------------------------------------------------------

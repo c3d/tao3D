@@ -14,8 +14,15 @@
  *    defines which direction is up (that is, the direction from the bottom to
  *    the top of the view). By default, the up vector of the camera is along
  *    the @p y axis of the scene.
- * @note The viewpoint location, the aiming point and the up vector are the
- * same as in the GLU library function gluLookat().
+ * @note When a stereoscopic display mode is active, the viewpoint location
+ * and the aiming point are adjusted by the amount of the eye separation.
+ * Tao Presentation implements an <em>asymmetric frustum parallel axis</em>
+ * projection method, which allows the creation of comfortable 3D content
+ * that minimize eye strain for the viewer.
+ * Cameras (eyes) lie on a straight line, not on an arc, and are spaced evenly
+ * by the @ref eye_distance distance. The center of the camera segment is the
+ * @ref camera_position. Cameras are globbaly aimed at the @ref camera_target
+ * point, but they are parallel: there is no inward rotation or vergence point.
  *  - the zoom factor. Controls the "focal length" of the camera. Change the
  *    zoom to make objects appear bigger or smaller. See @ref zoom.
  * @{
@@ -24,6 +31,12 @@
 /**
  * Returns the current camera position.
  * The default position is (0, 0, 6000).
+ * To read one component you may write:
+ * @code
+cam_x -> camera_position at 1
+cam_y -> camera_position at 2
+cam_z -> camera_position at 3
+ * @endcode
  * @return 3 real values, separated by commas.
  */
 infix camera_position();
@@ -119,6 +132,23 @@ real world_coordinates(x:real, y:real, wx:real, wy:real, wz:real);
  * @return the Z position at the given coordinates
  */
 real depth_at(x:real, y:real);
+
+/**
+ * Configure the camera as in early versions of Tao Presentations
+ * (up to 1.0-beta11).
+ * - Camera position is (0, 0, 6000) [now (0, 0, 3000)]
+ * - Camera target is (0, 0, 0) [unchanged]
+ * - Camera up vector is (0, 1, 0) [unchanged]
+ * - zNear is 1000 [now 1500]
+ * - zFar is 56000 [now 1e6]
+ * - Default eye separation for stereoscopy is 10 [now 100]
+ * - Polygon offset settings are:
+ * @code
+polygon_offset 0, -0.001, 0, -1
+ * @endcode
+ * [now 0, -0.1, 0, -1]
+ */
+old_camera_settings();
 
 /**
  * @}

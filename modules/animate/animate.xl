@@ -180,7 +180,7 @@ compute_smooth_step ->
         smooth_step := 0.0
         previous_page_number := page_number
     else if previous_page_number > page_number then
-        if step = 12345678 then
+        if (step = 12345678) then
             step := highest_step
             smooth_step := highest_step
             previous_page_number := page_number

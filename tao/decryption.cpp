@@ -51,14 +51,27 @@ std::string Decryption::Decrypt(std::string &ciphered)
         std::string eKey, eIv;
         uint16_t len;
         byte *plen = (byte *)&len;
+        int remaining = ciphered.size();
+        remaining -= 2;
+        if (remaining <= 0)
+            return "";
         memcpy(plen, pdata, 2);
         pdata += 2;
         len = ntohs(len);
+        remaining -= len;
+        if (remaining <= 0)
+            return "";
         eKey.append(pdata, len);
         pdata += len;
+        remaining -= 2;
+        if (remaining <= 0)
+            return "";
         memcpy(plen, pdata, 2);
         pdata += 2;
         len = ntohs(len);
+        remaining -= len;
+        if (remaining <= 0)
+            return "";
         eIv.append(pdata, len);
         pdata += len;
 

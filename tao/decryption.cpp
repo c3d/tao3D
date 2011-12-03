@@ -25,9 +25,11 @@
 #include "cryptopp/gcm.h"
 #include "cryptopp/osrng.h"
 #include <string>
-
+#include <stdint.h>
 #ifdef CONFIG_MINGW
-#include <winsock2.h>  // ntohs()
+#include <winsock2.h>
+#else
+#include <arpa/inet.h>
 #endif
 
 using namespace CryptoPP;

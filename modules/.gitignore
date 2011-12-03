@@ -8,3 +8,4 @@ lib*.so.*
 *.dll
 *.taokey
 *.xl.bin
+*.xl.crypt

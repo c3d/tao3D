@@ -88,20 +88,22 @@ while [ $# -ne 0 ] ; do
       shift
       ;;
     --with-lic*)
-      LICENCE_FLAGS="LICENCE_VALIDITY=120"
+      LICENSE_FLAGS="LICENSE_VALIDITY=120"
       shift
       ;;
     discovery)
       EDITION="Discovery"
-      EDITION_FLAGS="DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NORELOAD"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NORELOAD"
       shift ; done=1
       ;;
     creative)
       EDITION="Creative"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT"
       shift ; done=1
       ;;
     impress)
       EDITION="Impress"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT"
       shift ; done=1
       ;;
     *)
@@ -131,4 +133,4 @@ osflags() {
   esac
 }
 
-qmake -r `osflags` $DEBUG_FLAGS $LICENCE_FLAGS $EDITION_FLAGS "$@"
+qmake -r `osflags` $DEBUG_FLAGS $LICENSE_FLAGS $EDITION_FLAGS "$@"

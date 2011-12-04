@@ -946,6 +946,7 @@ private:
     double                zNear, zFar, scaling, zoom, eyeDistance;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
+    int                   eye, eyesNumber;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

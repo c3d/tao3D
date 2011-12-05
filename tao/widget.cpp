@@ -163,7 +163,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
-      doMouseTracking(true), stereoPlanes(1),
+      doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
@@ -326,7 +326,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
       drawAllPages(o.drawAllPages), animated(o.animated),
-      doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
+      doMouseTracking(o.doMouseTracking),
+      stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(o.watermarkText),
       watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
@@ -4986,6 +4987,22 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    return result;
+}
+
+
+Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
+                                Integer_p viewpoints,Tree_p child)
+// ----------------------------------------------------------------------------
+//   Create a layout that is only active for a given viewpoint
+// ----------------------------------------------------------------------------
+{
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    Layout *childLayout = new StereoLayout(*layout, viewpoints);
+    childLayout = layout->AddChild(layout->id, child, context, childLayout);
+    XL::Save<Layout *> save(layout, childLayout);
+    Tree_p result = currentContext->Evaluate(child);
     return result;
 }
 

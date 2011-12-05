@@ -571,8 +571,9 @@ public:
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
-    Tree_p      font(Context *context, Tree_p self, Tree_p descr);
-    Tree_p      fontFamily(Context *, Tree_p self, text family);
+    Tree_p      font(Context *context, Tree_p self,Tree_p dscr,Tree_p d2=NULL);
+    Tree_p      fontFamily(Context *, Tree_p self, Text_p family);
+    Tree_p      fontFamily(Context *, Tree_p self, Text_p family, Real_p size);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);

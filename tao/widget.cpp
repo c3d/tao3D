@@ -7933,7 +7933,8 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
+Tree_p Widget::font(Context *context, Tree_p self,
+                    Tree_p descr1, Tree_p descr2)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
@@ -7946,7 +7947,9 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
     font.setStrikeOut(false);
     font.setOverline(false);
     FontParsingAction parseFont(context, layout->font);
-    description->Do(parseFont);
+    descr1->Do(parseFont);
+    if (descr2)
+        descr2->Do(parseFont);
     layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
     if (fontFileMgr)
@@ -7955,12 +7958,22 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
 }
 
 
-Tree_p Widget::fontFamily(Context *context, Tree_p self, text family)
+Tree_p Widget::fontFamily(Context *context, Tree_p self, Text_p family)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    return font(context, self, new XL::Text(family));
+    return font(context, self, family);
+}
+
+
+Tree_p Widget::fontFamily(Context *context, Tree_p self,
+                          Text_p family, Real_p size)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    return font(context, self, family, size);
 }
 
 

@@ -226,7 +226,9 @@ public:
 private:
     QString           curFile;
     Uri              *uri;
+#ifndef CFG_NOFULLSCREEN
     bool              slideShowMode;
+#endif
     bool              unifiedTitleAndToolBarOnMac;
 
 #ifndef CFG_NORELOAD
@@ -277,7 +279,9 @@ private:
     QAction          *licensesAct;
     QAction          *onlineDocAct;
     QAction          *onlineDocTaodyneAct;
+#ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
+#endif
     QAction          *viewAnimationsAct;
     QUndoView        *undoView;
 #ifndef CFG_NOEDIT

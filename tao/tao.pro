@@ -288,6 +288,9 @@ contains(DEFINES, CFG_NORELOAD) {
 contains(DEFINES, CFG_NOEDIT) {
     !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
 }
+contains(DEFINES, CFG_NOFULLSCREEN) {
+    !build_pass:message("Full screen (slideshow) mode is disabled")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 NOWARN_SOURCES += licence.cpp decryption.cpp

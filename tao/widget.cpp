@@ -4745,7 +4745,22 @@ XL::Real_p Widget::pageTime(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime - pageStartTime);
+    return new XL::Real(frozenTime - pageStartTime,
+                           self->Position());
+}
+
+
+XL::Integer_p Widget::pageSeconds(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return integral number of seconds
+// ----------------------------------------------------------------------------
+{
+    double now = CurrentTime();
+    if (animated)
+        frozenTime = CurrentTime();
+    refreshOn(QEvent::Timer, now + 1);
+    return new XL::Integer((longlong) (frozenTime - pageStartTime),
+                           self->Position());
 }
 
 

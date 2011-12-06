@@ -331,6 +331,7 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
+    Integer_p   pageSeconds(Tree_p self);
     Real_p      after(Context *context, double delay, Tree_p code);
     Real_p      every(Context *context, double delay, double duration, Tree_p code);
     Real_p      mouseX(Tree_p self);

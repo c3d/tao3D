@@ -267,6 +267,8 @@ copy_texture ->
         color "white"
         texture ID
         rectangle 0, 0, W, H
+    texture_transform
+        reset_transfrom
 
 // Text Layout
 text_box x:real, y, w, h, body:tree ->

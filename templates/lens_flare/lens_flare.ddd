@@ -14,7 +14,7 @@ earth R ->
         texture "earth.bmp"
         texture_wrap true, true
         rotatey 5 * page_time + 10
-        sphere 0, 0, 0, R
+        sphere R
 
 moon R ->
     locally
@@ -25,7 +25,7 @@ moon R ->
         rotatez 75
         rotatey 15 * page_time + 10
         translatex 1000
-        sphere 0, 0, 0, R
+        sphere R
 
 milkyway R ->
     locally
@@ -34,14 +34,14 @@ milkyway R ->
         texture_wrap true, true
         texture_transform {scale 5, 5, 5}
         texture "milkyway.jpg"
-        rotatey 0.02 * page_time + 90
+        rotatey 0.02 * page_time + 100
         scale 1, -1, 1
-        sphere 0, 0, 0, R
+        sphere R
 
 d -> window_height
 page "lens flare",
     locally
-        milkyway 11000
+        milkyway 8000
         sun 100, 300, -300 + 200 * abs (sin (page_time * 0.04))
         moon d * 20%
         earth d * 60%

@@ -43,6 +43,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     AddToLayout2     = ModuleRenderer::AddToLayout2;
     addControlBox    = Widget::addControlBox;
 
+    isGLExtensionAvailable = Widget::isGLExtensionAvailable;
+
     //Drawing paramaters
     SetTextures      = ModuleRenderer::SetTextures;
     BindTexture      = ModuleRenderer::BindTexture;
@@ -55,6 +57,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     SetLineColor     = ModuleRenderer::SetLineColor;
     SetShader        = ModuleRenderer::SetShader;
     HasPixelBlur     = ModuleRenderer::HasPixelBlur;
+    EnabledLights    = ModuleRenderer::EnabledLights;
+    ModelMatrix      = ModuleRenderer::ModelMatrix;
 
     deferredDelete   = InfoTrashCan::DeferredDelete;
     makeGLContextCurrent = Widget::makeGLContextCurrent;
@@ -94,6 +98,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     // License checking
     hasLicense = Licences::Has;
+    checkLicense = Licences::Check;
     blink      = Widget::blink;
 
     // Current document info

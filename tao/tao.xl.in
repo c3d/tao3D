@@ -111,6 +111,10 @@ commit_chooser b:text ->
 increase_eye_distance -> eye_distance eye_distance * 1.5
 decrease_eye_distance -> eye_distance eye_distance * 0.75
 
+left_viewpoint X  -> stereo_viewpoints 1, X
+right_viewpoint X -> stereo_viewpoints 2, X
+
+
 stereoscopy_settings ->
     if has_display_mode quadstereo then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
@@ -125,7 +129,7 @@ stereoscopy_settings ->
     if has_display_mode vsplitstereo then
         chooser_choice tr "Enable stereoscopy (vertical frame packing)", {enable_stereoscopy vframepacking}
     if has_display_mode alioscopy then
-        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy; eye_distance 30.0}
+        chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
     if has_display_mode "anaglyph" then
@@ -135,6 +139,13 @@ stereoscopy_settings ->
     chooser_choice tr "Disable stereoscopy", {enable_stereoscopy false}
     chooser_choice tr "Increase eye distance", {increase_eye_distance}
     chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
+
+old_camera_settings ->
+    camera_position 0, 0, 6000
+    z_near 1000
+    z_far 56000
+    eye_distance 10
+    polygon_offset 0, -0.001, 0, -1
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28

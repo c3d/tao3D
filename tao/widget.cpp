@@ -122,7 +122,7 @@ namespace Tao {
 //
 // ============================================================================
 
-static Point3 defaultCameraPosition(0, 0, 6000);
+static Point3 defaultCameraPosition(0, 0, 3000);
 
 
 
@@ -163,8 +163,11 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
-      doMouseTracking(true), stereoPlanes(1),
+      doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
+#ifdef Q_OS_MACX
+      bFrameBufferReady(false),
+#endif
       activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
@@ -193,8 +196,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      zNear(1000.0), zFar(56000.0),
-      zoom(1.0), eyeDistance(10.0),
+      zNear(1500.0), zFar(1e6),
+      zoom(1.0), eyeDistance(100.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
@@ -323,10 +326,14 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
       drawAllPages(o.drawAllPages), animated(o.animated),
-      doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
+      doMouseTracking(o.doMouseTracking),
+      stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(o.watermarkText),
       watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
+#ifdef Q_OS_MACX
+      bFrameBufferReady(false),
+#endif
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -849,14 +856,14 @@ bool Widget::refreshNow(QEvent *event)
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
         stats.end(Statistics::EXEC);
-
-        if (changed)
-            processProgramEvents();
     }
 
     // Redraw all
     TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
     updateGL();
+
+    if (changed)
+        processProgramEvents();
 
     return changed;
 }
@@ -1913,6 +1920,25 @@ void Widget::refresh(double delay)
 //
 // ============================================================================
 
+#ifdef Q_OS_MACX
+bool Widget::frameBufferReady()
+// ----------------------------------------------------------------------------
+//    On MacOSX Lion we must check if GL frame buffer can be used. See #1658.
+// ----------------------------------------------------------------------------
+{
+    if (bFrameBufferReady)
+        return true;
+
+    if (glCheckFramebufferStatus(GL_FRAMEBUFFER) == GL_FRAMEBUFFER_COMPLETE)
+    {
+        bFrameBufferReady = true;
+        return true;
+    }
+
+    return false;
+}
+#endif
+
 void Widget::initializeGL()
 // ----------------------------------------------------------------------------
 //    Called once per rendering to setup the GL environment
@@ -1926,13 +1952,8 @@ void Widget::resizeGL(int width, int height)
 //   Called when the size changes
 // ----------------------------------------------------------------------------
 {
-    // Can'd display before everything is setup, fixes #1601
-    if (!TaoApp->fullyInitialized())
-    {
-        if (glFramebufferIsValid())
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (!frameBufferReady())
         return;
-    }
 
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
@@ -1953,13 +1974,8 @@ void Widget::paintGL()
 //    Repaint the contents of the window
 // ----------------------------------------------------------------------------
 {
-    if (!TaoApp->fullyInitialized())
-    {
-        if (glFramebufferIsValid())
-            glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    if (!frameBufferReady())
         return;
-    }
-
     if (isInvalid)
         return;
     if (!printer)
@@ -3507,7 +3523,6 @@ void Widget::commitSuccess(QString id, QString msg)
     window->undoStack->push(new UndoCommand(repository(), id, msg));
 }
 
-
 bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Commit files previously written to repository and reset next commit time
@@ -4730,7 +4745,22 @@ XL::Real_p Widget::pageTime(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime - pageStartTime);
+    return new XL::Real(frozenTime - pageStartTime,
+                           self->Position());
+}
+
+
+XL::Integer_p Widget::pageSeconds(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return integral number of seconds
+// ----------------------------------------------------------------------------
+{
+    double now = CurrentTime();
+    if (animated)
+        frozenTime = CurrentTime();
+    refreshOn(QEvent::Timer, now + 1);
+    return new XL::Integer((longlong) (frozenTime - pageStartTime),
+                           self->Position());
 }
 
 
@@ -4972,6 +5002,22 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    return result;
+}
+
+
+Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
+                                Integer_p viewpoints,Tree_p child)
+// ----------------------------------------------------------------------------
+//   Create a layout that is only active for a given viewpoint
+// ----------------------------------------------------------------------------
+{
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    Layout *childLayout = new StereoLayout(*layout, viewpoints);
+    childLayout = layout->AddChild(layout->id, child, context, childLayout);
+    XL::Save<Layout *> save(layout, childLayout);
+    Tree_p result = currentContext->Evaluate(child);
     return result;
 }
 
@@ -5337,12 +5383,16 @@ Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
 //   Switch to full screen
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     bool oldFs = isFullScreen();
     Window *window = (Window *) parentWidget();
     window->switchToFullScreen(fs);
 #ifdef MACOSX_DISPLAYLINK
     CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
 #endif
+
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -5447,6 +5497,9 @@ Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 //   Switch to slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     Window *window = (Window *) parentWidget();
     bool oldMode = window->switchToSlideShow(ss);
     return oldMode ? XL::xl_true : XL::xl_false;
@@ -5458,6 +5511,9 @@ Name_p Widget::toggleSlideShow(XL::Tree_p self)
 //   Toggle slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef Q_OS_MACX
+    bFrameBufferReady = false;
+#endif
     Window *window = (Window *) parentWidget();
     bool oldMode = window->toggleSlideShow();
     return oldMode ? XL::xl_true : XL::xl_false;
@@ -5669,7 +5725,7 @@ Real_p Widget::getZFar(Tree_p self)
 
 Infix_p Widget::currentModelMatrix(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Return the current model matrix which convert from object space to world space
+//   Return the current model matrix converting from object to world space
 // ----------------------------------------------------------------------------
 {
     Tree *result = xl_real_list(self, 16, layout->model.Data());
@@ -5681,6 +5737,8 @@ Integer_p Widget::lastModifiers(Tree_p self)
 //   Return the current modifiers
 // ----------------------------------------------------------------------------
 {
+    refreshOn(QEvent::KeyPress);
+    refreshOn(QEvent::KeyRelease);
     return new Integer(keyboardModifiers);
 }
 
@@ -6163,7 +6221,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if ((!glIsTexture(texId)) && (texId != 0))
+    if((! glIsTexture(texId)) && (texId != 0))
     {
         Ooops("Invalid texture id $1", self);
         return 0;
@@ -6818,6 +6876,7 @@ Text_p Widget::shaderLog(Tree_p self)
     return new Text(message);
 }
 
+
 Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
 // ----------------------------------------------------------------------------
 //   Specify input type for geometry shader
@@ -6833,6 +6892,7 @@ Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
     return XL::xl_true;
 }
 
+
 Integer* Widget::geometryInputType(Tree_p self)
 // ----------------------------------------------------------------------------
 //   return input type of geometry shader
@@ -6845,6 +6905,7 @@ Integer* Widget::geometryInputType(Tree_p self)
     }
     return new XL::Integer(currentShaderProgram->geometryInputType());
 }
+
 
 Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 // ----------------------------------------------------------------------------
@@ -6859,9 +6920,12 @@ Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 
     switch(outputType)
     {
-    case GL_LINE_STRIP: currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
-    case GL_TRIANGLE_STRIP: currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
-    default : currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
+    case GL_LINE_STRIP:
+        currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
+    case GL_TRIANGLE_STRIP:
+        currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
+    default:
+        currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
     }
     return XL::xl_true;
 }
@@ -6912,6 +6976,8 @@ Integer* Widget::geometryOutputCount(Tree_p self)
 
     return new XL::Integer(currentShaderProgram->geometryOutputVertexCount());
 }
+
+
 
 // ============================================================================
 //
@@ -7882,7 +7948,8 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
+Tree_p Widget::font(Context *context, Tree_p self,
+                    Tree_p descr1, Tree_p descr2)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
@@ -7895,7 +7962,9 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
     font.setStrikeOut(false);
     font.setOverline(false);
     FontParsingAction parseFont(context, layout->font);
-    description->Do(parseFont);
+    descr1->Do(parseFont);
+    if (descr2)
+        descr2->Do(parseFont);
     layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
     if (fontFileMgr)
@@ -7904,12 +7973,22 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
 }
 
 
-Tree_p Widget::fontFamily(Context *context, Tree_p self, text family)
+Tree_p Widget::fontFamily(Context *context, Tree_p self, Text_p family)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    return font(context, self, new XL::Text(family));
+    return font(context, self, family);
+}
+
+
+Tree_p Widget::fontFamily(Context *context, Tree_p self,
+                          Text_p family, Real_p size)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    return font(context, self, family, size);
 }
 
 
@@ -8149,27 +8228,53 @@ Name_p Widget::textEditKey(Tree_p self, text key)
 }
 
 
+struct LoadTextInfo : Info
+// ----------------------------------------------------------------------------
+//  Records text values loaded by a given load_text
+// ----------------------------------------------------------------------------
+{
+    QFileInfo   fileInfo;
+    Text_p      loaded;
+};
+
+
 Text_p Widget::loadText(Tree_p self, text file)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
 // ----------------------------------------------------------------------------
 {
-    std::ostringstream output;
+    bool doLoad = false;
     text qualified = "doc:" + file;
     QFileInfo fileInfo(+qualified);
-    if (fileInfo.exists())
+
+    LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
+    if (!info)
     {
-        text path = +fileInfo.canonicalFilePath();
-        std::ifstream input(path.c_str());
-        while (input.good())
-        {
-            char c = input.get();
-            if (input.good())
-                output << c;
-        }
+        if (fileInfo.lastModified() > info->fileInfo.lastModified())
+            doLoad = true;
     }
-    text contents = output.str();
-    return new XL::Text(contents);
+    else
+    {
+        info = new LoadTextInfo;
+        self->SetInfo<LoadTextInfo>(info);
+        info->loaded = new Text("", "\"", "\"", self->Position());
+        doLoad = true;
+    }
+
+    if (doLoad)
+    {
+        if (fileInfo.exists())
+        {
+            text &value = info->loaded->value;
+
+            QFile file(fileInfo.canonicalFilePath());
+            QTextStream textStream(&file);
+            QString data = textStream.readAll();
+            value = +data;
+        }
+        info->fileInfo = fileInfo;
+    }
+    return info->loaded;
 }
 
 
@@ -8210,10 +8315,15 @@ Text_p Widget::taoVersion(Tree_p self)
 //    Return the version of the Tao program
 // ----------------------------------------------------------------------------
 {
-    QString ver = GITREV;
-    if (!Licences::Has(TAO_LICENCE_STR))
-        ver += tr(" (UNLICENSED)");
-    return new XL::Text(+ver);
+    static text v = "";
+    if (v == "")
+    {
+        QString ver = GITREV;
+        if (!Licences::Has(TAO_LICENCE_STR))
+            ver += tr(" (UNLICENSED)");
+        v = +ver;
+    }
+    return new XL::Text(v);
 }
 
 
@@ -9876,6 +9986,34 @@ bool Widget::blink(double on, double off)
 }
 
 
+Name_p Widget::blink(Tree_p self, Real_p on, Real_p off)
+// ----------------------------------------------------------------------------
+//   Export 'blink' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return blink(on->value, off->value) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::hasLicense(Tree_p self, Text_p feature)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::Has' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return Licences::Has(feature->value) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::Check' as a primitive
+// ----------------------------------------------------------------------------
+{
+    bool crit = (critical == XL::xl_true) ? true : false;
+    return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+}
+
+
 void Widget::setWatermarkText(text t, int w, int h)
 // ----------------------------------------------------------------------------
 //   Create a texture and make it the watermark of the current widget
@@ -11157,6 +11295,17 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
 
+bool Widget::isGLExtensionAvailable(text name)
+// ----------------------------------------------------------------------------
+//   Module interface to isGLExtensionAvailable
+// ----------------------------------------------------------------------------
+{
+    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring req = name.c_str();
+    bool isAvailable = (strstr(avail, req) != NULL);
+    return isAvailable ? true : false;
+}
+
 
 Name_p Widget::hasDisplayMode(Tree_p self, Name_p name)
 // ----------------------------------------------------------------------------
@@ -11298,10 +11447,9 @@ static void generateRewriteDoc(Widget *widget, XL::Rewrite_p rewrite, text &com)
         com += t2->value;
     }
 
-    XL::rewrite_table &rewrites = rewrite->hash;
-    XL::rewrite_table::iterator i;
-    for (i = rewrites.begin(); i != rewrites.end(); i++)
-        generateRewriteDoc(widget, i->second, com);
+    for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+        if (XL::Rewrite *rw = rewrite->hash[i])
+            generateRewriteDoc(widget, rw, com);
 }
 
 
@@ -11328,10 +11476,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     // Documentation from the primitives files (*.tbl)
     for (XL::Context *globals = xlr->context; globals; globals = globals->scope)
     {
-        XL::rewrite_table &rewrites = globals->rewrites;
-        XL::rewrite_table::iterator i;
-        for (i = rewrites.begin(); i != rewrites.end(); i++)
-            generateRewriteDoc(this, i->second, com);
+        for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+            if (XL::Rewrite *rw = globals->rewrites[i])
+                generateRewriteDoc(this, rw, com);
     }
 
     // Write the result

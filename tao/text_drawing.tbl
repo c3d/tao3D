@@ -71,15 +71,9 @@ PREFIX(TextValue,  tree, "text_value",
        SYNOPSIS("Insert a block of text corresponding to the given vaue")
        DESCRIPTION("Insert a block of text corresponding to the given formula")
        RETURNS(tree, "The tree t given in parameter."))
-PREFIX(Font,  tree,  "font",
-       PARM(f, tree, "The font description"),
-       RTAO(font(context, self, f)),
-       GROUP(text:font)
-       SYNOPSIS("Select a font family")
-       DESCRIPTION("Select a font family"))
 PREFIX(FontFamily,  tree,  "font",
        PARM(f, text, "The font family, and optionally, font style after a slash"),
-       RTAO(fontFamily(context, self, f)),
+       RTAO(fontFamily(context, self, &f)),
        GROUP(text:font)
        SYNOPSIS("Select a font family")
        DESCRIPTION("Select a font family"))
@@ -89,6 +83,19 @@ PREFIX(FontSize,  tree,  "font_size",
        GROUP(text:font)
        SYNOPSIS("Select a font size")
        DESCRIPTION("Select a font size"))
+PREFIX(FontFamilySize,  tree,  "font",
+       PARM(f, text, "The font family, and optionally, font style after a slash")
+       PARM(s, real, "The font size"),
+       RTAO(fontFamily(context, self, &f, &s)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
+PREFIX(Font,  tree,  "font",
+       PARM(f, tree, "The font description"),
+       RTAO(font(context, self, f)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
 PREFIX(FontScaling,  tree,  "font_scaling",
        PARM(s,real, "Scaling factor")
        PARM(ms,real, "Minimum AA size"),

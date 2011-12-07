@@ -468,6 +468,20 @@ bool Licences::verify(std::vector<Licence> &licences, text signature)
     return result;
 }
 
+
+struct CheckStatus
+// ----------------------------------------------------------------------------
+//   Information about the last licence check for a feature
+// ----------------------------------------------------------------------------
+{
+    CheckStatus() {}
+    CheckStatus(QDate when, int remaining)
+        : when(when), remaining(remaining) {}
+
+    QDate when;
+    int   remaining;
+};
+
 int Licences::licenceRemainingDays(text feature)
 // ----------------------------------------------------------------------------
 //   Check if any of the licences grants us the given feature
@@ -476,6 +490,15 @@ int Licences::licenceRemainingDays(text feature)
     QDate today = QDate::currentDate();
     QString qfun = +feature;
     int result = 0;
+
+    // Cache request during 1 day for performance and less verbose logging
+    static std::map<text, CheckStatus> checked;
+    if (checked.count(feature))
+    {
+        CheckStatus st = checked[feature];
+        if (st.when.isValid() && st.when.daysTo(today) < 1)
+            return st.remaining;
+    }
 
     // Loop over all licences
     std::vector<Licence>::iterator l;
@@ -494,7 +517,7 @@ int Licences::licenceRemainingDays(text feature)
                                 << result + 1 << " day(s)\n";
                     else
                         debug() << "'" << feature << "' expired "
-                                << result << " day(s) ago\n";
+                                << -1 * result << " day(s) ago\n";
                 }
             }
             else
@@ -504,13 +527,23 @@ int Licences::licenceRemainingDays(text feature)
                 result = INT_MAX - 1;
             }
             if (result >= 0)
-                return result + 1; // If licence expires today, it's still OK
+            {
+                result = result + 1; // If licence expires today, it's still OK
+                break;
+            }
         }
     }
+    if (result <= 0)
+    {
+        // No licence matches, or they all expired.
+        IFTRACE(lic)
+                debug() << "'" << feature << "' not licensed\n";
+    }
 
-    // No licence matches, or they all expired.
-    IFTRACE(lic)
-        debug() << "'" << feature << "' not licensed\n";
+    // Cache result
+    CheckStatus st(today, result);
+    checked[feature] = st;
+
     return result;
 }
 
@@ -553,6 +586,12 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
 {
     if (days <= 0)
     {
+        // Warn only once per feature
+        static std::set<text> warned;
+        if (warned.count(feature))
+            return;
+        warned.insert(feature);
+
         QMessageBox oops;
         oops.setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
         oops.setWindowTitle(tr("Not licenced"));

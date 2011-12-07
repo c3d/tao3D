@@ -24,19 +24,28 @@ usage() {
   echo ""
   echo "Edition Name:"
   echo ""
-  echo "  viewer      Configure for Tao Presentations Viewer."
-  echo "              Licence for:"
-  echo "              'Tao Presentations Viewer <latest tag>.*', no expiration date."
-  echo "  creative    Configure for Tao Presentations Creative."
-  echo "              No licence, install unsigned template for:"
-  echo "              'Tao Presentations Creative (latest tag).*', no expiration date."
-  echo "  pro         Configure for Tao Presentations Pro."
-  echo "              No licence, install unsigned template for:"
-  echo "              'Tao Presentations Pro (latest tag).*', no expiration date."
+  echo "  discovery   Configure for Tao Presentations Discovery."
+  echo "              This is an evaluation/demo version."
+  echo "              - All default modules are built and packaged, with no license"
+  echo "              - Application license is generated:"
+  echo "                'Tao Presentations Discovery <latest tag>.*', no expiration date."
+  echo "              - Some application features are disabled."
+  echo "              - User is supposed to upgrade to Creativity or Impress to enable"
+  echo "                some modules and be able to buy additional ones."
+  echo "  creativity"
+  echo "  impress     Configure for Tao Presentations Creativity or Impress, respectively."
+  echo "              - All default modules are built and packaged, with no license."
+  echo "              - Application license template is packaged (not signed):"
+  echo "                'Tao Presentations Creativity (latest tag).*' or"
+  echo "                'Tao Presentations Impress (latest tag).*'"
+  echo "              - Creativity and Impress are the same except for the name and"
+  echo "                license string. The web store will bundle some module licenses "
+  echo "                with the application (one bundle for Creativity, one for Impress)."
   echo "  <empty>     Configure for an internal build."
-  echo "              Replicates our 'beta' build: most features are enabled,"
-  echo "              Licence for:"
-  echo "              'Tao Presentations <latest tag>.*', valid for 120 days."
+  echo "              Replicates our 'beta' build:"
+  echo "              - All default modules are built and packaged, with 120-day licenses."
+  echo "              - Application license is valid for 120 days:"
+  echo "                'Tao Presentations <latest tag>.*'"
   echo ""
   echo "QMake options:"
   echo ""
@@ -47,19 +56,19 @@ usage() {
   echo ""
   echo "  ./configure --debug"
   echo "              Configure for an internal build (= same as Tao beta), debug mode"
-  echo "  ./configure pro"
-  echo "              Configure for Pro edition, release mode"
-  echo "  ./configure --debug viewer"
-  echo "              Configure for Viewer edition, debug mode"
-  echo "  ./configure viewer modules+=+display_2dplusdepth"
-  echo "              Add module display_2dplusdepth to the modules normally selected"
-  echo "              for the Viewer edition. Note the two + signs, before and after"
+  echo "  ./configure impress"
+  echo "              Configure for Impress edition, release mode"
+  echo "  ./configure --debug discovery"
+  echo "              Configure for Discovery edition, debug mode"
+  echo "  ./configure discovery modules+=+some_module"
+  echo "              Add module some_module to the modules normally selected"
+  echo "              for the Discovery edition. Note the two + signs, before and after"
   echo "              the = sign. The first one means: append to the 'modules'"
   echo "              variable, do not overwrite it. As a result the module selected"
-  echo "              for the Viewer edition are in effect and simply modified by the"
+  echo "              for the Discovery edition are in effect and simply modified by the"
   echo "              option. The second + sign is processed by module_list.pri, see "
   echo "              this file for details."
-  echo "  ./configure pro CONFIG+=x86"
+  echo "  ./configure impress CONFIG+=x86"
   echo "              Configure for a 32-bit release build on MacOSX (default is64-bit)"
   ) >&2
   exit 0
@@ -82,17 +91,17 @@ while [ $# -ne 0 ] ; do
       LICENCE_FLAGS="LICENCE_VALIDITY=120"
       shift
       ;;
-    viewer)
-      EDITION="Viewer"
-      EDITION_FLAGS='DEFINES+="CFG_NOEDIT CFG_NOSRCEDIT CFG_NORELOAD" modules="-display_quadstereo -display_splitstereo -display_intstereo -display_alioscopy"'
+    discovery)
+      EDITION="Discovery"
+      EDITION_FLAGS="DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NORELOAD"
       shift ; done=1
       ;;
     creative)
       EDITION="Creative"
       shift ; done=1
       ;;
-    pro)
-      EDITION="Pro"
+    impress)
+      EDITION="Impress"
       shift ; done=1
       ;;
     *)
@@ -104,7 +113,7 @@ done
 
 # Make the edition string available to project files
 if [ "$EDITION" ] ; then
-  EDITION_FLAGS="TAO_EDITION=\"$EDITION\" $EDITION_FLAGS"
+  EDITION_FLAGS="TAO_EDITION=$EDITION $EDITION_FLAGS"
 fi
 
 # Default QMake flags for each OS

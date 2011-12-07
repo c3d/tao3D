@@ -24,6 +24,7 @@
 
 #include "tao/module_info.h"
 #include "coords3d.h"
+#include "matrix.h"
 #include "info.h"
 
 // ========================================================================
@@ -47,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   16
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   17
+#define TAO_MODULE_API_AGE       2
 
 // ========================================================================
 //
@@ -93,6 +94,9 @@ struct ModuleApi
     // has millisecond precision.
     double (*currentTime)();
 
+    // Check if an OpenGL extension, given by its name, is avaible in Tao.
+    bool (*isGLExtensionAvailable)(text name);
+
     // Like scheduleRender, but current layout takes ownership of arg:
     // when layout is destroyed, delete_fn is called with arg.
     bool (*addToLayout)(render_fn callback, void *arg, delete_fn del);
@@ -108,20 +112,22 @@ struct ModuleApi
 
     // Allow to enable specified texture coordinates before a drawing
     // according to current application parameters.
-    // After drawing, texture coordinates have to be unbind.
+    // After drawing, texture coordinates have to be disable.
     bool (*EnableTexCoords)(double* texCoord);
 
     // Allow to disable texture coordinates after a drawing.
     bool (*DisableTexCoords)();
 
-    // Get the bimasks of all activated texture units.
+    // Get the bimasks of all activated texture units
+    // in the current layout.
     unsigned int (*TextureUnits)();
 
-    // Set the bimasks of all activated texture units.
+    // Set the bimasks of all activated texture units in
+    // the current layout.
     void (*SetTextureUnits)(unsigned int textureUnits);
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
-    // For a 2D teexture, use BindTexture2D
+    // For a 2D texture, use BindTexture2D
     // Always returns false.
     bool (*BindTexture)(unsigned int id, unsigned int type);
 
@@ -133,7 +139,7 @@ struct ModuleApi
     // Allow to apply current textures during a drawing.
     bool (*SetTextures)();
 
-    // Allow to add a shader define by its id to a drawing.
+    // Allow to add a shader define by its id during a drawing.
     bool (*SetShader)(int id);
 
     // Allow to set fill color during a drawing according
@@ -144,11 +150,16 @@ struct ModuleApi
     // to the current layout attributes.
     bool (*SetLineColor)();
 
-
     // Allow to enable or deactivate pixel blur
     // on textures of the current layout.
     // It corresponds to GL_LINEAR/GL_NEAREST parameters.
     bool (*HasPixelBlur)(bool enable);
+
+    // Get the bimasks of all activated lights in the current layout.
+    unsigned int (*EnabledLights)();
+
+    // Get the current model matrix.
+    Matrix4 (*ModelMatrix)();
 
     // Mark object for deletion by the main thread.
     // All classes derived from XL::Info that perform OpenGL calls in their
@@ -331,6 +342,13 @@ struct ModuleApi
 
     // Return true if a valid license is found for the requested feature name
     bool (*hasLicense)(std::string featureName);
+
+    // Return true if a valid license is found for the requested feature name,
+    // false otherwise. When no license is found, an information dialog
+    // is shown. 'critical' changes the appearance of the dialog (icon...).
+    // Set it to true if the feature won't work at all, or false if the module
+    // will work in degraded mode.
+    bool (*checkLicense)(std::string featureName, bool critical);
 
     // Return true if (current_time % (on + off)) <= on, false otherwise.
     // Note: calls refreshOn to refresh automatically on next transition.

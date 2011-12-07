@@ -189,7 +189,14 @@ PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
        SYNOPSIS("Return a fractional time, including milliseconds")
        DESCRIPTION("Returns the current document's time or the time at wich the document was frozen.")
        RETURNS(real, "Return a fractional time, including milliseconds"))
-PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)),
+PREFIX(PageTime,  real,      "page_time", , RTAO(pageTime(self)),
+       GROUP(time)
+       SYNOPSIS("Returns the number of seconds since page was shown.]")
+       DESCRIPTION("Returns the number of seconds since the page was shown. "
+                   "The precision is at least one millisecond. "
+                   "The time value is frozen when animations are disabled.")
+       RETURNS(real, "Return a fractional time, including milliseconds"))
+PREFIX(PageSeconds,  integer,      "page_seconds", , RTAO(pageSeconds(self)),
        GROUP(time)
        SYNOPSIS("Returns the number of seconds since page was shown.]")
        DESCRIPTION("Returns the number of seconds since the page was shown. "
@@ -342,6 +349,14 @@ PREFIX(Anchor,   tree,  "anchor",
        GROUP(graph)
        SYNOPSIS("")
        DESCRIPTION("Anchor a set of shapes to the current position")
+       RETURNS(tree, "The result of the child execution."))
+PREFIX(StereoViewpoints,  tree,  "stereo_viewpoints",
+       PARM(e, integer, "The bit mask for viewpoints")
+       PARM(t, code, "The code to execute in a local context"),
+       RTAO(stereoViewpoints(context, self, e, t)),
+       GROUP(code)
+       SYNOPSIS("Make a local context")
+       DESCRIPTION("Evaluate the child tree while preserving the current state")
        RETURNS(tree, "The result of the child execution."))
 
 
@@ -998,3 +1013,14 @@ PREFIX(ImportModule, tree, "import",
        return Tao::ModuleManager::import(context, self, m, true),
        GROUP(modules)
        SYNOPSIS("Import a module from a file"))
+PREFIX(Blink, boolean,  "blink",
+       PARM(on, real, "Duration of first period, primitive returns true")
+       PARM(off, real, "Duration of second period, primitive returns false"),
+       RTAO(blink(self, on, off)),)
+PREFIX(HasLicense, boolean,  "has_license",
+       PARM(feature, text, "The feature name to check"),
+       RTAO(hasLicense(self, feature)),)
+PREFIX(CheckLicense, boolean,  "check_license",
+       PARM(feature, text, "The feature name to check")
+       PARM(critical, boolean, "Show warning (false) or error (true) dialog on no license?"),
+       RTAO(checkLicense(self, feature, critical)),)

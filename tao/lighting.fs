@@ -18,7 +18,6 @@
 uniform  int  textures;
 uniform  int  lights;
 
-// Graphic cards vendor
 uniform  int  vendor;
 
 // textures parameters
@@ -215,13 +214,11 @@ vec4 computeLighting()
 
     // If the vendor is no ATI then we use classic calculation, otherwise
     // we have to multiply by the scene color to fix a bug.
-    vec4 final_color;
-    if(vendor > 0)
-        final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a)
-                    + vec4(specular.rgb, 0.0);
-    else
-        final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a)
-                    * color + vec4(specular.rgb, 0.0);
+    vec4 final_color = vec4(diffuse.rgb + globalAmbient.rgb + ambient.rgb, globalAmbient.a);
+    if(vendor == 0)
+        final_color *=  color;
+
+    final_color += vec4(specular.rgb, 0.0);
 
     return final_color;
 }

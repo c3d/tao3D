@@ -54,7 +54,7 @@ QMAKE_POST_LINK = echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # D
 
 include(expires.pri)
 !isEmpty(EXPIRES_LINE):SIGN=1
-contains(TAO_EDITION, Viewer):SIGN=1
+contains(TAO_EDITION, Discovery):SIGN=1
 !isEmpty(TAO_EDITION):EDITION_STR="$$TAO_EDITION "
 LATEST_TAG=$$system(git describe --tags --abbrev=0)
 LATEST_TAG=$$replace(LATEST_TAG, \\., \\.)

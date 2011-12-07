@@ -1,13 +1,14 @@
 import MovieCredits
 import TaoVisuals
 
+
 page "Taodyne presents",
 // ----------------------------------------------------------------------------
 //   "Taodyne presents" flying towards viewer
 // ----------------------------------------------------------------------------
     fade_in  Value:real, Dur:real  -> -expm1(-5 * Value / Dur)
     mc_swc_background
-    translatez -55000 + 57000 * fade_in(page_time, 8)
+    translatez -5000 + 6000 * fade_in(page_time, 8)
     text_box 0, 0, 800, 600,
         align 0.5
         vertical_align 0.5
@@ -46,6 +47,7 @@ page "Star Wars Crawl",
 // ----------------------------------------------------------------------------
 //   A page illustrating a Star-Wars style crawl
 // ----------------------------------------------------------------------------
+    mc_size 1200, 2000
 
     // This part displays the text
     mc_star_wars_crawl 25,
@@ -58,7 +60,7 @@ page "Star Wars Crawl",
         line "The fight has just begun, a fight for the freedom to put some creativity back in presentations. To win this battle, Taodyne needs your help...."
 
     // This part displays the Taodyne ship showing up after 28 seconds
-    mc_star_wars_crawl_ship 28, 2000,
+    mc_star_wars_crawl_ship 28, 200,
         locally
             rotatex 100 * page_time
             color "grey"
@@ -75,7 +77,7 @@ page "Star Wars Crawl",
             locally
                 light_ambient 1, 1, 1, 1
                 rotatey 1 - 0.5 * N
-                translatez (page_time + sin (N * page_time)^2) mod 2 * 60000
+                translatez (page_time + sin (N * page_time)^2) mod 2 * 6000
                 rotatex 90
                 color tao_color N
                 scale 1, 2, 1
@@ -90,7 +92,7 @@ page "Star Wars Crawl",
 
 
     // Pursuing ship, Borg cube style, showing up after 35 seconds
-    mc_star_wars_crawl_ship 35, 1000,
+    mc_star_wars_crawl_ship 35, 100,
         locally
             frame_texture 300, 300,
                 align 0.5
@@ -115,6 +117,7 @@ page "Final Credits",
 // ----------------------------------------------------------------------------
 //    Page showing the final credits
 // ----------------------------------------------------------------------------
+    mc_size 1200, 2800
     mc_swc_background
     adjust X:real ->
         translatez 500
@@ -131,10 +134,11 @@ page "Final Credits",
             text "In Order of Appearance"
 
         // Credits for this contents
-        color_hsv 20 * time, 0.3, 0.9, 0.8
-        mc_credit "Application Design", "Christophe de Dinechin"
-        mc_credit "Module interface", "Jérôme Forissier"
-        mc_credit "Improved text layout", "Catherine Burvelle"
+        mc_credit "Story", "Christophe de Dinechin"
+        mc_credit "Screenplay", "Jérôme Forissier"
+        mc_credit "Director", "Catherine Burvelle"
+        mc_credit "Special effects", "Baptiste Soulisse"
+        mc_credit "Marketing", "Claire Hyvrier"
 
         color "white"
         mc_credits_section 80,
@@ -144,7 +148,7 @@ page "Final Credits",
             align 0.5
             vertical_align 0.5
             anchor
-               color "white", 0.6
+               color "black", 0.6
                rounded_rectangle 0, 0, 400, 190, 20
                color "white"
                image 0, 0, 0.3, 0.3, "image:Taodyne_geeks_en.png"
@@ -160,5 +164,5 @@ page "Final Credits",
         mc_credits_section 120,
             text "Special Thanks"
         mc_credit "Family support", "Christine and Jean-Luc"
-        mc_credit "Friends and Advisors", "Jean-Marc, Edouard, Sylvain, Patrick, Hubert"
+        mc_credit "Friends and Advisors", "Jean-Marc, Edouard, Sylvain, Patrick"
         mc_credit "Incubator", "Incubateur Paca Est (France)"

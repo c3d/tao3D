@@ -26,7 +26,8 @@ usage() {
   echo ""
   echo "  discovery   Configure for Tao Presentations Discovery."
   echo "              This is an evaluation/demo version."
-  echo "              - All default modules are built and packaged, with no license"
+  echo "              - All default modules (except Alioscopy and 2D+Depth) are built and"
+  echo "                packaged, with no license."
   echo "              - Application license is generated:"
   echo "                'Tao Presentations Discovery <latest tag>.*', no expiration date."
   echo "              - Some application features are disabled."
@@ -34,7 +35,8 @@ usage() {
   echo "                some modules and be able to buy additional ones."
   echo "  creativity"
   echo "  impress     Configure for Tao Presentations Creativity or Impress, respectively."
-  echo "              - All default modules are built and packaged, with no license."
+  echo "              - All default modules (except Alioscopy and 2D+Depth) are built and"
+  echo "                packaged, with no license."
   echo "              - Application license template is packaged (not signed):"
   echo "                'Tao Presentations Creativity (latest tag).*' or"
   echo "                'Tao Presentations Impress (latest tag).*'"
@@ -93,17 +95,23 @@ while [ $# -ne 0 ] ; do
       ;;
     discovery)
       EDITION="Discovery"
-      EDITION_FLAGS="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NORELOAD"
+      D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
+      D="$D DEFINES+=CFG_NORELOAD DEFINES+=CFG_NOFULLSCREEN"
+      D="$D DEFINES+=CFG_NOMODULEUPDATE"
+      M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
+      EDITION_FLAGS="$D $M"
       shift ; done=1
       ;;
     creative)
       EDITION="Creative"
-      EDITION_FLAGS="DEFINES+=CFG_NOGIT"
+      M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M"
       shift ; done=1
       ;;
     impress)
       EDITION="Impress"
-      EDITION_FLAGS="DEFINES+=CFG_NOGIT"
+      M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M"
       shift ; done=1
       ;;
     *)

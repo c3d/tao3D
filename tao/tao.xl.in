@@ -75,9 +75,11 @@ Triangle_Strip_Adjacency   -> 13
 // Chooser
 main_chooser ->
     chooser tr "Choose command"
+#ifndef CFG_NOFULLSCREEN
     chooser_choice tr "Toggle full screen", {toggle_slide_show}
     chooser_choice tr "Enter full screen", {slide_show true}
     chooser_choice tr "Exit full screen", {slide_show false}
+#endif
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice tr "Enable VSync", {enable_vsync true}
@@ -92,7 +94,12 @@ main_chooser ->
     chooser_choice tr "Select page", {page_chooser}
     if current_repository then
         chooser_choice tr "Checkout...", {branch_chooser}
+#if 0
+    // Broken (bug#1709)
     chooser_commands "chooser_command_", ""
+#else
+    chooser_choice tr "Quit Tao", { chooser_command_Quit_Tao }
+#endif
     chooser_choice tr "Texture...", {texture_chooser}
     window_choices
 
@@ -110,6 +117,10 @@ commit_chooser b:text ->
 
 increase_eye_distance -> eye_distance eye_distance * 1.5
 decrease_eye_distance -> eye_distance eye_distance * 0.75
+
+left_viewpoint X  -> stereo_viewpoints 1, X
+right_viewpoint X -> stereo_viewpoints 2, X
+
 
 stereoscopy_settings ->
     if has_display_mode quadstereo then

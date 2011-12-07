@@ -19,6 +19,10 @@
 #   (Windows) qmake -r -spec win32-g++ [options]
 #   (Linux)   qmake -r -spec linux-g++ [options]
 #
+#   or with the configuration script in the top-level directory:
+#
+#   ./configure [options]
+#
 #   Options:
 #
 #   DEFINES+=CFG_NOGIT
@@ -46,6 +50,11 @@
 #   DEFINES+=CFG_NOEDIT
 #     Disable functions related to document edition: remove the Edit, Format,
 #     Insert, Arrange and Share menus.
+#   DEFINES+=CFG_NOFULLSCREEN
+#     Removes the View>Full screen menu and the related command chooser
+#     entries. Zap the slide_show and toggle_slide_show primitives (they just
+#     return false).
+#
 #
 #   modules=none
 #     Do not build any Tao module

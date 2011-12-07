@@ -86,9 +86,9 @@ static QByteArray dumpRewrite(XL::Rewrite *r)
         else
             sstr << r->from << " -> " << r->to << "\n";
         ret.append(sstr.str().c_str(), sstr.str().length());
-        XL::rewrite_table::iterator i;
-        for (i = r->hash.begin(); i != r->hash.end(); i++)
-            ret.append(dumpRewrite((*i).second));
+        for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+            if (XL::Rewrite *rw = r->hash[i])
+                ret.append(dumpRewrite(rw));
     }
     return ret;
 }
@@ -101,12 +101,10 @@ static QByteArray dumpRewrites(Context *c)
 {
     using namespace XL;
 
-    uint debugsm = 10;
     QByteArray ret;
-    XL::rewrite_table::iterator i;
-    uint n = 0;
-    for (i = c->rewrites.begin(); i != c->rewrites.end() && n++ < debugsm; i++)
-        ret.append(dumpRewrite((*i).second));
+    for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+        if (XL::Rewrite *rw = c->rewrites[i])
+            ret.append(dumpRewrite(rw));
     return ret;
 }
 

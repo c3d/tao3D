@@ -636,6 +636,9 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 //   Set frustum for the given camera
 // ----------------------------------------------------------------------------
 {
+    // Record which stereo plane we are on for stereo
+    Widget::Tao()->stereoPlane = i-1;
+
     // Read camera position
     Point3 cameraPosition;
     Point3 cameraTarget;
@@ -660,6 +663,9 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
 //   Set modelview matrix for the given camera
 // ----------------------------------------------------------------------------
 {
+    // Record which stereo plane we are on for stereo
+    Widget::Tao()->stereoPlane = i-1;
+
     // Read camera position
     Point3 cameraPosition;
     Point3 cameraTarget;

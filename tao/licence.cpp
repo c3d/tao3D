@@ -592,20 +592,21 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
             return;
         warned.insert(feature);
 
-        QMessageBox oops;
-        oops.setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
-        oops.setWindowTitle(tr("Not licenced"));
+        QMessageBox * oops = new QMessageBox;
+        oops->setAttribute(Qt::WA_DeleteOnClose);
+        oops->setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
+        oops->setWindowTitle(tr("Not licenced"));
         if (days == 0)
-            oops.setText(tr("You do not have a valid licence for %1. "
+            oops->setText(tr("You do not have a valid licence for %1. "
                             "Please contact Taodyne to obtain valid "
                             "licence files.").arg(+feature));
         else
-            oops.setText(tr("You no longer have a valid licence for %1. "
+            oops->setText(tr("You no longer have a valid licence for %1. "
                             "The licence you had expired %2 days ago. "
                             "Please contact Taodyne to obtain valid "
                             "licence files.").arg(+feature).arg(-days));
-        oops.addButton(QMessageBox::Close);
-        oops.exec();
+        oops->addButton(QMessageBox::Close);
+        oops->open();
     }
 }
 #endif // KEYGEN

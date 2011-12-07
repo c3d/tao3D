@@ -55,10 +55,10 @@ LayoutState::LayoutState()
       textureUnits(0),
       lightId(GL_LIGHT0), currentLights(0),
       perPixelLighting(0),
-      programId(0), printing(false),
+      programId(0),
       planarRotation(0), planarScale(1),
       rotationId(0), translationId(0), scaleId(0),
-      hasTextureMatrix(false),
+      hasTextureMatrix(false), printing(false),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
       hasTransform(false), hasMaterial(false),
@@ -86,13 +86,13 @@ LayoutState::LayoutState(const LayoutState &o)
         currentLights(o.currentLights),
         perPixelLighting(o.perPixelLighting),
         programId(o.programId),
-        printing(o.printing),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
         rotationId(o.rotationId), translationId(o.translationId),
         scaleId(o.scaleId),
         model(o.model),
         hasTextureMatrix(o.hasTextureMatrix),
+        printing(o.printing),
         hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
         hasAttributes(o.hasAttributes), 
         hasLighting(false),
@@ -758,6 +758,47 @@ double Layout::PrinterScaling()
 // ----------------------------------------------------------------------------
 {
     return display->printerScaling();
+}
+
+
+
+// ============================================================================
+// 
+//    Stereo layout
+// 
+// ============================================================================
+
+bool StereoLayout::Valid(Layout *where)
+// ----------------------------------------------------------------------------
+//    Return true if the view is to be shown
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    ulong plane = widget->stereoPlane;
+    ulong planes = widget->stereoPlanes;
+    if (widget->eyeDistance < 0)
+        plane = planes-1 - plane;
+    return (1<<plane) & viewpoints;
+}
+
+
+void StereoLayout::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw only when the eye matches the given viewpoints
+// ----------------------------------------------------------------------------
+{
+    if (Valid(where))
+        Layout::Draw(where);
+}
+
+
+void StereoLayout::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw selection only when the eye matches the given viewpoints
+// ----------------------------------------------------------------------------
+{
+    if (Valid(where))
+        Layout::DrawSelection(where);
 }
 
 TAO_END

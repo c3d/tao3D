@@ -87,7 +87,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NOSRCEDIT
       srcEdit(NULL), src(NULL),
 #endif
-      taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
+      taoWidget(NULL), curFile(), uri(NULL),
+#ifndef CFG_NOFULLSCREEN
+      slideShowMode(false),
+#endif
       unifiedTitleAndToolBarOnMac(false), // see #678 below
 #ifndef CFG_NORELOAD
       fileCheckTimer(this),
@@ -1663,11 +1666,13 @@ void Window::createActions()
     connect(onlineDocTaodyneAct, SIGNAL(triggered()),
             this, SLOT(onlineDocTaodyne()));
 
+#ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
     slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
+#endif
 
     viewAnimationsAct = new QAction(tr("Animations"), this);
     viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
@@ -1796,7 +1801,9 @@ void Window::createMenus()
     viewMenu->addAction(src->toggleViewAction());
 #endif
     viewMenu->addAction(errorDock->toggleViewAction());
+#ifndef CFG_NOFULLSCREEN
     viewMenu->addAction(slideShowAct);
+#endif
     viewMenu->addAction(viewAnimationsAct);
     displayModeMenu = viewMenu->addMenu(tr("Display mode"));
     displayModes = new QActionGroup(this);
@@ -2135,7 +2142,11 @@ bool Window::toggleSlideShow()
 //    Toggle between slide show and normal mode
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NOFULLSCREEN
+    return false;
+#else
     return switchToSlideShow(!slideShowMode);
+#endif
 }
 
 
@@ -2144,6 +2155,10 @@ bool Window::switchToSlideShow(bool ss)
 //    Enter or leave slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NOFULLSCREEN
+    Q_UNUSED(ss);
+    return false;
+#else
     bool oldMode = slideShowMode;
     switchToFullScreen(ss);
     if (!ss || QSettings().value("fsAlwaysOnTop", QVariant(false)).toBool())
@@ -2153,6 +2168,7 @@ bool Window::switchToSlideShow(bool ss)
     slideShowAct->setChecked(ss);
     slideShowMode = ss;
     return oldMode;
+#endif
 }
 
 void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
@@ -2509,6 +2525,10 @@ void Window::switchToFullScreen(bool fs)
 //   Switch a window to full screen mode, hiding children
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NOFULLSCREEN
+    Q_UNUSED(fs);
+#else
+
     if (fs == isFullScreen())
         return;
 
@@ -2595,6 +2615,8 @@ void Window::switchToFullScreen(bool fs)
         restoreState(savedState.state);
     }
     slideShowAct->setChecked(fs);
+
+#endif // !CFG_NOFULLSCREEN
 }
 
 

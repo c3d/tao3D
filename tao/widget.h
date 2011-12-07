@@ -345,6 +345,7 @@ public:
     Tree_p      shape(Context *context, Tree_p self, Tree_p t);
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
     Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
+    Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);
@@ -820,6 +821,7 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class StereoLayout;
     friend class PageLayout;
     friend class DisplayDriver;
     friend class GCThread;
@@ -868,7 +870,7 @@ private:
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
-    int                   stereoPlanes;
+    int                   stereoPlane, stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
     GLuint                watermark;

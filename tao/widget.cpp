@@ -163,7 +163,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
-      doMouseTracking(true), stereoPlanes(1),
+      doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
@@ -326,7 +326,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
       drawAllPages(o.drawAllPages), animated(o.animated),
-      doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
+      doMouseTracking(o.doMouseTracking),
+      stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(o.watermarkText),
       watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
@@ -4991,6 +4992,22 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
 }
 
 
+Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
+                                Integer_p viewpoints,Tree_p child)
+// ----------------------------------------------------------------------------
+//   Create a layout that is only active for a given viewpoint
+// ----------------------------------------------------------------------------
+{
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    Layout *childLayout = new StereoLayout(*layout, viewpoints);
+    childLayout = layout->AddChild(layout->id, child, context, childLayout);
+    XL::Save<Layout *> save(layout, childLayout);
+    Tree_p result = currentContext->Evaluate(child);
+    return result;
+}
+
+
 Tree_p Widget::resetTransform(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Reset transform to original projection state
@@ -8184,27 +8201,53 @@ Name_p Widget::textEditKey(Tree_p self, text key)
 }
 
 
+struct LoadTextInfo : Info
+// ----------------------------------------------------------------------------
+//  Records text values loaded by a given load_text
+// ----------------------------------------------------------------------------
+{
+    QFileInfo   fileInfo;
+    Text_p      loaded;
+};
+
+
 Text_p Widget::loadText(Tree_p self, text file)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
 // ----------------------------------------------------------------------------
 {
-    std::ostringstream output;
+    bool doLoad = false;
     text qualified = "doc:" + file;
     QFileInfo fileInfo(+qualified);
-    if (fileInfo.exists())
+
+    LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
+    if (!info)
     {
-        text path = +fileInfo.canonicalFilePath();
-        std::ifstream input(path.c_str());
-        while (input.good())
-        {
-            char c = input.get();
-            if (input.good())
-                output << c;
-        }
+        if (fileInfo.lastModified() > info->fileInfo.lastModified())
+            doLoad = true;
     }
-    text contents = output.str();
-    return new XL::Text(contents);
+    else
+    {
+        info = new LoadTextInfo;
+        self->SetInfo<LoadTextInfo>(info);
+        info->loaded = new Text("", "\"", "\"", self->Position());
+        doLoad = true;
+    }
+
+    if (doLoad)
+    {
+        if (fileInfo.exists())
+        {
+            text &value = info->loaded->value;
+
+            QFile file(fileInfo.canonicalFilePath());
+            QTextStream textStream(&file);
+            QString data = textStream.readAll();
+            value = +data;
+        }
+        info->fileInfo = fileInfo;
+    }
+    return info->loaded;
 }
 
 
@@ -11377,10 +11420,9 @@ static void generateRewriteDoc(Widget *widget, XL::Rewrite_p rewrite, text &com)
         com += t2->value;
     }
 
-    XL::rewrite_table &rewrites = rewrite->hash;
-    XL::rewrite_table::iterator i;
-    for (i = rewrites.begin(); i != rewrites.end(); i++)
-        generateRewriteDoc(widget, i->second, com);
+    for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+        if (XL::Rewrite *rw = rewrite->hash[i])
+            generateRewriteDoc(widget, rw, com);
 }
 
 
@@ -11407,10 +11449,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     // Documentation from the primitives files (*.tbl)
     for (XL::Context *globals = xlr->context; globals; globals = globals->scope)
     {
-        XL::rewrite_table &rewrites = globals->rewrites;
-        XL::rewrite_table::iterator i;
-        for (i = rewrites.begin(); i != rewrites.end(); i++)
-            generateRewriteDoc(this, i->second, com);
+        for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+            if (XL::Rewrite *rw = globals->rewrites[i])
+                generateRewriteDoc(this, rw, com);
     }
 
     // Write the result

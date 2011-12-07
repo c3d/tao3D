@@ -440,6 +440,12 @@ texture(id:integer);
 texture();
 
 /**
+ * Copy the current texture to an other one.
+ * Create an other texture from the current binded one.
+ */
+copy_texture();
+
+/**
  * Check if a texture is bound at the specified unit.
  * @return true if a texture is bound, false otherwise.
  */

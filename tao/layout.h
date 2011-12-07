@@ -113,9 +113,7 @@ public:
     uint                lightId;
     uint64              currentLights; //Current used lights
     uint                perPixelLighting;
-
     uint                programId;
-    bool                printing : 1;
 
     // Transformations
     double              planarRotation;
@@ -125,6 +123,7 @@ public:
 
     // For optimized drawing, we keep track of what changes
     uint64              hasTextureMatrix; // 64 texture units
+    bool                printing        : 1;
     bool                hasPixelBlur    : 1; // Pixels not aligning naturally
     bool                hasMatrix       : 1;
     bool                has3D           : 1;
@@ -236,6 +235,23 @@ public:
     static uint         globalProgramId;
     static bool         inIdentify;
 };
+
+
+struct StereoLayout : Layout
+// ----------------------------------------------------------------------------
+//   A layout that activates only for some viewpoint
+// ----------------------------------------------------------------------------
+{
+    StereoLayout(const Layout &o, ulong viewpoints = ~0UL)
+        : Layout(o), viewpoints(viewpoints) {}
+
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *where);
+    bool                Valid(Layout *where);
+
+    ulong       viewpoints;
+};
+
 
 TAO_END
 

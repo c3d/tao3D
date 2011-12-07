@@ -113,6 +113,10 @@ commit_chooser b:text ->
 increase_eye_distance -> eye_distance eye_distance * 1.5
 decrease_eye_distance -> eye_distance eye_distance * 0.75
 
+left_viewpoint X  -> stereo_viewpoints 1, X
+right_viewpoint X -> stereo_viewpoints 2, X
+
+
 stereoscopy_settings ->
     if has_display_mode quadstereo then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}

@@ -291,6 +291,9 @@ contains(DEFINES, CFG_NOEDIT) {
 contains(DEFINES, CFG_NOFULLSCREEN) {
     !build_pass:message("Full screen (slideshow) mode is disabled")
 }
+contains(DEFINES, CFG_NOMODULEUPDATE) {
+    !build_pass:message("Module update is disabled")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
 NOWARN_SOURCES += licence.cpp decryption.cpp

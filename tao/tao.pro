@@ -394,6 +394,11 @@ QMAKE_CLEAN += tao.xl
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
+
+welcome.path  = $$APPINST/welcome
+welcome.files = welcome/*.png welcome/*.svg
+INSTALLS += welcome
+
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*

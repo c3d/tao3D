@@ -94,12 +94,8 @@ main_chooser ->
     chooser_choice tr "Select page", {page_chooser}
     if current_repository then
         chooser_choice tr "Checkout...", {branch_chooser}
-#if 0
     // Broken (bug#1709)
     chooser_commands "chooser_command_", ""
-#else
-    chooser_choice tr "Quit Tao", { chooser_command_Quit_Tao }
-#endif
     chooser_choice tr "Texture...", {texture_chooser}
     window_choices
 

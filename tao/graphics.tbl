@@ -189,7 +189,14 @@ PREFIX(DaySeconds,   real,      "time", , RTAO(time(self)),
        SYNOPSIS("Return a fractional time, including milliseconds")
        DESCRIPTION("Returns the current document's time or the time at wich the document was frozen.")
        RETURNS(real, "Return a fractional time, including milliseconds"))
-PREFIX(PageSeconds,  real,      "page_time", , RTAO(pageTime(self)),
+PREFIX(PageTime,  real,      "page_time", , RTAO(pageTime(self)),
+       GROUP(time)
+       SYNOPSIS("Returns the number of seconds since page was shown.]")
+       DESCRIPTION("Returns the number of seconds since the page was shown. "
+                   "The precision is at least one millisecond. "
+                   "The time value is frozen when animations are disabled.")
+       RETURNS(real, "Return a fractional time, including milliseconds"))
+PREFIX(PageSeconds,  integer,      "page_seconds", , RTAO(pageSeconds(self)),
        GROUP(time)
        SYNOPSIS("Returns the number of seconds since page was shown.]")
        DESCRIPTION("Returns the number of seconds since the page was shown. "

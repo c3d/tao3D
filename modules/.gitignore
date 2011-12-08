@@ -9,3 +9,5 @@ lib*.so.*
 *.taokey
 *.xl.bin
 *.xl.crypt
+*/doc/Doxyfile
+*/doc/html

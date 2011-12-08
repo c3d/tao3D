@@ -313,10 +313,14 @@ ModulesPage::ModulesPage(QWidget *parent)
 
     QWidget *cfuWidget = new QWidget;
     QHBoxLayout *cfuLayout = new QHBoxLayout;
+#ifdef CFG_NOMODULEUPDATE
+    QFrame *findUpdates = new QFrame;
+#else
     QPushButton *findUpdates = new QPushButton(tr("Check for updates"));
     connect(findUpdates, SIGNAL(clicked()), this, SLOT(findUpdates()));
     if (!modules.count())
         findUpdates->setEnabled(false);
+#endif
     cfuLayout->addWidget(findUpdates);
     cfuLayout->addSpacing(12);
     sw = new QStackedWidget;

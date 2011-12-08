@@ -19,6 +19,10 @@
 #   (Windows) qmake -r -spec win32-g++ [options]
 #   (Linux)   qmake -r -spec linux-g++ [options]
 #
+#   or with the configuration script in the top-level directory:
+#
+#   ./configure [options]
+#
 #   Options:
 #
 #   DEFINES+=CFG_NOGIT
@@ -46,6 +50,11 @@
 #   DEFINES+=CFG_NOEDIT
 #     Disable functions related to document edition: remove the Edit, Format,
 #     Insert, Arrange and Share menus.
+#   DEFINES+=CFG_NOFULLSCREEN
+#     Removes the View>Full screen menu and the related command chooser
+#     entries. Zap the slide_show and toggle_slide_show primitives (they just
+#     return false).
+#
 #
 #   modules=none
 #     Do not build any Tao module
@@ -85,7 +94,7 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen xlconv
+           packaging libcryptopp keygen xlconv crypt
 
 win32:SUBDIRS += detach
 
@@ -96,6 +105,7 @@ modules.depends = tao tao_sign xlconv
 tests.depends = tao
 templates.depends = tao
 xlconv.depends = libxlr
+crypt.depends = libcryptopp
 
 # The following is artificial, it's just so that we don't start building the
 # doc until the main build has actually completed.

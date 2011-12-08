@@ -1,51 +1,147 @@
 
-import Monjori 
-import Flares 
-locally 
-    Alpha -> 0.8 
-    locally 
-        flare mouse_x * (time mod 5) , mouse_y * (time mod 7.3123) 
-        Alpha := 0.8 
-        no_refresh_on TimerEvent 
-        rectangle 0, 0, 2 * window_width, 2 * window_height 
-    refresh_on MouseMoveEvent 
-    color 1, 1, 1, Alpha 
-    rectangle 0, 0, 2 * window_width, 2 * window_height 
+// ****************************************************************************
+//  Welcome.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Welcome screen.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+//  (C) 2010-2011 Taodyne SAS
+// ****************************************************************************
+import Animate
 
-text_box 0, 0, window_width, window_height, 
-    font "Ubuntu", 80, bold 
-    line_width 2 
-    line_color "black" 
-    align_center 
-    vertical_align_center 
-    rainbow 0, "Tao Presentations" 
-    line_break 
+// Reexecute the document to each interval
+refresh_on TimerEvent
 
-    font "Arial", 20, italic 
-    color "darkgrey" 
-    line_width 0 
-    text "Version " & tao_version 
-    line_break 
-    text "© Copyright 2010-2011 Taodyne SAS" 
+// Compatibility (Tao > 1.0-beta11)
+old_camera_settings
 
-text_box 0, 0, window_width, window_height, 
-    vertical_align_bottom 
-    font "Arial", 28 
-    align_center 
-    color "white" 
-    line_color "black" 
-    line_width 1 
-    help_message tao_language 
+// ----------------------------------------------------------------------------
+//   Global variables
+// ----------------------------------------------------------------------------
+Animated -> 1
+cam_z -> camera_position at 3
+bg_z -> -30000
+bg_w -> 1920
+bg_h -> 1080
+bg_zscale -> 110% * (1.0 - bg_z / cam_z)
+bg_sx -> bg_zscale * window_width / bg_w
+bg_sy -> bg_zscale * window_height / bg_h
+window_scale -> min (window_width / bg_w, window_height / bg_h)
 
-help_message "fr" -> 
-    text "L'aide en ligne se trouve dans le menu ""Aide""" 
+// Key to space animation
+key "Space" ->
+    if Animated = 1 then
+        enable_animations false
+        Animated := 0
+    else
+        enable_animations true
+        Animated := 1
 
-help_message T:text -> 
-    text "Online help is available in the ""Help"" menu" 
+page "Welcome",
+    welcome_background
+    locally
+        text_box 450 * window_scale, 0, window_width, window_height,
+            vertical_align_bottom
+            font "Arial", 25 * window_scale
+            align_center
+            color "black"
+            welcome_help tao_language
+    scale window_scale, window_scale, window_scale
+    locally
+        color "white"
+        translate 200, 200 + 20 / window_scale, 3000
+        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.svg"
 
-rainbow Offset:integer, Message:text -> 
-    color_hsv Offset * 11 + seconds * 17, 0.5, 1, 1 
-    text text_range (Message, Offset, 1) 
-    if Offset < text_length Message then 
-        rainbow Offset + 1, Message 
+    locally
+        adjust t:real ->
+            scale 0.5, 0.5, 0.5
+            rotatey 15 * t
+            rotatex 5.5 * t
+            translate 1000 * t, 0, -30000 * t
+            rotatex 7.5 * t
 
+        locally
+            color "white"
+            adjust 1.0 - 50%
+            image 0, 0, 150%, 150%, "welcome/MacBookPro.png"
+            welcome_flow 35, 35, page_time
+
+    text_box -500, -300, window_width, window_height,
+        font "Ubuntu", 80, bold
+        line_width 2
+        align_center
+        vertical_align_center
+        color "#EEAA11"
+        text "Tao Presentations"
+        line_break
+
+        font "Arial", 20, italic
+        color "black"
+        line_width 0
+        text "Version " & tao_version
+        line_break
+        text "© Copyright 2010-2011 Taodyne SAS"
+
+welcome_help T:text ->
+// ----------------------------------------------------------------------------
+//   Show the welcome help
+// ----------------------------------------------------------------------------
+    if T = "fr" then
+        text "Appuyer sur la touche espace pour arrêter l'animation"
+    else
+        text "Press the spacebar to stop the animation"
+
+welcome_background ->
+// ----------------------------------------------------------------------------
+//   Show the welcome backround
+// ----------------------------------------------------------------------------
+    locally
+        translatez bg_z
+        color "white"
+        image 0.0, 0.0, bg_sx, bg_sy, "welcome/background.png"
+
+
+welcome_flow Shown:integer, Displayed:integer, Time:real ->
+// ----------------------------------------------------------------------------
+//   Show the welcome flow
+// ----------------------------------------------------------------------------
+    ptime -> 0.013
+    pcount -> 15
+    pshown -> 35
+    pdisplayed -> 35
+    pup -> 3600
+    picX N:integer -> 450 * picT N / pshown * sin (177.312 * picN N)
+    picY N:integer -> 320 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2
+    picZ N:integer -> 30000 * picT N / pshown
+    picA N:integer -> 10 * sin (picT N)
+    picS N:integer -> 80% + 30% * sin (153.27 * picN N)
+    picN N:integer -> N - integer ptime
+    picT N:integer -> N + ptime mod 1
+
+    pimg N:integer -> (picN N mod 15) + 1
+    pname N:integer -> "welcome/picto_" & text (pimg N) & ".png"
+
+    picto N:integer ->
+        locally
+            translate picX N, picY N, picZ N
+            rotatez picA N
+            image 0, 0, picS N, picS N, pname N
+
+    ptime := Time
+    pshown := Shown
+    pdisplayed := Displayed
+    locally
+        color "white"
+        rotatez picA 0
+        image 0, 0, picS 0 * (ptime mod 1), picS 0 * (ptime mod 1), pname 0
+    picto with 1 .. pdisplayed

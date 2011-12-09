@@ -10,4 +10,5 @@ lib*.so.*
 *.xl.bin
 *.xl.crypt
 */doc/Doxyfile
-*/doc/html
+*/doc/html/
+*/doc/qch/

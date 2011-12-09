@@ -31,9 +31,15 @@ include(modules_defs.pri)
     QMAKE_EXTRA_TARGETS += htmldocinstall
     INSTALLS += htmldocinstall
 
-    docclean.commands = rm -rf $$DOC_DIR/html
-    QMAKE_EXTRA_TARGETS += docclean
-    QMAKE_DISTCLEAN += docclean
+    install_qch.path = $${MODINSTPATH}/qch
+    install_qch.commands = mkdir -p \"$$MODINSTPATH/doc/qch\" ; cp $$DOC_DIR/qch/*.qch \"$$MODINSTPATH/doc/qch/\"
+    install_qch.depends = moddoc
+    QMAKE_EXTRA_TARGETS += install_qch
+    INSTALLS += install_qch
+
+    docclean.commands = rm -rf $$DOC_DIR/html $$DOC_DIR/qch
+    distclean.depends = docclean
+    QMAKE_EXTRA_TARGETS += docclean distclean
 
   } else {
 

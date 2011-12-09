@@ -31,7 +31,16 @@ equals(HAS_DOXYGEN, true) {
   include (../main_defs.pri)
   include (../version.pri)
 
-  QMAKE_SUBSTITUTES = Doxyfile.in
+  PROJECT_NUMBER = $$system(bash -c \"git describe --tags --always --dirty=-dirty\")
+  macx:TAO_ICON_FOR_QHCP = ../tao/tao.icns
+  win32:TAO_ICON_FOR_QHCP = ../tao/tao.ico
+  !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
+  TAO_DOC_BASENAME = "Tao Presentations-$${PROJECT_NUMBER}"
+  QMAKE_SUBSTITUTES = Doxyfile.in \
+                      TaoPresentations.qhcp.in \
+                      about_help.html.in \
+                      about_help_fr.html.in
+  QMAKE_DISTCLEAN += $$replace(QMAKE_SUBSTITUTES, .in, )
 
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
@@ -55,19 +64,41 @@ equals(HAS_DOXYGEN, true) {
     xlref.depends = XLRef.tm
   }
 
-  clean.commands = /bin/rm -rf html/ webhtml/ qch/
+  cleandocdirs.commands = /bin/rm -rf html/ webhtml/ qch/
+  QMAKE_EXTRA_TARGETS += cleandocdirs
+  clean.depends = cleandocdirs
 
-  install.path = $$APPINST/doc
-  install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
-  install.depends = doc
+  install_html.path = $$APPINST/doc
+  install_html.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
+  install_html.depends = doc
 
   version.target = project_number.doxinclude
-  version.commands = V=`git describe --tags --always --dirty=-dirty`; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
+  version.commands = V=$$PROJECT_NUMBER; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
   version.depends = FORCE
+  QMAKE_CLEAN += project_number.doxinclude
+  QMAKE_DISTCLEAN += project_number.doxinclude
 
-  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_xlref xlref clean version
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_xlref xlref clean version install_html
 
-  INSTALLS += install
+  INSTALLS += install_html
+
+  install_qch.path = $$APPINST/doc/qch
+  install_qch.commands = mkdir -p \"$$APPINST/doc/qch\" ; cp \"qch/$${TAO_DOC_BASENAME}.qch\" \"$$APPINST/doc/qch/\"
+  install_qch.depends = doc
+  QMAKE_EXTRA_TARGETS += install_qch
+  INSTALLS += install_qch
+
+  qhc.commands = qcollectiongenerator TaoPresentations.qhcp -o \"$${TAO_DOC_BASENAME}.qhc\"
+  qhc.depends = doc
+  QMAKE_EXTRA_TARGETS += qhc
+  QMAKE_CLEAN += \"$${TAO_DOC_BASENAME}.qhc\"
+  QMAKE_DISTCLEAN += \"$${TAO_DOC_BASENAME}.qhc\"
+
+  install_qhc.path = $$APPINST/doc
+  install_qhc.commands = mkdir -p \"$$APPINST/doc\" ; cp \"$${TAO_DOC_BASENAME}.qhc\" \"$$APPINST/doc/\"
+  install_qhc.depends = qhc
+  QMAKE_EXTRA_TARGETS += install_qhc
+  INSTALLS += install_qhc
 
 } else {
 

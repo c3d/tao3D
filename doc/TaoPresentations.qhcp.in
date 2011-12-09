@@ -1,0 +1,24 @@
+<?xml version=\"1.0\" encoding=\"UTF-8\"?>
+<QHelpCollectionProject version=\"1.0\">
+    <assistant>
+        <title>Tao Presentations Help</title>
+        <title lang=\"fr\">Aide de Tao Presentations</title>
+        <applicationIcon>../tao/tao.icns</applicationIcon>
+        <cacheDirectory>Taodyne/Tao Presentations</cacheDirectory>
+        <startPage>qthelp://com.taodyne.TaoPresentations/doc/index.html</startPage>
+        <aboutDialog>
+            <file>about_help.html</file>
+            <file language=\"fr\">about_help_fr.html</file>
+            <icon>../tao/tao.icns</icon>
+        </aboutDialog>
+        <enableDocumentationManager>false</enableDocumentationManager>
+        <enableAddressBar>false</enableAddressBar>
+        <enableFilterFunctionality>false</enableFilterFunctionality>
+    </assistant>
+    <docFiles>
+        <register>
+            <file>qch/$${TAO_DOC_BASENAME}.qch</file>
+        </register>
+    </docFiles>
+</QHelpCollectionProject>
+

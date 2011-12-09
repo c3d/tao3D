@@ -113,7 +113,10 @@ uint ModuleRenderer::TextureUnits()
 //  Return bitmask of current activated texture units
 // ----------------------------------------------------------------------------
 {
-    return currentLayout->textureUnits;
+    if(currentLayout)
+        return currentLayout->textureUnits;
+    else
+        return Widget::Tao()->layout->textureUnits;
 }
 
 
@@ -122,7 +125,10 @@ void ModuleRenderer::SetTextureUnits(uint texUnits)
 //  Set bitmask of current activated texture units
 // ----------------------------------------------------------------------------
 {
-    currentLayout->textureUnits = texUnits;
+    if(currentLayout)
+        currentLayout->textureUnits = texUnits;
+    else
+        Widget::Tao()->layout->textureUnits = texUnits;
 }
 
 

@@ -94,7 +94,7 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen xlconv crypt
+           packaging libcryptopp keygen xlconv crypt assistant
 
 win32:SUBDIRS += detach
 
@@ -128,3 +128,5 @@ QMAKE_EXTRA_TARGETS += distclean distclean_inst_sdk
 kit.commands = \$(MAKE) -C packaging kit
 kit.depends = FORCE
 QMAKE_EXTRA_TARGETS += kit
+
+QMAKE_SUBSTITUTES = fix_qt_refs_app.in

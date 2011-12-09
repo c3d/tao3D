@@ -690,6 +690,10 @@ PREFIX(Caption,  tree,  "status",
        GROUP(gui)
        SYNOPSIS("Set the status line of the window")
        DESCRIPTION("Set the content of the status line of the window"))
+PREFIX(BackgroundTexture, tree, "background_texture",
+       PARM(t, integer, "The texture ID to use"),
+       RTAO(set2dPlusDepthBackground(t)),
+       SYNOPSIS("Set the 2D+Depth background texture"))
 PREFIX(LinearGradient,  tree,  "linear_gradient",
        PARM(start_x, real, "x-coordinate of the gradient start")
        PARM(start_y, real, "y-coordinate of the gradient start")

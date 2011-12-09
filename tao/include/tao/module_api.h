@@ -297,6 +297,10 @@ struct ModuleApi
     // mask are disabled. The text is set by setWatermarkText().
     void   (*drawWatermark)();
 
+    // Return the 2D+Depth background texture if there is any
+    unsigned int       (*_2dPlusDepthBackground)();
+
+
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture
     // ------------------------------------------------------------------------

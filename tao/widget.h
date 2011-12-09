@@ -878,6 +878,7 @@ private:
     GLuint                watermark;
     text                  watermarkText;
     int                   watermarkWidth, watermarkHeight;
+    GLuint                _2dPlusDepthBackgroundTextureID;
 #ifdef Q_OS_MACX
     bool                  frameBufferReady();
     char                  bFrameBufferReady;
@@ -984,6 +985,9 @@ public:
     static void           setWatermarkTextAPI(text t, int w, int h);
     void                  drawWatermark();
     static void           drawWatermarkAPI();
+    Integer_p             set2dPlusDepthBackground(XL::Integer &tid);
+    GLuint                _2dPlusDepthBackground();
+    static GLuint         _2dPlusDepthBackgroundAPI();
 
 private:
     void                  processProgramEvents();

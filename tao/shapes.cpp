@@ -68,7 +68,7 @@ bool Shape::setTexture(Layout *where)
             if(hasPrevious)
             {
                 if(where->fillTextures[i].type !=
-                        where->previousTextures[i].type)
+                   where->previousTextures[i].type)
                 {
                     // Unbind the previous texture
                     unbindTexture(where->previousTextures[i]);

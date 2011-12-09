@@ -165,6 +165,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
+      _2dPlusDepthBackgroundTextureID(0),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -331,6 +332,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(o.watermarkText),
       watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
+      _2dPlusDepthBackgroundTextureID(o._2dPlusDepthBackgroundTextureID),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -10110,6 +10112,35 @@ void Widget::drawWatermarkAPI()
 {
     Tao()->drawWatermark();
 }
+
+
+Integer_p Widget::set2dPlusDepthBackground(XL::Integer &tid)
+// ----------------------------------------------------------------------------
+//   Set the 2D+Depth background texture
+// ----------------------------------------------------------------------------
+{
+    _2dPlusDepthBackgroundTextureID = tid.value;
+    return &tid;
+}
+
+
+GLuint Widget::_2dPlusDepthBackground()
+// ----------------------------------------------------------------------------
+//   Return the current 2D+Depth background
+// ----------------------------------------------------------------------------
+{
+    return _2dPlusDepthBackgroundTextureID;
+}
+
+
+GLuint Widget::_2dPlusDepthBackgroundAPI()
+// ----------------------------------------------------------------------------
+//   Return the current 2D+Depth background
+// ----------------------------------------------------------------------------
+{
+    return Tao()->_2dPlusDepthBackground();
+}
+
 
 
 // ============================================================================

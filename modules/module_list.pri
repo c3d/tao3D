@@ -40,6 +40,7 @@
        vlc_audio_video
     OTHER_MODULES =     \
         hello_world     \
+        netaccess        \
         taoTester    \
         tao_synchro
 } else {

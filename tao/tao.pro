@@ -96,7 +96,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
-    tao_utf8.h \
+    include/tao/tao_utf8.h \
     tao_tree.h \
     font.h \
     drag.h \

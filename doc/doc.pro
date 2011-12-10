@@ -35,7 +35,6 @@ equals(HAS_DOXYGEN, true) {
   macx:TAO_ICON_FOR_QHCP = ../tao/tao.icns
   win32:TAO_ICON_FOR_QHCP = ../tao/tao.ico
   !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
-  TAO_DOC_BASENAME = "Tao Presentations-$${PROJECT_NUMBER}"
   QMAKE_SUBSTITUTES = Doxyfile.in \
                       TaoPresentations.qhcp.in \
                       about_help.html.in \
@@ -83,19 +82,19 @@ equals(HAS_DOXYGEN, true) {
   INSTALLS += install_html
 
   install_qch.path = $$APPINST/doc/qch
-  install_qch.commands = mkdir -p \"$$APPINST/doc/qch\" ; cp \"qch/$${TAO_DOC_BASENAME}.qch\" \"$$APPINST/doc/qch/\"
+  install_qch.commands = mkdir -p \"$$APPINST/doc/qch\" ; cp qch/TaoPresentations.qch \"$$APPINST/doc/qch/\"
   install_qch.depends = doc
   QMAKE_EXTRA_TARGETS += install_qch
   INSTALLS += install_qch
 
-  qhc.commands = qcollectiongenerator TaoPresentations.qhcp -o \"$${TAO_DOC_BASENAME}.qhc\"
+  qhc.commands = qcollectiongenerator TaoPresentations.qhcp -o TaoPresentations.qhc
   qhc.depends = doc
   QMAKE_EXTRA_TARGETS += qhc
-  QMAKE_CLEAN += \"$${TAO_DOC_BASENAME}.qhc\"
-  QMAKE_DISTCLEAN += \"$${TAO_DOC_BASENAME}.qhc\"
+  QMAKE_CLEAN += TaoPresentations.qhc
+  QMAKE_DISTCLEAN += TaoPresentations.qhc
 
   install_qhc.path = $$APPINST/doc
-  install_qhc.commands = mkdir -p \"$$APPINST/doc\" ; cp \"$${TAO_DOC_BASENAME}.qhc\" \"$$APPINST/doc/\"
+  install_qhc.commands = mkdir -p \"$$APPINST/doc\" ; cp TaoPresentations.qhc \"$$APPINST/doc/\"
   install_qhc.depends = qhc
   QMAKE_EXTRA_TARGETS += install_qhc
   INSTALLS += install_qhc

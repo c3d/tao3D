@@ -17,7 +17,7 @@
     </assistant>
     <docFiles>
         <register>
-            <file>qch/$${TAO_DOC_BASENAME}.qch</file>
+            <file>qch/TaoPresentations.qch</file>
         </register>
     </docFiles>
 </QHelpCollectionProject>

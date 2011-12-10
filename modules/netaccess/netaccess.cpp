@@ -19,12 +19,17 @@
 // ****************************************************************************
 
 #include "netaccess.h"
-#include "tao_utf8.h"
-#include "tao_info.h"
+#include "tao/tao_utf8.h"
+#include "tao/tao_info.h"
+#include "tao/module_api.h"
 #include <QtNetwork>
 #include <map>
 
 using namespace Tao;
+
+
+// Pointer to Tao functions
+const Tao::ModuleApi *tao = NULL;
 
 struct NetworkAccessInfo : Tao::Info
 // ----------------------------------------------------------------------------
@@ -53,6 +58,16 @@ public:
 
 
 static text errorText(QNetworkReply::NetworkError error);
+
+
+static bool hasLicence()
+// ----------------------------------------------------------------------------
+//   Check if we have a valid licence for this feature
+// ----------------------------------------------------------------------------
+{
+    static bool result = tao->checkLicense("NetworkAccess 1.0", false);
+    return result;
+}
 
 
 Text_p getUrlText(Tree_p self, Text_p urlText)
@@ -101,8 +116,13 @@ Text_p getUrlText(Tree_p self, Text_p urlText)
         rr.reply = NULL;
     } // Error cases
 
+    // Licence check
+    text result = (hasLicence() || tao->blink(1.5, 1.0))
+        ? rr.result
+        : "[Unlicenced]";
+
     // Build a text with the result
-    return new Text(rr.result, "\"", "\"", self->Position());
+    return new Text(result, "\"", "\"", self->Position());
 }
 
 
@@ -188,6 +208,34 @@ text errorText(QNetworkReply::NetworkError error)
         return "unknown error";
     }
 }
+
+
+
+// ============================================================================
+// 
+//    Module glue
+// 
+// ============================================================================
+
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
+// ----------------------------------------------------------------------------
+//   Initialize the Tao module
+// ----------------------------------------------------------------------------
+{
+    XL_INIT_TRACES();
+    tao = api;
+    return 0;
+}
+
+
+int module_exit()
+// ----------------------------------------------------------------------------
+//   Uninitialize the Tao module
+// ----------------------------------------------------------------------------
+{
+    return 0;
+}
+
 
 
 // Define traces for this modules

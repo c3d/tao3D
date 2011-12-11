@@ -130,6 +130,7 @@ HEADERS += widget.h \
     gc_thread.h \
     info_trash_can.h \
     destination_folder_dialog.h \
+    assistant.h \
     include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
@@ -194,6 +195,7 @@ SOURCES += tao_main.cpp \
     statistics.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
+    assistant.cpp \
     destination_folder_dialog.cpp
 
 win32 {

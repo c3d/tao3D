@@ -49,6 +49,7 @@
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
+#include "assistant.h"
 
 #include <iostream>
 #include <sstream>
@@ -127,6 +128,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Undo/redo management
     undoStack = new QUndoStack();
     createUndoView();
+
+    // Online doc viewer
+    assistant = new Assistant();
+    assistant->registerQchFiles(ModuleManager::moduleManager()->qchFiles());
 
     // Create menus, actions, stuff
     createActions();
@@ -1372,6 +1377,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
+#ifndef Q_OS_MACX // in progress
     QString index = QCoreApplication::applicationDirPath()
                     + "/doc/html/index.html";
     if (!QFileInfo(index).exists())
@@ -1391,6 +1397,9 @@ void Window::onlineDoc()
         QMessageBox::warning(this, tr("Online help error"),
                              tr("Could not open "
                                 "online documentation file:\n%1").arg(index));
+#else
+    assistant->showDocumentation("index.html");
+#endif
 }
 
 

@@ -51,6 +51,7 @@ class Uri;
 class ToolWindow;
 class XLSourceEdit;
 class Repository;
+class Assistant;
 
 
 class Window : public QMainWindow
@@ -279,6 +280,7 @@ private:
     QAction          *licensesAct;
     QAction          *onlineDocAct;
     QAction          *onlineDocTaodyneAct;
+    Assistant        *assistant;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

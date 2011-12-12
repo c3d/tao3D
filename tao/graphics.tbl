@@ -608,6 +608,11 @@ PREFIX(SetDisplayFunction,  boolean,  "display_mode",
        RTAO(setDisplayMode(self, name)),
        SYNOPSIS("Select a display mode (2D, split stereoscopy, etc.)")
        RETURNS(boolean, "True on success."))
+PREFIX(CurrentDisplayFunction,  text,  "display_mode",
+       ,
+       RTAO(displayMode()),
+       SYNOPSIS("Return the name of the current display mode.")
+       RETURNS(text, "The name of the current display mode."))
 PREFIX(AddDisplayModeToMenu,  boolean,  "add_display_mode_to_menu",
        PARM(name, text, "The name of the display mode")
        PARM(label, text, "The name of the menu entry"),

@@ -11438,6 +11438,15 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
 }
 
 
+Text_p Widget::displayMode()
+// ----------------------------------------------------------------------------
+//   Return the name of the current display mode
+// ----------------------------------------------------------------------------
+{
+    return new Text(+displayDriver->getDisplayFunction());
+}
+
+
 
 // ============================================================================
 //

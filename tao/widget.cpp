@@ -5244,15 +5244,15 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(ONE_MINUS_CONSTANT_COLOR);
     TEST_GLENUM(CONSTANT_ALPHA);
     TEST_GLENUM(ONE_MINUS_CONSTANT_ALPHA);
-
-    if (fuzzy_equal("ADD", s)) e = GL_FUNC_ADD;
-    if (fuzzy_equal("SUBTRACT", s)) e = GL_FUNC_SUBTRACT;
-    if (fuzzy_equal("REVERSE_SUBTRACT", s)) e = GL_FUNC_REVERSE_SUBTRACT;
     TEST_GLENUM(FUNC_ADD);
     TEST_GLENUM(FUNC_SUBTRACT);
     TEST_GLENUM(FUNC_REVERSE_SUBTRACT);
     TEST_GLENUM(MIN);
-    TEST_GLENUM(MAX);
+    TEST_GLENUM(MAX);    
+    TEST_GLENUM(MODULATE);
+    TEST_GLENUM(REPLACE);
+    TEST_GLENUM(DECAL);
+    TEST_GLENUM(ADD);
 #undef TEST_GLENUM
 
     return e;
@@ -6540,6 +6540,19 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
     return XL::xl_true;
 }
 
+
+Tree_p Widget::textureMode(Tree_p self, text mode)
+// ----------------------------------------------------------------------------
+//   Record the mode of blending of the current texture
+// ----------------------------------------------------------------------------
+{
+    GLenum glMode = TextToGLEnum(mode, GL_MODULATE);
+    layout->currentTexture.mode = glMode;
+    layout->Add(new TextureMode(glMode));
+
+    return XL::xl_true;
+}
+
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation
@@ -6586,6 +6599,23 @@ Integer* Widget::textureType(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Integer(layout->currentTexture.type);
+}
+
+Text_p Widget::textureMode(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current texture mode
+// ----------------------------------------------------------------------------
+{
+    text mode;
+    switch(layout->currentTexture.mode)
+    {
+    case GL_REPLACE: mode = "replace";  break;
+    case GL_ADD    : mode = "add";      break;
+    case GL_DECAL  : mode = "decal";    break;
+    default        : mode = "modulate"; break;
+    }
+
+    return new Text(mode);
 }
 
 Integer* Widget::textureId(Tree_p self)

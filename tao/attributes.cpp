@@ -150,6 +150,16 @@ void TextureWrap::Draw(Layout *where)
     where->fillTextures[glUnit].wrapT = t;
 }
 
+void TextureMode::Draw(Layout *where)
+// ------------------------------------------------------------- ---------------
+//   Replay a texture mode
+// ----------------------------------------------------------------------------
+{
+    uint glUnit = where->currentTexture.unit;
+    where->fillTextures[glUnit].mode = mode;
+}
+
+
 void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode

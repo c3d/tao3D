@@ -458,10 +458,12 @@ public:
     Integer*    fillAnimatedTexture(Context *, Tree_p self, text fileName);
     Integer*    fillTextureFromSVG(Context *, Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
+    Tree_p      textureMode(Tree_p self, text mode);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);
     Integer*    textureType(Tree_p self);
+    Text_p      textureMode(Tree_p self);
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
     Tree_p      hasTexture(Tree_p self, GLuint unit);

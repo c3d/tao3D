@@ -125,7 +125,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     }
     glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
     glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)

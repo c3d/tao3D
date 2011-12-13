@@ -4193,6 +4193,74 @@ Point3 Widget::unprojectLastMouse()
 }
 
 
+Point3 Widget::project (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   project widget's focus transform
+// ----------------------------------------------------------------------------
+{
+    return project(x, y, z, focusProjection, focusModel, focusViewport);
+}
+
+
+Point3 Widget::project (coord x, coord y, coord z,
+                          GLdouble *proj, GLdouble *model, GLint *viewport)
+// ----------------------------------------------------------------------------
+//   Convert mouse clicks into 3D planar coordinates for the focus object
+// ----------------------------------------------------------------------------
+{
+    GLdouble wx, wy, wz;
+    gluProject(x, y, z,
+                 model, proj, viewport,
+                 &wx, &wy, &wz);
+
+    return Point3(wx, wy, wz);
+}
+
+
+Point3 Widget::objectToWorld(coord x, coord y,
+                                GLdouble *proj, GLdouble *model, GLint *viewport)
+// ----------------------------------------------------------------------------
+//    Convert object coordinates to world coordinates
+// ----------------------------------------------------------------------------
+{
+    Point3 pos, win;
+
+    // Map object coordinates to window coordinates
+    gluProject(x, y, 0,
+               model, proj, viewport,
+               &win.x, &win.y, &win.z);
+
+    pos = windowToWorld(win.x, win.y, proj, model, viewport);
+
+    return pos;
+}
+
+
+Point3 Widget::windowToWorld(coord x, coord y,
+                             GLdouble *proj, GLdouble *model, GLint *viewport)
+// ----------------------------------------------------------------------------
+//    Convert window coordinates to world coordinates
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    GLfloat pixelDepth;
+
+    // Read depth buffer
+    glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 &pixelDepth);
+
+    // Map window coordinates to object coordinates
+    gluUnProject(x, y, pixelDepth,
+                 model, proj, viewport,
+                 &pos.x,
+                 &pos.y,
+                 &pos.z);
+
+    return pos;
+}
+
+
+
 Drag *Widget::drag()
 // ----------------------------------------------------------------------------
 //   Return the drag activity that we can use to unproject

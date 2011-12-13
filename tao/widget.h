@@ -283,6 +283,13 @@ public:
                                    GLdouble *model,
                                    GLint *viewport);
     Point3      unprojectLastMouse();
+    Point3      project (coord x, coord y, coord z);
+    Point3      project (coord x, coord y, coord z,
+                         GLdouble *proj, GLdouble *model, GLint *viewport);
+    Point3      objectToWorld(coord x, coord y,
+                              GLdouble *proj, GLdouble *model, GLint *viewport);
+    Point3      windowToWorld(coord x, coord y,
+                              GLdouble *proj, GLdouble *model, GLint *viewport);
     uint        lastModifiers()         { return keyboardModifiers; }
     Drag *      drag();
     TextSelect *textSelection();

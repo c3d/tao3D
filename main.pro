@@ -28,6 +28,9 @@
 #   DEFINES+=CFG_NOGIT
 #     Build without Git support for Tao documents (Git is still used for module
 #     update)
+#   DEFINES+=CFG_NONETWORK
+#     Build without the "File>Open Network..." menu and without URI handling.
+#     It is impossible to download a remote document, template or module.
 #   DEFINES+=CFG_NOSRCEDIT
 #     Build without document source editor
 #   DEFINES+=CFG_NOMODPREF

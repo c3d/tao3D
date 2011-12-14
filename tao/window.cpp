@@ -38,6 +38,8 @@
 #include "diff_dialog.h"
 #include "git_toolbar.h"
 #include "undo.h"
+#endif
+#ifndef CFG_NONETWORK
 #include "open_uri_dialog.h"
 #endif
 #include "resource_mgt.h"
@@ -408,7 +410,7 @@ int Window::open(QString fileName, bool readOnly)
         if (fileName.startsWith("file://"))
             fileName = fileName.mid(7);
 
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
         bool fileExists = QFileInfo(fileName).exists();
         if (!fileExists && fileName.contains("://"))
         {
@@ -927,22 +929,6 @@ void Window::checkClipboard()
 
 #ifndef CFG_NOGIT
 
-void Window::openUri()
-// ----------------------------------------------------------------------------
-//    Show a dialog box to enter URI and open it
-// ----------------------------------------------------------------------------
-{
-    OpenUriDialog dialog(this);
-    int ret = dialog.exec();
-    if (ret != QDialog::Accepted)
-        return;
-    QString uri = dialog.uri;
-    if (uri.isEmpty())
-        return;
-    open(uri);
-}
-
-
 void Window::warnNoRepo()
 // ----------------------------------------------------------------------------
 //    Display a warning box
@@ -1081,6 +1067,45 @@ void Window::checkDetachedHead()
 }
 
 
+void Window::reloadCurrentFile()
+// ----------------------------------------------------------------------------
+//    Reload the current document when user has switched branches
+// ----------------------------------------------------------------------------
+{
+    loadFile(curFile, false);
+}
+
+#endif // CFG_NOGIT
+
+#ifndef CFG_NONETWORK
+
+void Window::showInfoDialog(QString title, QString msg, QString info)
+// ----------------------------------------------------------------------------
+//    Show a dialog box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(info);
+    msgBox.exec();
+}
+
+void Window::openUri()
+// ----------------------------------------------------------------------------
+//    Show a dialog box to enter URI and open it
+// ----------------------------------------------------------------------------
+{
+    OpenUriDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString uri = dialog.uri;
+    if (uri.isEmpty())
+        return;
+    open(uri);
+}
+
 void Window::onUriGetFailed()
 // ----------------------------------------------------------------------------
 //    Called asynchronously when open() failed to open an URI
@@ -1104,18 +1129,6 @@ void Window::onDocReady(QString path)
     emit openFinished(ok);
 }
 
-
-void Window::showInfoDialog(QString title, QString msg, QString info)
-// ----------------------------------------------------------------------------
-//    Show a dialog box
-// ----------------------------------------------------------------------------
-{
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(info);
-    msgBox.exec();
-}
 
 void Window::onNewTemplateInstalled(QString path)
 // ----------------------------------------------------------------------------
@@ -1221,16 +1234,7 @@ void Window::onModuleUpdated(QString path)
     showInfoDialog(title, msg, infoMsg);
 }
 
-
-void Window::reloadCurrentFile()
-// ----------------------------------------------------------------------------
-//    Reload the current document when user has switched branches
-// ----------------------------------------------------------------------------
-{
-    loadFile(curFile, false);
-}
-
-#endif // CFG_NOGIT
+#endif // CFG_NONETWORK
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 
@@ -1477,7 +1481,7 @@ void Window::createActions()
     openAct->setObjectName("open");
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     openUriAct = new QAction(tr("Open Net&work..."), this);
     openUriAct->setStatusTip(tr("Download and open a remote document (URI)"));
     openUriAct->setObjectName("openURI");
@@ -1748,7 +1752,7 @@ void Window::createMenus()
     fileMenu->addAction(newDocAct);
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     fileMenu->addAction(openUriAct);
 #endif
     openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));

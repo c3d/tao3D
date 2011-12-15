@@ -184,6 +184,13 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
             this, SLOT(adjustToScreenResolution(int)));
+
+#ifdef CFG_TIMED_FULLSCREEN
+    connect(&fullScreenTimer, SIGNAL(timeout()),
+            this, SLOT(leaveFullScreen()));
+    connect(taoWidget, SIGNAL(userActivity()),
+            this, SLOT(restartFullScreenTimer()));
+#endif
 }
 
 
@@ -2591,6 +2598,10 @@ void Window::switchToFullScreen(bool fs)
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
+
+#ifdef CFG_TIMED_FULLSCREEN
+        restartFullScreenTimer();
+#endif
     }
     else
     {
@@ -2617,11 +2628,37 @@ void Window::switchToFullScreen(bool fs)
         // Restore dockable widgets, and window geometry
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
+
+#ifdef CFG_TIMED_FULLSCREEN
+        fullScreenTimer.stop();
+#endif
     }
     slideShowAct->setChecked(fs);
 
 #endif // !CFG_NOFULLSCREEN
 }
+
+
+#ifdef CFG_TIMED_FULLSCREEN
+
+void Window::leaveFullScreen()
+// ----------------------------------------------------------------------------
+//    Leave fullscreen mode when max fullscreen time limit expires
+// ----------------------------------------------------------------------------
+{
+    switchToSlideShow(false);
+}
+
+
+void Window::restartFullScreenTimer()
+// ----------------------------------------------------------------------------
+//    Restart full screen timer
+// ----------------------------------------------------------------------------
+{
+    fullScreenTimer.start(10 * 60 * 1000);
+}
+
+#endif // CFG_TIMED_FULLSCREEN
 
 
 QString Window::currentProjectFolderPath()

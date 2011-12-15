@@ -157,6 +157,9 @@ signals:
     void        renderFramesDone();
     void        runGC();
     void        displayModeChanged(QString newMode);
+#ifdef CFG_TIMED_FULLSCREEN
+    void        userActivity();
+#endif
 
 public:
     // OpenGL and drawing

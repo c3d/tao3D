@@ -178,6 +178,10 @@ private slots:
     void documentWasModified();
     void checkFiles();
     void displayModeTriggered(bool on);
+#ifdef CFG_TIMED_FULLSCREEN
+    void leaveFullScreen();
+    void restartFullScreenTimer();
+#endif
 
 private:
     void     createActions();
@@ -230,6 +234,9 @@ private:
     Uri              *uri;
 #ifndef CFG_NOFULLSCREEN
     bool              slideShowMode;
+#ifdef CFG_TIMED_FULLSCREEN
+    QTimer            fullScreenTimer;
+#endif
 #endif
     bool              unifiedTitleAndToolBarOnMac;
 

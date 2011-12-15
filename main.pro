@@ -57,7 +57,9 @@
 #     Removes the View>Full screen menu and the related command chooser
 #     entries. Zap the slide_show and toggle_slide_show primitives (they just
 #     return false).
-#
+#   DEFINES+=CFG_TIMED_FULLSCREEN
+#     Leave fullscreen mode automatically after 10 minutes with no user
+#     interaction (mouse move or key press).
 #
 #   modules=none
 #     Do not build any Tao module

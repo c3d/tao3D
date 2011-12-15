@@ -107,9 +107,9 @@ _EOF_
 make_qt_conf_otherapps() {
   # Add a qt.conf file to apps that are included next to Tao
   # so that they reference the top-level plugins
-  for a in "$1/Contents/MacOS/*.app" ; do
-    CONF=${a}/Contents/Resources/qt.conf
-    cat>"${CONF}" <<_EOF_
+  for a in "$1/Contents/MacOS/"*.app ; do
+    CONF="${a}/Contents/Resources/qt.conf"
+    cat >"${CONF}" <<_EOF_
 [Paths]
 Plugins = ../../../plugins
 _EOF_
@@ -129,4 +129,4 @@ cp_and_fix_plugins "${PLUGINS_SRC}" "${FRAMEWORKS_SRC}" "${BUNDLE}/Contents/plug
 
 make_qt_conf "${BUNDLE}"
 
-make_qt_conf_otherapps "$(BUNDLE}"
+make_qt_conf_otherapps "${BUNDLE}"

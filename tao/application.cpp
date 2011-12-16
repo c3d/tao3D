@@ -927,37 +927,13 @@ QString Application::defaultProjectFolderPath()
 }
 
 
-QString Application::appDataPath()
-// ----------------------------------------------------------------------------
-//    Try to guess the best user preference folder to use by default
-// ----------------------------------------------------------------------------
-{
-#if   defined (CONFIG_MACOSX)
-    return QDir::homePath() + "/Library/Application Support";
-#elif defined (CONFIG_MINGW)
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QString path = env.value("APPDATA");
-    if (path != "")
-        return path;
-#endif
-
-    // Default would be home itself
-    return QDir::toNativeSeparators(QDir::homePath());
-}
-
-
 QString Application::defaultTaoPreferencesFolderPath()
 // ----------------------------------------------------------------------------
 //    The folder proposed to find user.xl, style.xl, etc...
 //    (user preferences for tao application)
 // ----------------------------------------------------------------------------
 {
-#if   defined (CONFIG_LINUX)
-    QString tao = "/.tao";
-#else // Win, MacOS
-    QString tao = "/Tao Presentations";
-#endif
-    return QDir::toNativeSeparators(appDataPath() + tao);
+    return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 }
 
 

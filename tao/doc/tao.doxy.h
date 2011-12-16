@@ -251,8 +251,9 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%%APPDATA%\\Tao Presentations</tt> on Windows,
- * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
+ * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
+ * <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX,
+ * and <tt>$HOME/.local/Taodyne/Tao Presentations</tt> on Linux.
  * The application folder is where Tao Presentation is installed.
  * 
  * @section secExtensions Adding Extensions

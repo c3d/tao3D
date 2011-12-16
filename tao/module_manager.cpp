@@ -673,7 +673,6 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                                              QDir::Files);
         foreach(QString f, files)
             m.qchFiles << qchPath + "/" + f;
-        std::cerr << m.name << " qch " << m.qchFiles.size() << "\n";
     }
     else
     {

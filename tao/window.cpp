@@ -130,8 +130,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     createUndoView();
 
     // Online doc viewer
-    assistant = new Assistant();
-    assistant->registerQchFiles(ModuleManager::moduleManager()->qchFiles());
+    assistant = new Assistant(this);
 
     // Create menus, actions, stuff
     createActions();

@@ -177,7 +177,7 @@ bool synchronizeDocs(QHelpEngineCore &collection,
                 cmd.showMessage(QCoreApplication::translate("Assistant",
                                     "Error registering documentation file '%1': %2").
                                 arg(docFile).arg(cachedCollection.error()), true);
-                //return false;
+                return false;
             }
         }
     }

@@ -32,6 +32,7 @@ QT += webkit \
     network \
     opengl \
     svg
+CONFIG += help
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET

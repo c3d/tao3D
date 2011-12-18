@@ -1376,39 +1376,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
-#ifndef Q_OS_MACX // in progress
-    QString index = QCoreApplication::applicationDirPath()
-                    + "/doc/html/index.html";
-    if (!QFileInfo(index).exists())
-    {
-        QMessageBox::warning(this, tr("Documentation not found"),
-                             tr("Online documentation file was not found."));
-        return;
-    }
-#ifdef Q_OS_WIN
-    // On Windows, index starts with a drive letter, not with a leading
-    // slash. Add one to end up with a valid URI.
-    index = "/" + index;
-#endif
-    index = "file://" + index;
-    bool ok = QDesktopServices::openUrl(index);
-    if (!ok)
-        QMessageBox::warning(this, tr("Online help error"),
-                             tr("Could not open "
-                                "online documentation file:\n%1").arg(index));
-#else
     assistant->showDocumentation("index.html");
-#endif
-}
-
-
-void Window::onlineDocTaodyne()
-// ----------------------------------------------------------------------------
-//    Open the online documentation page on taodyne.com
-// ----------------------------------------------------------------------------
-{
-    QString url("http://taodyne.com/taopresentations/1.0/doc/");
-    QDesktopServices::openUrl(url);
 }
 
 
@@ -1666,14 +1634,6 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
-    onlineDocTaodyneAct = new QAction(tr("&Online Documentation "
-                                         "(taodyne.com)"), this);
-    onlineDocTaodyneAct->setStatusTip(tr("Open the Online Documentation "
-                                         "on the Taodyne website"));
-    onlineDocTaodyneAct->setObjectName("onlineDocTaodyne");
-    connect(onlineDocTaodyneAct, SIGNAL(triggered()),
-            this, SLOT(onlineDocTaodyne()));
-
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
@@ -1825,7 +1785,6 @@ void Window::createMenus()
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
-    helpMenu->addAction(onlineDocTaodyneAct);
 }
 
 

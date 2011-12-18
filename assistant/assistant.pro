@@ -54,8 +54,15 @@ CONFIG += qt \
     help
 QT += network
 PROJECTNAME = Assistant
-target.path = $$APPINST
-INSTALLS += target
+macx {
+  # See comment in tao.pro
+  app.path    = $$APPINST
+  app.extra   = \$(INSTALL_DIR) \"$${TARGET}.app\" \"$$APPINST\"
+  INSTALLS   += app
+} else {
+  target.path = $$APPINST
+  INSTALLS   += target
+}
 macx:QMAKE_POST_LINK = sh ../fix_qt_refs_app  "$(TARGET)"
 DEPENDPATH += ../shared
 

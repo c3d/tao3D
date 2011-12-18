@@ -36,6 +36,7 @@ equals(HAS_DOXYGEN, true) {
   win32:TAO_ICON_FOR_QHCP = ../tao/tao.ico
   !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
   QMAKE_SUBSTITUTES = Doxyfile.in \
+                      DoxyfileWebdoc.in \
                       TaoPresentations.qhcp.in \
                       about_help.html.in \
                       about_help_fr.html.in
@@ -47,7 +48,7 @@ equals(HAS_DOXYGEN, true) {
   doc.commands = doxygen
   doc.depends = cp_examples cp_xlref version
 
-  webdoc.commands = ( cat Doxyfile ; echo \"SERVER_BASED_SEARCH = YES\" ; echo \"HTML_OUTPUT = webhtml\" ) | doxygen -
+  webdoc.commands = doxygen DoxyfileWebdoc 
   webdoc.depends = cp_examples cp_xlref version
 
   cp_examples.commands = mkdir -p html/examples ; \

@@ -2082,6 +2082,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // Clean previous program
     taoWidget->purgeTaoInfo();
 
+    taoWidget->reset();
+
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!

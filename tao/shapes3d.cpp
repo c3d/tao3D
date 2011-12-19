@@ -56,7 +56,7 @@ bool Shape3::setFillColor(Layout *where)
     {
         Color &color = where->fillColor;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0)
+        if (v >= 0.01)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
@@ -79,7 +79,7 @@ bool Shape3::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0 && width > 0.0)
+        if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);

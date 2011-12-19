@@ -12,3 +12,6 @@ lib*.so.*
 */doc/Doxyfile
 */doc/html/
 */doc/qch/
+*/*/doc/Doxyfile
+*/*/doc/html/
+*/*/doc/qch/

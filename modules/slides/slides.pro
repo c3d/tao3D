@@ -30,3 +30,7 @@ pics.files = $$PICTURES
 # icon from http://www.iconfinder.com/icondetails/15430/32/keynote_presentation_stand_icon
 INSTALLS    += thismod_icon pics
 INSTALLS    -= thismod_bin
+
+QMAKE_SUBSTITUTES = doc/Doxyfile.in
+DOXYFILE = doc/Doxyfile
+include(../modules_doc.pri)

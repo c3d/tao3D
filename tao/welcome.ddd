@@ -68,7 +68,7 @@ page "Welcome",
     locally
         color "white"
         translate 150, 150, 500
-        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.png"
+        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.svg"
 
     locally
         adjust t:real ->

@@ -2544,6 +2544,10 @@ void Widget::keyPressEvent(QKeyEvent *event)
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
@@ -2595,6 +2599,10 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     if (cursor().shape() == Qt::OpenHandCursor)
         return startPanning(event);
 
@@ -2691,6 +2699,10 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     if (cursor().shape() == Qt::BlankCursor)
     {
         setCursor(savedCursorShape);
@@ -11512,6 +11524,15 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
     }
     Ooops("Malformed display_set statement $1", code);
     return XL::xl_false;
+}
+
+
+Text_p Widget::displayMode()
+// ----------------------------------------------------------------------------
+//   Return the name of the current display mode
+// ----------------------------------------------------------------------------
+{
+    return new Text(+displayDriver->getDisplayFunction());
 }
 
 

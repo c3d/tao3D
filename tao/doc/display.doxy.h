@@ -85,8 +85,13 @@ enable_stereoscopy(mode:name);
 display_mode(mode:text);
 
 /**
+ * The name of the current display mode.
+ */
+text display_mode();
+
+/**
  * Test if a display mode is available.
- * @see display_mode
+ * @see display_mode, display_mode(mode:text)
  */
 boolean has_display_mode(mode:text);
 

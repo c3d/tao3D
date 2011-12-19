@@ -38,16 +38,26 @@ bg_sx -> bg_zscale * window_width / bg_w
 bg_sy -> bg_zscale * window_height / bg_h
 window_scale -> min (window_width / bg_w, window_height / bg_h)
 
-// Key to space animation
+// Logic to stop/start animation
+Initial -> 1
 key "Space" ->
     if Animated = 1 then
-        enable_animations false
-        Animated := 0
+        anim false
     else
+        anim true
+anim On:boolean ->
+    Initial := 0
+    if On then
         enable_animations true
         Animated := 1
+    else
+        enable_animations false
+        Animated := 0
 
 page "Welcome",
+    if page_time > 5 and Initial = 1 then
+        anim false
+        Initial := 0
     welcome_background
     locally
         text_box 450 * window_scale, 0, window_width, window_height,
@@ -99,7 +109,12 @@ welcome_help T:text ->
     if T = "fr" then
         text "Appuyer sur la touche espace pour arrêter l'animation"
     else
-        text "Press the spacebar to stop the animation"
+        text "Press the spacebar to "
+        if Animated = 1 then
+            text "stop "
+        else
+            text "start "
+        text "the animation"
 
 welcome_background ->
 // ----------------------------------------------------------------------------

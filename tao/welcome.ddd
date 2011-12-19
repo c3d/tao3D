@@ -17,13 +17,11 @@
 // ****************************************************************************
 //  (C) 2010-2011 Taodyne SAS
 // ****************************************************************************
+
 import Animate
 
-// Reexecute the document to each interval
-refresh_on TimerEvent
-
-// Compatibility (Tao > 1.0-beta11)
-old_camera_settings
+// Avoid clipping
+z_near 500
 
 // ----------------------------------------------------------------------------
 //   Global variables
@@ -69,22 +67,22 @@ page "Welcome",
     scale window_scale, window_scale, window_scale
     locally
         color "white"
-        translate 200, 200 + 20 / window_scale, 3000
-        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.svg"
+        translate 150, 150, 500
+        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.png"
 
     locally
         adjust t:real ->
-            scale 0.5, 0.5, 0.5
-            rotatey 15 * t
-            rotatex 5.5 * t
-            translate 1000 * t, 0, -30000 * t
+            scale 0.3, 0.3, 0.3
+            rotatey 33 * t
+            rotatex 4 * t
+            translate -2000 * t, 0, -8000 * t
             rotatex 7.5 * t
 
         locally
             color "white"
-            adjust 1.0 - 50%
+            adjust 0.5 
             image 0, 0, 150%, 150%, "welcome/MacBookPro.png"
-            welcome_flow 35, 35, page_time
+            welcome_flow 40, 18, page_time
 
     text_box -500, -300, window_width, window_height,
         font "Ubuntu", 80, bold
@@ -136,7 +134,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     pdisplayed -> 35
     pup -> 3600
     picX N:integer -> 450 * picT N / pshown * sin (177.312 * picN N)
-    picY N:integer -> 320 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2
+    picY N:integer -> 600 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2
     picZ N:integer -> 30000 * picT N / pshown
     picA N:integer -> 10 * sin (picT N)
     picS N:integer -> 80% + 30% * sin (153.27 * picN N)

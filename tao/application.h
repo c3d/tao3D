@@ -108,7 +108,6 @@ protected slots:
 
 protected:
     static QString defaultUserDocumentsFolderPath();
-    static QString appDataPath();
     static bool    createDefaultProjectFolder();
 
 public:

@@ -29,3 +29,4 @@ doc/c_files
 doc/doc
 *.~?~
 /sdk
+/fix_qt_refs_app

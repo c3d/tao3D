@@ -1,0 +1,25 @@
+#!/bin/sh
+#
+# MacOSX only
+
+usage() {
+  echo \"Usage:\"
+  echo \"  fix_qt_refs_app some/path/to/Foo.app/Contents/MacOS/Foo\"
+  echo \"Fix references to Qt libraries and add rpath so that Foo.app\"
+  echo \"works when installed as: Tao Presentations/Contents/MacOS/Foo.app\"
+  exit 1
+}
+
+if [ $# -ne 1 -o \"$1\" = \"-h\" ] ; then
+  usage
+fi
+
+doo(){
+  echo \"[fix_qt_refs_app] $@\"
+  \"$@\"
+}
+
+# This is the Frameworks directory of Tao Presentations
+doo install_name_tool -add_rpath @executable_path/../../../../Frameworks \"$1\"
+
+doo $$PWD/modules/fix_qt_refs \"$1\" \"$$QMAKE_LIBDIR_QT\"

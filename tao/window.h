@@ -51,6 +51,7 @@ class Uri;
 class ToolWindow;
 class XLSourceEdit;
 class Repository;
+class Assistant;
 
 
 class Window : public QMainWindow
@@ -174,7 +175,6 @@ private slots:
     void preferences();
     void licenses();
     void onlineDoc();
-    void onlineDocTaodyne();
     void documentWasModified();
     void checkFiles();
     void displayModeTriggered(bool on);
@@ -287,7 +287,7 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
-    QAction          *onlineDocTaodyneAct;
+    Assistant        *assistant;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

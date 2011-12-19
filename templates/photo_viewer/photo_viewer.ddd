@@ -7,9 +7,9 @@ page "Photos",
     pt -> page_time 
     Message "en" -> "Create nice slide shows from your own photos!"
     Message "fr" -> "Créez votre album en utilisant vos propres photos !"
-    earth_position -> translate 0, -100, 1000 
+    earth_position -> translate 0, -150, 0 
     rotatex 8 
-    scale 70% , 70% , 70% 
+    scale 80% , 80% , 80%
 
     SHOWN := 24
     MAX := 48
@@ -26,12 +26,13 @@ page "Photos",
     locally 
         earth_position 
         color "white" 
+        texture_wrap true, true
         texture "earth.bmp" 
         rotatey 2.5 * pt 
-        sphere 0, 0, 0, 500 
+        sphere 0, 0, 0, 400 
         rotatey 0.3 * pt 
         texture "clouds.png" 
-        sphere 0, 0, 0, 505
+        sphere 0, 0, 0, 405
      
     locally 
         frame_texture 1200, 400, do 
@@ -43,10 +44,10 @@ page "Photos",
          
         earth_position 
         color "black" 
-        sphere 0, 0, 0, 520 
+        sphere 0, 0, 0, 420 
         color_hsv time * 20, 30% , 100% , 80% 
         move_to 0, 0, 0 
-        sphere 0, 0, 0, 540
+        sphere 0, 0, 0, 440
      
     locally 
         color "white", -expm1 (0.0 - pt * 0.05) 

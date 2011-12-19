@@ -331,6 +331,7 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
+    Integer_p   pageSeconds(Tree_p self);
     Real_p      after(Context *context, double delay, Tree_p code);
     Real_p      every(Context *context, double delay, double duration, Tree_p code);
     Real_p      mouseX(Tree_p self);
@@ -345,6 +346,7 @@ public:
     Tree_p      shape(Context *context, Tree_p self, Tree_p t);
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
     Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
+    Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);
@@ -570,8 +572,9 @@ public:
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
-    Tree_p      font(Context *context, Tree_p self, Tree_p descr);
-    Tree_p      fontFamily(Context *, Tree_p self, text family);
+    Tree_p      font(Context *context, Tree_p self,Tree_p dscr,Tree_p d2=NULL);
+    Tree_p      fontFamily(Context *, Tree_p self, Text_p family);
+    Tree_p      fontFamily(Context *, Tree_p self, Text_p family, Real_p size);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
@@ -820,6 +823,7 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class StereoLayout;
     friend class PageLayout;
     friend class DisplayDriver;
     friend class GCThread;
@@ -868,7 +872,7 @@ private:
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
-    int                   stereoPlanes;
+    int                   stereoPlane, stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
     GLuint                watermark;

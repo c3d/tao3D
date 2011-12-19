@@ -48,7 +48,7 @@ macx {
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc
-    LIBS += -limagehlp
+    LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
     LIBS += -lXss
@@ -61,6 +61,7 @@ HEADERS += widget.h \
     application.h \
     init_cleanup.h \
     licence.h \
+    decryption.h \
     frame.h \
     svg.h \
     texture.h \
@@ -287,9 +288,15 @@ contains(DEFINES, CFG_NORELOAD) {
 contains(DEFINES, CFG_NOEDIT) {
     !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
 }
+contains(DEFINES, CFG_NOFULLSCREEN) {
+    !build_pass:message("Full screen (slideshow) mode is disabled")
+}
+contains(DEFINES, CFG_NOMODULEUPDATE) {
+    !build_pass:message("Module update is disabled")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
-NOWARN_SOURCES += licence.cpp
+NOWARN_SOURCES += licence.cpp decryption.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -328,6 +335,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
     licence.cpp \
+    decryption.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \

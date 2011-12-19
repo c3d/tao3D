@@ -620,6 +620,9 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 //   Set frustum for the given camera
 // ----------------------------------------------------------------------------
 {
+    // Record which stereo plane we are on for stereo
+    Widget::Tao()->stereoPlane = i-1;
+
     // Read camera position
     Point3 cameraPosition;
     Point3 cameraTarget;
@@ -633,7 +636,7 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
     double distance = toTarget.Length();
     double nearRatio = zNear()/distance;
     double delta = stereoDelta(i, numCameras);
-    double shift = -(eyeSeparation() * delta) * nearRatio;
+    double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
     glFrustum (-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
 }
@@ -644,6 +647,9 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
 //   Set modelview matrix for the given camera
 // ----------------------------------------------------------------------------
 {
+    // Record which stereo plane we are on for stereo
+    Widget::Tao()->stereoPlane = i-1;
+
     // Read camera position
     Point3 cameraPosition;
     Point3 cameraTarget;

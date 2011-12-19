@@ -9,9 +9,10 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/mapping
-files.files = template.ini mapping.ddd mapping.png mapping.xl
+files.files = template.ini mapping.ddd mapping.png theme.xl
 
 images.path = $$APPINST/templates/mapping/images
 images.files = images/*
  
 INSTALLS += files images
+

@@ -122,7 +122,7 @@ namespace Tao {
 //
 // ============================================================================
 
-static Point3 defaultCameraPosition(0, 0, 6000);
+static Point3 defaultCameraPosition(0, 0, 3000);
 
 
 
@@ -163,7 +163,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
       drawAllPages(false), animated(true), selectionRectangleEnabled(true),
-      doMouseTracking(true), stereoPlanes(1),
+      doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
@@ -196,8 +196,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      zNear(1000.0), zFar(56000.0),
-      zoom(1.0), eyeDistance(10.0),
+      zNear(1500.0), zFar(1e6),
+      zoom(1.0), eyeDistance(100.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       dragging(false), bAutoHideCursor(false),
@@ -326,7 +326,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
       drawAllPages(o.drawAllPages), animated(o.animated),
-      doMouseTracking(o.doMouseTracking), stereoPlanes(o.stereoPlanes),
+      doMouseTracking(o.doMouseTracking),
+      stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(o.watermarkText),
       watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
@@ -4744,7 +4745,22 @@ XL::Real_p Widget::pageTime(Tree_p self)
     refreshOn(QEvent::Timer);
     if (animated)
         frozenTime = CurrentTime();
-    return new XL::Real(frozenTime - pageStartTime);
+    return new XL::Real(frozenTime - pageStartTime,
+                           self->Position());
+}
+
+
+XL::Integer_p Widget::pageSeconds(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return integral number of seconds
+// ----------------------------------------------------------------------------
+{
+    double now = CurrentTime();
+    if (animated)
+        frozenTime = CurrentTime();
+    refreshOn(QEvent::Timer, now + 1);
+    return new XL::Integer((longlong) (frozenTime - pageStartTime),
+                           self->Position());
 }
 
 
@@ -4986,6 +5002,22 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    return result;
+}
+
+
+Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
+                                Integer_p viewpoints,Tree_p child)
+// ----------------------------------------------------------------------------
+//   Create a layout that is only active for a given viewpoint
+// ----------------------------------------------------------------------------
+{
+    Context *currentContext = context;
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    Layout *childLayout = new StereoLayout(*layout, viewpoints);
+    childLayout = layout->AddChild(layout->id, child, context, childLayout);
+    XL::Save<Layout *> save(layout, childLayout);
+    Tree_p result = currentContext->Evaluate(child);
     return result;
 }
 
@@ -6828,6 +6860,7 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
     return XL::xl_false;
 }
 
+
 Text_p Widget::shaderLog(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the log for the shader
@@ -6842,6 +6875,7 @@ Text_p Widget::shaderLog(Tree_p self)
     text message = +currentShaderProgram->log();
     return new Text(message);
 }
+
 
 Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
 // ----------------------------------------------------------------------------
@@ -6858,6 +6892,7 @@ Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
     return XL::xl_true;
 }
 
+
 Integer* Widget::geometryInputType(Tree_p self)
 // ----------------------------------------------------------------------------
 //   return input type of geometry shader
@@ -6870,6 +6905,7 @@ Integer* Widget::geometryInputType(Tree_p self)
     }
     return new XL::Integer(currentShaderProgram->geometryInputType());
 }
+
 
 Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 // ----------------------------------------------------------------------------
@@ -6884,9 +6920,12 @@ Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
 
     switch(outputType)
     {
-    case GL_LINE_STRIP: currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
-    case GL_TRIANGLE_STRIP: currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
-    default : currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
+    case GL_LINE_STRIP:
+        currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
+    case GL_TRIANGLE_STRIP:
+        currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
+    default:
+        currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
     }
     return XL::xl_true;
 }
@@ -6937,6 +6976,8 @@ Integer* Widget::geometryOutputCount(Tree_p self)
 
     return new XL::Integer(currentShaderProgram->geometryOutputVertexCount());
 }
+
+
 
 // ============================================================================
 //
@@ -7907,7 +7948,8 @@ Tree_p Widget::textValue(Context *context, Tree_p self, Tree_p value)
 }
 
 
-Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
+Tree_p Widget::font(Context *context, Tree_p self,
+                    Tree_p descr1, Tree_p descr2)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
@@ -7920,7 +7962,9 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
     font.setStrikeOut(false);
     font.setOverline(false);
     FontParsingAction parseFont(context, layout->font);
-    description->Do(parseFont);
+    descr1->Do(parseFont);
+    if (descr2)
+        descr2->Do(parseFont);
     layout->font = parseFont.font;
     layout->Add(new FontChange(layout->font));
     if (fontFileMgr)
@@ -7929,12 +7973,22 @@ Tree_p Widget::font(Context *context, Tree_p self, Tree_p description)
 }
 
 
-Tree_p Widget::fontFamily(Context *context, Tree_p self, text family)
+Tree_p Widget::fontFamily(Context *context, Tree_p self, Text_p family)
 // ----------------------------------------------------------------------------
 //   Select a font family
 // ----------------------------------------------------------------------------
 {
-    return font(context, self, new XL::Text(family));
+    return font(context, self, family);
+}
+
+
+Tree_p Widget::fontFamily(Context *context, Tree_p self,
+                          Text_p family, Real_p size)
+// ----------------------------------------------------------------------------
+//   Select a font family
+// ----------------------------------------------------------------------------
+{
+    return font(context, self, family, size);
 }
 
 
@@ -8174,27 +8228,53 @@ Name_p Widget::textEditKey(Tree_p self, text key)
 }
 
 
+struct LoadTextInfo : Info
+// ----------------------------------------------------------------------------
+//  Records text values loaded by a given load_text
+// ----------------------------------------------------------------------------
+{
+    QFileInfo   fileInfo;
+    Text_p      loaded;
+};
+
+
 Text_p Widget::loadText(Tree_p self, text file)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
 // ----------------------------------------------------------------------------
 {
-    std::ostringstream output;
+    bool doLoad = false;
     text qualified = "doc:" + file;
     QFileInfo fileInfo(+qualified);
-    if (fileInfo.exists())
+
+    LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
+    if (!info)
     {
-        text path = +fileInfo.canonicalFilePath();
-        std::ifstream input(path.c_str());
-        while (input.good())
-        {
-            char c = input.get();
-            if (input.good())
-                output << c;
-        }
+        if (fileInfo.lastModified() > info->fileInfo.lastModified())
+            doLoad = true;
     }
-    text contents = output.str();
-    return new XL::Text(contents);
+    else
+    {
+        info = new LoadTextInfo;
+        self->SetInfo<LoadTextInfo>(info);
+        info->loaded = new Text("", "\"", "\"", self->Position());
+        doLoad = true;
+    }
+
+    if (doLoad)
+    {
+        if (fileInfo.exists())
+        {
+            text &value = info->loaded->value;
+
+            QFile file(fileInfo.canonicalFilePath());
+            QTextStream textStream(&file);
+            QString data = textStream.readAll();
+            value = +data;
+        }
+        info->fileInfo = fileInfo;
+    }
+    return info->loaded;
 }
 
 
@@ -11386,10 +11466,9 @@ static void generateRewriteDoc(Widget *widget, XL::Rewrite_p rewrite, text &com)
         com += t2->value;
     }
 
-    XL::rewrite_table &rewrites = rewrite->hash;
-    XL::rewrite_table::iterator i;
-    for (i = rewrites.begin(); i != rewrites.end(); i++)
-        generateRewriteDoc(widget, i->second, com);
+    for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+        if (XL::Rewrite *rw = rewrite->hash[i])
+            generateRewriteDoc(widget, rw, com);
 }
 
 
@@ -11416,10 +11495,9 @@ Text_p Widget::generateAllDoc(Tree_p self, text filename)
     // Documentation from the primitives files (*.tbl)
     for (XL::Context *globals = xlr->context; globals; globals = globals->scope)
     {
-        XL::rewrite_table &rewrites = globals->rewrites;
-        XL::rewrite_table::iterator i;
-        for (i = rewrites.begin(); i != rewrites.end(); i++)
-            generateRewriteDoc(this, i->second, com);
+        for (uint i = 0; i < REWRITE_HASH_SIZE; i++)
+            if (XL::Rewrite *rw = globals->rewrites[i])
+                generateRewriteDoc(this, rw, com);
     }
 
     // Write the result

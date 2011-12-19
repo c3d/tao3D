@@ -549,9 +549,9 @@ zoom_contents_for_window ->
 //   Additional scaling to make sure nothing shows outside of the window
 // ----------------------------------------------------------------------------
     if window_width / window_height > slide_width / slide_height then
-        scale_contents 1.03 * window_width / window_height * slide_height / slide_width
+        scale_contents 1.1 * window_width / window_height * slide_height / slide_width
     else
-        scale_contents 1.03 * window_height / window_width * slide_width / slide_height
+        scale_contents 1.1 * window_height / window_width * slide_width / slide_height
 
 
 stretch_contents_to_window ->

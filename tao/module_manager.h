@@ -380,6 +380,8 @@ public:
         {
             if ((+name).contains(keyword))
                 return true;
+            if ((+importName).contains(keyword))
+                return true;
             if ((+desc).contains(keyword))
                 return true;
             if (searchSource)

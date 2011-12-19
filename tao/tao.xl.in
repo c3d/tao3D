@@ -114,10 +114,6 @@ commit_chooser b:text ->
 increase_eye_distance -> eye_distance eye_distance * 1.5
 decrease_eye_distance -> eye_distance eye_distance * 0.75
 
-left_viewpoint X  -> stereo_viewpoints 1, X
-right_viewpoint X -> stereo_viewpoints 2, X
-
-
 stereoscopy_settings ->
     if has_display_mode quadstereo then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
@@ -255,6 +251,14 @@ line_color_hsl h:real, s:real, l:real                              -> line_color
 line_color_hsv h:real, s:real, v:real                              -> line_color_hsv h, s, v, 1.0
 line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color_cmyk c, m, y, k, 1.0
 
+copy_texture ->
+    ID -> texture
+    W  -> texture_width
+    H  -> texture_height
+    frame_texture W, H,
+        color "white"
+        texture ID
+        rectangle 0, 0, W, H
 
 // Text Layout
 text_box x:real, y, w, h, body:tree ->

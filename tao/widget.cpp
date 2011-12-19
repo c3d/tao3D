@@ -200,7 +200,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       zoom(1.0), eyeDistance(100.0),
       cameraPosition(defaultCameraPosition),
       cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
-      dragging(false), bAutoHideCursor(false),
+      eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
@@ -376,6 +376,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       zoom(o.zoom), eyeDistance(o.eyeDistance),
       cameraPosition(o.cameraPosition),
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
+      eye(o.eye), eyesNumber(o.eyesNumber),
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
       savedCursorShape(o.savedCursorShape),
@@ -2545,6 +2546,10 @@ void Widget::keyPressEvent(QKeyEvent *event)
 //   A key is pressed
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     TaoSave saveCurrent(current, this);
     EventSave save(this->w_event, event);
     keyboardModifiers = event->modifiers();
@@ -2596,6 +2601,10 @@ void Widget::mousePressEvent(QMouseEvent *event)
 //   Mouse button click
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     if (cursor().shape() == Qt::OpenHandCursor)
         return startPanning(event);
 
@@ -2692,6 +2701,10 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
 //    Mouse move
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_TIMED_FULLSCREEN
+    emit userActivity();
+#endif
+
     if (cursor().shape() == Qt::BlankCursor)
     {
         setCursor(savedCursorShape);
@@ -5012,6 +5025,17 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 //   Create a layout that is only active for a given viewpoint
 // ----------------------------------------------------------------------------
 {
+    // This primitive really belongs to the StereoDecoder module, but it's
+    // not trivial to move it into the module (due to the StereoLayout class).
+    if (!Licences::Check("StereoDecoder 1.0"))
+    {
+        // Unlicensed behavior shows only viewpoint #1, on all eyes
+        if (viewpoints->value == 1)
+            return locally(context, self, child);
+        else
+            return XL::xl_false;
+    }
+
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     Layout *childLayout = new StereoLayout(*layout, viewpoints);
@@ -11423,6 +11447,15 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
     }
     Ooops("Malformed display_set statement $1", code);
     return XL::xl_false;
+}
+
+
+Text_p Widget::displayMode()
+// ----------------------------------------------------------------------------
+//   Return the name of the current display mode
+// ----------------------------------------------------------------------------
+{
+    return new Text(+displayDriver->getDisplayFunction());
 }
 
 

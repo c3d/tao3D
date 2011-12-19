@@ -167,6 +167,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
+    void        reset();
     void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();

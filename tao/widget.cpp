@@ -196,10 +196,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      zNear(1500.0), zFar(1e6),
-      zoom(1.0), eyeDistance(100.0),
-      cameraPosition(defaultCameraPosition),
-      cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
@@ -270,6 +266,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
 
     // Initialize start time
     resetTimes();
+
+    // Initialize view
+    reset();
 
     // Compute initial zoom
     scaling = scalingFactorFromCamera();
@@ -2038,6 +2037,20 @@ void Widget::setup(double w, double h, const Box *picking)
     setupGL();
 }
 
+
+void Widget::reset()
+// ----------------------------------------------------------------------------
+//   Reset view settings
+// ----------------------------------------------------------------------------
+{
+    zNear = 1500.0;
+    zFar  = 1e6;
+    zoom  = 1.0;
+    eyeDistance    = 100.0;
+    cameraPosition = defaultCameraPosition;
+    cameraTarget   = Point3(0.0, 0.0, 0.0);
+    cameraUpVector = Point3(0, 1, 0);
+}
 
 void Widget::resetModelviewMatrix()
 // ----------------------------------------------------------------------------

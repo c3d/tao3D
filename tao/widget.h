@@ -401,6 +401,8 @@ public:
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      slideShow(XL::Tree_p self, bool ss);
     Name_p      toggleSlideShow(Tree_p self);
+    Name_p      blankScreen(XL::Tree_p self, bool bs);
+    Name_p      toggleBlankScreen(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
     Name_p      enableMouseCursor(XL::Tree_p self, bool on);
@@ -883,6 +885,7 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    bool                  blanked;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];

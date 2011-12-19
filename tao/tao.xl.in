@@ -19,6 +19,7 @@ key "Backspace"                         -> delete_selection "Backspace"
 key "Control-G"                         -> page_chooser
 key "Control-Left"                      -> decrease_eye_distance
 key "Control-Right"                     -> increase_eye_distance
+key "b"                                 -> toggle_blank_screen
 key X                                   -> text_edit_key X
 
 // Zoom

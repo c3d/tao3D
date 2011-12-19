@@ -162,7 +162,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false), animated(true), selectionRectangleEnabled(true),
+      drawAllPages(false), animated(true), blanked(false),
+      selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
@@ -324,7 +325,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       currentGroup(o.currentGroup),
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
-      drawAllPages(o.drawAllPages), animated(o.animated),
+      drawAllPages(o.drawAllPages), animated(o.animated), blanked(o.blanked),
       doMouseTracking(o.doMouseTracking),
       stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
@@ -642,9 +643,17 @@ void Widget::drawScene()
         emit runGC();
     }
 
-    id = idDepth = 0;
-    space->ClearAttributes();
-    space->Draw(NULL);
+    if (blanked)
+    {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    else
+    {
+        id = idDepth = 0;
+        space->ClearAttributes();
+        space->Draw(NULL);
+    }
 
     if (XL::MAIN->options.threaded_gc)
     {
@@ -5626,6 +5635,26 @@ Name_p Widget::toggleSlideShow(XL::Tree_p self)
     Window *window = (Window *) parentWidget();
     bool oldMode = window->toggleSlideShow();
     return oldMode ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::blankScreen(XL::Tree_p self, bool bs)
+// ----------------------------------------------------------------------------
+//   Blank screen or restore normal display
+// ----------------------------------------------------------------------------
+{
+    bool oldMode = blanked;
+    blanked = bs;
+    return oldMode ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleBlankScreen(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle blank screen
+// ----------------------------------------------------------------------------
+{
+    return blankScreen(self, !blanked);
 }
 
 

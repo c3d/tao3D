@@ -2074,12 +2074,18 @@ void Widget::setupGL()
     glLineStipple(1, -1);
 
     // Disable all texture units
-    for(int i = TaoApp->maxTextureUnits - 1; i >= 0 ; i--)
+    for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
     {
-        glActiveTexture(GL_TEXTURE0 + i);
-        glBindTexture(GL_TEXTURE_2D, 0);
-        glDisable(GL_TEXTURE_2D);
+        if(layout->textureUnits & (1 << i))
+        {
+            glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, 0);
+            glDisable(GL_TEXTURE_2D);
+        }
     }
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);

@@ -157,6 +157,9 @@ signals:
     void        renderFramesDone();
     void        runGC();
     void        displayModeChanged(QString newMode);
+#ifdef CFG_TIMED_FULLSCREEN
+    void        userActivity();
+#endif
 
 public:
     // OpenGL and drawing
@@ -164,6 +167,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
+    void        reset();
     void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();
@@ -283,6 +287,13 @@ public:
                                    GLdouble *model,
                                    GLint *viewport);
     Point3      unprojectLastMouse();
+    Point3      project (coord x, coord y, coord z);
+    Point3      project (coord x, coord y, coord z,
+                         GLdouble *proj, GLdouble *model, GLint *viewport);
+    Point3      objectToWorld(coord x, coord y,
+                              GLdouble *proj, GLdouble *model, GLint *viewport);
+    Point3      windowToWorld(coord x, coord y,
+                              GLdouble *proj, GLdouble *model, GLint *viewport);
     uint        lastModifiers()         { return keyboardModifiers; }
     Drag *      drag();
     TextSelect *textSelection();
@@ -390,6 +401,8 @@ public:
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      slideShow(XL::Tree_p self, bool ss);
     Name_p      toggleSlideShow(Tree_p self);
+    Name_p      blankScreen(XL::Tree_p self, bool bs);
+    Name_p      toggleBlankScreen(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
     Name_p      enableMouseCursor(XL::Tree_p self, bool on);
@@ -458,10 +471,12 @@ public:
     Integer*    fillAnimatedTexture(Context *, Tree_p self, text fileName);
     Integer*    fillTextureFromSVG(Context *, Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
+    Tree_p      textureMode(Tree_p self, text mode);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);
     Integer*    textureType(Tree_p self);
+    Text_p      textureMode(Tree_p self);
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
     Tree_p      hasTexture(Tree_p self, GLuint unit);
@@ -782,6 +797,7 @@ public:
                                     Real_p wx, Real_p wy, Real_p wz);
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
+    Text_p      displayMode();
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
@@ -869,6 +885,7 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    bool                  blanked;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
@@ -950,6 +967,7 @@ private:
     double                zNear, zFar, scaling, zoom, eyeDistance;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
+    int                   eye, eyesNumber;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

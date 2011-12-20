@@ -26,3 +26,7 @@ include(../modules.pri)
 OTHER_FILES = animate.xl
 
 INSTALLS    -= thismod_bin
+
+QMAKE_SUBSTITUTES = doc/Doxyfile.in
+DOXYFILE = doc/Doxyfile
+include(../modules_doc.pri)

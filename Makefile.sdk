@@ -42,6 +42,7 @@ FILES_COMMON = \
 	modules/modules.pro \
 	modules/modules.pri \
 	modules/modules_defs.pri \
+	modules/modules_doc.pri \
 	modules/module_list.pri \
 	modules/tbl_wrap \
 	$(OBJECT_LOADER_FILES) \

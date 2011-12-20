@@ -82,6 +82,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     zFar                         = DisplayDriver::zFar;
     zoom                         = DisplayDriver::zoom;
     eyeSeparation                = DisplayDriver::eyeSeparation;
+    getCurrentEye                = DisplayDriver::getCurrentEye;
+    getEyesNumber                = DisplayDriver::getEyesNumber;
     doMouseTracking              = DisplayDriver::doMouseTracking;
     setMouseTrackingViewport     = DisplayDriver::setMouseTrackingViewport;
     setWatermarkText             = Widget::setWatermarkTextAPI;

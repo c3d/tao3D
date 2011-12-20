@@ -38,6 +38,8 @@
 #include "diff_dialog.h"
 #include "git_toolbar.h"
 #include "undo.h"
+#endif
+#ifndef CFG_NONETWORK
 #include "open_uri_dialog.h"
 #endif
 #include "resource_mgt.h"
@@ -49,6 +51,7 @@
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
+#include "assistant.h"
 
 #include <iostream>
 #include <sstream>
@@ -128,6 +131,9 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     undoStack = new QUndoStack();
     createUndoView();
 
+    // Online doc viewer
+    assistant = new Assistant(this);
+
     // Create menus, actions, stuff
     createActions();
     createMenus();
@@ -182,6 +188,13 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
             this, SLOT(adjustToScreenResolution(int)));
+
+#ifdef CFG_TIMED_FULLSCREEN
+    connect(&fullScreenTimer, SIGNAL(timeout()),
+            this, SLOT(leaveFullScreen()));
+    connect(taoWidget, SIGNAL(userActivity()),
+            this, SLOT(restartFullScreenTimer()));
+#endif
 }
 
 
@@ -408,7 +421,7 @@ int Window::open(QString fileName, bool readOnly)
         if (fileName.startsWith("file://"))
             fileName = fileName.mid(7);
 
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
         bool fileExists = QFileInfo(fileName).exists();
         if (!fileExists && fileName.contains("://"))
         {
@@ -927,22 +940,6 @@ void Window::checkClipboard()
 
 #ifndef CFG_NOGIT
 
-void Window::openUri()
-// ----------------------------------------------------------------------------
-//    Show a dialog box to enter URI and open it
-// ----------------------------------------------------------------------------
-{
-    OpenUriDialog dialog(this);
-    int ret = dialog.exec();
-    if (ret != QDialog::Accepted)
-        return;
-    QString uri = dialog.uri;
-    if (uri.isEmpty())
-        return;
-    open(uri);
-}
-
-
 void Window::warnNoRepo()
 // ----------------------------------------------------------------------------
 //    Display a warning box
@@ -1081,6 +1078,45 @@ void Window::checkDetachedHead()
 }
 
 
+void Window::reloadCurrentFile()
+// ----------------------------------------------------------------------------
+//    Reload the current document when user has switched branches
+// ----------------------------------------------------------------------------
+{
+    loadFile(curFile, false);
+}
+
+#endif // CFG_NOGIT
+
+#ifndef CFG_NONETWORK
+
+void Window::showInfoDialog(QString title, QString msg, QString info)
+// ----------------------------------------------------------------------------
+//    Show a dialog box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(info);
+    msgBox.exec();
+}
+
+void Window::openUri()
+// ----------------------------------------------------------------------------
+//    Show a dialog box to enter URI and open it
+// ----------------------------------------------------------------------------
+{
+    OpenUriDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString uri = dialog.uri;
+    if (uri.isEmpty())
+        return;
+    open(uri);
+}
+
 void Window::onUriGetFailed()
 // ----------------------------------------------------------------------------
 //    Called asynchronously when open() failed to open an URI
@@ -1104,18 +1140,6 @@ void Window::onDocReady(QString path)
     emit openFinished(ok);
 }
 
-
-void Window::showInfoDialog(QString title, QString msg, QString info)
-// ----------------------------------------------------------------------------
-//    Show a dialog box
-// ----------------------------------------------------------------------------
-{
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(info);
-    msgBox.exec();
-}
 
 void Window::onNewTemplateInstalled(QString path)
 // ----------------------------------------------------------------------------
@@ -1221,16 +1245,7 @@ void Window::onModuleUpdated(QString path)
     showInfoDialog(title, msg, infoMsg);
 }
 
-
-void Window::reloadCurrentFile()
-// ----------------------------------------------------------------------------
-//    Reload the current document when user has switched branches
-// ----------------------------------------------------------------------------
-{
-    loadFile(curFile, false);
-}
-
-#endif // CFG_NOGIT
+#endif // CFG_NONETWORK
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 
@@ -1372,35 +1387,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
-    QString index = QCoreApplication::applicationDirPath()
-                    + "/doc/html/index.html";
-    if (!QFileInfo(index).exists())
-    {
-        QMessageBox::warning(this, tr("Documentation not found"),
-                             tr("Online documentation file was not found."));
-        return;
-    }
-#ifdef Q_OS_WIN
-    // On Windows, index starts with a drive letter, not with a leading
-    // slash. Add one to end up with a valid URI.
-    index = "/" + index;
-#endif
-    index = "file://" + index;
-    bool ok = QDesktopServices::openUrl(index);
-    if (!ok)
-        QMessageBox::warning(this, tr("Online help error"),
-                             tr("Could not open "
-                                "online documentation file:\n%1").arg(index));
-}
-
-
-void Window::onlineDocTaodyne()
-// ----------------------------------------------------------------------------
-//    Open the online documentation page on taodyne.com
-// ----------------------------------------------------------------------------
-{
-    QString url("http://taodyne.com/taopresentations/1.0/doc/");
-    QDesktopServices::openUrl(url);
+    assistant->showDocumentation("index.html");
 }
 
 
@@ -1477,7 +1464,7 @@ void Window::createActions()
     openAct->setObjectName("open");
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     openUriAct = new QAction(tr("Open Net&work..."), this);
     openUriAct->setStatusTip(tr("Download and open a remote document (URI)"));
     openUriAct->setObjectName("openURI");
@@ -1658,14 +1645,6 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
-    onlineDocTaodyneAct = new QAction(tr("&Online Documentation "
-                                         "(taodyne.com)"), this);
-    onlineDocTaodyneAct->setStatusTip(tr("Open the Online Documentation "
-                                         "on the Taodyne website"));
-    onlineDocTaodyneAct->setObjectName("onlineDocTaodyne");
-    connect(onlineDocTaodyneAct, SIGNAL(triggered()),
-            this, SLOT(onlineDocTaodyne()));
-
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
@@ -1748,7 +1727,7 @@ void Window::createMenus()
     fileMenu->addAction(newDocAct);
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     fileMenu->addAction(openUriAct);
 #endif
     openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
@@ -1817,7 +1796,6 @@ void Window::createMenus()
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
-    helpMenu->addAction(onlineDocTaodyneAct);
 }
 
 
@@ -2070,6 +2048,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Clean previous program
     taoWidget->purgeTaoInfo();
+
+    taoWidget->reset();
 
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
@@ -2587,6 +2567,10 @@ void Window::switchToFullScreen(bool fs)
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
+
+#ifdef CFG_TIMED_FULLSCREEN
+        restartFullScreenTimer();
+#endif
     }
     else
     {
@@ -2613,11 +2597,37 @@ void Window::switchToFullScreen(bool fs)
         // Restore dockable widgets, and window geometry
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
+
+#ifdef CFG_TIMED_FULLSCREEN
+        fullScreenTimer.stop();
+#endif
     }
     slideShowAct->setChecked(fs);
 
 #endif // !CFG_NOFULLSCREEN
 }
+
+
+#ifdef CFG_TIMED_FULLSCREEN
+
+void Window::leaveFullScreen()
+// ----------------------------------------------------------------------------
+//    Leave fullscreen mode when max fullscreen time limit expires
+// ----------------------------------------------------------------------------
+{
+    switchToSlideShow(false);
+}
+
+
+void Window::restartFullScreenTimer()
+// ----------------------------------------------------------------------------
+//    Restart full screen timer
+// ----------------------------------------------------------------------------
+{
+    fullScreenTimer.start(10 * 60 * 1000);
+}
+
+#endif // CFG_TIMED_FULLSCREEN
 
 
 QString Window::currentProjectFolderPath()

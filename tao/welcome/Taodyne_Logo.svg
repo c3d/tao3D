@@ -1,0 +1,351 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="1179.4796"
+   height="391.3175"
+   id="svg5487"
+   version="1.1"
+   inkscape:version="0.48.0 r9654"
+   sodipodi:docname="Taodyne_Logo.svg"
+   style="display:inline"
+   inkscape:export-filename="/Users/Lionel/Desktop/taodyne-logo.png"
+   inkscape:export-xdpi="90"
+   inkscape:export-ydpi="90">
+  <defs
+     id="defs5489">
+    <linearGradient
+       id="linearGradient4266">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.49803922;"
+         offset="0"
+         id="stop4268" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0;"
+         offset="1"
+         id="stop4270" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4250">
+      <stop
+         id="stop4252"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0.875"
+         id="stop4254" />
+      <stop
+         id="stop4256"
+         offset="1"
+         style="stop-color:#cccccc;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient4159">
+      <stop
+         id="stop4169"
+         offset="0"
+         style="stop-color:#ffffff;stop-opacity:1;" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:1;"
+         offset="0.69999999"
+         id="stop4258" />
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0.49803922;"
+         offset="1"
+         id="stop4163" />
+    </linearGradient>
+    <clipPath
+       id="clipPath5530"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path5532"
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       id="clipPath6199"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path6201"
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       id="clipPath6349"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path6351"
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       id="clipPath6519"
+       clipPathUnits="userSpaceOnUse">
+      <path
+         id="path6521"
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6519-6">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path6521-2"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6349-5">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path6351-7"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6199-8">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path6201-6"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath5530-3">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path5532-9"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6519-7">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path6521-1"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6349-52">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path6351-2"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath6199-2">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path6201-2"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <clipPath
+       clipPathUnits="userSpaceOnUse"
+       id="clipPath5530-0">
+      <path
+         d="m 0,0 1920,0 0,1080 L 0,1080 0,0 z"
+         id="path5532-6"
+         inkscape:connector-curvature="0" />
+    </clipPath>
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4250"
+       id="radialGradient4167"
+       cx="613"
+       cy="367.5"
+       fx="613"
+       fy="367.5"
+       r="363.45847"
+       gradientTransform="matrix(1,0,0,0.7757653,0,82.406253)"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4159"
+       id="radialGradient4248"
+       cx="439.5"
+       cy="439"
+       fx="439.5"
+       fy="439"
+       r="0.5"
+       gradientTransform="matrix(1,0,0,2,0,-439)"
+       gradientUnits="userSpaceOnUse" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4159"
+       id="radialGradient4262"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(1,0,0,2,0,-439)"
+       cx="439.5"
+       cy="439"
+       fx="439.5"
+       fy="439"
+       r="0.5" />
+    <radialGradient
+       inkscape:collect="always"
+       xlink:href="#linearGradient4266"
+       id="radialGradient4272"
+       cx="559.84912"
+       cy="491.76758"
+       fx="559.84912"
+       fy="491.76758"
+       r="503.87561"
+       gradientTransform="matrix(1,0,0,0.54173107,0,225.3618)"
+       gradientUnits="userSpaceOnUse" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="1"
+     inkscape:cx="554.93688"
+     inkscape:cy="133.6209"
+     inkscape:document-units="px"
+     inkscape:current-layer="text3039"
+     showgrid="false"
+     inkscape:window-width="1859"
+     inkscape:window-height="1012"
+     inkscape:window-x="0"
+     inkscape:window-y="22"
+     inkscape:window-maximized="0"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0" />
+  <metadata
+     id="metadata5492">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Logo"
+     style="display:inline"
+     transform="translate(-210.49939,-210.02499)">
+    <g
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       id="text3177">
+      <path
+         d="m 305.28064,547.48901 -41.48438,0 0,-173.67187 -53.29687,0 0,-36.28125 148.07812,0 0,36.28125 -53.29687,0 0,173.67187"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
+         id="path3223" />
+    </g>
+    <g
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       id="text3181">
+      <path
+         d="m 423.61774,473.52649 c -15.37509,7e-5 -26.10945,1.96882 -32.20313,5.90625 -6.09381,3.93756 -9.14068,10.68756 -9.14062,20.25 -6e-5,7.12504 2.10931,12.79691 6.32812,17.01562 4.21868,4.21878 9.93743,6.32815 17.15625,6.32813 10.87491,2e-5 19.3124,-4.0781 25.3125,-12.23438 5.99989,-8.24995 8.99989,-19.73431 9,-34.45312 l 0,-2.8125 -16.45312,0 m 57.375,-15.89063 0,89.85938 -40.92188,0 0,-17.57813 c -4.96886,6.93751 -11.34385,12.28126 -19.125,16.03125 -7.78134,3.75 -16.35945,5.625 -25.73437,5.625 -17.90631,0 -31.87504,-4.73437 -41.90625,-14.20312 -9.93752,-9.46873 -14.90627,-22.68747 -14.90625,-39.65625 -2e-5,-18.37493 5.9531,-31.92179 17.85937,-40.64063 11.90621,-8.8124 30.32807,-13.21864 55.26563,-13.21875 l 28.54687,0 0,-6.89062 c -1.1e-4,-6.65613 -2.43761,-11.67175 -7.3125,-15.04688 -4.78135,-3.46862 -11.85947,-5.20299 -21.23437,-5.20312 -9.84383,1.3e-4 -19.40632,1.26575 -28.6875,3.79687 -9.18755,2.43763 -18.79692,6.37512 -28.82813,11.8125 l 0,-35.15625 c 9.09371,-3.74984 18.32808,-6.51546 27.70313,-8.29687 9.37493,-1.78109 19.31242,-2.67171 29.8125,-2.67188 25.59363,1.7e-4 43.54674,5.20329 53.85937,15.60938 10.4061,10.40638 15.60922,29.01574 15.60938,55.82812"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;text-align:start;line-height:125%;writing-mode:lr-tb;text-anchor:start;font-family:DejaVu Sans Mono;-inkscape-font-specification:DejaVu Sans Mono Bold"
+         id="path3220" />
+    </g>
+    <g
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#000000;fill-opacity:1;stroke:none;font-family:Sans"
+       id="text3035">
+      <path
+         d="m 672.772,422.376 c 0,-47.51995 -37.15205,-84.672 -85.248,-84.672 -46.36795,0 -84.384,37.72805 -84.384,83.52 0,46.07995 38.01605,83.52 84.672,83.52 46.36795,0 84.96,-37.44004 84.96,-82.368 m -38.592,-1.152 c 0,26.78397 -20.73603,48.384 -46.08,48.384 -25.91997,0 -46.368,-21.60003 -46.368,-48.96 0,-26.20797 21.02403,-47.808 46.08,-47.808 25.63197,0 46.368,21.88803 46.368,48.384"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor Bold"
+         id="path3217" />
+    </g>
+    <g
+       style="font-size:40px;font-style:normal;font-weight:normal;line-height:125%;letter-spacing:0px;word-spacing:0px;fill:#666666;fill-opacity:1;stroke:none;font-family:Sans"
+       id="text3039">
+      <path
+         d="m 861.544,548.0625 0,-212.832 -38.304,0 0,67.392 c -11.23199,-12.38399 -29.66402,-19.872 -49.824,-19.872 -44.63996,0 -79.776,37.44005 -79.776,85.248 0,47.23195 34.84805,83.808 80.064,83.808 21.59998,0 37.44002,-7.20002 52.704,-24.48 l 0,20.736 35.136,0 m -35.424,-80.64 c 0,27.64797 -20.44803,49.248 -46.368,49.248 -26.78397,0 -47.52,-22.17603 -47.52,-50.4 0,-27.07197 20.44803,-48.384 46.656,-48.384 26.78397,0 47.232,21.60003 47.232,49.536"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#666666;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor Bold"
+         id="path3226" />
+      <path
+         d="m 1038.709,388.5105 -44.064,0 -38.592,103.392 -35.424,-103.392 -43.776,0 58.464,144.576 -29.952,68.256 41.184,0 92.16,-212.832"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#666666;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor Bold"
+         id="path3228" />
+      <path
+         d="m 1199.4355,548.0625 0,-85.536 c 0,-28.51197 -2.88,-42.33601 -11.52,-54.72 -10.368,-14.97599 -27.648,-23.04 -49.824,-23.04 -18.144,0 -30.816,5.47201 -44.928,19.008 l 0,-15.264 -35.424,0 0,159.552 38.304,0 0,-75.168 c 0,-21.31198 1.44,-30.52801 6.336,-38.304 6.048,-9.50399 16.128,-14.688 28.224,-14.688 19.008,0 30.528,7.48804 30.528,50.112 l 0,78.048 38.304,0"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#666666;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor Bold"
+         id="path3230" />
+      <path
+         d="m 1389.979,470.5905 c 0,-49.53595 -34.848,-85.824 -82.368,-85.824 -46.944,0 -84.096,37.15205 -84.096,84.096 0,46.65595 37.728,82.944 86.4,82.944 32.256,0 65.376,-18.14403 76.032,-50.976 l -41.76,0 c -9.792,11.51999 -19.296,15.84 -35.136,15.84 -22.752,0 -39.456,-12.09602 -44.064,-31.392 l 123.552,0 c 1.152,-5.47199 1.44,-8.92801 1.44,-14.688 m -37.728,-19.008 -88.416,0 c 6.048,-20.44798 21.6,-31.68 44.352,-31.68 23.616,0 39.168,11.23202 44.064,31.68"
+         style="font-size:288px;font-variant:normal;font-weight:bold;font-stretch:normal;fill:#666666;font-family:TeX Gyre Adventor;-inkscape-font-specification:TeX Gyre Adventor Bold"
+         id="path3232" />
+    </g>
+    <rect
+       style="fill:#000000;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       id="rect3047"
+       width="132"
+       height="36"
+       x="523.375"
+       y="-565.75"
+       rx="18"
+       ry="18"
+       transform="scale(1,-1)" />
+    <rect
+       style="fill:#eeaa11;fill-opacity:1;fill-rule:evenodd;stroke:none"
+       id="rect3857"
+       width="36"
+       height="100"
+       x="571.01245"
+       y="210.02499"
+       rx="18"
+       ry="18" />
+    <rect
+       style="fill:#dd3311;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+       id="rect3857-1"
+       width="36"
+       height="100"
+       x="282.21094"
+       y="448.51941"
+       rx="18"
+       ry="18"
+       transform="matrix(0.8660254,-0.5,0.5,0.8660254,0,0)" />
+    <rect
+       style="fill:#aa0022;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+       id="rect3857-0"
+       width="36"
+       height="100"
+       x="-88.260536"
+       y="-610.18018"
+       rx="18"
+       ry="18"
+       transform="matrix(0.5,-0.8660254,-0.8660254,-0.5,0,0)" />
+    <rect
+       style="fill:#88bb00;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+       id="rect3857-5"
+       width="36"
+       height="100"
+       x="701.81683"
+       y="-141.11562"
+       rx="18"
+       ry="18"
+       transform="matrix(0.8660254,0.5,-0.5,0.8660254,0,0)" />
+    <rect
+       style="fill:#229988;fill-opacity:1;fill-rule:evenodd;stroke:none;display:inline"
+       id="rect3857-7"
+       width="36"
+       height="100"
+       x="641.78955"
+       y="-510.414"
+       rx="18"
+       ry="18"
+       transform="matrix(0.5,0.8660254,-0.8660254,0.5,0,0)" />
+  </g>
+</svg>

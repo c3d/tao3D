@@ -325,6 +325,8 @@ public:
         QString source; // .xl content, non-null only after full text search
         module_preferences_fn show_preferences;
         QTranslator * translator;
+        // Module documentation files, may be empty
+        QStringList qchFiles;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -380,6 +382,8 @@ public:
         {
             if ((+name).contains(keyword))
                 return true;
+            if ((+importName).contains(keyword))
+                return true;
             if ((+desc).contains(keyword))
                 return true;
             if (searchSource)
@@ -425,6 +429,7 @@ public:
     static bool         versionMatches(double ver, double ref);
     bool                hasPendingUpdate(QString moduleDir);
     QString             latestTag(QString moduleDir);
+    QStringList         qchFiles();
 
 signals:
     void                checking(QString name);

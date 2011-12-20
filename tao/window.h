@@ -51,6 +51,7 @@ class Uri;
 class ToolWindow;
 class XLSourceEdit;
 class Repository;
+class Assistant;
 
 
 class Window : public QMainWindow
@@ -105,7 +106,7 @@ public slots:
     void sourceViewBecameVisible(bool visible);
 #endif
     int  open(QString fileName = "", bool readOnly = false);
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     void openUri();
 #endif
     void pageSetup();
@@ -154,6 +155,10 @@ private slots:
     void checkout();
     void selectiveUndo();
     void clone();
+    void checkDetachedHead();
+    void reloadCurrentFile();
+#endif
+#ifndef CFG_NONETWORK
     void onDocReady(QString path);
     void onNewTemplateInstalled(QString path);
     void onTemplateUpToDate(QString path);
@@ -162,8 +167,6 @@ private slots:
     void onModuleUpToDate(QString path);
     void onModuleUpdated(QString path);
     void onUriGetFailed();
-    void checkDetachedHead();
-    void reloadCurrentFile();
 #endif
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     void clearUndoStack();
@@ -172,10 +175,13 @@ private slots:
     void preferences();
     void licenses();
     void onlineDoc();
-    void onlineDocTaodyne();
     void documentWasModified();
     void checkFiles();
     void displayModeTriggered(bool on);
+#ifdef CFG_TIMED_FULLSCREEN
+    void leaveFullScreen();
+    void restartFullScreenTimer();
+#endif
 
 private:
     void     createActions();
@@ -228,6 +234,9 @@ private:
     Uri              *uri;
 #ifndef CFG_NOFULLSCREEN
     bool              slideShowMode;
+#ifdef CFG_TIMED_FULLSCREEN
+    QTimer            fullScreenTimer;
+#endif
 #endif
     bool              unifiedTitleAndToolBarOnMac;
 
@@ -261,7 +270,7 @@ private:
     QAction          *pageSetupAct;
     QAction          *closeAct;
     QAction          *exitAct;
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     QAction          *openUriAct;
 #endif
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
@@ -278,7 +287,7 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
-    QAction          *onlineDocTaodyneAct;
+    Assistant        *assistant;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

@@ -17,10 +17,8 @@ THISDIR=`dirname $0`
 # Copy DLLs required by Tao into build_root/
 #
 
-(
-cd $THISDIR
-export PATH=$PATH:.
-for f in `bin/ldd build_root/Tao.exe | \
+cp_deps() {
+for f in `bin/ldd $1 | \
           grep -v -i 'build_root' | \
           grep -v -i 'windows/sys' | \
           grep -v -i 'ntdll.dll' | \
@@ -30,6 +28,14 @@ for f in `bin/ldd build_root/Tao.exe | \
 do 
     doo cp $f build_root/
 done
+
+}
+
+(
+cd $THISDIR
+export PATH=$PATH:.
+cp_deps build_root/Tao.exe
+cp_deps build_root/assistant.exe
 doo cp "${LIBDIR_QT}/../bin/QtXml4.dll" build_root/
 
 doo cp -r "${LIBDIR_QT}"/../plugins/* build_root/

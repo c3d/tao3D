@@ -587,6 +587,22 @@ double DisplayDriver::eyeSeparation()
 }
 
 
+int DisplayDriver::getCurrentEye()
+// ----------------------------------------------------------------------------
+//   Current eye
+// ----------------------------------------------------------------------------
+{
+    return Widget::Tao()->eye;
+}
+
+int DisplayDriver::getEyesNumber()
+// ----------------------------------------------------------------------------
+//   Number of eyes
+// ----------------------------------------------------------------------------
+{
+    return Widget::Tao()->eyesNumber;
+}
+
 void DisplayDriver::setStereoPlanes(int planes)
 // ----------------------------------------------------------------------------
 //   Set the number of views per frame (for statistics)
@@ -663,6 +679,10 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     double shiftLength = eyeSeparation() * delta;
     Vector3 toTarget = cameraTarget - cameraPosition;
     Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
+
+    // Update current eye and eyes number
+    Widget::Tao()->eye = i;
+    Widget::Tao()->eyesNumber = numCameras;
 
     gluLookAt(cameraPosition.x + shift.x,
               cameraPosition.y + shift.y,

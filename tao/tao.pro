@@ -32,6 +32,7 @@ QT += webkit \
     network \
     opengl \
     svg
+CONFIG += help
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -130,6 +131,7 @@ HEADERS += widget.h \
     gc_thread.h \
     info_trash_can.h \
     destination_folder_dialog.h \
+    assistant.h \
     include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
@@ -194,6 +196,7 @@ SOURCES += tao_main.cpp \
     statistics.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
+    assistant.cpp \
     destination_folder_dialog.cpp
 
 win32 {
@@ -225,13 +228,11 @@ contains(DEFINES, CFG_NOGIT) {
         history_playback.h \
         history_playback_tool.h \
         merge_dialog.h \
-        open_uri_dialog.h \
         pull_from_dialog.h \
         push_dialog.h \
         remote_selection_frame.h \
         selective_undo_dialog.h \
-        undo.h \
-        uri.h
+        undo.h
     SOURCES += \
         ansi_textedit.cpp \
         branch_selection_combobox.cpp \
@@ -251,23 +252,32 @@ contains(DEFINES, CFG_NOGIT) {
         history_playback.cpp \
         history_playback_tool.cpp \
         merge_dialog.cpp \
-        open_uri_dialog.cpp \
         pull_from_dialog.cpp \
         push_dialog.cpp \
         remote_selection_frame.cpp \
         selective_undo_dialog.cpp \
-        undo.cpp \
-        uri.cpp
+        undo.cpp
     FORMS += \
         pull_from_dialog.ui \
         remote_selection_frame.ui \
         clone_dialog.ui \
         merge_dialog.ui \
         history_dialog.ui \
-        open_uri_dialog.ui \
         fetch_push_dialog.ui \
         history_frame.ui \
         diff_dialog.ui
+}
+contains(DEFINES, CFG_NONETWORK) {
+    !build_pass:message("File>Open Nework and opening URIs (docs, templates, modules) is disabled")
+} else {
+    HEADERS += \
+        open_uri_dialog.h \
+        uri.h
+    SOURCES += \
+        open_uri_dialog.cpp \
+        uri.cpp
+    FORMS += \
+        open_uri_dialog.ui
 }
 contains(DEFINES, CFG_NOSTEREO) {
     !build_pass:message("Stereoscopic display support is disabled")
@@ -394,6 +404,11 @@ QMAKE_CLEAN += tao.xl
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
+
+welcome.path  = $$APPINST/welcome
+welcome.files = welcome/*.png welcome/*.svg
+INSTALLS += welcome
+
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*

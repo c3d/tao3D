@@ -13,10 +13,6 @@
  *
  * The reference pages also contain some examples.
  *
- * @note The latest version of this documentation is available online at
- * http://taodyne.com/taopresentations/1.0/doc/ with <b>full text search</b>
- * capability.
- *
  * You may find more information and the latest news about Tao Presentations on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
  *
@@ -31,9 +27,11 @@
  * (french commentary):
  *
  * @htmlonly
-   <iframe width="560" height="349"
-    src="http://www.youtube.com/embed/LpPwjB46E5I?rel=0&iv_load_policy=3"
-    frameborder="0" allowfullscreen></iframe>
+ * <a href="http://youtube.com/watch?v=LpPwjB46E5I">
+ * @endhtmlonly
+ * @image html youtube_tuto.png
+ * @htmlonly
+ * </a>
  * @endhtmlonly
  *
  * A number of examples are available as @a templates. To create a new Tao
@@ -251,8 +249,9 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%%APPDATA%\\Tao Presentations</tt> on Windows,
- * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
+ * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
+ * <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX,
+ * and <tt>$HOME/.local/Taodyne/Tao Presentations</tt> on Linux.
  * The application folder is where Tao Presentation is installed.
  * 
  * @section secExtensions Adding Extensions

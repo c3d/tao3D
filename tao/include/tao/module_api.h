@@ -276,6 +276,12 @@ struct ModuleApi
     // the left and the right eye (or camera).
     double (*eyeSeparation)();
 
+    // Get current eye
+    int (*getCurrentEye)();
+
+    // Get total of eyes
+    int (*getEyesNumber)();
+
     // Tell Tao if the current point of view is to be used for selection/
     // mouse activities. When rendering multiple views per frame, you
     // normally set this for only one view.

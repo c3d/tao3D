@@ -241,6 +241,12 @@ PREFIX(TextureWrap,  tree,  "texture_wrap",
        GROUP(graph)
        SYNOPSIS("wrap textures or clamp them")
        DESCRIPTION("Record if we want to wrap textures or clamp them"))
+PREFIX(SetTextureMode,  tree,  "texture_mode",
+       PARM(mode, text, "[TODO]"),
+       RTAO(textureMode(self, mode)),
+       GROUP(graph)
+       SYNOPSIS("choose mode of blending of the textures")
+       DESCRIPTION("Record mode of blending of the textures"))
 PREFIX(TextureTransform,  tree,  "texture_transform",
        PARM(t, code, "[TODO]"),
        RTAO(textureTransform(context, self, t)),
@@ -266,6 +272,12 @@ PREFIX(TextureType,  tree,  "texture_type",,
        SYNOPSIS("Return current texture type.")
        DESCRIPTION("Return current texture type.")
        RETURNS(tree, "The current texture type."))
+PREFIX(TextureMode,  tree,  "texture_mode",,
+       RTAO(textureMode(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture mode.")
+       DESCRIPTION("Return current texture mode.")
+       RETURNS(tree, "The current texture mode."))
 PREFIX(TextureId,  tree,  "texture",,
        RTAO(textureId(self)),
        GROUP(graph)

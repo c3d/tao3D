@@ -38,3 +38,7 @@ INSTALLS += translations
 
 LICENSE_FILES = lens_flare.taokey.notsigned
 include(../licenses.pri)
+
+QMAKE_SUBSTITUTES = doc/Doxyfile.in
+DOXYFILE = doc/Doxyfile
+include(../modules_doc.pri)

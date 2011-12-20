@@ -146,7 +146,7 @@ private:
 #endif
     ModuleManager * moduleManager;
     bool         doNotEnterEventLoop;
-    QTranslator  translator, qtTranslator;
+    QTranslator  translator, qtTranslator, qtHelpTranslator;
     bool         appInitialized;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;

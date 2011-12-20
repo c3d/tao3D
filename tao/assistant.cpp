@@ -285,7 +285,8 @@ QString Assistant::assistantPath()
 #if !defined(Q_OS_MAC)
     app += QLatin1String("assistant");
 #else
-    app += QLatin1String("Assistant.app/Contents/MacOS/Assistant");
+    app += QLatin1String("Tao Presentations Help.app/Contents/MacOS/"
+                         "Tao Presentations Help");
 #endif
     return app;
 }

@@ -173,5 +173,5 @@ TRANSLATIONS = assistant_fr.ts
 include(../translations.pri)
 macx:translations.path = $$APPINST/$${TARGET}.app/Contents/MacOS
 !macx:translations.path = $$APPINST
-translations.files = *.qm
+translations.files = *_fr.qm $$[QT_INSTALL_TRANSLATIONS]/qt_fr.qm $$[QT_INSTALL_TRANSLATIONS]/qt_help_fr.qm
 INSTALLS += translations

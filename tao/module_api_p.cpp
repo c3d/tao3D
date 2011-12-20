@@ -86,7 +86,6 @@ ModuleApiPrivate::ModuleApiPrivate()
     setMouseTrackingViewport     = DisplayDriver::setMouseTrackingViewport;
     setWatermarkText             = Widget::setWatermarkTextAPI;
     drawWatermark                = Widget::drawWatermarkAPI;
-    _2dPlusDepthBackground       = Widget::_2dPlusDepthBackgroundAPI;
 
     // Framebuffer API
     newFrameBufferObject       = FrameInfo::newFrameBufferObject;

@@ -447,16 +447,17 @@ bool ModuleManager::loadAll(Context *context)
 }
 
 
-bool ModuleManager::loadAnonymousNative(Context *context)
+bool ModuleManager::loadAutoLoadModules(Context *context)
 // ----------------------------------------------------------------------------
-//   Load native code for all modules that do not have an import_name
+//   Load and init native code for all modules that are marked auto-load
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
     {
         modules[+m.id].context = context;
-        if (m.enabled && !m.loaded && m.path != "" && m.importName == "")
+        if (m.enabled && !m.loaded && m.path != "" && (m.importName == "" ||
+                                                       m.autoLoad))
             ok &= loadNative(context, m);
     }
     return ok;
@@ -641,6 +642,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.author = +moduleAttr(tree, "author");
                 m.website = +moduleAttr(tree, "website");
                 m.importName = +moduleAttr(tree, "import_name");
+                m.autoLoad = (moduleAttr(tree, "auto_load") != "");
             }
             else
             {
@@ -1081,6 +1083,7 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Name:       " <<  m.name << "\n";
     debug() << "  Import:     " <<  m.importName << "\n";
+    debug() << "  Auto load:  " <<  m.autoLoad << "\n";
     debug() << "  Author:     " <<  m.author << "\n";
     debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";

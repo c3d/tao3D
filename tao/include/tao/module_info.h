@@ -34,7 +34,7 @@ struct ModuleInfo
 {
     ModuleInfo() {}
     ModuleInfo(std::string id, std::string path)
-        : id(id), path(path), ver(1.0) {}
+        : id(id), path(path), ver(1.0), autoLoad(false) {}
 
     std::string id;
     std::string path;  // Qt format (e.g., "/Users/foo", "C:/Users/foo")
@@ -45,6 +45,7 @@ struct ModuleInfo
     std::string author;
     std::string website;
     std::string importName;
+    bool        autoLoad;
 };
 
 }

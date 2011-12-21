@@ -13,8 +13,10 @@ MAKENSIS = makensis
 RM_RF = rm -rf
 BITMAPS = inst_header.bmp uninst_header.bmp inst_welcome_finish.bmp uninst_welcome_finish.bmp
 
+INSTALLER=Tao Presentations $(shell ../../tao/updaterev.sh -n).exe
 define run-nsis
 $(MAKENSIS) -DOUTFILE=taosetup.exe tao.nsi
+mv taosetup.exe "$(INSTALLER)"
 endef
 
 
@@ -34,7 +36,7 @@ prepare tao_install:
 	cp -Rp ../../sdk build_root
 
 clean:
-	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh
+	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh "$(INSTALLER)"
 
 %.bmp:%.bmp.gz
 	gunzip -c $< >$@

@@ -303,6 +303,7 @@ struct ModuleApi
     // mask are disabled. The text is set by setWatermarkText().
     void   (*drawWatermark)();
 
+
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture
     // ------------------------------------------------------------------------

@@ -94,6 +94,14 @@ private:
     text                company;
     text                address;
     text                email;
+    struct LicenceFile
+    {
+        std::vector<Licence>licences;
+        text                name;
+        text                company;
+        text                address;
+        text                email;
+    };
 
 private:
     Licences();
@@ -104,11 +112,11 @@ private:
     void addLicenceFiles(const QFileInfoList &files);
     int  licenceRemainingDays(text feature);
     void licenceError(kstring file, QString reason);
-    text toText(std::vector<Licence> &licences);
+    text toText(LicenceFile &lf);
 #ifdef KEYGEN
-    text sign(std::vector<Licence> &licences);
+    text sign(LicenceFile &lf);
 #endif
-    bool verify(std::vector<Licence> &licences, text signature);
+    bool verify(LicenceFile &lf, text signature);
     std::ostream & debug();
 };
 

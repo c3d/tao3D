@@ -1353,7 +1353,7 @@ void Window::licenses()
                 "loaded automatically.</p>"
                 "<center><a href=\"%1%2\">"
                 "Open the license folder</a></center>"
-                ).arg(prefix).arg(Application::defaultLicenseFolderPath());
+                ).arg(prefix).arg(Application::userLicenseFolderPath());
 
     QMessageBox *msgBox = new QMessageBox;
     msgBox->setAttribute(Qt::WA_DeleteOnClose);

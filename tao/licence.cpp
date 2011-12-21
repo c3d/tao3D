@@ -341,6 +341,21 @@ void Licences::addLicenceFile(kstring licfname)
 }
 
 
+void Licences::addLicenceFiles(const QFileInfoList &files)
+// ----------------------------------------------------------------------------
+//   Add several licence files
+// ----------------------------------------------------------------------------
+{
+    foreach (QFileInfo file, files)
+    {
+        text path = +file.canonicalFilePath();
+        IFTRACE(fileload)
+            std::cerr << "Loading license file: " << path << "\n";
+        Licences::AddLicenceFile(path.c_str());
+    }
+}
+
+
 text Licences::toText(std::vector<Licence> &licences)
 // ----------------------------------------------------------------------------
 //    Create a stream for the licence contents

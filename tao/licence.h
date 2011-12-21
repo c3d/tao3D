@@ -27,6 +27,7 @@
 #include <vector>
 #include <QRegExp>
 #include <QDateTime>
+#include <QFileInfoList>
 
 
 namespace Tao
@@ -43,6 +44,11 @@ public:
     static void AddLicenceFile(kstring lfile)
     {
         return LM().addLicenceFile(lfile);
+    }
+
+    static void AddLicenceFiles(const QFileInfoList &files)
+    {
+        return LM().addLicenceFiles(files);
     }
 
 #ifndef KEYGEN
@@ -95,6 +101,7 @@ private:
     static Licences &LM();
 
     void addLicenceFile(kstring licfname);
+    void addLicenceFiles(const QFileInfoList &files);
     int  licenceRemainingDays(text feature);
     void licenceError(kstring file, QString reason);
     text toText(std::vector<Licence> &licences);

@@ -4,7 +4,7 @@
 <context>
     <name>AboutDialog</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/aboutdialog.cpp" line="+117"/>
+        <location filename="aboutdialog.cpp" line="+117"/>
         <source>&amp;Close</source>
         <translation>&amp;Fermer</translation>
     </message>
@@ -32,7 +32,7 @@
 <context>
     <name>Assistant</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/main.cpp" line="+177"/>
+        <location filename="main.cpp" line="+177"/>
         <source>Error registering documentation file &apos;%1&apos;: %2</source>
         <translation>Erreur lors de l&apos;enregistrement du fichier de documentation &apos;%1&apos; : %2</translation>
     </message>
@@ -78,22 +78,22 @@ Raison :
         <translation>Documentation retirée avec succès.</translation>
     </message>
     <message>
-        <location line="+55"/>
+        <location line="+56"/>
+        <location line="+18"/>
         <source>Error reading collection file &apos;%1&apos;: %2.</source>
         <translation>Erreur lors de la lecture du fichier de collection &apos;%1&apos; : %2.</translation>
     </message>
     <message>
-        <location line="+11"/>
+        <location line="-7"/>
         <source>Error creating collection file &apos;%1&apos;: %2.</source>
         <translation>Erreur lors de la création du fichier de collection &apos;%1&apos; : %2.</translation>
     </message>
     <message>
-        <location line="+7"/>
         <source>Error reading collection file &apos;%1&apos;: %2</source>
-        <translation>Erreur lors de la lecture du fichier de collection &apos;%1&apos; : %2</translation>
+        <translation type="obsolete">Erreur lors de la lecture du fichier de collection &apos;%1&apos; : %2</translation>
     </message>
     <message>
-        <location line="+53"/>
+        <location line="+60"/>
         <source>Cannot load sqlite database driver!</source>
         <translation>Impossible de charger le driver de la base de données sqlite !</translation>
     </message>
@@ -101,27 +101,27 @@ Raison :
 <context>
     <name>BookmarkDialog</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkdialog.ui"/>
+        <location filename="bookmarkdialog.ui" line="+20"/>
         <source>Add Bookmark</source>
         <translation>Ajouter un signet</translation>
     </message>
     <message>
-        <location/>
+        <location line="+10"/>
         <source>Bookmark:</source>
         <translation>Signet :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Add in Folder:</source>
         <translation>Ajouter dans le dossier :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+29"/>
         <source>+</source>
         <translation>+</translation>
     </message>
     <message>
-        <location/>
+        <location line="+37"/>
         <source>New Folder</source>
         <translation>Nouveau dossier</translation>
     </message>
@@ -134,9 +134,22 @@ Raison :
         <translation type="obsolete">Supprimer le dossier</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkdialog.cpp" line="+227"/>
+        <location filename="bookmarkdialog.cpp" line="+227"/>
         <source>Rename Folder</source>
         <translation>Renommer le dossier</translation>
+    </message>
+</context>
+<context>
+    <name>BookmarkItem</name>
+    <message>
+        <location filename="bookmarkitem.cpp" line="+152"/>
+        <source>New Folder</source>
+        <translation type="unfinished">Nouveau dossier</translation>
+    </message>
+    <message>
+        <location line="+1"/>
+        <source>Untitled</source>
+        <translation type="unfinished">Sans titre</translation>
     </message>
 </context>
 <context>
@@ -146,7 +159,7 @@ Raison :
         <translation type="obsolete">Signets</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkmanager.cpp" line="+151"/>
+        <location filename="bookmarkmanager.cpp" line="+151"/>
         <source>Untitled</source>
         <translation>Sans titre</translation>
     </message>
@@ -213,34 +226,34 @@ Raison :
 <context>
     <name>BookmarkManagerWidget</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkmanagerwidget.ui"/>
+        <location filename="bookmarkmanagerwidget.ui" line="+14"/>
         <source>Manage Bookmarks</source>
         <translation>Gestion des signets</translation>
     </message>
     <message>
-        <location/>
+        <location line="+21"/>
         <source>Search:</source>
         <translation>Recherche :</translation>
     </message>
     <message>
-        <location/>
-        <location filename="../tools/assistant/tools/assistant/bookmarkmanagerwidget.cpp" line="+258"/>
+        <location line="+48"/>
+        <location filename="bookmarkmanagerwidget.cpp" line="+258"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Import and Backup</source>
         <translation>Importation et sauvegarde</translation>
     </message>
     <message>
-        <location/>
-        <location filename="../tools/assistant/tools/assistant/bookmarkmanagerwidget.cpp" line="-30"/>
+        <location line="+20"/>
+        <location filename="bookmarkmanagerwidget.cpp" line="-30"/>
         <source>OK</source>
         <translation>OK</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkmanagerwidget.cpp" line="-142"/>
+        <location filename="bookmarkmanagerwidget.cpp" line="-142"/>
         <source>Import...</source>
         <translation>Importer...</translation>
     </message>
@@ -314,7 +327,7 @@ Raison :
 <context>
     <name>BookmarkModel</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkmodel.cpp" line="+88"/>
+        <location filename="bookmarkmodel.cpp" line="+88"/>
         <source>Name</source>
         <translation>Nom</translation>
     </message>
@@ -356,22 +369,22 @@ Raison :
         <translation type="obsolete">Renommer le signet</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/bookmarkwidget.ui"/>
+        <location filename="bookmarkwidget.ui" line="+25"/>
         <source>Filter:</source>
         <translation>Filtre :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+43"/>
         <source>Add</source>
         <translation>Ajouter</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Remove</source>
         <translation>Retirer</translation>
     </message>
     <message>
-        <location/>
+        <location line="-61"/>
         <source>Bookmarks</source>
         <translation>Signets</translation>
     </message>
@@ -379,7 +392,7 @@ Raison :
 <context>
     <name>CentralWidget</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/centralwidget.cpp" line="+121"/>
+        <location filename="centralwidget.cpp" line="+121"/>
         <source>Add new page</source>
         <translation>Créer une nouvelle page</translation>
     </message>
@@ -428,7 +441,41 @@ Raison :
 <context>
     <name>CmdLineParser</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/cmdlineparser.cpp" line="+137"/>
+        <location filename="cmdlineparser.cpp" line="+51"/>
+        <source>Usage: assistant [Options]
+
+-collectionFile file       Uses the specified collection
+                           file instead of the default one
+-showUrl url               Shows the document with the
+                           url.
+-enableRemoteControl       Enables Assistant to be
+                           remotely controlled.
+-show widget               Shows the specified dockwidget
+                           which can be &quot;contents&quot;, &quot;index&quot;,
+                           &quot;bookmarks&quot; or &quot;search&quot;.
+-activate widget           Activates the specified dockwidget
+                           which can be &quot;contents&quot;, &quot;index&quot;,
+                           &quot;bookmarks&quot; or &quot;search&quot;.
+-hide widget               Hides the specified dockwidget
+                           which can be &quot;contents&quot;, &quot;index&quot;
+                           &quot;bookmarks&quot; or &quot;search&quot;.
+-register helpFile         Registers the specified help file
+                           (.qch) in the given collection
+                           file.
+-unregister helpFile       Unregisters the specified help file
+                           (.qch) from the give collection
+                           file.
+-setCurrentFilter filter   Set the filter as the active filter.
+-remove-search-index       Removes the full text search index.
+-rebuild-search-index      Re-builds the full text search index (potentially slow).
+-quiet                     Does not display any error or
+                           status message.
+-help                      Displays this help.
+</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+86"/>
         <source>Unknown option: %1</source>
         <translation>Option inconnue : %1</translation>
     </message>
@@ -491,7 +538,7 @@ Raison :
 <context>
     <name>ContentWindow</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/contentwindow.cpp" line="+173"/>
+        <location filename="contentwindow.cpp" line="+173"/>
         <source>Open Link</source>
         <translation>Ouvrir le lien</translation>
     </message>
@@ -504,12 +551,12 @@ Raison :
 <context>
     <name>FilterNameDialogClass</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/filternamedialog.ui"/>
+        <location filename="filternamedialog.ui" line="+13"/>
         <source>Add Filter Name</source>
         <translation>Ajouter un filtre</translation>
     </message>
     <message>
-        <location/>
+        <location line="+12"/>
         <source>Filter Name:</source>
         <translation>Nom du filtre :</translation>
     </message>
@@ -517,7 +564,7 @@ Raison :
 <context>
     <name>FindWidget</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/findwidget.cpp" line="+85"/>
+        <location filename="findwidget.cpp" line="+85"/>
         <source>Previous</source>
         <translation>Précédent</translation>
     </message>
@@ -544,7 +591,7 @@ Raison :
 <context>
     <name>FontPanel</name>
     <message>
-        <location filename="../tools/shared/fontpanel/fontpanel.cpp" line="+63"/>
+        <location filename="fontpanel.cpp" line="+63"/>
         <source>Font</source>
         <translation>Police</translation>
     </message>
@@ -570,14 +617,22 @@ Raison :
     </message>
 </context>
 <context>
+    <name>HelpEngineWrapper</name>
+    <message>
+        <location filename="helpenginewrapper.cpp" line="+117"/>
+        <source>Unfiltered</source>
+        <translation type="unfinished">Non-filtré</translation>
+    </message>
+</context>
+<context>
     <name>HelpViewer</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/helpviewer_qwv.cpp" line="+260"/>
+        <location filename="helpviewer_qwv.cpp" line="+260"/>
         <source>Open Link in New Tab</source>
         <translation>Ouvrir le lien dans un nouvel onglet</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/helpviewer.cpp" line="+58"/>
+        <location filename="helpviewer.cpp" line="+58"/>
         <source>&lt;title&gt;about:blank&lt;/title&gt;</source>
         <translatorcomment>y&apos;a t&apos;il une autre traduction dans Firefox &amp; cie ?</translatorcomment>
         <translation>&lt;title&gt;about:blank&lt;/title&gt;</translation>
@@ -602,21 +657,19 @@ Raison :
         <translation type="obsolete">OK</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/helpviewer_qtb.cpp" line="+230"/>
         <source>Copy &amp;Link Location</source>
-        <translation>Copier l&apos;&amp;adresse cible</translation>
+        <translation type="obsolete">Copier l&apos;&amp;adresse cible</translation>
     </message>
     <message>
-        <location line="+3"/>
         <source>Open Link in New Tab	Ctrl+LMB</source>
         <translatorcomment>LMB? ← ouais exactement pareil...</translatorcomment>
-        <translation>Ouvrir dans un nouvel onglet	Ctrl+clic gauche</translation>
+        <translation type="obsolete">Ouvrir dans un nouvel onglet	Ctrl+clic gauche</translation>
     </message>
 </context>
 <context>
     <name>IndexWindow</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/indexwindow.cpp" line="+68"/>
+        <location filename="indexwindow.cpp" line="+68"/>
         <source>&amp;Look for:</source>
         <translation>&amp;Rechercher :</translation>
     </message>
@@ -634,43 +687,43 @@ Raison :
 <context>
     <name>InstallDialog</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/installdialog.ui"/>
-        <location filename="../tools/assistant/tools/assistant/installdialog.cpp" line="+78"/>
+        <location filename="installdialog.ui" line="+13"/>
+        <location filename="installdialog.cpp" line="+78"/>
         <source>Install Documentation</source>
         <translation>Installer la documentation</translation>
     </message>
     <message>
-        <location/>
+        <location line="+6"/>
         <source>Available Documentation:</source>
         <translation>Documentation disponible :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+10"/>
         <source>Install</source>
         <translation>Installer</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Close</source>
         <translation>Fermer</translation>
     </message>
     <message>
-        <location/>
+        <location line="+20"/>
         <source>Installation Path:</source>
         <translation>Chemin d&apos;installation :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+10"/>
         <source>...</source>
         <translation>...</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/installdialog.cpp" line="+33"/>
+        <location filename="installdialog.cpp" line="+33"/>
         <source>Downloading documentation info...</source>
         <translation>Téléchargement des informations de la documentation...</translation>
     </message>
@@ -734,26 +787,25 @@ Raison :
 <context>
     <name>MainWindow</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/mainwindow.cpp" line="+123"/>
-        <location line="+369"/>
+        <location filename="mainwindow.cpp" line="+123"/>
+        <location line="+374"/>
         <source>Index</source>
         <translation>Index</translation>
     </message>
     <message>
-        <location line="-363"/>
-        <location line="+361"/>
+        <location line="-368"/>
+        <location line="+366"/>
         <source>Contents</source>
         <translation>Sommaire</translation>
     </message>
     <message>
-        <location line="-354"/>
-        <location line="+358"/>
+        <location line="-359"/>
+        <location line="+363"/>
         <source>Bookmarks</source>
         <translation>Signets</translation>
     </message>
     <message>
-        <location line="-336"/>
-        <location line="+680"/>
+        <location line="+344"/>
         <location line="+284"/>
         <source>Qt Assistant</source>
         <translation>Qt Assistant</translation>
@@ -793,7 +845,12 @@ Raison :
         <translation>Nouvel ongle&amp;t</translation>
     </message>
     <message>
-        <location line="+17"/>
+        <location line="-259"/>
+        <source>Tao Presentations Help</source>
+        <translation>Aide de Tao Presentations</translation>
+    </message>
+    <message>
+        <location line="+276"/>
         <source>&amp;Close Tab</source>
         <translation>&amp;Fermer l&apos;onglet</translation>
     </message>
@@ -953,7 +1010,12 @@ Raison :
         <translation>Si&amp;gnets</translation>
     </message>
     <message>
-        <location line="+592"/>
+        <location line="+303"/>
+        <source>&lt;center&gt;&lt;h3&gt;%1&lt;/h3&gt;&lt;p&gt;Version %2&lt;/p&gt;&lt;/center&gt;&lt;p&gt;Copyright (C) 2011 Nokia Corporation and/or its subsidiary(-ies).&lt;/p&gt;</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location line="+289"/>
         <source>Could not register file &apos;%1&apos;: %2</source>
         <translation>Impossible d&apos;enregistrer le fichier &apos;%1&apos; : %2</translation>
     </message>
@@ -1045,7 +1107,7 @@ Raison :
 <context>
     <name>PreferencesDialog</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/preferencesdialog.cpp" line="+252"/>
+        <location filename="preferencesdialog.cpp" line="+252"/>
         <location line="+44"/>
         <source>Add Documentation</source>
         <translation>Ajouter de la documentation</translation>
@@ -1094,118 +1156,119 @@ Raison :
 <context>
     <name>PreferencesDialogClass</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/preferencesdialog.ui"/>
+        <location filename="preferencesdialog.ui" line="+14"/>
         <source>Preferences</source>
         <translation>Préférences</translation>
     </message>
     <message>
-        <location/>
+        <location line="+10"/>
         <source>Fonts</source>
         <translation>Polices</translation>
     </message>
     <message>
-        <location/>
+        <location line="+14"/>
         <source>Font settings:</source>
         <translation>Configuration des polices :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+8"/>
         <source>Browser</source>
         <translation>Navigateur</translation>
     </message>
     <message>
-        <location/>
+        <location line="+5"/>
         <source>Application</source>
         <translation>Application</translation>
     </message>
     <message>
-        <location/>
+        <location line="+19"/>
         <source>Filters</source>
         <translation>Filtres</translation>
     </message>
     <message>
-        <location/>
+        <location line="+6"/>
         <source>Filter:</source>
         <translation>Filtre :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+10"/>
         <source>Attributes:</source>
         <translation>Attributs :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+11"/>
         <source>1</source>
         <translation>1</translation>
     </message>
     <message>
-        <location/>
+        <location line="+8"/>
         <source>Add</source>
         <translation>Ajouter</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
+        <location line="+51"/>
         <source>Remove</source>
         <translation>Supprimer</translation>
     </message>
     <message>
-        <location/>
+        <location line="-43"/>
         <source>Documentation</source>
         <translation>Documentation</translation>
     </message>
     <message>
-        <location/>
+        <location line="+6"/>
         <source>Registered Documentation:</source>
         <translatorcomment>documentation enregistrée ? ← je préfère référencée pour les deux...</translatorcomment>
         <translation>Documentation référencée :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+30"/>
         <source>Add...</source>
         <translation>Ajouter...</translation>
     </message>
     <message>
-        <location/>
+        <location line="+32"/>
         <source>Options</source>
         <translation>Options</translation>
     </message>
     <message>
-        <location/>
+        <location line="+18"/>
         <source>On help start:</source>
         <translation>Au démarrage :</translation>
     </message>
     <message>
-        <location/>
+        <location line="+14"/>
         <source>Show my home page</source>
         <translation>Afficher ma page d&apos;accueil</translation>
     </message>
     <message>
-        <location/>
+        <location line="+5"/>
         <source>Show a blank page</source>
         <translation>Afficher une page blanche</translation>
     </message>
     <message>
-        <location/>
+        <location line="+5"/>
         <source>Show my tabs from last session</source>
         <translation>Afficher mes onglets de la dernière session</translation>
     </message>
     <message>
-        <location/>
+        <location line="+32"/>
         <source>Homepage</source>
         <translation>Page d&apos;accueil</translation>
     </message>
     <message>
-        <location/>
+        <location line="+27"/>
         <source>Current Page</source>
         <translation>Page courante</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Blank Page</source>
         <translation>Page blanche</translation>
     </message>
     <message>
-        <location/>
+        <location line="+7"/>
         <source>Restore to default</source>
         <translation>Restaurer les valeurs par défaut</translation>
     </message>
@@ -1300,7 +1363,7 @@ Raison :
 <context>
     <name>RemoteControl</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/remotecontrol.cpp" line="+165"/>
+        <location filename="remotecontrol.cpp" line="+165"/>
         <source>Debugging Remote Control</source>
         <translation>Débogage du contrôle à distance</translation>
     </message>
@@ -1313,7 +1376,7 @@ Raison :
 <context>
     <name>SearchWidget</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/searchwidget.cpp" line="+210"/>
+        <location filename="searchwidget.cpp" line="+210"/>
         <source>&amp;Copy</source>
         <translation>&amp;Copier</translation>
     </message>
@@ -1336,27 +1399,27 @@ Raison :
 <context>
     <name>TopicChooser</name>
     <message>
-        <location filename="../tools/assistant/tools/assistant/topicchooser.ui"/>
+        <location filename="topicchooser.ui" line="+16"/>
         <source>Choose Topic</source>
         <translation>Choisir le domaine</translation>
     </message>
     <message>
-        <location/>
+        <location line="+21"/>
         <source>&amp;Topics</source>
         <translation>&amp;Domaines</translation>
     </message>
     <message>
-        <location/>
+        <location line="+51"/>
         <source>&amp;Display</source>
         <translation>&amp;Afficher</translation>
     </message>
     <message>
-        <location/>
+        <location line="+16"/>
         <source>&amp;Close</source>
         <translation>&amp;Fermer</translation>
     </message>
     <message>
-        <location filename="../tools/assistant/tools/assistant/topicchooser.cpp" line="+53"/>
+        <location filename="topicchooser.cpp" line="+53"/>
         <source>Choose a topic for &lt;b&gt;%1&lt;/b&gt;:</source>
         <translation>Choisir le domaine pour &lt;b&gt;%1&lt;/b&gt; :</translation>
     </message>

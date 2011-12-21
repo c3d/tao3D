@@ -114,13 +114,11 @@ Application::Application(int & argc, char ** argv)
     lang = QLocale().name().left(2);
     lang = QSettings().value("uiLanguage", lang).toString();
     if (translator.load(QString("tao_") + lang, applicationDirPath()))
-    {
         installTranslator(&translator);
-        QString path = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
-        QString file = QString("qt_") + lang;
-        if (qtTranslator.load(file, path))
-            installTranslator(&qtTranslator);
-    }
+    if (qtTranslator.load(QString("qt_") + lang, applicationDirPath()))
+        installTranslator(&qtTranslator);
+    if (qtHelpTranslator.load(QString("qt_help_")+ lang, applicationDirPath()))
+        installTranslator(&qtHelpTranslator);
 
     // Set current directory
     QDir::setCurrent(applicationDirPath());
@@ -386,8 +384,9 @@ void Application::checkModules()
     connect(moduleManager, SIGNAL(updating(QString)),
             this, SLOT(updatingModule(QString)));
     moduleManager->init();
-    // Load only auto-load modules (the ones that do not have an import_name)
-    moduleManager->loadAnonymousNative(XL::MAIN->context);
+    // Load and initialize only auto-load modules (the ones that do not have an
+    // import_name, or have the auto_load property set)
+    moduleManager->loadAutoLoadModules(XL::MAIN->context);
 }
 
 

@@ -303,7 +303,7 @@ void setupTranslations()
     TRACE_OBJ
     const QString& locale = QLocale::system().name();
     const QString &resourceDir
-        = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
+        = QCoreApplication::applicationDirPath();
     setupTranslation(QLatin1String("assistant_") + locale, resourceDir);
     setupTranslation(QLatin1String("qt_") + locale, resourceDir);
     setupTranslation(QLatin1String("qt_help_") + locale, resourceDir);

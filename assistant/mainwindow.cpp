@@ -155,7 +155,7 @@ MainWindow::MainWindow(CmdLineParser *cmdLine, QWidget *parent)
     m_centralWidget->createSearchWidget(searchEngine);
     m_centralWidget->activateSearchWidget();
 
-    QString defWindowTitle = tr("Qt Assistant");
+    QString defWindowTitle = tr("Tao Presentations Help");
     setWindowTitle(defWindowTitle);
 
     setupActions();

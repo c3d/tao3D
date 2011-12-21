@@ -45,6 +45,10 @@ public:
 
     void           showDocumentation(const QString &file);
 
+private slots:
+    void           readStandardOutput();
+    void           readStandardError();
+
 private:
     void           registerQchFiles(QStringList files);
     QString        taoCollectionFilePath();

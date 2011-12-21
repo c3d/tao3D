@@ -1,15 +1,14 @@
 <?xml version=\"1.0\" encoding=\"UTF-8\"?>
 <QHelpCollectionProject version=\"1.0\">
     <assistant>
-        <title>Tao Presentations Help</title>
-        <title lang=\"fr\">Aide de Tao Presentations</title>
-        <applicationIcon>../tao/tao.icns</applicationIcon>
+	<!-- Do not set title here because you cannot specify translations -->
+	<!-- We keep default title wich is correctly translated by tr() in ../assistant -->
+	<!-- <title>Tao Presentations Help</title> -->
         <cacheDirectory>Taodyne/Tao Presentations</cacheDirectory>
         <startPage>qthelp://com.taodyne.taopresentations.$$VERSION/TaoPresentations/index.html</startPage>
         <aboutDialog>
             <file>about_help.html</file>
             <file language=\"fr\">about_help_fr.html</file>
-            <icon>../tao/tao.icns</icon>
         </aboutDialog>
         <enableDocumentationManager>false</enableDocumentationManager>
         <enableAddressBar>false</enableAddressBar>

@@ -285,7 +285,8 @@ QString Assistant::assistantPath()
 #if !defined(Q_OS_MAC)
     app += QLatin1String("assistant");
 #else
-    app += QLatin1String("Assistant.app/Contents/MacOS/Assistant");
+    app += QLatin1String("Tao Presentations Help.app/Contents/MacOS/"
+                         "Tao Presentations Help");
 #endif
     return app;
 }
@@ -378,7 +379,13 @@ bool Assistant::startAssistant()
 // ----------------------------------------------------------------------------
 {
     if (!proc)
+    {
         proc = new QProcess();
+        connect(proc, SIGNAL(readyReadStandardOutput()),
+                this, SLOT(readStandardOutput()));
+        connect(proc, SIGNAL(readyReadStandardError()),
+                this, SLOT(readStandardError()));
+    }
 
     if (proc->state() != QProcess::Running)
     {
@@ -388,9 +395,17 @@ bool Assistant::startAssistant()
              << QLatin1String("-enableRemoteControl");
         IFTRACE(assistant)
         {
+            QStringList all, all2;
+            all << app << args;
+            foreach (QString arg, all)
+            {
+                if (arg.contains(" "))
+                    all2 << "'" + arg + "'";
+                else
+                    all2 << arg;
+            }
             debug() << "Starting assistant:\n";
-            debug() << "  " << app.toStdString() << " "
-                    << args.join(" ").toStdString() << "\n";
+            debug() << "  " << all2.join(" ").toStdString() << "\n";
         }
 
         proc->start(app, args);
@@ -403,6 +418,38 @@ bool Assistant::startAssistant()
         }
     }
     return true;
+}
+
+
+void Assistant::readStandardOutput()
+// ----------------------------------------------------------------------------
+//   Dump child process standard output if debug traces are active
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(assistant)
+    {
+        QByteArray ba = proc->readAllStandardOutput();
+        QString output = QString::fromLocal8Bit(ba.data());
+        QStringList lines = output.split('\n');
+        foreach (QString line, lines)
+            debug() << "(stdout) " << +line << "\n";
+    }
+}
+
+
+void Assistant::readStandardError()
+// ----------------------------------------------------------------------------
+//   Dump child process standard error if debug traces are active
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(assistant)
+    {
+        QByteArray ba = proc->readAllStandardOutput();
+        QString output = QString::fromLocal8Bit(ba.data());
+        QStringList lines = output.split('\n');
+        foreach (QString line, lines)
+            debug() << "(stderr) " << +line << "\n";
+    }
 }
 
 

@@ -162,7 +162,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false), animated(true), blanked(false),
+      drawAllPages(false),
       selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
@@ -2059,6 +2059,8 @@ void Widget::reset()
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Point3(0, 1, 0);
+    animated = true;
+    blanked = false;
 }
 
 void Widget::resetModelviewMatrix()
@@ -10278,6 +10280,7 @@ void Widget::drawWatermarkAPI()
 {
     Tao()->drawWatermark();
 }
+
 
 
 // ============================================================================

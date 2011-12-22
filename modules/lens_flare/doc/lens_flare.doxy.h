@@ -1,6 +1,5 @@
 /**
- * @defgroup LensFlare Lens Flare
- * @ingroup Modules
+ * @taomoduledescription{LensFlare, Lens Flare}
  *
  * Generate a lens flare.
  *
@@ -29,6 +28,7 @@
  * @note This module integrate already some lens flare textures, which can be used to create differents effects like in the previous example.
  * @note It is also possible to create these textures in Tao thanks to integrated fonctions (@ref frame_texture, @ref radial_gradient, etc.).
  *
+ * @endtaomoduledescription{LensFlare}
  * @{
  */
 

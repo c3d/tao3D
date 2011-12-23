@@ -141,12 +141,15 @@ stereoscopy_settings ->
     chooser_choice tr "Increase eye distance", {increase_eye_distance}
     chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
 
+oc_settings -> 0
 old_camera_settings ->
-    camera_position 0, 0, 6000
-    z_near 1000
-    z_far 56000
-    eye_distance 10
-    polygon_offset 0, -0.001, 0, -1
+    if oc_settings = 0 then
+        oc_settings := 1
+        camera_position 0, 0, 6000
+        z_near 1000
+        z_far 56000
+        eye_distance 10
+        polygon_offset 0, -0.001, 0, -1
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28

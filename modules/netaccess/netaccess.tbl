@@ -1,0 +1,29 @@
+// ****************************************************************************
+//  netaccesss.tbl                                                  Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Definition of the interface between XLR and native code for
+//     the "Netaccesss" module.
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 2011 Christophe de Dinechin
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+#include "netaccess.h"
+
+PREFIX(GetUrlText,  text, "get_url_text",
+       PARM(UrlValue, text, ),
+       return getUrlText(self, &UrlValue),
+       GROUP(module.Netaccesss)
+       SYNOPSIS("Get text from the given URL."))

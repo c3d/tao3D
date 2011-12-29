@@ -48,11 +48,15 @@ equals(HAS_DOXYGEN, true) {
   doc.commands = doxygen
   doc.depends = cp_examples cp_xlref version
 
-  webdoc.commands = doxygen DoxyfileWebdoc 
-  webdoc.depends = cp_examples cp_xlref version
+  webdoc.commands = doxygen DoxyfileWebdoc
+  webdoc.depends = cp_examples_webdoc cp_xlref version
 
   cp_examples.commands = mkdir -p html/examples ; \
                          cp ../tao/doc/examples/*.ddd html/examples/
+
+  cp_examples_webdoc.commands = mkdir -p webhtml/examples ; \
+                                cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
+                                for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/examples/ 2>/dev/null || : ; done
 
   cp_xlref.commands = mkdir -p html ; cp XLRef.pdf html
   cp_xlref.depends = xlref
@@ -77,7 +81,7 @@ equals(HAS_DOXYGEN, true) {
   QMAKE_CLEAN += project_number.doxinclude
   QMAKE_DISTCLEAN += project_number.doxinclude
 
-  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_xlref xlref clean version install_html
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref xlref clean version install_html
 
   INSTALLS += install_html
 

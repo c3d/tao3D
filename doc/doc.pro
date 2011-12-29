@@ -52,8 +52,7 @@ equals(HAS_DOXYGEN, true) {
   webdoc.depends = cp_examples cp_xlref version
 
   cp_examples.commands = mkdir -p html/examples ; \
-                         cp ../tao/doc/examples/*.ddd html/examples/ ; \
-                         for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ 2>/dev/null || : ; done
+                         cp ../tao/doc/examples/*.ddd html/examples/
 
   cp_xlref.commands = mkdir -p html ; cp XLRef.pdf html
   cp_xlref.depends = xlref

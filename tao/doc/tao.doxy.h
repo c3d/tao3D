@@ -16,7 +16,15 @@
  * You may find more information and the latest news about Tao Presentations on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
  *
- * @section secGettingStarted Getting started
+ * @ref getting_started \n
+ * @ref tao_documents \n
+ * @ref adding_extensions \n
+ * @ref platform_notes \n
+ * @ref credits
+ */
+
+/**
+ * @page getting_started Getting started
  *
  * The easiest way to learn Tao Presentations is probably to start with
  * sample documents and change them to your liking. This documentation is
@@ -46,7 +54,9 @@
  * with the bundled editor. Composite documents (see below) should be modified
  * with an external text editor.
  *
- * @section secTaoDocuments Tao Presentation documents
+ */
+/**
+ * @page tao_documents Tao Presentation documents
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
  * character encoding is <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
@@ -74,7 +84,7 @@
  * (see the @ref secSearchPaths "search paths" section below for details on the
  * meaning of @c xl:).
  *
- * @subsection subsecDocStructure Document structure
+ * @section secDocStructure Document structure
  *
  * Tao documents are written in the Tao language, which enables to
  * describe the structure of the document (by creating items such as:
@@ -135,14 +145,14 @@ my_circle Radius:real ->
     circle 0, 0, Radius
  * @endcode
  *
- * @subsection secXLRef The XLR Language
+ * @section secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.
  * Detailed information is available in <a href="XLRef.pdf">the XLR language
  * reference guide</a>. However, a deep knowledge of XL is not needed to write
  * Tao documents.
  *
- * @subsection secBuiltins Tao Builtins and Primitives
+ * @section secBuiltins Tao Builtins and Primitives
  *
  * A @a builtin is any language construct that is not user-defined. For
  * example, @ref page is a builtin defined by the Tao program.
@@ -156,7 +166,7 @@ my_circle Radius:real ->
  * When a builtin is implemented in native code (C or C++), it is called a
  * @a primitive.
  *
- * @subsection secVariables Variables
+ * @section secVariables Variables
  *
  * To declare and initialise a variable with the current version of Tao
  * Presentations, write the following:
@@ -171,7 +181,7 @@ size := 10.0 // Initialize it
  * and vice versa. Otherwise weird things will occur, like the variable not
  * having the expected value.
  *
- * @subsection secExecModel Execution and Drawing Model
+ * @section secExecModel Execution and Drawing Model
  *
  * In order to display a document, Tao @a executes the document (or parts of
  * it). The steps are the following:
@@ -232,7 +242,7 @@ locally
  * to the main Layout object. Since the two @ref locally blocks are nested
  * inside the main Layout of the document, they get re-executed too.
  *
- * @subsection secSearchPaths Search Paths
+ * @section secSearchPaths Search Paths
  *
  * Some primitives that take a file name or file path accept a special syntax
  * called a <em>search path prefix</em>. For instance:
@@ -254,13 +264,15 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * and <tt>$HOME/.local/Taodyne/Tao Presentations</tt> on Linux.
  * The application folder is where Tao Presentation is installed.
  * 
- * @section secExtensions Adding Extensions
+ */
+/**
+ * @page adding_extensions Adding Extensions
  *
  * The extensible nature of Tao Presentation helps you define and organize your
  * own re-usable pieces of documents. There are several ways of organising your
  * files.
  *
- * @subsection secImport The import statement
+ * @section secImport The import statement
  *
  * The simplest way to group your own presentations in a reuseable fashion, is
  * to use the @c import keyword to refer to an external file from any Tao
@@ -321,7 +333,7 @@ my_highlight T:text ->
  * contain XL code, but are not complete Tao Presentation documents (which
  * preferably take the @c .ddd extension).
  *
- * @subsection secUserDirectory The Next Step: User Definitions
+ * @section secUserDirectory The Next Step: User Definitions
  *
  * The @c import keyword is fine to help you group custom definitions
  * in a file along with your main document. But on its own, is not very
@@ -338,7 +350,7 @@ my_highlight T:text ->
 import "xl:my_definitions.xl"
  * @endcode
  *
- * @subsection secUserModule User Modules
+ * @section secUserModule User Modules
  *
  * Let's assume that you have written some nice XL definitions for
  * Tao Presentations, and you would like to share them with other users of
@@ -360,7 +372,7 @@ import "xl:my_definitions.xl"
  * modules are not covered in this documentation but in the Tao Module SDK,
  * which is available <a href="mailto:contact@taodyne.com">on request</a>.
  *
- * @subsubsection secCreatingModule Creating A Module
+ * @subsection secCreatingModule Creating A Module
  *
  * To create a new module, you may use a copy of an existing module as a
  * starting point. The Tao Visuals module is a good candidate for that
@@ -392,7 +404,7 @@ import "xl:my_definitions.xl"
  * should normally be in the list. If it isn't, check the troubleshooting
  * instructions below.
  *
- * @subsubsection secModuleTS Troubleshooting Modules
+ * @subsection secModuleTS Troubleshooting Modules
  *
  * You can check which modules are detected by selecting the Preferences menu
  * (Tao Presentations>Preferences on MacOSX, Help>Preferences on Windows).
@@ -413,9 +425,11 @@ import "xl:my_definitions.xl"
  * a command line prompt or using the graphical user interface, as explained
  * below.
  *
- * @section secPlatformNotes Platform Notes
+ */
+/**
+ * @page platform_notes Platform Notes
  *
- * @subsection secStdoutStderr Standard Output, Standard Error
+ * @section secStdoutStderr Standard Output, Standard Error
  *
  * Errors are normally shown in the application's graphical user interface,
  * either through dialog boxes or in the error display pane. However, some
@@ -427,7 +441,7 @@ import "xl:my_definitions.xl"
  * The destination of the standard output and standard error are different
  * if you are using Tao Presentations on MacOSX or on Windows.
  *
- * @subsubsection secWindows Windows
+ * @subsection secWindows Windows
  *
  * The standard output and standard error channels of Tao Presentations are
  * normally redirected to the file @c tao.log in the @c Tao folder under the
@@ -438,7 +452,7 @@ import "xl:my_definitions.xl"
  * output and standard error will remain connected to the command prompt
  * window, and will not be sent to @c tao.log.
  *
- * @subsubsection secMacOSX MacOSX
+ * @subsection secMacOSX MacOSX
  *
  * The standard output and standard error channels of Tao Presentations are
  * normally sent to log files and can be seen with the MacOSX @c console
@@ -448,7 +462,9 @@ import "xl:my_definitions.xl"
  * and standard error will remain connected to the terminal window, and
  * will not appear in the console.
  *
- * @section secCredits Credits
+ */
+/**
+ * @page credits Credits
  *
  * Tao Presentations uses the following components:
  *
@@ -461,47 +477,6 @@ import "xl:my_definitions.xl"
  *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
- */
-/**
- * @~french
- * @mainpage Documentation de Tao Presentations
- *
- * Bienvenue sur la documentation en ligne de Tao Presentations.
- *
- * @section secShowItYourWay Faite le a votre maniere
- *
- * Vous pouvez construire vos transparents de telle sorte qu'ils representent
- * exactement ce que vous voulez. Votre presentation est programmable. Vous la
- * creez en utilisant des composants preexistants. Ceci vous permet de construire
- * des presentations flexibles sur mesure.
- *
- * @section secImpressYourAudience Impressionnez votre auditoire.
- *
- * Vos transparents vivent dans un monde dynamique en trois dimensions,
- * exactement comme vous. Creez des animations, construisez vos graphiques
- * a partir de donnees extraite en temps reel, et faites l'experience d'une
- * presentation stereoscopique. Vos presentations seront interractives et
- * innoubliables.
- *
- * @section secShareYourWork Partagez votre travail
- *
- * Vous gardez un historique complet de vos documents. Vous pouvez creer des
- * versions. Vous pouvez collaborez avec d'autres personnes sur un ensemble
- * de transparents, en meme temps, en editant le meme document simultanement.
- * Aucun serveur centralise n'est requis.
- *
- * @section secWhatYouWillFind Contenu de la documentation
- *
- * Dans ce manuel, vous trouverez des references sur :
- * - le langage XL utilise par la technologie Tao pour decrire les documents,
- * - les primitives XL specialement definies pour ecrire des presentations,
- * - des exemples.
- *
- * @section secMoreInfo Et plus...
- *
- * Trouvez plus d'information et les dernieres nouvelles concernant
- * Tao Presentations sur notre site web http://www.taodyne.com.
- *
  */
 
 /**

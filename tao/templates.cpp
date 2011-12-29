@@ -125,6 +125,19 @@ std::ostream& Template::debug()
 }
 
 
+#if defined (Q_OS_UNIX)
+
+static QString escapeShellArg(QString &str)
+// ----------------------------------------------------------------------------
+//   Convert string so that it can be passed unchanged to a shell command
+// ----------------------------------------------------------------------------
+{
+    str.replace("'", "\\'");
+    return "'" + str + "'";
+}
+
+#endif
+
 bool Template::recursiveCopy(const QDir &src, QDir &dst)
 // ----------------------------------------------------------------------------
 //   Recursively copy the contents of src into dst (created if does not exist)
@@ -146,7 +159,8 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
     QString cmd("/bin/sh");
     QStringList args;
-    args << "-c" << "cp -R \"" + srcPath + "\"/* " + dstPath;
+    args << "-c" << "cp -R " + escapeShellArg(srcPath) + "/* "
+                             + escapeShellArg(dstPath);
 
 #elif defined (Q_OS_WIN)
 

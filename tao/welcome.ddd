@@ -1,4 +1,4 @@
-
+﻿
 // ****************************************************************************
 //  Welcome.ddd                                                     Tao project
 // ****************************************************************************
@@ -105,7 +105,12 @@ welcome_help T:text ->
 //   Show the welcome help
 // ----------------------------------------------------------------------------
     if T = "fr" then
-        text "Appuyer sur la touche espace pour arrêter l'animation"
+        text "Appuyer sur la touche espace pour "
+        if Animated = 1 then
+            text "arrêter "
+        else
+            text "démarrer "
+        text "l'animation"
     else
         text "Press the spacebar to "
         if Animated = 1 then

@@ -23,10 +23,10 @@
 TEMPLATE = subdirs
 
 
-system(bash -c \"doxygen --version >/dev/null 2>&1\"):HAS_DOXYGEN=true
+include(../doxygen.pri)
 system(bash -c \"texmacs -h >/dev/null 2>&1\"):HAS_TEXMACS=true
 
-equals(HAS_DOXYGEN, true) {
+equals(HAS_DOXYGEN, 1) {
 
   include (../main_defs.pri)
   include (../version.pri)
@@ -45,20 +45,22 @@ equals(HAS_DOXYGEN, true) {
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
-  doc.commands = doxygen
+  doc.commands = $$DOXYGEN
   doc.depends = cp_examples cp_xlref version
 
   webdoc.commands = doxygen DoxyfileWebdoc
   webdoc.depends = cp_examples_webdoc cp_xlref version
 
-  cp_examples.commands = mkdir -p html/examples ; \
-                         cp ../tao/doc/examples/*.ddd html/examples/
+  cp_examples.commands = for l in en fr ; do \
+                           mkdir -p output/\$\$l/html/examples ; \
+                           cp ../tao/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
+                         done
 
   cp_examples_webdoc.commands = mkdir -p webhtml/examples ; \
                                 cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
-                                for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/examples/ 2>/dev/null || : ; done
+                                for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
 
-  cp_xlref.commands = mkdir -p html ; cp XLRef.pdf html
+  cp_xlref.commands = for l in en fr ; do mkdir -p output/\$\$l/html ; cp XLRef.pdf output/\$\$l/html ; done
   cp_xlref.depends = xlref
 
   xlref.target = XLRef.pdf
@@ -71,9 +73,9 @@ equals(HAS_DOXYGEN, true) {
   QMAKE_EXTRA_TARGETS += cleandocdirs
   clean.depends = cleandocdirs
 
-  install_html.path = $$APPINST/doc
-  install_html.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
-  install_html.depends = doc
+  install_doc.path = $$APPINST/doc
+  install_doc.commands = mkdir -p \"$$APPINST/doc\" ; cp -R output/* \"$$APPINST/doc/\"
+  install_doc.depends = doc
 
   version.target = project_number.doxinclude
   version.commands = V=$$PROJECT_NUMBER; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
@@ -83,13 +85,7 @@ equals(HAS_DOXYGEN, true) {
 
   QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref xlref clean version install_html
 
-  INSTALLS += install_html
-
-  install_qch.path = $$APPINST/doc/qch
-  install_qch.commands = mkdir -p \"$$APPINST/doc/qch\" ; cp qch/TaoPresentations.qch \"$$APPINST/doc/qch/\"
-  install_qch.depends = doc
-  QMAKE_EXTRA_TARGETS += install_qch
-  INSTALLS += install_qch
+  INSTALLS += install_doc
 
   qhc.commands = qcollectiongenerator TaoPresentations.qhcp -o TaoPresentations.qhc
   qhc.depends = doc

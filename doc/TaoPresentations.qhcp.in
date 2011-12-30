@@ -16,7 +16,7 @@
     </assistant>
     <docFiles>
         <register>
-            <file>qch/TaoPresentations.qch</file>
+            <file>output/en/qch/TaoPresentations.qch</file>
         </register>
     </docFiles>
 </QHelpCollectionProject>

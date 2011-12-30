@@ -16,6 +16,20 @@
  * You may find more information and the latest news about Tao Presentations on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
  *
+ * @~french
+ * @mainpage Documentation de Tao Presentations
+ *
+ * Bienvenue dans la documentation de Tao Presentations.
+ *
+ * @section secWhatYouWillFind Contenu de ce manuel
+ *
+ * Dans ce manuel, vous trouverez des informations sur :
+ *   - le format et la structure des documents Tao,
+ *   - les expressions (@a builtins) que vous pouvez utiliser pour écrire
+ * des documents,
+ *   - le langage XLR, qui est la base des documents Tao.
+ * 
+ * @~
  * @ref getting_started \n
  * @ref tao_documents \n
  * @ref adding_extensions \n

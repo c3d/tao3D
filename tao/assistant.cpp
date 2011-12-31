@@ -244,24 +244,28 @@ void Assistant::registerQchFiles(QStringList files)
             debug() << "  = '" << +file << "'\n";
     }
 
-    // The main Tao help file is always added to the list
-    QStringList taoRegistered = registeredFiles(taoCollectionFilePath());
-    files << taoRegistered;
+    // Module help files in alphabetical order
     files.sort();
 
+    // Main Tao help file always first
+    QString taoMainHelp = Application::applicationDirPath()
+            + "/doc/" + TaoApp->lang + "/qch/TaoPresentations.qch";
+    files.prepend(taoMainHelp);
+
+    QStringList sortedFiles = files;
+    sortedFiles.sort();
     QStringList userRegistered = registeredFiles(userCollection);
     userRegistered.sort();
 
-    if (files != userRegistered)
+    if (sortedFiles != userRegistered)
     {
         // Need to synchronize user collection file
-/*
-  Useless - can't remove non-existing file because we can't get its namespace
-  but we need the namespace to unregister
+        // Note - this will not unregister non-existing (deleted) files
+        // because we can't get their namespace and we need the namespace
+        // to unregister. Not a problem.
         QStringList remove = stringListDifference(userRegistered, files);
         if (!remove.isEmpty())
             unregisterDocumentation(remove, userCollection);
-*/
         QStringList add = stringListDifference(files, userRegistered);
         if (!add.isEmpty())
             registerDocumentation(add, userCollection);

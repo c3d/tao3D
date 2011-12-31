@@ -14,10 +14,5 @@
         <enableAddressBar>false</enableAddressBar>
         <enableFilterFunctionality>true</enableFilterFunctionality>
     </assistant>
-    <docFiles>
-        <register>
-            <file>output/en/qch/TaoPresentations.qch</file>
-        </register>
-    </docFiles>
 </QHelpCollectionProject>
 

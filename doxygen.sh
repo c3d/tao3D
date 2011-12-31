@@ -17,20 +17,23 @@ longname() {
     esac
 }
 
+doo(){
+  echo "[doxygen.sh] $@"
+  "$@"
+}
+
 if [ -e "$DOXYFILE" ] ; then
     for lang in en fr ; do
         htmlout=output/$lang/html
         qchout=output/$lang/qch
-        set -x
         (
             cat "$DOXYFILE" ;
             echo OUTPUT_LANGUAGE=`longname $lang` ;
             echo HTML_OUTPUT=$htmlout
         ) > Doxyfile.tmp
-        mkdir -p $htmlout
-        doxygen Doxyfile.tmp
+        doo mkdir -p $htmlout
+        doo doxygen Doxyfile.tmp
         rm -f Doxyfile.tmp
-        set +x
     done
 else
     echo $DOXYFILE not found or unreadable >&2

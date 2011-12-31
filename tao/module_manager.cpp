@@ -669,7 +669,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.ver = git_ver;
         }
         // Look for online documentation file
-        QString qchPath = moduleDir + "/doc/qch";
+        QString qchPath = moduleDir + "/doc/" + TaoApp->lang + "/qch";
         QDir qchDir(qchPath);
         QStringList files = qchDir.entryList(QStringList("*.qch"),
                                              QDir::Files);

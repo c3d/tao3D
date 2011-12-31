@@ -9,6 +9,7 @@
 
 DOXYFILE="$1"
 [ "$1" = "" ] && DOXYFILE=Doxyfile
+[ "$DOXYLANG" = "" ] && DOXYLANG=en
 
 longname() {
     case $1 in
@@ -23,7 +24,8 @@ doo(){
 }
 
 if [ -e "$DOXYFILE" ] ; then
-    for lang in en fr ; do
+    LANGUAGES=`echo $DOXYLANG | tr , ' '`
+    for lang in $LANGUAGES ; do
         htmlout=output/$lang/html
         qchout=output/$lang/qch
         (

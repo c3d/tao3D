@@ -74,6 +74,10 @@ void Assistant::showDocumentation(const QString &page)
         // Show main Tao help file always first
         QString taoMainHelp = Application::applicationDirPath()
                 + "/doc/" + TaoApp->lang + "/qch/TaoPresentations.qch";
+        // Load english doc if localized one is not available
+        if (!QFileInfo(taoMainHelp).exists())
+            taoMainHelp = Application::applicationDirPath()
+                    + "/doc/en/qch/TaoPresentations.qch";
         helpFiles.prepend(taoMainHelp);
         registerQchFiles(helpFiles);
         registered = true;

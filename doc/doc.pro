@@ -45,13 +45,15 @@ equals(HAS_DOXYGEN, 1) {
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
-  doc.commands = $$DOXYGEN
+  DOXYLANG=en,fr
+  doc.commands = export DOXYLANG=$$DOXYLANG ; $$DOXYGEN
   doc.depends = cp_examples cp_xlref version
 
   webdoc.commands = doxygen DoxyfileWebdoc
   webdoc.depends = cp_examples_webdoc cp_xlref version
 
-  cp_examples.commands = for l in en fr ; do \
+  LANGUAGES=$$replace(DOXYLANG, ',', ' ')
+  cp_examples.commands = for l in $$LANGUAGES ; do \
                            mkdir -p output/\$\$l/html/examples ; \
                            cp ../tao/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
                          done
@@ -60,7 +62,7 @@ equals(HAS_DOXYGEN, 1) {
                                 cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
                                 for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
 
-  cp_xlref.commands = for l in en fr ; do mkdir -p output/\$\$l/html ; cp XLRef.pdf output/\$\$l/html ; done
+  cp_xlref.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp XLRef.pdf output/\$\$l/html ; done
   cp_xlref.depends = xlref
 
   xlref.target = XLRef.pdf

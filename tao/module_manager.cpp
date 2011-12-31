@@ -673,6 +673,14 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
         QDir qchDir(qchPath);
         QStringList files = qchDir.entryList(QStringList("*.qch"),
                                              QDir::Files);
+        if (files.isEmpty())
+        {
+            // Look for english by default
+            qchPath = moduleDir + "/doc/en/qch";
+            QDir qchDir(qchPath);
+            files = qchDir.entryList(QStringList("*.qch"),
+                                                 QDir::Files);
+        }
         foreach(QString f, files)
             m.qchFiles << qchPath + "/" + f;
     }

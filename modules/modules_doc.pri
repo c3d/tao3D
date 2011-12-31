@@ -20,8 +20,9 @@ include(modules_defs.pri)
 
     DOC_DIR = $$dirname(DOXYFILE)
     DOXY = $$basename(DOXYFILE)
+    isEmpty(DOXYLANG):DOXYLANG=en
     moddoc.target = doc
-    moddoc.commands = (cd $$DOC_DIR ; $$DOXYGEN $$DOXY)
+    moddoc.commands = (cd $$DOC_DIR ; export DOXYLANG=$$DOXYLANG ; $$DOXYGEN $$DOXY)
     moddoc.depends = FORCE
     QMAKE_EXTRA_TARGETS += moddoc
 

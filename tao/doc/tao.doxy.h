@@ -38,6 +38,7 @@
  */
 
 /**
+ * @~english
  * @page getting_started Getting started
  *
  * The easiest way to learn Tao Presentations is probably to start with
@@ -48,6 +49,17 @@
  * But first, you may want to watch the following introduction video
  * (french commentary):
  *
+ * @~french
+ * @page getting_started Pour bien démarrer
+ *
+ * La façon la plus simple d'apprendre Tao Presentations est probablement
+ * de partir d'exemples, et de les modifier comme vous le souhaitez.
+ * Cette documentation vous permettra d'apprendre progressivement le langage
+ * de description des documents.
+ *
+ * Mais pour commencer, nous vous suggérons de regarder la vidéo suivante :
+ *
+ * @~
  * @htmlonly
  * <a href="http://youtube.com/watch?v=LpPwjB46E5I">
  * @endhtmlonly
@@ -56,6 +68,7 @@
  * </a>
  * @endhtmlonly
  *
+ * @~english
  * A number of examples are available as @a templates. To create a new Tao
  * document from a template, click <tt>File > New from Template Chooser...</tt>
  * and follow the wizard. When done, click <tt>View > Document Source</tt> to
@@ -68,8 +81,24 @@
  * with the bundled editor. Composite documents (see below) should be modified
  * with an external text editor.
  *
+ * @~french
+ * De nombreux exemples sont disponibles sous forme de @a modèles. Pour créer
+ * un nouveau document à partir d'un modèle, sélectionnez le menu
+ * <tt>Fichier > Nouveau à partir d'un mmodèle...</tt> et suivez l'assistant.
+ * Ensuite, utilisez <tt>Affichage > Source du document</tt> pour ouvrir un
+ * éditeur de code source.
+ * Pour modifier un document Tao Presentations, vous pouvez utiliser n'importe
+ * quel éditeur de texte qui permet de lire et enregistrer le format UTF-8.
+ * Assurez-vous que c'est bien ce format qui est sélectionné lorsque vous
+ * enregistrez votre document, faute de quoi certains caractères spéciaux ou
+ * accentués ne s'afficheront pas correctement dans Tao.
+ *
+ * @note Actuellement, seul le document principal <tt>.ddd</tt> peut être
+ * visualisé et modifié dans l'éditeur intégré. Les documents composites
+ * (cf. ci-dessous) peuvent être modifiés en utilisant un éditeur externe.
  */
 /**
+ * @~english
  * @page tao_documents Tao Presentation documents
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
@@ -98,6 +127,38 @@
  * (see the @ref secSearchPaths "search paths" section below for details on the
  * meaning of @c xl:).
  *
+ * @~french
+ * @page tao_documents Les documents Tao Presentation
+ *
+ * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Le
+ * codage de caractères est
+ * <a href="http://fr.wikipedia.org/wiki/UTF-8">UTF-8</a>
+ * qui permet d'utiliser des caractères internationaux n'importe où dans le
+ * document.
+ *
+ * En plus du fichier principal <tt>.ddd</tt> file, un document Tao peut être
+ * composé d'autres fichiers:
+ *  - Des fichiers secondaires, importés par le fichier principal, de manière
+ *    à rendre le document plus modulaire et plus facile à faire évoluer. @n
+ *    Ces fichiers peuvent être eux-même des fichiers <tt>.ddd</tt>, s'ils sont
+ *    des documents Tao valides. Vous pouvez par exemple diviser une
+ *    présentation longue ou complexe en plusieurs documents plus courts, puis
+ *    de créer un fichier <tt>.ddd</tt> principal qui importe les autres. @n
+ *    Lorsqu'un fichier importé ne peut pas être ouvert directement comme un
+ *    document Tao, il est habituel de le nommer avec l'extension <tt>.xl</tt>
+ *    pour mettre en évidence qu'il s'agit de source XL(R).
+ *  - Des images. En principe, les fichiers images sont sous le sous-répertoire
+ *    @c images. Plusieurs formats de fichier peuvent être lus par Tao
+ *    Presentations : PNG, JPEG, et d'autres. Consultez la fonction @ref image
+ *    pour plus de détails.
+ *  - Des polices de caractères. Des fichiers TrueType ou OpenType peuvent être
+ *    stockés dans le sous-répertoire @c fonts.
+ *
+ * Lorsque Tao Presentation ouvre un document, les fichiers @c xl:user.xl et
+ * @c xl:theme.xl sont automatiquement importés, dans cet ordre et s'ils
+ * existent (le paragraphe @ref secSearchPaths explique le sens de @c xl:).
+ *
+ * @~english
  * @section secDocStructure Document structure
  *
  * Tao documents are written in the Tao language, which enables to
@@ -159,6 +220,72 @@ my_circle Radius:real ->
     circle 0, 0, Radius
  * @endcode
  *
+ * @~french
+ * @section secDocStructure Structure d'un document
+ *
+ * Les documents Tao sont écris dans le langage Tao, qui permet de décrire
+ * la structure du document (en créant des éléments tels que : pages,
+ * transparent, boîte de texte, rectangle, etc.), et en même temps de définir
+ * ses propriétés dynamiques, telles que comment le document change au cours
+ * du temps ou lorsque des événements externes se déroulent (par exemple,
+ * l'appui sur une touche du clavier ou le déplacement de la souris).
+ *
+ * Vous pouvez grouper des éléments et leur donner un nom en utilisant la
+ * fléche @c -> de la façon suivante :
+ * @code
+mes_articles ->
+    premier_article
+    second_article
+ * @endcode
+ * Celà signifie que @c mes_articles est équivalent à @c premier_article
+ * suivi de @c second_article. Vous pouvez également passer des paramètres,
+ * par exemple :
+ * @code
+mon_cercle Rayon ->
+    color "red"
+    circle 0, 0, Rayon
+ * @endcode
+ * Ici, @c Rayon peut être considéré comme un paramètre et @c mon_cercle est
+ * comme une function (ou une procédure).
+ * @warning Le nom @c Rayon à gauche de la flèche @c ->
+ * est dans le même portée lexicale que @c mon_cercle. Par conséquent,
+ * supposons que vous avez précédemment défini un symbole @c Rayon,
+ * par exemple <tt>Rayon -> 50</tt> :
+ * @code
+Rayon -> 50
+mon_cercle Rayon ->
+    color "red"
+    circle 0, 0, Rayon
+ * @endcode
+ * Dans ce cas, la définition de @c mon_cercle se transformerait en :
+ * @code
+mon_cercle 50 ->
+    color "red"
+    circle 0, 0, 50
+ * @endcode
+ * ...ce qui est valide, mais probablement pas ce que vous attendiez.
+ * En effet, seul <tt>mon_cercle 50</tt> serait définit et pourrait
+ * être utilisé. Si vous essayiez d'appeler
+ * @c mon_cercle avec n'importe quelle autre valeur (par exemple, 100)
+ * vous obtiendriez une erreur :
+@verbatim
+No form matches my_circle 100
+@endverbatim
+ * Pour éviter de tels problèmes, il est recommendé d'utiliser des conventions
+ * de nommage différentes pour les paramètres et les autres symboles.
+ * Dans cette documentation,
+ * nous utilisons toujours une majuscule pour les paramètre, de telle sorte
+ * qu'ils n'entre pas en conflit avec les fonctions prédéfinies (toujours
+ * en minuscules).
+ * Pour revenir à notre exemple, nous aurions aussi pu qualifier le paramètre
+ * @c Rayon pour mettre en évidence le fait qu'il s'agit d'un paramètre :
+ * @code
+mon_cercle Rayon:real ->
+    color "red"
+    circle 0, 0, Rayon
+ * @endcode
+ *
+ * @~english
  * @section secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.
@@ -166,6 +293,16 @@ my_circle Radius:real ->
  * reference guide</a>. However, a deep knowledge of XL is not needed to write
  * Tao documents.
  *
+ * @~french
+ * @section secXLRef Le Langage XL
+ *
+ * Le langage de programmation XL (ou XLR) est la base des documents
+ * Tao Presentations.
+ * Des informations détaillées sont disponibles dans <a href="XLRef.pdf">le
+ * guide de référence du langage XLR</a>. Toutefois, une connaissance
+ * approfondie de XL n'est pas nécessaire pour écrire des documents Tao.
+ *
+ * @~english
  * @section secBuiltins Tao Builtins and Primitives
  *
  * A @a builtin is any language construct that is not user-defined. For
@@ -180,6 +317,25 @@ my_circle Radius:real ->
  * When a builtin is implemented in native code (C or C++), it is called a
  * @a primitive.
  *
+ * @~french
+ * @section secBuiltins Les builtins et primitives Tao
+ *
+ * On appelle @a builtin une construction du langage qui n'est pas définie
+ * par l'utilisateur. Par exemple, @ref page est un builtin défini par le
+ * programme Tao Presentations.
+ *
+ * On distingue deux catégories de builtins :
+ *  - @ref TaoBuiltins "Les builtins Tao" sont définis par le programme
+ *    Tao Presentations lui-même, et sont immédiatement disponibles dans
+ *    un document,
+ *  - @ref Modules "Les builtins de modules" sont définis dans des
+ *    @a modules, et nécessitent une commande @ref import avant de pouvoir
+ *    être utilisés.
+ *
+ * Quand un builtin est implémenté par du code natif (C ou C++), on l'appelle
+ * @a primitive.
+ *
+ * @~english
  * @section secVariables Variables
  *
  * To declare and initialise a variable with the current version of Tao
@@ -195,6 +351,23 @@ size := 10.0 // Initialize it
  * and vice versa. Otherwise weird things will occur, like the variable not
  * having the expected value.
  *
+ * @~french
+ * @section secVariables Variables
+ *
+ * Pour déclarer et initialiser une variable dans la version actuelle de
+ * Tao Presentations, utilisez la notation suivante :
+ @code
+compteur -> 0  // Crée une variable de type entier (0 est un entier)
+compteur := 1  // Initialise la variable
+
+taille -> 0.0  // Crée une variable de type réel (0.0 est un réel)
+taille := 10.0 // Initialise la variable
+ @endcode
+ * Prenez garde à ne pas affecter un entier à une variable créée avec un
+ * type réel, ou vice versa. Sinon, la variable risque de ne pas avoir la
+ * valeur attendue.
+ *
+ * @~english
  * @section secExecModel Execution and Drawing Model
  *
  * In order to display a document, Tao @a executes the document (or parts of
@@ -219,7 +392,7 @@ size := 10.0 // Initialize it
  *      its re-execution upon reception of a <em>mouse move</em> event.
  * <li> @b Draw the Layout and Drawing hierarchy created by the document
  *      execution. @n
- *      For exemple, drawing a Rectangle object consists in displaying this
+ *      For example, drawing a Rectangle object consists in displaying this
  *      rectangle on the screen with all the attributes that were selected
  *      during the the program execution (such as: @ref color or
  *      @ref line_color).
@@ -256,6 +429,73 @@ locally
  * to the main Layout object. Since the two @ref locally blocks are nested
  * inside the main Layout of the document, they get re-executed too.
  *
+ * @~french
+ * @section secExecModel Modèle de tracé et d'exécution
+ *
+ * Pour afficher un document, Tao @a exécute le document (ou certaines parties
+ * de celui-ci) selon les étapes suivantes :
+ *
+ * <ol>
+ * <li> @b Compiler and @b exécuter le document une première fois.
+ *       Cette étape crée une hiérarchie d'objets de deux types : des
+ *      @a Drawings et des @a Layouts.
+ *      <ul>
+ *        <li> Un Drawing est un élément quelconque qui peut être tracé. Par
+ *             exemple, l'exécution du builtin @ref rectangle crée un objet
+ *             Drawing de type Rectangle.
+ *        <li> Un Layout est une forme spéciale de Drawing qui peut lui-même
+ *             contenir d'autres Drawings. Les builtins suivants créent des
+ *             Layouts: @ref page,
+ *             @ref shape, @ref locally, @ref group, @ref anchor, @ref table,
+ *             @ref table_cell.
+ *      </ul>
+ *      En plus de créer des objets, l'exécution de certaines primitives
+ *      rend le Layout dans lequel l'objet se trouve sensible à des événements
+ *      extérieurs. @n
+ *      Par exemple, @ref seconds provoque la ré-exécution du Layout
+ *      une seconde plus tard, tandis que @ref mouse_x provoque sa
+ *      ré-exécution lorsque la souris se déplace.
+ * <li> @b Tracer la hiérarchie d'objets Layout et Drawing créée par
+ *      l'exécution du document. @n
+ *      Par exemple, pour tracer un objet Rectangle il faut afficher ce
+ *      rectangle avec tous les attributs qui ont été sélectionnés lors de
+ *      l'exécution du programme, comme @ref color ou @ref line_color.
+ * <li> @b Attendre qu'un événement survienne.
+ * <li> @b Distribuer l'événement de haut en bas dans la hiérarchie d'objets
+ *      Layout. Quand l'événement rencontre un Layout qui est sensible à cet
+ *      événement, @b ré-exécuter la partie du document qui se trouve sous
+ *      ce Layout.
+ * <li> @b Tracer la hiérarchie complète d'objets Layout et Drawing.
+ * </ol>
+ *
+ * L'exemple qui suit montre comment des événements déclenchent l'exécution
+ * partielle du document.
+ *
+ * @code
+writeln "1: minutes = " & text minutes
+locally
+    writeln "2: seconds = " & text seconds
+locally
+    writeln "3: mouse_x = " & text mouse_x
+ * @endcode
+ *
+ * Le code ci-dessus affiche d'abord trois lignes de texte, une pour chaque
+ * message. Celà correspond à la première exécution complète du document. @n
+ * Puis, la ligne numéro 2 s'affiche à chaque seconde. En effet, le builtin
+ * @ref seconds associe un @a timer à l'objet Layout créé par le premier
+ * bloc @ref locally, le code qui se trouve à l'intérieur de ce bloc est
+ * donc ré-exécuté périodiquement.
+ * De la même façon, la ligne numéro 3 est affichée lorsqu'on bouge la souris.
+ * Notez que celà ne provoque pas un nouvel affichage de la ligne 2, pas plus
+ * que le changement de seconde ne provoque un nouvel affichage de la ligne
+ * numéro 3. @n
+ * Lorsque la minute change, par contre, les trois lignes sont affichée à
+ * nouveau. Celà s'explique parce que le builtin @ref minutes a associé un
+ * @a timer d'une minute à l'objet Layout principal. Puisque les deux blocs
+ * @ref locally sont imbriqués dans le Layout principal du document, ils
+ * sont également ré-exécutés.
+ *
+ * @~english
  * @section secSearchPaths Search Paths
  *
  * Some primitives that take a file name or file path accept a special syntax
@@ -278,6 +518,29 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * and <tt>$HOME/.local/Taodyne/Tao Presentations</tt> on Linux.
  * The application folder is where Tao Presentation is installed.
  * 
+ * @~french
+ * @section secSearchPaths Chemins additionnels
+ *
+ * Certaines primitives qui prennent pour paramètre un nom de fichier
+ * acceptent une syntaxe spéciale appelée un <em>préfixe de chemin
+ * additionnel<em>. Par exemple :
+ * @code
+image 0, 0, 100%, 100%, "image:file.jpg"
+ * @endcode
+ * Le préfixe @c image: indique comment trouver le fichier. Tao va chercher
+ * @c file.jpg dans plusieurs dossiers, et utiliser le premier fichier trouvé.
+ * Voici les dossiers dans lesquels Tao va chercher pour chaque préfixe :
+ * - @b image: les dossiers d'images déclarés par les modules chargés par le
+ *   document, puis le dossier @c images dans le dossier du document courant,
+ *   et enfin le dossier du document courant.
+ * - @b xl: le dossier du document courant, puis le dossier utilisateur Tao,
+ *   et enfin le dossier de l'application Tao.
+ * - @b system: le dossier de l'application Tao.
+ *
+ * Le chemin du dossier utilisateur Tao est
+ * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
+ * <tt>$HOME/Library/Application Support/Tao Presentations</tt> sous MacOSX,
+ * et <tt>$HOME/.local/Taodyne/Tao Presentations</tt> sous Linux.
  */
 /**
  * @page adding_extensions Adding Extensions

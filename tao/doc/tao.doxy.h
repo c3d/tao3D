@@ -543,6 +543,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * et <tt>$HOME/.local/Taodyne/Tao Presentations</tt> sous Linux.
  */
 /**
+ * @~english
  * @page adding_extensions Adding Extensions
  *
  * The extensible nature of Tao Presentation helps you define and organize your
@@ -604,10 +605,10 @@ my_highlight T:text ->
  * Just make sure that the file @c my_definitions.xl is located in the same
  * directory as the main document, @c Example.ddd (or any other file that
  * imports it). All the
- * definitions you need are in one central location, @c may_definitions.xl.
+ * definitions you need are in one central location, @c my_definitions.xl.
  *
  * @note It is customary to give your files a @c .xl extension when they
- * contain XL code, but are not complete Tao Presentation documents (which
+ * contain XL code, but are not complete Tao Presentations documents (which
  * preferably take the @c .ddd extension).
  *
  * @section secUserDirectory The Next Step: User Definitions
@@ -647,7 +648,7 @@ import "xl:my_definitions.xl"
  *  - Modules can contain native code in the form of shared libraries,
  * which makes them a very powerful way to extend the Tao program. Native
  * modules are not covered in this documentation but in the Tao Module SDK,
- * which is available <a href="mailto:contact@taodyne.com">on request</a>.
+ * which is available in the Tao application folder.
  *
  * @subsection secCreatingModule Creating A Module
  *
@@ -702,6 +703,172 @@ import "xl:my_definitions.xl"
  * a command line prompt or using the graphical user interface, as explained
  * below.
  *
+ * @~french
+ * @page adding_extensions Ajouter des extensions
+ *
+ * La nature extensible de Tao Presentations vous aide à définir et organiser
+ * vos propres éléments de documents. Il existe plusieurs façons d'organiser
+ * vos fichiers.
+ *
+ * @section secImport La directive import
+ *
+ * La manière la plus simple de regrouper vos fichiers Tao Presentations et de
+ * les réutiliser est d'utiliser le mot-clé @c import qui permet de faire
+ * référence à un fichier externe depuis n'importe quel document Tao.
+ *
+ * Par exemple, supposons que vous écrivez une présentation intitulée
+ * @c RapportDesVentes.ddd. Dans ce document, vous voulez présenter des
+ * pages d'introduction, puis détailler des chiffres de vente pour deux
+ * régions, les États-Unis et l'Europe. Vous aimeriez pouvoir adapter votre
+ * présentation à votre public, et montrer seulement le rapport concernant
+ * les États-Unis, ou seulement l'Europe, ou la présentation complète.
+ *
+ * Une façon d'obtenir ce résultat est de créer trois fichiers :
+ * @c RapportDesVentes.ddd (le document principal), @c US.ddd (les pages
+ * concernant la région US) et @c Europe.ddd (pour l'Europe). Dans le document
+ * principal vous utilisez la directive @c import :
+ * @code
+// RapportDesVentes.ddd
+
+page "Introduction",
+    // ...
+
+import "US.ddd"
+import "Europe.ddd"
+ * @endcode
+ * Grâce à cette technique, vous pouvez ouvrir n'importe lequel des trois
+ * fichiers @c .ddd et ainsi montrer exactement l'information que vous
+ * désirez.
+ *
+ * Notez que les fichiers importés peuvent ne pas être des présentations
+ * complètes et autonomes. Vous pouvez utiliser le mot-clé @c import pour
+ * inclure des définitions que vous utilisez souvent. Par exemple :
+ * @code
+// Exemple.ddd
+import "mes_définitions.xl"
+page "Introduction",
+    text_box 0, 0, window_width, window_height,
+        vertical_align_center
+        align_center
+        ma_couleur_de_texte
+        text "On peut "
+        en_évidence "mettre en évidence"
+        text " du texte"
+ * @endcode
+ * @code
+// mes_définitions.xl
+ma_couleur_de_texte -> color "black"
+en_évidence T:text ->
+    color "red"
+    text T
+    ma_couleur_de_texte
+ * @endcode
+ * Assurez vous que le fichier @c mes_définitions.xl se trouve dans le même
+ * répertoire que le fichier qui l'importe (@c Exemple.ddd).
+ * Toutes les définitions dont vous avez besoin se trouvent rassemblées en
+ * un seul endroit, @c mes_définitions.xl.
+ *
+ * @note On utilise en général l'extension @c .xl pour les fichiers qui
+ * contiennent du code XL, mais ne sont pas des documents Tao Presentations
+ * complets (qui ont de préférence l'extension @c .ddd).
+ *
+ * @section secUserDirectory L'étape suivante : les définitions utilisateur
+ *
+ * Le mot-clé @c import est parfait pour vous aider à grouper des définitions
+ * dans un fichier séparé du document principal. Mais cette technique seule
+ * n'est pas très pratique pour partager des définitions dans plusieurs
+ * documents complètement différents. Pour répondre à ce besoin, il faudrait
+ * pouvoir disposer d'un endroit ou déposer nos fichiers @c .xl, pour
+ * ensuite les utiliser depuis n'importe quel document.
+ *
+ * La directive @c import vous permet de faire celà. Il vous suffit
+ * d'utiliser le préfixe @c xl:. Par exemple, créez un fichier
+ * @c mes_définitions.xl, enregistrez-le dans le dossier utilisateur Tao
+ * (cf. @ref secSearchPaths "ci-dessus"), et utilisez-le comme suit :
+ * @code
+import "xl:mes_définitions.xl"
+ * @endcode
+ *
+ * @section secUserModule Les modules utilisateur
+ *
+ * Supposons que vous ayez écrit des définitions que vous vouliez partager
+ * avec d'autres utilisateurs de Tao. Pour celà vous pouvez créer un
+ * @ref Modules "module Tao Presentations".
+ *
+ * Il y a plusieurs avantages à utiliser un module plutôt qu'un simple
+ * fichier XL qui se trouverait dans le dossier utilisateur Tao.
+ *  - Vous pouvez ajouter une description, votre nom et votre site web. Ces
+ * informations apparaissent dans la boîte de préférence des modules.
+ *  - Un module possède un numéro de version, ce qui permet de détecter
+ * tout problème de compatibilité avec les anciens documents, lorsque votre
+ * module change. Ce numéro de version permet également la mise à jour
+ * des modules installés s'ils ont été installés depuis le réseau
+ * (bouton Mises à jour). Pour plus d'informations sur les numéros de
+ * version, consultez la documentation de la primitive @ref import.
+ *  - Les modules peuvent contenir du code natif sous la forme de librairies
+ * dynamiques, ce qui en fait un moyen très puissant pour étendre le
+ * programme Tao. Les modules natifs ne sont pas présentés en détail dans
+ * la présente documentation, mais vous pourrez trouver plus d'informations
+ * dans le kit de développement disponible dans le répertoire d'installation
+ * de Tao Presentations.
+ *
+ * @subsection secCreatingModule Création d'un module
+ *
+ * Pour créer un nouveau module, vous pouvez utiliser une copie d'un module
+ * existant comme point de départ. « Visuels Tao » est un bon candidat. Voici
+ * comment faire.
+ *  - Ouvrez le dossier du module : ouvrez la boîte de préférences, cliquez
+ * sur la page des options des modules, puis sur l'icône d'information du
+ * module « Visuels Tao ». La boîte d'information contient un lien qui permet
+ * d'ouvrir le répertoire du module.
+ *  - Copiez le répertoire @c tao_visuals dans le répertoire @c modules de
+ * votre compte utilisateur. Plus précisément, vous obtiendrez :
+ *    - Windows: <tt>%%APPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *      Pour ouvrir <tt>%%APPDATA%</tt> facilement, tapez simplement
+ *      <tt>%%APPDATA%</tt> dans le menu Démarrer.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
+ *      <tt>$HOME</tt> est votre répertoire utilisateur.
+ *    - <tt>$HOME/.tao/modules/tao_visuals</tt> sur Linux.
+ *  - Renommez le module. Vous devez renommer le dossier mais également le
+ * fichier XL principal : <tt>tao_visuals/tao_visuals.xl</tt> doit devenir
+ * <tt>mon_module/mon_module.xl</tt>.
+ *  - Modifiez le contenu du module. Changez l'identifiant (<tt>id=</tt>).
+ * Utilisez un identifiant unique, par exemple un UUID afin d'éviter que
+ * votre module entre en conflit avec un autre module Tao.
+ * Vous pouvez utiliser la commande @c uuidgen command ou utiliser un site web
+ * qui le fera pour vous. Changez le nom (@c name), la description
+ * (@c description), le nom d'import (@c import_name), éventuellement la
+ * version (@c version), etc. comme vous le souhaitez. Les textes doivent
+ * si possible être en anglais et vous pouvez fournir des traductions plus
+ * bas. Et bien sûr, remplacez le code XL par le vôtre.
+ *  - Fournissez une icone (<tt>icon.png</tt>) ou supprimez le fichier si
+ * vous n'avez pas d'icône.
+ *  - Redémarrez Tao Presentations et vérifiez la page d'information des
+ * modules. Votre module devrait normalement être dans la liste. Si ce n'est
+ * pas le cas, référez-vous aux instructions ci-dessous.
+ *
+ * @subsection secModuleTS En cas de problème avec les modules
+ *
+ * Vous pouvez vérifier quels modules sont détectés en ouvrant la fenêtre de
+ * préférences des modules : Tao Presentations>Preferences sous MacOSX et
+ * Aide>Préférences sous Windows. Vous pouvez aussi activer ou désactiver des
+ * modules.
+ *
+ * Les modules du dossier utilisateur sont chargés en premier, suivis
+ * des modules qui se trouvent dans le dossier de l'application Tao. Par
+ * conséquent, si deux modules qui possèdent le même identifiant se trouvent
+ * dans les deux dossiers, c'est le module utilisateur qui est chargé.
+ *
+ * Les traces de debug des modules s'activent de la façon suivante :
+ * - Selectionnez le groupe Debug dans la boîte de préférences des modules.
+ *   Cochez la case « modules » puis cliquez sur Sauver. Redémarrez Tao.
+ * - Il est également possible d'utiliser la ligne de commande :
+ *   <tt>-tmodules</tt>
+ *
+ * Les traces de debug sont envoyées sur le canal d'erreur standard
+ * (@c stderr). Leur destination réelle dépend de la plateforme et du fait
+ * que vous ayez  démarré Tao Presentations depuis l'interpréteur de
+ * commandes ou en utilisant l'interface graphique, comme expliqué ci-dessous.
  */
 /**
  * @page platform_notes Platform Notes

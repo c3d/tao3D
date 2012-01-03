@@ -68,7 +68,7 @@
  * The default position is (0, 0, 6000).
  * To read one component you may write:
  * @~french
- * Renvoit la position actuelle de la caméra.
+ * Renvoie la position actuelle de la caméra.
  * La position par défaut est (0, 0, 6000).
  * Pour lire seulement une composante vous pouvez écrire :
  * @~
@@ -98,7 +98,7 @@ camera_position(x:real, y:real, z:real);
  * The default value is the origin, (0, 0, 0).
  * @return 3 real values, separated by commas.
  * @~french
- * Renvoit le point visé par la caméra.
+ * Renvoie le point visé par la caméra.
  * La position par défaut est l'origine, (0, 0, 0).
  * @return 3 valeurs réelles, séparées par l'opérateur virgule.
  */
@@ -118,7 +118,7 @@ camera_target(x:real, y:real, z:real);
  * The default value is (0, 1, 0), so that the y axis appears vertical.
  * @return 3 real values, separated by commas.
  * @~french
- * Renvoit la direction verticale par rapport à la caméra.
+ * Renvoie la direction verticale par rapport à la caméra.
  * La valeur par défaut est (0, 1, 0), de sorte que la verticale est le long
  * de l'axe y.
  * @return 3 valeurs réelles, séparées par l'opérateur virgule.
@@ -140,7 +140,7 @@ camera_up_vector(x:real, y:real, z:real);
  * camera is setup so that one pixel at the origin corresponds to one pixel in
  * the output image.
  * @~french
- * Renvoit le facteur de zoom actuel.
+ * Renvoie le facteur de zoom actuel.
  * La valeur par défaut est 1.0, ou 100%. La distance focale de la caméra est
  * telle qu'un pixel à l'origine correspond à un pixel à l'écran.
  */
@@ -172,7 +172,7 @@ z_near(zn:real);
  * The zNear value is always positive and non-zero. The default value
  * is 1500.0.
  * @~french
- * Renvoit la distance entre l'observateur et le plan de coupe proche (zNear).
+ * Renvoie la distance entre l'observateur et le plan de coupe proche (zNear).
  * La valeur zNear est toujours strictement positive. La valeur par défaut
  * est 1500.0.
  */
@@ -195,7 +195,7 @@ z_far(zf:real);
  * The zFar value is always positive and non-zero. The default value is
  * 1,000,000.0.
  * @~french
- * Renvoit la distance entre l'observateur et le plan de coupe lointain
+ * Renvoie la distance entre l'observateur et le plan de coupe lointain
  * (zFar).
  * La valeur zFar est toujours strictement positive. La valeur par défaut
  * est 1000000.0.
@@ -233,7 +233,7 @@ real world_coordinates(x:real, y:real, wx:real, wy:real, wz:real);
  *
  * @return the Z position at the given coordinates
  * @~french
- * Renvoit la position Z correspondant aux coordonnées écran (@p x, @p y).
+ * Renvoie la position Z correspondant aux coordonnées écran (@p x, @p y).
  * La position Z est calculée d'après le <em>depth buffer</em> OpenGL.
  * Pour avoir les trois coordonnées 3D, utilisez @ref world_coordinates.
  *

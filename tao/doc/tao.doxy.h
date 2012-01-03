@@ -871,6 +871,7 @@ import "xl:mes_définitions.xl"
  * commandes ou en utilisant l'interface graphique, comme expliqué ci-dessous.
  */
 /**
+ * @~english
  * @page platform_notes Platform Notes
  *
  * @section secStdoutStderr Standard Output, Standard Error
@@ -906,8 +907,42 @@ import "xl:mes_définitions.xl"
  * and standard error will remain connected to the terminal window, and
  * will not appear in the console.
  *
+ * @~french
+ * @page platform_notes Notes de plateforme
+ *
+ * @section secStdoutStderr Sortie standard, erreur standard
+ *
+ * Les erreurs sont normalement affichées par l'interface graphique de
+ * l'application, soit par des boîtes de dialogue, soit dans la zone
+ * d'affichage des erreurs de la fenêtre principale. Toutefois, certains
+ * messages ne sont envoyés que sur les canaux de sortie ou d'erreur standards
+ * (stdout, stderr) :
+ *  - Les traces de debug,
+ *  - Les messages envoyés par les builtins write and writeln.
+ *
+ * @subsection secWindows Windows
+ *
+ * Les canaux de sortie et d'erreur standard de Tao Presentations sont
+ * normalement redirigés vers le fichier @c tao.log dans le dossier @c Tao
+ * sous le dossier des documents de l'utilisateur. Ce fichier est recréé
+ * à chaque démarrage de l'application.
+ *
+ * Toutefois, si l'application est démarrée depuis une invite de commande,
+ * les messages s'affichent dans la fenêtre qui a servi à démarrer Tao et ne
+ * sont pas envoyés vers @c tao.log.
+ *
+ * @subsection secMacOSX MacOSX
+ *
+ * Les canaux de sortie et d'erreur standard de Tao Presentations sont
+ * normalement redirigés vers des fichiers et peuvent être  the MacOSX @c console
+ * application.
+ *
+ * Toutefois, si l'application est démarrée depuis un terminal,
+ * les messages s'affichent dans celui-ci et ne sont pas visibles dans
+ * l'application console.
  */
 /**
+ * @~english
  * @page credits Credits
  *
  * Tao Presentations uses the following components:
@@ -921,6 +956,21 @@ import "xl:mes_définitions.xl"
  *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
+ *
+ * @~french
+ * @page credits Remerciements
+ *
+ * Tao Presentations utilise les composants suivants :
+ *
+ *   - <b>Qt</b>: Qt est une boîte à outils C++ pour le développement
+ *   d'applications multi-plateformes. Qt est un produit de Nokia. Cf.
+ *   <a href="http://qt.nokia.com/">qt.nokia.com</a> pour plus d'informations.
+ *   - <b>LLVM</b>: Le projet LLVM est un ensemble de technologies de
+ *   compilation et d'outils modulaires et réutilisables. Cf.
+ *   <a href="http://llvm.org/">llvm.org</a> pour plus d'informations.
+ *   - <b>XLR</b>: XLR est un langage compilé dynamiquement basé sur des
+ *   réécritures d'arbres. Cf. <a href="http://xlr.sf.net/">xlr.sf.net</a>
+ *   pour plus d'informations.
  */
 
 /**

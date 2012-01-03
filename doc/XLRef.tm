@@ -1,4 +1,4 @@
-<TeXmacs|1.0.7.9>
+<TeXmacs|1.0.7.14>
 
 <style|article>
 
@@ -6,7 +6,7 @@
   <doc-data|<doc-title|The XLR Programming
   Language>|<\doc-author-data|<author-name|Christophe de
   Dinechin>|<\author-address>
-    Taodyne SAS, 2229 Route des Cretes, Sophia Antipolis, France
+    Taodyne SAS, 1300 Route des Cretes, Sophia Antipolis, France
   </author-address>>
     \;
   </doc-author-data>>
@@ -19,32 +19,81 @@
   while preserving the power and expressiveness of homoiconic languages
   descending from Lisp (i.e. languages where programs are data).<strong|>
 
-  <paragraph|Benefits>Thanks to this unique approach, XLR makes it easy to
-  write simple<strong|> programs, yet there is no upper limit, since you can
-  extend the language to suit your own needs.
+  <subsection|Design objectives>
 
-  In order to keep programs easy to write, the XLR syntax is very simple. It
-  will seem very natural to most programmers, except for what it's missing :
-  XLR makes little use of parentheses and other punctuation characters.
-  Instead, the syntax is based on indentation, and there was a conscious
-  design decision to only keep characters that had an active role in the
-  meaning of the program, as opposed to a purely syntactic role. As a result,
-  XLR programs look a little like pseudo-code, except of course that they can
-  be compiled and run.
+  XLR is intended to make it easy to write simple<strong|> programs, yet
+  impose no upper limit, since you can extend the language to suit your own
+  needs. The goal is to make it as easy and robust to extend the language
+  with new features or concepts as it is to add new functions or classes in
+  more traditional programming languages.
 
-  This simplicity also makes meta-programming not just possible, but easy.
-  All XLR programs<strong|> can be represented with just 8 data types.
-  Meta-programming is the key to extensibility. As your needs grow, you won't
-  find yourself limited by XLR as you would with many other programming
-  languages. Instead of wishing you had this or that feature in the language,
-  you can simply add it. Better yet, the process of extending the language is
-  so simple that you can now consider language notations or compilation
-  techniques that are useful only in a particular context. In short, with
-  XLR, creating your own <em|domain-specific languages> (DSLs) is just part
-  of normal, everyday programming.
+  This design is in response to the following observation: programmers have
+  to deal with exponentially-growing program complexity. The reason is that
+  the complexity of programs indirectly follows Moore's law, since users want
+  to fully benefit from the capabilities of new hardware generations. But our
+  brains do not follow a similar exponential law, so we need increasingly
+  sophisticated tools to bridge the gap with higher and higher levels of
+  abstraction.
 
-  <paragraph|Examples>The key characteristics of XLR are best illustrated
-  with a few short examples, going from simple programming to more advanced
+  Over time, this lead to a never ending succession of programming paradigms,
+  each one intended to make the next generation of hardware accessible to
+  programmers. For example, object-oriented programming was primarily fueled
+  by the demands of graphical user interfaces.
+
+  The unfortunate side effect of this continuous change in programming
+  paradigms is that code designed with an old approach quickly becomes
+  obsolete as a new programming model emerges. For example, even if C++ is
+  nominally compatible with C, the core development model is so incompatible
+  that C++ replicates core functionality of C in a completely different way
+  (memory allocation, I/Os, containers, sorts, etc).
+
+  The purpose of XLR is to allow the language to grow naturally over time,
+  under programmers' control. XLR actually stands for ``Extensible Language
+  and Runtime''. The long term vision is a language made both more powerful
+  and easier to use thanks to a large number of community-developed and
+  field-tested language extensions.
+
+  <subsection|Keeping the syntax simple.>
+
+  In order to keep programs easy to write and read, the XLR syntax is very
+  simple. It will seem very natural to most programmers, except for what it's
+  missing: XLR makes little use of parentheses and other punctuation
+  characters. Instead, the syntax is based on indentation. There was a
+  conscious design decision to keep only symbols that had an active role in
+  the meaning of the program, as opposed to a purely syntactic role. XLR
+  programs look a little like pseudo-code, except that they can be compiled
+  and run.
+
+  This simplicity translates into the internal representations of programs,
+  which makes meta-programming not just possible, but easy. Any XLR
+  program<strong|> or data can be represented with just 8 data types:
+  integer, real, text, name, infix, prefix, posfix and block. For example,
+  the internal representation for <verbatim|3 * sin X> is an infix
+  <verbatim|*> node with two children, the left child of <verbatim|*> being
+  integer <verbatim|3>, and the right child of <verbatim|*> being a prefix
+  with the name <verbatim|sin> on the left and the name <verbatim|X> on the
+  right. These basic types form an <em|abstract syntax tree> (AST).\ 
+
+  The data structure representing programs is simple enough to make
+  meta-programming practical and easy. Meta-programming is the ability for a
+  program to deal with programs. In the case of XLR, meta-programming is the
+  key to language extensibility. Instead of wishing you had this or that
+  feature in the language, you can simply add it. Better yet, the process of
+  extending the language is so simple that you can now consider language
+  notations or compilation techniques that are useful only in a particular
+  context. In short, with XLR, creating your own <em|domain-specific
+  languages> (DSLs) is just part of normal, everyday programming.
+
+  ASTs are also central to understanding how XLR programs are executed.
+  Conceptually, an XLR program is a transformation of ASTs following a number
+  of tree rewrite rules. In other words, there is no real difference in XLR
+  between meta-programming and normal program execution, as both are
+  represented by tranformations on ASTs.
+
+  <subsection|Examples>
+
+  The key characteristics of XLR outlined above are best illustrated with a
+  few short examples, going from simple programming to more advanced
   functional-style programming to simple meta-programming.
 
   Figure<nbsp><reference|factorial> illustrates the definition of the
@@ -110,27 +159,36 @@
   </section>
 
   XLR source text is encoded using UTF-8. Source code is parsed into a an
-  abstract tree known as <em|XL0>. XL0 trees consist of four literal node
-  types (integer, real, text and symbol) and four structured node types
-  (prefix, postfix, infix and block). Note that line breaks most often parse
-  as infix operators, and that indentation most often parses as blocks.
+  abstract syntax tree format known as <em|XL0>. XL0 trees consist of four
+  literal node types (integer, real, text and symbol) and four structured
+  node types (prefix, postfix, infix and block). Note that line breaks
+  normally parse as infix operators, and that indentation normally parses as
+  blocks.
 
   The precedence of operators is given by the <verbatim|xl.syntax>
-  configuration file, and can also be changed dynamically in the source code.
-  This is detailed in Section<nbsp><reference|precedence>.
+  configuration file. It can also be changed dynamically in the source code
+  using the <verbatim|syntax> statements. This is detailed in
+  Section<nbsp><reference|precedence>. Both methods to define syntax are
+  called <em|syntax configuration>.
+
+  The rest of this document will occasionally refer to <em|normal XLR> for
+  defaults settings such as the default syntax configuration, as shipped with
+  the standard XLR distribution.
 
   <subsection|Spaces and indentation>
 
-  Spaces and tabs are not significant, but may be required to separate
-  operator or name symbols. For example, there is no difference between
-  <verbatim|A B> (one space) and <verbatim|A \ \ \ B> (four spaces), but it
-  is different from <verbatim|AB> (zero space).
+  Spaces and tabs are generally not significant, but may be required to
+  separate operator or name symbols. For example, there is no difference
+  between <verbatim|A B> (one space) and <verbatim|A \ \ \ B> (four spaces),
+  but both are different from <verbatim|AB> (zero space).
 
   Spaces and tabs are significant at the beginning of lines. XLR will use
   them to determine the level of indentation from which it derives program
   structures (off-side rule), as illustrated in
-  Figure<nbsp><reference|off-side-rule>. Only space or tabs can be used for
-  indentation, but not both in a same source file.
+  Figure<nbsp><reference|off-side-rule>. Both space or tabs can be used for
+  indentation, but cannot be mixed for indentation in a single source file.
+  In other words, if the first indented line uses spaces, all other
+  indentation must be done using spaces, and similarly for tabs.
 
   <big-figure|<\verbatim>
     if A \<less\> 3 then
@@ -145,15 +203,13 @@
 
   <subsection|Comments and spaces>
 
-  Comments are section of the source text which is not parsed. The ignored
-  source text begins with a comment separator, and finishes with a comment
+  Comments are section of the source text which are typically used for
+  documentation purpose and play no role in the execution of the program.
+  Comments begin with a comment separator, and finish with a comment
   terminator.
 
-  With the default configuration<\footnote>
-    In other words, with the <verbatim|xl.syntax> configuration file as
-    shipped with XLR.
-  </footnote>, comments are similar to C++ comments: they begin with
-  <verbatim|/*> and finish with <verbatim|*/> or they begin with
+  Comments in normal XLR are similar to C++ comments: they begin with
+  <verbatim|/*> and finish with <verbatim|*/>, or they begin with
   <verbatim|//> and finish at the end of line. This is illustrated in
   Figure<nbsp><reference|comments>.
 
@@ -164,6 +220,12 @@
 
     \ \ \ can be placed on multiple lines */
   </verbatim>|<label|comments>Single-line and multi-line comments>
+
+  While comments play no actual role in the execution of a normal XLR
+  program, they are actually recorded as attachments in XL0. It is possible
+  for some special code to access or otherwise use these comments. For
+  example, a documentation generator can read comments and use them to
+  construct documentation automatically.
 
   <subsection|<label|literals>Literals>
 
@@ -180,7 +242,9 @@
     <item>Symbols and names
   </enumerate-numeric>
 
-  <paragraph|Integer constants>Integer constants<\footnote>
+  <subsubsection|Integer constants>
+
+  Integer constants<\footnote>
     At the moment, XL uses the largest native integer type on the machine
     (generally 64-bit) in its internal representations. The scanner detects
     overflow in integer constants.
@@ -215,31 +279,32 @@
     2#1001_1001_1001_1001
   </verbatim>|Valid integer constants>
 
-  <paragraph|Real constants>Real constants such as <verbatim|3.14> consist of
-  one or more digits (<verbatim|0123456789>), followed by a single dot
-  <verbatim|.> followed by one or more digits (<verbatim|0123456789>). Note
-  that there must be at least one digit after the dot, i.e. <verbatim|1.> is
-  not a valid real constant.
+  <subsubsection|Real constants>
+
+  Real constants such as <verbatim|3.14> consist of one or more digits
+  (<verbatim|0123456789>), followed by a single dot <verbatim|.> followed by
+  one or more digits (<verbatim|0123456789>). Note that there must be at
+  least one digit after the dot, i.e. <verbatim|1.> is not a valid real
+  constant, but <verbatim|1.0> is.
 
   Real constants can have a radix and use underscores to separate digits like
   integer constants. For example <verbatim|2#1.1> is the same as
   <verbatim|1.5> and <verbatim|3.141_592_653> is an approximation of
   <math|\<pi\>>.
 
-  Optionally, a real constant can have an exponent, which consists of an
-  optional hash sign <verbatim|#>, followed by the character <verbatim|e> or
-  <verbatim|E>, followed by optional plus <verbatim|+> or minus <verbatim|->
-  sign, followed by one or more decimal digits <verbatim|0123456789>. For
-  example, <verbatim|1.0e-3> is the same as <verbatim|0.001> and
-  <verbatim|1.0E3> is the same as <verbatim|1000.0>.
+  A real constant can have an exponent, which consists of an optional hash
+  sign <verbatim|#>, followed by the character <verbatim|e> or <verbatim|E>,
+  followed by optional plus <verbatim|+> or minus <verbatim|-> sign, followed
+  by one or more decimal digits <verbatim|0123456789>. For example,
+  <verbatim|1.0e-3> is the same as <verbatim|0.001> and <verbatim|1.0E3> is
+  the same as <verbatim|1000.0>. The exponent value is always given in
+  radix-10, and indicates a power of the given radix. For example,
+  <verbatim|2#1.0e3> represents <math|2<rsup|3>>, in other words it is the
+  same as <verbatim|8.0>.
 
-  The exponent value is always given in radix-10, and indicates a power of
-  the given radix. For example, <verbatim|2#1.0e3> represents
-  <math|2<rsup|3>>, in other words it is the same as <verbatim|8.0>.
-
-  The hash sign is required for any radix greater than 14, since in that case
-  the character <verbatim|e> or <verbatim|E> is also a valid digit. For
-  instance, <verbatim|16#1.0E1> is approximately the same as
+  The hash sign in the exponent is required for any radix greater than 14,
+  since in that case the character <verbatim|e> or <verbatim|E> is also a
+  valid digit. For instance, <verbatim|16#1.0E1> is approximately the same as
   <verbatim|1.05493>, whereas <verbatim|16#1.0#E1> is the same as
   <verbatim|16.0>.
 
@@ -253,12 +318,14 @@
     </verbatim>
   </big-figure|Valid real constants>
 
-  <paragraph|Text literals>Text is any valid UTF-8 sequence of printable or
-  space characters surrounded by text delimiters, such as
-  <verbatim|"Hello<nbsp>Möndé">. Except for line-terminating characters, the
-  behavior when a text sequence contains control characters or invalid UTF-8
-  sequences is unspecified. However, implementations are encouraged to
-  preserve the contents of such sequences.
+  <subsubsection|Text literals>
+
+  Text is any valid UTF-8 sequence of printable or space characters
+  surrounded by text delimiters, such as <verbatim|"Hello<nbsp>Möndé">.
+  Except for line-terminating characters, the behavior when a text sequence
+  contains control characters or invalid UTF-8 sequences is unspecified.
+  However, implementations are encouraged to preserve the contents of such
+  sequences.
 
   The base text delimiters are the single quote <verbatim|'> and the double
   quote <verbatim|">. They can be used to enclose any text that doesn't
@@ -277,10 +344,7 @@
   default configuration, long text can be delimited with
   <verbatim|\<less\>\<less\>> and <verbatim|\<gtr\>\<gtr\>>.
 
-  When long text contains multiple lines of text, indentation is ignored up
-  to the indentation level of the first character in the long text. For
-  example, Figure<nbsp><reference|long-text-indent> illustrates how long text
-  indent is eliminated from the text being read.
+  \;
 
   <big-figure|<\verbatim>
     "Hello World"
@@ -291,6 +355,11 @@
 
     multiple lines\<gtr\>\<gtr\>
   </verbatim>|Valid text constants>
+
+  When long text contains multiple lines of text, indentation is ignored up
+  to the indentation level of the first character in the long text.
+  Figure<nbsp><reference|long-text-indent> illustrates how long text indent
+  is eliminated from the text being read.
 
   <\big-figure>
     <block*|<tformat|<table|<row|<cell|<strong|Source
@@ -318,16 +387,18 @@
   <with|color|red|BUG: Indentation is not ignored entirely as it should in
   long text.>
 
-  In general, comparing text literals involves only comparison of their
-  value, not delimiters.
+  The text delimiters are not part of the value of text literals. Therefore,
+  text delimiters are ignored when comparing texts.
 
-  <paragraph|Name and operator symbols>Names begin with an alphabetic
-  character <verbatim|A>..<verbatim|Z> or <verbatim|a>..<verbatim|z> or any
-  non-ASCII UTF-8 character, followed by the longuest possible sequence of
-  alphabetic characters, digits or underscores. Two consecutive underscore
-  characters are not allowed. Thus, <verbatim|Marylin_Monroe>,
-  <verbatim|élaböràtion> or <verbatim|j1> are valid XLR names, whereas
-  <verbatim|A-1>, <verbatim|1cm> or <verbatim|A__2> are not.
+  <subsubsection|Name and operator symbols>
+
+  Names begin with an alphabetic character <verbatim|A>..<verbatim|Z> or
+  <verbatim|a>..<verbatim|z> or any non-ASCII UTF-8 character, followed by
+  the longuest possible sequence of alphabetic characters, digits or
+  underscores. Two consecutive underscore characters are not allowed. Thus,
+  <verbatim|Marylin_Monroe>, <verbatim|élaböràtion> or <verbatim|j1> are
+  valid XLR names, whereas <verbatim|A-1>, <verbatim|1cm> or <verbatim|A__2>
+  are not.
 
   Operator symbols, or <em|operators>, begin with an ASCII punctuation
   character<\footnote>
@@ -335,17 +406,18 @@
   </footnote> which does not act as a special delimiter for text, comments or
   blocks. For example, <verbatim|+> or <verbatim|-\<gtr\>> are operator
   symbols. An operator includes more than one punctuation character only if
-  it has been declared in the syntax configuration file. For example, unless
-  the symbol <verbatim|%,> has been declared in the syntax, <verbatim|3%,4%>
-  will contain two operator symbols <verbatim|%> and <strong|,> instead of a
-  single <verbatim|%,> operator.
+  it has been declared in the syntax (typically in the syntax configuration
+  file). For example, unless the symbol <verbatim|%,> (percent character
+  followed by comma character) has been declared in the syntax,
+  <verbatim|3%,4%> will contain two operator symbols <verbatim|%> and
+  <strong|,> instead of a single <verbatim|%,> operator.
 
   A special name, the empty name, exists only as a child of empty blocks such
   as <verbatim|()>.
 
   After parsing, operator and name symbols are treated identically. During
   parsing, they are treated identically except in the expression versus
-  statement rule.
+  statement rule explained below.
 
   <\big-figure>
     <\verbatim>
@@ -371,41 +443,48 @@
 
   <\enumerate>
     <item>Infix nodes, representing operations such as <verbatim|A+B> or
-    <verbatim|A and B>
+    <verbatim|A and B>, where the operator is between its two operands.
 
     <item>Prefix nodes, representing operations such as <verbatim|+3> or
-    <verbatim|sin x>
+    <verbatim|sin x>, where the operator is before its operand.
 
     <item>Postfix nodes, representing operations such as <verbatim|3%> or
-    <verbatim|3 cm>
+    <verbatim|3 cm>, where the operator is after its operand.
 
     <item>Blocks, representing grouping such as <verbatim|(A+B)> or
-    <verbatim|{lathe;rinse;repeat}>
+    <verbatim|{lathe;rinse;repeat}>, where the operators surround their
+    operand.
   </enumerate>
 
-  <paragraph|Infix nodes>An infix node has two children, one on the left, one
-  on the right, separated by a name or operator symbol.
+  <subsubsection|Infix nodes>
+
+  An infix node has two children, one on the left, one on the right,
+  separated by a name or operator symbol.
 
   Infix nodes are used to separate statements with semi-colons <verbatim|;>
-  or line breaks <verbatim|NEWLINE>.
+  or line breaks (referred to as <verbatim|NEWLINE> in syntax configuration).
 
-  <paragraph|Prefix and postfix nodes>Prefix and postfix nodes have two
-  children, one on the left, one on the right, without any separator between
-  them. The only difference is in what is considered the ``operation'' and
-  what is considered the ``operand''. For a prefix node, the operation is on
-  the left and the operand on the right, whereas for a postfix node, the
-  operation is on the right and the operand on the left.
+  <subsubsection|Prefix and postfix nodes>
+
+  Prefix and postfix nodes have two children, one on the left, one on the
+  right, without any separator between them. The only difference is in what
+  is considered the ``operation'' and what is considered the ``operand''. For
+  a prefix node, the operation is on the left and the operand on the right,
+  whereas for a postfix node, the operation is on the right and the operand
+  on the left.
 
   Prefix nodes are used for functions. The default for a name or operator
   symbol that is not explicitly declared in the <verbatim|xl.syntax> file or
-  configured is to be treated as a prefix function. For example,
-  <verbatim|sin> in the expression <verbatim|sin x> is treated as a function.
+  configured is to be treated as a prefix function, i.e. to be given a common
+  function precedence referred to as <verbatim|FUNCTION> in syntax
+  configuration. For example, <verbatim|sin> in the expression <verbatim|sin
+  x> is treated as a function.
 
-  <paragraph|Block nodes>Block nodes have one child bracketed by two
-  delimiters.
+  <subsubsection|Block nodes>
 
-  The default configuration recognizes the following pairs as block
-  delimiters:
+  Block nodes have one child bracketed by two delimiters.
+
+  Normal XLR recognizes the following pairs as block delimiters:
 
   <\itemize>
     <item>Parentheses, as in <verbatim|(A)>
@@ -415,7 +494,9 @@
     <item>Curly braces, as in <verbatim|{A}>
 
     <item>Indentation, as shown surrounding the <verbatim|write> statements
-    in Figure<nbsp><reference|off-side-rule>.
+    in Figure<nbsp><reference|off-side-rule>. The delimiters for indentation
+    are referred to as <verbatim|INDENT> and <verbatim|UNINDENT> in syntax
+    configuration.
   </itemize>
 
   <subsection|Parsing rules>
@@ -434,11 +515,13 @@
 
   These rules are detailed below.
 
-  <paragraph|Precedence>Infix, prefix, postfix and block symbols are ranked
-  according to their <em|precedence>, represented as a non-negative integer.
-  The precedence can be given by the syntax configuration file,
-  <verbatim|xl.syntax>, or by special notations in the source code, as
-  detailed in Section<nbsp><reference|precedence>.
+  <subsubsection|Precedence>
+
+  Infix, prefix, postfix and block symbols are ranked according to their
+  <em|precedence>, represented as a non-negative integer. The precedence is
+  specified by the syntax configuration, either in the syntax configuration
+  file, <verbatim|xl.syntax>, or through <verbatim|syntax> statmeents in the
+  source code. This is detailed in Section<nbsp><reference|precedence>.
 
   Symbols with higher precedence associate before symbols with lower
   precedence. For instance, if the symbol <verbatim|*> has infix precedence
@@ -453,39 +536,44 @@
   as an infix <verbatim|-> with a prefix <verbatim|-> as a right child.
 
   The precedence associated to blocks is used to define the precedence of the
-  resulting expression. This precedence is used primarily in the ``expression
-  versus statement'' rule.
+  resulting expression. This precedence given to entire expressions is used
+  primarily in the <em|expression versus statement> rule described below.
 
-  <paragraph|Associativity>Infix operators can associate to their left or to
-  their right.
+  <subsubsection|Associativity>
+
+  Infix operators can associate to their left or to their right.
 
   The addition operator is traditionally left-associative, meaning that in
   <verbatim|A+B+C>, <verbatim|A> and <verbatim|B> associate before
-  <verbatim|C>. The outer infix node has an infix node as its left child
-  (with <verbatim|A> and <verbatim|B> as their children) and <verbatim|C> as
-  its right child.
+  <verbatim|C>. As a result, the outer infix <verbatim|+> node in
+  <verbatim|A+B+C> has an infix <verbatim|+> node as its left child, with
+  <verbatim|A> and <verbatim|B> as children, and <verbatim|C> as its right
+  child.
 
   Conversely, the semi-colon in XLR is right-associative, meaning that
   <verbatim|A;B;C> is an infix node with an infix as the right child and
   <verbatim|A> as the left child.
 
   Operators with left and right associativity cannot have the same
-  precedence. To ensure this, XLR gives an even precedence to
-  left-associative operators, and an odd precedence to right-associative
-  operators. For example, the precedence of <verbatim|+> in the default
-  configuration is <verbatim|290> (left-associative), whereas the precedence
-  of <verbatim|^> is <verbatim|395> (right-associative).
+  precedence, as this would lead to ambiguity. To enforce that rule, XLR
+  arbitrarily gives an even precedence to left-associative operators, and an
+  odd precedence to right-associative operators. For example, the precedence
+  of <verbatim|+> in the default configuration is <verbatim|290>
+  (left-associative), whereas the precedence of <verbatim|^> is
+  <verbatim|395> (right-associative).
 
-  <paragraph|Infix versus Prefix versus Postfix>During parsing, XLR needs to
-  resolve ambiguities between infix and prefix symbols. For example, in
-  <verbatim|-A + B>, the minus sign <verbatim|-> is a prefix, whereas the
-  plus sign <verbatim|+> is an infix. Similarly, in <verbatim|A and not B>,
-  the <verbatim|and> word is infix, whereas the <verbatim|not> word is
-  prefix. The problem is exactly similar for names and operator symbols.
+  <subsubsection|Infix versus Prefix versus Postfix>
+
+  During parsing, XLR needs to resolve ambiguities between infix and prefix
+  symbols. For example, in <verbatim|-A + B>, the minus sign <verbatim|-> is
+  a prefix, whereas the plus sign <verbatim|+> is an infix. Similarly, in
+  <verbatim|A and not B>, the <verbatim|and> word is infix, whereas the
+  <verbatim|not> word is prefix. The problem is therefore exactly similar for
+  names and operator symbols.
 
   XLR resolves this ambiguity as follows<\footnote>
-    All the examples are given based on the default <verbatim|xl.syntax>
-    configuration file.
+    All the examples given are in normal XL, i.e. based on the default
+    <verbatim|xl.syntax> configuration file.
   </footnote>:
 
   <\itemize>
@@ -514,13 +602,16 @@
   In the first, second and last case, a symbol may be identified as a prefix
   without being given an explicit precedence. Such symbols are called
   <em|default prefix>. They receive a particular precedence known as
-  <em|function precedence>.
+  <em|function precedence>, identified by <verbatim|FUNCTION> in the syntax
+  configuration.
 
-  <paragraph|Expression versus statement>Another ambiguity is related to the
-  way humans read text. In <verbatim|write sin x, sin y>, most humans will
-  read this as a <verbatim|write> instruction taking two arguments. This is
-  however not entirely logical: if <verbatim|write> takes two arguments, then
-  why shouldn't <verbatim|sin> also take two arguments? In other words, why
+  <subsubsection|Expression versus statement>
+
+  Another ambiguity is related to the way humans read text. In
+  <verbatim|write sin x, sin y>, most humans will read this as a
+  <verbatim|write> instruction taking two arguments. This is however not
+  entirely logical: if <verbatim|write> takes two arguments, then why
+  shouldn't <verbatim|sin> also take two arguments? In other words, why
   should this example parse as <verbatim|write(sin(x),sin(y))> and not as
   <verbatim|write(sin(x,sin(y)))>?
 
@@ -531,18 +622,18 @@
 
   XLR resolves the ambiguity by implementing a similar distinction. The
   boundary is a particular infix precedence, called <em|statement
-  precedence>. Intuitively, infix operators with a lower precedence separate
-  statements, whereas infix operators with a higher precedence separate
-  expressions. For example, the semi-colon <verbatim|;> or <verbatim|else>
-  separate statements, whereas <verbatim|+> or <verbatim|and> separate
-  instructions.
+  precedence>, denoted as <verbatim|STATEMENT> in the syntax configuration.
+  Intuitively, infix operators with a lower precedence separate statements,
+  whereas infix operators with a higher precedence separate expressions. For
+  example, the semi-colon <verbatim|;> or <verbatim|else> separate
+  statements, whereas <verbatim|+> or <verbatim|and> separate instructions.
 
   More precisely:
 
   <\itemize>
-    <item>If a block's precedence is above statement precedence, its content
-    begins as an expression, otherwise it begins as a statement: <verbatim|3>
-    in <verbatim|(3)> is an expression, <verbatim|write> in
+    <item>If a block's precedence is less than statement precedence, its
+    content begins as an expression, otherwise it begins as a statement:
+    <verbatim|3> in <verbatim|(3)> is an expression, <verbatim|write> in
     <verbatim|{write}> is a statement.
 
     <item>Right after an infix symbol with a precedence lower than statement
@@ -550,9 +641,9 @@
     name <verbatim|B> in <verbatim|A+B> is an expression, but it is a
     statement in <verbatim|A;B>.
 
-    <item>A similar rule applies after prefix nodes: <verbatim|{X} write A,
-    B> will give two arguments to <verbatim|write>, whereas in
-    <verbatim|(x-\<gtr\>x+1) sin x, y> the <verbatim|sin> function only
+    <item>A similar rule applies after prefix nodes: <verbatim|{optimize}
+    write A,B> gives two arguments to <verbatim|write>, whereas in
+    <verbatim|(x-\<gtr\>x+1) sin x,y> the <verbatim|sin> function only
     receives a single argument.
 
     <item>A default prefix begins a statement if it's a name, an expression
@@ -561,129 +652,150 @@
     expression.
   </itemize>
 
+  In practice, there is no need to worry too much about these rules, since
+  normal XLR ensures that most text parses as one would expect from daily use
+  of English or mathematical notations.
+
   <subsection|<label|precedence>Syntax configuration>
 
-  The default XLR syntax configuration file looks like
-  Figure<nbsp><reference|syntax-file>.
+  The default XLR syntax configuration file, named <verbatim|xl.syntax>,
+  looks like Figure<nbsp><reference|syntax-file> and specifies the standard
+  operators and their precedence.
 
-  <big-figure|<\verbatim>
-    INFIX
+  <\big-figure>
+    <\verbatim>
+      INFIX
 
-    \ \ \ \ \ \ \ \ 11 \ \ \ \ \ NEWLINE
+      \ \ \ \ \ \ \ \ 11 \ \ \ \ \ NEWLINE
 
-    \ \ \ \ \ \ \ \ 21 \ \ \ \ \ ;
+      \ \ \ \ \ \ \ \ 21 \ \ \ \ \ -\<gtr\> =\<gtr\>
 
-    \ \ \ \ \ \ \ \ 25 \ \ \ \ \ -\<gtr\>
+      \ \ \ \ \ \ \ \ 31 \ \ \ \ \ else into
 
-    \ \ \ \ \ \ \ \ 30 \ \ \ \ \ loop when
+      \ \ \ \ \ \ \ \ 40 \ \ \ \ \ loop while until
 
-    \ \ \ \ \ \ \ \ 35 \ \ \ \ \ else into
+      \ \ \ \ \ \ \ \ 50 \ \ \ \ \ then require ensure
 
-    \ \ \ \ \ \ \ \ 40 \ \ \ \ \ then require ensure
+      \ \ \ \ \ \ \ \ 61 \ \ \ \ \ ;
 
-    \ \ \ \ \ \ \ \ 41 \ \ \ \ \ with
+      \ \ \ \ \ \ \ \ 75 \ \ \ \ \ with
 
-    \ \ \ \ \ \ \ \ 100 \ \ \ \ STATEMENT
+      \ \ \ \ \ \ \ \ 85 \ \ \ \ \ := += -= *= /= ^= \|= &=
 
-    \ \ \ \ \ \ \ \ 110 \ \ \ \ is as \ while until
+      \ \ \ \ \ \ \ \ 100 \ \ \ \ STATEMENT
 
-    \ \ \ \ \ \ \ \ 120 \ \ \ \ written
+      \ \ \ \ \ \ \ \ 110 \ \ \ \ is as\ 
 
-    \ \ \ \ \ \ \ \ 130 \ \ \ \ where
+      \ \ \ \ \ \ \ \ 120 \ \ \ \ written
 
-    \ \ \ \ \ \ \ \ 200 \ \ \ \ DEFAULT
+      \ \ \ \ \ \ \ \ 130 \ \ \ \ where
 
-    \ \ \ \ \ \ \ \ 210 \ \ \ \ ,
+      \ \ \ \ \ \ \ \ 200 \ \ \ \ DEFAULT
 
-    \ \ \ \ \ \ \ \ 221 \ \ \ \ := += -= *= /= ^= \|= &=
+      \ \ \ \ \ \ \ \ 211 \ \ \ \ when
 
-    \ \ \ \ \ \ \ \ 230 \ \ \ \ return\ 
+      \ \ \ \ \ \ \ \ 231 \ \ \ \ ,
 
-    \ \ \ \ \ \ \ \ 240 \ \ \ \ and or xor
+      \ \ \ \ \ \ \ \ 240 \ \ \ \ return\ 
 
-    \ \ \ \ \ \ \ \ 250 \ \ \ \ in at
+      \ \ \ \ \ \ \ \ 250 \ \ \ \ and or xor
 
-    \ \ \ \ \ \ \ \ 251 \ \ \ \ of to
+      \ \ \ \ \ \ \ \ 260 \ \ \ \ in at contains
 
-    \ \ \ \ \ \ \ \ 260 \ \ \ \ ..
+      \ \ \ \ \ \ \ \ 271 \ \ \ \ of to
 
-    \ \ \ \ \ \ \ \ 270 \ \ \ \ = \<less\> \<gtr\> \<less\>= \<gtr\>=
-    \<less\>\<gtr\>
+      \ \ \ \ \ \ \ \ 280 \ \ \ \ .. by
 
-    \ \ \ \ \ \ \ \ 280 \ \ \ \ & \|
+      \ \ \ \ \ \ \ \ 290 \ \ \ \ = \<less\> \<gtr\> \<less\>= \<gtr\>=
+      \<less\>\<gtr\>
 
-    \ \ \ \ \ \ \ \ 290 \ \ \ \ + -
+      \ \ \ \ \ \ \ \ 300 \ \ \ \ & \|
 
-    \ \ \ \ \ \ \ \ 300 \ \ \ \ * / mod rem
+      \ \ \ \ \ \ \ \ 310 \ \ \ \ + -
 
-    \ \ \ \ \ \ \ \ 395 \ \ \ \ ^
+      \ \ \ \ \ \ \ \ 320 \ \ \ \ * / mod rem
 
-    \ \ \ \ \ \ \ \ 510 \ \ \ \ .
+      \ \ \ \ \ \ \ \ 381 \ \ \ \ ^
 
-    \ \ \ \ \ \ \ \ 520 \ \ \ \ :
+      \ \ \ \ \ \ \ \ 500 \ \ \ \ .
 
-    \;
+      \ \ \ \ \ \ \ \ 600 \ \ \ \ :
 
-    PREFIX
+      \;
 
-    \ \ \ \ \ \ \ \ 30 \ \ \ \ \ data
+      PREFIX
 
-    \ \ \ \ \ \ \ \ 120 \ \ \ \ exit loop
+      \ \ \ \ \ \ \ \ 30 \ \ \ \ \ data
 
-    \ \ \ \ \ \ \ \ 125 \ \ \ \ case if return while until yield transform
+      \ \ \ \ \ \ \ \ 40 \ \ \ \ \ loop while until
 
-    \ \ \ \ \ \ \ \ 320 \ \ \ \ not in out constant variable const var
+      \ \ \ \ \ \ \ \ 50 \ \ \ \ \ property constraint
 
-    \ \ \ \ \ \ \ \ 340 \ \ \ \ @\ 
+      \ \ \ \ \ \ \ \ 121 \ \ \ \ case if return yield transform
 
-    \ \ \ \ \ \ \ \ 380 \ \ \ \ ! ~
+      \ \ \ \ \ \ \ \ 350 \ \ \ \ not in out constant variable const var
 
-    \ \ \ \ \ \ \ \ 390 \ \ \ \ - + * /
+      \ \ \ \ \ \ \ \ 360 \ \ \ \ ! ~
 
-    \ \ \ \ \ \ \ \ 400 \ \ \ \ FUNCTION
+      \ \ \ \ \ \ \ \ 370 \ \ \ \ - + * /
 
-    \ \ \ \ \ \ \ \ 410 \ \ \ \ function procedure to type iterator
+      \ \ \ \ \ \ \ \ 401 \ \ \ \ FUNCTION
 
-    \ \ \ \ \ \ \ \ 500 \ \ \ \ &
+      \ \ \ \ \ \ \ \ 410 \ \ \ \ function procedure to type iterator
 
-    \;
+      \ \ \ \ \ \ \ \ 420 \ \ \ \ ++ --
 
-    POSTFIX
+      \ \ \ \ \ \ \ \ 430 \ \ \ \ &
 
-    \ \ \ \ \ \ \ \ 400 \ \ \ \ ! ? % cm inch mm pt px
+      \;
 
-    BLOCK
+      POSTFIX
 
-    \ \ \ \ \ \ \ \ 5 \ \ \ \ \ \ INDENT UNINDENT
+      \ \ \ \ \ \ \ \ 400 \ \ \ \ ! ? % cm inch mm pt px
 
-    \ \ \ \ \ \ \ \ 21 \ \ \ \ \ '{' '}'
+      \ \ \ \ \ \ \ \ 420 \ \ \ \ ++ --
 
-    \ \ \ \ \ \ \ \ 400 \ \ \ \ '(' ')' '[' ']'
+      \;
 
-    \;
+      BLOCK
 
-    TEXT
+      \ \ \ \ \ \ \ \ 5 \ \ \ \ \ \ INDENT UNINDENT
 
-    \ \ \ \ \ \ \ \ "\<less\>\<less\>" "\<gtr\>\<gtr\>"
+      \ \ \ \ \ \ \ \ 25 \ \ \ \ \ '{' '}'
 
-    \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+      \ \ \ \ \ \ \ \ 500 \ \ \ \ '(' ')' '[' ']'
 
-    COMMENT
+      \;
 
-    \ \ \ \ \ \ \ \ "//" NEWLINE
+      TEXT
 
-    \ \ \ \ \ \ \ \ "/*" "*/"
-  </verbatim>|<label|syntax-file>Default syntax configuration file>
+      \ \ \ \ \ \ \ \ "\<less\>\<less\>" "\<gtr\>\<gtr\>"
+
+      \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ 
+
+      COMMENT
+
+      \ \ \ \ \ \ \ \ "//" NEWLINE
+
+      \ \ \ \ \ \ \ \ "/*" "*/"
+
+      \;
+
+      SYNTAX "C"
+
+      \ \ \ \ \ \ \ \ extern ;
+    </verbatim>
+  </big-figure|<label|syntax-file>Default syntax configuration file>
 
   Spaces and indentation are not significant in a syntax configuration file.
   Lexical elements are identical to those of XLR, as detailed in
-  Section<nbsp><reference|literals>.
+  Section<nbsp><reference|literals>. The significant elements are integer
+  constants, names, symbols and text. Integer constants are interpreted as
+  the precedence of names and symbols that follow them. Name and symbols can
+  be given either with lexical names and symbols, or with text.
 
-  The significant elements are integer constants, names, symbols and text.
-  Integer constants are interpreted as the precedence of names and symbols
-  that follow them. Name and symbols can be given either with lexical names
-  and symbols, or with text. A few names are reserved for use as keywords in
-  the syntax configuration file:
+  A few names are reserved for use as keywords in the syntax configuration
+  file:
 
   <\itemize>
     <item><verbatim|INFIX> begins a section declaring infix symbols and
@@ -696,7 +808,9 @@
       <item><verbatim|STATEMENT> identifies the precedence of statements
 
       <item><verbatim|DEFAULT> identifies the precedence for symbols not
-      otherwise given a precedence. This precedence should be unique.
+      otherwise given a precedence. This precedence should be unique in the
+      syntax confguration, i.e. no other symbol should be given the
+      <verbatim|DEFAULT> precedence.
     </itemize>
 
     <item><verbatim|PREFIX> begins a section declaring prefix symbols and
@@ -705,7 +819,8 @@
     <\itemize>
       <item><verbatim|FUNCTION >identifies the precedence for default prefix
       symbols, i.e. symbols identified as prefix that are not otherwise given
-      a precedence.
+      a precedence. This precedence should be unique, i.e. no other symbol
+      shoud be given the <verbatim|FUNCTION> precedence.
     </itemize>
 
     <item><verbatim|POSTFIX> begins a section declaring postfix symbols and
@@ -728,7 +843,53 @@
     <\itemize>
       <item><verbatim|NEWLINE> identifies line breaks
     </itemize>
+
+    <item><verbatim|SYNTAX> begins a section declaring external syntax files.
+    In normal XLR, a file <verbatim|C.syntax> is used to define the
+    precedences for any text between <verbatim|extern> and <verbatim|;>
+    symbols. This is used to import C symbols using an approximation of the
+    syntax of the C language, as described in
+    Section<nbsp><reference|C-library>. The <verbatim|C.syntax> configuration
+    file is shown in Figure<nbsp><reference|C-syntax-file>.
   </itemize>
+
+  <\big-figure>
+    <\verbatim>
+      INFIX
+
+      \ \ \ \ \ \ \ \ 41 \ \ \ \ ,
+
+      \;
+
+      PREFIX
+
+      \ \ \ \ \ \ \ \ 30 \ \ \ \ \ extern ...
+
+      \ \ \ \ \ \ \ \ 400 \ \ \ \ FUNCTION
+
+      \ \ \ \ \ \ \ \ 450 \ \ \ \ short long unsigned signed
+
+      \;
+
+      POSTFIX
+
+      \ \ \ \ \ \ \ \ 100 \ \ \ \ *
+
+      \;
+
+      BLOCK
+
+      \ \ \ \ \ \ \ \ 500 \ \ \ \ '(' ')' '[' ']'
+
+      \;
+
+      COMMENT
+
+      \ \ \ \ \ \ \ \ "//" NEWLINE
+
+      \ \ \ \ \ \ \ \ "/*" "*/"
+    </verbatim>
+  </big-figure|<label|C-syntax-file>C syntax configuration file>
 
   Syntax information can also be provided in the source code using the
   <verbatim|syntax> name followed by a block, as illustrated in
@@ -739,7 +900,7 @@
 
     syntax (INFIX 350 weight)
 
-    A weight B -\<gtr\> A = B
+    Obj weight W -\<gtr\> Obj = W
 
     \;
 
@@ -755,7 +916,7 @@
 
     \;
 
-    // Combine the notations
+    // Combine the notations declared above
 
     if 6 apples weight 1.5 kg then
 
@@ -763,39 +924,68 @@
   </verbatim>|<label|source-syntax>Use of the <verbatim|syntax> specification
   in a source file>
 
-  <section|Semantics>
+  As a general stylistic rule, it is recommended limit the introduction of
+  new operators using <verbatim|syntax> statements, as this can easily
+  confuse a reader not familiar with the new notation.
+
+  <section|Language semantics>
 
   The semantics of XLR is based entirely on the rewrite of XL0 abstract
-  syntax trees. The rewrite rules are based on a very limited number set of
-  operators. The rewrites operations combine to result in the execution of an
-  XLR program.
+  syntax trees. Tree rewrite operations define the execution of XLR programs,
+  also called <em|evaluation>.
 
-  <subsection|Operators>
+  <\subsection>
+    <label|tree-rewrite-operators>Tree rewrite operators
+  </subsection>
 
-  XLR defines a small number of operators:
+  There is a very small set of tree rewrite operators that are given special
+  meaning in XLR and treated specially by the XLR compiler:
 
   <\itemize>
     <item>Rewrite declarations are used to declare operations. They roughly
-    play the role of functions and operator declarations in other programming
-    languages.
+    play the role of functions, operator or macro declarations in other
+    programming languages. A rewrite declaration takes the general form
+    <verbatim|Pattern-\<gtr\>Implementation> and indicates that any tree
+    matching <verbatim|Pattern> should be rewritten as
+    <verbatim|Implementation>.
 
-    <item>Data declarations identify data structures in the program.
+    <item>Data declarations identify data structures in the program. Data
+    structures are nothing more than trees that need no further rewrite. A
+    data declaration takes the general form of <verbatim|data Pattern>. Any
+    tree matching <verbatim|Pattern> will not be rewritten further.
 
-    <item>Type declarations define the type of variables.
+    <item>Type declarations define the type of variables. Type declarations
+    take the general form of an infix colon operator <verbatim|Name:Type>,
+    with the name of the variable on the left, and the type of the variable
+    on the right.
 
-    <item>Guards limit the validity of rewrite or data declarations.
+    <item>Guards limit the validity of rewrite or data declarations. They use
+    an infix <verbatim|when> with a boolean expression on the right of
+    <verbatim|when>, i.e. a form like <verbatim|Declaration when Condition>.
 
-    <item>Assignment allow a variable value to change over time.
+    <item>Assignment change the value associated to a binding. Assignments
+    take the form <verbatim|Reference := Value>, where <verbatim|Reference>
+    identifies the binding to change.
 
     <item>Sequence operators indicate the order in which computations must be
-    performed.
+    performed. Standard XLR has two infix sequence operators, the semi-colon
+    <verbatim|;> and the new-line <verbatim|NEWLINE>.
+
+    <item>Index operators perform particular kinds of tree rewrites similar
+    in usage to ``structures'' or ``arrays'' in other programming languages.
+    The notations <verbatim|Reference.Field> and <verbatim|Reference[Index]>
+    are used to refer to individual elements in a data structure. As we will
+    see, these are only convenience notations for specific kinds of tree
+    rewrites.
   </itemize>
 
-  <paragraph|Rewrite declarations>The infix <verbatim|-\<gtr\>> operator
-  declares a tree rewrite. Figure<nbsp><reference|if-then-else> repeats the
-  code in Figure<nbsp><reference|if-then> illustrating how rewrite
-  declarations can be used to define the traditional
-  <verbatim|if>-<verbatim|then>-<verbatim|else> statement.
+  <subsubsection|Rewrite declarations>
+
+  The infix <verbatim|-\<gtr\>> operator declares a tree rewrite.
+  Figure<nbsp><reference|if-then-else> repeats the code in
+  Figure<nbsp><reference|if-then> illustrating how rewrite declarations can
+  be used to define the traditional <verbatim|if>-<verbatim|then>-<verbatim|else>
+  statement.
 
   <big-figure|<\verbatim>
     if true then TrueClause else FalseClause \ \ \ -\<gtr\> TrueClause
@@ -819,11 +1009,13 @@
 
     <item>A name on the right of a postfix is a constant
 
+    <item>A name alone on the left of a rewrite is a constant
+
     <item>All other names are variable
   </itemize>
 
-  Figure<nbsp><reference|if-then-else-colorized> highlight in blue italic
-  type all variable symbols in the declarations of
+  Figure<nbsp><reference|if-then-else-colorized> highlight in blue italic all
+  variable symbols in the declarations of
   Figure<nbsp><reference|if-then-else>.
 
   <big-figure|<\verbatim>
@@ -841,77 +1033,203 @@
   exactly, but <verbatim|TrueClause> may match any tree, like for example
   <verbatim|write "Hello">.
 
-  A special case is a rewrite declaration where the pattern consists of a
-  single name.\ 
+  Note that there is a special case for a name as the pattern of a rewrite. A
+  rewrite like <verbatim|X-\<gtr\>0> binds <verbatim|X> to value
+  <verbatim|0>, i.e. <verbatim|X> is a constant that must match in the tree
+  being evaluated.
 
-  <\itemize>
-    <item>If the rewrite declaration is the only child of a block, the
-    pattern name is variable, and the result is called a <em|universal
-    rewrite rule>, i.e. a rule that applies to any tree. For example
-    <verbatim|(x-\<gtr\>x+1)> is a universal rewrite rule that adds one to
-    any input tree.
+  It is however possible to create a rewrite with a variable on the left by
+  using a type declaration. For example, the rewrite
+  <verbatim|(X:real-\<gtr\>X+1)> does not declare the variable <verbatim|X>,
+  but an <em|anonymous function> that increments its input.
 
-    <item>Otherwise, the name is constant, and the rewrite is said to be a
-    <em|named tree>.
-  </itemize>
+  Rewrites in a sequence belong to the context for the entire sequence
+  (contexts are defined in Section<nbsp><reference|binding>). In other words,
+  declarations are visible to prior elements in the sequence and do not need
+  to be evaluated, as shown in Figure<nbsp><reference|out-of-order-declarations>,
+  which computes <verbatim|4>:
 
-  <paragraph|Data declaration>The <verbatim|data> prefix declares tree
-  structures that need not be rewritten further. For instance,
-  Figure<nbsp><reference|comma-separated-list> declares that <verbatim|1,3,4>
-  should not be evaluated further, because it is made of infix <verbatim|,>
-  trees which are declared as <verbatim|data>.
+  <big-figure|<\verbatim>
+    foo 3
+
+    foo N -\<gtr\> N + 1
+  </verbatim>|<label|out-of-order-declarations>Declarations are visible to
+  the entire sequence containing them>
+
+  <paragraph|Machine interface>A <em|machine interface> is a rewrite where
+  the implementation is a prefix of two names, the first one being
+  <verbatim|C> or <verbatim|opcode>. Machine interfaces are described in
+  Section<nbsp><reference|machine-interface>.
+
+  <subsubsection|Data declaration>
+
+  The <verbatim|data> prefix declares tree structures that need not be
+  rewritten further. For instance, Figure<nbsp><reference|comma-separated-list>
+  declares that <verbatim|1,3,4> should not be evaluated further, because it
+  is made of infix <verbatim|,> trees which are declared as <verbatim|data>.
 
   <\big-figure>
     <\verbatim>
-      data a, b
+      data a,b
     </verbatim>
   </big-figure|<label|comma-separated-list>Declaring a comma-separated list>
 
   The tree following a data declaration is a pattern, with constant and
-  variable symbols like for rewrite declarations. In
-  Figure<nbsp><reference|complex-type>, the names <verbatim|x> and
-  <verbatim|y> are variable, but the name <verbatim|complex> is constant
-  because it is a prefix. Assuming that addition is implemented for integer
-  values, <verbatim|complex(3+4, 5+6)> will evaluate as
-  <verbatim|complex(7,11)> but no further. The declaration in
-  Figure<nbsp><reference|complex-type> can therefore be interpreted as
-  declaring the <verbatim|complex> data type.
+  variable symbols like for rewrite declarations. Data declarations only
+  limit the rewrite of the tree specified by the pattern, but not the
+  evaluation of pattern variables. In other words, pattern variables are
+  evaluated normally, as specified in Section<nbsp><reference|evaluation>.
+  For instance, in Figure<nbsp><reference|complex-type>, the names
+  <verbatim|x> and <verbatim|y> are variable, but the name <verbatim|complex>
+  is constant because it is a prefix. Assuming that addition is implemented
+  for integer values, <verbatim|complex(3+4, 5+6)> will evaluate as
+  <verbatim|complex(7,11)> but no further.
 
   <big-figure|<verbatim|data complex(x,y)>|<label|complex-type>Declaring a
   <verbatim|complex> data type>
 
-  <paragraph|Type declaration>The infix colon <verbatim|:> operator in a
-  rewrite or data patten introduces a <em|type declaration>. It indicates
-  that the left node has the type indicated by the right node. Types in XLR
-  are explained in Section<nbsp><reference|types>.
+  \ The declaration in Figure<nbsp><reference|complex-type> can be
+  interpreted as declaring a <verbatim|complex> data type. There is, however,
+  a better way to describe data types in XLR, which is detailed in
+  Section<nbsp><reference|type-definition>.
+
+  The word <verbatim|self> can be used to build data forms: <verbatim|data X>
+  is equivalent to <verbatim|X-\<gtr\>self>.
+
+  <subsubsection|Type declaration>
+
+  An <em|type declaration> is an infix colon <verbatim|:> operator in a
+  rewrite or data pattern with a name on the left and a type on the right. It
+  indicates that the named parameter on the left has the type indicated on
+  the right. A <em|return type declaration> is an infix <verbatim|=\<gtr\>>
+  in a rewrite pattern with a pattern on the left and a type on the right. It
+  specifies the value that will be returned by the implementation of the
+  rewrite. Types are defined as explained in Section<nbsp><reference|types>.
 
   Figure<nbsp><reference|type-declaration> shows examples of type
-  declarations. The first line declares a <verbatim|complex> type where the
-  coordinates must be <verbatim|real>. The second line declares an addition
-  between a <verbatim|real> number called <verbatim|a> and an
-  <verbatim|integer> number called <verbatim|b> implementing by calling the
-  <verbatim|integer_to_real> function on <verbatim|b> (which presumably
-  promotes the integer to a real number).
+  declarations. To match the pattern for <verbatim|polynom>, the arguments
+  corresponding to parameters <verbatim|X> and <verbatim|Z> must be a
+  <verbatim|real>, whereas the argument corresponding to parameter
+  <verbatim|N> must be <verbatim|integer>. The value returned by
+  <verbatim|polynom> will belong to <verbatim|real>.
 
   <big-figure|<\verbatim>
     <\verbatim>
-      data complex(x:real, y:real)
-
-      a:real+b:integer -\<gtr\> a + integer_to_real b
+      polynom X:real, Z:real, N:integer =\<gtr\> real -\<gtr\> (X-Z)^N
     </verbatim>
   </verbatim>|<label|type-declaration>Simple type declarations>
 
-  <with|color|red|REVISIT: Role of type declarations outside of a pattern, if
-  any.>
+  A type declaration can also be placed on the left of an assignment, see
+  Section<nbsp><reference|assignment>.
 
-  <paragraph|Guards>The infix <verbatim|when> operator in a rewrite or data
-  pattern introduces a <em|guard>, i.e. a boolean condition that must be true
-  for the pattern to apply.
+  <subsubsection|Assignment><label|assignment>
+
+  The assignment operator <verbatim|:=> binds the reference on its left to
+  the value of the tree on its right. The tree on the right is evaluated
+  prior to the assignment.
+
+  An assignment is valid even if the reference on the left of <verbatim|:=>
+  had not previously been bound. The assignment creates a local binding for
+  that reference if there was no previous binding, or replaces the value of
+  the existing binding if there was one. This is shown in
+  Figure<nbsp><reference|local-and-nonlocal-assignment>:\ 
+
+  <\big-figure>
+    <\verbatim>
+      // Global X
+
+      X := 0
+
+      \;
+
+      // Assigns to global X above
+
+      assigns_to_global -\<gtr\> X := 1
+
+      \;
+
+      // Assigns to local Y, there is no global Y
+
+      assigns_to_local -\<gtr\> Y := 2
+    </verbatim>
+  </big-figure|<label|local-and-nonlocal-assignment>Local and non-local
+  assignments>
+
+  If the left side of an assignment is a type declaration, the assignment
+  always creates a new binding in the local scope, as illustrated in . That
+  binding has a return type declaration associated with it, so that later
+  assignments to that same name will only succeed if the type of the assigned
+  value matches the previously declared type. This is shown in
+  Figure<nbsp><reference|assign-to-new-local>:
+
+  <big-figure|<\verbatim>
+    // Global X
+
+    X := 0
+
+    \;
+
+    // Assign to new local X
+
+    assigns_new -\<gtr\> X:integer := 1
+  </verbatim>|<label|assign-to-new-local>Assigning to new local variable>
+
+  Using an assignment in an expression is equivalent to using the value bound
+  to the variable after the assignment. For instance, <verbatim|sin(x:=f(0))>
+  is equivalent to <verbatim|x:=f(0)> followed by <verbatim|sin(x)>.
+
+  An assignment can override a binding established by a parameter or rewrite
+  declaration. However, assigning to a pattern proves tricky because of lazy
+  evaluation (see Section<nbsp><reference|lazy-evaluation>), and is best
+  avoided. The rationale for this behavior is explained in
+  Section<nbsp><reference|index-operators>.
+
+  <big-figure|<\verbatim>
+    // Declare rewrites for prefix foo
+
+    foo 0 -\<gtr\> 3
+
+    foo N -\<gtr\> 5
+
+    \;
+
+    // This works as expected
+
+    foo 0 := 32
+
+    \;
+
+    // Illegal: on-demand evaluation of N fails
+
+    foo N := 5
+
+    \;
+
+    // Legal, changes foo 0
+
+    N := 0
+
+    foo N := 44
+
+    \;
+
+    // Legal, creates foo 5
+
+    N := 5
+
+    foo N := 55
+  </verbatim>|<label|assignments-cant-override-patterns>Assignments do not
+  override patterns>
+
+  <subsubsection|Guards>
+
+  The infix <verbatim|when> operator in a rewrite or data pattern introduces
+  a <em|guard>, i.e. a boolean condition that must be true for the pattern to
+  apply.
 
   Figure<nbsp><reference|guard> shows an improved definition of the factorial
-  function which only applies for non-negative values. Note that the
-  definition does not give a type to the variable <verbatim|N>, making it
-  possible for <verbatim|N> to be for example a <verbatim|big_integer>.
+  function which only applies for non-negative values. This set of rewrites
+  is ignored for a negative <verbatim|integer> value.
 
   <big-figure|<\verbatim>
     0! \ \ \ \ \ \ \ \ \ \ \ -\<gtr\> 1
@@ -919,56 +1237,19 @@
     N! when N \<gtr\> 0 -\<gtr\> N * (N-1)!
   </verbatim>|<label|guard>Guard limit the validity of operations>
 
-  <with|color|magenta|TODO: Guards are not currently implemented.>
+  A form where the guard cannot be evaluated or evaluates to anything but the
+  value <verbatim|true> is not selected. For example, if we try to evaluate
+  <verbatim|'ABC'!> the condition <verbatim|N\<gtr\>0> is equivalent to
+  <verbatim|'ABC'\<gtr\>0>, which cannot be evaluated unless you added
+  specific declarations. Therefore, the rewrite for <verbatim|N!> does not
+  apply.
 
-  <paragraph|Assignment>The assignment operator <verbatim|:=> binds the
-  variable on its left to the tree on its right. The variable must not
-  already be bound to a named tree. In other words, it is not legal to write
-  <verbatim|A:=5> following <verbatim|A-\<gtr\>3>.
+  <subsubsection|Sequences>
 
-  If the left side of the assignment is a simple name, no evaluation of the
-  tree on the right is done as a result of the assignment. However, if the
-  variable name is evaluated for any reason, the variable will subsequently
-  be bound to the evaluated result.
-
-  An assignment is valid even if the variable has not previously been bound.
-  Assignments declare the variable being assigned to in the code following
-  the assignment.
-
-  If the left side of an assignment is a type declaration, the assigned value
-  is evaluated and the result compared against the type. Furthermore, any
-  subsequent assignment to the same variable will also evaluate the assigned
-  value and compare it against the type. If the type doesn't match, the
-  assignment will be equivalent to evaluating <verbatim|type_error X>, where
-  <verbatim|X> is the tree for the assignment.
-
-  If the left side of an assignment is not a name nor a type declaration, the
-  assignment expression follows the normal evaluation rules described in
-  Section<nbsp><reference|evaluation>.
-
-  Using an assignment in an expression is equivalent to using the value bound
-  to the variable after the assignment. For instance, <verbatim|sin(x:=f(0))>
-  is equivalent to <verbatim|x:=f(0)> followed by <verbatim|sin(x)>.
-
-  <with|color|magenta|TODO: Assignment is not currently implemented>
-
-  <\with|color|red>
-    REVISIT: What if the left-hand side of assignment is a rewrite? Consider
-    this:
-
-    <big-figure|<\verbatim>
-      array 0 -\<gtr\> A
-
-      array 1 -\<gtr\> B
-
-      array X := 3
-    </verbatim>|<label|array-assign>Assignment to an array>
-  </with>
-
-  <paragraph|Sequences>The infix line-break <verbatim|NEWLINE> and semi-colon
-  <verbatim|;> operators are used to introduce a sequence between statements.
-  They ensure that the left node is evaluated entirely before the evaluation
-  of the right node begins.
+  The infix line-break <verbatim|NEWLINE> and semi-colon <verbatim|;>
+  operators are used to introduce a sequence between statements. They ensure
+  that the left node is evaluated entirely before the evaluation of the right
+  node begins.
 
   Figure<nbsp><reference|sequence> for instance guarantees that the code will
   first <verbatim|write> "A", then <verbatim|write "B">, then write the
@@ -983,14 +1264,170 @@
   </verbatim>|<label|sequence>Code writing <verbatim|A>, then <verbatim|B>,
   then <verbatim|f(100)+f(200)>>
 
-  Note: tasking and threading operations are not defined yet, but they need
-  not be defined in the core language as described in this document (any more
-  than I/O operations).
+  Items in a sequence can be <em|declarations> or <em|statements>.
+  Declarations include rewrite declarations, data declarations, type
+  declarations and assignments to a type declaration. All other items in a
+  sequence are statements.
+
+  <subsubsection|Index operators><label|index-operators>
+
+  The notation <verbatim|A[B]> and <verbatim|A.B> are used as index
+  operators, i.e. to refer to individual items in a collection. The
+  <verbatim|A[B]> notation is intended to represent array indexing
+  operations, whereas the <verbatim|A.B> notation is intended to represent
+  field indexing operations.
+
+  For example, consider the declarations in
+  Figure<nbsp><reference|structured-data>.
+
+  <big-figure|<\verbatim>
+    MyData -\<gtr\>
+
+    \ \ \ \ Name \ -\<gtr\> "Name of my data"
+
+    \ \ \ \ Value -\<gtr\> 3.45
+
+    \ \ \ \ 1 -\<gtr\> "First"
+
+    \ \ \ \ 2 -\<gtr\> "Second"
+
+    \ \ \ \ 3 -\<gtr\> "Third"
+  </verbatim>|<label|structured-data>Structured data>
+
+  In that case, the expression <verbatim|MyData.Name> results in the value
+  <verbatim|"Name of my data">. The expression <verbatim|MyData[1]> results
+  in the value <verbatim|"First">.
+
+  The two index operators differ when their right operand is a name. The
+  notation <verbatim|A.B> evaluates <verbatim|B> in the context of
+  <verbatim|A>, whereas <verbatim|A[B]> first evaluates <verbatim|B> in the
+  current context, and then applies <verbatim|A> to it (it is actually
+  nothing more than a regular tree rewrite). Therefore, the notation
+  <verbatim|MyData.Value> returns the value <verbatim|3.45>, whereas the
+  value of <verbatim|MyData[Value]> will evaluate <verbatim|Value> in the
+  current context, and then apply <verbatim|MyData> to the result. For
+  example, if we had <verbatim|Value-\<gtr\>3> in the current context, then
+  <verbatim|MyData[Value]> would evaluate to <verbatim|"Third">.
+
+  Users familiar with languages such as C may be somewhat disconcerted by
+  XLR's index operators. The following points are critical for properly
+  understanding them:
+
+  <\itemize>
+    <item>Arrays, structures and functions are all represented the same way.
+    The entity called <verbatim|MyData> can be interpreted as an array in
+    <verbatim|MyData[3]>, as a structure in <verbatim|MyData.Name>, or as a
+    function if one writes <verbatim|MyData 3>. In reality, there is no
+    difference between <verbatim|MyData[3]> and <verbatim|MyData 3>: the
+    former simply passes a block as an argument, i.e. it is exactly
+    equivalent to <verbatim|MyData(3)>, <verbatim|MyData{3}>. Writing
+    <verbatim|MyData[3]> is only a way to document an intent to use
+    <verbatim|MyData> as an array, but does not change the implementation.
+
+    <item>Data structures can be extended on the fly. For example, it is
+    permitted to assign something to a non-existent binding in
+    <verbatim|MyData>, e.g. by writing <verbatim|MyData[4]:=3>. The ability
+    to add ``fields'' to a data structure on the fly makes it easier to
+    extend existing code.
+
+    <item>Data structures can include other kinds of rewrites, for example
+    ``functions'', enabling object-oriented data structures. This is
+    demonstrated in Section<nbsp><reference|object-oriented-programming>.
+
+    <item>Since the notation <verbatim|A.B> simply evaluates <verbatim|B> in
+    the context of <verbatim|A>, the value of <verbatim|MyData.4> is...
+    <verbatim|4>: there is no rewrite for <verbatim|4> in <verbatim|MyData>,
+    therefore it evaluates a itself.
+  </itemize>
+
+  <subsection|<label|binding>Binding References to Values>
+
+  A rewrite declaration of the form <verbatim|Pattern-\<gtr\>Implementation>
+  is said to <em|bind> its pattern to its implementation. A sequence of
+  declarations is called a <em|context>. For example,
+  <verbatim|{x-\<gtr\>3;y-\<gtr\>4}> is a context that binds <verbatim|x> to
+  <verbatim|3> and <verbatim|y> to <verbatim|4>.
+
+  <subsubsection|Context Order>
+
+  A context may contain multiple rewrites that hide one another.
+
+  For example, in the context <verbatim|{x-\<gtr\>0;x-\<gtr\>1}>, the name
+  <verbatim|x> is bound twice. The evaluation of <verbatim|x> in that context
+  will return <verbatim|0> because rewrites are tested in order. In other
+  words, the declaration <verbatim|x-\<gtr\>0> <em|shadows> the declaration
+  <verbatim|x-\<gtr\>1> in that context.
+
+  For the purpose of finding the first match, a context is traversed depth
+  first in left-to-right order, which is called <em|context order>.
+
+  <subsubsection|Scoping>
+
+  The left child of a context is called the <em|local scope>. The right child
+  of a context is the <em|enclosing context>. All other left children in the
+  sequence are the local scopes of expressions currently being evaluated. The
+  first one being the <em|enclosing scope> (i.e. the local scope of the
+  enclosing context) and the last one being the <em|global scope>.
+
+  This ensures that local declarations hide declarations from the surrounding
+  context, since they are on the left of the right child, while allowing
+  local declarations in the left child of the context to be kept in program
+  order, so that the later ones are shadowed by the earlier ones.
+
+  The child at the far right of a context is a catch-all rewrite intended to
+  specify what happens when evaluating an undefined form.
+
+  <subsubsection|Current context>
+
+  Any evaluation in XLR is performed in a context called the <em|current
+  context>. The current context is updated by the following operations:
+
+  <\enumerate>
+    <item>Evaluating the implementation of a rewrite creates a scope binding
+    all arguments to the corresponding parameters, then a new context with
+    that scope as its left child and the old context as its right child. The
+    implementation is then evaluated in the newly created context.
+
+    <item>Evaluating a sequence initializes a local context with all
+    declarations in that sequence, and creates a new current context with the
+    newly created local context as its left child and the old context as its
+    right child. Statements in the sequence are then evaluated in the newly
+    created context.
+
+    <item>Evaluating an assignment changes the implementation of an existing
+    binding if there is one in the current context, or otherwise creates a
+    new binding in the local scope.
+  </enumerate>
+
+  <subsubsection|References>
+
+  An expression that can be placed on the left of an assignment to identify a
+  particular binding is called a <em|reference>. A reference can be any
+  pattern that would go on the left of a rewrite. In addition, it can be an
+  index operator:
+
+  <\itemize>
+    <item>If <verbatim|A> refers to a context, assigning to <verbatim|A.B>
+    will affect the binding of <verbatim|B> in the context <verbatim|A>, and
+    not the binding of <verbatim|A.B> in the current context.
+
+    <item>If <verbatim|A> refers to a context, assigning to <verbatim|A[B]>
+    (or, equivalently, to <verbatim|A{B}>, <verbatim|A(B)> or <verbatim|A B>)
+    will affect the binding corresponding to <verbatim|B> in the context of
+    <verbatim|A>, not the binding of <verbatim|A B> in the current context.
+    The index <verbatim|B> will be evaluated in the current context if
+    required to match patterns in <verbatim|A>, as explained in
+    Section<nbsp><reference|evaluation>.
+  </itemize>
 
   <subsection|<label|evaluation>Evaluation>
 
-  Except for special forms, the evaluation of XLR trees is performed as
-  follows:
+  Evaluation is the process through which a given tree is rewritten.
+
+  <subsubsection|Standard evaluation><label|standard-evaluation>
+
+  Except for special forms described later, the evaluation of XLR trees is
+  performed as follows:
 
   <\enumerate>
     <item>The tree to evaluate, <verbatim|T>, is matched against the
@@ -998,10 +1435,11 @@
     <verbatim|A*B+C> as well as <verbatim|A+B> (since the outermost tree is
     an infix <verbatim|+> as in <verbatim|A+B>).
 
-    <item>Possible matches are tested in <em|scoping order> (defined below)
-    against the tree to evaluate. The first matching tree is selected. For
-    example, in Figure<nbsp><reference|factorial>, <verbatim|(N-1)!> will be
-    matched against the rules <verbatim|0!> and <verbatim|N!> in this order.
+    <item>Possible matches are tested in <em|context order> (defined in
+    Section<nbsp><reference|binding>) against the tree to evaluate. The first
+    matching tree is selected. For example, in
+    Figure<nbsp><reference|factorial>, <verbatim|(N-1)!> will be matched
+    against the rules <verbatim|0!> and <verbatim|N!> in this order.
 
     <item>Nodes in each candidate pattern <verbatim|P> are compared to the
     tree <verbatim|T> as follows:
@@ -1034,12 +1472,12 @@
       <verbatim|A+A> will also match <verbatim|(3-1)+(4-2)>: although
       <verbatim|A> may first be bound to the unevaluated value
       <verbatim|3-1>, verifying if the second <verbatim|A> matches requires
-      evaluation both <verbatim|A> and the test value.
+      evaluating both <verbatim|A> and the test value.
 
       <item>Type declarations in <verbatim|P> match if the result of
       evaluating the corresponding fragment in <verbatim|T> has the declared
-      type. In that case, the variable being declared is be bound to the
-      evaluated value.
+      type, as defined in Section<nbsp><reference|types>. In that case, the
+      variable being declared is bound to the evaluated value.
 
       <item>Constant values (integer, real and text) in <verbatim|P> are
       compared to the corresponding fragment of <verbatim|T> after
@@ -1066,48 +1504,65 @@
     tree to evaluate <verbatim|T>:
 
     <\itemize>
-      <item>Terminal nodes (integer, real, text, names and symbols) evaluate
-      as themselves.
+      <item>Integer, real and text terminals evaluates as themselves.
 
-      <item>Other nodes <verbatim|X> evaluate as <verbatim|evaluation_error
-      X>, which is supposed to implement error handling during evaluation.
+      <item>A block evaluates as the result of evaluating its child.
 
-      <\with|color|magenta>
-        TODO: Implemented as <verbatim|error "No form matches $1", X> today,
-        which doesn't allow fine-grained error checking.
+      <item>If the tree is a prefix with the left being a name containing
+      <verbatim|error>, then the program immediatly aborts and shows the
+      offending tree. This case corresponds to an unhandled error.
 
-        REVISIT: There are a few other options:
+      <item>For a prefix node or postfix tree, the operator child (i.e. the
+      left child for prefix and the right child for postfix) is evaluated,
+      and if the result is different from the original operator child,
+      evaluation is attempted again after replacing the original operator
+      child with its evaluated version.
 
-        <\itemize>
-          <item>Evaluate children
-
-          <item>Evaluate children and retry top-level evaluation (unbounded?)
-
-          <item>Return the tree unchanged
-        </itemize>
-      </with>
+      <item>In any other case, the tree is prefixed with
+      <verbatim|evaluation_error> and the result is evaluated. For example,
+      <verbatim|<math|>$foo> will be transformed into
+      <verbatim|evaluation_error $foo>. A prefix rewrite for
+      <verbatim|evaluation_error> is supposed to handle such errors.
     </itemize>
 
-    <item>Otherwise, variables in the first matching pattern are bound to the
-    corresponding fragment of the tree to evaluate. If the fragment was
-    evaluated (including as required for comparison with an earlier pattern),
-    then the variable is bound with the evaluated version. If the fragment
-    was never evaluated, the variable is bound with the tree fragment.
+    <item>If a match is found, variables in the first matching pattern
+    (called <em|parameters>) are bound to the corresponding fragments of the
+    tree to evaluate (called <em|arguments>).
 
-    <item>The implementation corresponding to the pattern in the previous
-    step is evaluated.
+    <\itemize>
+      <item>If an argument was evaluated (including as required for
+      comparison with an earlier pattern), then the corresponding parameter
+      is bound with the evaluated version.
+
+      <item>If the argument was not evaluated, the corresponding parameter is
+      bound with the tree fragment in context, as explained in
+      Section<nbsp><reference|binding>. In line with the terminology used in
+      functional languages, this context-including binding is called a
+      <em|closure>.
+    </itemize>
+
+    <item>Once all bindings have been performed, the implementation
+    corresponding to the pattern in the previous step is itself evaluated.
+    The result of the evaluation of the original form is the result of
+    evaluating the implementation in the new context created by adding to the
+    original context the bindings of parameters to their arguments. For a
+    data form, the result of evaluation is the pattern after replacing
+    parameters with the corresponding arguments.
   </enumerate>
 
-  <paragraph|Special forms>Some forms have a special meaning and are
-  evaluated specially:
+  <subsubsection|Special forms>
+
+  Some forms have a special meaning and are evaluated specially:
 
   <\enumerate>
     <item>A terminal node (integer, real, type, name) evaluates as itself,
     unless there is an explicit rewrite rule for it<\footnote>
       There several use cases for allowing rewrite rules for integer, real or
       text constants, notably to implement data maps such as
-      <verbatim|(1-\<gtr\>0; 0-\<gtr\>1)>.
+      <verbatim|(1-\<gtr\>0; 0-\<gtr\>1)>, also known as associative arrays.
     </footnote>.
+
+    <item>A block evaluate as the result of evaluating its child.
 
     <item>A rewrite rule evaluates as itself.
 
@@ -1116,48 +1571,160 @@
     <item>An assignment binds the variable and evaluates as the named
     variable after assignment
 
-    <item>A prefix with a universal rewrite rule on the left and a tree on
-    the right binds the tree on the right to the pattern variable and
-    evaluates the implementation. For instance, the prefix
-    <verbatim|(x-\<gtr\>x+1) 3> evaluates as <verbatim|4>.
-    <with|color|magenta|TODO: Not implemented yet>
+    <item>Evaluating a sequence creates a new local context with all
+    declarations in the sequence, then evaluates all its statements in order
+    in that new local context. The result of evaluation is the result of the
+    last statement, if there is one, or the newly created context if the
+    sequence only contains declarations.
 
-    <item>A sequence evaluates the left tree, then evaluates the right tree,
-    and evaluates as the result of the latter evaluation.
+    <item>A prefix with a sequence on the left evaluates as if the right
+    child was added at the end of the sequence, and the sequence then
+    evaluated. In other words, evaluating <verbatim|(A;B) C> is equivalent to
+    evaluating <verbatim|(A;B;C)>. For example,
+    <verbatim|(x-\<gtr\>3;y-\<gtr\>4)(x+y)> evaluates as <verbatim|7>, and
+    <verbatim|(x:integer-\<gtr\>x+1) 3> evaluates as <verbatim|4>.
   </enumerate>
 
-  <subsection|<label|binding>Variable binding and scoping>
+  <subsubsection|Lazy evaluation><label|lazy-evaluation>
 
-  Binding a variable means that the variable references a particular tree.
-  The binding is valid for a particular <em|scope>.
+  When an argument is bound to a parameter, it is associated to a context
+  which allows correct evaluation at a later time, but the argument is in
+  general not evaluated immediately. Instead, it is only evaluated when
+  evaluation becomes necessary for the program to execute correctly. This
+  technique is called <em|lazy evaluation>. It is intended to minimize
+  unnecessary evaluations.
 
-  <\itemize>
-    <item>For patterns, the scope of a binding includes tree nodes that
-    follow the first occurence of the name in the source code, i.e. they
-    would be found later in a left-to-right depth-first traversal.
+  Evaluation of an argument before binding it to its parameter occurs in the
+  following cases, collectively called <em|demand-based evaluation>:
 
-    <item>For rewrite declarations, the scope of the binding includes the
-    pattern as described above as well as the implementation.
+  <\enumerate>
+    <item>The argument is compared to a constant value or bound name, see
+    Section<nbsp><reference|standard-evaluation>, and the static value of the
+    tree is not sufficient to perform the comparison. For example, in
+    Figure<nbsp><reference|evaluation-for-comparison>, the expression
+    <verbatim|4+X> requires evaluation of <verbatim|X> for comparison with
+    <verbatim|4> to check if it matches <verbatim|A+A>; the expression
+    <verbatim|B+B> can be statically bound to the form <verbatim|A+A> without
+    requiring evaluation of <verbatim|B>; finally, in <verbatim|B+C>, both
+    <verbatim|B> and <verbatim|C> need to be evaluated to compare if they are
+    equal and if the form <verbatim|A+A> matches.
 
-    <item>For data declarations, the scope of the binding includes the
-    pattern as described above.
+    <big-figure|<\verbatim>
+      A+A -\<gtr\> 2*A
 
-    <item>For assignments, the scope begins at the assignment and finishes at
-    the end of the innermost block in which the assignment first happens.
-  </itemize>
+      4+X \ // X evaluated
+
+      B+B \ // B not evaluated
+
+      B+C \ // B and C evaluated
+    </verbatim>|<label|evaluation-for-comparison>Evaluation for comparison>
+
+    <item>The argument is tested against a parameter with a type declaration,
+    and the static type of the tree is not sufficient to guarantee a match.
+    For example, in Figure<nbsp><reference|evaluation-for-type-comparison>,
+    the expression <verbatim|Z+1> can statically be found to match the form
+    <verbatim|X+Y>, so <verbatim|Z> needn't be evaluated. On the other hand,
+    in <verbatim|1+Z>, it is necessary to evaluate <verbatim|Z> to type-check
+    it against <verbatim|integer>.
+
+    <big-figure|<\verbatim>
+      X:tree + Y:integer -\<gtr\> ...
+
+      Z + 1 // Z not evaluated
+
+      1 + Z // Z evaluated
+    </verbatim>|<label|evaluation-for-type-comparison>Evaluation for type
+    comparison>
+
+    <item>A specific case of the above scenario is the left side of any index
+    operator. In <verbatim|A.B> or <verbatim|A[B]>, the value <verbatim|A>
+    needs to be evaluated to verify if it contains <verbatim|B>.
+  </enumerate>
+
+  Expressions are also evaluated in the following cases, collectively called
+  <em|explicit evaluation>:
+
+  <\enumerate>
+    <item>An expression on the left or right of a sequence is evaluated. For
+    example, in <verbatim|A;B>, the names <verbatim|A> and <verbatim|B> will
+    be evaluated.
+
+    <item>The prefix <verbatim|do> forces evaluation of its argument. For
+    example, <verbatim|do X> will force the evaluation of <verbatim|X>.
+
+    <item>The program itself is evaluated. Most useful programs are
+    sequences.
+  </enumerate>
+
+  Whenever a parameter is evaluated, the evaluated result may be used for all
+  subsequent demand-based evaluations, but not for explicit evaluations. This
+  is illustrated with the example in Figure<nbsp><reference|explicit-vs-lazy-evaluation>:
+
+  <big-figure|<\verbatim>
+    foo X -\<gtr\>
+
+    \ \ \ \ X
+
+    \ \ \ \ if X then writeln "X is true"
+
+    \ \ \ \ if do X then writeln "X is true"
+
+    \ \ \ \ X
+
+    bar -\<gtr\>
+
+    \ \ \ \ writeln "bar evaluated"
+
+    \ \ \ \ true
+
+    foo bar
+  </verbatim>|<label|explicit-vs-lazy-evaluation>Explicit vs. lazy
+  evaluation>
+
+  In Figure<nbsp><reference|explicit-vs-lazy-evaluation>, evaluation happens
+  as follows:
+
+  <\enumerate>
+    <item>The expression <verbatim|foo bar> is evaluated explicitly, being
+    part of a sequence. This matches the rewrite for <verbatim|foo X> on the
+    first line.
+
+    <item>The first reference to <verbatim|X> in the implementation is
+    evaluated explicitly. This causes the message <samp|bar evaluated> to be
+    written to the console.
+
+    <item>The second reference to <verbatim|X> is demand-based, but since
+    <verbatim|X> has already been evaluated, the result <verbatim|true> is
+    used directly. The message <samp|X is true> is emitted on the console,
+    but the message <samp|bar evaluated> is not.
+
+    <item>The third reference to <verbatim|X> is an argument to
+    <verbatim|do>, so it is evaluated again, which writes the message
+    <samp|bar evaluated> on the console.
+
+    <item>The last reference to <verbatim|X> is another explicit evaluation,
+    so the message <samp|bar evaluated> is written on the console again.
+  </enumerate>
+
+  The purpose of these evaluation rules is to allow the programmer to pass
+  code to be evaluated as an argument, while at the same time minimizing the
+  number of repeated evaluations when a parameter is used for its value. In
+  explicit evaluation, the value of the parameter is not used, making it
+  clear that what matters is the effect of evaluation itself. In demand-based
+  evaluation, it is on the contrary assumed that what matters is the result
+  of the evaluation, not the process of evaluating it. It is always possible
+  to force evaluation explicitly using <verbatim|do>.
 
   <subsection|<label|types>Types>
 
   Types are expressions that appear on the right of the colon operator
   <verbatim|:> in type declarations. In XLR, a type identifies the <em|shape>
   of a tree. A value is said to <em|belong> to a type if it matches the shape
-  defined by the type.
+  defined by the type. A value may belong to multiple types.
 
-  <with|color|magenta|REVISIT: The type system is still largely
-  unimplemented.>
+  <subsubsection|Predefined types>
 
-  <paragraph|Predefined types>The following predefined types are defined like
-  the built-in operations described in Section<nbsp><reference|built-ins>:
+  The following types are predefined:
 
   <\itemize>
     <item><verbatim|integer> matches integer constants
@@ -1168,74 +1735,398 @@
 
     <item><verbatim|symbol> matches names and operator symbols
 
-    <item><verbatim|name_symbol> matches names
+    <item><verbatim|name> matches names only
 
-    <item><verbatim|infix> matches infix trees
+    <item><verbatim|operator> matches operator symbols only
 
-    <item><verbatim|prefix> matches prefix trees
+    <item><verbatim|infix> matches infix nodes
 
-    <item><verbatim|postfix> matches postfix trees
+    <item><verbatim|prefix> matches prefix nodes
 
-    <item><verbatim|block> matches block trees
+    <item><verbatim|postfix> matches postfix nodes
+
+    <item><verbatim|block> matches block nodes
 
     <item><verbatim|tree> matches any tree
+
+    <item><verbatim|boolean> matches the names <verbatim|true> and
+    <verbatim|false>.
   </itemize>
 
-  Note that <verbatim|tree> is treated specially in type declarations in that
-  they do not require evaluation of the corresponding tree. In other words,
-  <verbatim|x:tree> is equivalent to <verbatim|x> in a pattern.
+  <subsubsection|Type definition><label|type-definition>
 
-  <paragraph|Value types>Integer, real and text values can be used as types
-  that have a single element, the exact value. For example, <verbatim|x:37>
-  is a type declaration which only matches when <verbatim|x> is bound to the
-  <verbatim|integer> value <verbatim|37>. This is mostly useful in structure
-  and union types.
+  A <em|type definition> for type <verbatim|T> is a special form of tree
+  rewrite declaration where the pattern has the form <verbatim|type X>. A
+  type definition declares a type name, and the pattern that the type must
+  match. For example, Figure<nbsp><reference|simple-type> declares a type
+  named <verbatim|complex> requiring two real numbers called <verbatim|re>
+  and <verbatim|im>, and another type named <verbatim|ifte> that contains
+  three arbitrary trees called <verbatim|Cond>, <verbatim|TrueC> and
+  <verbatim|FalseC>.
 
-  <paragraph|Block type>If <verbatim|T> is a type, then any block with
-  <verbatim|T> as a child such as <verbatim|(T)> is the same type. Using the
-  notation <verbatim|(T)> may be required for precedence reasons.
+  <big-figure|<\verbatim>
+    complex -\<gtr\> type (re:real; im:real)
 
-  <paragraph|Union type>If <verbatim|T1> and <verbatim|T2> are types, then
-  <verbatim|T1\|T2> is a type that matches any value belonging either to
-  <verbatim|T1> or to <verbatim|T2>. For example, <verbatim|x:(0\|1\|2\|3)>
-  indicates that <verbatim|x> can be any of the four values.
+    ifte -\<gtr\> type {if Cond then TrueC else FalseC}
 
-  <paragraph|Structure types>If <verbatim|P> is pattern (in the same sense as
-  for rewrite rules), <verbatim|type(P)> is a type matching the pattern. For
-  example, <verbatim|type(X,Y)> matches <verbatim|3,5> or <verbatim|A+3,write
-  X>. Note that <verbatim|type(X\|Y)> matches an infix tree with the
-  <verbatim|\|> name, whereas <verbatim|X\|Y> matches type <verbatim|X> or
-  type <verbatim|Y>.
+    block_type -\<gtr\> type[(BlockChild)]
+  </verbatim>|<label|simple-type>Simple type declaration>
 
-  <paragraph|Named types>A complex type expression can be bound to a name,
-  which can then be used as a replacement for the entire type expression. For
-  example, one can declare a <verbatim|number> type that accepts
-  <verbatim|integer> and <verbatim|real> numbers using code similar to
-  Figure<nbsp><reference|type-name>:
+  The outermost block of a type pattern, if it exists, is not part of the
+  type pattern. To create a type matching a specific block shape, two nested
+  bocks are required, as illustrated with <verbatim|paren_block_type> in
+  Figure<nbsp><reference|block-type-declaration>:
 
-  <\big-figure>
-    <\verbatim>
-      number -\<gtr\> integer \| real
+  <big-figure|<\verbatim>
+    paren_block_type -\<gtr\> type((BlockChild))
+  </verbatim>|<label|block-type-declaration>Simple type declaration>
 
-      increment x:number -\<gtr\> x+1
-    </verbatim>
-  </big-figure|<label|type-name>Binding a type expression to a name>
+  Note that type definitions and type declarations should not be confused. A
+  type <em|definition> defines a type and has the form <verbatim|Name
+  -\<gtr\> type TypePattern>, whereas a type <em|declaration> declares the
+  type of an entity and has the form <verbatim|Name:Type>. The type defined
+  by a type definition can be used on the right of a type declaration. For
+  example, Figure<nbsp><reference|using-complex> shows how to use the
+  <verbatim|complex> type defined in Figure<nbsp><reference|simple-type> in
+  parameters.
 
-  <paragraph|Rewrite types>The infix <verbatim|-\<gtr\>> operator can be used
-  in type expressions to denote rewrites that perform a particular kind of
-  tree transformation. Figure<nbsp><reference|rewrite-type> illustrates this
-  usage:
+  <big-figure|<\verbatim>
+    Z1:complex+Z2:complex -\<gtr\> (Z1.re+Z2.re; Z1.im+Z2.im)
+  </verbatim>|<label|using-complex>Using the <verbatim|complex> type>
 
-  <big-figure|<verbatim|adder : (number + number -\<gtr\>
-  number)>|<label|rewrite-type>Declaration of a rewrite type>
+  Parameters of types such as <verbatim|complex> are contexts with
+  declarations for the individual variables of the pattern of the type. For
+  example, a <verbatim|complex> like <verbatim|Z1> in
+  Figure<nbsp><reference|using-complex> contains a rewrite for <verbatim|re>
+  and a rewrite for <verbatim|im>. Figure<nbsp><reference|binding-for-complex-parameter>
+  possible bindings when using the complex addition operator defined in
+  Figure<nbsp><reference|using-complex>. The standard index notation
+  described in Section<nbsp><reference|index-operators> applies, e.g. in
+  <verbatim|Z1.re>, and these bindings can be assigned to.
 
-  <with|color|magenta|REVISIT: Not sure about the semantics of rewrite
-  types.>
+  <big-figure|<\verbatim>
+    // Expression being evaluated
+
+    (3.4;5.2)+(0.4;2.22)
+
+    \;
+
+    // Possible resulting bindings
+
+    // in the implementation of +
+
+    Z1 -\<gtr\>
+
+    \ \ \ \ re-\<gtr\>3.4
+
+    \ \ \ \ im-\<gtr\>5.2
+
+    \ \ \ \ (re; im)
+
+    Z2 -\<gtr\>
+
+    \ \ \ \ re-\<gtr\>0.4
+
+    \ \ \ \ im-\<gtr\>2.22
+
+    \ \ \ \ (re;im)
+  </verbatim>|<label|binding-for-complex-parameter>Binding for a
+  <verbatim|complex> parameter>
+
+  Figure<nbsp><reference|making-two-types-equivalent> shows two ways to make
+  type <verbatim|A> equivalent to type <verbatim|B>:
+
+  <big-figure|<\verbatim>
+    A -\<gtr\> B
+
+    A -\<gtr\> type X:B
+  </verbatim>|<label|making-two-types-equivalent>Making type <verbatim|A>
+  equivalent to type <verbatim|B>>
+
+  <subsubsection|Normal form for a type>
+
+  By default, the name of a type is not part of the pattern being recognized.
+  It is often recommended to make data types easier to identify by making the
+  pattern more specific, for instance by including the type name in the
+  pattern itself, as shown in Figure<nbsp><reference|more-specific-complex-types>:
+
+  <big-figure|<\verbatim>
+    complex -\<gtr\> type complex(re:real; im:real)
+  </verbatim>|<label|more-specific-complex-types>Named patterns for
+  <verbatim|complex>>
+
+  In general, multiple notations for a same type can coexist. In that case,
+  it is necessary to define a form for trees that the other possible forms
+  will reduce to. This form is called the <em|normal form>. This is
+  illustrated in Figure<nbsp><reference|complex-normal-form>, where the
+  normal form is <verbatim|complex(re;im)> and the other notations are
+  rewritten to this normal form for convenience.
+
+  <big-figure|<\verbatim>
+    // Normal form for the complex type
+
+    complex -\<gtr\> type complex(re:real; im:real)
+
+    \;
+
+    // Other possible notations that reduce to the normal form
+
+    i -\<gtr\> complex(0;1)
+
+    A:real + i*B:real -\<gtr\> complex(A;B)
+
+    A:real + B:real*i -\<gtr\> complex(A;B)
+  </verbatim>|<label|complex-normal-form>Creating a normal form for the
+  complex type>
+
+  <subsubsection|Properties>
+
+  A <em|properties definition> is a rewrite declaration like the one shown in
+  Figure<nbsp><reference|properties-declaration> where:
+
+  <\enumerate>
+    <item>The implementation is a prefix with the name <verbatim|properties>
+    followed by a block.
+
+    <item>The block contains a sequence of type declarations
+    <verbatim|Name:Type> or assignments to type declarations
+    <verbatim|Name:Type:=DefaultValue>.
+  </enumerate>
+
+  <big-figure|<\verbatim>
+    color -\<gtr\> properties
+
+    \ \ \ \ red \ \ : real
+
+    \ \ \ \ green : real
+
+    \ \ \ \ blue \ : real
+
+    \ \ \ \ alpha : real := 1.0
+  </verbatim>|<label|properties-declaration>Properties declaration>
+
+  Properties parameters match any block for which all the properties are
+  defined. Properties are defined either if they exist in the argument's
+  context, or if they are explicitly set in the block argument, or if a
+  <em|default value> was assigned to the property in the properties
+  declaration. An individual property can be set using an assignment or by
+  using the property name as a prefix. For example,
+  Figure<nbsp><reference|color-properties> shows how the <verbatim|color>
+  type defined in Figure<nbsp><reference|properties-declaration> can be used
+  in a parameter declaration, and how a <verbatim|color> argument can be
+  passed.
+
+  <big-figure|<\verbatim>
+    write C:color -\<gtr\>
+
+    \ \ \ \ write "R", C.red
+
+    \ \ \ \ write "G", C.green
+
+    \ \ \ \ write "B", C.blue
+
+    \ \ \ \ write "A", C.alpha
+
+    write_color { red 0.5; green 0.2; blue 0.6 }
+  </verbatim>|<label|color-properties>Color properties>
+
+  Properties parameters are contexts containing local declarations called
+  <em|getters> and <em|setters> for each individual property:
+
+  <\itemize>
+    <item>The setter is a prefix taking an argument of the property's type,
+    and setting the property's value to its argument.
+
+    <item>The getter returns the value of the property in the argument's
+    context (which may be actually set in the argument's enclosing contexts),
+    or the default value if the property is not bound in the argument's
+    context.
+  </itemize>
+
+  This makes it possible to set default value in the caller's context, which
+  will be injected in the argument, as illustrated in
+  Figure<nbsp><reference|setting-default-arguments>, where the expression
+  <verbatim|C.red> in <verbatim|write_color> will evaluate to <verbatim|0.5>,
+  and the argument <verbatim|C.alpha> will evaluate to <verbatim|1.0> as
+  specified by the default value:
+
+  <big-figure|<\verbatim>
+    red := 0.5
+
+    write_color (blue 0.6; green 0.2)
+  </verbatim>|<label|setting-default-arguments>Setting default arguments from
+  the current context>
+
+  It is sufficient for the block argument to define all required properties.
+  The block argument may also contain more code than just the references to
+  the setters, as illustrated in Figure<nbsp><reference|extra-code-for-properties>:
+
+  <big-figure|<\verbatim>
+    write_color
+
+    \ \ \ \ X:real := 0.444 * sin time
+
+    \ \ \ \ if X \<less\> 0 then X := 1.0+X
+
+    \ \ \ \ red X
+
+    \ \ \ \ green X^2
+
+    \ \ \ \ blue X^3
+  </verbatim>|<label|extra-code-for-properties>Additional code in properties>
+
+  \;
+
+  <subsubsection|Data inheritance>
+
+  Properties declarations may <em|inherit> data from one or more other types
+  by using one or more <verbatim|inherit> prefixes in the properties
+  declaration, as illustrated in Figure<nbsp><reference|data-inheritance>,
+  where the type <verbatim|rgb> contains three properties called
+  <verbatim|red>, <verbatim|green> and <verbatim|blue>, and the type
+  <verbatim|rgba> additionally contains an <verbatim|alpha> property:
+
+  <big-figure|<\verbatim>
+    rgb -\<gtr\> properties
+
+    \ \ \ \ red \ \ : real
+
+    \ \ \ \ green : real
+
+    \ \ \ \ blue \ : real
+
+    rgba -\<gtr\> properties
+
+    \ \ \ \ inherit rgb
+
+    \ \ \ \ alpha : real
+  </verbatim>|<label|data-inheritance>Data inheritance>
+
+  Only declarations are inherited in this manner. The resulting types are not
+  compatible, although they can be made compatible using automatic type
+  conversions (see Section<nbsp><reference|type-conversions>).
+
+  <subsubsection|Explicit type check>
+
+  Internally, a type is any context where a <verbatim|contains> prefix can be
+  evaluated. In such a context, the expression <verbatim|contains X> is
+  called a <em|type check> for the type and for value <verbatim|X>. A type
+  check must return a boolean value to indicate if the value <verbatim|X>
+  belongs to the given type.
+
+  Type checks can be declared explicitly to create types identifying
+  arbitrary forms of trees that would be otherwise difficult to specify. This
+  is illustrated in Figure<nbsp><reference|arbitrary-type> where we define an
+  <verbatim|odd> type that contains only odd integers. We could similarly add
+  a type check to the definition of <verbatim|rgb> in
+  Figure<nbsp><reference|data-inheritance> to make sure that <verbatim|red>,
+  <verbatim|green> and <verbatim|blue> are between <verbatim|0.0> and
+  <verbatim|1.0>.
+
+  <big-figure|<\verbatim>
+    odd -\<gtr\>
+
+    \ \ \ \ contains X:integer -\<gtr\> X mod 2 = 1
+
+    \ \ \ \ contains X -\<gtr\> false
+  </verbatim>|<label|arbitrary-type>Defining a type identifying an arbitrary
+  AST shape>
+
+  The type check for a type can be invoked explicitly using the infix
+  <verbatim|contains> (with the type on the left) or <verbatim|is_a> (with
+  the type on the right). \ This is shown in
+  Figure<nbsp><reference|contains-tests>. The first type check <verbatim|odd
+  contains 3> should return <verbatim|true>, since <verbatim|3> belongs to
+  the <verbatim|odd> type. The second type check should return
+  <verbatim|false> since <verbatim|rgb> expects the property <verbatim|blue>
+  to be set.
+
+  <big-figure|<\verbatim>
+    if odd contains 3 then pass else fail
+
+    if (red 1; green 1) is_a rgb then fail else pass
+  </verbatim>|<label|contains-tests>Explicit type check>
+
+  <subsubsection|Explicit and automatic type
+  conversions><label|type-conversions>
+
+  Prefix forms with the same name as a type can be provided to make it easy
+  to convert values to type <verbatim|T>. Such forms are called <em|explicit
+  type conversions>. This is illustrated in
+  Figure<nbsp><reference|explicit-type-conversion>:
+
+  <big-figure|<\verbatim>
+    rgba C:rgb \ -\<gtr\> (red C.red; green C.green; blue C.blue; alpha 1.0)
+
+    rgb \ C:rgba -\<gtr\> (red C.red; green C.green; blue C.blue)
+  </verbatim>|<label|explicit-type-conversion>Explicit type conversion>
+
+  An <em|automatic type conversion> is an infix <verbatim|as> form with a
+  type on the right. If such a form exists, it can be invoked to
+  automatically convert a value to the type on the right of <verbatim|as>.
+  This is illustrated in Figure<nbsp><reference|automatic-type-conversion>.
+
+  <big-figure|<\verbatim>
+    X:integer as real -\<gtr\> real X
+
+    1+1.5 \ \ // 1.0+1.5 using conversion above
+  </verbatim>|<label|automatic-type-conversion>Automatic type conversion>
+
+  <subsubsection|Parameterized types>
+
+  Since type definitions are just regular rewrites, a type definition may
+  contain a more complex pattern on the left of the rewrite. This is
+  illustrated in Figure<nbsp><reference|parameterized-type>, where we define
+  a <verbatim|one_modulo N> type that generalizes the <verbatim|odd> type.
+
+  <big-figure|<\verbatim>
+    one_modulo N:integer -\<gtr\>
+
+    \ \ \ \ contains X:integer -\<gtr\> X mod N = 1
+
+    \ \ \ \ contains X -\<gtr\> false
+
+    show X:(one_modulo 1)
+  </verbatim>|<label|parameterized-type>Parameterized type>
+
+  It is also possible to define tree forms that are neither name nor prefix.
+  Figure<nbsp><reference|infix-type> shows how we can use an infix form with
+  the <verbatim|..> operator to declare a range type.
+
+  <big-figure|<\verbatim>
+    Low:integer..High:integer -\<gtr\>
+
+    \ \ \ \ contains X:integer -\<gtr\> X\<gtr\>=Low and X\<less\>=High
+
+    \ \ \ \ contains X -\<gtr\> false
+
+    foo X:1..5 -\<gtr\> write X
+  </verbatim>|<label|infix-type>Declaring a range type using an infix form>
+
+  <subsubsection|Rewrite types>
+
+  The infix <verbatim|-\<gtr\>> operator can be used in a type definition to
+  identify specific forms of rewrites that perform a particular kind of tree
+  transformation. Figure<nbsp><reference|rewrite-type> illustrates this usage
+  to declare an <verbatim|adder> type that will only match rewrites declaring
+  an infix <verbatim|+> node:
+
+  <big-figure|<\verbatim>
+    adder -\<gtr\> type {X+Y -\<gtr\> Z}
+  </verbatim>|<label|rewrite-type>Declaration of a rewrite type>
+
+  <section|Standard XL library>
+
+  The XLR language is intentionally very simple, with a strong focus on how
+  to extend it rather than on built-in features. Most features that would be
+  considered fundamental in other languages are implemented in the library in
+  XLR. Implementing basic amenities that way is an important proof point to
+  validate the initial design objective, extensibility of the language.
 
   <subsection|<label|built-ins>Built-in operations>
 
   A number of operations are defined by the core run-time of the language,
-  and appear in a scope that precedes any XLR program.
+  and appear in the context used to evaluate any XLR program.
 
   This section decsribes the minimum list of operations available in any XLR
   program. Operator priorities are defined by the <verbatim|xl.syntax> file
@@ -1245,23 +2136,27 @@
   that is loaded by XLR before evaluating any program, or a combination of
   both.
 
-  <paragraph|Arithmetic>Arithmetic operators for <verbatim|integer> and
-  <verbatim|real> values are listed in Table<nbsp><reference|arithmetic>,
-  where <verbatim|x> and <verbatim|y> denote integer or real values.
-  Arithmetic operators take arguments of the same type and return an argument
-  of the same type. In addition, the power operator <strong|^> can take a
-  first <verbatim|real> argument and an <verbatim|integer> second argument.
+  <subsubsection|Arithmetic>
+
+  Arithmetic operators for <verbatim|integer> and <verbatim|real> values are
+  listed in Table<nbsp><reference|arithmetic>, where <verbatim|x> and
+  <verbatim|y> denote integer or real values. Arithmetic operators take
+  arguments of the same type and return an argument of the same type. In
+  addition, the power operator <strong|^> can take a first <verbatim|real>
+  argument and an <verbatim|integer> second argument.
 
   <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<verbatim|x+y>>|<cell|Addition>>|<row|<cell|<verbatim|x-y>>|<cell|Subtraction>>|<row|<cell|<verbatim|x*y>>|<cell|Multiplication>>|<row|<cell|<verbatim|x/y>>|<cell|Division>>|<row|<cell|<verbatim|x
   rem y>>|<cell|Remainder>>|<row|<cell|<verbatim|x mod
-  y>>|<cell|Modulo>>|<row|<cell|<verbatim|x^y>>|<cell|Power>>|<row|<cell|<verbatim|-x>>|<cell|Negation>>|<row|<cell|<verbatim|x%>>|<cell|Percentage>>>>>|<label|arithmetic>Arithmetic
+  y>>|<cell|Modulo>>|<row|<cell|<verbatim|x^y>>|<cell|Power>>|<row|<cell|<verbatim|-x>>|<cell|Negation>>|<row|<cell|<verbatim|x%>>|<cell|Percentage
+  (<verbatim|x/100.0)>>>|<row|<cell|<verbatim|x!>>|<cell|Factorial>>>>>|<label|arithmetic>Arithmetic
   operations>
 
-  <paragraph|Comparison>Comparison operators can take <verbatim|integer>,
-  <verbatim|real> or <verbatim|text> argument, both arguments being of the
-  same type, and return a <verbatim|boolean> argument, which can be either
-  <verbatim|true> or <verbatim|false>. Text is compared using the
-  lexicographic order<\footnote>
+  <subsubsection|Comparison>
+
+  Comparison operators can take <verbatim|integer>, <verbatim|real> or
+  <verbatim|text> argument, both arguments being of the same type, and return
+  a <verbatim|boolean> argument, which can be either <verbatim|true> or
+  <verbatim|false>. Text is compared using the lexicographic order<\footnote>
     There is currently no locale-dependent text comparison.
   </footnote>.
 
@@ -1271,19 +2166,24 @@
   equal>>|<row|<cell|<verbatim|x\<gtr\>=y>>|<cell|Greater or
   equal>>>>>|<label|arithmetic>Comparisons>
 
-  <paragraph|Bitwise arithmetic>Bitwise operators operate on the binary
-  representation of <verbatim|integer> values, treating each bit indivudally.
+  <subsubsection|Bitwise arithmetic>
 
-  <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<verbatim|x\<less\>\<less\>y>>|<cell|Shift
-  <verbatim|x> left by <verbatim|y> bits>>|<row|<cell|<verbatim|x\<gtr\>\<gtr\>y>>|<cell|Shift
-  <verbatim|x> right by <verbatim|y> bits>>|<row|<cell|<verbatim|x and
-  y>>|<cell|Bitwise and>>|<row|<cell|<verbatim|x or y>>|<cell|Bitwise
+  Bitwise operators operate on the binary representation of
+  <verbatim|integer> values, treating each bit indivudally.
+
+  <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<verbatim|x
+  shl y>>|<cell|Shift <verbatim|x> left by <verbatim|y>
+  bits>>|<row|<cell|<verbatim|x shr y>>|<cell|Shift <verbatim|x> right by
+  <verbatim|y> bits>>|<row|<cell|<verbatim|x and y>>|<cell|Bitwise
+  and>>|<row|<cell|<verbatim|x or y>>|<cell|Bitwise
   or>>|<row|<cell|<verbatim|x xor y>>|<cell|Bitwise exclusive
   or>>|<row|<cell|<verbatim|not x>>|<cell|Bitwise
   complement>>>>>|<label|bitwise-arithmetic>Bitwise arithmetic operations>
 
-  <paragraph|Boolean operations>Boolean operators operate on the names
-  <verbatim|true> and <verbatim|false>.
+  <subsubsection|Boolean operations>
+
+  Boolean operators operate on the names <verbatim|true> and
+  <verbatim|false>.
 
   <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<verbatim|x=y>>|<cell|Equal>>|<row|<cell|<verbatim|x\<less\>\<gtr\>y>>|<cell|Not
   equal>>|<row|<cell|<verbatim|x and y>>|<cell|Logical
@@ -1292,10 +2192,11 @@
   or>>|<row|<cell|<verbatim|not x>>|<cell|Logical
   not>>>>>|<label|boolean-operations>Boolean operations>
 
-  <paragraph|Mathematical functions>Mathematical functions operate on
-  <verbatim|real> numbers. The <verbatim|random> function can also take two
-  <verbatim|integer> arguments, in which case it returns an
-  <verbatim|integer> value.
+  <subsubsection|Mathematical functions>
+
+  Mathematical functions operate on <verbatim|real> numbers. The
+  <verbatim|random> function can also take two <verbatim|integer> arguments,
+  in which case it returns an <verbatim|integer> value.
 
   <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<tformat|<table|<row|<cell|<verbatim|sqrt
   x>>>>>>|<cell|Square root>>|<row|<cell|<verbatim|sin
@@ -1317,15 +2218,18 @@
   <verbatim|x> and <verbatim|y>>>>>>|<label|math-operations>Mathematical
   operations>
 
-  <paragraph|Text functions>Text functions operate on <verbatim|text> values.
+  <subsubsection|Text functions>
 
-  <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<tformat|<table|<row|<cell|<verbatim|x&y>>>>>>|<cell|Concatenation>>|<row|<cell|<verbatim|length
+  Text functions operate on <verbatim|text> values.
+
+  <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<tformat|<table|<row|<cell|<verbatim|x&y>>>>>>|<cell|Concatenation>>|<row|<cell|<verbatim|text_length
   x>>|<cell|Length of the text>>|<row|<cell|<verbatim|x at
   y>>|<cell|Character at position <verbatim|y> in
   <verbatim|x>>>>>>|<label|text-operations>Text operations>
 
-  <paragraph|Conversions>Conversions operations transform data from one type
-  to another.
+  <subsubsection|Conversions>
+
+  Conversions operations transform data from one type to another.
 
   <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<tformat|<table|<row|<cell|<verbatim|real
   x:integer>>>>>>|<cell|Convert integer to real>>|<row|<cell|<verbatim|real
@@ -1337,12 +2241,14 @@
 
   \;
 
-  <paragraph|Date and time>Date and time functions manipulates time. Time is
-  expressed with an integer representing a number of seconds since a time
-  origin. Except for <verbatim|system_time> which never takes an argument,
-  the functions can either take an explicit time represented as an
-  <verbatim|integer> as returned by <verbatim|system_time>, or apply to the
-  current time in the current time zone.
+  <subsubsection|Date and time>
+
+  Date and time functions manipulates time. Time is expressed with an integer
+  representing a number of seconds since a time origin. Except for
+  <verbatim|system_time> which never takes an argument, the functions can
+  either take an explicit time represented as an <verbatim|integer> as
+  returned by <verbatim|system_time>, or apply to the current time in the
+  current time zone.
 
   <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<tformat|<table|<row|<cell|<verbatim|hours>>>>>>|<cell|Hours>>|<row|<cell|<verbatim|minutes>>|<cell|Minutes>>|<row|<cell|<verbatim|seconds>>|<cell|Seconds>>|<row|<cell|<verbatim|year>>|<cell|Year>>|<row|<cell|<verbatim|month>>|<cell|Month>>|<row|<cell|<verbatim|day>>|<cell|Day
   of the month>>|<row|<cell|<verbatim|week_day>>|<cell|Day of the
@@ -1350,8 +2256,9 @@
   year>>|<row|<cell|<verbatim|system_time>>|<cell|Current time in
   seconds>>>>>|<label|time-operations>Date and time>
 
-  <paragraph|Tree operations>Tree operations are intended to manipulate
-  trees.
+  <subsubsection|Tree operations>
+
+  Tree operations are intended to manipulate trees.
 
   <big-table|<block*|<tformat|<table|<row|<cell|<strong|Form>>|<cell|<strong|Description>>>|<row|<cell|<tformat|<table|<row|<cell|<verbatim|identity
   x>>>>>>|<cell|Returns <verbatim|x>>>|<row|<cell|<verbatim|do
@@ -1368,8 +2275,8 @@
   <verbatim|1,3,5,6>, but other infix separators can be used.
 
   <\itemize>
-    <item>Map: If <verbatim|x> is a name or a universal rewrite rule, a list
-    is built by mapping the name to each element of the list in turn. For
+    <item>Map: If <verbatim|x> is a name or an anonymous function, a list is
+    built by mapping the name to each element of the list in turn. For
     example, <verbatim|sin with (1,3)> returns the list <verbatim|sin 1, sin
     3>, and <verbatim|(x-\<gtr\>x+1) with (2,4)> returns the list
     <verbatim|3,5>.
@@ -1390,9 +2297,10 @@
   elements composed of elements between <verbatim|x> and <verbatim|y>
   inclusive. For example, <verbatim|1..3> is the list <verbatim|1,2,3>.
 
-  <paragraph|Data loading operations>Data loading operations read a data file
-  and convert it to an XLR parse tree suitable for XLR data manipulation
-  functions. The arguments are:
+  <subsubsection|Data loading operations>
+
+  Data loading operations read a data file and convert it to an XLR parse
+  tree suitable for XLR data manipulation functions. The arguments are:
 
   <\itemize>
     <item>The file <verbatim|f> is specified by its name as <verbatim|text>.
@@ -1419,6 +2327,146 @@
   loading operations>
 
   \;
+
+  <subsection|Library-defined types>
+
+  A number of types are defined in the library.
+
+  <subsubsection|Union types>
+
+  The notation <verbatim|A\|B> in types is a <em|union type> for <verbatim|A>
+  and <verbatim|B>, i.e. a type that can accept any element of types
+  <verbatim|A> or <verbatim|B>. It is pre-defined in the standard library in
+  a way subtantially equivalent to Figure<nbsp><reference|union-type-definition>:
+
+  <big-figure|<\verbatim>
+    type A\|B -\<gtr\>
+
+    \ \ \ \ contains X:A -\<gtr\> true
+
+    \ \ \ \ contains X:B -\<gtr\> true
+
+    \ \ \ \ contains X -\<gtr\> false
+  </verbatim>|<label|union-type-definition>Union type definition>
+
+  Union types facilitate the definition of functions that work correctly on a
+  multiplicity of data types, but not necessarily all of them, as shown in
+  Figure<nbsp><reference|using-union-types>:
+
+  <big-figure|<\verbatim>
+    type number \ \ \ \ \ \ \ \ \ \ -\<gtr\> X:(integer\|real)
+
+    succ X:number \ \ \ \ \ \ \ \ -\<gtr\> X + 1
+
+    pred X:(integer\|real) -\<gtr\> X-1
+  </verbatim>|<label|using-union-types>Using union types>
+
+  <subsubsection|Enumeration types>
+
+  An <em|enumeration type> acceps names in a predefined set. The notation
+  <verbatim|enumeration(A, B, C)> corresponds to an enumeration accepting the
+  names <verbatim|A>, <verbatim|B>, <verbatim|C>... This notation is
+  pre-defined in the standard library in a way subtantially equivalent to
+  Figure<nbsp><reference|enum-type-definition>:
+
+  <big-figure|<\verbatim>
+    type enumeration(A:name,Rest) -\<gtr\>
+
+    \ \ \ \ contains X:name -\<gtr\> name.value = A.value or
+    enumeration(Rest) has X
+
+    \ \ \ \ contains X -\<gtr\> false
+  </verbatim>|<label|enum-type-definition>Enumeration type definition>
+
+  Unlike in other languages, enumeration types are not distinct from one
+  another and can overlap. For example, the name <verbatim|do> belongs to
+  <verbatim|enumeration(do,undo,redo)> as well as to
+  <verbatim|enumeration(do,re,mi,fa,sol,la,si)>.
+
+  <subsubsection|A type definition matching type declarations>
+
+  Type declarations in a type definition are used to declare actual types, so
+  a type that matches type declarations cannot be defined by a simple
+  pattern. Figure<nbsp><reference|type-declaration-type> shows how the
+  standard library defines a <verbatim|type_declaration> type using a type
+  check.
+
+  <big-figure|<\verbatim>
+    type type_declaration -\<gtr\>
+
+    \ \ \ contains X:infix -\<gtr\> X.name = ":"
+
+    \ \ \ contains X -\<gtr\> false
+  </verbatim>|<label|type-declaration-type>Type matching a type declaration>
+
+  <subsection|Type inference>
+
+  <subsection|Built-in operations>
+
+  <subsection|<label|C-library>Importing symbols from C libraries>
+
+  \;
+
+  \;
+
+  <section|Example code>
+
+  <subsection|Minimum and maximum>
+
+  \;
+
+  <subsection|Complex numbers>
+
+  \;
+
+  <subsection|Vector and Matrix computations>
+
+  <subsection|Linked lists with dynamic allocation>
+
+  \;
+
+  <subsection|Input / Output>
+
+  \;
+
+  <subsection|<label|object-oriented-programming>Object-Oriented Programming>
+
+  <subsubsection|Classes>
+
+  <subsubsection|Methods>
+
+  <subsubsection|Dynamic dispatch>
+
+  <subsubsection|Polymorphism>
+
+  <subsubsection|Inheritance>
+
+  <subsubsection|Multi-methods>
+
+  <subsubsection|Object prototypes>
+
+  <subsection|Functional-Programming>
+
+  <subsubsection|Map>
+
+  <subsubsection|Reduce>
+
+  <subsubsection|Filter>
+
+  <subsubsection|Functions as first-class objects>
+
+  <subsubsection|Anonymous functions (Lambda)>
+
+  <\with|font-series|bold>
+    <subsubsection|Y-Combinator>
+  </with>
+
+  \;
+
+  <section|Implementation notes>
+
+  This section describes the implementation as published at
+  <verbatim|http://xlr.sourceforge.net>.
 
   <subsection|Lazy evaluation>
 
@@ -1468,14 +2516,7 @@
   *>>|<cell|A basic block with name <verbatim|n>>>|<row|<cell|<verbatim|llvm_type>>|<cell|>|<cell|>>>>>|<label|llvm-operations>LLVM
   operations>
 
-  <subsection|Type inference>
-
-  <section|Example code>
-
-  <section|Implementation notes>
-
-  This section describes the implementation as published at
-  <verbatim|http://xlr.sourceforge.net>.
+  \;
 
   <subsection|Tree representation>
 
@@ -1591,11 +2632,12 @@
 
   However, there are a few important exceptions to this rule:
 
-  <paragraph|Right side of a rewrite>If the tree is on the right of a rewrite
-  (i.e. the right of an infix <verbatim|-\<gtr\>> operator), then
-  <verbatim|code> will take additional input trees as arguments.
-  Specifically, there will be one additional parameter in the code per
-  variable in the rewrite rule pattern.
+  <subsubsection|Right side of a rewrite>
+
+  If the tree is on the right of a rewrite (i.e. the right of an infix
+  <verbatim|-\<gtr\>> operator), then <verbatim|code> will take additional
+  input trees as arguments. Specifically, there will be one additional
+  parameter in the code per variable in the rewrite rule pattern.
 
   For example, if a rewrite is <verbatim|X+Y-\<gtr\>foo X,Y>, then the
   <verbatim|code> field for <verbatim|foo X,Y> will have <verbatim|X> as its
@@ -1609,13 +2651,15 @@
   In that case, the input tree for the actual expression being rewritten
   remains passed as the first argument, generally denoted as <verbatim|self>.
 
-  <paragraph|Closures>If a tree is passed as a <verbatim|tree> argument to a
-  function, then it is encapsulated in a <em|closure>. The intent is to
-  capture the environment that the passed tree depends on. Therefore, the
-  associated <verbatim|code> will take additional arguments representing all
-  the captured values. For instance, a closure for <verbatim|write X,Y> that
-  captures variables <verbatim|X> and <verbatim|Y> will have the signature
-  shown in Figure<nbsp><reference|closure-code>:
+  <subsubsection|Closures>
+
+  If a tree is passed as a <verbatim|tree> argument to a function, then it is
+  encapsulated in a <em|closure>. The intent is to capture the environment
+  that the passed tree depends on. Therefore, the associated <verbatim|code>
+  will take additional arguments representing all the captured values. For
+  instance, a closure for <verbatim|write X,Y> that captures variables
+  <verbatim|X> and <verbatim|Y> will have the signature shown in
+  Figure<nbsp><reference|closure-code>:
 
   <big-figure|<verbatim|Tree * (*code) (Tree *self, Tree *X, Tree
   *Y)>|<label|closure-code>Signature for rewrite code with two variables.>
@@ -1647,7 +2691,9 @@
 
   <subsection|Partial recompilation>
 
-  \;
+  <subsection|Machine Interface><label|machine-interface>
+
+  <subsection|Machine Types and Normal Types>
 
   \;
 </body>
@@ -1660,165 +2706,284 @@
 
 <\references>
   <\collection>
-    <associate|arithmetic|<tuple|2|14>>
-    <associate|array-assign|<tuple|19|?>>
+    <associate|Binding|<tuple|3.5|?>>
+    <associate|C-library|<tuple|4.5|26>>
+    <associate|C-syntax-file|<tuple|12|9>>
+    <associate|arbitrary-type|<tuple|41|21>>
+    <associate|arithmetic|<tuple|1|22>>
+    <associate|array-assign|<tuple|22|?>>
+    <associate|assign-to-new-local|<tuple|21|?>>
+    <associate|assignment|<tuple|3.1.4|?>>
+    <associate|assignments-cant-override-patterns|<tuple|22|?>>
     <associate|auto-1|<tuple|1|1>>
-    <associate|auto-10|<tuple|2.2|2>>
-    <associate|auto-100|<tuple|38|?>>
-    <associate|auto-101|<tuple|39|?>>
-    <associate|auto-102|<tuple|26|?>>
-    <associate|auto-103|<tuple|5.8|?>>
-    <associate|auto-104|<tuple|5.9|?>>
-    <associate|auto-105|<tuple|5.8|?>>
-    <associate|auto-106|<tuple|5.9|?>>
-    <associate|auto-11|<tuple|5|2>>
-    <associate|auto-12|<tuple|2.3|3>>
-    <associate|auto-13|<tuple|3|3>>
-    <associate|auto-14|<tuple|6|3>>
-    <associate|auto-15|<tuple|4|3>>
-    <associate|auto-16|<tuple|7|4>>
-    <associate|auto-17|<tuple|5|4>>
-    <associate|auto-18|<tuple|8|4>>
-    <associate|auto-19|<tuple|9|4>>
-    <associate|auto-2|<tuple|1|1>>
-    <associate|auto-20|<tuple|6|4>>
-    <associate|auto-21|<tuple|10|4>>
-    <associate|auto-22|<tuple|2.4|5>>
-    <associate|auto-23|<tuple|7|5>>
-    <associate|auto-24|<tuple|8|5>>
-    <associate|auto-25|<tuple|9|5>>
-    <associate|auto-26|<tuple|2.5|5>>
-    <associate|auto-27|<tuple|10|6>>
-    <associate|auto-28|<tuple|11|6>>
-    <associate|auto-29|<tuple|12|6>>
-    <associate|auto-3|<tuple|2|1>>
-    <associate|auto-30|<tuple|13|7>>
-    <associate|auto-31|<tuple|2.6|8>>
-    <associate|auto-32|<tuple|11|8>>
-    <associate|auto-33|<tuple|12|8>>
-    <associate|auto-34|<tuple|3|9>>
-    <associate|auto-35|<tuple|3.1|9>>
-    <associate|auto-36|<tuple|14|9>>
-    <associate|auto-37|<tuple|13|9>>
-    <associate|auto-38|<tuple|14|9>>
-    <associate|auto-39|<tuple|15|10>>
-    <associate|auto-4|<tuple|1|1>>
-    <associate|auto-40|<tuple|15|10>>
-    <associate|auto-41|<tuple|16|10>>
-    <associate|auto-42|<tuple|16|10>>
-    <associate|auto-43|<tuple|17|10>>
-    <associate|auto-44|<tuple|17|10>>
-    <associate|auto-45|<tuple|18|10>>
-    <associate|auto-46|<tuple|18|10>>
-    <associate|auto-47|<tuple|19|11>>
-    <associate|auto-48|<tuple|19|12>>
+    <associate|auto-10|<tuple|4|3>>
+    <associate|auto-100|<tuple|4.1|23>>
+    <associate|auto-101|<tuple|4.1.1|23>>
+    <associate|auto-102|<tuple|1|23>>
+    <associate|auto-103|<tuple|4.1.2|23>>
+    <associate|auto-104|<tuple|2|23>>
+    <associate|auto-105|<tuple|4.1.3|23>>
+    <associate|auto-106|<tuple|3|23>>
+    <associate|auto-107|<tuple|4.1.4|24>>
+    <associate|auto-108|<tuple|4|24>>
+    <associate|auto-109|<tuple|4.1.5|24>>
+    <associate|auto-11|<tuple|2.2|3>>
+    <associate|auto-110|<tuple|5|24>>
+    <associate|auto-111|<tuple|4.1.6|24>>
+    <associate|auto-112|<tuple|6|24>>
+    <associate|auto-113|<tuple|4.1.7|24>>
+    <associate|auto-114|<tuple|7|25>>
+    <associate|auto-115|<tuple|4.1.8|25>>
+    <associate|auto-116|<tuple|8|25>>
+    <associate|auto-117|<tuple|4.1.9|25>>
+    <associate|auto-118|<tuple|9|25>>
+    <associate|auto-119|<tuple|4.1.10|26>>
+    <associate|auto-12|<tuple|5|3>>
+    <associate|auto-120|<tuple|10|26>>
+    <associate|auto-121|<tuple|4.2|26>>
+    <associate|auto-122|<tuple|4.2.1|26>>
+    <associate|auto-123|<tuple|48|26>>
+    <associate|auto-124|<tuple|49|26>>
+    <associate|auto-125|<tuple|4.2.2|26>>
+    <associate|auto-126|<tuple|50|26>>
+    <associate|auto-127|<tuple|4.2.3|26>>
+    <associate|auto-128|<tuple|51|26>>
+    <associate|auto-129|<tuple|4.3|26>>
+    <associate|auto-13|<tuple|2.3|3>>
+    <associate|auto-130|<tuple|4.4|26>>
+    <associate|auto-131|<tuple|4.5|26>>
+    <associate|auto-132|<tuple|5|27>>
+    <associate|auto-133|<tuple|5.1|27>>
+    <associate|auto-134|<tuple|5.2|27>>
+    <associate|auto-135|<tuple|5.3|27>>
+    <associate|auto-136|<tuple|5.4|27>>
+    <associate|auto-137|<tuple|5.5|27>>
+    <associate|auto-138|<tuple|5.6|27>>
+    <associate|auto-139|<tuple|5.6.1|27>>
+    <associate|auto-14|<tuple|2.3.1|3>>
+    <associate|auto-140|<tuple|5.6.2|27>>
+    <associate|auto-141|<tuple|5.6.3|27>>
+    <associate|auto-142|<tuple|5.6.4|27>>
+    <associate|auto-143|<tuple|5.6.5|27>>
+    <associate|auto-144|<tuple|5.6.6|27>>
+    <associate|auto-145|<tuple|5.6.7|27>>
+    <associate|auto-146|<tuple|5.7|27>>
+    <associate|auto-147|<tuple|5.7.1|27>>
+    <associate|auto-148|<tuple|5.7.2|27>>
+    <associate|auto-149|<tuple|5.7.3|27>>
+    <associate|auto-15|<tuple|6|4>>
+    <associate|auto-150|<tuple|5.7.4|27>>
+    <associate|auto-151|<tuple|5.7.5|27>>
+    <associate|auto-152|<tuple|5.7.6|27>>
+    <associate|auto-153|<tuple|6|28>>
+    <associate|auto-154|<tuple|6.1|28>>
+    <associate|auto-155|<tuple|52|28>>
+    <associate|auto-156|<tuple|6.2|28>>
+    <associate|auto-157|<tuple|53|28>>
+    <associate|auto-158|<tuple|11|29>>
+    <associate|auto-159|<tuple|6.3|29>>
+    <associate|auto-16|<tuple|2.3.2|4>>
+    <associate|auto-160|<tuple|6.4|29>>
+    <associate|auto-161|<tuple|6.5|29>>
+    <associate|auto-162|<tuple|6.6|29>>
+    <associate|auto-163|<tuple|6.7|29>>
+    <associate|auto-164|<tuple|6.8|29>>
+    <associate|auto-165|<tuple|6.9|30>>
+    <associate|auto-166|<tuple|54|30>>
+    <associate|auto-167|<tuple|6.9.1|30>>
+    <associate|auto-168|<tuple|6.9.2|30>>
+    <associate|auto-169|<tuple|55|?>>
+    <associate|auto-17|<tuple|7|4>>
+    <associate|auto-170|<tuple|6.10|?>>
+    <associate|auto-171|<tuple|6.11|?>>
+    <associate|auto-172|<tuple|6.12|?>>
+    <associate|auto-173|<tuple|6.13|?>>
+    <associate|auto-174|<tuple|6.13|?>>
+    <associate|auto-18|<tuple|2.3.3|4>>
+    <associate|auto-19|<tuple|8|4>>
+    <associate|auto-2|<tuple|1.1|1>>
+    <associate|auto-20|<tuple|9|5>>
+    <associate|auto-21|<tuple|2.3.4|5>>
+    <associate|auto-22|<tuple|10|5>>
+    <associate|auto-23|<tuple|2.4|5>>
+    <associate|auto-24|<tuple|2.4.1|5>>
+    <associate|auto-25|<tuple|2.4.2|6>>
+    <associate|auto-26|<tuple|2.4.3|6>>
+    <associate|auto-27|<tuple|2.5|6>>
+    <associate|auto-28|<tuple|2.5.1|6>>
+    <associate|auto-29|<tuple|2.5.2|6>>
+    <associate|auto-3|<tuple|1.2|1>>
+    <associate|auto-30|<tuple|2.5.3|7>>
+    <associate|auto-31|<tuple|2.5.4|7>>
+    <associate|auto-32|<tuple|2.6|7>>
+    <associate|auto-33|<tuple|11|8>>
+    <associate|auto-34|<tuple|12|9>>
+    <associate|auto-35|<tuple|13|10>>
+    <associate|auto-36|<tuple|3|10>>
+    <associate|auto-37|<tuple|3.1|10>>
+    <associate|auto-38|<tuple|3.1.1|10>>
+    <associate|auto-39|<tuple|14|11>>
+    <associate|auto-4|<tuple|1.3|2>>
+    <associate|auto-40|<tuple|15|11>>
+    <associate|auto-41|<tuple|16|11>>
+    <associate|auto-42|<tuple|3.1.1.1|11>>
+    <associate|auto-43|<tuple|3.1.2|11>>
+    <associate|auto-44|<tuple|17|11>>
+    <associate|auto-45|<tuple|18|12>>
+    <associate|auto-46|<tuple|3.1.3|12>>
+    <associate|auto-47|<tuple|19|12>>
+    <associate|auto-48|<tuple|3.1.4|12>>
     <associate|auto-49|<tuple|20|12>>
-    <associate|auto-5|<tuple|2|1>>
-    <associate|auto-50|<tuple|3.2|12>>
-    <associate|auto-51|<tuple|20|12>>
-    <associate|auto-52|<tuple|3.3|12>>
-    <associate|auto-53|<tuple|3.4|13>>
-    <associate|auto-54|<tuple|21|13>>
-    <associate|auto-55|<tuple|22|13>>
-    <associate|auto-56|<tuple|23|13>>
-    <associate|auto-57|<tuple|24|13>>
-    <associate|auto-58|<tuple|25|13>>
-    <associate|auto-59|<tuple|26|13>>
-    <associate|auto-6|<tuple|3|2>>
-    <associate|auto-60|<tuple|21|13>>
-    <associate|auto-61|<tuple|27|13>>
-    <associate|auto-62|<tuple|22|13>>
-    <associate|auto-63|<tuple|3.5|13>>
-    <associate|auto-64|<tuple|28|14>>
-    <associate|auto-65|<tuple|1|14>>
-    <associate|auto-66|<tuple|29|14>>
-    <associate|auto-67|<tuple|2|14>>
-    <associate|auto-68|<tuple|30|14>>
-    <associate|auto-69|<tuple|3|14>>
-    <associate|auto-7|<tuple|2|2>>
-    <associate|auto-70|<tuple|31|14>>
-    <associate|auto-71|<tuple|4|15>>
-    <associate|auto-72|<tuple|32|15>>
-    <associate|auto-73|<tuple|5|15>>
-    <associate|auto-74|<tuple|33|15>>
-    <associate|auto-75|<tuple|6|15>>
-    <associate|auto-76|<tuple|34|15>>
-    <associate|auto-77|<tuple|7|15>>
-    <associate|auto-78|<tuple|35|15>>
-    <associate|auto-79|<tuple|8|16>>
-    <associate|auto-8|<tuple|2.1|2>>
-    <associate|auto-80|<tuple|36|16>>
-    <associate|auto-81|<tuple|9|16>>
-    <associate|auto-82|<tuple|37|16>>
-    <associate|auto-83|<tuple|10|16>>
-    <associate|auto-84|<tuple|3.6|16>>
-    <associate|auto-85|<tuple|23|17>>
-    <associate|auto-86|<tuple|3.7|17>>
-    <associate|auto-87|<tuple|24|17>>
-    <associate|auto-88|<tuple|11|17>>
-    <associate|auto-89|<tuple|3.8|17>>
-    <associate|auto-9|<tuple|4|2>>
-    <associate|auto-90|<tuple|4|17>>
-    <associate|auto-91|<tuple|5|?>>
-    <associate|auto-92|<tuple|5.1|?>>
-    <associate|auto-93|<tuple|5.2|?>>
-    <associate|auto-94|<tuple|5.3|?>>
-    <associate|auto-95|<tuple|5.4|?>>
-    <associate|auto-96|<tuple|5.5|?>>
-    <associate|auto-97|<tuple|5.6|?>>
-    <associate|auto-98|<tuple|5.7|?>>
-    <associate|auto-99|<tuple|25|?>>
-    <associate|binding|<tuple|3.3|12>>
-    <associate|bitwise-arithmetic|<tuple|3|14>>
-    <associate|boolean-operations|<tuple|4|14>>
-    <associate|built-ins|<tuple|3.5|13>>
-    <associate|closure-code|<tuple|26|?>>
-    <associate|comma-separated-list|<tuple|15|9>>
-    <associate|comments|<tuple|5|2>>
-    <associate|complex-type|<tuple|16|10>>
-    <associate|conversions|<tuple|7|15>>
-    <associate|data-loading-operations|<tuple|10|16>>
-    <associate|evaluation|<tuple|3.2|11>>
-    <associate|factorial|<tuple|1|1>>
-    <associate|footnote-1|<tuple|1|2>>
-    <associate|footnote-2|<tuple|2|2>>
-    <associate|footnote-3|<tuple|3|4>>
-    <associate|footnote-4|<tuple|4|6>>
-    <associate|footnote-5|<tuple|5|12>>
-    <associate|footnote-6|<tuple|6|13>>
+    <associate|auto-5|<tuple|1|2>>
+    <associate|auto-50|<tuple|21|12>>
+    <associate|auto-51|<tuple|22|13>>
+    <associate|auto-52|<tuple|3.1.5|13>>
+    <associate|auto-53|<tuple|23|13>>
+    <associate|auto-54|<tuple|3.1.6|13>>
+    <associate|auto-55|<tuple|24|14>>
+    <associate|auto-56|<tuple|3.1.7|14>>
+    <associate|auto-57|<tuple|25|14>>
+    <associate|auto-58|<tuple|3.2|14>>
+    <associate|auto-59|<tuple|3.2.1|14>>
+    <associate|auto-6|<tuple|2|2>>
+    <associate|auto-60|<tuple|3.2.2|15>>
+    <associate|auto-61|<tuple|3.2.3|15>>
+    <associate|auto-62|<tuple|3.2.4|16>>
+    <associate|auto-63|<tuple|3.3|16>>
+    <associate|auto-64|<tuple|3.3.1|17>>
+    <associate|auto-65|<tuple|3.3.2|17>>
+    <associate|auto-66|<tuple|3.3.3|17>>
+    <associate|auto-67|<tuple|26|18>>
+    <associate|auto-68|<tuple|27|18>>
+    <associate|auto-69|<tuple|28|18>>
+    <associate|auto-7|<tuple|3|2>>
+    <associate|auto-70|<tuple|3.4|18>>
+    <associate|auto-71|<tuple|3.4.1|18>>
+    <associate|auto-72|<tuple|3.4.2|19>>
+    <associate|auto-73|<tuple|29|19>>
+    <associate|auto-74|<tuple|30|19>>
+    <associate|auto-75|<tuple|31|19>>
+    <associate|auto-76|<tuple|32|19>>
+    <associate|auto-77|<tuple|33|19>>
+    <associate|auto-78|<tuple|3.4.3|20>>
+    <associate|auto-79|<tuple|34|20>>
+    <associate|auto-8|<tuple|2|2>>
+    <associate|auto-80|<tuple|35|20>>
+    <associate|auto-81|<tuple|3.4.4|20>>
+    <associate|auto-82|<tuple|36|20>>
+    <associate|auto-83|<tuple|37|20>>
+    <associate|auto-84|<tuple|38|21>>
+    <associate|auto-85|<tuple|39|21>>
+    <associate|auto-86|<tuple|3.4.5|21>>
+    <associate|auto-87|<tuple|40|21>>
+    <associate|auto-88|<tuple|3.4.6|21>>
+    <associate|auto-89|<tuple|41|21>>
+    <associate|auto-9|<tuple|2.1|3>>
+    <associate|auto-90|<tuple|42|21>>
+    <associate|auto-91|<tuple|3.4.7|21>>
+    <associate|auto-92|<tuple|43|21>>
+    <associate|auto-93|<tuple|44|22>>
+    <associate|auto-94|<tuple|3.4.8|22>>
+    <associate|auto-95|<tuple|45|22>>
+    <associate|auto-96|<tuple|46|22>>
+    <associate|auto-97|<tuple|3.4.9|22>>
+    <associate|auto-98|<tuple|47|22>>
+    <associate|auto-99|<tuple|4|22>>
+    <associate|automatic-type-conversion|<tuple|44|21>>
+    <associate|binding|<tuple|3.2|14>>
+    <associate|binding-for-complex-parameter|<tuple|32|19>>
+    <associate|bitwise-arithmetic|<tuple|3|23>>
+    <associate|block-type-declaration|<tuple|30|?>>
+    <associate|boolean-operations|<tuple|4|23>>
+    <associate|built-ins|<tuple|4.1|22>>
+    <associate|class-like-data|<tuple|22|?>>
+    <associate|closure-code|<tuple|55|29>>
+    <associate|color-properties|<tuple|37|20>>
+    <associate|comma-separated-list|<tuple|17|11>>
+    <associate|comments|<tuple|5|3>>
+    <associate|complex-normal-form|<tuple|35|19>>
+    <associate|complex-type|<tuple|18|12>>
+    <associate|contains-tests|<tuple|42|21>>
+    <associate|conversions|<tuple|7|24>>
+    <associate|data-inheritance|<tuple|40|20>>
+    <associate|data-loading-operations|<tuple|10|25>>
+    <associate|enum-type-definition|<tuple|50|26>>
+    <associate|evaluation|<tuple|3.3|15>>
+    <associate|evaluation-for-comparison|<tuple|26|17>>
+    <associate|evaluation-for-type-comparison|<tuple|27|17>>
+    <associate|explicit-and-automatic-type-conversions|<tuple|3.4.7|?>>
+    <associate|explicit-type-conversion|<tuple|43|21>>
+    <associate|explicit-vs-lazy-evaluation|<tuple|28|17>>
+    <associate|extra-code-for-properties|<tuple|39|20>>
+    <associate|factorial|<tuple|1|2>>
+    <associate|footnote-1|<tuple|1|3>>
+    <associate|footnote-2|<tuple|2|5>>
+    <associate|footnote-3|<tuple|3|7>>
+    <associate|footnote-4|<tuple|4|16>>
+    <associate|footnote-5|<tuple|5|22>>
+    <associate|footnote-6|<tuple|6|28>>
     <associate|footnote-7|<tuple|7|16>>
-    <associate|footnr-1|<tuple|1|2>>
-    <associate|footnr-2|<tuple|2|2>>
-    <associate|footnr-3|<tuple|3|4>>
-    <associate|footnr-4|<tuple|4|6>>
-    <associate|footnr-5|<tuple|5|12>>
-    <associate|footnr-6|<tuple|6|13>>
+    <associate|footnr-1|<tuple|1|3>>
+    <associate|footnr-2|<tuple|2|5>>
+    <associate|footnr-3|<tuple|3|7>>
+    <associate|footnr-4|<tuple|4|16>>
+    <associate|footnr-5|<tuple|5|22>>
+    <associate|footnr-6|<tuple|6|28>>
     <associate|footnr-7|<tuple|7|16>>
-    <associate|guard|<tuple|18|10>>
-    <associate|if-then|<tuple|3|1>>
-    <associate|if-then-else|<tuple|13|9>>
-    <associate|if-then-else-colorized|<tuple|14|9>>
+    <associate|guard|<tuple|23|12>>
+    <associate|if-then|<tuple|3|2>>
+    <associate|if-then-else|<tuple|14|11>>
+    <associate|if-then-else-colorized|<tuple|15|11>>
+    <associate|index-operators|<tuple|3.1.7|13>>
+    <associate|infix-type|<tuple|46|21>>
     <associate|iterations|<tuple|3|?>>
-    <associate|literals|<tuple|2.3|2>>
-    <associate|llvm-operations|<tuple|11|17>>
-    <associate|long-text-indent|<tuple|9|4>>
-    <associate|map-reduce-filter|<tuple|2|1>>
-    <associate|math-operations|<tuple|5|14>>
+    <associate|lazy-evaluation|<tuple|3.3.3|?>>
+    <associate|literals|<tuple|2.3|3>>
+    <associate|llvm-operations|<tuple|11|28>>
+    <associate|local-and-nonlocal-assignment|<tuple|20|?>>
+    <associate|long-text-indent|<tuple|9|5>>
+    <associate|machine-interface|<tuple|6.12|30>>
+    <associate|making-two-types-equivalent|<tuple|33|19>>
+    <associate|map-reduce-filter|<tuple|2|2>>
+    <associate|math-operations|<tuple|5|23>>
     <associate|mathematical-functions|<tuple|5|?>>
-    <associate|off-side-rule|<tuple|4|2>>
-    <associate|precedence|<tuple|2.6|6>>
-    <associate|rewrite-code|<tuple|25|?>>
-    <associate|rewrite-type|<tuple|22|13>>
-    <associate|sequence|<tuple|20|10>>
+    <associate|more-specific-complex-types|<tuple|34|19>>
+    <associate|object-oriented-programming|<tuple|5.6|27>>
+    <associate|odd-type|<tuple|34|16>>
+    <associate|off-side-rule|<tuple|4|3>>
+    <associate|out-of-order-declarations|<tuple|16|11>>
+    <associate|parameterized-type|<tuple|45|21>>
+    <associate|person-properties|<tuple|26|?>>
+    <associate|precedence|<tuple|2.6|7>>
+    <associate|properties-declaration|<tuple|36|?>>
+    <associate|references|<tuple|3.4|?>>
+    <associate|return-type-declaration|<tuple|20|?>>
+    <associate|rewrite-code|<tuple|54|29>>
+    <associate|rewrite-type|<tuple|47|22>>
+    <associate|sequence|<tuple|24|13>>
+    <associate|setting-default-arguments|<tuple|38|20>>
+    <associate|simple-type|<tuple|29|18>>
     <associate|simpleprog|<tuple|8|3>>
-    <associate|source-syntax|<tuple|12|8>>
-    <associate|syntax-file|<tuple|11|7>>
-    <associate|text-operations|<tuple|6|15>>
-    <associate|time-operations|<tuple|8|15>>
-    <associate|tree-operations|<tuple|9|15>>
-    <associate|type-declaration|<tuple|17|10>>
-    <associate|type-name|<tuple|21|13>>
-    <associate|types|<tuple|3.4|12>>
+    <associate|simultaneously-type-and-data|<tuple|47|?>>
+    <associate|source-syntax|<tuple|13|10>>
+    <associate|standard-evaluation|<tuple|3.3.1|15>>
+    <associate|structured-data|<tuple|25|13>>
+    <associate|syntax-file|<tuple|11|8>>
+    <associate|text-operations|<tuple|6|24>>
+    <associate|time-operations|<tuple|8|24>>
+    <associate|tree-operations|<tuple|9|24>>
+    <associate|tree-rewrite-operators|<tuple|3.1|10>>
+    <associate|type-conversion|<tuple|34|17>>
+    <associate|type-conversions|<tuple|3.4.7|?>>
+    <associate|type-declaration|<tuple|19|12>>
+    <associate|type-declaration-type|<tuple|51|26>>
+    <associate|type-definition|<tuple|3.4.2|?>>
+    <associate|type-name|<tuple|34|17>>
+    <associate|types|<tuple|3.4|18>>
+    <associate|union-type-definition|<tuple|48|25>>
+    <associate|using-automatic-type-conversion|<tuple|35|?>>
+    <associate|using-complex|<tuple|31|18>>
+    <associate|using-union-types|<tuple|49|26>>
     <associate|xlsyntax|<tuple|2.1|?>>
   </collection>
 </references>
@@ -1826,370 +2991,633 @@
 <\auxiliary>
   <\collection>
     <\associate|figure>
-      <tuple|normal|<label|if-then>Declaration of
-      if-then-else|<pageref|auto-2>>
-
       <tuple|normal|<label|factorial>Declaration of the factorial
-      function|<pageref|auto-3>>
+      function|<pageref|auto-5>>
 
       <tuple|normal|<label|map-reduce-filter>Map, reduce and
-      filter|<pageref|auto-4>>
+      filter|<pageref|auto-6>>
+
+      <tuple|normal|<label|if-then>Declaration of
+      if-then-else|<pageref|auto-7>>
 
       <tuple|normal|<label|off-side-rule>Off-side rule: Using indentation to
-      mark program structure.|<pageref|auto-7>>
+      mark program structure.|<pageref|auto-10>>
 
       <tuple|normal|<label|comments>Single-line and multi-line
-      comments|<pageref|auto-9>>
+      comments|<pageref|auto-12>>
 
-      <tuple|normal|Valid integer constants|<pageref|auto-12>>
+      <tuple|normal|Valid integer constants|<pageref|auto-15>>
 
-      <tuple|normal|Valid real constants|<pageref|auto-14>>
+      <tuple|normal|Valid real constants|<pageref|auto-17>>
 
-      <tuple|normal|Valid text constants|<pageref|auto-16>>
+      <tuple|normal|Valid text constants|<pageref|auto-19>>
 
       <tuple|normal|<label|long-text-indent>Long text and
-      indentation|<pageref|auto-17>>
+      indentation|<pageref|auto-20>>
 
       <tuple|normal|Examples of valid operator and name
-      symbols|<pageref|auto-19>>
+      symbols|<pageref|auto-22>>
 
       <tuple|normal|<label|syntax-file>Default syntax configuration
-      file|<pageref|auto-30>>
+      file|<pageref|auto-33>>
+
+      <tuple|normal|<label|C-syntax-file>C syntax configuration
+      file|<pageref|auto-34>>
 
       <tuple|normal|<label|source-syntax>Use of the
       <with|font-family|<quote|tt>|language|<quote|verbatim>|syntax>
-      specification in a source file|<pageref|auto-31>>
+      specification in a source file|<pageref|auto-35>>
 
       <tuple|normal|<label|if-then-else>Examples of tree
-      rewrites|<pageref|auto-35>>
+      rewrites|<pageref|auto-39>>
 
       <tuple|normal|<label|if-then-else-colorized>Examples of tree
-      rewrites|<pageref|auto-36>>
+      rewrites|<pageref|auto-40>>
+
+      <tuple|normal|<label|out-of-order-declarations>Declarations are visible
+      to the entire sequence containing them|<pageref|auto-41>>
 
       <tuple|normal|<label|comma-separated-list>Declaring a comma-separated
-      list|<pageref|auto-38>>
+      list|<pageref|auto-44>>
 
       <tuple|normal|<label|complex-type>Declaring a
       <with|font-family|<quote|tt>|language|<quote|verbatim>|complex> data
-      type|<pageref|auto-39>>
+      type|<pageref|auto-45>>
 
       <tuple|normal|<label|type-declaration>Simple type
-      declarations|<pageref|auto-41>>
+      declarations|<pageref|auto-47>>
+
+      <tuple|normal|<label|local-and-nonlocal-assignment>Local and non-local
+      assignments|<pageref|auto-49>>
+
+      <tuple|normal|<label|assign-to-new-local>Assigning to new local
+      variable|<pageref|auto-50>>
+
+      <tuple|normal|<label|assignments-cant-override-patterns>Assignments do
+      not override patterns|<pageref|auto-51>>
 
       <tuple|normal|<label|guard>Guard limit the validity of
-      operations|<pageref|auto-43>>
-
-      <tuple|normal|<label|array-assign>Assignment to an
-      array|<pageref|auto-45>>
+      operations|<pageref|auto-53>>
 
       <tuple|normal|<label|sequence>Code writing
       <with|font-family|<quote|tt>|language|<quote|verbatim>|A>, then
       <with|font-family|<quote|tt>|language|<quote|verbatim>|B>, then
-      <with|font-family|<quote|tt>|language|<quote|verbatim>|f(100)+f(200)>|<pageref|auto-47>>
+      <with|font-family|<quote|tt>|language|<quote|verbatim>|f(100)+f(200)>|<pageref|auto-55>>
 
-      <tuple|normal|<label|type-name>Binding a type expression to a
-      name|<pageref|auto-58>>
+      <tuple|normal|<label|structured-data>Structured data|<pageref|auto-57>>
+
+      <tuple|normal|<label|evaluation-for-comparison>Evaluation for
+      comparison|<pageref|auto-67>>
+
+      <tuple|normal|<label|evaluation-for-type-comparison>Evaluation for type
+      comparison|<pageref|auto-68>>
+
+      <tuple|normal|<label|explicit-vs-lazy-evaluation>Explicit vs. lazy
+      evaluation|<pageref|auto-69>>
+
+      <tuple|normal|<label|simple-type>Simple type
+      declaration|<pageref|auto-73>>
+
+      <tuple|normal|<label|block-type-declaration>Simple type
+      declaration|<pageref|auto-74>>
+
+      <tuple|normal|<label|using-complex>Using the
+      <with|font-family|<quote|tt>|language|<quote|verbatim>|complex>
+      type|<pageref|auto-75>>
+
+      <tuple|normal|<label|binding-for-complex-parameter>Binding for a
+      <with|font-family|<quote|tt>|language|<quote|verbatim>|complex>
+      parameter|<pageref|auto-76>>
+
+      <tuple|normal|<label|making-two-types-equivalent>Making type
+      <with|font-family|<quote|tt>|language|<quote|verbatim>|A> equivalent to
+      type <with|font-family|<quote|tt>|language|<quote|verbatim>|B>|<pageref|auto-77>>
+
+      <tuple|normal|<label|more-specific-complex-types>Named patterns for
+      <with|font-family|<quote|tt>|language|<quote|verbatim>|complex>|<pageref|auto-79>>
+
+      <tuple|normal|<label|complex-normal-form>Creating a normal form for the
+      complex type|<pageref|auto-80>>
+
+      <tuple|normal|<label|properties-declaration>Properties
+      declaration|<pageref|auto-82>>
+
+      <tuple|normal|<label|color-properties>Color
+      properties|<pageref|auto-83>>
+
+      <tuple|normal|<label|setting-default-arguments>Setting default
+      arguments from the current context|<pageref|auto-84>>
+
+      <tuple|normal|<label|extra-code-for-properties>Additional code in
+      properties|<pageref|auto-85>>
+
+      <tuple|normal|<label|data-inheritance>Data
+      inheritance|<pageref|auto-87>>
+
+      <tuple|normal|<label|arbitrary-type>Defining a type identifying an
+      arbitrary AST shape|<pageref|auto-89>>
+
+      <tuple|normal|<label|contains-tests>Explicit type
+      check|<pageref|auto-90>>
+
+      <tuple|normal|<label|explicit-type-conversion>Explicit type
+      conversion|<pageref|auto-92>>
+
+      <tuple|normal|<label|automatic-type-conversion>Automatic type
+      conversion|<pageref|auto-93>>
+
+      <tuple|normal|<label|parameterized-type>Parameterized
+      type|<pageref|auto-95>>
+
+      <tuple|normal|<label|infix-type>Declaring a range type using an infix
+      form|<pageref|auto-96>>
+
+      <tuple|normal||<pageref|auto-97>>
 
       <tuple|normal|<label|rewrite-type>Declaration of a rewrite
-      type|<pageref|auto-60>>
+      type|<pageref|auto-99>>
 
-      <tuple|normal|Lazy evaluation of an infinite list|<pageref|auto-83>>
+      <tuple|normal|<label|union-type-definition>Union type
+      definition|<pageref|auto-124>>
 
-      <tuple|normal|Controlled compilation|<pageref|auto-85>>
+      <tuple|normal|<label|using-union-types>Using union
+      types|<pageref|auto-125>>
+
+      <tuple|normal|<label|enum-type-definition>Enumeration type
+      definition|<pageref|auto-127>>
+
+      <tuple|normal|<label|type-declaration-type>Type matching a type
+      declaration|<pageref|auto-129>>
+
+      <tuple|normal|Lazy evaluation of an infinite list|<pageref|auto-156>>
+
+      <tuple|normal|Controlled compilation|<pageref|auto-158>>
 
       <tuple|normal|<label|rewrite-code>Signature for rewrite code with two
-      variables.|<pageref|auto-97>>
+      variables.|<pageref|auto-167>>
 
       <tuple|normal|<label|closure-code>Signature for rewrite code with two
-      variables.|<pageref|auto-100>>
+      variables.|<pageref|auto-170>>
     </associate>
     <\associate|table>
       <tuple|normal|<label|arithmetic>Arithmetic
-      operations|<pageref|auto-63>>
+      operations|<pageref|auto-103>>
 
-      <tuple|normal|<label|arithmetic>Comparisons|<pageref|auto-65>>
+      <tuple|normal|<label|arithmetic>Comparisons|<pageref|auto-105>>
 
       <tuple|normal|<label|bitwise-arithmetic>Bitwise arithmetic
-      operations|<pageref|auto-67>>
+      operations|<pageref|auto-107>>
 
       <tuple|normal|<label|boolean-operations>Boolean
-      operations|<pageref|auto-69>>
+      operations|<pageref|auto-109>>
 
       <tuple|normal|<label|math-operations>Mathematical
-      operations|<pageref|auto-71>>
+      operations|<pageref|auto-111>>
 
-      <tuple|normal|<label|text-operations>Text operations|<pageref|auto-73>>
+      <tuple|normal|<label|text-operations>Text
+      operations|<pageref|auto-113>>
 
-      <tuple|normal|<label|conversions>Conversions|<pageref|auto-75>>
+      <tuple|normal|<label|conversions>Conversions|<pageref|auto-115>>
 
-      <tuple|normal|<label|time-operations>Date and time|<pageref|auto-77>>
+      <tuple|normal|<label|time-operations>Date and time|<pageref|auto-117>>
 
-      <tuple|normal|<label|tree-operations>Tree operations|<pageref|auto-79>>
+      <tuple|normal|<label|tree-operations>Tree
+      operations|<pageref|auto-119>>
 
       <tuple|normal|<label|data-loading-operations>Data loading
-      operations|<pageref|auto-81>>
+      operations|<pageref|auto-121>>
 
-      <tuple|normal|<label|llvm-operations>LLVM operations|<pageref|auto-86>>
+      <tuple|normal|<label|llvm-operations>LLVM
+      operations|<pageref|auto-159>>
     </associate>
     <\associate|toc>
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|1<space|2spc>Introduction>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-1><vspace|0.5fn>
 
+      <with|par-left|<quote|1.5fn>|1.1<space|2spc>Design objectives
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-2>>
+
+      <with|par-left|<quote|1.5fn>|1.2<space|2spc>Keeping the syntax simple.
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-3>>
+
+      <with|par-left|<quote|1.5fn>|1.3<space|2spc>Examples
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-4>>
+
       <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|2<space|2spc>Syntax>
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-5><vspace|0.5fn>
+      <no-break><pageref|auto-8><vspace|0.5fn>
 
       <with|par-left|<quote|1.5fn>|2.1<space|2spc>Spaces and indentation
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-6>>
+      <no-break><pageref|auto-9>>
 
       <with|par-left|<quote|1.5fn>|2.2<space|2spc>Comments and spaces
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-8>>
+      <no-break><pageref|auto-11>>
 
       <with|par-left|<quote|1.5fn>|2.3<space|2spc><label|literals>Literals
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-10>>
+      <no-break><pageref|auto-13>>
 
-      <with|par-left|<quote|6fn>|Integer constants
+      <with|par-left|<quote|3fn>|2.3.1<space|2spc>Integer constants
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-11><vspace|0.15fn>>
+      <no-break><pageref|auto-14>>
 
-      <with|par-left|<quote|6fn>|Real constants
+      <with|par-left|<quote|3fn>|2.3.2<space|2spc>Real constants
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-13><vspace|0.15fn>>
+      <no-break><pageref|auto-16>>
 
-      <with|par-left|<quote|6fn>|Text literals
+      <with|par-left|<quote|3fn>|2.3.3<space|2spc>Text literals
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-15><vspace|0.15fn>>
+      <no-break><pageref|auto-18>>
 
-      <with|par-left|<quote|6fn>|Name and operator symbols
+      <with|par-left|<quote|3fn>|2.3.4<space|2spc>Name and operator symbols
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-18><vspace|0.15fn>>
+      <no-break><pageref|auto-21>>
 
       <with|par-left|<quote|1.5fn>|2.4<space|2spc>Structured nodes
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-20>>
+      <no-break><pageref|auto-23>>
 
-      <with|par-left|<quote|6fn>|Infix nodes
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-21><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Prefix and postfix nodes
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-22><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Block nodes
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-23><vspace|0.15fn>>
-
-      <with|par-left|<quote|1.5fn>|2.5<space|2spc>Parsing rules
+      <with|par-left|<quote|3fn>|2.4.1<space|2spc>Infix nodes
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-24>>
 
-      <with|par-left|<quote|6fn>|Precedence
+      <with|par-left|<quote|3fn>|2.4.2<space|2spc>Prefix and postfix nodes
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-25><vspace|0.15fn>>
+      <no-break><pageref|auto-25>>
 
-      <with|par-left|<quote|6fn>|Associativity
+      <with|par-left|<quote|3fn>|2.4.3<space|2spc>Block nodes
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-26><vspace|0.15fn>>
+      <no-break><pageref|auto-26>>
 
-      <with|par-left|<quote|6fn>|Infix versus Prefix versus Postfix
+      <with|par-left|<quote|1.5fn>|2.5<space|2spc>Parsing rules
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-27><vspace|0.15fn>>
+      <no-break><pageref|auto-27>>
 
-      <with|par-left|<quote|6fn>|Expression versus statement
+      <with|par-left|<quote|3fn>|2.5.1<space|2spc>Precedence
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-28><vspace|0.15fn>>
+      <no-break><pageref|auto-28>>
+
+      <with|par-left|<quote|3fn>|2.5.2<space|2spc>Associativity
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-29>>
+
+      <with|par-left|<quote|3fn>|2.5.3<space|2spc>Infix versus Prefix versus
+      Postfix <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-30>>
+
+      <with|par-left|<quote|3fn>|2.5.4<space|2spc>Expression versus statement
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-31>>
 
       <with|par-left|<quote|1.5fn>|2.6<space|2spc><label|precedence>Syntax
       configuration <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-29>>
+      <no-break><pageref|auto-32>>
 
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|3<space|2spc>Semantics>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|3<space|2spc>Language
+      semantics> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-36><vspace|0.5fn>
+
+      <with|par-left|<quote|1.5fn>|3.1<space|2spc><label|tree-rewrite-operators>Tree
+      rewrite operators <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-37>>
+
+      <with|par-left|<quote|3fn>|3.1.1<space|2spc>Rewrite declarations
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-32><vspace|0.5fn>
+      <no-break><pageref|auto-38>>
 
-      <with|par-left|<quote|1.5fn>|3.1<space|2spc>Operators
+      <with|par-left|<quote|6fn>|Machine interface
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-33>>
-
-      <with|par-left|<quote|6fn>|Rewrite declarations
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-34><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Data declaration
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-37><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Type declaration
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-40><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Guards <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-42><vspace|0.15fn>>
 
-      <with|par-left|<quote|6fn>|Assignment
+      <with|par-left|<quote|3fn>|3.1.2<space|2spc>Data declaration
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-44><vspace|0.15fn>>
+      <no-break><pageref|auto-43>>
 
-      <with|par-left|<quote|6fn>|Sequences
+      <with|par-left|<quote|3fn>|3.1.3<space|2spc>Type declaration
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-46><vspace|0.15fn>>
+      <no-break><pageref|auto-46>>
 
-      <with|par-left|<quote|1.5fn>|3.2<space|2spc><label|evaluation>Evaluation
+      <with|par-left|<quote|3fn>|3.1.4<space|2spc>Assignment
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-48>>
 
-      <with|par-left|<quote|6fn>|Special forms
+      <with|par-left|<quote|3fn>|3.1.5<space|2spc>Guards
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-49><vspace|0.15fn>>
+      <no-break><pageref|auto-52>>
 
-      <with|par-left|<quote|1.5fn>|3.3<space|2spc><label|binding>Variable
-      binding and scoping <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-50>>
+      <with|par-left|<quote|3fn>|3.1.6<space|2spc>Sequences
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-54>>
+
+      <with|par-left|<quote|3fn>|3.1.7<space|2spc>Index operators
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-56>>
+
+      <with|par-left|<quote|1.5fn>|3.2<space|2spc><label|binding>Binding
+      References to Values <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-58>>
+
+      <with|par-left|<quote|3fn>|3.2.1<space|2spc>Context Order
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-59>>
+
+      <with|par-left|<quote|3fn>|3.2.2<space|2spc>Scoping
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-60>>
+
+      <with|par-left|<quote|3fn>|3.2.3<space|2spc>Current context
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-61>>
+
+      <with|par-left|<quote|3fn>|3.2.4<space|2spc>References
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-62>>
+
+      <with|par-left|<quote|1.5fn>|3.3<space|2spc><label|evaluation>Evaluation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-63>>
+
+      <with|par-left|<quote|3fn>|3.3.1<space|2spc>Standard evaluation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-64>>
+
+      <with|par-left|<quote|3fn>|3.3.2<space|2spc>Special forms
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-65>>
+
+      <with|par-left|<quote|3fn>|3.3.3<space|2spc>Lazy evaluation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-66>>
 
       <with|par-left|<quote|1.5fn>|3.4<space|2spc><label|types>Types
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-51>>
+      <no-break><pageref|auto-70>>
 
-      <with|par-left|<quote|6fn>|Predefined types
+      <with|par-left|<quote|3fn>|3.4.1<space|2spc>Predefined types
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-52><vspace|0.15fn>>
+      <no-break><pageref|auto-71>>
 
-      <with|par-left|<quote|6fn>|Value types
+      <with|par-left|<quote|3fn>|3.4.2<space|2spc>Type definition
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-53><vspace|0.15fn>>
+      <no-break><pageref|auto-72>>
 
-      <with|par-left|<quote|6fn>|Block type
+      <with|par-left|<quote|3fn>|3.4.3<space|2spc>Normal form for a type
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-54><vspace|0.15fn>>
+      <no-break><pageref|auto-78>>
 
-      <with|par-left|<quote|6fn>|Union type
+      <with|par-left|<quote|3fn>|3.4.4<space|2spc>Properties
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-55><vspace|0.15fn>>
+      <no-break><pageref|auto-81>>
 
-      <with|par-left|<quote|6fn>|Structure types
+      <with|par-left|<quote|3fn>|3.4.5<space|2spc>Data inheritance
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-56><vspace|0.15fn>>
+      <no-break><pageref|auto-86>>
 
-      <with|par-left|<quote|6fn>|Named types
+      <with|par-left|<quote|3fn>|3.4.6<space|2spc>Explicit type check
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-57><vspace|0.15fn>>
+      <no-break><pageref|auto-88>>
 
-      <with|par-left|<quote|6fn>|Rewrite types
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-59><vspace|0.15fn>>
-
-      <with|par-left|<quote|1.5fn>|3.5<space|2spc><label|built-ins>Built-in
-      operations <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-61>>
-
-      <with|par-left|<quote|6fn>|Arithmetic
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-62><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Comparison
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-64><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Bitwise arithmetic
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-66><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Boolean operations
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-68><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Mathematical functions
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-70><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Text functions
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-72><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Conversions
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-74><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Date and time
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-76><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Tree operations
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-78><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Data loading operations
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-80><vspace|0.15fn>>
-
-      <with|par-left|<quote|1.5fn>|3.6<space|2spc>Lazy evaluation
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-82>>
-
-      <with|par-left|<quote|1.5fn>|3.7<space|2spc>Controlled compilation
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-84>>
-
-      <with|par-left|<quote|1.5fn>|3.8<space|2spc>Type inference
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-87>>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Example
-      code> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-88><vspace|0.5fn>
-
-      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|5<space|2spc>Implementation
-      notes> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-89><vspace|0.5fn>
-
-      <with|par-left|<quote|1.5fn>|5.1<space|2spc>Tree representation
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-90>>
-
-      <with|par-left|<quote|1.5fn>|5.2<space|2spc>Evaluation of trees
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <with|par-left|<quote|3fn>|3.4.7<space|2spc>Explicit and automatic type
+      conversions <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-91>>
 
-      <with|par-left|<quote|1.5fn>|5.3<space|2spc>Tree position
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-92>>
-
-      <with|par-left|<quote|1.5fn>|5.4<space|2spc>Actions on trees
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-93>>
-
-      <with|par-left|<quote|1.5fn>|5.5<space|2spc>Symbols
+      <with|par-left|<quote|3fn>|3.4.8<space|2spc>Parameterized types
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-94>>
 
-      <with|par-left|<quote|1.5fn>|5.6<space|2spc>Evaluating trees
+      <with|par-left|<quote|3fn>|3.4.9<space|2spc>Rewrite types
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-95>>
+      <no-break><pageref|auto-98>>
 
-      <with|par-left|<quote|1.5fn>|5.7<space|2spc>Code generation for trees
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-96>>
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|4<space|2spc>Standard
+      XL library> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-100><vspace|0.5fn>
 
-      <with|par-left|<quote|6fn>|Right side of a rewrite
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-98><vspace|0.15fn>>
-
-      <with|par-left|<quote|6fn>|Closures
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
-      <no-break><pageref|auto-99><vspace|0.15fn>>
-
-      <with|par-left|<quote|1.5fn>|5.8<space|2spc>Tail recursion
-      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <with|par-left|<quote|1.5fn>|4.1<space|2spc><label|built-ins>Built-in
+      operations <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-101>>
 
-      <with|par-left|<quote|1.5fn>|5.9<space|2spc>Partial recompilation
+      <with|par-left|<quote|3fn>|4.1.1<space|2spc>Arithmetic
       <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
       <no-break><pageref|auto-102>>
+
+      <with|par-left|<quote|3fn>|4.1.2<space|2spc>Comparison
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-104>>
+
+      <with|par-left|<quote|3fn>|4.1.3<space|2spc>Bitwise arithmetic
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-106>>
+
+      <with|par-left|<quote|3fn>|4.1.4<space|2spc>Boolean operations
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-108>>
+
+      <with|par-left|<quote|3fn>|4.1.5<space|2spc>Mathematical functions
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-110>>
+
+      <with|par-left|<quote|3fn>|4.1.6<space|2spc>Text functions
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-112>>
+
+      <with|par-left|<quote|3fn>|4.1.7<space|2spc>Conversions
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-114>>
+
+      <with|par-left|<quote|3fn>|4.1.8<space|2spc>Date and time
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-116>>
+
+      <with|par-left|<quote|3fn>|4.1.9<space|2spc>Tree operations
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-118>>
+
+      <with|par-left|<quote|3fn>|4.1.10<space|2spc>Data loading operations
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-120>>
+
+      <with|par-left|<quote|1.5fn>|4.2<space|2spc>Library-defined types
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-122>>
+
+      <with|par-left|<quote|3fn>|4.2.1<space|2spc>Union types
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-123>>
+
+      <with|par-left|<quote|3fn>|4.2.2<space|2spc>Enumeration types
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-126>>
+
+      <with|par-left|<quote|3fn>|4.2.3<space|2spc>A type definition matching
+      type declarations <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-128>>
+
+      <with|par-left|<quote|1.5fn>|4.3<space|2spc>Type inference
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-130>>
+
+      <with|par-left|<quote|1.5fn>|4.4<space|2spc>Built-in operations
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-131>>
+
+      <with|par-left|<quote|1.5fn>|4.5<space|2spc><label|C-library>Importing
+      symbols from C libraries <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-132>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|5<space|2spc>Example
+      code> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-133><vspace|0.5fn>
+
+      <with|par-left|<quote|1.5fn>|5.1<space|2spc>Minimum and maximum
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-134>>
+
+      <with|par-left|<quote|1.5fn>|5.2<space|2spc>Complex numbers
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-135>>
+
+      <with|par-left|<quote|1.5fn>|5.3<space|2spc>Vector and Matrix
+      computations <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-136>>
+
+      <with|par-left|<quote|1.5fn>|5.4<space|2spc>Linked lists with dynamic
+      allocation <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-137>>
+
+      <with|par-left|<quote|1.5fn>|5.5<space|2spc>Input / Output
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-138>>
+
+      <with|par-left|<quote|1.5fn>|5.6<space|2spc><label|object-oriented-programming>Object-Oriented
+      Programming <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-139>>
+
+      <with|par-left|<quote|3fn>|5.6.1<space|2spc>Classes
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-140>>
+
+      <with|par-left|<quote|3fn>|5.6.2<space|2spc>Methods
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-141>>
+
+      <with|par-left|<quote|3fn>|5.6.3<space|2spc>Dynamic dispatch
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-142>>
+
+      <with|par-left|<quote|3fn>|5.6.4<space|2spc>Polymorphism
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-143>>
+
+      <with|par-left|<quote|3fn>|5.6.5<space|2spc>Inheritance
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-144>>
+
+      <with|par-left|<quote|3fn>|5.6.6<space|2spc>Multi-methods
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-145>>
+
+      <with|par-left|<quote|3fn>|5.6.7<space|2spc>Object prototypes
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-146>>
+
+      <with|par-left|<quote|1.5fn>|5.7<space|2spc>Functional-Programming
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-147>>
+
+      <with|par-left|<quote|3fn>|5.7.1<space|2spc>Map
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-148>>
+
+      <with|par-left|<quote|3fn>|5.7.2<space|2spc>Reduce
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-149>>
+
+      <with|par-left|<quote|3fn>|5.7.3<space|2spc>Filter
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-150>>
+
+      <with|par-left|<quote|3fn>|5.7.4<space|2spc>Functions as first-class
+      objects <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-151>>
+
+      <with|par-left|<quote|3fn>|5.7.5<space|2spc>Anonymous functions
+      (Lambda) <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-152>>
+
+      <with|par-left|<quote|3fn>|5.7.6<space|2spc>Y-Combinator
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-153>>
+
+      <vspace*|1fn><with|font-series|<quote|bold>|math-font-series|<quote|bold>|6<space|2spc>Implementation
+      notes> <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-154><vspace|0.5fn>
+
+      <with|par-left|<quote|1.5fn>|6.1<space|2spc>Lazy evaluation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-155>>
+
+      <with|par-left|<quote|1.5fn>|6.2<space|2spc>Controlled compilation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-157>>
+
+      <with|par-left|<quote|1.5fn>|6.3<space|2spc>Tree representation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-160>>
+
+      <with|par-left|<quote|1.5fn>|6.4<space|2spc>Evaluation of trees
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-161>>
+
+      <with|par-left|<quote|1.5fn>|6.5<space|2spc>Tree position
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-162>>
+
+      <with|par-left|<quote|1.5fn>|6.6<space|2spc>Actions on trees
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-163>>
+
+      <with|par-left|<quote|1.5fn>|6.7<space|2spc>Symbols
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-164>>
+
+      <with|par-left|<quote|1.5fn>|6.8<space|2spc>Evaluating trees
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-165>>
+
+      <with|par-left|<quote|1.5fn>|6.9<space|2spc>Code generation for trees
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-166>>
+
+      <with|par-left|<quote|3fn>|6.9.1<space|2spc>Right side of a rewrite
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-168>>
+
+      <with|par-left|<quote|3fn>|6.9.2<space|2spc>Closures
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-169>>
+
+      <with|par-left|<quote|1.5fn>|6.10<space|2spc>Tail recursion
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-171>>
+
+      <with|par-left|<quote|1.5fn>|6.11<space|2spc>Partial recompilation
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-172>>
+
+      <with|par-left|<quote|1.5fn>|6.12<space|2spc>Machine Interface
+      <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-173>>
+
+      <with|par-left|<quote|1.5fn>|6.13<space|2spc>Machine Types and Normal
+      Types <datoms|<macro|x|<repeat|<arg|x>|<with|font-series|medium|<with|font-size|1|<space|0.2fn>.<space|0.2fn>>>>>|<htab|5mm>>
+      <no-break><pageref|auto-174>>
     </associate>
   </collection>
 </auxiliary>

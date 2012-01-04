@@ -32,6 +32,8 @@ LOREM_IPSUM_FILES = \
 	modules/lorem_ipsum/traces.tbl
 
 FILES_COMMON = \
+        doxygen.pri \
+        doxygen.sh \
 	main.pri \
 	main_defs.pri \
 	translations.pri \

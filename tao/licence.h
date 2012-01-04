@@ -8,16 +8,16 @@
 // 
 //     Licence check for Tao Presentation
 // 
-//     Sources for information:
-//     - http://www.sentientfood.com/display_story.php?articleid=3
-//     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
 // 
 // ****************************************************************************
-// This document is released under the GNU General Public License.
-// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
@@ -27,6 +27,7 @@
 #include <vector>
 #include <QRegExp>
 #include <QDateTime>
+#include <QFileInfoList>
 
 
 namespace Tao
@@ -43,6 +44,11 @@ public:
     static void AddLicenceFile(kstring lfile)
     {
         return LM().addLicenceFile(lfile);
+    }
+
+    static void AddLicenceFiles(const QFileInfoList &files)
+    {
+        return LM().addLicenceFiles(files);
     }
 
 #ifndef KEYGEN
@@ -88,6 +94,14 @@ private:
     text                company;
     text                address;
     text                email;
+    struct LicenceFile
+    {
+        std::vector<Licence>licences;
+        text                name;
+        text                company;
+        text                address;
+        text                email;
+    };
 
 private:
     Licences();
@@ -95,13 +109,14 @@ private:
     static Licences &LM();
 
     void addLicenceFile(kstring licfname);
+    void addLicenceFiles(const QFileInfoList &files);
     int  licenceRemainingDays(text feature);
     void licenceError(kstring file, QString reason);
-    text toText(std::vector<Licence> &licences);
+    text toText(LicenceFile &lf);
 #ifdef KEYGEN
-    text sign(std::vector<Licence> &licences);
+    text sign(LicenceFile &lf);
 #endif
-    bool verify(std::vector<Licence> &licences, text signature);
+    bool verify(LicenceFile &lf, text signature);
     std::ostream & debug();
 };
 

@@ -39,6 +39,7 @@
 #include "flight_recorder.h"
 #include "tao_utf8.h"
 #include "version.h"
+#include "decryption.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -509,6 +510,27 @@ bool Main::Refresh(double delay)
     Widget *widget = Tao::Widget::Tao();
     QTimer::singleShot(delay * 1000, widget, SLOT(refreshNow(QEvent*)));
     return true;
+}
+
+
+text Main::Decrypt(text file)
+// ----------------------------------------------------------------------------
+//   Attempt decryption of file
+// ----------------------------------------------------------------------------
+{
+    QFileInfo fi(+file);
+    if (fi.exists())
+    {
+        QFile f(+file);
+        if (f.open(QIODevice::ReadOnly))
+        {
+            QByteArray ba = f.readAll();
+            text in;
+            in.append(ba.data(), ba.size());
+            return Decryption::Decrypt(in);
+        }
+    }
+    return "";
 }
 
 

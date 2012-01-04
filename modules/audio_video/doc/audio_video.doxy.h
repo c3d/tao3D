@@ -1,6 +1,5 @@
 /**
- * @addtogroup AudioVideo Audio and video
- * @ingroup Modules
+ * @taomoduledescription{AudioVideo, Audio and video}
  *
  * Play audio and video content.
  *
@@ -41,6 +40,7 @@ page "The End",
  *
  * It is currently not possible to start playing at a specified time, or to
  * select the audio or video stream.
+ * @endtaomoduledescription{AudioVideo}
  * @{
  */
 

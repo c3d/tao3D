@@ -447,16 +447,17 @@ bool ModuleManager::loadAll(Context *context)
 }
 
 
-bool ModuleManager::loadAnonymousNative(Context *context)
+bool ModuleManager::loadAutoLoadModules(Context *context)
 // ----------------------------------------------------------------------------
-//   Load native code for all modules that do not have an import_name
+//   Load and init native code for all modules that are marked auto-load
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
     {
         modules[+m.id].context = context;
-        if (m.enabled && !m.loaded && m.path != "" && m.importName == "")
+        if (m.enabled && !m.loaded && m.path != "" && (m.importName == "" ||
+                                                       m.autoLoad))
             ok &= loadNative(context, m);
     }
     return ok;
@@ -577,6 +578,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                         existing.path = m.path;
                         known ++;
                         existing.copyPublicProperties(m);
+                        existing.qchFiles = m.qchFiles;
                         if (!m.enabled)
                             disabled ++;
                     }
@@ -641,6 +643,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.author = +moduleAttr(tree, "author");
                 m.website = +moduleAttr(tree, "website");
                 m.importName = +moduleAttr(tree, "import_name");
+                m.autoLoad = (moduleAttr(tree, "auto_load") != "");
             }
             else
             {
@@ -665,6 +668,13 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
             if (git_ver != -1)
                 m.ver = git_ver;
         }
+        // Look for online documentation file
+        QString qchPath = moduleDir + "/doc/qch";
+        QDir qchDir(qchPath);
+        QStringList files = qchDir.entryList(QStringList("*.qch"),
+                                             QDir::Files);
+        foreach(QString f, files)
+            m.qchFiles << qchPath + "/" + f;
     }
     else
     {
@@ -1081,9 +1091,11 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Name:       " <<  m.name << "\n";
     debug() << "  Import:     " <<  m.importName << "\n";
+    debug() << "  Auto load:  " <<  m.autoLoad << "\n";
     debug() << "  Author:     " <<  m.author << "\n";
     debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";
+    debug() << "  Doc:        " << +m.qchFiles.join(" ");
     debug() << "  XL file:    " << +m.xlPath() << "\n";
     debug() << "  Version:    " <<  m.ver << "\n";
     debug() << "  Latest:     " <<  m.latest << "\n";
@@ -1271,6 +1283,18 @@ bool ModuleManager::versionMatches(double ver, double ref)
     return verMajor == refMajor && verMinor >= refMinor;
 }
 
+
+QStringList ModuleManager::qchFiles()
+// ----------------------------------------------------------------------------
+//   Return documentation files (*.qch) of all enabled modules
+// ----------------------------------------------------------------------------
+{
+    QStringList files;
+    foreach (ModuleInfoPrivate m, modules)
+        if (m.enabled)
+            files << m.qchFiles;
+    return files;
+}
 
 // ============================================================================
 //

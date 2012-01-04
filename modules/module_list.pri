@@ -37,9 +37,11 @@
        shaders/sparks  \
        shaders/glow  \
        slideshow_3d \
-       vlc_audio_video
+       vlc_audio_video \
+       stereo_decoder
     OTHER_MODULES =     \
         hello_world     \
+        netaccess        \
         taoTester    \
         tao_synchro
 } else {

@@ -1,0 +1,6 @@
+@INCLUDE = ../../Doxyfile
+PROJECT_NAME = \"AudioVideo\"
+PROJECT_NUMBER = 1.0
+PROJECT_LOGO = ../icon.png
+QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.AudioVideo.1.0
+QHP_VIRTUAL_FOLDER = AudioVideo

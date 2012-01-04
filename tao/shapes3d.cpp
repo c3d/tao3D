@@ -56,10 +56,11 @@ bool Shape3::setFillColor(Layout *where)
     {
         Color &color = where->fillColor;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0)
+        if (v >= 0.01)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
+            where->PolygonOffset();
             return true;
         }
     }
@@ -79,10 +80,11 @@ bool Shape3::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0 && width > 0.0)
+        if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
+            where->PolygonOffset();
             return true;
         }
     }
@@ -158,8 +160,11 @@ void Cube::Draw(Layout *where)
 
     setTexture(where);
 
+    // Draw filled faces
     if (setFillColor(where))
         glDrawArrays(GL_QUADS, 0, 24);
+
+    // Draw wireframe
     if (setLineColor(where))
         for (uint face = 0; face < 6; face++)
             glDrawArrays(GL_LINE_LOOP, 4*face, 4);

@@ -63,12 +63,16 @@ define git-makeparms
 NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
 
-kit: tao.dmg
+DMG=Tao Presentations $(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
-tao.dmg: tmp.dmg
-	rm -f $@
-	hdiutil convert -format UDBZ -o $@ tmp.dmg
+kit: .dmg_ts
+
+tao.dmg .dmg_ts: tmp.dmg
+	rm -f tao.dmg
+	hdiutil convert -format UDBZ -o tao.dmg tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
+	mv tao.dmg "$(DMG)"
+	touch .dmg_ts
 
 prepare: .tao_install_ts .git_install_ts .cp_template_ts .cp_sdk_ts
 
@@ -84,7 +88,7 @@ clean: clean.git clean.tao clean.dmg clean.cp_sdk
 veryclean: clean veryclean.git
 
 clean.dmg: clean.cp_template
-	rm -f tao.dmg tmp.dmg
+	rm -f tao.dmg tmp.dmg .dmg "$(DMG)"
 
 ########
 

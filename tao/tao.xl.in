@@ -19,6 +19,7 @@ key "Backspace"                         -> delete_selection "Backspace"
 key "Control-G"                         -> page_chooser
 key "Control-Left"                      -> decrease_eye_distance
 key "Control-Right"                     -> increase_eye_distance
+key "b"                                 -> toggle_blank_screen
 key X                                   -> text_edit_key X
 
 // Zoom
@@ -75,9 +76,11 @@ Triangle_Strip_Adjacency   -> 13
 // Chooser
 main_chooser ->
     chooser tr "Choose command"
+#ifndef CFG_NOFULLSCREEN
     chooser_choice tr "Toggle full screen", {toggle_slide_show}
     chooser_choice tr "Enter full screen", {slide_show true}
     chooser_choice tr "Exit full screen", {slide_show false}
+#endif
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
     chooser_choice tr "Enable VSync", {enable_vsync true}
@@ -92,6 +95,7 @@ main_chooser ->
     chooser_choice tr "Select page", {page_chooser}
     if current_repository then
         chooser_choice tr "Checkout...", {branch_chooser}
+    // Broken (bug#1709)
     chooser_commands "chooser_command_", ""
     chooser_choice tr "Texture...", {texture_chooser}
     window_choices
@@ -111,10 +115,6 @@ commit_chooser b:text ->
 increase_eye_distance -> eye_distance eye_distance * 1.5
 decrease_eye_distance -> eye_distance eye_distance * 0.75
 
-left_viewpoint X  -> stereo_viewpoints 1, X
-right_viewpoint X -> stereo_viewpoints 2, X
-
-
 stereoscopy_settings ->
     if has_display_mode quadstereo then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
@@ -131,7 +131,8 @@ stereoscopy_settings ->
     if has_display_mode alioscopy then
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
     if has_display_mode "2dplusdepth" then
-        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
     if has_display_mode "anaglyph" then
         chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
     if has_display_mode "checkerboard" then
@@ -140,12 +141,15 @@ stereoscopy_settings ->
     chooser_choice tr "Increase eye distance", {increase_eye_distance}
     chooser_choice tr "Decrease eye distance", {decrease_eye_distance}
 
+oc_settings -> 0
 old_camera_settings ->
-    camera_position 0, 0, 6000
-    z_near 1000
-    z_far 56000
-    eye_distance 10
-    polygon_offset 0, -0.001, 0, -1
+    if oc_settings = 0 then
+        oc_settings := 1
+        camera_position 0, 0, 6000
+        z_near 1000
+        z_far 56000
+        eye_distance 10
+        polygon_offset 0, -0.001, 0, -1
 
 chooser_title_font              -> font "Arial Black", 30
 chooser_item_font               -> font "Arial", 28
@@ -252,6 +256,14 @@ line_color_hsl h:real, s:real, l:real                              -> line_color
 line_color_hsv h:real, s:real, v:real                              -> line_color_hsv h, s, v, 1.0
 line_color_cmyk c:real, m:real, y:real, k:real                     -> line_color_cmyk c, m, y, k, 1.0
 
+copy_texture ->
+    ID -> texture
+    W  -> texture_width
+    H  -> texture_height
+    frame_texture W, H,
+        color "white"
+        texture ID
+        rectangle 0, 0, W, H
 
 // Text Layout
 text_box x:real, y, w, h, body:tree ->

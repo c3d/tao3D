@@ -32,6 +32,7 @@ QT += webkit \
     network \
     opengl \
     svg
+CONFIG += help
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -48,7 +49,7 @@ macx {
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc
-    LIBS += -limagehlp
+    LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
     LIBS += -lXss
@@ -61,6 +62,7 @@ HEADERS += widget.h \
     application.h \
     init_cleanup.h \
     licence.h \
+    decryption.h \
     frame.h \
     svg.h \
     texture.h \
@@ -95,7 +97,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
-    tao_utf8.h \
+    include/tao/tao_utf8.h \
     tao_tree.h \
     font.h \
     drag.h \
@@ -129,6 +131,7 @@ HEADERS += widget.h \
     gc_thread.h \
     info_trash_can.h \
     destination_folder_dialog.h \
+    assistant.h \
     include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
@@ -193,6 +196,7 @@ SOURCES += tao_main.cpp \
     statistics.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
+    assistant.cpp \
     destination_folder_dialog.cpp
 
 win32 {
@@ -224,13 +228,11 @@ contains(DEFINES, CFG_NOGIT) {
         history_playback.h \
         history_playback_tool.h \
         merge_dialog.h \
-        open_uri_dialog.h \
         pull_from_dialog.h \
         push_dialog.h \
         remote_selection_frame.h \
         selective_undo_dialog.h \
-        undo.h \
-        uri.h
+        undo.h
     SOURCES += \
         ansi_textedit.cpp \
         branch_selection_combobox.cpp \
@@ -250,23 +252,32 @@ contains(DEFINES, CFG_NOGIT) {
         history_playback.cpp \
         history_playback_tool.cpp \
         merge_dialog.cpp \
-        open_uri_dialog.cpp \
         pull_from_dialog.cpp \
         push_dialog.cpp \
         remote_selection_frame.cpp \
         selective_undo_dialog.cpp \
-        undo.cpp \
-        uri.cpp
+        undo.cpp
     FORMS += \
         pull_from_dialog.ui \
         remote_selection_frame.ui \
         clone_dialog.ui \
         merge_dialog.ui \
         history_dialog.ui \
-        open_uri_dialog.ui \
         fetch_push_dialog.ui \
         history_frame.ui \
         diff_dialog.ui
+}
+contains(DEFINES, CFG_NONETWORK) {
+    !build_pass:message("File>Open Nework and opening URIs (docs, templates, modules) is disabled")
+} else {
+    HEADERS += \
+        open_uri_dialog.h \
+        uri.h
+    SOURCES += \
+        open_uri_dialog.cpp \
+        uri.cpp
+    FORMS += \
+        open_uri_dialog.ui
 }
 contains(DEFINES, CFG_NOSTEREO) {
     !build_pass:message("Stereoscopic display support is disabled")
@@ -287,9 +298,15 @@ contains(DEFINES, CFG_NORELOAD) {
 contains(DEFINES, CFG_NOEDIT) {
     !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
 }
+contains(DEFINES, CFG_NOFULLSCREEN) {
+    !build_pass:message("Full screen (slideshow) mode is disabled")
+}
+contains(DEFINES, CFG_NOMODULEUPDATE) {
+    !build_pass:message("Module update is disabled")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
-NOWARN_SOURCES += licence.cpp
+NOWARN_SOURCES += licence.cpp decryption.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -328,6 +345,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
     licence.cpp \
+    decryption.cpp \
     tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \
@@ -386,6 +404,11 @@ QMAKE_CLEAN += tao.xl
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
+
+welcome.path  = $$APPINST/welcome
+welcome.files = welcome/*.png welcome/*.svg
+INSTALLS += welcome
+
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*
@@ -413,6 +436,10 @@ include(../translations.pri)
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+
+qttranslations.path = $$APPINST
+qttranslations.files = $$[QT_INSTALL_TRANSLATIONS]/qt_fr.qm $$[QT_INSTALL_TRANSLATIONS]/qt_help_fr.qm
+INSTALLS += qttranslations
 
 shaders.path = $$APPINST$
 shaders.files = lighting.vs lighting.fs

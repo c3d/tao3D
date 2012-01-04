@@ -59,6 +59,7 @@ module_description
     author "XYZ company"
     website "http://greatmodule.xyz.com/"
     import_name "GreatModule"
+    auto_load "true"
 
 module_init
     // Some XL code that will be evaluated on init
@@ -91,8 +92,18 @@ import_name [Optional]
 The name to use if the module is to be explicitely imported. That is, if
 import_name is "MyModule", the module can be imported with:
   import MyModule 1.0
-If import_name is not present or empty, the module is loaded at application
-startup. Otherwise, it is loaded on demand.
+If import_name is not present or empty, the module is loaded and initialized
+at application startup (typical for display modules).
+Otherwise, it is loaded on demand.
+
+auto_load [Optional]
+If import_name is present and not empty, the module is normally loaded,
+initialized (module_init) and imported (enter_symbols) only when the document
+calls "import ModuleName". By setting auto_load to a non-empty string, you
+tell the application to load and initialize the module on startup, then to
+wait for an import statement to actually import the new XL symbols.
+
+
 
  2.2 Internationalization
 
@@ -325,6 +336,8 @@ public:
         QString source; // .xl content, non-null only after full text search
         module_preferences_fn show_preferences;
         QTranslator * translator;
+        // Module documentation files, may be empty
+        QStringList qchFiles;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -380,6 +393,8 @@ public:
         {
             if ((+name).contains(keyword))
                 return true;
+            if ((+importName).contains(keyword))
+                return true;
             if ((+desc).contains(keyword))
                 return true;
             if (searchSource)
@@ -402,7 +417,7 @@ public:
 
     bool                init();
     bool                loadAll(Context *context);
-    bool                loadAnonymousNative(Context *context);
+    bool                loadAutoLoadModules(Context *context);
     QStringList                anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
@@ -425,6 +440,7 @@ public:
     static bool         versionMatches(double ver, double ref);
     bool                hasPendingUpdate(QString moduleDir);
     QString             latestTag(QString moduleDir);
+    QStringList         qchFiles();
 
 signals:
     void                checking(QString name);

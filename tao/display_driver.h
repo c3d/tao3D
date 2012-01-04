@@ -75,6 +75,8 @@ public:
     static double       zFar();
     static double       zoom();
     static double       eyeSeparation();
+    static int          getCurrentEye();
+    static int          getEyesNumber();
     static void         setProjectionMatrix(int w, int h,
                                             int i = 1, int numCameras = 1);
     static void         setModelViewMatrix (int i = 1, int numCameras = 1);

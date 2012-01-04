@@ -6,15 +6,15 @@
 // 
 //     Licence check for Tao Presentation
 // 
-//     Sources for information:
-//     - http://www.sentientfood.com/display_story.php?articleid=3
-//     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
+//
+//
+//
 // 
 // 
 // 
 // ****************************************************************************
-// This document is released under the GNU General Public License.
-// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
@@ -24,9 +24,9 @@
 #include "main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
-#include "public_key.h"
+#include "public_key_dsa.h"
 #ifdef KEYGEN
-#include "private_key.h"
+#include "private_key_dsa.h"
 #endif
 #include "cryptopp/dsa.h"
 #include "cryptopp/osrng.h"
@@ -84,7 +84,7 @@ void Licences::addLicenceFile(kstring licfname)
     RECORD(ALWAYS, "Adding licence file", licfname);
 
     // Licences we want to add here
-    std::vector<Licence> additional;
+    LicenceFile additional;
 
     // Now analyze what we got from the input text
     XL::Syntax syntax;
@@ -161,7 +161,8 @@ void Licences::addLicenceFile(kstring licfname)
                 if (verify(additional, item))
                 {
                     licences.insert(licences.end(),
-                                    additional.begin(), additional.end());
+                                    additional.licences.begin(),
+                                    additional.licences.end());
                     state = TAG;
                 }
                 else
@@ -169,7 +170,7 @@ void Licences::addLicenceFile(kstring licfname)
                     licenceError(licfname, tr("Digest verification failed"));
                     state = DONE;
                 }
-                additional.clear();                    
+                additional.licences.clear();
             }
             else
             {
@@ -178,17 +179,18 @@ void Licences::addLicenceFile(kstring licfname)
             }
             break;
 
-#define PARSE_IDENTITY(PTAG, PVAR)                                      \
+#define PARSE_IDENTITY(PTAG, PREF, PVAR)                                \
         case PTAG:                                                      \
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)            \
             {                                                           \
                 /* Check consistency of supplied information */         \
                 item = scanner.TextValue();                             \
+                PVAR = item;                                            \
                 state = TAG;                                            \
-                if (PVAR == "")                                         \
-                    PVAR = item;                                        \
-                else if (item != PVAR)                                  \
-                    licenceError(licfname, tr("Inconsistent %1").arg(#PVAR)); \
+                if (PREF == "")                                         \
+                    PREF = item;                                        \
+                else if (item != "" && item != PREF)                    \
+                    licenceError(licfname, tr("Inconsistent %1").arg(#PREF)); \
             }                                                           \
             else                                                        \
             {                                                           \
@@ -197,26 +199,10 @@ void Licences::addLicenceFile(kstring licfname)
             }                                                           \
             break;
 
-#define PARSE_ATTRIBUTE(PTAG, PVAR)                                     \
-        case PTAG:                                                      \
-            if (tok == XL::tokSTRING || tok == XL::tokQUOTE)            \
-            {                                                           \
-                /* Check consistency of supplied information */         \
-                item = scanner.TextValue();                             \
-                state = TAG;                                            \
-                licence.PVAR = iten;                                    \
-            }                                                           \
-            else                                                        \
-            {                                                           \
-                licenceError(licfname, tr("Invalid %1").arg(#PVAR));    \
-                state = DONE;                                           \
-            }                                                           \
-            break;
-
-            PARSE_IDENTITY(NAME, name);
-            PARSE_IDENTITY(COMPANY, company);
-            PARSE_IDENTITY(ADDRESS, address);
-            PARSE_IDENTITY(EMAIL, email);
+            PARSE_IDENTITY(NAME, name, additional.name);
+            PARSE_IDENTITY(COMPANY, company, additional.company);
+            PARSE_IDENTITY(ADDRESS, address, additional.address);
+            PARSE_IDENTITY(EMAIL, email, additional.email);
 
         case FEATURES:
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
@@ -324,13 +310,14 @@ void Licences::addLicenceFile(kstring licfname)
         // Check if we have a complete licence, if so enter it
         if (had_features)
         {
-            additional.push_back(licence);
+            additional.licences.push_back(licence);
             state = START;
         }
     } // while (state != DONE)
 
+
 #ifdef KEYGEN
-    if (additional.size())
+    if (additional.licences.size())
     {
         text digested = sign(additional);
         FILE *file = fopen(licfname, "a");
@@ -341,25 +328,40 @@ void Licences::addLicenceFile(kstring licfname)
 }
 
 
-text Licences::toText(std::vector<Licence> &licences)
+void Licences::addLicenceFiles(const QFileInfoList &files)
+// ----------------------------------------------------------------------------
+//   Add several licence files
+// ----------------------------------------------------------------------------
+{
+    foreach (QFileInfo file, files)
+    {
+        text path = +file.canonicalFilePath();
+        IFTRACE(fileload)
+            std::cerr << "Loading license file: " << path << "\n";
+        Licences::AddLicenceFile(path.c_str());
+    }
+}
+
+
+text Licences::toText(LicenceFile &lf)
 // ----------------------------------------------------------------------------
 //    Create a stream for the licence contents
 // ----------------------------------------------------------------------------
 {
     std::ostringstream os;
-    os << "name \"" << name << "\"\n";
-    if (company.length())
-        os << "company \"" << company << "\"\n";
-    if (address.length())
-        os << "address \"" << address << "\"\n";
-    if (email.length())
-        os << "email \"" << email << "\"\n";
+    os << "name \"" << lf.name << "\"\n";
+    if (lf.company.length())
+        os << "company \"" << lf.company << "\"\n";
+    if (lf.address.length())
+        os << "address \"" << lf.address << "\"\n";
+    if (lf.email.length())
+        os << "email \"" << lf.email << "\"\n";
 
     // Loop on all data blocks
-    uint i, max = licences.size();
+    uint i, max = lf.licences.size();
     for (i = 0; i < max; i++)
     {
-        Licence &l = licences[i];
+        Licence &l = lf.licences[i];
         if (l.expiry.isValid())
         {
             os << "expires "
@@ -375,16 +377,16 @@ text Licences::toText(std::vector<Licence> &licences)
 
 #ifdef KEYGEN
 
-text Licences::sign(std::vector<Licence> &licences)
+text Licences::sign(LicenceFile &lf)
 // ----------------------------------------------------------------------------
 //    Sign input data with private key
 // ----------------------------------------------------------------------------
 {
     // Create a string for the licence contents
-    text lic = toText(licences);
+    text lic = toText(lf);
 
     // Sign data
-    byte key[] = TAO_PRIVATE_KEY;
+    byte key[] = TAO_DSA_PRIVATE_KEY;
     DSA::Signer signer;
     PrivateKey &privateKey = signer.AccessPrivateKey();
     privateKey.Load(StringSource(key, sizeof(key), true).Ref());
@@ -412,7 +414,7 @@ text Licences::sign(std::vector<Licence> &licences)
 #endif
 
 
-bool Licences::verify(std::vector<Licence> &licences, text signature)
+bool Licences::verify(LicenceFile &licences, text signature)
 // ----------------------------------------------------------------------------
 //    Verify if signature is valid for input data, using public key
 // ----------------------------------------------------------------------------
@@ -454,7 +456,7 @@ bool Licences::verify(std::vector<Licence> &licences, text signature)
     text lic = toText(licences);
 
     // Load public key
-    byte key[] = TAO_PUBLIC_KEY;
+    byte key[] = TAO_DSA_PUBLIC_KEY;
     DSA::Verifier verifier;
     PublicKey &publicKey = verifier.AccessPublicKey();
     publicKey.Load(StringSource(key, sizeof(key), true).Ref());
@@ -592,20 +594,21 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
             return;
         warned.insert(feature);
 
-        QMessageBox oops;
-        oops.setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
-        oops.setWindowTitle(tr("Not licenced"));
+        QMessageBox * oops = new QMessageBox;
+        oops->setAttribute(Qt::WA_DeleteOnClose);
+        oops->setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
+        oops->setWindowTitle(tr("Not licenced"));
         if (days == 0)
-            oops.setText(tr("You do not have a valid licence for %1. "
+            oops->setText(tr("You do not have a valid licence for %1. "
                             "Please contact Taodyne to obtain valid "
                             "licence files.").arg(+feature));
         else
-            oops.setText(tr("You no longer have a valid licence for %1. "
+            oops->setText(tr("You no longer have a valid licence for %1. "
                             "The licence you had expired %2 days ago. "
                             "Please contact Taodyne to obtain valid "
                             "licence files.").arg(+feature).arg(-days));
-        oops.addButton(QMessageBox::Close);
-        oops.exec();
+        oops->addButton(QMessageBox::Close);
+        oops->open();
     }
 }
 #endif // KEYGEN

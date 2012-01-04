@@ -120,7 +120,8 @@ draw_materials ->
     // Top final
     locally
         translate 0, 1500, 0
-        plastic 1.0, 0.5, 0.5
+        color 1.0, 0.5, 0.5, 1.0
+        plastic
         sphere 0, 0, 0, 500
 
     // Bottom final

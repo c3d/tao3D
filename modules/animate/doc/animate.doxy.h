@@ -1,6 +1,5 @@
 /**
- * @defgroup Animate Animation utilities for slides
- * @ingroup Modules
+ * @taomoduledescription{Animate, Animation utilities for slides}
  *
  * Commands to create animations and transitions within a slide
  *
@@ -18,6 +17,7 @@ compute_smooth_step
 circle 100 * smooth_step, 0, 20
 refresh 0.01
  @endcode
+ * @endtaomoduledescription{Animate}
  * @{
  */
 

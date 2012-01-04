@@ -154,18 +154,17 @@ Application::Application(int & argc, char ** argv)
                               +builtins.canonicalFilePath());
 
     // Load licenses
-    QDir dir(Application::defaultLicenseFolderPath());
-    QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
-                                               QDir::Files);
-    foreach (QFileInfo licence, licences)
+    QList<QDir> dirs;
+    dirs << QDir(Application::userLicenseFolderPath())
+         << QDir(Application::appLicenseFolderPath());
+    foreach (QDir dir, dirs)
     {
-        text lpath = +licence.canonicalFilePath();
-        IFTRACE(fileload)
-            std::cerr << "Loading license file: " << lpath << "\n";
-        Licences::AddLicenceFile(lpath.c_str());
+        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                                   QDir::Files);
+        Licences::AddLicenceFiles(licences);
     }
 
-    // Check licence
+    // Check main application licence
     if (!Licences::Check(TAO_LICENCE_STR, true))
         ::exit(15);
 
@@ -954,12 +953,25 @@ QString Application::defaultTaoFontsFolderPath()
 }
 
 
-QString Application::defaultLicenseFolderPath()
+QString Application::appLicenseFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder where Tao looks for license files on startup
+//    Licences packaged with the application
 // ----------------------------------------------------------------------------
 {
     return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
+}
+
+
+QString Application::userLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    User licences (persist even when Tao is uninstalled/upgraded)
+// ----------------------------------------------------------------------------
+{
+    // Create folder if it does not exist
+    QDir dir(defaultTaoPreferencesFolderPath()+"/licenses");
+    if (!dir.exists())
+        dir.mkpath(dir.absolutePath());
+    return QDir::toNativeSeparators(dir.absolutePath());
 }
 
 

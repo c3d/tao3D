@@ -1,4 +1,5 @@
 /**
+ * @~english
  * @defgroup Graphics Graphics
  * @ingroup TaoBuiltins
  *
@@ -7,10 +8,21 @@
  * available through Tao primitives, Tao Presentations also provides more
  * ready-to-use graphics functions to draw usual geometric objects,
  * whether 2D or 3D.
+ *
+ * @~french
+ * @defgroup Graphics Graphisme
+ * @ingroup TaoBuiltins
+ *
+ * Tao Presentations utilise OpenGL (http://www.opengl.org/) pour proposer
+ * un environnement graphique 3D. Bien que certaines fonctions GL soient
+ * disponibles par l'intermédiaire de primitives, Tao Presentations fournit
+ * aussi des fonctions graphiques pour dessiner les formes géométriques
+ * usuelles, en deux ou trois dimensions.
  */
 
 
 /**
+ * @~english
  * @defgroup graph_env Graphical environment (line and fill colors, textures)
  * @ingroup Graphics
  * Opening environment to handle graphical objects and their attributes.
@@ -28,55 +40,116 @@
  * @include multitexturing.ddd
  * @image html multitexturing.png "Multitexturing demo: multitexturing.ddd"
  *
+ * @~french
+ * @defgroup graph_env Environnement graphique (couleur des lignes/de remplissage, textures)
+ * @ingroup Graphics
+ * Définition des attributs des objets graphiques.
+ * Ce groupe définit des attributs comme la couleur, la largeur des lignes, les
+ * textures, etc.
+ *
+ * Les composantes de couleurs sont exprimées en pourcentage, soit des valeurs
+ * entre 0.0 et 1.0. La texture et la couleur peuvent être combinées.
+ *
+ * @par Multi-texture
+ *
+ * Le multi-texture est l'utilisation similtanée de plusieurs textures sur une
+ * même forme géométrique.
+ * Par exemple, le code qui suit (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>)
+ * affiche un rectangle et utilise une combinaison de deux textures, l'une
+ * représentant un mur et l'autre un faisceau de lumière, afin de créer un
+ * effet d'éclairage.
+ *
+ * @include multitexturing.ddd
+ * @image html multitexturing.png "Démonstration : multitexturing.ddd"
+ *
  * @{
  */
 
 /**
+ * @~english
  * Creates a local context.
  *
  * Evaluate the child tree while preserving the current graphical state.
- * Any state modification like color or translation done in the 
+ * Any state modification like color or translation done in the
  * locally block only affect the block.
+ *
+ * @~french
+ * Crée un contexte local.
+ *
+ * Évalue l'arbre @p t en préservant l'état graphique courant. Par conséquent,
+ * toute modification comme un changement de couleur ou une modification
+ * géométrique (rotation, translation, changement de facteur d'échelle)
+ * n'affecte que la suite du bloc locally.
  */
 locally (t:tree);
 
 /**
- * Creates a selectable shape
+ * @~english
+ * Creates a selectable shape.
  *
  *  Evaluate the child and mark the current shape.
  *  Modifications done to the environment is only applicable inside this shape as @ref locally does.
  *
  *  Make the shape sensible to mouse events.
  *  It enables click action (@ref on), and handles for selection, motion, rotation, resize...
+ *
+ * @~french
+ * Crée une forme sélectionnable.
+ *
+ * Évalue l'arbre @p t en préservant l'état graphique courant, comme
+ * @ref locally, mais rend en outre la forme sensible aux événements de la
+ * la souris ce qui permet d'utiliser la primitive @ref on, et de manipuler
+ * l'objet (déplacement, rotation, redimensionnement).
  */
 shape (t:tree);
 
 
 /**
+ * @~english
  * Makes the widget clickable.
  *
  *  Create a context for active widgets (like buttons) or drawing (circle, etc...).
  *  Make the shape sensive to mouse events.
  *  It enables click action (@ref on), but does not enables handles for mouse handling.
+ *
+ * @~french
+ * Rend une forme géométrique cliquable.
+ *
+ * Crée un contexte pour les widgets actifs (par exemple, les boutons) ou plus
+ * généralement les formes géométriques (cercle, etc.) ce qui permet d'utiliser
+ * @ref on pour déclencher une action. Contrairement à @ref shape,
+ * active_widget ne permet pas de déplacer ou modifier la forme.
  */
 active_widget (t:tree);
 
 /**
+ * @~english
  * Anchors a set of shapes to the current position
  * @todo An example is missing for anchor.
+ *
+ * @~french
+ * Arrime un ensemble de formes à la position courante.
  */
 anchor (t:tree);
 
 /**
+ * @~english
  * Selects the line width for shape outlines.
  *
- * @c line_width @c "default" reset the line width to The default value.
- * @p lw is the width in pixels
+ * @c line_width @c "default" reset the line width to the default value.
+ * @p lw is the width in pixels.
+ *
+ * @~french
+ * Définit la largeur du trait pour le tracé des formes.
+ *
+ * @c line_width @c "default" reprend la valeur par défaut.
+ * @p lw est la largeur en pixels.
  */
 line_width (lw:real);
 
 /**
- * specify the line stipple pattern.
+ * @~english
+ * Specify the line stipple pattern.
  *
  * @param pattern
  * Specifies a 16-bit integer whose bit pattern determines
@@ -90,10 +163,27 @@ line_width (lw:real);
  * factor is clamped to the range [1, 256] and defaults to 1.
  *
  * @see OpenGL <a href="http://www.opengl.org/sdk/docs/man/xhtml/glLineStipple.xml">documentation</a>
+ *
+ * @~french
+ * Définit le type de pointillé pour le tracé des formes.
+ *
+ * @param pattern
+ * Un entier 16 bits dont les bits (0 ou 1) définit quelles portions de la
+ * ligne est tracée. Le bit zéro est utilisé en premier. Pour tracer une ligne
+ * continue, tous les bits doivent être à 1 (pattern = 65535).
+ *
+ * @param factor
+ * Un multiplicateur pour chaque bit dans @p pattern.
+ * Par exemple, si @p factor vaut 3, chaque bit de @p pattern est utilisé 3
+ * fois avant que le bit suivant ne soit utilisé.
+ * factor est limité à l'intervalle [1, 256].
+ *
+ * @see Fonction OpenGL <a href="http://www.opengl.org/sdk/docs/man/xhtml/glLineStipple.xml">glLineStipple</a>
  */
 line_stipple(pattern:integer, factor:integer);
 
 /**
+ * @~english
  * Selects the color.
  *
  * The color name can be one of the following :
@@ -110,16 +200,40 @@ line_stipple(pattern:integer, factor:integer);
  *
  * @param colorname is the name of the color
  * @param alpha is the transparency factor. 0 is transparent and 1 is opaque. The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de remplissage courante.
+ *
+ * Le nom de la couleur peut être :
+ *   - un nom de couleur de Qt::GlobalColor,
+ *   - un nom de couleur définit par le W3C : http://www.w3.org/TR/SVG/types.html#ColorKeywords
+ *   - une description rouge, vert, bleu sous la forme "#RRGGBB"
+ *   - une couleur définie par Tao presentations :
+ *       - color "transparent"
+ *       - color "default"
+ *       - color "fill"
+ *       - color "font"
+ *       - color "line"
+ * Les modules peuvent également définir des couleurs.
+ *
+ * @param colorname Le nom de la couleur.
+ * @param alpha Le facteur de transparence. 0.0 est transparent et 1.0 est
+ * opaque. La valeur par défaut est 1.0.
  */
 color (colorname:text, alpha:real);
 
 /**
+ * @~english
  * Selects the color.
+ * @~french
+ * Choisit la couleur de remplissage.
+ * @~
  * @see @ref graph.doxy.h::color(colorname:text,alpha:real) "color colorname:text, alpha:real"
  */
 color (colorname:text);
 
 /**
+ * @~english
  * Selects a color by its red, green, blue and alpha-channel value.
  *
  * @param r red component of the color, in the range 0.0 to 1.0.
@@ -127,16 +241,30 @@ color (colorname:text);
  * @param b blue component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de remplissage (rouge, vert, bleu et alpha).
+ *
+ * @param r Composante rouge, entre 0.0 to 1.0.
+ * @param g Composante verte, entre 0.0 to 1.0.
+ * @param b Composante bleue, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color (r:real, g:real, b:real, a:real);
 
 /**
+ * @~english
  * Selects the color.
+ * @~french
+ * Choisit la couleur de remplissage.
+ * @~
  * @see @ref graph.doxy.h::color(r:real,g:real,b:real,a:real) "color r:real, g:real, b:real, a:real"
  */
 color (r:real, g:real, b:real);
 
 /**
+ * @~english
  * Selects the color by its hue, saturation, lightness, and alpha-channel (transparency) components.
  *
  * @param h hue component of the color,  in degrees (in the range 0.0 to 360.0).
@@ -144,16 +272,30 @@ color (r:real, g:real, b:real);
  * @param l lightness component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de remplissage (teinte, saturation, luminosité et alpha).
+ *
+ * @param h Teinte, en degrés (entre 0.0 et 360.0).
+ * @param s Saturation, entre 0.0 to 1.0.
+ * @param l Luminosité, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color_hsl (h:real, s:real, l:real, a:real);
 
 /**
+ * @~english
  * Selects the color.
+ * @~french
+ * Choisit la couleur de remplissage.
+ * @~
  * @see @ref graph.doxy.h::color_hsl(h:real, s:real, l:real, a:real) "color_hsl h:real, s:real, l:real, a:real"
  */
 color_hsl (h:real, s:real, l:real);
 
 /**
+ * @~english
  * Selects the color by its hue, saturation, value, and alpha-channel (transparency) components.
  *
  * @param h hue component of the color, in degrees (in the range 0.0 to 360.0).
@@ -161,16 +303,30 @@ color_hsl (h:real, s:real, l:real);
  * @param v value component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de remplissage (teinte, saturation, valeur et alpha).
+ *
+ * @param h Teinte, en degrés (entre 0.0 et 360.0).
+ * @param s Saturation, entre 0.0 to 1.0.
+ * @param v Valeur, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color_hsv (h:real, s:real, v:real, a:real);
 
 /**
+ * @~english
  * Selects the color.
+ * @~french
+ * Choisit la couleur de remplissage.
+ * @~
  * @see @ref graph.doxy.h::color_hsv(h:real, s:real, v:real, a:real) "color_hsv h:real, s:real, v:real, a:real"
  */
 color_hsv (h:real, s:real, v:real);
 
 /**
+ * @~english
  * Selects the color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
  *
  * @param c cyan component of the color, in the range 0.0 to 1.0.
@@ -179,22 +335,41 @@ color_hsv (h:real, s:real, v:real);
  * @param k black component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0 is transparent and 1 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de remplissage (cyan, magenta, jaune, noir).
+ *
+ * @param c Composante cyan, entre 0.0 to 1.0.
+ * @param y Composante jaune, entre 0.0 to 1.0.
+ * @param m Composante magenta, entre 0.0 to 1.0.
+ * @param k Composante noire, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color_cymk (c:real, y:real, m:real, k:real, a:real);
 
 /**
+ * @~english
  * Selects the color.
+ * @~french
+ * Choisit la couleur de remplissage.
+ * @~
  * @see @ref graph.doxy.h::color_cymk(c:real, y:real, m:real, k:real, a:real) "color_cymk c:real, y:real, m:real, k:real, a:real"
  */
 color_cymk (c:real, y:real, m:real, k:real);
 
 /**
- * Reset color value.
- * shortcut for @c color 0,0,0,0 i.e. a transparent black.
+ * @~english
+ * Selects transparent black.
+ * Shortcut for @c color 0,0,0,0.
+ * @~french
+ * Choisit la couleur de remplissage : noir transparent.
+ * Raccourci pour @c color 0,0,0,0.
  */
 no_color ();
 
 /**
+ * @~english
  * Specifies the clear values for the color buffers.
  * When this primitive is called in the root layout (that is, outside of
  * any @ref locally block or similar), it sets the clear color for the
@@ -205,7 +380,8 @@ no_color ();
  * When the primitive is called inside a @ref frame or @ref frame_texture
  * block, it sets the clear color of the local drawing buffer, which can
  * have subtle effects on the rendering. The default
- * clear color of a @ref frame_texture is transparent white, (1, 1, 1, 0).
+ * clear color of a @ref frame_texture is transparent white,
+ * RGBA (1, 1, 1, 0).
  * In some cases you may want to change this color. For instance, look
  * at the border of the characters in the following example, with and
  * without the @ref clear_color line in the @ref frame_texture block.
@@ -227,16 +403,57 @@ frame_texture 600, 200,
     circle 200, 0, 50
 rectangle 0, 0, 600, 200
  * @endcode
+ *
+ * @~french
+ * Définit la couleur d'effacement (clear color)
+ * Cette primitive définit la couleur qui est utilisée pour remplir la zone
+ * de dessin avant d'afficher quoique ce soit. Par conséquent, on peut
+ * considérer qu'il s'agit de la couleur de fond.
+ * Quand cette primitive est appelée dans le @a layout principal
+ * (c'est-à-dire en dehors de tout bloc @ref locally ou similaire), elle
+ * définit la couleur de fond pour la zone de dessin principale.
+ *
+ * Quand elle est appelée dans un bloc @ref frame ou
+ * @ref frame_texture, elle définit la couleur d'effacement de la zone de
+ * dessin locale (une texture), ce qui peut avoir des effets subtils sur
+ * le rendu. La couleur d'effacement par défaut dans @ref frame ou
+ * @ref frame_texture est le blanc transparent, RGBA (1, 1, 1, 0).
+ * Dans certains cas il peut être utile de changer cette couleur. Par
+ * exemple, observez le contour des caractères dans l'exemple suivant,
+ * avec et sans la ligne @ref clear_color dans le bloc @ref frame_texture.
+ * @code
+clear_color 1, 1, 1, 1
+color "black"
+rectangle 0, 0, 600, 200
+color "white"
+frame_texture 600, 200,
+    // Essayez de mettre la ligne suivante en commentaire
+    clear_color 0, 0, 0, 0
+    text_box 0, 0, 600, 200,
+        color "blue"
+        font "Times", 96
+        align_center
+        vertical_align_center
+        text "Bonjour"
+    color 1, 0, 0, 75%
+    circle 200, 0, 50
+rectangle 0, 0, 600, 200
+ * @endcode
  */
 clear_color (r:real, g:real, b:real, a:real);
 
 /**
- * Reset line_color value.
- * shortcut for @c line_color 0,0,0,0 i.e. a transparent black.
+ * @~english
+ * Selects transparent black for line color.
+ * Shortcut for @c line_color 0,0,0,0.
+ * @~french
+ * Choisit la couleur de ligne : noir transparent.
+ * Raccourci pour @c line_color 0,0,0,0.
  */
 no_line_color ();
 
 /**
+ * @~english
  * Selects the line color.
  *
  * The color name can be one of the following :
@@ -249,7 +466,6 @@ no_line_color ();
  *       - line_color "fill"
  *       - line_color "font"
  *       - line_color "line"
- *   - a color defined by a module (like @ref tao_visuals.doxy.h::color "Tao Visuals")
  *
  * @note @c color @c "font" and @c line_color @c "font" are not the same color,
  * but relevent colors for the line of a glyph and the fill of a glyph.
@@ -257,16 +473,43 @@ no_line_color ();
  * @param colorname is the name of the color
  * @param alpha is the transparency factor. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de ligne courante.
+ *
+ * Le nom de la couleur peut être :
+ *   - un nom de couleur de Qt::GlobalColor,
+ *   - un nom de couleur définit par le W3C : http://www.w3.org/TR/SVG/types.html#ColorKeywords
+ *   - une description rouge, vert, bleu sous la forme "#RRGGBB"
+ *   - une couleur définie par Tao presentations :
+ *       - color "transparent"
+ *       - color "default"
+ *       - color "fill"
+ *       - color "font"
+ *       - color "line"
+ * Les modules peuvent également définir des couleurs.
+ *
+ * @note @c color @c "font" et @c line_color @c "font" ne sont pas la même
+ * couleur.
+ *
+ * @param colorname Le nom de la couleur.
+ * @param alpha Le facteur de transparence. 0.0 est transparent et 1.0 est
+ * opaque. La valeur par défaut est 1.0.
  */
 line_color (colorname:text, alpha:real);
 
 /**
- * Selects the color.
+ * @~english
+ * Selects the line color.
+ * @~french
+ * Choisit la couleur de ligne.
+ * @~
  * @see @ref graph.doxy.h::color(colorname:text,alpha:real) "color colorname:text, alpha:real"
  */
 line_color (colorname:text);
 
 /**
+ * @~english
  * Selects a line color by its red, green, blue and alpha-channel value.
  *
  * @param r red component of the color, in the range 0.0 to 1.0.
@@ -274,16 +517,30 @@ line_color (colorname:text);
  * @param b blue component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de ligne (rouge, vert, bleu et alpha).
+ *
+ * @param r Composante rouge, entre 0.0 to 1.0.
+ * @param g Composante verte, entre 0.0 to 1.0.
+ * @param b Composante bleue, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color (r:real, g:real, b:real, a:real);
 
 /**
- * Selects the line_color.
+ * @~english
+ * Selects the line color.
+ * @~french
+ * Choisit la couleur de ligne.
+ * @~
  * @see @ref graph.doxy.h::line_color(r:real,g:real,b:real,a:real) "line_color r:real, g:real, b:real, a:real"
  */
 line_color (r:real, g:real, b:real);
 
 /**
+ * @~english
  * Selects the line_color by its hue, saturation, lightness, and alpha-channel (transparency) components.
  *
  * @param h hue component of the color, in degrees (in the range 0.0 to 360.0).
@@ -291,16 +548,30 @@ line_color (r:real, g:real, b:real);
  * @param l lightness component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de ligne (teinte, saturation, luminosité et alpha).
+ *
+ * @param h Teinte, en degrés (entre 0.0 et 360.0).
+ * @param s Saturation, entre 0.0 to 1.0.
+ * @param l Luminosité, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color_hsl (h:real, s:real, l:real, a:real);
 
 /**
- * Selects the line_color.
+ * @~english
+ * Selects the line color.
+ * @~french
+ * Choisit la couleur de ligne.
+ * @~
  * @see @ref graph.doxy.h::line_color_hsl(h:real, s:real, l:real, a:real) "line_color_hsl h:real, s:real, l:real, a:real"
  */
 line_color_hsl (h:real, s:real, l:real);
 
 /**
+ * @~english
  * Selects the line_color by its hue, saturation, value, and alpha-channel (transparency) components.
  *
  * @param h hue component of the color, in degrees (in the range 0.0 to 360.0).
@@ -308,16 +579,30 @@ line_color_hsl (h:real, s:real, l:real);
  * @param v value component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de ligne (teinte, saturation, valeur et alpha).
+ *
+ * @param h Teinte, en degrés (entre 0.0 et 360.0).
+ * @param s Saturation, entre 0.0 to 1.0.
+ * @param v Valeur, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color_hsv (h:real, s:real, v:real, a:real);
 
 /**
- * Selects the line_color.
+ * @~english
+ * Selects the line color.
+ * @~french
+ * Choisit la couleur de ligne.
+ * @~
  * @see @ref graph.doxy.h::line_color_hsv(h:real, s:real, v:real, a:real) "line_color_hsv h:real, s:real, v:real, a:real"
  */
 line_color_hsv (h:real, s:real, v:real);
 
 /**
+ * @~english
  * Selects the line_color by its cyan, yellow, magenta, black, and alpha-channel (transparency) components.
  *
  * @param c cyan component of the color, in the range 0.0 to 1.0.
@@ -326,16 +611,31 @@ line_color_hsv (h:real, s:real, v:real);
  * @param k black component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
  * The default value is 1.0.
+ *
+ * @~french
+ * Choisit la couleur de ligne (cyan, magenta, jaune, noir).
+ *
+ * @param c Composante cyan, entre 0.0 to 1.0.
+ * @param y Composante jaune, entre 0.0 to 1.0.
+ * @param m Composante magenta, entre 0.0 to 1.0.
+ * @param k Composante noire, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color_cymk (c:real, y:real, m:real, k:real, a:real);
 
 /**
- * Selects the line_color.
+ * @~english
+ * Selects the line color.
+ * @~french
+ * Choisit la couleur de ligne.
+ * @~
  * @see @ref graph.doxy.h::line_color_cymk(c:real, y:real, m:real, k:real, a:real) "line_color_cymk c:real, y:real, m:real, k:real, a:real"
  */
 line_color_cymk (c:real, y:real, m:real, k:real);
 
 /**
+ * @~english
  * Creates a stop point in the current gradient at the given position with the given color.
  *
  * @param pos position of stop point in the current gradient, in the range 0.0 to 1.0.
@@ -343,11 +643,22 @@ line_color_cymk (c:real, y:real, m:real, k:real);
  * @param g green component of the color, in the range 0.0 to 1.0.
  * @param b blue component of the color, in the range 0.0 to 1.0.
  * @param a alpha-channel, transparency of the color. 0.0 is transparent and 1.0 is opaque.
+ *
+ * @~french
+ * Crée un point fixe de la couleur donnée, dans le dégradé courant à la position donnée.
+ *
+ * @param pos Position du point, entre 0.0 to 1.0.
+ * @param r Composante rouge, entre 0.0 to 1.0.
+ * @param g Composante verte, entre 0.0 to 1.0.
+ * @param b Composante bleue, entre 0.0 to 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 gradient_color (pos:real, r:real, g:real, b:real, a:real);
 
 /**
- * Make a linear gradient.
+ * @~english
+ * Creates a texture with a linear gradient.
  * Draw a linear gradient with colors specified in the body
  * thanks to @ref gradient_color.
  *
@@ -357,16 +668,28 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  *
  * @image html "images/linear_gradient.png"
  *
- * Code used to produce this image :
+ * Code used to produce this image:
  * <a href="examples/linear_gradient.ddd">linear_gradient.ddd</a>
  *
- * @note This gradient is generated as a new texture.
- * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ * @~french
+ * Crée une texture formant un dégradé linéaire.
+ * Dessine un dégradé linéaire avec les couleurs spécifiées dans le corps
+ * du bloc @c linear_gradient grâce à @ref gradient_color.
+ *
+ *  - @p start_x and @p start_y sont les coordonnées de départ du dégradé.
+ *  - @p end_x and @p end_y sont les coordonnées de fin du dégradé.
+ *  - @p w and @p h sont la largeur et la hauteur de la texture de destination.
+ *
+ * @image html "images/linear_gradient.png"
+ *
+ * Le code de cet exemple est le suivant :
+ * <a href="examples/linear_gradient.ddd">linear_gradient.ddd</a>
  */
 linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:real, body:tree);
 
 /**
- * Make a radial gradient.
+ * @~english
+ * Creates a texture with a radial gradient.
  * Draw a radial gradient with colors specified in the body
  * thanks to @ref gradient_color.
  *
@@ -376,16 +699,28 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  *
  * @image html "images/radial_gradient.png"
  *
- * Code used to produce this image :
+ * Code used to produce this image:
  * <a href="examples/radial_gradient.ddd">radial_gradient.ddd</a>
  *
- * @note This gradient is generated as a new texture.
- * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ * @~french
+ * Crée une texture formant un dégradé radial.
+ * Dessine un dégradé radial avec les couleurs spécifiées dans le corps
+ * du bloc @c radial_gradient grâce à @ref gradient_color.
+ *
+ *  - @p cx and @p cy sont les coordonnées du centre du dégradé.
+ *  - @p r est le rayon du dégradé.
+ *  - @p w and @p h sont la largeur et la hauteur de la texture de destination.
+ *
+ * @image html "images/radial_gradient.png"
+ *
+ * Le code de cet exemple est le suivant :
+ * <a href="examples/radial_gradient.ddd">radial_gradient.ddd</a>
  */
 radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
 
 /**
- * Make a conical gradient.
+ * @~english
+ * Creates a texture with a conical gradient.
  * Draw a conical gradient with colors specified in the body
  * thanks to @ref gradient_color.
  *
@@ -398,12 +733,24 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  * Code used to produce this image :
  * <a href="examples/conical_gradient.ddd">conical_gradient.ddd</a>
  *
- * @note This gradient is generated as a new texture.
- * Thus, it can also support methods used to treat textures as @ref texture_transform or @ref texture_unit for instance.
+ * @~french
+ * Crée une texture formant un dégradé conique.
+ * Dessine un dégradé conique avec les couleurs spécifiées dans le corps
+ * du bloc @c conical_gradient grâce à @ref gradient_color.
+ *
+ *  - @p cx and @p cy sont les coordonnées du centre du dégradé.
+ *  - @p teta est l'angle du déradé, en degrés, entre 0 and 360.
+ *  - @p w and @p h sont la largeur et la hauteur de la texture de destination.
+ *
+ * @image html "images/conical_gradient.png"
+ *
+ * Le code de cet exemple est le suivant :
+ * <a href="examples/conical_gradient.ddd">conical_gradient.ddd</a>
  */
 conical_gradient (cx:real, cy:real, teta:real, w:real, h:real, body:tree);
 
 /**
+ * @~english
  * Selects the texture.
  * Build a GL texture out of image file @p filename, and make it the current
  * texture.
@@ -421,59 +768,107 @@ conical_gradient (cx:real, cy:real, teta:real, w:real, h:real, body:tree);
  *   - XBM  X11 Bitmap
  *   - XPM  X11 Pixmap
  *
- * @note Use @ref animated_texture to render animated bitmaps and @ svg
+ * @note Use @ref animated_texture to render animated bitmaps and @ref svg
  * to render animated SVG files.
+ *
+ * @~french
+ * Crée une texture à partir d'un fichier image.
+ * Les formats supportés incluent :
+ *   - BMP  Windows Bitmap
+ *   - GIF  Graphic Interchange Format (optional)
+ *   - JPG  Joint Photographic Experts Group
+ *   - JPEG Joint Photographic Experts Group
+ *   - PNG  Portable Network Graphics
+ *   - PBM  Portable Bitmap
+ *   - PGM  Portable Graymap
+ *   - PPM  Portable Pixmap
+ *   - SVG  Scalable Vector Graphics
+ *   - TIFF Tagged Image File Format
+ *   - XBM  X11 Bitmap
+ *   - XPM  X11 Pixmap
+ *
+ * @note Utilisez @ref animated_texture pour afficher des @a bitmaps animés, et
+ * @ref svg pour afficher des fichiers SVG animés.
  */
 texture(filename:text);
 
 /**
- * Selects the texture by its id.
- * Build a GL texture out of an @p id.
- * @note @c texture @c 0 deactivate the texture binded on the current unit.
+ * @~english
+ * Makes a previously defined texture active.
+ * @note @c texture @c 0 deactivates the texture bound to the current texture
+ * unit.
+ *
+ * @~french
+ * Active une texture définie précédemment.
+ * @note @c texture @c 0 désactive la texture associée à l'unité de texture
+ * courante.
  */
 texture(id:integer);
 
 /**
+ * @~english
  * Get current texture id.
- * @return [integer] current texture id
+ *
+ * @~french
+ * Renvoie l'identifiant de la texture courante.
  */
-texture();
+integer texture();
 
 /**
- * Copy the current texture to an other one.
- * Create an other texture from the current binded one.
+ * @~english
+ * Copy the current texture to another one.
+ *
+ * @~french
+ * Copie la texture courante dans une autre texture.
  */
 copy_texture();
 
 /**
+ * @~english
  * Check if a texture is bound at the specified unit.
  * @return true if a texture is bound, false otherwise.
+ *
+ * @~french
+ * Teste si l'unité de texture courante a une texture.
+ * @return vrai si une texture est présente, faux sinon.
  */
 has_texture();
 
 /**
+ * @~english
  * Get current texture width.
- * @return [integer] current texture width
+ *
+ * @~french
+ * Renvoie la largeur de la texture courante.
  */
 texture_width();
 
 /**
+ * @~english
  * Get current texture height.
- * @return [integer] current texture height
+ *
+ * @~french
+ * Renvoie la hauteur de la texture courante.
  */
 texture_height();
 
 /**
+ * @~english
  * Get current texture type.
- * @return [integer] current texture type
+ * Returned type is defined in the
+ * <a href="http://www.opengl.org/registry/#specfiles">OpenGL specification</a>.
  *
- * @note Returned type is defined in OpenGL specifications.
- * @see http://www.opengl.org/registry/#specfiles
+ * @~french
+ * Renvoie le type de la texture courante.
+ * Le type est définit dans la
+ * <a href="http://www.opengl.org/registry/#specfiles">spécification OpenGL</a>.
+ *
  */
 texture_type();
 
 
 /**
+ * @~english
  * Selects current the texture unit.
  * Set the current texture unit to @p unit.
  *
@@ -482,16 +877,24 @@ texture_type();
  * @note Only the fourth texture units can be used without shaders. The maximum number of texture units and coordinates depend on the graphic card.
  * @note @c shader_set can be used to link texture unit with a sampler inside shaders.
  * @see OpenGL documentation about GL_MAX_TEXTURE_COORDS, GL_MAX_TEXTURE_IMAGE_UNITS and GL_MAX_COMBINED_TEXTURE_IMAGE_UNITS.
+ *
+ * @~french
+ * Sélectionne l'unité de texture active.
  */
 texture_unit (unit:integer);
 
 /**
+ * @~english
  * Get current texture unit.
  * @return [integer] current texture unit
+ *
+ * @~french
+ * Renvoie l'unité de texture active.
  */
 texture_unit();
 
 /**
+ * @~english
  * Create a GL animated texture.
  * Build a GL texture images from an animated image file and make it the
  * current texture. Supported format are:
@@ -500,38 +903,70 @@ texture_unit();
  *
  * @note This primitive does not support animated SVGs. You may use the
  * @ref svg primitive to render animated SVGs.
+ *
+ * @~french
+ * Crée une texture animée.
+ * Les formats supportés sont :
+ *   - GIF	Animated Graphic Interchange Format
+ *   - MNG	Animated portable Network Graphics
+ *
+ * @note Pour les SVG animés, utilisez la primitve @ref svg.
  */
 animated_texture(filename:text);
 
 /**
+ * @~english
  * Creates an animated texture from an SVG file.
  * Build a GL texture out of SVG file @p svg. This primitive supports
  * animated SVGs, in addition to non-animated ones. For non-animated SVGs,
  * however, it is recommended to use the @ref texture primitive, which uses
- * system resources.
+ * less system resources.
+ *
+ * @~french
+ * Crée une texture animée à partir d'un fichier SVG.
+ * Pour les fichiers SVG non animés, il est recommendé d'utiliser la primitive
+ * @ref texture primitive qu iutilise moins de ressources système.
  */
 svg(svg:text);
 
 /**
- * Geometric transformation for texture
+ * @~english
+ * Geometric transformation for texture.
  * Allows transformation to be applied to the current texture.
  * Transformation are specified in the body and can be a combination of
  *  - rotate
  *  - scale
  *  - translate
  *
+ * @~french
+ * Transformations géométriques des textures.
+ * Permet d'appliquer des transformations géométriques à la
+ * texture courante. Les transformations sont spécifiées dans @p body
+ * et sont une combinaison de @ref rotate, @ref scale et @ref translate.
+ *
+ * @~
  * @see transforms
  */
 texture_transform (body:tree);
 
 /**
- * Texture wrapping
+ * @~english
+ * Texture wrapping.
  * Controls the wrapping of the texture along @c S and @c T axis.
  * @param s is the pre-transformation horizontal axis (like X).
  * @param t is the pre-transformation vertical axis (like Y).
  *
  * Default values are false, false.
  * @see OpenGL documentation about GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T
+ *
+ * @~french
+ * Continuité des textures.
+ * Contrôle la continuité de la texture courante le long des axes @c S et @c T.
+ * @param s true pour activer GL_TEXTURE_WRAP_S.
+ * @param t true pour activer GL_TEXTURE_WRAP_T.
+ *
+ * Par défaut, la répétition est désactivée (false, false).
+ * @see La documentation OpenGL sur GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T.
  */
 texture_wrap (s:boolean, t:boolean);
 

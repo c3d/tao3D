@@ -973,6 +973,7 @@ texture_wrap (s:boolean, t:boolean);
 /** @} */
 
 /**
+ * @~english
  * @defgroup graph_img Image handling
  * @ingroup Graphics
  * Handles images.
@@ -996,16 +997,51 @@ texture_wrap (s:boolean, t:boolean);
  * show animated files, use the texture primitives @ref animated_texture or
  * @ref svg.
  *
- * Texture are handled in the @ref graph_env module.
+ * Textures are handled in the @ref graph_env module.
+ *
+ * @~french
+ * @defgroup graph_img Gestion des images.
+ * @ingroup Graphics
+ * Les primitives de ce groupe permettent de lire des fichiers d'images et
+ * d'obtenir des informations sur ces images.
+ * Les formats supportés sont les suivants :
+ *   - BMP  Windows Bitmap
+ *   - GIF  Graphic Interchange Format (optional)
+ *   - JPG  Joint Photographic Experts Group
+ *   - JPEG Joint Photographic Experts Group
+ *   - PNG  Portable Network Graphics
+ *   - PBM  Portable Bitmap
+ *   - PGM  Portable Graymap
+ *   - PPM  Portable Pixmap
+ *   - SVG  Scalable Vector Graphics
+ *   - TIFF Tagged Image File Format
+ *   - XBM  X11 Bitmap
+ *   - XPM  X11 Pixmap
+ *
+ * Les images sont combinées avec la couleur de remplissage courante.
+ * Les fichiers d'images animées (GIF, SVG) sont fixes lorsqu'elles sont
+ * affichées par la primitive @ref image. Si vous devez afficher de telles
+ * animations, utilisez les primitives de textures @ref animated_texture ou
+ * @ref svg.
+ *
+ * Les textures sont décrites dans le groupe @ref graph_env.
  * @{
  */
 
 /**
+ * @~english
  * Display an image.
  * Load an image from file @p filename.
  *  - @p x and @p y coordinate of the image center are specified in pixel
  *  - @p w and @p h are the width and height relative to the original size
  *    (for instance, set @p w to 1.0 to keep the original width)
+ * @~french
+ * Affiche une image.
+ * Charge une image depuis le fichier @p filename.
+ *  - @p x et @p y sont les coordonnées du centre de l'image
+ *  - @p w et @p h sont la largeur et la hauteur relativement à l'image
+ *    originale (1.0 pour conserver la taille d'origine)
+ * @~
  * @image html "images/image.png"
 @code
 page "image",
@@ -1017,6 +1053,7 @@ page "image",
 image (x:real, y:real, w:real, h:real, filename:text);
 
 /**
+ * @~english
  * Display an image.
  * Load an image from file @p filename.
  *  - @p x and @p y coordinate of the image center are specified in pixel
@@ -1024,8 +1061,16 @@ image (x:real, y:real, w:real, h:real, filename:text);
  *    @p w or @p h is null (but not both), the image is scaled
  *    proportionally so that it keeps its original aspect ratio. If both
  *    parameters are null, nothing is displayed.
+ * @~french
+ * Affiche une image.
+ * Charge une image depuis le fichier @p filename.
+ *  - @p x et @p y sont les coordonnées du centre de l'image
+ *  - @p w et @p h sont la largeur et la hauteur de l'image en pixels. Si
+ *    @p w ou @p h est nul (mais pas les deux), l'image est redimensionnée de
+ *    manière proportionnelle. Si les deux paramètres sont nuls, rien ne
+ *    s'affiche.
+ * @~
  * @image html "images/image_px.png"
-
 @code
 page "image_px",
     color "white"
@@ -1034,20 +1079,25 @@ page "image_px",
     line_color "black"
     width_and_height 0, 0, 200, 200
 @endcode
-
  */
 image_px (x:real, y:real, w:real, h:real, filename:text);
 
 /**
+ * @~english
  * Get image size.
  * Return the image size of the @p img image.
  * @return [infix] a tree containing <tt>w, h</tt>
+ * @~french
+ * Renvoie la taille de l'image.
+ * @return [infix] la largeur et la hauteur de l'image, en pixels, sous la
+ * forme <tt>w, h</tt>.
  */
 image_size(img:text);
 
 /** @} */
 
 /**
+ * @~english
  * @defgroup graph_path Graphical Path
  * @ingroup Graphics
  * Creation of drawing in 2D or 3D vertex by vertex.
@@ -1061,36 +1111,71 @@ image_size(img:text);
  * Example of path primitives used to produce here after images :
  * <a href="examples/path_samples.ddd">path_samples.ddd</a>
  *
+ * @~french
+ * @defgroup graph_path Segments et courbes
+ * @ingroup Graphics
+ * Création de segments et de courbes 2D ou 3D, sommet par sommet, sous forme
+ * de chemin graphique.
+ *
+ * Un chemin graphique est une forme géométique faite de segments de droites et
+ * de courbes. Pour le construire, vous précisez ou vous posez le crayon
+ * (@ref move_to), vous tracez un segment avec @ref line_to, ou une courbe avec
+ * @ref quad_to ou @ref cubic_to. Les coordonnées peuvent être absolues ou
+ * relatives au point précédent.
+ *
+ * Lorsque le chemin graphique se trouve dans un bloc @ref shape, vous pouvez
+ * manipuler les sommets grâce à la souris.
+ *
+ * Exemple :
+ * <a href="examples/path_samples.ddd">path_samples.ddd</a>
  * @{
  */
 
 /**
+ * @~english
  * Opens a graphic path environment.
  *
  * A graphic path is a collection of segments of lines or curves
  * (quadrics or cubics).
+ *
+ * @~french
+ * Crée un chemin graphique.
+ *
+ * Un chemin graphique est une suite de segments de droites et/ou de
+ * quadriques et/ou de cubiques.
  */
 path (t:tree);
 
 /**
- * Moves path cursor to a specific point.
+ * @~english
+ * Moves path cursor to a specific point without drawing.
  *
- * Add a 'moveTo' to the current path.
+ * Shortcut for 2D is also available:
+ * @~french
+ * Déplace le curseur de chemin graphique sans tracer.
  *
- * Shortcut for 2D is also available :
+ * Un raccourci pour la 2D est disponible :
+ * @~
  * @code move_to x:real, y:real @endcode
  */
 move_to (x:real, y:real, z:real);
 
 /**
- * Adds a line segment to the current path.
+ * @~english
+ * Draws a straight line by moving path cursor to the specified point.
  *
- * Shortcut for 2D is also available :
+ * Shortcut for 2D is also available:
+ * @~french
+ * Trace un segment de droite en déplaçant le curseur de chemin graphique.
+ *
+ * Un raccourci pour la 2D est disponible :
+ * @~
  * @code line_to x:real, y:real @endcode
  */
 line_to (x:real, y:real, z:real);
 
 /**
+ * @~english
  * Adds a quadric segment to the current path.
  *
  * A quadric segment of path is a curve where you specify the two
@@ -1099,12 +1184,23 @@ line_to (x:real, y:real, z:real);
  * (@p x, @p y, @p z) is the end point.
  *
  * Shortcut for 2D is also available :
+ * @~french
+ * Trace une quadrique en déplaçant le curseur de chemin graphique.
+ *
+ * Une quadrique est une courbe définie par deux sommets et un point de
+ * contrôle qui en définit la courbure.
+ * (@p cx, @p cy, @p cz) définit le point de contrôle.
+ * (@p x, @p y, @p z) est la fin de la courbe.
+ *
+ * Un raccourci pour la 2D est disponible :
+ * @~
  * @code quad_to cx:real, cy:real, x:real, y:real @endcode
  * @image html quad_path.png
  */
 quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
 
 /**
+ * @~english
  * Adds a cubic segment to the current path.
  *
  * A cubic segment of path is a curve where you specify the two endpoints
@@ -1114,6 +1210,17 @@ quad_to (cx:real, cy:real, cz:real, x:real, y:real, z:real);
  * (@p x, @p y, @p z) is the end point.
  *
  * Shortcut for 2D is also available :
+ * @~french
+ * Trace une cubique en déplaçant le curseur de chemin graphique.
+ *
+ * Une cubique est une courbe définie par deux sommets et deux points de
+ * contrôle qui en définissent la courbure.
+ * (@p c1x, @p c1y, @p c1z) définit le premier point de contrôle.
+ * (@p c2x, @p c2y, @p c2z) définit le deuxième point de contrôle.
+ * (@p x, @p y, @p z) est la fin de la courbe.
+ *
+ * Un raccourci pour la 2D est disponible :
+ * @~
  * @code cubic_to c1x:real, c1y:real, c2x:real, c2y:real, x:real, y:real @endcode
  * @image html cubic_path.png
  */
@@ -1121,25 +1228,42 @@ cubic_to (c1x:real, c1y:real, c1z:real, c2x:real, c2y:real, c2z:real,
           x:real, y:real, z:real);
 
 /**
+ * @~english
  * Adds a line segment to the current path relative to current position.
+ * @~french
+ * Trace un segment de droite relativement à la position courante.
  */
 line_relative (x:real, y:real, z:real);
 
 /**
+ * @~english
  * Moves current path cursor relative to current position.
+ * @~french
+ * Déplace le curseur de chemin graphique relativement à la position courante.
  */
 move_relative (x:real, y:real, z:real);
 
 /**
+ * @~english
  * Closes current path by a straight line to the start point.
  *
  * It creates a loop in the path by drawing a straight line from
  * current point to last move_to point or the start point.
  * @note It does not close the path environment. One can continue to add segment to current path.
+ *
+ * @~french
+ * Ferme le chemin graphique.
+ *
+ * Crée une boucle dans le chemin graphique en dessinant une ligne droite
+ * entre la position courante du curseur et le dernier @ref move_to ou
+ * @ref move_relative, ou le point de départ.
+ * @note Cette primitive ne termine pas l'environnement @ref path.
+ * Vous pouvez continuer à ajouter des segments ou des courbes au chemin.
  */
 close_path ();
 
 /**
+ * @~english
  * Sets the style of the path endpoints.
  *
  * @p s is the start point and @p e is the end point.
@@ -1149,6 +1273,17 @@ close_path ();
  * to the line end (because end of the line is not the end of the path).
  *
  * Supported symbols are:
+ * @~french
+ * Définit le style des extrémités d'un chemin graphique.
+ *
+ * @p s est le point de départ et @p e est le point terminal.
+ *
+ * Seuls les véritables débuts et fins d'un chemin peuvent recevoir un
+ * symbole. Si du texte est ajouté à la fin du chemin, le style de fin n'est
+ * pas appliqué (puisque la fin de la ligne n'est pas la fin du chemin).
+ *
+ * Les symboles possibles sont :
+ * @~
  *   - NONE
  *   - ARROWHEAD
  *   - POINTER
@@ -1166,6 +1301,7 @@ close_path ();
  */
 endpoints_style (s:symbol, e:symbol);
 
+#if 0
 /**
  * Add a texture coordinate to the path.
  * NOT SUPPORTED YET.
@@ -1180,7 +1316,7 @@ path_texture (x:real, y:real, z:real);
  * @bug Not supported yet.
  */
 path_color (r:real, g:real, b:real, a:real);
-
+#endif
 
 /** @} */
 

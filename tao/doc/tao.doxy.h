@@ -523,7 +523,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *
  * Certaines primitives qui prennent pour paramètre un nom de fichier
  * acceptent une syntaxe spéciale appelée un <em>préfixe de chemin
- * additionnel<em>. Par exemple :
+ * additionnel</em>. Par exemple :
  * @code
 image 0, 0, 100%, 100%, "image:file.jpg"
  * @endcode

@@ -1000,7 +1000,7 @@ texture_wrap (s:boolean, t:boolean);
  * Textures are handled in the @ref graph_env module.
  *
  * @~french
- * @defgroup graph_img Gestion des images.
+ * @defgroup graph_img Gestion des images
  * @ingroup Graphics
  * Les primitives de ce groupe permettent de lire des fichiers d'images et
  * d'obtenir des informations sur ces images.
@@ -1322,6 +1322,7 @@ path_color (r:real, g:real, b:real, a:real);
 
 
 /**
+ * @~english
  * @defgroup graph_2D 2D shapes
  * @ingroup Graphics
  * Creating 2D shapes.
@@ -1343,18 +1344,48 @@ path_color (r:real, g:real, b:real, a:real);
  * - black parts are the representations of the provided parameters.
  * - yellow parts are useful marks.
  *
+ * @~french
+ * @defgroup graph_2D Formes géométriques 2D
+ * @ingroup Graphics
+ * Crée des formes géométriques en deux dimensions.
+ *
+ * Toutes les primitives 2D définissent des formes à deux dimensions, mais ces
+ * formes peuvent être ensuite déplacées, tournées et redimensionnées dans
+ * l'espace 3D. Quand une forme 2D est définie, sa coordonnée Z est 0.
+ *
+ * Pour toutes les primitives 2D :
+ * -  @p x et @p y représentent le centre de la forme,
+ *   - L'axe [0, x) x > 0 est orienté vers la droite,
+ *   - L'axe [0, y) y > 0 est orienté vers le haut,
+ * -  @p h et @p w est la largeur et la hauteur en pixels.
+ *
+ * Voici des exemples de formes 2D :
+ * <a href="examples/2D_samples.ddd">2D_samples.ddd</a>
+ *
+ * Dans tous les exemple de cette page :
+ * - en orange foncé, le résultat de la primitive documentée,
+ * - en noir, des illustrations des paramètres de la primitive,
+ * - en jaune, des points de repère.
  * @{
  */
 
 /**
+ * @~english
  * Draws a point.
  *
  * This primitive draws an OpenGL point. @p s is the point size in
  * pixels. It is @b not affected by the scaling factor.
+ *
+ * @~french
+ * Affiche un point.
+ *
+ * Cette primitive dessine un point OpenGL. @p s est la taille du point en
+ * pixels. Elle n'est @b pas affectée par les facteurs d'échelle.
  */
 point (x:real, y:real, z:real, s:real);
 
 /**
+ * @~english
  * Draws a rectangle.
  *
  *  The rectangle is centered at (@p x, @p y), with width @p w and height @p h.
@@ -1363,12 +1394,22 @@ point (x:real, y:real, z:real, s:real);
  *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
  *  - top right corner is at coordinate <tt>(x+w/2, y+h/2)</tt>
  *
- * @image html rectangle.png
+ * @~french
+ * Affiche un rectangle.
  *
+ * Le rectangle est centré en (@p x, @p y), la largeur est @p w et la hauteur
+ * est @p h.
+ *  - Le coin inférieur gauche est en <tt>(x-w/2, y-h/2)</tt>
+ *  - Le coin inférieur droit est en <tt>(x+w/2, y-h/2)</tt>
+ *  - Le coin supérieur gauche est en <tt>(x-w/2, y+h/2)</tt>
+ *  - Le coin supérieur droit est en <tt>(x+w/2, y+h/2)</tt>
+ * @~
+ * @image html rectangle.png
  */
 rectangle (x:real, y:real, w:real, h:real);
 
 /**
+ * @~english
  * Draws a rounded rectangle.
  *
  *  Draw a rounded rectangle with radius @p r for the rounded corners.
@@ -1378,50 +1419,82 @@ rectangle (x:real, y:real, w:real, h:real);
  *  - top left corner is at coordinate <tt>(x-w/2, y+h/2)</tt>
  *  - top right corner is at coordinate <tt>(x+w/2, y+h/2)</tt>
  *
- * @image html rounded_rectangle.png
+ * @~french
+ * Affiche un rectangle à coins arrondis.
  *
+ * @p r est le rayon des coins arrondis.
+ * Le rectangle est centré en (@p x, @p y), la largeur est @p w et la hauteur
+ * est @p h.
+ *  - Le coin inférieur gauche est en <tt>(x-w/2, y-h/2)</tt>
+ *  - Le coin inférieur droit est en <tt>(x+w/2, y-h/2)</tt>
+ *  - Le coin supérieur gauche est en <tt>(x-w/2, y+h/2)</tt>
+ *  - Le coin supérieur droit est en <tt>(x+w/2, y+h/2)</tt>
+ * @~
+ * @image html rounded_rectangle.png
  */
 rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 
 /**
+ * @~english
  * Draws a rectangle with elliptical sides.
  *
  * The ratio @p r is a real between 0.0 and 1.0. With ratio 0.0 the elliptical
  * rectangle is an ellipse, and with ratio 1.0 the elliptical rectangle is a
  * rectangle.
- * @image html elliptical_rectangle.png
  *
- * @param r [real] ratio of the ellpitic sides [0.0, 1.0]
+ * @~french
+ * Affiche un rectangle à côtés elliptiques.
+ *
+ * Le rapport @p r est un réel entre 0.0 and 1.0. Lorsque @p r vaut 0.0 le
+ * rectangle elliptique est une ellipse, lorsqu'il vaut 1.0 on obtient un
+ * rectangle.
+ * @~
+ * @image html elliptical_rectangle.png
  */
 elliptical_rectangle (x:real, y:real, w:real, h:real, r:real);
 
 /**
+ * @~english
  * Draws an ellipse.
  *
  * The ellipse is centered at (@a x, @a y) with width @a w and height @a h.
  *
+ * @~french
+ * Affiche une ellipse.
+ *
+ * L'ellipse est inscrite dans le rectangle centré en (@a x, @a y), de largeur
+ * @a w et de hauteur @a h.
+ * @~
  * @image html ellipse.png
  *
  */
 ellipse (x:real, y:real, w:real, h:real);
 
 /**
+ * @~english
  * Draws an elliptic sector.
  *
  * Elliptic sector centered around (@p x, @p y) that occupies the given
- * rectangle, beginning at the specified @p startAngle and extending
- * @p sweepLength degrees counter-clockwise. Angles are specified in
+ * rectangle, beginning at the specified @p start angle and extending
+ * @p sweep degrees counter-clockwise. Angles are specified in
  * degrees. Clockwise arcs can be specified using negative angles.
  *
- * @image html ellipse_arc.png
+ * @~french
+ * Affiche un secteur elliptique.
  *
- * @param start [real] start angle express in degrees
- * @param sweep [real] sweep angle express in degrees
+ * Le secteur elliptique est inscrit dans le rectangle centré en (@p x, @p y).
+ * Il commence à l'angle @p start (en degrés) et s'étend sur @p sweep degrés
+ * dans le sens contraire des aiguilles d'une montre. Des arcs qui
+ * s'étendent dans l'autre sens peuvent être tracés en utilisant des angles
+ * négatifs.
+ * @~
+ * @image html ellipse_arc.png
  */
 ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
 
 /**
+ * @~english
  * Draws an isoceles triangle.
  *
  * Draws an isoceles triangle centered at (@p x, @p y), with width @p w and
@@ -1430,12 +1503,21 @@ ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
  *  - Bottom right corner is at coordinate  <tt>(x+w/2, y-h/2)</tt>
  *  - Top corner is at coordinate  <tt>(x, y+h/2)</tt>
  *
- * @image html triangle.png
+ * @~french
+ * Affiche un triangle isocèle.
  *
+ * Affiche un triangle isocèle centré en (@p x, @p y), de largeur @p w et
+ * de hauteur @p h.
+ *  - L'angle inférieur gauche est en <tt>(x-w/2, y-h/2)</tt>
+ *  - L'angle inférieur droit est en <tt>(x+w/2, y-h/2)</tt>
+ *  - Le smmet est en <tt>(x, y+h/2)</tt>
+ * @~
+ * @image html triangle.png
  */
 triangle (x:real, y:real, w:real, h:real);
 
 /**
+ * @~english
  * Draws a right triangle.
  *
  *  Draw a right triangle with hypotenuse centered in (@p x, @p y), with width @p w and height @p h.
@@ -1444,13 +1526,18 @@ triangle (x:real, y:real, w:real, h:real);
  *  - Bottom right corner is at coordinate  <tt>(x+w/2, y-h/2)</tt>
  *  - top corner is at coordinate  <tt>(x-w/2, y+h/2)</tt>
  *
+ * @~french
+ * Affiche un triangle rectangle.
+ * L'hypoténuse est centrée en (@p x, @p y), les autres côtés sont de dimension @p w
+ * et @p h.
+ * @~
  * @image html right_triangle.png
- *
  */
 right_triangle (x:real, y:real, w:real, h:real);
 
 
 /**
+ * @~english
  * Draws an arrow.
  *
  * The arrow is centered at (@p x, @p y) and is contained in a bounding box of
@@ -1458,27 +1545,44 @@ right_triangle (x:real, y:real, w:real, h:real);
  * @p tail is the size of the the arrow relative to the overall witdh. @p tail
  * is a real comprised between 0 and 1.
  *
- * @image html arrow.png
- *
- * @note why head is in pixel and tail is a ratio ? Because when you want to
+ * @bug why head is in pixel and tail is a ratio ? Because when you want to
  * resize the arrow width you generaly want to increase the tail size, but not
  * the head's one, and when you resize the height, you want to keep the aspect ratio.
+ *
+ * @~french
+ * Affiche une flèche.
+ *
+ * La flèche est inscrite dans un rectangle centré en (@p x, @p y), de largeur
+ * @p w et de hauteur @p h pixels. @p head is the longueur de la tête de la
+ * flèche en pixels.
+ * @p tail est la taille de la queue de la flèche, relativement à la taille
+ * totale. C'est un réel compris entre 0.0 and 1.0.
+ *
+ * @~
+ * @image html arrow.png
  */
 arrow (x:real, y:real, w:real, h:real, head:real, tail:real);
 
 /**
+ * @~english
  * Creates a double arrow.
  *
  *  Draw a symetric double arraw. Similar to arrow (x:real, y:real, w:real, h:real, head:real, tail:real)
  * but with two heads.
  * @see See arrow for more details.
  *
+ * @~french
+ * Affiche une flèche à deux pointes.
+ * @see @ref arrow
+ *
+ * @~
  * @image html double_arrow.png
  *
  */
 double_arrow (x:real, y:real, w:real, h:real, head:real, body:real);
 
 /**
+ * @~english
  * Draws a star.
  *
  * This primitive defines a regular @p p-branch star centered at (@p x,@p y).
@@ -1487,28 +1591,44 @@ double_arrow (x:real, y:real, w:real, h:real, head:real, body:real);
  * branches. When @p r approaches 0, the branches get thinner. When @p r
  * gets closer to 1, the star degenerates into a regular polygon.
  *
- * @image html star.png
+ * @~french
+ * Affiche une étoile.
  *
- * @param p [integer] Number of branch
- * @param r [real] inner radius ratio
+ * Cette primitive définit une étoile régulière à p branches inscrite dans le
+ * rectangle centré en (@p x, @p y), de largeur @p w, et de hauteur @p h.
+ * @p r est un réel entre 0.0 and 1.0 qui définit l'aspect des branches
+ * Lorsque @p r est proche de 0.0, les branches deviennent plus fines.
+ * Lorsque @p r est proche de 1.0, l'étoile dégénère en polygone régulier.
+ *
+ * @~
+ * @image html star.png
  */
 star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
+ * @~english
  * Draws a star.
  *
- * This primitive draws a regular star polygon centered at (@p x,@p y).
+ * This primitive draws a regular star polygon centered at (@p x, @p y).
  * The star is obtained by placing @p p vertices regularly spaced on a
  * circle, to form a regular polygon. Then every @p q th vertices are
  * connected together.
- * @image html star_polygon.png
  *
- * @param p [integer] Number of branch
- * @param q [integer] Number of vertex to skip for sighting. q is in range [1..p/2].
+ * @~french
+ * Affiche une étoile.
+ *
+ * Cette primitive définit une étoile régulière centrée en (@p x, @p y).
+ * L'étoile est obtenue en plaçant @p p sommets régulièrement espacés sur un
+ * cercle, pour former un polygone régulier. Puis, les sommets sont reliés,
+ * tous les @p q sommets.
+ *
+ * @~
+ * @image html star_polygon.png
  */
 star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
 
 /**
+ * @~english
  * Draws a speech balloon.
  *
  * A speech ballon is made of:
@@ -1518,12 +1638,23 @@ star_polygon (x:real, y:real, w:real, h:real, p:integer, q:integer);
  *     automatically. The tail is not made of straight lines; it has a
  *     rounded shape. It is directed from the end point to the center of
  *     the speech balloon.
+ *
+ * @~french
+ * Affiche une bulle de texte.
+ *
+ * La bulle est composée des éléments suivants :
+ * - un rectangle à coins arrondis, centré en (@p x, @p y), de largeur @p w et
+ *   de hauteur @p h. Le rayon des coins est @p r.
+ * - une queue qui commence au point (@p ax, @p ay). La largeur est déterminée
+ *   automatiquement.
+ * @~
  * @image html speech_balloon.png
  *
  */
 speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
 
 /**
+ * @~english
  * Draws a callout.
  *
  * A callout is made of:
@@ -1533,18 +1664,37 @@ speech_balloon (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real);
  *     closest point on the rounded rectangle. The base of the tail has
  *     a width of @p tw pixels.
  *
+ * @~french
+ * Affiche une bulle de texte.
+ *
+ * La bulle est composée des éléments suivants :
+ * - un rectangle arrondi, centré en (@p x, @p y), de largeur @p w et
+ *   de hauteur @p h. Le rayon des coins est @p r.
+ * - une queue triangulaire, qui relie le point (@p ax, @p ay) au point le plus
+ *   proche sur le rectangle arrondi. La base de la queue a une largeur de
+ *   @p tw pixels.
+ * @~
  * @image html callout.png
  */
 callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
 
 /**
- * Draws a regular polygon
+ * @~english
+ * Draws a regular polygon.
  *
  * This primitives draws a regular polygon with @p p vertex.
  * @image html polygon.png
  * Shortcuts has been defined for polygon from 3 to 20 vertexes.
- *  -# none
- *  -# none
+ *
+ * @~french
+ * Affiche un polygone régulier.
+ *
+ * Cette primitive affiche un polygone régulier à @p p sommets.
+ * @image html polygon.png
+ * Des raccourcis existent pour les polygones de 3 de 20 sommets :
+ * @~
+ *  -# -
+ *  -# -
  *  -# equilateral_triangle
  *  -# tetragon
  *  -# pentagon
@@ -1563,8 +1713,6 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *  -# octadecagon
  *  -# enneadecagon
  *  -# icosagon
- *
- *
  */
 polygon (x:real, y:real, w:real, h:real, p:integer);
 
@@ -1588,6 +1736,7 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
 /** @} */
 
 /**
+ * @~english
  * @defgroup graph_3D 3D shapes
  * @ingroup Graphics
  * Creating 3D shapes.
@@ -1598,15 +1747,35 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
  *   - [0, y) y > 0 goes toward the top,
  *   - [0, z) z > 0 goes toward the user.
  * -  @p h, @p w, and @p d represent the width, the height and the depth of the shape respectively
- * - shapes' size including those that got round part, is given by width, heigt and depth of the bouding box.
+ * - shapes' size including those that got round part, is given by width, heigt and depth of the bounding box.
  *
  * Examples: <a href="examples/3D_samples.ddd">3D_samples.ddd</a>
  *
  * Other 3D samples are available in @ref Lighting module.
+ *
+ * @~french
+ * @defgroup graph_3D Formes géométriques 3D
+ * @ingroup Graphics
+ * Crée des formes géométriques en trois dimensions.
+ *
+ * Pour toutes les primitives 3D :
+ * -  @p x, @p y, et @p z sont les coordonnées du centre de la forme
+ *   - L'axe [0, x) x > 0 est orienté vers la droite,
+ *   - L'axe [0, y) y > 0 est orienté vers le haut,
+ *   - L'axe [0, z) z > 0 est orienté vers l'utilisateur (hors de l'écran).
+ * -  @p h, @p w et @p d sont la hauteur, la largeur et la profondeur de la
+ *    forme,
+ * - Lorsque la forme a des parties arondies, les dimensions sont celles du
+ *   pavé englobant.
+ *
+ * Exemples : <a href="examples/3D_samples.ddd">3D_samples.ddd</a>
+ *
+ * D'autres exemples sont disponibles dans @ref Lighting.
  * @{
  */
 
 /**
+ * @~english
  * Draws a sphere.
  *
  * The sphere is divided in @p slices and @p stacks. The higher the value of
@@ -1615,16 +1784,32 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
  * water-melon with the sphere primitive.
  * The @p w, @p h and @p d parameters are the dimensions along the @p x, @p y and
  * @p z axis, respectively.
+ *
+ * @~french
+ * Affiche une sphère.
+ *
+ * La sphères est divisée en @p slices tranches horizontales et @p stacks
+ * tranches verticales. Plus ces paramètres ont une valeur élevée et plus la
+ * sphère apparait lisse (mais plus elle demande du temps pour s'afficher).
+ * On peut tracer une sphère déformée en donnant des valeurs différentes à
+ * @p w, @p h et @p d.
+ * @~
  * @image html sphere.png
-
  */
 sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer);
 
 /**
+ * @~english
  * Draws a sphere.
  *
  * Sphere with diameter @p d located at (@p x, @p y, @p z).
- * Shorcut to
+ * Equivalent to:
+ *
+ * @~french
+ * Affiche une sphère.
+ *
+ * Sphère de diamètre @p d centrée en (@p x, @p y, @p z). Équivalent à :
+ * @~
 @code
 sphere x, y, z, d, d, d, 25, 25
 @endcode
@@ -1632,22 +1817,38 @@ sphere x, y, z, d, d, d, 25, 25
 sphere (x:real, y:real, z:real, r:real);
 
 /**
+ * @~english
  * Draws a torus.
  *
  * The torus is divided in @p slices and @p stacks. The higher the value of
  * these parametres are, the smoother the torus is (and longer the drawing is).
- * The torus's @p w, @p h and @p d are not aimed to be equals.
  * The minor radius of the torus is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0.
  * If @p r is 0 the drawing is a sort of opened cylinder, if @p r is 1 the torus is closed.
-
+ *
+ * @~french
+ * Affiche un tore.
+ *
+ * Le tore est divisé en @p slices tranches horizontales et @p stacks
+ * tranches verticales. Plus ces paramètres ont une valeur élevée et plus le
+ * tore apparait lisse (mais plus il demande du temps pour s'afficher).
+ * Le petit diamètre du tore est un rapport @p r de son grand diamètre.
+ * @p r est compris entre 0.0 et 1.0.
  */
 torus (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer, r:real);
 
 /**
+ * @~english
  * Draws a torus.
  *
- * Torus with diameter @p d located at (@p x, @p y, @p z).
- * Shorcut to
+ * Torus with diameter @p d, inner radius ratio @p r, located at (@p x, @p y, @p z).
+ * Equivalent to:
+ *
+ * @~french
+ * Affiche un tore.
+ *
+ * Tore de diamètre @p d, de petit diamètre (@p d * @p r), centré en
+ * (@p x, @p y, @p z). Équivalent à :
+ * @~
 @code
 torus x, y, z, d, d, d, 25, 25, r
 @endcode
@@ -1655,36 +1856,58 @@ torus x, y, z, d, d, d, 25, 25, r
 torus (x:real, y:real, z:real, d:real, r:real);
 
 /**
+ * @~english
  * Draws a cone.
  *
  * It draws a cone with a fixed number of polygon.
+ * @~french
+ * Affiche un cône.
+ * @~
  * @image html cone.png
  */
 cone (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
+ * @~english
  * Draws a truncated cone.
  *
  * The diameter of the top of the cone is a ratio @p r of its basis. @p r is a real between 0.0 and 1.0.
  * If @p r is 0 the drawing is a cone, if @p r is 1 the drawing is a cylinder.
+ *
+ * @~french
+ * Affiche un cône tronqué.
+ *
+ * Le diamètre en haut du cône est dans un rapport @p r de sa base. @p est un
+ * réel compris entre 0.0 et 1.0. Si @p r vaut 0.0 on obtient un cône complet,
+ * si @p r vaut 1.0 on obtient un cylindre.
+ * @~
  * @image html truncated_cone.png
  */
 truncated_cone (x:real, y:real, z:real, w:real, h:real, d:real, r:real);
 
 /**
+ * @~english
  * Draws a cube.
  *
  * It draws a right parallelepiped, and in a particular case a cube.
  *
+ * @~french
+ * Affiche un parallélépipède.
+ * On obtient un cube lorsque @p w, @p h et @p d sont égaux.
+ * @~
  * @image html right_parallelepiped.png
- *
  */
 cube (x:real, y:real, z:real, w:real, h:real, d:real);
 
 /**
+ * @~english
  * Draws a cylinder.
  *
- * It draws the "skin" of a cylinder
+ * It draws the "skin" of a cylinder.
+ *
+ * @~french
+ * Affiche un cylindre creux.
+ * @~
  * @image html cylinder.png
  */
 cylinder (x:real, y:real, z:real, w:real, h:real, d:real);

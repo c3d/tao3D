@@ -35,12 +35,12 @@
 /**
  * @~english
  * Converts from millimeters to pixels.
- * @param x [real] The value in mm
+ * @p x [real] is the value in mm.
  * @returns The value in pixel.
  *
  * @~french
  * Convertit des millimètres en pixels.
- * @param x [réel] La valeur en millimètres.
+ * @p x [réel] est la valeur en millimètres.
  * @returns La valeur en pixels.
  */
 x ( mm);
@@ -48,12 +48,12 @@ x ( mm);
 /**
  * @~english
  * Converts from centimeters to pixels.
- * @param x [real] The value in cm
+ * @p x [real] is the value in cm
  * @returns The value in pixel.
  *
  * @~french
  * Convertit des millimètres en pixels.
- * @param x [réel] La valeur en centimètres.
+ * @p x [réel] est la valeur en centimètres.
  * @returns La valeur en pixels.
  */
 x ( cm);
@@ -63,14 +63,14 @@ x ( cm);
  * Converts from pixels to pixels.
  *
  * This function simply returns a copy of @p x.
- * @param x [real] The value in pixel
+ * @p x [real] is the value in pixel
  * @returns The value in pixel.
  *
  * @~french
  * Convertit des pixels en pixels.
  *
  * Cette fonction renvoie simplement un copie de @p x.
- * @param x [réel] La valeur en pixels
+ * @p x [réel] est la valeur en pixels
  * @returns La valeur en pixels.
  */
 x ( px);
@@ -80,14 +80,14 @@ x ( px);
  * Convert from points (pt) to pixels.
  *
  * @p x is a value in PostScript points (1/72 inch).
- * @param x [real] The value in point
+ * @p x [real] is the value in point
  * @returns The value in pixel. 
  *
  * @~french
  * Convertit des points PostScript (pt) en pixels.
  *
  * @p x est une valeur en points PostScript (1/72 de pouce).
- * @param x [réel] La valeur en points.
+ * @p x [réel] est la valeur en points.
  * @returns La valeur en pixels.
  */
 x ( pt);
@@ -95,12 +95,12 @@ x ( pt);
 /**
  * @~english
  * Converts from inches to pixels.
- * @param x [real] The value in inches.
+ * @p x [real] is the value in inches.
  * @returns The value in pixel.
  *
  * @~french
  * Convertit des pouces en pixels.
- * @param x [réel] La valeur en pouces.
+ * @p x [réel] est la valeur en pouces.
  * @returns La valeur en pixels.
  */
 x ( inch);

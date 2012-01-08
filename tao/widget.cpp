@@ -531,6 +531,7 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     current = NULL;
     delete space;
+    delete graphicState;
     delete path;
     delete mouseFocusTracker;
     // REVISIT: delete activities?

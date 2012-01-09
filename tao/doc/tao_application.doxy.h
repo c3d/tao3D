@@ -10,6 +10,8 @@
  * @ingroup TaoGui
  * L'interface graphique de Tao Presentations peut être modifiée par le
  * document.
+ *
+ * @~
  * @{
  */
 

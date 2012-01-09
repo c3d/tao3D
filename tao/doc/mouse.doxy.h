@@ -10,6 +10,8 @@
  * @ingroup TaoBuiltins
  * Cette page regroupe les primitives relatives à la position de la souris et
  * aux événements souris, et à la sélection de formes géométriques.
+ *
+ * @~
  * @{
  */
 /**

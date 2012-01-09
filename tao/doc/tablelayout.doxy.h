@@ -29,6 +29,8 @@
  * copmosée d'un texte et d'un nombre. La dernière ligne est le total.
  *
  * @image html table.png "Exemple de tableau"
+ *
+ * @~
  * @{
  */
 

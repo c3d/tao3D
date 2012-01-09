@@ -85,6 +85,8 @@ page "Images", do
     thumb -0.25, -0.25, 0.4, "coccinelle.jpg"
     thumb  0.25, -0.25, 0.4, "perroquet.jpg"
 @endcode
+ *
+ * @~
  * @{
  */
 

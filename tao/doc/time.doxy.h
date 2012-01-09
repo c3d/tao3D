@@ -28,6 +28,8 @@
  * documentée pour chaque primitive ci-dessous.
  * - Les primitives de conversion : ce sont des variantes des précedentes, qui
  * acceptent un paramètre temps.
+ *
+ * @~
  * @{
  */
 

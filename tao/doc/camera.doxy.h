@@ -59,6 +59,8 @@
  *  - le facteur de zoom. Ce paramètre est relié à la distance focale de la
  * caméra virtuelle. Changer le zoom fait apparaître les objets plus petits
  * ou plus gros. Cf. @ref zoom.
+ *
+ * @~
  * @{
  */
 

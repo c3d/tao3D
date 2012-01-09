@@ -85,6 +85,8 @@
  * @note Actuellement, les formes XL qui définissent l'apparence du menu
  * sont définies dans <tt>tao.xl</tt> et ne peuvent pas être redéfinies dans
  * un document Tao.
+ *
+ * @~
  * @{
  */
 

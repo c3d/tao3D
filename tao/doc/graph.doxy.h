@@ -62,6 +62,7 @@
  * @include multitexturing.ddd
  * @image html multitexturing.png "Démonstration : multitexturing.ddd"
  *
+ * @~
  * @{
  */
 
@@ -1025,6 +1026,8 @@ texture_wrap (s:boolean, t:boolean);
  * @ref svg.
  *
  * Les textures sont décrites dans le groupe @ref graph_env.
+ *
+ * @~
  * @{
  */
 
@@ -1128,6 +1131,8 @@ image_size(img:text);
  *
  * Exemple :
  * <a href="examples/path_samples.ddd">path_samples.ddd</a>
+ *
+ * @~
  * @{
  */
 
@@ -1366,6 +1371,8 @@ path_color (r:real, g:real, b:real, a:real);
  * - en orange foncé, le résultat de la primitive documentée,
  * - en noir, des illustrations des paramètres de la primitive,
  * - en jaune, des points de repère.
+ *
+ * @~
  * @{
  */
 
@@ -1771,6 +1778,8 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
  * Exemples : <a href="examples/3D_samples.ddd">3D_samples.ddd</a>
  *
  * D'autres exemples sont disponibles dans @ref Lighting.
+ *
+ * @~
  * @{
  */
 

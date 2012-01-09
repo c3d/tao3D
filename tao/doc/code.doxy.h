@@ -30,6 +30,8 @@
  * @code translatex 2 cm @endcode
  * @note La distance à l'écran peut ne pas être exacte (en particulier en cas de
  * projection), mais elle est correcte lors de l'impression sur papier.
+ *
+ * @~
  * @{
  */
 /**

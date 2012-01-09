@@ -78,6 +78,7 @@ shader_program
  *
  * @image html shaders.png "Démonstration d'un vertex shader"
  *
+ * @~
  * @{
  */
 

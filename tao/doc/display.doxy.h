@@ -55,6 +55,8 @@
  * @image html vframepacking_small.png "Frame packing vertical (\"vframepacking\")"
  * @image html alioscopy_small.png "Alioscopy® (\"alioscopy\")"
  * @image html alioscopy_detail.png "Alioscopy® (détail)"
+ *
+ * @~
  * @{
  */
 

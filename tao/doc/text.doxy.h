@@ -190,6 +190,8 @@
  * @include justification.ddd
  *
  * @image html justification.png "Justification de texte"
+ *
+ * @~
  * @{
  */
 

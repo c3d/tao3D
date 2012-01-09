@@ -13,6 +13,7 @@
  *
  * Utiliser du code et des fichiers provenant de modules externes.
  *
+ * @~
  * @{
  */
 

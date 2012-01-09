@@ -30,6 +30,8 @@
  * @image html "images/frame.png"
  * Code source de cet exemple :
  * <a href="examples/frame.ddd">frame.ddd</a>
+ *
+ * @~
  * @{
  */
 /**

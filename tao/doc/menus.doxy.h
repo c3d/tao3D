@@ -78,6 +78,8 @@
  * a été cliqué une fois, puis <em>Toggle me</em> a été activé, et enfin le
  * menu a été de nouveau déroulé.
  * @image html menus.png "Création de menus depuis un document"
+ *
+ * @~
  * @{
  */
 

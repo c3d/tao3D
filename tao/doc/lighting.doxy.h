@@ -161,6 +161,8 @@ material_front_diffuse 1, 1, 0, 1
  * @include lighting.ddd
  *
  * @image html lighting.png "Exemple d'éclairage"
+ *
+ * @~
  * @{
  */
 

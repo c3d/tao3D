@@ -10,6 +10,8 @@
  * @ingroup Graphics
  *
  * Groupage, mise au premier plan ou à arrière-plan, etc.
+ *
+ * @~
  * @{
  */
 

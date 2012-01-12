@@ -65,7 +65,23 @@ Assistant::~Assistant()
 void Assistant::showDocumentation(const QString &page)
 {
     if (!registered)
-        registerQchFiles(ModuleManager::moduleManager()->qchFiles());
+    {
+        QStringList helpFiles;
+        helpFiles << ModuleManager::moduleManager()->qchFiles();
+        // Show modules in alphabetical order
+        // REVISIT: this is a quick and dirty (and buggy) way
+        helpFiles.sort();
+        // Show main Tao help file always first
+        QString taoMainHelp = Application::applicationDirPath()
+                + "/doc/" + TaoApp->lang + "/qch/TaoPresentations.qch";
+        // Load english doc if localized one is not available
+        if (!QFileInfo(taoMainHelp).exists())
+            taoMainHelp = Application::applicationDirPath()
+                    + "/doc/en/qch/TaoPresentations.qch";
+        helpFiles.prepend(taoMainHelp);
+        registerQchFiles(helpFiles);
+        registered = true;
+    }
 
     if (!startAssistant())
         return;
@@ -167,12 +183,15 @@ bool Assistant::registerDocumentation(const QStringList &files,
     bool ok = true;
     foreach (QString file, files)
     {
-        ok &= collection.registerDocumentation(file);
+        bool reg = collection.registerDocumentation(file);
         IFTRACE(assistant)
         {
             QString ns = QHelpEngineCore::namespaceName(file);
             debug() << "  + '" << +file << "' (ns '" << +ns << "')\n";
+            if (!reg)
+                debug() << "     FAILED\n";
         }
+        ok &= reg;
     }
     return ok;
 }
@@ -244,27 +263,17 @@ void Assistant::registerQchFiles(QStringList files)
             debug() << "  = '" << +file << "'\n";
     }
 
-    // The main Tao help file is always added to the list
-    QStringList taoRegistered = registeredFiles(taoCollectionFilePath());
-    files << taoRegistered;
-    files.sort();
-
     QStringList userRegistered = registeredFiles(userCollection);
-    userRegistered.sort();
 
     if (files != userRegistered)
     {
         // Need to synchronize user collection file
-/*
-  Useless - can't remove non-existing file because we can't get its namespace
-  but we need the namespace to unregister
-        QStringList remove = stringListDifference(userRegistered, files);
-        if (!remove.isEmpty())
-            unregisterDocumentation(remove, userCollection);
-*/
-        QStringList add = stringListDifference(files, userRegistered);
-        if (!add.isEmpty())
-            registerDocumentation(add, userCollection);
+        // Note - this will not unregister non-existing (deleted) files
+        // because we can't get their namespace, and we need the namespace
+        // to unregister. Not a problem because Assistant ignores missing
+        // files.
+        unregisterDocumentation(userRegistered, userCollection);
+        registerDocumentation(files, userCollection);
 
         IFTRACE(assistant)
             (void)registeredFiles(userCollection);

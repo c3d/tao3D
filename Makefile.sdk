@@ -32,6 +32,8 @@ LOREM_IPSUM_FILES = \
 	modules/lorem_ipsum/traces.tbl
 
 FILES_COMMON = \
+	doxygen.pri \
+	doxygen.sh \
 	main.pri \
 	main_defs.pri \
 	translations.pri \
@@ -45,6 +47,7 @@ FILES_COMMON = \
 	modules/modules_doc.pri \
 	modules/module_list.pri \
 	modules/tbl_wrap \
+	modules/Doxyfile \
 	$(OBJECT_LOADER_FILES) \
 	$(HELLO_WORLD_FILES) \
 	$(LOREM_IPSUM_FILES) \

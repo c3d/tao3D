@@ -44,8 +44,10 @@ $(TAO)/Tao.bin: $(TAO) install
 
 install: $(TAO)
 	(cd ../.. && $(MAKE) install) && cp -Rp ../../install/* $(TAO)
+ifndef NO_SDK
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk $(TAO)
+endif
 
 clean:
 	rm -rf $(TAO)

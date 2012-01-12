@@ -104,10 +104,12 @@ clean.cp_template:
 ########
 
 .cp_sdk_ts:
+ifndef NO_SDK
 	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk "build_root/Tao Presentations.app/Contents/MacOS"
 	touch $@
+endif
 
 clean.cp_sdk:
 	rm -rf "build_root/Tao Presentations.app/Contents/MacOS/sdk"

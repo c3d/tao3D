@@ -65,10 +65,6 @@ page "Welcome",
             color "black"
             welcome_help tao_language
     scale window_scale, window_scale, window_scale
-    locally
-        color "white"
-        translate 150, 150, 500
-        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.svg"
 
     locally
         adjust t:real ->
@@ -80,11 +76,15 @@ page "Welcome",
 
         locally
             color "white"
-            adjust 0.5 
-            image 0, 0, 150%, 150%, "welcome/MacBookPro.png"
-            welcome_flow 40, 18, page_time
+            adjust 0.5
+            image 0, 0, 150% , 150% , "welcome/MacBookPro.png"
+            locally
+                welcome_flow 40, 18, page_time
+            color "white"
+            translatez 500
+            image 0, -1500, 100% , 100% , "welcome/Taodyne_Logo.svg"
 
-    text_box -500, -300, window_width, window_height,
+    text_box 300, 150, window_width, window_height,
         font "Ubuntu", 80, bold
         line_width 2
         align_center
@@ -105,7 +105,12 @@ welcome_help T:text ->
 //   Show the welcome help
 // ----------------------------------------------------------------------------
     if T = "fr" then
-        text "Appuyer sur la touche espace pour arrêter l'animation"
+        text "Appuyer sur la touche espace pour "
+        if Animated = 1 then
+            text "arrêter "
+        else
+            text "démarrer "
+        text "l'animation"
     else
         text "Press the spacebar to "
         if Animated = 1 then
@@ -128,7 +133,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
 // ----------------------------------------------------------------------------
 //   Show the welcome flow
 // ----------------------------------------------------------------------------
-    ptime -> 0.013
+    ptime -> 0.0
     pcount -> 15
     pshown -> 35
     pdisplayed -> 35

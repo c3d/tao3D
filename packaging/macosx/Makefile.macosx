@@ -91,7 +91,7 @@ clean: clean.git clean.tao clean.dmg clean.cp_sdk
 veryclean: clean veryclean.git
 
 clean.dmg: clean.cp_template
-	rm -f tao.dmg tmp.dmg .dmg "$(DMG)"
+	rm -f tao.dmg tmp.dmg .dmg "Tao Presentations"*.dmg
 
 ########
 

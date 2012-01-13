@@ -53,5 +53,5 @@ ifndef NO_SDK
 endif
 
 clean:
-	rm -rf $(TAO)
+	rm -rf $(TAO) Tao_Presentations*.tar.bz2
 

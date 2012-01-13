@@ -41,7 +41,7 @@ ifndef NO_SDK
 endif
 
 clean:
-	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh "$(INSTALLER)"
+	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh "Tao Presentations"*.exe 
 
 %.bmp:%.bmp.gz
 	gunzip -c $< >$@

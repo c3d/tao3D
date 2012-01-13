@@ -271,9 +271,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Initialize view
     reset();
 
-    // Compute initial zoom
-    scaling = scalingFactorFromCamera();
-
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
@@ -374,6 +371,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       currentFileDialog(o.currentFileDialog),
       zNear(o.zNear), zFar(o.zFar), scaling(o.scaling),
       zoom(o.zoom), eyeDistance(o.eyeDistance),
+      cameraToScreen(o.cameraToScreen),
       cameraPosition(o.cameraPosition),
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
       eye(o.eye), eyesNumber(o.eyesNumber),
@@ -713,7 +711,8 @@ void Widget::setGlClearColor()
 }
 
 
-void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
+void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
+                       double *toScreen)
 // ----------------------------------------------------------------------------
 //   Get camera characteristics
 // ----------------------------------------------------------------------------
@@ -721,6 +720,7 @@ void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
     if (position) *position = cameraPosition;
     if (target)   *target   = cameraTarget;
     if (upVector) *upVector = cameraUpVector;
+    if (toScreen) *toScreen = cameraToScreen;
 }
 
 
@@ -1833,11 +1833,24 @@ void Widget::resetView()
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
+    zNear = 1500.0;
+    zFar  = 1e6;
+    zoom  = 1.0;
+    eyeDistance    = 100.0;
     cameraPosition = defaultCameraPosition;
-    cameraTarget = Point3(0, 0, 0);
+    cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
-    zoom = 1.0;
+    cameraToScreen = Vector3(cameraTarget - cameraPosition).Length();
     scaling = scalingFactorFromCamera();
+}
+
+
+void Widget::resetViewAndRefresh()
+// ----------------------------------------------------------------------------
+//   Restore default view parameters and refresh display
+// ----------------------------------------------------------------------------
+{
+    resetView();
     setup(width(), height());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
@@ -2000,8 +2013,7 @@ double Widget::scalingFactorFromCamera()
 //   Return the factor to use for zoom adjustments
 // ----------------------------------------------------------------------------
 {
-    Vector3 distance = cameraTarget - cameraPosition;
-    scale csf = distance.Length() / zNear;
+    scale csf = cameraToScreen / zNear;
     return csf;
 }
 
@@ -2049,16 +2061,10 @@ void Widget::setup(double w, double h, const Box *picking)
 
 void Widget::reset()
 // ----------------------------------------------------------------------------
-//   Reset view settings
+//   Reset view and other widget settings, ready to execute new document
 // ----------------------------------------------------------------------------
 {
-    zNear = 1500.0;
-    zFar  = 1e6;
-    zoom  = 1.0;
-    eyeDistance    = 100.0;
-    cameraPosition = defaultCameraPosition;
-    cameraTarget   = Point3(0.0, 0.0, 0.0);
-    cameraUpVector = Point3(0, 1, 0);
+    resetView();
     animated = true;
     blanked = false;
 }
@@ -2071,8 +2077,11 @@ void Widget::resetModelviewMatrix()
     glLoadIdentity();
 
     // Position the camera
+    Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
+    toTarget *= cameraToScreen;
+    Point3 target = cameraPosition + toTarget;
     gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-              cameraTarget.x, cameraTarget.y ,cameraTarget.z,
+              target.x, target.y ,target.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 
@@ -5660,12 +5669,12 @@ Name_p Widget::toggleBlankScreen(XL::Tree_p self)
 }
 
 
-Name_p Widget::resetView(XL::Tree_p self)
+Name_p Widget::resetViewAndRefresh(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
-    resetView();
+    resetViewAndRefresh();
     return XL::xl_true;
 }
 
@@ -5862,6 +5871,26 @@ Real_p Widget::getZFar(Tree_p self)
 {
     return new Real(zFar);
 }
+
+
+Name_p Widget::setCameraToScreen(Tree_p self, double d)
+// ----------------------------------------------------------------------------
+//   Set the distance between camera and screen
+// ----------------------------------------------------------------------------
+{
+    cameraToScreen = d;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::getCameraToScreen(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the distance between camera and screen
+// ----------------------------------------------------------------------------
+{
+    return new Real(cameraToScreen);
+}
+
 
 Infix_p Widget::currentModelMatrix(Tree_p self)
 // ----------------------------------------------------------------------------

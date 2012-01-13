@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   17
-#define TAO_MODULE_API_AGE       2
+#define TAO_MODULE_API_CURRENT   18
+#define TAO_MODULE_API_AGE       0
 
 // ========================================================================
 //
@@ -254,8 +254,9 @@ struct ModuleApi
     // statistics)
     void (*drawActivities)();
 
-    // Get camera characteristics. pos, target and/or up may be NULL.
-    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up);
+    // Get camera characteristics. pos, target, up and/or toScreen may be NULL.
+    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up,
+                      double *toScreen);
 
     // The height, in pixels, of the image to be rendered.
     int  (*renderHeight)();

@@ -15,6 +15,9 @@
  *    defines which direction is up (that is, the direction from the bottom to
  *    the top of the view). By default, the up vector of the camera is along
  *    the @p y axis of the scene.
+ *  - the distance to the screen (see @ref camera_to_screen). For items located
+ *    on the screen, the dimension in Tao units is equal to their size in
+ *    pixels. At this distance there is no stereoscopic parallax.
  * @note When a stereoscopic display mode is active, the viewpoint location
  * and the aiming point are adjusted by the amount of the eye separation.
  * Tao Presentation implements an <em>asymmetric frustum parallel axis</em>
@@ -24,8 +27,8 @@
  * by the @ref eye_distance distance. The center of the camera segment is the
  * @ref camera_position. Cameras are globally aimed at the @ref camera_target
  * point, but they are parallel: there is no inward rotation or vergence point.
- *  - the zoom factor. Controls the "focal length" of the camera. Change the
- *    zoom to make objects appear bigger or smaller. See @ref zoom.
+ *  - the zoom factor. Allows scaling the view to make objects appear bigger
+ *    or smaller. See @ref zoom.
  *
  * @~french
  * @addtogroup Camera Caméra
@@ -43,6 +46,10 @@
  *    vecteur définit quelle est la direction vers le haut par rapport à la
  *    caméra (la direction de bas en haut de la vue). Par défaut, le
  *    <em>up vector</em> est aligné le long de l'axe @p y.
+ *  - la distance à l'écran (cf. @ref camera_to_screen). Les éléments situés
+ *    sur l'écran ont une dimension en pixels égale à leur dimension en unités
+ *    Tao dans le document. De plus, à cette distance de la caméra, il n'y a
+ *    pas de parallaxe stéréoscopique.
  * @note Lorsqu'un mode d'affichage 3D stéréoscopique est activé, la position
  * de la caméra et le point visé sont automatiquement ajustés et décalés de
  * la valeur de l'espace inter-oculaire. Tao Presentation implémente une
@@ -56,9 +63,8 @@
  * est @ref camera_position. Les caméras sont globalement dirigées vers le
  * point @ref camera_target, mais elles sont parallèles : il n'y a pas de
  * rotation vers l'intérieur (point de convergence).
- *  - le facteur de zoom. Ce paramètre est relié à la distance focale de la
- * caméra virtuelle. Changer le zoom fait apparaître les objets plus petits
- * ou plus gros. Cf. @ref zoom.
+ *  - le facteur de zoom. Permet d'agrandir ou réduire la taille des objets.
+ *    Cf. @ref zoom.
  *
  * @~
  * @{
@@ -134,6 +140,37 @@ infix camera_up_vector();
  * Définit la direction verticale par rapport à la caméra.
  */
 camera_up_vector(x:real, y:real, z:real);
+
+/**
+ * @~english
+ * Returns the distance from the camera to the screen.
+ * The default value is 3000.
+ * Changing this distance will change the "focal length" of the camera. For
+ * instance, setting it to a higher value will make objects appear bigger,
+ * and will also change the perspective distortion.
+ * Objects located at this distance from the camera show no stereoscopic
+ * parallax. That is, their left and right pictures are identical.
+ * Objects located closer to the camera appear in front of the screen, while
+ * objects located farther look like they are behind.
+ * @~french
+ * Renvoie la distance entre la caméra et l'écran.
+ * La valeur par défaut est 3000.
+ * Changer cette distance revient à modifier la "distance focale" de la caméra.
+ * Par exemple, l'augmenter rend les objets plus gros et modifie également la
+ * perspective.
+ * Les objets plus proche que cette distance de la caméra semblent sortir de
+ * l'écran, tandis que les objets plus loins semblent derrière.
+ */
+real camera_to_screen();
+
+/**
+ * @~english
+ * Sets the distance from the camera to the screen.
+ * @~french
+ * Définit le facteur de zoom.
+ * Définit la distance entre la caméra et l'écran.
+ */
+camera_to_screen(real z);
 
 /**
  * @~english

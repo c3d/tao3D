@@ -63,7 +63,10 @@ define git-makeparms
 NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
 
-DMG=Tao Presentations $(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
+endif
+DMG=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
 kit: .dmg_ts
 

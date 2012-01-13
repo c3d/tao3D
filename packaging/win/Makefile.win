@@ -13,7 +13,10 @@ MAKENSIS = makensis
 RM_RF = rm -rf
 BITMAPS = inst_header.bmp uninst_header.bmp inst_welcome_finish.bmp uninst_welcome_finish.bmp
 
-INSTALLER=Tao Presentations $(shell ../../tao/updaterev.sh -n).exe
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
+endif
+INSTALLER=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).exe
 define run-nsis
 $(MAKENSIS) -DOUTFILE=taosetup.exe tao.nsi
 mv taosetup.exe "$(INSTALLER)"

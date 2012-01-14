@@ -45,6 +45,10 @@
 #include <QRegExp>
 #elif defined (Q_OS_WIN32)
 #include <windows.h>
+#elif defined (Q_OS_LINUX)
+#include <QFile>
+#include <QByteArray>
+#include <QString>
 #endif
 #endif
 
@@ -653,37 +657,57 @@ text Licences::hostID()
     {
 #if defined (Q_OS_MACX)
 
-    QProcess proc;
-    QStringList args;
-    QByteArray out;
-    args << "-rd1" << "-c" << "IOPlatformExpertDevice";
-    proc.start("/usr/sbin/ioreg", args);
-    if (proc.waitForStarted())
-        if (proc.waitForFinished())
-            out = proc.readAllStandardOutput();
-    QString sout;
-    sout.append(QString::fromUtf8(out.data()));
-    QRegExp rx("\"IOPlatformUUID\" = \"([-0-9A-F]+)\"");
-    if (rx.indexIn(sout) > -1)
-        id = +rx.cap(1);
+        // Host ID is the hardware UUID. Available through:
+        // Apple menu > About This Mac > More Info...
+
+        QProcess proc;
+        QStringList args;
+        QByteArray out;
+        args << "-rd1" << "-c" << "IOPlatformExpertDevice";
+        proc.start("/usr/sbin/ioreg", args);
+        if (proc.waitForStarted())
+            if (proc.waitForFinished())
+                out = proc.readAllStandardOutput();
+        QString sout;
+        sout.append(QString::fromUtf8(out.data()));
+        QRegExp rx("\"IOPlatformUUID\" = \"([-0-9A-F]+)\"");
+        if (rx.indexIn(sout) > -1)
+            id = +rx.cap(1);
 
 #elif defined (Q_OS_WIN32)
 
-    HKEY hKey;
-    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
-                      "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
-                      KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
-    {
-        BYTE pid[200];
-        DWORD dataLength = sizeof(pid);
-        if (RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
-                             pid, &dataLength) == ERROR_SUCCESS)
+        // Host ID is the Windows Product ID. Available trough:
+        // My Computer > Properties...
+
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                          "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
+                          KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
         {
-            id = +QString::fromLocal8Bit((char *)&pid + 8, 23);
+            BYTE pid[200];
+            DWORD dataLength = sizeof(pid);
+            if (RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
+                                 pid, &dataLength) == ERROR_SUCCESS)
+            {
+                id = +QString::fromLocal8Bit((char *)&pid + 8, 23);
+            }
+            RegCloseKey(hKey);
         }
-        RegCloseKey(hKey);
-    }
+
 #elif defined (Q_OS_LINUX)
+
+        // Host ID is the MAC address of eth0, without ":". Available through:
+        // cat /sys/class/net/eth0/address | tr -d :
+
+        QFile f("/sys/class/net/eth0/address");
+        f.open(QIODevice::ReadOnly);
+        QByteArray ba = f.readAll();
+        if (!ba.isEmpty())
+        {
+            QString addr = QString::fromLocal8Bit(ba.data(), ba.size());
+            addr.replace(":", "");
+            id = +addr;
+        }
 
 #endif
     }

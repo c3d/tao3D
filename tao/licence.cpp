@@ -38,6 +38,12 @@
 
 #ifndef KEYGEN
 #include <QMessageBox>
+#ifdef Q_OS_MACX
+#include <QProcess>
+#include <QStringList>
+#include <QByteArray>
+#include <QRegExp>
+#endif
 #endif
 
 using namespace CryptoPP;
@@ -99,7 +105,8 @@ void Licences::addLicenceFile(kstring licfname)
         // REVISIT: We may want to add host, ip, MAC, display type, ...
         START, DIGEST, DONE, TAG,
         NAME, COMPANY, ADDRESS, EMAIL, FEATURES,
-        EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR
+        EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR,
+        HOSTID
     } state = START;
 
     while (state != DONE)
@@ -144,8 +151,10 @@ void Licences::addLicenceFile(kstring licfname)
                     state = EXPIRY_DAY;
                 else if (item == "digest")
                     state = DIGEST;
+                else if (item == "hostid")
+                    state = HOSTID;
                 else
-                    licenceError(licfname, tr("Invalid tag"));
+                    licenceError(licfname, tr("Invalid tag: %1").arg(+item));
                 break;
             default:
                 licenceError(licfname, tr("Invalid token"));
@@ -203,6 +212,22 @@ void Licences::addLicenceFile(kstring licfname)
             PARSE_IDENTITY(COMPANY, company, additional.company);
             PARSE_IDENTITY(ADDRESS, address, additional.address);
             PARSE_IDENTITY(EMAIL, email, additional.email);
+
+        case HOSTID:
+            if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
+            {
+                text item = scanner.TextValue();
+                state = TAG;
+#ifndef KEYGEN
+                /* Check validity of host ID  */
+                if (item != "" && item != hostID())
+                {
+                    licenceError(licfname, tr("Invalid %1").arg("hostid"));
+                    state = DONE;
+                }
+#endif
+                additional.hostid = item;
+            }
 
         case FEATURES:
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
@@ -304,7 +329,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = DONE;
             }
             break;
-            
+
         } // switch(state)
 
         // Check if we have a complete licence, if so enter it
@@ -356,6 +381,8 @@ text Licences::toText(LicenceFile &lf)
         os << "address \"" << lf.address << "\"\n";
     if (lf.email.length())
         os << "email \"" << lf.email << "\"\n";
+    if (lf.hostid.length())
+        os << "hostid \"" << lf.hostid << "\"\n";
 
     // Loop on all data blocks
     uint i, max = lf.licences.size();
@@ -610,6 +637,42 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
         oops->addButton(QMessageBox::Close);
         oops->open();
     }
+}
+
+
+text Licences::hostID()
+// ----------------------------------------------------------------------------
+//   Return unique host identifier
+// ----------------------------------------------------------------------------
+{
+    static text id;
+
+    if (id == "")
+    {
+#if defined (Q_OS_MACX)
+
+    QProcess proc;
+    QStringList args;
+    QByteArray out;
+    args << "-rd1" << "-c" << "IOPlatformExpertDevice";
+    proc.start("/usr/sbin/ioreg", args);
+    if (proc.waitForStarted())
+        if (proc.waitForFinished())
+            out = proc.readAllStandardOutput();
+    QString sout;
+    sout.append(QString::fromUtf8(out.data()));
+    QRegExp rx("\"IOPlatformUUID\" = \"([-0-9A-F]+)\"");
+    if (rx.indexIn(sout) > -1)
+        id = +rx.cap(1);
+
+#elif defined (Q_OS_WIN32)
+
+#elif defined (Q_OS_LINUX)
+
+#endif
+    }
+
+    return id;
 }
 #endif // KEYGEN
 

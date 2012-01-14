@@ -52,6 +52,7 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
+#include "licence.h"
 
 #include <iostream>
 #include <sstream>
@@ -1353,7 +1354,10 @@ void Window::licenses()
                 "loaded automatically.</p>"
                 "<center><a href=\"%1%2\">"
                 "Open the license folder</a></center>"
-                ).arg(prefix).arg(Application::userLicenseFolderPath());
+                "<p>Your host identifier (hostid):</p>"
+                "<center>%3</center>"
+                ).arg(prefix).arg(Application::userLicenseFolderPath())
+                 .arg(+Licences::hostID());
 
     QMessageBox *msgBox = new QMessageBox;
     msgBox->setAttribute(Qt::WA_DeleteOnClose);

@@ -71,6 +71,8 @@ public:
             WarnUnlicenced(feature, days, critical);
         return days > 0;
     }
+
+    static text hostID();
 #endif
 
     static text Name()
@@ -101,6 +103,7 @@ private:
         text                company;
         text                address;
         text                email;
+        text                hostid;
     };
 
 private:

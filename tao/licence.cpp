@@ -38,11 +38,13 @@
 
 #ifndef KEYGEN
 #include <QMessageBox>
-#ifdef Q_OS_MACX
+#if defined (Q_OS_MACX)
 #include <QProcess>
 #include <QStringList>
 #include <QByteArray>
 #include <QRegExp>
+#elif defined (Q_OS_WIN32)
+#include <windows.h>
 #endif
 #endif
 
@@ -667,6 +669,20 @@ text Licences::hostID()
 
 #elif defined (Q_OS_WIN32)
 
+    HKEY hKey;
+    if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                      "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
+                      KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+    {
+        BYTE pid[200];
+        DWORD dataLength = sizeof(pid);
+        if (RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
+                             pid, &dataLength) == ERROR_SUCCESS)
+        {
+            id = +QString::fromLocal8Bit((char *)&pid + 8, 23);
+        }
+        RegCloseKey(hKey);
+    }
 #elif defined (Q_OS_LINUX)
 
 #endif

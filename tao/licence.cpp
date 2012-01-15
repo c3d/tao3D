@@ -631,17 +631,24 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
         oops->setAttribute(Qt::WA_DeleteOnClose);
         oops->setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
         oops->setWindowTitle(tr("Not licenced"));
+        oops->setText(tr("<center>Not licenced</center>"));
         if (days == 0)
-            oops->setText(tr("You do not have a valid licence for %1. "
-                            "Please contact Taodyne to obtain valid "
-                            "licence files.").arg(+feature));
+            oops->setInformativeText(tr("<p>You do not have a valid licence "
+                "for %1.</p><p>Please contact Taodyne to obtain valid licence "
+                "files.</p><p>Host identifier:</p> <center>%2</center></html>")
+                                     .arg(+feature).arg(+Licences::hostID()));
         else
-            oops->setText(tr("You no longer have a valid licence for %1. "
-                            "The licence you had expired %2 days ago. "
-                            "Please contact Taodyne to obtain valid "
-                            "licence files.").arg(+feature).arg(-days));
+            oops->setInformativeText(tr("<pYou no longer have a valid licence "
+                "for %1.</p><p>The licence you had expired %2 days ago. </p>"
+                "<p>Please contact Taodyne to obtain valid licence files.</p>"
+                "<p>Host identifier:</p><center>%3</center></html>")
+                                     .arg(+feature).arg(-days)
+                                     .arg(+Licences::hostID()));
         oops->addButton(QMessageBox::Close);
-        oops->open();
+        if (critical)
+            oops->exec(); // Blocking ; e.g. initial test in Application
+        else
+            oops->open(); // Non-blocking
     }
 }
 

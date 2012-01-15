@@ -635,13 +635,13 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
         if (days == 0)
             oops->setInformativeText(tr("<p>You do not have a valid licence "
                 "for %1.</p><p>Please contact Taodyne to obtain valid licence "
-                "files.</p><p>Host identifier:</p> <center>%2</center></html>")
+                "files.</p><p>Host identifier:</p><center>%2</center>")
                                      .arg(+feature).arg(+Licences::hostID()));
         else
-            oops->setInformativeText(tr("<pYou no longer have a valid licence "
-                "for %1.</p><p>The licence you had expired %2 days ago. </p>"
+            oops->setInformativeText(tr("<p>You no longer have a valid licence "
+                "for %1.</p><p>The licence you had expired %2 days ago.</p>"
                 "<p>Please contact Taodyne to obtain valid licence files.</p>"
-                "<p>Host identifier:</p><center>%3</center></html>")
+                "<p>Host identifier:</p><center>%3</center>")
                                      .arg(+feature).arg(-days)
                                      .arg(+Licences::hostID()));
         oops->addButton(QMessageBox::Close);

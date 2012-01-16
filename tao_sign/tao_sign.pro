@@ -24,6 +24,7 @@ SOURCES += sign.cpp
 HEADERS += ../tao/licence.h
 CONFIG  += console static
 CONFIG  -= app_bundle
+QT      -= gui
 
 # Turn off warnings caused by Crypto++ headers (unused parameters)
 CONFIG += warn_off

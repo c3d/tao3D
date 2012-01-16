@@ -141,6 +141,7 @@ public slots:
     void        setCursor(const QCursor &);
     QCursor     cursor() const;
     void        resetView();
+    void        resetViewAndRefresh();
     void        zoomIn();
     void        zoomOut();
     void        saveAndCommit();
@@ -184,7 +185,8 @@ public:
     void        drawSelection();
     void        drawActivities();
     void        setGlClearColor();
-    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector);
+    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
+                          double *toScreen);
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -409,7 +411,7 @@ public:
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
-    Name_p      resetView(Tree_p self);
+    Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
@@ -427,6 +429,8 @@ public:
     Real_p      getZNear(Tree_p self);
     Name_p      setZFar(Tree_p self, double zf);
     Real_p      getZFar(Tree_p self);
+    Name_p      setCameraToScreen(Tree_p self, double d);
+    Real_p      getCameraToScreen(Tree_p self);
     Infix_p     currentModelMatrix(Tree_p self);
     Integer_p   lastModifiers(Tree_p self);
 
@@ -967,6 +971,7 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     double                zNear, zFar, scaling, zoom, eyeDistance;
+    double                cameraToScreen;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
     int                   eye, eyesNumber;

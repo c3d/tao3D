@@ -52,6 +52,7 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
+#include "licence.h"
 
 #include <iostream>
 #include <sstream>
@@ -130,9 +131,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Undo/redo management
     undoStack = new QUndoStack();
     createUndoView();
-
-    // Online doc viewer
-    assistant = new Assistant(this);
 
     // Create menus, actions, stuff
     createActions();
@@ -1353,7 +1351,10 @@ void Window::licenses()
                 "loaded automatically.</p>"
                 "<center><a href=\"%1%2\">"
                 "Open the license folder</a></center>"
-                ).arg(prefix).arg(Application::userLicenseFolderPath());
+                "<p>Your host identifier (hostid):</p>"
+                "<center>%3</center>"
+                ).arg(prefix).arg(Application::userLicenseFolderPath())
+                 .arg(+Licences::hostID());
 
     QMessageBox *msgBox = new QMessageBox;
     msgBox->setAttribute(Qt::WA_DeleteOnClose);
@@ -1387,7 +1388,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
-    assistant->showDocumentation("index.html");
+    Assistant::instance()->showDocumentation("index.html");
 }
 
 
@@ -2098,7 +2099,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         bool animated = taoWidget->hasAnimations();
         taoWidget->enableAnimations(NULL, false);
         taoWidget->resetTimes();
-        taoWidget->resetView();
+        taoWidget->resetViewAndRefresh();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
         if (animated)

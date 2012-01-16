@@ -83,6 +83,7 @@ Application::Application(int & argc, char ** argv)
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
+      startDir(QDir::currentPath()),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
@@ -456,6 +457,8 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
+        if (!QFileInfo(sourceFile).isAbsolute())
+            sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
         {

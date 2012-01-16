@@ -71,7 +71,7 @@ osflags() {
   UNAME=`uname`
   case "$UNAME" in
     Darwin)
-      echo "-spec macx-g++ CONFIG+=x86"
+      echo "-spec macx-g++"
       ;;
     MINGW*)
       echo "-spec win32-g++"

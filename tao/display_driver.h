@@ -68,7 +68,8 @@ public:
     static void         setupGl();
     static void         showGlErrors();
     static bool         setStereo(bool on);
-    static void         getCamera(Point3 *pos, Point3 *target, Vector3 *up);
+    static void         getCamera(Point3 *pos, Point3 *target, Vector3 *up,
+                                  double *toScreen);
     static int          renderHeight();
     static int          renderWidth();
     static double       zNear();

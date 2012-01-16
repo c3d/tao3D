@@ -44,6 +44,7 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QLibraryInfo>
 #include <QtCore/QLocale>
+#include <QtCore/QSettings>
 #include <QtCore/QScopedPointer>
 #include <QtCore/QStringList>
 #include <QtCore/QTranslator>
@@ -301,7 +302,9 @@ void setupTranslation(const QString &fileName, const QString &dir)
 void setupTranslations()
 {
     TRACE_OBJ
-    const QString& locale = QLocale::system().name();
+    QString locale = QLocale().name().left(2);
+    locale = QSettings("Taodyne", "Tao Presentations")
+            .value("uiLanguage", locale).toString();
     const QString &resourceDir
         = QCoreApplication::applicationDirPath();
     setupTranslation(QLatin1String("assistant_") + locale, resourceDir);

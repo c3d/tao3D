@@ -287,7 +287,6 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
-    Assistant        *assistant;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

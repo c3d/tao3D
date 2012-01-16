@@ -132,9 +132,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     undoStack = new QUndoStack();
     createUndoView();
 
-    // Online doc viewer
-    assistant = new Assistant(this);
-
     // Create menus, actions, stuff
     createActions();
     createMenus();
@@ -1391,7 +1388,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
-    assistant->showDocumentation("index.html");
+    Assistant::instance()->showDocumentation("index.html");
 }
 
 

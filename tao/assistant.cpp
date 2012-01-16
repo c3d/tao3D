@@ -45,6 +45,8 @@ QT_END_NAMESPACE
 namespace Tao {
 
 
+Assistant * Assistant::assistant = NULL;
+
 Assistant::Assistant(QWidget *parent)
     : registered(false), proc(NULL), parent(parent)
 {
@@ -62,8 +64,17 @@ Assistant::~Assistant()
 }
 
 
+Assistant * Assistant::instance()
+{
+    if (!assistant)
+        assistant = new Assistant();
+    return assistant;
+}
+
+
 void Assistant::showDocumentation(const QString &page)
 {
+    Q_UNUSED(page);
     if (!registered)
     {
         QStringList helpFiles;

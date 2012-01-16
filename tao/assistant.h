@@ -45,6 +45,8 @@ public:
 
     void           showDocumentation(const QString &file);
 
+public:
+    static Assistant * instance();
 private slots:
     void           readStandardOutput();
     void           readStandardError();
@@ -74,6 +76,9 @@ private:
     QProcess *     proc;
     QWidget *      parent;
     QString        warnTitle;
+
+private:
+    static Assistant *  assistant;
 };
 
 }

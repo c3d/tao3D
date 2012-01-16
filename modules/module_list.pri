@@ -38,7 +38,8 @@
        shaders/glow  \
        slideshow_3d \
        vlc_audio_video \
-       stereo_decoder
+       stereo_decoder \
+       carousel
     OTHER_MODULES =     \
         hello_world     \
         netaccess        \

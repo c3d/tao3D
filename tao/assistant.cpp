@@ -94,13 +94,25 @@ void Assistant::showDocumentation(const QString &page)
         registered = true;
     }
 
-    if (!startAssistant())
-        return;
-return;
-    QByteArray ba("SetSource ");
-    ba.append("qthelp://com.taodyne.TaoPresentations.1.0.0/");
+    startAssistant();
+    return;
+}
 
-    proc->write(ba + page.toLocal8Bit() + '\n');
+
+void Assistant::showKeywordHelp(const QString keyword)
+// ----------------------------------------------------------------------------
+//   Show help about keyword
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(assistant)
+            debug() << "Show keyword help: '" << +keyword << "'\n";
+
+    instance()->startAssistant();
+
+    QByteArray ba("activatekeyword ");
+    ba.append(keyword);
+
+    instance()->proc->write(ba + '\n');
 }
 
 

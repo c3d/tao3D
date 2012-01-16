@@ -24,6 +24,7 @@
 #include "xl_source_edit.h"
 #include "xl_highlighter.h"
 #include "tao_utf8.h"
+#include "assistant.h"
 #include <QScrollBar>
 #include <QEvent>
 #include <QKeyEvent>
@@ -154,6 +155,10 @@ bool XLSourceEdit::event(QEvent *e)
             else
                 done = handleTabKey(ke);
         }
+        else if (ke->key() == Qt::Key_F1)
+        {
+            done = handleF1Key(ke);
+        }
         if (done)
             return done;
     }
@@ -177,6 +182,20 @@ bool XLSourceEdit::handleShiftTabKey(QKeyEvent *)
 // ----------------------------------------------------------------------------
 {
     textCursor().insertText("\t");
+    return true;
+}
+
+
+bool XLSourceEdit::handleF1Key(QKeyEvent *)
+// ----------------------------------------------------------------------------
+//   Open help about the word under the cursor
+// ----------------------------------------------------------------------------
+{
+    QTextCursor tc = textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    QString keyword = tc.selectedText();
+    if (!keyword.isEmpty())
+        Assistant::instance()->showKeywordHelp(keyword);
     return true;
 }
 

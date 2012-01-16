@@ -47,6 +47,8 @@ public:
 
 public:
     static Assistant * instance();
+    static void    showKeywordHelp(const QString keyword);
+
 private slots:
     void           readStandardOutput();
     void           readStandardError();

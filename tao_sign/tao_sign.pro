@@ -57,24 +57,18 @@ include(expires.pri)
 !isEmpty(EXPIRES_LINE):SIGN=1
 contains(TAO_EDITION, Discovery):SIGN=1
 !isEmpty(TAO_EDITION):EDITION_STR="$$TAO_EDITION "
-LATEST_TAG=$$system(git describe --tags --abbrev=0)
-LATEST_TAG=$$replace(LATEST_TAG, \\., \\.)
 !build_pass:message(---)
-!isEmpty(LATEST_TAG) {
-  FEATURES = \"Tao Presentations $${EDITION_STR}$${LATEST_TAG}.*\"  # Allows any version based on current tag
-  !build_pass {
-    message(--- We will install the following licence:)
-    message(---)
-    !isEmpty(EXPIRES):message(--- expires $$EXPIRES)
-    message(--- features $$FEATURES)
-    isEmpty(SIGN) {
-      message(--- License file will NOT be signed (template only))
-    } else {
-      message(--- License file will be signed (valid))
-    }
+FEATURES = \"Tao Presentations $${EDITION_STR}1\\..*\"  # Allows any version 1.*
+!build_pass {
+  message(--- We will install the following licence:)
+  message(---)
+  !isEmpty(EXPIRES):message(--- expires $$EXPIRES)
+  message(--- features $$FEATURES)
+  isEmpty(SIGN) {
+    message(--- License file will NOT be signed (template only))
+  } else {
+    message(--- License file will be signed (valid))
   }
-} else {
-  !build_pass:message(--- No default licence file will be installed)
 }
 !build_pass:message(---)
 QMAKE_SUBSTITUTES += licence.taokey.notsigned.in

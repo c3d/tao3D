@@ -134,6 +134,7 @@ public:
 private:
     QStringList  pathList;
     QStringList  urlList;
+    QString      startDir;
     SplashScreen *splash;
     int          pendingOpen;
     bool         hadWin;

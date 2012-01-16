@@ -38,6 +38,18 @@
 
 #ifndef KEYGEN
 #include <QMessageBox>
+#if defined (Q_OS_MACX)
+#include <QProcess>
+#include <QStringList>
+#include <QByteArray>
+#include <QRegExp>
+#elif defined (Q_OS_WIN32)
+#include <windows.h>
+#elif defined (Q_OS_LINUX)
+#include <QFile>
+#include <QByteArray>
+#include <QString>
+#endif
 #endif
 
 using namespace CryptoPP;
@@ -99,7 +111,8 @@ void Licences::addLicenceFile(kstring licfname)
         // REVISIT: We may want to add host, ip, MAC, display type, ...
         START, DIGEST, DONE, TAG,
         NAME, COMPANY, ADDRESS, EMAIL, FEATURES,
-        EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR
+        EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR,
+        HOSTID
     } state = START;
 
     while (state != DONE)
@@ -144,8 +157,10 @@ void Licences::addLicenceFile(kstring licfname)
                     state = EXPIRY_DAY;
                 else if (item == "digest")
                     state = DIGEST;
+                else if (item == "hostid")
+                    state = HOSTID;
                 else
-                    licenceError(licfname, tr("Invalid tag"));
+                    licenceError(licfname, tr("Invalid tag: %1").arg(+item));
                 break;
             default:
                 licenceError(licfname, tr("Invalid token"));
@@ -203,6 +218,22 @@ void Licences::addLicenceFile(kstring licfname)
             PARSE_IDENTITY(COMPANY, company, additional.company);
             PARSE_IDENTITY(ADDRESS, address, additional.address);
             PARSE_IDENTITY(EMAIL, email, additional.email);
+
+        case HOSTID:
+            if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
+            {
+                text item = scanner.TextValue();
+                state = TAG;
+#ifndef KEYGEN
+                /* Check validity of host ID  */
+                if (item != "" && item != hostID())
+                {
+                    licenceError(licfname, tr("Invalid %1").arg("hostid"));
+                    state = DONE;
+                }
+#endif
+                additional.hostid = item;
+            }
 
         case FEATURES:
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
@@ -304,7 +335,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = DONE;
             }
             break;
-            
+
         } // switch(state)
 
         // Check if we have a complete licence, if so enter it
@@ -356,6 +387,8 @@ text Licences::toText(LicenceFile &lf)
         os << "address \"" << lf.address << "\"\n";
     if (lf.email.length())
         os << "email \"" << lf.email << "\"\n";
+    if (lf.hostid.length())
+        os << "hostid \"" << lf.hostid << "\"\n";
 
     // Loop on all data blocks
     uint i, max = lf.licences.size();
@@ -598,18 +631,95 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
         oops->setAttribute(Qt::WA_DeleteOnClose);
         oops->setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
         oops->setWindowTitle(tr("Not licenced"));
+        oops->setText(tr("<center>Not licenced</center>"));
         if (days == 0)
-            oops->setText(tr("You do not have a valid licence for %1. "
-                            "Please contact Taodyne to obtain valid "
-                            "licence files.").arg(+feature));
+            oops->setInformativeText(tr("<p>You do not have a valid licence "
+                "for %1.</p><p>Please contact Taodyne to obtain valid licence "
+                "files.</p><p>Host identifier:</p><center>%2</center>")
+                                     .arg(+feature).arg(+Licences::hostID()));
         else
-            oops->setText(tr("You no longer have a valid licence for %1. "
-                            "The licence you had expired %2 days ago. "
-                            "Please contact Taodyne to obtain valid "
-                            "licence files.").arg(+feature).arg(-days));
+            oops->setInformativeText(tr("<p>You no longer have a valid licence "
+                "for %1.</p><p>The licence you had expired %2 days ago.</p>"
+                "<p>Please contact Taodyne to obtain valid licence files.</p>"
+                "<p>Host identifier:</p><center>%3</center>")
+                                     .arg(+feature).arg(-days)
+                                     .arg(+Licences::hostID()));
         oops->addButton(QMessageBox::Close);
-        oops->open();
+        if (critical)
+            oops->exec(); // Blocking ; e.g. initial test in Application
+        else
+            oops->open(); // Non-blocking
     }
+}
+
+
+text Licences::hostID()
+// ----------------------------------------------------------------------------
+//   Return unique host identifier
+// ----------------------------------------------------------------------------
+{
+    static text id;
+
+    if (id == "")
+    {
+#if defined (Q_OS_MACX)
+
+        // Host ID is the hardware UUID. Available through:
+        // Apple menu > About This Mac > More Info...
+
+        QProcess proc;
+        QStringList args;
+        QByteArray out;
+        args << "-rd1" << "-c" << "IOPlatformExpertDevice";
+        proc.start("/usr/sbin/ioreg", args);
+        if (proc.waitForStarted())
+            if (proc.waitForFinished())
+                out = proc.readAllStandardOutput();
+        QString sout;
+        sout.append(QString::fromUtf8(out.data()));
+        QRegExp rx("\"IOPlatformUUID\" = \"([-0-9A-F]+)\"");
+        if (rx.indexIn(sout) > -1)
+            id = +rx.cap(1);
+
+#elif defined (Q_OS_WIN32)
+
+        // Host ID is the Windows Product ID. Available trough:
+        // My Computer > Properties...
+
+        HKEY hKey;
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                          "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
+                          KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+        {
+            BYTE pid[200];
+            DWORD dataLength = sizeof(pid);
+            if (RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
+                                 pid, &dataLength) == ERROR_SUCCESS)
+            {
+                id = +QString::fromLocal8Bit((char *)&pid + 8, 23);
+            }
+            RegCloseKey(hKey);
+        }
+
+#elif defined (Q_OS_LINUX)
+
+        // Host ID is the MAC address of eth0, without ":". Available through:
+        // cat /sys/class/net/eth0/address | tr -d :
+
+        QFile f("/sys/class/net/eth0/address");
+        f.open(QIODevice::ReadOnly);
+        QByteArray ba = f.readAll();
+        if (!ba.isEmpty())
+        {
+            QString addr = QString::fromLocal8Bit(ba.data(), ba.size());
+            addr.replace(":", "");
+            id = +addr;
+        }
+
+#endif
+    }
+
+    return id;
 }
 #endif // KEYGEN
 

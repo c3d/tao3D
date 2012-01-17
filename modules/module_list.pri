@@ -39,7 +39,8 @@
        slideshow_3d \
        vlc_audio_video \
        stereo_decoder \
-       carousel
+       carousel \
+       revolving_texts
     OTHER_MODULES =     \
         hello_world     \
         netaccess        \

@@ -61,7 +61,7 @@ carousel(n:integer, w:integer, d:integer);
  * @~english
  * Add an item to the carousel.
  *
- * Set an item to the slot @n of the carousel.
+ * Set an item to the slot @p n of the carousel.
 @code
 // Set an item to the slot 1
 carousel_item 1 -> image 0, 0, 1, 1, "flowers.png"
@@ -70,7 +70,7 @@ carousel_item 1 -> image 0, 0, 1, 1, "flowers.png"
  * @~french
  * Ajoute un élément au carrousel.
  *
- * Intégre un élément à la position @n du carrousel.
+ * Intégre un élément à la position @p n du carrousel.
 @code
 // Ajoute un élément à la position 1 du carousel
 carousel_item 1 -> image 0, 0, 1, 1, "flowers.png"
@@ -97,7 +97,7 @@ carousel 2, 400, 800
 carousel_hand
 @endcode
  */
-carousel_hand(n:integer);
+carousel_hand();
 
 /**
  * @~english

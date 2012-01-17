@@ -83,6 +83,7 @@ Application::Application(int & argc, char ** argv)
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
+      startDir(QDir::currentPath()),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
@@ -114,13 +115,11 @@ Application::Application(int & argc, char ** argv)
     lang = QLocale().name().left(2);
     lang = QSettings().value("uiLanguage", lang).toString();
     if (translator.load(QString("tao_") + lang, applicationDirPath()))
-    {
         installTranslator(&translator);
-        QString path = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
-        QString file = QString("qt_") + lang;
-        if (qtTranslator.load(file, path))
-            installTranslator(&qtTranslator);
-    }
+    if (qtTranslator.load(QString("qt_") + lang, applicationDirPath()))
+        installTranslator(&qtTranslator);
+    if (qtHelpTranslator.load(QString("qt_help_")+ lang, applicationDirPath()))
+        installTranslator(&qtHelpTranslator);
 
     // Set current directory
     QDir::setCurrent(applicationDirPath());
@@ -156,18 +155,17 @@ Application::Application(int & argc, char ** argv)
                               +builtins.canonicalFilePath());
 
     // Load licenses
-    QDir dir(Application::defaultLicenseFolderPath());
-    QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
-                                               QDir::Files);
-    foreach (QFileInfo licence, licences)
+    QList<QDir> dirs;
+    dirs << QDir(Application::userLicenseFolderPath())
+         << QDir(Application::appLicenseFolderPath());
+    foreach (QDir dir, dirs)
     {
-        text lpath = +licence.canonicalFilePath();
-        IFTRACE(fileload)
-            std::cerr << "Loading license file: " << lpath << "\n";
-        Licences::AddLicenceFile(lpath.c_str());
+        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                                   QDir::Files);
+        Licences::AddLicenceFiles(licences);
     }
 
-    // Check licence
+    // Check main application licence
     if (!Licences::Check(TAO_LICENCE_STR, true))
         ::exit(15);
 
@@ -386,8 +384,9 @@ void Application::checkModules()
     connect(moduleManager, SIGNAL(updating(QString)),
             this, SLOT(updatingModule(QString)));
     moduleManager->init();
-    // Load only auto-load modules (the ones that do not have an import_name)
-    moduleManager->loadAnonymousNative(XL::MAIN->context);
+    // Load and initialize only auto-load modules (the ones that do not have an
+    // import_name, or have the auto_load property set)
+    moduleManager->loadAutoLoadModules(XL::MAIN->context);
 }
 
 
@@ -458,6 +457,8 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
+        if (!QFileInfo(sourceFile).isAbsolute())
+            sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
         {
@@ -927,37 +928,13 @@ QString Application::defaultProjectFolderPath()
 }
 
 
-QString Application::appDataPath()
-// ----------------------------------------------------------------------------
-//    Try to guess the best user preference folder to use by default
-// ----------------------------------------------------------------------------
-{
-#if   defined (CONFIG_MACOSX)
-    return QDir::homePath() + "/Library/Application Support";
-#elif defined (CONFIG_MINGW)
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QString path = env.value("APPDATA");
-    if (path != "")
-        return path;
-#endif
-
-    // Default would be home itself
-    return QDir::toNativeSeparators(QDir::homePath());
-}
-
-
 QString Application::defaultTaoPreferencesFolderPath()
 // ----------------------------------------------------------------------------
 //    The folder proposed to find user.xl, style.xl, etc...
 //    (user preferences for tao application)
 // ----------------------------------------------------------------------------
 {
-#if   defined (CONFIG_LINUX)
-    QString tao = "/.tao";
-#else // Win, MacOS
-    QString tao = "/Tao Presentations";
-#endif
-    return QDir::toNativeSeparators(appDataPath() + tao);
+    return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 }
 
 
@@ -979,12 +956,25 @@ QString Application::defaultTaoFontsFolderPath()
 }
 
 
-QString Application::defaultLicenseFolderPath()
+QString Application::appLicenseFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder where Tao looks for license files on startup
+//    Licences packaged with the application
 // ----------------------------------------------------------------------------
 {
     return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
+}
+
+
+QString Application::userLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    User licences (persist even when Tao is uninstalled/upgraded)
+// ----------------------------------------------------------------------------
+{
+    // Create folder if it does not exist
+    QDir dir(defaultTaoPreferencesFolderPath()+"/licenses");
+    if (!dir.exists())
+        dir.mkpath(dir.absolutePath());
+    return QDir::toNativeSeparators(dir.absolutePath());
 }
 
 

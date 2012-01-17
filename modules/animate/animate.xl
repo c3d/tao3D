@@ -32,6 +32,13 @@ module_description "fr",
     name "Animations"
     description "Fonctions d'animation."
 
+// Compatibility with wireless remotes
+// Normally, PageUp and PageDown skip pages. But, most remotes have only
+// two keys and send PageUp/PageDown. So, when the Animate module is in
+// use it's better to bind the keys to the 'skip' function by default.
+key "PageUp" -> skip -1
+key "PageDown" -> skip 1
+
 // ============================================================================
 // 
 //    Interpolation functions

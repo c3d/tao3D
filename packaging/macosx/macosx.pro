@@ -20,4 +20,6 @@ distclean.depends = clean
 QMAKE_EXTRA_TARGETS = kit prepare clean distclean
 
 include (../../main_defs.pri)
+ARCH=x86_64
+contains(CONFIG, x86):ARCH=x86
 QMAKE_SUBSTITUTES = Makefile.config.in

@@ -150,6 +150,16 @@ void TextureWrap::Draw(Layout *where)
     where->fillTextures[glUnit].wrapT = t;
 }
 
+void TextureMode::Draw(Layout *where)
+// ------------------------------------------------------------- ---------------
+//   Replay a texture mode
+// ----------------------------------------------------------------------------
+{
+    uint glUnit = where->currentTexture.unit;
+    where->fillTextures[glUnit].mode = mode;
+}
+
+
 void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode
@@ -387,24 +397,7 @@ void ConvertScreenCoordinates::Draw(Layout *where)
 
     widget->recordProjection(info->projection, info->model, info->viewport);
 
-    Point3 win;
-    GLfloat pixelDepth;
-
-    // Map object coordinates to window coordinates
-    gluProject(x, y, 0,
-               info->model, info->projection, info->viewport,
-               &win.x, &win.y, &win.z);
-
-    // Read depth buffer
-    glReadPixels(win.x, win.y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,
-                 &pixelDepth);
-
-    // Map window coordinates to object coordinates
-    gluUnProject(win.x, win.y, pixelDepth,
-                 info->model, info->projection, info->viewport,
-                 &info->coordinates.x,
-                 &info->coordinates.y,
-                 &info->coordinates.z);
+    info->coordinates = widget->objectToWorld(x, y, info->projection, info->model, info->viewport);
 }
 
 TAO_END

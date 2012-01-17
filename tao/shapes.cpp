@@ -68,7 +68,7 @@ bool Shape::setTexture(Layout *where)
             if(hasPrevious)
             {
                 if(where->fillTextures[i].type !=
-                        where->previousTextures[i].type)
+                   where->previousTextures[i].type)
                 {
                     // Unbind the previous texture
                     unbindTexture(where->previousTextures[i]);
@@ -125,7 +125,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     }
     glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
     glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)
@@ -183,7 +183,7 @@ bool Shape::setFillColor(Layout *where)
     {
         Color &color = where->fillColor;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0)
+        if (v >= 0.01)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
@@ -206,7 +206,7 @@ bool Shape::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0 && width > 0.0)
+        if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);

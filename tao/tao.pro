@@ -32,6 +32,7 @@ QT += webkit \
     network \
     opengl \
     svg
+CONFIG += help
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -96,7 +97,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
-    tao_utf8.h \
+    include/tao/tao_utf8.h \
     tao_tree.h \
     font.h \
     drag.h \
@@ -130,6 +131,7 @@ HEADERS += widget.h \
     gc_thread.h \
     info_trash_can.h \
     destination_folder_dialog.h \
+    assistant.h \
     include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
@@ -194,6 +196,7 @@ SOURCES += tao_main.cpp \
     statistics.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
+    assistant.cpp \
     destination_folder_dialog.cpp
 
 win32 {
@@ -433,6 +436,10 @@ include(../translations.pri)
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+
+qttranslations.path = $$APPINST
+qttranslations.files = $$[QT_INSTALL_TRANSLATIONS]/qt_fr.qm $$[QT_INSTALL_TRANSLATIONS]/qt_help_fr.qm
+INSTALLS += qttranslations
 
 shaders.path = $$APPINST$
 shaders.files = lighting.vs lighting.fs

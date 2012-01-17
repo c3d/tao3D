@@ -496,6 +496,21 @@ PREFIX(ToggleSlideShow, boolean, "toggle_slide_show", ,
        RTAO(toggleSlideShow(self)),
        GROUP(gui)
        SYNOPSIS("Toggle slide-show mode"))
+PREFIX(BlankScreen, boolean, "blank_screen",
+       PARM(flag, boolean, "Flag controlling blank mode"),
+       RTAO(slideShow(self, flag)),
+       GROUP(gui)
+       SYNOPSIS("Blank screen or show presentation normally")
+       DESCRIPTION("Activate or deactivate blank screen mode, depending on "
+                   "the value of the flag. When activated, the screen is "
+                   "blanked (no display).")
+       RETURNS(boolean,
+               "A flag indicating the previous value of the "
+               "blank screen mode."))
+PREFIX(ToggleBlankScreen, boolean, "toggle_blank_screen", ,
+       RTAO(toggleBlankScreen(self)),
+       GROUP(gui)
+       SYNOPSIS("Toggle blank screen mode"))
 PREFIX(ShowStatistics, boolean, "show_statistics",
        PARM(flag, boolean, "Flag controlling display of rendering statistics (fps)"),
        RTAO(showStatistics(self, flag)),
@@ -506,7 +521,7 @@ PREFIX(ToggleShowStatistics, boolean, "toggle_show_statistics", ,
        GROUP(gui)
        SYNOPSIS("Toggle display of rendering statistics"))
 PREFIX(ResetView, boolean, "reset_view", ,
-       RTAO(resetView(self)),
+       RTAO(resetViewAndRefresh(self)),
        GROUP(gui)
        SYNOPSIS("Reset document view to default parameters"))
 PREFIX(PanEye, boolean, "pan",
@@ -660,6 +675,16 @@ PREFIX(ZFar,  boolean,  "z_far",
        SYNOPSIS("")
        DESCRIPTION(""))
 PREFIX(GetZFar,  real,  "z_far", , RTAO(getZFar(self)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(CameraToScreen,  boolean,  "camera_to_screen",
+       PARM(d, real, ),
+       RTAO(setCameraToScreen(self, d)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(GetCameraToScreen,  real,  "camera_to_screen", , RTAO(getCameraToScreen(self)),
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))

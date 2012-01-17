@@ -100,13 +100,15 @@ while [ $# -ne 0 ] ; do
       D="$D DEFINES+=CFG_NOMODULEUPDATE"
       D="$D DEFINES+=CFG_NONETWORK"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
-      EDITION_FLAGS="$D $M"
+      A="NO_SDK=1"
+      EDITION_FLAGS="$D $M $A"
       shift ; done=1
       ;;
     creative)
       EDITION="Creative"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
-      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M"
+      A="NO_SDK=1"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M $A"
       shift ; done=1
       ;;
     impress)

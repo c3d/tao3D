@@ -162,7 +162,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
-      drawAllPages(false), animated(true), selectionRectangleEnabled(true),
+      drawAllPages(false),
+      selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
@@ -196,10 +197,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      zNear(1500.0), zFar(1e6),
-      zoom(1.0), eyeDistance(100.0),
-      cameraPosition(defaultCameraPosition),
-      cameraTarget(0.0, 0.0, 0.0), cameraUpVector(0, 1, 0),
       eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
@@ -271,8 +268,8 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Initialize start time
     resetTimes();
 
-    // Compute initial zoom
-    scaling = scalingFactorFromCamera();
+    // Initialize view
+    reset();
 
     // Create the object we will use to render frames
     current = this;
@@ -325,7 +322,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       currentGroup(o.currentGroup),
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
-      drawAllPages(o.drawAllPages), animated(o.animated),
+      drawAllPages(o.drawAllPages), animated(o.animated), blanked(o.blanked),
       doMouseTracking(o.doMouseTracking),
       stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
@@ -374,6 +371,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       currentFileDialog(o.currentFileDialog),
       zNear(o.zNear), zFar(o.zFar), scaling(o.scaling),
       zoom(o.zoom), eyeDistance(o.eyeDistance),
+      cameraToScreen(o.cameraToScreen),
       cameraPosition(o.cameraPosition),
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
       eye(o.eye), eyesNumber(o.eyesNumber),
@@ -643,9 +641,17 @@ void Widget::drawScene()
         emit runGC();
     }
 
-    id = idDepth = 0;
-    space->ClearAttributes();
-    space->Draw(NULL);
+    if (blanked)
+    {
+        glClearColor(0.0, 0.0, 0.0, 1.0);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    else
+    {
+        id = idDepth = 0;
+        space->ClearAttributes();
+        space->Draw(NULL);
+    }
 
     if (XL::MAIN->options.threaded_gc)
     {
@@ -705,7 +711,8 @@ void Widget::setGlClearColor()
 }
 
 
-void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
+void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
+                       double *toScreen)
 // ----------------------------------------------------------------------------
 //   Get camera characteristics
 // ----------------------------------------------------------------------------
@@ -713,6 +720,7 @@ void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
     if (position) *position = cameraPosition;
     if (target)   *target   = cameraTarget;
     if (upVector) *upVector = cameraUpVector;
+    if (toScreen) *toScreen = cameraToScreen;
 }
 
 
@@ -1825,11 +1833,24 @@ void Widget::resetView()
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
+    zNear = 1500.0;
+    zFar  = 1e6;
+    zoom  = 1.0;
+    eyeDistance    = 100.0;
     cameraPosition = defaultCameraPosition;
-    cameraTarget = Point3(0, 0, 0);
+    cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
-    zoom = 1.0;
+    cameraToScreen = Vector3(cameraTarget - cameraPosition).Length();
     scaling = scalingFactorFromCamera();
+}
+
+
+void Widget::resetViewAndRefresh()
+// ----------------------------------------------------------------------------
+//   Restore default view parameters and refresh display
+// ----------------------------------------------------------------------------
+{
+    resetView();
     setup(width(), height());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
@@ -1992,8 +2013,7 @@ double Widget::scalingFactorFromCamera()
 //   Return the factor to use for zoom adjustments
 // ----------------------------------------------------------------------------
 {
-    Vector3 distance = cameraTarget - cameraPosition;
-    scale csf = distance.Length() / zNear;
+    scale csf = cameraToScreen / zNear;
     return csf;
 }
 
@@ -2039,6 +2059,16 @@ void Widget::setup(double w, double h, const Box *picking)
 }
 
 
+void Widget::reset()
+// ----------------------------------------------------------------------------
+//   Reset view and other widget settings, ready to execute new document
+// ----------------------------------------------------------------------------
+{
+    resetView();
+    animated = true;
+    blanked = false;
+}
+
 void Widget::resetModelviewMatrix()
 // ----------------------------------------------------------------------------
 //   Reset the model-view matrix, used by reset_transform and setup
@@ -2047,8 +2077,11 @@ void Widget::resetModelviewMatrix()
     glLoadIdentity();
 
     // Position the camera
+    Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
+    toTarget *= cameraToScreen;
+    Point3 target = cameraPosition + toTarget;
     gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-              cameraTarget.x, cameraTarget.y ,cameraTarget.z,
+              target.x, target.y ,target.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 
@@ -2072,15 +2105,19 @@ void Widget::setupGL()
     glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);
+
+    // Disable all texture units
     for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
     {
         if(layout->textureUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
+            glBindTexture(GL_TEXTURE_2D, 0);
             glDisable(GL_TEXTURE_2D);
         }
     }
     glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, 0);
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_TEXTURE_RECTANGLE_ARB);
     glDisable(GL_CULL_FACE);
@@ -4207,6 +4244,74 @@ Point3 Widget::unprojectLastMouse()
 }
 
 
+Point3 Widget::project (coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//   project widget's focus transform
+// ----------------------------------------------------------------------------
+{
+    return project(x, y, z, focusProjection, focusModel, focusViewport);
+}
+
+
+Point3 Widget::project (coord x, coord y, coord z,
+                          GLdouble *proj, GLdouble *model, GLint *viewport)
+// ----------------------------------------------------------------------------
+//   Convert mouse clicks into 3D planar coordinates for the focus object
+// ----------------------------------------------------------------------------
+{
+    GLdouble wx, wy, wz;
+    gluProject(x, y, z,
+                 model, proj, viewport,
+                 &wx, &wy, &wz);
+
+    return Point3(wx, wy, wz);
+}
+
+
+Point3 Widget::objectToWorld(coord x, coord y,
+                                GLdouble *proj, GLdouble *model, GLint *viewport)
+// ----------------------------------------------------------------------------
+//    Convert object coordinates to world coordinates
+// ----------------------------------------------------------------------------
+{
+    Point3 pos, win;
+
+    // Map object coordinates to window coordinates
+    gluProject(x, y, 0,
+               model, proj, viewport,
+               &win.x, &win.y, &win.z);
+
+    pos = windowToWorld(win.x, win.y, proj, model, viewport);
+
+    return pos;
+}
+
+
+Point3 Widget::windowToWorld(coord x, coord y,
+                             GLdouble *proj, GLdouble *model, GLint *viewport)
+// ----------------------------------------------------------------------------
+//    Convert window coordinates to world coordinates
+// ----------------------------------------------------------------------------
+{
+    Point3 pos;
+    GLfloat pixelDepth;
+
+    // Read depth buffer
+    glReadPixels(x, y, 1, 1, GL_DEPTH_COMPONENT, GL_FLOAT,
+                 &pixelDepth);
+
+    // Map window coordinates to object coordinates
+    gluUnProject(x, y, pixelDepth,
+                 model, proj, viewport,
+                 &pos.x,
+                 &pos.y,
+                 &pos.z);
+
+    return pos;
+}
+
+
+
 Drag *Widget::drag()
 // ----------------------------------------------------------------------------
 //   Return the drag activity that we can use to unproject
@@ -5258,15 +5363,15 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(ONE_MINUS_CONSTANT_COLOR);
     TEST_GLENUM(CONSTANT_ALPHA);
     TEST_GLENUM(ONE_MINUS_CONSTANT_ALPHA);
-
-    if (fuzzy_equal("ADD", s)) e = GL_FUNC_ADD;
-    if (fuzzy_equal("SUBTRACT", s)) e = GL_FUNC_SUBTRACT;
-    if (fuzzy_equal("REVERSE_SUBTRACT", s)) e = GL_FUNC_REVERSE_SUBTRACT;
     TEST_GLENUM(FUNC_ADD);
     TEST_GLENUM(FUNC_SUBTRACT);
     TEST_GLENUM(FUNC_REVERSE_SUBTRACT);
     TEST_GLENUM(MIN);
-    TEST_GLENUM(MAX);
+    TEST_GLENUM(MAX);    
+    TEST_GLENUM(MODULATE);
+    TEST_GLENUM(REPLACE);
+    TEST_GLENUM(DECAL);
+    TEST_GLENUM(ADD);
 #undef TEST_GLENUM
 
     return e;
@@ -5544,12 +5649,32 @@ Name_p Widget::toggleSlideShow(XL::Tree_p self)
 }
 
 
-Name_p Widget::resetView(XL::Tree_p self)
+Name_p Widget::blankScreen(XL::Tree_p self, bool bs)
+// ----------------------------------------------------------------------------
+//   Blank screen or restore normal display
+// ----------------------------------------------------------------------------
+{
+    bool oldMode = blanked;
+    blanked = bs;
+    return oldMode ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleBlankScreen(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle blank screen
+// ----------------------------------------------------------------------------
+{
+    return blankScreen(self, !blanked);
+}
+
+
+Name_p Widget::resetViewAndRefresh(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
-    resetView();
+    resetViewAndRefresh();
     return XL::xl_true;
 }
 
@@ -5746,6 +5871,26 @@ Real_p Widget::getZFar(Tree_p self)
 {
     return new Real(zFar);
 }
+
+
+Name_p Widget::setCameraToScreen(Tree_p self, double d)
+// ----------------------------------------------------------------------------
+//   Set the distance between camera and screen
+// ----------------------------------------------------------------------------
+{
+    cameraToScreen = d;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::getCameraToScreen(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the distance between camera and screen
+// ----------------------------------------------------------------------------
+{
+    return new Real(cameraToScreen);
+}
+
 
 Infix_p Widget::currentModelMatrix(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -6554,6 +6699,19 @@ Tree_p Widget::textureWrap(Tree_p self, bool s, bool t)
     return XL::xl_true;
 }
 
+
+Tree_p Widget::textureMode(Tree_p self, text mode)
+// ----------------------------------------------------------------------------
+//   Record the mode of blending of the current texture
+// ----------------------------------------------------------------------------
+{
+    GLenum glMode = TextToGLEnum(mode, GL_MODULATE);
+    layout->currentTexture.mode = glMode;
+    layout->Add(new TextureMode(glMode));
+
+    return XL::xl_true;
+}
+
 Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 // ----------------------------------------------------------------------------
 //   Apply a texture transformation
@@ -6600,6 +6758,23 @@ Integer* Widget::textureType(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return new Integer(layout->currentTexture.type);
+}
+
+Text_p Widget::textureMode(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the current texture mode
+// ----------------------------------------------------------------------------
+{
+    text mode;
+    switch(layout->currentTexture.mode)
+    {
+    case GL_REPLACE: mode = "replace";  break;
+    case GL_ADD    : mode = "add";      break;
+    case GL_DECAL  : mode = "decal";    break;
+    default        : mode = "modulate"; break;
+    }
+
+    return new Text(mode);
 }
 
 Integer* Widget::textureId(Tree_p self)
@@ -10139,6 +10314,7 @@ void Widget::drawWatermarkAPI()
 {
     Tao()->drawWatermark();
 }
+
 
 
 // ============================================================================

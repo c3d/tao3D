@@ -1,0 +1,32 @@
+﻿// ****************************************************************************
+//  netaccess.xl                                                    Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Network access module
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+module_description
+    id "3E9BCB42-4318-47E4-945F-76849EB26E9C"
+    name "Network access"
+    import_name "NetworkAccess"
+    description "Tools to access network data"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Accès réseau"
+    description "Outils pour accéder à des données par le réseau"

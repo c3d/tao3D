@@ -27,6 +27,7 @@
 #include <vector>
 #include <QRegExp>
 #include <QDateTime>
+#include <QFileInfoList>
 
 // Features id for CheckOnce
 #define NO_FEATURE 0x00000000
@@ -47,6 +48,11 @@ public:
     static void AddLicenceFile(kstring lfile)
     {
         return LM().addLicenceFile(lfile);
+    }
+
+    static void AddLicenceFiles(const QFileInfoList &files)
+    {
+        return LM().addLicenceFiles(files);
     }
 
 #ifndef KEYGEN
@@ -72,6 +78,7 @@ public:
 
     static bool CheckOnce(quint64 feature, bool silent = true,
                           bool critical = false);
+    static text hostID();
 
 #endif
 
@@ -96,6 +103,15 @@ private:
     text                company;
     text                address;
     text                email;
+    struct LicenceFile
+    {
+        std::vector<Licence>licences;
+        text                name;
+        text                company;
+        text                address;
+        text                email;
+        text                hostid;
+    };
 
     // Used for CheckOnce : store if the feature has already been checked and
     // the result of the check.
@@ -109,13 +125,14 @@ private:
     static Licences &LM();
 
     void addLicenceFile(kstring licfname);
+    void addLicenceFiles(const QFileInfoList &files);
     int  licenceRemainingDays(text feature);
     void licenceError(kstring file, QString reason);
-    text toText(std::vector<Licence> &licences);
+    text toText(LicenceFile &lf);
 #ifdef KEYGEN
-    text sign(std::vector<Licence> &licences);
+    text sign(LicenceFile &lf);
 #endif
-    bool verify(std::vector<Licence> &licences, text signature);
+    bool verify(LicenceFile &lf, text signature);
     std::ostream & debug();
 };
 

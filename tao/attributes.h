@@ -136,6 +136,19 @@ struct TextureWrap : Attribute
 };
 
 
+struct TextureMode : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture blending setting
+// ----------------------------------------------------------------------------
+{
+    TextureMode(GLenum mode)
+        : Attribute(), mode(mode) {}
+    virtual void Draw(Layout *where);
+    GLenum mode;
+    virtual text        Type() { return "TextureMode";}
+};
+
+
 struct TextureTransform : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture transform

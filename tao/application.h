@@ -67,7 +67,8 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
-    static QString defaultLicenseFolderPath();
+    static QString appLicenseFolderPath();
+    static QString userLicenseFolderPath();
 
 public:
     QStringList    pathCompletions();
@@ -108,7 +109,6 @@ protected slots:
 
 protected:
     static QString defaultUserDocumentsFolderPath();
-    static QString appDataPath();
     static bool    createDefaultProjectFolder();
 
 public:
@@ -134,6 +134,7 @@ public:
 private:
     QStringList  pathList;
     QStringList  urlList;
+    QString      startDir;
     SplashScreen *splash;
     int          pendingOpen;
     bool         hadWin;
@@ -147,7 +148,7 @@ private:
 #endif
     ModuleManager * moduleManager;
     bool         doNotEnterEventLoop;
-    QTranslator  translator, qtTranslator;
+    QTranslator  translator, qtTranslator, qtHelpTranslator;
     bool         appInitialized;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;

@@ -13,8 +13,13 @@ MAKENSIS = makensis
 RM_RF = rm -rf
 BITMAPS = inst_header.bmp uninst_header.bmp inst_welcome_finish.bmp uninst_welcome_finish.bmp
 
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
+endif
+INSTALLER=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).exe
 define run-nsis
 $(MAKENSIS) -DOUTFILE=taosetup.exe tao.nsi
+mv taosetup.exe "$(INSTALLER)"
 endef
 
 
@@ -30,11 +35,13 @@ prepare tao_install:
 	cp -Rp $(INSTROOT)/* build_root
 	rm -f build_root/modules/vlc_audio_video/lib/plugins/plugins.dat # See #1555
 	./copy_deps "$(QMAKE_LIBDIR_QT_SANE)"
+ifndef NO_SDK
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk build_root
+endif
 
 clean:
-	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh
+	$(RM_RF) build_root/ taosetup.exe *.bmp .tao_install version.nsh "Tao Presentations"*.exe 
 
 %.bmp:%.bmp.gz
 	gunzip -c $< >$@

@@ -13,14 +13,33 @@
  *
  * The reference pages also contain some examples.
  *
- * @note The latest version of this documentation is available online at
- * http://taodyne.com/taopresentations/1.0/doc/ with <b>full text search</b>
- * capability.
- *
  * You may find more information and the latest news about Tao Presentations on
  * our web site, <a href="http://taodyne.com/">taodyne.com</a>.
  *
- * @section secGettingStarted Getting started
+ * @~french
+ * @mainpage Documentation de Tao Presentations
+ *
+ * Bienvenue dans la documentation de Tao Presentations.
+ *
+ * @section secWhatYouWillFind Contenu de ce manuel
+ *
+ * Dans ce manuel, vous trouverez des informations sur :
+ *   - le format et la structure des documents Tao,
+ *   - les expressions (@a builtins) que vous pouvez utiliser pour écrire
+ * des documents,
+ *   - le langage XLR, qui est la base des documents Tao.
+ * 
+ * @~
+ * @ref getting_started \n
+ * @ref tao_documents \n
+ * @ref adding_extensions \n
+ * @ref platform_notes \n
+ * @ref credits
+ */
+
+/**
+ * @~english
+ * @page getting_started Getting started
  *
  * The easiest way to learn Tao Presentations is probably to start with
  * sample documents and change them to your liking. This documentation is
@@ -30,12 +49,26 @@
  * But first, you may want to watch the following introduction video
  * (french commentary):
  *
+ * @~french
+ * @page getting_started Pour bien démarrer
+ *
+ * La façon la plus simple d'apprendre Tao Presentations est probablement
+ * de partir d'exemples, et de les modifier comme vous le souhaitez.
+ * Cette documentation vous permettra d'apprendre progressivement le langage
+ * de description des documents.
+ *
+ * Mais pour commencer, nous vous suggérons de regarder la vidéo suivante :
+ *
+ * @~
  * @htmlonly
-   <iframe width="560" height="349"
-    src="http://www.youtube.com/embed/LpPwjB46E5I?rel=0&iv_load_policy=3"
-    frameborder="0" allowfullscreen></iframe>
+ * <a href="http://youtube.com/watch?v=LpPwjB46E5I">
+ * @endhtmlonly
+ * @image html youtube_tuto.png
+ * @htmlonly
+ * </a>
  * @endhtmlonly
  *
+ * @~english
  * A number of examples are available as @a templates. To create a new Tao
  * document from a template, click <tt>File > New from Template Chooser...</tt>
  * and follow the wizard. When done, click <tt>View > Document Source</tt> to
@@ -48,7 +81,25 @@
  * with the bundled editor. Composite documents (see below) should be modified
  * with an external text editor.
  *
- * @section secTaoDocuments Tao Presentation documents
+ * @~french
+ * De nombreux exemples sont disponibles sous forme de @a modèles. Pour créer
+ * un nouveau document à partir d'un modèle, sélectionnez le menu
+ * <tt>Fichier > Nouveau à partir d'un mmodèle...</tt> et suivez l'assistant.
+ * Ensuite, utilisez <tt>Affichage > Source du document</tt> pour ouvrir un
+ * éditeur de code source.
+ * Pour modifier un document Tao Presentations, vous pouvez utiliser n'importe
+ * quel éditeur de texte qui permet de lire et enregistrer le format UTF-8.
+ * Assurez-vous que c'est bien ce format qui est sélectionné lorsque vous
+ * enregistrez votre document, faute de quoi certains caractères spéciaux ou
+ * accentués ne s'afficheront pas correctement dans Tao.
+ *
+ * @note Actuellement, seul le document principal <tt>.ddd</tt> peut être
+ * visualisé et modifié dans l'éditeur intégré. Les documents composites
+ * (cf. ci-dessous) peuvent être modifiés en utilisant un éditeur externe.
+ */
+/**
+ * @~english
+ * @page tao_documents Tao Presentation documents
  *
  * A Tao document is a text file with the <tt>.ddd</tt> extension. The
  * character encoding is <a href="http://en.wikipedia.org/wiki/UTF-8">UTF-8</a>
@@ -76,7 +127,39 @@
  * (see the @ref secSearchPaths "search paths" section below for details on the
  * meaning of @c xl:).
  *
- * @subsection subsecDocStructure Document structure
+ * @~french
+ * @page tao_documents Les documents Tao Presentation
+ *
+ * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Le
+ * codage de caractères est
+ * <a href="http://fr.wikipedia.org/wiki/UTF-8">UTF-8</a>
+ * qui permet d'utiliser des caractères internationaux n'importe où dans le
+ * document.
+ *
+ * En plus du fichier principal <tt>.ddd</tt> file, un document Tao peut être
+ * composé d'autres fichiers:
+ *  - Des fichiers secondaires, importés par le fichier principal, de manière
+ *    à rendre le document plus modulaire et plus facile à faire évoluer. @n
+ *    Ces fichiers peuvent être eux-même des fichiers <tt>.ddd</tt>, s'ils sont
+ *    des documents Tao valides. Vous pouvez par exemple diviser une
+ *    présentation longue ou complexe en plusieurs documents plus courts, puis
+ *    de créer un fichier <tt>.ddd</tt> principal qui importe les autres. @n
+ *    Lorsqu'un fichier importé ne peut pas être ouvert directement comme un
+ *    document Tao, il est habituel de le nommer avec l'extension <tt>.xl</tt>
+ *    pour mettre en évidence qu'il s'agit de source XL(R).
+ *  - Des images. En principe, les fichiers images sont sous le sous-répertoire
+ *    @c images. Plusieurs formats de fichier peuvent être lus par Tao
+ *    Presentations : PNG, JPEG, et d'autres. Consultez la fonction @ref image
+ *    pour plus de détails.
+ *  - Des polices de caractères. Des fichiers TrueType ou OpenType peuvent être
+ *    stockés dans le sous-répertoire @c fonts.
+ *
+ * Lorsque Tao Presentation ouvre un document, les fichiers @c xl:user.xl et
+ * @c xl:theme.xl sont automatiquement importés, dans cet ordre et s'ils
+ * existent (le paragraphe @ref secSearchPaths explique le sens de @c xl:).
+ *
+ * @~english
+ * @section secDocStructure Document structure
  *
  * Tao documents are written in the Tao language, which enables to
  * describe the structure of the document (by creating items such as:
@@ -137,14 +220,90 @@ my_circle Radius:real ->
     circle 0, 0, Radius
  * @endcode
  *
- * @subsection secXLRef The XLR Language
+ * @~french
+ * @section secDocStructure Structure d'un document
+ *
+ * Les documents Tao sont écris dans le langage Tao, qui permet de décrire
+ * la structure du document (en créant des éléments tels que : pages,
+ * transparent, boîte de texte, rectangle, etc.), et en même temps de définir
+ * ses propriétés dynamiques, telles que comment le document change au cours
+ * du temps ou lorsque des événements externes se déroulent (par exemple,
+ * l'appui sur une touche du clavier ou le déplacement de la souris).
+ *
+ * Vous pouvez grouper des éléments et leur donner un nom en utilisant la
+ * fléche @c -> de la façon suivante :
+ * @code
+mes_articles ->
+    premier_article
+    second_article
+ * @endcode
+ * Celà signifie que @c mes_articles est équivalent à @c premier_article
+ * suivi de @c second_article. Vous pouvez également passer des paramètres,
+ * par exemple :
+ * @code
+mon_cercle Rayon ->
+    color "red"
+    circle 0, 0, Rayon
+ * @endcode
+ * Ici, @c Rayon peut être considéré comme un paramètre et @c mon_cercle est
+ * comme une function (ou une procédure).
+ * @warning Le nom @c Rayon à gauche de la flèche @c ->
+ * est dans le même portée lexicale que @c mon_cercle. Par conséquent,
+ * supposons que vous avez précédemment défini un symbole @c Rayon,
+ * par exemple <tt>Rayon -> 50</tt> :
+ * @code
+Rayon -> 50
+mon_cercle Rayon ->
+    color "red"
+    circle 0, 0, Rayon
+ * @endcode
+ * Dans ce cas, la définition de @c mon_cercle se transformerait en :
+ * @code
+mon_cercle 50 ->
+    color "red"
+    circle 0, 0, 50
+ * @endcode
+ * ...ce qui est valide, mais probablement pas ce que vous attendiez.
+ * En effet, seul <tt>mon_cercle 50</tt> serait définit et pourrait
+ * être utilisé. Si vous essayiez d'appeler
+ * @c mon_cercle avec n'importe quelle autre valeur (par exemple, 100)
+ * vous obtiendriez une erreur :
+@verbatim
+No form matches my_circle 100
+@endverbatim
+ * Pour éviter de tels problèmes, il est recommendé d'utiliser des conventions
+ * de nommage différentes pour les paramètres et les autres symboles.
+ * Dans cette documentation,
+ * nous utilisons toujours une majuscule pour les paramètre, de telle sorte
+ * qu'ils n'entre pas en conflit avec les fonctions prédéfinies (toujours
+ * en minuscules).
+ * Pour revenir à notre exemple, nous aurions aussi pu qualifier le paramètre
+ * @c Rayon pour mettre en évidence le fait qu'il s'agit d'un paramètre :
+ * @code
+mon_cercle Rayon:real ->
+    color "red"
+    circle 0, 0, Rayon
+ * @endcode
+ *
+ * @~english
+ * @section secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.
  * Detailed information is available in <a href="XLRef.pdf">the XLR language
  * reference guide</a>. However, a deep knowledge of XL is not needed to write
  * Tao documents.
  *
- * @subsection secBuiltins Tao Builtins and Primitives
+ * @~french
+ * @section secXLRef Le Langage XL
+ *
+ * Le langage de programmation XL (ou XLR) est la base des documents
+ * Tao Presentations.
+ * Des informations détaillées sont disponibles dans <a href="XLRef.pdf">le
+ * guide de référence du langage XLR</a>. Toutefois, une connaissance
+ * approfondie de XL n'est pas nécessaire pour écrire des documents Tao.
+ *
+ * @~english
+ * @section secBuiltins Tao Builtins and Primitives
  *
  * A @a builtin is any language construct that is not user-defined. For
  * example, @ref page is a builtin defined by the Tao program.
@@ -158,7 +317,26 @@ my_circle Radius:real ->
  * When a builtin is implemented in native code (C or C++), it is called a
  * @a primitive.
  *
- * @subsection secVariables Variables
+ * @~french
+ * @section secBuiltins Les builtins et primitives Tao
+ *
+ * On appelle @a builtin une construction du langage qui n'est pas définie
+ * par l'utilisateur. Par exemple, @ref page est un builtin défini par le
+ * programme Tao Presentations.
+ *
+ * On distingue deux catégories de builtins :
+ *  - @ref TaoBuiltins "Les builtins Tao" sont définis par le programme
+ *    Tao Presentations lui-même, et sont immédiatement disponibles dans
+ *    un document,
+ *  - @ref Modules "Les builtins de modules" sont définis dans des
+ *    @a modules, et nécessitent une commande @ref import avant de pouvoir
+ *    être utilisés.
+ *
+ * Quand un builtin est implémenté par du code natif (C ou C++), on l'appelle
+ * @a primitive.
+ *
+ * @~english
+ * @section secVariables Variables
  *
  * To declare and initialise a variable with the current version of Tao
  * Presentations, write the following:
@@ -173,7 +351,24 @@ size := 10.0 // Initialize it
  * and vice versa. Otherwise weird things will occur, like the variable not
  * having the expected value.
  *
- * @subsection secExecModel Execution and Drawing Model
+ * @~french
+ * @section secVariables Variables
+ *
+ * Pour déclarer et initialiser une variable dans la version actuelle de
+ * Tao Presentations, utilisez la notation suivante :
+ @code
+compteur -> 0  // Crée une variable de type entier (0 est un entier)
+compteur := 1  // Initialise la variable
+
+taille -> 0.0  // Crée une variable de type réel (0.0 est un réel)
+taille := 10.0 // Initialise la variable
+ @endcode
+ * Prenez garde à ne pas affecter un entier à une variable créée avec un
+ * type réel, ou vice versa. Sinon, la variable risque de ne pas avoir la
+ * valeur attendue.
+ *
+ * @~english
+ * @section secExecModel Execution and Drawing Model
  *
  * In order to display a document, Tao @a executes the document (or parts of
  * it). The steps are the following:
@@ -197,7 +392,7 @@ size := 10.0 // Initialize it
  *      its re-execution upon reception of a <em>mouse move</em> event.
  * <li> @b Draw the Layout and Drawing hierarchy created by the document
  *      execution. @n
- *      For exemple, drawing a Rectangle object consists in displaying this
+ *      For example, drawing a Rectangle object consists in displaying this
  *      rectangle on the screen with all the attributes that were selected
  *      during the the program execution (such as: @ref color or
  *      @ref line_color).
@@ -234,7 +429,74 @@ locally
  * to the main Layout object. Since the two @ref locally blocks are nested
  * inside the main Layout of the document, they get re-executed too.
  *
- * @subsection secSearchPaths Search Paths
+ * @~french
+ * @section secExecModel Modèle de tracé et d'exécution
+ *
+ * Pour afficher un document, Tao @a exécute le document (ou certaines parties
+ * de celui-ci) selon les étapes suivantes :
+ *
+ * <ol>
+ * <li> @b Compiler and @b exécuter le document une première fois.
+ *       Cette étape crée une hiérarchie d'objets de deux types : des
+ *      @a Drawings et des @a Layouts.
+ *      <ul>
+ *        <li> Un Drawing est un élément quelconque qui peut être tracé. Par
+ *             exemple, l'exécution du builtin @ref rectangle crée un objet
+ *             Drawing de type Rectangle.
+ *        <li> Un Layout est une forme spéciale de Drawing qui peut lui-même
+ *             contenir d'autres Drawings. Les builtins suivants créent des
+ *             Layouts: @ref page,
+ *             @ref shape, @ref locally, @ref group, @ref anchor, @ref table,
+ *             @ref table_cell.
+ *      </ul>
+ *      En plus de créer des objets, l'exécution de certaines primitives
+ *      rend le Layout dans lequel l'objet se trouve sensible à des événements
+ *      extérieurs. @n
+ *      Par exemple, @ref seconds provoque la ré-exécution du Layout
+ *      une seconde plus tard, tandis que @ref mouse_x provoque sa
+ *      ré-exécution lorsque la souris se déplace.
+ * <li> @b Tracer la hiérarchie d'objets Layout et Drawing créée par
+ *      l'exécution du document. @n
+ *      Par exemple, pour tracer un objet Rectangle il faut afficher ce
+ *      rectangle avec tous les attributs qui ont été sélectionnés lors de
+ *      l'exécution du programme, comme @ref color ou @ref line_color.
+ * <li> @b Attendre qu'un événement survienne.
+ * <li> @b Distribuer l'événement de haut en bas dans la hiérarchie d'objets
+ *      Layout. Quand l'événement rencontre un Layout qui est sensible à cet
+ *      événement, @b ré-exécuter la partie du document qui se trouve sous
+ *      ce Layout.
+ * <li> @b Tracer la hiérarchie complète d'objets Layout et Drawing.
+ * </ol>
+ *
+ * L'exemple qui suit montre comment des événements déclenchent l'exécution
+ * partielle du document.
+ *
+ * @code
+writeln "1: minutes = " & text minutes
+locally
+    writeln "2: seconds = " & text seconds
+locally
+    writeln "3: mouse_x = " & text mouse_x
+ * @endcode
+ *
+ * Le code ci-dessus affiche d'abord trois lignes de texte, une pour chaque
+ * message. Celà correspond à la première exécution complète du document. @n
+ * Puis, la ligne numéro 2 s'affiche à chaque seconde. En effet, le builtin
+ * @ref seconds associe un @a timer à l'objet Layout créé par le premier
+ * bloc @ref locally, le code qui se trouve à l'intérieur de ce bloc est
+ * donc ré-exécuté périodiquement.
+ * De la même façon, la ligne numéro 3 est affichée lorsqu'on bouge la souris.
+ * Notez que celà ne provoque pas un nouvel affichage de la ligne 2, pas plus
+ * que le changement de seconde ne provoque un nouvel affichage de la ligne
+ * numéro 3. @n
+ * Lorsque la minute change, par contre, les trois lignes sont affichée à
+ * nouveau. Celà s'explique parce que le builtin @ref minutes a associé un
+ * @a timer d'une minute à l'objet Layout principal. Puisque les deux blocs
+ * @ref locally sont imbriqués dans le Layout principal du document, ils
+ * sont également ré-exécutés.
+ *
+ * @~english
+ * @section secSearchPaths Search Paths
  *
  * Some primitives that take a file name or file path accept a special syntax
  * called a <em>search path prefix</em>. For instance:
@@ -251,17 +513,44 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *   folder.
  * - @b system: the application folder.
  *
- * The user's Tao folder is <tt>%%APPDATA%\\Tao Presentations</tt> on Windows,
- * and <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX.
+ * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
+ * <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX,
+ * and <tt>$HOME/.local/Taodyne/Tao Presentations</tt> on Linux.
  * The application folder is where Tao Presentation is installed.
  * 
- * @section secExtensions Adding Extensions
+ * @~french
+ * @section secSearchPaths Chemins additionnels
+ *
+ * Certaines primitives qui prennent pour paramètre un nom de fichier
+ * acceptent une syntaxe spéciale appelée un <em>préfixe de chemin
+ * additionnel</em>. Par exemple :
+ * @code
+image 0, 0, 100%, 100%, "image:file.jpg"
+ * @endcode
+ * Le préfixe @c image: indique comment trouver le fichier. Tao va chercher
+ * @c file.jpg dans plusieurs dossiers, et utiliser le premier fichier trouvé.
+ * Voici les dossiers dans lesquels Tao va chercher pour chaque préfixe :
+ * - @b image: les dossiers d'images déclarés par les modules chargés par le
+ *   document, puis le dossier @c images dans le dossier du document courant,
+ *   et enfin le dossier du document courant.
+ * - @b xl: le dossier du document courant, puis le dossier utilisateur Tao,
+ *   et enfin le dossier de l'application Tao.
+ * - @b system: le dossier de l'application Tao.
+ *
+ * Le chemin du dossier utilisateur Tao est
+ * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
+ * <tt>$HOME/Library/Application Support/Tao Presentations</tt> sous MacOSX,
+ * et <tt>$HOME/.local/Taodyne/Tao Presentations</tt> sous Linux.
+ */
+/**
+ * @~english
+ * @page adding_extensions Adding Extensions
  *
  * The extensible nature of Tao Presentation helps you define and organize your
  * own re-usable pieces of documents. There are several ways of organising your
  * files.
  *
- * @subsection secImport The import statement
+ * @section secImport The import statement
  *
  * The simplest way to group your own presentations in a reuseable fashion, is
  * to use the @c import keyword to refer to an external file from any Tao
@@ -316,13 +605,13 @@ my_highlight T:text ->
  * Just make sure that the file @c my_definitions.xl is located in the same
  * directory as the main document, @c Example.ddd (or any other file that
  * imports it). All the
- * definitions you need are in one central location, @c may_definitions.xl.
+ * definitions you need are in one central location, @c my_definitions.xl.
  *
  * @note It is customary to give your files a @c .xl extension when they
- * contain XL code, but are not complete Tao Presentation documents (which
+ * contain XL code, but are not complete Tao Presentations documents (which
  * preferably take the @c .ddd extension).
  *
- * @subsection secUserDirectory The Next Step: User Definitions
+ * @section secUserDirectory The Next Step: User Definitions
  *
  * The @c import keyword is fine to help you group custom definitions
  * in a file along with your main document. But on its own, is not very
@@ -339,7 +628,7 @@ my_highlight T:text ->
 import "xl:my_definitions.xl"
  * @endcode
  *
- * @subsection secUserModule User Modules
+ * @section secUserModule User Modules
  *
  * Let's assume that you have written some nice XL definitions for
  * Tao Presentations, and you would like to share them with other users of
@@ -359,9 +648,9 @@ import "xl:my_definitions.xl"
  *  - Modules can contain native code in the form of shared libraries,
  * which makes them a very powerful way to extend the Tao program. Native
  * modules are not covered in this documentation but in the Tao Module SDK,
- * which is available <a href="mailto:contact@taodyne.com">on request</a>.
+ * which is available in the Tao application folder.
  *
- * @subsubsection secCreatingModule Creating A Module
+ * @subsection secCreatingModule Creating A Module
  *
  * To create a new module, you may use a copy of an existing module as a
  * starting point. The Tao Visuals module is a good candidate for that
@@ -393,7 +682,7 @@ import "xl:my_definitions.xl"
  * should normally be in the list. If it isn't, check the troubleshooting
  * instructions below.
  *
- * @subsubsection secModuleTS Troubleshooting Modules
+ * @subsection secModuleTS Troubleshooting Modules
  *
  * You can check which modules are detected by selecting the Preferences menu
  * (Tao Presentations>Preferences on MacOSX, Help>Preferences on Windows).
@@ -414,9 +703,178 @@ import "xl:my_definitions.xl"
  * a command line prompt or using the graphical user interface, as explained
  * below.
  *
- * @section secPlatformNotes Platform Notes
+ * @~french
+ * @page adding_extensions Ajouter des extensions
  *
- * @subsection secStdoutStderr Standard Output, Standard Error
+ * La nature extensible de Tao Presentations vous aide à définir et organiser
+ * vos propres éléments de documents. Il existe plusieurs façons d'organiser
+ * vos fichiers.
+ *
+ * @section secImport La directive import
+ *
+ * La manière la plus simple de regrouper vos fichiers Tao Presentations et de
+ * les réutiliser est d'utiliser le mot-clé @c import qui permet de faire
+ * référence à un fichier externe depuis n'importe quel document Tao.
+ *
+ * Par exemple, supposons que vous écrivez une présentation intitulée
+ * @c RapportDesVentes.ddd. Dans ce document, vous voulez présenter des
+ * pages d'introduction, puis détailler des chiffres de vente pour deux
+ * régions, les États-Unis et l'Europe. Vous aimeriez pouvoir adapter votre
+ * présentation à votre public, et montrer seulement le rapport concernant
+ * les États-Unis, ou seulement l'Europe, ou la présentation complète.
+ *
+ * Une façon d'obtenir ce résultat est de créer trois fichiers :
+ * @c RapportDesVentes.ddd (le document principal), @c US.ddd (les pages
+ * concernant la région US) et @c Europe.ddd (pour l'Europe). Dans le document
+ * principal vous utilisez la directive @c import :
+ * @code
+// RapportDesVentes.ddd
+
+page "Introduction",
+    // ...
+
+import "US.ddd"
+import "Europe.ddd"
+ * @endcode
+ * Grâce à cette technique, vous pouvez ouvrir n'importe lequel des trois
+ * fichiers @c .ddd et ainsi montrer exactement l'information que vous
+ * désirez.
+ *
+ * Notez que les fichiers importés peuvent ne pas être des présentations
+ * complètes et autonomes. Vous pouvez utiliser le mot-clé @c import pour
+ * inclure des définitions que vous utilisez souvent. Par exemple :
+ * @code
+// Exemple.ddd
+import "mes_définitions.xl"
+page "Introduction",
+    text_box 0, 0, window_width, window_height,
+        vertical_align_center
+        align_center
+        ma_couleur_de_texte
+        text "On peut "
+        en_évidence "mettre en évidence"
+        text " du texte"
+ * @endcode
+ * @code
+// mes_définitions.xl
+ma_couleur_de_texte -> color "black"
+en_évidence T:text ->
+    color "red"
+    text T
+    ma_couleur_de_texte
+ * @endcode
+ * Assurez vous que le fichier @c mes_définitions.xl se trouve dans le même
+ * répertoire que le fichier qui l'importe (@c Exemple.ddd).
+ * Toutes les définitions dont vous avez besoin se trouvent rassemblées en
+ * un seul endroit, @c mes_définitions.xl.
+ *
+ * @note On utilise en général l'extension @c .xl pour les fichiers qui
+ * contiennent du code XL, mais ne sont pas des documents Tao Presentations
+ * complets (qui ont de préférence l'extension @c .ddd).
+ *
+ * @section secUserDirectory L'étape suivante : les définitions utilisateur
+ *
+ * Le mot-clé @c import est parfait pour vous aider à grouper des définitions
+ * dans un fichier séparé du document principal. Mais cette technique seule
+ * n'est pas très pratique pour partager des définitions dans plusieurs
+ * documents complètement différents. Pour répondre à ce besoin, il faudrait
+ * pouvoir disposer d'un endroit ou déposer nos fichiers @c .xl, pour
+ * ensuite les utiliser depuis n'importe quel document.
+ *
+ * La directive @c import vous permet de faire celà. Il vous suffit
+ * d'utiliser le préfixe @c xl:. Par exemple, créez un fichier
+ * @c mes_définitions.xl, enregistrez-le dans le dossier utilisateur Tao
+ * (cf. @ref secSearchPaths "ci-dessus"), et utilisez-le comme suit :
+ * @code
+import "xl:mes_définitions.xl"
+ * @endcode
+ *
+ * @section secUserModule Les modules utilisateur
+ *
+ * Supposons que vous ayez écrit des définitions que vous vouliez partager
+ * avec d'autres utilisateurs de Tao. Pour celà vous pouvez créer un
+ * @ref Modules "module Tao Presentations".
+ *
+ * Il y a plusieurs avantages à utiliser un module plutôt qu'un simple
+ * fichier XL qui se trouverait dans le dossier utilisateur Tao.
+ *  - Vous pouvez ajouter une description, votre nom et votre site web. Ces
+ * informations apparaissent dans la boîte de préférence des modules.
+ *  - Un module possède un numéro de version, ce qui permet de détecter
+ * tout problème de compatibilité avec les anciens documents, lorsque votre
+ * module change. Ce numéro de version permet également la mise à jour
+ * des modules installés s'ils ont été installés depuis le réseau
+ * (bouton Mises à jour). Pour plus d'informations sur les numéros de
+ * version, consultez la documentation de la primitive @ref import.
+ *  - Les modules peuvent contenir du code natif sous la forme de librairies
+ * dynamiques, ce qui en fait un moyen très puissant pour étendre le
+ * programme Tao. Les modules natifs ne sont pas présentés en détail dans
+ * la présente documentation, mais vous pourrez trouver plus d'informations
+ * dans le kit de développement disponible dans le répertoire d'installation
+ * de Tao Presentations.
+ *
+ * @subsection secCreatingModule Création d'un module
+ *
+ * Pour créer un nouveau module, vous pouvez utiliser une copie d'un module
+ * existant comme point de départ. « Visuels Tao » est un bon candidat. Voici
+ * comment faire.
+ *  - Ouvrez le dossier du module : ouvrez la boîte de préférences, cliquez
+ * sur la page des options des modules, puis sur l'icône d'information du
+ * module « Visuels Tao ». La boîte d'information contient un lien qui permet
+ * d'ouvrir le répertoire du module.
+ *  - Copiez le répertoire @c tao_visuals dans le répertoire @c modules de
+ * votre compte utilisateur. Plus précisément, vous obtiendrez :
+ *    - Windows: <tt>%%APPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *      Pour ouvrir <tt>%%APPDATA%</tt> facilement, tapez simplement
+ *      <tt>%%APPDATA%</tt> dans le menu Démarrer.
+ *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
+ *      <tt>$HOME</tt> est votre répertoire utilisateur.
+ *    - <tt>$HOME/.tao/modules/tao_visuals</tt> sur Linux.
+ *  - Renommez le module. Vous devez renommer le dossier mais également le
+ * fichier XL principal : <tt>tao_visuals/tao_visuals.xl</tt> doit devenir
+ * <tt>mon_module/mon_module.xl</tt>.
+ *  - Modifiez le contenu du module. Changez l'identifiant (<tt>id=</tt>).
+ * Utilisez un identifiant unique, par exemple un UUID afin d'éviter que
+ * votre module entre en conflit avec un autre module Tao.
+ * Vous pouvez utiliser la commande @c uuidgen command ou utiliser un site web
+ * qui le fera pour vous. Changez le nom (@c name), la description
+ * (@c description), le nom d'import (@c import_name), éventuellement la
+ * version (@c version), etc. comme vous le souhaitez. Les textes doivent
+ * si possible être en anglais et vous pouvez fournir des traductions plus
+ * bas. Et bien sûr, remplacez le code XL par le vôtre.
+ *  - Fournissez une icone (<tt>icon.png</tt>) ou supprimez le fichier si
+ * vous n'avez pas d'icône.
+ *  - Redémarrez Tao Presentations et vérifiez la page d'information des
+ * modules. Votre module devrait normalement être dans la liste. Si ce n'est
+ * pas le cas, référez-vous aux instructions ci-dessous.
+ *
+ * @subsection secModuleTS En cas de problème avec les modules
+ *
+ * Vous pouvez vérifier quels modules sont détectés en ouvrant la fenêtre de
+ * préférences des modules : Tao Presentations>Preferences sous MacOSX et
+ * Aide>Préférences sous Windows. Vous pouvez aussi activer ou désactiver des
+ * modules.
+ *
+ * Les modules du dossier utilisateur sont chargés en premier, suivis
+ * des modules qui se trouvent dans le dossier de l'application Tao. Par
+ * conséquent, si deux modules qui possèdent le même identifiant se trouvent
+ * dans les deux dossiers, c'est le module utilisateur qui est chargé.
+ *
+ * Les traces de debug des modules s'activent de la façon suivante :
+ * - Selectionnez le groupe Debug dans la boîte de préférences des modules.
+ *   Cochez la case « modules » puis cliquez sur Sauver. Redémarrez Tao.
+ * - Il est également possible d'utiliser la ligne de commande :
+ *   <tt>-tmodules</tt>
+ *
+ * Les traces de debug sont envoyées sur le canal d'erreur standard
+ * (@c stderr). Leur destination réelle dépend de la plateforme et du fait
+ * que vous ayez  démarré Tao Presentations depuis l'interpréteur de
+ * commandes ou en utilisant l'interface graphique, comme expliqué ci-dessous.
+ */
+/**
+ * @~english
+ * @page platform_notes Platform Notes
+ *
+ * @section secStdoutStderr Standard Output, Standard Error
  *
  * Errors are normally shown in the application's graphical user interface,
  * either through dialog boxes or in the error display pane. However, some
@@ -428,7 +886,7 @@ import "xl:my_definitions.xl"
  * The destination of the standard output and standard error are different
  * if you are using Tao Presentations on MacOSX or on Windows.
  *
- * @subsubsection secWindows Windows
+ * @subsection secWindows Windows
  *
  * The standard output and standard error channels of Tao Presentations are
  * normally redirected to the file @c tao.log in the @c Tao folder under the
@@ -439,7 +897,7 @@ import "xl:my_definitions.xl"
  * output and standard error will remain connected to the command prompt
  * window, and will not be sent to @c tao.log.
  *
- * @subsubsection secMacOSX MacOSX
+ * @subsection secMacOSX MacOSX
  *
  * The standard output and standard error channels of Tao Presentations are
  * normally sent to log files and can be seen with the MacOSX @c console
@@ -449,7 +907,43 @@ import "xl:my_definitions.xl"
  * and standard error will remain connected to the terminal window, and
  * will not appear in the console.
  *
- * @section secCredits Credits
+ * @~french
+ * @page platform_notes Notes de plateforme
+ *
+ * @section secStdoutStderr Sortie standard, erreur standard
+ *
+ * Les erreurs sont normalement affichées par l'interface graphique de
+ * l'application, soit par des boîtes de dialogue, soit dans la zone
+ * d'affichage des erreurs de la fenêtre principale. Toutefois, certains
+ * messages ne sont envoyés que sur les canaux de sortie ou d'erreur standards
+ * (stdout, stderr) :
+ *  - Les traces de debug,
+ *  - Les messages envoyés par les builtins write and writeln.
+ *
+ * @subsection secWindows Windows
+ *
+ * Les canaux de sortie et d'erreur standard de Tao Presentations sont
+ * normalement redirigés vers le fichier @c tao.log dans le dossier @c Tao
+ * sous le dossier des documents de l'utilisateur. Ce fichier est recréé
+ * à chaque démarrage de l'application.
+ *
+ * Toutefois, si l'application est démarrée depuis une invite de commande,
+ * les messages s'affichent dans la fenêtre qui a servi à démarrer Tao et ne
+ * sont pas envoyés vers @c tao.log.
+ *
+ * @subsection secMacOSX MacOSX
+ *
+ * Les canaux de sortie et d'erreur standard de Tao Presentations sont
+ * normalement redirigés vers des fichiers et peuvent être  the MacOSX @c console
+ * application.
+ *
+ * Toutefois, si l'application est démarrée depuis un terminal,
+ * les messages s'affichent dans celui-ci et ne sont pas visibles dans
+ * l'application console.
+ */
+/**
+ * @~english
+ * @page credits Credits
  *
  * Tao Presentations uses the following components:
  *
@@ -462,47 +956,21 @@ import "xl:my_definitions.xl"
  *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
- */
-/**
+ *
  * @~french
- * @mainpage Documentation de Tao Presentations
+ * @page credits Remerciements
  *
- * Bienvenue sur la documentation en ligne de Tao Presentations.
+ * Tao Presentations utilise les composants suivants :
  *
- * @section secShowItYourWay Faite le a votre maniere
- *
- * Vous pouvez construire vos transparents de telle sorte qu'ils representent
- * exactement ce que vous voulez. Votre presentation est programmable. Vous la
- * creez en utilisant des composants preexistants. Ceci vous permet de construire
- * des presentations flexibles sur mesure.
- *
- * @section secImpressYourAudience Impressionnez votre auditoire.
- *
- * Vos transparents vivent dans un monde dynamique en trois dimensions,
- * exactement comme vous. Creez des animations, construisez vos graphiques
- * a partir de donnees extraite en temps reel, et faites l'experience d'une
- * presentation stereoscopique. Vos presentations seront interractives et
- * innoubliables.
- *
- * @section secShareYourWork Partagez votre travail
- *
- * Vous gardez un historique complet de vos documents. Vous pouvez creer des
- * versions. Vous pouvez collaborez avec d'autres personnes sur un ensemble
- * de transparents, en meme temps, en editant le meme document simultanement.
- * Aucun serveur centralise n'est requis.
- *
- * @section secWhatYouWillFind Contenu de la documentation
- *
- * Dans ce manuel, vous trouverez des references sur :
- * - le langage XL utilise par la technologie Tao pour decrire les documents,
- * - les primitives XL specialement definies pour ecrire des presentations,
- * - des exemples.
- *
- * @section secMoreInfo Et plus...
- *
- * Trouvez plus d'information et les dernieres nouvelles concernant
- * Tao Presentations sur notre site web http://www.taodyne.com.
- *
+ *   - <b>Qt</b>: Qt est une boîte à outils C++ pour le développement
+ *   d'applications multi-plateformes. Qt est un produit de Nokia. Cf.
+ *   <a href="http://qt.nokia.com/">qt.nokia.com</a> pour plus d'informations.
+ *   - <b>LLVM</b>: Le projet LLVM est un ensemble de technologies de
+ *   compilation et d'outils modulaires et réutilisables. Cf.
+ *   <a href="http://llvm.org/">llvm.org</a> pour plus d'informations.
+ *   - <b>XLR</b>: XLR est un langage compilé dynamiquement basé sur des
+ *   réécritures d'arbres. Cf. <a href="http://xlr.sf.net/">xlr.sf.net</a>
+ *   pour plus d'informations.
  */
 
 /**

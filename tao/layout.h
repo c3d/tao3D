@@ -47,13 +47,15 @@ struct TextureState
 // ----------------------------------------------------------------------------
 {
     TextureState(): wrapS(false), wrapT(false),
-                    id(0), unit(0), width(0),
-        height(0), type(GL_TEXTURE_2D), mipmap(false) {}
+                    id(0), unit(0), width(0), height(0),
+                    type(GL_TEXTURE_2D), mode(GL_MODULATE),
+                    mipmap(false) {}
 
     bool          wrapS, wrapT;
     GLuint        id, unit;
     GLuint        width, height;
     GLenum        type;
+    GLenum        mode;
     bool          mipmap;
 };
 

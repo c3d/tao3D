@@ -17,13 +17,11 @@
 // ****************************************************************************
 //  (C) 2010-2011 Taodyne SAS
 // ****************************************************************************
+
 import Animate
 
-// Reexecute the document to each interval
-refresh_on TimerEvent
-
-// Compatibility (Tao > 1.0-beta11)
-old_camera_settings
+// Avoid clipping
+z_near 500
 
 // ----------------------------------------------------------------------------
 //   Global variables
@@ -38,16 +36,26 @@ bg_sx -> bg_zscale * window_width / bg_w
 bg_sy -> bg_zscale * window_height / bg_h
 window_scale -> min (window_width / bg_w, window_height / bg_h)
 
-// Key to space animation
+// Logic to stop/start animation
+Initial -> 1
 key "Space" ->
     if Animated = 1 then
-        enable_animations false
-        Animated := 0
+        anim false
     else
+        anim true
+anim On:boolean ->
+    Initial := 0
+    if On then
         enable_animations true
         Animated := 1
+    else
+        enable_animations false
+        Animated := 0
 
 page "Welcome",
+    if page_time > 5 and Initial = 1 then
+        anim false
+        Initial := 0
     welcome_background
     locally
         text_box 450 * window_scale, 0, window_width, window_height,
@@ -57,26 +65,26 @@ page "Welcome",
             color "black"
             welcome_help tao_language
     scale window_scale, window_scale, window_scale
-    locally
-        color "white"
-        translate 200, 200 + 20 / window_scale, 3000
-        image 0, 0, 25%, 25%, "welcome/Taodyne_Logo.svg"
 
     locally
         adjust t:real ->
-            scale 0.5, 0.5, 0.5
-            rotatey 15 * t
-            rotatex 5.5 * t
-            translate 1000 * t, 0, -30000 * t
+            scale 0.3, 0.3, 0.3
+            rotatey 33 * t
+            rotatex 4 * t
+            translate -2000 * t, 0, -8000 * t
             rotatex 7.5 * t
 
         locally
             color "white"
-            adjust 1.0 - 50%
-            image 0, 0, 150%, 150%, "welcome/MacBookPro.png"
-            welcome_flow 35, 35, page_time
+            adjust 0.5
+            image 0, 0, 150% , 150% , "welcome/MacBookPro.png"
+            locally
+                welcome_flow 40, 18, page_time
+            color "white"
+            translatez 500
+            image 0, -1500, 100% , 100% , "welcome/Taodyne_Logo.svg"
 
-    text_box -500, -300, window_width, window_height,
+    text_box 300, 150, window_width, window_height,
         font "Ubuntu", 80, bold
         line_width 2
         align_center
@@ -97,9 +105,19 @@ welcome_help T:text ->
 //   Show the welcome help
 // ----------------------------------------------------------------------------
     if T = "fr" then
-        text "Appuyer sur la touche espace pour arrêter l'animation"
+        text "Appuyer sur la touche espace pour "
+        if Animated = 1 then
+            text "arrêter "
+        else
+            text "démarrer "
+        text "l'animation"
     else
-        text "Press the spacebar to stop the animation"
+        text "Press the spacebar to "
+        if Animated = 1 then
+            text "stop "
+        else
+            text "start "
+        text "the animation"
 
 welcome_background ->
 // ----------------------------------------------------------------------------
@@ -115,13 +133,13 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
 // ----------------------------------------------------------------------------
 //   Show the welcome flow
 // ----------------------------------------------------------------------------
-    ptime -> 0.013
+    ptime -> 0.0
     pcount -> 15
     pshown -> 35
     pdisplayed -> 35
     pup -> 3600
     picX N:integer -> 450 * picT N / pshown * sin (177.312 * picN N)
-    picY N:integer -> 320 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2
+    picY N:integer -> 600 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2
     picZ N:integer -> 30000 * picT N / pshown
     picA N:integer -> 10 * sin (picT N)
     picS N:integer -> 80% + 30% * sin (153.27 * picN N)

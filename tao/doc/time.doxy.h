@@ -1,4 +1,5 @@
 /**
+ * @~english
  * @addtogroup grpTime Time and time conversions
  * @ingroup TaoBuiltins
  * This group contains time related primitives.
@@ -12,10 +13,28 @@
  * for each primitive below.
  * - Conversion primitives: they are variants of the above that take
  * a timestamp parameter.
+ *
+ * @~french
+ * @addtogroup grpTime Temps, heure, date et conversions
+ * @ingroup TaoBuiltins
+ * Ce groupe contient des primitives liées au temps.
+ *
+ * Deux types de primitives peuvent être distinguées :
+ * - Celles qui fournissent des informations sur l'instant présent :
+ * time, seconds, hours, minutes, hours, day, month, year,
+ * week_day, month_day, year_day. Ces primitives ont un effet sur l'exécution
+ * du bloc de code auquel elles appartiennent. Cf. @ref secExecModel
+ * pour une description du mécanisme général. La valeur de rafraîchissement est
+ * documentée pour chaque primitive ci-dessous.
+ * - Les primitives de conversion : ce sont des variantes des précedentes, qui
+ * acceptent un paramètre temps.
+ *
+ * @~
  * @{
  */
 
 /**
+ * @~english
  * Returns current time in seconds.
  *
  * The return value is the current timestamp expressed as seconds since
@@ -29,10 +48,26 @@
  *
  * Execution of this primitive requests a refresh of the current layout after
  * @ref default_refresh seconds.
+ *
+ * @~french
+ * Renvoie la date et l'heure courante en secondes.
+ *
+ * La valeur de retour est le nombre de secondes depuis
+ * 1970-01-01T00:00:00 UTC. C'est donc une valeur équivalente à la définition
+ * POSIX @c time_t, mais exprimée sous forme de valeur réelle pour pouvoir
+ * représenter les fractions de secondes.
+ *
+ * Lorsque les animations sont suspendues (cf. @ref enable_animations), la
+ * valeur reste constante et correspond à la valeur de @ref time lorsque les
+ * animations ont été stoppées.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout après
+ * @ref default_refresh secondes.
  */
 real time ();
 
 /**
+ * @~english
  * Returns the time elapsed since the page was displayed.
  *
  * The return value is in seconds.
@@ -43,67 +78,131 @@ real time ();
  *
  * Execution of this primitive requests a refresh of the current layout after
  * @ref default_refresh seconds.
+ *
+ * @~french
+ * Renvoie le temps écoulé depuis l'affichage de la page courante.
+ *
+ * La valeur est en secondes.
+ * Lorsque les animations sont suspendues (cf. @ref enable_animations), la
+ * valeur reste constante et correspond à la valeur de @ref page_time lorsque
+ * les animations ont été stoppées.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout après
+ * @ref default_refresh secondes.
  */
 real page_time ();
 
 
 /**
+ * @~english
  * Returns the second part (0 to 59) for the current time.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next second.
+ *
+ * @~french
+ * Renvoie la seconde (0 à 59) de l'heure courante.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout à la
+ * seconde suivante.
  */
 integer seconds ();
 
 /**
+ * @~english
  * Returns the minute part (0 to 59) for the current time.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next minute.
+ *
+ * @~french
+ * Renvoie la minute (0 à 59) de l'heure courante.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout à la
+ * minute suivante.
  */
 integer minutes ();
 
 /**
+ * @~english
  * Returns the hour part (0 to 23) for the current time.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next hour.
+ *
+ * @~french
+ * Renvoie l'heure courante (0 à 23).
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout à
+ * l'heure suivante.
  */
 integer hours ();
 
 /**
+ * @~english
  * Returns the day of the month (1 to 31) for the current date.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next day.
+ *
+ * @~french
+ * Renvoie le jour du mois (1 à 31) de la date courante.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * le jour suivant.
  */
 integer day ();
 
 /**
+ * @~english
  * Returns the number of the month (1 to 12) for the current date.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next day (not the next month).
+ *
+ * @~french
+ * Renvoie le mois (1 à 12) de la date courante.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * le jour suivant (et non le mois suivant).
  */
 integer month ();
 
 /**
+ * @~english
  * Returns the current year.
  *
  * For instance 2011.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next day (not the next year).
+ *
+ * @~french
+ * Renvoie l'année courante.
+ *
+ * Par exemple, 2011.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * le jour suivant (et non l'année suivante).
  */
 integer year ();
 
 /**
+ * @~english
  * Returns the weekday (1-7) for the current date.
  *
  * Day 1 is monday.
  *
  * Execution of this primitive requests a refresh of the current layout
  * on the next day.
+ *
+ * @~french
+ * Renvoie le jour de la semaine.
+ *
+ * Le jour numéro 1 est lundi.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * le jour suivant.
  */
 integer week_day ();
 
@@ -116,48 +215,72 @@ integer week_day ();
  * on the next day.
  *
  * @~french
- * Retourne le numero du jour dans l'annee courante (1-365).
+ * Renvoie le numero du jour dans l'annee courante (1 à 365 ou 366).
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * le jour suivant.
  */
 integer year_day ();
 
 
 
 /**
+ * @~english
  * Returns the second part (0 to 59) for the specified timestamp.
+ * @~french
+ * Renvoie la seconde (0 à 59) pour la date précisée.
  */
 integer seconds (t:real);
 
 /**
+ * @~english
  * Returns the minute part (0 to 59) for the specified timestamp.
+ * @~french
+ * Renvoie la minute (0 à 59) pour la date précisée.
  */
 integer minutes (t:real);
 
 /**
+ * @~english
  * Returns the hour part (0 to 23) for the specified timestamp.
+ * @~french
+ * Renvoie l'heure (0 à 23) pour la date précisée.
  */
 integer hours (t:real);
 
 /**
+ * @~english
  * Returns the day of the month (1 to 31) for the specified timestamp.
+ * @~french
+ * Renvoie le jour du mois (1 à 31) pour la date précisée.
  */
 integer day (t:real);
 
 /**
+ * @~english
  * Returns the number of the month (1 to 12) for the specified timestamp.
+ * @~french
+ * Renvoie le mois (1 à 12) pour la date précisée.
  */
 integer month (t:real);
 
 /**
+ * @~english
  * Returns the year for the specified timestamp.
- *
  * For instance 2011.
+ * @~french
+ * Renvoie l'année pour la date précisée.
+ * Par exemple 2011.
  */
 integer year (t:real);
 
 /**
- * Returns the weekday (1-7) for the specified timestamp.
- *
+ * @~english
+ * Returns the weekday (1 to 7) for the specified timestamp.
  * Day 1 is monday.
+ * @~french
+ * Renvoie le jour de la semaine (1 à 7) pour la date précisée.
+ * Le jour numéro 1 est lundi.
  */
 integer week_day (t:real);
 
@@ -165,15 +288,15 @@ integer week_day (t:real);
  * @~english
  * Returns the day of the year (1 to 365 or 366 on leap years)
  * for the specified timestamp.
- *
  * @~french
- * Retourne le numero du jour dans l'annee courante (1-365).
+ * Renvoie le numéro du jour (1 à 365 ou 366) pour la date précisée.
  */
 integer year_day (t:real);
 
 
 
 /**
+ * @~english
  * Enables a block of code after a specified interval.
  *
  * The code specified by @p body is not executed until @p delay
@@ -208,10 +331,46 @@ page "Second page",
  *
  * Execution of this primitive requests a refresh of the current layout
  * when the delay expires.
+ *
+ * @~english
+ * Active un bloc de code après l'intervalle spécifié.
+ *
+ * Le code spécifié par @p body n'est pas exécuté avant que @p delay
+ * n'ait expiré. Jusqu'à ce moment, l'instruction @ref after est équivalente
+ * à : <tt>if false then</tt>.
+ * Lorsque le délai a expiré, @p body est exécuté et l'instruction @ref after
+ * devient équivalente à <tt>if true then</tt>.
+ *
+ * Par exemple:
+ * @code
+page "Page vide",
+    nil
+page "Deuxième page",
+    color "blue"
+    rectangle -300, 0, 200, 100
+    after 2.0,
+        color "red"
+        circle 0, 0, 100
+        after 3.0,
+            color "green"
+            triangle 300, 0, 100, 100
+ * @endcode
+ * Si vous chargez cet exemple et enfoncez la touche Flèche vers le bas pour
+ * afficher la deuxième page :
+ * - un rectangle bleu s'affiche immédiatement,
+ * - suivi par un cercle rouge deux secondes plus tard,
+ * - suivi par un triangle vert trois secondes plus tard.
+ *
+ * Cette primitive doit être utilisée dans une primitive @ref page,
+ * faute de quoi le comportement n'est pas défini.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * lorsque le délai expire.
  */
 after (delay:real, body:tree);
 
 /**
+ * @~english
  * Enables a block of code periodically.
  *
  * The code specified by @p body is executed, and the @ref every
@@ -237,18 +396,49 @@ page "Blinking text",
  * Execution of this primitive requests a refresh of the current layout
  * when the next activation or de-activation of the code is due to occur.
  *
+ * @~french
+ * Active un bloc de code périodiquement.
+ *
+ * Le code spécifié par @p body est exécuté, et l'instruction @ref every
+ * est équivalente à : <tt>if true then</tt> jusqu'à ce que
+ * @p interval * @p duty_cycle secondes se soient écoulées.
+ * Alors, l'instruction @ref every devient équivalente à :
+ * <tt>if false then</tt> pendant une durée de
+ * @p interval * (1 - @p duty_cycle).
+ *
+ * @p interval est exprimé en secondes. @p duty_cycle est une valeur entre
+ * 0.0 et 1.0.
+ *
+ * L'exemple qui suit montre comment faire clignoter du texte :
+ * @code
+page "Texte clignotant",
+    every 1.0, 0.75,
+        text_box 0, 0, 100, 100,
+            text "Clignotant"
+ * @endcode
+ *
+ * Cette primitive doit être utilisée dans une primitive @ref page,
+ * faute de quoi le comportement n'est pas défini.
+ *
+ * L'exécution de cette primitive provoque une ré-exécution du @a layout
+ * lorsque la prochaine activation ou désactivation doit survenir.
  */
 every (interval:real, duty_cycle:real, body:tree);
 
 /**
+ * @~english
  * Enables a block of code periodically.
- *
  * This builtin is equivalent to @ref every(interval:real, duty_cycle:real, body:tree)
  * with a @p duty_cycle of 50%.
+ * @~french
+ * Active un bloc de code périodiquement.
+ * Cette fonction est équivalente à @ref every(interval:real, duty_cycle:real, body:tree)
+ * avec un @p duty_cycle de 50%.
  */
 every (interval:real, body:tree);
 
 /**
+ * @~english
  * Sets the default refresh interval for code using time and page_time.
  *
  * This primitive controls the refresh rate of layouts that call the
@@ -282,17 +472,62 @@ every (interval:real, body:tree);
  * however, default_refresh is initially set to 0.016 to avoid uselessly
  * taxing the CPU (that is assuming a 60 Hz display).
  *
- * @see @ref secExecModel
- *
  * @returns the previous value of the default refresh interval.
+ *
+ * @~french
+ * Définit l'intervalle de rafraîchissement par défaut pour time et page_time
+ *
+ * Cette primitive définit l'intervalle de rafraîchissement des @a layouts
+ * qui utilisent les primitives @ref time et/ou @ref page_time primitives.
+ * Alors que du code basé par exemple sur la primitive @ref seconds n'a pas
+ * besoin d'être ré-évalué plus d'une fois par seconde, il est clair que du
+ * code qui dépend de @ref time or @ref page_time va donner des résultats
+ * différents à chaque exécution. Un tel code sera ré-évalué automatiqement
+ * toutes les @ref default_refresh secondes.
+ *
+ * @ref time et @ref page_time utilisent la valeur de l'intervalle de
+ * rafraîchissement par défaut pour déclencher la prochaine évaluation du
+ * @a layout.
+ *
+ * Si l'intervalle est réduit à 0.0, la ré-exécution provoquée par @ref time
+ * et @ref page_time se fait le plus rapidement possible.
+ *
+ * Celà dit, le taux de rafraîchissement peut être réduit sur certaines
+ * plateformes ou dans certaines circonstances :
+ * - Sur MacOSX, Tao Presentations utilise un
+ * <a href="http://developer.apple.com/library/mac/#documentation/QuartzCore/Reference/CVDisplayLinkRef/Reference/reference.html">
+ * display link Core Video</a> pour déclencher les rafraîchissements
+ * périodiques de l'écran. Ce qui assure la meilleure fluidité possible des
+ * animations. Par conséquent, la granularité du @a timer de rafraîchissement
+ * est égale au taux de rafraîchissement de l'écran. Pour la plupart des
+ * écrans LCD ou projecteurs, il s'agit de 60 Hz ou 16.6 ms. Sur cette
+ * plateforme, @ref default_refresh vaut 0.0 par défaut.
+ * - Sur toutes les plateformes, et lorsque la synchronisation verticale
+ * est activée, default_refresh vaut initialement 0.0, et la vitesse de
+ * rafraîchissement est qutomatiquement limitée par l'horloge de
+ * synchronisation verticale. Lorsque VSync est désactivée, par contre,
+ * default_refresh est initialement mise à 0.016 pour éviter d'utiliser
+ * inutilement le processeur (on suppose on affichage à 60 Hz).
+ *
+ * @returns la valeur précédente de l'intervalle de rafraîchissement par
+ * défaut.
+ *
+ * @~
+ * @see @ref secExecModel
  */
 real default_refresh (interval:real);
 
 /**
+ * @~english
  * The default refresh interval for code using time and page_time.
- *
  * The default value of the default refresh interval depends on the
- * platform. See @ref default_refresh(interval:real).
+ * platform.
+ *
+ * @~french
+ * Renvoie la valeur de l'intervalle de rafraîchissement par défaut.
+ * La valeur par défaut dépend de la plateforme.
+ * @~
+ * @see default_refresh(interval:real).
  */
 real default_refresh ();
 

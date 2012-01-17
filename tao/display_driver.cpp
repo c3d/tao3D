@@ -509,12 +509,13 @@ bool DisplayDriver::setStereo(bool on)
 }
 
 
-void DisplayDriver::getCamera(Point3 *pos, Point3 *target, Vector3 *up)
+void DisplayDriver::getCamera(Point3 *pos, Point3 *target, Vector3 *up,
+                              double *toScreen)
 // ----------------------------------------------------------------------------
 //   Get camera characteristics
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->getCamera(pos, target, up);
+    Widget::Tao()->getCamera(pos, target, up, toScreen);
 }
 
 
@@ -639,18 +640,14 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
     // Record which stereo plane we are on for stereo
     Widget::Tao()->stereoPlane = i-1;
 
-    // Read camera position
-    Point3 cameraPosition;
-    Point3 cameraTarget;
-    Vector3 cameraUpVector;
-    getCamera(&cameraPosition, &cameraTarget, &cameraUpVector);
+    // Read camera distance to screen
+    double toScreen;
+    getCamera(NULL, NULL, NULL, &toScreen);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    Vector3 toTarget = cameraTarget - cameraPosition;
-    double distance = toTarget.Length();
-    double nearRatio = zNear()/distance;
+    double nearRatio = zNear()/toScreen;
     double delta = stereoDelta(i, numCameras);
     double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
@@ -670,14 +667,17 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     Point3 cameraPosition;
     Point3 cameraTarget;
     Vector3 cameraUpVector;
-    getCamera(&cameraPosition, &cameraTarget, &cameraUpVector);
+    double toScreen;
+    getCamera(&cameraPosition, &cameraTarget, &cameraUpVector, &toScreen);
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     double delta = stereoDelta(i, numCameras);
     double shiftLength = eyeSeparation() * delta;
-    Vector3 toTarget = cameraTarget - cameraPosition;
+    Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
+    toTarget *= toScreen;
+    Point3 target = cameraPosition + toTarget;
     Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
 
     // Update current eye and eyes number
@@ -687,9 +687,9 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     gluLookAt(cameraPosition.x + shift.x,
               cameraPosition.y + shift.y,
               cameraPosition.z + shift.z,
-              cameraTarget.x + shift.x,
-              cameraTarget.y + shift.y,
-              cameraTarget.z + shift.z,
+              target.x + shift.x,
+              target.y + shift.y,
+              target.z + shift.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 

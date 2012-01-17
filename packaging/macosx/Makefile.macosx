@@ -63,12 +63,19 @@ define git-makeparms
 NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
 
-kit: tao.dmg
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
+endif
+DMG=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
-tao.dmg: tmp.dmg
-	rm -f $@
-	hdiutil convert -format UDBZ -o $@ tmp.dmg
+kit: .dmg_ts
+
+tao.dmg .dmg_ts: tmp.dmg
+	rm -f tao.dmg
+	hdiutil convert -format UDBZ -o tao.dmg tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
+	mv tao.dmg "$(DMG)"
+	touch .dmg_ts
 
 prepare: .tao_install_ts .git_install_ts .cp_template_ts .cp_sdk_ts
 
@@ -84,7 +91,7 @@ clean: clean.git clean.tao clean.dmg clean.cp_sdk
 veryclean: clean veryclean.git
 
 clean.dmg: clean.cp_template
-	rm -f tao.dmg tmp.dmg
+	rm -f tao.dmg tmp.dmg .dmg "Tao Presentations"*.dmg
 
 ########
 
@@ -100,10 +107,12 @@ clean.cp_template:
 ########
 
 .cp_sdk_ts:
+ifndef NO_SDK
 	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk "build_root/Tao Presentations.app/Contents/MacOS"
 	touch $@
+endif
 
 clean.cp_sdk:
 	rm -rf "build_root/Tao Presentations.app/Contents/MacOS/sdk"

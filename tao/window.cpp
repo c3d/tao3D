@@ -51,6 +51,7 @@
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
+#include "assistant.h"
 #include "licence.h"
 
 #include <iostream>
@@ -1350,7 +1351,10 @@ void Window::licenses()
                 "loaded automatically.</p>"
                 "<center><a href=\"%1%2\">"
                 "Open the license folder</a></center>"
-                ).arg(prefix).arg(Application::defaultLicenseFolderPath());
+                "<p>Your host identifier (hostid):</p>"
+                "<center>%3</center>"
+                ).arg(prefix).arg(Application::userLicenseFolderPath())
+                 .arg(+Licences::hostID());
 
     QMessageBox *msgBox = new QMessageBox;
     msgBox->setAttribute(Qt::WA_DeleteOnClose);
@@ -1384,35 +1388,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
-    QString index = QCoreApplication::applicationDirPath()
-                    + "/doc/html/index.html";
-    if (!QFileInfo(index).exists())
-    {
-        QMessageBox::warning(this, tr("Documentation not found"),
-                             tr("Online documentation file was not found."));
-        return;
-    }
-#ifdef Q_OS_WIN
-    // On Windows, index starts with a drive letter, not with a leading
-    // slash. Add one to end up with a valid URI.
-    index = "/" + index;
-#endif
-    index = "file://" + index;
-    bool ok = QDesktopServices::openUrl(index);
-    if (!ok)
-        QMessageBox::warning(this, tr("Online help error"),
-                             tr("Could not open "
-                                "online documentation file:\n%1").arg(index));
-}
-
-
-void Window::onlineDocTaodyne()
-// ----------------------------------------------------------------------------
-//    Open the online documentation page on taodyne.com
-// ----------------------------------------------------------------------------
-{
-    QString url("http://taodyne.com/taopresentations/1.0/doc/");
-    QDesktopServices::openUrl(url);
+    Assistant::instance()->showDocumentation("index.html");
 }
 
 
@@ -1670,14 +1646,6 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
-    onlineDocTaodyneAct = new QAction(tr("&Online Documentation "
-                                         "(taodyne.com)"), this);
-    onlineDocTaodyneAct->setStatusTip(tr("Open the Online Documentation "
-                                         "on the Taodyne website"));
-    onlineDocTaodyneAct->setObjectName("onlineDocTaodyne");
-    connect(onlineDocTaodyneAct, SIGNAL(triggered()),
-            this, SLOT(onlineDocTaodyne()));
-
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
@@ -1835,7 +1803,6 @@ void Window::createMenus()
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
-    helpMenu->addAction(onlineDocTaodyneAct);
 }
 
 
@@ -2095,6 +2062,8 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // Clean previous program
     taoWidget->purgeTaoInfo();
 
+    taoWidget->reset();
+
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -2142,7 +2111,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         bool animated = taoWidget->hasAnimations();
         taoWidget->enableAnimations(NULL, false);
         taoWidget->resetTimes();
-        taoWidget->resetView();
+        taoWidget->resetViewAndRefresh();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
         if (animated)

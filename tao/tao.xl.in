@@ -146,6 +146,8 @@ old_camera_settings ->
     if oc_settings = 0 then
         oc_settings := 1
         camera_position 0, 0, 6000
+        camera_target 0, 0, 0
+        camera_to_screen 6000
         z_near 1000
         z_far 56000
         eye_distance 10

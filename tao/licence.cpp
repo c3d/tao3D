@@ -623,21 +623,30 @@ void Licences::licenceError(kstring file, QString reason)
 
 
 #ifndef KEYGEN
-void Licences::WarnUnlicenced(text feature, int days, bool critical)
+void Licences::Warn(text feature, int days, bool critical)
 // ----------------------------------------------------------------------------
-//   Remind user that the application is not licenced
+//   Remind user that the feature is not licenced or about to expire
 // ----------------------------------------------------------------------------
 {
-    if (days <= 0)
-    {
-        // Warn only once per feature
-        static std::set<text> warned;
-        if (warned.count(feature))
-            return;
-        warned.insert(feature);
+    // Warn only once per feature
+    static std::set<text> warned;
+    if (warned.count(feature))
+        return;
+    warned.insert(feature);
 
-        QString message;
-        message  = tr("<h3>License Error</h3>");
+    QString message;
+    if (days > 0)
+    {
+        message  = tr("<h3>Warning</h3>");
+        message += tr("<p>The license for the following feature expires in "
+                      "%n day(s):</p>"
+                      "<center>%1</center>", "", days).arg(+feature);
+        message += tr("<p>You may obtain new licenses from "
+                      "<a href=\"http://taodyne.com/\">Taodyne</a>.</p>");
+    }
+    else
+    {
+        message  = tr("<h3>Error</h3>");
         if (days == 0)
         {
             message += tr("<p>You do not have a valid license for:</p>"
@@ -651,17 +660,17 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
                           -days);
         }
         message += tr("<p>Please contact "
-                "<a href=\"http://taodyne.com/\">Taodyne</a> "
-                "to obtain valid license files.</p>");
-        LicenseDialog * oops = new LicenseDialog(message);
-        oops->setAttribute(Qt::WA_DeleteOnClose);
-        oops->show();
-        oops->raise();
-        if (critical)
-            oops->exec(); // Blocking ; e.g. initial test in Application
-        else
-            oops->open(); // Non-blocking ; e.g. module (allows degraded mode)
+                      "<a href=\"http://taodyne.com/\">Taodyne</a> "
+                      "to obtain valid license files.</p>");
     }
+    LicenseDialog * oops = new LicenseDialog(message);
+    oops->setAttribute(Qt::WA_DeleteOnClose);
+    oops->show();
+    oops->raise();
+    if (critical)
+        oops->exec(); // Blocking ; e.g. initial test in Application
+    else
+        oops->open(); // Non-blocking ; e.g. module (allows degraded mode)
 }
 
 

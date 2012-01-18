@@ -1064,7 +1064,6 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
     <message>
         <location filename="licence.cpp" line="605"/>
-        <location filename="licence.cpp" line="640"/>
         <source>&lt;h3&gt;License Error&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Erreur de licence&lt;/h3&gt;</translation>
     </message>
@@ -1076,23 +1075,47 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
     <message>
         <location filename="licence.cpp" line="613"/>
-        <location filename="licence.cpp" line="653"/>
+        <location filename="licence.cpp" line="662"/>
         <source>&lt;p&gt;Please contact &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Contactez &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="643"/>
+        <location filename="licence.cpp" line="640"/>
+        <source>&lt;h3&gt;Warning&lt;/h3&gt;</source>
+        <oldsource>&lt;h3&gt;License Warning&lt;/h3&gt;</oldsource>
+        <translation>&lt;h3&gt;Avertissement&lt;/h3&gt;</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="licence.cpp" line="641"/>
+        <source>&lt;p&gt;The license for the following feature expires in %n day(s):&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
+        <translation>
+            <numerusform>&lt;p&gt;La licence pour la fonctionalité suivante expire dans %n jour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</numerusform>
+            <numerusform>&lt;p&gt;La licence pour la fonctionalité suivante expire dans %n jours :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="licence.cpp" line="644"/>
+        <source>&lt;p&gt;You may obtain new licenses from &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt;.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Vous pouvez renouveler vos licences en contactant &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt;.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="licence.cpp" line="649"/>
+        <source>&lt;h3&gt;Error&lt;/h3&gt;</source>
+        <translation>&lt;h3&gt;Erreur&lt;/h3&gt;</translation>
+    </message>
+    <message>
+        <location filename="licence.cpp" line="652"/>
         <source>&lt;p&gt;You do not have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
         <translation>&lt;p&gt;Vous n&apos;avez pas de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="648"/>
+        <location filename="licence.cpp" line="657"/>
         <source>&lt;p&gt;You no longer have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
         <oldsource>&lt;p&gt;You no longer have a valid license for:&lt;center&gt;%1&lt;/center&gt;</oldsource>
         <translation>&lt;p&gt;Vous n&apos;avez plus de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
     </message>
     <message numerus="yes">
-        <location filename="licence.cpp" line="650"/>
+        <location filename="licence.cpp" line="659"/>
         <source>&lt;p&gt;The license expired %n day(s) ago.&lt;/p&gt;</source>
         <translation>
             <numerusform>&lt;p&gt;La licence a expiré il y a %n jour.&lt;/p&gt;</numerusform>

@@ -24,6 +24,15 @@
 
 import Animate
 
+license_ok ->
+    if check_license ("Carousel 1.0", false) then
+        true
+    else
+        if blink (1.0, 1.0) then
+           true
+        else
+           false
+
 // ============================================================================
 //
 //   Settings
@@ -70,10 +79,11 @@ carousel n:integer, w:integer, d:integer ->
 // ----------------------------------------------------------------------------
 //    Display the carousel
 // ----------------------------------------------------------------------------
-    carousel_width := w
-    carousel_depth := d
-    carousel_count := n
-    carousel_display
+    if license_ok then
+        carousel_width := w
+        carousel_depth := d
+        carousel_count := n
+        carousel_display
 
 
 carousel_hand ->

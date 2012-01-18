@@ -992,102 +992,107 @@ Voulez-vous me montrer où elle se trouve ?</translation>
 <context>
     <name>Tao::Licences</name>
     <message>
-        <location filename="licence.cpp" line="163"/>
+        <location filename="licence.cpp" line="165"/>
         <source>Invalid tag: %1</source>
         <translation>Mot-clé inconnu: %1</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="166"/>
+        <location filename="licence.cpp" line="168"/>
         <source>Invalid token</source>
         <translation>Mot inattendu</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="185"/>
+        <location filename="licence.cpp" line="187"/>
         <source>Digest verification failed</source>
         <translation>La clé n&apos;est pas celle attendue</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="192"/>
+        <location filename="licence.cpp" line="194"/>
         <source>Invalid digest</source>
         <translation>Clé invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="208"/>
+        <location filename="licence.cpp" line="211"/>
         <source>Inconsistent %1</source>
         <translation>Champ %1 incohérent</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="212"/>
-        <location filename="licence.cpp" line="231"/>
+        <location filename="licence.cpp" line="215"/>
+        <location filename="licence.cpp" line="234"/>
         <source>Invalid %1</source>
         <translation>Champ %1 invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="248"/>
+        <location filename="licence.cpp" line="251"/>
         <source>Invalid features pattern</source>
         <translation>Format incorrect pour le champ features</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="260"/>
+        <location filename="licence.cpp" line="263"/>
         <source>Invalid day</source>
         <translation>Jour invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="266"/>
+        <location filename="licence.cpp" line="269"/>
         <source>Invalid expiry day</source>
         <translation>Jour d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="298"/>
+        <location filename="licence.cpp" line="301"/>
         <source>Invalid month name</source>
         <translation>Mois invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="309"/>
+        <location filename="licence.cpp" line="312"/>
         <source>Invalid expiry month</source>
         <translation>Mois d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="326"/>
+        <location filename="licence.cpp" line="329"/>
         <source>Invalid year</source>
         <translation>Année invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="334"/>
+        <location filename="licence.cpp" line="337"/>
         <source>Invalid expiry year</source>
         <translation>Année d&apos;expiration invalide</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="599"/>
-        <location filename="licence.cpp" line="634"/>
+        <location filename="licence.cpp" line="363"/>
+        <source>Missing digital signature</source>
+        <translation>Signature numérique absente</translation>
+    </message>
+    <message>
+        <location filename="licence.cpp" line="605"/>
+        <location filename="licence.cpp" line="640"/>
         <source>&lt;h3&gt;License Error&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Erreur de licence&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="600"/>
+        <location filename="licence.cpp" line="606"/>
         <source>&lt;p&gt;There is a problem with licence file:&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;The following error was detected: %2.&lt;/p&gt;&lt;p&gt;The program will now terminate. You need to remove the offending licence file before trying to run the application again.&lt;/p&gt;</source>
         <oldsource>&lt;p&gt;There is a problem with licence file:&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;The following error was detected: %2.&lt;p&gt;The program will now terminate. You need to remove the offending licence file before trying to run the application again.&lt;/p&gt;</oldsource>
         <translation>&lt;p&gt;Un problème a été détecté dans le fichier :&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;L&apos;erreur suivante est survenue : %2.&lt;/p&gt;&lt;p&gt;L&apos;application va se terminer. Veuillez supprimer le fichier erroné avant de relancer l&apos;application.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="607"/>
-        <location filename="licence.cpp" line="647"/>
+        <location filename="licence.cpp" line="613"/>
+        <location filename="licence.cpp" line="653"/>
         <source>&lt;p&gt;Please contact &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Contactez &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="637"/>
+        <location filename="licence.cpp" line="643"/>
         <source>&lt;p&gt;You do not have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
         <translation>&lt;p&gt;Vous n&apos;avez pas de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
     </message>
     <message>
-        <location filename="licence.cpp" line="642"/>
+        <location filename="licence.cpp" line="648"/>
         <source>&lt;p&gt;You no longer have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
         <oldsource>&lt;p&gt;You no longer have a valid license for:&lt;center&gt;%1&lt;/center&gt;</oldsource>
         <translation>&lt;p&gt;Vous n&apos;avez plus de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
     </message>
     <message numerus="yes">
-        <location filename="licence.cpp" line="644"/>
+        <location filename="licence.cpp" line="650"/>
         <source>&lt;p&gt;The license expired %n day(s) ago.&lt;/p&gt;</source>
         <translation>
             <numerusform>&lt;p&gt;La licence a expiré il y a %n jour.&lt;/p&gt;</numerusform>

@@ -694,19 +694,33 @@ text Licences::hostID()
         // Host ID is the Windows Product ID. Available trough:
         // My Computer > Properties...
 
+#ifndef KEY_WOW64_64KEY
+#define KEY_WOW64_64KEY 0x0100
+#endif
+
+        DWORD flags = KEY_QUERY_VALUE;
         HKEY hKey;
+again:
         if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
                           "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
-                          KEY_QUERY_VALUE, &hKey) == ERROR_SUCCESS)
+                          flags, &hKey) == ERROR_SUCCESS)
         {
             BYTE pid[200];
             DWORD dataLength = sizeof(pid);
-            if (RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
-                                 pid, &dataLength) == ERROR_SUCCESS)
+            DWORD st = RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
+                                 pid, &dataLength);
+            RegCloseKey(hKey);
+            if (st == ERROR_SUCCESS)
             {
                 id = +QString::fromLocal8Bit((char *)&pid + 8, 23);
             }
-            RegCloseKey(hKey);
+            else if (st == ERROR_FILE_NOT_FOUND &&
+                     ((flags & KEY_WOW64_64KEY) == 0))
+            {
+                // 32-bit application running on 64-bit Windows
+                flags |= KEY_WOW64_64KEY;
+                goto again;
+            }
         }
 
 #elif defined (Q_OS_LINUX)

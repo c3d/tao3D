@@ -146,6 +146,8 @@ old_camera_settings ->
     if oc_settings = 0 then
         oc_settings := 1
         camera_position 0, 0, 6000
+        camera_target 0, 0, 0
+        camera_to_screen 6000
         z_near 1000
         z_far 56000
         eye_distance 10
@@ -590,6 +592,11 @@ submenu n:text, l:text                  -> submenu n, l, ""
 menu_item name:text, label:text, todo:block -> menu_item name, label, "", false, "false", todo
 
 #ifndef CFG_NOEDIT
+menu_item_status name:text ->
+    if is_read_only then
+        menu_item_enable name, false
+    else
+        menu_item_enable name, true
 
 menu_insert -> {
 menubar
@@ -602,6 +609,7 @@ menu_item "menu:insert > text box", tr "Text Box",
             font "default"
             text_box 0, 0, 100, 100,
                 text "Text"
+menu_item_status "menu:insert > text box"
 submenu   "menu:insert > shape", tr "2D Shape"
 menu_item "menu:insert > shape > line ---", tr "Line",
     insert tr "Insert line",
@@ -609,90 +617,105 @@ menu_item "menu:insert > shape > line ---", tr "Line",
             //color "line"
             line_color "line"
             line 50, -50, -50, 50
+menu_item_status "menu:insert > shape > line ---"
 menu_item "menu:insert > shape > line -->", tr "Line with Arrowhead",
     insert tr "Insert line with arrowhead",
         shape
             //color "line"
             line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
+menu_item_status "menu:insert > shape > line -->"
 menu_item "menu:insert > shape > line <->", tr "Line with Two Arrowheads",
     insert tr "Insert line with two arrowheads",
         shape
             //color "line"
             line_color "line"
             line_arrow 50, -50, arrowhead, -50, 50, arrowhead
+menu_item_status "menu:insert > shape > line <->"
 menu_item "menu:insert > shape > rectangle", tr "Rectangle",
     insert tr "Insert rectangle",
         shape
             color "fill"
             line_color "fill"
             rectangle 0, 0, 100, 100
+menu_item_status "menu:insert > shape > rectangle"
 menu_item "menu:insert > shape > rounded rectangle", tr "Rounded Rectangle",
     insert tr "Insert rounded rectangle",
         shape
             color "fill"
             line_color "fill"
             rounded_rectangle 0, 0, 100, 100, 15
+menu_item_status "menu:insert > shape > rounded rectangle"
 menu_item "menu:insert > shape > oval", tr "Oval",
     insert tr "Insert oval",
         shape
             color "fill"
             line_color "fill"
             ellipse 0, 0, 100, 100
+menu_item_status "menu:insert > shape > oval"
 menu_item "menu:insert > shape > triangle", tr "Triangle",
     insert tr "Insert triangle",
         shape
             color "fill"
             line_color "fill"
             triangle 0, 0, 100, 100
+menu_item_status "menu:insert > shape > triangle"
 menu_item "menu:insert > shape > right triangle", tr "Right Triangle",
     insert tr "Insert right triangle",
         shape
             color "fill"
             line_color "fill"
             right_triangle 0, 0, 100, 100
+menu_item_status "menu:insert > shape > right triangle"
 menu_item "menu:insert > shape > arrow", tr "Arrow",
     insert tr "Insert arrow",
         shape
             color "fill"
             line_color "fill"
             arrow 0, 0, 100, 100, 44, 32%
+menu_item_status "menu:insert > shape > arrow"
 menu_item "menu:insert > shape > double arrow", tr "Double Arrow",
     insert tr "Insert double arrow",
         shape
             color "fill"
             line_color "fill"
             double_arrow 0, 0, 100, 100, 44, 32%
+menu_item_status "menu:insert > shape > double arrow"
 menu_item "menu:insert > shape > diamond", tr "Diamond",
     insert tr "Insert diamond",
         shape
             color "fill"
             line_color "fill"
             diamond 0, 0, 100, 100
+menu_item_status "menu:insert > shape > diamond"
 menu_item "menu:insert > shape > speech ballon", tr "Speech Balloon",
     insert tr "Insert speech balloon",
         shape
             color "fill"
             line_color "fill"
             speech_balloon 0, 16, 100, 68, 50, -50, -50
+menu_item_status "menu:insert > shape > speech ballon"
 menu_item "menu:insert > shape > callout", tr "Callout",
     insert tr "Insert callout",
         shape
             color "fill"
             line_color "fill"
             callout 16, 0, 68, 100, 15, -50, 0, 60
+menu_item_status "menu:insert > shape > callout"
 menu_item "menu:insert > shape > star", tr "Star",
     insert tr "Insert star",
         shape
             color "fill"
             line_color "fill"
             star 0, 0, 100, 100, 5, 50%
+menu_item_status "menu:insert > shape > star"
 menu_item "menu:insert > shape > polygon", tr "Polygon",
     insert tr "Insert polygon",
         shape
             color "fill"
             line_color "fill"
             polygon 0, 0, 100, 100, 5
+menu_item_status "menu:insert > shape > polygon"
 
 menu      "menu:insert", ""
 submenu   "menu:insert > 3Dshape", tr "3D Shape"
@@ -702,6 +725,7 @@ menu_item "menu:insert > 3Dshape > sphere", tr "Sphere",
             color "fill"
             line_color "fill"
             sphere 0, 0, 0, 100, 100, 100, 25, 25
+menu_item_status "menu:insert > 3Dshape > sphere"
 
 menu_item "menu:insert > 3Dshape > torus", tr "Torus",
     insert tr "Insert torus",
@@ -709,6 +733,7 @@ menu_item "menu:insert > 3Dshape > torus", tr "Torus",
             color "fill"
             line_color "fill"
             torus 0, 0, 0, 100, 100, 100, 25, 25, 0.5
+menu_item_status "menu:insert > 3Dshape > torus"
 
 menu_item "menu:insert > 3Dshape > cube", tr "Cube",
     insert tr "Insert cube",
@@ -718,6 +743,7 @@ menu_item "menu:insert > 3Dshape > cube", tr "Cube",
             color "fill"
             line_color "fill"
             cube 0, 0, 0, 100, 100, 100
+menu_item_status "menu:insert > 3Dshape > cube"
 
 menu_item "menu:insert > 3Dshape > cone", tr "Cone",
     insert tr "Insert cone",
@@ -727,6 +753,7 @@ menu_item "menu:insert > 3Dshape > cone", tr "Cone",
             color "fill"
             line_color "fill"
             cone 0, 0, 0, 100, 100, 100
+menu_item_status "menu:insert > 3Dshape > cone"
 
 menu_item "menu:insert > 3Dshape > cylinder", tr "Cylinder",
     insert tr "Insert cylinder",
@@ -736,6 +763,7 @@ menu_item "menu:insert > 3Dshape > cylinder", tr "Cylinder",
             color "fill"
             line_color "fill"
             cylinder 0, 0, 0, 100, 100, 100
+menu_item_status "menu:insert > 3Dshape > cylinder"
 
 menu_item "menu:insert > 3Dshape > truncated cone", tr "Truncated cone",
     insert tr "Insert truncated cone",
@@ -745,6 +773,7 @@ menu_item "menu:insert > 3Dshape > truncated cone", tr "Truncated cone",
             color "fill"
             line_color "fill"
             truncated_cone 0, 0, 0, 100, 100, 100, 0.5
+menu_item_status "menu:insert > 3Dshape > truncated cone"
 
 
 
@@ -779,6 +808,7 @@ menu_item "menu:insert > table", tr "Table",
                     text tr "Cell 3,2"
                 table_cell
                     text tr "Cell 3,3"
+menu_item_status "menu:insert > table"
 
 separator
 
@@ -802,6 +832,7 @@ menu_item "menu:insert > image...", tr "Image...",
             shape
                 color 100%,100%,100%,100%
                 image 0, 0, 100%, 100%, rel_file_path
+menu_item_status "menu:insert > image..."
 }
 
 
@@ -814,90 +845,105 @@ menu_item "toolbar:insert > shape > line ---", "", "images/tb_shape_line.png",
             color "line"
             line_color "line"
             line 50, -50, -50, 50
+menu_item_status "toolbar:insert > shape > line ---"
 menu_item "toolbar:insert > shape > line -->", "", "images/tb_shape_line_w_arrowhead.png",
     insert tr "Insert line with arrowhead",
         shape
             color "line"
             line_color "line"
             line_arrow 50, -50, none, -50, 50, arrowhead
+menu_item_status "toolbar:insert > shape > line -->"
 menu_item "toolbar:insert > shape > line <->", "", "images/tb_shape_line_w_two_arrowheads.png",
     insert tr "Insert line with two arrowheads",
         shape
             color "line"
             line_color "line"
             line_arrow 50, -50, arrowhead, -50, 50, arrowhead
+menu_item_status "toolbar:insert > shape > line <->"
 menu_item "toolbar:insert > shape > rectangle", "", "images/tb_shape_rectangle.png",
     insert tr "Insert rectangle",
         shape
             color "fill"
             line_color "fill"
             rectangle 0, 0, 100, 100
+menu_item_status "toolbar:insert > shape > rectangle"
 menu_item "toolbar:insert > shape > rounded rectangle", "", "images/tb_shape_rounded_rectangle.png",
     insert tr "Insert rounded rectangle",
         shape
             color "fill"
             line_color "fill"
             rounded_rectangle 0, 0, 100, 100, 15
+menu_item_status "toolbar:insert > shape > rounded rectangle"
 menu_item "toolbar:insert > shape > oval", "", "images/tb_shape_oval.png",
     insert tr "Insert oval",
         shape
             color "fill"
             line_color "fill"
             ellipse 0, 0, 100, 100
+menu_item_status "toolbar:insert > shape > oval"
 menu_item "toolbar:insert > shape > triangle", "", "images/tb_shape_triangle.png",
     insert tr "Insert triangle",
         shape
             color "fill"
             line_color "fill"
             triangle 0, 0, 100, 100
+menu_item_status "toolbar:insert > shape > triangle"
 menu_item "toolbar:insert > shape > right triangle", "", "images/tb_shape_right_triangle.png",
     insert tr "Insert right triangle",
         shape
             color "fill"
             line_color "fill"
             right_triangle 0, 0, 100, 100
+menu_item_status "toolbar:insert > shape > right triangle"
 menu_item "toolbar:insert > shape > arrow", "", "images/tb_shape_arrow.png",
     insert tr "Insert arrow",
         shape
             color "fill"
             line_color "fill"
             arrow 0, 0, 100, 100, 44, 32%
+menu_item_status "toolbar:insert > shape > arrow"
 menu_item "toolbar:insert > shape > double arrow", "", "images/tb_shape_double_arrow.png",
     insert tr "Insert double arrow",
         shape
             color "fill"
             line_color "fill"
             double_arrow 0, 0, 100, 100, 44, 32%
+menu_item_status "toolbar:insert > shape > double arrow"
 menu_item "toolbar:insert > shape > diamond", "", "images/tb_shape_diamond.png",
     insert tr "Insert diamond",
         shape
             color "fill"
             line_color "fill"
             diamond 0, 0, 100, 100
+menu_item_status "toolbar:insert > shape > diamond"
 menu_item "toolbar:insert > shape > speech ballon", "", "images/tb_shape_speech_balloon.png",
     insert tr "Insert speech balloon",
         shape
             color "fill"
             line_color "fill"
             speech_balloon 0, 16, 100, 68, 50, -50, -50
+menu_item_status "toolbar:insert > shape > speech ballon"
 menu_item "toolbar:insert > shape > callout", "", "images/tb_shape_callout.png",
     insert tr "Insert callout",
         shape
             color "fill"
             line_color "fill"
             callout 16, 0, 68, 100, 15, -50, 0, 60
+menu_item_status "toolbar:insert > shape > callout"
 menu_item "toolbar:insert > shape > star", "", "images/tb_shape_star.png",
     insert tr "Insert star",
         shape
             color "fill"
             line_color "fill"
             star 0, 0, 100, 100, 5, 50%
+menu_item_status "toolbar:insert > shape > star"
 menu_item "toolbar:insert > shape > polygon", "", "images/tb_shape_polygon.png",
     insert tr "Insert polygon",
         shape
             color "fill"
             line_color "fill"
             polygon 0, 0, 100, 100, 5
+menu_item_status "toolbar:insert > shape > polygon"
 }
 texture_chooser ->
     file_chooser
@@ -920,36 +966,46 @@ texture_chooser ->
 menu_format -> {
 menubar
 menu   "menu:select:format", tr "Format"
-menu_item "menu:select:format > fill color", tr "Fill Color...",
+menu_item "menu:selectW:format > fill color", tr "Fill Color...",
     color_chooser "color",
         set_attribute "color", {color red, green, blue, alpha}
-menu_item "menu:select:format > line color", tr "Line Color...",
+menu_item_status "menu:selectW:format > fill color"
+menu_item "menu:selectW:format > line color", tr "Line Color...",
     color_chooser "line_color",
         set_attribute "line_color", {line_color red, green, blue, alpha}
-menu_item "menu:select:format > font", tr "Font...",
+menu_item_status "menu:selectW:format > line color"
+menu_item "menu:selectW:format > font", tr "Font...",
     font_chooser
         set_attribute "font", {font font_family, font_size, slant font_slant%, weight font_weight%, stretch font_stretch%}
-menu_item "menu:select:format >  texture...", tr "Texture...",
+menu_item_status "menu:selectW:format > font"
+menu_item "menu:selectW:format >  texture...", tr "Texture...",
     texture_chooser
+menu_item_status "menu:selectW:format >  texture..."
 }
 
 menu_arrange -> {
 menu   "menu:select:arrange", tr "Arrange"
-menu_item "menu:select:arrange > toFront", tr "Bring to front",
+menu_item "menu:selectW:arrange > toFront", tr "Bring to front",
     bring_to_front
-menu_item "menu:select:arrange > forward", tr "Bring forward",
+menu_item_status "menu:selectW:arrange > toFront"
+menu_item "menu:selectW:arrange > forward", tr "Bring forward",
     bring_forward
-menu_item "menu:select:arrange > backward", tr "Send backward",
+menu_item_status "menu:selectW:arrange > forward"
+menu_item "menu:selectW:arrange > backward", tr "Send backward",
     send_backward
-menu_item "menu:select:arrange > toBack", tr "Send to back",
+menu_item_status "menu:selectW:arrange > backward"
+menu_item "menu:selectW:arrange > toBack", tr "Send to back",
     send_to_back
+menu_item_status "menu:selectW:arrange > toBack"
 
 separator
 
-menu_item "menu:select:arrange > group", tr "Group",
+menu_item "menu:selectW:arrange > group", tr "Group",
     group_selection
-menu_item "menu:select:arrange > ungroup", tr "Ungroup",
+menu_item_status "menu:selectW:arrange > group"
+menu_item "menu:selectW:arrange > ungroup", tr "Ungroup",
     ungroup_selection
+menu_item_status "menu:selectW:arrange > ungroup"
 }
 
 #endif

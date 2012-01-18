@@ -46,7 +46,7 @@ equals(HAS_DOXYGEN, 1) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = export DOXYLANG=$$DOXYLANG ; $$DOXYGEN
+  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=XLRef.html ; $$DOXYGEN
   doc.depends = cp_examples cp_xlref version
 
   webdoc.commands = doxygen DoxyfileWebdoc
@@ -62,13 +62,13 @@ equals(HAS_DOXYGEN, 1) {
                                 cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
                                 for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
 
-  cp_xlref.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp XLRef.pdf output/\$\$l/html ; done
+  cp_xlref.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp XLRef.html output/\$\$l/html ; done
   cp_xlref.depends = xlref
 
-  xlref.target = XLRef.pdf
+  xlref.target = XLRef.html
   equals(HAS_TEXMACS, true) {
-    xlref.commands = texmacs --convert XLRef.tm XLRef.pdf --quit
-    xlref.depends = XLRef.tm
+    xlref.commands = texmacs --convert ../tao/xlr/xlr/doc/XLRef.tm XLRef.tmp.html --quit && sed -f texmacs_html.sed XLRef.tmp.html > XLRef.html && rm XLRef.tmp.html
+    xlref.depends = ../tao/xlr/xlr/doc/XLRef.tm
   }
 
   cleandocdirs.commands = /bin/rm -rf html/ webhtml/ qch/

@@ -289,7 +289,7 @@ mon_cercle Rayon:real ->
  * @section secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.
- * Detailed information is available in <a href="XLRef.pdf">the XLR language
+ * Detailed information is available in <a href="XLRef.html">the XLR language
  * reference guide</a>. However, a deep knowledge of XL is not needed to write
  * Tao documents.
  *
@@ -298,9 +298,10 @@ mon_cercle Rayon:real ->
  *
  * Le langage de programmation XL (ou XLR) est la base des documents
  * Tao Presentations.
- * Des informations détaillées sont disponibles dans <a href="XLRef.pdf">le
- * guide de référence du langage XLR</a>. Toutefois, une connaissance
- * approfondie de XL n'est pas nécessaire pour écrire des documents Tao.
+ * Des informations détaillées sont disponibles dans <a href="XLRef.html">le
+ * guide de référence du langage XLR</a> (en anglais). Toutefois, une
+ * connaissance approfondie de XL n'est pas nécessaire pour écrire des
+ * documents Tao.
  *
  * @~english
  * @section secBuiltins Tao Builtins and Primitives
@@ -661,8 +662,8 @@ import "xl:my_definitions.xl"
  * to "Installed in:" to open a file browser window in the module folder.
  *  - Copy the whole @c tao_visuals folder into the @c modules folder
  * of your user account. More specifically, you should end up with:
- *    - Windows: <tt>%%APPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
- *      To open <tt>%%APPDATA%</tt> easily on Windows, just type <tt>%%APPDATA%</tt>
+ *    - Windows: <tt>%%LOCALAPPDATA%\\Tao Presentations\\modules\\tao_visuals</tt>.
+ *      To open <tt>%%LOCALAPPDATA%</tt> easily on Windows, just type <tt>%%LOCALAPPDATA%</tt>
  *      in the Start menu.
  *    - MacOSX: <tt>$HOME/Library/Application Support/Tao Presentations/modules/tao_visuals</tt>.
  *     To open <tt>$HOME</tt> on MacOSX, open a new Finder window.

@@ -791,11 +791,10 @@ void Widget::draw()
 
     if (selectionChanged)
     {
-        Window *window = (Window *) parentWidget();
         selectionChanged = false;
 
         // TODO: honoring isReadOnly involves more than just this
-        if (!window->isReadOnly)
+        if (!isReadOnly())
             updateProgramSource();
     }
 
@@ -1375,7 +1374,7 @@ void Widget::checkCopyAvailable()
     bool sel = hasSelection();
     if (hadSelection != sel)
     {
-        emit copyAvailable(sel);
+        emit copyAvailable(sel && !isReadOnly());
         hadSelection = sel;
     }
 }
@@ -3899,7 +3898,6 @@ bool Widget::isReadOnly()
     Window *window = (Window *)parentWidget();
     return window->isReadOnly;
 }
-
 
 
 // ============================================================================
@@ -10633,13 +10631,17 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     p_action = new QAction(+lbl, par);
     p_action->setData(var);
 
+
     // Set the item sensible to the selection
-    if (fullName.startsWith("menu:select:"))
+    if (fullName.startsWith("menu:selectW:"))
     {
-        p_action->setEnabled(hasSelection());
+        // Enabled action only if we need
+        // (do not need if document is read only or noting is selected)
+        p_action->setEnabled(hasSelection() && !isReadOnly());
         connect(this, SIGNAL(copyAvailable(bool)),
                 p_action, SLOT(setEnabled(bool)));
     }
+
 
     if (iconFileName != "")
         p_action->setIcon(QIcon(+iconFileName));
@@ -10677,6 +10679,27 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 
     return XL::xl_true;
 }
+
+
+
+Tree_p  Widget::menuItemEnable(Tree_p self, text name, bool enable)
+// ----------------------------------------------------------------------------
+//  Enable or disable a menu item
+// ----------------------------------------------------------------------------
+{
+    if (!currentMenu && !currentToolBar)
+        return XL::xl_false;
+
+    QString fullName = +name;
+    if (QAction* act = parent()->findChild<QAction*>(fullName))
+    {
+        act->setEnabled(enable);
+        return XL::xl_true;
+    }
+
+    return XL::xl_false;
+}
+
 
 
 Tree_p Widget::menu(Tree_p self, text name, text lbl,
@@ -11006,8 +11029,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
     if (!markChange(msg))
         return XL::xl_false;
 
-    Window *window = (Window *) parentWidget();
-    if (window->isReadOnly)
+    if (isReadOnly())
     {
         QMessageBox::warning(this, tr("Insert"),
                              tr("Current document is read-only. Use "
@@ -11634,6 +11656,14 @@ Text_p Widget::displayMode()
     return new Text(+displayDriver->getDisplayFunction());
 }
 
+
+Name_p Widget::readOnly()
+// ----------------------------------------------------------------------------
+//   Check if document is read only
+// ----------------------------------------------------------------------------
+{
+    return isReadOnly() ? XL::xl_true : XL::xl_false;
+}
 
 
 // ============================================================================

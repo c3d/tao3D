@@ -1,0 +1,38 @@
+// ****************************************************************************
+//  carousel.xl                                                     Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//    Implement a 3D carousel
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2011 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+module_description
+    id "fd1967a7-f80d-47ea-be6b-9a195f947e64"
+    name "Carousel"
+    description "Define a 3D carousel"
+    import_name "Carousel"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Carrousel"
+    description "D�finit un carrousel 3D"
+
+import "carousel2.xl.crypt"

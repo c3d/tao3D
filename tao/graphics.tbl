@@ -793,6 +793,14 @@ PREFIX(MenuItem,  tree,  "menu_item",
        SYNOPSIS("add an entry in a menu")
        DESCRIPTION("Add an entry in the current menu with the label, icon, checkmark and command."))
 
+PREFIX(MenuItemEnable,  tree,  "menu_item_enable",
+       PARM(n, text, "Name that identify the menu to enable/disable")
+       PARM(enable, boolean, "The status of the menu"),
+       RTAO(menuItemEnable(self, n, enable)),
+       GROUP(widget:menu)
+       SYNOPSIS("enable or disable a menu item")
+       DESCRIPTION("Enable or disable a menu item."))
+
 PREFIX(ToolBar,  tree,  "toolbar",
        PARM(name, text, "Name that uniquely identify this toolbar")
        PARM(lbl, text, "The label of the toolbar")
@@ -1029,6 +1037,11 @@ PREFIX(Tr,  text,  "tr",
        GROUP(i18n)
        SYNOPSIS("Translate a string into the current language")
        RETURNS(text, "The translated text."))
+PREFIX(isReadOnly,  tree,  "is_read_only",,
+       RTAO(readOnly()),
+       GROUP(misc)
+       SYNOPSIS("Check if document is read only")
+       RETURNS(tree, ""))
 
 // ============================================================================
 //

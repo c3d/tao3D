@@ -112,7 +112,7 @@ void Licences::addLicenceFile(kstring licfname)
         START, DIGEST, DONE, TAG,
         NAME, COMPANY, ADDRESS, EMAIL, FEATURES,
         EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR,
-        HOSTID, ERROR
+        HOSTID, ERR
     } state = START;
 
     while (state != DONE)
@@ -126,7 +126,7 @@ void Licences::addLicenceFile(kstring licfname)
         switch (state)
         {
         case DONE:
-        case ERROR:
+        case ERR:
             break;              // Keep compiler happy
 
         case START:
@@ -137,7 +137,7 @@ void Licences::addLicenceFile(kstring licfname)
             // Fall through on purpose
 
         case TAG:
-            state = ERROR;       // For all error cases
+            state = ERR;       // For all error cases
             switch (tok)
             {
             case XL::tokEOF:
@@ -185,14 +185,14 @@ void Licences::addLicenceFile(kstring licfname)
                 else
                 {
                     licenceError(licfname, tr("Digest verification failed"));
-                    state = ERROR;
+                    state = ERR;
                 }
                 additional.licences.clear();
             }
             else
             {
                 licenceError(licfname, tr("Invalid digest"));
-                state = ERROR;
+                state = ERR;
             }
             had_digest = true;
             break;
@@ -213,7 +213,7 @@ void Licences::addLicenceFile(kstring licfname)
             else                                                        \
             {                                                           \
                 licenceError(licfname, tr("Invalid %1").arg(#PVAR));    \
-                state = ERROR;                                           \
+                state = ERR;                                            \
             }                                                           \
             break;
 
@@ -232,7 +232,7 @@ void Licences::addLicenceFile(kstring licfname)
                 if (item != "" && item != hostID())
                 {
                     licenceError(licfname, tr("Invalid %1").arg("hostid"));
-                    state = ERROR;
+                    state = ERR;
                 }
 #endif
                 additional.hostid = item;
@@ -249,7 +249,7 @@ void Licences::addLicenceFile(kstring licfname)
             else
             {
                 licenceError(licfname, tr("Invalid features pattern"));
-                state = ERROR;
+                state = ERR;
             }
             break;
             
@@ -261,13 +261,13 @@ void Licences::addLicenceFile(kstring licfname)
                 if (day < 1 || day > 31)
                 {
                     licenceError(licfname, tr("Invalid day"));
-                    state = ERROR;
+                    state = ERR;
                 }
             }
             else
              {
                 licenceError(licfname, tr("Invalid expiry day"));
-                state = ERROR;
+                state = ERR;
             }
             break;
 
@@ -299,7 +299,7 @@ void Licences::addLicenceFile(kstring licfname)
                     if (state != EXPIRY_YEAR)
                     {
                         licenceError(licfname, tr("Invalid month name"));
-                        state = ERROR;
+                        state = ERR;
                     }
                 }
             }
@@ -310,7 +310,7 @@ void Licences::addLicenceFile(kstring licfname)
                 if (month < 1 || month > 12)
                 {
                     licenceError(licfname, tr("Invalid expiry month"));
-                    state = DONE;
+                    state = ERR;
                 }
             }
             break;
@@ -327,7 +327,7 @@ void Licences::addLicenceFile(kstring licfname)
                 if (year < 2011 || year > 2099)
                 {
                     licenceError(licfname, tr("Invalid year"));
-                    state = ERROR;
+                    state = ERR;
                 }
                 licence.expiry = QDate(year, month, day);
                 state = TAG;
@@ -335,7 +335,7 @@ void Licences::addLicenceFile(kstring licfname)
             else
             {
                 licenceError(licfname, tr("Invalid expiry year"));
-                state = ERROR;
+                state = ERR;
             }
             break;
 
@@ -359,7 +359,7 @@ void Licences::addLicenceFile(kstring licfname)
         fclose(file);
     }
 #else
-    if (!had_digest && state != ERROR)
+    if (!had_digest && state != ERR)
         licenceError(licfname, tr("Missing digital signature"));
 #endif // KEYGEN
 }

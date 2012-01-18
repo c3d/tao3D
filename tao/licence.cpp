@@ -37,7 +37,7 @@
 #include <cstdio>
 
 #ifndef KEYGEN
-#include <QMessageBox>
+#include "license_dialog.h"
 #if defined (Q_OS_MACX)
 #include <QProcess>
 #include <QStringList>
@@ -595,18 +595,21 @@ void Licences::licenceError(kstring file, QString reason)
     std::cerr << "Error reading licence file " << file
               << ": " << +reason << "\n";
 #else
-    QMessageBox oops;
-    oops.setIcon(QMessageBox::Critical);
-    oops.setWindowTitle(tr("Error reading licence files"));
-    oops.setText(tr("There is a problem with licence file '%1'.\n"
-                    "The following error was detected: %2\n"
-                    "The program will now terminate. "
-                    "You need to remove the offending licence file "
-                    "before trying to run the application again. "
-                    "Please contact Taodyne to obtain valid "
-                    "licence files.")
-                 .arg(file).arg(reason));
-    oops.addButton(QMessageBox::Close);
+    QString message;
+    message  = tr("<h3>License Error</h3>");
+    message += tr("<p>There is a problem with licence file:</p>"
+                  "<center>'%1'</center>"
+                  "<p>The following error was detected: %2.</p>"
+                  "<p>The program will now terminate. "
+                  "You need to remove the offending licence file "
+                  "before trying to run the application again.</p>")
+                  .arg(file).arg(reason);
+    message += tr("<p>Please contact "
+                  "<a href=\"http://taodyne.com/\">Taodyne</a> "
+                  "to obtain valid license files.</p>");
+    LicenseDialog oops(message);
+    oops.show();
+    oops.raise();
     oops.exec();
 #endif // KEYGEN
     exit(15);    
@@ -627,28 +630,31 @@ void Licences::WarnUnlicenced(text feature, int days, bool critical)
             return;
         warned.insert(feature);
 
-        QMessageBox * oops = new QMessageBox;
-        oops->setAttribute(Qt::WA_DeleteOnClose);
-        oops->setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
-        oops->setWindowTitle(tr("Not licenced"));
-        oops->setText(tr("<center>Not licenced</center>"));
+        QString message;
+        message  = tr("<h3>License Error</h3>");
         if (days == 0)
-            oops->setInformativeText(tr("<p>You do not have a valid licence "
-                "for %1.</p><p>Please contact Taodyne to obtain valid licence "
-                "files.</p><p>Host identifier:</p><center>%2</center>")
-                                     .arg(+feature).arg(+Licences::hostID()));
+        {
+            message += tr("<p>You do not have a valid license for:</p>"
+                          "<center>%1</center>").arg(+feature);
+        }
         else
-            oops->setInformativeText(tr("<p>You no longer have a valid licence "
-                "for %1.</p><p>The licence you had expired %2 days ago.</p>"
-                "<p>Please contact Taodyne to obtain valid licence files.</p>"
-                "<p>Host identifier:</p><center>%3</center>")
-                                     .arg(+feature).arg(-days)
-                                     .arg(+Licences::hostID()));
-        oops->addButton(QMessageBox::Close);
+        {
+            message += tr("<p>You no longer have a valid license for:</p>"
+                          "<center>%1</center>").arg(+feature);
+            message += tr("<p>The license expired %n day(s) ago.</p>", "",
+                          -days);
+        }
+        message += tr("<p>Please contact "
+                "<a href=\"http://taodyne.com/\">Taodyne</a> "
+                "to obtain valid license files.</p>");
+        LicenseDialog * oops = new LicenseDialog(message);
+        oops->setAttribute(Qt::WA_DeleteOnClose);
+        oops->show();
+        oops->raise();
         if (critical)
             oops->exec(); // Blocking ; e.g. initial test in Application
         else
-            oops->open(); // Non-blocking
+            oops->open(); // Non-blocking ; e.g. module (allows degraded mode)
     }
 }
 

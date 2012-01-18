@@ -73,7 +73,7 @@ void LicenseDialog::init()
                 "loaded automatically.</p>"
                 "<center><a href=\"%1%2\">"
                 "Open the license folder</a></center>"
-                "<p>Your host identifier (hostid):</p>"
+                "<h3>Your host identifier:</h3>"
                 "<center>%3</center>"
                 ).arg(prefix).arg(Application::userLicenseFolderPath())
                  .arg(+Licences::hostID());

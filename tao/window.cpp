@@ -2586,7 +2586,7 @@ void Window::restartFullScreenTimer()
 //    Restart full screen timer
 // ----------------------------------------------------------------------------
 {
-    fullScreenTimer.start(10 * 60 * 1000);
+    fullScreenTimer.start(5 * 60 * 1000);
 }
 
 #endif // CFG_TIMED_FULLSCREEN

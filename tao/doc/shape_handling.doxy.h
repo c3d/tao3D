@@ -20,7 +20,7 @@
  * Creates a logical group around shapes.
  * The group can then be transformed as one object.
  * @~french
- * Crée un groupe de plusieurs blocs shape
+ * Crée un groupe de plusieurs blocs shape.
  * Le groupe peut ensuite être manipulé comme un objet unique.
  */
 group(shapes:tree);

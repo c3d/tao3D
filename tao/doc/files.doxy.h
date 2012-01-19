@@ -69,7 +69,7 @@ print_path with files
  * des point-virgules ou sur plusieurs lignes.
  * Chaque chaîne est interprétée comme un "glob pattern". Le slash (@c /)
  * sert à séparer les répertoires et sous-répertoires.
- * Seuls les fichier normaux sont pris en compte. Les répertoires et les liens
+ * Seuls les fichiers normaux sont pris en compte. Les répertoires et les liens
  * symboliques qui correspondent au modèle ne seront pas retenus par la
  * primitive. Les chemins renvoyés sont toujours absolus.
  *

@@ -53,7 +53,7 @@ shader_program
  * Le code source GLSL peut être donné directement dans le document Tao
  * Presentations, ou bien lu depuis un fichier. Dans le premier cas, on utilise
  * en général les balises de texte << et >>, qui permettent d'écrire du texte
- * su plusieurs lignes et ne posent pas de problème en cas d'utilisation de
+ * sur plusieurs lignes et ne posent pas de problème en cas d'utilisation de
  * guillemets ("). Si, par contre, vous chargez votre code source GLSL depuis
  * un fichier, notez que le chemin est relatif au dossier du document.
  * Par exemple :

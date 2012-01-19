@@ -87,7 +87,7 @@
  * @~french
  * Le répertoire où se trouvent les textures de halos.
  *
- * Ce répertoire contient des images qui peuvent être utilisés pour faire
+ * Ce répertoire contient des images qui peuvent être utilisées pour faire
  * différentes sortes de halos. Sa valeur par défaut est le répertoire
  * "images" du module.
  */
@@ -153,7 +153,7 @@ lens_flare_source(x:real, y:real, z:real);
  * Define lens flare target.
  * Set the target of the lens flare at (@p x, @p y, @p z).
  * @~french
- * Définit la direction de l'axe qu iporte les reflets.
+ * Définit la direction de l'axe qui porte les reflets.
  * (@p x, @p y, @p z) est la position du point qui définit l'extrémité du
  * segment portant les images des reflets, l'autre extrémité étant la source.
  */
@@ -163,12 +163,12 @@ lens_flare_target(x:real, y:real, z:real);
  * @~english
  * Add a new flare to the current lens flare.
  * @param id index of the flare texture.
- * @param loc relative location of the flare. 0 is the source position and 1 is the target one.
- * @param scale scaling rate of the texture. 1 is its normal size.
+ * @param loc relative location of the flare. 0.0 is the source position and 1.0 is the target one.
+ * @param scale scaling rate of the texture. 1.0 is its normal size.
  * @param r red component of the flare color.
  * @param g green component of the flare color.
  * @param b blue component of the flare color.
- * @param a alpha-channel, transparency of the flare color. 0 is transparent and 1 is opaque.
+ * @param a alpha-channel, transparency of the flare color. 0.0 is transparent and 1.0 is opaque.
  *
  * @note Flares, which are located on the source, are always drawn.
  * @~french
@@ -177,8 +177,8 @@ lens_flare_target(x:real, y:real, z:real);
  * jouer sur la coloration de l'image ajoutée grâce à la couleur et à la
  * transparence du filtre : (@p r, @p g, @p bm @p a).
  * @param id Index de la texture à ajouter.
- * @param loc Position relative du reflet sur un segment, 0 est la source
- *        (@ref lens_flare_source) et 1 est la cible.
+ * @param loc Position relative du reflet sur un segment, 0.0 est la source
+ *        (@ref lens_flare_source) et 1.0 est la cible.
  * @param scale Permet de redimensionner la texture. 1.0 pour conserver sa taille.
  * @param r Composante rouge de la couleur du filtre.
  * @param g Composante verte de la couleur du filtre.

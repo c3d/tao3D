@@ -78,11 +78,11 @@ import MonModule 1.0
  * Si la version n'est pas précisée, elle est égale à 1.0.
  *
  * Sans import, les définitions contenus dans le fichier @c .xl principal d'un
- * ne peuvent pas être utilisées dans le document.
+ * module ne peuvent pas être utilisées dans le document.
  *
  * @param modulename Le nom d'import du module, tel que défini dans la
  *        documentation du module. C'est aussi la valeur de l'attribut
- *        import_name du block module_description situé dans le fichier
+ *        import_name du bloc module_description situé dans le fichier
  *        XL principal du module.
  * @param version La version minimale du module dont le document courant
  *        a besoin pour fonctionner. Entier, réel ou texte.

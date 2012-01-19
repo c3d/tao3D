@@ -8851,7 +8851,8 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                              double w, double h, Tree_p prog, bool withDepth)
+                              double w, double h, Tree_p prog,
+                              Integer_p withDepth)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -8918,13 +8919,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
-    if (withDepth)
+    if (withDepth.Pointer())
     {
-        uint texUnit = layout->currentTexture.unit;
         uint depthTexId = frame.depthTexture();
-        fillTextureUnit(self, texUnit+1);
-        layout->Add(new FillTexture(depthTexId));
-        fillTextureUnit(self, texUnit);
+        withDepth->value = depthTexId;
     }
 
     return new Integer(texId, self->Position());

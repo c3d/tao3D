@@ -72,7 +72,7 @@ struct ModuleRenderer : Drawing
     static bool     DisableTexCoords();
     static uint     TextureUnit();
     static uint     TextureUnits();
-    static void     SetTextureUnits(uint texUnits);
+    static void     SetTextureUnits(uint64 texUnits);
     static bool     HasTexture(uint texUnit);
     static bool     SetShader(int id);
 

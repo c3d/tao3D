@@ -41,6 +41,7 @@ ModuleRenderer::~ModuleRenderer()
         del(arg);
 }
 
+
 bool ModuleRenderer::ScheduleRender(ModuleApi::render_fn callback, void *arg)
 // ----------------------------------------------------------------------------
 //   Create a ModuleRendererPrivate object attached to current layout
@@ -60,6 +61,7 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     Widget::Tao()->layout->Add(new ModuleRenderer(callback, arg, del));
     return true;
 }
+
 
 bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
                                   ModuleApi::render_fn identify, void *arg,
@@ -132,7 +134,7 @@ uint ModuleRenderer::TextureUnits()
 }
 
 
-void ModuleRenderer::SetTextureUnits(uint texUnits)
+void ModuleRenderer::SetTextureUnits(uint64 texUnits)
 // ----------------------------------------------------------------------------
 //  Set bitmask of current activated texture units
 // ----------------------------------------------------------------------------
@@ -244,6 +246,7 @@ uint ModuleRenderer::EnabledLights()
     return currentLayout->currentLights;
 }
 
+
 Matrix4 ModuleRenderer::ModelMatrix()
 // ----------------------------------------------------------------------------
 //   Module interface for currentModelMatrix
@@ -251,6 +254,7 @@ Matrix4 ModuleRenderer::ModelMatrix()
 {
     return Widget::Tao()->layout->model;
 }
+
 
 void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------

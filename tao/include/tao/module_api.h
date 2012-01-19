@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   18
-#define TAO_MODULE_API_AGE       1
+#define TAO_MODULE_API_CURRENT   19
+#define TAO_MODULE_API_AGE       0
 
 // ========================================================================
 //
@@ -127,7 +127,7 @@ struct ModuleApi
 
     // Set the bimasks of all activated texture units in
     // the current layout.
-    void (*SetTextureUnits)(unsigned int textureUnits);
+    void (*SetTextureUnits)(uint64 textureUnits);
 
     // Check if a texture is bound at the specified unit
     bool (*HasTexture)(unsigned int unit);
@@ -135,10 +135,12 @@ struct ModuleApi
     // Allow to bind a new texture in Tao thanks to its id and its type.
     // For a 2D texture, use BindTexture2D
     // Always returns false.
+    // Note : Can not be call during drawing.
     bool (*BindTexture)(unsigned int id, unsigned int type);
 
     // Adds a "bind 2D texture" command to the current layout.
     // width and height are the dimensions of the texture in pixels.
+    // Note : Can not be call during drawing.
     void (*BindTexture2D)(unsigned int id,
                           unsigned int width, unsigned int height);
 
@@ -165,6 +167,7 @@ struct ModuleApi
     unsigned int (*EnabledLights)();
 
     // Get the current model matrix.
+    // Note : Can not be call during drawing
     Matrix4 (*ModelMatrix)();
 
     // Mark object for deletion by the main thread.

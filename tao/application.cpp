@@ -348,6 +348,9 @@ Application::Application(int & argc, char ** argv)
     if (XL::MAIN->options.enable_modules)
         checkModules();
 
+    // Record application start time (licensing)
+    startTime = Widget::trueCurrentTime();
+
     // We're ready to go
     appInitialized = true;
     if (!savedUri.isEmpty())
@@ -1031,6 +1034,15 @@ bool Application::createDefaultTaoPrefFolder()
 // ----------------------------------------------------------------------------
 {
     return QDir().mkdir(defaultTaoPreferencesFolderPath());
+}
+
+
+double Application::runTime()
+// ----------------------------------------------------------------------------
+//   The number of seconds since Tao was started
+// ----------------------------------------------------------------------------
+{
+    return (Widget::trueCurrentTime() - TaoApp->startTime);
 }
 
 

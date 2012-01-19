@@ -10164,11 +10164,17 @@ text Widget::currentDocumentFolder()
 }
 
 
-bool Widget::blink(double on, double off)
+bool Widget::blink(double on, double off, double after)
 // ----------------------------------------------------------------------------
 //   Return true for 'on' seconds then false for 'off' seconds
 // ----------------------------------------------------------------------------
 {
+    double runtime = Application::runTime();
+    if (runtime <= after)
+    {
+        refreshOn((int)QEvent::Timer, after - runtime);
+        return true;
+    }
     double time = Widget::currentTimeAPI();
     double mod = fmod(time, on + off);
     if (mod <= on)
@@ -10181,12 +10187,13 @@ bool Widget::blink(double on, double off)
 }
 
 
-Name_p Widget::blink(Tree_p self, Real_p on, Real_p off)
+Name_p Widget::blink(Tree_p self, Real_p on, Real_p off, Real_p after)
 // ----------------------------------------------------------------------------
 //   Export 'blink' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return blink(on->value, off->value) ? XL::xl_true : XL::xl_false;
+    return blink(on->value, off->value, after->value) ?
+                 XL::xl_true : XL::xl_false;
 }
 
 

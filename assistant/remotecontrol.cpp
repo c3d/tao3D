@@ -129,13 +129,14 @@ RemoteControl::RemoteControl(MainWindow *mainWindow)
         this, SLOT(handleCommandString(QString)));
     l->start();
 #else
-    QSocketNotifier *notifier = new QSocketNotifier(fileno(stdin),
+    notifier = new QSocketNotifier(fileno(stdin),
         QSocketNotifier::Read, this);
     connect(notifier, SIGNAL(activated(int)), this, SLOT(receivedData()));
     notifier->setEnabled(true);
 #endif
 }
 
+#ifndef Q_OS_WIN
 void RemoteControl::receivedData()
 {
     TRACE_OBJ
@@ -143,14 +144,21 @@ void RemoteControl::receivedData()
     while (true) {
         char c = getc(stdin);
         if (c == EOF || c == '\0')
-            break;
-        if (c)
-            ba.append(c);
+        {
+            if (notifier)
+            {
+                delete notifier;
+                notifier = NULL;
+            }
+            return;
+        }
+        ba.append(c);
          if (c == '\n')
              break;
     }
     handleCommandString(QString::fromLocal8Bit(ba));
 }
+#endif
 
 void RemoteControl::handleCommandString(const QString &cmdString)
 {

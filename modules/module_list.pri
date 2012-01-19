@@ -10,7 +10,6 @@
     # as the application ; they are not managed by Git (and therefore, each module
     # MUST have its own version attribute in <module_name>.xl).
     DEFAULT_MODULES =   \
-       audio_video      \
        lorem_ipsum      \
        object_loader    \
        tao_visuals      \
@@ -42,6 +41,7 @@
        carousel \
        revolving_texts
     OTHER_MODULES =     \
+        audio_video \
         hello_world     \
         netaccess        \
         taoTester    \

@@ -108,9 +108,21 @@ bool ModuleRenderer::DisableTexCoords()
 }
 
 
+uint ModuleRenderer::TextureUnit()
+// ----------------------------------------------------------------------------
+//  Return last activated texture unit
+// ----------------------------------------------------------------------------
+{
+    if(currentLayout)
+        return currentLayout->currentTexture.unit;
+    else
+        return Widget::Tao()->layout->currentTexture.unit;
+}
+
+
 uint ModuleRenderer::TextureUnits()
 // ----------------------------------------------------------------------------
-//  Return bitmask of current activated texture units
+//  Return bitmask of all current activated texture units
 // ----------------------------------------------------------------------------
 {
     if(currentLayout)
@@ -153,6 +165,21 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     Widget::Tao()->layout->hasAttributes = true;
     return false;
 }
+
+
+bool ModuleRenderer::HasTexture(uint texUnit)
+// ----------------------------------------------------------------------------
+//  Check if a texture is bound at the specified unit
+// ----------------------------------------------------------------------------
+{
+    if(texUnit > TaoApp->maxTextureUnits)
+        return false;
+
+    uint hasTexture = currentLayout->textureUnits & (1 << texUnit);
+
+    return hasTexture ? true : false;
+}
+
 
 bool ModuleRenderer::SetShader(int id)
 // ----------------------------------------------------------------------------

@@ -8835,8 +8835,8 @@ Tree_p Widget::status(Tree_p self, text caption)
 
 
 Integer* Widget::framePaint(Context *context, Tree_p self,
-                          Real_p x, Real_p y, Real_p w, Real_p h,
-                          Tree_p prog)
+                            Real_p x, Real_p y, Real_p w, Real_p h,
+                            Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------

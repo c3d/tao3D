@@ -649,7 +649,7 @@ public:
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog, bool depth=false);
+                             double w, double h, Tree_p prog, Integer_p depth=NULL);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
@@ -765,6 +765,7 @@ public:
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
+    Tree_p      menuItemEnable(Tree_p self, text name, bool enable);
     Tree_p      menu(Tree_p self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
 
@@ -802,6 +803,7 @@ public:
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
     Text_p      displayMode();
+    Name_p      readOnly();
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);

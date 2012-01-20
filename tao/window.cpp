@@ -52,7 +52,7 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
-#include "licence.h"
+#include "license_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -1332,46 +1332,7 @@ void Window::licenses()
     }
 #endif
 
-    QString title = tr("Licensing");
-    QString caption;
-    caption = tr("<h3>Tao Presentation Licenses</h3>");
-
-    QString prefix;
-#if defined(Q_OS_WIN)
-    prefix = "file:///";
-#else
-    prefix = "file://";
-#endif
-    QString msg;
-    msg = tr(
-                "<h3>To add new licenses</h3>"
-                "<p>If you received license files (with the .taokey "
-                "extension), copy them into the license folder and "
-                "restart the application. Your new licenses will be "
-                "loaded automatically.</p>"
-                "<center><a href=\"%1%2\">"
-                "Open the license folder</a></center>"
-                "<p>Your host identifier (hostid):</p>"
-                "<center>%3</center>"
-                ).arg(prefix).arg(Application::userLicenseFolderPath())
-                 .arg(+Licences::hostID());
-
-    QMessageBox *msgBox = new QMessageBox;
-    msgBox->setAttribute(Qt::WA_DeleteOnClose);
-    msgBox->setWindowTitle(title);
-    msgBox->setText(caption);
-    msgBox->setInformativeText(msg);
-
-    // The padlock icon is a merge of:
-    // http://www.openclipart.org/detail/17931 (public domain)
-    // and our Tao pictogram
-    QPixmap pm(":/images/tao_padlock.svg");
-    if (!pm.isNull())
-    {
-        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
-                                   Qt::SmoothTransformation);
-        msgBox->setIconPixmap(scaled);
-    }
+    QMessageBox *msgBox = new LicenseDialog();
 
     msgBox->raise();
 #ifdef Q_WS_MAC

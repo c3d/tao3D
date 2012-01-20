@@ -51,6 +51,8 @@ QT_BEGIN_NAMESPACE
 class HelpEngineWrapper;
 class MainWindow;
 
+class QSocketNotifier;
+
 class RemoteControl : public QObject
 {
     Q_OBJECT
@@ -59,7 +61,9 @@ public:
     RemoteControl(MainWindow *mainWindow);
 
 private slots:
+#ifndef Q_OS_WIN
     void receivedData();
+#endif
     void handleCommandString(const QString &cmdString);
     void applyCache();
 
@@ -89,6 +93,9 @@ private:
     int m_expandTOC;
     QString m_currentFilter;
     HelpEngineWrapper &helpEngine;
+#ifndef Q_OS_WIN
+    QSocketNotifier *notifier;
+#endif
 };
 
 QT_END_NAMESPACE

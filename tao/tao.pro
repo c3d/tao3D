@@ -132,6 +132,7 @@ HEADERS += widget.h \
     info_trash_can.h \
     destination_folder_dialog.h \
     assistant.h \
+    license_dialog.h \
     include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
@@ -197,6 +198,7 @@ SOURCES += tao_main.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
     assistant.cpp \
+    license_dialog.cpp \
     destination_folder_dialog.cpp
 
 win32 {

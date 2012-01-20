@@ -37,7 +37,9 @@
        shaders/glow  \
        slideshow_3d \
        vlc_audio_video \
-       stereo_decoder
+       stereo_decoder \
+       carousel \
+       revolving_texts
     OTHER_MODULES =     \
         audio_video \
         hello_world     \

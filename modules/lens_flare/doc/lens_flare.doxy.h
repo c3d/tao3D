@@ -32,15 +32,15 @@
  * @endtaomoduledescription{LensFlare}
  *
  * @~french
- * @taomoduledescription{LensFlare, Effet de halos}
+ * @taomoduledescription{LensFlare, Halo}
  *
- * Génère un effet de halos.
+ * Génère un effet de halo.
  *
  * Ce module permet de créer des effets dynamiques de halo
  * (<em>lens flare</em>), en utilisant les images par défaut, ou bien en
  * utilisant des images fournies.
  *
- * Un halo se produit lorsque la lumière se réfléchit à l'intérieur de
+ * Un halo se produit lorsque la lumière se réfléchit �  l'intérieur de
  * l'objectif de l'appareil photo ou de la caméra. Cela crée des traînées, du
  * flou, et d'autres défauts.
  *
@@ -48,11 +48,11 @@
  * améliorer le côté artistique d'une image lorsqu'il est utilisé
  * volontairement.
  *
- * Cet effet peut aider à ajouter du réalisme à une scène, voire transformer
+ * Cet effet peut aider �  ajouter du réalisme �  une scène, voire transformer
  * une image quelconque en image intéressante.
  *
  * Par exemple, le code qui suit définit un effet de halo provoqué par le
- * soleil, similaire à l'effet produit par la forme @a builtin
+ * soleil, similaire �  l'effet produit par la forme @a builtin
  * @ref sun_flare(sx:real, sy:real, sz:real, tx:real, ty:real, tz:real).
  * @include lens_flare.ddd
  *
@@ -128,13 +128,13 @@ lens_flare(contents:tree);
  * @~french
  * Active ou désactive le test de visibilité de la source lumineuse.
  * Afin de générer un effet réaliste, les halos lumineux ne sont
- * superposés à la scène que si le centre de la source lumineuse principale
+ * superposés �  la scène que si le centre de la source lumineuse principale
  * est visible (si elle n'est pas cachée par un objet plus proche).
  * Ce test peut s'avérer coûteux en performances sur
  * certaines cartes graphiques. Lorsque la source lumineuse est toujours
  * visible, le test devient inutile, et il peut alors être judicieux de
  * désactiver ce test. Pour cela, il suffit de mettre le paramètre @p mode
- * à OFF.
+ * �  OFF.
  * La valeur par défaut est @a ON.
  */
 lens_flare_depth_test(mode:name);
@@ -172,11 +172,11 @@ lens_flare_target(x:real, y:real, z:real);
  *
  * @note Flares, which are located on the source, are always drawn.
  * @~french
- * Ajoute un nouveau reflet à l'effet de halos.
+ * Ajoute un nouveau reflet �  l'effet de halos.
  * Positionne une texture sur le chemin de l'effet de halos. Il est possible de
- * jouer sur la coloration de l'image ajoutée grâce à la couleur et à la
+ * jouer sur la coloration de l'image ajoutée grâce �  la couleur et �  la
  * transparence du filtre : (@p r, @p g, @p bm @p a).
- * @param id Index de la texture à ajouter.
+ * @param id Index de la texture �  ajouter.
  * @param loc Position relative du reflet sur un segment, 0 est la source
  *        (@ref lens_flare_source) et 1 est la cible.
  * @param scale Permet de redimensionner la texture. 1.0 pour conserver sa taille.
@@ -205,7 +205,7 @@ sun_flare(sx:real, sy:real, sz:real, tx:real, ty:real, tz:real);
  * (@p sx, @p sy, @p sz) is the position of the light source.
  * The target of the lens flare is located at (@p tx, @p ty, @p tz).
  * @~french
- * Crée un effet de halos dû à une lumière blanche.
+ * Crée un effet de halos dû �  une lumière blanche.
  * (@p sx, @p sy, @p sz) est la position de la source lumineuse,
  * (@p tx, @p ty, @p tz) définit la direction de l'effet.
  */

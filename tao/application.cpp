@@ -442,7 +442,7 @@ bool Application::processCommandLine()
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo tutorial  ("system:welcome.ddd");
+    QFileInfo tutorial  ("system:welcome/welcome.ddd");
 
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
@@ -614,7 +614,7 @@ void Application::onOpenFinished(bool ok)
             // E.g., start Tao by clicking on a module or template link,
             // or give a template / module URL on the command line.
             // Load welcome screen now
-            QFileInfo tutorial("system:welcome.ddd");
+            QFileInfo tutorial("system:welcome/welcome.ddd");
             QString tuto = tutorial.canonicalFilePath();
             win->setWindowModified(false); // Prevent "Save?" question
             win->open(tuto, true);

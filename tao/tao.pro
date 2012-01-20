@@ -341,8 +341,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
     xl.stylesheet \
     git.stylesheet \
     nocomment.stylesheet \
-    debug.stylesheet \
-    welcome.ddd
+    debug.stylesheet
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
@@ -366,7 +365,8 @@ OTHER_FILES +=  \
     Info.plist.in \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html \
-    tao_fr.ts
+    tao_fr.ts \
+    welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \
@@ -408,7 +408,7 @@ xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
 
 welcome.path  = $$APPINST/welcome
-welcome.files = welcome/*.png welcome/*.svg
+welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
 INSTALLS += welcome
 
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet

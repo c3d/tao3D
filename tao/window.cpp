@@ -624,6 +624,32 @@ again:
             return false;
         projpath += "/" + subdir;
         fileName = projpath + "/" + fileNameOnly;
+        targetDir = QDir(QFileInfo(fileName).absoluteDir());
+    }
+
+    QDir curDir = QDir(QFileInfo(curFile).absoluteDir());
+    bool dstIsSubdirOfSrc = QDir(targetDir.absoluteFilePath(".."))
+                                     .canonicalPath()
+                                     .startsWith(curDir.canonicalPath());
+    if (targetDir != curDir && !dstIsSubdirOfSrc)
+    {
+        // Copy all files from original path to new path
+
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::question(this, tr("Copying"),
+                                    tr("Also copy all files and subfolders?"),
+                                    QMessageBox::Yes | QMessageBox::No);
+        if (ret == QMessageBox::Yes)
+        {
+            IFTRACE(fileload)
+                std::cerr << "Recursively copying " << +curDir.absolutePath()
+                              << " to " << +targetDir.absolutePath() << "\n";
+            bool ok = Template::recursiveCopy(curDir, targetDir);
+            if (ok)
+                targetDir.remove(QFileInfo(curFile).fileName());
+            else
+                QMessageBox::warning(this, tr("Error"), tr("Copy failed."));
+        }
     }
 
 #ifndef CFG_NOGIT
@@ -2714,7 +2740,7 @@ bool Window::isTutorial(const QString &filePath)
 //    Return true if the file currently loaded is the Tao tutorial
 // ----------------------------------------------------------------------------
 {
-    static QFileInfo tutorial("system:welcome.ddd");
+    static QFileInfo tutorial("system:welcome/welcome.ddd");
     static QString tutoPath = tutorial.canonicalFilePath();
     return (filePath == tutoPath);
 }

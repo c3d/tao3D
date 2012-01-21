@@ -1003,12 +1003,14 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
     <message>
         <location filename="licence.cpp" line="187"/>
-        <source>Digest verification failed</source>
+        <source>Signature verification failed</source>
+        <oldsource>Digest verification failed</oldsource>
         <translation>La clé n&apos;est pas celle attendue</translation>
     </message>
     <message>
         <location filename="licence.cpp" line="194"/>
-        <source>Invalid digest</source>
+        <source>Invalid signature</source>
+        <oldsource>Invalid digest</oldsource>
         <translation>Clé invalide</translation>
     </message>
     <message>

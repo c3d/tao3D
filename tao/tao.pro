@@ -298,7 +298,7 @@ contains(DEFINES, CFG_NORELOAD) {
     !build_pass:message("Automatic document reload is disabled")
 }
 contains(DEFINES, CFG_NOEDIT) {
-    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
+    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share, Save, Save As, Save Fonts, Consolidate)")
 }
 contains(DEFINES, CFG_NOFULLSCREEN) {
     !build_pass:message("Full screen (slideshow) mode is disabled")

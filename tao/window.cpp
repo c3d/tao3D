@@ -557,6 +557,8 @@ void Window::removeSplashScreen()
 }
 
 
+#ifndef CFG_NOEDIT
+
 bool Window::save()
 // ----------------------------------------------------------------------------
 //    Save the current window
@@ -768,6 +770,103 @@ bool Window::saveFonts()
     return ok;
 }
 
+
+void Window::consolidate()
+// ----------------------------------------------------------------------------
+//   Menu entry for the resource management activities.
+// ----------------------------------------------------------------------------
+{
+    text fn = +curFile;
+    IFTRACE(resources)
+        std::cerr << "Consolidate: File name is "<< fn << std::endl;
+
+    if (taoWidget->markChange("Include resource files in the project"))
+    {
+        ResourceMgt checkFiles(taoWidget);
+        xlRuntime->files[fn].tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+        // Reload the program and mark the changes
+        taoWidget->reloadProgram();
+    }
+
+}
+
+
+bool Window::saveFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Save a file with a given name
+// ----------------------------------------------------------------------------
+{
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, tr("Error saving file"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return false;
+    }
+
+    isUntitled = false;
+    statusBar()->showMessage(tr("Saving..."));
+    // FIXME: can't call processEvent here, or the "Save with fonts..."
+    // function fails to save all the fonts of a multi-page doc
+    // QApplication::processEvents();
+
+    do
+    {
+        QTextStream out(&file);
+        out.setCodec("UTF-8");
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
+#ifndef CFG_NOSRCEDIT
+        out << srcEdit->toPlainText();
+#else
+        if (Tree *prog = taoWidget->xlProgram->tree)
+        {
+            std::ostringstream renderOut;
+            renderOut << prog;
+            out << +renderOut.str();
+        }
+#endif
+        QApplication::restoreOverrideCursor();
+    } while (0); // Flush
+
+    // Will update recent file list since file now exists
+    setCurrentFile(fileName);
+
+    text fn = +fileName;
+
+    xlRuntime->LoadFile(fn);
+
+    updateProgram(fileName);
+#ifndef CFG_NOSRCEDIT
+    srcEdit->setXLNames(taoWidget->listNames());
+#endif
+    taoWidget->refreshNow();
+    isReadOnly = false;
+
+#ifndef CFG_NOGIT
+    if (repo)
+    {
+        // Trigger immediate commit to repository
+        // FIXME: shouldn't create an empty commit
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        sf.changed = true;
+        taoWidget->markChange("Manual save");
+        taoWidget->writeIfChanged(sf);
+        taoWidget->doCommit(true);
+        sf.changed = false;
+    }
+#endif
+    markChanged(false);
+    showMessage(tr("File saved"), 2000);
+
+    return true;
+}
+
+#endif
 
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
@@ -1460,6 +1559,7 @@ void Window::createActions()
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
 
+#ifndef CFG_NOEDIT
     saveAct = new Action(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
@@ -1472,11 +1572,6 @@ void Window::createActions()
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 
-    renderToFileAct = new QAction(tr("&Render to files..."), this);
-    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
-    renderToFileAct->setObjectName("renderToFile");
-    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
-
     saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
     saveAsAct->setStatusTip(tr("Save the document under a new name"));
@@ -1487,6 +1582,12 @@ void Window::createActions()
     saveFontsAct->setStatusTip(tr("Save the document with all required fonts"));
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+#endif
+
+    renderToFileAct = new QAction(tr("&Render to files..."), this);
+    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
+    renderToFileAct->setObjectName("renderToFile");
+    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
 
     printAct = new Action(tr("&Print..."), this);
     printAct->setStatusTip(tr("Print the document"));
@@ -1720,10 +1821,12 @@ void Window::createMenus()
     fileMenu->addAction(openUriAct);
 #endif
     openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
+#ifndef CFG_NOEDIT
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
     fileMenu->addAction(consolidateAct);
+#endif
     fileMenu->addSeparator();
     fileMenu->addAction(renderToFileAct);
     fileMenu->addSeparator();
@@ -1800,7 +1903,9 @@ void Window::createToolBars()
     fileToolBar->setObjectName("fileToolBar");
     // fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
+#ifndef CFG_NOEDIT
     fileToolBar->addAction(saveAct);
+#endif
     fileToolBar->hide();
     if (view)
         view->addAction(fileToolBar->toggleViewAction());
@@ -1913,10 +2018,9 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
-    if (isWindowModified()
 #ifndef CFG_NOSRCEDIT
+    if (isWindowModified()
         || srcEdit->document()->isModified()
-#endif
        )
     {
         QMessageBox::StandardButton ret;
@@ -1930,6 +2034,7 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
+#endif
     return true;
 }
 
@@ -2200,101 +2305,6 @@ bool Window::updateProgram(const QString &fileName)
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
     return hadError;
-}
-
-
-void Window::consolidate()
-// ----------------------------------------------------------------------------
-//   Menu entry for the resource management activities.
-// ----------------------------------------------------------------------------
-{
-    text fn = +curFile;
-    IFTRACE(resources)
-        std::cerr << "Consolidate: File name is "<< fn << std::endl;
-
-    if (taoWidget->markChange("Include resource files in the project"))
-    {
-        ResourceMgt checkFiles(taoWidget);
-        xlRuntime->files[fn].tree->Do(checkFiles);
-        checkFiles.cleanUpRepo();
-        // Reload the program and mark the changes
-        taoWidget->reloadProgram();
-    }
-
-}
-
-bool Window::saveFile(const QString &fileName)
-// ----------------------------------------------------------------------------
-//   Save a file with a given name
-// ----------------------------------------------------------------------------
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text))
-    {
-        QMessageBox::warning(this, tr("Error saving file"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    isUntitled = false;
-    statusBar()->showMessage(tr("Saving..."));
-    // FIXME: can't call processEvent here, or the "Save with fonts..."
-    // function fails to save all the fonts of a multi-page doc
-    // QApplication::processEvents();
-
-    do
-    {
-        QTextStream out(&file);
-        out.setCodec("UTF-8");
-#ifndef CONFIG_MACOSX
-        QApplication::setOverrideCursor(Qt::BusyCursor);
-#endif
-#ifndef CFG_NOSRCEDIT
-        out << srcEdit->toPlainText();
-#else
-        if (Tree *prog = taoWidget->xlProgram->tree)
-        {
-            std::ostringstream renderOut;
-            renderOut << prog;
-            out << +renderOut.str();
-        }
-#endif
-        QApplication::restoreOverrideCursor();
-    } while (0); // Flush
-
-    // Will update recent file list since file now exists
-    setCurrentFile(fileName);
-
-    text fn = +fileName;
-
-    xlRuntime->LoadFile(fn);
-
-    updateProgram(fileName);
-#ifndef CFG_NOSRCEDIT
-    srcEdit->setXLNames(taoWidget->listNames());
-#endif
-    taoWidget->refreshNow();
-    isReadOnly = false;
-
-#ifndef CFG_NOGIT
-    if (repo)
-    {
-        // Trigger immediate commit to repository
-        // FIXME: shouldn't create an empty commit
-        XL::SourceFile &sf = xlRuntime->files[fn];
-        sf.changed = true;
-        taoWidget->markChange("Manual save");
-        taoWidget->writeIfChanged(sf);
-        taoWidget->doCommit(true);
-        sf.changed = false;
-    }
-#endif
-    markChanged(false);
-    showMessage(tr("File saved"), 2000);
-
-    return true;
 }
 
 

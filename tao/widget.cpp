@@ -1746,10 +1746,11 @@ QStringList Widget::fontFiles()
        FontFileManager *&m;
     } ffm(fontFileMgr);
 
+    TaoSave saveCurrent(current, this);
     drawAllPages = true;
-    draw();
+    runProgram();
     drawAllPages = false;
-    draw();
+    runProgram();
     if (!fontFileMgr->errors.empty())
     {
         // Some font files are not in a suitable format, so we won't try to

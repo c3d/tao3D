@@ -668,14 +668,10 @@ again:
 
 bool Window::saveFonts()
 // ----------------------------------------------------------------------------
-//    Like saveAs() but also embed currently used fonts into the document
+//    Embed currently used fonts into the document
 // ----------------------------------------------------------------------------
 {
     bool ok;
-
-    ok = saveAs();
-    if (!ok)
-        return ok;
 
     struct SOC
     {
@@ -766,7 +762,7 @@ bool Window::saveFonts()
         repo->commit();
     }
 
-    statusBar()->showMessage(tr("File saved"), 2000);
+    statusBar()->showMessage(tr("Fonts saved"), 2000);
     return ok;
 }
 
@@ -1578,8 +1574,8 @@ void Window::createActions()
     saveAsAct->setObjectName("saveAs");
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-    saveFontsAct = new QAction(tr("Save with fonts..."), this);
-    saveFontsAct->setStatusTip(tr("Save the document with all required fonts"));
+    saveFontsAct = new QAction(tr("Save fonts"), this);
+    saveFontsAct->setStatusTip(tr("Save the fonts used in the document"));
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 #endif

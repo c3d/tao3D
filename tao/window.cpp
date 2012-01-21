@@ -638,7 +638,8 @@ again:
         QMessageBox::StandardButton ret;
         ret = QMessageBox::question(this, tr("Copying"),
                                     tr("Also copy all files and subfolders?"),
-                                    QMessageBox::Yes | QMessageBox::No);
+                                    QMessageBox::Yes | QMessageBox::No,
+                                    QMessageBox::Yes);
         if (ret == QMessageBox::Yes)
         {
             IFTRACE(fileload)

@@ -1563,10 +1563,12 @@ void Window::createActions()
     saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
+#if 0
     consolidateAct = new QAction(tr("Consolidate"), this);
     consolidateAct->setStatusTip(tr("Make the document self contained"));
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
+#endif
 
     saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
@@ -1821,7 +1823,9 @@ void Window::createMenus()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
+#if 0
     fileMenu->addAction(consolidateAct);
+#endif
 #endif
     fileMenu->addSeparator();
     fileMenu->addAction(renderToFileAct);

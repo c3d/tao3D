@@ -72,8 +72,9 @@ cp_and_fix_framework() {
   # QtHelp has a weird dependency on /usr/lib/libQtCLucene[_debug].dylib.
   if [ "$FNAME" = "QtHelp.framework" ] ; then
     LIB_QTCLUCENE=`otool -L "$LIB" | grep libQtCLucene | awk -F' ' '{ print $1 }'` 
-    doo cp /usr/lib/$LIB_QTCLUCENE "$DEST"
-    DLIB="${DEST}/${LIB_QTCLUCENE}"
+    LIB_QTCLUCENE_BASE=$(basename ${LIB_QTCLUCENE})
+    doo cp $LIB_QTCLUCENE "$DEST"
+    DLIB="${DEST}/${LIB_QTCLUCENE_BASE}"
     doo strip -x "${DLIB}"
     doo ${FIX_QT_REFS} "${DLIB}" "${SRC}"
   fi

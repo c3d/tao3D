@@ -8472,7 +8472,7 @@ Text_p Widget::loadText(Tree_p self, text file)
     QFileInfo fileInfo(+qualified);
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
-    if (!info)
+    if (info)
     {
         if (fileInfo.lastModified() > info->fileInfo.lastModified())
             doLoad = true;
@@ -8492,6 +8492,7 @@ Text_p Widget::loadText(Tree_p self, text file)
             text &value = info->loaded->value;
 
             QFile file(fileInfo.canonicalFilePath());
+            file.open(QIODevice::ReadOnly);
             QTextStream textStream(&file);
             QString data = textStream.readAll();
             value = +data;
@@ -8859,8 +8860,8 @@ Tree_p Widget::status(Tree_p self, text caption)
 
 
 Integer* Widget::framePaint(Context *context, Tree_p self,
-                          Real_p x, Real_p y, Real_p w, Real_p h,
-                          Tree_p prog)
+                            Real_p x, Real_p y, Real_p w, Real_p h,
+                            Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------

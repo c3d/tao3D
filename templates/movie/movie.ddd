@@ -60,7 +60,7 @@ page "Star Wars Crawl",
         line "The fight has just begun, a fight for the freedom to put some creativity back in presentations. To win this battle, Taodyne needs your help..."
 
     // This part displays the Taodyne ship showing up after 28 seconds
-    mc_star_wars_crawl_ship 28, 200,
+    mc_star_wars_crawl_ship 28, 1500,
         locally
             rotatex 100 * page_time
             color "grey"
@@ -92,7 +92,7 @@ page "Star Wars Crawl",
 
 
     // Pursuing ship, Borg cube style, showing up after 35 seconds
-    mc_star_wars_crawl_ship 35, 100,
+    mc_star_wars_crawl_ship 35, 1300,
         locally
             frame_texture 300, 300,
                 align 0.5

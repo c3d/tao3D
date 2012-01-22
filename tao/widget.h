@@ -199,6 +199,8 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+    void        showEvent(QShowEvent *);
+    void        hideEvent(QHideEvent *);
 #ifdef MACOSX_DISPLAYLINK
     virtual
     bool        event(QEvent *event);

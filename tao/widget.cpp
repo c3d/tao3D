@@ -3170,6 +3170,32 @@ void Widget::endPanning(QMouseEvent *)
 }
 
 
+void Widget::showEvent(QShowEvent *event)
+// ----------------------------------------------------------------------------
+//    Enable animations if widget is visible
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(event);
+    Window *window = (Window *) parentWidget();
+    bool oldFs = hasAnimations();
+    if (! oldFs)
+        window->toggleAnimations();
+}
+
+
+void Widget::hideEvent(QHideEvent *event)
+// ----------------------------------------------------------------------------
+//    Disable animations if widget is invisible
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(event);
+    Window *window = (Window *) parentWidget();
+    bool oldFs = hasAnimations();
+    if (oldFs)
+        window->toggleAnimations();
+}
+
+
 
 // ============================================================================
 //

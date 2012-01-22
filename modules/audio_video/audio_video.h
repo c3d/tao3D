@@ -67,6 +67,7 @@ public:
     int                    w, h;
     static const
     Tao::ModuleApi *       tao;
+    static bool            tested, licensed;
 };
 
 #endif // AUDIO_VIDEO_H

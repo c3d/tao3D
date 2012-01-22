@@ -117,7 +117,7 @@ Text_p getUrlText(Tree_p self, Text_p urlText)
     } // Error cases
 
     // Licence check
-    text result = (hasLicence() || tao->blink(1.5, 1.0))
+    text result = (hasLicence() || tao->blink(1.5, 1.0, 300))
         ? rr.result
         : "[Unlicenced]";
 

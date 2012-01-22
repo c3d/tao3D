@@ -41,6 +41,7 @@ ModuleRenderer::~ModuleRenderer()
         del(arg);
 }
 
+
 bool ModuleRenderer::ScheduleRender(ModuleApi::render_fn callback, void *arg)
 // ----------------------------------------------------------------------------
 //   Create a ModuleRendererPrivate object attached to current layout
@@ -60,6 +61,7 @@ bool ModuleRenderer::AddToLayout(ModuleApi::render_fn callback, void *arg,
     Widget::Tao()->layout->Add(new ModuleRenderer(callback, arg, del));
     return true;
 }
+
 
 bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
                                   ModuleApi::render_fn identify, void *arg,
@@ -108,9 +110,21 @@ bool ModuleRenderer::DisableTexCoords()
 }
 
 
+uint ModuleRenderer::TextureUnit()
+// ----------------------------------------------------------------------------
+//  Return last activated texture unit
+// ----------------------------------------------------------------------------
+{
+    if(currentLayout)
+        return currentLayout->currentTexture.unit;
+    else
+        return Widget::Tao()->layout->currentTexture.unit;
+}
+
+
 uint ModuleRenderer::TextureUnits()
 // ----------------------------------------------------------------------------
-//  Return bitmask of current activated texture units
+//  Return bitmask of all current activated texture units
 // ----------------------------------------------------------------------------
 {
     if(currentLayout)
@@ -120,7 +134,7 @@ uint ModuleRenderer::TextureUnits()
 }
 
 
-void ModuleRenderer::SetTextureUnits(uint texUnits)
+void ModuleRenderer::SetTextureUnits(uint64 texUnits)
 // ----------------------------------------------------------------------------
 //  Set bitmask of current activated texture units
 // ----------------------------------------------------------------------------
@@ -153,6 +167,21 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
     Widget::Tao()->layout->hasAttributes = true;
     return false;
 }
+
+
+bool ModuleRenderer::HasTexture(uint texUnit)
+// ----------------------------------------------------------------------------
+//  Check if a texture is bound at the specified unit
+// ----------------------------------------------------------------------------
+{
+    if(texUnit > TaoApp->maxTextureUnits)
+        return false;
+
+    uint hasTexture = currentLayout->textureUnits & (1 << texUnit);
+
+    return hasTexture ? true : false;
+}
+
 
 bool ModuleRenderer::SetShader(int id)
 // ----------------------------------------------------------------------------
@@ -217,6 +246,7 @@ uint ModuleRenderer::EnabledLights()
     return currentLayout->currentLights;
 }
 
+
 Matrix4 ModuleRenderer::ModelMatrix()
 // ----------------------------------------------------------------------------
 //   Module interface for currentModelMatrix
@@ -224,6 +254,7 @@ Matrix4 ModuleRenderer::ModelMatrix()
 {
     return Widget::Tao()->layout->model;
 }
+
 
 void ModuleRenderer::Draw(Layout *where)
 // ----------------------------------------------------------------------------

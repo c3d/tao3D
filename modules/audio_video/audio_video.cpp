@@ -30,6 +30,8 @@
 using namespace XL;
 
 const Tao::ModuleApi * VideoSurface::tao = NULL;
+bool                   VideoSurface::tested = false;
+bool                   VideoSurface::licensed = false;
 
 VideoSurface::VideoSurface()
 // ----------------------------------------------------------------------------
@@ -184,6 +186,15 @@ XL::Integer_p VideoSurface::movie_texture(XL::Context_p context,
 //   Make a video player texture
 // ----------------------------------------------------------------------------
 {
+    if (!tested)
+    {
+        licensed = tao->checkLicense("AudioVideo 1.0", false);
+        tested = true;
+    }
+    if (!licensed && !tao->blink(1.0, 0.2))
+        return 0;
+
+
     // Get or build the current frame if we don't have one
     VideoSurface *surface = self->GetInfo<VideoSurface>();
     if (!surface)

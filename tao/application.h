@@ -69,6 +69,7 @@ public:
     static QString defaultUserImagesFolderPath();
     static QString appLicenseFolderPath();
     static QString userLicenseFolderPath();
+    static double  runTime();
 
 public:
     QStringList    pathCompletions();
@@ -150,6 +151,7 @@ private:
     bool         doNotEnterEventLoop;
     QTranslator  translator, qtTranslator, qtHelpTranslator;
     bool         appInitialized;
+    double       startTime;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;
 #endif

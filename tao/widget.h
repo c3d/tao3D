@@ -808,7 +808,7 @@ public:
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
     Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
-    Name_p      blink(Tree_p self, Real_p on, Real_p off);
+    Name_p      blink(Tree_p self, Real_p on, Real_p off, Real_p after);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -1003,18 +1003,18 @@ public:
                                         Real *w, Real *h, Real *d);
     static bool           isGLExtensionAvailable(text name);
     static text           currentDocumentFolder();
-    static bool           blink(double on, double off);
+    static bool           blink(double on, double off, double after);
     void eraseFlow(text flowName){ flows.erase(flowName);}
     void                  setWatermarkText(text t, int w, int h);
     static void           setWatermarkTextAPI(text t, int w, int h);
     void                  drawWatermark();
     static void           drawWatermarkAPI();
+    static double         trueCurrentTime();
 
 private:
     void                  processProgramEvents();
     void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
-    double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
     text                  changeReason;

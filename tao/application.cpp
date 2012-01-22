@@ -348,6 +348,9 @@ Application::Application(int & argc, char ** argv)
     if (XL::MAIN->options.enable_modules)
         checkModules();
 
+    // Record application start time (licensing)
+    startTime = Widget::trueCurrentTime();
+
     // We're ready to go
     appInitialized = true;
     if (!savedUri.isEmpty())
@@ -439,7 +442,7 @@ bool Application::processCommandLine()
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo tutorial  ("system:welcome.ddd");
+    QFileInfo tutorial  ("system:welcome/welcome.ddd");
 
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
@@ -611,7 +614,7 @@ void Application::onOpenFinished(bool ok)
             // E.g., start Tao by clicking on a module or template link,
             // or give a template / module URL on the command line.
             // Load welcome screen now
-            QFileInfo tutorial("system:welcome.ddd");
+            QFileInfo tutorial("system:welcome/welcome.ddd");
             QString tuto = tutorial.canonicalFilePath();
             win->setWindowModified(false); // Prevent "Save?" question
             win->open(tuto, true);
@@ -1031,6 +1034,15 @@ bool Application::createDefaultTaoPrefFolder()
 // ----------------------------------------------------------------------------
 {
     return QDir().mkdir(defaultTaoPreferencesFolderPath());
+}
+
+
+double Application::runTime()
+// ----------------------------------------------------------------------------
+//   The number of seconds since Tao was started
+// ----------------------------------------------------------------------------
+{
+    return (Widget::trueCurrentTime() - TaoApp->startTime);
 }
 
 

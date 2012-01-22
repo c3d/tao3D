@@ -99,7 +99,6 @@ while [ $# -ne 0 ] ; do
       D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
       D="$D DEFINES+=CFG_NORELOAD DEFINES+=CFG_TIMED_FULLSCREEN"
       D="$D DEFINES+=CFG_NOMODULEUPDATE"
-      D="$D DEFINES+=CFG_NONETWORK"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
       A="NO_SDK=1"
       EDITION_FLAGS="$D $M $A"

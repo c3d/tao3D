@@ -132,6 +132,7 @@ HEADERS += widget.h \
     info_trash_can.h \
     destination_folder_dialog.h \
     assistant.h \
+    license_dialog.h \
     include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
@@ -197,6 +198,7 @@ SOURCES += tao_main.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
     assistant.cpp \
+    license_dialog.cpp \
     destination_folder_dialog.cpp
 
 win32 {
@@ -296,7 +298,7 @@ contains(DEFINES, CFG_NORELOAD) {
     !build_pass:message("Automatic document reload is disabled")
 }
 contains(DEFINES, CFG_NOEDIT) {
-    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share)")
+    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share, Save, Save As, Save Fonts, Consolidate)")
 }
 contains(DEFINES, CFG_NOFULLSCREEN) {
     !build_pass:message("Full screen (slideshow) mode is disabled")
@@ -339,8 +341,7 @@ SUPPORT_FILES = xlr/xlr/builtins.xl \
     xl.stylesheet \
     git.stylesheet \
     nocomment.stylesheet \
-    debug.stylesheet \
-    welcome.ddd
+    debug.stylesheet
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
@@ -364,7 +365,8 @@ OTHER_FILES +=  \
     Info.plist.in \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html \
-    tao_fr.ts
+    tao_fr.ts \
+    welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \
@@ -406,7 +408,7 @@ xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
 
 welcome.path  = $$APPINST/welcome
-welcome.files = welcome/*.png welcome/*.svg
+welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
 INSTALLS += welcome
 
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet

@@ -672,7 +672,6 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  * @image html "images/linear_gradient.png"
  *
  * Code used to produce this image:
- * <a href="examples/linear_gradient.ddd">linear_gradient.ddd</a>
  *
  * @~french
  * Crée une texture formant un dégradé linéaire.
@@ -686,7 +685,19 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  * @image html "images/linear_gradient.png"
  *
  * Le code de cet exemple est le suivant :
- * <a href="examples/linear_gradient.ddd">linear_gradient.ddd</a>
+ * @~
+@code
+linear_grad -> 
+    color "white" 
+    linear_gradient 0, 0, 500, 500, 700, 700, 
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+        gradient_color 1, 1.0, 0.0, 0.0, 1.0
+     
+    rectangle 0, 0, 250, 250
+ 
+linear_grad
+@endcode
  */
 linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:real, body:tree);
 
@@ -703,7 +714,6 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  * @image html "images/radial_gradient.png"
  *
  * Code used to produce this image:
- * <a href="examples/radial_gradient.ddd">radial_gradient.ddd</a>
  *
  * @~french
  * Crée une texture formant un dégradé radial.
@@ -717,7 +727,19 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  * @image html "images/radial_gradient.png"
  *
  * Le code de cet exemple est le suivant :
- * <a href="examples/radial_gradient.ddd">radial_gradient.ddd</a>
+ *@~
+@code
+radial_grad -> 
+    color "white" 
+    radial_gradient 250, 250, 250, 700, 700, 
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+        gradient_color 1, 1.0, 0.0, 0.0, 1.0 
+
+    rectangle 0, 0, 250, 250 
+
+radial_grad
+@endcode
  */
 radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
 
@@ -734,7 +756,6 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  * @image html "images/conical_gradient.png"
  *
  * Code used to produce this image :
- * <a href="examples/conical_gradient.ddd">conical_gradient.ddd</a>
  *
  * @~french
  * Crée une texture formant un dégradé conique.
@@ -748,7 +769,19 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  * @image html "images/conical_gradient.png"
  *
  * Le code de cet exemple est le suivant :
- * <a href="examples/conical_gradient.ddd">conical_gradient.ddd</a>
+ *@~
+@code
+conical_grad -> 
+    color "white" 
+    conical_gradient 250, 250, 30, 700, 700, 
+        gradient_color 0, 0.0, 0.0, 1.0, 1.0 
+        gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+        gradient_color 1, 1.0, 0.0, 0.0, 1.0
+     
+    rectangle 0, 0, 250, 250
+ 
+conical_grad
+@endcode
  */
 conical_gradient (cx:real, cy:real, teta:real, w:real, h:real, body:tree);
 

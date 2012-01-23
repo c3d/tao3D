@@ -80,6 +80,55 @@ frame_texture( w:real, h:real, body:tree);
 
 /**
  * @~english
+ * Create a texture.
+ * Make a color texture and a depth texture out of the described content.
+ *
+ * Create two textures by executing the specified code (@p body). The first
+ * one is the color information, the second one is a depth map. The color
+ * texture is active after execution, its ID is also returned by the primitive.
+ * The output parameter @p d receives the identifier of the depth texture.
+ * @p w and @p h are the dimensions of both textures.
+ * Here is an example:
+ *
+ * @~french
+ * Crée deux textures (couleur et profondeur) à partir de code.
+ *
+ * Exécute le code de @ref body, et crée deux textures : la première contient
+ * l'information de couleur, la seconde est une carte de profondeur
+ * (<em>depth map</em>). La texture de couleur est active après l'exécution de
+ * la primitive, son identifiant est également renvoyé. Le paramètre @p d
+ * reçoit le numéro de la texture de profondeur.
+ * @p w et @p h sont les dimensions de chacune des textures.
+ * Exemple :
+ *
+ * @~
+ * @code
+ww -> window_width
+wh -> window_height
+DepthTex -> 0
+frame_texture_with_depth ww, wh, DepthTex,
+    light 0
+    color "pink"
+    rotatey 10 * page_time
+    T -> ww * 40%
+    sphere -ww/4, 0, ww/4, T
+    locally
+        rotatex -10
+        rotatey 20
+        cube ww/4, 0, -ww/4, T, T, T
+color "white"
+rectangle -ww/4, 0, ww/2, wh/2
+texture DepthTex
+rectangle ww/4, 0, ww/2, wh/2
+ * @endcode
+ *
+ * @image html "frame_texture_with_depth.png"
+ */
+frame_texture_with_depth( w:real, h:real, d:integer, body:tree);
+
+
+/**
+ * @~english
  * Frame height.
  * Returns the height of the current layout frame.
  *

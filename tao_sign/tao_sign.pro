@@ -26,6 +26,10 @@ CONFIG  += console static
 CONFIG  -= app_bundle
 QT      -= gui
 
+# Linux release mode: strip binary, ready for installation on web shop server
+# ("make install" normally does it, but there is no install for tao_sign)
+linux-g++*:CONFIG(release, debug|release):MAYBE_STRIP_CMD=\$(STRIP) $$TARGET;
+
 # Turn off warnings caused by Crypto++ headers (unused parameters)
 CONFIG += warn_off
 QMAKE_CXXFLAGS -= -Werror
@@ -45,7 +49,7 @@ win32 {
   SIGN_CMD = export PATH=\\\"\\\$$PATH:$$HERE/../libxlr/\\\"\$(DESTDIR); \\\"$$HERE/\\\"\$(DESTDIR_TARGET) \\\"\\\$$@\\\"
 }
 QMAKE_CLEAN += tao_sign.sh
-QMAKE_POST_LINK = echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
+QMAKE_POST_LINK = $$MAYBE_STRIP_CMD echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
 
 
 # REVISIT Move into tao.pro

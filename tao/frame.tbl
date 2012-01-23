@@ -43,8 +43,9 @@ PREFIX(FrameTexture,  integer,  "frame_texture",
 PREFIX(FrameDepthTexture,  integer,  "frame_texture_with_depth",
        PARM(w,real, "width")
        PARM(h,real, "height")
+       PARM(d, integer, "[out] ID of the depth texture")
        PARM(p, code, "The program that represent the content of the frame"),
-       RTAO(frameTexture(context, self, w, h, p, true)),
+       RTAO(frameTexture(context, self, w, h, p, d)),
        GROUP(widget)
        SYNOPSIS("Request depth texture for a frame_texture")
        DESCRIPTION("Ensure that a frame_texture generates a depth texture")

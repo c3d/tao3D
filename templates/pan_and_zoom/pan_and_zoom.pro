@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/pan_and_zoom
-files.files = template.ini pan_and_zoom.ddd pan_and_zoom.png
+files.files = template.ini pan_and_zoom.ddd pan_and_zoom.png fr.xl
 
 images.path = $$APPINST/templates/pan_and_zoom/images
 images.files = images/*

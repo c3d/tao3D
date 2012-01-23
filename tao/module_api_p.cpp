@@ -28,6 +28,7 @@
 #include "frame.h"
 #include "licence.h"
 #include "info_trash_can.h"
+#include "application.h"
 
 TAO_BEGIN
 
@@ -105,6 +106,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     // Current document info
     currentDocumentFolder =  Widget::currentDocumentFolder;
+    taoRunTime            =  Application::runTime;
 }
 
 TAO_END

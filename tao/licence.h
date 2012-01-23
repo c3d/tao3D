@@ -66,13 +66,13 @@ public:
         return LM().licenceRemainingDays(feature);
     }
 
-    static void WarnUnlicenced(text feature, int days, bool critical);
+    static void Warn(text feature, int days, bool critical);
 
     static bool Check(text feature, bool critical = false)
     {
         int days = RemainingDays(feature);
-        if (days <= 0)
-            WarnUnlicenced(feature, days, critical);
+        if (days <= 7)
+            Warn(feature, days, critical);
         return days > 0;
     }
 

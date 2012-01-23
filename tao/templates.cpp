@@ -105,7 +105,7 @@ bool Template::copyTo(QDir &dst)
     // currently open (in which case it will be overwritten and reloaded)
     if (dst.exists())
         Application::recursiveDelete(dst.absolutePath());
-    if (!recursiveCopy(dir, dst))
+    if (!recursiveCopy(dir, dst, mainFile))
         return false;
     // Remove auxiliary files
     dst.remove("template.ini");
@@ -138,7 +138,7 @@ static QString escapeShellArg(QString &str)
 
 #endif
 
-bool Template::recursiveCopy(const QDir &src, QDir &dst)
+bool Template::recursiveCopy(const QDir &src, QDir &dst, QString mainFile)
 // ----------------------------------------------------------------------------
 //   Recursively copy the contents of src into dst (created if does not exist)
 // ----------------------------------------------------------------------------
@@ -191,6 +191,8 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
         f.resize(sz);
         f.close();
     }
+#else
+    Q_UNUSED(mainFile);
 #endif
 
     return ok;

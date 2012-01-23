@@ -61,7 +61,7 @@
  * @section dialogbox_widgets Boîtes de dialogue
  * Les éléments d'interface graphiques basés sur des boîtes de dialogue sont
  * disponibles sous deux formes :
- * -# sous forme de texture, comme les les autres<BR>
+ * -# sous forme de texture, comme les autres<BR>
  *   ou
  * -# dans une fenêtre indépendante.
  *
@@ -72,7 +72,7 @@
  *
  * Les propriétés spécifiques de chaque dialogue sont précisées par des
  * primitives additionnelles. Par exemple, @ref filter pour préciser le filtre
- * d'un dialogue de séleection de fichier.
+ * d'un dialogue de sélection de fichier.
  *
  * Les valeurs sont renvoyées par le dialogue en remplaçant un mot-clé dans
  * l'action. Par exemple, le @a widget de sélection de fichier remplace
@@ -169,7 +169,7 @@ radio_button (x:real, y:real, w:real, h:real, name:text, label:text, marked:text
  * primitive n'a pas d'apparence graphique. Si vous voulez que le groupe soit
  * mis en évidence, utilisez @ref group_box.
  * Lorsqu'une action dans ce groupe est déclenchée, l'action du bouton est
- * exécutée, puis l'action @ref button_group_action, si une est présente dans
+ * exécutée, puis l'action @ref button_group_action, si une telle action est présente dans
  * @p body.
  */
 button_group ( ex:boolean, body:tree);
@@ -197,7 +197,7 @@ button_group_action ( action:tree );
  * @param label [text] The label of the box
  *
  * @~french
- * Crée une texture avec l'image d'un groupe de boutons de choix.
+ * Crée une texture avec l'image d'un groupe d'éléments.
  *
  * @param label [text] Le nom affiché sur le groupe
  */
@@ -215,7 +215,8 @@ group_box_texture ( w:real, h:real, label:text);
  * @param body [tree] The tree describing the content of the box
  *
  * @~french
- * Crée un groupe de boutons de choix.
+ * Dessine une boîte contenant les éléments de @p body. Les coordonnées X et Y des
+ * éléments placés dans la boîte sont respectivement les numéros de colonne et ligne.
  *
  * @param label [text] Le nom affiché sur le groupe
  * @param body [tree] Une description du contenu du groupe
@@ -278,7 +279,7 @@ line_edit_texture ( w:real, h:real, line:text);
  * @~english
  * Creates a line editor.
  * @~french
- * Crée une zone d'éditioni de texte.
+ * Crée une zone d'édition de texte.
  * @~
  * @copydetails line_edit_texture
  */
@@ -413,7 +414,7 @@ sélecteur_d_image ->
 /**
  * @~english
  * Sets the file chooser initial directory.
- * @~english
+ * @~french
  * Définit le répertoire initial du dialogue de sélection de fichier.
  * @see file_chooser
  */

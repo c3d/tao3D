@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  licence.h                                                       Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
+//
+//     Sources for information:
+//     - http://www.sentientfood.com/display_story.php?articleid=3
+//     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
 //
 //
 //
 //
-//
-//
-// 
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -29,6 +29,10 @@
 #include <QDateTime>
 #include <QFileInfoList>
 
+// Features id for CheckOnce
+#define NO_FEATURE 0x00000000
+#define WEB        0x00000001
+#define GUI        0x00000002
 
 namespace Tao
 {
@@ -72,7 +76,10 @@ public:
         return days > 0;
     }
 
+    static bool CheckOnce(quint64 feature, bool silent = true,
+                          bool critical = false);
     static text hostID();
+
 #endif
 
     static text Name()
@@ -105,6 +112,12 @@ private:
         text                email;
         text                hostid;
     };
+
+    // Used for CheckOnce : store if the feature has already been checked and
+    // the result of the check.
+    static quint64 alreadyChecked;
+    static quint64 licencesOK;
+    static std::map<quint64, text> featuresName;
 
 private:
     Licences();

@@ -98,9 +98,9 @@ material_front_diffuse 1, 1, 0, 1
  * Les calculs d'éclairage ne sont pas activés par défaut. C'est seulement
  * lorsque des lumières sont déclarées dans le document que le @a layout
  * courant (ainsi que ses descendants) sont affectés par la lumière
- * (les primitives qui créent un @a layout sont listée au paragraphe
+ * (les primitives qui créent un @a layout sont listées au paragraphe
  * @ref secExecModel).
- * Par conséquent, le code qui suit affiche une rectangle orange et un
+ * Par conséquent, le code qui suit affiche un rectangle orange et un
  * rectangle jaune :
  @code
 locally
@@ -130,7 +130,7 @@ rectangle 100, 0, 150, 100
  *
  * Lorsqu'au moins une lumière est active, et jusqu'à ce qu'un matériau soit
  * spécifié (par l'une des primitives <tt>material_*</tt>), la couleur courante
- * est considérée comme une matériau <em>front and back, ambient and
+ * est considérée comme un matériau <em>front and back, ambient and
  * diffuse</em>. Autrement dit, le code suivant :
  @code
 // Jaune
@@ -153,7 +153,7 @@ material_front_diffuse 1, 1, 0, 1
  *
  * @par Example
  *
- * Le code suivant (<a href="examples/lighting.ddd">lighting.ddd</a>) affiche
+ * Le code suivant affiche
  * une sphère blanche et crée trois lumières colorées : une rouge, une verte
  * et une bleue. Chaque lumière tourne autour de la sphère, de sorte qu'on
  * peut voir comment les lumières se mélangent progressivement pour créer des
@@ -176,7 +176,7 @@ material_front_diffuse 1, 1, 0, 1
  * primitives that control light properties.
  * @~french
  * Allume une lumière et en fait la lumière courante.
- * @p id est un entier et le nombre maximum de lumières moins 1.
+ * @p id est un entier entre 0 et le nombre maximum de lumières moins 1.
  * Le nombre de lumières dépend de l'implémentation OpenGL, mais au moins huit
  * lumières sont disponibles. Après exécution de cette primitive, la lumière
  * est considérée comme la lumière courante pour les primitives qui contrôlent
@@ -346,12 +346,12 @@ light_position(x:real, y:real, z:real);
  * Si @p w est égal à 0.0 (la valeur par défaut), la lumière est
  * considérée comme une source
  * directionnelle. Les calculs d'illumination diffuse et spéculaire utilisent
- * la direction de la lumière, mais pas sa positon réelle, et l'atténuation est
+ * la direction de la lumière, mais pas sa position réelle, et l'atténuation est
  * désactivée. Sinon, les calculs prennent en compte la position réelle de la
  * lumière et l'atténuation est activée.
  *
  * On utilise typiquement <tt>w = 0.0</tt> pour une lumière "à l'infini" (par
- * exemple, le soleil) et <tt>w = 1.0</tt> pour une lumière proche (par exmple,
+ * exemple, le soleil) et <tt>w = 1.0</tt> pour une lumière proche (par exemple,
  * une lampe).
  */
 light_position(x:real, y:real, z:real, w:real);

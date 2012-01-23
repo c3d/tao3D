@@ -5422,7 +5422,7 @@ Name_p Widget::blendFunction(Tree_p self, text src, text dst)
     GLenum dstEnum = TextToGLEnum(dst, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFunc(srcEnum, dstEnum));
     layout->hasBlending = true;
-    return XL::xl_true;                
+    return XL::xl_true;
 }
 
 
@@ -5439,7 +5439,7 @@ Name_p Widget::blendFunctionSeparate(Tree_p self,
     GLenum dstaE = TextToGLEnum(dsta, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFuncSeparate(srcE, dstE, srcaE, dstaE));
     layout->hasBlending = true;
-    return XL::xl_true;                
+    return XL::xl_true;
 }
 
 
@@ -9281,7 +9281,9 @@ Tree_p Widget::urlPaint(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    urlTexture(self, w, h, url, progress);
+    if (! urlTexture(self, w, h, url, progress))
+        return XL::xl_false;
+
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
@@ -9296,6 +9298,9 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
+    if ( ! Licences::CheckOnce(WEB))
+        return NULL;
+
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -10609,6 +10614,9 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
+    if ( ! Licences::CheckOnce(GUI))
+        return XL::xl_false;
+
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -10733,6 +10741,9 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
+    if ( ! Licences::CheckOnce(GUI))
+        return XL::xl_false;
+
     bool isContextMenu = false;
 
     // Build the full name of the menu
@@ -10865,6 +10876,9 @@ Tree_p  Widget::menuBar(Tree_p self)
 // Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
+    if ( ! Licences::CheckOnce(GUI))
+        return XL::xl_false;
+
     currentMenuBar = ((Window *)parent())->menuBar();
     currentToolBar = NULL;
     currentMenu = NULL;
@@ -10880,6 +10894,9 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
+    if ( ! Licences::CheckOnce(GUI))
+        return XL::xl_false;
+
     QString fullname = +name;
     Window *win = (Window *)parent();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
@@ -10963,6 +10980,8 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
+    if ( ! Licences::CheckOnce(GUI))
+        return XL::xl_false;
 
     QString fullname = QString("SEPARATOR_%1").arg(order);
 

@@ -40,9 +40,9 @@
  * @addtogroup Text Mise en forme de texte et polices de caractères
  * @ingroup TaoBuiltins
  *
- * Affiche du texte formatté.
+ * Affiche du texte formaté.
  *
- * Ce groupe contient de primitives pour :
+ * Ce groupe contient des primitives pour :
  *   @li Créer des zones de texte,
  *   @li Positionner et justifier le texte,
  *   @li Choisir la police de caractère et les attributs du texte (style,
@@ -657,8 +657,8 @@ italic();
  * @~french
  * Sélectionne le style de caractères italique.
  * L'oblique a une apparence penchée similaire à l'italique mais les glyphes
- * sont basés sur les formes normales et sont inclinés. Les glyphs et ne sont pas
- * spécialement dessinés pour l'italique.
+ * sont basés sur les formes normales et sont inclinés. Les glyphs ne sont pas
+ * spécialement dessinés pour l'oblique.
  */
 oblique();
 
@@ -676,8 +676,8 @@ oblique();
  * 99 est extrêmement gras. Les valeurs suivantes sont utilisées par la
  * primitive @ref font :
  * @~
- *   @li @b light: 25quivale
- *   @li @b regular, no_bold: 50
+ *   @li @b light: 25
+ *   @li @b regular, @b no_bold: 50
  *   @li @b demi_bold: 63
  *   @li @b bold: 75
  *   @li @b black: 87
@@ -780,7 +780,7 @@ stretch(s:real);
  * This primitive controls how words and glyphs are positioned horizontally
  * to form a line of text in the current text box.
  * The four parameters @p center, @p justify, @p spread
- * and @p full_justify may take any value between 0 and 1 (inclusive). Some
+ * and @p full_justify may take any value between 0.0 and 1.0 (inclusive). Some
  * combinations have a usual meaning; see the functions listed below
  * for details.
  *
@@ -794,7 +794,7 @@ stretch(s:real);
  * Cette primitive contrôle comment les mots et les caractères sont
  * positionnés horizontalement pour former une ligne.
  * Les quatre parametres @p center, @p justify, @p spread
- * et @p full_justify sont entre 0 and 1 (inclus). Certaines combinaisons
+ * et @p full_justify sont entre 0.0 and 1.0 (inclus). Certaines combinaisons
  * ont une signification usuelle, cf. les fonctions listées ci-dessous pour
  * plus de détails.
  *
@@ -1012,9 +1012,9 @@ align_full_spread();
  * Définit les paramètres de justification verticale.
  *
  * Cette primitive contrôle comment les lignes de texte sont
- * positionnés verticalement dans la boîte de texte courante.
+ * positionnées verticalement dans la boîte de texte courante.
  * Les quatre parametres @p center, @p justify, @p spread
- * et @p full_justify sont entre 0 and 1 (inclus). Certaines combinaisons
+ * et @p full_justify sont entre 0.0 and 1.0 (inclus). Certaines combinaisons
  * ont une signification usuelle, cf. les fonctions listées ci-dessous pour
  * plus de détails.
  *

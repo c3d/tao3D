@@ -987,13 +987,13 @@ import "xl:mes_définitions.xl"
  * @~french
  * @addtogroup TaoBuiltins Primitives de Tao Presentations
  *
- * Fonctions principales de Tao Presentaions
+ * Fonctions principales de Tao Presentations
  *
- * Les documents Tao Presentations sont ecrits en utilisant le langage XL.
+ * Les documents Tao Presentations sont écrits en utilisant le langage XL.
  * Les primitives  de Tao sont des formes XL que vous devez utiliser pour
- * decrire votre document. Elles sont reparties en categories comme decrit
+ * décrire votre document. Elles sont réparties en catégories comme décrit
  * ci-dessus.
- *
+ * 
  * @~
  *
  * @todo Document Git-related primitives (branch/commit chooser commands and

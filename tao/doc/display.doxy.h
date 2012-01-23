@@ -28,14 +28,14 @@
  * @image html alioscopy_detail.png "Alioscopy® (detail)"
  *
  * @~french
- * @defgroup Display Affichage et contrôle de stéréoscopie
+ * @defgroup Display Affichage et contrôle de la stéréoscopie
  * @ingroup TaoBuiltins
  *
  * Permet de sélectionner le mode d'affichage et les paramètres de 3D
  * stéréoscopique.
  * Tao Presentations peut tirer parti de différentes technologies pour afficher
  * du contenu 3D. En fonction du matériel dont vous disposez, vous pouvez
- * sélectionner l'un des modes d'affichage disponible dans l'application.
+ * sélectionner l'un des modes d'affichage disponibles dans l'application.
  * Si vous avez un écran ou un projecteur capable d'afficher en 3D, il y
  * a de fortes chances que Tao Presentations vous permette de l'exploiter au
  * mieux.

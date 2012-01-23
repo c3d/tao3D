@@ -6,7 +6,7 @@
  *
  * Time-related primitives can be grouped as follows:
  * - Primitives that return information about the current time:
- * time, seconds, hours, minutes, hours, day, month, year,
+ * time, seconds, hours, minutes, day, month, year,
  * week_day, month_day, year_day. These primitives have an effect on the
  * execution of the block of code they belong to. See @ref secExecModel
  * for general information ; the <em>next refresh</em> value is documented
@@ -21,7 +21,7 @@
  *
  * Deux types de primitives peuvent être distinguées :
  * - Celles qui fournissent des informations sur l'instant présent :
- * time, seconds, hours, minutes, hours, day, month, year,
+ * time, seconds, hours, minutes, day, month, year,
  * week_day, month_day, year_day. Ces primitives ont un effet sur l'exécution
  * du bloc de code auquel elles appartiennent. Cf. @ref secExecModel
  * pour une description du mécanisme général. La valeur de rafraîchissement est
@@ -332,7 +332,7 @@ page "Second page",
  * Execution of this primitive requests a refresh of the current layout
  * when the delay expires.
  *
- * @~english
+ * @~french
  * Active un bloc de code après l'intervalle spécifié.
  *
  * Le code spécifié par @p body n'est pas exécuté avant que @p delay
@@ -478,7 +478,7 @@ every (interval:real, body:tree);
  * Définit l'intervalle de rafraîchissement par défaut pour time et page_time
  *
  * Cette primitive définit l'intervalle de rafraîchissement des @a layouts
- * qui utilisent les primitives @ref time et/ou @ref page_time primitives.
+ * qui utilisent les primitives @ref time ou @ref page_time.
  * Alors que du code basé par exemple sur la primitive @ref seconds n'a pas
  * besoin d'être ré-évalué plus d'une fois par seconde, il est clair que du
  * code qui dépend de @ref time or @ref page_time va donner des résultats
@@ -504,7 +504,7 @@ every (interval:real, body:tree);
  * plateforme, @ref default_refresh vaut 0.0 par défaut.
  * - Sur toutes les plateformes, et lorsque la synchronisation verticale
  * est activée, default_refresh vaut initialement 0.0, et la vitesse de
- * rafraîchissement est qutomatiquement limitée par l'horloge de
+ * rafraîchissement est automatiquement limitée par l'horloge de
  * synchronisation verticale. Lorsque VSync est désactivée, par contre,
  * default_refresh est initialement mise à 0.016 pour éviter d'utiliser
  * inutilement le processeur (on suppose on affichage à 60 Hz).

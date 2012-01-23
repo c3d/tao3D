@@ -61,7 +61,7 @@ slide "The Keyboard theme",
  *
  * Commandes et thèmes pour écrire des présentations.
  *
- * Le module Slides module fournit des commandes que vous pouvez utiliser pour
+ * Le module Slides fournit des commandes que vous pouvez utiliser pour
  * structurer vos documents : @ref slide, @ref title_slide, @ref base_slide,
  * @ref title_only_slide et d'autres. Les puces de texte peuvent être affichées
  * en utilisat @ref ＊, @ref ‐ et  @ref ＋. \n
@@ -86,9 +86,9 @@ slide "Le thème Keyboard",
  * fond blanc et qui peut être activé en utilisant <tt>theme ""</tt>. Cf. la
  * commande @ref theme pour plus de détails.
  *
- * Vous pouvez également modifier les thème, pour les adapter à vos besoins.
+ * Vous pouvez également modifier les thèmes, pour les adapter à vos besoins.
  * Il est possible de changer les polices de caractères, la taille du texte,
- * les puces, l'image de fond, les couleurs, etc.).
+ * les puces, l'image de fond, les couleurs, etc.
  *
  * Les diapositives peuvent se redimensionner automatiquement pour remplir
  * au mieux l'écran. Lorsque l'image de fond n'a pas le même rapport de
@@ -116,7 +116,7 @@ slide "Le thème Keyboard",
 
 
 /**
- * @english
+ * @~english
  * The name of the current theme.
  * The next command that creates a slide page will take into account the
  * value of this variable to select the appearance of the slide.
@@ -131,7 +131,7 @@ slide "Le thème Keyboard",
  *     picture and semi-transparent white text boxes
  *  - "Seyes" A theme that uses a handwriting font on a backround that looks
  *     like french ruled ("seyes") paper
- * @french
+ * @~french
  * Le nom du thème courant.
  * La prochaine commande qui crée une diapositive utilisera la valeur de cette
  * variable pour sélectionner l'apparence de la page.

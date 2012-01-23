@@ -15,7 +15,7 @@
  * @taomoduledescription{Animate, Fonctions d'animations}
  *
  * Commandes pour créer des animations et des transitions dans des
- * dispositives.
+ * diapositives.
  *
  * Le module Animate définit des commandes que vous pouvez utiliser pour
  * animer des éléments au sein d'une page, ou d'une page à l'autre, ou bien
@@ -107,7 +107,7 @@ interpolate_position(real S, real TargetX, real TargetY, real TargetZ, real X, r
  * un facteur d'échelle global le long des axes X, Y et Z.
  *
  * @ref interpolate_scale2(real, real, real) effectue la même opération
- * relativement aux axes X and Y seulement.
+ * relativement aux axes X et Y seulement.
  */
 interpolate_scale(real S, real TargetScale, real Scale);
 
@@ -157,46 +157,46 @@ interpolate_xangle(real S, real TargetX, real X);
  * @~english
  * Interpolate a rotation around Y axis
  *
- * Interpolate variable @a X to reach value @a TargetX with speed of change @a S,
+ * Interpolate variable @a Y to reach value @a TargetY with speed of change @a S,
  * then use the resulting value as a rotation angle. After the call,
  * the coordinate systems will have been rotated along the Y axis by
- * @a X degrees.
+ * @a Y degrees.
  *
  * @~french
  * Interpole une rotation autour de l'axe Y
  *
- * Interpole la variable @a X pour atteindre la valeur @a TargetX avec une
+ * Interpole la variable @a Y pour atteindre la valeur @a TargetY avec une
  * vitesse de changement @a S,
  * et utilise le résultat comme un angle de rotation. Après l'appel,
- * le système de coordonnées a tourné d'un angle @a X degrés autour de l'axe Y.
+ * le système de coordonnées a tourné d'un angle @a Y degrés autour de l'axe Y.
  */
-interpolate_yangle(real S, real TargetX, real X);
+interpolate_yangle(real S, real TargetY, real Y);
 
 /**
  * @~english
  * Interpolate a rotation around Z axis
  *
- * Interpolate variable @a X to reach value @a TargetX with speed of change @a S,
+ * Interpolate variable @a Z to reach value @a TargetZ with speed of change @a S,
  * then use the resulting value as a rotation angle. After the call,
  * the coordinate systems will have been rotated along the Z axis by
- * @a X degrees.
+ * @a Z degrees.
  *
  * @~french
  * Interpole une rotation autour de l'axe Z
  *
- * Interpole la variable @a X pour atteindre la valeur @a TargetX avec une
+ * Interpole la variable @a Z pour atteindre la valeur @a TargetZ avec une
  * vitesse de changement @a S,
  * et utilise le résultat comme un angle de rotation. Après l'appel,
- * le système de coordonnées a tourné d'un angle @a X degrés autour de l'axe Z.
+ * le système de coordonnées a tourné d'un angle @a Z degrés autour de l'axe Z.
  */
-interpolate_zangle(real S, real TargetX, real X);
+interpolate_zangle(real S, real TargetZ, real Z);
 
 
 /**
  * @~english
  * Compute value to be used for fade-in effects
  *
- * Return a value that fades approximately from 0 to 1 over @a Duration
+ * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
  * The @a Value argument is typically a time computed using @ref page_time
  * The typical usage will be something like:
  @code
@@ -206,9 +206,9 @@ interpolate_zangle(real S, real TargetX, real X);
  @endcode
  *
  * @~french
- * Calcule une valeur utilisée pour des effets fade-in
+ * Calcule une valeur utilisée pour des effets d'apparition (fade-in)
  *
- * Renvoie une valeur qui passe approximativement de 0 à 1 sur une
+ * Renvoie une valeur qui passe approximativement de 0.0 à 1.0 sur une
  * durée de @a Duration secondes.
  * Le paramètre @a Value est typiquement un temps basé sur @ref page_time
  * Par exemple :
@@ -225,7 +225,7 @@ real fade_in(real Value, real Duration);
  * @~english
  * Compute value to be used for fade-out effects
  *
- * Return a value that fades approximately from 0 to 1 over @a Duration
+ * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
  * The @a Value argument is typically a time computed using @ref page_time
  * The typical usage will be something like:
  @code
@@ -235,9 +235,9 @@ real fade_in(real Value, real Duration);
  @endcode
  *
  * @~french
- * Calcule une valeur utilisée pour des effets fade-out
+ * Calcule une valeur utilisée pour des effets de disparition (fade-out)
  *
- * Renvoie une valeur qui passe approximativement de 1 à 0 sur une
+ * Renvoie une valeur qui passe approximativement de 1.0 à 0.0 sur une
  * durée de @a Duration secondes.
  * Le paramètre @a Value est typiquement un temps basé sur @ref page_time
  * Par exemple :
@@ -294,8 +294,8 @@ real smooth_step = 0.0;
  * Avance ou recule dans l'animation
  *
  * Fait avancer ou reculer l'animation de @a Amount positions. Les valeurs
- * positives du paramètre @a Amount font avancer animation, les valeurs
- * negatives la font reculer.
+ * positives du paramètre @a Amount font avancer l'animation, les valeurs
+ * négatives la font reculer.
  *
  * @~
  * @see skip_to, skip_directly_to

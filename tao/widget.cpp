@@ -1746,10 +1746,11 @@ QStringList Widget::fontFiles()
        FontFileManager *&m;
     } ffm(fontFileMgr);
 
+    TaoSave saveCurrent(current, this);
     drawAllPages = true;
-    draw();
+    runProgram();
     drawAllPages = false;
-    draw();
+    runProgram();
     if (!fontFileMgr->errors.empty())
     {
         // Some font files are not in a suitable format, so we won't try to
@@ -3174,6 +3175,7 @@ void Widget::showEvent(QShowEvent *event)
 //    Enable animations if widget is visible
 // ----------------------------------------------------------------------------
 {
+    Q_UNUSED(event);
     Window *window = (Window *) parentWidget();
     bool oldFs = hasAnimations();
     if (! oldFs)
@@ -3183,9 +3185,10 @@ void Widget::showEvent(QShowEvent *event)
 
 void Widget::hideEvent(QHideEvent *event)
 // ----------------------------------------------------------------------------
-//    Disable animations if widget is visible
+//    Disable animations if widget is invisible
 // ----------------------------------------------------------------------------
 {
+    Q_UNUSED(event);
     Window *window = (Window *) parentWidget();
     bool oldFs = hasAnimations();
     if (oldFs)
@@ -8469,7 +8472,7 @@ Text_p Widget::loadText(Tree_p self, text file)
     QFileInfo fileInfo(+qualified);
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
-    if (!info)
+    if (info)
     {
         if (fileInfo.lastModified() > info->fileInfo.lastModified())
             doLoad = true;
@@ -8489,6 +8492,7 @@ Text_p Widget::loadText(Tree_p self, text file)
             text &value = info->loaded->value;
 
             QFile file(fileInfo.canonicalFilePath());
+            file.open(QIODevice::ReadOnly);
             QTextStream textStream(&file);
             QString data = textStream.readAll();
             value = +data;
@@ -8856,8 +8860,8 @@ Tree_p Widget::status(Tree_p self, text caption)
 
 
 Integer* Widget::framePaint(Context *context, Tree_p self,
-                          Real_p x, Real_p y, Real_p w, Real_p h,
-                          Tree_p prog)
+                            Real_p x, Real_p y, Real_p w, Real_p h,
+                            Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -10188,11 +10192,17 @@ text Widget::currentDocumentFolder()
 }
 
 
-bool Widget::blink(double on, double off)
+bool Widget::blink(double on, double off, double after)
 // ----------------------------------------------------------------------------
 //   Return true for 'on' seconds then false for 'off' seconds
 // ----------------------------------------------------------------------------
 {
+    double runtime = Application::runTime();
+    if (runtime <= after)
+    {
+        refreshOn((int)QEvent::Timer, after - runtime);
+        return true;
+    }
     double time = Widget::currentTimeAPI();
     double mod = fmod(time, on + off);
     if (mod <= on)
@@ -10205,12 +10215,13 @@ bool Widget::blink(double on, double off)
 }
 
 
-Name_p Widget::blink(Tree_p self, Real_p on, Real_p off)
+Name_p Widget::blink(Tree_p self, Real_p on, Real_p off, Real_p after)
 // ----------------------------------------------------------------------------
 //   Export 'blink' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return blink(on->value, off->value) ? XL::xl_true : XL::xl_false;
+    return blink(on->value, off->value, after->value) ?
+                 XL::xl_true : XL::xl_false;
 }
 
 

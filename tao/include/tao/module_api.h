@@ -367,9 +367,14 @@ struct ModuleApi
     // will work in degraded mode.
     bool (*checkLicense)(std::string featureName, bool critical);
 
-    // Return true if (current_time % (on + off)) <= on, false otherwise.
+    // Blink if the application has been running longer that specified duration.
+    // Return true if (current_time % (on + off)) <= on and the application was
+    // started more that 'after' seconds ago, false otherwise.
     // Note: calls refreshOn to refresh automatically on next transition.
-    bool (*blink)(double on, double off);
+    bool (*blink)(double on, double off, double after);
+
+    // Returns the number of seconds since the application was started.
+    double (*taoRunTime)();
 
     // ------------------------------------------------------------------------
     //   Current document info

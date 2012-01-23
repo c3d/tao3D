@@ -69,11 +69,17 @@ cp_and_fix_framework() {
   doo mkdir -p "${TODIR}"
   doo cp "${SRC}/${FMWK}" "${TODIR}"
   LIB="${DEST}/${FMWK}"
-  # QtHelp has a weird dependency on /usr/lib/libQtCLucene[_debug].dylib.
+  # QtHelp has a weird dependency on libQtCLUcene which is not installed
+  # in the same place as other Qt libraries
   if [ "$FNAME" = "QtHelp.framework" ] ; then
     LIB_QTCLUCENE=`otool -L "$LIB" | grep libQtCLucene | awk -F' ' '{ print $1 }'` 
-    doo cp /usr/lib/$LIB_QTCLUCENE "$DEST"
-    DLIB="${DEST}/${LIB_QTCLUCENE}"
+    LIB_QTCLUCENE_BASE=$(basename ${LIB_QTCLUCENE})
+    if [ ! -e "$LIB_QTCLUCENE" ] ; then
+        # Qt 4.7.4, MacOSX Snow Leopard
+        LIB_QTCLUCENE=/usr/lib/$LIB_QTCLUCENE_BASE
+    fi
+    doo cp $LIB_QTCLUCENE "$DEST"
+    DLIB="${DEST}/${LIB_QTCLUCENE_BASE}"
     doo strip -x "${DLIB}"
     doo ${FIX_QT_REFS} "${DLIB}" "${SRC}"
   fi

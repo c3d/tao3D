@@ -50,7 +50,7 @@
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
-GIT_VERSION=1.7.2.2
+GIT_VERSION=1.7.8.4
 
 ########
 
@@ -173,8 +173,8 @@ clean.git_build:
 
 ########
 
-.git_extract_ts: .git_download_ts
-	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar jxf git-$(GIT_VERSION).tar.bz2 )
+.git_extract_ts: git_build/git-$(GIT_VERSION).tar.gz
+	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar zxf git-$(GIT_VERSION).tar.gz )
 	touch $@
 
 clean.git_extract:
@@ -183,14 +183,12 @@ clean.git_extract:
 
 ########
 
-.git_download_ts:
+git_build/git-$(GIT_VERSION).tar.gz:
 	[ -d git_build ] || mkdir -p git_build
-	[ -f git_build/git-$(GIT_VERSION).tar.bz2 ] || ( cd git_build ; curl -O http://kernel.org/pub/software/scm/git/git-$(GIT_VERSION).tar.bz2 )
-	touch $@
+	[ -f git_build/git-$(GIT_VERSION).tar.gz ] || ( cd git_build ; curl -O http://git-core.googlecode.com/files/git-$(GIT_VERSION).tar.gz )
 
 clean.git_download:
-	rm -rf git_build/git-$(GIT_VERSION).tar.bz2
-	rm -f .git_download_ts
+	rm -rf git_build/git-$(GIT_VERSION).tar.gz
 
 ########
 

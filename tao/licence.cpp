@@ -104,12 +104,12 @@ void Licences::addLicenceFile(kstring licfname)
     XL::Errors errors;
     XL::Scanner scanner(licfname, syntax, positions, errors);
     Licence licence;
-    bool had_features = false, had_digest = false;
+    bool had_features = false, had_signature = false;
     int day = 0, month = 0, year = 0;
     enum
     {
         // REVISIT: We may want to add host, ip, MAC, display type, ...
-        START, DIGEST, DONE, TAG,
+        START, SIGNATURE, DONE, TAG,
         NAME, COMPANY, ADDRESS, EMAIL, FEATURES,
         EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR,
         HOSTID, ERR
@@ -157,8 +157,8 @@ void Licences::addLicenceFile(kstring licfname)
                     state = FEATURES;
                 else if (item == "expires")
                     state = EXPIRY_DAY;
-                else if (item == "digest")
-                    state = DIGEST;
+                else if (item == "signature" || item == "digest")
+                    state = SIGNATURE;
                 else if (item == "hostid")
                     state = HOSTID;
                 else
@@ -170,7 +170,7 @@ void Licences::addLicenceFile(kstring licfname)
             } // switch(token for TAG state)
             break;
 
-        case DIGEST:
+        case SIGNATURE:
             // This is normally the final state
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
             {
@@ -184,17 +184,17 @@ void Licences::addLicenceFile(kstring licfname)
                 }
                 else
                 {
-                    licenceError(licfname, tr("Digest verification failed"));
+                    licenceError(licfname, tr("Signature verification failed"));
                     state = ERR;
                 }
                 additional.licences.clear();
             }
             else
             {
-                licenceError(licfname, tr("Invalid digest"));
+                licenceError(licfname, tr("Invalid signature"));
                 state = ERR;
             }
-            had_digest = true;
+            had_signature = true;
             break;
 
 #define PARSE_IDENTITY(PTAG, PREF, PVAR)                                \
@@ -353,13 +353,13 @@ void Licences::addLicenceFile(kstring licfname)
 #ifdef KEYGEN
     if (additional.licences.size())
     {
-        text digested = sign(additional);
+        text signature = sign(additional);
         FILE *file = fopen(licfname, "a");
-        fprintf(file, "digest \"%s\"\n", digested.c_str());
+        fprintf(file, "signature \"%s\"\n", signature.c_str());
         fclose(file);
     }
 #else
-    if (!had_digest && state != ERR)
+    if (!had_signature && state != ERR)
         licenceError(licfname, tr("Missing digital signature"));
 #endif // KEYGEN
 }

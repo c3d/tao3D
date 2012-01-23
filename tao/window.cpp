@@ -557,6 +557,8 @@ void Window::removeSplashScreen()
 }
 
 
+#ifndef CFG_NOEDIT
+
 bool Window::save()
 // ----------------------------------------------------------------------------
 //    Save the current window
@@ -624,6 +626,33 @@ again:
             return false;
         projpath += "/" + subdir;
         fileName = projpath + "/" + fileNameOnly;
+        targetDir = QDir(QFileInfo(fileName).absoluteDir());
+    }
+
+    QDir curDir = QDir(QFileInfo(curFile).absoluteDir());
+    bool dstIsSubdirOfSrc = QDir(targetDir.absoluteFilePath(".."))
+                                     .canonicalPath()
+                                     .startsWith(curDir.canonicalPath());
+    if (targetDir != curDir && !dstIsSubdirOfSrc)
+    {
+        // Copy all files from original path to new path
+
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::question(this, tr("Copying"),
+                                    tr("Also copy all files and subfolders?"),
+                                    QMessageBox::Yes | QMessageBox::No,
+                                    QMessageBox::Yes);
+        if (ret == QMessageBox::Yes)
+        {
+            IFTRACE(fileload)
+                std::cerr << "Recursively copying " << +curDir.absolutePath()
+                              << " to " << +targetDir.absolutePath() << "\n";
+            bool ok = Template::recursiveCopy(curDir, targetDir);
+            if (ok)
+                targetDir.remove(QFileInfo(curFile).fileName());
+            else
+                QMessageBox::warning(this, tr("Error"), tr("Copy failed."));
+        }
     }
 
 #ifndef CFG_NOGIT
@@ -639,14 +668,10 @@ again:
 
 bool Window::saveFonts()
 // ----------------------------------------------------------------------------
-//    Like saveAs() but also embed currently used fonts into the document
+//    Embed currently used fonts into the document
 // ----------------------------------------------------------------------------
 {
     bool ok;
-
-    ok = saveAs();
-    if (!ok)
-        return ok;
 
     struct SOC
     {
@@ -737,10 +762,107 @@ bool Window::saveFonts()
         repo->commit();
     }
 
-    statusBar()->showMessage(tr("File saved"), 2000);
+    statusBar()->showMessage(tr("Fonts saved"), 2000);
     return ok;
 }
 
+
+void Window::consolidate()
+// ----------------------------------------------------------------------------
+//   Menu entry for the resource management activities.
+// ----------------------------------------------------------------------------
+{
+    text fn = +curFile;
+    IFTRACE(resources)
+        std::cerr << "Consolidate: File name is "<< fn << std::endl;
+
+    if (taoWidget->markChange("Include resource files in the project"))
+    {
+        ResourceMgt checkFiles(taoWidget);
+        xlRuntime->files[fn].tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+        // Reload the program and mark the changes
+        taoWidget->reloadProgram();
+    }
+
+}
+
+
+bool Window::saveFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Save a file with a given name
+// ----------------------------------------------------------------------------
+{
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, tr("Error saving file"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return false;
+    }
+
+    isUntitled = false;
+    statusBar()->showMessage(tr("Saving..."));
+    // FIXME: can't call processEvent here, or the "Save with fonts..."
+    // function fails to save all the fonts of a multi-page doc
+    // QApplication::processEvents();
+
+    do
+    {
+        QTextStream out(&file);
+        out.setCodec("UTF-8");
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
+#ifndef CFG_NOSRCEDIT
+        out << srcEdit->toPlainText();
+#else
+        if (Tree *prog = taoWidget->xlProgram->tree)
+        {
+            std::ostringstream renderOut;
+            renderOut << prog;
+            out << +renderOut.str();
+        }
+#endif
+        QApplication::restoreOverrideCursor();
+    } while (0); // Flush
+
+    // Will update recent file list since file now exists
+    setCurrentFile(fileName);
+
+    text fn = +fileName;
+
+    xlRuntime->LoadFile(fn);
+
+    updateProgram(fileName);
+#ifndef CFG_NOSRCEDIT
+    srcEdit->setXLNames(taoWidget->listNames());
+#endif
+    taoWidget->refreshNow();
+    isReadOnly = false;
+
+#ifndef CFG_NOGIT
+    if (repo)
+    {
+        // Trigger immediate commit to repository
+        // FIXME: shouldn't create an empty commit
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        sf.changed = true;
+        taoWidget->markChange("Manual save");
+        taoWidget->writeIfChanged(sf);
+        taoWidget->doCommit(true);
+        sf.changed = false;
+    }
+#endif
+    markChanged(false);
+    showMessage(tr("File saved"), 2000);
+
+    return true;
+}
+
+#endif
 
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
@@ -1433,6 +1555,7 @@ void Window::createActions()
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
 
+#ifndef CFG_NOEDIT
     saveAct = new Action(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
@@ -1440,15 +1563,12 @@ void Window::createActions()
     saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
+#if 0
     consolidateAct = new QAction(tr("Consolidate"), this);
     consolidateAct->setStatusTip(tr("Make the document self contained"));
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
-
-    renderToFileAct = new QAction(tr("&Render to files..."), this);
-    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
-    renderToFileAct->setObjectName("renderToFile");
-    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
+#endif
 
     saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
@@ -1456,10 +1576,16 @@ void Window::createActions()
     saveAsAct->setObjectName("saveAs");
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-    saveFontsAct = new QAction(tr("Save with fonts..."), this);
-    saveFontsAct->setStatusTip(tr("Save the document with all required fonts"));
+    saveFontsAct = new QAction(tr("Save fonts"), this);
+    saveFontsAct->setStatusTip(tr("Save the fonts used in the document"));
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+#endif
+
+    renderToFileAct = new QAction(tr("&Render to files..."), this);
+    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
+    renderToFileAct->setObjectName("renderToFile");
+    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
 
     printAct = new Action(tr("&Print..."), this);
     printAct->setStatusTip(tr("Print the document"));
@@ -1693,10 +1819,14 @@ void Window::createMenus()
     fileMenu->addAction(openUriAct);
 #endif
     openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
+#ifndef CFG_NOEDIT
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
+#if 0
     fileMenu->addAction(consolidateAct);
+#endif
+#endif
     fileMenu->addSeparator();
     fileMenu->addAction(renderToFileAct);
     fileMenu->addSeparator();
@@ -1773,7 +1903,9 @@ void Window::createToolBars()
     fileToolBar->setObjectName("fileToolBar");
     // fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
+#ifndef CFG_NOEDIT
     fileToolBar->addAction(saveAct);
+#endif
     fileToolBar->hide();
     if (view)
         view->addAction(fileToolBar->toggleViewAction());
@@ -1886,10 +2018,9 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
-    if (isWindowModified()
 #ifndef CFG_NOSRCEDIT
+    if (isWindowModified()
         || srcEdit->document()->isModified()
-#endif
        )
     {
         QMessageBox::StandardButton ret;
@@ -1903,6 +2034,7 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
+#endif
     return true;
 }
 
@@ -2173,101 +2305,6 @@ bool Window::updateProgram(const QString &fileName)
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
     return hadError;
-}
-
-
-void Window::consolidate()
-// ----------------------------------------------------------------------------
-//   Menu entry for the resource management activities.
-// ----------------------------------------------------------------------------
-{
-    text fn = +curFile;
-    IFTRACE(resources)
-        std::cerr << "Consolidate: File name is "<< fn << std::endl;
-
-    if (taoWidget->markChange("Include resource files in the project"))
-    {
-        ResourceMgt checkFiles(taoWidget);
-        xlRuntime->files[fn].tree->Do(checkFiles);
-        checkFiles.cleanUpRepo();
-        // Reload the program and mark the changes
-        taoWidget->reloadProgram();
-    }
-
-}
-
-bool Window::saveFile(const QString &fileName)
-// ----------------------------------------------------------------------------
-//   Save a file with a given name
-// ----------------------------------------------------------------------------
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text))
-    {
-        QMessageBox::warning(this, tr("Error saving file"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    isUntitled = false;
-    statusBar()->showMessage(tr("Saving..."));
-    // FIXME: can't call processEvent here, or the "Save with fonts..."
-    // function fails to save all the fonts of a multi-page doc
-    // QApplication::processEvents();
-
-    do
-    {
-        QTextStream out(&file);
-        out.setCodec("UTF-8");
-#ifndef CONFIG_MACOSX
-        QApplication::setOverrideCursor(Qt::BusyCursor);
-#endif
-#ifndef CFG_NOSRCEDIT
-        out << srcEdit->toPlainText();
-#else
-        if (Tree *prog = taoWidget->xlProgram->tree)
-        {
-            std::ostringstream renderOut;
-            renderOut << prog;
-            out << +renderOut.str();
-        }
-#endif
-        QApplication::restoreOverrideCursor();
-    } while (0); // Flush
-
-    // Will update recent file list since file now exists
-    setCurrentFile(fileName);
-
-    text fn = +fileName;
-
-    xlRuntime->LoadFile(fn);
-
-    updateProgram(fileName);
-#ifndef CFG_NOSRCEDIT
-    srcEdit->setXLNames(taoWidget->listNames());
-#endif
-    taoWidget->refreshNow();
-    isReadOnly = false;
-
-#ifndef CFG_NOGIT
-    if (repo)
-    {
-        // Trigger immediate commit to repository
-        // FIXME: shouldn't create an empty commit
-        XL::SourceFile &sf = xlRuntime->files[fn];
-        sf.changed = true;
-        taoWidget->markChange("Manual save");
-        taoWidget->writeIfChanged(sf);
-        taoWidget->doCommit(true);
-        sf.changed = false;
-    }
-#endif
-    markChanged(false);
-    showMessage(tr("File saved"), 2000);
-
-    return true;
 }
 
 
@@ -2586,7 +2623,7 @@ void Window::restartFullScreenTimer()
 //    Restart full screen timer
 // ----------------------------------------------------------------------------
 {
-    fullScreenTimer.start(10 * 60 * 1000);
+    fullScreenTimer.start(5 * 60 * 1000);
 }
 
 #endif // CFG_TIMED_FULLSCREEN
@@ -2714,7 +2751,7 @@ bool Window::isTutorial(const QString &filePath)
 //    Return true if the file currently loaded is the Tao tutorial
 // ----------------------------------------------------------------------------
 {
-    static QFileInfo tutorial("system:welcome.ddd");
+    static QFileInfo tutorial("system:welcome/welcome.ddd");
     static QString tutoPath = tutorial.canonicalFilePath();
     return (filePath == tutoPath);
 }

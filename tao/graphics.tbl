@@ -1058,8 +1058,10 @@ PREFIX(ImportModule, tree, "import",
        SYNOPSIS("Import a module from a file"))
 PREFIX(Blink, boolean,  "blink",
        PARM(on, real, "Duration of first period, primitive returns true")
-       PARM(off, real, "Duration of second period, primitive returns false"),
-       RTAO(blink(self, on, off)),)
+       PARM(off, real, "Duration of second period, primitive returns false")
+       PARM(after, real, "Start blinking only 'after' seconds after "
+                         "application startup"),
+       RTAO(blink(self, on, off, after)),)
 PREFIX(HasLicense, boolean,  "has_license",
        PARM(feature, text, "The feature name to check"),
        RTAO(hasLicense(self, feature)),)

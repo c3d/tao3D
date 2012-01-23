@@ -92,6 +92,7 @@ struct DisplayDriver;
 #define TOOLBAR_MENU_NAME  "TAO_VIEW_TOOLBAR_MENU"
 #define HELP_MENU_NAME  "TAO_HELP_MENU"
 
+#define GUI_FEATURE "GUI"
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------

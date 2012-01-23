@@ -29,10 +29,6 @@
 #include <QDateTime>
 #include <QFileInfoList>
 
-// Features id for CheckOnce
-#define NO_FEATURE 0x00000000
-#define WEB        0x00000001
-#define GUI        0x00000002
 
 namespace Tao
 {
@@ -76,8 +72,6 @@ public:
         return days > 0;
     }
 
-    static bool CheckOnce(quint64 feature, bool silent = true,
-                          bool critical = false);
     static text hostID();
 
 #endif
@@ -112,12 +106,6 @@ private:
         text                email;
         text                hostid;
     };
-
-    // Used for CheckOnce : store if the feature has already been checked and
-    // the result of the check.
-    static quint64 alreadyChecked;
-    static quint64 licencesOK;
-    static std::map<quint64, text> featuresName;
 
 private:
     Licences();

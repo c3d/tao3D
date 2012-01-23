@@ -9298,7 +9298,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(WEB))
+    if (!Licences::Check("WEB"))
         return NULL;
 
     if (w < 16) w = 16;
@@ -10614,7 +10614,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     if (!currentMenu && !currentToolBar)
@@ -10741,7 +10741,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     bool isContextMenu = false;
@@ -10876,7 +10876,7 @@ Tree_p  Widget::menuBar(Tree_p self)
 // Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     currentMenuBar = ((Window *)parent())->menuBar();
@@ -10894,7 +10894,7 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     QString fullname = +name;
@@ -10980,7 +10980,7 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     QString fullname = QString("SEPARATOR_%1").arg(order);

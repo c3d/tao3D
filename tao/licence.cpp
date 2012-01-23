@@ -57,10 +57,6 @@ using namespace CryptoPP;
 namespace Tao
 {
 
-quint64 Licences::alreadyChecked = 0;
-quint64 Licences::licencesOK = 0;
-std::map<quint64, text> Licences::featuresName;
-
 
 Licences &Licences::LM()
 // ----------------------------------------------------------------------------
@@ -77,10 +73,7 @@ Licences::Licences()
 //   Initialize the licence manager by loading the licence file
 // ----------------------------------------------------------------------------
     : licences()
-{
-    featuresName[WEB] = "WEB";
-    featuresName[GUI] = "GUI";
-}
+{}
 
 
 Licences::~Licences()
@@ -765,28 +758,6 @@ again:
     return id;
 }
 
-
-bool Licences::CheckOnce(quint64 feature, bool silent, bool critical)
-// ----------------------------------------------------------------------------
-//   Check only once the a licence, then return that result
-// ----------------------------------------------------------------------------
-{
-    if ( (alreadyChecked & feature) != feature)
-    {
-        bool res = false;
-        if (silent)
-            res = Has(featuresName[feature]);
-        else
-            res = Check(featuresName[feature], critical);
-
-        if (res)
-            licencesOK |= feature;
-
-        alreadyChecked |= feature;
-    }
-
-    return ((licencesOK & feature) == feature);
-}
 
 #endif // KEYGEN
 

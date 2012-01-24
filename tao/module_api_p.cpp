@@ -28,6 +28,7 @@
 #include "frame.h"
 #include "licence.h"
 #include "info_trash_can.h"
+#include "application.h"
 
 TAO_BEGIN
 
@@ -51,8 +52,10 @@ ModuleApiPrivate::ModuleApiPrivate()
     BindTexture2D    = ModuleRenderer::BindTexture2D;
     EnableTexCoords  = ModuleRenderer::EnableTexCoords;
     DisableTexCoords = ModuleRenderer::DisableTexCoords;
+    TextureUnit      = ModuleRenderer::TextureUnit;
     TextureUnits     = ModuleRenderer::TextureUnits;
     SetTextureUnits  = ModuleRenderer::SetTextureUnits;
+    HasTexture       = ModuleRenderer::HasTexture;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
     SetShader        = ModuleRenderer::SetShader;
@@ -105,6 +108,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     // Current document info
     currentDocumentFolder =  Widget::currentDocumentFolder;
+    taoRunTime            =  Application::runTime;
 }
 
 TAO_END

@@ -1,0 +1,38 @@
+import Carousel
+
+// Set light
+light 0
+light_position -200, 0, 500
+
+// Set camera
+camera_position 0, 400, 3000
+
+// Keys to move the carousel
+key "Right" -> skip 1
+key "Left" -> skip -1
+key "Return" -> skip_to 0
+
+// Define items of the carousel
+carousel_item 1 ->
+    color "blue"
+    sphere 0, 0, 0, 200
+carousel_item 2 ->
+    color "red"
+    torus 0, 0, 0, 200, 0.25
+
+carousel_item 3 ->
+    color "green"
+    cube 0, 0, 0, 200, 200, 200
+
+carousel_item 4 ->
+    rotatex -90
+    color "yellow"
+    cone 0, 0, 0, 100, 100, 200
+
+// ----------------------------------------------------------------------------
+//    Display carousel of shapes
+// ----------------------------------------------------------------------------
+page "Carousel",
+    // Display the carousel
+    carousel 4, 400, 800
+    carousel_hand

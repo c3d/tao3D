@@ -133,13 +133,13 @@ protected:
 private slots:
     void newDocument();
     void newFile();
+    void openRecentFile();
+    void clearRecentFileList();
+#ifndef CFG_NOEDIT
     bool save();
     bool saveAs();
     bool saveFonts();
     void consolidate();
-    void openRecentFile();
-    void clearRecentFileList();
-#ifndef CFG_NOEDIT
     void cut();
     void copy();
     void paste();
@@ -261,11 +261,13 @@ private:
     QAction          *newDocAct;
     QAction          *newAct;
     QAction          *openAct;
+#ifndef CFG_NOEDIT
     QAction          *saveAct;
     QAction          *saveAsAct;
-    QAction          *consolidateAct;
-    QAction          *renderToFileAct;
     QAction          *saveFontsAct;
+    QAction          *consolidateAct;
+#endif
+    QAction          *renderToFileAct;
     QAction          *printAct;
     QAction          *pageSetupAct;
     QAction          *closeAct;
@@ -287,7 +289,6 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
-    Assistant        *assistant;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

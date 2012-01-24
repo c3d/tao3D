@@ -669,10 +669,18 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.ver = git_ver;
         }
         // Look for online documentation file
-        QString qchPath = moduleDir + "/doc/qch";
+        QString qchPath = moduleDir + "/doc/" + TaoApp->lang + "/qch";
         QDir qchDir(qchPath);
         QStringList files = qchDir.entryList(QStringList("*.qch"),
                                              QDir::Files);
+        if (files.isEmpty())
+        {
+            // Look for english by default
+            qchPath = moduleDir + "/doc/en/qch";
+            QDir qchDir(qchPath);
+            files = qchDir.entryList(QStringList("*.qch"),
+                                                 QDir::Files);
+        }
         foreach(QString f, files)
             m.qchFiles << qchPath + "/" + f;
     }

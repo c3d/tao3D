@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   17
-#define TAO_MODULE_API_AGE       2
+#define TAO_MODULE_API_CURRENT   19
+#define TAO_MODULE_API_AGE       0
 
 // ========================================================================
 //
@@ -118,21 +118,29 @@ struct ModuleApi
     // Allow to disable texture coordinates after a drawing.
     bool (*DisableTexCoords)();
 
+    // Get the last activated texture unit
+    unsigned int (*TextureUnit)();
+
     // Get the bimasks of all activated texture units
     // in the current layout.
     unsigned int (*TextureUnits)();
 
     // Set the bimasks of all activated texture units in
     // the current layout.
-    void (*SetTextureUnits)(unsigned int textureUnits);
+    void (*SetTextureUnits)(uint64 textureUnits);
+
+    // Check if a texture is bound at the specified unit
+    bool (*HasTexture)(unsigned int unit);
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
     // For a 2D texture, use BindTexture2D
     // Always returns false.
+    // Note : Can not be call during drawing.
     bool (*BindTexture)(unsigned int id, unsigned int type);
 
     // Adds a "bind 2D texture" command to the current layout.
     // width and height are the dimensions of the texture in pixels.
+    // Note : Can not be call during drawing.
     void (*BindTexture2D)(unsigned int id,
                           unsigned int width, unsigned int height);
 
@@ -159,6 +167,7 @@ struct ModuleApi
     unsigned int (*EnabledLights)();
 
     // Get the current model matrix.
+    // Note : Can not be call during drawing
     Matrix4 (*ModelMatrix)();
 
     // Mark object for deletion by the main thread.
@@ -254,8 +263,9 @@ struct ModuleApi
     // statistics)
     void (*drawActivities)();
 
-    // Get camera characteristics. pos, target and/or up may be NULL.
-    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up);
+    // Get camera characteristics. pos, target, up and/or toScreen may be NULL.
+    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up,
+                      double *toScreen);
 
     // The height, in pixels, of the image to be rendered.
     int  (*renderHeight)();
@@ -357,9 +367,14 @@ struct ModuleApi
     // will work in degraded mode.
     bool (*checkLicense)(std::string featureName, bool critical);
 
-    // Return true if (current_time % (on + off)) <= on, false otherwise.
+    // Blink if the application has been running longer that specified duration.
+    // Return true if (current_time % (on + off)) <= on and the application was
+    // started more that 'after' seconds ago, false otherwise.
     // Note: calls refreshOn to refresh automatically on next transition.
-    bool (*blink)(double on, double off);
+    bool (*blink)(double on, double off, double after);
+
+    // Returns the number of seconds since the application was started.
+    double (*taoRunTime)();
 
     // ------------------------------------------------------------------------
     //   Current document info
@@ -400,8 +415,15 @@ extern "C"
     // Called once immediately after the module library is loaded.
     // Return 0 on success.
     // [Optional]
-    // [ModuleInfo is only valable during this call]
+    // [ModuleInfo is only valid during this call]
     int module_init(const Tao::ModuleApi *a, const Tao::ModuleInfo *m);
+
+    // Predefined error codes for module_init
+    enum init_error
+    {
+        no_error = 0,
+        error_invalid_license
+    };
 
     // Called when module is imported to let the module extend the XL symbol
     // table (for instance, add new XL commands) in a given context.

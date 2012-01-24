@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  licence.h                                                       Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
+//
+//     Sources for information:
+//     - http://www.sentientfood.com/display_story.php?articleid=3
+//     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
 //
 //
 //
 //
-//
-//
-// 
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -62,15 +62,18 @@ public:
         return LM().licenceRemainingDays(feature);
     }
 
-    static void WarnUnlicenced(text feature, int days, bool critical);
+    static void Warn(text feature, int days, bool critical);
 
     static bool Check(text feature, bool critical = false)
     {
         int days = RemainingDays(feature);
-        if (days <= 0)
-            WarnUnlicenced(feature, days, critical);
+        if (days <= 7)
+            Warn(feature, days, critical);
         return days > 0;
     }
+
+    static text hostID();
+
 #endif
 
     static text Name()
@@ -101,6 +104,7 @@ private:
         text                company;
         text                address;
         text                email;
+        text                hostid;
     };
 
 private:

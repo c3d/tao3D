@@ -271,9 +271,6 @@ Widget::Widget(Window *parent, SourceFile *sf)
     // Initialize view
     reset();
 
-    // Compute initial zoom
-    scaling = scalingFactorFromCamera();
-
     // Create the object we will use to render frames
     current = this;
     displayDriver = new DisplayDriver;
@@ -374,6 +371,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       currentFileDialog(o.currentFileDialog),
       zNear(o.zNear), zFar(o.zFar), scaling(o.scaling),
       zoom(o.zoom), eyeDistance(o.eyeDistance),
+      cameraToScreen(o.cameraToScreen),
       cameraPosition(o.cameraPosition),
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
       eye(o.eye), eyesNumber(o.eyesNumber),
@@ -713,7 +711,8 @@ void Widget::setGlClearColor()
 }
 
 
-void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
+void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
+                       double *toScreen)
 // ----------------------------------------------------------------------------
 //   Get camera characteristics
 // ----------------------------------------------------------------------------
@@ -721,6 +720,7 @@ void Widget::getCamera(Point3 *position, Point3 *target, Vector3 *upVector)
     if (position) *position = cameraPosition;
     if (target)   *target   = cameraTarget;
     if (upVector) *upVector = cameraUpVector;
+    if (toScreen) *toScreen = cameraToScreen;
 }
 
 
@@ -791,11 +791,10 @@ void Widget::draw()
 
     if (selectionChanged)
     {
-        Window *window = (Window *) parentWidget();
         selectionChanged = false;
 
         // TODO: honoring isReadOnly involves more than just this
-        if (!window->isReadOnly)
+        if (!isReadOnly())
             updateProgramSource();
     }
 
@@ -1375,7 +1374,7 @@ void Widget::checkCopyAvailable()
     bool sel = hasSelection();
     if (hadSelection != sel)
     {
-        emit copyAvailable(sel);
+        emit copyAvailable(sel && !isReadOnly());
         hadSelection = sel;
     }
 }
@@ -1747,10 +1746,11 @@ QStringList Widget::fontFiles()
        FontFileManager *&m;
     } ffm(fontFileMgr);
 
+    TaoSave saveCurrent(current, this);
     drawAllPages = true;
-    draw();
+    runProgram();
     drawAllPages = false;
-    draw();
+    runProgram();
     if (!fontFileMgr->errors.empty())
     {
         // Some font files are not in a suitable format, so we won't try to
@@ -1833,11 +1833,24 @@ void Widget::resetView()
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
+    zNear = 1500.0;
+    zFar  = 1e6;
+    zoom  = 1.0;
+    eyeDistance    = 100.0;
     cameraPosition = defaultCameraPosition;
-    cameraTarget = Point3(0, 0, 0);
+    cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
-    zoom = 1.0;
+    cameraToScreen = Vector3(cameraTarget - cameraPosition).Length();
     scaling = scalingFactorFromCamera();
+}
+
+
+void Widget::resetViewAndRefresh()
+// ----------------------------------------------------------------------------
+//   Restore default view parameters and refresh display
+// ----------------------------------------------------------------------------
+{
+    resetView();
     setup(width(), height());
     QEvent r(QEvent::Resize);
     refreshNow(&r);
@@ -2000,8 +2013,7 @@ double Widget::scalingFactorFromCamera()
 //   Return the factor to use for zoom adjustments
 // ----------------------------------------------------------------------------
 {
-    Vector3 distance = cameraTarget - cameraPosition;
-    scale csf = distance.Length() / zNear;
+    scale csf = cameraToScreen / zNear;
     return csf;
 }
 
@@ -2049,16 +2061,10 @@ void Widget::setup(double w, double h, const Box *picking)
 
 void Widget::reset()
 // ----------------------------------------------------------------------------
-//   Reset view settings
+//   Reset view and other widget settings, ready to execute new document
 // ----------------------------------------------------------------------------
 {
-    zNear = 1500.0;
-    zFar  = 1e6;
-    zoom  = 1.0;
-    eyeDistance    = 100.0;
-    cameraPosition = defaultCameraPosition;
-    cameraTarget   = Point3(0.0, 0.0, 0.0);
-    cameraUpVector = Point3(0, 1, 0);
+    resetView();
     animated = true;
     blanked = false;
 }
@@ -2071,8 +2077,11 @@ void Widget::resetModelviewMatrix()
     glLoadIdentity();
 
     // Position the camera
+    Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
+    toTarget *= cameraToScreen;
+    Point3 target = cameraPosition + toTarget;
     gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-              cameraTarget.x, cameraTarget.y ,cameraTarget.z,
+              target.x, target.y ,target.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 
@@ -3161,6 +3170,32 @@ void Widget::endPanning(QMouseEvent *)
 }
 
 
+void Widget::showEvent(QShowEvent *event)
+// ----------------------------------------------------------------------------
+//    Enable animations if widget is visible
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(event);
+    Window *window = (Window *) parentWidget();
+    bool oldFs = hasAnimations();
+    if (! oldFs)
+        window->toggleAnimations();
+}
+
+
+void Widget::hideEvent(QHideEvent *event)
+// ----------------------------------------------------------------------------
+//    Disable animations if widget is invisible
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(event);
+    Window *window = (Window *) parentWidget();
+    bool oldFs = hasAnimations();
+    if (oldFs)
+        window->toggleAnimations();
+}
+
+
 
 // ============================================================================
 //
@@ -3890,7 +3925,6 @@ bool Widget::isReadOnly()
     Window *window = (Window *)parentWidget();
     return window->isReadOnly;
 }
-
 
 
 // ============================================================================
@@ -5388,7 +5422,7 @@ Name_p Widget::blendFunction(Tree_p self, text src, text dst)
     GLenum dstEnum = TextToGLEnum(dst, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFunc(srcEnum, dstEnum));
     layout->hasBlending = true;
-    return XL::xl_true;                
+    return XL::xl_true;
 }
 
 
@@ -5405,7 +5439,7 @@ Name_p Widget::blendFunctionSeparate(Tree_p self,
     GLenum dstaE = TextToGLEnum(dsta, GL_ONE_MINUS_SRC_ALPHA);
     layout->Add(new BlendFuncSeparate(srcE, dstE, srcaE, dstaE));
     layout->hasBlending = true;
-    return XL::xl_true;                
+    return XL::xl_true;
 }
 
 
@@ -5660,12 +5694,12 @@ Name_p Widget::toggleBlankScreen(XL::Tree_p self)
 }
 
 
-Name_p Widget::resetView(XL::Tree_p self)
+Name_p Widget::resetViewAndRefresh(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 //   Restore default view parameters (zoom, position etc.)
 // ----------------------------------------------------------------------------
 {
-    resetView();
+    resetViewAndRefresh();
     return XL::xl_true;
 }
 
@@ -5862,6 +5896,26 @@ Real_p Widget::getZFar(Tree_p self)
 {
     return new Real(zFar);
 }
+
+
+Name_p Widget::setCameraToScreen(Tree_p self, double d)
+// ----------------------------------------------------------------------------
+//   Set the distance between camera and screen
+// ----------------------------------------------------------------------------
+{
+    cameraToScreen = d;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::getCameraToScreen(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Get the distance between camera and screen
+// ----------------------------------------------------------------------------
+{
+    return new Real(cameraToScreen);
+}
+
 
 Infix_p Widget::currentModelMatrix(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -8418,7 +8472,7 @@ Text_p Widget::loadText(Tree_p self, text file)
     QFileInfo fileInfo(+qualified);
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
-    if (!info)
+    if (info)
     {
         if (fileInfo.lastModified() > info->fileInfo.lastModified())
             doLoad = true;
@@ -8438,6 +8492,7 @@ Text_p Widget::loadText(Tree_p self, text file)
             text &value = info->loaded->value;
 
             QFile file(fileInfo.canonicalFilePath());
+            file.open(QIODevice::ReadOnly);
             QTextStream textStream(&file);
             QString data = textStream.readAll();
             value = +data;
@@ -8805,8 +8860,8 @@ Tree_p Widget::status(Tree_p self, text caption)
 
 
 Integer* Widget::framePaint(Context *context, Tree_p self,
-                          Real_p x, Real_p y, Real_p w, Real_p h,
-                          Tree_p prog)
+                            Real_p x, Real_p y, Real_p w, Real_p h,
+                            Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
@@ -8824,7 +8879,8 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                              double w, double h, Tree_p prog, bool withDepth)
+                              double w, double h, Tree_p prog,
+                              Integer_p withDepth)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -8891,13 +8947,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
-    if (withDepth)
+    if (withDepth.Pointer())
     {
-        uint texUnit = layout->currentTexture.unit;
         uint depthTexId = frame.depthTexture();
-        fillTextureUnit(self, texUnit+1);
-        layout->Add(new FillTexture(depthTexId));
-        fillTextureUnit(self, texUnit);
+        withDepth->value = depthTexId;
     }
 
     return new Integer(texId, self->Position());
@@ -9228,7 +9281,9 @@ Tree_p Widget::urlPaint(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
-    urlTexture(self, w, h, url, progress);
+    if (! urlTexture(self, w, h, url, progress))
+        return XL::xl_false;
+
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
@@ -9243,6 +9298,9 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
+    if (!Licences::Check("WEB"))
+        return NULL;
+
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -10139,11 +10197,17 @@ text Widget::currentDocumentFolder()
 }
 
 
-bool Widget::blink(double on, double off)
+bool Widget::blink(double on, double off, double after)
 // ----------------------------------------------------------------------------
 //   Return true for 'on' seconds then false for 'off' seconds
 // ----------------------------------------------------------------------------
 {
+    double runtime = Application::runTime();
+    if (runtime <= after)
+    {
+        refreshOn((int)QEvent::Timer, after - runtime);
+        return true;
+    }
     double time = Widget::currentTimeAPI();
     double mod = fmod(time, on + off);
     if (mod <= on)
@@ -10156,12 +10220,13 @@ bool Widget::blink(double on, double off)
 }
 
 
-Name_p Widget::blink(Tree_p self, Real_p on, Real_p off)
+Name_p Widget::blink(Tree_p self, Real_p on, Real_p off, Real_p after)
 // ----------------------------------------------------------------------------
 //   Export 'blink' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return blink(on->value, off->value) ? XL::xl_true : XL::xl_false;
+    return blink(on->value, off->value, after->value) ?
+                 XL::xl_true : XL::xl_false;
 }
 
 
@@ -10549,6 +10614,9 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
+    if (!Licences::Check(GUI_FEATURE))
+        return XL::xl_false;
+
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -10596,13 +10664,17 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     p_action = new QAction(+lbl, par);
     p_action->setData(var);
 
+
     // Set the item sensible to the selection
-    if (fullName.startsWith("menu:select:"))
+    if (fullName.startsWith("menu:selectW:"))
     {
-        p_action->setEnabled(hasSelection());
+        // Enabled action only if we need
+        // (do not need if document is read only or noting is selected)
+        p_action->setEnabled(hasSelection() && !isReadOnly());
         connect(this, SIGNAL(copyAvailable(bool)),
                 p_action, SLOT(setEnabled(bool)));
     }
+
 
     if (iconFileName != "")
         p_action->setIcon(QIcon(+iconFileName));
@@ -10642,12 +10714,36 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 }
 
 
+
+Tree_p  Widget::menuItemEnable(Tree_p self, text name, bool enable)
+// ----------------------------------------------------------------------------
+//  Enable or disable a menu item
+// ----------------------------------------------------------------------------
+{
+    if (!currentMenu && !currentToolBar)
+        return XL::xl_false;
+
+    QString fullName = +name;
+    if (QAction* act = parent()->findChild<QAction*>(fullName))
+    {
+        act->setEnabled(enable);
+        return XL::xl_true;
+    }
+
+    return XL::xl_false;
+}
+
+
+
 Tree_p Widget::menu(Tree_p self, text name, text lbl,
                     text iconFileName, bool isSubMenu)
 // ----------------------------------------------------------------------------
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
+    if (!Licences::Check(GUI_FEATURE))
+        return XL::xl_false;
+
     bool isContextMenu = false;
 
     // Build the full name of the menu
@@ -10780,6 +10876,9 @@ Tree_p  Widget::menuBar(Tree_p self)
 // Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
+    if (!Licences::Check(GUI_FEATURE))
+        return XL::xl_false;
+
     currentMenuBar = ((Window *)parent())->menuBar();
     currentToolBar = NULL;
     currentMenu = NULL;
@@ -10795,6 +10894,9 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
+    if (!Licences::Check(GUI_FEATURE))
+        return XL::xl_false;
+
     QString fullname = +name;
     Window *win = (Window *)parent();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
@@ -10878,6 +10980,8 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
+    if (!Licences::Check(GUI_FEATURE))
+        return XL::xl_false;
 
     QString fullname = QString("SEPARATOR_%1").arg(order);
 
@@ -10958,8 +11062,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
     if (!markChange(msg))
         return XL::xl_false;
 
-    Window *window = (Window *) parentWidget();
-    if (window->isReadOnly)
+    if (isReadOnly())
     {
         QMessageBox::warning(this, tr("Insert"),
                              tr("Current document is read-only. Use "
@@ -11586,6 +11689,14 @@ Text_p Widget::displayMode()
     return new Text(+displayDriver->getDisplayFunction());
 }
 
+
+Name_p Widget::readOnly()
+// ----------------------------------------------------------------------------
+//   Check if document is read only
+// ----------------------------------------------------------------------------
+{
+    return isReadOnly() ? XL::xl_true : XL::xl_false;
+}
 
 
 // ============================================================================

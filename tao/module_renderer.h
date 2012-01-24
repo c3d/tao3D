@@ -70,8 +70,10 @@ struct ModuleRenderer : Drawing
                                   unsigned int height);
     static bool     EnableTexCoords(double* texCoord);
     static bool     DisableTexCoords();
+    static uint     TextureUnit();
     static uint     TextureUnits();
-    static void     SetTextureUnits(uint texUnits);
+    static void     SetTextureUnits(uint64 texUnits);
+    static bool     HasTexture(uint texUnit);
     static bool     SetShader(int id);
 
     static bool     SetFillColor();

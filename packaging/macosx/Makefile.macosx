@@ -50,7 +50,7 @@
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
-GIT_VERSION=1.7.2.2
+GIT_VERSION=1.7.8.4
 
 ########
 
@@ -63,7 +63,10 @@ define git-makeparms
 NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
 
-DMG=Tao Presentations $(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
+endif
+DMG=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
 kit: .dmg_ts
 
@@ -88,7 +91,7 @@ clean: clean.git clean.tao clean.dmg clean.cp_sdk
 veryclean: clean veryclean.git
 
 clean.dmg: clean.cp_template
-	rm -f tao.dmg tmp.dmg .dmg "$(DMG)"
+	rm -f tao.dmg tmp.dmg .dmg "Tao Presentations"*.dmg
 
 ########
 
@@ -104,10 +107,12 @@ clean.cp_template:
 ########
 
 .cp_sdk_ts:
+ifndef NO_SDK
 	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
 	$(MAKE) -C ../.. -f Makefile.sdk
 	cp -Rp ../../sdk "build_root/Tao Presentations.app/Contents/MacOS"
 	touch $@
+endif
 
 clean.cp_sdk:
 	rm -rf "build_root/Tao Presentations.app/Contents/MacOS/sdk"
@@ -168,8 +173,8 @@ clean.git_build:
 
 ########
 
-.git_extract_ts: .git_download_ts
-	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar jxf git-$(GIT_VERSION).tar.bz2 )
+.git_extract_ts: git_build/git-$(GIT_VERSION).tar.gz
+	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar zxf git-$(GIT_VERSION).tar.gz )
 	touch $@
 
 clean.git_extract:
@@ -178,14 +183,12 @@ clean.git_extract:
 
 ########
 
-.git_download_ts:
+git_build/git-$(GIT_VERSION).tar.gz:
 	[ -d git_build ] || mkdir -p git_build
-	[ -f git_build/git-$(GIT_VERSION).tar.bz2 ] || ( cd git_build ; curl -O http://kernel.org/pub/software/scm/git/git-$(GIT_VERSION).tar.bz2 )
-	touch $@
+	[ -f git_build/git-$(GIT_VERSION).tar.gz ] || ( cd git_build ; curl -O http://git-core.googlecode.com/files/git-$(GIT_VERSION).tar.gz )
 
 clean.git_download:
-	rm -rf git_build/git-$(GIT_VERSION).tar.bz2
-	rm -f .git_download_ts
+	rm -rf git_build/git-$(GIT_VERSION).tar.gz
 
 ########
 

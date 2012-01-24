@@ -67,10 +67,15 @@ public:
     bool copyTo(QDir &dst);
     bool contains(const QString &keyword, bool searchSource = true);
 
+public:
+    static bool recursiveCopy(const QDir &src, QDir &dst,
+                              QString mainFile = "");
+
 private:
-    std::ostream& debug();
-    bool          recursiveCopy(const QDir &src, QDir &dst);
-    QString       mainFileFullPath();
+    static std::ostream& debug();
+
+private:
+    QString mainFileFullPath();
 
 public:
     QString name;       // Template name. Not empty if isValid().

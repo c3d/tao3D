@@ -1,17 +1,17 @@
 // ****************************************************************************
 //  licence.cpp                                                     Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
 //
 //
 //
-// 
-// 
-// 
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -37,13 +37,26 @@
 #include <cstdio>
 
 #ifndef KEYGEN
-#include <QMessageBox>
+#include "license_dialog.h"
+#if defined (Q_OS_MACX)
+#include <QProcess>
+#include <QStringList>
+#include <QByteArray>
+#include <QRegExp>
+#elif defined (Q_OS_WIN32)
+#include <windows.h>
+#elif defined (Q_OS_LINUX)
+#include <QFile>
+#include <QByteArray>
+#include <QString>
+#endif
 #endif
 
 using namespace CryptoPP;
 
 namespace Tao
 {
+
 
 Licences &Licences::LM()
 // ----------------------------------------------------------------------------
@@ -92,14 +105,15 @@ void Licences::addLicenceFile(kstring licfname)
     XL::Errors errors;
     XL::Scanner scanner(licfname, syntax, positions, errors);
     Licence licence;
-    bool had_features = false;
+    bool had_features = false, had_signature = false;
     int day = 0, month = 0, year = 0;
     enum
     {
         // REVISIT: We may want to add host, ip, MAC, display type, ...
-        START, DIGEST, DONE, TAG,
+        START, SIGNATURE, DONE, TAG,
         NAME, COMPANY, ADDRESS, EMAIL, FEATURES,
-        EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR
+        EXPIRY_DAY, EXPIRY_MONTH, EXPIRY_YEAR,
+        HOSTID, ERR
     } state = START;
 
     while (state != DONE)
@@ -113,6 +127,7 @@ void Licences::addLicenceFile(kstring licfname)
         switch (state)
         {
         case DONE:
+        case ERR:
             break;              // Keep compiler happy
 
         case START:
@@ -123,10 +138,11 @@ void Licences::addLicenceFile(kstring licfname)
             // Fall through on purpose
 
         case TAG:
-            state = DONE;       // For error / EOF cases
+            state = ERR;       // For all error cases
             switch (tok)
             {
             case XL::tokEOF:
+                state = DONE;
                 break;
             case XL::tokNAME:
                 item = scanner.TokenText();
@@ -142,10 +158,12 @@ void Licences::addLicenceFile(kstring licfname)
                     state = FEATURES;
                 else if (item == "expires")
                     state = EXPIRY_DAY;
-                else if (item == "digest")
-                    state = DIGEST;
+                else if (item == "signature" || item == "digest")
+                    state = SIGNATURE;
+                else if (item == "hostid")
+                    state = HOSTID;
                 else
-                    licenceError(licfname, tr("Invalid tag"));
+                    licenceError(licfname, tr("Invalid tag: %1").arg(+item));
                 break;
             default:
                 licenceError(licfname, tr("Invalid token"));
@@ -153,7 +171,7 @@ void Licences::addLicenceFile(kstring licfname)
             } // switch(token for TAG state)
             break;
 
-        case DIGEST:
+        case SIGNATURE:
             // This is normally the final state
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
             {
@@ -167,16 +185,17 @@ void Licences::addLicenceFile(kstring licfname)
                 }
                 else
                 {
-                    licenceError(licfname, tr("Digest verification failed"));
-                    state = DONE;
+                    licenceError(licfname, tr("Signature verification failed"));
+                    state = ERR;
                 }
                 additional.licences.clear();
             }
             else
             {
-                licenceError(licfname, tr("Invalid digest"));
-                state = DONE;
+                licenceError(licfname, tr("Invalid signature"));
+                state = ERR;
             }
+            had_signature = true;
             break;
 
 #define PARSE_IDENTITY(PTAG, PREF, PVAR)                                \
@@ -195,7 +214,7 @@ void Licences::addLicenceFile(kstring licfname)
             else                                                        \
             {                                                           \
                 licenceError(licfname, tr("Invalid %1").arg(#PVAR));    \
-                state = DONE;                                           \
+                state = ERR;                                            \
             }                                                           \
             break;
 
@@ -203,6 +222,22 @@ void Licences::addLicenceFile(kstring licfname)
             PARSE_IDENTITY(COMPANY, company, additional.company);
             PARSE_IDENTITY(ADDRESS, address, additional.address);
             PARSE_IDENTITY(EMAIL, email, additional.email);
+
+        case HOSTID:
+            if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
+            {
+                text item = scanner.TextValue();
+                state = TAG;
+#ifndef KEYGEN
+                /* Check validity of host ID  */
+                if (item != "" && item != hostID())
+                {
+                    licenceError(licfname, tr("Invalid %1").arg("hostid"));
+                    state = ERR;
+                }
+#endif
+                additional.hostid = item;
+            }
 
         case FEATURES:
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
@@ -215,10 +250,10 @@ void Licences::addLicenceFile(kstring licfname)
             else
             {
                 licenceError(licfname, tr("Invalid features pattern"));
-                state = DONE;
+                state = ERR;
             }
             break;
-            
+
         case EXPIRY_DAY:
             if (tok == XL::tokINTEGER)
             {
@@ -227,13 +262,13 @@ void Licences::addLicenceFile(kstring licfname)
                 if (day < 1 || day > 31)
                 {
                     licenceError(licfname, tr("Invalid day"));
-                    state = DONE;
+                    state = ERR;
                 }
             }
             else
              {
                 licenceError(licfname, tr("Invalid expiry day"));
-                state = DONE;
+                state = ERR;
             }
             break;
 
@@ -265,7 +300,7 @@ void Licences::addLicenceFile(kstring licfname)
                     if (state != EXPIRY_YEAR)
                     {
                         licenceError(licfname, tr("Invalid month name"));
-                        state = DONE;
+                        state = ERR;
                     }
                 }
             }
@@ -276,7 +311,7 @@ void Licences::addLicenceFile(kstring licfname)
                 if (month < 1 || month > 12)
                 {
                     licenceError(licfname, tr("Invalid expiry month"));
-                    state = DONE;
+                    state = ERR;
                 }
             }
             break;
@@ -293,7 +328,7 @@ void Licences::addLicenceFile(kstring licfname)
                 if (year < 2011 || year > 2099)
                 {
                     licenceError(licfname, tr("Invalid year"));
-                    state = DONE;
+                    state = ERR;
                 }
                 licence.expiry = QDate(year, month, day);
                 state = TAG;
@@ -301,10 +336,10 @@ void Licences::addLicenceFile(kstring licfname)
             else
             {
                 licenceError(licfname, tr("Invalid expiry year"));
-                state = DONE;
+                state = ERR;
             }
             break;
-            
+
         } // switch(state)
 
         // Check if we have a complete licence, if so enter it
@@ -319,11 +354,14 @@ void Licences::addLicenceFile(kstring licfname)
 #ifdef KEYGEN
     if (additional.licences.size())
     {
-        text digested = sign(additional);
+        text signature = sign(additional);
         FILE *file = fopen(licfname, "a");
-        fprintf(file, "digest \"%s\"\n", digested.c_str());
+        fprintf(file, "signature \"%s\"\n", signature.c_str());
         fclose(file);
     }
+#else
+    if (!had_signature && state != ERR)
+        licenceError(licfname, tr("Missing digital signature"));
 #endif // KEYGEN
 }
 
@@ -356,6 +394,8 @@ text Licences::toText(LicenceFile &lf)
         os << "address \"" << lf.address << "\"\n";
     if (lf.email.length())
         os << "email \"" << lf.email << "\"\n";
+    if (lf.hostid.length())
+        os << "hostid \"" << lf.hostid << "\"\n";
 
     // Loop on all data blocks
     uint i, max = lf.licences.size();
@@ -562,55 +602,163 @@ void Licences::licenceError(kstring file, QString reason)
     std::cerr << "Error reading licence file " << file
               << ": " << +reason << "\n";
 #else
-    QMessageBox oops;
-    oops.setIcon(QMessageBox::Critical);
-    oops.setWindowTitle(tr("Error reading licence files"));
-    oops.setText(tr("There is a problem with licence file '%1'.\n"
-                    "The following error was detected: %2\n"
-                    "The program will now terminate. "
-                    "You need to remove the offending licence file "
-                    "before trying to run the application again. "
-                    "Please contact Taodyne to obtain valid "
-                    "licence files.")
-                 .arg(file).arg(reason));
-    oops.addButton(QMessageBox::Close);
+    QString message;
+    message  = tr("<h3>License Error</h3>");
+    message += tr("<p>There is a problem with licence file:</p>"
+                  "<center>'%1'</center>"
+                  "<p>The following error was detected: %2.</p>"
+                  "<p>The program will now terminate. "
+                  "You need to remove the offending licence file "
+                  "before trying to run the application again.</p>")
+                  .arg(file).arg(reason);
+    message += tr("<p>Please contact "
+                  "<a href=\"http://taodyne.com/\">Taodyne</a> "
+                  "to obtain valid license files.</p>");
+    LicenseDialog oops(message);
+    oops.show();
+    oops.raise();
     oops.exec();
 #endif // KEYGEN
-    exit(15);    
+    exit(15);
 }
 
 
 #ifndef KEYGEN
-void Licences::WarnUnlicenced(text feature, int days, bool critical)
+void Licences::Warn(text feature, int days, bool critical)
 // ----------------------------------------------------------------------------
-//   Remind user that the application is not licenced
+//   Remind user that the feature is not licenced or about to expire
 // ----------------------------------------------------------------------------
 {
-    if (days <= 0)
-    {
-        // Warn only once per feature
-        static std::set<text> warned;
-        if (warned.count(feature))
-            return;
-        warned.insert(feature);
+    // Warn only once per feature
+    static std::set<text> warned;
+    if (warned.count(feature))
+        return;
+    warned.insert(feature);
 
-        QMessageBox * oops = new QMessageBox;
-        oops->setAttribute(Qt::WA_DeleteOnClose);
-        oops->setIcon(critical ? QMessageBox::Critical : QMessageBox::Warning);
-        oops->setWindowTitle(tr("Not licenced"));
-        if (days == 0)
-            oops->setText(tr("You do not have a valid licence for %1. "
-                            "Please contact Taodyne to obtain valid "
-                            "licence files.").arg(+feature));
-        else
-            oops->setText(tr("You no longer have a valid licence for %1. "
-                            "The licence you had expired %2 days ago. "
-                            "Please contact Taodyne to obtain valid "
-                            "licence files.").arg(+feature).arg(-days));
-        oops->addButton(QMessageBox::Close);
-        oops->open();
+    QString message;
+    if (days > 0)
+    {
+        message  = tr("<h3>Warning</h3>");
+        message += tr("<p>The license for the following feature expires in "
+                      "%n day(s):</p>"
+                      "<center>%1</center>", "", days).arg(+feature);
+        message += tr("<p>You may obtain new licenses from "
+                      "<a href=\"http://taodyne.com/\">Taodyne</a>.</p>");
     }
+    else
+    {
+        message  = tr("<h3>Error</h3>");
+        if (days == 0)
+        {
+            message += tr("<p>You do not have a valid license for:</p>"
+                          "<center>%1</center>").arg(+feature);
+        }
+        else
+        {
+            message += tr("<p>You no longer have a valid license for:</p>"
+                          "<center>%1</center>").arg(+feature);
+            message += tr("<p>The license expired %n day(s) ago.</p>", "",
+                          -days);
+        }
+        message += tr("<p>Please contact "
+                      "<a href=\"http://taodyne.com/\">Taodyne</a> "
+                      "to obtain valid license files.</p>");
+    }
+    LicenseDialog * oops = new LicenseDialog(message);
+    oops->setAttribute(Qt::WA_DeleteOnClose);
+    oops->show();
+    oops->raise();
+    if (critical)
+        oops->exec(); // Blocking ; e.g. initial test in Application
+    else
+        oops->open(); // Non-blocking ; e.g. module (allows degraded mode)
 }
+
+
+text Licences::hostID()
+// ----------------------------------------------------------------------------
+//   Return unique host identifier
+// ----------------------------------------------------------------------------
+{
+    static text id;
+
+    if (id == "")
+    {
+#if defined (Q_OS_MACX)
+
+        // Host ID is the hardware UUID. Available through:
+        // Apple menu > About This Mac > More Info...
+
+        QProcess proc;
+        QStringList args;
+        QByteArray out;
+        args << "-rd1" << "-c" << "IOPlatformExpertDevice";
+        proc.start("/usr/sbin/ioreg", args);
+        if (proc.waitForStarted())
+            if (proc.waitForFinished())
+                out = proc.readAllStandardOutput();
+        QString sout;
+        sout.append(QString::fromUtf8(out.data()));
+        QRegExp rx("\"IOPlatformUUID\" = \"([-0-9A-F]+)\"");
+        if (rx.indexIn(sout) > -1)
+            id = +rx.cap(1);
+
+#elif defined (Q_OS_WIN32)
+
+        // Host ID is the Windows Product ID. Available trough:
+        // My Computer > Properties...
+
+#ifndef KEY_WOW64_64KEY
+#define KEY_WOW64_64KEY 0x0100
+#endif
+
+        DWORD flags = KEY_QUERY_VALUE;
+        HKEY hKey;
+again:
+        if (RegOpenKeyExA(HKEY_LOCAL_MACHINE,
+                          "SOFTWARE\\Microsoft\\Windows NT\\CurrentVersion", 0,
+                          flags, &hKey) == ERROR_SUCCESS)
+        {
+            BYTE pid[200];
+            DWORD dataLength = sizeof(pid);
+            DWORD st = RegQueryValueExA(hKey, "DigitalProductId", NULL, NULL,
+                                 pid, &dataLength);
+            RegCloseKey(hKey);
+            if (st == ERROR_SUCCESS)
+            {
+                id = +QString::fromLocal8Bit((char *)&pid + 8, 23);
+            }
+            else if (st == ERROR_FILE_NOT_FOUND &&
+                     ((flags & KEY_WOW64_64KEY) == 0))
+            {
+                // 32-bit application running on 64-bit Windows
+                flags |= KEY_WOW64_64KEY;
+                goto again;
+            }
+        }
+
+#elif defined (Q_OS_LINUX)
+
+        // Host ID is the MAC address of eth0, without ":". Available through:
+        // cat /sys/class/net/eth0/address | tr -d :
+
+        QFile f("/sys/class/net/eth0/address");
+        f.open(QIODevice::ReadOnly);
+        QByteArray ba = f.readAll();
+        if (!ba.isEmpty())
+        {
+            QString addr = QString::fromLocal8Bit(ba.data(), ba.size());
+            addr.replace(":", "");
+            id = +addr;
+        }
+
+#endif
+    }
+
+    return id;
+}
+
+
 #endif // KEYGEN
 
 

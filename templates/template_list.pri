@@ -5,22 +5,22 @@
 
 DEFAULT_TEMPLATES =   \
     blank \
-    pythagorean_theorem \
     hello_world \
-    guess_game \
     mandelbrot \
-    simple_slides \
-    pigs_fly \
     photo_viewer \
     lens_flare \
-    filters \
-    shading \
     movie \
-    mapping \
     materials \
     pan_and_zoom
 
 OTHER_TEMPLATES =     \
+    mapping \
+    shading \
+    filters \
+    pigs_fly \
+    simple_slides \
+    guess_game \
+    pythagorean_theorem \
     balls \
     monjori \
     flares \

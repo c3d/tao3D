@@ -29,7 +29,7 @@ mouse_move ->
     else
         Cy := Cy + Sy * 0.1
 
-    camera_position 14000 * sin (0.005 * Cx), Cy, 14000 * cos (0.005 * Cx)
+    camera_position 5000 * sin (0.005 * Cx), Cy, 5000 * cos (0.005 * Cx)
     camera_target 0, 500, 0
     no_refresh_on MouseMoveEvent
 

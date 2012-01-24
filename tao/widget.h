@@ -92,6 +92,7 @@ struct DisplayDriver;
 #define TOOLBAR_MENU_NAME  "TAO_VIEW_TOOLBAR_MENU"
 #define HELP_MENU_NAME  "TAO_HELP_MENU"
 
+#define GUI_FEATURE "GUI"
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -141,6 +142,7 @@ public slots:
     void        setCursor(const QCursor &);
     QCursor     cursor() const;
     void        resetView();
+    void        resetViewAndRefresh();
     void        zoomIn();
     void        zoomOut();
     void        saveAndCommit();
@@ -184,7 +186,8 @@ public:
     void        drawSelection();
     void        drawActivities();
     void        setGlClearColor();
-    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector);
+    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
+                          double *toScreen);
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -197,6 +200,8 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+    void        showEvent(QShowEvent *);
+    void        hideEvent(QHideEvent *);
 #ifdef MACOSX_DISPLAYLINK
     virtual
     bool        event(QEvent *event);
@@ -409,7 +414,7 @@ public:
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
-    Name_p      resetView(Tree_p self);
+    Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
@@ -427,6 +432,8 @@ public:
     Real_p      getZNear(Tree_p self);
     Name_p      setZFar(Tree_p self, double zf);
     Real_p      getZFar(Tree_p self);
+    Name_p      setCameraToScreen(Tree_p self, double d);
+    Real_p      getCameraToScreen(Tree_p self);
     Infix_p     currentModelMatrix(Tree_p self);
     Integer_p   lastModifiers(Tree_p self);
 
@@ -645,7 +652,7 @@ public:
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog, bool depth=false);
+                             double w, double h, Tree_p prog, Integer_p depth=NULL);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
@@ -761,6 +768,7 @@ public:
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
+    Tree_p      menuItemEnable(Tree_p self, text name, bool enable);
     Tree_p      menu(Tree_p self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
 
@@ -798,11 +806,12 @@ public:
     Name_p      hasDisplayModeText(Tree_p self, text name);
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
     Text_p      displayMode();
+    Name_p      readOnly();
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
     Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
-    Name_p      blink(Tree_p self, Real_p on, Real_p off);
+    Name_p      blink(Tree_p self, Real_p on, Real_p off, Real_p after);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -965,6 +974,7 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     double                zNear, zFar, scaling, zoom, eyeDistance;
+    double                cameraToScreen;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
     int                   eye, eyesNumber;
@@ -996,18 +1006,18 @@ public:
                                         Real *w, Real *h, Real *d);
     static bool           isGLExtensionAvailable(text name);
     static text           currentDocumentFolder();
-    static bool           blink(double on, double off);
+    static bool           blink(double on, double off, double after);
     void eraseFlow(text flowName){ flows.erase(flowName);}
     void                  setWatermarkText(text t, int w, int h);
     static void           setWatermarkTextAPI(text t, int w, int h);
     void                  drawWatermark();
     static void           drawWatermarkAPI();
+    static double         trueCurrentTime();
 
 private:
     void                  processProgramEvents();
     void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
-    double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
     text                  changeReason;

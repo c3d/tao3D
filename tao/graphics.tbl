@@ -521,7 +521,7 @@ PREFIX(ToggleShowStatistics, boolean, "toggle_show_statistics", ,
        GROUP(gui)
        SYNOPSIS("Toggle display of rendering statistics"))
 PREFIX(ResetView, boolean, "reset_view", ,
-       RTAO(resetView(self)),
+       RTAO(resetViewAndRefresh(self)),
        GROUP(gui)
        SYNOPSIS("Reset document view to default parameters"))
 PREFIX(PanEye, boolean, "pan",
@@ -678,6 +678,16 @@ PREFIX(GetZFar,  real,  "z_far", , RTAO(getZFar(self)),
        GROUP()
        SYNOPSIS("")
        DESCRIPTION(""))
+PREFIX(CameraToScreen,  boolean,  "camera_to_screen",
+       PARM(d, real, ),
+       RTAO(setCameraToScreen(self, d)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(GetCameraToScreen,  real,  "camera_to_screen", , RTAO(getCameraToScreen(self)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
 PREFIX(PolygonOffset,  integer,  "polygon_offset",
        PARM(f0, real, "factor base")
        PARM(f1, real, "factor increment")
@@ -782,6 +792,14 @@ PREFIX(MenuItem,  tree,  "menu_item",
        GROUP(widget:menu)
        SYNOPSIS("add an entry in a menu")
        DESCRIPTION("Add an entry in the current menu with the label, icon, checkmark and command."))
+
+PREFIX(MenuItemEnable,  tree,  "menu_item_enable",
+       PARM(n, text, "Name that identify the menu to enable/disable")
+       PARM(enable, boolean, "The status of the menu"),
+       RTAO(menuItemEnable(self, n, enable)),
+       GROUP(widget:menu)
+       SYNOPSIS("enable or disable a menu item")
+       DESCRIPTION("Enable or disable a menu item."))
 
 PREFIX(ToolBar,  tree,  "toolbar",
        PARM(name, text, "Name that uniquely identify this toolbar")
@@ -1019,6 +1037,11 @@ PREFIX(Tr,  text,  "tr",
        GROUP(i18n)
        SYNOPSIS("Translate a string into the current language")
        RETURNS(text, "The translated text."))
+PREFIX(isReadOnly,  tree,  "is_read_only",,
+       RTAO(readOnly()),
+       GROUP(misc)
+       SYNOPSIS("Check if document is read only")
+       RETURNS(tree, ""))
 
 // ============================================================================
 //
@@ -1035,8 +1058,10 @@ PREFIX(ImportModule, tree, "import",
        SYNOPSIS("Import a module from a file"))
 PREFIX(Blink, boolean,  "blink",
        PARM(on, real, "Duration of first period, primitive returns true")
-       PARM(off, real, "Duration of second period, primitive returns false"),
-       RTAO(blink(self, on, off)),)
+       PARM(off, real, "Duration of second period, primitive returns false")
+       PARM(after, real, "Start blinking only 'after' seconds after "
+                         "application startup"),
+       RTAO(blink(self, on, off, after)),)
 PREFIX(HasLicense, boolean,  "has_license",
        PARM(feature, text, "The feature name to check"),
        RTAO(hasLicense(self, feature)),)

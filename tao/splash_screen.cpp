@@ -71,7 +71,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
                        "a:link {color:\"" LINK_COLOR "\"; "
                                "text-decoration:none;}"
                        "</style></head><body>"
-                       "\302\251 2010-2011 "
+                       "\302\251 2010-2012 "
                        "<a href=\"http://taodyne.com\">Taodyne SAS</a>. "
                        "%1 "
                        "<a href=\"credits:\">%2</a>. "

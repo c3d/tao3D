@@ -1,22 +1,63 @@
+// ****************************************************************************
+//  pan_and_zoom.ddd                                                Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of pan and zoom navigation.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
 
 import PanAndZoom 
 import Animate 
 
 import "fr.xl"
 
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
 key "Left" -> skip -1 
 key "Right" -> skip 1 
 key "Return" -> skip_directly_to 0; reset_view 
 
+// Disable selection rectangle
+enable_selection_rectangle false
 
 draw_selection X -> false 
 draw_text_selection X -> false 
 draw_widget_selection X -> false 
 
 
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
 page "Example with Pan and Zoom", 
 // ----------------------------------------------------------------------------
-//   A simple example
+//    A simple example
 // ----------------------------------------------------------------------------
     // Scale to the dimensions of the background picture 5184x3456x0.2
     win_scale -> max (window_width / 1036, window_height / 691) 

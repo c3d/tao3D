@@ -1,9 +1,53 @@
+// ****************************************************************************
+//  photo_viewer.ddd                                                Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of 3D photo viewer with SlideShow3D module.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import SlideShow3D
 
-window_scale -> min (window_width / 1024, window_height / 768) 
 
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
+window_scale -> min (window_width / 1024, window_height / 768) 
 scale window_scale, window_scale, 1 
+
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
 page "Photos", 
+// ----------------------------------------------------------------------------
+//    A photo viewer on a 3D sphere
+// ----------------------------------------------------------------------------
     pt -> page_time 
     Message "en" -> "Create nice slide shows from your own photos!"
     Message "fr" -> "Créez votre album en utilisant vos propres photos !"

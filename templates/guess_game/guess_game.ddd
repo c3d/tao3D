@@ -1,7 +1,40 @@
-// Simple game to guess the random number
+// ****************************************************************************
+//  guess_game.ddd                                                  Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of guess game with Tao Presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
 
 // Ask to refresh the screen after the click
 refresh_on 2
+
+// Disable selection rectangle
+enable_selection_rectangle false
 
 // Internationalization
 title_en -> "Select a flag to start"
@@ -34,33 +67,18 @@ y_flag -> 0.0
 w_flag -> 0.0
 h_flag -> 0.0
 
-// Definition to draw a clickable flag that set the international strings
-flag Inv, Scramb, Win, Loose, Img ->
-    active_widget
-        color "white"
-        line_width 1
-        line_color "gray"
-        image_px x_flag , y_flag, w_flag, h_flag, Img
-        x_flag := x_flag + 1.5 * w_flag
-        on_click
-            invit := Inv
-            scramble := Scramb
-            win := Win
-            loose := Loose
-            reset
-            goto_page "game"
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
 
 
-// function to reset the game
-reset ->
-    font_color := "font"
-    clicked := 0
-    result := 0
-    display := invit
-
-
-// First page to choose the language
-page "flags",
+page "Flags",
+// -------------------------------------------------
+//    Choose the language
+// -------------------------------------------------
     w_flag := window_width / 4.0
     h_flag := window_width / 6.0
     x_flag := w_flag/4 - window_width / 4.0
@@ -68,9 +86,10 @@ page "flags",
     flag invit_fr, scramb_fr, win_fr, loose_fr, "France.svg"
     flag invit_en, scramb_en, win_en, loose_en, "UnitedKingdom.svg"
 
-
-// Second page where the game stand
-page "game",
+page "Game",
+// -------------------------------------------------
+//    Play to the game
+// -------------------------------------------------
     x_flag := 100.0 - window_width / 2.0
     y_flag :=  window_height / 2.0 - 100.0
     w_flag := 100.0
@@ -125,3 +144,39 @@ page "game",
         align_center
         color font_color
         text display
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
+flag Inv, Scramb, Win, Loose, Img ->
+// -------------------------------------------------
+//    Draw a clickable flag that set
+//    the international strings
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_width 1
+        line_color "gray"
+        image_px x_flag , y_flag, w_flag, h_flag, Img
+        x_flag := x_flag + 1.5 * w_flag
+        on_click
+            invit := Inv
+            scramble := Scramb
+            win := Win
+            loose := Loose
+            reset
+            goto_page "Game"
+
+reset ->
+// -------------------------------------------------
+//    Function to reset the game
+// -------------------------------------------------
+    font_color := "font"
+    clicked := 0
+    result := 0
+    display := invit

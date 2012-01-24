@@ -1,15 +1,47 @@
-// Template: pigs_fly.ddd
+// ****************************************************************************
+//  pigs_fly.ddd                                                    Tao project
+// ****************************************************************************
 //
+//   File Description:
+//
+//     Example of dynamic presentations with Tao Presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
 // This file normally uses 3D model files: plane.3ds and piggy.3ds. 
 // Due to redistribution restrictions, these files cannot be included
 // with this demo. However, you may download them from the web and use
 // them according to their licensing terms.
 // See plane/README.txt and piggy/README.txt for details.
 
+
 import ObjectLoader
 import TaoVisuals
 
+
+// Compatibility with Tao 1.0-beta11
 old_camera_settings
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
 
 logo_page "Intro Logo" 
 title_page "Step 1: Type this", "in any old text editor" 
@@ -35,7 +67,7 @@ title_page "Step 2: Show this", "instantly!"
 slide "Share your message", 
     * "Don't waste time" 
     * "Get your point across!"
- 
+
 title_page "Step 3: repeat", "Focus on your message" 
 code_page "Second page", 42.5, <<slide "Reveal your inner geek",
     * "Add computations: " & text_time
@@ -72,7 +104,7 @@ code_page "Second page", 42.5, <<slide "Reveal your inner geek",
                 align 0.5 
                 vertical_align 0.5 
                 text "the day pigs fly! That's today!"
- 
+
 title_page "Instant reward", "No caffeine required" 
 seconds // #1027, #1065
 slide "Reveal your inner geek", 
@@ -82,7 +114,7 @@ slide "Reveal your inner geek",
         * "Make it your own" 
         flying_object "piggy/piggy_placeholder.obj" 
         * "Be creative"
- 
+
 page "Statistics", 
     fly_theme_rescale fly_theme_window_scale 
     rotatey -20 
@@ -126,9 +158,18 @@ page "Statistics",
             rotatex -90.0 + 20 * sin (15 * time) 
             rotatez -10 
             object 0, 0, 0, 200, 200, 200, "piggy/piggy_placeholder.obj"
- 
+
 title_page "Don't tell your boss", "how easy it is!" 
 logo_page "Final Logo" 
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
 fly_theme_lights -> 
 // ----------------------------------------------------------------------------
 //   One light in the upper right front, neutral colors
@@ -149,7 +190,7 @@ fly_theme_lights ->
     material_emission 40% , 25% , 10% , 1 
     material_shininess 120.0
  
-fly_theme_background -> 
+fly_theme_background ->
 // ----------------------------------------------------------------------------
 //    Background picture : blue sky, far far behind
 // ----------------------------------------------------------------------------
@@ -157,7 +198,7 @@ fly_theme_background ->
         color "white" 
         translatez -20000 
         image 0, 0, 550% , 550% , "sky.jpg"
- 
+
 fly_theme_flying_object -> "piggy/piggy_placeholder.obj" 
 flying_object T:text -> fly_theme_flying_object := T 
 fly_theme_defaults -> flying_object "plane/plane_placeholder.obj" 
@@ -167,7 +208,7 @@ fly_theme_adjust_for "plane/plane_placeholder.obj" ->
 // ----------------------------------------------------------------------------
     rotatex -88 
     rotatey -10
- 
+
 fly_theme_adjust_for "piggy/piggy_placeholder.obj" -> 
 // ----------------------------------------------------------------------------
 //    Put the pig in the right position for the banner and make it 'walk'
@@ -176,7 +217,6 @@ fly_theme_adjust_for "piggy/piggy_placeholder.obj" ->
     rotatex -90 + 10 * sin (10 * time) 
     rotatez 180 
     scale 70% , 70% , 70% 
-
 
 fly_theme_fly "Amiga Boink" -> 
 // ----------------------------------------------------------------------------
@@ -201,7 +241,7 @@ fly_theme_fly "Amiga Boink" ->
         rotatey 20 * time 
         color "white" 
         sphere 0, 0, 0, 200
- 
+
 fly_theme_fly T:text -> 
 // ----------------------------------------------------------------------------
 //   Fly a 3D object imported from a mesh file (e.g. .3ds file)
@@ -218,7 +258,7 @@ fly_theme_fly T:text ->
                     font "Droid Sans", 18 
                     text "See source file for instruction on how to download " &
                          "3D models"
- 
+
 fly_theme_banner -> 
 // ----------------------------------------------------------------------------
 //   Geometry for a banner flying behind the plane
@@ -233,7 +273,7 @@ fly_theme_banner ->
     path 
         up_side with 0 .. 30 
         dn_side with 0 .. 30
- 
+
 fly_theme_title T:text -> 
 // ----------------------------------------------------------------------------
 //    Display the title with a smoke-like texture
@@ -257,7 +297,7 @@ fly_theme_title T:text ->
 
             path 
                 text T
- 
+
 fly_theme_window_scale -> min (window_width / 1280.0, window_height / 1024.0) 
 fly_theme_rescale S:real -> scale S, S, S 
 fly_theme_bullet -> 413 
@@ -275,7 +315,7 @@ slide T:text, B ->
             do B
          
         fly_theme_title T
- 
+
 *T:text -> 
 // ----------------------------------------------------------------------------
 //   Create a bullet point with the given text
@@ -327,7 +367,7 @@ title_page T:text, S:text ->
             font "Tangerine", 140, bold 
             line_break 
             text S
- 
+
 logo_page T:text -> 
 // ----------------------------------------------------------------------------
 //   A page showing the Taodyne logo
@@ -345,7 +385,7 @@ logo_page T:text ->
                 align 0.5 
                 vertical_align 0.5 
                 text "http://www.taodyne.com"
- 
+
 code_page T:text, S:real, C:text, Ad -> 
 // ----------------------------------------------------------------------------
 //    Display a page showing some code with optional additional stuff (Ad)

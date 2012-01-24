@@ -1,9 +1,45 @@
+// ****************************************************************************
+//  monjori.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of use case of the monjori module.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Monjori
 import Animate
 
+
 key "Return" -> goto_page page_name 1 
 
-page "Intro",
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Monjori",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
     compute_smooth_step
     draw_background
     locally
@@ -17,19 +53,45 @@ page "Intro",
             align_center 
             description_text tao_language
 
+
+// ============================================================================
+//
+//                                   HELP
+//
+// ============================================================================
+
+
 description_text "fr" ->
+// -------------------------------------------------
+//      French help
+// -------------------------------------------------
     text "Effet obtenu grâce à un shader GLSL appelé "
     italic
     text "Monjori" 
 
 description_text T:text ->
+// -------------------------------------------------
+//      English help
+// -------------------------------------------------
     text "Background effect drawn by a GLSL shader called "
     italic
     text "Monjori" 
 
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
+// Fullscreen display
 fullscreen_quad -> rectangle 0, 0, window_width, window_height
 
 draw_background ->
+// -------------------------------------------------
+//      Draw monjori background
+// -------------------------------------------------
     locally
         monjori (time mod 5000) * 0.1
         fullscreen_quad

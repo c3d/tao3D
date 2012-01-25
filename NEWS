@@ -1,5 +1,60 @@
 Change log for Tao Presentations
 
+1.0-pre1 (17-Jan-2012)
+
+#1838 Modularize revolving texts
+#1836 Translate pan and zoom template into french
+#1814 Modularize 3D carousel
+#1812 F1 in source editor should open contextual help
+#1810 Camera focal length changes with camera position
+#1806 Node-locked licensing
+#1805 Shading: warm and cool colors are inverted
+#1803 Include the module SDK only in the Tao Impress package
+#1789 Update XLR reference document
+#1780 Improve french translations of some menu items
+#1779 Materials: GL error 1281 and no more material texture when switching to quad buffer stereo
+#1776 Creating a document with name containing spaces results in error (Linux, MacOSX)
+#1774 old_camera_settings should be executed once
+#1772 Sparks module: sparks_color swaps green and blue components
+#1765 License files are deleted when Tao is uninstalled
+#1764 Some GUI elements are not translated into French
+#1758 Animate: Support presentation remotes ("presenters") out-of-the-box
+#1757 Simplify and reorganize the top-level page of our documentation
+#1755 Double lines in simple cube
+#1748 zNear and zFar are not correctly reset when opening a document
+#1718 Use QT Assistant as a custom help viewer
+#1717 display_set parsing precedence needs to be below :=
+#1716 2D-Plus-Depth display: add support for 2D-plus-Depth movies in the background
+#1712 2D-plus-Depth doesn't show contents of frame_texture
+#1711 Simplify syntax of plastic material
+#1709 Quit command has disappeared from command chooser menu
+#1708 VLCAudioVideo: image flashes when movie is paused
+#1707 VLCAudioVideo: add loop mode (movie_set_loop)
+#1706 Add stereo_viewpoints feature
+#1705 Add StereoDecoder module to decode some stereoscopic formats
+#1704 Remove 'step' being an infix, replace with 'by'
+#1701 Welcome screen for v1.0
+#1698 Licence check for glow shader module
+#1696 YouCube in stereoscopic mode shows bogus texture on the background
+#1694 Optimise camera settings for "natural" 3D look
+#1693 Only inside of cone is illuminated
+#1690 Lens flare issues when using show to make objects almost transparent
+#1680 MovieCredits: use frame_texture to make mc_star_wars_crawl faster
+#1678 Add page duration management in Animate module
+#1668 Keyboard modifiers not refreshed properly
+#1660 Avoid loading multiple modules if there are more than one with the same name
+#1659 Add mipmap support to reduce aliasing artifacts on 2D textures
+#1601 GL error when starting Tao on OSX Lion
+#1641 Bad eye displacement when camera is not along the default axis
+#1612 Implement independent license checks for features
+#1593 Add texture_mode primitive to define how multitexturing combinations happen
+#1592 Shader based lighting crashes on ATI cards
+#1587 VLCAudioVideo: video playback hangs and subsequently hangs Tao
+#1417 MacOSX: Error "SshAskPass cannot be opened" (dyld: Library not loaded: QtGui)
+#1270 import "file.xl" does not look for file in same directory as importing file
+#918  "File not found" when path on command line is not absolute
+#491  Items in insert menu should be disabled if document is read-only
+
 1.0-beta11 (08-Nov-2011)
 
 #1584 Add YouCube template
@@ -15,7 +70,7 @@ Change log for Tao Presentations
 #1432 Impossible to ungroup items
 #1350 Create a module for audio and video playback (AudioVideo)
 #1330 Document display module primitives
-#313 Group bounding box always includes 0,0
+#313  Group bounding box always includes 0,0
 
 1.0-beta10 (19-Oct-2011)
 

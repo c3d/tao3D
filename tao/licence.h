@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  licence.h                                                       Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
+//
+//     Sources for information:
+//     - http://www.sentientfood.com/display_story.php?articleid=3
+//     - http://sigpipe.macromates.com/2004/09/05/using-openssl-for-license-keys
 //
 //
 //
 //
-//
-//
-// 
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -73,6 +73,7 @@ public:
     }
 
     static text hostID();
+
 #endif
 
     static text Name()

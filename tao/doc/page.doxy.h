@@ -44,7 +44,7 @@ new_page with files "*.jpg"
  * @~french
  * @addtogroup Page Pages
  * @ingroup TaoBuiltins
- * Regroupe les primitives de créeation et de manipulation de pages.
+ * Regroupe les primitives de création et de manipulation de pages.
  *
  * Un document est généralement composé d'une ou plusieurs pages. Chaque page
  * est identifiée par un nom. Bien que les touches Page précédente et Page

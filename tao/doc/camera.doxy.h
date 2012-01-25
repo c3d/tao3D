@@ -37,7 +37,7 @@
  * Contrôle la position, l'orientation et les caractéristiques de la camera.
  *
  * Les primitives de contrôle de la caméra vous permettent d'interroger et de
- * modifier le point de vue, et donc la manière donc le document est affiché.
+ * modifier le point de vue, et donc la manière dont le document est affiché.
  * Les paramètres qui ont une influence sur le point de vue sont :
  *  - la position de la caméra (cf. @ref camera_position)
  *  - le point visé (cf. @ref camera_target). Avec le point où est placée la
@@ -86,9 +86,9 @@ cam_y -> camera_position at 2
 cam_z -> camera_position at 3
  * @endcode
  * @~english
- * @return 3 valeurs réelles, séparées par l'opérateur virgule.
- * @~french
  * @return 3 real values, separated by commas.
+ * @~french
+ * @return 3 valeurs réelles, séparées par l'opérateur virgule.
  */
 infix camera_position();
 
@@ -158,7 +158,7 @@ camera_up_vector(x:real, y:real, z:real);
  * Changer cette distance revient à modifier la "distance focale" de la caméra.
  * Par exemple, l'augmenter rend les objets plus gros et modifie également la
  * perspective.
- * Les objets plus proche que cette distance de la caméra semblent sortir de
+ * Les objets plus proches que cette distance de la caméra semblent sortir de
  * l'écran, tandis que les objets plus loins semblent derrière.
  */
 real camera_to_screen();

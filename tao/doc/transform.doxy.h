@@ -108,7 +108,7 @@ scalez (z:real);
  *
  * Les rotations suivent la règle de la main droite, donc si le vecteur
  * (@p rx, @p ry, @p rz) pointe vers l'utilisateur, la rotation se fait dans
- * le sene anti-horaire.
+ * le sens anti-horaire.
  *
  * @~
  * @image html rotation.png
@@ -129,10 +129,10 @@ rotatex (rx:real);
 
 /**
  * @~english
- * Rotates around the X axis.
+ * Rotates around the Y axis.
  * Equivalent to:
  * @~french
- * Rotation autour de l'axe X.
+ * Rotation autour de l'axe Y.
  * Équivalent à :
  * @~
  * @code rotate ry, 0, 1, 0 @endcode
@@ -141,10 +141,10 @@ rotatey (ry:real);
 
 /**
  * @~english
- * Rotates around the X axis.
+ * Rotates around the Z axis.
  * Equivalent to:
  * @~french
- * Rotation autour de l'axe X.
+ * Rotation autour de l'axe Z.
  * Équivalent à :
  * @~
  * @code rotate rz, 0, 0, 1 @endcode

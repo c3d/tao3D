@@ -54,7 +54,7 @@ x ( mm);
  * @returns The value in pixel.
  *
  * @~french
- * Convertit des millimètres en pixels.
+ * Convertit des centimètres en pixels.
  * @p x [réel] est la valeur en centimètres.
  * @returns La valeur en pixels.
  */
@@ -82,6 +82,7 @@ x ( px);
  * Convert from points (pt) to pixels.
  *
  * @p x is a value in PostScript points (1/72 inch).
+ *
  * @p x [real] is the value in point
  * @returns The value in pixel. 
  *
@@ -89,6 +90,7 @@ x ( px);
  * Convertit des points PostScript (pt) en pixels.
  *
  * @p x est une valeur en points PostScript (1/72 de pouce).
+ *
  * @p x [réel] est la valeur en points.
  * @returns La valeur en pixels.
  */

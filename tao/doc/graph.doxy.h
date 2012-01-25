@@ -41,7 +41,7 @@
  * @image html multitexturing.png "Multitexturing demo: multitexturing.ddd"
  *
  * @~french
- * @defgroup graph_env Environnement graphique (couleur des lignes/de remplissage, textures)
+ * @defgroup graph_env Environnement graphique (couleur des lignes, du remplissage, textures)
  * @ingroup Graphics
  * Définition des attributs des objets graphiques.
  * Ce groupe définit des attributs comme la couleur, la largeur des lignes, les
@@ -52,7 +52,7 @@
  *
  * @par Multi-texture
  *
- * Le multi-texture est l'utilisation similtanée de plusieurs textures sur une
+ * Le multi-texture est l'utilisation simultanée de plusieurs textures sur une
  * même forme géométrique.
  * Par exemple, le code qui suit (<a href="examples/multitexturing.ddd">multitexturing.ddd</a>)
  * affiche un rectangle et utilise une combinaison de deux textures, l'une
@@ -170,7 +170,7 @@ line_width (lw:real);
  *
  * @param pattern
  * Un entier 16 bits dont les bits (0 ou 1) définit quelles portions de la
- * ligne est tracée. Le bit zéro est utilisé en premier. Pour tracer une ligne
+ * ligne sont tracées. Le bit zéro est utilisé en premier. Pour tracer une ligne
  * continue, tous les bits doivent être à 1 (pattern = 65535).
  *
  * @param factor
@@ -215,6 +215,7 @@ line_stipple(pattern:integer, factor:integer);
  *       - color "fill"
  *       - color "font"
  *       - color "line"
+ *
  * Les modules peuvent également définir des couleurs.
  *
  * @param colorname Le nom de la couleur.
@@ -246,10 +247,10 @@ color (colorname:text);
  * @~french
  * Choisit la couleur de remplissage (rouge, vert, bleu et alpha).
  *
- * @param r Composante rouge, entre 0.0 to 1.0.
- * @param g Composante verte, entre 0.0 to 1.0.
- * @param b Composante bleue, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param r Composante rouge, entre 0.0 et 1.0.
+ * @param g Composante verte, entre 0.0 et 1.0.
+ * @param b Composante bleue, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color (r:real, g:real, b:real, a:real);
@@ -278,9 +279,9 @@ color (r:real, g:real, b:real);
  * Choisit la couleur de remplissage (teinte, saturation, luminosité et alpha).
  *
  * @param h Teinte, en degrés (entre 0.0 et 360.0).
- * @param s Saturation, entre 0.0 to 1.0.
- * @param l Luminosité, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param s Saturation, entre 0.0 et 1.0.
+ * @param l Luminosité, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color_hsl (h:real, s:real, l:real, a:real);
@@ -309,9 +310,9 @@ color_hsl (h:real, s:real, l:real);
  * Choisit la couleur de remplissage (teinte, saturation, valeur et alpha).
  *
  * @param h Teinte, en degrés (entre 0.0 et 360.0).
- * @param s Saturation, entre 0.0 to 1.0.
- * @param v Valeur, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param s Saturation, entre 0.0 et 1.0.
+ * @param v Valeur, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color_hsv (h:real, s:real, v:real, a:real);
@@ -338,13 +339,13 @@ color_hsv (h:real, s:real, v:real);
  * The default value is 1.0.
  *
  * @~french
- * Choisit la couleur de remplissage (cyan, magenta, jaune, noir).
+ * Choisit la couleur de remplissage (cyan, magenta, jaune, noir et alpha).
  *
- * @param c Composante cyan, entre 0.0 to 1.0.
- * @param y Composante jaune, entre 0.0 to 1.0.
- * @param m Composante magenta, entre 0.0 to 1.0.
- * @param k Composante noire, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param c Composante cyan, entre 0.0 et 1.0.
+ * @param y Composante jaune, entre 0.0 et 1.0.
+ * @param m Composante magenta, entre 0.0 et 1.0.
+ * @param k Composante noire, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 color_cymk (c:real, y:real, m:real, k:real, a:real);
@@ -406,7 +407,7 @@ rectangle 0, 0, 600, 200
  * @endcode
  *
  * @~french
- * Définit la couleur d'effacement (clear color)
+ * Définit la couleur d'effacement (clear color).
  * Cette primitive définit la couleur qui est utilisée pour remplir la zone
  * de dessin avant d'afficher quoique ce soit. Par conséquent, on peut
  * considérer qu'il s'agit de la couleur de fond.
@@ -488,6 +489,7 @@ no_line_color ();
  *       - color "fill"
  *       - color "font"
  *       - color "line"
+ *
  * Les modules peuvent également définir des couleurs.
  *
  * @note @c color @c "font" et @c line_color @c "font" ne sont pas la même
@@ -522,10 +524,10 @@ line_color (colorname:text);
  * @~french
  * Choisit la couleur de ligne (rouge, vert, bleu et alpha).
  *
- * @param r Composante rouge, entre 0.0 to 1.0.
- * @param g Composante verte, entre 0.0 to 1.0.
- * @param b Composante bleue, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param r Composante rouge, entre 0.0 et 1.0.
+ * @param g Composante verte, entre 0.0 et 1.0.
+ * @param b Composante bleue, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color (r:real, g:real, b:real, a:real);
@@ -554,9 +556,9 @@ line_color (r:real, g:real, b:real);
  * Choisit la couleur de ligne (teinte, saturation, luminosité et alpha).
  *
  * @param h Teinte, en degrés (entre 0.0 et 360.0).
- * @param s Saturation, entre 0.0 to 1.0.
- * @param l Luminosité, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param s Saturation, entre 0.0 et 1.0.
+ * @param l Luminosité, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color_hsl (h:real, s:real, l:real, a:real);
@@ -585,9 +587,9 @@ line_color_hsl (h:real, s:real, l:real);
  * Choisit la couleur de ligne (teinte, saturation, valeur et alpha).
  *
  * @param h Teinte, en degrés (entre 0.0 et 360.0).
- * @param s Saturation, entre 0.0 to 1.0.
- * @param v Valeur, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param s Saturation, entre 0.0 et 1.0.
+ * @param v Valeur, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color_hsv (h:real, s:real, v:real, a:real);
@@ -614,13 +616,13 @@ line_color_hsv (h:real, s:real, v:real);
  * The default value is 1.0.
  *
  * @~french
- * Choisit la couleur de ligne (cyan, magenta, jaune, noir).
+ * Choisit la couleur de ligne (cyan, magenta, jaune, noir et alpha).
  *
- * @param c Composante cyan, entre 0.0 to 1.0.
- * @param y Composante jaune, entre 0.0 to 1.0.
- * @param m Composante magenta, entre 0.0 to 1.0.
- * @param k Composante noire, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param c Composante cyan, entre 0.0 et 1.0.
+ * @param y Composante jaune, entre 0.0 et 1.0.
+ * @param m Composante magenta, entre 0.0 et 1.0.
+ * @param k Composante noire, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 line_color_cymk (c:real, y:real, m:real, k:real, a:real);
@@ -648,11 +650,11 @@ line_color_cymk (c:real, y:real, m:real, k:real);
  * @~french
  * Crée un point fixe de la couleur donnée, dans le dégradé courant à la position donnée.
  *
- * @param pos Position du point, entre 0.0 to 1.0.
- * @param r Composante rouge, entre 0.0 to 1.0.
- * @param g Composante verte, entre 0.0 to 1.0.
- * @param b Composante bleue, entre 0.0 to 1.0.
- * @param a Canal de transparance alpha, entre 0.0 et 1.0. 0.0 est transparent
+ * @param pos Position du point, entre 0.0 et 1.0.
+ * @param r Composante rouge, entre 0.0 et 1.0.
+ * @param g Composante verte, entre 0.0 et 1.0.
+ * @param b Composante bleue, entre 0.0 et 1.0.
+ * @param a Canal de transparance alpha, entre 0.0 et 1.0, où 0.0 est transparent
  * et 1.0 est opaque. La valeur par défaut est 1.0.
  */
 gradient_color (pos:real, r:real, g:real, b:real, a:real);
@@ -677,9 +679,9 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  * Dessine un dégradé linéaire avec les couleurs spécifiées dans le corps
  * du bloc @c linear_gradient grâce à @ref gradient_color.
  *
- *  - @p start_x and @p start_y sont les coordonnées de départ du dégradé.
- *  - @p end_x and @p end_y sont les coordonnées de fin du dégradé.
- *  - @p w and @p h sont la largeur et la hauteur de la texture de destination.
+ *  - @p start_x et @p start_y sont les coordonnées de départ du dégradé.
+ *  - @p end_x et @p end_y sont les coordonnées de fin du dégradé.
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
  *
  * @image html "images/linear_gradient.png"
  *
@@ -708,9 +710,9 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  * Dessine un dégradé radial avec les couleurs spécifiées dans le corps
  * du bloc @c radial_gradient grâce à @ref gradient_color.
  *
- *  - @p cx and @p cy sont les coordonnées du centre du dégradé.
+ *  - @p cx et @p cy sont les coordonnées du centre du dégradé.
  *  - @p r est le rayon du dégradé.
- *  - @p w and @p h sont la largeur et la hauteur de la texture de destination.
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
  *
  * @image html "images/radial_gradient.png"
  *
@@ -739,9 +741,9 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  * Dessine un dégradé conique avec les couleurs spécifiées dans le corps
  * du bloc @c conical_gradient grâce à @ref gradient_color.
  *
- *  - @p cx and @p cy sont les coordonnées du centre du dégradé.
+ *  - @p cx et @p cy sont les coordonnées du centre du dégradé.
  *  - @p teta est l'angle du déradé, en degrés, entre 0 and 360.
- *  - @p w and @p h sont la largeur et la hauteur de la texture de destination.
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
  *
  * @image html "images/conical_gradient.png"
  *
@@ -1121,7 +1123,7 @@ image_size(img:text);
  * de chemin graphique.
  *
  * Un chemin graphique est une forme géométique faite de segments de droites et
- * de courbes. Pour le construire, vous précisez ou vous posez le crayon
+ * de courbes. Pour le construire, vous précisez où vous posez le crayon
  * (@ref move_to), vous tracez un segment avec @ref line_to, ou une courbe avec
  * @ref quad_to ou @ref cubic_to. Les coordonnées peuvent être absolues ou
  * relatives au point précédent.
@@ -1146,8 +1148,8 @@ image_size(img:text);
  * @~french
  * Crée un chemin graphique.
  *
- * Un chemin graphique est une suite de segments de droites et/ou de
- * quadriques et/ou de cubiques.
+ * Un chemin graphique est une suite d'un nombre variable de segments de droites, de
+ * quadriques et de cubiques.
  */
 path (t:tree);
 
@@ -1242,9 +1244,9 @@ line_relative (x:real, y:real, z:real);
 
 /**
  * @~english
- * Moves current path cursor relative to current position.
+ * Moves without tracing current path cursor relative to current position.
  * @~french
- * Déplace le curseur de chemin graphique relativement à la position courante.
+ * Déplace sans tracer le curseur de chemin graphique relativement à la position courante.
  */
 move_relative (x:real, y:real, z:real);
 
@@ -1453,7 +1455,7 @@ rounded_rectangle (x:real, y:real, w:real, h:real, r:real);
  * @~french
  * Affiche un rectangle à côtés elliptiques.
  *
- * Le rapport @p r est un réel entre 0.0 and 1.0. Lorsque @p r vaut 0.0 le
+ * Le rapport @p r est un réel entre 0.0 et 1.0. Lorsque @p r vaut 0.0 le
  * rectangle elliptique est une ellipse, lorsqu'il vaut 1.0 on obtient un
  * rectangle.
  * @~
@@ -1517,7 +1519,7 @@ ellipse_arc (x:real, y:real, w:real, h:real, start:real, sweep:real);
  * de hauteur @p h.
  *  - L'angle inférieur gauche est en <tt>(x-w/2, y-h/2)</tt>
  *  - L'angle inférieur droit est en <tt>(x+w/2, y-h/2)</tt>
- *  - Le smmet est en <tt>(x, y+h/2)</tt>
+ *  - Le sommet est en <tt>(x, y+h/2)</tt>
  * @~
  * @image html triangle.png
  */
@@ -1560,7 +1562,7 @@ right_triangle (x:real, y:real, w:real, h:real);
  * Affiche une flèche.
  *
  * La flèche est inscrite dans un rectangle centré en (@p x, @p y), de largeur
- * @p w et de hauteur @p h pixels. @p head is the longueur de la tête de la
+ * @p w et de hauteur @p h pixels. @p head est la longueur de la tête de la
  * flèche en pixels.
  * @p tail est la taille de la queue de la flèche, relativement à la taille
  * totale. C'est un réel compris entre 0.0 and 1.0.
@@ -1603,7 +1605,7 @@ double_arrow (x:real, y:real, w:real, h:real, head:real, body:real);
  *
  * Cette primitive définit une étoile régulière à p branches inscrite dans le
  * rectangle centré en (@p x, @p y), de largeur @p w, et de hauteur @p h.
- * @p r est un réel entre 0.0 and 1.0 qui définit l'aspect des branches
+ * @p r est un réel entre 0.0 et 1.0 qui définit l'aspect des branches.
  * Lorsque @p r est proche de 0.0, les branches deviennent plus fines.
  * Lorsque @p r est proche de 1.0, l'étoile dégénère en polygone régulier.
  *
@@ -1698,7 +1700,7 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *
  * Cette primitive affiche un polygone régulier à @p p sommets.
  * @image html polygon.png
- * Des raccourcis existent pour les polygones de 3 de 20 sommets :
+ * Des raccourcis existent pour les polygones de 3 à 20 sommets :
  * @~
  *  -# -
  *  -# -
@@ -1726,8 +1728,13 @@ polygon (x:real, y:real, w:real, h:real, p:integer);
 /**
  * @copydoc star_polygon
  * @image html polygram.png
+ * @~english
  * Shortcuts has been defined for polygram from 5 to 10 vertexes.
-
+ *
+ * @~french 
+ * Des raccourcis existent pour des polygrams de 5 à 10 sommets.
+ *
+ * @~
  *  - pentagram       p = 5, q = 2
  *  - hexagram        p = 6, q = 2
  *  - star_of_david   p = 6, q = 2
@@ -1770,7 +1777,7 @@ polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
  *   - L'axe [0, x) x > 0 est orienté vers la droite,
  *   - L'axe [0, y) y > 0 est orienté vers le haut,
  *   - L'axe [0, z) z > 0 est orienté vers l'utilisateur (hors de l'écran).
- * -  @p h, @p w et @p d sont la hauteur, la largeur et la profondeur de la
+ * -  @p h, @p w et @p d sont respectivement la hauteur, la largeur et la profondeur de la
  *    forme,
  * - Lorsque la forme a des parties arondies, les dimensions sont celles du
  *   pavé englobant.
@@ -1886,7 +1893,7 @@ cone (x:real, y:real, z:real, w:real, h:real, d:real);
  * @~french
  * Affiche un cône tronqué.
  *
- * Le diamètre en haut du cône est dans un rapport @p r de sa base. @p est un
+ * Le diamètre en haut du cône est dans un rapport @p r de sa base. @p r est un
  * réel compris entre 0.0 et 1.0. Si @p r vaut 0.0 on obtient un cône complet,
  * si @p r vaut 1.0 on obtient un cylindre.
  * @~

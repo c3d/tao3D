@@ -87,7 +87,7 @@ table_cell(w:integer, h:integer, contents:tree);
  *
  * @~french
  * Insère une cellule de taille variable.
- * La cellule a la plus petite dimension possible qui permet a son contenu de
+ * La cellule a la plus petite dimension possible qui permet à son contenu de
  * s'afficher en entier. Le tableau adapte la taille de ses lignes et de ses
  * colonnes à la plus grande cellule.
  * @~

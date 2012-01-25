@@ -1,17 +1,17 @@
 // ****************************************************************************
 //  licence.cpp                                                     Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     Licence check for Tao Presentation
-// 
 //
 //
 //
-// 
-// 
-// 
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -56,6 +56,7 @@ using namespace CryptoPP;
 
 namespace Tao
 {
+
 
 Licences &Licences::LM()
 // ----------------------------------------------------------------------------
@@ -252,7 +253,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = ERR;
             }
             break;
-            
+
         case EXPIRY_DAY:
             if (tok == XL::tokINTEGER)
             {
@@ -618,7 +619,7 @@ void Licences::licenceError(kstring file, QString reason)
     oops.raise();
     oops.exec();
 #endif // KEYGEN
-    exit(15);    
+    exit(15);
 }
 
 
@@ -756,6 +757,8 @@ again:
 
     return id;
 }
+
+
 #endif // KEYGEN
 
 

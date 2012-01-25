@@ -1,10 +1,40 @@
-/***
-* This document is an example of use of some
-* materials effect.
-**/
+// ****************************************************************************
+//  balls.ddd                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of use case of some materials effect
+//     with Tao Presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Mapping
 import Materials
 import Animate
+
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
 
 zoom 0.25
 
@@ -25,12 +55,18 @@ key "Right" ->
 key "Left" ->
     skip -1 
 
-// ------------------------------------------------- //
-//                  PAGES                            //
-// ------------------------------------------------- //
 
-// Intro scene
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
 page "Intro",
+// -------------------------------------------------
+//    Intro scene
+// -------------------------------------------------
     color "white"
     environment_cube Style
     show fade_between (page_time, 1.0, 4.0)
@@ -38,8 +74,10 @@ page "Intro",
     if page_time > 5.0 then
         goto_page "Spheres"
 
-// Main scene
 page "Spheres",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
     refresh_on TimerEvent
     color "white"
     Camera
@@ -47,11 +85,18 @@ page "Spheres",
     light 0
     spheres 20
 
-// ------------------------------------------------- //
-//                  FUNCTIONS                        //
-// ------------------------------------------------- //
+
+// ============================================================================
+//
+//                                   HELP
+//
+// ============================================================================
+
 
 description_text "fr" ->
+// -------------------------------------------------
+//    French help
+// -------------------------------------------------
     text "Utilisez les touches suivantes pour changer le matériau :"
     paragraph_break
     text " * F1 : verre"
@@ -59,6 +104,9 @@ description_text "fr" ->
     text " * F2 : métal"
 
 description_text T:text ->
+// -------------------------------------------------
+//    English help
+// -------------------------------------------------
     text "Press key to change material:"
     paragraph_break
     text " * F1 for glass"
@@ -66,6 +114,9 @@ description_text T:text ->
     text " * F2 for metal"
 
 HUD ->
+// -------------------------------------------------
+//    Head Up Display
+// -------------------------------------------------
     color "black"
     camera_position 0, 0, 3200
     translatez 2500
@@ -77,21 +128,35 @@ HUD ->
         align_center
         description_text tao_language
 
-// Environment
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
 environment_cube "Refraction" ->
+// -------------------------------------------------
+//    Refraction environment
+// -------------------------------------------------
     locally
         cmap_refract
         cube 0, 0, 0, 50000, 50000, 50000
 
-// Environment
 environment_cube "Reflection" ->
+// -------------------------------------------------
+//    Reflection environment
+// -------------------------------------------------
     locally
         cmap_reflect
         cube 0, 0, 0, 50000, 50000, 50000
 
-// Cube map for refraction
-// Images by Jochum Skoglund
 cmap_refract ->
+// -------------------------------------------------
+//    Cube map for refraction
+//    Images by Jochum Skoglund
+// -------------------------------------------------
     color "white"
     cube_map 1024,
         cube_map_flip true, true
@@ -102,10 +167,11 @@ cmap_refract ->
         cube_map_face 4, "refract/pz.jpg" // front
         cube_map_face 5, "refract/nz.jpg" // back
 
-
-// Cube map for reflection
-// Images by Paul Debevec
 cmap_reflect ->
+// -------------------------------------------------
+//    Cube map for reflection
+//    Images by Paul Debevec
+// -------------------------------------------------
     color "white"
     cube_map 1024,
         cube_map_flip true, true
@@ -116,9 +182,10 @@ cmap_reflect ->
         cube_map_face 4, "reflect/pz.png" // front
         cube_map_face 5, "reflect/nz.png" // back
 
-
-// Camera position
 Camera ->
+// -------------------------------------------------
+//    Set camera position
+// -------------------------------------------------
     Cx -> -230.856
     Cy -> -341.539
     locally
@@ -132,10 +199,12 @@ Camera ->
         z_near 1
 
 // "Spiral" spheres
-// Distribution of the spheres
 tm_s -> page_time * Speed
 spheres_spiral 0, Max -> nil
 spheres_spiral N:integer, Max:integer ->
+// -------------------------------------------------
+//    Make distribution of the spheres
+// -------------------------------------------------
     locally
         K -> 0.05
         K := (real N) / Max
@@ -150,4 +219,7 @@ spheres_spiral N:integer, Max:integer ->
     spheres_spiral N - 1, Max
 
 spheres N:integer ->
+// -------------------------------------------------
+//    Draw spheres
+// -------------------------------------------------
     spheres_spiral N, N

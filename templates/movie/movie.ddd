@@ -1,10 +1,42 @@
+// ****************************************************************************
+//  movie.ddd                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of movie credits.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import MovieCredits
 import TaoVisuals
 
 
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
 page "Taodyne presents",
 // ----------------------------------------------------------------------------
-//   "Taodyne presents" flying towards viewer
+//    "Taodyne presents" flying towards viewer
 // ----------------------------------------------------------------------------
     fade_in  Value:real, Dur:real  -> -expm1(-5 * Value / Dur)
     mc_swc_background
@@ -26,10 +58,9 @@ page "Taodyne presents",
             font "Arial", 24
             text "Hint: Hit the page-down or down key to change pages"
         
-
 page "On a screen nearby", 
 // ----------------------------------------------------------------------------
-//   Display a white screen
+//    Display a white screen
 // ----------------------------------------------------------------------------
     mc_swc_background
 
@@ -42,10 +73,9 @@ page "On a screen nearby",
         paragraph_break
         text "on a computer screen nearby"
 
-
 page "Star Wars Crawl",
 // ----------------------------------------------------------------------------
-//   A page illustrating a Star-Wars style crawl
+//    A page illustrating a Star-Wars style crawl
 // ----------------------------------------------------------------------------
     mc_size 1200, 2000
 
@@ -111,7 +141,6 @@ page "Star Wars Crawl",
             color "white"
             rotatey 12 * page_time
             cube 0, 0, 0, 500, 500, 500
-
 
 page "Final Credits",
 // ----------------------------------------------------------------------------

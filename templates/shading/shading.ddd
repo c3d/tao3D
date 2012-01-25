@@ -1,20 +1,67 @@
+// ****************************************************************************
+//  shading.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//       Example of use case of shading module.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Shading
 import ObjectLoader
 
-// Main settings
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
 translatey -200
+
 zoom 1.0
+
 font "LeckerliOne"
 font_size 100
+
 light 0
 light_position 500, 500, 500
+
 OBJECT -> "mushroom.obj"
 
 // Global scaling
 S -> window_width / 1800
 scale S, S, 1.0
 
-page "cel shading",
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Cel shading",
+// -------------------------------------------------
+//    Main scene with cel shading
+// -------------------------------------------------
     text_box 500, 550, 1000, 200,
         align_center
         text "Cel shading"
@@ -48,9 +95,12 @@ page "cel shading",
         cel_shading
         object 50, -250, 0, 200, 200, 200, OBJECT
     if page_time > 5 then
-        goto_page "gooch shading"
+        goto_page "Gooch shading"
 
-page "gooch shading",
+page "Gooch shading",
+// -------------------------------------------------
+//    Main scene with Gooch shading
+// -------------------------------------------------
     text_box 500, 550, 1000, 200,
         align_center
         text "Gooch shading"
@@ -100,4 +150,4 @@ page "gooch shading",
         gooch_shading
         object 50, -250, 0, 200, 200, 200, OBJECT
     if page_time > 5 then
-        goto_page "cel shading"
+        goto_page "Cel shading"

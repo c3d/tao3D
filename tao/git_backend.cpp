@@ -61,6 +61,7 @@ GitRepository::GitRepository(const QString &path)
 {
     connect(&cdvTimer, SIGNAL(timeout()), this, SLOT(clearCachedDocVersion()));
     cdvTimer.start(5000);
+    checkGit();
 }
 
 
@@ -69,17 +70,21 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git commands accordingly
 // ----------------------------------------------------------------------------
 {
-    bool ok;
-    ok = checkGitCmd();
+    static bool checked = false, ok = false;
+    if (!checked)
+    {
+        checked = true;
+        ok = checkGitCmd();
 #ifdef CONFIG_MACOSX
-    ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
-                        "SSH_ASKPASS", sshAskPassCommand);
+        ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
+                            "SSH_ASKPASS", sshAskPassCommand);
 #else
-    ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
+        ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
 #endif
 #ifdef CONFIG_MINGW
-    ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
+        ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
 #endif
+    }
     return ok;
 }
 

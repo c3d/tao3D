@@ -766,7 +766,7 @@ QString ModuleManager::gitVersion(QString moduleDir)
     RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
     repository_ptr repo = RepositoryFactory::repository(moduleDir, mode);
     if (repo && repo->valid())
-        return +repo->version();
+        return +repo->versionTag();
     return "";
 }
 

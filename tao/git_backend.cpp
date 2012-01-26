@@ -1214,6 +1214,24 @@ text GitRepository::version()
 }
 
 
+text GitRepository::versionTag()
+// ----------------------------------------------------------------------------
+//    If HEAD is a tag, return it.
+// ----------------------------------------------------------------------------
+{
+    text    output, result = +QString(tr("Unknown"));
+    waitForAsyncProcessCompletion();
+    QStringList args;
+    args << "describe" << "--tags" << "--exact-match";
+    GitProcess cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
+    if (ok)
+        result = output;
+    return result;
+}
+
+
 text GitRepository::head()
 // ----------------------------------------------------------------------------
 //    Return a unique identifier for the current repo state (HEAD SHA-1)

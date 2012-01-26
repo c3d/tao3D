@@ -1143,13 +1143,15 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 }
 
 
-process_p GitRepository::asyncFetch(QString what)
+process_p GitRepository::asyncFetch(QString what, bool forcetags)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will download latest changes from a remote project
 // ----------------------------------------------------------------------------
 {
     QStringList args;
     args << "fetch" << what;
+    if (forcetags)
+        args << "--tags"; // Overwrite local tag with remote with same name
     GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));

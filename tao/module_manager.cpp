@@ -1490,7 +1490,7 @@ bool UpdateModule::start()
         repo = RepositoryFactory::repository(+m.path);
         if (repo && repo->valid())
         {
-            proc = repo->asyncFetch("origin");
+            proc = repo->asyncFetch("origin", true);
             connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
                     this,        SLOT(onFinished(int,QProcess::ExitStatus)));
             connect(proc.data(), SIGNAL(percentComplete(int)),

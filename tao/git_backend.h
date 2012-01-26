@@ -82,7 +82,8 @@ public:
     virtual bool        renRemote(QString oldName, QString newName);
     virtual QList<Commit> history(QString branch = "", int max = 20);
     virtual process_p   asyncClone(QString cloneUrl, QString newFolder);
-    virtual process_p   asyncFetch(QString what);
+    virtual process_p   asyncFetch(QString what,
+                                   bool    forcetags = false);
     virtual text        version();
     virtual text        versionTag();
     virtual text        head();

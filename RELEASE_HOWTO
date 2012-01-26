@@ -2,10 +2,14 @@ Here are the steps to create a new (official) release of Tao Presentations
 
 Once:
 
+- Configure for internal build
+  $ ./configure
 - Make sure Qt translations are up-to-date
   $ cd tao
   $ make lupdate
   Look at the output of lupdate, and edit tao_fr.ts as needed.
+  ** Warning: make sure you gave no edition name to the configure script, or
+  some code will be #ifdef'ed out and some translations will be marked obsolete.
   After editing tao_fr.ts:
   $ make lrelease
   Commit your translations (both tao_fr.ts AND tao_fr.qm need to be committed).

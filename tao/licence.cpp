@@ -635,10 +635,9 @@ void Licences::Warn(text feature, int days, bool critical)
         return;
     warned.insert(feature);
 
-    QString message;
+    QString message = tr("<h3>Warning</h3>");
     if (days > 0)
     {
-        message  = tr("<h3>Warning</h3>");
         message += tr("<p>The license for the following feature expires in "
                       "%n day(s):</p>"
                       "<center>%1</center>", "", days).arg(+feature);
@@ -647,7 +646,8 @@ void Licences::Warn(text feature, int days, bool critical)
     }
     else
     {
-        message  = tr("<h3>Error</h3>");
+        if (critical)
+            message  = tr("<h3>Error</h3>");
         if (days == 0)
         {
             message += tr("<p>You do not have a valid license for:</p>"

@@ -1,5 +1,30 @@
 Change log for Tao Presentations
 
+1.0-rc1 (25-Jan-2012)
+
+#1875 TaoVisuals: no english documentation
+#1874 Changing camera_to_screen affects all frame textures
+#1873 StereoDecoder: no english documentation
+#1871 Adjust all templates in Tao
+#1870 Show Tao edition on welcome screen
+#1862 Discovery should not disable download of documents and modules
+#1860 Shading documentation
+#1858 Unlicensed modules and Tao should allow normal usage for a few minutes
+#1857 "Save with fonts..." does not save fonts
+#1855 The spacecraft of the "movie" template does not move fast enough
+#1854 Wrong camera settings for template "materials"
+#1851 "Save As" does not save complete document
+#1850 frame_texture_with_depth is not documented
+#1849 Application should warn about licences about to expire
+#1848 No "invalid license file" error when digest is missing
+#1847 "Save" menu in "Discovery" version
+#1845 Help application high CPU usage when Tao Presentation is closed
+#1841 Missing licenses for DigitalClock and SlideShow modules
+#1840 It is difficult to add a license file when starting Creative for the first time
+#1839 Licensing: host ID not detected on 64-bit Windows
+#1811 Crash in load_text with XL.ddd presentation
+#1720 Sphere and cube mapping cause an error of shader set
+
 1.0-pre1 (17-Jan-2012)
 
 #1838 Modularize revolving texts

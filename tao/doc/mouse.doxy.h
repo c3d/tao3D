@@ -40,12 +40,12 @@ on (n:text, t:tree);
  * @~english
  * Associates code with click.
  * Associates the specified code to the click.
- * It is equivalent to <tt> @ref on "click", t</tt>.
+ * It is equivalent to <tt> on "click", t</tt>.
  *
  * @~french
  * Associe du code au clic de souris.
  * Associe le code @p t au clic de souris.
- * Équivalent à <tt> @ref on "click", t</tt>.
+ * Équivalent à <tt> on "click", t</tt>.
  */
 on_click (t:tree);
 
@@ -53,12 +53,12 @@ on_click (t:tree);
  * @~english
  * Associates code with mouse over.
  * Associates the specified code to the mouse over.
- * It is equivalent to <tt> @ref on "mouseover", t</tt>.
+ * It is equivalent to <tt> on "mouseover", t</tt>.
  *
  * @~french
  * Associe du code au passage de la souris.
  * Associe le code @p t au passage de la souris.
- * Équivalent à <tt> @ref on "mouseover", t</tt>.
+ * Équivalent à <tt> on "mouseover", t</tt>.
  */
 on_mouseover (t:tree);
 

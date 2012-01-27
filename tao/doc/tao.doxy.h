@@ -130,24 +130,24 @@
  * @~french
  * @page tao_documents Les documents Tao Presentation
  *
- * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Le
- * codage de caractères est
- * <a href="http://fr.wikipedia.org/wiki/UTF-8">UTF-8</a>
+ * Un document Tao est un fichier texte avec l'extension <tt>.ddd</tt>. Les
+ * caractères sont encodés en 
+ * <a href="http://fr.wikipedia.org/wiki/UTF-8">UTF-8</a> ce
  * qui permet d'utiliser des caractères internationaux n'importe où dans le
  * document.
  *
- * En plus du fichier principal <tt>.ddd</tt> file, un document Tao peut être
+ * En plus du fichier principal <tt>.ddd</tt>, un document Tao peut être
  * composé d'autres fichiers:
  *  - Des fichiers secondaires, importés par le fichier principal, de manière
  *    à rendre le document plus modulaire et plus facile à faire évoluer. @n
  *    Ces fichiers peuvent être eux-même des fichiers <tt>.ddd</tt>, s'ils sont
  *    des documents Tao valides. Vous pouvez par exemple diviser une
  *    présentation longue ou complexe en plusieurs documents plus courts, puis
- *    de créer un fichier <tt>.ddd</tt> principal qui importe les autres. @n
+ *    créer un fichier <tt>.ddd</tt> principal qui importe les autres. @n
  *    Lorsqu'un fichier importé ne peut pas être ouvert directement comme un
  *    document Tao, il est habituel de le nommer avec l'extension <tt>.xl</tt>
  *    pour mettre en évidence qu'il s'agit de source XL(R).
- *  - Des images. En principe, les fichiers images sont sous le sous-répertoire
+ *  - Des images. En principe, les fichiers images sont dans le sous-répertoire
  *    @c images. Plusieurs formats de fichier peuvent être lus par Tao
  *    Presentations : PNG, JPEG, et d'autres. Consultez la fonction @ref image
  *    pour plus de détails.
@@ -155,7 +155,7 @@
  *    stockés dans le sous-répertoire @c fonts.
  *
  * Lorsque Tao Presentation ouvre un document, les fichiers @c xl:user.xl et
- * @c xl:theme.xl sont automatiquement importés, dans cet ordre et s'ils
+ * @c xl:theme.xl sont automatiquement importés, dans cet ordre, s'ils
  * existent (le paragraphe @ref secSearchPaths explique le sens de @c xl:).
  *
  * @~english
@@ -249,7 +249,7 @@ mon_cercle Rayon ->
  * comme une function (ou une procédure).
  * @warning Le nom @c Rayon à gauche de la flèche @c ->
  * est dans le même portée lexicale que @c mon_cercle. Par conséquent,
- * supposons que vous avez précédemment défini un symbole @c Rayon,
+ * supposons que vous ayez précédemment défini un symbole @c Rayon,
  * par exemple <tt>Rayon -> 50</tt> :
  * @code
 Rayon -> 50
@@ -274,8 +274,8 @@ No form matches my_circle 100
  * Pour éviter de tels problèmes, il est recommendé d'utiliser des conventions
  * de nommage différentes pour les paramètres et les autres symboles.
  * Dans cette documentation,
- * nous utilisons toujours une majuscule pour les paramètre, de telle sorte
- * qu'ils n'entre pas en conflit avec les fonctions prédéfinies (toujours
+ * nous utilisons toujours une majuscule pour les paramètres, de telle sorte
+ * qu'ils n'entrent pas en conflit avec les fonctions prédéfinies (toujours
  * en minuscules).
  * Pour revenir à notre exemple, nous aurions aussi pu qualifier le paramètre
  * @c Rayon pour mettre en évidence le fait qu'il s'agit d'un paramètre :
@@ -437,7 +437,7 @@ locally
  * de celui-ci) selon les étapes suivantes :
  *
  * <ol>
- * <li> @b Compiler and @b exécuter le document une première fois.
+ * <li> @b Compiler et @b exécuter le document une première fois.
  *       Cette étape crée une hiérarchie d'objets de deux types : des
  *      @a Drawings et des @a Layouts.
  *      <ul>
@@ -717,7 +717,7 @@ import "xl:my_definitions.xl"
  * les réutiliser est d'utiliser le mot-clé @c import qui permet de faire
  * référence à un fichier externe depuis n'importe quel document Tao.
  *
- * Par exemple, supposons que vous écrivez une présentation intitulée
+ * Par exemple, supposons que vous écriviez une présentation intitulée
  * @c RapportDesVentes.ddd. Dans ce document, vous voulez présenter des
  * pages d'introduction, puis détailler des chiffres de vente pour deux
  * régions, les États-Unis et l'Europe. Vous aimeriez pouvoir adapter votre
@@ -799,7 +799,7 @@ import "xl:mes_définitions.xl"
  * Il y a plusieurs avantages à utiliser un module plutôt qu'un simple
  * fichier XL qui se trouverait dans le dossier utilisateur Tao.
  *  - Vous pouvez ajouter une description, votre nom et votre site web. Ces
- * informations apparaissent dans la boîte de préférence des modules.
+ * informations apparaissent dans la boîte de préférences des modules.
  *  - Un module possède un numéro de version, ce qui permet de détecter
  * tout problème de compatibilité avec les anciens documents, lorsque votre
  * module change. Ce numéro de version permet également la mise à jour
@@ -836,7 +836,7 @@ import "xl:mes_définitions.xl"
  *  - Modifiez le contenu du module. Changez l'identifiant (<tt>id=</tt>).
  * Utilisez un identifiant unique, par exemple un UUID afin d'éviter que
  * votre module entre en conflit avec un autre module Tao.
- * Vous pouvez utiliser la commande @c uuidgen command ou utiliser un site web
+ * Vous pouvez utiliser la commande @c uuidgen ou utiliser un site web
  * qui le fera pour vous. Changez le nom (@c name), la description
  * (@c description), le nom d'import (@c import_name), éventuellement la
  * version (@c version), etc. comme vous le souhaitez. Les textes doivent
@@ -863,13 +863,13 @@ import "xl:mes_définitions.xl"
  * Les traces de debug des modules s'activent de la façon suivante :
  * - Selectionnez le groupe Debug dans la boîte de préférences des modules.
  *   Cochez la case « modules » puis cliquez sur Sauver. Redémarrez Tao.
- * - Il est également possible d'utiliser la ligne de commande :
+ * - Il est également possible d'utiliser sur la ligne de commande l'option :
  *   <tt>-tmodules</tt>
  *
  * Les traces de debug sont envoyées sur le canal d'erreur standard
  * (@c stderr). Leur destination réelle dépend de la plateforme et du fait
  * que vous ayez  démarré Tao Presentations depuis l'interpréteur de
- * commandes ou en utilisant l'interface graphique, comme expliqué ci-dessous.
+ * commandes ou en utilisant l'interface graphique, comme expliqué ici @ref platform_notes.
  */
 /**
  * @~english
@@ -935,8 +935,8 @@ import "xl:mes_définitions.xl"
  * @subsection secMacOSX MacOSX
  *
  * Les canaux de sortie et d'erreur standard de Tao Presentations sont
- * normalement redirigés vers des fichiers et peuvent être  the MacOSX @c console
- * application.
+ * normalement redirigés vers des fichiers et peuvent être lu avec l'application
+ * MacOSX @c console.
  *
  * Toutefois, si l'application est démarrée depuis un terminal,
  * les messages s'affichent dans celui-ci et ne sont pas visibles dans

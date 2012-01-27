@@ -101,6 +101,10 @@ equals(HAS_DOXYGEN, 1) {
   QMAKE_EXTRA_TARGETS += install_qhc
   INSTALLS += install_qhc
 
+  rmoutput.commands = rm -rf output
+  distclean.depends = rmoutput
+  QMAKE_EXTRA_TARGETS += rmoutput distclean
+
 } else {
 
   warning(doxygen not found - will not build online documentation)

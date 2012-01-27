@@ -32,9 +32,9 @@ On all platforms:
   $ make -j5 kit
   Save the Discovery package.
   $ make distclean
-  $ ./configure creative
+  $ ./configure creativity
   $ make -j5 kit
-  Save the Creative package.
+  Save the Creativity package.
   $ make distclean
   $ ./configure impress
   $ make -j5 kit

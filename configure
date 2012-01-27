@@ -104,8 +104,8 @@ while [ $# -ne 0 ] ; do
       EDITION_FLAGS="$D $M $A"
       shift ; done=1
       ;;
-    creative)
-      EDITION="Creative"
+    creativity)
+      EDITION="Creativity"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
       A="NO_SDK=1"
       EDITION_FLAGS="DEFINES+=CFG_NOGIT $M $A"

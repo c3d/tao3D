@@ -270,6 +270,11 @@ PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
        SYNOPSIS("The Tao version")
        DESCRIPTION("Return the version of the Tao program")
        RETURNS(tree, "The version of the running Tao program"))
+PREFIX(TaoEdition,  tree,  "tao_edition", , RTAO(taoEdition(self)),
+       GROUP(version)
+       SYNOPSIS("The name of the Tao edition")
+       DESCRIPTION("Returns the edition string of the Tao program. May be an emtpy string.")
+       RETURNS(text, "The edition string of the running Tao program"))
 PREFIX(DocVersion,  tree,  "doc_version", , RTAO(docVersion(self)),
        GROUP(version)
        SYNOPSIS("The document version")

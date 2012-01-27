@@ -8554,6 +8554,25 @@ Text_p Widget::taoVersion(Tree_p self)
 }
 
 
+Text_p Widget::taoEdition(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the edition string
+// ----------------------------------------------------------------------------
+{
+#ifdef TAO_EDITION
+    static text edition = "";
+    if (edition == "")
+    {
+        edition = TAO_EDITION;
+    }
+    return new XL::Text(edition);
+#else
+    return new XL::Text("");
+#endif
+
+}
+
+
 Text_p Widget::docVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the version of the current document (if known)

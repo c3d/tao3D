@@ -1,18 +1,57 @@
-/**
-* This document presents an example of the sparks module adapted from
-* a shader code written by Ashima Arts and Stefan Gustavson
-* for the WebGL demo Sparks.
-* For further informations, see LICENSE file in module directory
-**/
+// ****************************************************************************
+//  sparks.ddd                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//        Example of the sparks module adapted from
+//        a shader code written by Ashima Arts and Stefan Gustavson
+//        for the WebGL demo Sparks.
+//        For further informations, see LICENSE file in module directory
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Sparks
 import Animate
+
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
 
 // Global window scaling
 window_scale -> min (window_width / 1408, window_height / 768)
 
 key "Return" -> goto_page page_name 1
 
-page "Intro",
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Sparks",
+// -------------------------------------------------
+//    Exemples of sparks effect
+// -------------------------------------------------
     // Top right effect
     scale window_scale, window_scale, 1
     locally
@@ -52,7 +91,10 @@ page "Intro",
             align_center
             description_text tao_language
 
-page "Font",
+page "Full screen",
+// -------------------------------------------------
+//    Full screen effect
+// -------------------------------------------------
     compute_smooth_step
     locally
         color 1.0 * abs (cos (time * 0.1)), 1.0, 1.0 * abs (sin (time * 0.1)), 1.0
@@ -60,7 +102,18 @@ page "Font",
         sparks page_time * 0.1, 0.05, 0.05
         rectangle 0, 0, window_width, window_height
 
+
+// ============================================================================
+//
+//                                   HELP
+//
+// ============================================================================
+
+
 description_text "fr" ->
+// -------------------------------------------------
+//    French help
+// -------------------------------------------------
     text "Effets obtenus grâce à un shader GLSL appelé "
     italic
     text "Sparks"
@@ -68,6 +121,9 @@ description_text "fr" ->
     text "écrit par Ashima Arts."
 
 description_text T:text ->
+// -------------------------------------------------
+//    English help
+// -------------------------------------------------
     text "Effects drawn by a GLSL shader called "
     italic
     text "Sparks"

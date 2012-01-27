@@ -1,5 +1,39 @@
+// ****************************************************************************
+//  materials.ddd                                                   Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of some materials with Tao Presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Materials 1.0
 import Mapping 1.0
+
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
 zoom 0.15
 refresh_on TimerEvent
 
@@ -14,10 +48,35 @@ BOTTOM -> "brightday2_negative_y.png"
 FRONT  -> "brightday2_positive_z.png"
 BACK   -> "brightday2_negative_z.png"
 
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Materials",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
+    draw_environment
+    draw_light
+    mouse_move
+    draw_materials
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
 mouse_move ->
-    /*
-    *  Define movement of the mouse
-    */
+// -------------------------------------------------
+//    Define movement of the mouse
+// -------------------------------------------------
     Cx -> 0.0
     Cy -> 0.0
     Sx -> screen_mouse_x - window_width / 2
@@ -34,9 +93,9 @@ mouse_move ->
     no_refresh_on MouseMoveEvent
 
 draw_environment ->
-    /*
-    *  Define cube map environment
-    */
+// -------------------------------------------------
+//    Define cube map environment
+// -------------------------------------------------
     z_far 100000
     color "white"
     cube_map 1024,
@@ -50,9 +109,9 @@ draw_environment ->
     cube 0, 0, 0, 60000, 60000, 60000
 
 draw_light ->
-    /*
-    * Define a far light
-    */
+// -------------------------------------------------
+//    Define a far light
+// -------------------------------------------------
     light 0
     light_position -15000, 15000, 0
     light_ambient 0.5, 0.5, 0.5, 1.0
@@ -60,9 +119,9 @@ draw_light ->
     light_specular 0.5, 0.5, 0.5, 1.0
 
 draw_materials ->
-    /*
-    * Draw materials set
-    */
+// -------------------------------------------------
+//    Draw materials set
+// -------------------------------------------------
     translatey 800
     // Middle circle
     locally
@@ -129,8 +188,3 @@ draw_materials ->
         translate 0, -1500, 0
         chrome
         sphere 0, 0, 0, 500
-
-draw_environment
-draw_light
-mouse_move
-draw_materials

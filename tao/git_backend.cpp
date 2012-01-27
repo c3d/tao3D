@@ -61,6 +61,7 @@ GitRepository::GitRepository(const QString &path)
 {
     connect(&cdvTimer, SIGNAL(timeout()), this, SLOT(clearCachedDocVersion()));
     cdvTimer.start(5000);
+    checkGit();
 }
 
 
@@ -69,17 +70,21 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git commands accordingly
 // ----------------------------------------------------------------------------
 {
-    bool ok;
-    ok = checkGitCmd();
+    static bool checked = false, ok = false;
+    if (!checked)
+    {
+        checked = true;
+        ok = checkGitCmd();
 #ifdef CONFIG_MACOSX
-    ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
-                        "SSH_ASKPASS", sshAskPassCommand);
+        ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
+                            "SSH_ASKPASS", sshAskPassCommand);
 #else
-    ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
+        ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
 #endif
 #ifdef CONFIG_MINGW
-    ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
+        ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
 #endif
+    }
     return ok;
 }
 
@@ -1138,13 +1143,15 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 }
 
 
-process_p GitRepository::asyncFetch(QString what)
+process_p GitRepository::asyncFetch(QString what, bool forcetags)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will download latest changes from a remote project
 // ----------------------------------------------------------------------------
 {
     QStringList args;
     args << "fetch" << what;
+    if (forcetags)
+        args << "--tags"; // Overwrite local tag with remote with same name
     GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
@@ -1205,6 +1212,24 @@ text GitRepository::version()
     output = +(+output).trimmed();
     if (ok)
         result = cachedDocVersion = output;
+    return result;
+}
+
+
+text GitRepository::versionTag()
+// ----------------------------------------------------------------------------
+//    If HEAD is a tag, return it.
+// ----------------------------------------------------------------------------
+{
+    text    output, result = +QString(tr("Unknown"));
+    waitForAsyncProcessCompletion();
+    QStringList args;
+    args << "describe" << "--tags" << "--exact-match";
+    GitProcess cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
+    if (ok)
+        result = output;
     return result;
 }
 

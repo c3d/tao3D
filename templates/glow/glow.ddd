@@ -1,15 +1,49 @@
-/**
-* This document presents an example of the glow module
-* applied on some effect of the others module.
-**/
+// ****************************************************************************
+//  glow.ddd                                                        Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of the glow module applied on some effect
+//     of the others module.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Glow
 import Sparks
 import Monjori
 import Flares
 
+
+// Background color
 clear_color 0, 0, 0, 1
 
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
 page "Flares",
+// -------------------------------------------------
+//    Example of glow with flares effect
+// -------------------------------------------------
     locally
         color "white"
         frame_texture 700, 700,
@@ -34,6 +68,9 @@ page "Flares",
     legend
 
 page "Monjori",
+// -------------------------------------------------
+//    Example of glow with monjori effect
+// -------------------------------------------------
     locally
         color "white"
         frame_texture 700, 700,
@@ -58,6 +95,9 @@ page "Monjori",
     legend
 
 page "Sparks",
+// -------------------------------------------------
+//    Example of glow with sparks effect
+// -------------------------------------------------
     locally
         color "white"
         frame_texture 700, 700,
@@ -77,8 +117,18 @@ page "Sparks",
         rectangle 450, 0, 700, 700
     legend
 
-// Set the legend of the page
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
 legend ->
+// -------------------------------------------------
+//    Set the legend of the page
+// -------------------------------------------------
     locally
         text_box -450, -400, 500, 500,
             align 0.5

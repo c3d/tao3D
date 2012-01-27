@@ -1,6 +1,42 @@
+// ****************************************************************************
+//  flares.ddd                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of use case of flares module.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Flares 
 
-page "Flares", 
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Flares",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
     color "white" 
     locally 
         flare stime, saturation
@@ -13,7 +49,18 @@ page "Flares",
             align_center 
             description_text tao_language 
 
+
+// ============================================================================
+//
+//                                   HELP
+//
+// ============================================================================
+
+
 description_text "fr" -> 
+// -------------------------------------------------
+//    French help
+// -------------------------------------------------
     text "Déplacez la souris :"
     paragraph_break
     text " * Horizontalement pour changer la couleur"
@@ -21,14 +68,27 @@ description_text "fr" ->
     text " * Verticalement pour régler la vitesse"
 
 description_text T:text -> 
+// -------------------------------------------------
+//    English help
+// -------------------------------------------------
     text "Move the mouse:"
     paragraph_break
     text " * Left/right to change color saturation"
     paragraph_break
     text " * Up/down to change animation speed"
 
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
+// Fullscreen display
 fullscreen_quad -> rectangle 0, 0, window_width, window_height 
 
+// Define a specific time for flares effect
 stime ->
     cur_time -> 0.0
     prev -> 0.0 
@@ -36,4 +96,5 @@ stime ->
     prev := page_time
     cur_time
 
+// Define saturation for flares effect
 saturation -> 2.0 * (0.5 + mouse_x / window_width)

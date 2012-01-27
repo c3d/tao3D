@@ -1,5 +1,14 @@
 Change log for Tao Presentations
 
+1.0 (27-Jan-2012)
+
+#1881 When a license for a module is not available, link to the Taodyne site with a search query
+#1880 When a license for a module is not available, show a warning and not an error
+#1879 Force tag update during module update
+#1878 Adjust initial size of preference dialog
+#1877 Module downloaded from a tao: URL may show incorrect version
+#1876 Module download fails with "Download failed: Failed to start"
+
 1.0-rc1 (25-Jan-2012)
 
 #1875 TaoVisuals: no english documentation

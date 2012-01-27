@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.0 (27-Jan-2012)
 
+#1884 Wrong edition name: rename Creative to Creativity
 #1881 When a license for a module is not available, link to the Taodyne site with a search query
 #1880 When a license for a module is not available, show a warning and not an error
 #1879 Force tag update during module update

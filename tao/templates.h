@@ -68,7 +68,8 @@ public:
     bool contains(const QString &keyword, bool searchSource = true);
 
 public:
-    static bool recursiveCopy(const QDir &src, QDir &dst);
+    static bool recursiveCopy(const QDir &src, QDir &dst,
+                              QString mainFile = "");
 
 private:
     static std::ostream& debug();

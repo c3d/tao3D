@@ -32,9 +32,9 @@
  * @endtaomoduledescription{LensFlare}
  *
  * @~french
- * @taomoduledescription{LensFlare, Effet de halos}
+ * @taomoduledescription{LensFlare, Halo}
  *
- * Génère un effet de halos.
+ * Génère un effet de halo.
  *
  * Ce module permet de créer des effets dynamiques de halo
  * (<em>lens flare</em>), en utilisant les images par défaut, ou bien en

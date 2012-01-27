@@ -52,6 +52,7 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
+#include "licence.h"
 #include "license_dialog.h"
 
 #include <iostream>
@@ -1563,10 +1564,12 @@ void Window::createActions()
     saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
+#if 0
     consolidateAct = new QAction(tr("Consolidate"), this);
     consolidateAct->setStatusTip(tr("Make the document self contained"));
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
+#endif
 
     saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
@@ -1821,7 +1824,9 @@ void Window::createMenus()
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
+#if 0
     fileMenu->addAction(consolidateAct);
+#endif
 #endif
     fileMenu->addSeparator();
     fileMenu->addAction(renderToFileAct);
@@ -1839,7 +1844,7 @@ void Window::createMenus()
     updateRecentFileActions();
 
 #ifndef CFG_NOEDIT
-    if ( Licences::CheckOnce(GUI))
+    if (Licences::Check(GUI_FEATURE))
     {
         editMenu = menuBar()->addMenu(tr("&Edit"));
         editMenu->setObjectName(EDIT_MENU_NAME);
@@ -1853,7 +1858,7 @@ void Window::createMenus()
 #endif
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if ( Licences::CheckOnce(GUI))
+    if (Licences::Check(GUI_FEATURE))
     {
         shareMenu = menuBar()->addMenu(tr("&Share"));
         shareMenu->setObjectName(SHARE_MENU_NAME);
@@ -1913,7 +1918,7 @@ void Window::createToolBars()
         view->addAction(fileToolBar->toggleViewAction());
 
 #ifndef CFG_NOEDIT
-    if ( Licences::CheckOnce(GUI))
+    if (Licences::Check(GUI_FEATURE))
     {
         editToolBar = addToolBar(tr("Edit"));
         editToolBar->setObjectName("editToolBar");
@@ -1937,7 +1942,7 @@ void Window::createToolBars()
         view->addAction(viewToolBar->toggleViewAction());
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if ( Licences::CheckOnce(GUI))
+    if (Licences::Check(GUI_FEATURE))
     {
         gitToolBar = new GitToolBar(tr("Git Tools"), this);
         gitToolBar->setObjectName("gitToolbar");

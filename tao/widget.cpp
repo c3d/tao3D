@@ -2017,6 +2017,7 @@ double Widget::scalingFactorFromCamera()
     return csf;
 }
 
+
 void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -2068,6 +2069,7 @@ void Widget::reset()
     animated = true;
     blanked = false;
 }
+
 
 void Widget::resetModelviewMatrix()
 // ----------------------------------------------------------------------------
@@ -3167,6 +3169,32 @@ void Widget::endPanning(QMouseEvent *)
 // ----------------------------------------------------------------------------
 {
     setCursor(savedCursorShape = Qt::OpenHandCursor);
+}
+
+
+void Widget::showEvent(QShowEvent *event)
+// ----------------------------------------------------------------------------
+//    Enable animations if widget is visible
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(event);
+    Window *window = (Window *) parentWidget();
+    bool oldFs = hasAnimations();
+    if (! oldFs)
+        window->toggleAnimations();
+}
+
+
+void Widget::hideEvent(QHideEvent *event)
+// ----------------------------------------------------------------------------
+//    Disable animations if widget is invisible
+// ----------------------------------------------------------------------------
+{
+    Q_UNUSED(event);
+    Window *window = (Window *) parentWidget();
+    bool oldFs = hasAnimations();
+    if (oldFs)
+        window->toggleAnimations();
 }
 
 
@@ -8883,6 +8911,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveCamToScr(cameraToScreen, 
+                                      (cameraTarget-cameraPosition).Length());
         XL::Save<double> saveZoom(zoom, 1);
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 
@@ -9272,7 +9302,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(WEB))
+    if (!Licences::Check("WEB"))
         return NULL;
 
     if (w < 16) w = 16;
@@ -10588,7 +10618,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     if (!currentMenu && !currentToolBar)
@@ -10715,7 +10745,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     bool isContextMenu = false;
@@ -10850,7 +10880,7 @@ Tree_p  Widget::menuBar(Tree_p self)
 // Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     currentMenuBar = ((Window *)parent())->menuBar();
@@ -10868,7 +10898,7 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     QString fullname = +name;
@@ -10954,7 +10984,7 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
-    if ( ! Licences::CheckOnce(GUI))
+    if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
     QString fullname = QString("SEPARATOR_%1").arg(order);

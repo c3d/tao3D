@@ -1,4 +1,4 @@
 $$EXPIRES_LINE
 features $$FEATURES
-features \"GUI *\"
-features \"WEB *\"
+features \"GUI\"
+features \"WEB\"

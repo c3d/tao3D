@@ -50,6 +50,7 @@
 #include <QByteArray>
 #include <QString>
 #endif
+#include <QUrl>
 #endif
 
 using namespace CryptoPP;
@@ -635,6 +636,14 @@ void Licences::Warn(text feature, int days, bool critical)
         return;
     warned.insert(feature);
 
+    // Link to search page with feature name
+    QString link;
+    QString q = +feature;
+    QByteArray ba;
+    ba = QUrl::toPercentEncoding(q.replace(" ", "+"), QByteArray("+"));
+    q.fromUtf8(ba.constData());
+    link = tr("http://taodyne.com/shop/en/search?search_query=%1").arg(q);
+
     QString message = tr("<h3>Warning</h3>");
     if (days > 0)
     {
@@ -642,7 +651,7 @@ void Licences::Warn(text feature, int days, bool critical)
                       "%n day(s):</p>"
                       "<center>%1</center>", "", days).arg(+feature);
         message += tr("<p>You may obtain new licenses from "
-                      "<a href=\"http://taodyne.com/\">Taodyne</a>.</p>");
+                      "<a href=\"%1\">Taodyne</a>.</p>").arg(link);
     }
     else
     {
@@ -661,8 +670,8 @@ void Licences::Warn(text feature, int days, bool critical)
                           -days);
         }
         message += tr("<p>Please contact "
-                      "<a href=\"http://taodyne.com/\">Taodyne</a> "
-                      "to obtain valid license files.</p>");
+                      "<a href=\"%1\">Taodyne</a> "
+                      "to obtain valid license files.</p>").arg(link);
     }
     LicenseDialog * oops = new LicenseDialog(message);
     oops->setAttribute(Qt::WA_DeleteOnClose);

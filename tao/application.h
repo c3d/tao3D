@@ -40,7 +40,7 @@ struct SplashScreen;
 struct ModuleManager;
 struct GCThread;
 
-enum Constructor {
+enum Vendor {
     ATI = 0,
     NVIDIA = 1,
     INTEL = 2,
@@ -53,7 +53,7 @@ class Application : public QApplication
 // ----------------------------------------------------------------------------
 {
 public:
-    static text constructorsList[LAST];
+    static text vendorsList[LAST];
 
     Q_OBJECT
 
@@ -67,6 +67,9 @@ public:
     static QString defaultTaoApplicationFolderPath();
     static QString defaultTaoFontsFolderPath();
     static QString defaultUserImagesFolderPath();
+    static QString appLicenseFolderPath();
+    static QString userLicenseFolderPath();
+    static double  runTime();
 
 public:
     QStringList    pathCompletions();
@@ -77,6 +80,7 @@ public:
     Window *       findFirstTaoWindow();
     void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
+    void           enableVSync(bool on);
 
 signals:
     void           allWindowsReady();
@@ -84,6 +88,7 @@ signals:
 public slots:
     void           saveDebugTraceSettings();
     void           checkingModule(QString name);
+    void           updatingModule(QString name);
 
 protected:
     void           saveSettings();
@@ -104,21 +109,24 @@ protected slots:
     void           onRenderingDone();
 
 protected:
-    static bool    recursiveDelete(QString path);
     static QString defaultUserDocumentsFolderPath();
-    static QString appDataPath();
     static bool    createDefaultProjectFolder();
 
 public:
     void         updateSearchPaths(QString path = "");
     static bool  createDefaultTaoPrefFolder();
+    static bool  recursiveDelete(QString path);
 
 public:
     bool         hasGLMultisample, hasFBOMultisample;
     bool         hasGLStereoBuffers;
-    Constructor  constructorCards;
+    bool         useShaderLighting;
+    int          tex2DMinFilter, tex2DMagFilter;
+    Vendor       vendorID;
     uint         maxTextureCoords;
     uint         maxTextureUnits;
+    text         GLVendor;
+    text         GLRenderer;
     text         GLVersionAvailable;
     text         GLExtensionsAvailable;
     QString      lang;
@@ -127,6 +135,7 @@ public:
 private:
     QStringList  pathList;
     QStringList  urlList;
+    QString      startDir;
     SplashScreen *splash;
     int          pendingOpen;
     bool         hadWin;
@@ -140,8 +149,9 @@ private:
 #endif
     ModuleManager * moduleManager;
     bool         doNotEnterEventLoop;
-    QTranslator  translator, qtTranslator;
+    QTranslator  translator, qtTranslator, qtHelpTranslator;
     bool         appInitialized;
+    double       startTime;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;
 #endif

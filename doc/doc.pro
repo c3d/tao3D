@@ -23,51 +23,87 @@
 TEMPLATE = subdirs
 
 
-system(bash -c \"doxygen --version >/dev/null 2>&1\"):HAS_DOXYGEN=true
+include(../doxygen.pri)
 system(bash -c \"texmacs -h >/dev/null 2>&1\"):HAS_TEXMACS=true
 
-equals(HAS_DOXYGEN, true) {
+equals(HAS_DOXYGEN, 1) {
 
   include (../main_defs.pri)
   include (../version.pri)
 
-  QMAKE_SUBSTITUTES = Doxyfile.in
+  PROJECT_NUMBER = $$system(bash -c \"git describe --tags --always --dirty=-dirty\")
+  macx:TAO_ICON_FOR_QHCP = ../tao/tao.icns
+  win32:TAO_ICON_FOR_QHCP = ../tao/tao.ico
+  !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
+  QMAKE_SUBSTITUTES = Doxyfile.in \
+                      DoxyfileWebdoc.in \
+                      TaoPresentations.qhcp.in \
+                      about_help.html.in \
+                      about_help_fr.html.in
+  QMAKE_DISTCLEAN += $$replace(QMAKE_SUBSTITUTES, .in, )
 
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
-  doc.commands = doxygen
+  DOXYLANG=en,fr
+  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=XLRef.html ; $$DOXYGEN
   doc.depends = cp_examples cp_xlref version
 
-  webdoc.commands = ( cat Doxyfile ; echo \"SERVER_BASED_SEARCH = YES\" ; echo \"HTML_OUTPUT = webhtml\" ) | doxygen -
-  webdoc.depends = cp_examples cp_xlref version
+  webdoc.commands = doxygen DoxyfileWebdoc
+  webdoc.depends = cp_examples_webdoc cp_xlref version
 
-  cp_examples.commands = mkdir -p html/examples ; \
-                         cp ../tao/doc/examples/*.ddd html/examples/ ; \
-                         for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd html/examples/ 2>/dev/null || : ; done
+  LANGUAGES=$$replace(DOXYLANG, ',', ' ')
+  cp_examples.commands = for l in $$LANGUAGES ; do \
+                           mkdir -p output/\$\$l/html/examples ; \
+                           cp ../tao/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
+                         done
 
-  cp_xlref.commands = mkdir -p html ; cp XLRef.pdf html
+  cp_examples_webdoc.commands = mkdir -p webhtml/examples ; \
+                                cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
+                                for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
+
+  cp_xlref.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp XLRef.html output/\$\$l/html ; done
   cp_xlref.depends = xlref
 
-  xlref.target = XLRef.pdf
+  xlref.target = XLRef.html
   equals(HAS_TEXMACS, true) {
-    xlref.commands = texmacs --convert XLRef.tm XLRef.pdf --quit
-    xlref.depends = XLRef.tm
+    xlref.commands = texmacs --convert ../tao/xlr/xlr/doc/XLRef.tm XLRef.tmp.html --quit && sed -f texmacs_html.sed XLRef.tmp.html > XLRef.html && rm XLRef.tmp.html
+    xlref.depends = ../tao/xlr/xlr/doc/XLRef.tm
   }
 
-  clean.commands = /bin/rm -rf html/ webhtml/ qch/
+  cleandocdirs.commands = /bin/rm -rf html/ webhtml/ qch/
+  QMAKE_EXTRA_TARGETS += cleandocdirs
+  clean.depends = cleandocdirs
 
-  install.path = $$APPINST/doc
-  install.commands = mkdir -p \"$$APPINST/doc\" ; cp -R html \"$$APPINST/doc/\"
-  install.depends = doc
+  install_doc.path = $$APPINST/doc
+  install_doc.commands = mkdir -p \"$$APPINST/doc\" ; cp -R output/* \"$$APPINST/doc/\"
+  install_doc.depends = doc
 
   version.target = project_number.doxinclude
-  version.commands = V=`git describe --tags --always --dirty=-dirty`; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
+  version.commands = V=$$PROJECT_NUMBER; echo "PROJECT_NUMBER=\$\$V" >project_number.doxinclude
   version.depends = FORCE
+  QMAKE_CLEAN += project_number.doxinclude
+  QMAKE_DISTCLEAN += project_number.doxinclude
 
-  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_xlref xlref clean version
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref xlref clean version install_html
 
-  INSTALLS += install
+  INSTALLS += install_doc
+
+  qhc.commands = qcollectiongenerator TaoPresentations.qhcp -o TaoPresentations.qhc
+  qhc.depends = doc
+  QMAKE_EXTRA_TARGETS += qhc
+  QMAKE_CLEAN += TaoPresentations.qhc
+  QMAKE_DISTCLEAN += TaoPresentations.qhc
+
+  install_qhc.path = $$APPINST/doc
+  install_qhc.commands = mkdir -p \"$$APPINST/doc\" ; cp TaoPresentations.qhc \"$$APPINST/doc/\"
+  install_qhc.depends = qhc
+  QMAKE_EXTRA_TARGETS += install_qhc
+  INSTALLS += install_qhc
+
+  rmoutput.commands = rm -rf output
+  distclean.depends = rmoutput
+  QMAKE_EXTRA_TARGETS += rmoutput distclean
 
 } else {
 

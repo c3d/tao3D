@@ -1,0 +1,52 @@
+// ****************************************************************************
+//  frame.tbl                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Frame manipulation
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+PREFIX(Frame,  tree,  "frame",
+       PARM(x,real, "x-coordinate")
+       PARM(y,real, "y-coordinate")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(framePaint(context, self, x, y, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A frame with a content")
+       DESCRIPTION("Draw a frame with the described content in 'prog'. This frame as no displayed border. It makes a texture of size (w,h) using 'frame_texture', and map it on a rectangle at (x) location.")
+       RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(FrameTexture,  integer,  "frame_texture",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p)),
+       GROUP(widget)
+       SYNOPSIS("A texture with content")
+       DESCRIPTION("Make a texture out of the described content")
+       RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(FrameDepthTexture,  integer,  "frame_texture_with_depth",
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(d, integer, "[out] ID of the depth texture")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p, d)),
+       GROUP(widget)
+       SYNOPSIS("Request depth texture for a frame_texture")
+       DESCRIPTION("Ensure that a frame_texture generates a depth texture")
+       RETURNS(tree, "The ID of the depth texture"))

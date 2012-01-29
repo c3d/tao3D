@@ -1,7 +1,224 @@
-﻿Change log for Tao Presentations
---------------------------------
+Change log for Tao Presentations
 
-1.0-beta6
+1.0 (27-Jan-2012)
+
+#1884 Wrong edition name: rename Creative to Creativity
+#1881 When a license for a module is not available, link to the Taodyne site with a search query
+#1880 When a license for a module is not available, show a warning and not an error
+#1879 Force tag update during module update
+#1878 Adjust initial size of preference dialog
+#1877 Module downloaded from a tao: URL may show incorrect version
+#1876 Module download fails with "Download failed: Failed to start"
+
+1.0-rc1 (25-Jan-2012)
+
+#1875 TaoVisuals: no english documentation
+#1874 Changing camera_to_screen affects all frame textures
+#1873 StereoDecoder: no english documentation
+#1871 Adjust all templates in Tao
+#1870 Show Tao edition on welcome screen
+#1862 Discovery should not disable download of documents and modules
+#1860 Shading documentation
+#1858 Unlicensed modules and Tao should allow normal usage for a few minutes
+#1857 "Save with fonts..." does not save fonts
+#1855 The spacecraft of the "movie" template does not move fast enough
+#1854 Wrong camera settings for template "materials"
+#1851 "Save As" does not save complete document
+#1850 frame_texture_with_depth is not documented
+#1849 Application should warn about licences about to expire
+#1848 No "invalid license file" error when digest is missing
+#1847 "Save" menu in "Discovery" version
+#1845 Help application high CPU usage when Tao Presentation is closed
+#1841 Missing licenses for DigitalClock and SlideShow modules
+#1840 It is difficult to add a license file when starting Creative for the first time
+#1839 Licensing: host ID not detected on 64-bit Windows
+#1811 Crash in load_text with XL.ddd presentation
+#1720 Sphere and cube mapping cause an error of shader set
+
+1.0-pre1 (17-Jan-2012)
+
+#1838 Modularize revolving texts
+#1836 Translate pan and zoom template into french
+#1814 Modularize 3D carousel
+#1812 F1 in source editor should open contextual help
+#1810 Camera focal length changes with camera position
+#1806 Node-locked licensing
+#1805 Shading: warm and cool colors are inverted
+#1803 Include the module SDK only in the Tao Impress package
+#1789 Update XLR reference document
+#1780 Improve french translations of some menu items
+#1779 Materials: GL error 1281 and no more material texture when switching to quad buffer stereo
+#1776 Creating a document with name containing spaces results in error (Linux, MacOSX)
+#1774 old_camera_settings should be executed once
+#1772 Sparks module: sparks_color swaps green and blue components
+#1765 License files are deleted when Tao is uninstalled
+#1764 Some GUI elements are not translated into French
+#1758 Animate: Support presentation remotes ("presenters") out-of-the-box
+#1757 Simplify and reorganize the top-level page of our documentation
+#1755 Double lines in simple cube
+#1748 zNear and zFar are not correctly reset when opening a document
+#1718 Use QT Assistant as a custom help viewer
+#1717 display_set parsing precedence needs to be below :=
+#1716 2D-Plus-Depth display: add support for 2D-plus-Depth movies in the background
+#1712 2D-plus-Depth doesn't show contents of frame_texture
+#1711 Simplify syntax of plastic material
+#1709 Quit command has disappeared from command chooser menu
+#1708 VLCAudioVideo: image flashes when movie is paused
+#1707 VLCAudioVideo: add loop mode (movie_set_loop)
+#1706 Add stereo_viewpoints feature
+#1705 Add StereoDecoder module to decode some stereoscopic formats
+#1704 Remove 'step' being an infix, replace with 'by'
+#1701 Welcome screen for v1.0
+#1698 Licence check for glow shader module
+#1696 YouCube in stereoscopic mode shows bogus texture on the background
+#1694 Optimise camera settings for "natural" 3D look
+#1693 Only inside of cone is illuminated
+#1690 Lens flare issues when using show to make objects almost transparent
+#1680 MovieCredits: use frame_texture to make mc_star_wars_crawl faster
+#1678 Add page duration management in Animate module
+#1668 Keyboard modifiers not refreshed properly
+#1660 Avoid loading multiple modules if there are more than one with the same name
+#1659 Add mipmap support to reduce aliasing artifacts on 2D textures
+#1601 GL error when starting Tao on OSX Lion
+#1641 Bad eye displacement when camera is not along the default axis
+#1612 Implement independent license checks for features
+#1593 Add texture_mode primitive to define how multitexturing combinations happen
+#1592 Shader based lighting crashes on ATI cards
+#1587 VLCAudioVideo: video playback hangs and subsequently hangs Tao
+#1417 MacOSX: Error "SshAskPass cannot be opened" (dyld: Library not loaded: QtGui)
+#1270 import "file.xl" does not look for file in same directory as importing file
+#918  "File not found" when path on command line is not absolute
+#491  Items in insert menu should be disabled if document is read-only
+
+1.0-beta11 (08-Nov-2011)
+
+#1584 Add YouCube template
+#1576 Include the module SDK in the Tao package
+#1567 Windows: Tao keeps reloading document although files have not changed
+#1564 MacOSX: frequent hang during verification of modules
+#1558 Manipulators don't work any more on 3d shapes
+#1551 Module preference icon remains disabled
+#1529 Shaders in filters module work only with first texture unit
+#1523 Improve support for various video formats across platforms (VLCAudioVideo module)
+#1522 No error message when shader file is not found
+#1521 Windows: crash on image insertion on welcome screen
+#1432 Impossible to ungroup items
+#1350 Create a module for audio and video playback (AudioVideo)
+#1330 Document display module primitives
+#313  Group bounding box always includes 0,0
+
+1.0-beta10 (19-Oct-2011)
+
+#1528 Add wireframe mode in object loader module (use color, line_color and line_width)
+#1525 Files not erased when creating a blank template
+#1524 Improve performance of movie and movie_texture
+#1515 Preference dialog: remove Close button on Mac
+#1514 Make preferences dialog non-modal
+#1512 ObjectLoader: make use of VBOs configurable
+#1511 Add Performances section to preference dialog
+#1508 Implement shader-based per-pixel lighting
+#1506 Crash when loading of large 3D object file completes
+#1505 ObjectLoader: use VBOs when available for better performance with large models
+#1503 GL error 1281 when opening file on the command line
+#1502 Normals are not correctly specified for polygon shape
+
+1.0-beta9 (04-Oct-2011)
+
+#1496 Offscreen rendering crash when using sidebysidestereo display mode
+#1495 Frame packing display
+#1493 Add selection time in timing statistics
+#1489 Animate module: interpolate_yangle rotates along z
+#1469 Checkerboard display module
+#1466 Disable "Save for next run" button once debug settings are saved
+#1464 Big slowdown on mouse move on some scene showing a 3D object with shader in active_widget
+#1463 Simplify module version
+#1462 Windows: files with accented characters not reloaded automatically when changed
+#1455 Require OpenGL 2.0 and Frame Buffer Objects to run
+#1453 Additive mode for displaying pictures
+#1452 Command chooser search ignores space key
+#1451 Empty text box is not empty
+#1444 Licence installation (.taokey file)
+#1435 Selection rectangle flashes in pan and zoom template
+#1431 Crash on "Send to back"
+#1429 Crash when moving table
+#1407 Switching off the last light does not disable lighting
+#1403 Sphere with transparency incorrectly rendered
+#1397 Add template and documentation for Glow module
+#1322 Windows: crash on startup
+#1241 Add support for module download
+#1161 TeX Gyre Adventor font doesn't show up
+#1123 Optimize shape drawing
+
+1.0-beta8 (19-Sep-2011)
+
+#1439 Recent file list not updated
+#1438 Mouse position not correctly tracked in anaglyph mode
+#1437 Incorrect source code highlighting for selected object
+#1436 Simple slides template: missing titles
+#1428 frame_texture not visible
+#1427 Add Sparks module and template
+#1425 Add template and documentation for Sinuous module
+#1424 mouse_x and mouse_y return wrong values during drag
+#1423 Materials: wood doesn't display correctly on 2D shapes
+#1422 Shader modules Monjori and Flares do not support texture_transform
+#1420 Write documentation for module Flares
+#1419 Write documentation for module Monjori
+#1406 Crash when changing shape color
+#1405 Crash in ~VideoSurface on Tao closing
+#1402 Way to disable ObjectLoader transformations
+#1400 Add frame_texture_with_depth to get depth out of a frame_texture
+#1399 Text in frame_texture on dark background always has a visible lighter border
+#1392 Make get_world_coordinates more usable
+#1391 on_click doesn't work when selection rectangle is disabled
+#1386 Statistics bug: some drawing time is counted as execution time
+#1383 Show GC statistics in the FPS display
+#1382 Gradients are not resized correctly
+#1381 Crash on Linux when displaying through VNC
+#1378 Crash when a function has the same name as a variable
+#1377 Upgrade to Qt 4.7.4
+#1182 ObjectLoader: current color/material properties ignored
+
+1.0-beta7 (07-Sep-2011)
+
+#1375 Add flying balls template (glass/metal demo)
+#1373 Add support for anaglyph display
+#1371 WARNING: Tree [error...] was not compiled
+#1370 NULL-deref crash when evaluation misses a case
+#1366 Document movie and movie_texture
+#1349 movie and movie_texture: video not animated if layout doe not depend on time
+#1346 movie and movie_texture do not accept absolute, relative or qualified paths but only URLs
+#1344 Crash on text flow name duplication
+#1341 Windows: open URI: folder selection dialog shows same path with forward and backward slashes
+#1340 Document enable_selection_rectangle primitive
+#1338 Gradient features : bad memory management and crash risk
+#1336 Licence checking mechanism
+#1335 Add a template for materials module
+#1333 View toolbar inactive after switching to stereoscopic display (quad buffer)
+#1329 Add some procedural textures to materials module
+#1327 Module API: add function to get framebuffer object depth as a texture
+#1326 text rendering: Underline remains after font change
+#1323 Preserve bullet lists when copying/pasting from HTML into a text_box
+#1317 "Toggle hand cursor" appears twice in command menu
+#1312 ObjectLoader: no error message when file is not found
+#1311 camera_position causes implicit refresh_on TimerEvent
+#1310 Improve color documentation
+#1308 Linux: Impossible to use ObjectLoader module due to undefined symbol __glewUseProgram
+#1305 z_near and z_far should be documented with camera settings
+#1304 Warning in documentations concerning mapping must be specified for all effects
+#1303 Bug with mixed color in cube mapping
+#1296 Sinuous shader for sinusoidal color patterns
+#1295 Add primitive enable_selection_rectangle
+#1293 Add get_world_coordinates to get Z position at given mouse coordinates
+#1292 Documentation bug: description of mouse coordinates
+#1290 Add primitives that give mouse position in screen coordinates (screen_mouse_x and screen_mouse_y)
+#1288 Add primitive enable_mouse_cursor to show/hide mouse pointer
+#1283 Windows: can't open file with accented characters in the path
+#1165 Textures disappearing when texture_transform with scale is used
+#1151 Closing window does not quit application if document contains movie_texture
+#1043 Add text_span and para_span primitives
+#970  Windows: syntax errors sometimes cause an application crash
+
+1.0-beta6 (17-Aug-2011)
 
 #1287 mouse_buttons doesn't deal with release events
 #1281 Windows: Double clicking a .ddd file or clicking tao: URL should not start a new process
@@ -27,7 +244,7 @@
 #338  Extra space added at end of lines when saving document
 #336  Empty first line added when saving document
 
-1.0-beta5
+1.0-beta5 (08-Aug-2011)
 
 #1246 Documentation: add link to youtube tutorial
 #1245 Allow selection of a template by double-clicking
@@ -38,7 +255,7 @@
 #1223 Crash when selecting View > Display mode menu
 #1217 Crash on frame texture
 
-1.0-beta4
+1.0-beta4 (30-Jul-2011)
 
 #1212 Blank screen on file open
 #1209 Add skip_directly_to
@@ -93,13 +310,13 @@
 #723  Can't do offline rendering of 3D stereoscopic video
 #396  Add linear, radial and conical gradient
 
-1.0-beta3.14
+1.0-beta3.14 (15-Jun-2011)
 
 #1087 Movies don't restart when the slide restarts
 #1086 MacOSX: command chooser is slow
 #1083 Vertical split : eyes are swapped by default
 
-1.0-beta3
+1.0-beta3 (09-Jun-2011)
 
 #1082 Add search box to module list
 #1081 3D Object Loader module: upgrade GLC_Lib to 2.1.0
@@ -116,7 +333,7 @@
 #1020 Chooser doesn't match é and e
 #1005 page_thumbnail not refreshed
 
-1.0-beta2
+1.0-beta2 (20-May-2011)
 
 #1065 Time not shown on page 9 of Pigs Fly template
 #1063 Splash screen: "All rights reserved" not translated into french
@@ -140,4 +357,4 @@
 #1002 Serious display bug on latest Macs
 #879 Ctrl-S does not save file if source editor has focus
 
-1.0-beta
+1.0-beta (06-May-2011)

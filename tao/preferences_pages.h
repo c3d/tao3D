@@ -33,6 +33,8 @@ class QStackedWidget;
 class QProgressBar;
 class QComboBox;
 class QLabel;
+class QPushButton;
+class QRadioButton;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -77,6 +79,10 @@ private slots:
     void         toggleTrace(bool on);
     void         enableAllTraces();
     void         disableAllTraces();
+    void         saveClicked();
+
+private:
+    QPushButton *save;
 };
 
 
@@ -95,14 +101,12 @@ public:
 private slots:
     void         toggleModule();
     void         findUpdates();
-    void         onCFUComplete();
+    void         onCFUComplete(bool updatesAvailable);
     void         endCheckForUpdate();
     void         updateOne();
-    void         onUpdateOneComplete();
+    void         onUpdateOneComplete(bool success);
     void         onCellClicked(int row, int col);
     void         doSearch();
-
-private:
     void         updateTable();
 
 private:
@@ -111,10 +115,50 @@ private:
     QTableWidget *                           table;
     QLineEdit *                              search;
     QStackedWidget *                         sw;
+    QLabel *                                 lb;
     QProgressBar *                           pb;
     bool                                     findUpdatesInProgress;
 };
 #endif // !CFG_NOMODPREF
+
+
+class PerformancesPage : public QWidget
+// ----------------------------------------------------------------------------
+//   Show OpenGL information and allow configuration of performance parameters
+// ----------------------------------------------------------------------------
+{
+
+    Q_OBJECT
+
+public:
+    PerformancesPage(QWidget *parent = 0);
+
+public:
+    static bool    perPixelLighting();
+    static bool    VSync();
+    static int     texture2DMinFilter();
+    static int     texture2DMagFilter();
+
+protected slots:
+    void           setPerPixelLighting(bool on);
+    void           setVSync(bool on);
+    void           setTexture2DMinFilter(int value);
+    void           texture2DMinFilterChanged(int index);
+    void           setTexture2DMagFilter(int value);
+    void           texture2DMagFilterChanged(int index);
+
+protected:
+    static bool    perPixelLightingDefault();
+    static bool    VSyncDefault();
+    static int     texture2DMinFilterDefault();
+    static int     texture2DMagFilterDefault();
+
+protected:
+    QRadioButton * lightFixed;
+    QRadioButton * lightVShader;
+    QRadioButton * lightFShader;
+    QComboBox    * magCombo, * minCombo;
+};
 
 }
 

@@ -12,7 +12,17 @@ Here is a step-by-tep guide.
 - Install the latest Qt SDK from http://qt.nokia.com.
   Select the "LGPL" download and install it. Keep the default options.
   Remember the installation directory, you will have to add it to your PATH.
-  For instance for Qt 4.7.2, the default path is C:\Qt\2010.05.
+  For instance C:\Qt\2010.05.
+
+  In addition you can install the latest Qt Creator and Qt libraries (if
+  they are more recent than the ones included in the full SDK, wich is often
+  the case).
+
+  a) Qt Creator is something like: qt-creator-win-opensource-2.3.0.exe
+  b) The Qt libraries are distributed as: qt-win-opensource-4.7.4-mingw.exe
+     When you install newer libraries and tools you need to update your PATH
+     so that the libraries package (/c/Qt/4.7.4/bin) comes before the Qt SDK
+     (see the export PATH line below in .profile).
 
 - Install msysgit from http://code.google.com/p/msysgit/downloads/list
   You should pick the "Full installer (self-contained)" version to get a
@@ -24,14 +34,14 @@ Here is a step-by-tep guide.
   the instruction to create a shortcut on the desktop: type:
   $ /share/msysGit/add-shortcut.tcl Desktop
 
-- Optional: install doxygen (to compile the Tao documentation).
+- Recommended: install Doxygen (to compile the Tao documentation).
   http://www.stack.nl/~dimitri/doxygen/download.html
   Then make sure the "doxygen" command is in your Windows PATH.
 
 - Start the msysgit bash shell (use the desktop shortcut).
   cd $HOME. Create the file $HOME/.profile with the following line:
 
-  export PATH=/c/llvm/bin:/c/Python27:/c/Qt/2010.05/mingw/bin:/c/Qt/2010.05/qt/bin:$PATH
+  export PATH=/c/llvm/bin:/c/Python27:/c/Qt/4.7.4/bin:/c/Qt/2010.05/mingw/bin:/c/Qt/2010.05/qt/bin:$PATH
 
   Note:
   * /c/llvm/bin is where you will install LLVM (see below). LLVM is required
@@ -41,6 +51,11 @@ Here is a step-by-tep guide.
     to build Tao Presentations.
   * /c/Qt/2010.05/qt/bin is for Tao Presentations to find the Qt DLLs
     (useful to start Tao directly from the command line).
+
+- You can check if all is well Qt-wise with:
+    $ qmake --version
+    QMake version 2.01a
+    Using Qt version 4.7.4 in C:\Qt\4.7.4\lib
 
 - Download and install Python 2.7 from http://python.org/.
 
@@ -68,48 +83,23 @@ Here is a step-by-tep guide.
 
 - Build Tao
   $ cd ~/tao
-  $ qmake -r -spec win32-g++  # append 'CONFIG+=release' for a releas build
-  $ make -j2 install  # will put the application under the "install" directory
-
-- Optional: configure Qt Creator to build and run Tao from the Qt Creator IDE.
-  This is not needed if you are OK with building from the command line.
-  * Open main.pro
-  * Update PATH (in Projects/Build Settings/Build Environment):
-    prepend C:\llvm\bin;C:\msysgit\msysgit\bin;C:\msysgit\msysgit\mingw\lib
-    With this PATH, Qt Creator will be able to find llvm-config, bash, git.
-  * Change the default make specification to use:
-    C:\msysgit\msysgit\mingw\bin\mingw32-make.exe
-  * Set application and application current directory in
-    Projects/Run Settings: the application is Tao.exe under the install
-    directory. So, before you can run Tao you must execute the "install"
-    target.
+  $ ./configure
+  Then,
+  $ make          # Build Tao
+  or
+  $ make install  # Build Tao and install in ./install
 
 - Optional: install the Nullsoft Scriptable Install System (NSIS) from
   http://nsis.sourceforge.net/Download.
   Not needed if you don't want to create an installer (taosetup.exe).
   Once NSIS is installed you can build the installer with:
-  $ cd packaging/win
-  $ make kit
+  $ make kit  # Build Tao and create installer in ./packaging/win
 
 *** MacOSX ***
 
-x86_64 build (64 bit)
-
-  - Configure LLVM as follows:
-    $ ./configure --enable-optimized  # will install in /usr/local
-    $ make -j3
-    $ sudo make install
-  - Configure Tao as follows:
-    $ export PATH=/usr/local/bin:$PATH
-    $ qmake -r -spec macx-g++  # append 'CONFIG+=release' for release
-    $ make -j3 install
-    $ cd packaging/macosx
-    $ make kit
-
-x86 build (32 bit)
-
 Configure and build LLVM as follows (will install in
-~/work/inst/llvm, use a different path if you wish):
+~/work/inst/llvm, use a different path if you wish, default is
+/usr/local):
     $ ./configure --prefix=$HOME/work/inst/llvm \
         --enable-optimized \
         UNIVERSAL=1 \
@@ -128,34 +118,47 @@ Configure and build LLVM as follows (will install in
         DARWIN_VERSION=10.5
   - Configure and build Tao as follows:
     $ export PATH=~/work/inst/llvm/bin:$PATH
-    $ qmake -r -spec macx-g++ CONFIG+=x86 # append 'CONFIG+=release' for release
-    $ make -j3 install
-    $ cd packaging/macosx
-    $ make kit
+    $ ./configure
+    Then,
+    $ make          # Build Tao
+    or
+    $ make install  # Build Tao and install in ./install
+    or
+    $ make kit      # Build Tao and create .dmg in ./packaging/macosx
 
 Valgrind usage
 
 Install valgrind (version > 3.6.0)
   $ sudo port install valgrind
 
-Build Tao whiteout Git repository
-  $ qmake -r DEFINES+=CFG_NOGIT 
-  $ make -j3 install
+Build Tao without Git repository
+  $ ./configure DEFINES+=CFG_NOGIT 
+  $ make install
 
 Launch Tao with valgrind (it is very very slow)
   $ valgrind -q --tool=memcheck --suppressions=~/Work/tao/taoValgrindSupp.txt --dsymutil=yes  ~/Work/tao/install/Tao\ Presentations.app/Contents/MacOS/Tao\ Presentations
 
 *** Linux ***
 
-Prerequisites to build Tao: Qt 4.7.2, LLVM 2.9, libxss-dev.
+Prerequisites to build Tao: Qt 4.7.4, LLVM 2.9, libxss-dev.
+We provide instructions for Ubuntu (11.04) but other distributions should work,
+too.
 
- - Building Qt 4.7.2 from sources (qt-everywhere-opensource-src-4.7.2.tar.gz)
+ - You may install the full Qt distribution and libxss-dev with:
+   $ sudo apt-get install qtcreator libxss-dev
+   You still need to build LLVM from sources as explained below since version
+   2.9 is not currently (August 2011) available pre-packaged.
+   The full Qt distribution does not always include the latest Qt libraries, so
+   you may want to get them separately and build them (see next point).
+ - Building Qt 4.7.4 from sources (qt-everywhere-opensource-src-4.7.4.tar.gz)
    Make sure you have the following packages (they do not come with the
    default install of Ubuntu 11.04):
-     libx11-dev, libgstreamer0.10-dev, libglib2.0-dev, libphonon-dev,
-     libfontconfig1-dev
+   $ sudo apt-get install libx11-dev libgstreamer0.10-dev \
+        libgstreamer-plugins-base0.10-dev \
+        libglib2.0-dev \
+        libphonon-dev libfontconfig1-dev libxrender-dev
    Configure Qt with:
-   $ ./configure --opensource
+   $ ./configure --opensource --enable-phonon
    $ make -j3
    $ sudo make install
  - Building LLVM from sources:
@@ -164,9 +167,15 @@ Prerequisites to build Tao: Qt 4.7.2, LLVM 2.9, libxss-dev.
      $ ./configure --enable-optimized  # will install in /usr/local
      $ make -j3
      $ sudo make install
+ - Install Doxygen:
+   $ sudo apt-get install doxygen
  - Configure and build Tao as follows:
-   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.2/bin:$PATH
-   $ qmake -r # append 'CONFIG+=release' for release
-   $ make -j3 install
-   $ cd packaging/linux
-   $ make kit
+   $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.4/bin:$PATH
+   $ ./configure
+   Then,
+   $ make          # Build everything
+   or
+   $ make install  # Build and install in ./install
+   or
+   $ make kit      # Build and create installer in ./packaging/linux
+

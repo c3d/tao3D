@@ -22,15 +22,17 @@ TEMPLATE = app
 INC = . \
     include \
     include/tao \
-    xlr/xlr/include
+    xlr/xlr/include \
+    ../libcryptopp \
+    ../keygen
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
-LIBS += -L../libxlr/\$(DESTDIR) -lxlr
+LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
 QT += webkit \
     network \
     opengl \
-    svg \
-    phonon
+    svg
+CONFIG += help
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -47,7 +49,7 @@ macx {
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
     RC_FILE  = tao.rc
-    LIBS += -limagehlp
+    LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
     LIBS += -lXss
@@ -58,6 +60,9 @@ HEADERS += widget.h \
     include/tao/tao_gl.h \
     window.h \
     application.h \
+    init_cleanup.h \
+    licence.h \
+    decryption.h \
     frame.h \
     svg.h \
     texture.h \
@@ -92,7 +97,7 @@ HEADERS += widget.h \
     process.h \
     repository.h \
     git_backend.h \
-    tao_utf8.h \
+    include/tao/tao_utf8.h \
     tao_tree.h \
     font.h \
     drag.h \
@@ -125,7 +130,10 @@ HEADERS += widget.h \
     statistics.h \
     gc_thread.h \
     info_trash_can.h \
-    destination_folder_dialog.h
+    destination_folder_dialog.h \
+    assistant.h \
+    license_dialog.h \
+    include/tao/tao_info.h
 
 SOURCES += tao_main.cpp \
     widget.cpp \
@@ -160,6 +168,7 @@ SOURCES += tao_main.cpp \
     repository.cpp \
     git_backend.cpp \
     application.cpp \
+    init_cleanup.cpp \
     font.cpp \
     drag.cpp \
     error_message_dialog.cpp \
@@ -188,6 +197,8 @@ SOURCES += tao_main.cpp \
     statistics.cpp \
     gc_thread.cpp \
     info_trash_can.cpp \
+    assistant.cpp \
+    license_dialog.cpp \
     destination_folder_dialog.cpp
 
 win32 {
@@ -198,7 +209,7 @@ win32 {
 # Check compile-time options
 
 contains(DEFINES, CFG_NOGIT) {
-    message("Document history and sharing with Git is disabled")
+    !build_pass:message("Document history and sharing with Git is disabled")
 } else {
     HEADERS += \
         ansi_textedit.h \
@@ -219,13 +230,11 @@ contains(DEFINES, CFG_NOGIT) {
         history_playback.h \
         history_playback_tool.h \
         merge_dialog.h \
-        open_uri_dialog.h \
         pull_from_dialog.h \
         push_dialog.h \
         remote_selection_frame.h \
         selective_undo_dialog.h \
-        undo.h \
-        uri.h
+        undo.h
     SOURCES += \
         ansi_textedit.cpp \
         branch_selection_combobox.cpp \
@@ -245,29 +254,38 @@ contains(DEFINES, CFG_NOGIT) {
         history_playback.cpp \
         history_playback_tool.cpp \
         merge_dialog.cpp \
-        open_uri_dialog.cpp \
         pull_from_dialog.cpp \
         push_dialog.cpp \
         remote_selection_frame.cpp \
         selective_undo_dialog.cpp \
-        undo.cpp \
-        uri.cpp
+        undo.cpp
     FORMS += \
         pull_from_dialog.ui \
         remote_selection_frame.ui \
         clone_dialog.ui \
         merge_dialog.ui \
         history_dialog.ui \
-        open_uri_dialog.ui \
         fetch_push_dialog.ui \
         history_frame.ui \
         diff_dialog.ui
 }
+contains(DEFINES, CFG_NONETWORK) {
+    !build_pass:message("File>Open Nework and opening URIs (docs, templates, modules) is disabled")
+} else {
+    HEADERS += \
+        open_uri_dialog.h \
+        uri.h
+    SOURCES += \
+        open_uri_dialog.cpp \
+        uri.cpp
+    FORMS += \
+        open_uri_dialog.ui
+}
 contains(DEFINES, CFG_NOSTEREO) {
-    message("Stereoscopic display support is disabled")
+    !build_pass:message("Stereoscopic display support is disabled")
 }
 contains(DEFINES, CFG_NOSRCEDIT) {
-    message("Document source editor is disabled")
+    !build_pass:message("Document source editor is disabled")
 } else {
     HEADERS += \
         xl_source_edit.h \
@@ -276,9 +294,21 @@ contains(DEFINES, CFG_NOSRCEDIT) {
         xl_source_edit.cpp \
         xl_highlighter.cpp
 }
-
+contains(DEFINES, CFG_NORELOAD) {
+    !build_pass:message("Automatic document reload is disabled")
+}
+contains(DEFINES, CFG_NOEDIT) {
+    !build_pass:message("Editing functions are disabled (Edit, Insert, Format, Arrange, Share, Save, Save As, Save Fonts, Consolidate)")
+}
+contains(DEFINES, CFG_NOFULLSCREEN) {
+    !build_pass:message("Full screen (slideshow) mode is disabled")
+}
+contains(DEFINES, CFG_NOMODULEUPDATE) {
+    !build_pass:message("Module update is disabled")
+}
 CXXTBL_SOURCES += graphics.cpp \
     formulas.cpp
+NOWARN_SOURCES += licence.cpp decryption.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -290,8 +320,7 @@ CXXTBL_SOURCES += graphics.cpp \
 macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     !contains(DEFINES, CFG_NODISPLAYLINK):LIBS += -framework CoreVideo
-    LIBS += -framework \
-        ApplicationServices \
+    LIBS += -framework ApplicationServices -framework Foundation \
         -Wl,-macosx_version_min,10.5 \
         -Wl,-rpath,@executable_path/../Frameworks \
         -Wl,-rpath,$$QMAKE_LIBDIR_QT
@@ -306,23 +335,38 @@ RESOURCES += tao.qrc
 
 # Files loaded at runtime
 SUPPORT_FILES = xlr/xlr/builtins.xl \
-    tao.xl \
     tao_fr.xl \
     xl.syntax \
+    C.syntax \
     xl.stylesheet \
     git.stylesheet \
     nocomment.stylesheet \
-    debug.stylesheet \
-    welcome.ddd
+    debug.stylesheet
 
 # Other files to show in the Qt Creator interface
 OTHER_FILES +=  \
+    licence.cpp \
+    decryption.cpp \
+    tao.xl.in \
     $${SUPPORT_FILES} \
     traces.tbl \
     graphics.tbl \
+    attributes.tbl \
+    shapes.tbl \
+    shapes3d.tbl \
+    manipulator.tbl \
+    transforms.tbl \
+    text_drawing.tbl \
+    table.tbl \
+    widget_surface.tbl \
+    chooser.tbl \
+    frame.tbl \
+    lighting.tbl \
     Info.plist.in \
     html/module_info_dialog.html \
-    html/module_info_dialog_fr.html
+    html/module_info_dialog_fr.html \
+    tao_fr.ts \
+    welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     render_to_file_dialog.ui \
@@ -332,7 +376,7 @@ FORMS += error_message_dialog.ui \
 QMAKE_CLEAN += version.h
 PRE_TARGETDEPS += version.h
 revtarget.target = version.h
-revtarget.commands = ./updaterev.sh
+revtarget.commands = ./updaterev.sh "$${TAO_EDITION}"
 revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS
@@ -346,9 +390,27 @@ changelog.commands = cp ../NEWS .
 changelog.depends = ../NEWS
 QMAKE_EXTRA_TARGETS += changelog
 
+# Pre-processing of tao.xl.in to obtain tao.xl
+# preprocessor.pl comes from http://software.hixie.ch/utilities/unix/preprocessor/
+!system(perl -e "exit"):error("Can't execute perl")
+DEFS = $$join(DEFINES, " -D", " -D")
+tao_xl.target = tao.xl
+tao_xl.commands = perl preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
+tao_xl.files = tao.xl
+tao_xl.path = $$APPINST
+tao_xl.depends = tao.xl.in
+INSTALLS += tao_xl
+QMAKE_EXTRA_TARGETS += tao_xl
+QMAKE_CLEAN += tao.xl
+
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
+
+welcome.path  = $$APPINST/welcome
+welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+INSTALLS += welcome
+
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
 fonts.files = fonts/*
@@ -365,17 +427,22 @@ macx {
   INSTALLS   += target
 }
 
+# Create license directory
+licdir.commands = mkdir -p \"$${APPINST}/licenses\"
+licdir.path = .
+licdir.depends = FORCE
+INSTALLS += licdir
 
 TRANSLATIONS = tao_fr.ts
-
-lupdate.commands = lupdate -verbose tao.pro
-lupdate.depends  = FORCE
-QMAKE_EXTRA_TARGETS += lupdate
-
-lrelease.commands = lrelease tao.pro
-lrelease.depends  = FORCE
-QMAKE_EXTRA_TARGETS += lrelease
-
+include(../translations.pri)
 translations.path = $$APPINST
 translations.files = *.qm
 INSTALLS += translations
+
+qttranslations.path = $$APPINST
+qttranslations.files = $$[QT_INSTALL_TRANSLATIONS]/qt_fr.qm $$[QT_INSTALL_TRANSLATIONS]/qt_help_fr.qm
+INSTALLS += qttranslations
+
+shaders.path = $$APPINST$
+shaders.files = lighting.vs lighting.fs
+INSTALLS += shaders

@@ -1,9 +1,41 @@
+// ****************************************************************************
+//  mapping.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of some texture mapping methods with Tao Presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Mapping
-import "mapping.xl"
+
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
 
 page "Alpha Mapping",
 // ----------------------------------------------------------------------------
-//   Alpha mapping
+//    Simulate transparent or translucent areas in an 3D object
 // ----------------------------------------------------------------------------
     background 1.0
     title
@@ -31,7 +63,7 @@ page "Alpha Mapping",
 
 page "Normal Mapping",
 // ----------------------------------------------------------------------------
-//   Normal mapping
+//    Fake the lighting of bumps and dents on an object
 // ----------------------------------------------------------------------------
     background 1.0
     title
@@ -47,13 +79,13 @@ page "Normal Mapping",
     map_highlight -150, -100, "normalMap.jpg"
     at_step 5
     mapping
-    at_step 6
     locally
         white_light 0, 0, 50
         material_ambient 0.3, 0.3, 0.3, 1
         material_diffuse 1.0, 1.0, 1.0, 1.0
         material_specular 0.3, 0.3, 0.3, 1.0
         material_shininess 70
+        at_step 6
         color "white"
         texture_unit 0
         texture "face.jpg"
@@ -63,10 +95,38 @@ page "Normal Mapping",
         normal_mapping
         rectangle 0, 0, 300, 300
 
+page "Displacement Mapping",
+// ----------------------------------------------------------------------------
+//    Modify geometry of an object in order to add details
+// ----------------------------------------------------------------------------
+    background 1.0
+    title
+    contents 100, 0,
+        at_step 1
+        +"A color map on texture unit 0"
+    at_step 2
+    map_highlight -120, 100, "colorMap.png"
+    contents 100, -200,
+        at_step 3
+        +"A displacement map on texture unit 1"
+    at_step 4
+    map_highlight -120, -100, "displacementMap.png"
+    at_step 5
+    mapping
+    locally
+        at_step 6
+        color "white"
+        texture_unit 0
+        texture "colorMap.png"
+        texture_unit 1
+        texture "displacementMap.png"
+        result_highlight 400, 0
+        displacement_mapping 100 * exp (-5 * (highest_step - smooth_step) ^ 2)
+        plane 0, 0, 300, 300, 150, 150
 
 page "Noise Mapping",
 // ----------------------------------------------------------------------------
-//   Noise mapping
+//    Add some noise on an objet
 // ----------------------------------------------------------------------------
     background 1.0
     title
@@ -92,10 +152,9 @@ page "Noise Mapping",
         noise_mapping 3 * sin time
         rectangle 0, 0, 300, 300
 
-
 page "Sphere Mapping",
 // ----------------------------------------------------------------------------
-//   Sphere mapping
+//   Simulate environment reflection with a sphere map
 // ----------------------------------------------------------------------------
     background 1.0
     title
@@ -121,9 +180,10 @@ page "Sphere Mapping",
         sphere_mapping 0.2
         sphere 0, 0, 0, 300
 
+
 page "Cube Mapping",
 // ----------------------------------------------------------------------------
-//   Reflection mapping
+//    Simulate environment reflection with a six-sided cube as the map shape﻿
 // ----------------------------------------------------------------------------
     background 1.0
     title
@@ -170,4 +230,3 @@ page "Cube Mapping",
             cube_map_face 5, "back.bmp"
         cube_mapping 0.3
         torus 0, 0, 0, 300, 300, 300, 40, 40, 0.5
-

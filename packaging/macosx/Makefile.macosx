@@ -8,6 +8,7 @@
 #   - Standard Tao modules
 #   - All the files loaded by Tao at runtime (XL definitions,
 #     fonts, etc.)
+#   - The module SDK
 #
 # To build the package, this Makefile goes through the following
 # steps:
@@ -49,7 +50,7 @@
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
-GIT_VERSION=1.7.2.2
+GIT_VERSION=1.7.8.4
 
 ########
 
@@ -62,14 +63,21 @@ define git-makeparms
 NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
 
-kit: tao.dmg
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
+endif
+DMG=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
-tao.dmg: tmp.dmg
-	rm -f $@
-	hdiutil convert -format UDBZ -o $@ tmp.dmg
+kit: .dmg_ts
+
+tao.dmg .dmg_ts: tmp.dmg
+	rm -f tao.dmg
+	hdiutil convert -format UDBZ -o tao.dmg tmp.dmg
 	[ "$(K)" ] || rm -f tmp.dmg
+	mv tao.dmg "$(DMG)"
+	touch .dmg_ts
 
-prepare: .tao_install_ts .git_install_ts .cp_template_ts
+prepare: .tao_install_ts .git_install_ts .cp_template_ts .cp_sdk_ts
 
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: prepare
@@ -78,12 +86,12 @@ tmp.dmg: prepare
 	SetFile -a C "/Volumes/Tao Presentations"
 	hdiutil detach "/Volumes/Tao Presentations"
 
-clean: clean.git clean.tao clean.dmg
+clean: clean.git clean.tao clean.dmg clean.cp_sdk
 
 veryclean: clean veryclean.git
 
 clean.dmg: clean.cp_template
-	rm -f tao.dmg tmp.dmg
+	rm -f tao.dmg tmp.dmg .dmg "Tao Presentations"*.dmg
 
 ########
 
@@ -95,6 +103,20 @@ clean.dmg: clean.cp_template
 
 clean.cp_template:
 	rm -f .cp_template_ts
+
+########
+
+.cp_sdk_ts:
+ifndef NO_SDK
+	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
+	$(MAKE) -C ../.. -f Makefile.sdk
+	cp -Rp ../../sdk "build_root/Tao Presentations.app/Contents/MacOS"
+	touch $@
+endif
+
+clean.cp_sdk:
+	rm -rf "build_root/Tao Presentations.app/Contents/MacOS/sdk"
+	rm -f .cp_sdk_ts
 
 ########
 
@@ -115,7 +137,7 @@ clean.tao_install_deps:
 
 .tao_install_prog_ts:
 	mkdir -p build_root
-	cd ../.. && make install
+	cd ../.. && $(MAKE) install
 	cp -Rp $(INSTROOT)/* build_root
 
 clean.tao_install_prog:
@@ -130,7 +152,7 @@ clean.tao: clean.tao_install
 ########
 
 .git_install_ts: .git_build_ts
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
 	rm -rf $(GIT_DEST) ; mkdir -p "$(GIT_DEST)"
 	mv $(GIT_DESTDIR)/usr/local/* "$(GIT_DEST)"
 	touch $@
@@ -142,8 +164,8 @@ clean.git_install:
 ########
 
 .git_build_ts: .git_extract_ts
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms)
-	make -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms)
+	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) strip
 	touch .git_build_ts
 
 clean.git_build:
@@ -151,8 +173,8 @@ clean.git_build:
 
 ########
 
-.git_extract_ts: .git_download_ts
-	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar jxf git-$(GIT_VERSION).tar.bz2 )
+.git_extract_ts: git_build/git-$(GIT_VERSION).tar.gz
+	[ -d git_build/git-$(GIT_VERSION) ] || ( cd git_build ; tar zxf git-$(GIT_VERSION).tar.gz )
 	touch $@
 
 clean.git_extract:
@@ -161,14 +183,12 @@ clean.git_extract:
 
 ########
 
-.git_download_ts:
+git_build/git-$(GIT_VERSION).tar.gz:
 	[ -d git_build ] || mkdir -p git_build
-	[ -f git_build/git-$(GIT_VERSION).tar.bz2 ] || ( cd git_build ; curl -O http://kernel.org/pub/software/scm/git/git-$(GIT_VERSION).tar.bz2 )
-	touch $@
+	[ -f git_build/git-$(GIT_VERSION).tar.gz ] || ( cd git_build ; curl -O http://git-core.googlecode.com/files/git-$(GIT_VERSION).tar.gz )
 
 clean.git_download:
-	rm -rf git_build/git-$(GIT_VERSION).tar.bz2
-	rm -f .git_download_ts
+	rm -rf git_build/git-$(GIT_VERSION).tar.gz
 
 ########
 

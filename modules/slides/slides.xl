@@ -169,9 +169,11 @@ title_font_family       "Seyes" -> font "Dancing Script"
 story_font_family       "Seyes" -> font "Dancing Script"
 bullet_text_font_family "Seyes", Level:integer -> font "Dancing Script"
 
-seyes_theme_purple -> "#261060"
-bullet_color      "Seyes", Level:integer -> color seyes_theme_purple
-bullet_line_color "Seyes", Level:integer -> line_color seyes_theme_purple
+seyes_theme_purple  -> "#261060"  // Inc color
+seyes_theme_magenta -> "#DC029D"  // Left margin color
+seyes_theme_blue    -> "#4D87B3"  // Paper line color
+bullet_color      "Seyes", Level:integer -> color seyes_theme_blue
+bullet_line_color "Seyes", Level:integer -> line_color seyes_theme_blue
 title_color       "Seyes"                -> color seyes_theme_purple
 story_color       "Seyes", Level:integer -> color seyes_theme_purple
 bullet_text_color "Seyes"                -> color seyes_theme_purple
@@ -179,6 +181,8 @@ bullet_text_color "Seyes"                -> color seyes_theme_purple
 story_bg_rect_w "Seyes" -> (22.0/28.0) * slide_width
 
 story_bg_rect_x "Seyes" -> ( 2.0/28.0) * slide_width
+
+title_bg_rect_h "Seyes" -> ( 3.1/21.0) * slide_height
 
 title_bg_rect "Seyes" ->
 // ----------------------------------------------------------------------------
@@ -243,7 +247,7 @@ title_font_size Theme:text ->
 // ----------------------------------------------------------------------------
 //   Default font size for titles
 // ----------------------------------------------------------------------------
-    font_size 84
+    font_size 80
 
 
 title_font_weight Theme:text ->
@@ -331,7 +335,7 @@ title_bg_rect_h Theme:text ->
 // ----------------------------------------------------------------------------
 //    Height of the title background rectangle
 // ----------------------------------------------------------------------------
-    (2.7/21.0) * slide_height
+    (2.9/21.0) * slide_height
 
 
 title_bg_rect_x Theme:text ->
@@ -545,9 +549,9 @@ zoom_contents_for_window ->
 //   Additional scaling to make sure nothing shows outside of the window
 // ----------------------------------------------------------------------------
     if window_width / window_height > slide_width / slide_height then
-        scale_contents 1.03 * window_width / window_height * slide_height / slide_width
+        scale_contents 1.1 * window_width / window_height * slide_height / slide_width
     else
-        scale_contents 1.03 * window_height / window_width * slide_width / slide_height
+        scale_contents 1.1 * window_height / window_width * slide_width / slide_height
 
 
 stretch_contents_to_window ->

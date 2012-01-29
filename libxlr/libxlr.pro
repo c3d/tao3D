@@ -60,7 +60,8 @@ HEADERS += \
     ../tao/xlr/xlr/include/traces_base.h \
     ../tao/xlr/xlr/include/tree.h \
     ../tao/xlr/xlr/include/types.h \
-    ../tao/xlr/xlr/include/utf8.h
+    ../tao/xlr/xlr/include/utf8.h \
+    ../tao/xlr/xlr/utf8_fileutils.h
 
 SOURCES += \
     ../tao/xlr/xlr/flight_recorder.cpp \
@@ -121,11 +122,15 @@ LLVM_DEF = $$system(bash -c \"llvm-config --cppflags | sed \'s/-I[^ ]*//g\' | se
 INCLUDEPATH += $$LLVM_INC
 LIBS += $$LLVM_LIBS
 DEFINES += $$LLVM_DEF
+# Bug#1430
+# LLVM_DEF adds NDEBUG when LLVM is a release build.
+# We don't want this flag in our debug build.
+CONFIG(debug, debug|release):DEFINES -= NDEBUG
 
 target.path = $$LIBINST
 INSTALLS    = target
 
 # Compile with valgrind hooks by default
-contains(DEFINES, NVALGRIND):message(Compiling libxlr without Valgrind hooks)
+!build_pass:contains(DEFINES, NVALGRIND):message(Compiling libxlr without Valgrind hooks)
 
 macx:QMAKE_LFLAGS_SONAME = -install_name$${LITERAL_WHITESPACE}@rpath/

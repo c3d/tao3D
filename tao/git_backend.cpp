@@ -61,6 +61,7 @@ GitRepository::GitRepository(const QString &path)
 {
     connect(&cdvTimer, SIGNAL(timeout()), this, SLOT(clearCachedDocVersion()));
     cdvTimer.start(5000);
+    checkGit();
 }
 
 
@@ -69,17 +70,21 @@ bool GitRepository::checkGit()
 //   Return true if Git is functional, and set the git commands accordingly
 // ----------------------------------------------------------------------------
 {
-    bool ok;
-    ok = checkGitCmd();
+    static bool checked = false, ok = false;
+    if (!checked)
+    {
+        checked = true;
+        ok = checkGitCmd();
 #ifdef CONFIG_MACOSX
-    ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
-                        "SSH_ASKPASS", sshAskPassCommand);
+        ok = ok && checkCmd("SshAskPass.app/Contents/MacOS/SshAskPass",
+                            "SSH_ASKPASS", sshAskPassCommand);
 #else
-    ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
+        ok = ok && checkCmd("SshAskPass", "SSH_ASKPASS", sshAskPassCommand);
 #endif
 #ifdef CONFIG_MINGW
-    ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
+        ok = ok && checkCmd("detach.exe", "TAO_DETACH", detachCommand);
 #endif
+    }
     return ok;
 }
 
@@ -754,14 +759,15 @@ void GitRepository::checkCurrentBranch()
 // ----------------------------------------------------------------------------
 {
     QString head = path + "/.git/HEAD";
-    struct stat st;
-    if (stat((+head).c_str(), &st) < 0)
+    QFileInfo fi(head);
+    if (!fi.isReadable())
         return;
+    time_t mtime = fi.lastModified().toTime_t();
     if (currentBranchMtime == 0)
-        currentBranchMtime = st.st_mtime;
-    if (st.st_mtime <= currentBranchMtime)
+        currentBranchMtime = mtime;
+    if (mtime <= currentBranchMtime)
         return;
-    currentBranchMtime = st.st_mtime;
+    currentBranchMtime = mtime;
     emit branchChanged(+branch());
 }
 
@@ -1137,13 +1143,15 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
 }
 
 
-process_p GitRepository::asyncFetch(QString what)
+process_p GitRepository::asyncFetch(QString what, bool forcetags)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will download latest changes from a remote project
 // ----------------------------------------------------------------------------
 {
     QStringList args;
     args << "fetch" << what;
+    if (forcetags)
+        args << "--tags"; // Overwrite local tag with remote with same name
     GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
@@ -1208,6 +1216,42 @@ text GitRepository::version()
 }
 
 
+text GitRepository::versionTag()
+// ----------------------------------------------------------------------------
+//    If HEAD is a tag, return it.
+// ----------------------------------------------------------------------------
+{
+    text    output, result = +QString(tr("Unknown"));
+    waitForAsyncProcessCompletion();
+    QStringList args;
+    args << "describe" << "--tags" << "--exact-match";
+    GitProcess cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
+    if (ok)
+        result = output;
+    return result;
+}
+
+
+text GitRepository::head()
+// ----------------------------------------------------------------------------
+//    Return a unique identifier for the current repo state (HEAD SHA-1)
+// ----------------------------------------------------------------------------
+{
+    text output, result;
+    waitForAsyncProcessCompletion();
+    QStringList args;
+    args << "rev-parse" << "HEAD";
+    GitProcess cmd(command(), args, path);
+    bool    ok = cmd.done(&errors, &output);
+    output = +(+output).trimmed();
+    if (ok)
+        result = output;
+    return result;
+}
+
+
 bool GitRepository::isClean()
 // ----------------------------------------------------------------------------
 //    Is working directory is clean or dirty?
@@ -1264,6 +1308,10 @@ bool GitRepository::pathIsRoot()
 //    Return true if path used to open repository is the top-level directory
 // ----------------------------------------------------------------------------
 {
+#if defined(Q_OS_MACX)
+    // Workaround bug#657
+    QCoreApplication::processEvents();
+#endif
     return (QDir(path + "/.git").exists());
 }
 

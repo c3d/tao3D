@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "application.h"
+#include "init_cleanup.h"
 #include "widget.h"
 #include "repository.h"
 #include "tao_utf8.h"
@@ -39,6 +40,9 @@
 #include "display_driver.h"
 #include "gc_thread.h"
 #include "text_drawing.h"
+#include "licence.h"
+#include "version.h"
+#include "preferences_pages.h"
 
 #include <QString>
 #include <QSettings>
@@ -51,6 +55,7 @@
 #include <QtWebKit>
 #include <QProcessEnvironment>
 #include <QStringList>
+
 
 #if defined(CONFIG_MINGW)
 #include <windows.h>
@@ -69,7 +74,7 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::constructorsList[LAST] = { "ATI Technologies Inc.", "Nvidia Inc.", "Intel Inc." };
+text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -77,10 +82,13 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
+      maxTextureCoords(0), maxTextureUnits(0),
+      startDir(QDir::currentPath()),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
       appInitialized(false)
+
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -107,13 +115,11 @@ Application::Application(int & argc, char ** argv)
     lang = QLocale().name().left(2);
     lang = QSettings().value("uiLanguage", lang).toString();
     if (translator.load(QString("tao_") + lang, applicationDirPath()))
-    {
         installTranslator(&translator);
-        QString path = QLibraryInfo::location(QLibraryInfo::TranslationsPath);
-        QString file = QString("qt_") + lang;
-        if (qtTranslator.load(file, path))
-            installTranslator(&qtTranslator);
-    }
+    if (qtTranslator.load(QString("qt_") + lang, applicationDirPath()))
+        installTranslator(&qtTranslator);
+    if (qtHelpTranslator.load(QString("qt_help_")+ lang, applicationDirPath()))
+        installTranslator(&qtHelpTranslator);
 
     // Set current directory
     QDir::setCurrent(applicationDirPath());
@@ -134,15 +140,6 @@ Application::Application(int & argc, char ** argv)
         cmdLineArguments.contains("-nogit"))
         RepositoryFactory::no_repo = true;
 
-    // Show splash screen
-    if (showSplash)
-    {
-        splash = new SplashScreen();
-        splash->show();
-        splash->raise();
-        QApplication::processEvents();
-    }
-
     // Setup the XL runtime environment
     // Do it soon because debug traces are activated by this
     XL_INIT_TRACES();
@@ -156,13 +153,37 @@ Application::Application(int & argc, char ** argv)
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
-                              
+
+    // Load licenses
+    QList<QDir> dirs;
+    dirs << QDir(Application::userLicenseFolderPath())
+         << QDir(Application::appLicenseFolderPath());
+    foreach (QDir dir, dirs)
+    {
+        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                                   QDir::Files);
+        Licences::AddLicenceFiles(licences);
+    }
+
+    // Check main application licence
+    if (!Licences::Check(TAO_LICENCE_STR, true))
+        ::exit(15);
+
+    // Show splash screen
+    if (showSplash)
+    {
+        splash = new SplashScreen();
+        splash->show();
+        splash->raise();
+        QApplication::processEvents();
+    }
+
     // Now time to install the "persistent" error handler
     install_first_exception_handler();
 
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();
-    EnterGraphics();
+    Initialize();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
@@ -196,19 +217,37 @@ Application::Application(int & argc, char ** argv)
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
+    // Basic sanity tests to check if we can actually run
+    if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
+    {
+        QMessageBox::warning(NULL, tr("OpenGL support"),
+                             tr("This system doesn't support OpenGL 2.0."));
+        ::exit(1);
+    }
+    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
+    {
+        QMessageBox::warning(NULL, tr("FBO support"),
+                             tr("This system doesn't support Frame Buffer "
+                                "Objects."));
+        ::exit(1);
+    }
+
+    useShaderLighting = PerformancesPage::perPixelLighting();
+    tex2DMinFilter = PerformancesPage::texture2DMinFilter();
+    tex2DMagFilter = PerformancesPage::texture2DMagFilter();
 
     {
         QGLWidget gl;
         gl.makeCurrent();
 
         // Ask graphic card constructor to OpenGL
-        text vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
-        // Search in constructors list
+        // Search in vendors list
         for(int i = 0; i < LAST; i++)
         {
-            if(! vendor.compare(constructorsList[i]))
+            if(! GLVendor.compare(vendorsList[i]))
             {
                 vendorNum = i;
                 break;
@@ -217,11 +256,10 @@ Application::Application(int & argc, char ** argv)
 
         switch(vendorNum)
         {
-        case 0: constructorCards = ATI; break;
-        case 1: constructorCards = NVIDIA; break;
-        case 2: constructorCards = INTEL; break;
+        case 0: vendorID = ATI; break;
+        case 1: vendorID = NVIDIA; break;
+        case 2: vendorID = INTEL; break;
         }
-
 
         const GLubyte *str;
         // Get OpenGL supported version
@@ -232,28 +270,16 @@ Application::Application(int & argc, char ** argv)
         str = glGetString(GL_EXTENSIONS);
         GLExtensionsAvailable = (const char*) str;
 
+        // Get OpenGL renderer (GPU)
+        str = glGetString(GL_RENDERER);
+        GLRenderer = (const char*) str;
+
         // Get number of maximum texture units and coords in fragment shaders
         // (texture units are limited to 4 otherwise)
         glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
         glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
-    // Basic sanity tests to check if we can actually run
-    if (!QGLFormat::hasOpenGL())
-    {
-        QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL."));
-        exit(1);
-    }
-    if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
-    {
-        // Check frame buffer support (non-fatal)
-        ErrorMessageDialog dialog;
-        dialog.setWindowTitle(tr("Framebuffer support"));
-        dialog.showMessage(tr("This system does not support framebuffers."
-                              " Performance may not be optimal."
-                              " Consider updating the OpenGL drivers."));
-    }
     {
         QGLWidget gl(QGLFormat(QGL::StereoBuffers));
         hasGLStereoBuffers = gl.format().stereo();
@@ -322,6 +348,9 @@ Application::Application(int & argc, char ** argv)
     if (XL::MAIN->options.enable_modules)
         checkModules();
 
+    // Record application start time (licensing)
+    startTime = Widget::trueCurrentTime();
+
     // We're ready to go
     appInitialized = true;
     if (!savedUri.isEmpty())
@@ -355,9 +384,12 @@ void Application::checkModules()
     moduleManager = ModuleManager::moduleManager();
     connect(moduleManager, SIGNAL(checking(QString)),
             this, SLOT(checkingModule(QString)));
+    connect(moduleManager, SIGNAL(updating(QString)),
+            this, SLOT(updatingModule(QString)));
     moduleManager->init();
-    // Load only auto-load modules (the ones that do not have an import_name)
-    moduleManager->loadAnonymousNative(XL::MAIN->context);
+    // Load and initialize only auto-load modules (the ones that do not have an
+    // import_name, or have the auto_load property set)
+    moduleManager->loadAutoLoadModules(XL::MAIN->context);
 }
 
 
@@ -369,6 +401,19 @@ void Application::checkingModule(QString name)
     if (splash)
     {
         QString msg = QString(tr("Checking modules [%1]")).arg(name);
+        splash->showMessage(msg);
+    }
+}
+
+
+void Application::updatingModule(QString name)
+// ----------------------------------------------------------------------------
+//   Show module being updated
+// ----------------------------------------------------------------------------
+{
+    if (splash)
+    {
+        QString msg = QString(tr("Updating modules [%1]")).arg(name);
         splash->showMessage(msg);
     }
 }
@@ -397,7 +442,7 @@ bool Application::processCommandLine()
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo tutorial  ("system:welcome.ddd");
+    QFileInfo tutorial  ("system:welcome/welcome.ddd");
 
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
@@ -415,6 +460,8 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
+        if (!QFileInfo(sourceFile).isAbsolute())
+            sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
         {
@@ -425,6 +472,10 @@ bool Application::processCommandLine()
         window->deleteOnOpenFailed = true;
         connect(window, SIGNAL(openFinished(bool)),
                 this, SLOT(onOpenFinished(bool)));
+#if defined(Q_OS_MACX)
+        // BUG#1503
+        window->show();
+#endif
         int st = window->open(sourceFile);
         window->markChanged(false);
         switch (st)
@@ -557,6 +608,17 @@ void Application::onOpenFinished(bool ok)
         splash->close();
         splash->deleteLater();
         splash = NULL;
+        Window * win = findFirstTaoWindow();
+        if (win && win->isUntitled)
+        {
+            // E.g., start Tao by clicking on a module or template link,
+            // or give a template / module URL on the command line.
+            // Load welcome screen now
+            QFileInfo tutorial("system:welcome/welcome.ddd");
+            QString tuto = tutorial.canonicalFilePath();
+            win->setWindowModified(false); // Prevent "Save?" question
+            win->open(tuto, true);
+        }
         emit allWindowsReady();
     }
 }
@@ -620,6 +682,21 @@ void Application::blockScreenSaver(bool block)
 #elif defined(CONFIG_LINUX)
         XScreenSaverSuspend(xDisplay, False);
 #endif
+    }
+}
+
+
+void Application::enableVSync(bool on)
+// ----------------------------------------------------------------------------
+//   Propagate VSync setting to all Tao widgets
+// ----------------------------------------------------------------------------
+{
+    Window *window = NULL;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        window = dynamic_cast<Window *>(widget);
+        if (window)
+            window->taoWidget->enableVSync(NULL, on);
     }
 }
 
@@ -854,37 +931,13 @@ QString Application::defaultProjectFolderPath()
 }
 
 
-QString Application::appDataPath()
-// ----------------------------------------------------------------------------
-//    Try to guess the best user preference folder to use by default
-// ----------------------------------------------------------------------------
-{
-#if   defined (CONFIG_MACOSX)
-    return QDir::homePath() + "/Library/Application Support";
-#elif defined (CONFIG_MINGW)
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    QString path = env.value("APPDATA");
-    if (path != "")
-        return path;
-#endif
-
-    // Default would be home itself
-    return QDir::toNativeSeparators(QDir::homePath());
-}
-
-
 QString Application::defaultTaoPreferencesFolderPath()
 // ----------------------------------------------------------------------------
 //    The folder proposed to find user.xl, style.xl, etc...
 //    (user preferences for tao application)
 // ----------------------------------------------------------------------------
 {
-#if   defined (CONFIG_LINUX)
-    QString tao = "/.tao";
-#else // Win, MacOS
-    QString tao = "/Tao Presentations";
-#endif
-    return QDir::toNativeSeparators(appDataPath() + tao);
+    return QDesktopServices::storageLocation(QDesktopServices::DataLocation);
 }
 
 
@@ -903,6 +956,28 @@ QString Application::defaultTaoFontsFolderPath()
 // ----------------------------------------------------------------------------
 {
     return QDir::toNativeSeparators(applicationDirPath()+"/fonts");
+}
+
+
+QString Application::appLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    Licences packaged with the application
+// ----------------------------------------------------------------------------
+{
+    return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
+}
+
+
+QString Application::userLicenseFolderPath()
+// ----------------------------------------------------------------------------
+//    User licences (persist even when Tao is uninstalled/upgraded)
+// ----------------------------------------------------------------------------
+{
+    // Create folder if it does not exist
+    QDir dir(defaultTaoPreferencesFolderPath()+"/licenses");
+    if (!dir.exists())
+        dir.mkpath(dir.absolutePath());
+    return QDir::toNativeSeparators(dir.absolutePath());
 }
 
 
@@ -953,13 +1028,21 @@ bool Application::createDefaultProjectFolder()
     return QDir().mkdir(defaultProjectFolderPath());
 }
 
-
 bool Application::createDefaultTaoPrefFolder()
 // ----------------------------------------------------------------------------
 //    Create Tao folder in user's preference folder.
 // ----------------------------------------------------------------------------
 {
     return QDir().mkdir(defaultTaoPreferencesFolderPath());
+}
+
+
+double Application::runTime()
+// ----------------------------------------------------------------------------
+//   The number of seconds since Tao was started
+// ----------------------------------------------------------------------------
+{
+    return (Widget::trueCurrentTime() - TaoApp->startTime);
 }
 
 

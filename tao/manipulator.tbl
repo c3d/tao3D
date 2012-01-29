@@ -1,0 +1,60 @@
+// ****************************************************************************
+//  manipulator.tbl                                                 Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Description of shape manipulators written in C++
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+PREFIX(EnableMouseCursor,  boolean,  "enable_mouse_cursor",
+       PARM(on, boolean, "true or false"),
+       RTAO(enableMouseCursor(self, on)),
+       GROUP()
+       SYNOPSIS("Enable or disable the mouse cursor (pointer)")
+       DESCRIPTION("Shows or hide the mouse cursor. "
+                   "The mouse remains operational.")
+       RETURNS(boolean, "True if previous state was on."))
+PREFIX(EnableSelection, boolean, "enable_selection_rectangle",
+       PARM(sre, boolean, "Enable selection rectangle"),
+       RTAO(enableSelectionRectangle(self, sre)), )
+PREFIX(ShapeAction,  tree,  "on",
+       PARM(action_name, text, "The action name")
+       PARM(action_code, code, "The code to execute"),
+       RTAO(shapeAction(self,action_name,action_code)),
+       GROUP(mouse)
+       SYNOPSIS("Associate the specified code to the named action.")
+       DESCRIPTION("Associate the specified code to the named action. "
+                   "This code is then executed when the action occurs on "
+                   "the current shape."))
+PREFIX(ShapeClickAction,  tree,  "on_click",
+       PARM(t,code, "The code to execute"),
+       RTAO(shapeAction(self,"click",t)),
+       GROUP(mouse)
+       SYNOPSIS("Associate code with click.")
+       DESCRIPTION("Associate the specified code to the click"))
+PREFIX(ShapeMouseoverAction,  tree,  "on_mouseover",
+       PARM(t,code, "The code to execute"),
+       RTAO(shapeAction(self,"mouseover",t)),
+       GROUP(mouse)
+       SYNOPSIS("Associate code with mouse over")
+       DESCRIPTION("Associate the specified code to the mouse over"))
+PREFIX(ShapeMouseReleaseAction,  tree,  "on_release",
+       PARM(t,code, "The code to execute"),
+       RTAO(shapeAction(self,"release",t)),
+       GROUP(mouse)
+       SYNOPSIS("Associate code with mouse over")
+       DESCRIPTION("Associate the specified code to the mouse over"))

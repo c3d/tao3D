@@ -24,6 +24,7 @@
 #include "xl_source_edit.h"
 #include "xl_highlighter.h"
 #include "tao_utf8.h"
+#include "assistant.h"
 #include <QScrollBar>
 #include <QEvent>
 #include <QKeyEvent>
@@ -59,17 +60,6 @@ XLSourceEdit::~XLSourceEdit()
 {
     delete highlighter;
     delete renderer;
-}
-
-
-QString XLSourceEdit::workaroundRendererBugs(QString txt)
-// ----------------------------------------------------------------------------
-//   Workaround for some XL rendering issues (#336, #338)
-// ----------------------------------------------------------------------------
-{
-    return txt.replace(QRegExp("^\n"), "")
-              .replace(QRegExp(" \n"), "\n")
-              .replace(QRegExp(" $"), "");
 }
 
 
@@ -142,7 +132,7 @@ void XLSourceEdit::render(XL::Tree_p prog, std::set<XL::Tree_p> *selected)
     setSelectedRanges(sel);
 
     txt = rendererOut.str();
-    setPlainTextKeepCursor(workaroundRendererBugs(+txt));
+    setPlainTextKeepCursor(+txt);
 }
 
 
@@ -164,6 +154,10 @@ bool XLSourceEdit::event(QEvent *e)
                 done = handleShiftTabKey(ke);
             else
                 done = handleTabKey(ke);
+        }
+        else if (ke->key() == Qt::Key_F1)
+        {
+            done = handleF1Key(ke);
         }
         if (done)
             return done;
@@ -188,6 +182,20 @@ bool XLSourceEdit::handleShiftTabKey(QKeyEvent *)
 // ----------------------------------------------------------------------------
 {
     textCursor().insertText("\t");
+    return true;
+}
+
+
+bool XLSourceEdit::handleF1Key(QKeyEvent *)
+// ----------------------------------------------------------------------------
+//   Open help about the word under the cursor
+// ----------------------------------------------------------------------------
+{
+    QTextCursor tc = textCursor();
+    tc.select(QTextCursor::WordUnderCursor);
+    QString keyword = tc.selectedText();
+    if (!keyword.isEmpty())
+        Assistant::instance()->showKeywordHelp(keyword);
     return true;
 }
 

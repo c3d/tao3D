@@ -1,0 +1,132 @@
+// ****************************************************************************
+//  sparks.ddd                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//        Example of the sparks module adapted from
+//        a shader code written by Ashima Arts and Stefan Gustavson
+//        for the WebGL demo Sparks.
+//        For further informations, see LICENSE file in module directory
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
+import Sparks
+import Animate
+
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
+// Global window scaling
+window_scale -> min (window_width / 1408, window_height / 768)
+
+key "Return" -> goto_page page_name 1
+
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Sparks",
+// -------------------------------------------------
+//    Exemples of sparks effect
+// -------------------------------------------------
+    // Top right effect
+    scale window_scale, window_scale, 1
+    locally
+        color 1.0, 1.0, 1.0, 1.0
+        sparks_color 0.1, 0.1, 0.1, 1.0
+        sparks page_time * 0.5, 0.55, 0.55
+        rectangle -300, 200, 300, 300
+    // Top left effect
+    locally
+        color 0.0, 0.0, 0.0, 1.0
+        sparks_color 1.0, 1.0, 1.0, 1.0
+        sparks page_time * 0.1, 1.0, 1.0
+        rectangle 300, 200, 300, 300
+    // Bottom right effect
+    locally
+        color 0.5, 0.7, 1.0, 1.0
+        sparks_color 0.1, 0.1, 0.1, 1.0
+        sparks page_time * 0.1, 0.05, 0.05
+        rectangle -300, -200, 300, 300
+    // Bottom left effect
+    locally
+        color 1.0, 1.0, 0.0, 1.0
+        sparks_color 1.0, 0.1, 0.1, 1.0
+        sparks page_time * 0.3, 0.15, 0.15
+        rectangle 300, -200, 300, 300
+    compute_smooth_step
+    locally
+        show fade_between (page_time, 1.0, 4.0)
+        color 0.1, 0.1, 0.1, 0.8
+        fullscreen_quad
+        text_box 0, 0, window_width * 75%, window_height,
+            color "white"
+            line_color "black"
+            line_width 1
+            font "Ubuntu", 72 * (window_width / 1200)
+            vertical_align_center
+            align_center
+            description_text tao_language
+
+page "Full screen",
+// -------------------------------------------------
+//    Full screen effect
+// -------------------------------------------------
+    compute_smooth_step
+    locally
+        color 1.0 * abs (cos (time * 0.1)), 1.0, 1.0 * abs (sin (time * 0.1)), 1.0
+        sparks_color 0.1, 0.1, 0.1, 1.0
+        sparks page_time * 0.1, 0.05, 0.05
+        rectangle 0, 0, window_width, window_height
+
+
+// ============================================================================
+//
+//                                   HELP
+//
+// ============================================================================
+
+
+description_text "fr" ->
+// -------------------------------------------------
+//    French help
+// -------------------------------------------------
+    text "Effets obtenus grâce à un shader GLSL appelé "
+    italic
+    text "Sparks"
+    plain
+    text "écrit par Ashima Arts."
+
+description_text T:text ->
+// -------------------------------------------------
+//    English help
+// -------------------------------------------------
+    text "Effects drawn by a GLSL shader called "
+    italic
+    text "Sparks"
+    paragraph_break
+    plain
+    text "written by Ashima Arts."

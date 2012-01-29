@@ -19,24 +19,37 @@
        slides           \
        animate          \
        filters          \
-       render_to_texture\
        shading          \
        materials        \
        lens_flare       \
        mapping          \
+       display_anaglyph \
        display_quadstereo \
        display_splitstereo \
        display_intstereo \
        display_alioscopy \
+       display_checkerboard \
+       display_2dplusdepth \
        shaders/monjori  \
        shaders/flares  \
-       slideshow_3d
+       shaders/sinuous \
+       shaders/sparks  \
+       shaders/glow  \
+       slideshow_3d \
+       vlc_audio_video \
+       stereo_decoder \
+       carousel \
+       revolving_texts
     OTHER_MODULES =     \
+        audio_video \
         hello_world     \
-        taoTester
+        netaccess        \
+        taoTester    \
+        tao_synchro
 } else {
-    # We're building inside the Tao SDK. Only some modules are available.
-    DEFAULT_MODULES = hello_world lorem_ipsum object_loader
+    # We're building inside the Tao SDK: default modules = all sub-directories
+    LSOUT=$$system(ls)
+    for(f, LSOUT):exists($${f}/$${f}.pro):DEFAULT_MODULES += $$f
     OTHER_MODULES =
 }
 

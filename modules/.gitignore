@@ -6,3 +6,10 @@ lib*.dylib
 lib*.so
 lib*.so.*
 *.dll
+*.taokey
+*.xl.bin
+*.xl.crypt
+*/doc/Doxyfile
+*/doc/output/
+*/*/doc/Doxyfile
+*/*/doc/output/

@@ -59,6 +59,7 @@ module_description
     author "XYZ company"
     website "http://greatmodule.xyz.com/"
     import_name "GreatModule"
+    auto_load "true"
 
 module_init
     // Some XL code that will be evaluated on init
@@ -91,8 +92,18 @@ import_name [Optional]
 The name to use if the module is to be explicitely imported. That is, if
 import_name is "MyModule", the module can be imported with:
   import MyModule 1.0
-If import_name is not present or empty, the module is loaded at application
-startup. Otherwise, it is loaded on demand.
+If import_name is not present or empty, the module is loaded and initialized
+at application startup (typical for display modules).
+Otherwise, it is loaded on demand.
+
+auto_load [Optional]
+If import_name is present and not empty, the module is normally loaded,
+initialized (module_init) and imported (enter_symbols) only when the document
+calls "import ModuleName". By setting auto_load to a non-empty string, you
+tell the application to load and initialize the module on startup, then to
+wait for an import statement to actually import the new XL symbols.
+
+
 
  2.2 Internationalization
 
@@ -175,7 +186,7 @@ development version);
 (3) The remote name "origin" must be a valid repository and must have at
 least one tag (annotated or not);
 (4) The highest local tag must be strictly lower than the highest remote
-tag. Comparison is performed by ModuleManager::parseVersion().
+tag.
 
   6.2. Maintaining a module repository
 
@@ -270,6 +281,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include <QLibrary>
 #include <QDir>
 #include <QTextStream>
+#include <QTranslator>
 #include <iostream>
 
 
@@ -296,19 +308,20 @@ public:
     {
         ModuleInfoPrivate() : ModuleInfo(), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false)
+            native(NULL), context(NULL), inError(false), show_preferences(NULL)
             {}
         ModuleInfoPrivate(text id, text path = "", bool enabled = false)
             : ModuleInfo(id, path), enabled(enabled), loaded(false),
               updateAvailable(false), hasNative(false),
-              native(NULL), context(NULL), inError(false)
+              native(NULL), context(NULL), inError(false),
+              show_preferences(NULL)
             {}
 
         // Configuration attributes
         bool    enabled;
 
         // Runtime attributes
-        text    latest;
+        double  latest;
         // loaded is set to true when xl file is imported and
         //           set to false when xl file is unloaded
         bool    loaded;
@@ -321,6 +334,10 @@ public:
         XL::Context_p context;
         bool    inError;
         QString source; // .xl content, non-null only after full text search
+        module_preferences_fn show_preferences;
+        QTranslator * translator;
+        // Module documentation files, may be empty
+        QStringList qchFiles;
 
         bool operator==(const ModuleInfoPrivate &o) const
         {
@@ -376,6 +393,8 @@ public:
         {
             if ((+name).contains(keyword))
                 return true;
+            if ((+importName).contains(keyword))
+                return true;
             if ((+desc).contains(keyword))
                 return true;
             if (searchSource)
@@ -398,12 +417,14 @@ public:
 
     bool                init();
     bool                loadAll(Context *context);
-    bool                loadAnonymousNative(Context *context);
+    bool                loadAutoLoadModules(Context *context);
     QStringList                anonymousXL();
     QList<ModuleInfoPrivate>   allModules();
     void                setEnabled(QString id, bool enabled);
     bool                enabled() { return XL::MAIN->options.enable_modules; }
+    bool                enabled(QString importName);
     bool                saveConfig();
+    void                refreshModuleProperties(QString moduleDir);
 
     virtual bool        askRemove(const ModuleInfoPrivate &m,
                                   QString reason = "");
@@ -415,9 +436,16 @@ public:
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);
+    static bool         versionGreaterOrEqual(text ver, text ref);
+    static bool         versionMatches(double ver, double ref);
+    bool                hasPendingUpdate(QString moduleDir);
+    QString             latestTag(QString moduleDir);
+    QStringList         qchFiles();
 
 signals:
     void                checking(QString name);
+    void                updating(QString name);
+    void                modulesChanged();
 
 private:
     ModuleManager()  {}
@@ -478,6 +506,7 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfoPrivate>   newModules(QString parentDir);
     ModuleInfoPrivate          readModule(QString moduleDir);
+    bool                applyPendingUpdate(const ModuleInfoPrivate &m);
     QString             gitVersion(QString moduleDir);
 
     Tree *              parse(QString xlPath);

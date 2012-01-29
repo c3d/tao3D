@@ -26,6 +26,7 @@
 #include "text_drawing.h"
 #include "gl_keepers.h"
 #include "runtime.h"
+#include "statistics.h"
 #include <QtGui>
 #include <string.h>
 
@@ -73,6 +74,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
     GLuint parentId      = 0;
     int    hits          = 0;
 
+    widget->stats.begin(Statistics::SELECT);
+
     GLuint *buffer = new GLuint[capacity];
     memset(buffer, 0, capacity * sizeof(GLuint));
     glSelectBuffer(capacity, buffer);
@@ -104,7 +107,6 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
             uint    size    = ptr[0];
             GLuint *selPtr  = ptr + 3;
             GLuint *selNext = selPtr + size;
-
             if (ptr[3] && ptr[1] <= depth)
             {
                 depth = ptr[1];
@@ -145,6 +147,8 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
         *parentPtr = parentId;
 
     selected &= Widget::SELECTION_MASK;
+
+    widget->stats.end(Statistics::SELECT);
 
     return selected;
 }
@@ -240,7 +244,6 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
             // Forward 'focus-in' to current item
             widget->focusId = current;
         }
-        widget->updateGL();
     }
     widget->shapeAction("mouseover", current, x, y);
 
@@ -364,9 +367,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     else
     {
         Idle();
-        Activity *next = this->next;
         delete this;
-        return next;
+        return the_next;
     }
 
 
@@ -470,9 +472,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
         if (selected)
             return new Drag(widget);
     }
-
-    return the_next;
-    //return NULL;                // We dealt with the event
+    return NULL;                // We dealt with the event
 }
 
 

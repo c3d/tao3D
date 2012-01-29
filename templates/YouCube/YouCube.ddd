@@ -1,0 +1,169 @@
+// ****************************************************************************
+//  YouCube.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//        Example displaying six YouTube videos on a rotating cube.
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
+import VLCAudioVideo
+import Animate
+
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
+AngleX -> 0.0
+SpeedX -> 1.0
+MouseX0 -> 0.0
+AngleY -> 0.0
+SpeedY -> 1.0
+MouseY0 -> 0.0
+
+key "Return" -> movie_only ""
+
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "YouCube Scrat!",
+// -------------------------------------------------
+//    Cube with videos from Ice Age
+// -------------------------------------------------
+    Scrat -> "http://youtube.com/watch?v=bKpPTq3-Qic"
+    Scrat2 -> "http://www.youtube.com/watch?v=RbsGWNXZ51I"
+    Scrat3 -> "http://www.youtube.com/watch?v=n0ykM1ALggE"
+    IceAge2 -> "http://www.youtube.com/watch?v=s0ITs4W3yjA"
+    IceAge3 -> "http://www.youtube.com/watch?v=dfjcECDxuy4"
+    IceAge4 -> "http://www.youtube.com/watch?v=A3FDoz7KWk8"
+    video_cube Scrat, Scrat2, Scrat3, IceAge2, IceAge3, IceAge4
+
+page "YouCube Descendeurs",
+// -------------------------------------------------
+//    Cube with Ski videos
+// -------------------------------------------------
+    Descente1 -> "http://www.youtube.com/watch?v=dHe_SNT-6BA"
+    Descente2 -> "http://www.youtube.com/watch?v=yu2kexdW3a8"
+    Descente3 -> "http://www.youtube.com/watch?v=PyD8NBwgbgQ"
+    Descente4 -> "http://www.youtube.com/watch?v=v83azZAa7Nw"
+    Descente5 -> "http://www.youtube.com/watch?v=gcs393efYmk"
+    Descente6 -> "http://www.youtube.com/watch?v=6jjigXExUP0"
+    video_cube Descente1, Descente2, Descente3, Descente4, Descente5, Descente6
+
+page "Stop",
+// -------------------------------------------------
+//    Page to stop all videos
+// -------------------------------------------------
+    movie_only ""
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
+play V:text, AX:real, AY:real, Pass:integer -> play V, AX, AY, Pass, 600, 310
+
+play V:text, AX:real, AY:real, Pass:integer, Size:real, Depth:real ->
+    dcos A:real -> cos (A * pi/180)
+    volume A:real -> 0.5 + 0.5 * dcos A
+
+    // We do this to draw back pictures before front pictures
+    if dcos(AngleX+AX) * dcos(AngleY+AY) * Pass > 0 then
+        locally
+            rotatey AY
+            rotatex AX
+            translatez Depth
+            locally
+                color "lightblue", 0.2
+                line_color "darkgrey", 0.2
+                line_width 3
+                rectangle 0, 0, Size, Size
+            locally
+                color "white"
+                if movie_time V > 0 and not movie_playing V then
+                    movie_drop V
+                movie_texture V 
+                movie_set_volume V, volume (AngleX+AX) * volume(AngleY+AY)
+                rectangle 0, 0, Size, Size * texture_height / (texture_width+1)
+            text_box 0, 0, Size, Size,
+                align_center
+                vertical_align_bottom
+                color "white"
+                font "Ubuntu", 20
+                text V 
+                line_break
+                text "Time=" & text movie_time V
+                text (if movie_playing V then " playing" else " not playing")
+                text (if movie_done V then " done" else " not done")
+
+video_cube V1:text, V2:text, V3:text, V4:text, V5:text, V6:text -> 
+    enable_selection_rectangle false
+    clear_color 0, 0, 0.1, 1
+
+    scale3 S:real -> scale S, S, S
+    scale3 window_height / 1200
+
+    if mouse_buttons <> 0 then
+        SpeedY := (mouse_x - MouseX0) * 0.01
+        SpeedX := (MouseY0 - mouse_y) * 0.01
+    else
+        MouseX0 := mouse_x
+        MouseY0 := mouse_y
+
+    if page_time < 0.2 then
+        movie_only ""
+
+    locally 
+        translate 300 * sin (0.05 * time) , 200 * cos (0.03317 * time) , -8000 
+        color "white", 0.3 
+        image 0, 0, 3, 3, "Clouds3.png" 
+
+    locally
+        translatez 1000
+        rotatex AngleX
+        rotatey AngleY
+
+        play V1, 0, 0, -1
+        play V2, 0, 90, -1
+        play V3, 0, 180, -1
+        play V4, 0, -90, -1
+        play V5, 90, 0, -1
+        play V6, -90, 0, -1
+
+        play V1, 0, 0, 1
+        play V2, 0, 90, 1
+        play V3, 0, 180, 1
+        play V4, 0, -90, 1
+        play V5, 90, 0, 1
+        play V6, -90, 0, 1
+
+    AngleX := AngleX + SpeedX
+    AngleY := AngleY + SpeedY
+    SpeedX := SpeedX * (sin AngleX * 0.5 + 0.5)
+    SpeedY := SpeedY * 0.95
+    time

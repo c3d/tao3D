@@ -51,9 +51,9 @@ protected:
 
     bool           handleTabKey(QKeyEvent *e);
     bool           handleShiftTabKey(QKeyEvent *e);
+    bool           handleF1Key(QKeyEvent *e);
     void           setPlainTextKeepCursor(const QString &txt);
     void           setSelectedRanges(const XL::stream_ranges &ranges);
-    QString        workaroundRendererBugs(QString txt);
 
 private:
     XLHighlighter *    highlighter;

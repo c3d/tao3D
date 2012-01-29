@@ -46,6 +46,7 @@ struct Drawing
 
     virtual void        Draw(Layout *);
     virtual void        DrawSelection(Layout *);
+    virtual void        Evaluate(Layout *);
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
@@ -61,6 +62,8 @@ struct Drawing
     virtual Drawing *   Break(BreakOrder &order, uint &size);
     virtual scale       TrailingSpaceSize(Layout *);
     virtual bool        IsAttribute();
+
+    virtual text        Type() = 0;
 
     static uint count;
 };

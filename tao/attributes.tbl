@@ -1,0 +1,299 @@
+// ****************************************************************************
+//  attributes.tbl                                                  Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Description of the individual shape attribute written in C++
+//     (e.g. x, y, z, width, color)
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//    Graphic attributes
+//
+// ============================================================================
+
+PREFIX(ClearColor,  tree,  "clear_color",
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(clearColor(self, r, g, b, a)),
+       GROUP()
+       SYNOPSIS("Set the background color")
+       DESCRIPTION("Set the background color"))
+PREFIX(MotionBlur, tree, "motion_blur",
+       PARM(f, real, "Amount of blur, between 0 and 1"),
+       RTAO(motionBlur(self, f)),
+       GROUP(page)
+       SYNOPSIS("Set the motion blur factor"))
+PREFIX(LineColorName,  tree,  "line_color",
+       PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
+       PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),
+       RTAO(lineColorName(self, n, a)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Set the line color")
+       DESCRIPTION("Set the color for lines."))
+PREFIX(LineColorRGB,  tree,  "line_color",
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(lineColorRgb(self, r, g, b, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(LineColorHSL,  tree,  "line_color_hsl",
+       PARM(h, real, )
+       PARM(s, real, )
+       PARM(l, real, )
+       PARM(a, real, ),
+       RTAO(lineColorHsl(self, h, s, l, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(LineColorHSV,  tree,  "line_color_hsv",
+       PARM(h, real, )
+       PARM(s, real, )
+       PARM(v, real, )
+       PARM(a, real, ),
+       RTAO(lineColorHsv(self, h, s, v, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(LineColorCMYK,  tree,  "line_color_cmyk",
+       PARM(c, real, )
+       PARM(m, real, )
+       PARM(y, real, )
+       PARM(k, real, )
+       PARM(a, real, ),
+       RTAO(lineColorCmyk(self, c, m, y, k, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(LineWidth,  tree,  "line_width",
+       PARM(lw, real, "The line width to set."),
+       RTAO(lineWidth(self, lw)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Select the line width for OpenGL")
+       DESCRIPTION("Set the line width for OpenGL"))
+PREFIX(LineStipple,  tree,  "line_stipple",
+       PARM(p, integer, "pattern [TODO: which value to which pattern ?]")
+       PARM(s, integer, "scale"),
+       RTAO(lineStipple(self, p, s)),
+       GROUP(graph:attribute)
+       SYNOPSIS("line stipple pattern")
+       DESCRIPTION("Select the line stipple pattern for OpenGL"))
+PREFIX(FillColorName,  tree,  "color",
+       PARM(n, text, "The name of the color, which can be one of the SVG color keywork names, or in one of these formats: #RGB or #RRGGBB  (each of R, G, and B being a single hex digit).")
+       PARM(a, real, "The red component of an color, is in the range 0.0 to 1.0."),
+       RTAO(fillColorName(self, n, a)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Set the fill color")
+       DESCRIPTION("Set the color for fill."))
+PREFIX(FillColorRGB,  tree,  "color",
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(fillColorRgb(self, r, g, b, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(FillColorHSL,  tree,  "color_hsl",
+       PARM(h, real, )
+       PARM(s, real, )
+       PARM(l, real, )
+       PARM(a, real, ),
+       RTAO(fillColorHsl(self, h, s, l, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(FillColorHSV,  tree,  "color_hsv",
+       PARM(h, real, )
+       PARM(s, real, )
+       PARM(v, real, )
+       PARM(a, real, ),
+       RTAO(fillColorHsv(self, h, s, v, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(FillColorCMYK,  tree,  "color_cmyk",
+       PARM(c, real, )
+       PARM(m, real, )
+       PARM(y, real, )
+       PARM(k, real, )
+       PARM(a, real, ),
+       RTAO(fillColorCmyk(self, c, m, y, k, a)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(FillColorGradient,  tree, "gradient_color",
+       PARM(pos, real, )
+       PARM(r, real, )
+       PARM(g, real, )
+       PARM(b, real, )
+       PARM(a, real, ),
+       RTAO(fillColorGradient(self, pos, r, g, b, a)),
+       GROUP(graph)
+       SYNOPSIS("")
+       DESCRIPTION("")
+       RETURNS(tree, ""))
+PREFIX(FillTextureUnit,  integer,  "texture_unit",
+       PARM(texUnit, integer, "The texture unit."),
+       RTAO(fillTextureUnit(self, texUnit)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION(""))
+PREFIX(FillTextureId,  integer,  "texture",
+       PARM(texId, integer, "The texture id."),
+       RTAO(fillTextureId(self, texId)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION(""))
+PREFIX(FillTexture,  integer,  "texture",
+       PARM(n, text, "The image filename."),
+       RTAO(fillTexture(context, self, n)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL texture")
+       DESCRIPTION("Build a GL texture out of an image file.\n"
+                   "Supported format include:\n"
+                   "BMP  Windows Bitmap\n"
+                   "GIF  Graphic Interchange Format (optional)\n"
+                   "JPG	 Joint Photographic Experts Group\n"
+                   "JPEG Joint Photographic Experts Group\n"
+                   "PNG	 Portable Network Graphics\n"
+                   "PBM  Portable Bitmap\n"
+                   "PGM  Portable Graymap\n"
+                   "PPM  Portable Pixmap\n"
+                   "TIFF Tagged Image File Format\n"
+                   "XBM  X11 Bitmap\n"
+                   "XPM X11 Pixmap"))
+PREFIX(FillTextureSVG,  integer, "svg",
+       PARM(img, text, "The image filename."),
+       RTAO(fillTextureFromSVG(context, self, img)),
+       GROUP(graph)
+       SYNOPSIS("Create a texture from an SVG")
+       DESCRIPTION("Draw an image from an SVG format")
+       RETURNS(tree, ""))
+PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
+       PARM(n, text, "The animation filename."),
+       RTAO(fillAnimatedTexture(context, self, n)),
+       GROUP(graph:attribute)
+       SYNOPSIS("Create a GL animated texture")
+       DESCRIPTION("Build a GL texture images from an animated image file. Supported format are:\n\
+GIF	Animated Graphic Interchange Format\n                           \
+MNG	Animated portable Network Graphics\n                            \
+others [TODO:  description is troncated] "))
+PREFIX(ImageA,  integer, "image",
+       PARM(x, real, )
+       PARM(y, real, )
+       PARM(w, real, )
+       PARM(h, real, )
+       PARM(img, text, ),
+       RTAO(image(context, self, x, y, w, h, img)),
+       GROUP()
+       SYNOPSIS("")
+       DESCRIPTION(""))
+PREFIX(ImageB,  integer, "image",
+       PARM(x, real, "x-coordinate of the image")
+       PARM(y, real, "y-coordinate of the image")
+       PARM(img, text, "width of the image"),
+       RTAO(image(context, self, x, y, img)),
+       GROUP(graph)
+       SYNOPSIS("Make an image")
+       DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))
+PREFIX(ImagePx,  integer, "image_px",
+       PARM(x, real, "X coordinate of image center")
+       PARM(y, real, "Y coordinate of image center")
+       PARM(w, real, "Image width in pixels")
+       PARM(h, real, "Image height in pixels")
+       PARM(img, text, "File path"),
+       RTAO(imagePx(context, self, x, y, w, h, img)),
+       GROUP()
+       SYNOPSIS("Insert an image")
+       DESCRIPTION(""))
+PREFIX(ImageSize,  infix, "image_size",
+       PARM(img, text, "File path"),
+       RTAO(imageSize(context, self, img)),
+       GROUP()
+       SYNOPSIS("Get the size of an image")
+       DESCRIPTION("")
+       RETURNS(infix, "Two integer values: w,h"))
+PREFIX(TextureWrap,  tree,  "texture_wrap",
+       PARM(s, boolean, "[TODO]")
+       PARM(t, boolean, "[TODO]"),
+       RTAO(textureWrap(self, s, t)),
+       GROUP(graph)
+       SYNOPSIS("wrap textures or clamp them")
+       DESCRIPTION("Record if we want to wrap textures or clamp them"))
+PREFIX(SetTextureMode,  tree,  "texture_mode",
+       PARM(mode, text, "[TODO]"),
+       RTAO(textureMode(self, mode)),
+       GROUP(graph)
+       SYNOPSIS("choose mode of blending of the textures")
+       DESCRIPTION("Record mode of blending of the textures"))
+PREFIX(TextureTransform,  tree,  "texture_transform",
+       PARM(t, code, "[TODO]"),
+       RTAO(textureTransform(context, self, t)),
+       GROUP(graph)
+       SYNOPSIS("Apply a texture transformation")
+       DESCRIPTION("Apply a texture transformation.[TODO: de quel genre ?]")
+       RETURNS(tree, "The result of the child evaluation."))
+PREFIX(TextureWidth,  tree,  "texture_width",,
+       RTAO(textureWidth(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture width.")
+       DESCRIPTION("Return current texture width.")
+       RETURNS(tree, "The current texture width."))
+PREFIX(TextureHeight,  tree,  "texture_height",,
+       RTAO(textureHeight(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture height")
+       DESCRIPTION("Return current texture height")
+       RETURNS(tree, "The current texture height"))
+PREFIX(TextureType,  tree,  "texture_type",,
+       RTAO(textureType(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture type.")
+       DESCRIPTION("Return current texture type.")
+       RETURNS(tree, "The current texture type."))
+PREFIX(TextureMode,  tree,  "texture_mode",,
+       RTAO(textureMode(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture mode.")
+       DESCRIPTION("Return current texture mode.")
+       RETURNS(tree, "The current texture mode."))
+PREFIX(TextureId,  tree,  "texture",,
+       RTAO(textureId(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture id")
+       DESCRIPTION("Return current texture id")
+       RETURNS(tree, "The current texture id"))
+PREFIX(TextureUnit,  tree,  "texture_unit",,
+       RTAO(textureUnit(self)),
+       GROUP(graph)
+       SYNOPSIS("Return current texture unit")
+       DESCRIPTION("Return current texture unit")
+       RETURNS(tree, "The current texture unit"))
+PREFIX(HasTexture, tree,  "has_texture",
+       PARM(unit, integer, "texture unit checked"),
+       RTAO(hasTexture(self, unit)),
+       GROUP(graph)
+       SYNOPSIS("Return result of evaluation.")
+       DESCRIPTION("Return result of evaluation.")
+       RETURNS(tree, "Return result of evaluation."))

@@ -29,7 +29,7 @@
 #include "application.h"
 #include "widget_surface.h"
 #include <QPainterPath>
-
+#include "lighting.h"
 TAO_BEGIN
 
 // ============================================================================
@@ -43,35 +43,45 @@ bool Shape::setTexture(Layout *where)
 //   Get the texture from the layout
 // ----------------------------------------------------------------------------
 {
-    //Determine unused texture units according to the previous one to desactive them
+    // Do not bother with textures if in Identify phase
+    if (where->InIdentify())
+        return !where->fillTextures.empty();
+
     for(uint i = 0; i < TaoApp->maxTextureUnits; i++)
     {
+        //Determine if there is a current and previous texture
         bool hasCurrent = where->fillTextures.count(i);
         bool hasPrevious = where->previousTextures.count(i);
 
-        //Check if the current texture unit is really used
+        // If there is a previous texture and no current
+        // then unbind this one.
         if(hasPrevious && (! hasCurrent))
         {
+            // Unbind the previous texture
             unbindTexture(where->previousTextures[i]);
         }
         else if(hasCurrent && (where->textureUnits & (1 << i)))
         {
+            // If there is a previous texture with a different type
+            // of the current then unbind the previous before to bind the
+            // current.
             if(hasPrevious)
             {
-                if(where->fillTextures[i].type != where->previousTextures[i].type)
+                if(where->fillTextures[i].type !=
+                   where->previousTextures[i].type)
                 {
+                    // Unbind the previous texture
                     unbindTexture(where->previousTextures[i]);
                 }
             }
 
+            // Bind the current texture
             bindTexture(where->fillTextures[i], where->hasPixelBlur);
         }
     }
 
-    if (where->globalProgramId)
-        glUseProgram(where->globalProgramId);
-    else
-        glUseProgram(where->programId);
+    // Active current shader
+    setShader(where);
 
     //Update used texture units
     where->previousTextures = where->fillTextures;
@@ -87,17 +97,35 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     glActiveTexture(GL_TEXTURE0 + texture.unit);
     glEnable(texture.type);
     glBindTexture(texture.type, texture.id);
-    if (hasPixelBlur)
+    GLint min, mag;
+    if (texture.type == GL_TEXTURE_2D)
     {
-        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        min = TaoApp->tex2DMinFilter;
+        mag = TaoApp->tex2DMagFilter;
+        if (!texture.mipmap)
+        {
+            if (min == GL_NEAREST_MIPMAP_NEAREST ||
+                min == GL_LINEAR_MIPMAP_NEAREST  ||
+                min == GL_NEAREST_MIPMAP_LINEAR  ||
+                min == GL_LINEAR_MIPMAP_LINEAR)
+                min = GL_LINEAR;
+            if (mag == GL_NEAREST_MIPMAP_NEAREST ||
+                mag == GL_LINEAR_MIPMAP_NEAREST  ||
+                mag == GL_NEAREST_MIPMAP_LINEAR  ||
+                mag == GL_LINEAR_MIPMAP_LINEAR)
+                mag = GL_LINEAR;
+        }
     }
     else
     {
-        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+        if (hasPixelBlur)
+            min = mag = GL_LINEAR;
+        else
+            min = mag = GL_NEAREST;
     }
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+    glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
+    glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
+    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)
@@ -111,6 +139,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     if (TaoApp->hasGLMultisample)
         glEnable(GL_MULTISAMPLE);
 }
+
 
 void Shape::unbindTexture(TextureState& texture)
 // ----------------------------------------------------------------------------
@@ -133,6 +162,7 @@ void Shape::enableTexCoord(uint unit, void *texCoord)
     glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
 }
 
+
 void Shape::disableTexCoord(uint unit)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
@@ -141,6 +171,7 @@ void Shape::disableTexCoord(uint unit)
     glClientActiveTexture( GL_TEXTURE0 + unit);
     glDisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
+
 
 bool Shape::setFillColor(Layout *where)
 // ----------------------------------------------------------------------------
@@ -152,7 +183,7 @@ bool Shape::setFillColor(Layout *where)
     {
         Color &color = where->fillColor;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0)
+        if (v >= 0.01)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
@@ -175,7 +206,7 @@ bool Shape::setLineColor(Layout *where)
         Color &color = where->lineColor;
         scale width = where->lineWidth;
         scale v = where->visibility * color.alpha;
-        if (v > 0.0 && width > 0.0)
+        if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
                 glColor4f(color.red, color.green, color.blue, v);
@@ -186,7 +217,57 @@ bool Shape::setLineColor(Layout *where)
     return false;
 }
 
-void Shape::Draw(GraphicPath &path)
+
+bool Shape::setShader(Layout *where)
+{
+    if(where->InIdentify())
+        return false;
+
+    // Activate current shader
+    if (where->globalProgramId)
+        glUseProgram(where->globalProgramId);
+    else
+        glUseProgram(where->programId);
+
+    // In order to improve performance of large and complex 3D models,
+    // we use a shader based ligting (Feature #1508), which need some uniform values
+    // to have an efficient behaviour.
+    if(where->perPixelLighting == where->programId)
+    {
+        if(where->programId)
+        {
+            GLint lights = glGetUniformLocation(where->programId, "lights");
+            glUniform1i(lights, where->currentLights);
+
+            GLint textures = glGetUniformLocation(where->programId, "textures");
+            glUniform1i(textures, where->textureUnits);
+
+            GLint vendor = glGetUniformLocation(where->programId, "vendor");
+            glUniform1i(vendor, TaoApp->vendorID);
+
+            // Set texture units
+            GLint tex0 = glGetUniformLocation(where->programId, "tex0");
+            glUniform1i(tex0, 0);
+            GLint tex1 = glGetUniformLocation(where->programId, "tex1");
+            glUniform1i(tex1, 1);
+            GLint tex2 = glGetUniformLocation(where->programId, "tex2");
+            glUniform1i(tex2, 2);
+            GLint tex3 = glGetUniformLocation(where->programId, "tex3");
+            glUniform1i(tex3, 3);
+        }
+    }
+
+    return true;
+}
+
+// ============================================================================
+//
+//   Shape 2D
+//
+// ============================================================================
+
+
+void Shape2::Draw(GraphicPath &path)
 // ----------------------------------------------------------------------------
 //    Draw the shape in a path
 // ----------------------------------------------------------------------------
@@ -195,7 +276,7 @@ void Shape::Draw(GraphicPath &path)
 }
 
 
-void Shape::Draw(Layout *where)
+void Shape2::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Draw the shape using a path
 // ----------------------------------------------------------------------------
@@ -203,6 +284,17 @@ void Shape::Draw(Layout *where)
     GraphicPath path;
     Draw(path);
     path.Draw(where);
+}
+
+
+void Shape2::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a simplified version of the shape for selection purpose
+// ----------------------------------------------------------------------------
+{
+    GraphicPath path;
+    Draw(path);
+    path.Draw(where, GL_SELECT);
 }
 
 // ============================================================================
@@ -973,3 +1065,63 @@ void FixedSizePoint::Draw(Layout *where)
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from shapes.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "shapes.tbl"
+
+namespace Tao
+{
+
+#include "shapes.tbl"
+
+
+void EnterShapes()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "shapes.tbl"
+}
+
+
+void DeleteShapes()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "shapes.tbl"
+}
+
+}

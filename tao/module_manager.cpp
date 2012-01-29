@@ -112,7 +112,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
             {
                 name_found = true;
                 inst_v = m.ver;
-                if (Repository::versionMatches(m.ver, m_v))
+                if (versionMatches(m.ver, m_v))
                 {
                     version_found = true;
                     if (!m.enabled)
@@ -122,8 +122,10 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     {
                         if (!m.native && !m.inError)
                         {
-                            loadNative(context, m);
+                            bool ok = loadNative(context, m);
                             m = *moduleById(m.id);
+                            if (!ok)
+                                break;
                         }
                         if (!m.native)
                             continue;
@@ -155,6 +157,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
 
                     XL::xl_import(context, self, +xlPath, execute);
                     moduleById(m.id)->loaded = true;
+                    break;
                 }
             }
         }
@@ -269,7 +272,7 @@ bool ModuleManager::loadConfig()
     // Modules/<ID2>/Name = "Other module name"
     // Modules/<ID2>/Enabled = false
 
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << "Reading user's module configuration\n";
 
     QSettings settings;
@@ -292,7 +295,7 @@ bool ModuleManager::loadConfig()
         settings.endGroup();
     }
     settings.endGroup();
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << ids.size() << " module(s) configured\n";
     return true;
 }
@@ -303,9 +306,13 @@ bool ModuleManager::saveConfig()
 //   Save all modules into user's configuration
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(settings)
+        debug() << "Saving user's module configuration\n";
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
         ok &= addToConfig(m);
+    IFTRACE(settings)
+            debug() << modules.count() << " module(s) saved\n";
     return ok;
 }
 
@@ -315,7 +322,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
 //   Remove m from the list of configured modules
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << "Removing module " << m.toText() << " from configuration\n";
 
     modules.remove(+m.id);
@@ -325,7 +332,7 @@ bool ModuleManager::removeFromConfig(const ModuleInfoPrivate &m)
     settings.remove(+m.id);
     settings.endGroup();
 
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << "Module removed\n";
 
     return true;
@@ -349,9 +356,6 @@ bool ModuleManager::addToConfig(const ModuleInfoPrivate &m)
     settings.setValue("Enabled", m.enabled);
     settings.endGroup();
     settings.endGroup();
-
-    IFTRACE(modules)
-        debug() << "Module added\n";
 
     return true;
 }
@@ -385,7 +389,7 @@ void ModuleManager::setEnabled(QString id, bool enabled)
     if (!m_p)
         return;
 
-    IFTRACE(modules)
+    IFTRACE2(modules, settings)
         debug() << (enabled ? "En" : "Dis") << "abling module "
                 << m_p->toText() << "\n";
 
@@ -405,6 +409,18 @@ void ModuleManager::setEnabled(QString id, bool enabled)
         return;
     if (enabled && !m_p->loaded)
         load(m_p->context, *m_p);
+}
+
+
+bool ModuleManager::enabled(QString importName)
+// ----------------------------------------------------------------------------
+//   Return true if module can be used (exists and is enabled)
+// ----------------------------------------------------------------------------
+{
+    foreach (ModuleInfoPrivate m, modules)
+        if (m.enabled && m.importName == +importName)
+            return true;
+    return false;
 }
 
 
@@ -431,16 +447,17 @@ bool ModuleManager::loadAll(Context *context)
 }
 
 
-bool ModuleManager::loadAnonymousNative(Context *context)
+bool ModuleManager::loadAutoLoadModules(Context *context)
 // ----------------------------------------------------------------------------
-//   Load native code for all modules that do not have an import_name
+//   Load and init native code for all modules that are marked auto-load
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
     foreach (ModuleInfoPrivate m, modules)
     {
         modules[+m.id].context = context;
-        if (m.enabled && !m.loaded && m.path != "" && m.importName == "")
+        if (m.enabled && !m.loaded && m.path != "" && (m.importName == "" ||
+                                                       m.autoLoad))
             ok &= loadNative(context, m);
     }
     return ok;
@@ -561,6 +578,7 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                         existing.path = m.path;
                         known ++;
                         existing.copyPublicProperties(m);
+                        existing.qchFiles = m.qchFiles;
                         if (!m.enabled)
                             disabled ++;
                     }
@@ -574,6 +592,23 @@ QList<ModuleManager::ModuleInfoPrivate> ModuleManager::newModules(QString path)
                 << mods.size() << " new module(s) found\n";
 
     return mods;
+}
+
+
+void ModuleManager::refreshModuleProperties(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Read module directory. If module is known, its refresh entry
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "Refreshing module properties for " << +moduleDir << "\n";
+
+    ModuleInfoPrivate m = readModule(moduleDir);
+    if (m.id != "" && modules.contains(+m.id))
+    {
+        ModuleInfoPrivate & existing = modules[+m.id];
+        existing.copyPublicProperties(m);
+    }
 }
 
 
@@ -608,6 +643,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.author = +moduleAttr(tree, "author");
                 m.website = +moduleAttr(tree, "website");
                 m.importName = +moduleAttr(tree, "import_name");
+                m.autoLoad = (moduleAttr(tree, "auto_load") != "");
             }
             else
             {
@@ -619,9 +655,106 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
             cause = tr("Could not parse %1").arg(xlPath);
         }
     }
-    if (m.id == "")
+    if (m.id != "")
+    {
+        // We have a valid module. Try to get its version from Git.
+        double git_ver = parseVersion(+gitVersion(moduleDir));
+        if (git_ver != -1)
+            m.ver = git_ver;
+        // Check if there is a pending update
+        if (applyPendingUpdate(m))
+        {
+            git_ver = parseVersion(+gitVersion(moduleDir));
+            if (git_ver != -1)
+                m.ver = git_ver;
+        }
+        // Look for online documentation file
+        QString qchPath = moduleDir + "/doc/" + TaoApp->lang + "/qch";
+        QDir qchDir(qchPath);
+        QStringList files = qchDir.entryList(QStringList("*.qch"),
+                                             QDir::Files);
+        if (files.isEmpty())
+        {
+            // Look for english by default
+            qchPath = moduleDir + "/doc/en/qch";
+            QDir qchDir(qchPath);
+            files = qchDir.entryList(QStringList("*.qch"),
+                                                 QDir::Files);
+        }
+        foreach(QString f, files)
+            m.qchFiles << qchPath + "/" + f;
+    }
+    else
+    {
         warnInvalidModule(moduleDir, cause);
+    }
     return m;
+}
+
+
+bool ModuleManager::hasPendingUpdate(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Check if latest local tag is newer than current version
+// ----------------------------------------------------------------------------
+{
+    bool hasUpdate = false;
+
+    double current = parseVersion(+gitVersion(moduleDir));
+    double latest_local = parseVersion(+latestTag(moduleDir));
+    if (current != -1 && latest_local != -1)
+        hasUpdate = (latest_local > current);
+
+    IFTRACE(modules)
+        debug() << (hasUpdate ? "Has" : "No") << " pending update\n";
+
+    return hasUpdate;
+}
+
+
+QString ModuleManager::latestTag(QString moduleDir)
+// ----------------------------------------------------------------------------
+//   Return latest local tag or ""
+// ----------------------------------------------------------------------------
+{
+    QString latest;
+    RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
+    repository_ptr repo = RepositoryFactory::repository(moduleDir, mode);
+    if (repo && repo->valid())
+    {
+        QStringList tags = repo->tags();
+        if (!tags.isEmpty())
+        {
+            latest = tags[0];
+            foreach (QString tag, tags)
+                if (Repository::versionGreaterOrEqual(tag, latest))
+                    latest = tag;
+        }
+    }
+    return latest;
+}
+
+
+bool ModuleManager::applyPendingUpdate(const ModuleInfoPrivate &m)
+// ----------------------------------------------------------------------------
+//   Checkout latest local tag if current version is not latest
+// ----------------------------------------------------------------------------
+{
+    bool hasUpdate = hasPendingUpdate(+m.path);
+    if (hasUpdate)
+    {
+        QString latest = latestTag(+m.path);
+        double current = parseVersion(+gitVersion(+m.path));
+        double latestVer = parseVersion(+latest);
+        IFTRACE(modules)
+            debug() << "Installing update: " << current
+                    << " -> " << latestVer << "\n";
+        emit updating(+m.name);
+        RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
+        repository_ptr repo = RepositoryFactory::repository(+m.path, mode);
+        repo->checkout(+latest);
+        return true;
+    }
+    return false;
 }
 
 
@@ -633,7 +766,7 @@ QString ModuleManager::gitVersion(QString moduleDir)
     RepositoryFactory::Mode mode = RepositoryFactory::OpenExistingHere;
     repository_ptr repo = RepositoryFactory::repository(moduleDir, mode);
     if (repo && repo->valid())
-        return +repo->version();
+        return +repo->versionTag();
     return "";
 }
 
@@ -860,11 +993,41 @@ bool ModuleManager::loadNative(Context * /*context*/,
                 {
                     IFTRACE(modules)
                             debug() << "    Calling module_init\n";
-                    mi(&api, &m);
+                    int st = mi(&api, &m);
+                    if (st)
+                    {
+                        IFTRACE(modules)
+                            debug() << "      Error (return code: "
+                                    << st << ")\n";
+                        return false;
+                    }
                 }
 
-                if (m_p)
-                    m_p->native = lib;
+                m_p->show_preferences =
+                    (module_preferences_fn) lib->resolve("show_preferences");
+                if (m_p->show_preferences)
+                {
+                    IFTRACE(modules)
+                        debug() << "    Resolved show_preferences function\n";
+                }
+
+                QTranslator * translator = new QTranslator;
+                QString tr_name = m.dirname() + "_" + TaoApp->lang;
+                if (translator->load(tr_name, +m.path))
+                {
+                    Application::installTranslator(translator);
+                    m_p->translator = translator;
+                    IFTRACE(modules)
+                        debug() << "    Translations loaded: " << +tr_name
+                                << "\n";
+                }
+                else
+                {
+                    delete translator;
+                }
+
+                m_p->native = lib;
+                emit modulesChanged();
             }
         }
         else
@@ -936,9 +1099,11 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  Path:       " <<  m.path << "\n";
     debug() << "  Name:       " <<  m.name << "\n";
     debug() << "  Import:     " <<  m.importName << "\n";
+    debug() << "  Auto load:  " <<  m.autoLoad << "\n";
     debug() << "  Author:     " <<  m.author << "\n";
     debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";
+    debug() << "  Doc:        " << +m.qchFiles.join(" ");
     debug() << "  XL file:    " << +m.xlPath() << "\n";
     debug() << "  Version:    " <<  m.ver << "\n";
     debug() << "  Latest:     " <<  m.latest << "\n";
@@ -1077,8 +1242,8 @@ double ModuleManager::parseVersion(Tree *versionId)
 // ----------------------------------------------------------------------------
 //   Version numbers can have one of three forms:
 //   - An integer value, e.g 1, which is the same as 1.0
-//   - A real value, e.g. 1.0203, which is major 1, minor 2, patch-level 3
-//   - A text value with dot-separated fields, e.g. 1.2.3 or 1.02.03
+//   - A real value, e.g.  1.0203,
+//   - A text value, e.g. "1.0203"
 {
     if (Integer *iver = versionId->AsInteger())
         return iver->value;
@@ -1097,21 +1262,47 @@ double ModuleManager::parseVersion(text versionId)
 //    Parse the text form of version numbers
 // ----------------------------------------------------------------------------
 {
-    uint major = 0, minor = 0, patch = 0;
+    double ver = -1.0;
     kstring sver = versionId.c_str();
-    if (sscanf(sver, "%u.%u.%u", &major, &minor, &patch) == 3)
-        if (minor < 100 && patch < 100)
-            return major + 0.01 * minor + 0.0001 * patch;
-    if (sscanf(sver, "%u.%u", &major, &minor) == 2)
-        if (minor < 100)
-            return major + 0.01 * minor;
-    if (sscanf(sver, "%u", &major) == 1)
-        return major;
-
-    // Return an invalid version
-    return -1.0;
+    sscanf(sver, "%lf", &ver);
+    return ver;
 }
 
+
+bool ModuleManager::versionGreaterOrEqual(text ver, text ref)
+// ----------------------------------------------------------------------------
+//    Return true if ver >= ref
+// ----------------------------------------------------------------------------
+{
+    double v = parseVersion(ver), r = parseVersion(ref);
+    return (v >= r);
+}
+
+
+bool ModuleManager::versionMatches(double ver, double ref)
+// ----------------------------------------------------------------------------
+//   Return true if ver.major == ref.major and ver.minor >= ref.minor
+// ----------------------------------------------------------------------------
+{
+    double verMajor = floor(ver);
+    double refMajor = floor(ref);
+    double verMinor = ver - verMajor;
+    double refMinor = ref - refMajor;
+    return verMajor == refMajor && verMinor >= refMinor;
+}
+
+
+QStringList ModuleManager::qchFiles()
+// ----------------------------------------------------------------------------
+//   Return documentation files (*.qch) of all enabled modules
+// ----------------------------------------------------------------------------
+{
+    QStringList files;
+    foreach (ModuleInfoPrivate m, modules)
+        if (m.enabled)
+            files << m.qchFiles;
+    return files;
+}
 
 // ============================================================================
 //
@@ -1125,42 +1316,46 @@ bool CheckForUpdate::start()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(modules)
+    {
         debug() << "Start checking for updates, module "
                 << m.toText() << "\n";
+        debug() << "Current version " << m.ver << "\n";
+    }
 
     bool inProgress = false;
-    repo = RepositoryFactory::repository(+m.path);
+    repo = RepositoryFactory::repository(+m.path,
+                                         RepositoryFactory::OpenExistingHere);
     if (repo && repo->valid())
     {
         QStringList tags = repo->tags();
         if (!tags.isEmpty())
         {
-            uint major = (uint) floor(m.ver);
-            uint minor = (uint) (m.ver * 100) % 100;
-            uint patch = (uint) (m.ver * 10000) % 100;
-            QString ver1 = QString("%1.%2.%3").arg(major).arg(minor).arg(patch);
-            QString ver2 = QString("%1.%2").arg(major).arg(minor);
-            QString ver3 = QString("%1").arg(major);
-            if (tags.contains(ver1)||tags.contains(ver2)||tags.contains(ver3))
+            foreach (QString t, tags)
             {
-                proc = repo->asyncGetRemoteTags("origin");
-                connect(repo.data(),
-                        SIGNAL(asyncGetRemoteTagsComplete(QStringList)),
-                        this,
-                        SLOT(processRemoteTags(QStringList)));
-                repo->dispatch(proc);
-                inProgress = true;
+                double tval = ModuleManager::parseVersion(+t);
+                if (m.ver == tval)
+                {
+                    proc = repo->asyncGetRemoteTags("origin");
+                    connect(repo.data(),
+                            SIGNAL(asyncGetRemoteTagsComplete(QStringList)),
+                            this,
+                            SLOT(processRemoteTags(QStringList)));
+                    repo->dispatch(proc);
+                    inProgress = true;
+                    break;
+                }
             }
-            else
+            if (!inProgress)
             {
                 IFTRACE(modules)
-                    debug() << "N/A (current module version not tagged)\n";
+                    debug() << "N/A (current module version does not match "
+                               "a tag)\n";
             }
         }
         else
         {
             IFTRACE(modules)
-                    debug() << "N/A (no local tags)\n";
+                debug() << "N/A (no local tags)\n";
         }
     }
     else
@@ -1190,15 +1385,13 @@ void CheckForUpdate::processRemoteTags(QStringList tags)
         double current = m.ver;
         QString latest = tags[0];
         foreach (QString tag, tags)
-            if (Repository::versionGreaterOrEqual(tag, latest))
+            if (ModuleManager::versionGreaterOrEqual(+tag, +latest))
                 latest = tag;
 
-        // Warning: remote tag (text string) 1.2 is parsed as (real value) 1.02
-        mm.modules[+m.id].latest = +latest;
         double latestVer = ModuleManager::parseVersion(+latest);
+        mm.modules[+m.id].latest = latestVer;
 
-        hasUpdate = (latestVer != current &&
-                     Repository::versionGreaterOrEqual(latestVer, current));
+        hasUpdate = (latestVer > current);
 
         IFTRACE(modules)
         {
@@ -1297,7 +1490,7 @@ bool UpdateModule::start()
         repo = RepositoryFactory::repository(+m.path);
         if (repo && repo->valid())
         {
-            proc = repo->asyncFetch("origin");
+            proc = repo->asyncFetch("origin", true);
             connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),
                     this,        SLOT(onFinished(int,QProcess::ExitStatus)));
             connect(proc.data(), SIGNAL(percentComplete(int)),
@@ -1313,21 +1506,15 @@ bool UpdateModule::start()
 
 void UpdateModule::onFinished(int exitCode, QProcess::ExitStatus status)
 // ----------------------------------------------------------------------------
-//   Checkout latest tag and emit complete signal
+//   emit complete signal
 // ----------------------------------------------------------------------------
 {
     bool ok = (status ==  QProcess::NormalExit && exitCode == 0);
     if (ok)
     {
-        repo->checkout(m.latest);
-        QString ver = mm.gitVersion(+m.path);
-        ok = (ver == +m.latest);
-        if (ok)
-        {
-            ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
-            p->ver = ModuleManager::parseVersion(+ver);
-            p->updateAvailable = false;
-        }
+        // NB: Defer checkout on next restart, because module may be in use
+        ModuleManager::ModuleInfoPrivate *p = mm.moduleById(m.id);
+        p->updateAvailable = false;
     }
     emit complete(ok);
 }

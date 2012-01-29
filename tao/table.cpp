@@ -1,19 +1,19 @@
 // ****************************************************************************
-//  table.cpp                       (C) 1992-2009 Christophe de Dinechin (ddd) 
-//                                                                 XL2 project 
+//  table.cpp                       (C) 1992-2009 Christophe de Dinechin (ddd)
+//                                                                 XL2 project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //    Table-style layout for drawable elements
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -38,7 +38,7 @@ Table::Table(Widget *w, Context *ctx, Real_p x, Real_p y, uint r, uint c)
     : Layout(w), context(ctx),
       x(x), y(y), rows(r), columns(c), row(0), column(0),
       margins(0,0,5,5), columnWidth(), rowHeight(),
-      fill(NULL), border(NULL)
+      fill(NULL), border(NULL), fills(), borders()
 {}
 
 
@@ -47,10 +47,78 @@ Table::~Table()
 //   Destructor
 // ----------------------------------------------------------------------------
 {
-    std::vector<Drawing *>::iterator it;
-    for (it = items.begin(); it != items.end(); it++)
+    for (Drawings::iterator it = items.begin(); it != items.end(); it++)
         delete *it;
     items.clear();
+
+    for (Layouts::iterator f = fills.begin(); f != fills.end(); f++)
+        delete *f;
+    for (Layouts::iterator b = borders.begin(); b != borders.end(); b++)
+        delete *b;
+}
+
+
+void Table::Evaluate(Layout *where)
+// ----------------------------------------------------------------------------
+//   Compute the layout of the table, then evaluate fill forms
+// ----------------------------------------------------------------------------
+{
+    // Compute the layout of the whole table
+    Compute(where);
+
+    // Draw cell fill and border for each individual cell
+    Widget *widget = Display();
+    XL::Save<Table *> saveTable(widget->table, this);
+    TreeList::iterator fi = cellFill.begin();
+    TreeList::iterator bi = cellBorder.begin();
+
+    // Check that Table::Add invariant was respected
+    assert (cellFill.size() == rows * columns);
+    assert (cellBorder.size() == rows * columns);
+    assert (fills.size() == 0);
+    assert (borders.size() == 0);
+
+    coord   cellX, cellY, cellW, cellH;
+    coord   x0 = double(x) - bounds.Width()/2;
+    coord   y0 = double(y) - bounds.Height()/2;
+    coord   px = bounds.lower.x + x0;
+    coord   py = bounds.upper.y + y0;
+
+
+    // Loop on all cell items, creating the layouts for the fill and border
+    for (row = 0; row < rows; row++)
+    {
+        px = bounds.lower.x + x0;
+        if (row < rowHeight.size())
+            py -= rowHeight[row];
+        py -= margins.Height();
+
+        for (column = 0; column < columns; column++)
+        {
+            Vector3 pos(px - margins.lower.x + columnOffset[column],
+                        py - margins.lower.y + rowOffset[row], 0);
+
+            cellW = columnWidth[column] + margins.Width();
+            cellH = rowHeight[row] + margins.Height();
+            cellX = px + cellW/2;
+            cellY = py + cellH/2;
+            cellBox = Box(cellX-cellW/2, cellY-cellH/2, cellW, cellH);
+
+            Layout *fillLayout = NULL;
+            if (Tree_p fill = *fi++)
+                fillLayout = widget->drawTree(this, context, fill);
+            fills.push_back(fillLayout);
+
+            Layout *borderLayout = NULL;
+            if (Tree_p border = *bi++)
+                borderLayout = widget->drawTree(this, context, border);
+            borders.push_back(borderLayout);
+
+            if (column < columnWidth.size())
+                px += columnWidth[column];
+            px += margins.Width();
+        }
+    }
 }
 
 
@@ -68,13 +136,16 @@ void Table::Draw(Layout *where)
     coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = items.begin();
-    TreeList::iterator fillI = cellFill.begin();
-    TreeList::iterator borderI = cellBorder.begin();
+    Drawings::iterator i = items.begin();
+    Layouts::iterator fi = fills.begin();
+    Layouts::iterator bi = borders.begin();
     XL::Save<Table *> saveTable(widget->table, this);
-    Tree *fillCode = fill;
-    Tree *borderCode = border;
 
+    // Check that we correctly computed layouts in Evaluate and Compute
+    assert(fills.size() == rows * columns);
+    assert(borders.size() == rows * columns);
+
+    // Loop on all elements to draw
     for (r = 0; r < rows; r++)
     {
         px = bounds.lower.x + x0;
@@ -105,19 +176,19 @@ void Table::Draw(Layout *where)
                 pos.y += (rowHeight[r]-bb.Height()) * cell->alongY.centering;
             }
 
-            if (fillI != cellFill.end())
-                fillCode = *fillI++;
-            if (fillCode)
-                widget->drawTree(this, context, fillCode);
+            if (fi != fills.end())
+                if (Layout *fillLayout = *fi++)
+                    fillLayout->Draw(where);
+
             if (d)
             {
                 XL::Save<Point3> saveOffset(offset, pos + where->offset);
                 d->Draw(this);
             }
-            if (borderI != cellBorder.end())
-                borderCode = *borderI++;
-            if (borderCode)
-                widget->drawTree(this, context, borderCode);
+
+            if (bi != borders.end())
+                if (Layout *borderLayout = *bi++)
+                    borderLayout->Draw(where);
 
             if (c < columnWidth.size())
                 px += columnWidth[c];
@@ -141,7 +212,7 @@ void Table::DrawSelection(Layout *where)
     coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = items.begin();
+    Drawings::iterator i = items.begin();
     XL::Save<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
@@ -202,7 +273,7 @@ void Table::Identify(Layout *where)
     coord   py = bounds.upper.y + y0;
     uint    r, c;
     Widget *widget = where->Display();
-    std::vector<Drawing *>::iterator i = items.begin();
+    Drawings::iterator i = items.begin();
     XL::Save<Table *> saveTable(widget->table, this);
 
     for (r = 0; r < rows; r++)
@@ -274,11 +345,16 @@ void Table::Add(Drawing *d)
 //    Add an element to a table
 // ----------------------------------------------------------------------------
 {
+    // Normal layout add
     Layout::Add(d);
-    cellFill.push_back(fill);
-    cellBorder.push_back(border);
+
+    // Must recompute all column and row positions
     columnWidth.clear();
     rowHeight.clear();
+
+    // Add current fill to cell fill and cell border lists
+    cellFill.push_back(fill);
+    cellBorder.push_back(border);
 }
 
 
@@ -291,8 +367,12 @@ void Table::Compute(Layout *where)
     if (columnWidth.size() == columns && rowHeight.size() == rows)
         return;
 
+    // Check that we don't get here after fills and borders have been computed
+    assert (fills.size() == 0);
+    assert (borders.size() == 0);
+
     uint r, c;
-    std::vector<Drawing *>::iterator i = items.begin();
+    Drawings::iterator i = items.begin();
     std::vector<Box3> rowBB, colBB;
 
     // Compute the actual column width and heights
@@ -374,3 +454,63 @@ void Table::NextCell()
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from table.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "table.tbl"
+
+namespace Tao
+{
+
+#include "table.tbl"
+
+
+void EnterTables()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "table.tbl"
+}
+
+
+void DeleteTables()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "table.tbl"
+}
+
+}

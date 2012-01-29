@@ -24,7 +24,6 @@
 
 
 #include "tao.h"
-#include "display_driver.h"
 #include "frame.h"
 #include "tao/module_api.h"
 #include <QStringList>
@@ -69,13 +68,16 @@ public:
     static void         setupGl();
     static void         showGlErrors();
     static bool         setStereo(bool on);
-    static void         getCamera(Point3 *pos, Point3 *target, Vector3 *up);
+    static void         getCamera(Point3 *pos, Point3 *target, Vector3 *up,
+                                  double *toScreen);
     static int          renderHeight();
     static int          renderWidth();
     static double       zNear();
     static double       zFar();
     static double       zoom();
     static double       eyeSeparation();
+    static int          getCurrentEye();
+    static int          getEyesNumber();
     static void         setProjectionMatrix(int w, int h,
                                             int i = 1, int numCameras = 1);
     static void         setModelViewMatrix (int i = 1, int numCameras = 1);
@@ -160,6 +162,7 @@ protected:
 
 protected:
     DisplayParams         current;
+    bool                  useInProgress;
 
 protected:
     static display_map    map;

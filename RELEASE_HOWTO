@@ -2,13 +2,18 @@ Here are the steps to create a new (official) release of Tao Presentations
 
 Once:
 
+- Configure for internal build
+  $ ./configure
 - Make sure Qt translations are up-to-date
   $ cd tao
   $ make lupdate
   Look at the output of lupdate, and edit tao_fr.ts as needed.
+  ** Warning: make sure you gave no edition name to the configure script, or
+  some code will be #ifdef'ed out and some translations will be marked obsolete.
   After editing tao_fr.ts:
   $ make lrelease
   Commit your translations (both tao_fr.ts AND tao_fr.qm need to be committed).
+  Do the same for all modules that have *.ts files.
 - Make sure tao.xl translations are up-to-date
   $ ./extract_tr.pl -ref tao_fr.xl tao.xl
   If the command returns nothing, there is nothing to do, otherwise append
@@ -18,33 +23,30 @@ Once:
 
 On all platforms:
 
-- Create a temporary tag, for instance:
-  $ git tag 1.0-beta5 
-- Clean work directory
+- Create a temporary tag (visible on splash screen), for instance:
+  $ git tag 1.0-beta5
+- Build Tao and make packages (all editions). The packages are under
+  packaging/{macosx,win,linux}. Copy them wherever you want.
   $ make distclean
-- Run qmake
-  [MacOSX]
-  $ qmake -r -spec macx-g++ CONFIG+="x86 release"
-  [Windows]
-  $ qmake -r -spec win32-g++ CONFIG+="release"
-  [Linux]
-  $ qmake -r CONFIG+="release"
-- Build
-  $ make -j5 install
-- Build the kits
-  [MacOSX]
-  $ cd packaging/macosx
-  $ make kit
-  [Windows]
-  $ cd packaging/win
-  $ make kit
-  [Linux]
-  $ cd packaging/linux
-  $ make kit
- 
+  $ ./configure discovery
+  $ make -j5 kit
+  Save the Discovery package.
+  $ make distclean
+  $ ./configure creativity
+  $ make -j5 kit
+  Save the Creativity package.
+  $ make distclean
+  $ ./configure impress
+  $ make -j5 kit
+  Save the Impress package.
+- Do an internal build (run configure with no edition name). Thus you get all
+  the modules and templates to put on the web site, and you also get temporary
+  licenses for testing.
+  $ make distclean
+  $ ./configure
+
 Once:
 
 - Create an annotated tag with the MD5 hash of all kits.
   Take inspiration from 'git show 1.0-beta4' for instance. 
-  $ git tag -a 1.0-beta5 
-
+  $ git tag -a 1.0-beta5

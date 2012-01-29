@@ -35,7 +35,7 @@ struct Statistics
 public:
     enum Operation
     {
-        EXEC, GC, DRAW,
+        EXEC, GC, GC_WAIT, DRAW, SELECT, FRAME,
         LAST_OP
     };
     typedef QPair<int, int> date_val;
@@ -65,9 +65,10 @@ protected:
     // Timing information for each event
     QTime       timer[LAST_OP];
     durations   data[LAST_OP];
-    int         total[LAST_OP];
+    int         total[LAST_OP], frameTotal[LAST_OP];
     int         max[LAST_OP];
     int         lastMaxTime[LAST_OP];
+    bool        running[LAST_OP];
 };
 
 TAO_END

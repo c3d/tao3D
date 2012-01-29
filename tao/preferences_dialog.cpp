@@ -39,12 +39,13 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     contentsWidget->setIconSize(QSize(96, 96));
     contentsWidget->setMovement(QListView::Static);
     contentsWidget->setMinimumHeight(280);
-    contentsWidget->setMaximumWidth(140);
+    contentsWidget->setMaximumWidth(145);
     contentsWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     contentsWidget->setSpacing(12);
 
     pagesWidget = new QStackedWidget;
     pagesWidget->addWidget(new GeneralPage);
+    pagesWidget->addWidget(new PerformancesPage);
 #ifndef CFG_NOMODPREF
     pagesWidget->addWidget(new ModulesPage);
 #endif
@@ -52,27 +53,29 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     pagesWidget->addWidget(new DebugPage);
 #endif
 
-    QPushButton *closeButton = new QPushButton(tr("Close"));
-    closeButton->setDefault(true);
-
     createIcons();
     contentsWidget->setCurrentRow(0);
-
-    connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
 
     QHBoxLayout *horizontalLayout = new QHBoxLayout;
     horizontalLayout->addWidget(contentsWidget);
     horizontalLayout->addWidget(pagesWidget, 1);
 
+    QVBoxLayout *mainLayout = new QVBoxLayout;
+    mainLayout->addLayout(horizontalLayout);
+
+#if !defined(Q_OS_MACX)
+    QPushButton *closeButton = new QPushButton(tr("Close"));
+    closeButton->setDefault(true);
+    connect(closeButton, SIGNAL(clicked()), this, SLOT(close()));
     QHBoxLayout *buttonsLayout = new QHBoxLayout;
     buttonsLayout->addStretch(1);
     buttonsLayout->addWidget(closeButton);
-
-    QVBoxLayout *mainLayout = new QVBoxLayout;
-    mainLayout->addLayout(horizontalLayout);
     mainLayout->addSpacing(12);
     mainLayout->addLayout(buttonsLayout);
+#endif
     setLayout(mainLayout);
+
+    resize(size() - QSize(0, 30));
 
     setWindowTitle(tr("Tao Preferences"));
 }
@@ -92,6 +95,16 @@ void PreferencesDialog::createIcons()
     generalButton->setText(tr("General options"));
     generalButton->setTextAlignment(Qt::AlignHCenter);
     generalButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
+    // performances.png downloaded from:
+    // http://www.iconfinder.com/icondetails/47542/128/performance_settings_speed_icon
+    // Author: webiconset.com
+    // License: Free for commercial use (Do not redistribute)
+    QListWidgetItem *perfButton = new QListWidgetItem(contentsWidget);
+    perfButton->setIcon(QIcon(":/images/performances.png"));
+    perfButton->setText(tr("Performances"));
+    perfButton->setTextAlignment(Qt::AlignHCenter);
+    perfButton->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 
 #ifndef CFG_NOMODPREF
     // modules.png downloaded from:

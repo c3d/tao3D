@@ -1,0 +1,290 @@
+// ****************************************************************************
+//  text_drawing.tbl                                                Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Text drawing
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//   Text and font
+//
+// ============================================================================
+
+PREFIX(TextBox,  tree,  "text_box",
+       PARM(t, text, "Flow name to be displayed in this box")
+       PARM(x, real, "x-coordinate")
+       PARM(y, real, "y-coordinate")
+       PARM(w, real, "width")
+       PARM(h, real, "height"),
+       RTAO(textBox(self, t, x, y, w, h)),
+       GROUP(text:graph)
+       SYNOPSIS("Create a new page layout")
+       DESCRIPTION("Create a new page layout and render text in it.")
+       RETURNS(tree, "t evaluation result"))
+PREFIX(TextOverflow,  tree,  "text_flow",
+       PARM(n, text, "The name of the current flow")
+       PARM(t, code, "Flow description"),
+       RTAO(textFlow(context, self, n, t)),
+       GROUP(text:graph)
+       SYNOPSIS("Overflow text box")
+       DESCRIPTION("Text flow description"))
+PREFIX(TextSpan,  tree, "text_span",
+       PARM(t, code, "The text to insert"),
+       RTAO(textSpan(context, self, t)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of text")
+       DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
+
+PREFIX(TextUnit,  tree, "text",
+       PARM(t, text, "The text to insert"),
+       RTAO(textUnit(self, t)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of text")
+       DESCRIPTION("Insert a block of text with the current definition of font, color, ..."))
+PREFIX(TextFormula,  tree, "formula",
+       PARM(t, code, "The formula"),
+       RTAO(textFormula(self, t)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of text corresponding to the given formula")
+       DESCRIPTION("Insert a block of text corresponding to the given formula")
+       RETURNS(tree, "The tree t given in parameter."))
+PREFIX(TextValue,  tree, "text_value",
+       PARM(t, code, "The formula"),
+       RTAO(textValue(context, self, &t)),
+       GROUP(text)
+       SYNOPSIS("Insert a block of text corresponding to the given vaue")
+       DESCRIPTION("Insert a block of text corresponding to the given formula")
+       RETURNS(tree, "The tree t given in parameter."))
+PREFIX(FontFamily,  tree,  "font",
+       PARM(f, text, "The font family, and optionally, font style after a slash"),
+       RTAO(fontFamily(context, self, &f)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
+PREFIX(FontSize,  tree,  "font_size",
+       PARM(s, real, "The font size."),
+       RTAO(fontSize(self, s)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font size")
+       DESCRIPTION("Select a font size"))
+PREFIX(FontFamilySize,  tree,  "font",
+       PARM(f, text, "The font family, and optionally, font style after a slash")
+       PARM(s, real, "The font size"),
+       RTAO(fontFamily(context, self, &f, &s)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
+PREFIX(Font,  tree,  "font",
+       PARM(f, tree, "The font description"),
+       RTAO(font(context, self, f)),
+       GROUP(text:font)
+       SYNOPSIS("Select a font family")
+       DESCRIPTION("Select a font family"))
+PREFIX(FontScaling,  tree,  "font_scaling",
+       PARM(s,real, "Scaling factor")
+       PARM(ms,real, "Minimum AA size"),
+       RTAO(fontScaling(self,s,ms)),
+       GROUP(text:font)
+       SYNOPSIS("Change the font scaling factor")
+       DESCRIPTION("Change the font scaling factor")
+       RETURNS(tree, ""))
+PREFIX(FontPlain,  tree,  "plain", , RTAO(fontPlain(self)),
+       GROUP(text:font)
+       SYNOPSIS("Set plain text")
+       DESCRIPTION("Reset the font style, the font weight and the font stretch to normal; reset the font to no underline, nor strikeout, nor overline."))
+PREFIX(FontSlant,  tree,  "slant",
+       PARM(a, real, "slant percentage"),
+       RTAO(fontItalic(self, a/100)),
+       GROUP(text:font)
+       SYNOPSIS("Set slant percentage.")
+       DESCRIPTION("Set slant percentage.[TODO: J'aurais plutot vu une valeur de a/50 pour que slant 100 donne fontItalic 2, qui est le max] "))
+PREFIX(FontRoman,  tree,  "roman", , RTAO(fontItalic(self, 0)),
+       GROUP(text:font)
+       SYNOPSIS("No slant")
+       DESCRIPTION("Set slant value to 0 (min value)."))
+PREFIX(FontItalic,  tree,  "italic", , RTAO(fontItalic(self, 1)),
+       GROUP(text:font)
+       SYNOPSIS("set set italic")
+       DESCRIPTION("Set slant value to 1 (medium value). Is equivalent to slant 100"))
+PREFIX(FontOblique,  tree,  "oblique", , RTAO(fontItalic(self, 2)),
+       GROUP(text:font)
+       SYNOPSIS("set to oblique")
+       DESCRIPTION("Set slant value to 2 (higher value). Is equivalent to slant 200"))
+PREFIX(FontWeight,  tree,  "weight",
+       PARM(a, real, "The bold value of the font"),
+       RTAO(fontBold(self, a)),
+       GROUP(text:font)
+       SYNOPSIS("set the bold value of the font")
+       DESCRIPTION("Select whether the font is bold or not. Qt weight values range from 0 to 99 with 50 = regular"))
+PREFIX(FontRegular,  tree,  "regular", , RTAO(fontBold(self, 50)),
+       GROUP(text:font)
+       SYNOPSIS("reset bold value to neutral.")
+       DESCRIPTION("Reset bold value to neutral. Is equivalent to weight 50."))
+PREFIX(FontLight,  tree,  "light", , RTAO(fontBold(self, 25)),
+       GROUP(text:font)
+       SYNOPSIS("Make the font thin.")
+       DESCRIPTION("Make the font thinner. Is equivalent to weight 25"))
+PREFIX(FontBold,  tree,  "bold", , RTAO(fontBold(self, 75)),
+       GROUP(text:font)
+       SYNOPSIS("Make the font bold.")
+       DESCRIPTION("Make the font bold. Is equivalent to weight 75"))
+PREFIX(FontUnderline,  tree,  "underline",
+       PARM(a, real, "Underline values: 0 is off, values > 0 are on."),
+       RTAO(fontUnderline(self, a)),
+       GROUP(text:font)
+       SYNOPSIS("Underline attribute of the font")
+       DESCRIPTION("Select whether we underline a font. Qt doesn't support setting the size of the underline, it's on or off."))
+PREFIX(FontOverline,  tree,  "overline",
+       PARM(a, real, "Overline values: 0 is off, values > 0 are on."),
+       RTAO(fontOverline(self, a)),
+       GROUP(text:font)
+       SYNOPSIS("Overline attribute of the font")
+       DESCRIPTION("Select whether we overline a font. Qt doesn't support setting the size of the overline, it's on or off."))
+PREFIX(FontStrikeout,  tree,  "strikeout",
+       PARM(a, real, "Strikeout values: 0 is off, values > 0 are on."),
+       RTAO(fontStrikeout(self, a)),
+       GROUP(text:font)
+       SYNOPSIS("Strikeout attribute of the font")
+       DESCRIPTION("Select whether we strikeout a font. Qt doesn't support setting the size of the strikeoutline, it's on or off."))
+PREFIX(FontStretch,  tree,  "stretch",
+       PARM(s,real, "The font stretching factor. Value range is from 0 to 4000, with 100 = 100%"),
+       RTAO(fontStretch(self,s)),
+       GROUP(text:font)
+       SYNOPSIS("Set font stretching factor")
+       DESCRIPTION("Set font stretching factor. Qt font stretch ranges from 0 to 4000, with 100 = 100%."))
+PREFIX(Align,  tree,  "align",
+       PARM(center, real, "Place the center along x-axis. An amount of 0% align the center of the text on the left of the box, an amount of 100% align the center of the text on the right of the box and an amount of 50% align the center of the text on the center of the box.")
+       PARM(justify, real, "Horizontaly justify the text. An amount of 0% doesn't justify (ragged edge), an amount of 100% justifies fully.")
+       PARM(spread, real, "[TODO: Quel est la difference entre spread et justify ? Est-ce l'ecart max autorise entre les lettres/mots ?]")
+       PARM(full_justify, real, "Horizontaly justify the text in lines that do not have enough characters, typically the last line of a paragraph."),
+       RTAO(align(self, center, justify, spread, full_justify, 0)),
+       GROUP(text:spread)
+       SYNOPSIS("[TODO]")
+       DESCRIPTION("[TODO]"))
+PREFIX(VAlign,  tree,  "vertical_align",
+       PARM(center, real, "Place the center along y-axis. An amount of 0% aligns the center of the text on the top of the box, an amount of 100% aligns the center of the text on the bottom of the box and an amount of 50% centers the text in the box.")
+       PARM(justify, real, "Verticaly justify the text. An amount of 0% doesn't justify (pack lines), an amount of 100% fully justifies vertically.")
+       PARM(spread, real, "[TODO]")
+       PARM(full_justify, real, "Vertically justify the lines in text boxes or overflows that are not full."),
+       RTAO(align(self, center, justify, spread, full_justify, 1)),
+       GROUP(text:spread)
+       SYNOPSIS("[TODO]")
+       DESCRIPTION("[TODO]"))
+PREFIX(Spacing,  tree,  "word_spacing",
+       PARM(factor, real, "[TODO]"),
+       RTAO(spacing(self, factor, 0)),
+       GROUP(text:spread)
+       SYNOPSIS("[TODO]")
+       DESCRIPTION("[TODO]"))
+PREFIX(VSpacing,  tree,  "line_spacing",
+       PARM(factor, real, "[TODO]"),
+       RTAO(spacing(self, factor, 1)),
+       GROUP(text:spread)
+       SYNOPSIS("[TODO]")
+       DESCRIPTION("[TODO]"))
+PREFIX(MinimumParagraphSpace,  tree,  "paragraph_space",
+       PARM(b, real, "Space before the paragraph.")
+       PARM(a, real, "Space after the paragraph."),
+       RTAO(minimumSpace(self, b, a, 1)),
+       GROUP(text:spread)
+       SYNOPSIS("Set the space around the paragraph")
+       DESCRIPTION("Set the minimum space allowed around the paragraph. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur avant (ou apres) est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas des paragraphes peuvent se marcher dessus ?]"))
+PREFIX(MinimumCharacterSpace,  tree,  "character_space",
+       PARM(b, real, "Space before the [TODO].")
+       PARM(a, real, "Space after the [TODO]."),
+       RTAO(minimumSpace(self, b, a, 0)),
+       GROUP(text:spread)
+       SYNOPSIS("[TODO: words or characters ?]")
+       DESCRIPTION("[TODO: dans widget.cpp on parle d'espace entre mots et non entre charactere. Cette clarification rejoint celles demandees audessus sur le spacing/spread]"))
+PREFIX(Margins,  tree,  "margins",
+       PARM(l, real, "left margin")
+       PARM(r, real, "right margin"),
+       RTAO(horizontalMargins(self, l, r)),
+       GROUP(text:spread)
+       SYNOPSIS("Set the horizontal margin for text")
+       DESCRIPTION("Set the minimum space allowed around the page. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur gauche (ou droite) est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas on peut ecrire dans la marge ?]"))
+PREFIX(VMargins,  tree,  "vertical_margins",
+       PARM(t, real, "top margin")
+       PARM(b, real, "bottom margin"),
+       RTAO(verticalMargins(self, t, b)),
+       GROUP(text:spread)
+       SYNOPSIS("Set the vertical margin for text")
+       DESCRIPTION("Set the minimum space allowed around the page. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur gauche (ou droite) est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas on peut ecrire dans la marge ?]"))
+PREFIX(LineBreak,  tree,  "line_break", , RTAO(drawingBreak(self, Tao::Drawing::LineBreak)),
+       GROUP(text:spread)
+       SYNOPSIS("Insert a line break")
+       DESCRIPTION("Insert a line break in the current text."))
+PREFIX(SentenceBreak,  tree,  "sentence_break", , RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)),
+       GROUP(text:spread)
+       SYNOPSIS("Insert a sentence break")
+       DESCRIPTION("Insert a sentence break in the text."))
+PREFIX(ParaBreak,  tree,  "paragraph_break", , RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)),
+       GROUP(text:spread)
+       SYNOPSIS("Insert a paragraph break")
+       DESCRIPTION("Insert a paragraph break"))
+PREFIX(ColumnBreak,  tree,  "column_break", , RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)),
+       GROUP(text:spread)
+       SYNOPSIS("Insert a column break")
+       DESCRIPTION("Insert a column break[TODO]"))
+PREFIX(PageBreak,  tree,  "page_break", , RTAO(drawingBreak(self, Tao::Drawing::PageBreak)),
+       GROUP(text:spread)
+       SYNOPSIS("Insert a page break")
+       DESCRIPTION("Insert a page break. [TODO]"))
+PREFIX(TextEditKey,  boolean,  "text_edit_key",
+       PARM(k, text, "key name"),
+       RTAO(textEditKey(self, k)),
+       GROUP(text)
+       SYNOPSIS("[TODO]")
+       DESCRIPTION("Send a key to the text editing activities. [TODO: Concretementca fait quoi ???]")
+       RETURNS(boolean, "true/false [TODO]"))
+PREFIX(LoadText,  tree,  "load_text",
+       PARM(f,text, "file name"),
+       RTAO(loadText(self,f)),
+       GROUP(text:file)
+       SYNOPSIS("Load a text file from disk")
+       DESCRIPTION("Load a text file from disk. It uses the 'doc' prefix to look into resources")
+       RETURNS(tree, "The content of the file."))
+PREFIX(TaoLanguage, text, "tao_language", , RTAO(taoLanguage(self)),
+       GROUP(text)
+       SYNOPSIS("Return the current language used by the Tao program")
+       DESCRIPTION("Returns the two-letter ISO 639 language code of the current locale. For instance: en, fr.")
+       RETURNS(text, "The current language code"))
+PREFIX(TaoVersion,  tree,  "tao_version", , RTAO(taoVersion(self)),
+       GROUP(version)
+       SYNOPSIS("The Tao version")
+       DESCRIPTION("Return the version of the Tao program")
+       RETURNS(tree, "The version of the running Tao program"))
+PREFIX(TaoEdition,  tree,  "tao_edition", , RTAO(taoEdition(self)),
+       GROUP(version)
+       SYNOPSIS("The name of the Tao edition")
+       DESCRIPTION("Returns the edition string of the Tao program. May be an emtpy string.")
+       RETURNS(text, "The edition string of the running Tao program"))
+PREFIX(DocVersion,  tree,  "doc_version", , RTAO(docVersion(self)),
+       GROUP(version)
+       SYNOPSIS("The document version")
+       DESCRIPTION("Return the version of the current document (if known)")
+       RETURNS(tree, "The current document version"))
+PREFIX(EnableGlyphCache,  boolean,  "enable_glyph_cache",
+       PARM(an, boolean, "on or off"),
+       RTAO(enableGlyphCache(self, an)),
+       GROUP(text)
+       SYNOPSIS("Enable or disable bitmap glyph cache")
+       DESCRIPTION("Enable or disable the bitmap glyph cache. Enabled by default. When enabled, drawing text is faster, but typically lower quality especially when fullscreen antialiasing is available.")
+       RETURNS(boolean, "True if previous state was on."))
+

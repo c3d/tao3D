@@ -37,7 +37,8 @@ Box3 Attribute::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return Box3(where->offset, Vector3(0,0,0));
+    // Bug#130 Attribute has no bounds. (and not 0,0,0)
+    return Box3();
 }
 
 
@@ -47,7 +48,8 @@ Box3 Attribute::Space(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Draw(where);
-    return Box3(where->offset, Vector3(0,0,0));
+    // Bug#130 Attribute takes no space. (and not 0,0,0)
+    return Box3();
 }
 
 
@@ -103,33 +105,67 @@ void FillColor::Draw(Layout *where)
 
 void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
-//   Replay a texture change
+//   Remember the texture in the layout
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
+    where->textureUnits |= 1 << glUnit;
+
+    where->fillTextures[glUnit].unit = glUnit;
+    where->fillTextures[glUnit].id   = glName;
+    where->fillTextures[glUnit].type = glType;
+    where->fillTextures[glUnit].mipmap = mipmap;
+}
+
+void TextureUnit::Draw(Layout *where)
+// ------------------------------------------------------------- ---------------
+//   Remember the texture unit in the layout
+// ----------------------------------------------------------------------------
+{
+    // Fig a bug with ATI drivers which set texture matrices
+    // to null instead of identity
+    if(glUnit && (TaoApp->vendorID == ATI))
+    {
+        glActiveTexture(GL_TEXTURE0 + glUnit);
+        glMatrixMode(GL_TEXTURE);
+        glLoadIdentity();
+        glMatrixMode(GL_MODELVIEW);
+        glActiveTexture(GL_TEXTURE0);
+    }
+
     if(glUnit < TaoApp->maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
-        where->fillTextures[glUnit].unit = glUnit;
-        where->fillTextures[glUnit].id   = glName;
-        where->fillTextures[glUnit].type = glType;
+        where->currentTexture.unit = glUnit;
     }
 }
-
 
 void TextureWrap::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
     where->fillTextures[glUnit].wrapS = s;
     where->fillTextures[glUnit].wrapT = t;
 }
 
-void TextureTransform::Draw(Layout *)
+void TextureMode::Draw(Layout *where)
+// ------------------------------------------------------------- ---------------
+//   Replay a texture mode
+// ----------------------------------------------------------------------------
+{
+    uint glUnit = where->currentTexture.unit;
+    where->fillTextures[glUnit].mode = mode;
+}
+
+
+void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
+    uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
         glMatrixMode(GL_TEXTURE);
@@ -293,6 +329,36 @@ void DepthTest::Draw(Layout *)
 }
 
 
+void BlendFunc::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend function
+// ----------------------------------------------------------------------------
+{
+    glBlendFunc(sfactor, dfactor);
+    where->hasBlending = true;
+}
+
+
+void BlendFuncSeparate::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend function separately for alpha and color
+// ----------------------------------------------------------------------------
+{
+    glBlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
+    where->hasBlending = true;
+}
+
+
+void BlendEquation::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Change the blend equation
+// ----------------------------------------------------------------------------
+{
+    glBlendEquation(equation);
+    where->hasBlending = true;
+}
+
+
 void RecordMouseCoordinates::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Record the widget mouse coordinates in a tree info
@@ -301,11 +367,11 @@ void RecordMouseCoordinates::Draw(Layout *where)
     Widget *widget = where->Display();
     if (widget->mouseTracking())
     {
-        MouseCoordinatesInfo *info = self->GetInfo<MouseCoordinatesInfo>();
+        CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>();
         if (!info)
         {
-            info = new MouseCoordinatesInfo;
-            self->SetInfo<MouseCoordinatesInfo>(info);
+            info = new CoordinatesInfo;
+            self->SetInfo<CoordinatesInfo>(info);
         }
 
         widget->recordProjection(info->projection, info->model, info->viewport);
@@ -315,4 +381,88 @@ void RecordMouseCoordinates::Draw(Layout *where)
     }
 }
 
+
+void ConvertScreenCoordinates::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Convert screen coordinates to world coordinates (get Z depth)
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    CoordinatesInfo *info = self->GetInfo<CoordinatesInfo>();
+    if (!info)
+    {
+        info = new CoordinatesInfo;
+        self->SetInfo<CoordinatesInfo>(info);
+    }
+
+    widget->recordProjection(info->projection, info->model, info->viewport);
+
+    info->coordinates = widget->objectToWorld(x, y, info->projection, info->model, info->viewport);
+}
+
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from attributes.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "attributes.tbl"
+
+namespace Tao
+{
+
+#define ATTRIBUTE(Name, Accessor)               \
+void Name##Attribute::Draw(Layout *where)       \
+{                                               \
+    where->Accessor(value);                     \
+}
+#include "attributes.tbl"
+
+
+void EnterAttributes()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "attributes.tbl"
+}
+
+
+void DeleteAttributes()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "attributes.tbl"
+}
+
+}

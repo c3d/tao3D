@@ -27,11 +27,13 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
+//#include "attributes.h"
 #include <vector>
 #include <set>
 #include <QFont>
 #include <QEvent>
 #include <float.h>
+#include "matrix.h"
 
 #define MAX_TEX_UNITS 64
 
@@ -44,26 +46,34 @@ struct TextureState
 //   The state of the texture we want to preserve
 // ----------------------------------------------------------------------------
 {
-    TextureState(): wrapS(false), wrapT(false), id(0), unit(0), width(0), height(0), type(GL_TEXTURE_2D) {}
-    bool        wrapS, wrapT;
-    GLuint        id;
-    GLuint        unit;
-    GLuint        width;
-    GLuint        height;
+    TextureState(): wrapS(false), wrapT(false),
+                    id(0), unit(0), width(0), height(0),
+                    type(GL_TEXTURE_2D), mode(GL_MODULATE),
+                    mipmap(false) {}
+
+    bool          wrapS, wrapT;
+    GLuint        id, unit;
+    GLuint        width, height;
     GLenum        type;
+    GLenum        mode;
+    bool          mipmap;
 };
+
 
 struct ModelState
 // ----------------------------------------------------------------------------
 //   The state of the model we want to preserve
 // ----------------------------------------------------------------------------
 {
-    ModelState(): tx(0), ty(0), tz(0), sx(1), sy(1), sz(1), rotation(1, 0, 0, 0) {}
+    ModelState(): tx(0), ty(0), tz(0),
+                  sx(1), sy(1), sz(1),
+                  rotation(1, 0, 0, 0) {}
 
     float tx, ty, tz;     // Translate parameters
     float sx, sy, sz;     // Scaling parameters
     Quaternion rotation;  // Rotation parameters
 };
+
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -79,9 +89,11 @@ public:
 
 
 public:
-    void                ClearAttributes();
+    void                ClearAttributes(bool all = false);
     static text         ToText(qevent_ids & ids);
     static text         ToText(QEvent::Type type);
+    void                InheritState(LayoutState *other);
+    void                toDebugString(std::ostream &out) const;
 
 public:
     Vector3             offset;
@@ -92,18 +104,38 @@ public:
     scale               lineWidth;
     Color               lineColor;
     Color               fillColor;
+
+    // Textures paramters
     TextureState        currentTexture;
-    uint64              currentLights; //Current used lights
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;
     tex_list            fillTextures;
-    ModelState          model;
+
+    // Lighting parameters
     uint                lightId;
+    uint64              currentLights; //Current used lights
+    uint                perPixelLighting;
     uint                programId;
-    bool                printing : 1;
+
+    // Transformations
     double              planarRotation;
     double              planarScale;
     uint                rotationId, translationId, scaleId;
+    Matrix4             model;
+
+    // For optimized drawing, we keep track of what changes
+    uint64              hasTextureMatrix; // 64 texture units
+    bool                printing        : 1;
+    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
+    bool                hasMatrix       : 1;
+    bool                has3D           : 1;
+    bool                hasAttributes   : 1;
+    bool                hasLighting     : 1;
+    bool                hasBlending     : 1;
+    bool                hasTransform    : 1;
+    bool                hasMaterial     : 1;
+    bool                isSelection     : 1;
+    bool                groupDrag       : 1;
 
 };
 
@@ -113,7 +145,7 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Drawing *>      Drawings;
+    typedef std::list<Drawing *>        Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -154,28 +186,22 @@ public:
     double              NextRefresh();
 
     LayoutState &       operator=(const LayoutState &o);
-    void                Inherit(Layout *other);
+    virtual void        Inherit(Layout *other);
     void                PushLayout(Layout *where);
     void                PopLayout(Layout *where);
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();
 
+    virtual text        Type() { return "Layout"; }
+
+    // Used to optimize away texturing and programs if in Identify
+    static bool         InIdentify()    { return inIdentify; }
+    
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
     uint                charId;
-    // For optimized drawing, we keep track of what changes
-    bool                hasPixelBlur    : 1; // Pixels not aligning naturally
-    bool                hasMatrix       : 1;
-    bool                has3D           : 1;
-    bool                hasAttributes   : 1;
-    bool                hasTransform    : 1;
-    uint64              hasTextureMatrix; // 64 texture units
-    bool                hasLighting     : 1;
-    bool                hasMaterial     : 1;
-    bool                isSelection     : 1;
-    bool                groupDrag       : 1;
 
     GLbitfield glSaveBits()
     {
@@ -184,6 +210,8 @@ public:
             bits |= (GL_LINE_BIT | GL_TEXTURE_BIT);
         if (hasLighting)
             bits |= GL_LIGHTING_BIT;
+        if (hasBlending)
+            bits |= GL_COLOR_BUFFER_BIT;
         return bits;
     }
 
@@ -207,7 +235,25 @@ public:
     static scale        factorBase, factorIncrement;
     static scale        unitBase, unitIncrement;
     static uint         globalProgramId;
+    static bool         inIdentify;
 };
+
+
+struct StereoLayout : Layout
+// ----------------------------------------------------------------------------
+//   A layout that activates only for some viewpoint
+// ----------------------------------------------------------------------------
+{
+    StereoLayout(const Layout &o, ulong viewpoints = ~0UL)
+        : Layout(o), viewpoints(viewpoints) {}
+
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *where);
+    bool                Valid(Layout *where);
+
+    ulong       viewpoints;
+};
+
 
 TAO_END
 

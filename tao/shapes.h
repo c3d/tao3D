@@ -41,14 +41,14 @@ struct Shape : Drawing
 {
     Shape(): Drawing() {}
 
-    virtual void        Draw(Layout *where);
-    virtual void        Draw(GraphicPath &path);
+    virtual text        Type() { return "Shape";}
 
 public:
     // Shape parameters
     static void         enableTexCoord(uint units, void *texCoord);
     static void         disableTexCoord(uint units);
     static bool         setTexture(Layout *where);
+    static bool         setShader(Layout *where);
     static bool         setFillColor(Layout *where);
     static bool         setLineColor(Layout *where);
 
@@ -57,13 +57,26 @@ private:
     static void unbindTexture(TextureState& texture);
 };
 
+struct Shape2 : Shape
+// ----------------------------------------------------------------------------
+//   Common base class, just in case
+// ----------------------------------------------------------------------------
+{
+    Shape2(): Shape() {}
 
-struct Rectangle : Shape
+    virtual void        Draw(Layout *where);
+    virtual void        Identify(Layout *);
+    virtual void        Draw(GraphicPath &path);
+    virtual text        Type() { return "Shape 2D";}
+};
+
+
+struct Rectangle : Shape2
 // ----------------------------------------------------------------------------
 //    A rectangle that can be placed in a layout
 // ----------------------------------------------------------------------------
 {
-    Rectangle(const Box &b): Shape(), bounds(b) {}
+    Rectangle(const Box &b): Shape2(), bounds(b) {}
     virtual void        Draw(GraphicPath &path);
     virtual Box3        Bounds(Layout *where);
     Box                 bounds;
@@ -240,17 +253,28 @@ struct Callout : Rectangle
 };
 
 
-struct FixedSizePoint : Shape
+struct FixedSizePoint : Shape2
 // ----------------------------------------------------------------------------
 //    An OpenGL point
 // ----------------------------------------------------------------------------
 {
-    FixedSizePoint(Point3 c, scale r): Shape(), center(c), radius(r) {}
+    FixedSizePoint(Point3 c, scale r): Shape2(), center(c), radius(r) {}
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *where) { Draw(where); }
     Point3 center;
     scale  radius;
 };
+
+
+
+// ============================================================================
+// 
+//   Entering shapes in the symbols table
+// 
+// ============================================================================
+
+extern void EnterShapes();
+extern void DeleteShapes();
 
 TAO_END
 

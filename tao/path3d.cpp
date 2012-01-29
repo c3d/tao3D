@@ -411,7 +411,12 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
-    setTexture(where);
+    // Do not bother setting up textures and programs if we are in selection
+    if (tessel != GL_SELECT)
+        setTexture(where);
+    else
+        tessel = 0;
+
     if (setFillColor(where))
     {
         Draw(where->offset, where->textureUnits, GL_POLYGON, tessel);
@@ -423,7 +428,6 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
         bool first = true;
         //bool penultimate = true;
         bool last = true;
-        Kind startKind = MOVE_TO;
         Kind endKind = MOVE_TO;
         Point3 startPoint;
         Point3 endPoint;
@@ -444,18 +448,15 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                 switch ((*i).kind)
                 {
                 case MOVE_TO:
-                    startKind = MOVE_TO;
                     startPoint = (*i).position;
                     break;
                 case LINE_TO:
                 case CURVE_TO:
                     // First line
-                    startKind = LINE_TO;
                     startHeading = (*i).position - startPoint;
                     length = startHeading.Length();
                     if (length == 0)
                     {
-                        startKind = MOVE_TO;
                         startPoint = (*i).position;
                     }
                     else
@@ -477,12 +478,10 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
                     break;
                 case CURVE_CONTROL:
                     // First curve
-                    startKind = CURVE_TO;
                     startHeading = (*i).position - startPoint;
                     length = startHeading.Length();
                     if (length == 0)
                     {
-                        startKind = MOVE_TO;
                         startPoint = (*i).position;
                     }
                     else
@@ -609,7 +608,9 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 }
 
 
-void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode, GLenum tesselation)
+void GraphicPath::Draw(const Vector3 &offset,
+                       const uint64 texUnits,
+                       GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation
 // ----------------------------------------------------------------------------
@@ -797,17 +798,30 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
 
                         IFTRACE(paths)
                         {
-                            std::cerr << "P0 #" << i << " = x:" << p0.x << ", y:" << p0.y << ", z:" << p0.z << std::endl;
-                            std::cerr << "P1 #" << (i+i1)%size << " = x:" << p1.x << ", y:" << p1.y << ", z:" << p1.z << std::endl;
-                            std::cerr << "P2 #" << (i+i1+i2)%size << " = x:" << p2.x << ", y:" << p2.y << ", z:" << p2.z << std::endl;
-                            std::cerr << "V1 (P1 - P0) = x:" << v1.x << ", y:" << v1.y << ", z:" << v1.z << std::endl;
-                            std::cerr << "V2 (P2 - P1) = x:" << v2.x << ", y:" << v2.y << ", z:" << v2.z << std::endl;
+                            std::cerr << "P0 #" << i
+                                      << " = x:" << p0.x
+                                      << ", y:" << p0.y
+                                      << ", z:" << p0.z << std::endl;
+                            std::cerr << "P1 #" << (i+i1)%size 
+                                      << " = x:" << p1.x
+                                      << ", y:" << p1.y << ", z:"
+                                      << p1.z << std::endl;
+                            std::cerr << "P2 #" << (i+i1+i2) % size
+                                      << " = x:" << p2.x
+                                      << ", y:" << p2.y
+                                      << ", z:" << p2.z << std::endl;
+                            std::cerr << "V1 (P1 - P0) = x:" << v1.x
+                                      << ", y:" << v1.y
+                                      << ", z:" << v1.z << std::endl;
+                            std::cerr << "V2 (P2 - P1) = x:" << v2.x
+                                      << ", y:" << v2.y
+                                      << ", z:" << v2.z << std::endl;
                         }
 
                         if ((i1 + i2) < size)
                         {
-                            vn = v1.Cross(v2);
-                            vn.Normalize();
+                            Triangle triangle(p0, p1, p2);
+                            vn = triangle.computeNormal();
 
                             for (uint j = (i + i1); j < (i + i1 + i2); j++)
                             {
@@ -815,7 +829,10 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                                 data[j%size].normal = vn;
 
                                 IFTRACE(paths)
-                                    std::cerr << "Normal #" << j%size << " = x:" << vn.x << ", y:" << vn.y << ", z:" << vn.z << std::endl;
+                                    std::cerr << "Normal #" << j % size
+                                              << " = x:" << vn.x
+                                              << ", y:" << vn.y
+                                              << ", z:" << vn.z << std::endl;
                             }
                         }
 
@@ -836,7 +853,8 @@ void GraphicPath::Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
                             glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3,GL_DOUBLE, sizeof(VertexData), tdata);
+                            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
+                                              tdata);
                         }
                     }
 

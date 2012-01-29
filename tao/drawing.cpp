@@ -80,6 +80,14 @@ void Drawing::DrawSelection(Layout *layout)
 }
 
 
+void Drawing::Evaluate(Layout *)
+// ----------------------------------------------------------------------------
+//   Evaluate a drawing (typically attributes) when added to a layout
+// ----------------------------------------------------------------------------
+{
+}
+
+
 void Drawing::Identify(Layout *l)
 // ----------------------------------------------------------------------------
 //   Draw an area used to identify the shape for OpenGL selection

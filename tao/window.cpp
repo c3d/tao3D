@@ -38,6 +38,8 @@
 #include "diff_dialog.h"
 #include "git_toolbar.h"
 #include "undo.h"
+#endif
+#ifndef CFG_NONETWORK
 #include "open_uri_dialog.h"
 #endif
 #include "resource_mgt.h"
@@ -49,6 +51,9 @@
 #include "xl_source_edit.h"
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
+#include "assistant.h"
+#include "licence.h"
+#include "license_dialog.h"
 
 #include <iostream>
 #include <sstream>
@@ -87,9 +92,15 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NOSRCEDIT
       srcEdit(NULL), src(NULL),
 #endif
-      taoWidget(NULL), curFile(), uri(NULL), slideShowMode(false),
+      taoWidget(NULL), curFile(), uri(NULL),
+#ifndef CFG_NOFULLSCREEN
+      slideShowMode(false),
+#endif
       unifiedTitleAndToolBarOnMac(false), // see #678 below
-      fileCheckTimer(this), splashScreen(NULL), aboutSplash(NULL),
+#ifndef CFG_NORELOAD
+      fileCheckTimer(this),
+#endif
+      splashScreen(NULL), aboutSplash(NULL),
       deleteOnOpenFailed(false)
 {
 #ifndef CFG_NOSRCEDIT
@@ -154,24 +165,35 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
             return;
     }
 
+#ifndef CFG_NOEDIT
     // Cut/Copy/Paste actions management
     connect(qApp, SIGNAL(focusChanged(QWidget*,QWidget*)),
             this, SLOT(onFocusWidgetChanged(QWidget*,QWidget*)));
     connect(qApp->clipboard(), SIGNAL(dataChanged()),
             this, SLOT(checkClipboard()));
     checkClipboard();
+#endif
 
     // Create the main widget to display Tao stuff
     XL::SourceFile &sf = xlRuntime->files[+sourceFile];
     taoWidget->xlProgram = &sf;
 
+#ifndef CFG_NORELOAD
     // Fire a timer to check if files changed
     fileCheckTimer.start(500);
     connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+#endif
 
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
             this, SLOT(adjustToScreenResolution(int)));
+
+#ifdef CFG_TIMED_FULLSCREEN
+    connect(&fullScreenTimer, SIGNAL(timeout()),
+            this, SLOT(leaveFullScreen()));
+    connect(taoWidget, SIGNAL(userActivity()),
+            this, SLOT(restartFullScreenTimer()));
+#endif
 }
 
 
@@ -181,6 +203,7 @@ Window::~Window()
 // ----------------------------------------------------------------------------
 {
     FontFileManager::UnloadEmbeddedFonts(appFontIds);
+    taoWidget->purgeTaoInfo();
 }
 
 
@@ -269,7 +292,7 @@ bool Window::loadFileIntoSourceFileView(const QString &fileName, bool box)
 
 void Window::addError(QString txt)
 // ----------------------------------------------------------------------------
-//   Update the text edit widget with updates we made
+//   Append error string to error window
 // ----------------------------------------------------------------------------
 {
     // Ugly workaround to bug #775
@@ -279,7 +302,7 @@ void Window::addError(QString txt)
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
     errorDock->show();
-    statusBar()->showMessage(txt);
+    // Before trying to show the error in the status bar, see #970
 }
 
 
@@ -397,7 +420,7 @@ int Window::open(QString fileName, bool readOnly)
         if (fileName.startsWith("file://"))
             fileName = fileName.mid(7);
 
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
         bool fileExists = QFileInfo(fileName).exists();
         if (!fileExists && fileName.contains("://"))
         {
@@ -411,8 +434,16 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(onDocReady(QString)));
                 connect(uri, SIGNAL(templateCloned(QString)),
                         this, SLOT(onNewTemplateInstalled(QString)));
-                connect(uri, SIGNAL(templateFetched(QString)),
+                connect(uri, SIGNAL(templateUpdated(QString)),
+                        this, SLOT(onTemplateUpdated(QString)));
+                connect(uri, SIGNAL(templateUpToDate(QString)),
                         this, SLOT(onTemplateUpToDate(QString)));
+                connect(uri, SIGNAL(moduleCloned(QString)),
+                        this, SLOT(onNewModuleInstalled(QString)));
+                connect(uri, SIGNAL(moduleUpdated(QString)),
+                        this, SLOT(onModuleUpdated(QString)));
+                connect(uri, SIGNAL(moduleUpToDate(QString)),
+                        this, SLOT(onModuleUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
                 bool ok = uri->get();  // Will emit a signal when done
@@ -527,6 +558,8 @@ void Window::removeSplashScreen()
 }
 
 
+#ifndef CFG_NOEDIT
+
 bool Window::save()
 // ----------------------------------------------------------------------------
 //    Save the current window
@@ -594,6 +627,33 @@ again:
             return false;
         projpath += "/" + subdir;
         fileName = projpath + "/" + fileNameOnly;
+        targetDir = QDir(QFileInfo(fileName).absoluteDir());
+    }
+
+    QDir curDir = QDir(QFileInfo(curFile).absoluteDir());
+    bool dstIsSubdirOfSrc = QDir(targetDir.absoluteFilePath(".."))
+                                     .canonicalPath()
+                                     .startsWith(curDir.canonicalPath());
+    if (targetDir != curDir && !dstIsSubdirOfSrc)
+    {
+        // Copy all files from original path to new path
+
+        QMessageBox::StandardButton ret;
+        ret = QMessageBox::question(this, tr("Copying"),
+                                    tr("Also copy all files and subfolders?"),
+                                    QMessageBox::Yes | QMessageBox::No,
+                                    QMessageBox::Yes);
+        if (ret == QMessageBox::Yes)
+        {
+            IFTRACE(fileload)
+                std::cerr << "Recursively copying " << +curDir.absolutePath()
+                              << " to " << +targetDir.absolutePath() << "\n";
+            bool ok = Template::recursiveCopy(curDir, targetDir);
+            if (ok)
+                targetDir.remove(QFileInfo(curFile).fileName());
+            else
+                QMessageBox::warning(this, tr("Error"), tr("Copy failed."));
+        }
     }
 
 #ifndef CFG_NOGIT
@@ -609,14 +669,10 @@ again:
 
 bool Window::saveFonts()
 // ----------------------------------------------------------------------------
-//    Like saveAs() but also embed currently used fonts into the document
+//    Embed currently used fonts into the document
 // ----------------------------------------------------------------------------
 {
     bool ok;
-
-    ok = saveAs();
-    if (!ok)
-        return ok;
 
     struct SOC
     {
@@ -707,10 +763,107 @@ bool Window::saveFonts()
         repo->commit();
     }
 
-    statusBar()->showMessage(tr("File saved"), 2000);
+    statusBar()->showMessage(tr("Fonts saved"), 2000);
     return ok;
 }
 
+
+void Window::consolidate()
+// ----------------------------------------------------------------------------
+//   Menu entry for the resource management activities.
+// ----------------------------------------------------------------------------
+{
+    text fn = +curFile;
+    IFTRACE(resources)
+        std::cerr << "Consolidate: File name is "<< fn << std::endl;
+
+    if (taoWidget->markChange("Include resource files in the project"))
+    {
+        ResourceMgt checkFiles(taoWidget);
+        xlRuntime->files[fn].tree->Do(checkFiles);
+        checkFiles.cleanUpRepo();
+        // Reload the program and mark the changes
+        taoWidget->reloadProgram();
+    }
+
+}
+
+
+bool Window::saveFile(const QString &fileName)
+// ----------------------------------------------------------------------------
+//   Save a file with a given name
+// ----------------------------------------------------------------------------
+{
+    QFile file(fileName);
+    if (!file.open(QFile::WriteOnly | QFile::Text))
+    {
+        QMessageBox::warning(this, tr("Error saving file"),
+                             tr("Cannot write file %1:\n%2.")
+                             .arg(fileName)
+                             .arg(file.errorString()));
+        return false;
+    }
+
+    isUntitled = false;
+    statusBar()->showMessage(tr("Saving..."));
+    // FIXME: can't call processEvent here, or the "Save with fonts..."
+    // function fails to save all the fonts of a multi-page doc
+    // QApplication::processEvents();
+
+    do
+    {
+        QTextStream out(&file);
+        out.setCodec("UTF-8");
+#ifndef CONFIG_MACOSX
+        QApplication::setOverrideCursor(Qt::BusyCursor);
+#endif
+#ifndef CFG_NOSRCEDIT
+        out << srcEdit->toPlainText();
+#else
+        if (Tree *prog = taoWidget->xlProgram->tree)
+        {
+            std::ostringstream renderOut;
+            renderOut << prog;
+            out << +renderOut.str();
+        }
+#endif
+        QApplication::restoreOverrideCursor();
+    } while (0); // Flush
+
+    // Will update recent file list since file now exists
+    setCurrentFile(fileName);
+
+    text fn = +fileName;
+
+    xlRuntime->LoadFile(fn);
+
+    updateProgram(fileName);
+#ifndef CFG_NOSRCEDIT
+    srcEdit->setXLNames(taoWidget->listNames());
+#endif
+    taoWidget->refreshNow();
+    isReadOnly = false;
+
+#ifndef CFG_NOGIT
+    if (repo)
+    {
+        // Trigger immediate commit to repository
+        // FIXME: shouldn't create an empty commit
+        XL::SourceFile &sf = xlRuntime->files[fn];
+        sf.changed = true;
+        taoWidget->markChange("Manual save");
+        taoWidget->writeIfChanged(sf);
+        taoWidget->doCommit(true);
+        sf.changed = false;
+    }
+#endif
+    markChanged(false);
+    showMessage(tr("File saved"), 2000);
+
+    return true;
+}
+
+#endif
 
 void Window::openRecentFile()
 // ----------------------------------------------------------------------------
@@ -738,6 +891,14 @@ bool Window::setStereo(bool on)
     IFTRACE(displaymode)
         std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
     taoWidget = new Widget(*taoWidget, newFormat);
+    connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
+            SLOT(showHandCursor(bool)));
+    connect(zoomInAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomIn()));
+    connect(zoomOutAct, SIGNAL(triggered()), taoWidget,
+            SLOT(zoomOut()));
+    connect(resetViewAct, SIGNAL(triggered()), taoWidget,
+            SLOT(resetView()));
     setCentralWidget(taoWidget);
     taoWidget->show();
     taoWidget->setFocus();
@@ -805,6 +966,8 @@ void Window::clearRecentFileList()
     updateRecentFileActions();
 }
 
+
+#ifndef CFG_NOEDIT
 
 void Window::cut()
 // ----------------------------------------------------------------------------
@@ -894,24 +1057,9 @@ void Window::checkClipboard()
     pasteAct->setEnabled(enable);
 }
 
+#endif // CFG_NOEDIT
 
 #ifndef CFG_NOGIT
-
-void Window::openUri()
-// ----------------------------------------------------------------------------
-//    Show a dialog box to enter URI and open it
-// ----------------------------------------------------------------------------
-{
-    OpenUriDialog dialog(this);
-    int ret = dialog.exec();
-    if (ret != QDialog::Accepted)
-        return;
-    QString uri = dialog.uri;
-    if (uri.isEmpty())
-        return;
-    open(uri);
-}
-
 
 void Window::warnNoRepo()
 // ----------------------------------------------------------------------------
@@ -946,7 +1094,9 @@ void Window::fetch()
         return warnNoRepo();
 
     FetchDialog dialog(repo.data(), this);
+#ifndef CFG_NOEDIT
     connect(&dialog, SIGNAL(fetched()), gitToolBar, SLOT(refresh()));
+#endif
     dialog.exec();
 }
 
@@ -1049,6 +1199,45 @@ void Window::checkDetachedHead()
 }
 
 
+void Window::reloadCurrentFile()
+// ----------------------------------------------------------------------------
+//    Reload the current document when user has switched branches
+// ----------------------------------------------------------------------------
+{
+    loadFile(curFile, false);
+}
+
+#endif // CFG_NOGIT
+
+#ifndef CFG_NONETWORK
+
+void Window::showInfoDialog(QString title, QString msg, QString info)
+// ----------------------------------------------------------------------------
+//    Show a dialog box
+// ----------------------------------------------------------------------------
+{
+    QMessageBox msgBox(this);
+    msgBox.setWindowTitle(title);
+    msgBox.setText(msg);
+    msgBox.setInformativeText(info);
+    msgBox.exec();
+}
+
+void Window::openUri()
+// ----------------------------------------------------------------------------
+//    Show a dialog box to enter URI and open it
+// ----------------------------------------------------------------------------
+{
+    OpenUriDialog dialog(this);
+    int ret = dialog.exec();
+    if (ret != QDialog::Accepted)
+        return;
+    QString uri = dialog.uri;
+    if (uri.isEmpty())
+        return;
+    open(uri);
+}
+
 void Window::onUriGetFailed()
 // ----------------------------------------------------------------------------
 //    Called asynchronously when open() failed to open an URI
@@ -1078,15 +1267,12 @@ void Window::onNewTemplateInstalled(QString path)
 //    Show a dialog box to confirm that a new template was installed
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
     QString title = tr("New template installed");
-    QString msg = tr("A new template was installed.");
-    QString infoMsg = tr("The template will appear in the new document dialog."
-                         " Files were installed in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    QString msg = tr("A new template \"%1\" was installed.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
@@ -1095,25 +1281,94 @@ void Window::onTemplateUpToDate(QString path)
 //    Show a dialog box to confirm that an existing template is up-to-date
 // ----------------------------------------------------------------------------
 {
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
     QString title = tr("Template is up-to-date");
-    QString msg = tr("The template is up-to-date.");
-    QString infoMsg = tr("The template is in folder %1.").arg(path);
-    QMessageBox msgBox(this);
-    msgBox.setWindowTitle(title);
-    msgBox.setText(msg);
-    msgBox.setInformativeText(infoMsg);
-    msgBox.exec();
+    QString msg = tr("The template \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
 }
 
 
-void Window::reloadCurrentFile()
+void Window::onTemplateUpdated(QString path)
 // ----------------------------------------------------------------------------
-//    Reload the current document when user has switched branches
+//    Show a dialog box to confirm that an existing template was updated
 // ----------------------------------------------------------------------------
 {
-    loadFile(curFile, false);
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Template was updated");
+    QString msg = tr("The template \"%1\" was updated.").arg(name);
+    showInfoDialog(title, msg);
 }
 
+
+void Window::onNewModuleInstalled(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that a new module was installed
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("New module installed");
+    QString msg = tr("A new module \"%1\" was installed.").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The module will be visible in the preference "
+                         "dialog and can be used after restarting the "
+                         "application.</p>"
+                         "<p>If you received a license file for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
+    showInfoDialog(title, msg, infoMsg);
+}
+
+
+void Window::onModuleUpToDate(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module is up-to-date
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Module is up-to-date");
+    QString msg = tr("The module \"%1\" is up-to-date.").arg(name);
+    showInfoDialog(title, msg);
+}
+
+
+void Window::onModuleUpdated(QString path)
+// ----------------------------------------------------------------------------
+//    Show a dialog box to confirm that an existing module was updated
+// ----------------------------------------------------------------------------
+{
+    emit openFinished(true);
+
+    QString name = QDir(path).dirName();
+    QString title = tr("Module was updated");
+    QString msg = tr("A module update was downloaded for \"%1\".").arg(name);
+#if defined (Q_OS_MACX)
+    QString licMsg = tr("Tao Presentations/Licenses...");
+#else
+    QString licMsg = tr("Help/Licenses...");
+#endif
+    QString infoMsg = tr("<p>The update will be installed when the "
+                         "application restarts.</p>"
+                         "<p>If you received a new license for this module, "
+                         "you may install it now using the menu: %1</p>"
+                         ).arg(licMsg);
+    showInfoDialog(title, msg, infoMsg);
+}
+
+#endif // CFG_NONETWORK
+
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 
 bool Window::populateUndoStack()
 // ----------------------------------------------------------------------------
@@ -1142,7 +1397,7 @@ void Window::clearUndoStack()
     undoStack->clear();
 }
 
-#endif // CFG_NOGIT
+#endif // !CFG_NOGIT && !CFG_NOEDIT
 
 void Window::about()
 // ----------------------------------------------------------------------------
@@ -1172,7 +1427,43 @@ void Window::preferences()
 //    Show the Preferences dialog
 // ----------------------------------------------------------------------------
 {
-    PreferencesDialog(this).exec();
+    static QPointer<PreferencesDialog> prefs;
+    if (!prefs)
+    {
+        prefs = new PreferencesDialog;
+        connect(this, SIGNAL(destroyed()), prefs.data(), SLOT(close()));
+    }
+    prefs->show();
+    prefs->raise();
+    prefs->activateWindow();
+}
+
+
+void Window::licenses()
+// ----------------------------------------------------------------------------
+//    Show Licenses dialog. Largely inspired from QMessageBox::aboutQt().
+// ----------------------------------------------------------------------------
+{
+#ifdef Q_WS_MAC
+    static QPointer<QMessageBox> oldMsgBox;
+
+    if (oldMsgBox) {
+        oldMsgBox->show();
+        oldMsgBox->raise();
+        oldMsgBox->activateWindow();
+        return;
+    }
+#endif
+
+    QMessageBox *msgBox = new LicenseDialog();
+
+    msgBox->raise();
+#ifdef Q_WS_MAC
+    oldMsgBox = msgBox;
+    msgBox->show();
+#else
+    msgBox->exec();
+#endif
 }
 
 
@@ -1181,35 +1472,7 @@ void Window::onlineDoc()
 //    Open the online documentation page
 // ----------------------------------------------------------------------------
 {
-    QString index = QCoreApplication::applicationDirPath()
-                    + "/doc/html/index.html";
-    if (!QFileInfo(index).exists())
-    {
-        QMessageBox::warning(this, tr("Documentation not found"),
-                             tr("Online documentation file was not found."));
-        return;
-    }
-#ifdef Q_OS_WIN
-    // On Windows, index starts with a drive letter, not with a leading
-    // slash. Add one to end up with a valid URI.
-    index = "/" + index;
-#endif
-    index = "file://" + index;
-    bool ok = QDesktopServices::openUrl(index);
-    if (!ok)
-        QMessageBox::warning(this, tr("Online help error"),
-                             tr("Could not open "
-                                "online documentation file:\n%1").arg(index));
-}
-
-
-void Window::onlineDocTaodyne()
-// ----------------------------------------------------------------------------
-//    Open the online documentation page on taodyne.com
-// ----------------------------------------------------------------------------
-{
-    QString url("http://taodyne.com/taopresentations/1.0/doc/");
-    QDesktopServices::openUrl(url);
+    Assistant::instance()->showDocumentation("index.html");
 }
 
 
@@ -1286,13 +1549,14 @@ void Window::createActions()
     openAct->setObjectName("open");
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     openUriAct = new QAction(tr("Open Net&work..."), this);
     openUriAct->setStatusTip(tr("Download and open a remote document (URI)"));
     openUriAct->setObjectName("openURI");
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
 
+#ifndef CFG_NOEDIT
     saveAct = new Action(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
     saveAct->setStatusTip(tr("Save the document to disk"));
@@ -1300,15 +1564,12 @@ void Window::createActions()
     saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
+#if 0
     consolidateAct = new QAction(tr("Consolidate"), this);
     consolidateAct->setStatusTip(tr("Make the document self contained"));
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
-
-    renderToFileAct = new QAction(tr("&Render to files..."), this);
-    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
-    renderToFileAct->setObjectName("renderToFile");
-    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
+#endif
 
     saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
@@ -1316,10 +1577,16 @@ void Window::createActions()
     saveAsAct->setObjectName("saveAs");
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
-    saveFontsAct = new QAction(tr("Save with fonts..."), this);
-    saveFontsAct->setStatusTip(tr("Save the document with all required fonts"));
+    saveFontsAct = new QAction(tr("Save fonts"), this);
+    saveFontsAct->setStatusTip(tr("Save the fonts used in the document"));
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
+#endif
+
+    renderToFileAct = new QAction(tr("&Render to files..."), this);
+    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
+    renderToFileAct->setObjectName("renderToFile");
+    connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
 
     printAct = new Action(tr("&Print..."), this);
     printAct->setStatusTip(tr("Print the document"));
@@ -1359,6 +1626,7 @@ void Window::createActions()
     exitAct->setMenuRole(QAction::QuitRole);
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
 
+#ifndef CFG_NOEDIT
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
     cutAct->setShortcuts(QKeySequence::Cut);
     cutAct->setStatusTip(tr("Cut the current selection's contents to the "
@@ -1382,8 +1650,9 @@ void Window::createActions()
     pasteAct->setIconVisibleInMenu(false);
     pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
+#endif
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
     setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
                                    "when synchronizing the current "
@@ -1454,24 +1723,24 @@ void Window::createActions()
     preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
+    licensesAct = new QAction(tr("&Licenses..."), this);
+    licensesAct->setStatusTip(tr("View or add license files"));
+    licensesAct->setObjectName("licenses");
+    licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
+
     onlineDocAct = new QAction(tr("&Online Documentation"), this);
     onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
-    onlineDocTaodyneAct = new QAction(tr("&Online Documentation "
-                                         "(taodyne.com)"), this);
-    onlineDocTaodyneAct->setStatusTip(tr("Open the Online Documentation "
-                                         "on the Taodyne website"));
-    onlineDocTaodyneAct->setObjectName("onlineDocTaodyne");
-    connect(onlineDocTaodyneAct, SIGNAL(triggered()),
-            this, SLOT(onlineDocTaodyne()));
-
+#ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
     slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
+#endif
 
     viewAnimationsAct = new QAction(tr("Animations"), this);
     viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
@@ -1481,6 +1750,7 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
+#ifndef CFG_NOEDIT
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
 #ifndef CFG_NOSRCEDIT
@@ -1495,6 +1765,7 @@ void Window::createActions()
 
     redoAction = undoStack->createRedoAction(this, tr("&Redo"));
     redoAction->setShortcuts(QKeySequence::Redo);
+#endif
 
     // Icon copied from:
     // /Developer/Documentation/Qt/html/images/cursor-openhand.png
@@ -1545,14 +1816,18 @@ void Window::createMenus()
     fileMenu->addAction(newDocAct);
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
-#ifndef CFG_NOGIT
+#ifndef CFG_NONETWORK
     fileMenu->addAction(openUriAct);
 #endif
     openRecentMenu = fileMenu->addMenu(tr("Open &Recent"));
+#ifndef CFG_NOEDIT
     fileMenu->addAction(saveAct);
     fileMenu->addAction(saveAsAct);
     fileMenu->addAction(saveFontsAct);
+#if 0
     fileMenu->addAction(consolidateAct);
+#endif
+#endif
     fileMenu->addSeparator();
     fileMenu->addAction(renderToFileAct);
     fileMenu->addSeparator();
@@ -1568,26 +1843,34 @@ void Window::createMenus()
     clearRecentAct->setEnabled(false);
     updateRecentFileActions();
 
-    editMenu = menuBar()->addMenu(tr("&Edit"));
-    editMenu->setObjectName(EDIT_MENU_NAME);
-    editMenu->addAction(undoAction);
-    editMenu->addAction(redoAction);
-    editMenu->addSeparator();
-    editMenu->addAction(cutAct);
-    editMenu->addAction(copyAct);
-    editMenu->addAction(pasteAct);
+#ifndef CFG_NOEDIT
+    if (Licences::Check(GUI_FEATURE))
+    {
+        editMenu = menuBar()->addMenu(tr("&Edit"));
+        editMenu->setObjectName(EDIT_MENU_NAME);
+        editMenu->addAction(undoAction);
+        editMenu->addAction(redoAction);
+        editMenu->addSeparator();
+        editMenu->addAction(cutAct);
+        editMenu->addAction(copyAct);
+        editMenu->addAction(pasteAct);
+    }
+#endif
 
-#ifndef CFG_NOGIT
-    shareMenu = menuBar()->addMenu(tr("&Share"));
-    shareMenu->setObjectName(SHARE_MENU_NAME);
-    shareMenu->addAction(cloneAct);
-    shareMenu->addAction(fetchAct);
-    shareMenu->addAction(setPullUrlAct);
-    shareMenu->addAction(pushAct);
-    shareMenu->addAction(mergeAct);
-    shareMenu->addAction(checkoutAct);
-    shareMenu->addAction(selectiveUndoAct);
-    shareMenu->addAction(diffAct);
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
+    if (Licences::Check(GUI_FEATURE))
+    {
+        shareMenu = menuBar()->addMenu(tr("&Share"));
+        shareMenu->setObjectName(SHARE_MENU_NAME);
+        shareMenu->addAction(cloneAct);
+        shareMenu->addAction(fetchAct);
+        shareMenu->addAction(setPullUrlAct);
+        shareMenu->addAction(pushAct);
+        shareMenu->addAction(mergeAct);
+        shareMenu->addAction(checkoutAct);
+        shareMenu->addAction(selectiveUndoAct);
+        shareMenu->addAction(diffAct);
+    }
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
@@ -1596,7 +1879,9 @@ void Window::createMenus()
     viewMenu->addAction(src->toggleViewAction());
 #endif
     viewMenu->addAction(errorDock->toggleViewAction());
+#ifndef CFG_NOFULLSCREEN
     viewMenu->addAction(slideShowAct);
+#endif
     viewMenu->addAction(viewAnimationsAct);
     displayModeMenu = viewMenu->addMenu(tr("Display mode"));
     displayModes = new QActionGroup(this);
@@ -1608,8 +1893,8 @@ void Window::createMenus()
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
     helpMenu->addAction(preferencesAct);
+    helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
-    helpMenu->addAction(onlineDocTaodyneAct);
 }
 
 
@@ -1625,19 +1910,26 @@ void Window::createToolBars()
     fileToolBar->setObjectName("fileToolBar");
     // fileToolBar->addAction(newAct);
     fileToolBar->addAction(openAct);
+#ifndef CFG_NOEDIT
     fileToolBar->addAction(saveAct);
+#endif
     fileToolBar->hide();
     if (view)
         view->addAction(fileToolBar->toggleViewAction());
 
-    editToolBar = addToolBar(tr("Edit"));
-    editToolBar->setObjectName("editToolBar");
-    editToolBar->addAction(cutAct);
-    editToolBar->addAction(copyAct);
-    editToolBar->addAction(pasteAct);
-    editToolBar->hide();
-    if (view)
-        view->addAction(editToolBar->toggleViewAction());
+#ifndef CFG_NOEDIT
+    if (Licences::Check(GUI_FEATURE))
+    {
+        editToolBar = addToolBar(tr("Edit"));
+        editToolBar->setObjectName("editToolBar");
+        editToolBar->addAction(cutAct);
+        editToolBar->addAction(copyAct);
+        editToolBar->addAction(pasteAct);
+        editToolBar->hide();
+        if (view)
+            view->addAction(editToolBar->toggleViewAction());
+    }
+#endif
 
     viewToolBar = addToolBar(tr("View"));
     viewToolBar->setObjectName("viewToolBar");
@@ -1649,21 +1941,24 @@ void Window::createToolBars()
     if (view)
         view->addAction(viewToolBar->toggleViewAction());
 
-#ifndef CFG_NOGIT
-    gitToolBar = new GitToolBar(tr("Git Tools"), this);
-    gitToolBar->setObjectName("gitToolbar");
-    connect(this, SIGNAL(projectChanged(Repository*)),
-            gitToolBar, SLOT(setRepository(Repository*)));
-    connect(this, SIGNAL(projectChanged(Repository*)),
-            this, SLOT(checkDetachedHead()));
-    connect(gitToolBar, SIGNAL(checkedOut(QString)),
-            this, SLOT(reloadCurrentFile()));
-    connect(this, SIGNAL(projectUrlChanged(QString)),
-            gitToolBar, SLOT(showProjectUrl(QString)));
-    addToolBar(gitToolBar);
-    gitToolBar->hide();
-    if (view)
-        view->addAction(gitToolBar->toggleViewAction());
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
+    if (Licences::Check(GUI_FEATURE))
+    {
+        gitToolBar = new GitToolBar(tr("Git Tools"), this);
+        gitToolBar->setObjectName("gitToolbar");
+        connect(this, SIGNAL(projectChanged(Repository*)),
+                gitToolBar, SLOT(setRepository(Repository*)));
+        connect(this, SIGNAL(projectChanged(Repository*)),
+                this, SLOT(checkDetachedHead()));
+        connect(gitToolBar, SIGNAL(checkedOut(QString)),
+                this, SLOT(reloadCurrentFile()));
+        connect(this, SIGNAL(projectUrlChanged(QString)),
+                gitToolBar, SLOT(showProjectUrl(QString)));
+        addToolBar(gitToolBar);
+        gitToolBar->hide();
+        if (view)
+            view->addAction(gitToolBar->toggleViewAction());
+    }
 #endif
 }
 
@@ -1736,10 +2031,9 @@ bool Window::maybeSave()
 //   Check if we need to save the document
 // ----------------------------------------------------------------------------
 {
-    if (isWindowModified()
 #ifndef CFG_NOSRCEDIT
+    if (isWindowModified()
         || srcEdit->document()->isModified()
-#endif
        )
     {
         QMessageBox::StandardButton ret;
@@ -1753,6 +2047,7 @@ bool Window::maybeSave()
         else if (ret == QMessageBox::Cancel)
             return false;
     }
+#endif
     return true;
 }
 
@@ -1792,7 +2087,7 @@ void Window::setReadOnly(bool ro)
 #ifndef CFG_NOSRCEDIT
     srcEdit->setReadOnly(ro);
 #endif
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     pushAct->setEnabled(!ro);
     mergeAct->setEnabled(!ro);
     selectiveUndoAct->setEnabled(!ro);
@@ -1858,6 +2153,11 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     ffm.UnloadEmbeddedFonts(prev);
     showMessage(msg.arg(tr("Document")));
 
+    // Clean previous program
+    taoWidget->purgeTaoInfo();
+
+    taoWidget->reset();
+
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -1872,6 +2172,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QApplication::restoreOverrideCursor();
 
+    setCurrentFile(fileName); // #1346
     if (hadError)
     {
         // File not found, or parse error
@@ -1904,7 +2205,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         bool animated = taoWidget->hasAnimations();
         taoWidget->enableAnimations(NULL, false);
         taoWidget->resetTimes();
-        taoWidget->resetView();
+        taoWidget->resetViewAndRefresh();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
         if (animated)
@@ -1913,7 +2214,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         showMessage(tr("File loaded"), 2000);
     }
     isUntitled = false;
-    setCurrentFile(fileName);
+    setCurrentFile(fileName); // #1439
     setReadOnly(isReadOnly);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);
@@ -1928,7 +2229,11 @@ bool Window::toggleSlideShow()
 //    Toggle between slide show and normal mode
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NOFULLSCREEN
+    return false;
+#else
     return switchToSlideShow(!slideShowMode);
+#endif
 }
 
 
@@ -1937,6 +2242,10 @@ bool Window::switchToSlideShow(bool ss)
 //    Enter or leave slide show mode
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NOFULLSCREEN
+    Q_UNUSED(ss);
+    return false;
+#else
     bool oldMode = slideShowMode;
     switchToFullScreen(ss);
     if (!ss || QSettings().value("fsAlwaysOnTop", QVariant(false)).toBool())
@@ -1946,6 +2255,7 @@ bool Window::switchToSlideShow(bool ss)
     slideShowAct->setChecked(ss);
     slideShowMode = ss;
     return oldMode;
+#endif
 }
 
 void Window::setWindowAlwaysOnTop(bool alwaysOnTop)
@@ -2011,101 +2321,6 @@ bool Window::updateProgram(const QString &fileName)
 }
 
 
-void Window::consolidate()
-// ----------------------------------------------------------------------------
-//   Menu entry for the resource management activities.
-// ----------------------------------------------------------------------------
-{
-    text fn = +curFile;
-    IFTRACE(resources)
-        std::cerr << "Consolidate: File name is "<< fn << std::endl;
-
-    if (taoWidget->markChange("Include resource files in the project"))
-    {
-        ResourceMgt checkFiles(taoWidget);
-        xlRuntime->files[fn].tree->Do(checkFiles);
-        checkFiles.cleanUpRepo();
-        // Reload the program and mark the changes
-        taoWidget->reloadProgram();
-    }
-
-}
-
-bool Window::saveFile(const QString &fileName)
-// ----------------------------------------------------------------------------
-//   Save a file with a given name
-// ----------------------------------------------------------------------------
-{
-    QFile file(fileName);
-    if (!file.open(QFile::WriteOnly | QFile::Text))
-    {
-        QMessageBox::warning(this, tr("Error saving file"),
-                             tr("Cannot write file %1:\n%2.")
-                             .arg(fileName)
-                             .arg(file.errorString()));
-        return false;
-    }
-
-    isUntitled = false;
-    statusBar()->showMessage(tr("Saving..."));
-    // FIXME: can't call processEvent here, or the "Save with fonts..."
-    // function fails to save all the fonts of a multi-page doc
-    // QApplication::processEvents();
-
-    do
-    {
-        QTextStream out(&file);
-        out.setCodec("UTF-8");
-#ifndef CONFIG_MACOSX
-        QApplication::setOverrideCursor(Qt::BusyCursor);
-#endif
-#ifndef CFG_NOSRCEDIT
-        out << srcEdit->toPlainText();
-#else
-        if (Tree *prog = taoWidget->xlProgram->tree)
-        {
-            std::ostringstream renderOut;
-            renderOut << prog;
-            out << +renderOut.str();
-        }
-#endif
-        QApplication::restoreOverrideCursor();
-    } while (0); // Flush
-
-    // Will update recent file list since file now exists
-    setCurrentFile(fileName);
-
-    text fn = +fileName;
-
-    xlRuntime->LoadFile(fn);
-
-    updateProgram(fileName);
-#ifndef CFG_NOSRCEDIT
-    srcEdit->setXLNames(taoWidget->listNames());
-#endif
-    taoWidget->refreshNow();
-    isReadOnly = false;
-
-#ifndef CFG_NOGIT
-    if (repo)
-    {
-        // Trigger immediate commit to repository
-        // FIXME: shouldn't create an empty commit
-        XL::SourceFile &sf = xlRuntime->files[fn];
-        sf.changed = true;
-        taoWidget->markChange("Manual save");
-        taoWidget->writeIfChanged(sf);
-        taoWidget->doCommit(true);
-        sf.changed = false;
-    }
-#endif
-    markChanged(false);
-    showMessage(tr("File saved"), 2000);
-
-    return true;
-}
-
-
 void Window::markChanged(bool changed)
 // ----------------------------------------------------------------------------
 //   Someone else tells us that the window is changed or not
@@ -2121,7 +2336,7 @@ void Window::markChanged(bool changed)
 }
 
 
-#ifndef CFG_NOGIT
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
 void Window::enableProjectSharingMenus()
 // ----------------------------------------------------------------------------
 //   Activate the Git-related actions
@@ -2135,7 +2350,9 @@ void Window::enableProjectSharingMenus()
     selectiveUndoAct->setEnabled(true);
     diffAct->setEnabled(true);
 }
+#endif
 
+#ifndef CFG_NOGIT
 bool Window::openProject(QString path, QString fileName, bool confirm)
 // ----------------------------------------------------------------------------
 //   Find and open a project (= SCM repository)
@@ -2153,7 +2370,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
     if (repo)
         oldUrl = repo->url();
 
-    bool created = false;
     repository_ptr repo = RepositoryFactory::repository(path);
     if (!repo)
     {
@@ -2206,7 +2422,6 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             repo = RepositoryFactory::repository(path,
                                                  RepositoryFactory::Create);
-            created = (repo != NULL);
         }
     }
 
@@ -2226,30 +2441,35 @@ bool Window::openProject(QString path, QString fileName, bool confirm)
         {
             this->repo = repo;
 
+
             // For undo/redo: widget has to be notified when document
             // is succesfully committed into repository
             // REVISIT: should slot be in Window rather than Widget?
             connect(repo.data(),SIGNAL(commitSuccess(QString,QString)),
                     taoWidget,  SLOT(commitSuccess(QString, QString)));
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             // Also be notified when changes come from remote sync (pull)
             connect(repo.data(), SIGNAL(asyncPullComplete()),
                     this, SLOT(clearUndoStack()));
+#endif
             // REVISIT
             // Do not populate undo stack with current Git history to avoid
             // making it possible to undo some operations like document
             // creation... (these commits are not easy to identify
             // currently)
             // populateUndoStack();
-
+#ifndef CFG_NOEDIT
             enableProjectSharingMenus();
-
+#endif
             QString url = repo->url();
             if (url != oldUrl)
                 emit projectUrlChanged(url);
             if (repo != oldRepo)
                 emit projectChanged(repo.data());   // REVISIT projectUrlChanged
+#if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     gitToolBar, SLOT(refresh()));
+#endif
             connect(repo.data(), SIGNAL(branchChanged(QString)),
                     this, SLOT(checkDetachedHead()));
         }
@@ -2291,11 +2511,16 @@ void Window::updateContext(QString docPath)
     XL::MAIN->LoadContextFiles(contextFileNames);
 }
 
+
 void Window::switchToFullScreen(bool fs)
 // ----------------------------------------------------------------------------
 //   Switch a window to full screen mode, hiding children
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NOFULLSCREEN
+    Q_UNUSED(fs);
+#else
+
     if (fs == isFullScreen())
         return;
 
@@ -2354,6 +2579,10 @@ void Window::switchToFullScreen(bool fs)
         statusBar()->hide();
         menuBar()->hide();
         showFullScreen();
+
+#ifdef CFG_TIMED_FULLSCREEN
+        restartFullScreenTimer();
+#endif
     }
     else
     {
@@ -2380,9 +2609,37 @@ void Window::switchToFullScreen(bool fs)
         // Restore dockable widgets, and window geometry
         restoreGeometry(savedState.geometry);
         restoreState(savedState.state);
+
+#ifdef CFG_TIMED_FULLSCREEN
+        fullScreenTimer.stop();
+#endif
     }
     slideShowAct->setChecked(fs);
+
+#endif // !CFG_NOFULLSCREEN
 }
+
+
+#ifdef CFG_TIMED_FULLSCREEN
+
+void Window::leaveFullScreen()
+// ----------------------------------------------------------------------------
+//    Leave fullscreen mode when max fullscreen time limit expires
+// ----------------------------------------------------------------------------
+{
+    switchToSlideShow(false);
+}
+
+
+void Window::restartFullScreenTimer()
+// ----------------------------------------------------------------------------
+//    Restart full screen timer
+// ----------------------------------------------------------------------------
+{
+    fullScreenTimer.start(5 * 60 * 1000);
+}
+
+#endif // CFG_TIMED_FULLSCREEN
 
 
 QString Window::currentProjectFolderPath()
@@ -2507,7 +2764,7 @@ bool Window::isTutorial(const QString &filePath)
 //    Return true if the file currently loaded is the Tao tutorial
 // ----------------------------------------------------------------------------
 {
-    static QFileInfo tutorial("system:welcome.ddd");
+    static QFileInfo tutorial("system:welcome/welcome.ddd");
     static QString tutoPath = tutorial.canonicalFilePath();
     return (filePath == tutoPath);
 }

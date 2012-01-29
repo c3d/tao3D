@@ -101,8 +101,11 @@ bool Template::copyTo(QDir &dst)
 //   Copy the template into dst
 // ----------------------------------------------------------------------------
 {
-    bool ok = recursiveCopy(dir, dst);
-    if (!ok)
+    // Delete destination directory. Ignore errors, because file may be
+    // currently open (in which case it will be overwritten and reloaded)
+    if (dst.exists())
+        Application::recursiveDelete(dst.absolutePath());
+    if (!recursiveCopy(dir, dst, mainFile))
         return false;
     // Remove auxiliary files
     dst.remove("template.ini");
@@ -122,7 +125,20 @@ std::ostream& Template::debug()
 }
 
 
-bool Template::recursiveCopy(const QDir &src, QDir &dst)
+#if defined (Q_OS_UNIX)
+
+static QString escapeShellArg(QString &str)
+// ----------------------------------------------------------------------------
+//   Convert string so that it can be passed unchanged to a shell command
+// ----------------------------------------------------------------------------
+{
+    str.replace("'", "\\'");
+    return "'" + str + "'";
+}
+
+#endif
+
+bool Template::recursiveCopy(const QDir &src, QDir &dst, QString mainFile)
 // ----------------------------------------------------------------------------
 //   Recursively copy the contents of src into dst (created if does not exist)
 // ----------------------------------------------------------------------------
@@ -143,7 +159,8 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
 
     QString cmd("/bin/sh");
     QStringList args;
-    args << "-c" << "cp -R \"" + srcPath + "\"/* " + dstPath;
+    args << "-c" << "cp -R " + escapeShellArg(srcPath) + "/* "
+                             + escapeShellArg(dstPath);
 
 #elif defined (Q_OS_WIN)
 
@@ -174,6 +191,8 @@ bool Template::recursiveCopy(const QDir &src, QDir &dst)
         f.resize(sz);
         f.close();
     }
+#else
+    Q_UNUSED(mainFile);
 #endif
 
     return ok;

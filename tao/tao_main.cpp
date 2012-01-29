@@ -27,6 +27,7 @@
 #endif
 
 #include "application.h"
+#include "init_cleanup.h"
 #include "main.h"
 #include "basics.h"
 #include "graphics.h"
@@ -37,6 +38,8 @@
 #include "tao_main.h"
 #include "flight_recorder.h"
 #include "tao_utf8.h"
+#include "version.h"
+#include "decryption.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -57,8 +60,6 @@
 #include <imagehlp.h>
 static void win_redirect_io();
 #endif
-
-static void cleanup();
 
 int main(int argc, char **argv)
 // ----------------------------------------------------------------------------
@@ -95,7 +96,7 @@ int main(int argc, char **argv)
     }
 
     RECORD(ALWAYS, "Cleaning up");
-    cleanup();
+    Cleanup();
 
     // HACK: it seems that cleanup() does not clean everything, at least on
     // Windows -- without the exit() call, the windows build crashes at exit
@@ -103,22 +104,6 @@ int main(int argc, char **argv)
 
     return ret;
 }
-
-
-void cleanup()
-// ----------------------------------------------------------------------------
-//   Cleaning up before exit
-// ----------------------------------------------------------------------------
-{
-    // First, discard ALL global (smart) pointers to XL types/names
-    XL::DeleteBasics();
-    DeleteGraphics();     // REVISIT: move to Tao:: namespace?
-    TaoFormulas::DeleteFormulas();
-
-    // No more global refs, deleting GC will purge everything
-    XL::GarbageCollector::Delete();
-}
-
 
 
 #ifdef CONFIG_MINGW
@@ -147,6 +132,7 @@ static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
         return (*TopLevelExceptionFilter)(ep);
     return EXCEPTION_CONTINUE_SEARCH;
 }
+
 
 static BOOL WINAPI TaoConsoleCtrlHandler(DWORD dwCtrlType)
 // ----------------------------------------------------------------------------
@@ -273,7 +259,8 @@ static void TaoStackTrace(int fd)
             if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
             {
                 size += snprintf(buffer + size, sizeof buffer - size,
-                                 ", %s, line %lu", line.FileName, line.LineNumber);
+                                 ", %s, line %lu",
+                                 line.FileName, line.LineNumber);
                 if (dwDisp > 0)
                     size += snprintf(buffer + size, sizeof buffer - size,
                                      "+%04lu", dwDisp);
@@ -325,7 +312,8 @@ void install_first_exception_handler(void)
 // ----------------------------------------------------------------------------
 {
     // Windows-specific ugliness
-    PrimaryExceptionFilter = SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
+    PrimaryExceptionFilter =
+        SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
     SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 }
 
@@ -401,9 +389,25 @@ void install_signal_handler(sig_t handler)
 
 #ifdef CONFIG_MINGW
     // Windows-specific ugliness
-    TopLevelExceptionFilter = SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
+    TopLevelExceptionFilter =
+        SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
     SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 #endif // CONFIG_MINGW
+    }
+}
+
+
+static void Write(int fd, const char *buf, size_t size)
+// ----------------------------------------------------------------------------
+//   write() wrapper
+// ----------------------------------------------------------------------------
+{
+    size_t left = size;
+    while (left)
+    {
+        size_t s = write(fd, buf + size - left, left);
+        if (s > 0)
+            left -= s;
     }
 }
 
@@ -421,11 +425,12 @@ void signal_handler(int sigid)
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
+                           "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log);
-    size_t ignored = write(two, buffer, size);
+    Write(two, buffer, size);
 
     // Prevent recursion in the signal handler
     static int recursive = 0;
@@ -441,7 +446,7 @@ void signal_handler(int sigid)
             *ptr = '-';
 #endif
     int fd = open(sig_handler_log, O_WRONLY|O_CREAT, 0666);
-    ignored = write (fd, buffer, size);
+    Write(fd, buffer, size);
 
     // Backtrace
 #ifdef CONFIG_MINGW
@@ -462,13 +467,13 @@ void signal_handler(int sigid)
         if (size < sizeof buffer)
             buffer[size++] = '\n';
 
-        ignored = write (fd, buffer, size);
-        ignored = write (two, buffer, size);
+        Write(fd, buffer, size);
+        Write(two, buffer, size);
     }
 #endif // Test which (non-) operating system we have
         
     // Dump the flight recorder
-    ignored = write (fd, "\n\n", 2);
+    Write (fd, "\n\n", 2);
     XL::FlightRecorder::SDump(fd, false);
 
     // Close the output stream
@@ -505,6 +510,27 @@ bool Main::Refresh(double delay)
     Widget *widget = Tao::Widget::Tao();
     QTimer::singleShot(delay * 1000, widget, SLOT(refreshNow(QEvent*)));
     return true;
+}
+
+
+text Main::Decrypt(text file)
+// ----------------------------------------------------------------------------
+//   Attempt decryption of file
+// ----------------------------------------------------------------------------
+{
+    QFileInfo fi(+file);
+    if (fi.exists())
+    {
+        QFile f(+file);
+        if (f.open(QIODevice::ReadOnly))
+        {
+            QByteArray ba = f.readAll();
+            text in;
+            in.append(ba.data(), ba.size());
+            return Decryption::Decrypt(in);
+        }
+    }
+    return "";
 }
 
 

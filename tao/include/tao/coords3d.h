@@ -25,6 +25,7 @@
 #include "coords.h"
 #include <iostream>
 
+#define TAO_EPSILON 0.0001
 
 TAO_BEGIN
 
@@ -62,7 +63,9 @@ struct Point3
     }
     bool operator == (const Point3&o) const
     {
-        return x == o.x && y == o.y && z == o.z;
+        return ((fabs(x - o.x) < TAO_EPSILON) &&
+                (fabs(y - o.y) < TAO_EPSILON) &&
+                (fabs(z - o.z) < TAO_EPSILON));
     }
     bool operator != (const Point3&o) const
     {
@@ -235,6 +238,48 @@ inline Vector3 operator^ (const Vector3& l, const Vector3 &r)
 }
 
 
+// ============================================================================
+//
+//   A basic triangle class
+//
+// ============================================================================
+
+struct Triangle
+// ----------------------------------------------------------------------------
+//    Define a triangle
+// ----------------------------------------------------------------------------
+{
+    Triangle() {}
+    Triangle(const Point3& v1,
+             const Point3& v2,
+             const Point3& v3) : v1(v1), v2(v2), v3(v3) {}
+    Triangle(const Triangle& t) : v1(t.v1), v2(t.v2), v3(t.v3) {}
+
+
+    Vector3& computeNormal()
+    // ----------------------------------------------------------------------------
+    //    Compute normal of the triangle
+    // ----------------------------------------------------------------------------
+    {
+        Vector3 a;
+        Vector3 b;
+        Vector3 normal;
+
+        a = v1 - v2;
+        b = v2 - v3;
+
+        if(a == b)
+            normal = Vector3(0.0, 0.0, -1.0);
+        else
+            normal = a.Cross(b);
+
+        return normal.Normalize();
+    }
+
+public:
+    Point3 v1, v2, v3;
+};
+
 
 // ============================================================================
 //
@@ -247,7 +292,8 @@ struct Quaternion
 //    A hypercomplex number consisting of a vector and scalar.
 // ----------------------------------------------------------------------------
 {
-    Quaternion(coord w = 1.0, coord x = 0.0, coord y = 0.0, coord z = 0.0): scalar(w), vector(Vector3(x,y,z)) {}
+    Quaternion(coord w = 1.0, coord x = 0.0, coord y = 0.0, coord z = 0.0)
+        : scalar(w), vector(Vector3(x,y,z)) {}
     Quaternion(const Quaternion &o): scalar(o.scalar), vector(o.vector) {}
     Quaternion(coord a, const Vector3 &v): scalar(a), vector(v) {}
 
@@ -269,7 +315,7 @@ struct Quaternion
     {
         Quaternion tmp;
         tmp.scalar = scalar * o.scalar - vector.Dot(o.vector);
-        tmp.vector = (o.scalar * vector) + (scalar * o.vector) + (vector ^ o.vector);
+        tmp.vector = (o.scalar*vector) + (scalar*o.vector) + (vector^o.vector);
 
         *this = tmp;
 
@@ -313,10 +359,11 @@ struct Quaternion
         return *this;
     }
 
-    public:
-        double  scalar;
-        Vector3 vector;
+public:
+    double  scalar;
+    Vector3 vector;
 };
+
 
 // ============================================================================
 //
@@ -325,46 +372,71 @@ struct Quaternion
 // ============================================================================
 
 inline Quaternion operator +(const Quaternion& l, const Quaternion &r)
+// ----------------------------------------------------------------------------
+//   Adding quaternions
+// ----------------------------------------------------------------------------
 {
     Quaternion result(l);
     result += r;
     return result;
 }
 
+
 inline Quaternion operator -(const Quaternion& l, const Quaternion &r)
+// ----------------------------------------------------------------------------
+//   Subtracting quaternions
+// ----------------------------------------------------------------------------
 {
     Quaternion result(l);
     result -= r;
     return result;
 }
 
+
 inline Quaternion operator *(const Quaternion& l, const Quaternion &r)
+// ----------------------------------------------------------------------------
+//    Multiplying quaternions
+// ----------------------------------------------------------------------------
 {
     Quaternion result(l);
     result *= r;
     return result;
 }
 
+
 inline Quaternion operator *(const Quaternion& l, scale s)
+// ----------------------------------------------------------------------------
+//   Multiplying quaternion by a scalar
+// ----------------------------------------------------------------------------
 {
     Quaternion result(l);
     result *= s;
     return result;
 }
+
 
 inline Quaternion operator *(scale s, const Quaternion& l)
+// ----------------------------------------------------------------------------
+//   Multiplying quaternion by a scalar
+// ----------------------------------------------------------------------------
 {
     Quaternion result(l);
     result *= s;
     return result;
 }
 
+
 inline Quaternion operator /(const Quaternion& l, scale s)
+// ----------------------------------------------------------------------------
+//   Divide quaternion by a scalar
+// ----------------------------------------------------------------------------
 {
     Quaternion result(l);
     result /= s;
     return result;
 }
+
+
 
 // ============================================================================
 //

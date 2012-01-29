@@ -47,6 +47,7 @@ struct Main : public XL::Main
 
     virtual text SearchFile(text input);
     virtual bool Refresh(double delay);
+    virtual text Decrypt(text input);
 
     static Main *MAIN;
 };

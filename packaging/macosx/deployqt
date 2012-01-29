@@ -36,6 +36,8 @@ FRAMEWORKS="QtWebKit.framework/Versions/4/QtWebKit \
            QtOpenGL.framework/Versions/4/QtOpenGL \
            QtGui.framework/Versions/4/QtGui \
            QtNetwork.framework/Versions/4/QtNetwork \
+           QtHelp.framework/Versions/4/QtHelp \
+           QtSql.framework/Versions/4/QtSql \
            QtCore.framework/Versions/4/QtCore"
 
 if [ $# -ne 2 ] ; then
@@ -61,14 +63,28 @@ cp_and_fix_framework() {
   # cp_framework <framework> <source> <dest>
   # Ex: cp_framework QtCore.framework/Versions/4/QtCore /Library/Frameworks ./MyApp.app/Contents/Frameworks
   FMWK="$1" ; SRC="$2" ; DEST="$3"
+  FNAME=`echo ${FMWK} | sed s@/.*@@`
   FDIR=`dirname ${FMWK}`
   TODIR="$DEST/$FDIR"
   doo mkdir -p "${TODIR}"
   doo cp "${SRC}/${FMWK}" "${TODIR}"
   LIB="${DEST}/${FMWK}"
+  # QtHelp has a weird dependency on libQtCLUcene which is not installed
+  # in the same place as other Qt libraries
+  if [ "$FNAME" = "QtHelp.framework" ] ; then
+    LIB_QTCLUCENE=`otool -L "$LIB" | grep libQtCLucene | awk -F' ' '{ print $1 }'` 
+    LIB_QTCLUCENE_BASE=$(basename ${LIB_QTCLUCENE})
+    if [ ! -e "$LIB_QTCLUCENE" ] ; then
+        # Qt 4.7.4, MacOSX Snow Leopard
+        LIB_QTCLUCENE=/usr/lib/$LIB_QTCLUCENE_BASE
+    fi
+    doo cp $LIB_QTCLUCENE "$DEST"
+    DLIB="${DEST}/${LIB_QTCLUCENE_BASE}"
+    doo strip -x "${DLIB}"
+    doo ${FIX_QT_REFS} "${DLIB}" "${SRC}"
+  fi
   doo strip -x "${LIB}"
   doo ${FIX_QT_REFS} "${LIB}" "${SRC}"
-  FNAME=`echo ${FMWK} | sed s@/.*@@`
   if [ -e "${SRC}/${FNAME}/Resources" ] ; then
     doo cp -r "${SRC}/${FNAME}/Resources" "${DEST}/${FNAME}/Resources"
   fi
@@ -94,6 +110,18 @@ Plugins = PlugIns
 _EOF_
 }
 
+make_qt_conf_otherapps() {
+  # Add a qt.conf file to apps that are included next to Tao
+  # so that they reference the top-level plugins
+  for a in "$1/Contents/MacOS/"*.app ; do
+    CONF="${a}/Contents/Resources/qt.conf"
+    cat >"${CONF}" <<_EOF_
+[Paths]
+Plugins = ../../../plugins
+_EOF_
+  done
+}
+
 #
 
 FRAMEWORKS_DEST="${BUNDLE}/Contents/Frameworks"
@@ -107,3 +135,4 @@ cp_and_fix_plugins "${PLUGINS_SRC}" "${FRAMEWORKS_SRC}" "${BUNDLE}/Contents/plug
 
 make_qt_conf "${BUNDLE}"
 
+make_qt_conf_otherapps "${BUNDLE}"

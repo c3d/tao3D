@@ -40,6 +40,7 @@ DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
+    : useInProgress(false)
 {
     registerDisplayFunction("2Dplain", displayBackBuffer,
                                        NULL, NULL, NULL);
@@ -77,6 +78,11 @@ void DisplayDriver::display()
 //   Use currently active rendering function, or default, to draw scene
 // ----------------------------------------------------------------------------
 {
+    // Do not execute display callback if use callback has not returned yet.
+    // Typical case: use() shows a message box, which causes the main event
+    // loop to be re-entered, and thus display may be called again.
+    if (useInProgress)
+        return;
     Q_ASSERT(current.fn || !"No display function selected");
     return current.fn(current.obj);
 }
@@ -105,7 +111,11 @@ bool DisplayDriver::setDisplayFunction(QString name)
             debug() << "Selecting display function: " << +name
                     << "@" << (void*)current.fn << "\n";
         if (current.use)
+        {
+            useInProgress = true;
             current.obj = current.use();
+            useInProgress = false;
+        }
 
         if (current.obj == (void*)(~0L))
         {
@@ -114,7 +124,11 @@ bool DisplayDriver::setDisplayFunction(QString name)
                            "restoring previous function\n";
             current = save;
             if (current.use)
+            {
+                useInProgress = true;
                 current.obj = current.use();
+                useInProgress = false;
+            }
             found = false;
         }
         else
@@ -495,12 +509,13 @@ bool DisplayDriver::setStereo(bool on)
 }
 
 
-void DisplayDriver::getCamera(Point3 *pos, Point3 *target, Vector3 *up)
+void DisplayDriver::getCamera(Point3 *pos, Point3 *target, Vector3 *up,
+                              double *toScreen)
 // ----------------------------------------------------------------------------
 //   Get camera characteristics
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->getCamera(pos, target, up);
+    Widget::Tao()->getCamera(pos, target, up, toScreen);
 }
 
 
@@ -573,6 +588,22 @@ double DisplayDriver::eyeSeparation()
 }
 
 
+int DisplayDriver::getCurrentEye()
+// ----------------------------------------------------------------------------
+//   Current eye
+// ----------------------------------------------------------------------------
+{
+    return Widget::Tao()->eye;
+}
+
+int DisplayDriver::getEyesNumber()
+// ----------------------------------------------------------------------------
+//   Number of eyes
+// ----------------------------------------------------------------------------
+{
+    return Widget::Tao()->eyesNumber;
+}
+
 void DisplayDriver::setStereoPlanes(int planes)
 // ----------------------------------------------------------------------------
 //   Set the number of views per frame (for statistics)
@@ -606,20 +637,19 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 //   Set frustum for the given camera
 // ----------------------------------------------------------------------------
 {
-    // Read camera position
-    Point3 cameraPosition;
-    Point3 cameraTarget;
-    Vector3 cameraUpVector;
-    getCamera(&cameraPosition, &cameraTarget, &cameraUpVector);
+    // Record which stereo plane we are on for stereo
+    Widget::Tao()->stereoPlane = i-1;
+
+    // Read camera distance to screen
+    double toScreen;
+    getCamera(NULL, NULL, NULL, &toScreen);
 
     // Setup the projection matrix
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    Vector3 toTarget = cameraTarget - cameraPosition;
-    double distance = toTarget.Length();
-    double nearRatio = zNear()/distance;
+    double nearRatio = zNear()/toScreen;
     double delta = stereoDelta(i, numCameras);
-    double shift = -(eyeSeparation() * delta) * nearRatio;
+    double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
     glFrustum (-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
 }
@@ -630,20 +660,36 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
 //   Set modelview matrix for the given camera
 // ----------------------------------------------------------------------------
 {
+    // Record which stereo plane we are on for stereo
+    Widget::Tao()->stereoPlane = i-1;
+
     // Read camera position
     Point3 cameraPosition;
     Point3 cameraTarget;
     Vector3 cameraUpVector;
-    getCamera(&cameraPosition, &cameraTarget, &cameraUpVector);
+    double toScreen;
+    getCamera(&cameraPosition, &cameraTarget, &cameraUpVector, &toScreen);
 
     // Setup the model-view matrix
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     double delta = stereoDelta(i, numCameras);
-    double shift = eyeSeparation() * delta;
+    double shiftLength = eyeSeparation() * delta;
+    Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
+    toTarget *= toScreen;
+    Point3 target = cameraPosition + toTarget;
+    Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
 
-    gluLookAt(cameraPosition.x + shift, cameraPosition.y, cameraPosition.z,
-              cameraTarget.x + shift, cameraTarget.y ,cameraTarget.z,
+    // Update current eye and eyes number
+    Widget::Tao()->eye = i;
+    Widget::Tao()->eyesNumber = numCameras;
+
+    gluLookAt(cameraPosition.x + shift.x,
+              cameraPosition.y + shift.y,
+              cameraPosition.z + shift.z,
+              target.x + shift.x,
+              target.y + shift.y,
+              target.z + shift.z,
               cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 

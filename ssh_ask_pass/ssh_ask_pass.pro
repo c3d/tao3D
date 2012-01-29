@@ -24,3 +24,5 @@ win32:CONFIG += console
 
 target.path = $$APPINST
 INSTALLS    = target
+
+macx:QMAKE_POST_LINK = sh ../fix_qt_refs_app  "$(TARGET)"

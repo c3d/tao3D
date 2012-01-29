@@ -5,23 +5,29 @@
 
 DEFAULT_TEMPLATES =   \
     blank \
-    pythagorean_theorem \
     hello_world \
-    guess_game \
     mandelbrot \
-    simple_slides \
-    pigs_fly \
     photo_viewer \
     lens_flare \
-    filters \
-    shading \
     movie \
-    mapping \
+    materials \
     pan_and_zoom
 
 OTHER_TEMPLATES =     \
+    mapping \
+    shading \
+    filters \
+    pigs_fly \
+    simple_slides \
+    guess_game \
+    pythagorean_theorem \
+    balls \
     monjori \
-    flares
+    flares \
+    sinuous \
+    sparks \
+    glow \
+    YouCube
 
 # Process qmake command line variable: 'templates'
 # Allows to add/remove templates to/from the default value above
@@ -79,3 +85,4 @@ include (../modules/module_list.pri)
 !contains (MODULES, pan_and_zoom):TEMPLATES -= pan_and_zoom
 !contains (MODULES, shaders/monjori):TEMPLATES -= monjori
 !contains (MODULES, shaders/flares):TEMPLATES -= flares
+!contains (MODULES, vlc_audio_video):TEMPLATES -= YouCube

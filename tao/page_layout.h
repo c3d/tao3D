@@ -3,18 +3,18 @@
 // ****************************************************************************
 //  page_layout.h                                                   Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -25,7 +25,7 @@
 #include "layout.h"
 #include "shapes.h"
 #include "justification.h"
-
+#include "attributes.h"
 TAO_BEGIN
 
 struct LayoutLine : Drawing
@@ -36,10 +36,10 @@ struct LayoutLine : Drawing
 //   The layout does, and is ultimately responsible for deleting them.
 {
     typedef Justifier<Drawing *>        LineJustifier;
-    typedef std::vector<Drawing *>      Items;
+    typedef Layout::Drawings            Drawings;
 
 public:
-                        LayoutLine(coord left, coord right);
+                        LayoutLine(coord left, coord right, TextFlow *flow);
                         LayoutLine(const LayoutLine &o);
                         ~LayoutLine();
 
@@ -52,27 +52,28 @@ public:
     virtual Box3        Space(Layout *layout);
     virtual LayoutLine *Break(BreakOrder &order, uint &sz);
 
-    void                Add(Drawing *d);
-    void                Add(Items::iterator first, Items::iterator last);
     void                Compute(Layout *where);
     LayoutLine *        Remaining();
+    virtual text        Type() { return "LayoutLine";}
 
 public:
     LineJustifier       line;
     coord               left, right, perSolid;
+    TextFlow          * flow;
+    Drawings::iterator  flowRewindPoint;
 };
 
 
+typedef Justifier<LayoutLine *>     PageJustifier;
 struct PageLayout : Layout
 // ----------------------------------------------------------------------------
 //   A 2D layout specialized for placing text and 2D shapes on pages
 // ----------------------------------------------------------------------------
 {
-    typedef Justifier<LayoutLine *>     PageJustifier;
-    typedef std::vector<LayoutLine *>   Items;
+    typedef std::list<LayoutLine *>   Items;
 
 public:
-                        PageLayout(Widget *widget);
+                        PageLayout(Widget *widget, TextFlow* flow);
                         PageLayout(const PageLayout &o);
                         ~PageLayout();
 
@@ -82,41 +83,114 @@ public:
     virtual void        RefreshLayouts(Layouts &layouts);
 
     virtual void        Add(Drawing *child);
-    void                Add(Items::iterator first, Items::iterator last);
+    virtual void        AddLine(LayoutLine *child);
     virtual void        Clear();
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual PageLayout *NewChild()      { return new PageLayout(*this); }
     virtual PageLayout *Remaining();
 
-    void                Inherit(Layout *other);
-    void                Compute(Layout *where);
+    virtual void        Compute(Layout *where);
+    virtual text        Type() { return "PageLayout";}
 
 public:
     // Space requested for the layout
     Box3                space;
+    TextFlow *          flow;
+    Items               lines;
+    Items::iterator     current;
     PageJustifier       page;
+    Drawings::iterator  lastFlowPoint;
+    uint                selectId; // Selection Id of its englobing layout.
 };
 
 
-struct PageLayoutOverflow : PlaceholderRectangle
+struct RevertLayoutState : LayoutState, Attribute
+// ----------------------------------------------------------------------------
+//   Restore a previously saved layout state in the enclosing layout
+// ----------------------------------------------------------------------------
+{
+    RevertLayoutState(LayoutState &o) : LayoutState(o){}
+    virtual void  Draw(Layout *where)
+    {
+        offset = where->Offset();
+        where->InheritState(this);
+    }
+
+    virtual text Type() { return "RevertLayoutState";}
+};
+
+
+struct TextFlow : Layout
 // ----------------------------------------------------------------------------
 //    Draw what remains in a page layout
 // ----------------------------------------------------------------------------
 {
-    PageLayoutOverflow(const Box &bounds, Widget *widget, text flowName);
-    ~PageLayoutOverflow();
+    TextFlow(Layout *l, text flowName);
+    ~TextFlow();
 
 public:
-    bool                HasData(Layout *where);
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
+    virtual void        Clear();
+    virtual text        Type() { return "Textflow";}
+    void                addBox(PageLayout *b) { boxes.insert(b); }
+    void                removeBox(PageLayout *b) { boxes.erase(b); }
+
+    Drawings::iterator * getCurrentIterator() { return &currentIterator;}
+    Drawing            * getCurrentElement();
+    Drawings::iterator   end()   { return items.end();}
+    Drawings           * getItems(){ return &items;}
+    void                 resetIterator();
+    bool                 atEnd();
+    void insertAfterCurrent(Drawing *d);
+    void rewindFlow(Drawings::iterator rewindPoint)
+    {
+        IFTRACE(justify)
+                std::cerr << "TextFlow::rewindFlow "<<this<<std::endl;
+        currentIterator = rewindPoint;
+    }
 
 public:
-    Widget *            widget;
-    text                flowName;
-    PageLayout *        child;
+    text                  flowName;
+    std::set<uint>        textBoxIds; // Set of layoutID for selection
+    std::set<PageLayout*> boxes; // Set of boxes displaying this text flow
+    PageLayout *          currentTextBox; // The currently used pageLayout
+
+private:
+    Drawings::iterator  currentIterator;
+};
+
+
+struct BlockLayout : Layout
+// ----------------------------------------------------------------------------
+//   A 2D layout specialized for isolate text modifications
+// ----------------------------------------------------------------------------
+{
+    BlockLayout(TextFlow *flow):Layout(*flow), flow(flow),
+    revert(new RevertLayoutState((*flow)))
+    {
+        IFTRACE(justify)
+                std::cerr << "<->BlockLayout::BlockLayout ["<<this
+                <<"] from flow\n ";
+    }
+    BlockLayout( BlockLayout &o):Layout(o), flow(o.flow),
+    revert(new RevertLayoutState(*(o.flow)))
+    {
+        IFTRACE(justify)
+                std::cerr << "<->BlockLayout::BlockLayout ["<<this
+                <<"] from BlockLayout " << &o <<std::endl;
+    }
+    ~BlockLayout()
+    {
+    }
+    virtual void         Add(Drawing *child) { flow->Add(child);}
+    virtual text         Type() { return "BlockLayout";}
+    RevertLayoutState *  Revert() {return revert;}
+
+    TextFlow          *flow;
+    RevertLayoutState *revert;
 };
 
 
@@ -136,6 +210,7 @@ struct AnchorLayout : Layout
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
+    virtual text        Type() { return "AnchorLayout";}
 };
 
 

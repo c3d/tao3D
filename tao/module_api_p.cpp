@@ -26,6 +26,9 @@
 #include "widget.h"
 #include "display_driver.h"
 #include "frame.h"
+#include "licence.h"
+#include "info_trash_can.h"
+#include "application.h"
 
 TAO_BEGIN
 
@@ -38,15 +41,30 @@ ModuleApiPrivate::ModuleApiPrivate()
     refreshOn        = Widget::refreshOn;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
+    AddToLayout2     = ModuleRenderer::AddToLayout2;
     addControlBox    = Widget::addControlBox;
+
+    isGLExtensionAvailable = Widget::isGLExtensionAvailable;
 
     //Drawing paramaters
     SetTextures      = ModuleRenderer::SetTextures;
     BindTexture      = ModuleRenderer::BindTexture;
-    BindTexCoords    = ModuleRenderer::BindTexCoords;
-    UnBindTexCoords  = ModuleRenderer::UnBindTexCoords;
+    BindTexture2D    = ModuleRenderer::BindTexture2D;
+    EnableTexCoords  = ModuleRenderer::EnableTexCoords;
+    DisableTexCoords = ModuleRenderer::DisableTexCoords;
+    TextureUnit      = ModuleRenderer::TextureUnit;
+    TextureUnits     = ModuleRenderer::TextureUnits;
+    SetTextureUnits  = ModuleRenderer::SetTextureUnits;
+    HasTexture       = ModuleRenderer::HasTexture;
     SetFillColor     = ModuleRenderer::SetFillColor;
     SetLineColor     = ModuleRenderer::SetLineColor;
+    SetShader        = ModuleRenderer::SetShader;
+    HasPixelBlur     = ModuleRenderer::HasPixelBlur;
+    EnabledLights    = ModuleRenderer::EnabledLights;
+    ModelMatrix      = ModuleRenderer::ModelMatrix;
+
+    deferredDelete   = InfoTrashCan::DeferredDelete;
+    makeGLContextCurrent = Widget::makeGLContextCurrent;
 
     // Display module API
     registerDisplayFunction      = DisplayDriver::registerDisplayFunction;
@@ -67,8 +85,12 @@ ModuleApiPrivate::ModuleApiPrivate()
     zFar                         = DisplayDriver::zFar;
     zoom                         = DisplayDriver::zoom;
     eyeSeparation                = DisplayDriver::eyeSeparation;
+    getCurrentEye                = DisplayDriver::getCurrentEye;
+    getEyesNumber                = DisplayDriver::getEyesNumber;
     doMouseTracking              = DisplayDriver::doMouseTracking;
     setMouseTrackingViewport     = DisplayDriver::setMouseTrackingViewport;
+    setWatermarkText             = Widget::setWatermarkTextAPI;
+    drawWatermark                = Widget::drawWatermarkAPI;
 
     // Framebuffer API
     newFrameBufferObject       = FrameInfo::newFrameBufferObject;
@@ -77,6 +99,16 @@ ModuleApiPrivate::ModuleApiPrivate()
     bindFrameBufferObject      = FrameInfo::bindFrameBufferObject;
     releaseFrameBufferObject   = FrameInfo::releaseFrameBufferObject;
     frameBufferObjectToTexture = FrameInfo::frameBufferObjectToTexture;
+    frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
+
+    // License checking
+    hasLicense = Licences::Has;
+    checkLicense = Licences::Check;
+    blink      = Widget::blink;
+
+    // Current document info
+    currentDocumentFolder =  Widget::currentDocumentFolder;
+    taoRunTime            =  Application::runTime;
 }
 
 TAO_END

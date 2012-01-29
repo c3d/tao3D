@@ -13,8 +13,8 @@
 
 TEMPLATE = subdirs
 
-kit.commands   = make -f Makefile.linux
-clean.commands = make -f Makefile.linux clean
+kit.commands   = $(MAKE) -f Makefile.linux
+clean.commands = $(MAKE) -f Makefile.linux clean
 distclean.depends = clean
 
 QMAKE_EXTRA_TARGETS = kit clean distclean

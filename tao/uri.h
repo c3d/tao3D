@@ -23,8 +23,10 @@
 //        tao://example.net/project?d=main.ddd   (open main.ddd)
 //        tao://example.net/project?r=mybranch   (checkout branch 'mybranch')
 //        tao://example.net/project?r=bb8cb4a    (checkout commit bb8cb4a)
-//        tao://example.net/project?t            (remote doc is a template,
-//                                                save in template folders)
+//        tao://example.net/project?t            (remote is a template, save
+//                                                in user's template folder)
+//        tao://example.net/project?m            (remote is a module, save
+//                                                in user's module folder)
 //
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
@@ -68,8 +70,18 @@ signals:
     void                  progressMessage(QString message);
     void                  docReady(QString path);
     void                  getFailed();
+
+    void                  cloned(QString path);
+    void                  updated(QString path);
+    void                  upToDate(QString path);
+
     void                  templateCloned(QString path);
-    void                  templateFetched(QString path);
+    void                  templateUpdated(QString path);
+    void                  templateUpToDate(QString path);
+
+    void                  moduleCloned(QString path);
+    void                  moduleUpdated(QString path);
+    void                  moduleUpToDate(QString path);
 
 protected:
     enum Operation { NONE, CLONING, FETCHING };
@@ -86,10 +98,11 @@ protected:
     QString               repoUri();
     bool                  showRepoErrorDialog();
 
+    void                  setSettingsGroup();
     void                  checkRefresh();
     void                  refreshSettings();
     void                  clearLocalProject();
-    bool                  addLocalProject(const QString &path);
+    bool                  addLocalProject(QString path);
     QStringList           localProjects();
 
     bool                  fetchAndCheckout();
@@ -118,6 +131,7 @@ private:
     bool                  clone;
     QString               settingsGroup;
     Operation             op;
+    QString               savedHead;
 
 private:
    static QSet<QString>   refreshed;

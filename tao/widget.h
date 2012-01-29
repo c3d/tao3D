@@ -41,6 +41,7 @@
 #include "font_file_manager.h"
 #include "layout.h"
 #include "layout_cache.h"
+#include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
 
@@ -75,7 +76,7 @@ struct Repository;
 struct Drag;
 struct TextSelect;
 struct WidgetSurface;
-struct MouseCoordinatesInfo;
+struct CoordinatesInfo;
 struct MouseFocusTracker;
 struct DisplayDriver;
 
@@ -91,6 +92,7 @@ struct DisplayDriver;
 #define TOOLBAR_MENU_NAME  "TAO_VIEW_TOOLBAR_MENU"
 #define HELP_MENU_NAME  "TAO_HELP_MENU"
 
+#define GUI_FEATURE "GUI"
 
 class Widget : public QGLWidget
 // ----------------------------------------------------------------------------
@@ -137,7 +139,10 @@ public slots:
     void        enableAnimations(bool enable);
     void        showHandCursor(bool enabled);
     void        hideCursor();
+    void        setCursor(const QCursor &);
+    QCursor     cursor() const;
     void        resetView();
+    void        resetViewAndRefresh();
     void        zoomIn();
     void        zoomOut();
     void        saveAndCommit();
@@ -154,6 +159,9 @@ signals:
     void        renderFramesDone();
     void        runGC();
     void        displayModeChanged(QString newMode);
+#ifdef CFG_TIMED_FULLSCREEN
+    void        userActivity();
+#endif
 
 public:
     // OpenGL and drawing
@@ -161,6 +169,7 @@ public:
     void        resizeGL(int width, int height);
     void        paintGL();
     void        setup(double w, double h, const Box *picking = NULL);
+    void        reset();
     void        resetModelviewMatrix();
     void        setupGL();
     void        setupPage();
@@ -177,7 +186,8 @@ public:
     void        drawSelection();
     void        drawActivities();
     void        setGlClearColor();
-    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector);
+    void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
+                          double *toScreen);
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -190,6 +200,8 @@ public:
     void        mouseDoubleClickEvent(QMouseEvent *);
     void        wheelEvent(QWheelEvent *);
     void        timerEvent(QTimerEvent *);
+    void        showEvent(QShowEvent *);
+    void        hideEvent(QHideEvent *);
 #ifdef MACOSX_DISPLAYLINK
     virtual
     bool        event(QEvent *event);
@@ -280,12 +292,19 @@ public:
                                    GLdouble *model,
                                    GLint *viewport);
     Point3      unprojectLastMouse();
+    Point3      project (coord x, coord y, coord z);
+    Point3      project (coord x, coord y, coord z,
+                         GLdouble *proj, GLdouble *model, GLint *viewport);
+    Point3      objectToWorld(coord x, coord y,
+                              GLdouble *proj, GLdouble *model, GLint *viewport);
+    Point3      windowToWorld(coord x, coord y,
+                              GLdouble *proj, GLdouble *model, GLint *viewport);
     uint        lastModifiers()         { return keyboardModifiers; }
     Drag *      drag();
     TextSelect *textSelection();
     void        drawSelection(Layout *, const Box3 &, text name, uint id=0);
     void        drawHandle(Layout *, const Point3 &, text name, uint id=0);
-    void        drawTree(Layout *where, Context *context, Tree *code);
+    Layout *    drawTree(Layout *where, Context *context, Tree_p code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     bool        mouseTracking() { return doMouseTracking; }
 
@@ -297,9 +316,11 @@ public:
     Tree *      shapeAction(text n, GLuint id, int x, int y);
 
     // Text flows and text management
-    PageLayout*&pageLayoutFlow(text name) { return flows[name]; }
+    TextFlow *  pageLayoutFlow(text name) { return flows[name]; }
     GlyphCache &glyphs()    { return glyphCache; }
     QStringList fontFiles();
+
+    void        purgeTaoInfo();
 
 public:
     // XLR entry points
@@ -326,10 +347,13 @@ public:
     Real_p      windowHeight(Tree_p self);
     Real_p      time(Tree_p self);
     Real_p      pageTime(Tree_p self);
+    Integer_p   pageSeconds(Tree_p self);
     Real_p      after(Context *context, double delay, Tree_p code);
     Real_p      every(Context *context, double delay, double duration, Tree_p code);
     Real_p      mouseX(Tree_p self);
     Real_p      mouseY(Tree_p self);
+    Integer_p   screenMouseX(Tree_p self);
+    Integer_p   screenMouseY(Tree_p self);
     Integer_p   mouseButtons(Tree_p self);
     Tree_p      shapeAction(Tree_p self, text name, Tree_p action);
 
@@ -338,6 +362,7 @@ public:
     Tree_p      shape(Context *context, Tree_p self, Tree_p t);
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
     Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
+    Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);
@@ -357,6 +382,11 @@ public:
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
     Name_p      depthTest(Tree_p self, bool enable);
+    Name_p      blendFunction(Tree_p self, text src, text dst);
+    Name_p      blendFunctionSeparate(Tree_p self,
+                                      text src, text dst,
+                                      text srca, text dsta);
+    Name_p      blendEquation(Tree_p self, text eq);
     Tree_p      refresh(Tree_p self, double delay);
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
@@ -376,12 +406,15 @@ public:
     Name_p      toggleFullScreen(Tree_p self);
     Name_p      slideShow(XL::Tree_p self, bool ss);
     Name_p      toggleSlideShow(Tree_p self);
+    Name_p      blankScreen(XL::Tree_p self, bool bs);
+    Name_p      toggleBlankScreen(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
+    Name_p      enableMouseCursor(XL::Tree_p self, bool on);
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
-    Name_p      resetView(Tree_p self);
+    Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
     Name_p      setZoom(Tree_p self, scale z);
@@ -399,13 +432,17 @@ public:
     Real_p      getZNear(Tree_p self);
     Name_p      setZFar(Tree_p self, double zf);
     Real_p      getZFar(Tree_p self);
+    Name_p      setCameraToScreen(Tree_p self, double d);
+    Real_p      getCameraToScreen(Tree_p self);
     Infix_p     currentModelMatrix(Tree_p self);
     Integer_p   lastModifiers(Tree_p self);
 
     Name_p      enableAnimations(Tree_p self, bool fs);
+    Name_p      enableSelectionRectangle(Tree_p self, bool enable);
     Name_p      setDisplayMode(XL::Tree_p self, text name);
     Name_p      addDisplayModeToMenu(XL::Tree_p self, text mode, text label);
     Name_p      enableStereoscopy(Tree_p self, Name_p name);
+    Name_p      enableStereoscopyText(Tree_p self, text name);
     Integer_p   polygonOffset(Tree_p self,
                               double f0, double f1, double u0, double u1);
     Name_p      enableVSync(Tree_p self, bool enable);
@@ -441,13 +478,17 @@ public:
     Integer*    fillAnimatedTexture(Context *, Tree_p self, text fileName);
     Integer*    fillTextureFromSVG(Context *, Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
+    Tree_p      textureMode(Tree_p self, text mode);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);
     Integer*    textureType(Tree_p self);
+    Text_p      textureMode(Tree_p self);
     Integer*    textureId(Tree_p self);
     Integer*    textureUnit(Tree_p self);
-    Integer_p   lightId(Tree_p self);
+    Tree_p      hasTexture(Tree_p self, GLuint unit);
+    Integer_p   lightsMask(Tree_p self);
+    Tree_p      perPixelLighting(Tree_p self,  bool enable);
     Tree_p      lightId(Tree_p self, GLuint id, bool enable);
     Tree_p      light(Tree_p self, GLenum function, GLfloat value);
     Tree_p      light(Tree_p self, GLenum function,
@@ -534,7 +575,7 @@ public:
     Tree_p      sphere(Tree_p self,
                        Real_p cx, Real_p cy, Real_p cz,
                        Real_p w, Real_p, Real_p d,
-                       Integer_p nslices, Integer_p nstacks);    
+                       Integer_p nslices, Integer_p nstacks);
     Tree_p      torus(Tree_p self,
                        Real_p x, Real_p y, Real_p z,
                        Real_p w, Real_p h, Real_p d,
@@ -546,17 +587,16 @@ public:
                      double ratio);
 
     // Text and font
-    Tree_p      textBox(Context *context, Tree_p self,
-                        Real_p x, Real_p y, Real_p w, Real_p h, Tree_p prog);
-    Tree_p      textOverflow(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h);
-    Text_p      textFlow(Tree_p self, text name);
+    Tree_p      textBox(Tree_p self, text flowName,
+                        Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
-    Tree_p      font(Context *context, Tree_p self, Tree_p descr);
-    Tree_p      fontFamily(Context *, Tree_p self, text family);
+    Tree_p      font(Context *context, Tree_p self,Tree_p dscr,Tree_p d2=NULL);
+    Tree_p      fontFamily(Context *, Tree_p self, Text_p family);
+    Tree_p      fontFamily(Context *, Tree_p self, Text_p family, Real_p size);
     Tree_p      fontSize(Tree_p self, double size);
     Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
@@ -579,6 +619,7 @@ public:
     Text_p      loadText(Tree_p self, text file);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
+    Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
 
@@ -612,7 +653,7 @@ public:
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog);
+                             double w, double h, Tree_p prog, Integer_p depth=NULL);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
@@ -700,12 +741,6 @@ public:
                                 double w, double h,
                                 Text_p lbl);
 
-    Tree_p      movie(Tree_p self,
-                      Real_p x, Real_p y, Real_p w, Real_p h,
-                      Text_p url);
-
-    Integer*    movieTexture(Tree_p self, Text_p url);
-
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
@@ -734,6 +769,7 @@ public:
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
+    Tree_p      menuItemEnable(Tree_p self, text name, bool enable);
     Tree_p      menu(Tree_p self, text name, text lbl, text iconFileName,
                      bool isSubmenu=false);
 
@@ -751,7 +787,6 @@ public:
     Name_p      deleteSelection(Tree_p self, text key);
     Name_p      setAttribute(Tree_p self, text name, Tree_p attribute, text sh);
     Tree_p      copySelection();
-    Tree_p      removeSelection();
     // Unit conversions
     Real_p      fromCm(Tree_p self, double cm);
     Real_p      fromMm(Tree_p self, double mm);
@@ -762,10 +797,22 @@ public:
     Tree_p      constant(Tree_p self, Tree_p tree);
 
     // Misc
-    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);    
+    Name_p      taoFeatureAvailable(Tree_p self, Name_p name);
     Text_p      GLVersion(XL::Tree_p self);
     Name_p      isGLExtensionAvailable(Tree_p self, text name);
     Name_p      hasDisplayMode(Tree_p self, Name_p name);
+    Real_p      getWorldZ(Tree_p, Real_p x, Real_p y);
+    Real_p      getWorldCoordinates(Tree_p, Real_p x, Real_p y,
+                                    Real_p wx, Real_p wy, Real_p wz);
+    Name_p      hasDisplayModeText(Tree_p self, text name);
+    Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
+    Text_p      displayMode();
+    Name_p      readOnly();
+
+    // License checks
+    Name_p      hasLicense(Tree_p self, Text_p feature);
+    Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
+    Name_p      blink(Tree_p self, Real_p on, Real_p off, Real_p after);
 
     // z order management
     Name_p      bringToFront(Tree_p self);
@@ -802,11 +849,14 @@ private:
     friend class DeleteSelectionAction;
     friend class ModuleRenderer;
     friend class Layout;
+    friend class StereoLayout;
+    friend class PageLayout;
     friend class DisplayDriver;
+    friend class GCThread;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
-    typedef std::map<text, PageLayout*>      flow_map;
+    typedef std::map<text, TextFlow*>        flow_map;
     typedef std::map<text, text>             page_map;
     typedef std::vector<text>                page_list;
     typedef std::map<GLuint, Tree_p>         perId_action_map;
@@ -822,14 +872,15 @@ private:
     bool                  runOnNextDraw;
 
     // Rendering
-    QColor                clearCol;
     QGradient*            gradient;
+    QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
+    FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
     scale                 pageW, pageH, blurFactor;
-    text                  flowName;
+    text                  currentFlowName;
     flow_map              flows;
     text                  pageName, lastPageName, gotoPageName;
     page_map              pageLinks;
@@ -844,11 +895,22 @@ private:
     FontFileManager *     fontFileMgr;
     bool                  drawAllPages;
     bool                  animated;
+    bool                  blanked;
+    bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
-    int                   stereoPlanes;
+    int                   stereoPlane, stereoPlanes;
     LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
+    GLuint                watermark;
+    text                  watermarkText;
+    int                   watermarkWidth, watermarkHeight;
+#ifdef Q_OS_MACX
+    bool                  frameBufferReady();
+    char                  bFrameBufferReady;
+#else
+    bool                  frameBufferReady() { return true; }
+#endif
 
     // Selection
     Activity *            activities;
@@ -877,7 +939,7 @@ private:
     QFont                 selectionFont;
     QColor                originalColor;
     int                   lastMouseX, lastMouseY, lastMouseButtons;
-    MouseCoordinatesInfo *mouseCoordinatesInfo;
+    CoordinatesInfo*      mouseCoordinatesInfo;
     MouseFocusTracker *   mouseFocusTracker;
 
     // Timing
@@ -913,12 +975,16 @@ private:
     static QFileDialog *  fileDialog;
            QFileDialog *  currentFileDialog;
     double                zNear, zFar, scaling, zoom, eyeDistance;
+    double                cameraToScreen;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
+    int                   eye, eyesNumber;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
     Qt::CursorShape       savedCursorShape;
+    QCursor               cachedCursor;
+    bool                  mouseCursorHidden;
     bool                  renderFramesCanceled;
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;
@@ -926,8 +992,9 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
-    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child);
+    Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
     void                  refreshOn(QEvent::Type type,
@@ -935,14 +1002,23 @@ private:
 public:
     static bool           refreshOn(int event_type, double next_refresh);
     static double         currentTimeAPI();
+    static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,
                                         Real *w, Real *h, Real *d);
+    static bool           isGLExtensionAvailable(text name);
+    static text           currentDocumentFolder();
+    static bool           blink(double on, double off, double after);
+    void eraseFlow(text flowName){ flows.erase(flowName);}
+    void                  setWatermarkText(text t, int w, int h);
+    static void           setWatermarkTextAPI(text t, int w, int h);
+    void                  drawWatermark();
+    static void           drawWatermarkAPI();
+    static double         trueCurrentTime();
 
 private:
     void                  processProgramEvents();
     void                  startRefreshTimer(bool on = true);
     double                CurrentTime();
-    double                trueCurrentTime();
     void                  setCurrentTime();
     bool inDraw;
     text                  changeReason;

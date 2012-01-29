@@ -1,0 +1,5 @@
+@INCLUDE = ../../Doxyfile
+PROJECT_NAME = \"Carousel\"
+PROJECT_NUMBER = 1.0
+QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.Carousel.1.0
+QHP_VIRTUAL_FOLDER = Carousel

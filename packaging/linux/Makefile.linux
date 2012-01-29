@@ -16,8 +16,13 @@
 #   make kit
 #   make clean
 
+include Makefile.config
+
 # Spaces are evil on Linux
-TAO=Tao_Presentations_$(shell ../../tao/updaterev.sh -n)
+ifdef TAO_EDITION
+EDSTR=$(TAO_EDITION)_
+endif
+TAO=Tao_Presentations_$(EDSTR)$(shell ../../tao/updaterev.sh -n)
 
 OS=$(shell lsb_release -is)
 ifeq ($(OS),)
@@ -26,8 +31,6 @@ endif
 ARCH=$(OS).$(shell uname -m)
 
 ########
-
-include Makefile.config
 
 kit: $(TAO).$(ARCH).tar.bz2
 
@@ -43,8 +46,12 @@ $(TAO)/Tao.bin: $(TAO) install
 	chmod +x $(TAO)/Tao
 
 install: $(TAO)
-	(cd ../.. && make install) && cp -Rp ../../install/* $(TAO)
+	(cd ../.. && $(MAKE) install) && cp -Rp ../../install/* $(TAO)
+ifndef NO_SDK
+	$(MAKE) -C ../.. -f Makefile.sdk
+	cp -Rp ../../sdk $(TAO)
+endif
 
 clean:
-	rm -rf $(TAO)
+	rm -rf $(TAO) Tao_Presentations*.tar.bz2
 

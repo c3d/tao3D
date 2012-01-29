@@ -24,6 +24,8 @@
 
 #include "tao/module_info.h"
 #include "coords3d.h"
+#include "matrix.h"
+#include "info.h"
 
 // ========================================================================
 //
@@ -46,7 +48,7 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   9
+#define TAO_MODULE_API_CURRENT   19
 #define TAO_MODULE_API_AGE       0
 
 // ========================================================================
@@ -92,27 +94,61 @@ struct ModuleApi
     // has millisecond precision.
     double (*currentTime)();
 
+    // Check if an OpenGL extension, given by its name, is avaible in Tao.
+    bool (*isGLExtensionAvailable)(text name);
+
     // Like scheduleRender, but current layout takes ownership of arg:
     // when layout is destroyed, delete_fn is called with arg.
     bool (*addToLayout)(render_fn callback, void *arg, delete_fn del);
+
+    // Like addToLayout, but uses an other callback to identify object
+    // under cursor.
+    bool (*AddToLayout2)(render_fn callback, render_fn identify,
+                         void *arg, delete_fn del);
 
     // Show a control box to manipulate the object
     bool (*addControlBox)(XL::Real *x, XL::Real *y, XL::Real *z,
                           XL::Real *w, XL::Real *h, XL::Real *d);
 
-    // Allow to bind specified texture coordinates before a drawing
+    // Allow to enable specified texture coordinates before a drawing
     // according to current application parameters.
-    // After drawing, texture coordinates have to be unbind.
-    bool (*BindTexCoords)(double* texCoord);
+    // After drawing, texture coordinates have to be disable.
+    bool (*EnableTexCoords)(double* texCoord);
 
-    // Allow to unbind texture coordinates after a drawing.
-    bool (*UnBindTexCoords)();
+    // Allow to disable texture coordinates after a drawing.
+    bool (*DisableTexCoords)();
+
+    // Get the last activated texture unit
+    unsigned int (*TextureUnit)();
+
+    // Get the bimasks of all activated texture units
+    // in the current layout.
+    unsigned int (*TextureUnits)();
+
+    // Set the bimasks of all activated texture units in
+    // the current layout.
+    void (*SetTextureUnits)(uint64 textureUnits);
+
+    // Check if a texture is bound at the specified unit
+    bool (*HasTexture)(unsigned int unit);
 
     // Allow to bind a new texture in Tao thanks to its id and its type.
+    // For a 2D texture, use BindTexture2D
+    // Always returns false.
+    // Note : Can not be call during drawing.
     bool (*BindTexture)(unsigned int id, unsigned int type);
+
+    // Adds a "bind 2D texture" command to the current layout.
+    // width and height are the dimensions of the texture in pixels.
+    // Note : Can not be call during drawing.
+    void (*BindTexture2D)(unsigned int id,
+                          unsigned int width, unsigned int height);
 
     // Allow to apply current textures during a drawing.
     bool (*SetTextures)();
+
+    // Allow to add a shader define by its id during a drawing.
+    bool (*SetShader)(int id);
 
     // Allow to set fill color during a drawing according
     // to the current layout attributes.
@@ -121,6 +157,34 @@ struct ModuleApi
     // Allow to set line color during a drawing according
     // to the current layout attributes.
     bool (*SetLineColor)();
+
+    // Allow to enable or deactivate pixel blur
+    // on textures of the current layout.
+    // It corresponds to GL_LINEAR/GL_NEAREST parameters.
+    bool (*HasPixelBlur)(bool enable);
+
+    // Get the bimasks of all activated lights in the current layout.
+    unsigned int (*EnabledLights)();
+
+    // Get the current model matrix.
+    // Note : Can not be call during drawing
+    Matrix4 (*ModelMatrix)();
+
+    // Mark object for deletion by the main thread.
+    // All classes derived from XL::Info that perform OpenGL calls in their
+    // destructor MUST use this function in their Delete() method, as follows:
+    // class Foo : public XL::Info
+    // {
+    //      Foo() { }
+    //     ~Foo() { /* Some OpenGL calls like glDeleteTextures... */ }
+    //     virtual void Delete() { tao->deferredDelete(this); }
+    // }
+    // Otherwise, the XL garbage collector may run the destructor in its own
+    // thread, possibly resulting in OpenGL thread conflicts.
+    void (*deferredDelete)(XL::Info * obj);
+
+    // Make the OpenGL context of the current Tao widget be the current context
+    void (*makeGLContextCurrent)();
 
     // ------------------------------------------------------------------------
     //   API for display modules
@@ -199,8 +263,9 @@ struct ModuleApi
     // statistics)
     void (*drawActivities)();
 
-    // Get camera characteristics. pos, target and/or up may be NULL.
-    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up);
+    // Get camera characteristics. pos, target, up and/or toScreen may be NULL.
+    void (*getCamera)(Point3 *pos, Point3 *target, Vector3 *up,
+                      double *toScreen);
 
     // The height, in pixels, of the image to be rendered.
     int  (*renderHeight)();
@@ -221,11 +286,17 @@ struct ModuleApi
     // the left and the right eye (or camera).
     double (*eyeSeparation)();
 
+    // Get current eye
+    int (*getCurrentEye)();
+
+    // Get total of eyes
+    int (*getEyesNumber)();
+
     // Tell Tao if the current point of view is to be used for selection/
     // mouse activities. When rendering multiple views per frame, you
     // normally set this for only one view.
     // When this setting is true, the drawScene() call will unproject the
-    // mouse coordinates into the 3D space.
+    // mouse coordinates into the 3D space. It is true by default.
     void   (*doMouseTracking)(bool on);
 
     // Override viewport setting during mouse tracking.
@@ -233,6 +304,15 @@ struct ModuleApi
     // only for the current frame.
     // The current GL viewport is used by default.
     void   (*setMouseTrackingViewport)(int x, int y, int w, int h);
+
+    // Set the text to be used as a watermark for the current widget.
+    // Creates a texture of (w x h) pixels and writes text, centered.
+    void   (*setWatermarkText)(std::string t, int w, int h);
+
+    // Draw a watermark on top of the current scene. GL depth test and depth
+    // mask are disabled. The text is set by setWatermarkText().
+    void   (*drawWatermark)();
+
 
     // ------------------------------------------------------------------------
     //   Rendering to framebuffer/texture
@@ -263,6 +343,45 @@ struct ModuleApi
     //   glBindTexture(GL_TEXTURE_2D, id);
     //   glEnable(GL_TEXTURE_2D);
     unsigned int       (*frameBufferObjectToTexture)(ModuleApi::fbo * obj);
+
+    // Make a framebuffer attachment available as a GL_TEXTURE_2d texture.
+    // The attachment parameter must be one of the following:
+    //   GL_COLOR_ATTACHMENT0: returned texture contains the FBO color buffer
+    //   GL_DEPTH_ATTACHMENT: returned texture contains the FBO depth buffer
+    // Note that contrary to frameBufferObjectToTexture above, the texture
+    // is NOT bound nor enabled.
+    unsigned int       (*frameBufferAttachmentToTexture)(ModuleApi::fbo * obj,
+                                                         int attachment);
+
+    // ------------------------------------------------------------------------
+    //   Licence checking
+    // ------------------------------------------------------------------------
+
+    // Return true if a valid license is found for the requested feature name
+    bool (*hasLicense)(std::string featureName);
+
+    // Return true if a valid license is found for the requested feature name,
+    // false otherwise. When no license is found, an information dialog
+    // is shown. 'critical' changes the appearance of the dialog (icon...).
+    // Set it to true if the feature won't work at all, or false if the module
+    // will work in degraded mode.
+    bool (*checkLicense)(std::string featureName, bool critical);
+
+    // Blink if the application has been running longer that specified duration.
+    // Return true if (current_time % (on + off)) <= on and the application was
+    // started more that 'after' seconds ago, false otherwise.
+    // Note: calls refreshOn to refresh automatically on next transition.
+    bool (*blink)(double on, double off, double after);
+
+    // Returns the number of seconds since the application was started.
+    double (*taoRunTime)();
+
+    // ------------------------------------------------------------------------
+    //   Current document info
+    // ------------------------------------------------------------------------
+
+    // Return the full path (native format) to the current document folder
+    std::string (*currentDocumentFolder)();
 };
 
 }
@@ -285,6 +404,7 @@ namespace Tao
     typedef int (*enter_symbols_fn) (XL::Context *);
     typedef int (*delete_symbols_fn)(XL::Context *);
     typedef int (*module_exit_fn)   ();
+    typedef int (*module_preferences_fn) ();
 }
 
 extern "C"
@@ -295,8 +415,15 @@ extern "C"
     // Called once immediately after the module library is loaded.
     // Return 0 on success.
     // [Optional]
-    // [ModuleInfo is only valable during this call]
+    // [ModuleInfo is only valid during this call]
     int module_init(const Tao::ModuleApi *a, const Tao::ModuleInfo *m);
+
+    // Predefined error codes for module_init
+    enum init_error
+    {
+        no_error = 0,
+        error_invalid_license
+    };
 
     // Called when module is imported to let the module extend the XL symbol
     // table (for instance, add new XL commands) in a given context.
@@ -316,6 +443,14 @@ extern "C"
     // Return 0 on success.
     // [Optional]
     int module_exit();
+
+    // Called when the user wants to access the module's
+    // configuration/preference page.
+    // This function may use the Qt GUI to show a configuration
+    // dialog, and may save settings using the QSettings class.
+    // Return 0 on success.
+    // [Optional]
+    int show_preferences();
 }
 
 #endif // TAO_MODULE_API_H

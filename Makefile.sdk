@@ -12,7 +12,7 @@ BUILDENV_MinGW=mingw
 SDK_ROOT = sdk
 
 OBJECT_LOADER_FILES = \
-	$(shell find modules/object_loader -type d -o -name \*.h -o \( -name \*.cpp -a -not -name moc\*.cpp \) -o -name \*.c -o -name \*.pri -o -name \*.pro -o -name \*.tbl -o -name \*.png -o -name \*.xl) \
+	$(shell find modules/object_loader -type d -o -name \*.h -o \( -name \*.cpp -a -not -name moc\*.cpp \) -o -name \*.c -o -name \*.pri -o -name \*.pro -o -name \*.tbl -o -name \*.png -o -name \*.xl -o -name \*.in) \
 	modules/object_loader/glc-lib/include \
 	$(shell find modules/object_loader/glc-lib/include)
 
@@ -29,18 +29,28 @@ LOREM_IPSUM_FILES = \
 	modules/lorem_ipsum/lorem_ipsum.pro \
 	modules/lorem_ipsum/lorem_ipsum.tbl \
 	modules/lorem_ipsum/lorem_ipsum.xl \
-	modules/lorem_ipsum/traces.tbl
+	modules/lorem_ipsum/traces.tbl \
+	modules/lorem_ipsum/doc \
+	modules/lorem_ipsum/doc/Doxyfile.in \
+	modules/lorem_ipsum/doc/lorem_ipsum.doxy.h
 
 FILES_COMMON = \
+	doxygen.pri \
+	doxygen.sh \
 	main.pri \
 	main_defs.pri \
+	translations.pri \
 	modules \
+	modules/.gitignore \
+	modules/configure \
 	modules/README_SDK \
 	modules/modules.pro \
 	modules/modules.pri \
 	modules/modules_defs.pri \
+	modules/modules_doc.pri \
 	modules/module_list.pri \
 	modules/tbl_wrap \
+	modules/Doxyfile \
 	$(OBJECT_LOADER_FILES) \
 	$(HELLO_WORLD_FILES) \
 	$(LOREM_IPSUM_FILES) \

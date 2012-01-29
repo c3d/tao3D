@@ -1,0 +1,145 @@
+// ****************************************************************************
+//  glow.ddd                                                        Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of the glow module applied on some effect
+//     of the others module.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
+import Glow
+import Sparks
+import Monjori
+import Flares
+
+
+// Background color
+clear_color 0, 0, 0, 1
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Flares",
+// -------------------------------------------------
+//    Example of glow with flares effect
+// -------------------------------------------------
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.7, 0.7, 0
+                scale 2, 2, 2
+                translate -0.8, -0.8, 0
+            flares 400 * time, 2.0
+            rectangle 0, 0, 700, 700
+        rectangle -450, 0, 700, 700
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.7, 0.7, 0
+                scale 2, 2, 2
+                translate -0.8, -0.8, 0
+            flares 400 * time, 2.0
+            rectangle 0, 0, 700, 700
+        radial_glow 15, 1.0, 1.5, 1.0, 100, 100
+        rectangle 450, 0, 700, 700
+    legend
+
+page "Monjori",
+// -------------------------------------------------
+//    Example of glow with monjori effect
+// -------------------------------------------------
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.5, 0.5, 0
+                rotatez 5 * time
+                translate -0.5, -0.5, 0
+            monjori (time mod 5000) * 0.5
+            rectangle 0, 0, 700, 700
+        rectangle -450, 0, 700, 700
+    locally
+        color "white"
+        frame_texture 700, 700,
+            texture_transform
+                translate 0.5, 0.5, 0
+                rotatez 5 * time
+                translate -0.5, -0.5, 0
+            monjori (time mod 5000) * 0.5
+            rectangle 0, 0, 700, 700
+        radial_glow 15, 1.0, 1.0, 1.5, 100, 100
+        rectangle 450, 0, 700, 700
+    legend
+
+page "Sparks",
+// -------------------------------------------------
+//    Example of glow with sparks effect
+// -------------------------------------------------
+    locally
+        color "white"
+        frame_texture 700, 700,
+            color 0.0, 0.7, 1.0, 1.0
+            sparks_color 0.1, 0.1, 0.1, 1.0
+            sparks page_time * 0.5, 0.55, 0.55
+            rectangle 0, 0, 700, 700
+        rectangle -450, 0, 700, 700
+    locally
+        color "white"
+        frame_texture 700, 700,
+            color 0.0, 0.7, 1.0, 1.0
+            sparks_color 0.1, 0.1, 0.1, 1.0
+            sparks page_time * 0.5, 0.55, 0.55
+            rectangle 0, 0, 700, 700
+        radial_glow 15, 1.0, 2.0, 0.5, 100, 100
+        rectangle 450, 0, 700, 700
+    legend
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
+legend ->
+// -------------------------------------------------
+//    Set the legend of the page
+// -------------------------------------------------
+    locally
+        text_box -450, -400, 500, 500,
+            align 0.5
+            vertical_align 0.5
+            font_size 45
+            color "white"
+            text "Before glow"
+    locally
+        text_box 450, -400, 500, 500,
+            align 0.5
+            vertical_align 0.5
+            font_size 45
+            color "white"
+            text "After glow"

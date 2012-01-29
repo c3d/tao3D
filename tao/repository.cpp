@@ -310,28 +310,6 @@ bool Repository::versionGreaterOrEqual(QString ver, QString ref)
             return false;
     return true;
 }
- 
-
-bool Repository::versionGreaterOrEqual(double ver, double ref)
-// ----------------------------------------------------------------------------
-//    Return true if ver >= ref. For instance, "1.7.0" >= "1.6.6.2"
-// ----------------------------------------------------------------------------
-{
-    return ver >= ref;
-}
-
-
-bool Repository::versionMatches(double ver, double ref)
-// ----------------------------------------------------------------------------
-//   Return true if ver.major == ref.major and ver.minor >= ref.minor
-// ----------------------------------------------------------------------------
-{
-    double verMajor = floor(ver);
-    double refMajor = floor(ref);
-    double verMinor = ver - verMajor;
-    double refMinor = ref - refMajor;
-    return verMajor == refMajor && verMinor >= refMinor;
-}
 
 
 Repository::ProcQueueConsumer::~ProcQueueConsumer()
@@ -387,6 +365,12 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
     if (no_repo) return NULL;
     // Try a Git repository first
     Repository *git = new GitRepository(path);
+    if (mode == OpenExistingHere && !git->pathIsRoot())
+    {
+        errors = QObject::tr("Path is not repository root");
+        delete git;
+        return NULL;
+    }
     if (git->valid())
     {
         if (mode == Clone)
@@ -397,16 +381,6 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
                                  "repository: %1").arg(native);
             delete git;
             return NULL;
-        }
-        else
-        if (mode == OpenExistingHere)
-        {
-            if (!git->pathIsRoot())
-            {
-                errors = QObject::tr("Path is not repository root");
-                delete git;
-                return NULL;
-            }
         }
         return git;
     }

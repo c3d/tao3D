@@ -1,3 +1,28 @@
+// ****************************************************************************
+//  simple_slides.ddd                                               Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//        Some basic themes for presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Slides
 
 // Work around to Bug#1032
@@ -8,9 +33,14 @@ syntax ( PREFIX 370 !* !- !+ )
 // "Rounded", "Keyboard", "Seyes"
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+//
+//                                 Keyboard theme
+//
+// ============================================================================
+
+
 theme "Keyboard"
-// ----------------------------------------------------------------------------
 
 title_slide "Keyboard style (Title)",
     text "Lorem ipsum dolor sit amet"
@@ -35,9 +65,14 @@ picture_slide "Keyboard style (Drawing)",
         rounded_rectangle 100, 30, 150, 120, 20
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+//
+//                                 Keyboard Seyes
+//
+// ============================================================================
+
+
 theme "Seyes"
-// ----------------------------------------------------------------------------
 
 title_slide "Seyes style (Title)",
     text "This is the Seyes theme"
@@ -50,9 +85,14 @@ slide "Seyes style (Slide)",
     text "Regular text"
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+//
+//                                 Keyboard WhiteOnBlack
+//
+// ============================================================================
+
+
 theme "WhiteOnBlack"
-// ----------------------------------------------------------------------------
 
 title_slide "White on Black (Title)",
     text "This is the White on Black theme"
@@ -67,9 +107,14 @@ picture_slide "White on Black (Picture)",
     image 0, 0, wscale, wscale, "Corsica.jpg"
 
 
-// ----------------------------------------------------------------------------
+// ============================================================================
+//
+//                                 Keyboard WhiteOnGray
+//
+// ============================================================================
+
+
 theme "WhiteOnGray"
-// ----------------------------------------------------------------------------
 
 title_slide "White on Gray (Title)",
     text "This is the White on Gray theme"
@@ -79,6 +124,7 @@ slide "White On Gray (Slide)",
     - "Bullet level 2"
 
 picture_slide "White on Gray (3D)",
+    texture_wrap true, true
     color "white"
     texture "earth.bmp"
     rotatey 2.3 * time

@@ -32,10 +32,11 @@ TAO_BEGIN
 
 int   Layout::polygonOffset   = 0;
 scale Layout::factorBase      = 0;
-scale Layout::factorIncrement = -0.01; // Experimental value
+scale Layout::factorIncrement = -0.001; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
 uint  Layout::globalProgramId = 0;
+bool  Layout::inIdentify      = false;
 
 
 LayoutState::LayoutState()
@@ -50,14 +51,19 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentLights(0),
-      textureUnits(1),
-      lightId(GL_LIGHT0), programId(0),
-      printing(false),
+      currentTexture(),
+      textureUnits(0),
+      lightId(GL_LIGHT0), currentLights(0),
+      perPixelLighting(0),
+      programId(0),
       planarRotation(0), planarScale(1),
-      rotationId(0), translationId(0), scaleId(0)
-{
-}
+      rotationId(0), translationId(0), scaleId(0),
+      hasTextureMatrix(false), printing(false),
+      hasPixelBlur(false), hasMatrix(false), has3D(false),
+      hasAttributes(false), hasLighting(false), hasBlending(false),
+      hasTransform(false), hasMaterial(false),
+      isSelection(false), groupDrag(false)
+{}
 
 
 LayoutState::LayoutState(const LayoutState &o)
@@ -67,34 +73,49 @@ LayoutState::LayoutState(const LayoutState &o)
       : offset(o.offset),
         font(o.font),
         alongX(o.alongX), alongY(o.alongY), alongZ(o.alongZ),
-        left(o.left), right(o.right),
-        top(o.top), bottom(o.bottom),
+        left(o.left), right(o.right), top(o.top), bottom(o.bottom),
         visibility(o.visibility),
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        currentLights(o.currentLights),
+        currentTexture(o.currentTexture),
         textureUnits(o.textureUnits),
         previousTextures(o.previousTextures),
         fillTextures(o.fillTextures),
-        model(o.model),
         lightId(o.lightId),
-        programId(o.programId),        
-        printing(o.printing),
+        currentLights(o.currentLights),
+        perPixelLighting(o.perPixelLighting),
+        programId(o.programId),
         planarRotation(o.planarRotation),
         planarScale(o.planarScale),
-        rotationId(o.rotationId),
-        translationId(o.translationId),
-        scaleId(o.scaleId)
+        rotationId(o.rotationId), translationId(o.translationId),
+        scaleId(o.scaleId),
+        model(o.model),
+        hasTextureMatrix(o.hasTextureMatrix),
+        printing(o.printing),
+        hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
+        hasAttributes(o.hasAttributes), 
+        hasLighting(false),
+        hasBlending(false),
+        hasTransform(o.hasTransform), hasMaterial(false),
+        isSelection(o.isSelection), groupDrag(false)
 {}
 
 
-void LayoutState::ClearAttributes()
+void LayoutState::ClearAttributes(bool all)
 // ----------------------------------------------------------------------------
 //   Reset default state for a layout
 // ----------------------------------------------------------------------------
 {
     LayoutState zero;
+    if (!all)
+    {
+        // Save state modified by Add or before
+        zero.hasMatrix = hasMatrix;
+        zero.hasTextureMatrix = hasTextureMatrix;
+        zero.hasAttributes = hasAttributes;
+        zero.hasLighting = hasLighting;
+    }
     *this = zero;
 }
 
@@ -146,10 +167,6 @@ Layout::Layout(Widget *widget)
 //    Create an empty layout
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
-      hasPixelBlur(false), hasMatrix(false), has3D(false),
-      hasAttributes(false),hasTransform(false), hasTextureMatrix(0),
-      hasLighting(false), hasMaterial(false),
-      isSelection(false), groupDrag(false),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
@@ -160,10 +177,6 @@ Layout::Layout(const Layout &o)
 //   Copy constructor
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
-      hasPixelBlur(o.hasPixelBlur), hasMatrix(false), has3D(o.has3D),
-      hasAttributes(false), hasTransform(o.hasTransform), hasTextureMatrix(o.hasTextureMatrix),
-      hasLighting(false), hasMaterial(false),
-      isSelection(o.isSelection), groupDrag(false),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX)
 {}
@@ -207,13 +220,7 @@ void Layout::Clear()
     items.clear();
 
     // Initial state has no rotation or attribute changes
-    hasPixelBlur = false;
-    hasMatrix = false;
-    has3D = false;
-    hasAttributes = false;
-    hasTransform = false;
-    hasTextureMatrix = 0;
-    ClearAttributes();
+    ClearAttributes(true);
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
@@ -274,6 +281,9 @@ void Layout::Identify(Layout *where)
 //   Identify the elements of the layout for OpenGL selection
 // ----------------------------------------------------------------------------
 {
+    // Remember that we are in Identify mode
+    XL::Save<bool> saveIdenitfy(inIdentify, true);
+
     // Inherit offset from our parent layout if there is one
     XL::Save<Point3> save(offset, offset);
     GLAllStateKeeper glSave(glSaveBits(),
@@ -341,6 +351,7 @@ void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 {
     items.push_back(d);
+    d->Evaluate(this);
 }
 
 
@@ -454,6 +465,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         {
             // Clear old contents of the layout, drop all children
             Clear();
+
+            // Inherit attributes
+            Inherit(parent);
 
             // Set new layout as the current layout in the current Widget
             XL::Save<Layout *> saveLayout(widget->layout, this);
@@ -617,15 +631,19 @@ void Layout::Inherit(Layout *where)
 //   Inherit state from some other layout
 // ----------------------------------------------------------------------------
 {
-    // Reset the index of characters
-    charId = 0;
-
     if (!where)
         return;
 
     // Add offset of parent to the one we have
     offset = where->Offset();
+    LayoutState::InheritState(where);
+}
 
+void LayoutState::InheritState(LayoutState *where)
+// ----------------------------------------------------------------------------
+//   Inherit state from some other layoutState except offset
+// ----------------------------------------------------------------------------
+{
     // Inherit color and other parameters as initial values
     // Note that these may really impact what gets rendered,
     // e.g. transparent colors may cause shapes to be drawn or not
@@ -641,20 +659,51 @@ void Layout::Inherit(Layout *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
-    currentLights    = where->currentLights;
+
     textureUnits     = where->textureUnits;
     previousTextures = where->previousTextures;
     fillTextures     = where->fillTextures;
-    model            = where->model;
+    currentTexture   = where->currentTexture;
+
     lightId          = where->lightId;
+    currentLights    = where->currentLights;
+    perPixelLighting = where->perPixelLighting;
+
     programId        = where->programId;
     printing         = where->printing;
+
     planarRotation   = where->planarRotation;
     planarScale      = where->planarScale;
+    model            = where->model;
+
     has3D            = where->has3D;
     hasPixelBlur     = where->hasPixelBlur;
     groupDrag        = where->groupDrag;
+    hasMaterial      = where->hasMaterial;
     hasTransform     = where->hasTransform;
+}
+
+
+void LayoutState::toDebugString(std::ostream &out) const
+// ----------------------------------------------------------------------------
+//   Show debug information
+// ----------------------------------------------------------------------------
+{
+    out << "LayoutState["<<this<<"]\n";
+    out << "\tfont            = " << font.toString().toStdString() << std::endl;
+    out << "\tleft            = " << left << std::endl;
+    out << "\tright           = " << right << std::endl;
+    out << "\ttop             = " << top << std::endl;
+    out << "\tbottom          = " << bottom << std::endl;
+    out << "\tvisibility      = " << visibility << std::endl;
+    out << "\tlineWidth       = " << lineWidth << std::endl;
+    out << "\tlineColor       = " << lineColor << std::endl;
+    out << "\tfillColor       = " << fillColor << std::endl;
+    out << "\tlightId         = " << lightId << std::endl;
+    out << "\tprogramId       = " << programId << std::endl;
+    out << "\tprinting        = " << printing << std::endl;
+    out << "\tplanarRotation  = " << planarRotation << std::endl;
+    out << "\tplanarScale     = " << planarScale << std::endl;
 }
 
 
@@ -709,6 +758,47 @@ double Layout::PrinterScaling()
 // ----------------------------------------------------------------------------
 {
     return display->printerScaling();
+}
+
+
+
+// ============================================================================
+// 
+//    Stereo layout
+// 
+// ============================================================================
+
+bool StereoLayout::Valid(Layout *where)
+// ----------------------------------------------------------------------------
+//    Return true if the view is to be shown
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = where->Display();
+    ulong plane = widget->stereoPlane;
+    ulong planes = widget->stereoPlanes;
+    if (widget->eyeDistance < 0)
+        plane = planes-1 - plane;
+    return (1<<plane) & viewpoints;
+}
+
+
+void StereoLayout::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw only when the eye matches the given viewpoints
+// ----------------------------------------------------------------------------
+{
+    if (Valid(where))
+        Layout::Draw(where);
+}
+
+
+void StereoLayout::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw selection only when the eye matches the given viewpoints
+// ----------------------------------------------------------------------------
+{
+    if (Valid(where))
+        Layout::DrawSelection(where);
 }
 
 TAO_END

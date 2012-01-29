@@ -4,8 +4,8 @@
 //
 //   File Description:
 //
-//    Off-screen OpenGL rendering to a 2D texture
-//
+//    Off-screen OpenGL rendering to a 2D texture. A 2D texture of the depth
+//    map can also be returned.
 //
 //
 //
@@ -32,7 +32,7 @@ FrameInfo::FrameInfo(uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : w(w), h(h), refreshTime(-1)
+    : w(w), h(h), refreshTime(-1), clearColor(1, 1, 1, 0)
 {
     resize(w, h);
 }
@@ -42,7 +42,8 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor - Don't copy the framebuffers
 // ----------------------------------------------------------------------------
-    : XL::Info(o), w(o.w), h(o.h), refreshTime(o.refreshTime)
+    : XL::Info(o), w(o.w), h(o.h), refreshTime(o.refreshTime),
+      clearColor(o.clearColor)
 {
     resize(w, h);
 }
@@ -63,6 +64,8 @@ FrameInfo::~FrameInfo()
         if (rv != tv)
             delete tv;
     }
+    if (depth_tex)
+        glDeleteTextures(1, &depth_tex);
 }
 
 
@@ -100,7 +103,10 @@ void FrameInfo::resize(uint w, uint h)
         int samples = actualFormat.samples();
         if (samples > 0)
         {
-            texture_fbo = new QGLFramebufferObject(w, h);
+            // REVISIT: we pass format to have a depth buffer attachment.
+            // This is required only when we want to later use depthTexture().
+            // TODO: specify at object creation?
+            texture_fbo = new QGLFramebufferObject(w, h, format);
         }
         else
         {
@@ -123,6 +129,38 @@ void FrameInfo::resize(uint w, uint h)
         render_fbo = new QGLFramebufferObject(w, h, format);
         texture_fbo = render_fbo;
     }
+
+    // depth_tex is optional, resize if we have one
+    if (depth_tex)
+        resizeDepthTexture(w, h);
+
+    this->w = w; this->h = h;
+    glShowErrors();
+}
+
+
+void FrameInfo::resizeDepthTexture(uint w, uint h)
+// ----------------------------------------------------------------------------
+//   Change the size of the depth texture
+// ----------------------------------------------------------------------------
+{
+    if (depth_tex && this->w == w && this->h == h)
+        return;
+
+    // Delete current depth texture
+    if (depth_tex)
+        glDeleteTextures(1, &depth_tex);
+
+    // Create the depth texture
+    glGenTextures(1, &depth_tex);
+    glBindTexture(GL_TEXTURE_2D, depth_tex);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
+                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
     glShowErrors();
 }
 
@@ -139,7 +177,9 @@ void FrameInfo::begin()
     glShowErrors();
 
     glDisable(GL_TEXTURE_2D);
-    glClearColor(1,1,1,0);
+    glDisable(GL_STENCIL_TEST);
+    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
+                 clearColor.alpha);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
@@ -156,10 +196,16 @@ void FrameInfo::end()
     // Blit the result in the texture if necessary
     if (render_fbo != texture_fbo)
     {
+        GLenum buffers = GL_COLOR_BUFFER_BIT;
+        if (depth_tex)
+            buffers |= GL_DEPTH_BUFFER_BIT;
         QRect rect(0, 0, render_fbo->width(), render_fbo->height());
         QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
-                                              render_fbo, rect);
+                                              render_fbo, rect,
+                                              buffers);
     }
+    if (depth_tex)
+        copyToDepthTexture();
     glShowErrors();
 }
 
@@ -181,6 +227,31 @@ GLuint FrameInfo::bind()
 }
 
 
+GLuint FrameInfo::texture()
+// ----------------------------------------------------------------------------
+//   Return the GL texture associated to the off-screen buffer
+// ----------------------------------------------------------------------------
+{
+    checkGLContext();
+    return texture_fbo->texture();
+}
+
+
+GLuint FrameInfo::depthTexture()
+// ----------------------------------------------------------------------------
+//   Return the GL texture associated to the depth buffer attachment
+// ----------------------------------------------------------------------------
+{
+    checkGLContext();
+    if (!depth_tex)
+    {
+        resizeDepthTexture(w, h);
+        copyToDepthTexture();
+    }
+    return depth_tex;
+}
+
+
 void FrameInfo::checkGLContext()
 // ----------------------------------------------------------------------------
 //   Make sure FBOs have been allocated for the current GL context
@@ -198,6 +269,21 @@ QImage FrameInfo::toImage()
 {
     checkGLContext();
     return render_fbo->toImage();
+}
+
+
+void FrameInfo::copyToDepthTexture()
+// ----------------------------------------------------------------------------
+//   Copy the texture_fbo depth buffer into our depth texture
+// ----------------------------------------------------------------------------
+{
+    GLint fbname = 0;
+    glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
+    glBindFramebuffer(GL_FRAMEBUFFER, texture_fbo->handle());
+    glBindTexture(GL_TEXTURE_2D, depth_tex);
+    glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
+    glBindFramebuffer(GL_FRAMEBUFFER, fbname);
+    glShowErrors();
 }
 
 
@@ -256,6 +342,27 @@ unsigned int FrameInfo::frameBufferObjectToTexture(ModuleApi::fbo * obj)
 }
 
 
+unsigned int FrameInfo::frameBufferAttachmentToTexture(ModuleApi::fbo * obj,
+                                                       int attachment)
+// ----------------------------------------------------------------------------
+//   Make framebuffer attachment available as a texture
+// ----------------------------------------------------------------------------
+{
+    FrameInfo *f = (FrameInfo *)obj;
+
+    switch (attachment)
+    {
+    case GL_COLOR_ATTACHMENT0:
+        return f->texture();
+    case GL_DEPTH_ATTACHMENT:
+        return f->depthTexture();
+    default:
+        break;
+    }
+    return 0;
+}
+
+
 
 // ============================================================================
 //
@@ -300,3 +407,63 @@ FramePainter::~FramePainter()
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from frame.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "frame.tbl"
+
+namespace Tao
+{
+
+#include "frame.tbl"
+
+
+void EnterFrames()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "frame.tbl"
+}
+
+
+void DeleteFrames()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "frame.tbl"
+}
+
+}

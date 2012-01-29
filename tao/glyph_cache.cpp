@@ -258,6 +258,28 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         QFontMetricsF fm(scaled);
         QChar qc(code);
         QRectF bounds = fm.boundingRect(qc);
+        IFTRACE(fonts)
+        {
+            if (bounds.width() == 0 || bounds.height() == 0 ||
+                fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
+                fabs(bounds.y()) > 10 * scaled.pointSizeF())
+            {
+                QString exactMatchText;
+                if (!scaled.exactMatch())
+                    exactMatchText = "NO ";
+                QString msg;
+                msg = QString("Warning: font '%1' (%2exact match): character "
+                              "'%3' has weird metrics:\n  width %4 height %5 "
+                              "x %6 y %7")
+                        .arg(scaled.family()).arg(exactMatchText).arg(qc)
+                        .arg(bounds.width()).arg(bounds.height())
+                        .arg(bounds.x()).arg(bounds.y());
+                std::cerr << +msg << "\n";
+            }
+        }
+        // #1161 Workaround font metric bug in TeX Gyre Adventor
+        if (qc == ' ' && font.family() == "TeX Gyre Adventor")
+            bounds = fm.boundingRect(QChar('l'));
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());
 

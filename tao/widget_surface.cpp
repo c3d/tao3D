@@ -30,7 +30,6 @@
 #include "tree_cloning.h"
 #include "text_edit.h"
 #include <QtWebKit>
-#include <phonon>
 #include <cstring>
 #include <string>
 
@@ -797,83 +796,6 @@ bool GridGroupBox::event(QEvent *event)
 
 // ============================================================================
 //
-//   Video Player
-//
-// ============================================================================
-
-VideoSurface::VideoSurface(XL::Tree *t, Widget *parent)
-// ----------------------------------------------------------------------------
-//   Create the video player
-// ----------------------------------------------------------------------------
-    : WidgetSurface(t, new Phonon::VideoWidget(NULL)),
-      audio(new Phonon::AudioOutput(Phonon::VideoCategory, NULL)),
-      media(new Phonon::MediaObject(NULL))
-{
-    (void) parent;
-    Phonon::createPath(media, audio);
-    Phonon::createPath(media, (Phonon::VideoWidget *) widget);
-    widget->setAttribute(Qt::WA_DontShowOnScreen);
-    widget->setVisible(true);
-}
-
-
-VideoSurface::~VideoSurface()
-// ----------------------------------------------------------------------------
-//    Stop the player and delete the frame buffer object
-// ----------------------------------------------------------------------------
-{
-   media->stop();
-   delete audio;
-   delete media;
-}
-
-
-GLuint VideoSurface::bind(XL::Text *urlTree)
-// ----------------------------------------------------------------------------
-//    Bind the surface to the texture
-// ----------------------------------------------------------------------------
-{
-    Phonon::VideoWidget *player = (Phonon::VideoWidget *) widget;
-
-    if (urlTree->value != url)
-    {
-        url = urlTree->value;
-        media->stop();
-        media->setCurrentSource(Phonon::MediaSource(QUrl(+url)));
-        media->play();
-        Tao::Widget::Tao()->makeCurrent();
-    }
-
-    QSize hint = player->sizeHint();
-    if (hint.isValid())
-    {
-        if (hint.width() != widget->width() ||
-            hint.height() != widget->height())
-            resize(hint.width(), hint.height());
-
-        QImage image(widget->width(), widget->height(),
-                     QImage::Format_ARGB32);
-        widget->setAutoFillBackground(false);
-        widget->render(&image);
-
-        // Generate the GL texture
-        image = QGLWidget::convertToGLFormat(image);
-        glBindTexture(GL_TEXTURE_2D, textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, 3,
-                     image.width(), image.height(), 0, GL_RGBA,
-                     GL_UNSIGNED_BYTE, image.bits());
-
-        return textureId;
-    }
-
-    // Default is to return no texture
-    return 0;
-}
-
-
-
-// ============================================================================
-//
 //   Slider TO BE DONE
 //
 // ============================================================================
@@ -891,3 +813,63 @@ void AbstractSliderSurface::valueChanged(int /* new_value */)
 }
 
 TAO_END
+
+
+
+// ****************************************************************************
+// 
+//    Code generation from widget_surface.tbl
+// 
+// ****************************************************************************
+
+#include "graphics.h"
+#include "opcodes.h"
+#include "options.h"
+#include "widget.h"
+#include "types.h"
+#include "drawing.h"
+#include "layout.h"
+#include "module_manager.h"
+#include <iostream>
+
+
+// ============================================================================
+//
+//    Top-level operation
+//
+// ============================================================================
+
+#include "widget.h"
+
+using namespace XL;
+
+#include "opcodes_declare.h"
+#include "widget_surface.tbl"
+
+namespace Tao
+{
+
+#include "widget_surface.tbl"
+
+
+void EnterWidgetSurfaces()
+// ----------------------------------------------------------------------------
+//   Enter all the basic operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+    XL::Context *context = MAIN->context;
+#include "opcodes_define.h"
+#include "widget_surface.tbl"
+}
+
+
+void DeleteWidgetSurfaces()
+// ----------------------------------------------------------------------------
+//   Delete all the global operations defined in attributes.tbl
+// ----------------------------------------------------------------------------
+{
+#include "opcodes_delete.h"
+#include "widget_surface.tbl"
+}
+
+}

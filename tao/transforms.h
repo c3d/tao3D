@@ -105,6 +105,23 @@ struct MoveToRel : MoveTo
     virtual void Draw(Layout *where);
 };
 
+
+void printMatrix(GLint model = -1);
+// ----------------------------------------------------------------------------
+//    Print GL matrix on stderr
+// ----------------------------------------------------------------------------
+
+
+
+// ============================================================================
+// 
+//   Entering transforms in the symbols table
+// 
+// ============================================================================
+
+extern void EnterTransforms();
+extern void DeleteTransforms();
+
 TAO_END
 
 #endif // TRANSFORMS_H

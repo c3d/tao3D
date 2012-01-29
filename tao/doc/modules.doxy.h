@@ -1,15 +1,24 @@
 /**
+ * @~english
  * @addtogroup TaoModules Module management primitives
  * @ingroup TaoBuiltins
  *
  * Use code and resources from external modules.
  *
- *@todo Add a link to the module SDK documentation
+ * @todo Add a link to the module SDK documentation
  *
+ * @~french
+ * @addtogroup TaoModules Chargement d'un module
+ * @ingroup TaoBuiltins
+ *
+ * Utiliser du code et des fichiers provenant de modules externes.
+ *
+ * @~
  * @{
  */
 
 /**
+ * @~english
  * Loads a Tao module.
  * The syntax is:
 @code
@@ -23,15 +32,14 @@ import MyModule 1.0
  *
  * Version numbers can have one of three forms:
  *  - An integer value, e.g. 1, which is the same as 1.0
- *  - A real value, e.g. 1.0203, which is major 1, minor 2, patch-level 3
- *  - A text value with dot-separated fields, e.g. "1.2.3" which is the same
- *    as "1.02.03".
+ *  - A real value, e.g., 1.023
+ *  - A text value, e.g., "1.023"
  *
  * Version matching is a major/minor match. For a module to load, the module
  * major must be equal to the requested major (the integer part of the
- * version, when represented as a real value), and the module minor must be
+ * version), and the module minor must be
  * greater or equal to the requested minor (the fractional part of the
- * version, when represented as a real value).
+ * version).
  *
  * If the version is not specified, it is assumed to be 1.0.
  *
@@ -43,8 +51,43 @@ import MyModule 1.0
  *        module_description block in the module's main XL file)
  * @param version The minimum version of the module known to work with the
  *        current document.
+ *
+ * @~french
+ * Charge un module Tao Presentations.
+ * La syntaxe est :
+@code
+import MonModule 1.0
+@endcode
+ *
+ * Quand Tao Presentations rencontre le mot-clé import, il recherche MonModule
+ * dans la liste des modules connus (et actifs), vérifie que la version
+ * demandée est compatible, et rend les définitions du module visible pour
+ * le document.
+ *
+ * Les numéros de version peuvent prendre trois formes :
+ *  - Une valeur entière, par exemple 1, qui est identique à 1.0
+ *  - Une valeur réelle, par exemple 1.023
+ *  - Un texte, par exemple "1.023"
+ *
+ * La vérification des versions se fait par comparaison des valeurs majeure/
+ * mineure. Pour qu'un module puisse se charger, la version majeure du
+ * module doit être égale à la version majeure demandée (la partie entière
+ * de la version), et la version mineure doit être supérieure ou égale à la
+ * version mineure demandée (la partie fractionaire de la version).
+ *
+ * Si la version n'est pas précisée, elle est égale à 1.0.
+ *
+ * Sans import, les définitions contenus dans le fichier @c .xl principal d'un
+ * module ne peuvent pas être utilisées dans le document.
+ *
+ * @param modulename Le nom d'import du module, tel que défini dans la
+ *        documentation du module. C'est aussi la valeur de l'attribut
+ *        import_name du bloc module_description situé dans le fichier
+ *        XL principal du module.
+ * @param version La version minimale du module dont le document courant
+ *        a besoin pour fonctionner. Entier, réel ou texte.
  */
-import(modulename:name, version:text);
+import(modulename:name, version);
 
 /**
  * @}

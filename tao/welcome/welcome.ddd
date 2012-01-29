@@ -92,6 +92,9 @@ page "Welcome",
         color "#EEAA11"
         text "Tao Presentations"
         line_break
+        if tao_edition <> "" then
+            text tao_edition
+            line_break
 
         font "Arial", 20, italic
         color "black"

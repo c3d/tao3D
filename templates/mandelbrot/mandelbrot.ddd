@@ -22,6 +22,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
+
 import Animate
 import Slides
 
@@ -32,22 +33,23 @@ import Slides
 // 
 // ============================================================================
 
+
 // Pick the "Keyboard" theme
 theme "Keyboard"
+
+// Disable selection rectangle
+enable_selection_rectangle false
 
 // Do not draw any selection when we click on the Mandelbrot picture
 draw_selection x, y, w, h -> false
 
-
 picture_slide "Mandelbrot",
 // ----------------------------------------------------------------------------
-// First slide is a picture slide showing the Mandelbrot set
+//    First slide is a picture slide showing the Mandelbrot set
 // ----------------------------------------------------------------------------
     draw_mandelbrot
     draw_help
     draw_info
-
-
 
 
 // ============================================================================
@@ -60,9 +62,10 @@ picture_slide "Mandelbrot",
 //  The fragment shader (aka pixel shader) is where we perform the
 //  actual computation for each pixel.
 
+
 mandelbrot_shader ->
 // ----------------------------------------------------------------------------
-//   Setup the OpenGL shader for the Mandelbrot set
+//    Setup the OpenGL shader for the Mandelbrot set
 // ----------------------------------------------------------------------------
     // Set a empty texture in order to define the texture coordinates
     texture ""
@@ -145,12 +148,12 @@ mandelbrot_shader ->
     shader_set maxIter := 200
 
 
-
 // ============================================================================
 // 
 //   Slide animation
 // 
 // ============================================================================
+
 
 // Current values for center position and scaling factor
 center_x -> 0.0
@@ -169,7 +172,6 @@ info_y -> 0.0
 // Size based on the size of the slide (we display in a square)
 sz -> slide_height
 sf -> sz * 0.25 * scaling_factor
-
 
 draw_mandelbrot ->
 // ----------------------------------------------------------------------------
@@ -212,11 +214,9 @@ draw_mandelbrot ->
         if scaling_factor <> tgt_scaling_factor then
             refresh 0.01
 
-
-
 draw_help ->
 // ----------------------------------------------------------------------------
-//   Draw a text box displaying the localized help text
+//    Draw a text box displaying the localized help text
 // ----------------------------------------------------------------------------
     text_box 0, 0, slide_width, slide_height,
         align_center
@@ -228,11 +228,9 @@ draw_help ->
 help_text "fr" -> text "Cliquez pour approcher, Alt-Click pour éloigner"
 help_text Other -> text "Click to zoom in, Alt-Click to zoom out"
 
-
-
 draw_info ->
 // ----------------------------------------------------------------------------
-//   Draw the text box on the right displaying info about Mandelbrot
+//    Draw the text box on the right displaying info about Mandelbrot
 // ----------------------------------------------------------------------------
     locally
         color "white", 60%

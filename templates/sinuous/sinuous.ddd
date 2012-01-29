@@ -1,13 +1,45 @@
-/**
-* This document presents an example of the sinous module which allow
-* to generate a changing ribbon.
-**/
+// ****************************************************************************
+//  sinuous.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//        Example of the sinous module which allows to
+//        generate a changing ribbon.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Sinuous
 import Animate
 
 key "Return" -> goto_page page_name 1
 
-page "Intro",
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+
+
+page "Sinuous",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
     compute_smooth_step
     draw_background
     locally
@@ -21,7 +53,18 @@ page "Intro",
             align_center
             description_text tao_language
 
+
+// ============================================================================
+//
+//                                   HELP
+//
+// ============================================================================
+
+
 description_text "fr" ->
+// -------------------------------------------------
+//    French help
+// -------------------------------------------------
     text "Effet obtenu grâce à un module appelé "
     italic
     text "Sinuous"
@@ -29,6 +72,9 @@ description_text "fr" ->
     text "écrit par Taodyne."
 
 description_text T:text ->
+// -------------------------------------------------
+//    English help
+// -------------------------------------------------
     text "Background effect drawn by a module called "
     italic
     text "Sinuous"
@@ -36,7 +82,18 @@ description_text T:text ->
     plain
     text "written by Taodyne."
 
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
 draw_background ->
+// -------------------------------------------------
+//    Draw sinuous shape
+// -------------------------------------------------
     locally
         color "white"
         sinuous_shape 0.0, 0.0, window_width, window_height

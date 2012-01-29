@@ -2017,6 +2017,7 @@ double Widget::scalingFactorFromCamera()
     return csf;
 }
 
+
 void Widget::setup(double w, double h, const Box *picking)
 // ----------------------------------------------------------------------------
 //   Setup an initial environment for drawing
@@ -2068,6 +2069,7 @@ void Widget::reset()
     animated = true;
     blanked = false;
 }
+
 
 void Widget::resetModelviewMatrix()
 // ----------------------------------------------------------------------------
@@ -8552,6 +8554,25 @@ Text_p Widget::taoVersion(Tree_p self)
 }
 
 
+Text_p Widget::taoEdition(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return the edition string
+// ----------------------------------------------------------------------------
+{
+#ifdef TAO_EDITION
+    static text edition = "";
+    if (edition == "")
+    {
+        edition = TAO_EDITION;
+    }
+    return new XL::Text(edition);
+#else
+    return new XL::Text("");
+#endif
+
+}
+
+
 Text_p Widget::docVersion(Tree_p self)
 // ----------------------------------------------------------------------------
 //    Return the version of the current document (if known)
@@ -8909,6 +8930,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<double> saveCamToScr(cameraToScreen, 
+                                      (cameraTarget-cameraPosition).Length());
         XL::Save<double> saveZoom(zoom, 1);
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
 

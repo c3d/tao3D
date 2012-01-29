@@ -1,8 +1,48 @@
+// ****************************************************************************
+//  filters.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of filters module with Tao Presentations
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
+
 import Filters
 
+
+// ============================================================================
+//
+//                             GLOBAL SETTINGS
+//
+// ============================================================================
+
+
 zoom 1.5
+
+// Font of texts
 font "Arial"
+
+// Background color
 clear_color 0, 0, 0, 0
+
+// Disable selection rectangle
+enable_selection_rectangle false
 
 // Internationalization
 filters_txt "fr" -> text "FILTRES"
@@ -28,129 +68,31 @@ erode_txt Other -> text "Erode"
 refresh 2
 
 // Filter number
-filter -> 6
+filter -> 0
 
 // Global scaling
 S -> window_width / 1900
 scale S, S, 1.0
 
-none_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, 200, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, 200, 200, 30,
-        align_center
-        none_txt tao_language
-    on_click
-        filter := 0
 
-gaussian_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, 150, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, 150, 200, 30,
-        align_center
-        gaussian_txt tao_language
-    on_click
-        filter := 1
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
 
-mean_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, 100, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, 100, 200, 30,
-        align_center
-        mean_txt tao_language
-    on_click
-        filter := 2
-
-emboss_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, 50, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, 50, 200, 30,
-        align_center
-        emboss_txt tao_language
-    on_click
-        filter := 3
-
-sharpness_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, 0, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, 0, 200, 30,
-        align_center
-        sharpness_txt tao_language
-    on_click
-        filter := 4
-
-laplacian_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, -50, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, -50, 200, 30,
-        align_center
-        laplacian_txt tao_language
-    on_click
-        filter := 5
-
-black_and_white_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, -100, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, -100, 200, 30,
-        align_center
-        black_and_white_txt tao_language
-    on_click
-        filter := 6
-
-erode_button ->
-active_widget
-    color "white"
-    line_color "gray"
-    line_width 1
-    rounded_rectangle -500, -150, 200, 30, 15
-    color "font"
-    line_color "font"
-    text_box -500, -150, 200, 30,
-        align_center
-        erode_txt tao_language
-    on_click
-        filter := 7
 
 page "reset",
+// -------------------------------------------------
+//    Reset filtering
+// -------------------------------------------------
     filter := 0
     goto_page "filtering"
 
 page "filtering",
+// -------------------------------------------------
+//    Apply filtering
+// -------------------------------------------------
     color "white"
     line_color "white"
     text_box -500, 250, 200, 30,
@@ -190,3 +132,147 @@ page "filtering",
 
     // Draw
     rectangle 0, 0, 750, 500
+
+
+// ============================================================================
+//
+//                                 BUTTONS
+//
+// ============================================================================
+
+
+none_button ->
+// -------------------------------------------------
+//    Button for no filters
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, 200, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, 200, 200, 30,
+            align_center
+            none_txt tao_language
+        on_click
+            filter := 0
+
+gaussian_button ->
+// -------------------------------------------------
+//    Button for gaussian filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, 150, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, 150, 200, 30,
+            align_center
+            gaussian_txt tao_language
+        on_click
+            filter := 1
+
+mean_button ->
+// -------------------------------------------------
+//    Button for mean filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, 100, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, 100, 200, 30,
+            align_center
+            mean_txt tao_language
+        on_click
+            filter := 2
+
+emboss_button ->
+// -------------------------------------------------
+//    Button for emboss filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, 50, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, 50, 200, 30,
+            align_center
+            emboss_txt tao_language
+        on_click
+            filter := 3
+
+sharpness_button ->
+// -------------------------------------------------
+//    Button for sharpness filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, 0, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, 0, 200, 30,
+            align_center
+            sharpness_txt tao_language
+        on_click
+            filter := 4
+
+laplacian_button ->
+// -------------------------------------------------
+//    Button for laplacian filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, -50, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, -50, 200, 30,
+            align_center
+            laplacian_txt tao_language
+        on_click
+            filter := 5
+
+black_and_white_button ->
+// -------------------------------------------------
+//    Button for black and white filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, -100, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, -100, 200, 30,
+            align_center
+            black_and_white_txt tao_language
+        on_click
+            filter := 6
+
+erode_button ->
+// -------------------------------------------------
+//    Button for erode filter
+// -------------------------------------------------
+    active_widget
+        color "white"
+        line_color "gray"
+        line_width 1
+        rounded_rectangle -500, -150, 200, 30, 15
+        color "font"
+        line_color "font"
+        text_box -500, -150, 200, 30,
+            align_center
+            erode_txt tao_language
+        on_click
+            filter := 7

@@ -619,6 +619,7 @@ public:
     Text_p      loadText(Tree_p self, text file);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
+    Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
 

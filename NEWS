@@ -1,5 +1,12 @@
 Change log for Tao Presentations
 
+1.01 (29-Jan-2012)
+
+#1886 Photo viewer template syntax error
+#1885 Serious memory leak in camera_position at 3
+#1778 Clear symbols table correctly when creating a new document
+#1777 Symbol table keeps "Space" key assignment from startup screen
+
 1.0 (27-Jan-2012)
 
 #1884 Wrong edition name: rename Creative to Creativity

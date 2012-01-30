@@ -39,7 +39,7 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     contentsWidget->setIconSize(QSize(96, 96));
     contentsWidget->setMovement(QListView::Static);
     contentsWidget->setMinimumHeight(280);
-    contentsWidget->setMaximumWidth(140);
+    contentsWidget->setMaximumWidth(145);
     contentsWidget->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Expanding);
     contentsWidget->setSpacing(12);
 
@@ -74,6 +74,8 @@ PreferencesDialog::PreferencesDialog(QWidget *parent)
     mainLayout->addLayout(buttonsLayout);
 #endif
     setLayout(mainLayout);
+
+    resize(size() - QSize(0, 30));
 
     setWindowTitle(tr("Tao Preferences"));
 }

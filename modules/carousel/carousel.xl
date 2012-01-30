@@ -29,10 +29,10 @@ module_description
     import_name "Carousel"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.0
+    version 1.001
 
 module_description "fr",
     name "Carrousel"
-    description "Définit un carrousel 3D"
+    description "DÃ©finit un carrousel 3D"
 
 import "carousel2.xl.crypt"

@@ -28,7 +28,7 @@ license_ok ->
     if check_license ("Carousel 1.0", false) then
         true
     else
-        if blink (1.0, 1.0) then
+        if blink (1.0, 1.0, 300.0) then
            true
         else
            false

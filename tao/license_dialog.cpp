@@ -29,6 +29,11 @@
 
 namespace Tao {
 
+// First element is the one currently shown, each new dialog is shown when the
+// previous one is closed.
+QList<LicenseDialog *> LicenseDialog::dialogs;
+
+
 LicenseDialog::LicenseDialog(QWidget *parent)
     : QMessageBox(parent)
 // ----------------------------------------------------------------------------
@@ -46,6 +51,36 @@ LicenseDialog::LicenseDialog(const QString &message, QWidget *parent)
 // ----------------------------------------------------------------------------
 {
     init();
+}
+
+
+void LicenseDialog::showDialog()
+// ----------------------------------------------------------------------------
+//   Show dialog to the user (possibly after other similar dialogs are closed)
+// ----------------------------------------------------------------------------
+{
+    if (dialogs.isEmpty())
+    {
+        show();
+        raise();
+    }
+    dialogs.append(this);
+}
+
+
+void LicenseDialog::done(int r)
+// ----------------------------------------------------------------------------
+//   Close this dialog and show next one, if any
+// ----------------------------------------------------------------------------
+{
+    QMessageBox::done(r);
+    dialogs.removeFirst();
+    if (!dialogs.isEmpty())
+    {
+        LicenseDialog *next = dialogs.first();
+        next->show();
+        next->raise();
+    }
 }
 
 

@@ -675,12 +675,16 @@ void Licences::Warn(text feature, int days, bool critical)
     }
     LicenseDialog * oops = new LicenseDialog(message);
     oops->setAttribute(Qt::WA_DeleteOnClose);
-    oops->show();
-    oops->raise();
     if (critical)
+    {
+        oops->show();
+        oops->raise();
         oops->exec(); // Blocking ; e.g. initial test in Application
+    }
     else
-        oops->open(); // Non-blocking ; e.g. module (allows degraded mode)
+    {
+        oops->showDialog(); // Non-blocking, e.g. module (allows degraded mode)
+    }
 }
 
 

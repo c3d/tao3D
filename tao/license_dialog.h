@@ -22,6 +22,7 @@
 // ****************************************************************************
 
 #include <QMessageBox>
+#include <QList>
 
 namespace Tao {
 
@@ -33,11 +34,19 @@ public:
     LicenseDialog(QWidget *parent = NULL);
     LicenseDialog(const QString &message, QWidget *parent = NULL);
 
+    void           showDialog();
+
+public slots:
+    void           done(int r);
+
 private:
     void           init();
 
 private:
     QString        message;
+
+private:
+    static QList<LicenseDialog *> dialogs;
 };
 
 }

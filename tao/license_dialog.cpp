@@ -78,9 +78,13 @@ void LicenseDialog::done(int r)
     if (dialogs.contains(this))
     {
         Q_ASSERT(dialogs.first() == this);
-        LicenseDialog *next = dialogs.takeFirst();
-        next->show();
-        next->raise();
+        dialogs.removeFirst();
+        if (!dialogs.isEmpty())
+        {
+            LicenseDialog *next = dialogs.first();
+            next->show();
+            next->raise();
+        }
     }
 }
 

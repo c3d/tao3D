@@ -673,6 +673,7 @@ void Licences::Warn(text feature, int days, bool critical)
                       "<a href=\"%1\">Taodyne</a> "
                       "to obtain valid license files.</p>").arg(link);
     }
+
     LicenseDialog * oops = new LicenseDialog(message);
     oops->setAttribute(Qt::WA_DeleteOnClose);
     if (critical)

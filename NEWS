@@ -2,7 +2,8 @@ Change log for Tao Presentations
 
 1.02 (07-Feb-2012)
 
-#1891 Windows: crash when opening some documents that need a module license 
+#1892 Cmd-Q / Ctrl-W does not quit application if license warning is shown
+#1891 Windows: crash when opening some documents that need a module license
 #1888 Windows: UI becomes non-responsive because of license window
 
 

@@ -74,10 +74,11 @@ void LicenseDialog::done(int r)
 // ----------------------------------------------------------------------------
 {
     QMessageBox::done(r);
-    dialogs.removeFirst();
-    if (!dialogs.isEmpty())
+    // NB: A dialog shown by exec() rather than showDialog() is NOT in dialogs
+    if (dialogs.contains(this))
     {
-        LicenseDialog *next = dialogs.first();
+        Q_ASSERT(dialogs.first() == this);
+        LicenseDialog *next = dialogs.takeFirst();
         next->show();
         next->raise();
     }
@@ -120,13 +121,10 @@ void LicenseDialog::init()
     // The padlock icon is a merge of:
     // http://www.openclipart.org/detail/17931 (public domain)
     // and our Tao pictogram
-    QPixmap pm(":/images/tao_padlock.svg");
-    if (!pm.isNull())
-    {
-        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
-                                   Qt::SmoothTransformation);
-        setIconPixmap(scaled);
-    }
+    // NB: Don't create pixmap from SVG here. See #1891.
+    QPixmap *pm = Application::padlockIcon;
+    if (pm && !pm->isNull())
+        setIconPixmap(*pm);
 }
 
 }

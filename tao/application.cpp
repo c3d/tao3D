@@ -75,6 +75,7 @@ XL_DEFINE_TRACES
 namespace Tao {
 
 text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
+QPixmap * Application::padlockIcon = NULL;
 
 Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
@@ -153,6 +154,11 @@ Application::Application(int & argc, char ** argv)
                               +syntax.canonicalFilePath(),
                               +stylesheet.canonicalFilePath(),
                               +builtins.canonicalFilePath());
+
+    // #1891 load padlock icon for license dialog
+    QPixmap pm(":/images/tao_padlock.svg");
+    padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
+                                        Qt::SmoothTransformation));
 
     // Load licenses
     QList<QDir> dirs;

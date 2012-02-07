@@ -74,10 +74,11 @@ void LicenseDialog::done(int r)
 // ----------------------------------------------------------------------------
 {
     QMessageBox::done(r);
-    dialogs.removeFirst();
-    if (!dialogs.isEmpty())
+    // NB: A dialog shown by exec() rather than showDialog() is NOT in dialogs
+    if (dialogs.contains(this))
     {
-        LicenseDialog *next = dialogs.first();
+        Q_ASSERT(dialogs.first() == this);
+        LicenseDialog *next = dialogs.takeFirst();
         next->show();
         next->raise();
     }

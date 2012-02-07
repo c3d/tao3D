@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.02 (07-Feb-2012)
 
+#1891 Windows: crash when opening some documents that need a module license 
 #1888 Windows: UI becomes non-responsive because of license window
 
 

@@ -1,5 +1,11 @@
 Change log for Tao Presentations
 
+1.03 (13-Feb-2012)
+
+#1900 StereoDecoder only shows half frame
+#1899 Make StereoDecoder work with Alioscopy screens
+#1898 Windows: module documentation is almost empty
+
 1.02 (07-Feb-2012)
 
 #1892 Cmd-Q / Ctrl-W does not quit application if license warning is shown

@@ -35,7 +35,7 @@ QList<LicenseDialog *> LicenseDialog::dialogs;
 
 
 LicenseDialog::LicenseDialog(QWidget *parent)
-    : QMessageBox(parent)
+    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow())
 // ----------------------------------------------------------------------------
 //   Create a license dialog with general information about licenses
 // ----------------------------------------------------------------------------
@@ -45,7 +45,8 @@ LicenseDialog::LicenseDialog(QWidget *parent)
 
 
 LicenseDialog::LicenseDialog(const QString &message, QWidget *parent)
-    : QMessageBox(parent), message(message)
+    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow()),
+      message(message)
 // ----------------------------------------------------------------------------
 //   Create the license dialog with general info and a custom (HTML) message
 // ----------------------------------------------------------------------------
@@ -59,6 +60,7 @@ void LicenseDialog::showDialog()
 //   Show dialog to the user (possibly after other similar dialogs are closed)
 // ----------------------------------------------------------------------------
 {
+    setWindowModality(Qt::NonModal);
     if (dialogs.isEmpty())
     {
         show();
@@ -78,9 +80,13 @@ void LicenseDialog::done(int r)
     if (dialogs.contains(this))
     {
         Q_ASSERT(dialogs.first() == this);
-        LicenseDialog *next = dialogs.takeFirst();
-        next->show();
-        next->raise();
+        dialogs.removeFirst();
+        if (!dialogs.isEmpty())
+        {
+            LicenseDialog *next = dialogs.first();
+            next->show();
+            next->raise();
+        }
     }
 }
 

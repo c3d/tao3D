@@ -81,7 +81,8 @@ public:
     virtual bool        delRemote(QString name);
     virtual bool        renRemote(QString oldName, QString newName);
     virtual QList<Commit> history(QString branch = "", int max = 20);
-    virtual process_p   asyncClone(QString cloneUrl, QString newFolder);
+    virtual process_p   asyncClone(QString cloneUrl, QString newFolder,
+                                   bool shallow = false);
     virtual process_p   asyncFetch(QString what,
                                    bool    forcetags = false);
     virtual text        version();
@@ -128,6 +129,7 @@ private:
     void                mergeCommitMessages(text &dest, text src);
     QStringList         crArgs(ConflictResolution mode);
     QStringList         parseLsRemoteTagsOutput(QString output);
+    process_p           asyncCloneShallow(QString cloneUrl);
 
     static QString      gitCommand;
     static QString      gitExecPath, gitTemplateDir;

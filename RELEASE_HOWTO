@@ -3,6 +3,7 @@ Here are the steps to create a new (official) release of Tao Presentations
 Once:
 
 - Make sure the code is up-to-date (git pull, git submodule update, git status).
+- Update version.pri if needed.
 - See if the version of some modules needs updating. To get the list of modules
   that have changed since the last public release (for example, 1.01):
   $ git log --stat 1.01..HEAD modules

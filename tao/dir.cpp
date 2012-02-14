@@ -47,7 +47,8 @@ QFileInfoList Dir::entryInfoGlobList(QString pattern)
             QString rem = pattern.mid(slash + 1);
             while (rem.startsWith("/"))
                 rem.remove(1, 1);
-            QFileInfoList elements = entryInfoList(QStringList() << top);
+            QFileInfoList elements = entryInfoList(QStringList() << top,
+                                                   QDir::Dirs | QDir::Hidden);
             foreach (QFileInfo elem, elements)
             {
                 if (elem.isDir())
@@ -59,7 +60,8 @@ QFileInfoList Dir::entryInfoGlobList(QString pattern)
         }
         else
         {
-            result << entryInfoList(QStringList()<<pattern, QDir::Files);
+            result << entryInfoList(QStringList() << pattern,
+                                    QDir::Files | QDir::Hidden);
         }
     }
     return result;

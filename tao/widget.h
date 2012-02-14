@@ -382,6 +382,7 @@ public:
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
     Name_p      depthTest(Tree_p self, bool enable);
+    Name_p      depthMask(Tree_p self, bool enable);
     Name_p      blendFunction(Tree_p self, text src, text dst);
     Name_p      blendFunctionSeparate(Tree_p self,
                                       text src, text dst,

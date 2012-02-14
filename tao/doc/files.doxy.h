@@ -38,7 +38,8 @@
  * <tt>images/1.jpg</tt>, <tt>images/1a.jpg</tt> and
  * <tt>images/10b.JPG</tt>, but not <tt>images/a.jpg</tt>.
  *
- * If @p pattern does not start with a slash (that is, if it is not an
+ * If @p pattern does not start with a slash or a Windows drive specification
+ * (that is, if it is not an
  * absolute path), then pattern will be matched relative to the directory
  * of the current file.
  *
@@ -55,6 +56,13 @@ print_path with files "images/*.jpg", "images/*.png"
 print_path with files
     "images/*.jpg"
     "images/*.png"
+// Access a USB stick or an external drive:
+//   (Windows)
+print_path with files "E:/images/*.jpg"
+//   (MacOSX)
+print_path with files "/Volumes/NAME/*.jpg"
+//    (Linux)
+print_path with files "/media/NAME/*.jpg"
  @endcode
  *
  * @todo Not sure if relative paths are matched relatively to the path of the
@@ -83,7 +91,8 @@ print_path with files
  * <tt>images/1.jpg</tt>, <tt>images/1a.jpg</tt> et
  * <tt>images/10b.JPG</tt>, mais pas <tt>images/a.jpg</tt>.
  *
- * Si @p pattern ne commence pas par un slash (c'est-à-dire, si ce n'est pas
+ * Si @p pattern ne commence pas par un slash ou une lettre de lecteur
+ * Windows (c'est-à-dire, si ce n'est pas
  * un chemin absolu), alors les fichiers seront recherchés relativement au
  * répertoire du fichier courant.
  *
@@ -100,6 +109,13 @@ affiche with files "images/*.jpg", "images/*.png"
 affiche with files
     "images/*.jpg"
     "images/*.png"
+// Accéder à une clé USB ou un disque externe :
+//   (Windows)
+affiche with files "E:/images/*.jpg"
+//   (MacOSX)
+affiche with files "/Volumes/NAME/*.jpg"
+//    (Linux)
+affiche with files "/media/NAME/*.jpg"
  @endcode
  */
 tree files(patterns:tree);

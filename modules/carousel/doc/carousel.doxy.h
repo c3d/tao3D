@@ -20,14 +20,14 @@
  *
  * Carrousel 3D.\n
  *
- * Ce module permet d'ajouter un carousel dynamique en 3D dans vos présentations.
+ * Ce module permet d'ajouter un carrousel dynamique en 3D dans vos présentations.
  *
  * Par exemple, le code suivant permet de réaliser un carrousel 3D avec des formes géométriques.
  *
  * @include carousel.ddd
  *
  * Ci-dessous, une capture d'écran issue du document précédent:
- * @image html "carousel.png" "Output from carousel.ddd"
+ * @image html "carousel.png" "Carrousel d'objets"
  *
  * @endtaomoduledescription{Carousel}
  * @~

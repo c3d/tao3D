@@ -169,6 +169,7 @@ skip_directly_to S:real  ->
 // ----------------------------------------------------------------------------
     step := S
     smooth_step := S
+    previous_page_number := page_number
 
 
 step_scale N:integer ->

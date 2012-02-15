@@ -29,8 +29,13 @@
 
 namespace Tao {
 
+// First element is the one currently shown, each new dialog is shown when the
+// previous one is closed.
+QList<LicenseDialog *> LicenseDialog::dialogs;
+
+
 LicenseDialog::LicenseDialog(QWidget *parent)
-    : QMessageBox(parent)
+    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow())
 // ----------------------------------------------------------------------------
 //   Create a license dialog with general information about licenses
 // ----------------------------------------------------------------------------
@@ -40,12 +45,49 @@ LicenseDialog::LicenseDialog(QWidget *parent)
 
 
 LicenseDialog::LicenseDialog(const QString &message, QWidget *parent)
-    : QMessageBox(parent), message(message)
+    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow()),
+      message(message)
 // ----------------------------------------------------------------------------
 //   Create the license dialog with general info and a custom (HTML) message
 // ----------------------------------------------------------------------------
 {
     init();
+}
+
+
+void LicenseDialog::showDialog()
+// ----------------------------------------------------------------------------
+//   Show dialog to the user (possibly after other similar dialogs are closed)
+// ----------------------------------------------------------------------------
+{
+    setWindowModality(Qt::NonModal);
+    if (dialogs.isEmpty())
+    {
+        show();
+        raise();
+    }
+    dialogs.append(this);
+}
+
+
+void LicenseDialog::done(int r)
+// ----------------------------------------------------------------------------
+//   Close this dialog and show next one, if any
+// ----------------------------------------------------------------------------
+{
+    QMessageBox::done(r);
+    // NB: A dialog shown by exec() rather than showDialog() is NOT in dialogs
+    if (dialogs.contains(this))
+    {
+        Q_ASSERT(dialogs.first() == this);
+        dialogs.removeFirst();
+        if (!dialogs.isEmpty())
+        {
+            LicenseDialog *next = dialogs.first();
+            next->show();
+            next->raise();
+        }
+    }
 }
 
 
@@ -85,13 +127,10 @@ void LicenseDialog::init()
     // The padlock icon is a merge of:
     // http://www.openclipart.org/detail/17931 (public domain)
     // and our Tao pictogram
-    QPixmap pm(":/images/tao_padlock.svg");
-    if (!pm.isNull())
-    {
-        QPixmap scaled = pm.scaled(64, 64, Qt::IgnoreAspectRatio,
-                                   Qt::SmoothTransformation);
-        setIconPixmap(scaled);
-    }
+    // NB: Don't create pixmap from SVG here. See #1891.
+    QPixmap *pm = Application::padlockIcon;
+    if (pm && !pm->isNull())
+        setIconPixmap(*pm);
 }
 
 }

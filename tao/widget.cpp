@@ -5157,20 +5157,17 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 //   Create a layout that is only active for a given viewpoint
 // ----------------------------------------------------------------------------
 {
+    ulong vpts = viewpoints;
+
     // This primitive really belongs to the StereoDecoder module, but it's
     // not trivial to move it into the module (due to the StereoLayout class).
-    if (!Licences::Check("StereoDecoder 1.0"))
-    {
-        // Unlicensed behavior shows only viewpoint #1, on all eyes
-        if (viewpoints->value == 1)
-            return locally(context, self, child);
-        else
-            return XL::xl_false;
-    }
+    // Unlicenced behavior shows only left eye
+    if (!Licences::Check("StereoDecoder 1.0") && !blink(1, 1, 300))
+        vpts = 1;
 
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    Layout *childLayout = new StereoLayout(*layout, viewpoints);
+    Layout *childLayout = new StereoLayout(*layout, vpts);
     childLayout = layout->AddChild(layout->id, child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);

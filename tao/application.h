@@ -31,6 +31,7 @@
 #include <QDir>
 #include <QStringList>
 #include <QTranslator>
+#include <QPixmap>
 
 namespace Tao {
 
@@ -54,6 +55,7 @@ class Application : public QApplication
 {
 public:
     static text vendorsList[LAST];
+    static QPixmap *padlockIcon;
 
     Q_OBJECT
 

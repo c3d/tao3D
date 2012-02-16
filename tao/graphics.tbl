@@ -380,6 +380,18 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        SYNOPSIS("Disable OpenGL depth test")
        DESCRIPTION("Deactivate the OpenGL depth test for polygons.")
        RETURNS(boolean, "The previous state of depth testing"))
+PREFIX(EnableDepthMask, boolean, "enable_depth_mask",,
+       RTAO(depthMask(self, true)),
+       GROUP(code:graph)
+       SYNOPSIS("Enable OpenGL depth mask")
+       DESCRIPTION("Equivalent to glEnable(GL_DEPTH_MASK)")
+       RETURNS(boolean, "The previous state of depth mask"))
+PREFIX(DisableDepthMask, boolean, "disable_depth_mask",,
+       RTAO(depthMask(self, false)),
+       GROUP(code:graph)
+       SYNOPSIS("Disable OpenGL depth mask")
+       DESCRIPTION("Equivalent to glEnable(GL_DEPTH_MASK)")
+       RETURNS(boolean, "The previous state of depth mask"))
 PREFIX(BlendFunction, boolean, "blend_function",
        PARM(src, text, "")
        PARM(dst, text, ""),

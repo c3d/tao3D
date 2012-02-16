@@ -329,6 +329,15 @@ void DepthTest::Draw(Layout *)
 }
 
 
+void DepthMask::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Enable or disable the depth mask
+// ----------------------------------------------------------------------------
+{
+    glDepthMask(enable ? GL_TRUE : GL_FALSE);
+}
+
+
 void BlendFunc::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Change the blend function

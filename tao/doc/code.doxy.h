@@ -274,6 +274,30 @@ enable_depth_test ();
 
 /**
  * @~english
+ * Disables the OpenGL depth mask.
+ * @returns The previous state of the depth mask.
+ * @note Depth mask state is not restored automatically.
+ * @~french
+ * Désactive le masque de profondeur OpenGL.
+ * @returns L'état précédent du masque de profondeur.
+ * @note L'état du masque de profondeur n'est pas restauré automatiquement.
+ */
+disable_depth_mask ();
+
+/**
+ * @~english
+ * Enables the OpenGL depth mask.
+ * @returns The previous state of the depth mask.
+ * @note Depth mask state is not restored automatically.
+ * @~french
+ * Active le masque de profondeur OpenGL.
+ * @returns L'état précédent du masque de profondeur.
+ * @note L'état du masque de profondeur n'est pas restauré automatiquement.
+ */
+enable_depth_mask ();
+
+/**
+ * @~english
  * Sends a keypress event.
  * @~french
  * Envoie un événement clavier.

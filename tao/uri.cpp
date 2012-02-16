@@ -631,7 +631,8 @@ bool Uri::cloneAndCheckout()
     QString repoUri = this->repoUri();
     IFTRACE(uri)
         debug() << "Cloning from " << +repoUri << "\n";
-    proc = repo->asyncClone(repoUri, project);
+    bool shallow = (settingsGroup == KNOWN_URIS_MOD_GROUP);
+    proc = repo->asyncClone(repoUri, project, shallow);
     if (!proc)
         return false;
     connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)),

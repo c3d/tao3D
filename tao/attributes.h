@@ -323,6 +323,18 @@ struct DepthTest : Attribute
 };
 
 
+struct DepthMask : Attribute
+// ----------------------------------------------------------------------------
+//   Change the depth mask
+// ----------------------------------------------------------------------------
+{
+    DepthMask(bool enable): enable(enable) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "DepthMask";}
+    bool enable;
+};
+
+
 struct BlendFunc : Attribute
 // ----------------------------------------------------------------------------
 //   Change the blend function

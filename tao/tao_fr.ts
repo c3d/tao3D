@@ -2345,13 +2345,13 @@ Code : %1
     </message>
     <message>
         <location filename="window.cpp" line="1732"/>
-        <source>&amp;Online Documentation</source>
-        <translation>&amp;Documentation en ligne</translation>
+        <source>&amp;Documentation</source>
+        <translation>&amp;Documentation</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1733"/>
-        <source>Open the Online Documentation</source>
-        <translation>Ouvre la documentation en ligne</translation>
+        <source>Open the documentation</source>
+        <translation>Ouvre la documentation</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1738"/>

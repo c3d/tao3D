@@ -1729,8 +1729,8 @@ void Window::createActions()
     licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
 
-    onlineDocAct = new QAction(tr("&Online Documentation"), this);
-    onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
+    onlineDocAct = new QAction(tr("&Documentation"), this);
+    onlineDocAct->setStatusTip(tr("Open the documentation"));
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 

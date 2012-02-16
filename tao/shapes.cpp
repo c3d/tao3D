@@ -230,7 +230,7 @@ bool Shape::setShader(Layout *where)
         glUseProgram(where->programId);
 
     // In order to improve performance of large and complex 3D models,
-    // we use a shader based ligting (Feature #1508), which need some uniform values
+    // we use a shader based ligting (Feature #1508), which needs some uniform values
     // to have an efficient behaviour.
     if(where->perPixelLighting == where->programId)
     {

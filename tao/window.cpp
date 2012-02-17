@@ -402,6 +402,16 @@ void Window::newFile()
 }
 
 
+void Window::closeDocument()
+// ----------------------------------------------------------------------------
+//   Replace current document with welcome screen or close welcome window.
+// ----------------------------------------------------------------------------
+{
+    loadFile(QFileInfo("system:welcome/welcome.ddd").canonicalFilePath(),
+             false);
+}
+
+
 int Window::open(QString fileName, bool readOnly)
 // ----------------------------------------------------------------------------
 //   Open a file or a directory.
@@ -1615,9 +1625,9 @@ void Window::createActions()
 
     closeAct = new Action(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
-    closeAct->setStatusTip(tr("Close this window"));
+    closeAct->setStatusTip(tr("Close the document"));
     closeAct->setObjectName("close");
-    connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
+    connect(closeAct, SIGNAL(triggered()), this, SLOT(closeDocument()));
 
     exitAct = new Action(tr("E&xit"), this);
     exitAct->setShortcuts(QKeySequence::Quit);
@@ -2717,6 +2727,9 @@ void Window::setCurrentFile(const QString &fileName)
 
     markChanged(false);
     setWindowFilePath(curFile);
+
+    // Disable close menu if document is the default one
+    closeAct->setEnabled(!isTutorial(curFile));
 
     // Update the recent file list
     if (!isUntitled && !isTutorial(curFile) && fi.exists())

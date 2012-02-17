@@ -2190,8 +2190,8 @@ Code : %1
     </message>
     <message>
         <location filename="window.cpp" line="1618"/>
-        <source>Close this window</source>
-        <translation>Ferme cette fenêtre</translation>
+        <source>Close the document</source>
+        <translation>Ferme le document</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1622"/>

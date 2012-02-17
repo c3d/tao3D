@@ -1629,7 +1629,11 @@ void Window::createActions()
     closeAct->setObjectName("close");
     connect(closeAct, SIGNAL(triggered()), this, SLOT(closeDocument()));
 
+#if defined(Q_OS_WIN)
     exitAct = new Action(tr("E&xit"), this);
+#else
+    exitAct = new Action(tr("&Quit"), this);
+#endif
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");

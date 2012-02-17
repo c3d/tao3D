@@ -187,6 +187,8 @@ void TextUnit::DrawCached(Layout *where)
         if (TaoApp->hasGLMultisample)
             glEnable(GL_MULTISAMPLE);
 
+        // Assure that the last active texture unit is 0. Fix #1918.
+        glClientActiveTexture(GL_TEXTURE0);
         // Draw a list of rectangles with the textures
         glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
         glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);

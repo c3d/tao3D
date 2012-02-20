@@ -441,6 +441,7 @@ public:
     bool                hasPendingUpdate(QString moduleDir);
     QString             latestTag(QString moduleDir);
     QStringList         qchFiles();
+    void                unloadImported();
 
 signals:
     void                checking(QString name);

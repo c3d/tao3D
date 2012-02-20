@@ -2170,6 +2170,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     // Clean previous program
     taoWidget->purgeTaoInfo();
 
+    // Close any module possibly imported by previous document
+    ModuleManager::moduleManager()->unloadImported();
+
     taoWidget->reset();
 
     // FIXME: the whole search path stuff is broken when multiple documents

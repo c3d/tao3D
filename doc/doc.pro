@@ -46,8 +46,8 @@ equals(HAS_DOXYGEN, 1) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=XLRef.html ; $$DOXYGEN
-  doc.depends = cp_examples cp_xlref version
+  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=XLRef.html,Taodyne_geeks_en.png; $$DOXYGEN
+  doc.depends = cp_examples cp_xlref cp_logo version
 
   webdoc.commands = doxygen DoxyfileWebdoc
   webdoc.depends = cp_examples_webdoc cp_xlref version
@@ -61,6 +61,8 @@ equals(HAS_DOXYGEN, 1) {
   cp_examples_webdoc.commands = mkdir -p webhtml/examples ; \
                                 cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
                                 for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
+
+  cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_geeks_en.png output/\$\$l/html ; done
 
   cp_xlref.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp XLRef.html output/\$\$l/html ; done
   cp_xlref.depends = xlref
@@ -85,7 +87,7 @@ equals(HAS_DOXYGEN, 1) {
   QMAKE_CLEAN += project_number.doxinclude
   QMAKE_DISTCLEAN += project_number.doxinclude
 
-  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref xlref clean version install_html
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref cp_logo xlref clean version install_html
 
   INSTALLS += install_doc
 

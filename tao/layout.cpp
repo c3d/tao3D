@@ -632,7 +632,10 @@ void Layout::Inherit(Layout *where)
 // ----------------------------------------------------------------------------
 {
     if (!where)
+    {
+        currentTexture = TextureState();
         return;
+    }
 
     // Add offset of parent to the one we have
     offset = where->Offset();

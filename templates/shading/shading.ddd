@@ -34,8 +34,6 @@ import ObjectLoader
 // ============================================================================
 
 
-translatey -200
-
 zoom 1.0
 
 font "LeckerliOne"
@@ -44,11 +42,13 @@ font_size 100
 light 0
 light_position 500, 500, 500
 
-OBJECT -> "mushroom.obj"
+OBJECT -> "models/mushroom.obj"
 
 // Global scaling
-S -> window_width / 1800
-scale S, S, 1.0
+window_scale -> window_width / 1800
+scale window_scale, window_scale, window_scale
+
+translatey -200
 
 
 // ============================================================================

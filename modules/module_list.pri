@@ -35,6 +35,7 @@
        shaders/sinuous \
        shaders/sparks  \
        shaders/glow  \
+       shaders/depth_of_field \
        slideshow_3d \
        vlc_audio_video \
        stereo_decoder \

@@ -133,6 +133,7 @@ protected:
 private slots:
     void newDocument();
     void newFile();
+    void closeDocument();
     void openRecentFile();
     void clearRecentFileList();
 #ifndef CFG_NOEDIT

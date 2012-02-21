@@ -402,6 +402,16 @@ void Window::newFile()
 }
 
 
+void Window::closeDocument()
+// ----------------------------------------------------------------------------
+//   Replace current document with welcome screen or close welcome window.
+// ----------------------------------------------------------------------------
+{
+    loadFile(QFileInfo("system:welcome/welcome.ddd").canonicalFilePath(),
+             false);
+}
+
+
 int Window::open(QString fileName, bool readOnly)
 // ----------------------------------------------------------------------------
 //   Open a file or a directory.
@@ -1615,11 +1625,15 @@ void Window::createActions()
 
     closeAct = new Action(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
-    closeAct->setStatusTip(tr("Close this window"));
+    closeAct->setStatusTip(tr("Close the document"));
     closeAct->setObjectName("close");
-    connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
+    connect(closeAct, SIGNAL(triggered()), this, SLOT(closeDocument()));
 
+#if defined(Q_OS_WIN)
     exitAct = new Action(tr("E&xit"), this);
+#else
+    exitAct = new Action(tr("&Quit"), this);
+#endif
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");
@@ -1729,8 +1743,8 @@ void Window::createActions()
     licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
 
-    onlineDocAct = new QAction(tr("&Online Documentation"), this);
-    onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
+    onlineDocAct = new QAction(tr("&Documentation"), this);
+    onlineDocAct->setStatusTip(tr("Open the documentation"));
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
@@ -2155,6 +2169,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Clean previous program
     taoWidget->purgeTaoInfo();
+
+    // Close any module possibly imported by previous document
+    ModuleManager::moduleManager()->unloadImported();
 
     taoWidget->reset();
 
@@ -2717,6 +2734,9 @@ void Window::setCurrentFile(const QString &fileName)
 
     markChanged(false);
     setWindowFilePath(curFile);
+
+    // Disable close menu if document is the default one
+    closeAct->setEnabled(!isTutorial(curFile));
 
     // Update the recent file list
     if (!isUntitled && !isTutorial(curFile) && fi.exists())

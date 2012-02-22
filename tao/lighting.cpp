@@ -80,6 +80,7 @@ PerPixelLighting::PerPixelLighting(bool enable) : enable(enable), shader(NULL)
 	shader = new ShaderProgram(pgm);
 }
 
+
 PerPixelLighting::~PerPixelLighting()
 // ----------------------------------------------------------------------------
 //   Destruction
@@ -88,6 +89,7 @@ PerPixelLighting::~PerPixelLighting()
     if (shader)
 	delete shader;
 }
+
 
 void PerPixelLighting::Draw(Layout *where)
 // ----------------------------------------------------------------------------

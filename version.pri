@@ -10,4 +10,4 @@ MINOR = $$replace(VERSION, "^[0-9]+\\.", "")
 MINOR = $$replace(MINOR, "\\.[0-9]+\$", "")
 RELEASE = $$replace(VERSION, "^[0-9]+\\.[0-9]+\\.", "")
 
-GITREV = $$system($$PWD/tao/updaterev.sh -n)
+GITREV = $$system(bash -c \"$$PWD/tao/updaterev.sh -n\")

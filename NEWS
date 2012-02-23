@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.04 (23-Feb-2012)
 
+#1941 Glow: fix incorrect effect on AMD cards
 #1933 Remove pan and zoom using scroll wheel
 #1930 Taodyne logo missing in documentation
 #1927 Put back the module SDK in the Discovery and Creativity packages

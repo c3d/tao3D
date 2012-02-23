@@ -1304,6 +1304,44 @@ QStringList ModuleManager::qchFiles()
     return files;
 }
 
+
+void ModuleManager::unloadImported()
+// ----------------------------------------------------------------------------
+//   Unload all modules that were explicitely imported
+// ----------------------------------------------------------------------------
+//   REVISIT: here we just call module_exit for the native library. It is
+//   enough to fix #1925. We do not unload the library, because XL still has
+//   references to the code (primitives added by enter_symbols). We don't call
+//   module_init on subsequent imports, either.
+{
+    IFTRACE(modules)
+        debug() << "Unloading imported modules\n";
+
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        if (m.loaded && m.hasNative && !(m.autoLoad || m.importName == ""))
+        {
+            IFTRACE(modules)
+                debug() << "  Library: " << +m.native->fileName() << "\n";
+            QLibrary * lib = m.native;
+            module_exit_fn me =
+                    (module_exit_fn) lib->resolve("module_exit");
+            if (me == NULL)
+                continue;
+            IFTRACE(modules)
+                debug() << "    Calling module_exit\n";
+            int st = me();
+            if (st)
+            {
+                IFTRACE(modules)
+                    debug() << "      Error (return code: "
+                            << st << ")\n";
+                continue;
+            }
+        }
+    }
+}
+
 // ============================================================================
 //
 //   Checking if a module has new updates

@@ -34,7 +34,10 @@ shift_modifier    -> (keyboard_modifiers and 16#02000000) <> 0
 alt_modifier      -> (keyboard_modifiers and 16#08000000) <> 0
 meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
 
-wheel_event x, y                        ->
+wheel_event x, y -> false
+
+// Connect wheel event to the following code to pan and zoom with the mouse
+implement_pan_and_zoom_wheel_event x, y ->
     if control_modifier then
         if y > 0 then
             zoom_in

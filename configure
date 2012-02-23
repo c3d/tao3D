@@ -100,15 +100,13 @@ while [ $# -ne 0 ] ; do
       D="$D DEFINES+=CFG_NORELOAD DEFINES+=CFG_TIMED_FULLSCREEN"
       D="$D DEFINES+=CFG_NOMODULEUPDATE"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
-      A="NO_SDK=1"
-      EDITION_FLAGS="$D $M $A"
+      EDITION_FLAGS="$D $M"
       shift ; done=1
       ;;
     creativity)
       EDITION="Creativity"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
-      A="NO_SDK=1"
-      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M $A"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M"
       shift ; done=1
       ;;
     impress)

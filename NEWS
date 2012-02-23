@@ -1,5 +1,24 @@
 Change log for Tao Presentations
 
+1.04 (23-Feb-2012)
+
+#1933 Remove pan and zoom using scroll wheel
+#1930 Taodyne logo missing in documentation
+#1927 Put back the module SDK in the Discovery and Creativity packages
+#1925 VLCAudioVideo: playback is not stopped when a new document is opened
+#1921 File > Close menu should not exit application
+#1920 Multitexturing doesn't work correctly in a frame_texture
+#1919 Infinite loop when files primitive is given a path with double slashes
+#1918 Text display and chooser display problems when using texture_unit 1
+#1915 VLCAudioVideo: movie_playing return always false for an audio file
+#1914 VLCAudioVideo: calling movie_play after movie_stop doesn't replay the movie
+#1909 Unlicenced behavior of stereo_viewpoints is incorrect
+#1908 Add primitives enable_depth_mask and disable_depth_mask
+#1906 Some files are not visible with the "files" primitive
+#1887 Add DepthOfField module
+#1309 Linux packaging: missing components when installing on Ubuntu
+#222  Create a native Linux package (.deb)
+
 1.03 (13-Feb-2012)
 
 #1900 StereoDecoder only shows half frame

@@ -13,11 +13,18 @@
 
 TEMPLATE = subdirs
 
-kit.commands   = $(MAKE) -f Makefile.linux
+kit.commands   = $(MAKE) -f Makefile.linux kit
+prepare.commands = $(MAKE) -f Makefile.linux prepare
+tar.commands   = $(MAKE) -f Makefile.linux tar
 clean.commands = $(MAKE) -f Makefile.linux clean
 distclean.depends = clean
 
-QMAKE_EXTRA_TARGETS = kit clean distclean
+QMAKE_EXTRA_TARGETS = kit prepare tar clean distclean
 
 include (../../main_defs.pri)
-QMAKE_SUBSTITUTES = Makefile.config.in
+include (../../version.pri)
+# Minimal version of Qt packages (Ubuntu packaging, see control.in)
+# Note: Use show_deps.sh to maintain the list of dependencies
+QTVER="4:4.7.4"
+DEB_HOST_ARCH=$$system(dpkg-architecture -qDEB_HOST_ARCH)
+QMAKE_SUBSTITUTES = Makefile.config.in control.in

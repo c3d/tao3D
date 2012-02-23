@@ -1,3 +1,6 @@
 /Makefile.config
 /Makefile
 /*.tar.bz2
+/control
+/debian
+/*.deb

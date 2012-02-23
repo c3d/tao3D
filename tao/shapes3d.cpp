@@ -45,53 +45,6 @@ void Shape3::DrawSelection(Layout *layout)
 }
 
     
-bool Shape3::setFillColor(Layout *where)
-// ----------------------------------------------------------------------------
-//    Set the fill color and texture according to the layout attributes
-// ----------------------------------------------------------------------------
-//    This is like in Shape, except that we don't increment polygon offset
-{
-    // Check if we have a non-transparent fill color
-    if (where)
-    {
-        Color &color = where->fillColor;
-        scale v = where->visibility * color.alpha;
-        if (v >= 0.01)
-        {
-            if (!where->hasMaterial)
-                glColor4f(color.red, color.green, color.blue, v);
-            where->PolygonOffset();
-            return true;
-        }
-    }
-    return false;
-}
-
-
-bool Shape3::setLineColor(Layout *where)
-// ----------------------------------------------------------------------------
-//    Set the outline color according to the layout attributes
-// ----------------------------------------------------------------------------
-//    This is like in Shape, except that we don't increment polygon offset
-{
-    // Check if we have a non-transparent outline color
-    if (where)
-    {
-        Color &color = where->lineColor;
-        scale width = where->lineWidth;
-        scale v = where->visibility * color.alpha;
-        if (v >= 0.01 && width > 0.0)
-        {
-            if (!where->hasMaterial)
-                glColor4f(color.red, color.green, color.blue, v);
-            where->PolygonOffset();
-            return true;
-        }
-    }
-    return false;
-}
-
-
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape

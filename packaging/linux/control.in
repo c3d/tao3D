@@ -2,7 +2,7 @@ Package: taopresentations
 Version: $$GITREV
 Section: graphics
 Architecture: $$DEB_HOST_ARCH
-Depends: libc6, libgcc1, libgl1-mesa-glx, libglu1-mesa, libqt4-help (>= $$QTVER), libqt4-network (>= $$QTVER), libqt4-opengl (>= $$QTVER), libqt4-sql (>= $$QTVER), libqt4-svg (>= $$QTVER), libqtcore4 (>= $$QTVER), libqtgui4 (>= $$QTVER), libqtwebkit4, libstdc++6, libvlc5, vlc-nox, libx11-6, libxss1
+Depends: libc6, libgcc1, libgl1-mesa-glx, libglu1-mesa, libqt4-help (>= $$QTVER), libqt4-network (>= $$QTVER), libqt4-opengl (>= $$QTVER), libqt4-sql (>= $$QTVER), libqt4-svg (>= $$QTVER), libqtcore4 (>= $$QTVER), libqtgui4 (>= $$QTVER), libqtwebkit4, libstdc++6, libvlc5, vlc-nox, libx11-6, libxss1, git (>= 1.7.0)
 Installed-Size: @INSTALLED_SIZE@
 Maintainer: Taodyners <contact@taodyne.com>
 Description: Tao Presentations

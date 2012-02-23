@@ -72,9 +72,7 @@ endif
 	cp control debian/DEBIAN
 	size=$$(du -sk debian | cut -f1); (cd debian/DEBIAN; sed -e "s/@INSTALLED_SIZE@/$$size/" control > control.tmp && mv control.tmp control)
 
-define run-dpkg-deb
-fakeroot dpkg-deb --build debian $(TAO).deb
-endef
+run-dpkg-deb = fakeroot dpkg-deb --build debian $(TAO)-$(ARCH).deb
 
 kit deb: prepare
 	$(run-dpkg-deb)

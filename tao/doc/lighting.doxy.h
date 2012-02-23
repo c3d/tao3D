@@ -45,15 +45,14 @@ rectangle 100, 0, 150, 100
  *
  * @par Colors and materials
  *
- * When lighting is enabled and until you set materials
- * explicitely (by calling one of the <tt>material_*</tt> functions),
- * the current color will be considered as a "front and back, ambient
- * and diffuse" material. That is, the following code:
+ * When lighting is enabled, changing the current color changes the
+ * "front and back, ambient and diffuse" material properties.
+ * That is, the following code:
  @code
 // Yellow
 color 1, 1, 0, 1
  @endcode
- * ...is equivalent to:
+ * ...is always equivalent to:
  @code
 // Yellow
 material_ambient 1, 1, 0, 1
@@ -128,15 +127,14 @@ rectangle 100, 0, 150, 100
  *
  * @par Couleurs et matériaux
  *
- * Lorsqu'au moins une lumière est active, et jusqu'à ce qu'un matériau soit
- * spécifié (par l'une des primitives <tt>material_*</tt>), la couleur courante
- * est considérée comme un matériau <em>front and back, ambient and
+ * Lorsqu'au moins une lumière est active, un changement de la couleur
+ * courante change la couleur des matériaux <em>front and back, ambient and
  * diffuse</em>. Autrement dit, le code suivant :
  @code
 // Jaune
 color 1, 1, 0, 1
  @endcode
- * ...est équivalent à :
+ * ...est toujours équivalent à :
  @code
 // Jaune
 material_ambient 1, 1, 0, 1

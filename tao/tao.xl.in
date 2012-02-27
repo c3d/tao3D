@@ -81,8 +81,6 @@ main_chooser ->
     chooser tr "Choose command"
 #ifndef CFG_NOFULLSCREEN
     chooser_choice tr "Toggle full screen", {toggle_slide_show}
-    chooser_choice tr "Enter full screen", {slide_show true}
-    chooser_choice tr "Exit full screen", {slide_show false}
 #endif
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}

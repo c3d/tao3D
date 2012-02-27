@@ -345,7 +345,7 @@ void Window::checkFiles()
 
 void Window::toggleAnimations()
 // ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
+//   Toggle animations
 // ----------------------------------------------------------------------------
 {
     bool enable = !taoWidget->hasAnimations();

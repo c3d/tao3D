@@ -32,18 +32,19 @@ win32:QMAKE_LFLAGS_RELEASE -= -Wl,-s
 # (Qt commit 0c4ed66e87ef6f76d5b0d67905b587c31ad03a18)
 win32-g++:QMAKE_LFLAGS *= -Wl,-enable-auto-import
 
-# Adding 'c++tbl' option with lowered optimization level
-c++tbl.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o
-c++tbl.commands = $(CXX) \
+# Adding 'cxxtbl' option with lowered optimization level
+cxxtbl.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o
+cxxtbl.commands = $$QMAKE_CXX \
     -c \
     $(CXXFLAGS:-O2=) \
     $(INCPATH) \
-    ${QMAKE_FILE_NAME} \
+    ${QMAKE_FILE_IN} \
     -o \
     ${QMAKE_FILE_OUT}
-c++tbl.dependency_type = TYPE_C
-c++tbl.input = CXXTBL_SOURCES
-QMAKE_EXTRA_COMPILERS += c++tbl
+silent:cxxtbl.commands = @echo compiling "${QMAKE_FILE_IN}" && $$cxxtbl.commands
+cxxtbl.dependency_type = TYPE_C
+cxxtbl.input = CXXTBL_SOURCES
+QMAKE_EXTRA_COMPILERS += cxxtbl
 
 # Build some files with warnings disabled
 c++nowarn.output = ${QMAKE_VAR_OBJECTS_DIR}${QMAKE_FILE_BASE}.o

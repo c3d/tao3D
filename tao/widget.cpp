@@ -323,6 +323,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
       drawAllPages(o.drawAllPages), animated(o.animated), blanked(o.blanked),
+      stereoIdent(o.stereoIdent),
       doMouseTracking(o.doMouseTracking),
       stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
@@ -446,6 +447,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // previous context are not re-used with the new.
     ImageTextureInfo::textures.clear();
     o.glyphCache.Clear();
+    o.updateStereoIdentPatterns(0);
 
     // Now, o has become invalid ; make sure it can't be redrawn before being
     // deleted (NB: QMainWindow::setCentralWidget deletes previous widget
@@ -491,6 +493,7 @@ Widget::~Widget()
     RasterText::purge(QGLWidget::context());
     if (watermark)
         glDeleteTextures(1, &watermark);
+    updateStereoIdentPatterns(0);
 }
 
 
@@ -629,6 +632,19 @@ void Widget::setupPage()
 }
 
 
+void Widget::drawStereoIdent()
+// ----------------------------------------------------------------------------
+//   Draw a different pattern on each stereo plane to identify them
+// ----------------------------------------------------------------------------
+{
+    if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
+        updateStereoIdentPatterns(stereoPlanes);
+    StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
+}
+
+
 void Widget::drawScene()
 // ----------------------------------------------------------------------------
 //   Draw all objects in the scene
@@ -645,6 +661,10 @@ void Widget::drawScene()
     {
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    else if (stereoIdent)
+    {
+        drawStereoIdent();
     }
     else
     {
@@ -2068,6 +2088,7 @@ void Widget::reset()
     resetView();
     animated = true;
     blanked = false;
+    stereoIdent = false;
 }
 
 
@@ -5700,6 +5721,107 @@ Name_p Widget::toggleBlankScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return blankScreen(self, !blanked);
+}
+
+
+Widget::StereoIdentTexture Widget::newStereoIdentTexture(int i)
+// ----------------------------------------------------------------------------
+//   Create texture to identify viewpoint: big number centered on texture
+// ----------------------------------------------------------------------------
+{
+    int w = 400, h = 400;
+    QImage image(w, h, QImage::Format_ARGB32);
+    enum { Red = 0xFF770000, Green = 0xFF007700 };
+    // Background color:
+    // Left eye/odd viewpoint: red, right eye/even viewpoint: green.
+    if (i % 2)
+        image.fill(Red);
+    else
+        image.fill(Green);
+    QPainter painter;
+    painter.begin(&image);
+    QPainterPath path;
+    QString t = QString("%1").arg(i);
+    path.addText(0, 0, QFont("Ubuntu", 200), t);
+    QRectF brect = path.boundingRect();
+    path.translate((w - brect.width())/2, (h + brect.height())/2);
+    painter.setBrush(QBrush(Qt::white));
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.drawPath(path);
+    painter.end();
+
+    // Generate the GL texture
+    QImage texture = QGLWidget::convertToGLFormat(image);
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 w, h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texture.bits());
+
+    IFTRACE(fileload)
+        std::cerr << "Created stereo identification texture: viewpoint #"
+                  << i << ", texture id " << tex << "\n";
+    return StereoIdentTexture(w, h, tex);
+}
+
+
+void Widget::updateStereoIdentPatterns(int nb)
+// ----------------------------------------------------------------------------
+//   Create or delete textures used for stereoscopic identification
+// ----------------------------------------------------------------------------
+{
+    int size = stereoIdentPatterns.size();
+    if (nb == 0)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            GLuint tex = stereoIdentPatterns[i].tex;
+            glDeleteTextures(1, &tex);
+            IFTRACE(fileload)
+                std::cerr << "Deleted texture #" << tex
+                          << " (stereo identification for viewpoint #"
+                          << i+1 << ")\n";
+        }
+        stereoIdentPatterns.clear();
+        return;
+    }
+    else
+    {
+        if (nb > size)
+            for (int i = size ; i < nb; i++)
+                stereoIdentPatterns.push_back(newStereoIdentTexture(i+1));
+    }
+}
+
+
+Name_p Widget::stereoIdentify(XL::Tree_p self, bool on)
+// ----------------------------------------------------------------------------
+//   Enable or disable stereoscopic test pattern
+// ----------------------------------------------------------------------------
+{
+    bool oldMode = stereoIdent;
+
+    if (oldMode != on)
+    {
+        stereoIdent = on;
+        if (!stereoIdent)
+            updateStereoIdentPatterns(0);
+    }
+
+    return oldMode ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleStereoIdentify(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle between stereoscopic test pattern and normal output
+// ----------------------------------------------------------------------------
+{
+    return stereoIdentify(self, !stereoIdent);
 }
 
 
@@ -10335,13 +10457,20 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
+    glColor4f(1.0, 1.0, 1.0, 0.2);
+    drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
+}
 
-    float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
-    float tw = w/watermarkWidth, th = h/watermarkHeight;
+
+void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
+                                   bool centered)
+// ----------------------------------------------------------------------------
+//   Draw a texture centered over the full widget with wrapping enabled
+// ----------------------------------------------------------------------------
+{
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-    glColor4f(1.0, 1.0, 1.0, 0.2);
-    glBindTexture(GL_TEXTURE_2D, watermark);
+    glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -10351,8 +10480,14 @@ void Widget::drawWatermark()
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    float x1 = 1-tw/2, x2 = 1+tw/2;
-    float y1 = 1-th/2, y2 = 1+th/2;
+    float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
+    float tw = w/texw, th = h/texh;
+    float x1 = -tw/2, x2 = tw/2;
+    float y1 = -th/2, y2 = th/2;
+    if (centered)
+    {
+        x1 += 0.5; x2 += 0.5; y1 += 0.5; y2 += 0.5;
+    }
     glBegin(GL_QUADS);
     glTexCoord2f(x1, y1);
     glVertex2i  (-1, -1);

@@ -354,6 +354,18 @@ void Window::toggleAnimations()
 }
 
 
+void Window::toggleStereoIdent()
+// ----------------------------------------------------------------------------
+//   Toggle stereoscopic test pattern
+// ----------------------------------------------------------------------------
+{
+    bool enable = !taoWidget->stereoIdentEnabled();
+    taoWidget->stereoIdentify(NULL, enable);
+    taoWidget->refreshNow();
+    stereoIdentAct->setChecked(enable);
+}
+
+
 void Window::newDocument()
 // ----------------------------------------------------------------------------
 //   Create, save and open a new document from a wizard
@@ -1764,6 +1776,15 @@ void Window::createActions()
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
 
+    stereoIdentAct = new QAction(tr("Stereoscopic identification"), this);
+    stereoIdentAct->setStatusTip(tr("Switch the stereoscopic identification "
+                                    "pattern on or off"));
+    stereoIdentAct->setCheckable(true);
+    stereoIdentAct->setChecked(taoWidget->stereoIdentEnabled());
+    stereoIdentAct->setObjectName("stereoIdentify");
+    connect(stereoIdentAct, SIGNAL(triggered()),
+            this, SLOT(toggleStereoIdent()));
+
 #ifndef CFG_NOEDIT
     cutAct->setEnabled(false);
     copyAct->setEnabled(true);
@@ -1897,6 +1918,7 @@ void Window::createMenus()
     viewMenu->addAction(slideShowAct);
 #endif
     viewMenu->addAction(viewAnimationsAct);
+    viewMenu->addAction(stereoIdentAct);
     displayModeMenu = viewMenu->addMenu(tr("Display mode"));
     displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);

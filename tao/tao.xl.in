@@ -84,6 +84,7 @@ main_chooser ->
 #endif
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
+    chooser_choice tr "Toggle stereo identification", {toggle_stereo_identify}
     chooser_choice tr "Enable VSync", {enable_vsync true}
     chooser_choice tr "Disable VSync", {enable_vsync false}
     chooser_choice tr "Reset view", {reset_view}

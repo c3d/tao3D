@@ -4,6 +4,7 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Enable stereoscopy", "Activer stéréoscopie"
     tr "Disable stereoscopy", "Désactiver stéréoscopie"
     tr "Swap left and right eye", "Inverser œil gauche et droit"
+    tr "Toggle stereo identification", "Basculer mire stéréoscopique"
     tr "Enable VSync", "Activer VSync"
     tr "Disable VSync", "Désactiver VSync"
     tr "Reset view", "Vue par défaut"

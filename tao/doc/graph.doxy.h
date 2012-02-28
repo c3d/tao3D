@@ -1863,7 +1863,25 @@ sphere (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:i
 sphere x, y, z, d, d, d, 25, 25
 @endcode
  */
-sphere (x:real, y:real, z:real, r:real);
+sphere (x:real, y:real, z:real, d:real);
+
+/**
+ * @~english
+ * Draws a sphere.
+ *
+ * Sphere with diameter @p d located at (0, 0, 0).
+ * Equivalent to:
+ *
+ * @~french
+ * Affiche une sphère.
+ *
+ * Sphère de diamètre @p d centrée en (0, 0, 0). Équivalent à :
+ * @~
+@code
+sphere 0, 0, 0, d
+@endcode
+ */
+sphere (d:real);
 
 /**
  * @~english

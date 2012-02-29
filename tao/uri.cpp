@@ -671,6 +671,15 @@ void Uri::onDownloadFinished(int exitCode, QProcess::ExitStatus exitStatus)
     if (!success)
     {
         // Non-zero status from clone
+        if (op == CLONING && settingsGroup == KNOWN_URIS_MOD_GROUP)
+        {
+            // Since we use git fetch to clone modules we need to remove the
+            // directory we have created. Not needed for templates and
+            // documents (they use git clone).
+            IFTRACE(uri)
+                debug() << "Deleting " << +project << "\n";
+            Application::recursiveDelete(project);
+        }
         QString msg = tr("Download failed.\nExit code: %1\n%2")
                          .arg(exitCode).arg(proc->err);
         QMessageBox::warning(NULL, tr("Error"), msg);

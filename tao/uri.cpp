@@ -132,9 +132,10 @@ bool Uri::get()
             {
                 // Remote not previously cloned
                 QString path = newProject();
-                if (path.isEmpty())
+                if (path.startsWith("!"))
                 {
                     // Folder with same name already exists: just error out
+                    path = path.right(path.length() - 1);
                     QString native =
                         QDir::toNativeSeparators(QDir(path).absolutePath());
                     QString title;
@@ -143,7 +144,9 @@ bool Uri::get()
                     else if (settingsGroup == KNOWN_URIS_MOD_GROUP)
                         title = tr("Cannot install module");
                     QString msg = tr("Folder %1 already exists").arg(native);
-                    QMessageBox::warning(NULL, title, msg);
+                    QMessageBox warn(QMessageBox::Warning, "", title);
+                    warn.setInformativeText(msg);
+                    warn.exec();
                     return false;
                 }
 
@@ -888,7 +891,7 @@ QString Uri::newProject()
                        settingsGroup == KNOWN_URIS_MOD_GROUP))
         {
             // We don't want several copies of the same template/module
-            return "";
+            return "!" + project;
         }
     }
     while (exists);

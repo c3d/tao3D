@@ -33,6 +33,8 @@ QT += webkit \
     opengl \
     svg
 CONFIG += help
+QMAKE_SUBSTITUTES += version2.h.in
+QMAKE_DISTCLEAN += version2.h
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET

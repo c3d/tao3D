@@ -327,8 +327,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       doMouseTracking(o.doMouseTracking),
       stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
-      watermark(0), watermarkText(o.watermarkText),
-      watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
+      watermark(0), watermarkText(""),
+      watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -403,10 +403,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Make this the current context for OpenGL
     makeCurrent();
 
-    // Reconstruct watermark texture, if needed
-    if (watermarkText != "")
-        setWatermarkText(watermarkText, watermarkWidth, watermarkHeight);
-
     // Create new layout to draw into
     space = new SpaceLayout(this);
     layout = space;
@@ -446,6 +442,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // clear them here so that textures or GL lists created with the
     // previous context are not re-used with the new.
     ImageTextureInfo::textures.clear();
+    if (o.watermark)
+        glDeleteTextures(1, &o.watermark);
+
     o.glyphCache.Clear();
     o.updateStereoIdentPatterns(0);
 
@@ -491,9 +490,9 @@ Widget::~Widget()
 #endif
 
     RasterText::purge(QGLWidget::context());
-    if (watermark)
-        glDeleteTextures(1, &watermark);
     updateStereoIdentPatterns(0);
+    // NB: if you're about to call glDeleteTextures here, think twice.
+    // Or make sure you set the correct GL context. See #1686.
 }
 
 

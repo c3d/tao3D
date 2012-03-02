@@ -1103,7 +1103,7 @@ void ModuleManager::debugPrint(const ModuleInfoPrivate &m)
     debug() << "  Author:     " <<  m.author << "\n";
     debug() << "  Website:    " <<  m.website << "\n";
     debug() << "  Icon:       " <<  m.icon << "\n";
-    debug() << "  Doc:        " << +m.qchFiles.join(" ");
+    debug() << "  Doc:        " << +m.qchFiles.join(" ") << "\n";
     debug() << "  XL file:    " << +m.xlPath() << "\n";
     debug() << "  Version:    " <<  m.ver << "\n";
     debug() << "  Latest:     " <<  m.latest << "\n";

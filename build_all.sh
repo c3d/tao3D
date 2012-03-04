@@ -24,7 +24,7 @@ cp_kit() {
       doo cp packaging/win/*.exe ..
       ;;
     Linux)
-      doo cp packaging/linux/*.deb ..
+      doo cp packaging/linux/*.deb packaging/linux/*.tar.bz2 ..
       ;;
   esac
 }

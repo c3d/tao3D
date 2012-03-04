@@ -12,16 +12,16 @@
 
 doo() {
   echo "$@" >&4
-  "$@"
+  eval "$@"
 }
 
 cp_kit() {
   case `uname` in
     Darwin)
-      doo cp packaging/macosx/*.dmg ..
+      doo cp "packaging/macosx/*.dmg" ..
       ;;
     MINGW*)
-      doo cp packaging/win/*.exe ..
+      doo cp "packaging/win/*.exe" ..
       ;;
     Linux)
       doo cp packaging/linux/*.deb packaging/linux/*.tar.bz2 ..
@@ -34,7 +34,19 @@ die() {
   exit 1
 }
 
+set_mflags() {
+  case `uname` in
+    MINGW*)
+      CCACHE=$(which ccache)
+      [ "$CCACHE" ] && MAKEFLAGS="CXX=\"ccache g++\" CC=\"ccache gcc\""
+      ;;
+  esac
+
+}
+
 git diff-index --quiet HEAD -- || die "Error: Git work area is dirty."
+
+set_mflags
 
 LOG=/tmp/taobuild.log
 echo Log file: $LOG >&2
@@ -43,7 +55,7 @@ exec 4>&2
 { time {
 for v in discovery creativity impress ; do
   doo make distclean
-  doo ./configure $v && doo make -j3 install && doo make kit && cp_kit
+  doo ./configure $v && doo "make -j3 install $MAKEFLAGS" && doo "make kit $MAKEFLAGS" && cp_kit
 done ;
 } >$LOG 2>&1; }
 exec 4>&-

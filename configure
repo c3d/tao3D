@@ -21,6 +21,7 @@ usage() {
   echo "  --debug         Build in debug mode (default is release)"
   echo "  --with-licence  For editions that normally contain no licence: force "
   echo "                  generation of a valid 120-day licence. "
+  echo "  --silent        Add qmake option CONFIG+=silent (produce less verbose output)."
   echo ""
   echo "Edition Name:"
   echo ""
@@ -94,6 +95,10 @@ while [ $# -ne 0 ] ; do
       LICENSE_FLAGS="LICENSE_VALIDITY=120"
       shift
       ;;
+    --silent)
+      SILENT_FLAGS="CONFIG+=silent"
+      shift
+      ;;
     discovery)
       EDITION="Discovery"
       D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
@@ -142,4 +147,4 @@ osflags() {
   esac
 }
 
-qmake -r `osflags` $DEBUG_FLAGS $LICENSE_FLAGS $EDITION_FLAGS "$@"
+qmake -r `osflags` $DEBUG_FLAGS $LICENSE_FLAGS $EDITION_FLAGS $SILENT_FLAGS "$@"

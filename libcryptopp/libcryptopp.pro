@@ -48,6 +48,7 @@ SOURCES = \
     $${SRC}/ecp.cpp \
     $${SRC}/filters.cpp \
     $${SRC}/fips140.cpp \
+    $${SRC}/gcm.cpp \
     $${SRC}/gf256.cpp \
     $${SRC}/gf2_32.cpp \
     $${SRC}/gf2n.cpp \
@@ -72,15 +73,14 @@ SOURCES = \
     $${SRC}/rdtables.cpp \
     $${SRC}/rijndael.cpp \
     $${SRC}/rng.cpp \
+    $${SRC}/rsa.cpp \
     $${SRC}/serpent.cpp \
     $${SRC}/sha.cpp \
     $${SRC}/tftables.cpp \
     $${SRC}/wait.cpp \
     $${SRC}/xtr.cpp \
     $${SRC}/zdeflate.cpp \
-    $${SRC}/zinflate.cpp \
-    $${SRC}/rsa.cpp \
-    $${SRC}/gcm.cpp
+    $${SRC}/zinflate.cpp
 
 # Kludge so that "make install" builds the binary
 install.commands = :

@@ -1,5 +1,24 @@
 Change log for Tao Presentations
 
+1.06 (04-Mar-2012)
+
+#1957 Some SDK files need updating
+#1956 Linux: invalid hostid error
+#1955 Main Tao documentation not shown in help viewer
+#1950 StereoDecoder: Add feature to show "reverse" stereo movies
+#1686 Activating stereoscopy may disable textures
+
+1.05 (29-Feb-2012)
+
+#1953 VLCAudioVideo: add support for HTTP proxy or any other VLC option
+#1952 Windows: upgrade Git to fix module download error
+#1951 Add stereoscopic identification pattern
+#1948 Improve french translation for fill color and line color menus
+#1947 VLCAudioVideo: Linux: some videos don't play if package vlc is not installed
+#1946 Remove redundant entries in command chooser
+#1928 Tao main documentations can appear twice
+#1922 Unhelpful error message when downloading module but directory exists
+
 1.04 (23-Feb-2012)
 
 #1941 Glow: fix incorrect effect on AMD cards

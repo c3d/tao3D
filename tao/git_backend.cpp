@@ -113,10 +113,9 @@ again:
         Process cmd(gitCommand, QStringList("--version"));
         if (cmd.done(&errors, &output))
         {
-            // Check version is at least 1.7.0
-            // (we need the merge -Xours / -Xtheirs feature)
+            // Check version (we need the fetch --progress feature)
             QString ver = (+output).replace(QRegExp("[^\\d\\.]"), "");
-            if (versionGreaterOrEqual(ver, "1.7.0"))
+            if (versionGreaterOrEqual(ver, "1.7.1"))
             {
                 ok = true;
                 break;

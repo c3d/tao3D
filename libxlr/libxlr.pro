@@ -64,36 +64,36 @@ HEADERS += \
     ../tao/xlr/xlr/utf8_fileutils.h
 
 SOURCES += \
-    ../tao/xlr/xlr/flight_recorder.cpp \
+    ../tao/xlr/xlr/action.cpp \
+    ../tao/xlr/xlr/args.cpp \
+    ../tao/xlr/xlr/cdecls.cpp \
     ../tao/xlr/xlr/compiler.cpp \
-    ../tao/xlr/xlr/compiler-gc.cpp				\
-    ../tao/xlr/xlr/compiler-llvm.cpp				\
-    ../tao/xlr/xlr/args.cpp			\
-    ../tao/xlr/xlr/cdecls.cpp			\
-    ../tao/xlr/xlr/expred.cpp			\
-    ../tao/xlr/xlr/parms.cpp			\
-    ../tao/xlr/xlr/unit.cpp			\
+    ../tao/xlr/xlr/compiler-gc.cpp \
+    ../tao/xlr/xlr/compiler-llvm.cpp \
     ../tao/xlr/xlr/context.cpp \
-    ../tao/xlr/xlr/symbols.cpp \
     ../tao/xlr/xlr/diff.cpp \
     ../tao/xlr/xlr/errors.cpp \
+    ../tao/xlr/xlr/expred.cpp \
+    ../tao/xlr/xlr/flight_recorder.cpp \
     ../tao/xlr/xlr/gc.cpp \
+    ../tao/xlr/xlr/hash.cpp \
     ../tao/xlr/xlr/lcs.cpp \
     ../tao/xlr/xlr/main.cpp \
     ../tao/xlr/xlr/opcodes.cpp \
     ../tao/xlr/xlr/options.cpp \
+    ../tao/xlr/xlr/parms.cpp \
     ../tao/xlr/xlr/parser.cpp \
     ../tao/xlr/xlr/renderer.cpp \
     ../tao/xlr/xlr/runtime.cpp \
     ../tao/xlr/xlr/scanner.cpp \
     ../tao/xlr/xlr/serializer.cpp \
     ../tao/xlr/xlr/sha1.cpp \
+    ../tao/xlr/xlr/symbols.cpp \
     ../tao/xlr/xlr/syntax.cpp \
     ../tao/xlr/xlr/traces_base.cpp \
     ../tao/xlr/xlr/tree.cpp \
-    ../tao/xlr/xlr/hash.cpp \
-    ../tao/xlr/xlr/action.cpp \
-    ../tao/xlr/xlr/types.cpp
+    ../tao/xlr/xlr/types.cpp \
+    ../tao/xlr/xlr/unit.cpp
 
 win32 {
       SOURCES += ../tao/xlr/xlr/winglob.cpp

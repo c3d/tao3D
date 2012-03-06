@@ -97,6 +97,7 @@ sdk:
 			$(CP_A) "$$i" $(SDK_ROOT)/"$$i" ; \
 		fi ; \
 	done ; \
+	mv $(SDK_ROOT)/modules/README_SDK $(SDK_ROOT)/README ; \
 	tao/updaterev.sh -n > $(SDK_ROOT)/VERSION ; \
 	$(OTHER_COMMANDS_$(BUILDENV))
 

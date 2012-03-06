@@ -22,20 +22,22 @@ ARCH=$(OS).$(shell uname -m)
 
 ########
 
-# Obsolete .tar.bz2 package
+kit: deb tar
+
+# .tar.bz2 package
 
 tar: $(TAO).$(ARCH).tar.bz2
 
-$(TAO).$(ARCH).tar.bz2: $(TAO) $(TAO)/Tao.bin
+$(TAO).$(ARCH).tar.bz2: $(TAO) $(TAO)/tao
 	tar cvfj $@ $(TAO)
 
 $(TAO):
 	mkdir $(TAO)
 
-$(TAO)/Tao.bin: $(TAO) install
-	mv $(TAO)/Tao $(TAO)/Tao.bin
-	cp Tao.sh.old $(TAO)/Tao
-	chmod +x $(TAO)/Tao
+$(TAO)/tao: $(TAO) install
+	cd $(TAO) ; mv Tao "Tao Presentations"
+	cp tao.sh $(TAO)/tao
+	chmod +x $(TAO)/tao
 
 install: $(TAO)
 	(cd ../.. && $(MAKE) install) && cp -Rp ../../install/* $(TAO)
@@ -46,8 +48,6 @@ endif
 
 clean: debclean
 	rm -rf $(TAO) Tao_Presentations*.tar.bz2
-
-########
 
 # Debian package
 
@@ -74,7 +74,7 @@ endif
 
 run-dpkg-deb = fakeroot dpkg-deb --build debian $(TAO)-$(ARCH).deb
 
-kit deb: prepare
+deb: prepare
 	$(run-dpkg-deb)
 
 rdeb: debian

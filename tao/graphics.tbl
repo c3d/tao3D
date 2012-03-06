@@ -523,6 +523,22 @@ PREFIX(ToggleBlankScreen, boolean, "toggle_blank_screen", ,
        RTAO(toggleBlankScreen(self)),
        GROUP(gui)
        SYNOPSIS("Toggle blank screen mode"))
+PREFIX(StereoIdentify, boolean, "stereo_identify",
+       PARM(flag, boolean, "Flag controlling stereo test pattern activation"),
+       RTAO(stereoIdentify(self, flag)),
+       GROUP(gui)
+       SYNOPSIS("Show a stereoscopic test pattern or show presentation normally")
+       DESCRIPTION("Activate or deactivate a test pattern, depending on "
+                   "the value of the flag. When activated, the screen shows "
+                   "different images for each viewpoint to assist in "
+                   "troubleshooting stereoscopy problems.")
+       RETURNS(boolean,
+               "A flag indicating the previous value of the "
+                "blank screen mode."))
+PREFIX(ToggleStereoIdentify, boolean, "toggle_stereo_identify", ,
+       RTAO(toggleStereoIdentify(self)),
+       GROUP(gui)
+       SYNOPSIS("Toggle stereo test pattern"))
 PREFIX(ShowStatistics, boolean, "show_statistics",
        PARM(flag, boolean, "Flag controlling display of rendering statistics (fps)"),
        RTAO(showStatistics(self, flag)),

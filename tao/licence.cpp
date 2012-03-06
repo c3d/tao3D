@@ -763,7 +763,7 @@ again:
         {
             QString addr = QString::fromLocal8Bit(ba.data(), ba.size());
             addr.replace(":", "");
-            id = +addr;
+            id = +addr.trimmed();
         }
 
 #endif

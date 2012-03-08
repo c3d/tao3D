@@ -490,10 +490,10 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     {
         IFTRACE(layoutevents)
             std::cerr << "Layout " << layoutId << " does not need updating\n";
-    }
 
-    // Forward event to all child layouts
-    changed |= RefreshChildren(e, now, dbg);
+        // Forward event to all child layouts
+        changed |= RefreshChildren(e, now, dbg);
+    }
 
     // When done with topmost layout we can clear cache
     if (XL::MAIN->options.enable_layout_cache && !parent)

@@ -9108,6 +9108,61 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
+struct DisplayListInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Store information about a display list
+// ----------------------------------------------------------------------------
+{
+    DisplayListInfo(): displayListID(glGenLists(1)) {}
+    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    GLuint      displayListID;
+};
+
+
+Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Create a compiled display list out of the program's result
+// ----------------------------------------------------------------------------
+{
+    Tree_p result = XL::xl_false;
+
+    // Get or build the current frame if we don't have one
+    DisplayListInfo *info = self->GetInfo<DisplayListInfo>();
+    if (!info)
+    {
+        // First drawing: draw the hard way
+        info = new DisplayListInfo();
+        self->SetInfo<DisplayListInfo>(info);
+
+        Layout *parent = layout;
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        
+        result = context->Evaluate(prog);
+
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
+
+        glNewList(info->displayListID, GL_COMPILE);
+        layout->Draw(NULL);
+        glEndList();
+
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    }
+
+    layout->Add(new CachedDrawing(info->displayListID));
+    return result;
+}
+
+
 Integer* Widget::thumbnail(Context *context,
                          Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------

@@ -659,6 +659,7 @@ public:
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog, Integer_p depth=NULL);
+    Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,

@@ -95,6 +95,18 @@ struct FillColor : ColorAttribute
 };
 
 
+struct CachedDrawing : Attribute
+// ----------------------------------------------------------------------------
+//    Record a display list attribute
+// ----------------------------------------------------------------------------
+{
+    CachedDrawing(GLuint displayList): displayList(displayList) {}
+    virtual void        Draw(Layout *where);
+    virtual text        Type() { return "CachedDrawing";}
+    GLuint              displayList;
+};
+
+
 struct FillTexture : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture change

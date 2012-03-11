@@ -692,10 +692,13 @@ void Widget::drawSelection()
 //   Draw selection items for all objects (selection boxes, manipulators)
 // ----------------------------------------------------------------------------
 {
-    id = idDepth = 0;
-    selectionTrees.clear();
-    space->ClearAttributes();
-    space->DrawSelection(NULL);
+    if (selectionMap.size())
+    {
+        id = idDepth = 0;
+        selectionTrees.clear();
+        space->ClearAttributes();
+        space->DrawSelection(NULL);
+    }
 }
 
 
@@ -9108,13 +9111,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
-struct DisplayListInfo : XL::Info
+struct DisplayListInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //    Store information about a display list
 // ----------------------------------------------------------------------------
 {
     DisplayListInfo(): displayListID(glGenLists(1)) {}
     ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    virtual void Delete() { trash.push_back(this); }
     GLuint      displayListID;
 };
 

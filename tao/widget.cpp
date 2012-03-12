@@ -692,7 +692,7 @@ void Widget::drawSelection()
 //   Draw selection items for all objects (selection boxes, manipulators)
 // ----------------------------------------------------------------------------
 {
-    if (selectionMap.size())
+    if (selection.size())
     {
         id = idDepth = 0;
         selectionTrees.clear();

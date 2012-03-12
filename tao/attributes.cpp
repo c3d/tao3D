@@ -103,6 +103,16 @@ void FillColor::Draw(Layout *where)
 }
 
 
+void CachedDrawing::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a cached drawing from a display list
+// ----------------------------------------------------------------------------
+{
+    (void) where;
+    glCallList(displayList);
+}
+
+
 void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Remember the texture in the layout

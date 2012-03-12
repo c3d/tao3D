@@ -5081,14 +5081,6 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 {
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     Layout *childLayout = layout->AddChild(layout->id, child, context);
     XL::Save<Layout *> save(layout, childLayout);
@@ -5104,14 +5096,6 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 {
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     Layout *childLayout = layout->AddChild(selectionId(), child, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
@@ -8171,14 +8155,6 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     // Evaluation du prog
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     text computedFlowName = flowName;
     if (flows.count(computedFlowName))
@@ -9105,6 +9081,61 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     }
 
     return new Integer(texId, self->Position());
+}
+
+
+struct DisplayListInfo : XL::Info
+// ----------------------------------------------------------------------------
+//    Store information about a display list
+// ----------------------------------------------------------------------------
+{
+    DisplayListInfo(): displayListID(glGenLists(1)) {}
+    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    GLuint      displayListID;
+};
+
+
+Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Create a compiled display list out of the program's result
+// ----------------------------------------------------------------------------
+{
+    Tree_p result = XL::xl_false;
+
+    // Get or build the current frame if we don't have one
+    DisplayListInfo *info = self->GetInfo<DisplayListInfo>();
+    if (!info)
+    {
+        // First drawing: draw the hard way
+        info = new DisplayListInfo();
+        self->SetInfo<DisplayListInfo>(info);
+
+        Layout *parent = layout;
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        
+        result = context->Evaluate(prog);
+
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
+
+        glNewList(info->displayListID, GL_COMPILE);
+        layout->Draw(NULL);
+        glEndList();
+
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    }
+
+    layout->Add(new CachedDrawing(info->displayListID));
+    return result;
 }
 
 

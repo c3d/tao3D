@@ -204,8 +204,6 @@ Layout *Layout::AddChild(uint childId,
     result->id = childId;
     result->body = body;
     result->ctx = ctx;
-    if (ctx && XL::MAIN->options.enable_layout_cache)
-        result->ctxHash = LayoutCache::contextHash(ctx);
     return result;
 }
 
@@ -446,20 +444,6 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         refreshEvents.clear();
         nextRefresh = DBL_MAX;
 
-        if (XL::MAIN->options.enable_layout_cache)
-        {
-            // Drop children: delete drawings but set aside layouts, in case
-            // they can be reused by the evaluation step below
-            for (Drawings::iterator it = items.begin(); it != items.end(); it++)
-            {
-                if (Layout * layout = dynamic_cast<Layout*>(*it))
-                    widget->layoutCache.insert(layout);
-                else
-                    delete (*it);
-            }
-            items.clear();
-        }
-
         // Check if we can evaluate locally
         if (ctx && body)
         {
@@ -490,14 +474,10 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     {
         IFTRACE(layoutevents)
             std::cerr << "Layout " << layoutId << " does not need updating\n";
+
+        // Forward event to all child layouts
+        changed |= RefreshChildren(e, now, dbg);
     }
-
-    // Forward event to all child layouts
-    changed |= RefreshChildren(e, now, dbg);
-
-    // When done with topmost layout we can clear cache
-    if (XL::MAIN->options.enable_layout_cache && !parent)
-        widget->layoutCache.clear();
 
     return changed;
 }

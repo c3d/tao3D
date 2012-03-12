@@ -227,7 +227,6 @@ public:
     double              nextRefresh;
     Tree_p              body;
     Context_p           ctx;
-    QByteArray          ctxHash;
 
 public:
     // Static attributes for polygon offset computation

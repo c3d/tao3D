@@ -88,7 +88,6 @@ HEADERS +=     activity.h \
     justification.h \
     justification.hpp \
     layout.h \
-    layout_cache.h \
     licence.h \
     license_dialog.h \
     lighting.h \
@@ -163,7 +162,6 @@ SOURCES +=     activity.cpp \
     init_cleanup.cpp \
     inspectordialog.cpp \
     layout.cpp \
-    layout_cache.cpp \
     license_dialog.cpp \
     lighting.cpp \
     manipulator.cpp \

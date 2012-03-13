@@ -1328,6 +1328,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
         QImage image(frame.toImage());
+        // Strip alpha channel
+        image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
     }
 

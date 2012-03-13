@@ -4744,6 +4744,7 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
+    w *= displayDriver->windowWidthFactor();
     return new Real(w);
 }
 
@@ -4755,6 +4756,7 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
+    h *= displayDriver->windowHeightFactor();
     return new Real(h);
 }
 

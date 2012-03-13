@@ -40,7 +40,7 @@ DisplayDriver::DisplayDriver()
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-    : useInProgress(false)
+    : useInProgress(false), wFactor(1.0), hFactor(1.0)
 {
     registerDisplayFunction("2Dplain", displayBackBuffer,
                                        NULL, NULL, NULL);
@@ -134,12 +134,15 @@ bool DisplayDriver::setDisplayFunction(QString name)
         else
         {
             // Defaults
-            int planes = 1;
-            text t = getOption("PointsOfView");
-            if (t != "")
-                planes = (+t).toInt();
+            int planes;
+            text t = getOption("PointsOfView", "1");
+            planes = (+t).toInt();
             setStereoPlanes(planes);
             doMouseTracking(true);
+            t = getOption("WindowWidthFactor", "1.0");
+            wFactor = (+t).toDouble();
+            t = getOption("WindowHeightFactor", "1.0");
+            hFactor = (+t).toDouble();
         }
     }
     return found;
@@ -189,17 +192,23 @@ bool DisplayDriver::setOption(std::string name, std::string val)
 }
 
 
-std::string DisplayDriver::getOption(std::string name)
+std::string DisplayDriver::getOption(std::string name, std::string deflt)
 // ----------------------------------------------------------------------------
 //   Read option from display module
 // ----------------------------------------------------------------------------
 {
-    std::string val;
+    std::string val, defstr;
     if (current.getopt)
         val = current.getopt(current.obj, name);
+    if (val == "")
+    {
+        IFTRACE(displaymode)
+            defstr = " (from default)";
+        val = deflt;
+    }
     IFTRACE(displaymode)
         debug() << "Read option from display function: " << +current.name
-                << " \"" << name << "\"=\"" << val << "\"\n";
+                << " \"" << name << "\"=\"" << val << "\"" << defstr << "\n";
     return val;
 }
 

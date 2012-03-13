@@ -164,7 +164,8 @@ bool DisplayDriver::isCurrentDisplayFunctionSameAs(QString name)
         name = "default";
     if (!map.contains(name))
         return false;
-    return (current.fn == map[name].fn);
+    return (current.fn == map[name].fn &&
+            current.use == map[name].use);
 }
 
 

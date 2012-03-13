@@ -5084,14 +5084,6 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 {
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     Layout *childLayout = layout->AddChild(layout->id, child, context);
     XL::Save<Layout *> save(layout, childLayout);
@@ -5107,14 +5099,6 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 {
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     Layout *childLayout = layout->AddChild(selectionId(), child, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
@@ -8174,14 +8158,6 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     // Evaluation du prog
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     text computedFlowName = flowName;
     if (flows.count(computedFlowName))

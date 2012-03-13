@@ -40,7 +40,6 @@
 #include "runtime.h"
 #include "font_file_manager.h"
 #include "layout.h"
-#include "layout_cache.h"
 #include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
@@ -916,7 +915,6 @@ private:
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
     int                   stereoPlane, stereoPlanes;
-    LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
     GLuint                watermark;
     text                  watermarkText;

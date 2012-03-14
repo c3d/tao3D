@@ -1273,6 +1273,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     // Render frames for the whole time range
     int currentFrame = 0, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
+    int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
         if (renderFramesCanceled)
@@ -1326,7 +1327,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
-        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        QString fileName = QString("%1/frame%2.png").arg(dir)
+                .arg(currentFrame, digits, 10, QLatin1Char('0'));
         QImage image(frame.toImage());
         // Strip alpha channel
         image = image.convertToFormat(QImage::Format_RGB32);

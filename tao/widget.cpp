@@ -750,7 +750,11 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
-{
+{    
+    // The viewport used for mouse projection is (potentially) set by the
+    // display function, clear it for current frame
+    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
+
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
@@ -820,9 +824,6 @@ void Widget::draw()
             updateProgramSource();
     }
 
-    // The viewport used for mouse projection is (potentially) set by the
-    // display function, clear it for next frame
-    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
 }
 
 
@@ -2063,7 +2064,18 @@ void Widget::setup(double w, double h, const Box *picking)
     // Restrict the picking area if any is given as input
     if (picking)
     {
-        GLint viewport[4] = { 0, 0, w, h };
+        // Use mouseTrackingViewport to fix #1465
+        int pw = mouseTrackingViewport[2];
+        int ph = mouseTrackingViewport[3];
+        if (pw == 0 && ph == 0)
+        {
+            // mouseTrackingViewport not set (by display module), default to
+            // current viewport
+            pw = width();
+            ph = height();
+        }
+
+        GLint viewport[4] = { 0, 0, pw, ph };
         Box b = *picking;
         b.Normalize();
         Vector size = b.upper - b.lower;
@@ -5719,6 +5731,7 @@ Widget::StereoIdentTexture Widget::newStereoIdentTexture(int i)
     QImage image(w, h, QImage::Format_ARGB32);
     enum { Red = 0xFF770000, Green = 0xFF007700 };
     // Background color:
+
     // Left eye/odd viewpoint: red, right eye/even viewpoint: green.
     if (i % 2)
         image.fill(Red);
@@ -11534,6 +11547,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
     // Check if we are not the only one
     if (!parent)
+
         return XL::xl_false;
 
     // Do the work

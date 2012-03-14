@@ -316,6 +316,9 @@ light_specular(r:real, g:real, b:real, a:real);
  * Définit la position de la lumière courante.
  * Équivalent à l'appel OpenGL :
  * <tt>glLightfv(id, GL_POSITION, {x, y, z, 0})</tt>
+ *
+ * @~
+ * @see light_position(x:real, y:real, z:real);
  */
 light_position(x:real, y:real, z:real);
 
@@ -336,6 +339,9 @@ light_position(x:real, y:real, z:real);
  * away (like the sun), and <tt>w = 1.0</tt> for a light in a fixed position
  * (like a lamp).
  *
+ * The default position for any light is <tt>(0.0, 0.0, 1.0, 0.0)</tt>, that
+ * is, a directional light along the Z axis.
+ *
  * @~french
  * Définit la position de la lumière courante.
  * Équivalent à l'appel OpenGL :
@@ -351,6 +357,9 @@ light_position(x:real, y:real, z:real);
  * On utilise typiquement <tt>w = 0.0</tt> pour une lumière "à l'infini" (par
  * exemple, le soleil) et <tt>w = 1.0</tt> pour une lumière proche (par exemple,
  * une lampe).
+ *
+ * La position par défaut d'une source de lumière est <tt>(0.0, 0.0, 1.0, 0.0)</tt>,
+ * ce qui représente une source directionnelle parallèle à l'axe Z.
  */
 light_position(x:real, y:real, z:real, w:real);
 

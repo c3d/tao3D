@@ -1271,7 +1271,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Render frames for the whole time range
-    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int currentFrame = 1, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
     int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
@@ -1283,7 +1283,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Show progress information
-        percent = 100*currentFrame++/frameCount;
+        percent = 100*currentFrame/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;
@@ -1333,6 +1333,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Strip alpha channel
         image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
+
+        currentFrame++;
     }
 
     // Done with offline rendering

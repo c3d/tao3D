@@ -763,7 +763,11 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
-{
+{    
+    // The viewport used for mouse projection is (potentially) set by the
+    // display function, clear it for current frame
+    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
+
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
@@ -833,9 +837,6 @@ void Widget::draw()
             updateProgramSource();
     }
 
-    // The viewport used for mouse projection is (potentially) set by the
-    // display function, clear it for next frame
-    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
 }
 
 
@@ -1271,8 +1272,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Render frames for the whole time range
-    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int currentFrame = 1, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
+    int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
         if (renderFramesCanceled)
@@ -1282,7 +1284,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Show progress information
-        percent = 100*currentFrame++/frameCount;
+        percent = 100*currentFrame/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;
@@ -1326,9 +1328,14 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
-        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        QString fileName = QString("%1/frame%2.png").arg(dir)
+                .arg(currentFrame, digits, 10, QLatin1Char('0'));
         QImage image(frame.toImage());
+        // Strip alpha channel
+        image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
+
+        currentFrame++;
     }
 
     // Done with offline rendering
@@ -2076,7 +2083,18 @@ void Widget::setup(double w, double h, const Box *picking)
     // Restrict the picking area if any is given as input
     if (picking)
     {
-        GLint viewport[4] = { 0, 0, w, h };
+        // Use mouseTrackingViewport to fix #1465
+        int pw = mouseTrackingViewport[2];
+        int ph = mouseTrackingViewport[3];
+        if (pw == 0 && ph == 0)
+        {
+            // mouseTrackingViewport not set (by display module), default to
+            // current viewport
+            pw = width();
+            ph = height();
+        }
+
+        GLint viewport[4] = { 0, 0, pw, ph };
         Box b = *picking;
         b.Normalize();
         Vector size = b.upper - b.lower;
@@ -4744,6 +4762,7 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
+    w *= displayDriver->windowWidthFactor();
     return new Real(w);
 }
 
@@ -4755,6 +4774,7 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
+    h *= displayDriver->windowHeightFactor();
     return new Real(h);
 }
 
@@ -5732,6 +5752,7 @@ Widget::StereoIdentTexture Widget::newStereoIdentTexture(int i)
     QImage image(w, h, QImage::Format_ARGB32);
     enum { Red = 0xFF770000, Green = 0xFF007700 };
     // Background color:
+
     // Left eye/odd viewpoint: red, right eye/even viewpoint: green.
     if (i % 2)
         image.fill(Red);
@@ -11535,6 +11556,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
     // Check if we are not the only one
     if (!parent)
+
         return XL::xl_false;
 
     // Do the work

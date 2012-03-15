@@ -44,7 +44,7 @@
     OTHER_MODULES =     \
         audio_video \
         hello_world     \
-        netaccess        \
+        network_access   \
         taoTester    \
         tao_synchro
 } else {

@@ -284,6 +284,18 @@ Widget::Widget(Window *parent, SourceFile *sf)
 }
 
 
+struct DisplayListInfo : XL::Info, InfoTrashCan
+// ----------------------------------------------------------------------------
+//    Store information about a display list
+// ----------------------------------------------------------------------------
+{
+    DisplayListInfo(): displayListID(glGenLists(1)) {}
+    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    virtual void Delete() { trash.push_back(this); }
+    GLuint      displayListID;
+};
+
+
 struct PurgeGLContextSensitiveInfo : XL::Action
 // ----------------------------------------------------------------------------
 //   Delete all Info structures that are invalid when the GL context is changed
@@ -295,6 +307,7 @@ struct PurgeGLContextSensitiveInfo : XL::Action
         what->Purge<SvgRendererInfo>();
         what->Purge<TextureIdInfo>();
         what->Purge<ShaderProgramInfo>();
+        what->Purge<DisplayListInfo>();
         return what;
     }
 };
@@ -9085,18 +9098,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
     return new Integer(texId, self->Position());
 }
-
-
-struct DisplayListInfo : XL::Info, InfoTrashCan
-// ----------------------------------------------------------------------------
-//    Store information about a display list
-// ----------------------------------------------------------------------------
-{
-    DisplayListInfo(): displayListID(glGenLists(1)) {}
-    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
-    virtual void Delete() { trash.push_back(this); }
-    GLuint      displayListID;
-};
 
 
 Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)

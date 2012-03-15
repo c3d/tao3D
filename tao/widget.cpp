@@ -710,7 +710,9 @@ void Widget::drawSelection()
         id = idDepth = 0;
         selectionTrees.clear();
         space->ClearAttributes();
+        glDisable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
+        glEnable(GL_DEPTH_TEST);
     }
 }
 
@@ -723,11 +725,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled())
@@ -4454,14 +4456,12 @@ void Widget::drawSelection(Layout *where,
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     saveSelectionColorAndFont(where);
-    glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (xlProgram);
 
     selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4475,13 +4475,11 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper     saveGL;
     resetLayout(layout);
-    glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
     selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4510,10 +4508,8 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
-    glDisable(GL_DEPTH_TEST);
     call(xlProgram);
     selectionSpace.Draw(where);
-    glEnable(GL_DEPTH_TEST);
 }
 
 

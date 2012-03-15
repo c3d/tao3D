@@ -348,6 +348,15 @@ void DepthMask::Draw(Layout *)
 }
 
 
+void DepthFunc::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Specifies the depth comparison function
+// ----------------------------------------------------------------------------
+{
+    glDepthFunc(func);
+}
+
+
 void BlendFunc::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Change the blend function

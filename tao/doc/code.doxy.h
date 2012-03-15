@@ -296,6 +296,48 @@ disable_depth_mask ();
  */
 enable_depth_mask ();
 
+
+/**
+ * @~english
+ * Specify the value used for depth buffer comparisons.
+ *
+ * Set the function used to compare each incoming pixel depth value
+ * with the depth value present in the depth buffer.
+ * @note The comparison is performed only if depth testing is enabled
+ *
+ * @param func specifies the conditions under which the pixel will be drawn. Accepted values are :
+ * - Never
+ * - Less
+ * - Equal
+ * - Lequal (lesser or equal)
+ * - Greater
+ * - Notequal (not equal)
+ * - Gequal (greater or equal)
+ * - Always
+ *
+ * @see For further informations, see http://www.opengl.org/sdk/docs/man/xhtml/glDepthFunc.xml
+ * @~french
+ * Specifie la valeur utilisée pour les comparaisons du masque de profondeur.
+ *
+ * Change la fonction utilisée pour comparer la profondeur de chacun des pixels entrants avec celle
+ * présente dans le masque de profondeur.
+ * @note La comparaison est effectuée uniquement si le test de profondeur est activé.
+ *
+ * @param func Définit les conditions sous lesquelles les pixels seront dessinés. Les valeurs acceptées sont :
+ * - Never (jamais)
+ * - Less  (inférieur)
+ * - Equal (égal)
+ * - Lequal (inférieur ou égal)
+ * - Greater (supérieur)
+ * - Notequal (non-égal)
+ * - Gequal (supérieur ou égal)
+ * - Always (toujours)
+ *
+ * @see Pour plus d'information, voir http://www.opengl.org/sdk/docs/man/xhtml/glDepthFunc.xml
+
+ */
+depth_func (func:text);
+
 /**
  * @~english
  * Sends a keypress event.

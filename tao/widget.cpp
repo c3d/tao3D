@@ -5424,6 +5424,14 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(REPLACE);
     TEST_GLENUM(DECAL);
     TEST_GLENUM(ADD);
+    TEST_GLENUM(ALWAYS);
+    TEST_GLENUM(NEVER);
+    TEST_GLENUM(LESS);
+    TEST_GLENUM(LEQUAL);
+    TEST_GLENUM(EQUAL);
+    TEST_GLENUM(GREATER);
+    TEST_GLENUM(NOTEQUAL);
+    TEST_GLENUM(GEQUAL);
 #undef TEST_GLENUM
 
     return e;
@@ -5446,6 +5454,17 @@ Name_p Widget::depthMask(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new DepthTest(enable));
+    return XL::xl_true;
+}
+
+
+Name_p Widget::depthFunction(XL::Tree_p self, text func)
+// ----------------------------------------------------------------------------
+//   Specifies the depth comparison function
+// ----------------------------------------------------------------------------
+{
+    GLenum funcEnum = TextToGLEnum(func, GL_LESS);
+    layout->Add(new DepthFunc(funcEnum));
     return XL::xl_true;
 }
 

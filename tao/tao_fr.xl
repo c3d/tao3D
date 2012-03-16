@@ -25,6 +25,7 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Enable stereoscopy (horizontal interleave)", "Activer stéréoscopie (entrelacement horizontal)"
     tr "Enable stereoscopy (Alioscopy)", "Activer stéréoscopie (Alioscopy)"
     tr "Enable stereoscopy (2D-plus-Depth)", "Activer stéréoscopie (2D-plus-Depth)"
+    tr "Enable stereoscopy (2D-plus-Depth Declipse)", "Activer stéréoscopie (2D-plus-Depth Declipse)"
     tr "Enable stereoscopy (2D-plus-Depth far)", "Activer stéréoscopie (2D-plus-Depth lointain)"
     tr "Enable stereoscopy (anaglyph)", "Activer stéréoscopie (anaglyphe)"
     tr "Enable stereoscopy (checkerboard)", "Activer stéréoscopie (damier)"

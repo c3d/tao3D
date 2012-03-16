@@ -11888,6 +11888,10 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
             {
                 strval = tt->value;
             }
+            else if (Name *nt = arg->AsName())
+            {
+                strval = nt->value;
+            }
             else
             {
                 Ooops("display_set value $1 is not a string and not a number",

@@ -1,5 +1,22 @@
 Change log for Tao Presentations
 
+1.07 (16-Mar-2012)
+
+#1979 Add Declipse mode support for 2D+Depth screens
+#1977 Add base_name and dir_name primitives
+#1976 Add depth_func primitive to change glDepthFunc 
+#1975 Chooser is not drawn correctly in 2D+Depth
+#1974 window_width and window_height return incorrect values in "frame packing" modes
+#1973 VLCAudioVideo: possible crash when file is not found
+#1970 Optimization: do not execute selection drawing code if there is no selection
+#1969 Add 'cached' to create display lists to accelerate drawing
+#1968 Accelerate xl_load_data for large data sets
+#1965 locally inside locally executed twice
+#1964 VLCAudioVideo: reduce video start time; improve performance on MacOSX
+#1961 VLCAudioVideo: add support for per-media VLC options
+#1497 Pictures produced by the offscreen renderer have transparency
+#1645 Incorrect mouse position reported by on_click with stereoscopy
+
 1.06 (04-Mar-2012)
 
 #1957 Some SDK files need updating

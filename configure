@@ -22,6 +22,7 @@ usage() {
   echo "  --with-licence  For editions that normally contain no licence: force "
   echo "                  generation of a valid 120-day licence. "
   echo "  --silent        Add qmake option CONFIG+=silent (produce less verbose output)."
+  echo "  --disable-doc   Do not build documentation."
   echo ""
   echo "Edition Name:"
   echo ""
@@ -99,6 +100,10 @@ while [ $# -ne 0 ] ; do
       SILENT_FLAGS="CONFIG+=silent"
       shift
       ;;
+    --disable-doc)
+      PARM="$PARM DISABLE_DOC=1"
+      shift
+      ;;
     discovery)
       EDITION="Discovery"
       D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
@@ -147,4 +152,4 @@ osflags() {
   esac
 }
 
-qmake -r `osflags` $DEBUG_FLAGS $LICENSE_FLAGS $EDITION_FLAGS $SILENT_FLAGS "$@"
+qmake -r `osflags` $DEBUG_FLAGS $LICENSE_FLAGS $EDITION_FLAGS $SILENT_FLAGS $PARM "$@"

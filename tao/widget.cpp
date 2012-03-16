@@ -9576,6 +9576,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
         txt->SetInfo<LineEditSurface> (surface);
     }
 
+
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
     layout->currentTexture.id     = surface->bind(txt);
@@ -11925,6 +11926,26 @@ Name_p Widget::readOnly()
 // ----------------------------------------------------------------------------
 {
     return isReadOnly() ? XL::xl_true : XL::xl_false;
+}
+
+
+Text_p Widget::baseName(Tree_p, text filename)
+// ----------------------------------------------------------------------------
+// Returns the base name of a file without the path
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info(+filename);
+    return new Text(+info.baseName());
+}
+
+
+Text_p Widget::dirName(Tree_p, text filename)
+// ----------------------------------------------------------------------------
+// Returns the path of the specified filename
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info(+filename);
+    return new Text(+info.path());
 }
 
 

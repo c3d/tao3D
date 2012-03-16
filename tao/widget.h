@@ -814,6 +814,8 @@ public:
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
     Text_p      displayMode();
     Name_p      readOnly();
+    Text_p      baseName(Tree_p, text filename);
+    Text_p      dirName(Tree_p, text filename);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);

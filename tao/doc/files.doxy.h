@@ -131,5 +131,25 @@ tree files(patterns:tree);
 text load_text(path:text);
 
 /**
+ * @~english
+ * Get base name of a file.
+ * Returns the base name of a file without the path.
+ * @~french
+ * Récupère le nom de base d'un fichier
+ * Renvoie le nom de base du fichier spécifié sans son chemin.
+ */
+text base_name(filename:text);
+
+/**
+ * @~english
+ * Get path of a file.
+ * Returns the path of the specified file.
+ * @~french
+ * Récupère le chemin d'un fichier.
+ * Renvoie le chemin absolu ou relatif du fichier specifié.
+ */
+text dir_name(filename:text);
+
+/**
  * @}
  */

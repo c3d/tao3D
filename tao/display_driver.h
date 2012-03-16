@@ -48,8 +48,10 @@ public:
     QString             getDisplayFunction();
     bool                isCurrentDisplayFunctionSameAs(QString name);
     bool                setOption(std::string name, std::string val);
-    std::string         getOption(std::string name);
+    std::string         getOption(std::string name, std::string deflt);
     static QStringList  allDisplayFunctions();
+    double              windowWidthFactor()  { return wFactor; }
+    double              windowHeightFactor() { return hFactor; }
 
 public:
     // Methods exported by the module API for use by display modules
@@ -163,6 +165,8 @@ protected:
 protected:
     DisplayParams         current;
     bool                  useInProgress;
+    // Set by display module to adjust window_width and window_height
+    double                wFactor, hFactor;
 
 protected:
     static display_map    map;

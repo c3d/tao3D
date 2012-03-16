@@ -802,7 +802,11 @@ void Application::printRenderingProgress(int percent)
 //   Print progress when "rendering to files" command line option is active
 // ----------------------------------------------------------------------------
 {
-    std::cout << percent << "%..." << std::flush;
+    std::cout << percent << "%";
+    if (percent < 100)
+        std::cout << "..." << std::flush;
+    else
+        std::cout << "\n";
 }
 
 

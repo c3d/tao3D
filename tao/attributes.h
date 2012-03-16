@@ -347,6 +347,18 @@ struct DepthMask : Attribute
 };
 
 
+struct DepthFunc : Attribute
+// ----------------------------------------------------------------------------
+//   Change the function for depth comparisons
+// ----------------------------------------------------------------------------
+{
+    DepthFunc(GLenum func): func(func) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "DepthFunc";}
+    GLenum func;
+};
+
+
 struct BlendFunc : Attribute
 // ----------------------------------------------------------------------------
 //   Change the blend function

@@ -392,6 +392,10 @@ PREFIX(DisableDepthMask, boolean, "disable_depth_mask",,
        SYNOPSIS("Disable OpenGL depth mask")
        DESCRIPTION("Equivalent to glEnable(GL_DEPTH_MASK)")
        RETURNS(boolean, "The previous state of depth mask"))
+PREFIX(DepthFunction, boolean, "depth_function",
+       PARM(func, text, ""),
+       RTAO(depthFunction(self, func)),
+       SYNOPSIS("Set the function for depth comparisons."))
 PREFIX(BlendFunction, boolean, "blend_function",
        PARM(src, text, "")
        PARM(dst, text, ""),
@@ -1070,6 +1074,20 @@ PREFIX(isReadOnly,  tree,  "is_read_only",,
        GROUP(misc)
        SYNOPSIS("Check if document is read only")
        RETURNS(tree, ""))
+PREFIX(BaseName,  tree,  "base_name",
+       PARM(f, text, "filename"),
+       RTAO(baseName(self, f)),
+       GROUP(misc)
+       SYNOPSIS("Returns the base name of a file without the path.")
+       RETURNS(tree, ""))
+PREFIX(DirName,  tree,  "dir_name",
+       PARM(f, text, "filename"),
+       RTAO(dirName(self, f)),
+       GROUP(misc)
+       SYNOPSIS("Returns the path of the specified filename.")
+       RETURNS(tree, ""))
+
+
 
 // ============================================================================
 //

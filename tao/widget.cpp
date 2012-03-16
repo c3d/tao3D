@@ -710,7 +710,9 @@ void Widget::drawSelection()
         id = idDepth = 0;
         selectionTrees.clear();
         space->ClearAttributes();
+        glDisable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
+        glEnable(GL_DEPTH_TEST);
     }
 }
 
@@ -723,11 +725,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled())
@@ -4460,14 +4462,12 @@ void Widget::drawSelection(Layout *where,
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     saveSelectionColorAndFont(where);
-    glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (xlProgram);
 
     selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4481,13 +4481,11 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper     saveGL;
     resetLayout(layout);
-    glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
     selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4516,10 +4514,8 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
-    glDisable(GL_DEPTH_TEST);
     call(xlProgram);
     selectionSpace.Draw(where);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -5436,6 +5432,14 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(REPLACE);
     TEST_GLENUM(DECAL);
     TEST_GLENUM(ADD);
+    TEST_GLENUM(ALWAYS);
+    TEST_GLENUM(NEVER);
+    TEST_GLENUM(LESS);
+    TEST_GLENUM(LEQUAL);
+    TEST_GLENUM(EQUAL);
+    TEST_GLENUM(GREATER);
+    TEST_GLENUM(NOTEQUAL);
+    TEST_GLENUM(GEQUAL);
 #undef TEST_GLENUM
 
     return e;
@@ -5458,6 +5462,17 @@ Name_p Widget::depthMask(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
 {
     layout->Add(new DepthTest(enable));
+    return XL::xl_true;
+}
+
+
+Name_p Widget::depthFunction(XL::Tree_p self, text func)
+// ----------------------------------------------------------------------------
+//   Specifies the depth comparison function
+// ----------------------------------------------------------------------------
+{
+    GLenum funcEnum = TextToGLEnum(func, GL_LESS);
+    layout->Add(new DepthFunc(funcEnum));
     return XL::xl_true;
 }
 
@@ -9569,6 +9584,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
         txt->SetInfo<LineEditSurface> (surface);
     }
 
+
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
     layout->currentTexture.id     = surface->bind(txt);
@@ -11918,6 +11934,26 @@ Name_p Widget::readOnly()
 // ----------------------------------------------------------------------------
 {
     return isReadOnly() ? XL::xl_true : XL::xl_false;
+}
+
+
+Text_p Widget::baseName(Tree_p, text filename)
+// ----------------------------------------------------------------------------
+// Returns the base name of a file without the path
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info(+filename);
+    return new Text(+info.baseName());
+}
+
+
+Text_p Widget::dirName(Tree_p, text filename)
+// ----------------------------------------------------------------------------
+// Returns the path of the specified filename
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info(+filename);
+    return new Text(+info.path());
 }
 
 

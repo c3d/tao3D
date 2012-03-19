@@ -2124,6 +2124,7 @@ void Widget::reset()
     animated = true;
     blanked = false;
     stereoIdent = false;
+    pageShown = 1;
 }
 
 

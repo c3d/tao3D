@@ -336,7 +336,7 @@ enable_depth_mask ();
  * @see Pour plus d'information, voir http://www.opengl.org/sdk/docs/man/xhtml/glDepthFunc.xml
 
  */
-depth_func (func:text);
+depth_function (func:text);
 
 /**
  * @~english

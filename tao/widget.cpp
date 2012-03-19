@@ -4587,16 +4587,16 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
+            pageLinks["Up"] = lastPageName;
         pageTree = body;
         context->Evaluate(body);
     }
     else if (pageName == lastPageName)
     {
         // We are executing the page following the current one:
-        // Check if PageDown is set, otherwise set current page as default
+        // Check if Down is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = pageLinks["PageDown"] = name;
+            pageLinks["Down"] = name;
     }
 
     lastPageName = name;
@@ -8585,6 +8585,17 @@ Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 }
 
 
+static inline Name_p to_name_p(Tree_p t)
+// ----------------------------------------------------------------------------
+//   Cast from Tree_p to Name_p
+// ----------------------------------------------------------------------------
+{
+    if (Name_p n = t->AsName())
+        return n;
+    return XL::xl_false;
+}
+
+
 Name_p Widget::textEditKey(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the text editing activities
@@ -8605,6 +8616,13 @@ Name_p Widget::textEditKey(Tree_p self, text key)
         gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
+
+    // PageUp/PageDown do the same as Up/Down by default (even when Up/Down
+    // have been redefined)
+    if (key == "PageUp")
+        return to_name_p((XL::XLCall ("key"), "Up") (xlProgram));
+    if (key == "PageDown")
+        return to_name_p((XL::XLCall ("key"), "Down") (xlProgram));
 
     return XL::xl_false;
 }

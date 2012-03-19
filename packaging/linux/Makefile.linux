@@ -26,9 +26,11 @@ kit: deb tar
 
 # .tar.bz2 package
 
-tar: $(TAO).Linux.$(shell uname -m).tar.bz2
+BZ2=$(TAO).Linux.$(shell uname -m).tar.bz2
 
-$(TAO).$(ARCH).tar.bz2: $(TAO) $(TAO)/tao
+tar: $(BZ2)
+
+$(BZ2): $(TAO) $(TAO)/tao
 	tar cvfj $@ $(TAO)
 
 $(TAO):

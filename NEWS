@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.07 (16-Mar-2012)
 
+#1983 VLCAudioVideo: Windows: many VLC files are duplicated
 #1979 Add Declipse mode support for 2D+Depth screens
 #1977 Add base_name and dir_name primitives
 #1976 Add depth_func primitive to change glDepthFunc 

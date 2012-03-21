@@ -1333,8 +1333,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         QString fileName = QString("%1/frame%2.png").arg(dir)
                 .arg(currentFrame, digits, 10, QLatin1Char('0'));
         QImage image(frame.toImage());
-        // Strip alpha channel
-        image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
 
         currentFrame++;
@@ -2152,7 +2150,11 @@ void Widget::setupGL()
 {
     // Setup other
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (inOfflineRendering)
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                            GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    else
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);

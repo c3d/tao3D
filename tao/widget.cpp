@@ -10664,7 +10664,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
-        int pnum = 1;
+        uint pnum = 1;
 
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
@@ -10673,9 +10673,12 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
             Tree *action = new Prefix(prefix, new Text(name));
             action->SetSymbols(self->Symbols());
             std::ostringstream os;
-            os << label << pnum++ << " " << name;
+            os << label << pnum << " " << name;
             std::string txt(os.str());
             chooser->AddItem(txt, action);
+            if (pnum == pageShown)
+                chooser->SetCurrentItem(txt);
+            pnum++;
         }
         return XL::xl_true;
     }

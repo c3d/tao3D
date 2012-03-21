@@ -434,6 +434,24 @@ void Chooser::AddCommands(Context *ctx, text prefix, text label)
     }
 }
 
+
+void Chooser::SetCurrentItem(text caption)
+// ----------------------------------------------------------------------------
+//   Set current item to be the line that matches 'caption'
+// ----------------------------------------------------------------------------
+{
+    int found = 0;
+    ChooserItems::iterator it;
+    for (it = items.begin(); it != items.end(); it++, found++)
+    {
+        if ((*it).caption == caption)
+        {
+            item = found;
+            return;
+        }
+    }
+}
+
 TAO_END
 
 

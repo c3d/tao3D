@@ -44,10 +44,7 @@ Chooser::Chooser(SourceFile *program, text name, Widget *w)
 // ----------------------------------------------------------------------------
     : Activity(name, w), xlProgram(program),
       keystrokes(""), item(0), firstItem(0), selected(NULL)
-{
-    // Force an immediate widget refresh
-    widget->updateGL();
-}
+{}
 
 
 Chooser::~Chooser()

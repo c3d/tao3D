@@ -2672,6 +2672,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // If the key was not handled by any activity, forward to document
     if (!handled)
         (XL::XLCall ("key"), key) (xlProgram);
+    updateGL();
 }
 
 

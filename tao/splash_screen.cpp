@@ -191,7 +191,10 @@ void SplashScreen::showMessage(const QString &message, int, const QColor &)
 // ----------------------------------------------------------------------------
 {
     this->message = message;
+    QPointer<SplashScreen> that(this);
     QCoreApplication::processEvents();
+    if (!that)
+        return;
     repaint();
 }
 

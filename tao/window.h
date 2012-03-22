@@ -27,6 +27,7 @@
 #include <QSharedPointer>
 #include <QUndoStack>
 #include <QUndoView>
+#include <QPointer>
 #include "main.h"
 #include "tao.h"
 #ifndef CFG_NOGIT
@@ -112,7 +113,6 @@ public slots:
 #endif
     void pageSetup();
     void print();
-    void removeSplashScreen();
     void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
@@ -330,8 +330,8 @@ public:
     QMenu            *shareMenu;
 #endif
     QMenu            *helpMenu;
-    SplashScreen     *splashScreen;
-    SplashScreen     *aboutSplash;
+    QPointer<SplashScreen>
+                      splashScreen, aboutSplash;
     bool              deleteOnOpenFailed;
 
 };

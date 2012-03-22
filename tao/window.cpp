@@ -316,7 +316,16 @@ void Window::closeEvent(QCloseEvent *event)
     {
         writeSettings();
         closeToolWindows();
-        event->accept();
+        if (taoWidget->inOfflineRendering)
+        {
+            taoWidget->cancelRenderFrames(2);
+            QApplication::postEvent(this, new QCloseEvent);
+            event->ignore();
+        }
+        else
+        {
+            event->accept();
+        }
     }
     else
     {
@@ -568,15 +577,6 @@ void Window::pageSetup()
     QPageSetupDialog dialog(printer, this);
     if (dialog.exec() != QDialog::Accepted)
         return;
-}
-
-
-void Window::removeSplashScreen()
-// ----------------------------------------------------------------------------
-//    Do not use the splash screen anymore
-// ----------------------------------------------------------------------------
-{
-    splashScreen = NULL;
 }
 
 
@@ -1439,8 +1439,7 @@ void Window::deleteAboutSplash()
 //    Delete the SplashScreen object allocated by the about() method
 // ----------------------------------------------------------------------------
 {
-    aboutSplash->deleteLater();
-    aboutSplash = NULL;
+    delete aboutSplash;
 }
 
 

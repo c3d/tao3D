@@ -199,7 +199,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentFileDialog(NULL),
       eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
-      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
+      renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
 {
@@ -1279,11 +1279,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
-        if (renderFramesCanceled)
-        {
-            renderFramesCanceled = false;
-            break;
-        }
+#define CHECK_CANCELED() \
+    if (renderFramesCanceled == 2) { inOfflineRendering = false; return; } \
+    else if (renderFramesCanceled == 1) { renderFramesCanceled = 0; break; }
 
         // Show progress information
         percent = 100*currentFrame/frameCount;
@@ -1292,8 +1290,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             prevPercent = percent;
             emit renderFramesProgress(percent);
         }
-
-        QApplication::processEvents();
 
         // Set time and run program
         XL::Save<page_list> savePageNames(pageNames, pageNames);
@@ -1327,17 +1323,19 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         frame.end();
 
         QApplication::processEvents();
+        CHECK_CANCELED();
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir)
                 .arg(currentFrame, digits, 10, QLatin1Char('0'));
         QImage image(frame.toImage());
-        // Strip alpha channel
-        image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
 
         currentFrame++;
+
+        QApplication::processEvents();
+        CHECK_CANCELED();
     }
 
     // Done with offline rendering
@@ -1345,7 +1343,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     if (!prevDisplay.isEmpty())
         displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
-    QApplication::processEvents();
 }
 
 
@@ -2124,6 +2121,7 @@ void Widget::reset()
     animated = true;
     blanked = false;
     stereoIdent = false;
+    pageShown = 1;
 }
 
 
@@ -2151,7 +2149,11 @@ void Widget::setupGL()
 {
     // Setup other
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (inOfflineRendering)
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                            GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    else
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
@@ -2669,6 +2671,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // If the key was not handled by any activity, forward to document
     if (!handled)
         (XL::XLCall ("key"), key) (xlProgram);
+    updateGL();
 }
 
 
@@ -4587,16 +4590,16 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
+            pageLinks["Up"] = lastPageName;
         pageTree = body;
         context->Evaluate(body);
     }
     else if (pageName == lastPageName)
     {
         // We are executing the page following the current one:
-        // Check if PageDown is set, otherwise set current page as default
+        // Check if Down is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = pageLinks["PageDown"] = name;
+            pageLinks["Down"] = name;
     }
 
     lastPageName = name;
@@ -8585,6 +8588,17 @@ Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 }
 
 
+static inline Name_p to_name_p(Tree_p t)
+// ----------------------------------------------------------------------------
+//   Cast from Tree_p to Name_p
+// ----------------------------------------------------------------------------
+{
+    if (Name_p n = t->AsName())
+        return n;
+    return XL::xl_false;
+}
+
+
 Name_p Widget::textEditKey(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the text editing activities
@@ -8605,6 +8619,13 @@ Name_p Widget::textEditKey(Tree_p self, text key)
         gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
+
+    // PageUp/PageDown do the same as Up/Down by default (even when Up/Down
+    // have been redefined)
+    if (key == "PageUp")
+        return to_name_p((XL::XLCall ("key"), "Up") (xlProgram));
+    if (key == "PageDown")
+        return to_name_p((XL::XLCall ("key"), "Down") (xlProgram));
 
     return XL::xl_false;
 }
@@ -10643,7 +10664,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
-        int pnum = 1;
+        uint pnum = 1;
 
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
@@ -10652,9 +10673,12 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
             Tree *action = new Prefix(prefix, new Text(name));
             action->SetSymbols(self->Symbols());
             std::ostringstream os;
-            os << label << pnum++ << " " << name;
+            os << label << pnum << " " << name;
             std::string txt(os.str());
             chooser->AddItem(txt, action);
+            if (pnum == pageShown)
+                chooser->SetCurrentItem(txt);
+            pnum++;
         }
         return XL::xl_true;
     }

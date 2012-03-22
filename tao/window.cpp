@@ -580,15 +580,6 @@ void Window::pageSetup()
 }
 
 
-void Window::removeSplashScreen()
-// ----------------------------------------------------------------------------
-//    Do not use the splash screen anymore
-// ----------------------------------------------------------------------------
-{
-    splashScreen = NULL;
-}
-
-
 #ifndef CFG_NOEDIT
 
 bool Window::save()
@@ -1448,8 +1439,7 @@ void Window::deleteAboutSplash()
 //    Delete the SplashScreen object allocated by the about() method
 // ----------------------------------------------------------------------------
 {
-    aboutSplash->deleteLater();
-    aboutSplash = NULL;
+    delete aboutSplash;
 }
 
 

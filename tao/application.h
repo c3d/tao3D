@@ -32,6 +32,7 @@
 #include <QStringList>
 #include <QTranslator>
 #include <QPixmap>
+#include <QPointer>
 
 namespace Tao {
 
@@ -137,7 +138,8 @@ private:
     QStringList  pathList;
     QStringList  urlList;
     QString      startDir;
-    SplashScreen *splash;
+    QPointer<SplashScreen>
+                 splash;
     int          pendingOpen;
     bool         hadWin;
     XL::source_names contextFiles;

@@ -108,7 +108,6 @@ protected slots:
 #endif
     void           checkOfflineRendering();
     void           printRenderingProgress(int percent);
-    void           onRenderingDone();
 
 protected:
     static QString defaultUserDocumentsFolderPath();

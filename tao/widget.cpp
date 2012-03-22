@@ -199,7 +199,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentFileDialog(NULL),
       eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
-      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
+      renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
 {
@@ -1279,11 +1279,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
-        if (renderFramesCanceled)
-        {
-            renderFramesCanceled = false;
-            break;
-        }
+#define CHECK_CANCELED() \
+    if (renderFramesCanceled == 2) { inOfflineRendering = false; return; } \
+    else if (renderFramesCanceled == 1) { renderFramesCanceled = 0; break; }
 
         // Show progress information
         percent = 100*currentFrame/frameCount;
@@ -1292,8 +1290,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             prevPercent = percent;
             emit renderFramesProgress(percent);
         }
-
-        QApplication::processEvents();
 
         // Set time and run program
         XL::Save<page_list> savePageNames(pageNames, pageNames);
@@ -1327,6 +1323,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         frame.end();
 
         QApplication::processEvents();
+        CHECK_CANCELED();
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
@@ -1336,6 +1333,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         image.save(fileName);
 
         currentFrame++;
+
+        QApplication::processEvents();
+        CHECK_CANCELED();
     }
 
     // Done with offline rendering
@@ -1343,7 +1343,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     if (!prevDisplay.isEmpty())
         displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
-    QApplication::processEvents();
 }
 
 

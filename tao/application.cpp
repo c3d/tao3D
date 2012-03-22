@@ -791,8 +791,7 @@ void Application::checkOfflineRendering()
     Widget *widget = findFirstTaoWindow()->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    connect(widget, SIGNAL(renderFramesDone()),
-            this,   SLOT(onRenderingDone()));
+    doNotEnterEventLoop = true;
     widget->renderFrames(x, y, start, end, folder, fps, page, disp);
 }
 
@@ -807,16 +806,6 @@ void Application::printRenderingProgress(int percent)
         std::cout << "..." << std::flush;
     else
         std::cout << "\n";
-}
-
-
-void Application::onRenderingDone()
-// ----------------------------------------------------------------------------
-//   Rendering option completed
-// ----------------------------------------------------------------------------
-{
-    //findFirstTaoWindow()->close();
-    doNotEnterEventLoop = true;
 }
 
 

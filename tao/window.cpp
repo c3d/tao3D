@@ -316,7 +316,16 @@ void Window::closeEvent(QCloseEvent *event)
     {
         writeSettings();
         closeToolWindows();
-        event->accept();
+        if (taoWidget->inOfflineRendering)
+        {
+            taoWidget->cancelRenderFrames(2);
+            QApplication::postEvent(this, new QCloseEvent);
+            event->ignore();
+        }
+        else
+        {
+            event->accept();
+        }
     }
     else
     {

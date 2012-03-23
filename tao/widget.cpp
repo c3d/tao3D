@@ -265,6 +265,15 @@ Widget::Widget(Window *parent, SourceFile *sf)
         std::cerr.precision(3);
     }
 
+    // Initialize statistics logging (-tfps)
+    IFTRACE(fps)
+    {
+        stats.enable(true, Statistics::TO_CONSOLE);
+        std::cout.setf(std::ios::fixed, std::ios::floatfield);
+        std::cout.setf(std::ios::showpoint);
+        std::cout.precision(3);
+    }
+
     // Initialize start time
     resetTimes();
 
@@ -734,6 +743,9 @@ void Widget::drawActivities()
     // Show FPS as text overlay
     if (stats.isEnabled())
         printStatistics();
+
+    IFTRACE(fps)
+        logStatistics();
 }
 
 
@@ -2021,7 +2033,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
+    displayLinkMutex.lock();
     droppedFrames = 0;
+    displayLinkMutex.unlock();
 #endif
 
     TaoSave saveCurrent(current, this);
@@ -2945,12 +2959,12 @@ void Widget::displayLinkEvent()
     // otherwise it means we can't keep up => dropped frame)
     displayLinkMutex.lock();
     bool pending = pendingDisplayLinkEvent;
+    if (pending)
+        droppedFrames++;
     pendingDisplayLinkEvent = true;
     displayLinkMutex.unlock();
     if (!pending)
         qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
-    else
-        droppedFrames++;
 }
 
 
@@ -3019,6 +3033,18 @@ static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
         }
     }
     return id;
+}
+
+unsigned int Widget::droppedFramesLocked()
+// ----------------------------------------------------------------------------
+//    Access value of droppedFrames under lock
+// ----------------------------------------------------------------------------
+{
+    unsigned int dropped;
+    displayLinkMutex.lock();
+    dropped = droppedFrames;
+    displayLinkMutex.unlock();
+    return dropped;
 }
 
 #endif
@@ -4009,7 +4035,7 @@ ulonglong Widget::now()
 
 void Widget::printStatistics()
 // ----------------------------------------------------------------------------
-//    Print current rendering statistics
+//    Print current rendering statistics as text overlay
 // ----------------------------------------------------------------------------
 {
     char fps[6] = "---.-";
@@ -4018,7 +4044,7 @@ void Widget::printStatistics()
         snprintf(fps, sizeof(fps), "%5.1f", n);
     char dropped[20] = "";
 #ifdef MACOSX_DISPLAYLINK
-    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
+    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFramesLocked());
 #endif
     GLint vp[4] = {0,0,0,0};
     GLint vx, vy, vw, vh;
@@ -4083,6 +4109,57 @@ void Widget::printStatistics()
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
     RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
                        tot>>10, alloc>>10, freed>>10);
+}
+
+
+void Widget::logStatistics()
+// ----------------------------------------------------------------------------
+//    Print current rendering statistics as CSV to stdout
+// ----------------------------------------------------------------------------
+{
+    static bool printHeader = true;
+    static QTime tm;
+
+    double n = stats.fps();
+    if (n >= 0)
+    {
+        if (tm.isValid() && tm.elapsed() < 1000 /* ms */)
+            return;
+        tm.restart();
+        if (printHeader)
+        {
+            std::cout << "Time;FPS;Exec;MaxExec;Draw;MaxDraw;GC;MaxGC;"
+                         "Select;MaxSelect";
+            if (XL::MAIN->options.threaded_gc)
+                std::cout << ";GCWait;MaxGCWait";
+#ifdef MACOSX_DISPLAYLINK
+            std::cout << ";Dropped";
+#endif
+            std::cout << "\n";
+            printHeader = false;
+        }
+        std::cout << CurrentTime() << ";"
+                  << n << ";"
+                  << stats.averageTimePerFrame(Statistics::EXEC) << ";"
+                  << stats.maxTime(Statistics::EXEC) << ";"
+                  << stats.averageTimePerFrame(Statistics::DRAW) << ";"
+                  << stats.maxTime(Statistics::DRAW) << ";"
+                  << stats.averageTimePerFrame(Statistics::GC) << ";"
+                  << stats.maxTime(Statistics::GC) << ";"
+                  << stats.averageTimePerFrame(Statistics::SELECT) << ";"
+                  << stats.maxTime(Statistics::SELECT);
+
+        if (XL::MAIN->options.threaded_gc)
+        {
+            std::cout << ";"
+                      << stats.averageTimePerFrame(Statistics::GC_WAIT) << ";"
+                      << stats.maxTime(Statistics::GC_WAIT);
+        }
+#ifdef MACOSX_DISPLAYLINK
+        std::cout << ";" << droppedFramesLocked();
+#endif
+        std::cout << "\n";
+    }
 }
 
 

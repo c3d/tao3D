@@ -244,6 +244,7 @@ public:
     // Timing
     ulonglong   now();
     void        printStatistics();
+    void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
     void        resetTimes() { pageStartTime = startTime = frozenTime
                                = CurrentTime(); }
@@ -968,6 +969,7 @@ private:
     bool                  stereoBuffersEnabled;
     int                   stereoSkip;
     bool                  holdOff;
+    unsigned int          droppedFramesLocked();
     unsigned int          droppedFrames;
 #else
     QBasicTimer           timer;

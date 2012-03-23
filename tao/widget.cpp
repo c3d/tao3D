@@ -4158,7 +4158,7 @@ void Widget::logStatistics()
 #ifdef MACOSX_DISPLAYLINK
         std::cout << ";" << droppedFramesLocked();
 #endif
-        std::cout << "\n";
+        std::cout << "\n" << std::flush;
     }
 }
 

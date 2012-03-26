@@ -38,6 +38,11 @@ public:
         EXEC, GC, GC_WAIT, DRAW, SELECT, FRAME,
         LAST_OP
     };
+    enum Destination
+    {
+        TO_SCREEN = 0x1, TO_CONSOLE = 0x2
+    };
+
     typedef QPair<int, int> date_val;
     typedef QList<date_val> durations;
 
@@ -49,8 +54,8 @@ public:
     void    begin(Operation op);
     void    end(Operation op);
     void    reset();
-    bool    enable(bool on = true);
-    bool    isEnabled();
+    bool    enable(bool on, int what = TO_SCREEN);
+    bool    isEnabled(int what = TO_SCREEN);
 
     double  fps();
     int     averageTime(Operation op);
@@ -58,7 +63,7 @@ public:
     int     maxTime(Operation op);
 
 protected:
-    bool        enabled;
+    int         enabled;
     int         interval;   // Measuring interval (ms)
     QTime       intervalTimer;
 

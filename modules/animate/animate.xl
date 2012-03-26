@@ -26,18 +26,11 @@ module_description
     import_name "Animate"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.0
+    version 1.001
 
 module_description "fr",
     name "Animations"
     description "Fonctions d'animation."
-
-// Compatibility with wireless remotes
-// Normally, PageUp and PageDown skip pages. But, most remotes have only
-// two keys and send PageUp/PageDown. So, when the Animate module is in
-// use it's better to bind the keys to the 'skip' function by default.
-key "PageUp" -> skip -1
-key "PageDown" -> skip 1
 
 // ============================================================================
 // 

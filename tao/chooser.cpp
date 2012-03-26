@@ -44,10 +44,7 @@ Chooser::Chooser(SourceFile *program, text name, Widget *w)
 // ----------------------------------------------------------------------------
     : Activity(name, w), xlProgram(program),
       keystrokes(""), item(0), firstItem(0), selected(NULL)
-{
-    // Force an immediate widget refresh
-    widget->updateGL();
-}
+{}
 
 
 Chooser::~Chooser()
@@ -431,6 +428,24 @@ void Chooser::AddCommands(Context *ctx, text prefix, text label)
         Tree *command = ctx->CreateCode(rw->to);
         caption = widget->xlTr(NULL, caption);
         AddItem(label + caption, command);
+    }
+}
+
+
+void Chooser::SetCurrentItem(text caption)
+// ----------------------------------------------------------------------------
+//   Set current item to be the line that matches 'caption'
+// ----------------------------------------------------------------------------
+{
+    int found = 0;
+    ChooserItems::iterator it;
+    for (it = items.begin(); it != items.end(); it++, found++)
+    {
+        if ((*it).caption == caption)
+        {
+            item = found;
+            return;
+        }
     }
 }
 

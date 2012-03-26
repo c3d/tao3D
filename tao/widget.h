@@ -148,7 +148,7 @@ public slots:
     void        renderFrames(int w, int h, double startT, double endT,
                              QString dir, double fps = 25.0, int page = -1,
                              QString displayName = "");
-    void        cancelRenderFrames() { renderFramesCanceled = true; }
+    void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
 
 
 signals:
@@ -244,6 +244,7 @@ public:
     // Timing
     ulonglong   now();
     void        printStatistics();
+    void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
     void        resetTimes() { pageStartTime = startTime = frozenTime
                                = CurrentTime(); }
@@ -968,6 +969,7 @@ private:
     bool                  stereoBuffersEnabled;
     int                   stereoSkip;
     bool                  holdOff;
+    unsigned int          droppedFramesLocked();
     unsigned int          droppedFrames;
 #else
     QBasicTimer           timer;
@@ -1002,7 +1004,7 @@ private:
     Qt::CursorShape       savedCursorShape;
     QCursor               cachedCursor;
     bool                  mouseCursorHidden;
-    bool                  renderFramesCanceled;
+    int                   renderFramesCanceled;
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;
     int                   offlineRenderingHeight;

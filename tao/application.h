@@ -32,6 +32,7 @@
 #include <QStringList>
 #include <QTranslator>
 #include <QPixmap>
+#include <QPointer>
 
 namespace Tao {
 
@@ -108,7 +109,6 @@ protected slots:
 #endif
     void           checkOfflineRendering();
     void           printRenderingProgress(int percent);
-    void           onRenderingDone();
 
 protected:
     static QString defaultUserDocumentsFolderPath();
@@ -138,7 +138,8 @@ private:
     QStringList  pathList;
     QStringList  urlList;
     QString      startDir;
-    SplashScreen *splash;
+    QPointer<SplashScreen>
+                 splash;
     int          pendingOpen;
     bool         hadWin;
     XL::source_names contextFiles;

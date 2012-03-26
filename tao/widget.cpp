@@ -199,7 +199,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       currentFileDialog(NULL),
       eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
-      renderFramesCanceled(false), inOfflineRendering(false), inDraw(false),
+      renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
       isInvalid(false)
 {
@@ -263,6 +263,15 @@ Widget::Widget(Window *parent, SourceFile *sf)
         std::cerr.setf(std::ios::fixed, std::ios::floatfield);
         std::cerr.setf(std::ios::showpoint);
         std::cerr.precision(3);
+    }
+
+    // Initialize statistics logging (-tfps)
+    IFTRACE(fps)
+    {
+        stats.enable(true, Statistics::TO_CONSOLE);
+        std::cout.setf(std::ios::fixed, std::ios::floatfield);
+        std::cout.setf(std::ios::showpoint);
+        std::cout.precision(3);
     }
 
     // Initialize start time
@@ -734,6 +743,9 @@ void Widget::drawActivities()
     // Show FPS as text overlay
     if (stats.isEnabled())
         printStatistics();
+
+    IFTRACE(fps)
+        logStatistics();
 }
 
 
@@ -1279,11 +1291,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
-        if (renderFramesCanceled)
-        {
-            renderFramesCanceled = false;
-            break;
-        }
+#define CHECK_CANCELED() \
+    if (renderFramesCanceled == 2) { inOfflineRendering = false; return; } \
+    else if (renderFramesCanceled == 1) { renderFramesCanceled = 0; break; }
 
         // Show progress information
         percent = 100*currentFrame/frameCount;
@@ -1292,8 +1302,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
             prevPercent = percent;
             emit renderFramesProgress(percent);
         }
-
-        QApplication::processEvents();
 
         // Set time and run program
         XL::Save<page_list> savePageNames(pageNames, pageNames);
@@ -1327,17 +1335,19 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         frame.end();
 
         QApplication::processEvents();
+        CHECK_CANCELED();
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir)
                 .arg(currentFrame, digits, 10, QLatin1Char('0'));
         QImage image(frame.toImage());
-        // Strip alpha channel
-        image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
 
         currentFrame++;
+
+        QApplication::processEvents();
+        CHECK_CANCELED();
     }
 
     // Done with offline rendering
@@ -1345,7 +1355,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     if (!prevDisplay.isEmpty())
         displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
-    QApplication::processEvents();
 }
 
 
@@ -2024,7 +2033,9 @@ void Widget::resizeGL(int width, int height)
     space->space = Box3(-width/2, -height/2, 0, width, height, 0);
     stats.reset();
 #ifdef MACOSX_DISPLAYLINK
+    displayLinkMutex.lock();
     droppedFrames = 0;
+    displayLinkMutex.unlock();
 #endif
 
     TaoSave saveCurrent(current, this);
@@ -2124,6 +2135,7 @@ void Widget::reset()
     animated = true;
     blanked = false;
     stereoIdent = false;
+    pageShown = 1;
 }
 
 
@@ -2151,7 +2163,11 @@ void Widget::setupGL()
 {
     // Setup other
     glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    if (inOfflineRendering)
+        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                            GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+    else
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);
@@ -2669,6 +2685,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // If the key was not handled by any activity, forward to document
     if (!handled)
         (XL::XLCall ("key"), key) (xlProgram);
+    updateGL();
 }
 
 
@@ -2942,12 +2959,12 @@ void Widget::displayLinkEvent()
     // otherwise it means we can't keep up => dropped frame)
     displayLinkMutex.lock();
     bool pending = pendingDisplayLinkEvent;
+    if (pending)
+        droppedFrames++;
     pendingDisplayLinkEvent = true;
     displayLinkMutex.unlock();
     if (!pending)
         qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
-    else
-        droppedFrames++;
 }
 
 
@@ -3016,6 +3033,18 @@ static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
         }
     }
     return id;
+}
+
+unsigned int Widget::droppedFramesLocked()
+// ----------------------------------------------------------------------------
+//    Access value of droppedFrames under lock
+// ----------------------------------------------------------------------------
+{
+    unsigned int dropped;
+    displayLinkMutex.lock();
+    dropped = droppedFrames;
+    displayLinkMutex.unlock();
+    return dropped;
 }
 
 #endif
@@ -4006,7 +4035,7 @@ ulonglong Widget::now()
 
 void Widget::printStatistics()
 // ----------------------------------------------------------------------------
-//    Print current rendering statistics
+//    Print current rendering statistics as text overlay
 // ----------------------------------------------------------------------------
 {
     char fps[6] = "---.-";
@@ -4015,7 +4044,7 @@ void Widget::printStatistics()
         snprintf(fps, sizeof(fps), "%5.1f", n);
     char dropped[20] = "";
 #ifdef MACOSX_DISPLAYLINK
-    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFrames);
+    snprintf(dropped, sizeof(dropped), " (dropped %d)", droppedFramesLocked());
 #endif
     GLint vp[4] = {0,0,0,0};
     GLint vx, vy, vw, vh;
@@ -4080,6 +4109,57 @@ void Widget::printStatistics()
     RasterText::moveTo(vx + 20, vy + vh - 20 - 10 - 17 - 17);
     RasterText::printf("Program memory %5dK reserved %5dK used %5dK freed",
                        tot>>10, alloc>>10, freed>>10);
+}
+
+
+void Widget::logStatistics()
+// ----------------------------------------------------------------------------
+//    Print current rendering statistics as CSV to stdout
+// ----------------------------------------------------------------------------
+{
+    static bool printHeader = true;
+    static QTime tm;
+
+    double n = stats.fps();
+    if (n >= 0)
+    {
+        if (tm.isValid() && tm.elapsed() < 1000 /* ms */)
+            return;
+        tm.restart();
+        if (printHeader)
+        {
+            std::cout << "Time;FPS;Exec;MaxExec;Draw;MaxDraw;GC;MaxGC;"
+                         "Select;MaxSelect";
+            if (XL::MAIN->options.threaded_gc)
+                std::cout << ";GCWait;MaxGCWait";
+#ifdef MACOSX_DISPLAYLINK
+            std::cout << ";Dropped";
+#endif
+            std::cout << "\n";
+            printHeader = false;
+        }
+        std::cout << CurrentTime() << ";"
+                  << n << ";"
+                  << stats.averageTimePerFrame(Statistics::EXEC) << ";"
+                  << stats.maxTime(Statistics::EXEC) << ";"
+                  << stats.averageTimePerFrame(Statistics::DRAW) << ";"
+                  << stats.maxTime(Statistics::DRAW) << ";"
+                  << stats.averageTimePerFrame(Statistics::GC) << ";"
+                  << stats.maxTime(Statistics::GC) << ";"
+                  << stats.averageTimePerFrame(Statistics::SELECT) << ";"
+                  << stats.maxTime(Statistics::SELECT);
+
+        if (XL::MAIN->options.threaded_gc)
+        {
+            std::cout << ";"
+                      << stats.averageTimePerFrame(Statistics::GC_WAIT) << ";"
+                      << stats.maxTime(Statistics::GC_WAIT);
+        }
+#ifdef MACOSX_DISPLAYLINK
+        std::cout << ";" << droppedFramesLocked();
+#endif
+        std::cout << "\n" << std::flush;
+    }
 }
 
 
@@ -4587,16 +4667,16 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         pageFound = pageId;
         pageLinks.clear();
         if (pageId > 1)
-            pageLinks["Up"] = pageLinks["PageUp"] = lastPageName;
+            pageLinks["Up"] = lastPageName;
         pageTree = body;
         context->Evaluate(body);
     }
     else if (pageName == lastPageName)
     {
         // We are executing the page following the current one:
-        // Check if PageDown is set, otherwise set current page as default
+        // Check if Down is set, otherwise set current page as default
         if (pageLinks.count("Down") == 0)
-            pageLinks["Down"] = pageLinks["PageDown"] = name;
+            pageLinks["Down"] = name;
     }
 
     lastPageName = name;
@@ -8585,6 +8665,17 @@ Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
 }
 
 
+static inline Name_p to_name_p(Tree_p t)
+// ----------------------------------------------------------------------------
+//   Cast from Tree_p to Name_p
+// ----------------------------------------------------------------------------
+{
+    if (Name_p n = t->AsName())
+        return n;
+    return XL::xl_false;
+}
+
+
 Name_p Widget::textEditKey(Tree_p self, text key)
 // ----------------------------------------------------------------------------
 //   Send a key to the text editing activities
@@ -8605,6 +8696,13 @@ Name_p Widget::textEditKey(Tree_p self, text key)
         gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
+
+    // PageUp/PageDown do the same as Up/Down by default (even when Up/Down
+    // have been redefined)
+    if (key == "PageUp")
+        return to_name_p((XL::XLCall ("key"), "Up") (xlProgram));
+    if (key == "PageDown")
+        return to_name_p((XL::XLCall ("key"), "Down") (xlProgram));
 
     return XL::xl_false;
 }
@@ -10643,7 +10741,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 {
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
-        int pnum = 1;
+        uint pnum = 1;
 
         page_list::iterator p;
         for (p = pageNames.begin(); p != pageNames.end(); p++)
@@ -10652,9 +10750,12 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
             Tree *action = new Prefix(prefix, new Text(name));
             action->SetSymbols(self->Symbols());
             std::ostringstream os;
-            os << label << pnum++ << " " << name;
+            os << label << pnum << " " << name;
             std::string txt(os.str());
             chooser->AddItem(txt, action);
+            if (pnum == pageShown)
+                chooser->SetCurrentItem(txt);
+            pnum++;
         }
         return XL::xl_true;
     }

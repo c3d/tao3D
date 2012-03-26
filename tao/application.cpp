@@ -470,11 +470,7 @@ bool Application::processCommandLine()
             sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
-        {
             window->splashScreen = splash;
-            QObject::connect(splash, SIGNAL(destroyed(QObject*)),
-                             window, SLOT(removeSplashScreen()));
-        }
         window->deleteOnOpenFailed = true;
         connect(window, SIGNAL(openFinished(bool)),
                 this, SLOT(onOpenFinished(bool)));
@@ -521,8 +517,7 @@ bool Application::processCommandLine()
     if (splash && pendingOpen == 0)
     {
         splash->close();
-        splash->deleteLater();
-        splash = NULL;
+        delete splash;
     }
 
     if (hadWin && !pendingOpen)
@@ -612,8 +607,7 @@ void Application::onOpenFinished(bool ok)
     if (pendingOpen == 0 && splash)
     {
         splash->close();
-        splash->deleteLater();
-        splash = NULL;
+        delete splash;
         Window * win = findFirstTaoWindow();
         if (win && win->isUntitled)
         {
@@ -791,8 +785,7 @@ void Application::checkOfflineRendering()
     Widget *widget = findFirstTaoWindow()->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    connect(widget, SIGNAL(renderFramesDone()),
-            this,   SLOT(onRenderingDone()));
+    doNotEnterEventLoop = true;
     widget->renderFrames(x, y, start, end, folder, fps, page, disp);
 }
 
@@ -807,16 +800,6 @@ void Application::printRenderingProgress(int percent)
         std::cout << "..." << std::flush;
     else
         std::cout << "\n";
-}
-
-
-void Application::onRenderingDone()
-// ----------------------------------------------------------------------------
-//   Rendering option completed
-// ----------------------------------------------------------------------------
-{
-    //findFirstTaoWindow()->close();
-    doNotEnterEventLoop = true;
 }
 
 

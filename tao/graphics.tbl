@@ -552,6 +552,20 @@ PREFIX(ToggleShowStatistics, boolean, "toggle_show_statistics", ,
        RTAO(toggleShowStatistics(self)),
        GROUP(gui)
        SYNOPSIS("Toggle display of rendering statistics"))
+PREFIX(LogStatistics, boolean, "log_statistics",
+       PARM(flag, boolean, "Flag controlling output of statistics to stdout"),
+       RTAO(logStatistics(self, flag)),
+       GROUP(gui)
+       SYNOPSIS("Enable or disable logging of performance statistics")
+       DESCRIPTION("When the flag is true, performance statistics are sent "
+                   "periodically to standard output as CSV data.")
+       RETURNS(boolean, "The previous state."))
+PREFIX(ToggleLogStatistics, boolean, "toggle_log_statistics", ,
+       RTAO(toggleLogStatistics(self)),
+       GROUP(gui)
+       SYNOPSIS("Toggle logging of performance statistics")
+       DESCRIPTION("Toggle logging of performance statistics to stdout.")
+       RETURNS(boolean, "The previous state."))
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetViewAndRefresh(self)),
        GROUP(gui)

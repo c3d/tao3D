@@ -4128,7 +4128,7 @@ void Widget::logStatistics()
         tm.restart();
         if (printHeader)
         {
-            std::cout << "Time;FPS;Exec;MaxExec;Draw;MaxDraw;GC;MaxGC;"
+            std::cout << "Time;PageNum;FPS;Exec;MaxExec;Draw;MaxDraw;GC;MaxGC;"
                          "Select;MaxSelect";
             if (XL::MAIN->options.threaded_gc)
                 std::cout << ";GCWait;MaxGCWait";
@@ -4139,6 +4139,7 @@ void Widget::logStatistics()
             printHeader = false;
         }
         std::cout << CurrentTime() << ";"
+                  << pageShown << ";"
                   << n << ";"
                   << stats.averageTimePerFrame(Statistics::EXEC) << ";"
                   << stats.maxTime(Statistics::EXEC) << ";"

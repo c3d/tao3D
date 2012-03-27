@@ -345,12 +345,24 @@ void Window::checkFiles()
 
 void Window::toggleAnimations()
 // ----------------------------------------------------------------------------
-//   Toggle between full-screen and normal mode
+//   Toggle animations
 // ----------------------------------------------------------------------------
 {
     bool enable = !taoWidget->hasAnimations();
     taoWidget->enableAnimations(enable);
     viewAnimationsAct->setChecked(enable);
+}
+
+
+void Window::toggleStereoIdent()
+// ----------------------------------------------------------------------------
+//   Toggle stereoscopic test pattern
+// ----------------------------------------------------------------------------
+{
+    bool enable = !taoWidget->stereoIdentEnabled();
+    taoWidget->stereoIdentify(NULL, enable);
+    taoWidget->refreshNow();
+    stereoIdentAct->setChecked(enable);
 }
 
 
@@ -399,6 +411,16 @@ void Window::newFile()
         other->show();
     }
 #endif
+}
+
+
+void Window::closeDocument()
+// ----------------------------------------------------------------------------
+//   Replace current document with welcome screen or close welcome window.
+// ----------------------------------------------------------------------------
+{
+    loadFile(QFileInfo("system:welcome/welcome.ddd").canonicalFilePath(),
+             false);
 }
 
 
@@ -1615,11 +1637,15 @@ void Window::createActions()
 
     closeAct = new Action(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
-    closeAct->setStatusTip(tr("Close this window"));
+    closeAct->setStatusTip(tr("Close the document"));
     closeAct->setObjectName("close");
-    connect(closeAct, SIGNAL(triggered()), this, SLOT(close()));
+    connect(closeAct, SIGNAL(triggered()), this, SLOT(closeDocument()));
 
+#if defined(Q_OS_WIN)
     exitAct = new Action(tr("E&xit"), this);
+#else
+    exitAct = new Action(tr("&Quit"), this);
+#endif
     exitAct->setShortcuts(QKeySequence::Quit);
     exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");
@@ -1729,8 +1755,8 @@ void Window::createActions()
     licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
 
-    onlineDocAct = new QAction(tr("&Online Documentation"), this);
-    onlineDocAct->setStatusTip(tr("Open the Online Documentation"));
+    onlineDocAct = new QAction(tr("&Documentation"), this);
+    onlineDocAct->setStatusTip(tr("Open the documentation"));
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
@@ -1749,6 +1775,15 @@ void Window::createActions()
     viewAnimationsAct->setObjectName("viewAnimations");
     connect(viewAnimationsAct, SIGNAL(triggered()),
             this, SLOT(toggleAnimations()));
+
+    stereoIdentAct = new QAction(tr("Stereoscopic identification"), this);
+    stereoIdentAct->setStatusTip(tr("Switch the stereoscopic identification "
+                                    "pattern on or off"));
+    stereoIdentAct->setCheckable(true);
+    stereoIdentAct->setChecked(taoWidget->stereoIdentEnabled());
+    stereoIdentAct->setObjectName("stereoIdentify");
+    connect(stereoIdentAct, SIGNAL(triggered()),
+            this, SLOT(toggleStereoIdent()));
 
 #ifndef CFG_NOEDIT
     cutAct->setEnabled(false);
@@ -1883,6 +1918,7 @@ void Window::createMenus()
     viewMenu->addAction(slideShowAct);
 #endif
     viewMenu->addAction(viewAnimationsAct);
+    viewMenu->addAction(stereoIdentAct);
     displayModeMenu = viewMenu->addMenu(tr("Display mode"));
     displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
@@ -2155,6 +2191,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Clean previous program
     taoWidget->purgeTaoInfo();
+
+    // Close any module possibly imported by previous document
+    ModuleManager::moduleManager()->unloadImported();
 
     taoWidget->reset();
 
@@ -2717,6 +2756,9 @@ void Window::setCurrentFile(const QString &fileName)
 
     markChanged(false);
     setWindowFilePath(curFile);
+
+    // Disable close menu if document is the default one
+    closeAct->setEnabled(!isTutorial(curFile));
 
     // Update the recent file list
     if (!isUntitled && !isTutorial(curFile) && fi.exists())

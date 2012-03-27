@@ -102,6 +102,7 @@ public slots:
     void markChanged(bool changed = true);
     void toggleAnimations();
     bool toggleSlideShow();
+    void toggleStereoIdent();
 #ifndef CFG_NOSRCEDIT
     void sourceViewBecameVisible(bool visible);
 #endif
@@ -133,6 +134,7 @@ protected:
 private slots:
     void newDocument();
     void newFile();
+    void closeDocument();
     void openRecentFile();
     void clearRecentFileList();
 #ifndef CFG_NOEDIT
@@ -293,6 +295,7 @@ private:
     QAction          *slideShowAct;
 #endif
     QAction          *viewAnimationsAct;
+    QAction          *stereoIdentAct;
     QUndoView        *undoView;
 #ifndef CFG_NOEDIT
     QAction          *cutAct;

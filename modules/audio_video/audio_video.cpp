@@ -191,7 +191,7 @@ XL::Integer_p VideoSurface::movie_texture(XL::Context_p context,
         licensed = tao->checkLicense("AudioVideo 1.0", false);
         tested = true;
     }
-    if (!licensed && !tao->blink(1.0, 0.2))
+    if (!licensed && !tao->blink(1.0, 0.2, 300))
         return 0;
 
 

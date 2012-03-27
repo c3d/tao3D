@@ -45,15 +45,14 @@ rectangle 100, 0, 150, 100
  *
  * @par Colors and materials
  *
- * When lighting is enabled and until you set materials
- * explicitely (by calling one of the <tt>material_*</tt> functions),
- * the current color will be considered as a "front and back, ambient
- * and diffuse" material. That is, the following code:
+ * When lighting is enabled, changing the current color changes the
+ * "front and back, ambient and diffuse" material properties.
+ * That is, the following code:
  @code
 // Yellow
 color 1, 1, 0, 1
  @endcode
- * ...is equivalent to:
+ * ...is always equivalent to:
  @code
 // Yellow
 material_ambient 1, 1, 0, 1
@@ -128,15 +127,14 @@ rectangle 100, 0, 150, 100
  *
  * @par Couleurs et matériaux
  *
- * Lorsqu'au moins une lumière est active, et jusqu'à ce qu'un matériau soit
- * spécifié (par l'une des primitives <tt>material_*</tt>), la couleur courante
- * est considérée comme un matériau <em>front and back, ambient and
+ * Lorsqu'au moins une lumière est active, un changement de la couleur
+ * courante change la couleur des matériaux <em>front and back, ambient and
  * diffuse</em>. Autrement dit, le code suivant :
  @code
 // Jaune
 color 1, 1, 0, 1
  @endcode
- * ...est équivalent à :
+ * ...est toujours équivalent à :
  @code
 // Jaune
 material_ambient 1, 1, 0, 1
@@ -318,6 +316,9 @@ light_specular(r:real, g:real, b:real, a:real);
  * Définit la position de la lumière courante.
  * Équivalent à l'appel OpenGL :
  * <tt>glLightfv(id, GL_POSITION, {x, y, z, 0})</tt>
+ *
+ * @~
+ * @see light_position(x:real, y:real, z:real);
  */
 light_position(x:real, y:real, z:real);
 
@@ -338,6 +339,9 @@ light_position(x:real, y:real, z:real);
  * away (like the sun), and <tt>w = 1.0</tt> for a light in a fixed position
  * (like a lamp).
  *
+ * The default position for any light is <tt>(0.0, 0.0, 1.0, 0.0)</tt>, that
+ * is, a directional light along the Z axis.
+ *
  * @~french
  * Définit la position de la lumière courante.
  * Équivalent à l'appel OpenGL :
@@ -353,6 +357,9 @@ light_position(x:real, y:real, z:real);
  * On utilise typiquement <tt>w = 0.0</tt> pour une lumière "à l'infini" (par
  * exemple, le soleil) et <tt>w = 1.0</tt> pour une lumière proche (par exemple,
  * une lampe).
+ *
+ * La position par défaut d'une source de lumière est <tt>(0.0, 0.0, 1.0, 0.0)</tt>,
+ * ce qui représente une source directionnelle parallèle à l'axe Z.
  */
 light_position(x:real, y:real, z:real, w:real);
 

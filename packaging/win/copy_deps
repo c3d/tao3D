@@ -46,7 +46,23 @@ doo cp -r "${LIBDIR_QT}"/../plugins/* build_root/
 # Uncompress Git distribution into build_root/
 #
 
-GITKIT=PortableGit-1.7.0.2-preview20100309.7z
+GITKIT=PortableGit-1.7.8-preview20111206.7z
+GITURL=http://msysgit.googlecode.com/files/$GITKIT
+function git_file_ok() {
+  [ ! -e 3rdparty/$GITKIT ] && return 1
+  echo "da2b5ce454f41782f012936119823876 *3rdparty/$GITKIT" | md5sum --check >/dev/null
+}
+downloaded=0
+while ! git_file_ok ; do
+  [ $downloaded -eq 1 ] && { echo "Downloaded file is invalid!" ; exit 1 ; }
+  echo "Downloading $GITURL..."
+  mkdir -p 3rdparty
+  (
+    cd 3rdparty
+    curl $GITURL -o $GITKIT
+  )
+  downloaded=$((downloaded + 1))
+done
 (
 cd $THISDIR
 mkdir -p build_root/git

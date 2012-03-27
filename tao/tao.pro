@@ -33,6 +33,8 @@ QT += webkit \
     opengl \
     svg
 CONFIG += help
+QMAKE_SUBSTITUTES += version2.h.in
+QMAKE_DISTCLEAN += version2.h
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -56,150 +58,148 @@ linux-g++* {
 }
 
 # Input
-HEADERS += widget.h \
-    include/tao/tao_gl.h \
-    window.h \
+HEADERS +=     activity.h \
     application.h \
-    init_cleanup.h \
-    licence.h \
-    decryption.h \
-    frame.h \
-    svg.h \
-    texture.h \
-    include/tao/coords.h \
-    include/tao/coords3d.h \
-    color.h \
-    gl_keepers.h \
-    drawing.h \
-    shapes.h \
-    text_drawing.h \
-    shapes3d.h \
-    path3d.h \
-    table.h \
-    chooser.h \
-    binpack.h \
-    glyph_cache.h \
+    apply_changes.h \
+    assistant.h \
     attributes.h \
-    lighting.h \
-    transforms.h \
-    layout.h \
-    page_layout.h \
-    space_layout.h \
+    binpack.h \
+    chooser.h \
+    color.h \
+    decryption.h \
+    destination_folder_dialog.h \
+    dir.h \
+    display_driver.h \
+    documentation.h \
+    drag.h \
+    drawing.h \
+    error_message_dialog.h \
+    font.h \
+    font_file_manager.h \
+    frame.h \
+    gc_thread.h \
+    git_backend.h \
+    gl_keepers.h \
+    glyph_cache.h \
+    group_layout.h \
+    info_trash_can.h \
+    init_cleanup.h \
+    inspectordialog.h \
     justification.h \
     justification.hpp \
-    apply_changes.h \
-    normalize.h \
-    activity.h \
-    selection.h \
+    layout.h \
+    licence.h \
+    license_dialog.h \
+    lighting.h \
     manipulator.h \
     menuinfo.h \
-    widget_surface.h \
-    process.h \
-    repository.h \
-    git_backend.h \
-    include/tao/tao_utf8.h \
-    tao_tree.h \
-    font.h \
-    drag.h \
-    error_message_dialog.h \
-    group_layout.h \
-    resource_mgt.h \
-    tree_cloning.h \
-    font_file_manager.h \
-    splash_screen.h \
-    documentation.h \
+    module_info_dialog.h \
+    module_manager.h \
+    module_renderer.h \
     new_document_wizard.h \
+    normalize.h \
+    page_layout.h \
+    path3d.h \
     preferences_dialog.h \
     preferences_pages.h \
-    module_manager.h \
-    text_edit.h \
+    process.h \
+    raster_text.h \
+    render_to_file_dialog.h \
+    repository.h \
+    resource_mgt.h \
+    selection.h \
+    shapes.h \
+    shapes3d.h \
+    space_layout.h \
+    splash_screen.h \
+    statistics.h \
+    svg.h \
+    table.h \
     tao_main.h \
+    tao_tree.h \
+    templates.h \
+    text_drawing.h \
+    text_edit.h \
+    texture.h \
     tool_window.h \
+    transforms.h \
+    tree_cloning.h \
+    widget.h \
+    widget_surface.h \
+    window.h \
+    include/tao/coords.h \
+    include/tao/coords3d.h \
+    include/tao/matrix.h \
     include/tao/module_api.h \
     include/tao/module_info.h \
-    module_renderer.h \
-    layout_cache.h \
-    render_to_file_dialog.h \
-    inspectordialog.h \
-    raster_text.h \
-    dir.h \
-    templates.h \
-    module_info_dialog.h \
-    display_driver.h \
-    include/tao/matrix.h \
-    statistics.h \
-    gc_thread.h \
-    info_trash_can.h \
-    destination_folder_dialog.h \
-    assistant.h \
-    license_dialog.h \
-    include/tao/tao_info.h
+    include/tao/tao_gl.h \
+    include/tao/tao_info.h \
+    include/tao/tao_utf8.h \
 
-SOURCES += tao_main.cpp \
-    widget.cpp \
-    window.cpp \
-    frame.cpp \
-    svg.cpp \
-    widget_surface.cpp \
-    texture.cpp \
-    drawing.cpp \
-    shapes.cpp \
-    text_drawing.cpp \
-    shapes3d.cpp \
-    path3d.cpp \
-    table.cpp \
-    chooser.cpp \
-    binpack.cpp \
-    glyph_cache.cpp \
-    attributes.cpp \
-    lighting.cpp \
-    transforms.cpp \
-    layout.cpp \
-    page_layout.cpp \
-    space_layout.cpp \
-    apply_changes.cpp \
-    normalize.cpp \
-    activity.cpp \
-    selection.cpp \
-    manipulator.cpp \
-    gl_keepers.cpp \
-    menuinfo.cpp \
-    process.cpp \
-    repository.cpp \
-    git_backend.cpp \
+SOURCES +=     activity.cpp \
     application.cpp \
-    init_cleanup.cpp \
-    font.cpp \
-    drag.cpp \
-    error_message_dialog.cpp \
-    group_layout.cpp \
-    resource_mgt.cpp \
-    tree_cloning.cpp \
-    font_file_manager.cpp \
-    splash_screen.cpp \
+    apply_changes.cpp \
+    assistant.cpp \
+    attributes.cpp \
+    binpack.cpp \
+    chooser.cpp \
+    destination_folder_dialog.cpp \
+    dir.cpp \
+    display_driver.cpp \
     documentation.cpp \
+    drag.cpp \
+    drawing.cpp \
+    error_message_dialog.cpp \
+    font.cpp \
+    font_file_manager.cpp \
+    frame.cpp \
+    gc_thread.cpp \
+    git_backend.cpp \
+    gl_keepers.cpp \
+    glyph_cache.cpp \
+    group_layout.cpp \
+    info_trash_can.cpp \
+    init_cleanup.cpp \
+    inspectordialog.cpp \
+    layout.cpp \
+    license_dialog.cpp \
+    lighting.cpp \
+    manipulator.cpp \
+    menuinfo.cpp \
+    module_api_p.cpp \
+    module_info_dialog.cpp \
+    module_manager.cpp \
+    module_renderer.cpp \
     new_document_wizard.cpp \
+    normalize.cpp \
+    page_layout.cpp \
+    path3d.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
-    module_manager.cpp \
-    text_edit.cpp \
-    tool_window.cpp \
-    module_api_p.cpp \
-    module_renderer.cpp \
-    layout_cache.cpp \
-    render_to_file_dialog.cpp \
-    inspectordialog.cpp \
+    process.cpp \
     raster_text.cpp \
-    dir.cpp \
-    templates.cpp \
-    module_info_dialog.cpp \
-    display_driver.cpp \
+    render_to_file_dialog.cpp \
+    repository.cpp \
+    resource_mgt.cpp \
+    selection.cpp \
+    shapes.cpp \
+    shapes3d.cpp \
+    space_layout.cpp \
+    splash_screen.cpp \
     statistics.cpp \
-    gc_thread.cpp \
-    info_trash_can.cpp \
-    assistant.cpp \
-    license_dialog.cpp \
-    destination_folder_dialog.cpp
+    svg.cpp \
+    table.cpp \
+    tao_main.cpp \
+    templates.cpp \
+    text_drawing.cpp \
+    text_edit.cpp \
+    texture.cpp \
+    tool_window.cpp \
+    transforms.cpp \
+    tree_cloning.cpp \
+    widget.cpp \
+    widget_surface.cpp \
+    window.cpp
 
 win32 {
     HEADERS += dde_widget.h
@@ -260,14 +260,14 @@ contains(DEFINES, CFG_NOGIT) {
         selective_undo_dialog.cpp \
         undo.cpp
     FORMS += \
-        pull_from_dialog.ui \
-        remote_selection_frame.ui \
         clone_dialog.ui \
-        merge_dialog.ui \
-        history_dialog.ui \
+        diff_dialog.ui \
         fetch_push_dialog.ui \
+        history_dialog.ui \
         history_frame.ui \
-        diff_dialog.ui
+        merge_dialog.ui \
+        pull_from_dialog.ui \
+        remote_selection_frame.ui
 }
 contains(DEFINES, CFG_NONETWORK) {
     !build_pass:message("File>Open Nework and opening URIs (docs, templates, modules) is disabled")
@@ -288,11 +288,11 @@ contains(DEFINES, CFG_NOSRCEDIT) {
     !build_pass:message("Document source editor is disabled")
 } else {
     HEADERS += \
-        xl_source_edit.h \
-        xl_highlighter.h
+        xl_highlighter.h \
+        xl_source_edit.h
     SOURCES += \
-        xl_source_edit.cpp \
-        xl_highlighter.cpp
+        xl_highlighter.cpp \
+        xl_source_edit.cpp
 }
 contains(DEFINES, CFG_NORELOAD) {
     !build_pass:message("Automatic document reload is disabled")
@@ -306,9 +306,9 @@ contains(DEFINES, CFG_NOFULLSCREEN) {
 contains(DEFINES, CFG_NOMODULEUPDATE) {
     !build_pass:message("Module update is disabled")
 }
-CXXTBL_SOURCES += graphics.cpp \
-    formulas.cpp
-NOWARN_SOURCES += licence.cpp decryption.cpp
+CXXTBL_SOURCES += formulas.cpp graphics.cpp
+
+NOWARN_SOURCES += decryption.cpp licence.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -369,8 +369,8 @@ OTHER_FILES +=  \
     welcome/welcome.ddd
 
 FORMS += error_message_dialog.ui \
-    render_to_file_dialog.ui \
-    inspectordialog.ui
+    inspectordialog.ui \
+    render_to_file_dialog.ui
 
 # Automatic embedding of Git version
 QMAKE_CLEAN += version.h

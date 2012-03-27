@@ -1,0 +1,18 @@
+Package: taopresentations
+Version: $$GITREV
+Section: graphics
+Architecture: $$DEB_HOST_ARCH
+Depends: libc6, libgcc1, libgl1-mesa-glx, libglu1-mesa, libqt4-help (>= $$QTVER), libqt4-network (>= $$QTVER), libqt4-opengl (>= $$QTVER), libqt4-sql (>= $$QTVER), libqt4-svg (>= $$QTVER), libqtcore4 (>= $$QTVER), libqtgui4 (>= $$QTVER), libqtwebkit4, libstdc++6, libvlc5, vlc, libx11-6, libxss1, git (>= 1.7.0)
+Installed-Size: @INSTALLED_SIZE@
+Maintainer: Taodyners <contact@taodyne.com>
+Description: Tao Presentations
+ Tao Presentations is a program to create and show dynamic, interactive
+ 2D and 3D presentations. Many kinds of display formats are supported,
+ including stereoscopic (3D with glasses) and autostereoscopic (3D without
+ glasses).
+ Tao Presentations relies on a script-based dynamic document description
+ technology (DDD) to help you create richer, smarter documents: create
+ multilingual presentations, integrate 3D models, play sounds and 2D or 3D
+ videos... This program can be used for corporate presentations, scientific
+ conferences, interactive 3D product showcases, digital signage applications
+ and more.

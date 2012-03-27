@@ -40,7 +40,6 @@
 #include "runtime.h"
 #include "font_file_manager.h"
 #include "layout.h"
-#include "layout_cache.h"
 #include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
@@ -182,12 +181,14 @@ public:
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();
     void        legacyDraw();
+    void        drawStereoIdent();
     void        drawScene();
     void        drawSelection();
     void        drawActivities();
     void        setGlClearColor();
     void        getCamera(Point3 *position, Point3 *target, Vector3 *upVector,
                           double *toScreen);
+    bool        stereoIdentEnabled(void) { return stereoIdent; }
 
     // Events
     bool        forwardEvent(QEvent *event);
@@ -382,6 +383,8 @@ public:
     // Setting attributes
     Tree_p      windowSize(Tree_p self, Integer_p width, Integer_p height);
     Name_p      depthTest(Tree_p self, bool enable);
+    Name_p      depthMask(Tree_p self, bool enable);
+    Name_p      depthFunction(XL::Tree_p self, text func);
     Name_p      blendFunction(Tree_p self, text src, text dst);
     Name_p      blendFunctionSeparate(Tree_p self,
                                       text src, text dst,
@@ -408,6 +411,8 @@ public:
     Name_p      toggleSlideShow(Tree_p self);
     Name_p      blankScreen(XL::Tree_p self, bool bs);
     Name_p      toggleBlankScreen(Tree_p self);
+    Name_p      stereoIdentify(XL::Tree_p self, bool bs);
+    Name_p      toggleStereoIdentify(Tree_p self);
     Name_p      toggleHandCursor(Tree_p self);
     Name_p      autoHideCursor(XL::Tree_p self, bool autoHide);
     Name_p      enableMouseCursor(XL::Tree_p self, bool on);
@@ -654,6 +659,7 @@ public:
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog, Integer_p depth=NULL);
+    Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
                                Real_p start_x, Real_p start_y, Real_p end_x, Real_p end_y,
@@ -808,6 +814,8 @@ public:
     Name_p      displaySet(Context *context, Tree_p self, Tree_p code);
     Text_p      displayMode();
     Name_p      readOnly();
+    Text_p      baseName(Tree_p, text filename);
+    Text_p      dirName(Tree_p, text filename);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
@@ -864,6 +872,13 @@ private:
     typedef std::map<Tree_p, GLuint>         GLid_map;
     typedef std::set<Tree_p>                 tree_set;
 
+    struct StereoIdentTexture
+    {
+        StereoIdentTexture(int w, int h, GLuint tex) : w(w), h(h), tex(tex) {}
+        int    w, h;
+        GLuint tex;
+    };
+
     // XL Runtime
     SourceFile           *xlProgram;
     Context_p             formulas;
@@ -896,11 +911,13 @@ private:
     bool                  drawAllPages;
     bool                  animated;
     bool                  blanked;
+    std::vector<StereoIdentTexture>
+                          stereoIdentPatterns;
+    bool                  stereoIdent;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;
     GLint                 mouseTrackingViewport[4];
     int                   stereoPlane, stereoPlanes;
-    LayoutCache           layoutCache;
     DisplayDriver *       displayDriver;
     GLuint                watermark;
     text                  watermarkText;
@@ -992,6 +1009,8 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    StereoIdentTexture    newStereoIdentTexture(int i);
+    void                  updateStereoIdentPatterns(int nb);
     void        runPurgeAction(XL::Action &action);
     void        updateFileDialog(Tree *properties, Tree *context);
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
@@ -1011,6 +1030,8 @@ public:
     void eraseFlow(text flowName){ flows.erase(flowName);}
     void                  setWatermarkText(text t, int w, int h);
     static void           setWatermarkTextAPI(text t, int w, int h);
+    void                  drawFullScreenTexture(int texw, int texh, GLuint tex,
+                                                bool centered = false);
     void                  drawWatermark();
     static void           drawWatermarkAPI();
     static double         trueCurrentTime();

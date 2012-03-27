@@ -26,6 +26,7 @@
 #include "base.h"
 #include "module_manager.h"
 #include "version.h"
+#include "version2.h"
 #include "tao_utf8.h"
 
 #include <QByteArray>
@@ -84,11 +85,13 @@ void Assistant::showDocumentation(const QString &page)
         helpFiles.sort();
         // Show main Tao help file always first
         QString taoMainHelp = Application::applicationDirPath()
-                + "/doc/" + TaoApp->lang + "/qch/TaoPresentations.qch";
+                + "/doc/" + TaoApp->lang + "/qch/TaoPresentations-"
+                VERSION ".qch";
         // Load english doc if localized one is not available
         if (!QFileInfo(taoMainHelp).exists())
             taoMainHelp = Application::applicationDirPath()
-                    + "/doc/en/qch/TaoPresentations.qch";
+                    + "/doc/en/qch/TaoPresentations-"
+                    VERSION ".qch";
         helpFiles.prepend(taoMainHelp);
         registerQchFiles(helpFiles);
         registered = true;

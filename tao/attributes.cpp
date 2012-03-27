@@ -103,6 +103,16 @@ void FillColor::Draw(Layout *where)
 }
 
 
+void CachedDrawing::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw a cached drawing from a display list
+// ----------------------------------------------------------------------------
+{
+    (void) where;
+    glCallList(displayList);
+}
+
+
 void FillTexture::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Remember the texture in the layout
@@ -326,6 +336,24 @@ void DepthTest::Draw(Layout *)
         glEnable(GL_DEPTH_TEST);
     else
         glDisable(GL_DEPTH_TEST);
+}
+
+
+void DepthMask::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Enable or disable the depth mask
+// ----------------------------------------------------------------------------
+{
+    glDepthMask(enable ? GL_TRUE : GL_FALSE);
+}
+
+
+void DepthFunc::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Specifies the depth comparison function
+// ----------------------------------------------------------------------------
+{
+    glDepthFunc(func);
 }
 
 

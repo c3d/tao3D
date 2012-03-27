@@ -1,5 +1,67 @@
 Change log for Tao Presentations
 
+1.07 (16-Mar-2012)
+
+#1979 Add Declipse mode support for 2D+Depth screens
+#1977 Add base_name and dir_name primitives
+#1976 Add depth_func primitive to change glDepthFunc 
+#1975 Chooser is not drawn correctly in 2D+Depth
+#1974 window_width and window_height return incorrect values in "frame packing" modes
+#1973 VLCAudioVideo: possible crash when file is not found
+#1970 Optimization: do not execute selection drawing code if there is no selection
+#1969 Add 'cached' to create display lists to accelerate drawing
+#1968 Accelerate xl_load_data for large data sets
+#1965 locally inside locally executed twice
+#1964 VLCAudioVideo: reduce video start time; improve performance on MacOSX
+#1961 VLCAudioVideo: add support for per-media VLC options
+#1497 Pictures produced by the offscreen renderer have transparency
+#1645 Incorrect mouse position reported by on_click with stereoscopy
+
+1.06 (04-Mar-2012)
+
+#1957 Some SDK files need updating
+#1956 Linux: invalid hostid error
+#1955 Main Tao documentation not shown in help viewer
+#1950 StereoDecoder: Add feature to show "reverse" stereo movies
+#1686 Activating stereoscopy may disable textures
+
+1.05 (29-Feb-2012)
+
+#1953 VLCAudioVideo: add support for HTTP proxy or any other VLC option
+#1952 Windows: upgrade Git to fix module download error
+#1951 Add stereoscopic identification pattern
+#1948 Improve french translation for fill color and line color menus
+#1947 VLCAudioVideo: Linux: some videos don't play if package vlc is not installed
+#1946 Remove redundant entries in command chooser
+#1928 Tao main documentations can appear twice
+#1922 Unhelpful error message when downloading module but directory exists
+
+1.04 (23-Feb-2012)
+
+#1941 Glow: fix incorrect effect on AMD cards
+#1933 Remove pan and zoom using scroll wheel
+#1930 Taodyne logo missing in documentation
+#1927 Put back the module SDK in the Discovery and Creativity packages
+#1925 VLCAudioVideo: playback is not stopped when a new document is opened
+#1921 File > Close menu should not exit application
+#1920 Multitexturing doesn't work correctly in a frame_texture
+#1919 Infinite loop when files primitive is given a path with double slashes
+#1918 Text display and chooser display problems when using texture_unit 1
+#1915 VLCAudioVideo: movie_playing return always false for an audio file
+#1914 VLCAudioVideo: calling movie_play after movie_stop doesn't replay the movie
+#1909 Unlicenced behavior of stereo_viewpoints is incorrect
+#1908 Add primitives enable_depth_mask and disable_depth_mask
+#1906 Some files are not visible with the "files" primitive
+#1887 Add DepthOfField module
+#1309 Linux packaging: missing components when installing on Ubuntu
+#222  Create a native Linux package (.deb)
+
+1.03 (13-Feb-2012)
+
+#1900 StereoDecoder only shows half frame
+#1899 Make StereoDecoder work with Alioscopy screens
+#1898 Windows: module documentation is almost empty
+
 1.02 (07-Feb-2012)
 
 #1892 Cmd-Q / Ctrl-W does not quit application if license warning is shown

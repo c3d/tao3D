@@ -95,6 +95,18 @@ struct FillColor : ColorAttribute
 };
 
 
+struct CachedDrawing : Attribute
+// ----------------------------------------------------------------------------
+//    Record a display list attribute
+// ----------------------------------------------------------------------------
+{
+    CachedDrawing(GLuint displayList): displayList(displayList) {}
+    virtual void        Draw(Layout *where);
+    virtual text        Type() { return "CachedDrawing";}
+    GLuint              displayList;
+};
+
+
 struct FillTexture : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture change
@@ -320,6 +332,30 @@ struct DepthTest : Attribute
     virtual void Draw(Layout *where);
     virtual text Type() { return "DepthTest";}
     bool enable;
+};
+
+
+struct DepthMask : Attribute
+// ----------------------------------------------------------------------------
+//   Change the depth mask
+// ----------------------------------------------------------------------------
+{
+    DepthMask(bool enable): enable(enable) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "DepthMask";}
+    bool enable;
+};
+
+
+struct DepthFunc : Attribute
+// ----------------------------------------------------------------------------
+//   Change the function for depth comparisons
+// ----------------------------------------------------------------------------
+{
+    DepthFunc(GLenum func): func(func) {}
+    virtual void Draw(Layout *where);
+    virtual text Type() { return "DepthFunc";}
+    GLenum func;
 };
 
 

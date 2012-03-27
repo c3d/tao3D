@@ -5,14 +5,11 @@ Tao module SDK - Instructions to build the example modules
 I) Building and installing modules
    ===============================
 
- * MacOSX
-   ------
-
  0. Prerequisites
 
- - Qt 4 (4.7.2 or later).
- - Tao Presentations (to install: open tao.dmg, drag and drop the Tao
-   Presentations icon onto the Applications folder).
+ - Qt 4 (4.7.4 or later).
+ - Tao Presentations
+ - [Windows only] MinGW
 
  1. Build and install a local copy of the modules
 
@@ -21,47 +18,12 @@ $ ./configure
 $ make install
 
 This will copy the modules under your "Application Support" directory:
-"~/Library/Application Support/Tao Presentations/modules".
-
-Start Tao Presentations: the new modules will be detected automatically.
-
- * Windows (Vista, 7)
-   ------------------
-
- 0. Prerequisites
-
- - Qt 4 (4.7.2 or later).
- - MinGW
- - Tao Presentations (to install: run taosetup.exe).
-
- 1. Build and install a local copy of the modules
-
-In a MinGW shell window:
-
-$ cd tao_sdk/modules
-$ ./configure
-$ make install
-
-This will copy the modules under your "Application Data" directory:
-"%APPDATA%\Tao Presentations\modules".
-
-Start Tao Presentations. The new modules will be detected automatically.
-
- * Linux
-   -----
-
- 0. Prerequisites
-
- - Qt 4 (4.7.2 or later).
- - Tao Presentations.
-
- 1. Build and install a local copy of the modules
-
-$ cd tao_sdk/modules
-$ ./configure
-$ make install
-
-This will copy the modules under your home directory: "~/.tao/modules".
+ - MacOSX:
+            "~/Library/Application Support/Tao Presentations/modules"
+ - Windows:
+            "%LOCALAPPDATA%\Tao Presentations\modules"
+ - Linux:
+            "~/.local/share/data/Taodyne/Tao Presentations/modules"
 
 Start Tao Presentations: the new modules will be detected automatically.
 
@@ -78,7 +40,7 @@ III) Testing the modules
 Create a new .ddd document and import the module you want to test, for example:
 
 // test.ddd
-import HelloWorld "0.1"
+import HelloWorld
 writeln hello_world
 
 
@@ -123,7 +85,7 @@ the other one is ignored.
 Module debugging can be turned on as follows:
   - Select the Debug group in the Preferences dialog, click the "modules"
     checkbox, click "Save". Restart Tao.
-  - Through the command line option: -tmodules
+  - Or, through the command line option: -tmodules
 
 When Tao is started from a command window, the debug traces are sent to the
 standard error output (stderr). Otherwise, the destination of the traces

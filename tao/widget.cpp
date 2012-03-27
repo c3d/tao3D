@@ -284,6 +284,18 @@ Widget::Widget(Window *parent, SourceFile *sf)
 }
 
 
+struct DisplayListInfo : XL::Info, InfoTrashCan
+// ----------------------------------------------------------------------------
+//    Store information about a display list
+// ----------------------------------------------------------------------------
+{
+    DisplayListInfo(): displayListID(glGenLists(1)) {}
+    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    virtual void Delete() { trash.push_back(this); }
+    GLuint      displayListID;
+};
+
+
 struct PurgeGLContextSensitiveInfo : XL::Action
 // ----------------------------------------------------------------------------
 //   Delete all Info structures that are invalid when the GL context is changed
@@ -295,6 +307,7 @@ struct PurgeGLContextSensitiveInfo : XL::Action
         what->Purge<SvgRendererInfo>();
         what->Purge<TextureIdInfo>();
         what->Purge<ShaderProgramInfo>();
+        what->Purge<DisplayListInfo>();
         return what;
     }
 };
@@ -323,11 +336,12 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       glyphCache(),
       fontFileMgr(o.fontFileMgr),
       drawAllPages(o.drawAllPages), animated(o.animated), blanked(o.blanked),
+      stereoIdent(o.stereoIdent),
       doMouseTracking(o.doMouseTracking),
       stereoPlane(o.stereoPlane), stereoPlanes(o.stereoPlanes),
       displayDriver(o.displayDriver),
-      watermark(0), watermarkText(o.watermarkText),
-      watermarkWidth(o.watermarkWidth), watermarkHeight(o.watermarkHeight),
+      watermark(0), watermarkText(""),
+      watermarkWidth(0), watermarkHeight(0),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -402,10 +416,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Make this the current context for OpenGL
     makeCurrent();
 
-    // Reconstruct watermark texture, if needed
-    if (watermarkText != "")
-        setWatermarkText(watermarkText, watermarkWidth, watermarkHeight);
-
     // Create new layout to draw into
     space = new SpaceLayout(this);
     layout = space;
@@ -445,7 +455,11 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // clear them here so that textures or GL lists created with the
     // previous context are not re-used with the new.
     ImageTextureInfo::textures.clear();
+    if (o.watermark)
+        glDeleteTextures(1, &o.watermark);
+
     o.glyphCache.Clear();
+    o.updateStereoIdentPatterns(0);
 
     // Now, o has become invalid ; make sure it can't be redrawn before being
     // deleted (NB: QMainWindow::setCentralWidget deletes previous widget
@@ -489,8 +503,9 @@ Widget::~Widget()
 #endif
 
     RasterText::purge(QGLWidget::context());
-    if (watermark)
-        glDeleteTextures(1, &watermark);
+    updateStereoIdentPatterns(0);
+    // NB: if you're about to call glDeleteTextures here, think twice.
+    // Or make sure you set the correct GL context. See #1686.
 }
 
 
@@ -629,6 +644,19 @@ void Widget::setupPage()
 }
 
 
+void Widget::drawStereoIdent()
+// ----------------------------------------------------------------------------
+//   Draw a different pattern on each stereo plane to identify them
+// ----------------------------------------------------------------------------
+{
+    if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
+        updateStereoIdentPatterns(stereoPlanes);
+    StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
+    glColor4f(1.0, 1.0, 1.0, 1.0);
+    drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
+}
+
+
 void Widget::drawScene()
 // ----------------------------------------------------------------------------
 //   Draw all objects in the scene
@@ -645,6 +673,10 @@ void Widget::drawScene()
     {
         glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    }
+    else if (stereoIdent)
+    {
+        drawStereoIdent();
     }
     else
     {
@@ -673,10 +705,15 @@ void Widget::drawSelection()
 //   Draw selection items for all objects (selection boxes, manipulators)
 // ----------------------------------------------------------------------------
 {
-    id = idDepth = 0;
-    selectionTrees.clear();
-    space->ClearAttributes();
-    space->DrawSelection(NULL);
+    if (selection.size())
+    {
+        id = idDepth = 0;
+        selectionTrees.clear();
+        space->ClearAttributes();
+        glDisable(GL_DEPTH_TEST);
+        space->DrawSelection(NULL);
+        glEnable(GL_DEPTH_TEST);
+    }
 }
 
 
@@ -688,11 +725,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    glDisable(GL_DEPTH_TEST);
+    glDepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    glEnable(GL_DEPTH_TEST);
+    glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled())
@@ -728,7 +765,11 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
-{
+{    
+    // The viewport used for mouse projection is (potentially) set by the
+    // display function, clear it for current frame
+    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
+
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
@@ -798,9 +839,6 @@ void Widget::draw()
             updateProgramSource();
     }
 
-    // The viewport used for mouse projection is (potentially) set by the
-    // display function, clear it for next frame
-    memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
 }
 
 
@@ -1236,8 +1274,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     FrameInfo frame(w, h);
 
     // Render frames for the whole time range
-    int currentFrame = 0, frameCount = (end_time - start_time) * fps;
+    int currentFrame = 1, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
+    int digits = (int)log10(frameCount) + 1;
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
         if (renderFramesCanceled)
@@ -1247,7 +1286,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Show progress information
-        percent = 100*currentFrame++/frameCount;
+        percent = 100*currentFrame/frameCount;
         if (percent != prevPercent)
         {
             prevPercent = percent;
@@ -1291,9 +1330,14 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         // Save frame to disk
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
-        QString fileName = QString("%1/frame%2.png").arg(dir).arg(currentFrame);
+        QString fileName = QString("%1/frame%2.png").arg(dir)
+                .arg(currentFrame, digits, 10, QLatin1Char('0'));
         QImage image(frame.toImage());
+        // Strip alpha channel
+        image = image.convertToFormat(QImage::Format_RGB32);
         image.save(fileName);
+
+        currentFrame++;
     }
 
     // Done with offline rendering
@@ -2041,7 +2085,18 @@ void Widget::setup(double w, double h, const Box *picking)
     // Restrict the picking area if any is given as input
     if (picking)
     {
-        GLint viewport[4] = { 0, 0, w, h };
+        // Use mouseTrackingViewport to fix #1465
+        int pw = mouseTrackingViewport[2];
+        int ph = mouseTrackingViewport[3];
+        if (pw == 0 && ph == 0)
+        {
+            // mouseTrackingViewport not set (by display module), default to
+            // current viewport
+            pw = width();
+            ph = height();
+        }
+
+        GLint viewport[4] = { 0, 0, pw, ph };
         Box b = *picking;
         b.Normalize();
         Vector size = b.upper - b.lower;
@@ -2068,6 +2123,7 @@ void Widget::reset()
     resetView();
     animated = true;
     blanked = false;
+    stereoIdent = false;
 }
 
 
@@ -4406,14 +4462,12 @@ void Widget::drawSelection(Layout *where,
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
     saveSelectionColorAndFont(where);
-    glDisable(GL_DEPTH_TEST);
     if (bounds.Depth() > 0)
         (XL::XLCall("draw_" + selName), c.x, c.y, c.z, w, h, d) (xlProgram);
     else
         (XL::XLCall("draw_" + selName), c.x, c.y, w, h) (xlProgram);
 
     selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4427,13 +4481,11 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper     saveGL;
     resetLayout(layout);
-    glDisable(GL_DEPTH_TEST);
     selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
     selectionSpace.Draw(NULL);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4462,10 +4514,8 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
     resetLayout(layout);
     selectionSpace.id = id;
     selectionSpace.isSelection = true;
-    glDisable(GL_DEPTH_TEST);
     call(xlProgram);
     selectionSpace.Draw(where);
-    glEnable(GL_DEPTH_TEST);
 }
 
 
@@ -4708,6 +4758,7 @@ XL::Real_p Widget::windowWidth(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double w = printer ? printer->paperRect().width() : width();
+    w *= displayDriver->windowWidthFactor();
     return new Real(w);
 }
 
@@ -4719,6 +4770,7 @@ XL::Real_p Widget::windowHeight(Tree_p self)
 {
     refreshOn(QEvent::Resize);
     double h = printer ? printer->paperRect().height() : height();
+    h *= displayDriver->windowHeightFactor();
     return new Real(h);
 }
 
@@ -5061,14 +5113,6 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 {
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     Layout *childLayout = layout->AddChild(layout->id, child, context);
     XL::Save<Layout *> save(layout, childLayout);
@@ -5084,14 +5128,6 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
 {
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     Layout *childLayout = layout->AddChild(selectionId(), child, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
@@ -5396,6 +5432,14 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(REPLACE);
     TEST_GLENUM(DECAL);
     TEST_GLENUM(ADD);
+    TEST_GLENUM(ALWAYS);
+    TEST_GLENUM(NEVER);
+    TEST_GLENUM(LESS);
+    TEST_GLENUM(LEQUAL);
+    TEST_GLENUM(EQUAL);
+    TEST_GLENUM(GREATER);
+    TEST_GLENUM(NOTEQUAL);
+    TEST_GLENUM(GEQUAL);
 #undef TEST_GLENUM
 
     return e;
@@ -5404,10 +5448,31 @@ static GLenum TextToGLEnum(text t, GLenum e)
 
 Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
-//   Change the delta we use for the depth
+//   Enable or disable OpenGL depth test
 // ----------------------------------------------------------------------------
 {
     layout->Add(new DepthTest(enable));
+    return XL::xl_true;
+}
+
+
+Name_p Widget::depthMask(XL::Tree_p self, bool enable)
+// ----------------------------------------------------------------------------
+//   Enable or disable OpenGL depth test
+// ----------------------------------------------------------------------------
+{
+    layout->Add(new DepthTest(enable));
+    return XL::xl_true;
+}
+
+
+Name_p Widget::depthFunction(XL::Tree_p self, text func)
+// ----------------------------------------------------------------------------
+//   Specifies the depth comparison function
+// ----------------------------------------------------------------------------
+{
+    GLenum funcEnum = TextToGLEnum(func, GL_LESS);
+    layout->Add(new DepthFunc(funcEnum));
     return XL::xl_true;
 }
 
@@ -5690,6 +5755,108 @@ Name_p Widget::toggleBlankScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return blankScreen(self, !blanked);
+}
+
+
+Widget::StereoIdentTexture Widget::newStereoIdentTexture(int i)
+// ----------------------------------------------------------------------------
+//   Create texture to identify viewpoint: big number centered on texture
+// ----------------------------------------------------------------------------
+{
+    int w = 400, h = 400;
+    QImage image(w, h, QImage::Format_ARGB32);
+    enum { Red = 0xFF770000, Green = 0xFF007700 };
+    // Background color:
+
+    // Left eye/odd viewpoint: red, right eye/even viewpoint: green.
+    if (i % 2)
+        image.fill(Red);
+    else
+        image.fill(Green);
+    QPainter painter;
+    painter.begin(&image);
+    QPainterPath path;
+    QString t = QString("%1").arg(i);
+    path.addText(0, 0, QFont("Ubuntu", 200), t);
+    QRectF brect = path.boundingRect();
+    path.translate((w - brect.width())/2, (h + brect.height())/2);
+    painter.setBrush(QBrush(Qt::white));
+    QPen pen(Qt::black);
+    pen.setWidth(1);
+    painter.setPen(pen);
+    painter.setRenderHint(QPainter::Antialiasing, true);
+    painter.drawPath(path);
+    painter.end();
+
+    // Generate the GL texture
+    QImage texture = QGLWidget::convertToGLFormat(image);
+    GLuint tex;
+    glGenTextures(1, &tex);
+    glBindTexture(GL_TEXTURE_2D, tex);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+                 w, h, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, texture.bits());
+
+    IFTRACE(fileload)
+        std::cerr << "Created stereo identification texture: viewpoint #"
+                  << i << ", texture id " << tex << "\n";
+    return StereoIdentTexture(w, h, tex);
+}
+
+
+void Widget::updateStereoIdentPatterns(int nb)
+// ----------------------------------------------------------------------------
+//   Create or delete textures used for stereoscopic identification
+// ----------------------------------------------------------------------------
+{
+    int size = stereoIdentPatterns.size();
+    if (nb == 0)
+    {
+        for (int i = 0; i < size; i++)
+        {
+            GLuint tex = stereoIdentPatterns[i].tex;
+            glDeleteTextures(1, &tex);
+            IFTRACE(fileload)
+                std::cerr << "Deleted texture #" << tex
+                          << " (stereo identification for viewpoint #"
+                          << i+1 << ")\n";
+        }
+        stereoIdentPatterns.clear();
+        return;
+    }
+    else
+    {
+        if (nb > size)
+            for (int i = size ; i < nb; i++)
+                stereoIdentPatterns.push_back(newStereoIdentTexture(i+1));
+    }
+}
+
+
+Name_p Widget::stereoIdentify(XL::Tree_p self, bool on)
+// ----------------------------------------------------------------------------
+//   Enable or disable stereoscopic test pattern
+// ----------------------------------------------------------------------------
+{
+    bool oldMode = stereoIdent;
+
+    if (oldMode != on)
+    {
+        stereoIdent = on;
+        if (!stereoIdent)
+            updateStereoIdentPatterns(0);
+    }
+
+    return oldMode ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleStereoIdentify(XL::Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle between stereoscopic test pattern and normal output
+// ----------------------------------------------------------------------------
+{
+    return stereoIdentify(self, !stereoIdent);
 }
 
 
@@ -8040,14 +8207,6 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     // Evaluation du prog
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
-    if (XL::MAIN->options.enable_layout_cache)
-    {
-        if (Layout *cached = layoutCache.take(self, context))
-        {
-            layout->Add(cached);
-            return XL::xl_true;
-        }
-    }
 
     text computedFlowName = flowName;
     if (flows.count(computedFlowName))
@@ -8977,6 +9136,50 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
+Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
+// ----------------------------------------------------------------------------
+//   Create a compiled display list out of the program's result
+// ----------------------------------------------------------------------------
+{
+    Tree_p result = XL::xl_false;
+
+    // Get or build the current frame if we don't have one
+    DisplayListInfo *info = self->GetInfo<DisplayListInfo>();
+    if (!info)
+    {
+        // First drawing: draw the hard way
+        info = new DisplayListInfo();
+        self->SetInfo<DisplayListInfo>(info);
+
+        Layout *parent = layout;
+        GLAllStateKeeper saveGL;
+        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        
+        result = context->Evaluate(prog);
+
+        stats.end(Statistics::EXEC);
+        stats.begin(Statistics::DRAW);
+
+        glNewList(info->displayListID, GL_COMPILE);
+        layout->Draw(NULL);
+        glEndList();
+
+        stats.end(Statistics::DRAW);
+        stats.begin(Statistics::EXEC);
+
+        // Parent layout should refresh when layout would need to
+        parent->RefreshOn(layout);
+
+        // Delete the layout (it's not a child of the outer layout)
+        delete layout;
+        layout = NULL;
+    }
+
+    layout->Add(new CachedDrawing(info->displayListID));
+    return result;
+}
+
+
 Integer* Widget::thumbnail(Context *context,
                          Tree_p self, scale s, double interval, text page)
 // ----------------------------------------------------------------------------
@@ -9380,6 +9583,7 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
         surface = new LineEditSurface(txt, this);
         txt->SetInfo<LineEditSurface> (surface);
     }
+
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
@@ -10325,13 +10529,20 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
+    glColor4f(1.0, 1.0, 1.0, 0.2);
+    drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
+}
 
-    float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
-    float tw = w/watermarkWidth, th = h/watermarkHeight;
+
+void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
+                                   bool centered)
+// ----------------------------------------------------------------------------
+//   Draw a texture centered over the full widget with wrapping enabled
+// ----------------------------------------------------------------------------
+{
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
-    glColor4f(1.0, 1.0, 1.0, 0.2);
-    glBindTexture(GL_TEXTURE_2D, watermark);
+    glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
@@ -10341,8 +10552,14 @@ void Widget::drawWatermark()
     glLoadIdentity();
     glMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
-    float x1 = 1-tw/2, x2 = 1+tw/2;
-    float y1 = 1-th/2, y2 = 1+th/2;
+    float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
+    float tw = w/texw, th = h/texh;
+    float x1 = -tw/2, x2 = tw/2;
+    float y1 = -th/2, y2 = th/2;
+    if (centered)
+    {
+        x1 += 0.5; x2 += 0.5; y1 += 0.5; y2 += 0.5;
+    }
     glBegin(GL_QUADS);
     glTexCoord2f(x1, y1);
     glVertex2i  (-1, -1);
@@ -11355,6 +11572,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 
     // Check if we are not the only one
     if (!parent)
+
         return XL::xl_false;
 
     // Do the work
@@ -11686,6 +11904,10 @@ Name_p Widget::displaySet(Context *context, Tree_p self, Tree_p code)
             {
                 strval = tt->value;
             }
+            else if (Name *nt = arg->AsName())
+            {
+                strval = nt->value;
+            }
             else
             {
                 Ooops("display_set value $1 is not a string and not a number",
@@ -11716,6 +11938,26 @@ Name_p Widget::readOnly()
 // ----------------------------------------------------------------------------
 {
     return isReadOnly() ? XL::xl_true : XL::xl_false;
+}
+
+
+Text_p Widget::baseName(Tree_p, text filename)
+// ----------------------------------------------------------------------------
+// Returns the base name of a file without the path
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info(+filename);
+    return new Text(+info.baseName());
+}
+
+
+Text_p Widget::dirName(Tree_p, text filename)
+// ----------------------------------------------------------------------------
+// Returns the path of the specified filename
+// ----------------------------------------------------------------------------
+{
+    QFileInfo info(+filename);
+    return new Text(+info.path());
 }
 
 

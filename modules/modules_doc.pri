@@ -36,9 +36,5 @@ include(modules_defs.pri)
     distclean.depends = docclean
     QMAKE_EXTRA_TARGETS += docclean distclean
 
-  } else {
-
-    warning(doxygen not found - will not build online documentation)
-
   }
 }

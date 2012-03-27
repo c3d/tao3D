@@ -34,7 +34,10 @@ shift_modifier    -> (keyboard_modifiers and 16#02000000) <> 0
 alt_modifier      -> (keyboard_modifiers and 16#08000000) <> 0
 meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
 
-wheel_event x, y                        ->
+wheel_event x, y -> false
+
+// Connect wheel event to the following code to pan and zoom with the mouse
+implement_pan_and_zoom_wheel_event x, y ->
     if control_modifier then
         if y > 0 then
             zoom_in
@@ -78,11 +81,10 @@ main_chooser ->
     chooser tr "Choose command"
 #ifndef CFG_NOFULLSCREEN
     chooser_choice tr "Toggle full screen", {toggle_slide_show}
-    chooser_choice tr "Enter full screen", {slide_show true}
-    chooser_choice tr "Exit full screen", {slide_show false}
 #endif
     stereoscopy_settings
     chooser_choice tr "Swap left and right eye", {eye_distance -eye_distance}
+    chooser_choice tr "Toggle stereo identification", {toggle_stereo_identify}
     chooser_choice tr "Enable VSync", {enable_vsync true}
     chooser_choice tr "Disable VSync", {enable_vsync false}
     chooser_choice tr "Reset view", {reset_view}
@@ -132,6 +134,7 @@ stereoscopy_settings ->
         chooser_choice tr "Enable stereoscopy (Alioscopy)", {enable_stereoscopy alioscopy}
     if has_display_mode "2dplusdepth" then
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
+        chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
     if has_display_mode "anaglyph" then
         chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
@@ -305,9 +308,9 @@ vertical_align_spread                                   -> vertical_align   0, 1
 
 
 // 3D Shapes
-sphere x:real, y:real, z:real, r:real  -> sphere x,y,z,r,r,r,25,25
-sphere r:real                          ->
-    sphere 0.0, 0.0, 0.0, r, r, r, 25, 25
+sphere x:real, y:real, z:real, d:real  -> sphere x,y,z,d,d,d,25,25
+sphere d:real                          ->
+    sphere 0.0, 0.0, 0.0, d, d, d, 25, 25
 
 torus x:real, y:real, z:real, d:real, r:real  -> torus x,y,z,d,d,d,25,25,r
 

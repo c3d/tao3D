@@ -1,16 +1,6 @@
 # Makefile to package a Linux distribution
 #
-# The application is distributed as a tar.bz2 copy of the
-# install directory, with additional files copied in.
-#
-# To build the package, this Makefile goes through the following
-# steps:
-#   - run "make install" at the top level of the Tao project
-#   - copy the installation directory under ./$(TAO)
-#   - copy the Qt libraries
-#   - copy the Qt plugins (for JPEG images, ...)
-#   - create the tar-bz2 file from $(TAO)
-#
+# The application is distributed as a Debian package (.deb).
 #
 # Usage:
 #   make kit
@@ -32,18 +22,24 @@ ARCH=$(OS).$(shell uname -m)
 
 ########
 
-kit: $(TAO).$(ARCH).tar.bz2
+kit: deb tar
 
-$(TAO).$(ARCH).tar.bz2: $(TAO) $(TAO)/Tao.bin
+# .tar.bz2 package
+
+BZ2=$(TAO).Linux.$(shell uname -m).tar.bz2
+
+tar: $(BZ2)
+
+$(BZ2): $(TAO) $(TAO)/tao
 	tar cvfj $@ $(TAO)
 
 $(TAO):
 	mkdir $(TAO)
 
-$(TAO)/Tao.bin: $(TAO) install
-	mv $(TAO)/Tao $(TAO)/Tao.bin
-	cp Tao.sh $(TAO)/Tao
-	chmod +x $(TAO)/Tao
+$(TAO)/tao: $(TAO) install
+	cd $(TAO) ; mv Tao "Tao Presentations"
+	cp tao.sh $(TAO)/tao
+	chmod +x $(TAO)/tao
 
 install: $(TAO)
 	(cd ../.. && $(MAKE) install) && cp -Rp ../../install/* $(TAO)
@@ -52,6 +48,39 @@ ifndef NO_SDK
 	cp -Rp ../../sdk $(TAO)
 endif
 
-clean:
+clean: debclean
 	rm -rf $(TAO) Tao_Presentations*.tar.bz2
 
+# Debian package
+
+INSTROOT = /opt/Taodyne/TaoPresentations
+DEBTAO = debian$(INSTROOT)
+
+.PHONY: debian
+
+debian:
+	mkdir -p debian/DEBIAN debian$(INSTROOT) debian/usr/bin
+	ln -sf $(INSTROOT)/tao debian/usr/bin/tao
+
+prepare: debian
+	$(MAKE) -C ../../ install && cp -Rp ../../install/* $(DEBTAO)
+ifndef NO_SDK
+	$(MAKE) -C ../.. -f Makefile.sdk
+	cp -Rp ../../sdk $(DEBTAO)
+endif
+	cd $(DEBTAO) ; mv Tao "Tao Presentations"
+	cp tao.sh $(DEBTAO)/tao
+	chmod +x $(DEBTAO)/tao
+	cp control debian/DEBIAN
+	size=$$(du -sk debian | cut -f1); (cd debian/DEBIAN; sed -e "s/@INSTALLED_SIZE@/$$size/" control > control.tmp && mv control.tmp control)
+
+run-dpkg-deb = fakeroot dpkg-deb --build debian $(TAO)-$(ARCH).deb
+
+deb: prepare
+	$(run-dpkg-deb)
+
+rdeb: debian
+	$(run-dpkg-deb)
+
+debclean:
+	rm -rf debian Tao_Presentations*.deb

@@ -113,10 +113,9 @@ again:
         Process cmd(gitCommand, QStringList("--version"));
         if (cmd.done(&errors, &output))
         {
-            // Check version is at least 1.7.0
-            // (we need the merge -Xours / -Xtheirs feature)
+            // Check version (we need the fetch --progress feature)
             QString ver = (+output).replace(QRegExp("[^\\d\\.]"), "");
-            if (versionGreaterOrEqual(ver, "1.7.0"))
+            if (versionGreaterOrEqual(ver, "1.7.1"))
             {
                 ok = true;
                 break;
@@ -1117,15 +1116,57 @@ QString GitRepository::diff(QString a, QString b, bool symetric)
 }
 
 
-process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder)
+process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder,
+                                    bool shallow)
 // ----------------------------------------------------------------------------
 //   Prepare a Process that will make a local copy of a remote project
 // ----------------------------------------------------------------------------
 {
+    if (shallow)
+        return asyncCloneShallow(cloneUrl);
+
     QStringList args;
     args << "clone" << "--progress" << cloneUrl;
     if (!newFolder.isEmpty())
         args << newFolder;
+    QString wd = path;
+    if (!QFileInfo(wd).exists())
+        wd = "";
+    GitAuthProcess * proc = new GitAuthProcess(args, wd, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+
+    // Track % complete by reading stderr
+    connect(proc, SIGNAL(standardErrorUpdated(QByteArray)),
+            this, SLOT  (computePercentComplete()));
+    connect(this, SIGNAL(percentComplete(int)),
+            proc, SIGNAL(percentComplete(int)));  // signal forwarding
+
+    return process_p(proc);
+}
+
+
+process_p GitRepository::asyncCloneShallow(QString cloneUrl)
+// ----------------------------------------------------------------------------
+//   Prepare a Process that will make a shallow local copy of a remote project
+// ----------------------------------------------------------------------------
+{
+    waitForAsyncProcessCompletion();
+
+    // At this stage, Git repository does not exist. Create it.
+    if (!QDir(path).mkpath("."))
+        return process_p(NULL);
+    GitProcess init(command(), QStringList("init"), path);
+    init.done(&errors);
+
+    // Add remote
+    GitProcess remote(command(), QStringList("remote") << "add" << "origin"
+                << cloneUrl, path);
+    remote.done(&errors);
+
+    // Fetch with depth 1
+    QStringList args;
+    args << "fetch" << "--progress" << "--depth" << "1";
     QString wd = path;
     if (!QFileInfo(wd).exists())
         wd = "";
@@ -1152,6 +1193,8 @@ process_p GitRepository::asyncFetch(QString what, bool forcetags)
     args << "fetch" << what;
     if (forcetags)
         args << "--tags"; // Overwrite local tag with remote with same name
+                          // FIXME: may fetch lots of stuff is repo is a
+                          // shallow clone
     GitAuthProcess * proc = new GitAuthProcess(args, path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
             this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));

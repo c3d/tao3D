@@ -89,6 +89,7 @@ bool Shape::setTexture(Layout *where)
     return !(where->fillTextures.empty());
 }
 
+
 void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
 //    Bind the given texture
@@ -219,6 +220,9 @@ bool Shape::setLineColor(Layout *where)
 
 
 bool Shape::setShader(Layout *where)
+// ----------------------------------------------------------------------------
+//   Set the shader according to info in current layout
+// ----------------------------------------------------------------------------
 {
     if(where->InIdentify())
         return false;
@@ -230,8 +234,8 @@ bool Shape::setShader(Layout *where)
         glUseProgram(where->programId);
 
     // In order to improve performance of large and complex 3D models,
-    // we use a shader based ligting (Feature #1508), which need some uniform values
-    // to have an efficient behaviour.
+    // we use a shader based ligting (Feature #1508), which needs some
+    // uniform values to have an efficient behaviour.
     if(where->perPixelLighting == where->programId)
     {
         if(where->programId)

@@ -38,6 +38,18 @@ QFileInfoList Dir::entryInfoGlobList(QString pattern)
             pattern.remove(0, 1);
         result << Dir("/").entryInfoGlobList(pattern);
     }
+#if defined(Q_OS_WIN)
+    // Handle patterns like "E:/some/path"
+    else if (pattern.size() >= 3 &&
+             pattern[1] == QChar(':') &&
+             pattern[2] == QChar('/'))
+    {
+        int slash = pattern.indexOf("/");
+        QString drive = pattern.left(slash + 1); // E:/
+        QString rem = pattern.mid(slash + 1);    // some/path
+        result << Dir(drive).entryInfoGlobList(rem);
+    }
+#endif
     else
     {
         int slash = pattern.indexOf("/");
@@ -46,8 +58,9 @@ QFileInfoList Dir::entryInfoGlobList(QString pattern)
             QString top = pattern.left(slash);
             QString rem = pattern.mid(slash + 1);
             while (rem.startsWith("/"))
-                rem.remove(1, 1);
-            QFileInfoList elements = entryInfoList(QStringList() << top);
+                rem.remove(0, 1);
+            QFileInfoList elements = entryInfoList(QStringList() << top,
+                                                   QDir::Dirs | QDir::Hidden);
             foreach (QFileInfo elem, elements)
             {
                 if (elem.isDir())
@@ -59,7 +72,8 @@ QFileInfoList Dir::entryInfoGlobList(QString pattern)
         }
         else
         {
-            result << entryInfoList(QStringList()<<pattern, QDir::Files);
+            result << entryInfoList(QStringList() << pattern,
+                                    QDir::Files | QDir::Hidden);
         }
     }
     return result;

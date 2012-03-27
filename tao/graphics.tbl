@@ -380,6 +380,22 @@ PREFIX(DisableDepthTest, boolean, "disable_depth_test",,
        SYNOPSIS("Disable OpenGL depth test")
        DESCRIPTION("Deactivate the OpenGL depth test for polygons.")
        RETURNS(boolean, "The previous state of depth testing"))
+PREFIX(EnableDepthMask, boolean, "enable_depth_mask",,
+       RTAO(depthMask(self, true)),
+       GROUP(code:graph)
+       SYNOPSIS("Enable OpenGL depth mask")
+       DESCRIPTION("Equivalent to glEnable(GL_DEPTH_MASK)")
+       RETURNS(boolean, "The previous state of depth mask"))
+PREFIX(DisableDepthMask, boolean, "disable_depth_mask",,
+       RTAO(depthMask(self, false)),
+       GROUP(code:graph)
+       SYNOPSIS("Disable OpenGL depth mask")
+       DESCRIPTION("Equivalent to glEnable(GL_DEPTH_MASK)")
+       RETURNS(boolean, "The previous state of depth mask"))
+PREFIX(DepthFunction, boolean, "depth_function",
+       PARM(func, text, ""),
+       RTAO(depthFunction(self, func)),
+       SYNOPSIS("Set the function for depth comparisons."))
 PREFIX(BlendFunction, boolean, "blend_function",
        PARM(src, text, "")
        PARM(dst, text, ""),
@@ -511,6 +527,22 @@ PREFIX(ToggleBlankScreen, boolean, "toggle_blank_screen", ,
        RTAO(toggleBlankScreen(self)),
        GROUP(gui)
        SYNOPSIS("Toggle blank screen mode"))
+PREFIX(StereoIdentify, boolean, "stereo_identify",
+       PARM(flag, boolean, "Flag controlling stereo test pattern activation"),
+       RTAO(stereoIdentify(self, flag)),
+       GROUP(gui)
+       SYNOPSIS("Show a stereoscopic test pattern or show presentation normally")
+       DESCRIPTION("Activate or deactivate a test pattern, depending on "
+                   "the value of the flag. When activated, the screen shows "
+                   "different images for each viewpoint to assist in "
+                   "troubleshooting stereoscopy problems.")
+       RETURNS(boolean,
+               "A flag indicating the previous value of the "
+                "blank screen mode."))
+PREFIX(ToggleStereoIdentify, boolean, "toggle_stereo_identify", ,
+       RTAO(toggleStereoIdentify(self)),
+       GROUP(gui)
+       SYNOPSIS("Toggle stereo test pattern"))
 PREFIX(ShowStatistics, boolean, "show_statistics",
        PARM(flag, boolean, "Flag controlling display of rendering statistics (fps)"),
        RTAO(showStatistics(self, flag)),
@@ -1042,6 +1074,20 @@ PREFIX(isReadOnly,  tree,  "is_read_only",,
        GROUP(misc)
        SYNOPSIS("Check if document is read only")
        RETURNS(tree, ""))
+PREFIX(BaseName,  tree,  "base_name",
+       PARM(f, text, "filename"),
+       RTAO(baseName(self, f)),
+       GROUP(misc)
+       SYNOPSIS("Returns the base name of a file without the path.")
+       RETURNS(tree, ""))
+PREFIX(DirName,  tree,  "dir_name",
+       PARM(f, text, "filename"),
+       RTAO(dirName(self, f)),
+       GROUP(misc)
+       SYNOPSIS("Returns the path of the specified filename.")
+       RETURNS(tree, ""))
+
+
 
 // ============================================================================
 //

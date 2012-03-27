@@ -44,7 +44,7 @@ if [ -e "$DOXYFILE" ] ; then
         rm -f Doxyfile.tmp
         if [ -e $htmlout/index.qhp -a "$QHP_ADDFILES" != "" -a "$qhelpgenerator" != "" ] ; then
           toadd=""
-          for f in $QHP_ADDFILES ; do
+          for f in $(echo $QHP_ADDFILES | tr , " "); do
             toadd="<file>$f</file>$toadd"
           done
           echo "[doxygen.sh] # Patching $htmlout/index.qhp: adding $toadd"

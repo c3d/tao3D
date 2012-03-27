@@ -40,7 +40,8 @@
        vlc_audio_video \
        stereo_decoder \
        carousel \
-       revolving_texts
+       revolving_texts \
+       database
     OTHER_MODULES =     \
         audio_video \
         hello_world     \

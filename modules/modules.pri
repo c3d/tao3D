@@ -16,7 +16,7 @@ include(../main.pri)
 TEMPLATE = lib
 TARGET   = $$basename(MODINSTPATH)
 CONFIG  += dll
-QT      -= core gui
+QT      -= core gui sql
 
 INC = . $${TAOTOPSRC}/tao/xlr/xlr/include $${TAOTOPSRC}/tao/include \
         $${TAOTOPSRC}/tao/include/tao

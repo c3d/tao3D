@@ -1,15 +1,17 @@
 /**
  * @~english
- * @addtogroup TaoFiles Listing files
+ * @addtogroup TaoFiles File utilities
  * @ingroup TaoBuiltins
  *
- * List files present on the computer.
+ * Some file related builtins: list files present on the computer, load data
+ * from a file.
  *
  * @~french
- * @addtogroup TaoFiles Lister des fichiers
+ * @addtogroup TaoFiles Manipulations de fichiers
  * @ingroup TaoBuiltins
  *
- * Liste des fichiers présents sur l'ordinateur.
+ * Fonctions liées à la manipulation de fichiers : lister les fichiers présents
+ * sur l'ordinateur, charger des données depuis un fichier.
  *
  * @~
  * @{
@@ -149,6 +151,91 @@ text base_name(filename:text);
  * Renvoie le chemin absolu ou relatif du fichier specifié.
  */
 text dir_name(filename:text);
+
+/**
+ * @~english
+ * Loads data from a file in comma-separated values (CSV) format.
+ * The field separator is semicolon (@c ;) or comma (@c ,). Numerical
+ * values are read according to the current locale. @n
+ * For each line in the file, @ref load_csv calls the function
+ * specified by @p prefix. @n
+ * The following example computes the sum of all lines that have three
+ * numerical values:
+ * @code
+// -- test.csv:
+// First value; Second value; Third value
+// 1;12;40
+// 3;6.5;-1.7
+// -- Output:
+// 60.8
+
+Total -> 0.0
+Total := 0.0
+load_csv "test.csv", "process_line"
+writeln Total
+
+process_line A:real, B:real, C:real -> Total := Total + A + B + C
+process_line AnythingElse -> false
+ * @endcode
+ * @~french
+ * Lit des données depuis un fichier au format CSV.
+ * Le séparateur de champs est le point-virgule (@c ;) ou la virgule
+ * (@c ,). Les valeurs numériques sont interprétées en fonction des
+ * préférences système (<em>locale</em>).
+ * @n
+ * La fonction dont le nom est précisé par @p prefix est appelée pour
+ * chaque ligne lue. Chaque valeur lue est un paramètre de la fonction.
+ * @n
+ * L'exemple qui suit fait la somme de toutes les lignes qui contiennent
+ * trois valeurs numériques :
+ * @code
+// -- test.csv :
+// Valeur 1; Valeur 2; Valeur 3
+// 1;12;40
+// 3;6.5;-1.7
+// -- Résultat :
+// 60.8
+
+Total -> 0.0
+Total := 0.0
+load_csv "test.csv", "traitement_ligne"
+writeln Total
+
+traitement_ligne A:real, B:real, C:real -> Total := Total + A + B + C
+traitement_ligne Autre -> false
+ * @endcode
+ */
+tree load_csv(filename:text, prefix:text);
+
+
+/**
+ * @~english
+ * Loads data from a file in tab-separated values (TSV) format.
+ * Similar to @ref load_csv except that the field separator is the
+ * TAB character.
+ * @~french
+ * Lit des données depuis un fichier au format TSV.
+ * Similaire à @ref load_csv mais le séparateur de champs est la
+ * tabulation.
+ */
+tree load_tsv(filename:text, prefix:text);
+
+
+/**
+ * @~english
+ * Loads data from a file.
+ * This is a general version of @ref load_csv or @ref load_tsv.
+ * @p fs and @p rs allow
+ * to specify the characters that may be used as field and record
+ * separators, respectively.
+ * @~french
+ * Lit des données depuis un fichier.
+ * Cette fonction est une forme plus générale de @ref load_csv et @ref load_tsv.
+ * @p fs et @p rs permettent de préciser quels caractères utiliser comme
+ * séparateurs de champs et d'enregistrements, respectivement.
+ */
+tree load_data(filename:text, prefix:text, fs:text, rs:text);
+
 
 /**
  * @}

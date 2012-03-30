@@ -420,6 +420,8 @@ public:
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
+    Name_p      logStatistics(Tree_p self, bool ss);
+    Name_p      toggleLogStatistics(Tree_p self);
     Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);

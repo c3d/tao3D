@@ -741,10 +741,10 @@ void Widget::drawActivities()
     glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
-    if (stats.isEnabled())
+    if (stats.isEnabled(Statistics::TO_SCREEN))
         printStatistics();
 
-    IFTRACE(fps)
+    if (stats.isEnabled(Statistics::TO_CONSOLE))
         logStatistics();
 }
 
@@ -4128,7 +4128,7 @@ void Widget::logStatistics()
         tm.restart();
         if (printHeader)
         {
-            std::cout << "Time;FPS;Exec;MaxExec;Draw;MaxDraw;GC;MaxGC;"
+            std::cout << "Time;PageNum;FPS;Exec;MaxExec;Draw;MaxDraw;GC;MaxGC;"
                          "Select;MaxSelect";
             if (XL::MAIN->options.threaded_gc)
                 std::cout << ";GCWait;MaxGCWait";
@@ -4139,6 +4139,7 @@ void Widget::logStatistics()
             printHeader = false;
         }
         std::cout << CurrentTime() << ";"
+                  << pageShown << ";"
                   << n << ";"
                   << stats.averageTimePerFrame(Statistics::EXEC) << ";"
                   << stats.maxTime(Statistics::EXEC) << ";"
@@ -5776,7 +5777,7 @@ Name_p Widget::showStatistics(Tree_p self, bool ss)
 //   Display or hide performance statistics (frames per second)
 // ----------------------------------------------------------------------------
 {
-    bool prev = stats.enable(ss);
+    bool prev = stats.enable(ss, Statistics::TO_SCREEN);
     return prev ? XL::xl_true : XL::xl_false;
 }
 
@@ -5786,7 +5787,32 @@ Name_p Widget::toggleShowStatistics(Tree_p self)
 //   Toggle display of statistics
 // ----------------------------------------------------------------------------
 {
-    return showStatistics(self, !stats.isEnabled());
+    return showStatistics(self, !stats.isEnabled(Statistics::TO_SCREEN));
+}
+
+
+Name_p Widget::logStatistics(Tree_p self, bool ss)
+// ----------------------------------------------------------------------------
+//   Enable or disable logging of performance statistics (frames per second)
+// ----------------------------------------------------------------------------
+{
+    if (ss)
+    {
+        std::cout.setf(std::ios::fixed, std::ios::floatfield);
+        std::cout.setf(std::ios::showpoint);
+        std::cout.precision(3);
+    }
+    bool prev = stats.enable(ss, Statistics::TO_CONSOLE);
+    return prev ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::toggleLogStatistics(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Toggle logging of performance statistics
+// ----------------------------------------------------------------------------
+{
+    return logStatistics(self, !stats.isEnabled(Statistics::TO_CONSOLE));
 }
 
 

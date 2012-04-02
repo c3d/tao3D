@@ -73,6 +73,13 @@ GeneralPage::GeneralPage(QWidget *parent)
     connect(combo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(setLanguage(int)));
 
+    // Menu for automatic check for update
+    QCheckBox *cfu = new QCheckBox(tr("Check for update at the launch of the application"));
+    cfu->setChecked(checkForUpdate());
+    connect(cfu, SIGNAL(toggled(bool)),
+            this, SLOT(setCheckForUpdate(bool)));
+    grid->addWidget(cfu, 2, 1);
+
 //    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
 //    noStereo = new QCheckBox;
 //    grid->addWidget(noStereo, 2, 2);
@@ -127,6 +134,30 @@ void GeneralPage::setLanguage(int index)
     }
     QString lang = combo->itemData(index).toString();
     QSettings().setValue("uiLanguage", lang);
+}
+
+
+void GeneralPage::setCheckForUpdate(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting about check for update
+// ----------------------------------------------------------------------------
+{
+   QSettings settings;
+   if (!on)
+       settings.remove("CheckForUpdate");
+   else
+       settings.setValue("CheckForUpdate", QVariant(on));
+}
+
+
+bool GeneralPage::checkForUpdate()
+// ----------------------------------------------------------------------------
+//   Read setting about check for update
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    bool cfu = settings.value("CheckForUpdate").toBool();
+    return cfu;
 }
 
 

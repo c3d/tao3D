@@ -42,27 +42,36 @@ void Statistics::reset()
 }
 
 
-bool Statistics::enable(bool on)
+bool Statistics::enable(bool on, int what)
 // ----------------------------------------------------------------------------
 //    Enable or disable statistics collection, return previous state
 // ----------------------------------------------------------------------------
 {
-    bool ret = enabled;
-    if (enabled == on)
-        return ret;
-    if (!enabled)
-        reset();
-    enabled = on;
-    return ret;
+    if (on)
+    {
+        if ((enabled & what) == what)
+            return true;
+        if (!enabled)
+            reset();
+        enabled |= what;
+        return false;
+    }
+    else
+    {
+        if ((enabled & what) == 0)
+            return false;
+        enabled &= ~what;
+        return true;
+    }
 }
 
 
-bool Statistics::isEnabled()
+bool Statistics::isEnabled(int what)
 // ----------------------------------------------------------------------------
 //    Return enabled state
 // ----------------------------------------------------------------------------
 {
-    return enabled;
+    return ((enabled & what) == what);
 }
 
 

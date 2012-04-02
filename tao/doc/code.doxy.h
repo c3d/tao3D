@@ -435,4 +435,12 @@ meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
  */
 boolean meta_modifier();
 
+/**
+ * @~english
+ * Do not execute a block of code.
+ * @~french
+ * Empêche l'exécution d'un bloc de code.
+ */
+disabled (B: block);
+
 /** @} */

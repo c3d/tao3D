@@ -45,6 +45,7 @@
         audio_video \
         hello_world     \
         network_access   \
+        point_cloud \
         taoTester    \
         tao_synchro
 } else {

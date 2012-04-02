@@ -46,6 +46,9 @@ implement_pan_and_zoom_wheel_event x, y ->
     else
         pan -x, y
 
+// "Comment out" a block of code
+disabled B:block -> false
+
 // Event types for use with refresh_on
 // For instance, to have a block be re-evaluated on mouse move:
 // locally

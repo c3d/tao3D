@@ -1448,7 +1448,7 @@ void Window::update()
 //    Update the application
 // ----------------------------------------------------------------------------
 {
-    TaoApp->updateApp.check();
+    TaoApp->updateApp.check(true);
 }
 
 

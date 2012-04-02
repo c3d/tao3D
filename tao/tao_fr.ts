@@ -1692,41 +1692,51 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
         <translation>Choissisez un dossier de destination</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="132"/>
+        <location filename="update_application.cpp" line="133"/>
         <source>Downloading...</source>
         <translation>Téléchargement en cours...</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="133"/>
+        <location filename="update_application.cpp" line="134"/>
         <source>Downloading %1...</source>
         <translation>Téléchargement de %1 en cours...</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="166"/>
+        <location filename="update_application.cpp" line="165"/>
         <source>Download finished</source>
         <translation>Téléchargement terminé</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="167"/>
+        <location filename="update_application.cpp" line="166"/>
         <source>%1 has been downloaded successfully.</source>
         <translation>%1 a été téléchargé avec succès.</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="173"/>
+        <location filename="update_application.cpp" line="172"/>
         <source>Extraction failed.
 Exit code: %1</source>
         <translation>L&apos;extraction a échoué.
 Code: %1</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="175"/>
-        <location filename="update_application.cpp" line="225"/>
-        <location filename="update_application.cpp" line="274"/>
+        <location filename="update_application.cpp" line="174"/>
+        <location filename="update_application.cpp" line="241"/>
+        <location filename="update_application.cpp" line="290"/>
         <source>Error</source>
         <translation>Erreur</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="223"/>
+        <location filename="update_application.cpp" line="207"/>
+        <source>No update available</source>
+        <translation>Aucune mise à jour disponible</translation>
+    </message>
+    <message>
+        <location filename="update_application.cpp" line="208"/>
+        <source>Tao Presentations %1 is up-to-date.</source>
+        <translation>Tao Presentations %1 est à jour.</translation>
+    </message>
+    <message>
+        <location filename="update_application.cpp" line="239"/>
         <source>Download failed.
 Exit code: %1
 %2</source>
@@ -1735,7 +1745,7 @@ Code : %1
 %2</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="273"/>
+        <location filename="update_application.cpp" line="289"/>
         <source>Download failed: %1</source>
         <translation>Échec du téléchargement : %1</translation>
     </message>
@@ -1832,32 +1842,32 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="1181"/>
+        <location filename="widget.cpp" line="1193"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2216"/>
+        <location filename="widget.cpp" line="2230"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2222"/>
+        <location filename="widget.cpp" line="2236"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="8727"/>
+        <location filename="widget.cpp" line="8830"/>
         <source> (UNLICENSED)</source>
         <translation> (ÉVALUATION)</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="11328"/>
+        <location filename="widget.cpp" line="11431"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="11329"/>
+        <location filename="widget.cpp" line="11432"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

@@ -14,7 +14,7 @@
 namespace Tao {
 
 
-UpdateApplication::UpdateApplication() : aborted(false), updating(false)
+UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMessage(false)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
@@ -48,17 +48,17 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false)
     progress = new QMessageBox;
     progress->addButton(tr("Cancel"), QMessageBox::RejectRole);
     progress->setWindowModality(Qt::WindowModal);
-
-    updating = false;
 }
 
 
-void UpdateApplication::check()
+void UpdateApplication::check(bool msg)
 // ----------------------------------------------------------------------------
 //    Check for new update
 // ----------------------------------------------------------------------------
 {
-    // No need to check if already doing it
+    useMessage = msg;
+
+    // No need to update if already doing it
     if(!updating)
     {
         if(!repo)
@@ -115,13 +115,14 @@ void UpdateApplication::update()
     else
     {
         updating = false;
+
         // Delete process
         proc.clear();
     }
 }
 
 
-bool UpdateApplication::start()
+void UpdateApplication::start()
 // ----------------------------------------------------------------------------
 //    Start update
 // ----------------------------------------------------------------------------
@@ -143,8 +144,6 @@ bool UpdateApplication::start()
     connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
             this, SLOT(onDownloadError(QProcess::ProcessError)), Qt::UniqueConnection);
     repo->dispatch(proc);
-
-    return true;
 }
 
 
@@ -197,7 +196,24 @@ void UpdateApplication::processRemoteTags(QStringList tags)
         // Update if current version is older than the remote one
         bool upToDate = (current >= version);
         if(!upToDate)
+        {
             update();
+        }
+        else
+        {
+            // Show an informative message if wanted
+            if(useMessage)
+            {
+                QString title = tr("No update available");
+                QString msg = tr("Tao Presentations %1 is up-to-date.").arg(edition);
+                QMessageBox::information(NULL, title, msg);
+            }
+
+            updating = false;
+
+            // Clear process
+            proc.clear();
+        }
     }
 }
 

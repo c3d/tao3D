@@ -21,8 +21,8 @@ class UpdateApplication : public QObject
 public:
     UpdateApplication();
 
-    bool           start();
-    void           check();
+    void           start();
+    void           check(bool msg = false);
     void           update();    
     void           extract();
 
@@ -33,15 +33,17 @@ private slots:
     void           onDownloadError(QProcess::ProcessError error);
 
 private:
-    QString                   from;
-    QFile                     to;
+    QString                   from;             // Remote repository
+    QFile                     to;               // Local directory
     QFileInfo                 info;
 
-    QString                   edition;
-    double                    version;
+    QString                   edition;          // Tao edition
+    double                    version;          // Tao version
 
     QMessageBox*              progress;
     bool                      aborted, updating;
+    bool                      useMessage;
+
 
     repository_ptr            repo;
     process_p                 proc;

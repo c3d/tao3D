@@ -11,7 +11,8 @@ DEFAULT_TEMPLATES =   \
     lens_flare \
     movie \
     materials \
-    pan_and_zoom
+    pan_and_zoom \
+    picture_slider \
 
 OTHER_TEMPLATES =     \
     mapping \

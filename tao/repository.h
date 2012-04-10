@@ -181,6 +181,8 @@ public:
                                    bool shallow = false) = 0;
     virtual process_p   asyncFetch(QString what,
                                    bool    forcetags = false) = 0;
+    virtual process_p   asyncArchive(QString from="", QString to="",
+                                     QString format="tar") = 0;
     virtual text        version()                       = 0;
     virtual text        versionTag()                    = 0;
     virtual text        head()                          = 0;
@@ -209,11 +211,11 @@ signals:
 
 public:
     virtual QString     command()                       = 0;
+    void                waitForAsyncProcessCompletion();
+
 protected:
     virtual text        styleSheet();
     virtual text        fullName(text fileName);
-    void                waitForAsyncProcessCompletion();
-
 protected slots:
     virtual void        asyncProcessFinished(int exitCode, QProcess::ExitStatus);
     virtual void        asyncProcessError(QProcess::ProcessError error);
@@ -274,6 +276,7 @@ public:
                       // must NOT contain a valid repository -- caller will
                       // later invoke Repository::clone()
         OpenExistingHere, // Like OpenExisting but path must be repository root
+        NoLocalRepo,   // Force use if path is not a local repository
     };
 
 public:
@@ -287,6 +290,7 @@ public:
 public:
     static QString          errors;
     static bool             no_repo;
+    static bool             no_local;
 
 protected:
     static Repository *     newRepository(QString path, Mode mode);

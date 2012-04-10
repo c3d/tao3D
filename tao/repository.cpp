@@ -39,6 +39,7 @@ namespace Tao {
 QMap<QString, QWeakPointer<Repository> > RepositoryFactory::cache;
 Repository::Kind  RepositoryFactory::availableScm = Repository::Unknown;
 bool              RepositoryFactory::no_repo      = false;
+bool              RepositoryFactory::no_local     = false;
 struct Repository::Commit Repository::HeadCommit  = Repository::Commit("HEAD");
 
 Repository::Repository(const QString &path): path(path),
@@ -363,8 +364,13 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
 // ----------------------------------------------------------------------------
 {
     if (no_repo) return NULL;
+
     // Try a Git repository first
-    Repository *git = new GitRepository(path);
+    bool no_local = false;
+    if(mode == NoLocalRepo)
+        no_local = true;
+
+    Repository *git = new GitRepository(path, no_local);
     if (mode == OpenExistingHere && !git->pathIsRoot())
     {
         errors = QObject::tr("Path is not repository root");
@@ -397,6 +403,7 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
         // Caller will call Repository::clone()
         return git;
     }
+
     delete git;
     return NULL;
 }

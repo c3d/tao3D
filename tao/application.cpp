@@ -43,6 +43,7 @@
 #include "licence.h"
 #include "version.h"
 #include "preferences_pages.h"
+#include "update_application.h"
 
 #include <QString>
 #include <QSettings>
@@ -84,12 +85,12 @@ Application::Application(int & argc, char ** argv)
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
+      updateApp(),
       startDir(QDir::currentPath()),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
       appInitialized(false)
-
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -353,6 +354,10 @@ Application::Application(int & argc, char ** argv)
     XL::MAIN = this->xlr = xlr;
     if (XL::MAIN->options.enable_modules)
         checkModules();
+
+    // Check for update now if wanted
+    if(GeneralPage::checkForUpdate())
+        updateApp.check();
 
     // Record application start time (licensing)
     startTime = Widget::trueCurrentTime();

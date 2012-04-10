@@ -136,6 +136,10 @@ void FrameInfo::resize(uint w, uint h)
 
     this->w = w; this->h = h;
     glShowErrors();
+
+    // Clear the contents of the newly created frame buffer
+    render_fbo->bind();
+    clear();
 }
 
 
@@ -165,7 +169,7 @@ void FrameInfo::resizeDepthTexture(uint w, uint h)
 }
 
 
-void FrameInfo::begin()
+void FrameInfo::begin(bool clearContents)
 // ----------------------------------------------------------------------------
 //   Begin rendering in the given off-screen buffer
 // ----------------------------------------------------------------------------
@@ -178,9 +182,9 @@ void FrameInfo::begin()
 
     glDisable(GL_TEXTURE_2D);
     glDisable(GL_STENCIL_TEST);
-    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
-                 clearColor.alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+    if (clearContents)
+        clear();
 }
 
 
@@ -224,6 +228,17 @@ GLuint FrameInfo::bind()
     if (TaoApp->hasGLMultisample)
         glEnable(GL_MULTISAMPLE);
     return texId;
+}
+
+
+void FrameInfo::clear()
+// ----------------------------------------------------------------------------
+//   Clear the contents of a frame buffer object
+// ----------------------------------------------------------------------------
+{
+    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
+                 clearColor.alpha);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 

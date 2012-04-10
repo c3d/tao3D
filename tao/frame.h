@@ -50,7 +50,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
     virtual void Delete() { trash.push_back(this); }
 
     void        resize(uint width, uint height);
-    void        begin();
+    void        begin(bool clearContents = true);
     void        end();
     GLuint      bind();
     GLuint      texture();
@@ -83,6 +83,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
 protected:
     void        resizeDepthTexture(uint w, uint h);
     void        copyToDepthTexture();
+    void        clear();
 };
 
 

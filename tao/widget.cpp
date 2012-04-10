@@ -9181,7 +9181,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
                               double w, double h, Tree_p prog,
-                              Integer_p withDepth)
+                              Integer_p withDepth, bool canvas)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
@@ -9224,7 +9224,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
 
-        frame.begin();
+        frame.begin(canvas == false);
         layout->Draw(NULL);
         frame.end();
 

@@ -26,8 +26,8 @@
 #include <QtGlobal> // for Q_OS_WIN32
 #if defined (Q_OS_WIN32)
 #include "dde_widget.h"
-#include "update_application.h"
 #endif
+#include "update_application.h"
 #include <QApplication>
 #include <QDir>
 #include <QStringList>

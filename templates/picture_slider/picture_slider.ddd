@@ -81,15 +81,16 @@ picture_slider ->
 // -------------------------------------------------
     background_slider
     automatic_slider
+    slider_loop true
     slider_offset 8, 0, 0
-    slider 6, picture
+    slider pictures_number, picture
 
 
 picture N:integer ->
 // -------------------------------------------------
 //    Draw picture N (i.e picture1.png, etc.)
 // -------------------------------------------------
-    a := slider_fade_x N, 5.0
+    a := slider_fade_x 5.0
     locally
         color "white", a
         image_px 0, 0, 1000, 480, "picture" & text N & ".png"

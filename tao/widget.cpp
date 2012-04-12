@@ -3065,9 +3065,11 @@ void Widget::startRefreshTimer(bool on)
         {
             CVDisplayLinkStop(displayLink);
             displayLinkStarted = false;
+            QCoreApplication::removePostedEvents(this, DisplayLink);
         }
 #else
         timer.stop();
+        QCoreApplication::removePostedEvents(this, QEvent::Timer);
 #endif
         return;
     }

@@ -32,6 +32,7 @@
 #include "tao.h"
 #ifndef CFG_NOGIT
 #include "repository.h"
+#include "update_application.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -174,6 +175,7 @@ private slots:
     void clearUndoStack();
 #endif
     void about();
+    void update();
     void preferences();
     void licenses();
     void onlineDoc();
@@ -288,6 +290,7 @@ private:
     QAction          *diffAct;
 #endif
     QAction          *aboutAct;
+    QAction          *updateAct;
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;

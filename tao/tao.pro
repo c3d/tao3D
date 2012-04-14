@@ -124,6 +124,7 @@ HEADERS +=     activity.h \
     tool_window.h \
     transforms.h \
     tree_cloning.h \
+    update_application.h \
     widget.h \
     widget_surface.h \
     window.h \
@@ -197,6 +198,7 @@ SOURCES +=     activity.cpp \
     tool_window.cpp \
     transforms.cpp \
     tree_cloning.cpp \
+    update_application.cpp \
     widget.cpp \
     widget_surface.cpp \
     window.cpp

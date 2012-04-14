@@ -53,11 +53,11 @@ QString GitRepository::detachCommand;
 #endif
 
 
-GitRepository::GitRepository(const QString &path)
+GitRepository::GitRepository(const QString &path, bool noLocal)
 // ----------------------------------------------------------------------------
 //   GitRepository constructor
 // ----------------------------------------------------------------------------
-    : Repository(path), currentBranchMtime(0)
+    : Repository(path), currentBranchMtime(0), noLocal(noLocal)
 {
     connect(&cdvTimer, SIGNAL(timeout()), this, SLOT(clearCachedDocVersion()));
     cdvTimer.start(5000);
@@ -332,6 +332,9 @@ bool GitRepository::valid()
 //   We simply use 'git branch' and check for errors
 //   First, I tried with 'git status', but the return code is 1 after init
 {
+    if(noLocal)
+        return true;
+
     if (!QDir(path).exists())
         return false;
     waitForAsyncProcessCompletion();
@@ -345,6 +348,10 @@ bool GitRepository::initialize()
 //    Initialize a git repository if we need to
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     if (!QDir(path).mkpath("."))
         return false;
     GitProcess cmd(command(), QStringList("init"), path);
@@ -359,6 +366,10 @@ bool GitRepository::initialCommit()
 //    Commit an empty file. Required after init or "git branch" fails
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     QFile dummy(path + "/.tao");
     if (!dummy.open(QIODevice::WriteOnly))
         return false;
@@ -378,6 +389,10 @@ text GitRepository::branch()
 // ----------------------------------------------------------------------------
 {
     text    output, result;
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("branch"), path);
     bool    ok = cmd.done(&errors, &output);
@@ -404,6 +419,10 @@ QStringList GitRepository::branches()
 {
     text    output;
     QStringList result;
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("branch") << "-a", path);
     bool    ok = cmd.done(&errors, &output);
@@ -432,6 +451,10 @@ bool GitRepository::addBranch(QString name, bool force)
 // ----------------------------------------------------------------------------
 //    If force == false, Git will refuse to change an existing branch
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     QStringList args("branch");
     if (force)
@@ -449,6 +472,10 @@ bool GitRepository::delBranch(QString name, bool force)
 //    If force == false, the branch to delete must be fully merged into
 //    HEAD of the current branch
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     QStringList args("branch");
     if (force)
@@ -473,6 +500,10 @@ bool GitRepository::renBranch(QString oldName, QString newName, bool force)
 // ----------------------------------------------------------------------------
 //    If force == true, rename event if the new branch name already exists
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     QStringList args("branch");
     if (force)
@@ -490,6 +521,10 @@ bool GitRepository::isRemoteBranch(text branch)
 //    Return true if branch is remote, false otherwise
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     return (+branch).startsWith("remotes/");
 }
 
@@ -499,6 +534,10 @@ bool GitRepository::checkout(text branch)
 //    Checkout a given branch
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("checkout") << +branch, path);
@@ -511,6 +550,10 @@ bool GitRepository::branch(text name)
 //    Create a new branch
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("branch") << +name, path);
@@ -527,6 +570,10 @@ bool GitRepository::add(text name)
 //   Add a new file to the repository. If name == "", add all untracked filed.
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     QStringList args("add");
@@ -544,6 +591,10 @@ bool GitRepository::change(text name)
 //   Signal that a file in the repository changed
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
@@ -558,6 +609,10 @@ bool GitRepository::remove(text name)
 //   Remove a file from the repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     mergeCommitMessages(nextCommitMessage, whatsNew);
     whatsNew = "";
@@ -571,6 +626,10 @@ bool GitRepository::rename(text from, text to)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("mv") << +from << +to, path);
@@ -583,6 +642,10 @@ bool GitRepository::commit(text message, bool all)
 //   Record pending changes to the repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     if (message == "")
@@ -621,6 +684,10 @@ bool GitRepository::revert(text id)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     if (state != RS_Clean)
@@ -642,6 +709,10 @@ bool GitRepository::cherryPick(text id)
 //   Rename a file in the repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     if (state != RS_Clean)
@@ -878,6 +949,10 @@ bool GitRepository::merge(text branch, ConflictResolution how)
 //   Merge another branch into the current one
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     QStringList args("merge");
@@ -892,6 +967,10 @@ bool GitRepository::reset(text commit)
 //   Reset a branch to normal state or to a given commit
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     clearCachedDocVersion();
     waitForAsyncProcessCompletion();
     QStringList args("reset");
@@ -908,6 +987,10 @@ bool GitRepository::pull()
 //   Pull from remote branch, if remote is set
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     if (pullFrom.isEmpty())
         return true;
     QString branch = +(this->branch());
@@ -952,6 +1035,10 @@ bool GitRepository::fetch(QString url)
 //   Fetch (download objects and refs) from a remote repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     GitAuthProcess cmd(QStringList("fetch") << url, path);
     return cmd.done(&errors);
@@ -965,6 +1052,11 @@ QStringList GitRepository::remotes()
 {
     QStringList result;
     text        output;
+
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     waitForAsyncProcessCompletion();
     GitProcess     cmd(command(), QStringList("remote"), path);
     if (cmd.done(&errors, &output))
@@ -981,6 +1073,10 @@ QString GitRepository::remoteFetchUrl(QString name)
 //   Return the pull/fetch URL for the specified remote
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return "";
+
     QStringList args;
     args << "config" << "--get" << QString("remote.%1.url").arg(name);
     text    output;
@@ -996,6 +1092,10 @@ QString GitRepository::remotePushUrl(QString name)
 //   Return the push URL for the specified remote
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return "";
+
     QStringList args;
     args << "config" << "--get" << QString("remote.%1.pushUrl").arg(name);
     text    output;
@@ -1013,6 +1113,10 @@ QString GitRepository::remoteWithFetchUrl(QString url)
 //   Return the name of the remote with specified fetch URL
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return "";
+
     QStringList remotes = this->remotes();
     foreach (QString remote, remotes)
         if (remoteFetchUrl(remote) == url)
@@ -1026,6 +1130,10 @@ bool GitRepository::addRemote(QString name, QString url)
 //   Add a remote, giving its pull URL
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("remote") <<"add" <<name <<url, path);
     return cmd.done(&errors);
@@ -1036,6 +1144,10 @@ bool GitRepository::setRemote(QString name, QString url)
 //   Set a new pull URL for a remote
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("remote") <<"set-url" << name
                 << url, path);
@@ -1047,6 +1159,10 @@ bool GitRepository::delRemote(QString name)
 //   Delete a remote
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("remote") << "rm" << name, path);
     return cmd.done(&errors);
@@ -1058,6 +1174,10 @@ bool GitRepository::renRemote(QString oldName, QString newName)
 //   Rename a remote
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("remote") << "rename"
                 << oldName << newName, path);
@@ -1072,7 +1192,12 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
 //   If branch == "", the current branch is used
 //   Returned commits are contiguous, i.e., each commit is parent of the next
 //   one (the commits of merged branches are not interspersed)
-{
+{    
+    QList<Commit>       result;
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     QStringList args;
     args << "log" << "--first-parent" << "--pretty=format:%h/%at/%an/%s";
     args << "-n" << QString("%1").arg(max);
@@ -1083,7 +1208,6 @@ QList<GitRepository::Commit> GitRepository::history(QString branch, int max)
     GitProcess cmd(command(), args, path);
     cmd.done(&errors, &output);
 
-    QList<Commit>       result;
     QStringList         log = (+output).split("\n");
     QStringListIterator it(log);
     QRegExp             rx("([^/]+)/([0-9]+)/([^/]+)/(.*)");
@@ -1101,6 +1225,10 @@ QString GitRepository::diff(QString a, QString b, bool symetric)
 //   Return source code difference between version a and version b (commit ids)
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return "";
+
     text output;
     QStringList args;
     args << "diff";
@@ -1122,6 +1250,7 @@ process_p GitRepository::asyncClone(QString cloneUrl, QString newFolder,
 //   Prepare a Process that will make a local copy of a remote project
 // ----------------------------------------------------------------------------
 {
+
     if (shallow)
         return asyncCloneShallow(cloneUrl);
 
@@ -1208,6 +1337,29 @@ process_p GitRepository::asyncFetch(QString what, bool forcetags)
 }
 
 
+process_p GitRepository::asyncArchive(QString from, QString to, QString format)
+// ----------------------------------------------------------------------------
+//   Prepare a Process that will archive latest changes from a remote project
+// ----------------------------------------------------------------------------
+{
+    QStringList args;
+    args << "archive" << "master";
+    if(!from.isEmpty())
+        args << "--remote" << from;
+    if(!to.isEmpty())
+        args << "--output" << to;
+    if(!format.isEmpty())
+        args << "--format" << format;
+
+    GitProcess * proc = new GitProcess(command(), args, path, false);
+    connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),
+            this, SLOT  (asyncProcessFinished(int,QProcess::ExitStatus)));
+
+    return process_p(proc);
+}
+
+
+
 process_p  GitRepository::asyncGetRemoteTags(QString remote)
 // ----------------------------------------------------------------------------
 //   Prepare a Process to download the list of tags from a remote peer
@@ -1229,6 +1381,10 @@ QStringList GitRepository::tags()
 {
     QStringList tags;
     text    output;
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return tags;
+
     waitForAsyncProcessCompletion();
     GitProcess cmd(command(), QStringList("tag"), path);
     bool    ok = cmd.done(&errors, &output);
@@ -1247,6 +1403,10 @@ text GitRepository::version()
         return cachedDocVersion;
 
     text    output, result = +QString(tr("Unknown"));
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     waitForAsyncProcessCompletion();
     QStringList args;
     args << "describe" << tr("--dirty=-dirty") << "--tags" << "--always";
@@ -1265,6 +1425,10 @@ text GitRepository::versionTag()
 // ----------------------------------------------------------------------------
 {
     text    output, result = +QString(tr("Unknown"));
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     waitForAsyncProcessCompletion();
     QStringList args;
     args << "describe" << "--tags" << "--exact-match";
@@ -1283,6 +1447,11 @@ text GitRepository::head()
 // ----------------------------------------------------------------------------
 {
     text output, result;
+
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return result;
+
     waitForAsyncProcessCompletion();
     QStringList args;
     args << "rev-parse" << "HEAD";
@@ -1303,6 +1472,10 @@ bool GitRepository::isClean()
 //    been modified or deleted and not committed, or a file not tracked by Git
 //    is found in the directory.
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     bool ok;
     text    output;
     waitForAsyncProcessCompletion();
@@ -1323,6 +1496,10 @@ QString GitRepository::url()
 //    Return a valid URL for the current repository
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return "";
+
     if (path.isEmpty())
         return "";
 
@@ -1337,6 +1514,10 @@ bool GitRepository::gc()
 //    Run garbage collection
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(!noLocal);
+    if(noLocal)
+        return false;
+
     waitForAsyncProcessCompletion();
     GitProcess * proc = new GitProcess(command(), QStringList("gc"), path, false);
     connect(proc, SIGNAL(finished(int,QProcess::ExitStatus)),

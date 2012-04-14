@@ -78,6 +78,33 @@ carousel_item 1 -> image 0, 0, 1, 1, "flowers.png"
  */
 carousel_item(n:integer);
 
+
+/**
+ * @~english
+ * Get item in front of the carousel.
+ *
+ * Return the number of the most advanced item of the carousel.
+ *
+ * @~french
+ * Détermine l'élément du carrousel situé devant.
+ *
+ * Renvoie le numéro de l'élément du carrousel le plus avancé.
+ */
+carousel_front_item();
+
+/**
+ * @~english
+ * Get angle of the item in front of the carousel.
+ *
+ * Return the angle of the most advanced item of the carousel.
+ *
+ * @~french
+ * Détermine l'angle de l'élément du carrousel situé devant.
+ *
+ * Renvoie l'angle de l'élément du carrousel le plus avancé.
+ */
+carousel_angle();
+
 /**
  * @~english
  * Add mouse control.

@@ -45,7 +45,7 @@ class GitRepository : public Repository
     Q_OBJECT
 
 public:
-    GitRepository(const QString &path);
+    GitRepository(const QString &path, bool noLocal = false);
     virtual ~GitRepository() {}
 
 public:
@@ -85,6 +85,9 @@ public:
                                    bool shallow = false);
     virtual process_p   asyncFetch(QString what,
                                    bool    forcetags = false);
+
+    virtual process_p   asyncArchive(QString from="", QString to="",
+                                     QString format="tar");
     virtual text        version();
     virtual text        versionTag();
     virtual text        head();
@@ -141,6 +144,7 @@ private:
     text                cachedDocVersion;
     QTimer              cdvTimer;
     time_t              currentBranchMtime;
+    bool                noLocal;
 
 friend class GitProcess;
 friend class GitAuthProcess;

@@ -27,6 +27,7 @@
 #if defined (Q_OS_WIN32)
 #include "dde_widget.h"
 #endif
+#include "update_application.h"
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
@@ -120,19 +121,20 @@ public:
     static bool  recursiveDelete(QString path);
 
 public:
-    bool         hasGLMultisample, hasFBOMultisample;
-    bool         hasGLStereoBuffers;
-    bool         useShaderLighting;
-    int          tex2DMinFilter, tex2DMagFilter;
-    Vendor       vendorID;
-    uint         maxTextureCoords;
-    uint         maxTextureUnits;
-    text         GLVendor;
-    text         GLRenderer;
-    text         GLVersionAvailable;
-    text         GLExtensionsAvailable;
-    QString      lang;
-    GCThread *   gcThread;
+    bool               hasGLMultisample, hasFBOMultisample;
+    bool               hasGLStereoBuffers;
+    bool               useShaderLighting;
+    int                tex2DMinFilter, tex2DMagFilter;
+    Vendor             vendorID;
+    uint               maxTextureCoords;
+    uint               maxTextureUnits;
+    text               GLVendor;
+    text               GLRenderer;
+    text               GLVersionAvailable;
+    text               GLExtensionsAvailable;
+    QString            lang;
+    GCThread *         gcThread;
+    UpdateApplication  updateApp;
 
 private:
     QStringList  pathList;

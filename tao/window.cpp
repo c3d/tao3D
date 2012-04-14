@@ -1445,6 +1445,15 @@ void Window::deleteAboutSplash()
 }
 
 
+void Window::update()
+// ----------------------------------------------------------------------------
+//    Update the application
+// ----------------------------------------------------------------------------
+{
+    TaoApp->updateApp.check(true);
+}
+
+
 void Window::preferences()
 // ----------------------------------------------------------------------------
 //    Show the Preferences dialog
@@ -1744,6 +1753,12 @@ void Window::createActions()
     aboutAct->setMenuRole(QAction::AboutRole);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
+    updateAct = new QAction(tr("&Check for update"), this);
+    updateAct->setStatusTip(tr("Update the application"));
+    updateAct->setObjectName("check for update");
+    updateAct->setMenuRole(QAction::ApplicationSpecificRole);
+    connect(updateAct, SIGNAL(triggered()), this, SLOT(update()));
+
     preferencesAct = new QAction(tr("&Preferences"), this);
     preferencesAct->setStatusTip(tr("Set application preferences"));
     preferencesAct->setObjectName("preferences");
@@ -1924,11 +1939,13 @@ void Window::createMenus()
     displayModes = new QActionGroup(this);
     viewMenu->addMenu(tr("&Toolbars"))->setObjectName(TOOLBAR_MENU_NAME);
 
+
     menuBar()->addSeparator();
 
     helpMenu = menuBar()->addMenu(tr("&Help"));
     helpMenu->setObjectName(HELP_MENU_NAME);
     helpMenu->addAction(aboutAct);
+    helpMenu->addAction(updateAct);
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);

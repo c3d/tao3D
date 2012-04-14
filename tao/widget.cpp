@@ -3065,6 +3065,7 @@ void Widget::startRefreshTimer(bool on)
         {
             CVDisplayLinkStop(displayLink);
             displayLinkStarted = false;
+            pendingDisplayLinkEvent = false;
             QCoreApplication::removePostedEvents(this, DisplayLink);
         }
 #else

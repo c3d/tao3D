@@ -324,6 +324,8 @@ void Window::closeEvent(QCloseEvent *event)
         }
         else
         {
+            taoWidget->startRefreshTimer(false);
+            ModuleManager::moduleManager()->unloadImported();
             event->accept();
         }
     }
@@ -2257,14 +2259,10 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         taoWidget->updateProgramSource();
         loadInProgress = false;
 #endif
-        bool animated = taoWidget->hasAnimations();
-        taoWidget->enableAnimations(NULL, false);
         taoWidget->resetTimes();
         taoWidget->resetViewAndRefresh();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
-        if (animated)
-            taoWidget->enableAnimations(true);
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }

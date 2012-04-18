@@ -179,8 +179,12 @@ struct BlockLayout : Layout
         revert(new RevertLayoutState((*flow)))
     {
         IFTRACE(justify)
+        {
                 std::cerr << "<->BlockLayout::BlockLayout ["<<this
                 <<"] from flow -- revert =" << revert<<"\n ";
+                revert->toDebugString(std::cerr);
+        }
+
     }
     BlockLayout( BlockLayout &o):Layout(o), flow(o.flow),
         revert(new RevertLayoutState(*(o.flow)))

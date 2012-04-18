@@ -918,7 +918,8 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
         coord charY2 = glyph.bounds.upper.y;
         box |= Point3(charX1, charY1, 0);
         box |= Point3(charX2, charY2, 0);
-        box |= Point3(charX1 + glyph.advance, charY1, 0);
+        if ( c.category() == QChar::Separator_Space)
+            box |= Point3(charX1 + glyph.advance, charY1, 0);
     }
 
     scale result = box.Width();

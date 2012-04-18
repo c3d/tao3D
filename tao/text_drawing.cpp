@@ -674,7 +674,8 @@ Box3 TextUnit::Bounds(Layout *where)
             result |= Point3(charX1, y + sa, z);
             result |= Point3(charX1, y - sd - sl, z);
 
-            scale height = glyphs.Ascent(font, texUnits) + glyphs.Descent(font, texUnits);
+            scale height = glyphs.Ascent(font, texUnits) +
+                    glyphs.Descent(font, texUnits);
             scale spacing = height + glyphs.Leading(font, texUnits);
             x = 0;
             y -= spacing * glyph.scalingFactor;
@@ -713,6 +714,12 @@ Box3 TextUnit::Space(Layout *where)
     coord       z        = pos.z;
 
     GlyphCache::GlyphEntry  glyph;
+    IFTRACE(justify)
+    {
+        std::cerr << "->TextUnit::Space(Layout *" << where<< ") offset "
+                << where->Offset() << " for ";
+        toDebugString(std::cerr);
+    }
 
     // Loop over all characters in the text span
     uint i, max = str.length();
@@ -742,6 +749,13 @@ Box3 TextUnit::Space(Layout *where)
         // Advance to next character
         if (newLine)
         {
+            IFTRACE(justify)
+            {
+                std::cerr << "--TextUnit::Space(Layout *" << where<< ")  newline "
+                          << " y (" << y << ") -= sa + sd + sl ("<< sa + sd + sl
+                          << ") ==> " << y - (sa + sd + sl) << std::endl;
+            }
+
             result |= Point3(charX1, y - sd - sl, z);
             x = 0;
             y -= sa + sd + sl;
@@ -755,9 +769,10 @@ Box3 TextUnit::Space(Layout *where)
     where->offset = Point3(x,y,z);
     IFTRACE(justify)
     {
-        std::cerr << "TextUnit::Space(Layout *" << where<< ") result "
-                << result << " for ";
-        toDebugString(std::cerr);
+        std::cerr << "<-TextUnit::Space(Layout *" << where<< ") offset "
+                  << where->Offset() << " result "
+                  << result << "\n";
+        //toDebugString(std::cerr);
     }
     return result;
 }
@@ -784,7 +799,8 @@ TextUnit *TextUnit::Break(BreakOrder &order, uint &size)
                 charOrder = LineBreak;
             else if (c == '\f')
                 charOrder = SentenceBreak;
-       }
+        }
+
         if (order <= charOrder)
         {
             // Create two text spans, the first one containing the split
@@ -821,16 +837,50 @@ void TextUnit::toDebugString(std::ostream &out)
     }
     for (uint i = 0; i< start; i++)
     {
-        out << " ";
+        if (XL::Utf8Code(source->value, i) == '\n')
+            out <<"\n";
+        else
+            out << " ";
     }
     out << "^";
+    if (start == loc_end || loc_end == 0)
+    {
+        out << "\n";
+        return;
+    }
+
     for (uint i = start+1; i< loc_end-1 ; i++)
     {
-        out << "-";
+        if (XL::Utf8Code(source->value, i) == '\n')
+            out <<"\n";
+        else
+            out << "-";
     }
-    if (start != loc_end)
-        out << "^";
-    out << "\n";
+    out << "^\n";
+}
+
+
+void TextUnit::toText(std::ostream &out)
+// ----------------------------------------------------------------------------
+//   Print the Text unit value on the given ostream
+// ----------------------------------------------------------------------------
+{
+    uint loc_end = end;
+    if (loc_end == (uint)~0)
+    {
+        loc_end = source->value.size();
+    }
+    if (source->value.size() == 0 || start == loc_end || loc_end == 0)
+    {
+        out << "EMPTY\n";
+        return;
+    }
+
+    out << "|";
+    for (uint i = start; i< loc_end ; i++)
+        out << (char)XL::Utf8Code(source->value, i);
+
+    out << "|\n";
 }
 
 
@@ -846,6 +896,7 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
     text        str      = source->value;
     uint        pos      = str.length();
     Box3        box;
+
     if (pos > end)
         pos = end;
     while (pos > start)
@@ -860,7 +911,6 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
         uint  unicode  = XL::Utf8Code(str, pos);
         if (!glyphs.Find(font, texUnits, unicode, glyph, true))
             continue;
-
         // Enter the geometry coordinates
         coord charX1 = glyph.bounds.lower.x;
         coord charX2 = glyph.bounds.upper.x;
@@ -878,7 +928,7 @@ scale TextUnit::TrailingSpaceSize(Layout *where)
     {
         std::cerr << "<->TextUnit::TrailingSpaceSize[" << this << "] font "
                 << +where->font.toString() <<" returns " << result<< " for ";
-        toDebugString(std::cerr);
+        toText(std::cerr);
     }
    return result;
 }
@@ -1793,9 +1843,9 @@ TAO_END
 
 
 // ****************************************************************************
-// 
+//
 //    Code generation from text_drawing.tbl
-// 
+//
 // ****************************************************************************
 
 #include "graphics.h"

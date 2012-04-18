@@ -205,7 +205,7 @@ void LayoutLine::Draw(Layout *where)
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
         IFTRACE(justify)
-                std::cerr << "LayoutLine::Draw child is " << child->Type() << std::endl;
+                std::cerr << "--LayoutLine::Draw child is " << child->Type() << std::endl;
 
         Layout * ll = dynamic_cast<Layout*>(child);
 
@@ -286,8 +286,7 @@ Box3 LayoutLine::Bounds(Layout *where)
     Box3 result;
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
-    if (places.size() == 0)
-        result |= Point3();
+
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
@@ -310,8 +309,11 @@ Box3 LayoutLine::Space(Layout *where)
     Box3 result;
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
-    if (places.size() == 0)
-        result |= Point3();
+
+    IFTRACE(justify)
+            std::cerr << "->LayoutLine::Space["<<this<<"] : result = " << result
+                      << std::endl;
+
     for (p = places.begin(); p != places.end(); p++)
     {
         LineJustifier::Place &place = *p;
@@ -320,7 +322,16 @@ Box3 LayoutLine::Space(Layout *where)
                               where->offset.x + place.position);
         Box3 childSpace = child->Space(where);
         result |= childSpace;
+        IFTRACE(justify)
+                std::cerr << "--LayoutLine::Space["<<this<<"] : child "
+                             << child->Type() << " height = "
+                          << childSpace.Height() << " -- Total height = "
+                          << result.Height()  << std::endl;
+
     }
+    IFTRACE(justify)
+            std::cerr << "<-LayoutLine::Space["<<this<<"] : result = " << result
+                      << std::endl;
     return result;
 }
 
@@ -501,6 +512,9 @@ void PageLayout::Draw(Layout *where)
 //   and then only iterate on the items that were placed, not all items,
 //   taking the layout offset from the placed position
 {
+    IFTRACE(justify)
+            std::cerr << "->PageLayout::Draw ["<< this << "] offset "
+                      << where->Offset() <<  "\n";
     flow->offset = where->Offset();
     flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
@@ -541,6 +555,10 @@ void PageLayout::Draw(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
+        IFTRACE(justify)
+                std::cerr << "--PageLayout::Draw ["<< this
+                          << "] saved y = " << flow->offset.y
+                          << " -- new y = " << flow->offset.y + place.position << "\n";
         XL::Save<coord> saveY(flow->offset.y, flow->offset.y + place.position);
         GLAllStateKeeper glSave(glSaveBits(),
                                 hasMatrix, false, hasTextureMatrix);
@@ -550,7 +568,10 @@ void PageLayout::Draw(Layout *where)
 
     if(where)
        where->previousTextures = previousTextures;
-
+    IFTRACE(justify)
+            std::cerr << "<-PageLayout::Draw ["<< this << "] flow->offset = "
+                      << flow->Offset()
+                      << " -- where->offset = "<<  where->Offset() << "\n";
 }
 
 
@@ -715,8 +736,7 @@ Box3 PageLayout::Bounds(Layout *layout)
     Box3 result;
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
-    if (places.size() == 0)
-        result |= Point3();
+
     for (p = places.begin(); p != places.end(); p++)
     {
         PageJustifier::Place &place = *p;

@@ -25,7 +25,7 @@
 import Animate
 
 license_ok ->
-    if check_license ("Carousel 1.002", false) then
+    if check_impress_or_license "Carousel 1.002" then
         true
     else
         if blink (1.0, 1.0, 300.0) then

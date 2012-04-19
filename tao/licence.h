@@ -118,6 +118,8 @@ private:
         QRegExp         features;
         QDate           expiry;
     };
+    friend
+    std::ostream& operator << (std::ostream &o, const Licences::Licence &lic);
     std::vector<Licence>licences;
     text                name;
     text                company;

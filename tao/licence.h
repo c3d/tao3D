@@ -23,6 +23,12 @@
 // ****************************************************************************
 
 #include "base.h"
+#ifndef KEYGEN
+#include "version.h"
+#if TAO_VERSION_IS_IMPRESS
+#include <set>
+#endif
+#endif
 
 #include <vector>
 #include <QRegExp>
@@ -70,6 +76,26 @@ public:
         if (days <= 7)
             Warn(feature, days, critical);
         return days > 0;
+    }
+
+    static bool CheckImpressOrLicense(text feature)
+    {
+#if TAO_EDITION_IS_IMPRESS
+        IFTRACE(lic)
+        {
+            // Cache request for less verbose logging
+            static std::set<text> checked;
+            if (checked.count(feature) == 0)
+            {
+                debug() << "'" << feature << "' not checked "
+                           "(authorized because build is Impress)\n";
+                checked.insert(feature);
+            }
+        }
+        return true;
+#else
+        return Check(feature, false);
+#endif
     }
 
     static text hostID();
@@ -121,7 +147,7 @@ private:
     text sign(LicenceFile &lf);
 #endif
     bool verify(LicenceFile &lf, text signature);
-    std::ostream & debug();
+    static std::ostream & debug();
 };
 
 }

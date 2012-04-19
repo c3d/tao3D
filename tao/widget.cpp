@@ -10600,6 +10600,16 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 }
 
 
+Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::CheckImpressOrLicense' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return Licences::CheckImpressOrLicense(feature->value) ? XL::xl_true
+                                                           : XL::xl_false;
+}
+
+
 void Widget::setWatermarkText(text t, int w, int h)
 // ----------------------------------------------------------------------------
 //   Create a texture and make it the watermark of the current widget

@@ -52,6 +52,7 @@ echo "#define GITSHA1 \"$GITSHA1\"" >> .version.new
 if [ "$1" ] ; then
   echo "#define TAO_EDITION \"$1\"" >> .version.new
   echo "#define TAO_LICENCE_STR \"Tao Presentations $1 $GITREV\"" >> .version.new
+  (echo "$1" | grep -qi "Impress") && echo "#define TAO_EDITION_IS_IMPRESS 1" >> .version.new;
 else
   echo "#define TAO_LICENCE_STR \"Tao Presentations $GITREV\"" >> .version.new
 fi

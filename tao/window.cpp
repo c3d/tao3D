@@ -2263,6 +2263,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         taoWidget->resetViewAndRefresh();
         taoWidget->refreshNow();
         taoWidget->refresh(0);
+        taoWidget->startRefreshTimer();
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
     }

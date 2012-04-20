@@ -20,7 +20,9 @@ for i in $ALL_XL ; do
   echo $i | grep -q ${NOEXT}/${NOEXT}.xl && MODS="$MODS $DN"
 done
 
+{
 for i in $MODS ; do
   XL=$(basename $i).xl
-  [ -d "$i" ] && (echo ; echo "/// $i ///" ; echo ; git lol $SINCE..HEAD $i ; git diff $SINCE HEAD $i/$XL)
+  [ -d "$i" ] && (echo ; echo "/// $i ///" ; echo ; git --no-pager log --pretty="format:%Cgreen%h%Creset %cr %Cblue%cn%Creset %s" $SINCE..HEAD $i ; echo ; git --no-pager diff --color=always $SINCE HEAD $i/$XL)
 done
+} | less -R -E -F -X

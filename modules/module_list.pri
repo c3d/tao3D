@@ -43,7 +43,6 @@
        revolving_texts \
        point_cloud
     OTHER_MODULES =     \
-        audio_video \
         hello_world     \
         network_access   \
         taoTester    \

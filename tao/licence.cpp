@@ -96,6 +96,8 @@ void Licences::addLicenceFile(kstring licfname)
 //      expires 5 dec 1968
 {
     RECORD(ALWAYS, "Adding licence file", licfname);
+    IFTRACE(lic)
+        debug() << "Loading license file" << licfname << "\n";
 
     // Licences we want to add here
     LicenceFile additional;
@@ -179,6 +181,12 @@ void Licences::addLicenceFile(kstring licfname)
                 item = scanner.TextValue();
                 if (verify(additional, item))
                 {
+                    IFTRACE(lic)
+                    {
+                        for (int i = 0; i < additional.licences.size(); ++i)
+                            debug() << "  Adding " << additional.licences[i]
+                                    << "\n";
+                    }
                     licences.insert(licences.end(),
                                     additional.licences.begin(),
                                     additional.licences.end());
@@ -239,6 +247,11 @@ void Licences::addLicenceFile(kstring licfname)
 #endif
                 additional.hostid = item;
             }
+            // CAUTION: There should be a 'break' here, but adding it would
+            // break backward compatibility: license files signed with a
+            // previous version of tao_sign would not work with a new Tao.
+            // This missing 'break' just adds the host id as an additional
+            // feature -- cf. tao -tlic
 
         case FEATURES:
             if (tok == XL::tokSTRING || tok == XL::tokQUOTE)
@@ -785,5 +798,19 @@ std::ostream & Licences::debug()
     return std::cerr;
 }
 
+
+std::ostream& operator << (std::ostream &o, const Licences::Licence &lic)
+// ----------------------------------------------------------------------------
+//   Dump license feature and expiry date
+// ----------------------------------------------------------------------------
+{
+    o << "'" << lic.features.pattern().toStdString() << "'";
+    if (lic.expiry.isValid())
+        o << " (expires " << lic.expiry.toString("dd-MMM-yyyy").toStdString()
+          << ")";
+    else
+        o << " (never expires)";
+    return o;
+}
 
 }

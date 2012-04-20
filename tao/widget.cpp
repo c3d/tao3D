@@ -3065,9 +3065,12 @@ void Widget::startRefreshTimer(bool on)
         {
             CVDisplayLinkStop(displayLink);
             displayLinkStarted = false;
+            pendingDisplayLinkEvent = false;
+            QCoreApplication::removePostedEvents(this, DisplayLink);
         }
 #else
         timer.stop();
+        QCoreApplication::removePostedEvents(this, QEvent::Timer);
 #endif
         return;
     }
@@ -10594,6 +10597,16 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 {
     bool crit = (critical == XL::xl_true) ? true : false;
     return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
+// ----------------------------------------------------------------------------
+//   Export 'Licenses::CheckImpressOrLicense' as a primitive
+// ----------------------------------------------------------------------------
+{
+    return Licences::CheckImpressOrLicense(feature->value) ? XL::xl_true
+                                                           : XL::xl_false;
 }
 
 

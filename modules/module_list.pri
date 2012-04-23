@@ -46,8 +46,9 @@
     OTHER_MODULES =     \
         hello_world     \
         network_access   \
-        taoTester    \
-        tao_synchro
+        taoTester \
+        tao_synchro \
+        water_surface
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories
     LSOUT=$$system(ls)

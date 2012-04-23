@@ -93,12 +93,13 @@ ModuleApiPrivate::ModuleApiPrivate()
     drawWatermark                = Widget::drawWatermarkAPI;
 
     // Framebuffer API
-    newFrameBufferObject       = FrameInfo::newFrameBufferObject;
-    deleteFrameBufferObject    = FrameInfo::deleteFrameBufferObject;
-    resizeFrameBufferObject    = FrameInfo::resizeFrameBufferObject;
-    bindFrameBufferObject      = FrameInfo::bindFrameBufferObject;
-    releaseFrameBufferObject   = FrameInfo::releaseFrameBufferObject;
-    frameBufferObjectToTexture = FrameInfo::frameBufferObjectToTexture;
+    newFrameBufferObject           = FrameInfo::newFrameBufferObject;
+    newFrameBufferObjectWithFormat = FrameInfo::newFrameBufferObjectWithFormat;
+    deleteFrameBufferObject        = FrameInfo::deleteFrameBufferObject;
+    resizeFrameBufferObject        = FrameInfo::resizeFrameBufferObject;
+    bindFrameBufferObject          = FrameInfo::bindFrameBufferObject;
+    releaseFrameBufferObject       = FrameInfo::releaseFrameBufferObject;
+    frameBufferObjectToTexture     = FrameInfo::frameBufferObjectToTexture;
     frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
 
     // License checking

@@ -321,7 +321,12 @@ struct ModuleApi
     typedef struct fbo_s fbo;
 
     // Create a new framebuffer object.
+    // Default internal format is GL_RGBA8.
     ModuleApi::fbo *   (*newFrameBufferObject)(uint w, uint h);
+
+    // Create a new framebuffer object with a specified internal format.
+    ModuleApi::fbo *   (*newFrameBufferObjectWithFormat)(uint w, uint h,
+                                                         uint format);
 
     // Delete a framebuffer object.
     void               (*deleteFrameBufferObject)(ModuleApi::fbo * obj);

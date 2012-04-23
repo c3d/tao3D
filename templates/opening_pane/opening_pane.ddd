@@ -1,0 +1,161 @@
+// ****************************************************************************
+//  opening_pane.ddd                                                Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     .
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2012 Taodyne SAS
+// ****************************************************************************
+
+
+import Animate 1.0
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+clear_color 1,0.5,0,1
+
+page "init",
+    text_box 0,0,400,400,
+        paragraph_space 30, 30
+        align_center
+        text "Initial page."
+        paragraph_break
+        text_span
+            bold
+            text <<Hit "down" key to see the demo>>
+
+        paragraph_break
+
+        text "Come back to this page to watch the show again."
+
+
+page "opening pane",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
+    op_story 1, 8, 0, -300, -100, 250, 150,
+        op_text "My text can be "
+        op_keyword "shown"
+        op_text " and "
+        op_keyword "hide"
+        op_text " as I want."
+
+    op_story 4, 10, 35, 350, 350, 500, 50,
+        align_center
+        op_text "A specially long line of text"
+
+    op_story 7, 12, 170, -220, 150, 290, 350,
+        align_center
+        image 0, 0, 1.5, 1.5, "long-scroll-md.png"
+
+    op_story 10, 16, 20 * page_time, 0, -150, 249, 250,
+        paragraph_space 15, 15
+        font "Baskerville", 48
+        margins 60, 0
+        op_bullet 10, "Bullet #1"
+        op_bullet 11, "Bullet #2"
+        op_bullet 12, "Bullet #3"
+        op_bullet 13, "Bullet #4"
+
+
+// ============================================================================
+//
+//                                 CONFIGURATION
+//
+// ============================================================================
+
+
+font "op_text" -> font "Baskerville", 48
+font "op_keyword" -> font "Arial Rounded MT Bold", 48
+color "story" -> color "white"
+line_color "story"-> line_color "white"
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+
+op_story Start:real,End:real,Hue:real,X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a story box
+// ----------------------------------------------------------------------------
+// The box is shown from "Start" seconds after the page is open,
+// and until "End" seconds.
+// The background color has the given "Hue".
+// The box is located in "X", "Y" with size "W"x"H"
+// The box displays the "Body"
+    if page_time >= Start-1 and page_time <= End+1 then
+        locally
+            SW->1.0
+            SH->1.0
+
+            if W > H then
+                SW := fade_between(page_time, Start, End)
+                SH := 1.0
+            else
+                SW := 1.0
+                SH := fade_between(page_time, Start, End)
+
+            color_hsv Hue, 0.8, 0.4, 0.5
+            rounded_rectangle X, Y, W*SW+20, H*SH+20, 20
+
+            color "story"
+            frame_texture 2*W*SW, 2*H*SH,
+                text_box 0, 0, 2*W, 2*H,
+                    align 0
+                    vertical_align 0.5
+                    Body
+            rectangle X, Y, W*SW, H*SH
+
+
+op_bullet Time:real, T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a given bullet
+// ----------------------------------------------------------------------------
+// The text "T" appears after "Time" seconds
+    paragraph_break
+    show fade_at(page_time, Time)
+    anchor
+        translate -20, 12, 0
+        rotatey 150 * page_time
+        color "story", 0.6
+        line_color "story"
+        line_width 1.5
+        circle 0, 0, 9
+    text T
+
+
+op_keyword T:text ->
+// ----------------------------------------------------------------------------
+//   Display the keywords for a given box
+// ----------------------------------------------------------------------------
+    font "op_keyword"
+    text T
+
+
+op_text T:text ->
+// ----------------------------------------------------------------------------
+//   Display text in a glass box
+// ----------------------------------------------------------------------------
+    font "op_text"
+    text T

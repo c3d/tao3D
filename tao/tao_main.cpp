@@ -357,7 +357,7 @@ void install_signal_handler(sig_t handler)
         QDir dir(Tao::Application::defaultProjectFolderPath());
         dir.mkpath(dir.absolutePath());
         QDateTime dateTime = QDateTime::currentDateTime();
-        QString dateTimeS = dateTime.toString(Qt::ISODate);
+        QString dateTimeS = dateTime.toString("yyyyMMdd-HHmmss");
         text logfile = +dir.absoluteFilePath("tao-dump-" + dateTimeS + ".log");
         strncpy(sig_handler_log, logfile.c_str(), sizeof sig_handler_log);
 

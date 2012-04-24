@@ -140,6 +140,7 @@ void FrameInfo::resize(uint w, uint h)
     // Clear the contents of the newly created frame buffer
     render_fbo->bind();
     clear();
+    render_fbo->release();
 }
 
 

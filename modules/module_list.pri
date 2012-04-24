@@ -41,12 +41,11 @@
        stereo_decoder \
        carousel \
        revolving_texts \
-       database
+       database \
+       point_cloud
     OTHER_MODULES =     \
-        audio_video \
         hello_world     \
         network_access   \
-        point_cloud \
         taoTester    \
         tao_synchro
 } else {

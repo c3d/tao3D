@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   19
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   20
+#define TAO_MODULE_API_AGE       1
 
 // ========================================================================
 //
@@ -382,6 +382,17 @@ struct ModuleApi
 
     // Return the full path (native format) to the current document folder
     std::string (*currentDocumentFolder)();
+
+    // ------------------------------------------------------------------------
+    //   Licence checking (continued)
+    // ------------------------------------------------------------------------
+
+    // If the current build of Tao is Impress, return true. If not Impress:
+    // return true if a valid license is found for the requested feature name,
+    // false otherwise. When no license is found, an information dialog
+    // is shown.
+    bool (*checkImpressOrLicense)(std::string featureName);
+
 };
 
 }

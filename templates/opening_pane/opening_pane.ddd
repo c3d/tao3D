@@ -4,9 +4,9 @@
 //
 //   File Description:
 //
-//     .
-//
-//
+//     Template of a document containing opening and closing pane.
+//     To use this template use the "opening pane" page. The "init" one is just
+//     there to enable restart of the animation on the second page.
 //
 //
 //
@@ -63,7 +63,7 @@ page "opening pane",
 
     op_story 7, 12, 170, -220, 150, 290, 350,
         align_center
-        image 0, 0, 1.5, 1.5, "long-scroll-md.png"
+        image 0, 0, 1.5, 1.5, "papillon.png"
 
     op_story 10, 16, 20 * page_time, 0, -150, 249, 250,
         paragraph_space 15, 15

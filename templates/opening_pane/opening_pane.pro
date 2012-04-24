@@ -8,7 +8,10 @@ TEMPLATE = subdirs
 
 include(../templates.pri)
 
-files.path  = $$APPINST/templates/monjori
-files.files = template.ini opening_pane.ddd opening_pane.png
+files.path  = $$APPINST/templates/opening_pane
+files.files = template.ini opening_pane.ddd long-scroll-md.png
 
-INSTALLS += files
+images.path = $$APPINST/templates/opening_pane/images
+images.files = images/*
+
+INSTALLS += files images

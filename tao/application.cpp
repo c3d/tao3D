@@ -131,7 +131,7 @@ Application::Application(int & argc, char ** argv)
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
-        exit(0);
+        ::exit(0);
     }
     bool showSplash = true;
     if (cmdLineArguments.contains("-nosplash") ||

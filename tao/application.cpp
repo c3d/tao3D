@@ -44,6 +44,9 @@
 #include "version.h"
 #include "preferences_pages.h"
 #include "update_application.h"
+#if defined (CFG_WITH_EULA)
+#include "eula_dialog.h"
+#endif
 
 #include <QString>
 #include <QSettings>
@@ -126,13 +129,21 @@ Application::Application(int & argc, char ** argv)
     // Set current directory
     QDir::setCurrent(applicationDirPath());
 
+    // Clean options
     QStringList cmdLineArguments = arguments();
-    // Internal clean option
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
         ::exit(0);
     }
+#if defined (CFG_WITH_EULA)
+    if (cmdLineArguments.contains("--reset-eula"))
+    {
+        EulaDialog::resetAccepted();
+        ::exit(0);
+    }
+#endif
+
     bool showSplash = true;
     if (cmdLineArguments.contains("-nosplash") ||
         cmdLineArguments.contains("-h"))
@@ -175,6 +186,21 @@ Application::Application(int & argc, char ** argv)
     // Check main application licence
     if (!Licences::Check(TAO_LICENCE_STR, true))
         ::exit(15);
+
+#if defined (CFG_WITH_EULA)
+    // Show End-User License Agreement if not previously accepted for this
+    // version
+    if (! EulaDialog::previouslyAccepted())
+    {
+        EulaDialog eula;
+#if defined (Q_OS_MACX)
+        eula.show();
+        eula.raise();
+#endif
+        if (eula.exec() != QMessageBox::Ok)
+            ::exit(1);
+    }
+#endif
 
     // Show splash screen
     if (showSplash)

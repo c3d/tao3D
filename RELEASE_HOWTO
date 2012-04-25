@@ -11,8 +11,8 @@ Once:
   modulename/modulename.xl, modulename/doc/Doxyfile.in but also where the module
   checks for licenses: grep for hasLicense, checkLicense, checkImpressOrLicense,
   check_license, check_impress_or_license).
-- Configure for internal build
-  $ ./configure
+- Configure for full build (no part of the code #idef'ed out):
+  $ ./configure --with-eula
 - Make sure Qt translations are up-to-date
   $ cd tao
   $ make lupdate

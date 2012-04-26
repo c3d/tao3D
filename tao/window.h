@@ -114,7 +114,6 @@ public slots:
 #endif
     void pageSetup();
     void print();
-    void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
     void clearErrors();

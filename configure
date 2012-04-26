@@ -23,6 +23,8 @@ usage() {
   echo "                  generation of a valid 120-day licence. "
   echo "  --silent        Add qmake option CONFIG+=silent (produce less verbose output)."
   echo "  --disable-doc   Do not build documentation."
+  echo "  --with-eula     Enable the End-User License Agreement dialog (REQUIRED for "
+  echo "                  official builds)"
   echo ""
   echo "Edition Name:"
   echo ""
@@ -102,6 +104,10 @@ while [ $# -ne 0 ] ; do
       ;;
     --disable-doc)
       PARM="$PARM DISABLE_DOC=1"
+      shift
+      ;;
+    --with-eula)
+      PARM="$PARM DEFINES+=CFG_WITH_EULA"
       shift
       ;;
     discovery)

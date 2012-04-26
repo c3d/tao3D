@@ -1428,20 +1428,9 @@ void Window::about()
 //    About Box
 // ----------------------------------------------------------------------------
 {
-    if (aboutSplash)
-        return;
-    aboutSplash = new SplashScreen(Qt::WindowStaysOnTopHint);
-    connect(aboutSplash, SIGNAL(dismissed()), this, SLOT(deleteAboutSplash()));
+    if (!aboutSplash)
+        aboutSplash = new SplashScreen(Qt::WindowStaysOnTopHint);
     aboutSplash->show();
-}
-
-
-void Window::deleteAboutSplash()
-// ----------------------------------------------------------------------------
-//    Delete the SplashScreen object allocated by the about() method
-// ----------------------------------------------------------------------------
-{
-    delete aboutSplash;
 }
 
 

@@ -60,6 +60,9 @@
 #   DEFINES+=CFG_TIMED_FULLSCREEN
 #     Leave fullscreen mode automatically after 10 minutes with no user
 #     interaction (mouse move or key press).
+#   DEFINES+=CFG_WITH_EULA
+#     Show the End-User License Agreement on startup, if not already accepted
+#     for the current version.
 #
 #   modules=none
 #     Do not build any Tao module

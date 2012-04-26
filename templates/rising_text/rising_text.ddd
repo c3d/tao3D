@@ -1,0 +1,196 @@
+// ****************************************************************************
+//  Rising.ddd                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//    Rising text from top or bottom.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+import Animate
+
+// ============================================================================
+//
+//                                PAGE SAMPLE
+//
+// ============================================================================
+// ----------------------------------------------------------------------------
+//    PAGE SAMPLES
+// ----------------------------------------------------------------------------
+
+page "Rising from top",
+// ----------------------------------------------------------------------------
+//    Poem rising from the top
+// ----------------------------------------------------------------------------
+    page_duration 15
+    locally
+        translatez -10000
+        color "white", 0.3
+        texture "paon.jpg"
+        rectangle 0, 0, window_width * 4, window_height * 4
+
+    Origin := 1000
+    Ystart := 400.0
+    Xcenter := -300.0
+    rising_message with 0..8
+
+// Only 9 lines on this page
+rising_text 0 -> 
+    bold
+    text "The Peacock"
+rising_text 1 -> text "Blue, orange, green and gold,"
+rising_text 2 -> text "With their tails fanning out behind them,"
+rising_text 3 -> text "Like a veil,"
+rising_text 4 -> text "Until they lift them and an arch of colour evolves,"
+rising_text 5 -> text "Tall, glamorous and elegant when they strut,"
+rising_text 6 -> text "With the eyes on their feathers,"
+rising_text 7 -> text "Watching you as you stare in amazement."
+rising_text 8 -> 
+    bold
+    text "Chloe"
+
+
+page "Rising from bottom",
+// ----------------------------------------------------------------------------
+//    Text rising from the bottom
+// ----------------------------------------------------------------------------
+    locally
+        translatez -10000
+        color "white", 0.3
+        texture "jardin1.jpg"
+        rectangle 0, 0, window_width * 4, window_height * 4
+
+    Origin := -1000
+    Ystart := -200.0
+    Xcenter := 200.0
+    rising_message with 10..15
+   
+
+rising_text 10 -> +"Chestnut"
+rising_text 11 -> +"Plane tree"
+rising_text 12 -> +"Flowers:"
+rising_text 13 -> -"Tulip"
+rising_text 14 -> -"Daisy"
+rising_text 15 -> +"Grass"
+
+
+// ============================================================================
+//
+//                                CONFIGURATION
+//
+// ============================================================================
+
+// ----------------------------------------------------------------------------
+//    Settable values at a glance
+// ----------------------------------------------------------------------------
+
+// Coordinate of the first line center
+Xcenter -> 0.0
+Ystart -> 0.0
+
+// Size of each line of text
+Hline -> 60
+Wline -> 1000
+
+// Maximum number of line per page.
+// Each page must start with a multiple of this number.
+// Page 0 got lines 0*MaxLine to 1*MaxLine - 1
+// Page N got lines N*MaxLine to (N+1)*Maxline - 1
+MaxLine -> 10
+
+// Point where the lines appears.
+// 1000 is the top of the window and -1000 is the bottom.
+Origin -> 0
+
+// Speed of lines
+Speed -> 2
+
+// ----------------------------------------------------------------------------
+//    DECLARATION
+// ----------------------------------------------------------------------------
+// This value will be set by the template.
+// Use it in read mode only to progressively show something
+alpha_fadein -> 0.0
+
+
+// ----------------------------------------------------------------------------
+//    BULLETS
+// ----------------------------------------------------------------------------
+// Change those drawing to change bullet level one and two appearance
+
+draw_bullet 1 ->
+    //color "black", alpha_fadein
+    translate -15, 15, 20
+    circle 0, 0, 8
+
+draw_bullet 2 ->
+    //color "blue", alpha_fadein
+    translate -20, 15, 20
+    rotatez -50 * time
+    star_polygon 0, 0, 20, 20, 5, 3
+
+
+// ============================================================================
+//
+//                                FUNCTIONS
+//
+// ============================================================================
+
+rising_message N:integer ->
+// ----------------------------------------------------------------------------
+//   Display a message for the first page
+// ----------------------------------------------------------------------------
+    locally
+        rising_adjust A:real, N:integer ->
+            translate Xcenter, (Ystart - Origin) * sin A - Hline * min(Speed*page_time, N) + Origin, -5500 * cos A
+        rising_adjust min((Speed*page_time - N mod MaxLine) * pi / 16, pi/2), N mod MaxLine
+        alpha_fadein :=  0.8 * fade_in(page_time, 3*N mod (3*MaxLine) + 2)
+        color "black", alpha_fadein
+        font "Verdana", 40
+        text_box 0, 0, Wline, Hline,
+            align 0
+            vertical_align 0.5
+            rising_text N
+
++X:text ->
+// ----------------------------------------------------------------------------
+//   Additional line of text
+// ----------------------------------------------------------------------------
+    font "Verdana", 50, bold
+    paragraph_break
+    color "black",  alpha_fadein
+    //color 0.92, 0.38, 0.09,  alpha_fadein
+    line_color "white", alpha_fadein
+    line_width 1
+    anchor
+        draw_bullet 1
+    text X
+
+-X:text ->
+// ----------------------------------------------------------------------------
+//   Second level bullet
+// ----------------------------------------------------------------------------
+    font "Arial", 40, bold
+    margins 80, 0
+    paragraph_space 0, 15
+    paragraph_break
+    color "black",  alpha_fadein
+    //color 0.92, 0.38, 0.09,  alpha_fadein
+    line_color "white", alpha_fadein
+    line_width 1
+    anchor
+        draw_bullet 2
+    text X

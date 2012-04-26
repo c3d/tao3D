@@ -4,9 +4,9 @@
 //
 //   File Description:
 //
-//     Template of a document containing opening and closing pane.
-//     To use this template use the "opening pane" page. The "init" one is just
-//     there to enable restart of the animation on the second page.
+//     Template opening_pane.
+//     The background used for this template is in theme.xl file
+//
 //
 //
 //
@@ -29,10 +29,11 @@ import Animate 1.0
 //                                   PAGES
 //
 // ============================================================================
-clear_color 1,0.5,0,1
 
+clear_color 0.416, 0.671, 0.765, 1 
 page "init",
     text_box 0,0,400,400,
+        color watermark
         paragraph_space 30, 30
         align_center
         text "Initial page."
@@ -50,6 +51,7 @@ page "opening pane",
 // -------------------------------------------------
 //    Main scene
 // -------------------------------------------------
+    background -1000
     op_story 1, 8, 0, -300, -100, 250, 150,
         op_text "My text can be "
         op_keyword "shown"
@@ -61,11 +63,11 @@ page "opening pane",
         align_center
         op_text "A specially long line of text"
 
-    op_story 7, 12, 170, -220, 150, 290, 350,
+    op_story 7, 12, 100, -520, 250, 290, 350,
         align_center
         image 0, 0, 1.5, 1.5, "papillon.png"
 
-    op_story 10, 16, 20 * page_time, 0, -150, 249, 250,
+    op_story 10, 16, 20 * page_time, 200, -250, 249, 250,
         paragraph_space 15, 15
         font "Baskerville", 48
         margins 60, 0
@@ -82,8 +84,8 @@ page "opening pane",
 // ============================================================================
 
 
-font "op_text" -> font "Baskerville", 48
-font "op_keyword" -> font "Arial Rounded MT Bold", 48
+font "op_text" -> font "Baskerville", 58
+font "op_keyword" -> font "Arial Rounded MT Bold", 58
 color "story" -> color "white"
 line_color "story"-> line_color "white"
 
@@ -135,6 +137,7 @@ op_bullet Time:real, T:text ->
 // The text "T" appears after "Time" seconds
     paragraph_break
     show fade_at(page_time, Time)
+    font "op_text"
     anchor
         translate -20, 12, 0
         rotatey 150 * page_time
@@ -159,3 +162,5 @@ op_text T:text ->
 // ----------------------------------------------------------------------------
     font "op_text"
     text T
+
+

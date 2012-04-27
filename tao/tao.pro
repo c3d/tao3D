@@ -308,6 +308,11 @@ contains(DEFINES, CFG_NOFULLSCREEN) {
 contains(DEFINES, CFG_NOMODULEUPDATE) {
     !build_pass:message("Module update is disabled")
 }
+contains(DEFINES, CFG_WITH_EULA) {
+    !build_pass:message("EULA dialog is enabled")
+    HEADERS += eula_dialog.h
+    SOURCES += eula_dialog.cpp
+}
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
 NOWARN_SOURCES += decryption.cpp licence.cpp

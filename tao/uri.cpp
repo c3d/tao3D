@@ -568,6 +568,11 @@ bool Uri::fetchAndCheckout()
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
     connect(progress, SIGNAL(canceled()), this, SLOT(abortDownload()));
+    if (scheme() == "http" || scheme() == "https")
+    {
+        // Git returns no progress information in this case. Show an animation.
+        progress->setRange(0, 0);
+    }
 
     // Save current HEAD to detect update vs. no-op
     savedHead = +repo->head();
@@ -629,6 +634,11 @@ bool Uri::cloneAndCheckout()
     progress->setWindowModality(Qt::WindowModal);
     progress->setValue(0);
     connect(progress, SIGNAL(canceled()), this, SLOT(abortDownload()));
+    if (scheme() == "http" || scheme() == "https")
+    {
+        // Git returns no progress information in this case. Show an animation.
+        progress->setRange(0, 0);
+    }
 
     // Prepare clone process
     QString repoUri = this->repoUri();

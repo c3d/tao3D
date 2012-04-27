@@ -30,10 +30,10 @@ import Animate 1.0
 //                                 BACKGROUND
 //
 // ============================================================================
+slide_width -> 1920.0
+slide_height -> 1200.0
 
 watermark -> "white" 
-
-scale3 a -> scale a, a, a
 
 spiral X, Y, Z ->
 // ----------------------------------------------------------------------------
@@ -161,12 +161,12 @@ background Z ->
 //   Draw the background in Z depth
 // ----------------------------------------------------------------------------
     locally
-        translatez Z
-        scale3 1.3
+        scale_background
+        ztrans_background -10000
         show 0.3
         locally
             line_color "transparent"
-            translate 0, -window_height / 2 - 60 , 0
+            translate 0, -slide_height / 2, 0
             locally
                 rotatez -35
                 scale3 10
@@ -192,7 +192,6 @@ background Z ->
                 circle 100, 0, 20
 
             locally
-                color watermark
                 rotatez 25
                 arabesque 500, 400, 0
             locally
@@ -238,3 +237,32 @@ background Z ->
             leaf1 0, 0, 0
 
 
+// ============================================================================
+// 
+//    General
+// 
+// ============================================================================
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture ("max").
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents ("min").
+scale3 S:real -> scale S, S, S
+background_scale -> max(window_width/slide_width, window_height/slide_height)
+contents_scale -> min(window_width/slide_width, window_height/slide_height)
+scale_background -> scale3 background_scale
+scale_contents -> scale3 contents_scale
+
+// Z translation without change in dimensions
+ztrans_contents Z:real ->
+    Z0 -> 6000.0
+    Z0 := camera_position at 3
+    translatez Z/contents_scale
+    scale3 (Z0-Z)/Z0
+
+ztrans_background Z:real ->
+    Z0 -> 6000.0
+    Z0 := camera_position at 3
+    translatez Z/background_scale
+    scale3 (Z0-Z)/Z0

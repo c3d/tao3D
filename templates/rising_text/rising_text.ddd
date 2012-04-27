@@ -27,9 +27,6 @@ import Animate
 //                                PAGE SAMPLE
 //
 // ============================================================================
-// ----------------------------------------------------------------------------
-//    PAGE SAMPLES
-// ----------------------------------------------------------------------------
 
 page "Rising from top",
 // ----------------------------------------------------------------------------
@@ -37,27 +34,28 @@ page "Rising from top",
 // ----------------------------------------------------------------------------
     page_duration 15
     locally
-        translatez -10000
+        scale_background
+        ztrans_background -10000
         color "white", 0.3
-        texture "paon.jpg"
-        rectangle 0, 0, window_width * 4, window_height * 4
+        image 0, 0, 2.3, 2.3, "paon.jpg"
 
+    scale_contents
     Origin := 1000
     Ystart := 400.0
-    Xcenter := -300.0
+    Xcenter := -50.0
     rising_message with 0..8
 
 // Only 9 lines on this page
 rising_text 0 -> 
     bold
-    text "The Peacock"
-rising_text 1 -> text "Blue, orange, green and gold,"
-rising_text 2 -> text "With their tails fanning out behind them,"
-rising_text 3 -> text "Like a veil,"
-rising_text 4 -> text "Until they lift them and an arch of colour evolves,"
-rising_text 5 -> text "Tall, glamorous and elegant when they strut,"
-rising_text 6 -> text "With the eyes on their feathers,"
-rising_text 7 -> text "Watching you as you stare in amazement."
+    text "Le Paon" en "The Peacock"
+rising_text 1 -> text "Bleu, orange, vert et doré" en "Blue, orange, green and gold,"
+rising_text 2 -> text "Avec sa queue en éventail derrière lui," en "With their tails fanning out behind them,"
+rising_text 3 -> text "Comme une traine" en "Like a veil,"
+rising_text 4 -> text "Jusqu'à ce qu'il la déploie en un arc de couleurs irisée," en "Until they lift them and an arch of colour evolves,"
+rising_text 5 -> text "Grand, glamour et élégant quand il se pavane" en "Tall, glamorous and elegant when they strut,"
+rising_text 6 -> text "Avec des yeux sur son plumage" en "With the eyes on their feathers,"
+rising_text 7 -> text "Qui vous regardent alors que vous l'admirez avec étonnement." en "Watching you as you stare in amazement."
 rising_text 8 -> 
     bold
     text "Chloe"
@@ -68,23 +66,24 @@ page "Rising from bottom",
 //    Text rising from the bottom
 // ----------------------------------------------------------------------------
     locally
-        translatez -10000
+        scale_background
+        ztrans_background -10000
         color "white", 0.3
-        texture "jardin1.jpg"
-        rectangle 0, 0, window_width * 4, window_height * 4
+        image 0,0,2.3,2.3,"jardin1.jpg"
 
+    scale_contents
     Origin := -1000
     Ystart := -200.0
-    Xcenter := 200.0
+    Xcenter := 300.0
     rising_message with 10..15
    
 
-rising_text 10 -> +"Chestnut"
-rising_text 11 -> +"Plane tree"
-rising_text 12 -> +"Flowers:"
-rising_text 13 -> -"Tulip"
-rising_text 14 -> -"Daisy"
-rising_text 15 -> +"Grass"
+rising_text 10 -> +"Marronnier" en "Chestnut"
+rising_text 11 -> +"Platane" en "Plane tree"
+rising_text 12 -> +"Fleurs : " en "Flowers:"
+rising_text 13 -> -"Tulipe" en "Tulip"
+rising_text 14 -> -"Paquerette" en "Daisy"
+rising_text 15 -> +"Pelouse" en "Grass"
 
 
 // ============================================================================
@@ -97,13 +96,22 @@ rising_text 15 -> +"Grass"
 //    Settable values at a glance
 // ----------------------------------------------------------------------------
 
+
+// Logical dimensions for the slide. You can put anything you want here,
+// but the aspect ratio should match that of the background picture and be
+// close to the aspect ratio of the screens you are going to use.
+// This will be used to define the logical coordinates of anything that 
+// follows "scale_contents".
+slide_width -> 1920.0
+slide_height -> 1200.0
+
 // Coordinate of the first line center
 Xcenter -> 0.0
 Ystart -> 0.0
 
 // Size of each line of text
 Hline -> 60
-Wline -> 1000
+Wline -> 1500
 
 // Maximum number of line per page.
 // Each page must start with a multiple of this number.
@@ -117,6 +125,7 @@ Origin -> 0
 
 // Speed of lines
 Speed -> 2
+
 
 // ----------------------------------------------------------------------------
 //    DECLARATION
@@ -194,3 +203,58 @@ rising_message N:integer ->
     anchor
         draw_bullet 2
     text X
+
+
+// ============================================================================
+// 
+//   Language management
+// 
+// ============================================================================
+
+lang -> "fr"
+Fr:text en En:text -> if lang = "en" then En else Fr
+En:text fr Fr:text -> if lang = "fr" then Fr else En
+french Body -> if lang = "fr" then Body 
+english Body -> if lang = "en" then Body 
+language L:text -> lang := L; refresh 0.1
+
+// ============================================================================
+// 
+//    Keys for the presentations in this directory
+// 
+// ============================================================================
+
+presentation_eye_distance -> 30
+key "e" -> language "en"
+key "f" -> language "fr"
+
+// ============================================================================
+// 
+//    General
+// 
+// ============================================================================
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture ("max").
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents ("min").
+scale3 S:real -> scale S, S, S
+background_scale -> max(window_width/slide_width, window_height/slide_height)
+contents_scale -> min(window_width/slide_width, window_height/slide_height)
+scale_background -> scale3 background_scale
+scale_contents -> scale3 contents_scale
+
+// Z translation without change in dimensions
+ztrans_contents Z:real ->
+    Z0 -> 6000.0
+    Z0 := camera_position at 3
+    translatez Z/contents_scale
+    scale3 (Z0-Z)/Z0
+
+ztrans_background Z:real ->
+    Z0 -> 6000.0
+    Z0 := camera_position at 3
+    translatez Z/background_scale
+    scale3 (Z0-Z)/Z0
+

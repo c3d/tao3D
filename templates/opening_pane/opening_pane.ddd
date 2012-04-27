@@ -27,24 +27,25 @@ import Animate 1.0
 // ============================================================================
 //
 //                                   PAGES
-//
+// 
 // ============================================================================
 
 clear_color 0.416, 0.671, 0.765, 1 
 page "init",
+    scale_contents
     text_box 0,0,400,400,
         color watermark
         paragraph_space 30, 30
         align_center
-        text "Initial page."
+        text "Page de démarrage" en "Initial page."
         paragraph_break
         text_span
             bold
-            text <<Hit "down" key to see the demo>>
+            text "Appuyez sur la touche 'flèche bas' pour voir l'exemple." en <<Hit "down" key to see the sample>>
 
         paragraph_break
 
-        text "Come back to this page to watch the show again."
+        text "Revenez à cette page pour redémarrer." en "Come back to this page to watch the show again."
 
 
 page "opening pane",
@@ -52,16 +53,17 @@ page "opening pane",
 //    Main scene
 // -------------------------------------------------
     background -1000
+    scale_contents
     op_story 1, 8, 0, -300, -100, 250, 150,
-        op_text "My text can be "
-        op_keyword "shown"
-        op_text " and "
-        op_keyword "hide"
-        op_text " as I want."
+        op_text "Mon text peut être " en "My text can be "
+        op_keyword "affiché" en "shown"
+        op_text " et " en " and "
+        op_keyword "caché" en "hidden"
+        op_text "comme je veux." en " as I want."
 
     op_story 4, 10, 35, 350, 350, 500, 50,
         align_center
-        op_text "A specially long line of text"
+        op_text "Une longue ligne de texte..." en "A specially long line of text..."
 
     op_story 7, 12, 100, -520, 250, 290, 350,
         align_center
@@ -71,10 +73,10 @@ page "opening pane",
         paragraph_space 15, 15
         font "Baskerville", 48
         margins 60, 0
-        op_bullet 10, "Bullet #1"
-        op_bullet 11, "Bullet #2"
-        op_bullet 12, "Bullet #3"
-        op_bullet 13, "Bullet #4"
+        op_bullet 10, "Élément 1" en "Bullet #1"
+        op_bullet 11, "Élément 2" en "Bullet #2"
+        op_bullet 12, "Élément 3" en "Bullet #3"
+        op_bullet 13, "Élément 4" en "Bullet #4"
 
 
 // ============================================================================
@@ -89,6 +91,13 @@ font "op_keyword" -> font "Arial Rounded MT Bold", 58
 color "story" -> color "white"
 line_color "story"-> line_color "white"
 
+// Logical dimensions for the slide. You can put anything you want here,
+// but the aspect ratio should match that of the background picture and be
+// close to the aspect ratio of the screens you are going to use.
+// This will be used to define the logical coordinates of anything that 
+// follows "scale_contents".
+slide_width := 1920.0
+slide_height := 1200.0
 
 // ============================================================================
 //
@@ -164,3 +173,26 @@ op_text T:text ->
     text T
 
 
+
+// ============================================================================
+// 
+//   Language management
+// 
+// ============================================================================
+
+lang -> "fr"
+Fr:text en En:text -> if lang = "en" then En else Fr
+En:text fr Fr:text -> if lang = "fr" then Fr else En
+french Body -> if lang = "fr" then Body 
+english Body -> if lang = "en" then Body 
+language L:text -> lang := L; refresh 0.1
+
+// ============================================================================
+// 
+//    Keys for the presentations in this directory
+// 
+// ============================================================================
+
+presentation_eye_distance -> 30
+key "e" -> language "en"
+key "f" -> language "fr"

@@ -166,6 +166,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
+      showingEvaluationWatermark(false),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -351,6 +352,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(""),
       watermarkWidth(0), watermarkHeight(0),
+      showingEvaluationWatermark(false),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -694,6 +696,9 @@ void Widget::drawScene()
         space->Draw(NULL);
     }
 
+    if (showingEvaluationWatermark)
+        drawWatermark();
+
     if (XL::MAIN->options.threaded_gc)
     {
         // Record wait time till asynchronous garbage collection completes
@@ -777,7 +782,16 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
-{    
+{
+#if defined (CFG_EVALUATION_WATERMARK_TIME)
+    if (! showingEvaluationWatermark &&
+          Application::runTime() > CFG_EVALUATION_WATERMARK_TIME)
+    {
+        setWatermarkText(+tr("Evaluation"), 400, 200);
+        showingEvaluationWatermark = true;
+    }
+#endif
+
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
@@ -10655,6 +10669,8 @@ void Widget::setWatermarkTextAPI(text t, int w, int h)
 //   Export setWatermarkText to the module API
 // ----------------------------------------------------------------------------
 {
+    if (Tao()->showingEvaluationWatermark)
+        return;
     Tao()->setWatermarkText(t, w, h);
 }
 

@@ -927,6 +927,7 @@ private:
     GLuint                watermark;
     text                  watermarkText;
     int                   watermarkWidth, watermarkHeight;
+    bool                  showingEvaluationWatermark;
 #ifdef Q_OS_MACX
     bool                  frameBufferReady();
     char                  bFrameBufferReady;

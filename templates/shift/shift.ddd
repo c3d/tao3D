@@ -1,0 +1,458 @@
+// ****************************************************************************
+//  shift.ddd                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The Shift template. Pages are divided in half horizontally. The left
+//     arrow key and the space bar enable to reveal items progressively.
+//     Use the right arrow to go back.
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+// ============================================================================
+//
+// Image credits:
+//
+// -- images/1024px-Phoenix_canariensis_ag.JPG
+//
+// By Amanda Grobe (Own work)
+// [CC-BY-SA-2.5 (www.creativecommons.org/licenses/by-sa/2.5)],
+// via Wikimedia Commons
+//
+// http://commons.wikimedia.org/wiki/File%3APhoenix_canariensis_ag.JPG
+//
+// -- images/768px-Washingtonia_robusta.jpg
+//
+// By en:user:Geographer (en:Image:Washingtonia_robusta.jpg)
+// [GFDL (http://www.gnu.org/copyleft/fdl.html),
+//  CC-BY-SA-3.0 (http://creativecommons.org/licenses/by-sa/3.0/) or
+//  CC-BY-2.5 (http://creativecommons.org/licenses/by/2.5)],
+// via Wikimedia Commons
+//
+// http://commons.wikimedia.org/wiki/File%3AWashingtonia_robusta.jpg
+//
+// ============================================================================
+
+
+import Animate
+
+
+// ============================================================================
+//
+//   Key bindings (navigation, language selection)
+//
+// ============================================================================
+
+key "Right" -> skip 1
+key "Left" -> skip -1
+key "Space" -> skip 1
+
+key "e" -> Lang := "en"
+key "f" -> Lang := "fr"
+
+
+
+// ============================================================================
+//
+//   Support for multiple languages
+//
+// ============================================================================
+
+Lang -> ""
+trn T:text -> trn Lang, T
+trn "", T:text -> trn tao_language, T
+
+
+
+// ============================================================================
+//
+//   Pages
+//
+// ============================================================================
+
+
+page "Palm Trees",
+// ----------------------------------------------------------------------------
+//    Title page
+// ----------------------------------------------------------------------------
+    draw_background
+    compute_smooth_step
+    at_step 1
+    text_box 0, 0, 800, 600,
+        palm_green
+        font "Verdana", 80
+        vertical_align_center
+        align_center
+        text trn "Palm Trees"
+
+trn "fr", "Palm Trees" -> "Les palmiers"
+
+
+page "Phoenix canariensis",
+// ----------------------------------------------------------------------------
+//    First page has 4 panels
+// ----------------------------------------------------------------------------
+    draw_background
+    locally
+        compute_smooth_step
+        sh_display_panel with 1..4
+
+
+page "Washingtonia robusta",
+// ----------------------------------------------------------------------------
+//    Second page has 3 panels
+// ----------------------------------------------------------------------------
+    draw_background
+    locally
+        compute_smooth_step
+        sh_display_panel with 1..3
+        if step > 2 then skip -1
+
+// ----------------------------------------------------------------------------
+//    Background : draw 2 palm trees
+// ----------------------------------------------------------------------------
+draw_background ->
+    scale3 window_scale
+    locally
+        palm_green
+        translate 0, -600, -200
+        rectangle 0, 0, 6000, 500
+
+    color "white"
+    locally
+        color_hsv 200 + 10 * sin (0.1 * time) , 0.3, 0.75, 0.2
+        locally
+            translate -500, -250, -1400
+            rotatez 5 * sin (0.1 * time)
+            image 0, 0, 1, 1, "PalmTree1.png"
+        locally
+            translate 500, -300, -1600
+            rotatez 4 * sin (0.17 * time)
+            image 0, 0, 1, 1, "PalmTree2.png"
+
+palm_green -> color 0, 0.37, 0.16
+
+
+sh_shift N:integer ->
+// ----------------------------------------------------------------------------
+//    Shift the N-th element
+// ----------------------------------------------------------------------------
+    2 - fade_at(smooth_step, (N-2)) - fade_at(smooth_step, (N-1)) - fade_at(smooth_step, N) - fade_at(smooth_step, (N+1))
+
+
+sh_display_panel N:integer ->
+// ----------------------------------------------------------------------------
+//   Show the N-th panel
+// ----------------------------------------------------------------------------
+    if N > highest_step then highest_step := N
+    if (step < 1) then skip 1
+    if smooth_step >= (N-2)  and smooth_step <= (N+1) then
+        locally
+            translatex 350 + 700 * sh_shift N
+            sh_panel page_label, N
+
+
+sh_panel "Phoenix canariensis", 1 ->
+// ----------------------------------------------------------------------------
+//   Photo
+// ----------------------------------------------------------------------------
+    rotatey 20
+    show fade_in(smooth_step, 1)
+    image 0, 0, 0.6, 0.6, "1024px-Phoenix_canariensis_ag.JPG"
+
+
+sh_panel "Phoenix canariensis", 2 ->
+// ----------------------------------------------------------------------------
+//   Second pane
+// ----------------------------------------------------------------------------
+    sh_title text "Phoenix canariensis"
+
+    sh_story_box
+        sh_subtitle text "Description"
+        sh_bullet text trn "Native from the Canary Islands"
+        sh_bullet text trn "Large (10-20m), solitary palm"
+        sh_bullet text trn "Long pinnate leaves (4-6m)"
+
+trn "fr", "Native from the Canary Islands" -> "Originaire des îles Canaries"
+trn "fr", "Large (10-20m), solitary palm" -> "Palmier solitaire, de grande taille (10 à 20m)"
+trn "fr", "Long pinnate leaves (4-6m)" -> "Feuilles pennées de 4 à 6m"
+
+
+sh_panel "Phoenix canariensis", 3 ->
+// ----------------------------------------------------------------------------
+//   Third pane
+// ----------------------------------------------------------------------------
+    sh_title text "Phoenix canariensis"
+
+    sh_story_box
+        sh_subtitle text trn "Main uses"
+        sh_bullet text trn "Ornemental"
+        sh_bullet text trn "Building (trunk, leaves)"
+        sh_bullet text trn "Palm syrup (made from the sap)"
+
+trn "fr", "Main uses" -> "Utilisations principales"
+trn "fr", "Ornemental" -> "Ornementale"
+trn "fr", "Building (trunk, leaves)" -> "Construction (tronc, palmes)"
+trn "fr", "Palm syrup (made from the sap)" -> "Sirop de palme (à partir de la sève)"
+
+
+sh_panel "Phoenix canariensis", 4 ->
+// ----------------------------------------------------------------------------
+//    Fourth pane
+// ----------------------------------------------------------------------------
+    locally
+        translatez -20
+        line_color "black", 0.8
+        color "#DDD", 0.15
+        line_width 1
+        rounded_rectangle -40, 0, 580, 560, 20
+    sh_title text trn "Other species"
+    sh_story_box
+        sh_subtitle text "P. dactylifera"
+        sh_bullet text trn "The ""true"" date palm"
+        sh_sep
+
+        sh_subtitle text "P. acaulis"
+        sh_bullet text trn "The dwarf date palm"
+        sh_sep
+
+        sh_subtitle text "P. atlantica"
+        sh_bullet text trn "Endangered species from Cape Verde"
+        sh_sep
+
+trn "fr", "Other species" -> "Autres espèces"
+trn "fr", "The ""true"" date palm" -> "Le «vrai» palmier-dattier"
+trn "fr", "The dwarf date palm" -> "Le palmier-dattier nain"
+trn "fr", "Endangered species from Cape Verde" -> "Une espèce menacée du Cap Vert"
+
+
+sh_sep -> sh_sep 20
+
+sh_sep H ->
+// ----------------------------------------------------------------------------
+//   Separator
+// ----------------------------------------------------------------------------
+    line_break
+    color 0, 0, 0, 0
+    rectangle 0, 0, 100, H
+    color "black"
+    line_break
+
+
+sh_panel "Washingtonia robusta", 1 ->
+// ----------------------------------------------------------------------------
+//   Photo
+// ----------------------------------------------------------------------------
+    rotatey 20
+    show fade_in(smooth_step, 1)
+    image 0, 0, 0.8, 0.8, "768px-Washingtonia_robusta.jpg"
+
+
+sh_panel "Washingtonia robusta", 2 ->
+// ----------------------------------------------------------------------------
+//   Second pane
+// ----------------------------------------------------------------------------
+    sh_title text "Washingtonia robusta"
+
+    sh_story_box
+        sh_bullet text trn "Large tree, 25 to 30m (82 to 98ft)"
+        sh_bullet text trn "Commonly grown for ornamental purposes"
+        sh_bullet text trn "Introduced to Los Angeles to beautify the town for the 1932 Summer Olympics"
+
+trn "fr", "Large tree, 25 to 30m (82 to 98ft)" ->
+          "Peut mesurer jusqu'à 30 m (25 m en général)"
+trn "fr", "Commonly grown for ornamental purposes" ->
+          "Couramment utilisé comme arbre d'ornement"
+trn "fr", "Introduced to Los Angeles to beautify the town for the 1932 Summer Olympics" ->
+          "Planté à Los Angeles à l'occasion des Jeux Olympiques d'été en 1932"
+
+sh_panel "Washingtonia robusta", 3 ->
+// ----------------------------------------------------------------------------
+//   Third pane
+// ----------------------------------------------------------------------------
+    sh_title
+        + trn "Oil analysis"
+        + trn "(fatty acids)"
+
+    locally
+        sh_arc_sector  0.00, 40.60, 280, trn "Oleic"
+        sh_arc_sector 40.60, 17.87, 210, trn "Lauric"
+        sh_arc_sector 58.47, 16.26, 320, trn "Linoleic"
+        sh_arc_sector 74.73, 11.43, 100, trn "Myristic"
+        sh_arc_sector 86.16,  9.23, 150, trn "Palmitic"
+        sh_arc_sector 95.39,  4.61,   0, trn "Others"
+
+trn "fr", "Oil analysis" -> "Analyse de l'huile"
+trn "fr", "(fatty acids)" -> "(acides gras)"
+trn "fr", "Oleic" -> "Oléique"
+trn "fr", "Lauric" -> "Laurique"
+trn "fr", "Linoleic" -> "Linoléique"
+trn "fr", "Myristic" -> "Myristique"
+trn "fr", "Palmitic" -> "Palmitique"
+trn "fr", "Others" -> "Autres"
+
+
+
+// Translations: catch-all definition, must occur last
+trn Lang:text, T:text -> T
+
+
+
+
+
+
+
+
+
+sh_arc R:real -> 360 * R%
+// ----------------------------------------------------------------------------
+//   Percent to arc angle in degrees
+// ----------------------------------------------------------------------------
+
+
+sh_arc_sector Start:real, Sweep:real, Hue:real, Legend:text ->
+// ----------------------------------------------------------------------------
+//    Draw the arc for a given investor
+// ----------------------------------------------------------------------------
+    sh_arc_sector_helper fade_at(smooth_step, 2), Start, Sweep, Hue, Legend
+
+
+sh_arc_sector_helper Fade:real, Start:real, Sweep:real, Hue:real, Legend:text ->
+// ----------------------------------------------------------------------------
+//    Draw graphic elements
+// ----------------------------------------------------------------------------
+    locally
+        color_hsv Hue, 0.4, 0.9
+        ellipse_arc 0, 0, 300, 300, sh_arc (Start*Fade), sh_arc (Sweep*Fade)
+        color "white", Fade
+        locally
+            translate 110 * cos(Fade*(Start+Sweep*0.5)% * 2 * pi), 110 * sin (Fade*(Start+Sweep*0.5)% * 2 * pi), 10
+            color 0, 0.37, 0.16
+            text_box 0, 0, 80, 40,
+                font "Verdana", 25
+                vertical_align_center
+                align_center
+                text text(integer(Sweep*Fade+0.5))
+                text "%"
+        locally
+            translate 210 * cos(Fade*(Start+Sweep*0.5)% * 2 * pi), 210 * sin (Fade*(Start+Sweep*0.5)% * 2 * pi), 10
+            color "black"
+            text_box 0, 0, 200, 50,
+                font "Verdana", 25
+                vertical_align_center
+                align_center
+                text Legend
+
+
+sh_title Body ->
+// ----------------------------------------------------------------------------
+//    Draw a title
+// ----------------------------------------------------------------------------
+    text_box 0, 0, 600, 700,
+        color 0, 0.37, 0.16
+        font "Verdana", 40, bold
+        align 0.5
+        vertical_align 0
+        Body
+
+
+sh_subtitle Body ->
+// ----------------------------------------------------------------------------
+//   Display a subtitle
+// ----------------------------------------------------------------------------
+    color "black"
+    font "Verdana", 36, bold
+    paragraph_break
+    Body
+    sh_sep 10
+
+
+sh_story_box Body ->
+// ----------------------------------------------------------------------------
+//   Story box
+// ----------------------------------------------------------------------------
+    text_box 0, 0, 600, 700,
+        vertical_align 0.5
+        align 0, 0
+        Body
+
+
+sh_story Subtitle:text, Bullet:text ->
+// ----------------------------------------------------------------------------
+//    Show a given story
+// ----------------------------------------------------------------------------
+     sh_story_box
+        if Subtitle <> "" then
+            sh_subtitle text Subtitle
+        sh_bullet text Bullet
+
+
+sh_bullet Body ->
+// ----------------------------------------------------------------------------
+//   Display a bullet point
+// ----------------------------------------------------------------------------
+    font "Verdana", 36, no_bold
+    paragraph_break
+
+    color 0, 0.37, 0.16
+    rectangle 0, 12, 10, 10
+    color "black"
+    text "  "
+    Body
+
+// ----------------------------------------------------------------------------
+//   Auto resizing
+// ----------------------------------------------------------------------------
+scale3 S:real -> scale S, S, S
+window_scale -> min (window_width / 1408, window_height / 768)
+
+
++X:text ->
+// ----------------------------------------------------------------------------
+//   Additional line of text
+// ----------------------------------------------------------------------------
+    paragraph_break
+    text X
+

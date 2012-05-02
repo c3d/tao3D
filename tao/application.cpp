@@ -468,6 +468,36 @@ void Application::cleanup()
         blockScreenSaver(false);
     if (moduleManager)
         moduleManager->saveConfig();
+
+#if TAO_EDITION_IS_DISCOVERY
+
+    // Gentle reminder that Tao is not free
+
+    QString title = tr("Tao Presentations");
+    QString text = tr("<h3>Reminder</h3>");
+    QString info;
+    info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
+    QMessageBox box;
+    box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    box.button(QMessageBox::Ok)->setText(tr("Buy now"));
+    box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
+    box.setDefaultButton(QMessageBox::Cancel);
+    box.setWindowTitle(title);
+    box.setText(text);
+    box.setInformativeText(info);
+    // Icon from:
+    // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
+    // Author: Ivan M. (www.visual-blast.com)
+    // License: free for commercial use, do not redistribute
+    QPixmap pm(":/images/shopping_cart.png");
+    box.setIconPixmap(pm);
+
+    if (box.exec() == QMessageBox::Ok)
+    {
+        QUrl url("http://www.taodyne.com/taopresentations/buynow");
+        QDesktopServices::openUrl(url);
+    }
+#endif
 }
 
 

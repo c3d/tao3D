@@ -113,8 +113,15 @@ struct RevertLayoutState : LayoutState, Attribute
     RevertLayoutState(LayoutState &o) : LayoutState(o){}
     virtual void  Draw(Layout *where)
     {
+        IFTRACE(justify)
+                std::cerr << "->RevertLayoutState::Draw ["<< this
+                          << "] not used offset " << offset
+                          << " inherited offset " << where->Offset() << " \n";
         offset = where->Offset();
         where->InheritState(this);
+        IFTRACE(justify)
+                std::cerr << "<-RevertLayoutState::Draw ["<< this
+                          << "]\n";
     }
 
     virtual text Type() { return "RevertLayoutState";}
@@ -169,25 +176,38 @@ struct BlockLayout : Layout
 // ----------------------------------------------------------------------------
 {
     BlockLayout(TextFlow *flow):Layout(*flow), flow(flow),
-    revert(new RevertLayoutState((*flow)))
+        revert(new RevertLayoutState((*flow)))
     {
         IFTRACE(justify)
+        {
                 std::cerr << "<->BlockLayout::BlockLayout ["<<this
-                <<"] from flow\n ";
+                <<"] from flow -- revert =" << revert<<"\n ";
+                revert->toDebugString(std::cerr);
+        }
+
     }
     BlockLayout( BlockLayout &o):Layout(o), flow(o.flow),
-    revert(new RevertLayoutState(*(o.flow)))
+        revert(new RevertLayoutState(*(o.flow)))
     {
         IFTRACE(justify)
                 std::cerr << "<->BlockLayout::BlockLayout ["<<this
-                <<"] from BlockLayout " << &o <<std::endl;
+                <<"] from BlockLayout " << &o << " revert=" << revert<<std::endl;
     }
     ~BlockLayout()
     {
     }
     virtual void         Add(Drawing *child) { flow->Add(child);}
     virtual text         Type() { return "BlockLayout";}
-    RevertLayoutState *  Revert() {return revert;}
+    virtual Box3         Space(Layout *) { return Box3(); }
+    virtual Box3         Bounds(Layout *) { return Box3(); }
+
+    RevertLayoutState *  Revert()
+    {
+        IFTRACE(justify)
+                std::cerr << "<->BlockLayout::Revert [" << this <<"] revert = "
+                             << revert << "\n ";
+        return revert;
+    }
 
     TextFlow          *flow;
     RevertLayoutState *revert;

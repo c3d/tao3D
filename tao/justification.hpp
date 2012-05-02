@@ -107,6 +107,12 @@ bool Justifier<Item>::Adjust(coord start, coord end,
         // It fits, place it
         hadBreak |= next != NULL;
         coord offset = ItemOffset(item, layout);
+
+        IFTRACE(justify)
+                std::cerr << "Justifier<Item>::Adjust Will create Place with "
+                          << pos << " + " << sign << " * " << offset
+                          << " = " << pos + sign*offset << std::endl;
+
         places.push_back(Place(item, itemCount,
                                size, pos+sign*offset,
                                !hadBreak));
@@ -166,6 +172,11 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     {
         Place &place = *p;
         place.position += offset;
+        IFTRACE(justify)
+                std::cerr << "Justifier<Item>::Adjust Place.position change by "
+                          << offset << " to "
+                          << place.position << std::endl;
+
         if (place.size > 0)
         {
             if (place.solid)

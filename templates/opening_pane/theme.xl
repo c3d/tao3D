@@ -1,0 +1,268 @@
+// ****************************************************************************
+//  opening_pane.ddd                                                Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     background for opening_pane template.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2012 Taodyne SAS
+// ****************************************************************************
+
+
+import Animate 1.0
+
+
+// ============================================================================
+//
+//                                 BACKGROUND
+//
+// ============================================================================
+slide_width -> 1920.0
+slide_height -> 1200.0
+
+watermark -> "white" 
+
+spiral X, Y, Z ->
+// ----------------------------------------------------------------------------
+//   Draw a spiral
+// ----------------------------------------------------------------------------
+    locally
+        color "transparent"
+        line_color watermark
+        translate X, Y, Z
+        scale3 0.4
+        rotatez 20 * time
+        path 
+            cubic_to  20,  50, 0,      50,   0, 0,      25, -25, 0
+            cubic_to   0, -50, 0,     -50, -10, 0,     -30,  30, 0
+            cubic_to   0,  80, 0,      50,  50, 0,      60,  30, 0
+            cubic_to  80,   0, 0,      70, -50, 0,      50, -60, 0
+
+// ----------------------------------------------------------------------------
+//   Draw 3 kinds of flowers
+// ----------------------------------------------------------------------------
+petal N ->
+    locally
+        rotatez N*72
+        circle 15, 0, 7
+
+flower X, Y, Z ->
+    locally
+        line_color "transparent"
+        translate X, Y, Z
+        rotatez 20 * time
+        color watermark
+        circle 0, 0, 4
+        petal with 0..4
+
+petal2 N ->
+    locally
+        rotatez N*72
+        path 
+            cubic_to 50, 50, 0,     50, -50, 0,     0, 0, 0
+
+
+flower2 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        color watermark 
+        line_color "transparent"
+        petal2 with 0..4
+
+petal3 N ->
+    locally
+        rotatez N*72
+        translatex 10
+        path 
+            cubic_to 50, 50, 0,     50, -50, 0,     0, 0, 0
+
+flower3 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        line_color "transparent" 
+        color watermark
+        circle 0, 0, 6
+        color "transparent"
+        line_color watermark
+        petal3 with 0..4
+
+arabesque X, Y, Z ->
+// ----------------------------------------------------------------------------
+//   Draw an arabesque
+// ----------------------------------------------------------------------------
+    locally
+        translate X, Y, Z
+        color watermark
+        circle 5,-1,5
+        path 
+            cubic_to   20,   50, 0,      50,    0, 0,      25,  -25, 0
+            cubic_to    0,  -50, 0,     -50,  -10, 0,     -30,   30, 0
+            cubic_to    0,   80, 0,      50,   50, 0,      60,   30, 0
+            cubic_to   80,    0, 0,      65,  -50, 0,      45,  -60, 0
+            cubic_to  -50, -120, 0,    -270,  -50, 0,    -300, -300, 0
+            cubic_to -260,  -60, 0,     -40, -130, 0,      50,  -75, 0
+            cubic_to   85,  -50, 0,      95,    0, 0,      80,   30, 0
+            cubic_to   60,   80, 0,     -20,   80, 0,     -40,   30, 0
+            cubic_to  -55,  -15, 0,       0,  -55, 0,      25,  -30, 0
+            cubic_to   50,    0, 0,      20,   50, 0,       0,    0, 0
+
+fall tt:real, T:tree ->
+// ----------------------------------------------------------------------------
+//   Fall movement
+// ----------------------------------------------------------------------------
+    locally
+        if sin (tt/3) > 0 then
+            translatey (window_height + 100) / 2 * cos (tt/3)
+            translatex 20 * sin (tt*2)
+            rotatez 25 * cos (tt/2)
+            T
+
+
+// ----------------------------------------------------------------------------
+//   Draw 2 kinds of leaf
+// ----------------------------------------------------------------------------
+leaf1 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        scale3 0.2
+        line_color "transparent" 
+        color watermark
+        path
+            cubic_to -140, 100,0,    -250, -50,0,    -300,-50,0
+            cubic_to -250,-100,0,    -150,-150,0,       0,  0,0
+
+leaf2 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        scale3 0.2
+        line_color "transparent" 
+        color watermark
+        path
+            cubic_to -140, 100,0,    -240, -60, 0,    -300, -50, 0
+            cubic_to -250,-100,0,    -150,-150, 0,      20, -20, 0
+            quad_to  -100,   0, 0,   -180, -60, 0
+            quad_to   -90,  50, 0,      0,   0, 0
+
+background Z ->
+// ----------------------------------------------------------------------------
+//   Draw the background in Z depth
+// ----------------------------------------------------------------------------
+    locally
+        scale_background
+        ztrans_background -10000
+        show 0.3
+        locally
+            line_color "transparent"
+            translate 0, -slide_height / 2, 0
+            locally
+                rotatez -35
+                scale3 10
+                leaf2 -25, 0, 0
+                rotatez -60
+                leaf2 -25, 0, 0
+                rotatez -60
+                leaf2 -25, 0, 0
+            locally
+                translatey 100
+                color watermark
+                circle   0, 0, 30
+                circle 100, 0, 20
+                rotatez 36
+                circle  90, 0, 20
+                rotatez 36
+                circle  80, 0, 20
+                rotatez 36
+                circle  80, 0, 20
+                rotatez 36
+                circle  90, 0, 20
+                rotatez 36
+                circle 100, 0, 20
+
+            locally
+                rotatez 25
+                arabesque 500, 400, 0
+            locally
+                translate -300, 570, 0
+                rotatey 180
+                rotatez 20
+                arabesque 0, 0, 0
+
+        flower2 -500, -150, 0
+        flower2  500,  150, 0
+        flower3  600, -500, 0
+        flower3 -650, -500, 0
+        flower3  300,  300, 0
+        flower  -200,  400, 0
+        flower  -450,  100, 0
+        flower   250,  500, 0
+        flower   450, -150, 0
+        flower  -350, -250, 0
+
+        
+        fall time,
+            rotatez 90
+            leaf1 0, 0, 0
+
+        fall time+15,
+            translatex 300
+            rotatez 90
+            leaf1 0, 0, 0
+
+        fall time+25,
+            translatex -400
+            rotatez 90
+            leaf1 0, 0, 0
+
+        fall time+10,
+            translatex -600
+            rotatez 90
+            leaf1 0, 0, 0
+
+        fall time+20,
+            translatex 500
+            rotatez 90
+            leaf1 0, 0, 0
+
+
+// ============================================================================
+// 
+//    General
+// 
+// ============================================================================
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture ("max").
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents ("min").
+scale3 S:real -> scale S, S, S
+background_scale -> max(window_width/slide_width, window_height/slide_height)
+contents_scale -> min(window_width/slide_width, window_height/slide_height)
+scale_background -> scale3 background_scale
+scale_contents -> scale3 contents_scale
+
+// Z translation without change in dimensions
+ztrans_contents Z:real ->
+    Z0 -> 6000.0
+    Z0 := camera_position at 3
+    translatez Z/contents_scale
+    scale3 (Z0-Z)/Z0
+
+ztrans_background Z:real ->
+    Z0 -> 6000.0
+    Z0 := camera_position at 3
+    translatez Z/background_scale
+    scale3 (Z0-Z)/Z0

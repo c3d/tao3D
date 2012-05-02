@@ -41,9 +41,9 @@
        stereo_decoder \
        carousel \
        revolving_texts \
+       database \
        point_cloud
     OTHER_MODULES =     \
-        audio_video \
         hello_world     \
         network_access   \
         taoTester    \

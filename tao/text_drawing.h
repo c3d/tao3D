@@ -63,6 +63,7 @@ struct TextUnit : Shape
     virtual text        Type()      { return "TextUnit"; }
 
     void                toDebugString(std::ostream &out);
+    void                toText(std::ostream &out);
 protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
@@ -185,9 +186,9 @@ struct TextSelect : Identify
 
 
 // ============================================================================
-// 
+//
 //   Entering text drawing in the symbols table
-// 
+//
 // ============================================================================
 
 extern void EnterTextDrawing();

@@ -777,7 +777,7 @@ void Widget::draw()
 // ----------------------------------------------------------------------------
 //    Redraw the widget
 // ----------------------------------------------------------------------------
-{    
+{
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
@@ -5511,7 +5511,7 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(FUNC_SUBTRACT);
     TEST_GLENUM(FUNC_REVERSE_SUBTRACT);
     TEST_GLENUM(MIN);
-    TEST_GLENUM(MAX);    
+    TEST_GLENUM(MAX);
     TEST_GLENUM(MODULATE);
     TEST_GLENUM(REPLACE);
     TEST_GLENUM(DECAL);
@@ -8371,6 +8371,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
         XL::Save<Layout *> saveLayout(layout, childLayout);
         result = context->Evaluate(child);
     }
+    childLayout->Revert()->Draw(flow);
     layout->Add(childLayout->Revert());
     return result;
 }
@@ -9213,7 +9214,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
         XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
         XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
-        XL::Save<double> saveCamToScr(cameraToScreen, 
+        XL::Save<double> saveCamToScr(cameraToScreen,
                                       (cameraTarget-cameraPosition).Length());
         XL::Save<double> saveZoom(zoom, 1);
         XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
@@ -9281,7 +9282,7 @@ Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
         Layout *parent = layout;
         GLAllStateKeeper saveGL;
         XL::Save<Layout *> saveLayout(layout, layout->NewChild());
-        
+
         result = context->Evaluate(prog);
 
         stats.end(Statistics::EXEC);

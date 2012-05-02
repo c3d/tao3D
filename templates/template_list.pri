@@ -13,6 +13,8 @@ DEFAULT_TEMPLATES =   \
     materials \
     pan_and_zoom \
     picture_slider \
+    opening_pane \
+    rising_text
 
 OTHER_TEMPLATES =     \
     mapping \

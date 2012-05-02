@@ -1035,10 +1035,13 @@ static QString errorHint(QString err)
 }
 
 
-void Widget::runProgram()
+void Widget::runProgramOnce()
 // ----------------------------------------------------------------------------
-//   Run the  XL program
+//   Run the  XL program once only
 // ----------------------------------------------------------------------------
+//   There are rare cases where we may need to evaluate the program twice
+//   (and only twice to avoid infinite loops). For example, if the page
+//   title is translated, it may not match on the next draw. See #2060.
 {
     setCurrentTime();
 
@@ -1106,7 +1109,25 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
 
-    // Update page count for next run
+    // Check pending events
+    processProgramEvents();
+
+    if (!dragging)
+        finishChanges();
+}
+
+
+
+void Widget::runProgram()
+// ----------------------------------------------------------------------------
+//   Run the  XL program until we have found a page
+// ----------------------------------------------------------------------------
+//   There are rare cases where we may need to evaluate the program twice
+//   (and only twice to avoid infinite loops). For example, if the page
+//   title is translated, it may not match on the next draw. See #2060.
+{
+    runProgramOnce();
+
     IFTRACE(pages)
         std::cerr << "Page found=" << pageFound
                   << " id=" << pageId
@@ -1115,15 +1136,16 @@ void Widget::runProgram()
     pageNames = newPageNames;
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
+    {
         pageShown = pageFound;
+    }
     else
-        pageName = pageNameAtIndex(NULL, pageShown)->value;
-
-    // Check pending events
-    processProgramEvents();
-
-    if (!dragging)
-        finishChanges();
+    {
+        // If we had pages, but none matches, re-evaluate the program (#2060)
+        pageName = pageShown <= pageNames.size() ? pageNames[pageShown-1] : "";
+        if (pageTotal > 0)
+            runProgramOnce();
+    }
 }
 
 

@@ -113,8 +113,6 @@ while [ $# -ne 0 ] ; do
     discovery)
       EDITION="Discovery"
       D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
-      D="$D DEFINES+=CFG_NORELOAD DEFINES+=CFG_TIMED_FULLSCREEN"
-      D="$D DEFINES+=CFG_NOMODULEUPDATE"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
       EDITION_FLAGS="$D $M"
       shift ; done=1

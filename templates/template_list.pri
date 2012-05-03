@@ -13,7 +13,8 @@ DEFAULT_TEMPLATES =   \
     materials \
     pan_and_zoom \
     picture_slider \
-    shift
+    shift \
+    simple_slides
 
 OTHER_TEMPLATES =     \
     mapping \

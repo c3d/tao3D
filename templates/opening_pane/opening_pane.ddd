@@ -1,0 +1,87 @@
+
+// ****************************************************************************
+//  opening_pane.ddd                                                Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Template opening_pane.
+//     The theme used for this document is in theme.xl file
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This document is released under the GNU General Public License.
+// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2012 Taodyne SAS
+// ****************************************************************************
+
+// ============================================================================
+//
+//                                   PAGES
+//
+// ============================================================================
+clear_color 0.416, 0.671, 0.765, 1
+
+slide "init",
+    text_box 0, 0, 400, 400,
+        color watermark
+        paragraph_space 30, 30
+        align_center
+        text "Page de démarrage" en "Initial page."
+        paragraph_break
+        text_span
+            bold
+            text "Appuyez sur la touche 'flèche bas' pour voir l'exemple." en <<Hit "down" key to see the sample.>>
+            line_break
+            text "Utilisez ensuite sur les touches 'flèche gauche' et 'flèche droite' pour avancer ou reculer." en <<Then use "left" and "right" key to move forward or backward.>>
+
+        paragraph_break
+
+        text "Revenez à cette page pour redémarrer." en "Come back to this page to reset the sample."
+
+
+slide "opening pane",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
+    op_story 1, 3, 0, -300, -100, 250, 150,
+        op_text "Mon texte peut être " en "My text can be "
+        op_keyword "affiché" en "shown"
+        op_text " et " en " and "
+        op_keyword "caché" en "hidden"
+        op_text " comme je veux." en " as I want."
+
+    op_story 2, 5, 35, 350, 350, 500, 50,
+        align_center
+        op_text "Une longue ligne de texte..." en "A specially long line of text..."
+
+    op_story 3, 7, 100, -520, 250, 290, 350,
+        align_center
+        image 0, 0, 1.5, 1.5, "papillon.png"
+
+    op_story 4, 8, 20 * page_time, 200, -250, 249, 250,
+        paragraph_space 15, 15
+        font "Baskerville", 48
+        margins 60, 0
+        op_bullet 5, "Élément 1" en "Bullet #1"
+        op_bullet 6, "Élément 2" en "Bullet #2"
+        op_bullet 7, "Élément 3" en "Bullet #3"
+        op_bullet 8, "Élément 4" en "Bullet #4"
+
+// ============================================================================
+//
+//    Keys for the presentations in this directory
+//
+// ============================================================================
+key "e" -> language "en" // Set english language
+key "f" -> language "fr" // Set french language
+
+key "Left" -> skip -1 // Move one step forward
+key "Right" -> skip 1 // Move one step backward

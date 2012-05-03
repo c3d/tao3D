@@ -669,6 +669,8 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  *  - @p end_x and @p end_y are the coordinates of the gradient end.
  *  - @p w and @p h are the width and height of the resulting texture.
  *
+ * @warning The gradient origin is situated on the upper left edge of the texture.
+ *
  * @image html "images/linear_gradient.png"
  *
  * Code used to produce this image:
@@ -680,7 +682,9 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
  *
  *  - @p start_x et @p start_y sont les coordonnées de départ du dégradé.
  *  - @p end_x et @p end_y sont les coordonnées de fin du dégradé.
- *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination. 
+ *
+ * @warning L'origine du dégradé se situe sur le bord en haut à gauche de la texture.
  *
  * @image html "images/linear_gradient.png"
  *
@@ -689,7 +693,7 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
 @code
 linear_grad -> 
     color "white" 
-    linear_gradient 0, 0, 500, 500, 700, 700, 
+    linear_gradient 0, 0, 250, 250, 700, 700,
         gradient_color 0, 0.0, 0.0, 1.0, 1.0 
         gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
         gradient_color 1, 1.0, 0.0, 0.0, 1.0
@@ -711,6 +715,8 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  *  - @p r is the gradient radius.
  *  - @p w and @p h are the width and height of the resulting texture.
  *
+ * @warning The gradient origin is situated on the upper left edge of the texture.
+ *
  * @image html "images/radial_gradient.png"
  *
  * Code used to produce this image:
@@ -722,7 +728,9 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
  *
  *  - @p cx et @p cy sont les coordonnées du centre du dégradé.
  *  - @p r est le rayon du dégradé.
- *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
+ *  - @p w et @p h sont la largeur et la hauteur de la texture de destination. 
+ *
+ * @warning L'origine du dégradé se situe sur le bord en haut à gauche de la texture.
  *
  * @image html "images/radial_gradient.png"
  *
@@ -753,6 +761,8 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  *  - @p teta is the gradient angle. This one must be specified in degrees between 0 and 360.
  *  - @p w and @p h are the width and height of the resulting texture.
  *
+ * @warning The gradient origin is situated on the upper left edge of the texture.
+ *
  * @image html "images/conical_gradient.png"
  *
  * Code used to produce this image :
@@ -765,6 +775,8 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
  *  - @p cx et @p cy sont les coordonnées du centre du dégradé.
  *  - @p teta est l'angle du déradé, en degrés, entre 0 and 360.
  *  - @p w et @p h sont la largeur et la hauteur de la texture de destination.
+ *
+ * @warning L'origine du dégradé se situe sur le bord en haut à gauche de la texture.
  *
  * @image html "images/conical_gradient.png"
  *

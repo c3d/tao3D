@@ -20,7 +20,6 @@ OTHER_TEMPLATES =     \
     shading \
     filters \
     pigs_fly \
-    simple_slides \
     guess_game \
     pythagorean_theorem \
     balls \

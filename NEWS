@@ -1,5 +1,18 @@
 Change log for Tao Presentations
 
+1.09 (04-May-2012)
+
+#2064 Add template: Simple slides
+#2060 Blank page if the title of the current page changes
+#2058 Update licensing terms in templates
+#2057 Change limitations of Discovery Edition
+#2050 Add template: Shift
+#2040 Add template: Opening pane
+#2032 Text attributes not restored properly after text_span
+#2030 align 1 no longer aligns right
+#2025 Wrong line width after text_span
+#300  Show EULA dialog on first start
+
 1.08 (20-Apr-2012)
 
 #2020 Add canvas primitive, like frame_texture, but persistent

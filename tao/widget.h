@@ -114,6 +114,7 @@ public slots:
     void        dawdle();
     void        draw();
     void        runProgram();
+    void        runProgramOnce();
     void        print(QPrinter *printer);
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);

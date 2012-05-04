@@ -42,8 +42,7 @@
        carousel \
        revolving_texts \
        point_cloud \
-       network_access \
-       point_cloud
+       network_access
     OTHER_MODULES =     \
         hello_world     \
         taoTester    \

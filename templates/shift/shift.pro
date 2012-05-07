@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/shift
-files.files = template.ini shift.ddd shift.png
+files.files = template.ini shift.ddd shift.xl shift.png
 
 images.path = $$APPINST/templates/shift/images
 images.files = images/*

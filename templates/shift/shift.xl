@@ -1,0 +1,247 @@
+// ****************************************************************************
+//  shift.xl                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Definitions for the Shift template.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+import Animate
+
+// ============================================================================
+//
+//   Slide layout
+//
+// ============================================================================
+
+
+palm_green -> color 0, 0.37, 0.16
+
+
+slide T:text, Body ->
+// ----------------------------------------------------------------------------
+//   Start new page, draw background and execute Body
+// ----------------------------------------------------------------------------
+    page T,
+        compute_smooth_step
+        draw_background
+        locally Body
+
+
+draw_background ->
+// ----------------------------------------------------------------------------
+//    Background : draw 2 palm trees
+// ----------------------------------------------------------------------------
+    scale3 window_scale
+    locally
+        palm_green
+        translate 0, -600, -200
+        rectangle 0, 0, 6000, 500
+
+    color "white"
+    locally
+        color_hsv 200 + 10 * sin (0.1 * time) , 0.3, 0.75, 0.2
+        locally
+            translate -500, -250, -1400
+            rotatez 5 * sin (0.1 * time)
+            image 0, 0, 1, 1, "PalmTree1.png"
+        locally
+            translate 500, -300, -1600
+            rotatez 4 * sin (0.17 * time)
+            image 0, 0, 1, 1, "PalmTree2.png"
+
+
+// ----------------------------------------------------------------------------
+//   Auto resizing
+// ----------------------------------------------------------------------------
+scale3 S:real -> scale S, S, S
+window_scale -> min (window_width / 1408, window_height / 768)
+
+
++X:text ->
+// ----------------------------------------------------------------------------
+//   Additional line of text
+// ----------------------------------------------------------------------------
+    paragraph_break
+    text X
+
+
+display_panel N:integer ->
+// ----------------------------------------------------------------------------
+//   Show the N-th panel
+// ----------------------------------------------------------------------------
+    if N > highest_step then highest_step := N
+    if (step < 1) then skip 1
+    if smooth_step >= (N-2)  and smooth_step <= (N+1) then
+        locally
+            translatex 350 + 700 * shift N
+            panel page_label, N
+
+
+shift N:integer ->
+// ----------------------------------------------------------------------------
+//    Shift the N-th element
+// ----------------------------------------------------------------------------
+    2 - fade_at(smooth_step, (N-2)) - fade_at(smooth_step, (N-1)) - fade_at(smooth_step, N) - fade_at(smooth_step, (N+1))
+
+
+sep -> sep 20
+
+sep H ->
+// ----------------------------------------------------------------------------
+//   Separator
+// ----------------------------------------------------------------------------
+    line_break
+    color 0, 0, 0, 0
+    rectangle 0, 0, 100, H
+    color "black"
+    line_break
+
+
+title Body ->
+// ----------------------------------------------------------------------------
+//    Draw a title
+// ----------------------------------------------------------------------------
+    text_box 0, 0, 600, 700,
+        color 0, 0.37, 0.16
+        font "Verdana", 40, bold
+        align 0.5
+        vertical_align 0
+        Body
+
+
+subtitle Body ->
+// ----------------------------------------------------------------------------
+//   Display a subtitle
+// ----------------------------------------------------------------------------
+    color "black"
+    font "Verdana", 36, bold
+    paragraph_break
+    Body
+    sep 10
+
+
+story_box Body ->
+// ----------------------------------------------------------------------------
+//   Story box
+// ----------------------------------------------------------------------------
+    text_box 0, 0, 600, 700,
+        vertical_align 0.5
+        align 0, 0
+        Body
+
+
+story Subtitle:text, Bullet:text ->
+// ----------------------------------------------------------------------------
+//    Show a given story
+// ----------------------------------------------------------------------------
+     story_box
+        if Subtitle <> "" then
+            subtitle text Subtitle
+        bullet text Bullet
+
+
+bullet Body ->
+// ----------------------------------------------------------------------------
+//   Display a bullet point
+// ----------------------------------------------------------------------------
+    font "Verdana", 36, no_bold
+    paragraph_break
+
+    color 0, 0.37, 0.16
+    rectangle 0, 12, 10, 10
+    color "black"
+    text "  "
+    Body
+
+
+// ============================================================================
+//
+//   Animated pie chart
+//
+// ============================================================================
+
+
+arc R:real -> 360 * R%
+// ----------------------------------------------------------------------------
+//   Percent to arc angle in degrees
+// ----------------------------------------------------------------------------
+
+
+arc_sector Start:real, Sweep:real, Hue:real, Legend:text ->
+// ----------------------------------------------------------------------------
+//    Draw the arc for a given investor
+// ----------------------------------------------------------------------------
+    arc_sector_helper fade_at(smooth_step, 2), Start, Sweep, Hue, Legend
+
+
+arc_sector_helper Fade:real, Start:real, Sweep:real, Hue:real, Legend:text ->
+// ----------------------------------------------------------------------------
+//    Draw graphic elements
+// ----------------------------------------------------------------------------
+    locally
+        color_hsv Hue, 0.4, 0.9
+        ellipse_arc 0, 0, 300, 300, arc (Start*Fade), arc (Sweep*Fade)
+        color "white", Fade
+        locally
+            translate 110 * cos(Fade*(Start+Sweep*0.5)% * 2 * pi), 110 * sin (Fade*(Start+Sweep*0.5)% * 2 * pi), 10
+            color 0, 0.37, 0.16
+            text_box 0, 0, 80, 40,
+                font "Verdana", 25
+                vertical_align_center
+                align_center
+                text text(integer(Sweep*Fade+0.5))
+                text "%"
+        locally
+            translate 210 * cos(Fade*(Start+Sweep*0.5)% * 2 * pi), 210 * sin (Fade*(Start+Sweep*0.5)% * 2 * pi), 10
+            color "black"
+            text_box 0, 0, 200, 50,
+                font "Verdana", 25
+                vertical_align_center
+                align_center
+                text Legend

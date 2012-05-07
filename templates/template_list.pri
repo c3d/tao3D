@@ -14,6 +14,7 @@ DEFAULT_TEMPLATES =   \
     pan_and_zoom \
     picture_slider \
     shift \
+    simple_slides \
     opening_pane \
     rising_text
 
@@ -22,7 +23,6 @@ OTHER_TEMPLATES =     \
     shading \
     filters \
     pigs_fly \
-    simple_slides \
     guess_game \
     pythagorean_theorem \
     balls \
@@ -31,7 +31,8 @@ OTHER_TEMPLATES =     \
     sinuous \
     sparks \
     glow \
-    YouCube
+    YouCube \
+    rising_text
 
 # Process qmake command line variable: 'templates'
 # Allows to add/remove templates to/from the default value above

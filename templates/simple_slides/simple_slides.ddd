@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  simple_slides.ddd                                               Tao project
+//  SimpleSlides.ddd                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//        Some basic themes for presentations.
+//     An example of simple slide
 //
 //
 //
@@ -16,10 +16,8 @@
 // ****************************************************************************
 // Copyright Taodyne SAS, 2011
 // Contributors:
-//   Catherine Burvelle <cathy@taodyne.com>
 //   Christophe de Dinechin <christophe@taodyne.com>
 //   Jerome Forissier <jerome@taodyne.com>
-//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
 //
 // <contact@taodyne.com>
 //
@@ -53,114 +51,44 @@
 // knowledge of the CeCILL license and that you accept its terms.
 // ****************************************************************************
 
-
-import Slides
-
-// Work around to Bug#1032
-syntax ( PREFIX 370 !* !- !+ )
-
-// Available Themes:
-// "" / "Default", "WhiteOnBlack", "WhiteOnGray",
-// "Rounded", "Keyboard", "Seyes"
+import VLCAudioVideo
 
 
-// ============================================================================
-//
-//                                 Keyboard theme
-//
-// ============================================================================
+// Main title slide
+main_title_slide "Automatic formatting saves time"
 
 
-theme "Keyboard"
+// A simple text slide
+slide "Describe slides as simple text",
+    * "Automatic slide layout "
+    - "Focus on the story, not the appearance"
+    - "Changing the theme globally is easy"
 
-title_slide "Keyboard style (Title)",
-    text "Lorem ipsum dolor sit amet"
-    line_break
-    text "consectetur adipisicing"
+    * "Description is a simple text file"
+    - "Wiki-like syntax"
+    - ("... with real programming capabilities: " & text_time)
+    - "Use any text editor"
 
-slide "Keyboard style (Slide)", "Lorem Ipsum",
-    text "Lorem ipsum dolor sit amet"
-    * "Consectetur adipisicing"
-    - "Elit, sed do eiusmod tempor incididunt"
-    * "Ut labore et dolore magna"
 
-picture_slide "Keyboard style (Drawing)",
+// A slightly more complex slide layout
+base_slide "More complex layouts",
+    slide_default_title
+    contents 400,
+        translate 500, -450, 0
+        color "white"
+        rotatey 180 * sin time ^ 12
+        image 0, 0, 0.5, 0.5, "TaodyneLogo.png"
+    left_column
+        * "Columns"
+        * "Custom layouts"
+        * "Pictures, animations"
+        * "Movies"
     locally
-        color_hsv 30 * time, 20%, 80%, 60%
-        rotatez 5 * time
-        ellipse 0, 0, 400, 150
-    locally
-        color "white", 50%
-        texture "Corsica.jpg"
-        rotatez 30
-        rounded_rectangle 100, 30, 150, 120, 20
+        color 0.5, 0.5, 0.5, 0.5
+        rectangle 300, 50, 500, 280
+        movie 300, 50, 1, 1, "http://www.youtube.com/watch?v=WWx7ij08pZU"
 
 
-// ============================================================================
-//
-//                                 Keyboard Seyes
-//
-// ============================================================================
-
-
-theme "Seyes"
-
-title_slide "Seyes style (Title)",
-    text "This is the Seyes theme"
-
-slide "Seyes style (Slide)",
-    * "Bullet level 1"
-    - "Bullet level 2"
-    !- "Text without bullet level 2"
-    reset_style
-    text "Regular text"
-
-
-// ============================================================================
-//
-//                                 Keyboard WhiteOnBlack
-//
-// ============================================================================
-
-
-theme "WhiteOnBlack"
-
-title_slide "White on Black (Title)",
-    text "This is the White on Black theme"
-
-slide "White On Black (Slide)",
-    * "Bullet level 1"
-    - "Bullet level 2"
-
-picture_slide "White on Black (Picture)",
-    color "white"
-    wscale -> slide_height / 1600
-    image 0, 0, wscale, wscale, "Corsica.jpg"
-
-
-// ============================================================================
-//
-//                                 Keyboard WhiteOnGray
-//
-// ============================================================================
-
-
-theme "WhiteOnGray"
-
-title_slide "White on Gray (Title)",
-    text "This is the White on Gray theme"
-
-slide "White On Gray (Slide)",
-    * "Bullet level 1"
-    - "Bullet level 2"
-
-picture_slide "White on Gray (3D)",
-    texture_wrap true, true
-    color "white"
-    texture "earth.bmp"
-    rotatey 2.3 * time
-    sphere 0, 0, 0, slide_height * 0.6
-    texture "clouds.png"
-    rotatey 0.6 * time
-    sphere 0, 0, 0, slide_height * 0.6 + 5
-
+// Formatting time as text
+text_time -> (text hours & ":" & zero minutes & ":" & zero seconds)
+zero N:integer -> if N<10 then "0" & text N else text N

@@ -47,6 +47,7 @@
     OTHER_MODULES =     \
         hello_world     \
         taoTester    \
+        database \
         tao_synchro
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

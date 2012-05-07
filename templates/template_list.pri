@@ -16,7 +16,8 @@ DEFAULT_TEMPLATES =   \
     shift \
     simple_slides \
     opening_pane \
-    rising_text
+    rising_text \
+    mobile
 
 OTHER_TEMPLATES =     \
     mapping \

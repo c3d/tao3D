@@ -42,13 +42,13 @@
        carousel \
        revolving_texts \
        database \
-       point_cloud
+       point_cloud \
+       water_surface
     OTHER_MODULES =     \
         hello_world     \
         network_access   \
         taoTester \
-        tao_synchro \
-        water_surface
+        tao_synchro
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories
     LSOUT=$$system(ls)

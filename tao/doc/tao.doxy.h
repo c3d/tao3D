@@ -32,6 +32,7 @@
  * @~
  * @ref getting_started \n
  * @ref tao_documents \n
+ * @ref xlref \n
  * @ref adding_extensions \n
  * @ref platform_notes \n
  * @ref credits
@@ -289,8 +290,9 @@ mon_cercle Rayon:real ->
  * @section secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.
- * Detailed information is available in <a href="XLRef.html">the XLR language
- * reference guide</a>. However, a deep knowledge of XL is not needed to write
+ * Detailed information is available in the
+ * \ref xlref "XLR language reference guide".
+ * However, a deep knowledge of XL is not needed to write
  * Tao documents.
  *
  * @~french
@@ -298,8 +300,9 @@ mon_cercle Rayon:real ->
  *
  * Le langage de programmation XL (ou XLR) est la base des documents
  * Tao Presentations.
- * Des informations détaillées sont disponibles dans <a href="XLRef.html">le
- * guide de référence du langage XLR</a> (en anglais). Toutefois, une
+ * Des informations détaillées sont disponibles dans
+ * \ref xlref "le guide de référence du langage XLR" (en anglais).
+ * Toutefois, une
  * connaissance approfondie de XL n'est pas nécessaire pour écrire des
  * documents Tao.
  *
@@ -542,6 +545,17 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
  * <tt>$HOME/Library/Application Support/Tao Presentations</tt> sous MacOSX,
  * et <tt>$HOME/.local/Taodyne/Tao Presentations</tt> sous Linux.
+ */
+/**
+ * @~english
+ * @page xlref XLR Language Reference
+ *
+ * @htmlinclude XLRef.html
+ *
+ * @~french
+ * @page xlref Guide de référence du language XLR
+ *
+ * @htmlinclude XLRef.html
  */
 /**
  * @~english

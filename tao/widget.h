@@ -114,6 +114,7 @@ public slots:
     void        dawdle();
     void        draw();
     void        runProgram();
+    void        runProgramOnce();
     void        print(QPrinter *printer);
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
@@ -927,6 +928,7 @@ private:
     GLuint                watermark;
     text                  watermarkText;
     int                   watermarkWidth, watermarkHeight;
+    bool                  showingEvaluationWatermark;
 #ifdef Q_OS_MACX
     bool                  frameBufferReady();
     char                  bFrameBufferReady;

@@ -166,6 +166,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
       selectionRectangleEnabled(true),
       doMouseTracking(true), stereoPlane(1), stereoPlanes(1),
       watermark(0), watermarkWidth(0), watermarkHeight(0),
+      showingEvaluationWatermark(false),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -351,6 +352,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       displayDriver(o.displayDriver),
       watermark(0), watermarkText(""),
       watermarkWidth(0), watermarkHeight(0),
+      showingEvaluationWatermark(false),
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
@@ -694,6 +696,9 @@ void Widget::drawScene()
         space->Draw(NULL);
     }
 
+    if (showingEvaluationWatermark)
+        drawWatermark();
+
     if (XL::MAIN->options.threaded_gc)
     {
         // Record wait time till asynchronous garbage collection completes
@@ -778,6 +783,15 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
+#if defined (CFG_EVALUATION_WATERMARK_TIME)
+    if (! showingEvaluationWatermark &&
+          Application::runTime() > CFG_EVALUATION_WATERMARK_TIME)
+    {
+        setWatermarkText(+tr("Evaluation"), 400, 200);
+        showingEvaluationWatermark = true;
+    }
+#endif
+
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
@@ -1021,10 +1035,13 @@ static QString errorHint(QString err)
 }
 
 
-void Widget::runProgram()
+void Widget::runProgramOnce()
 // ----------------------------------------------------------------------------
-//   Run the  XL program
+//   Run the  XL program once only
 // ----------------------------------------------------------------------------
+//   There are rare cases where we may need to evaluate the program twice
+//   (and only twice to avoid infinite loops). For example, if the page
+//   title is translated, it may not match on the next draw. See #2060.
 {
     setCurrentTime();
 
@@ -1092,7 +1109,25 @@ void Widget::runProgram()
     currentToolBar = NULL;
     currentMenuBar = ((Window*)parent())->menuBar();
 
-    // Update page count for next run
+    // Check pending events
+    processProgramEvents();
+
+    if (!dragging)
+        finishChanges();
+}
+
+
+
+void Widget::runProgram()
+// ----------------------------------------------------------------------------
+//   Run the  XL program until we have found a page
+// ----------------------------------------------------------------------------
+//   There are rare cases where we may need to evaluate the program twice
+//   (and only twice to avoid infinite loops). For example, if the page
+//   title is translated, it may not match on the next draw. See #2060.
+{
+    runProgramOnce();
+
     IFTRACE(pages)
         std::cerr << "Page found=" << pageFound
                   << " id=" << pageId
@@ -1101,15 +1136,16 @@ void Widget::runProgram()
     pageNames = newPageNames;
     pageTotal = pageId ? pageId : 1;
     if (pageFound)
+    {
         pageShown = pageFound;
+    }
     else
-        pageName = pageNameAtIndex(NULL, pageShown)->value;
-
-    // Check pending events
-    processProgramEvents();
-
-    if (!dragging)
-        finishChanges();
+    {
+        // If we had pages, but none matches, re-evaluate the program (#2060)
+        pageName = pageShown <= pageNames.size() ? pageNames[pageShown-1] : "";
+        if (pageTotal > 0)
+            runProgramOnce();
+    }
 }
 
 
@@ -10656,6 +10692,8 @@ void Widget::setWatermarkTextAPI(text t, int w, int h)
 //   Export setWatermarkText to the module API
 // ----------------------------------------------------------------------------
 {
+    if (Tao()->showingEvaluationWatermark)
+        return;
     Tao()->setWatermarkText(t, w, h);
 }
 

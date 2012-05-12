@@ -680,6 +680,8 @@ void Widget::drawScene()
         emit runGC();
     }
 
+    id = idDepth = 0;
+    space->ClearAttributes();
     if (blanked)
     {
         glClearColor(0.0, 0.0, 0.0, 1.0);
@@ -691,8 +693,6 @@ void Widget::drawScene()
     }
     else
     {
-        id = idDepth = 0;
-        space->ClearAttributes();
         space->Draw(NULL);
     }
 

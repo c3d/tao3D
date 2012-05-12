@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   20
-#define TAO_MODULE_API_AGE       1
+#define TAO_MODULE_API_CURRENT   21
+#define TAO_MODULE_API_AGE       2
 
 // ========================================================================
 //
@@ -393,6 +393,10 @@ struct ModuleApi
     // is shown.
     bool (*checkImpressOrLicense)(std::string featureName);
 
+
+    // Return the index of the screen that contains the largest part of the
+    // main window (see QDesktopWidget::screenNumber()).
+    int (*screenNumber)();
 };
 
 }

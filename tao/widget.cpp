@@ -147,7 +147,7 @@ static inline QGLFormat TaoGLFormat()
 }
 
 
-Widget::Widget(Window *parent, SourceFile *sf)
+Widget::Widget(QWidget *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
 //    Create the GL widget
 // ----------------------------------------------------------------------------
@@ -233,9 +233,9 @@ Widget::Widget(Window *parent, SourceFile *sf)
     setFocusPolicy(Qt::StrongFocus);
 
     // Prepare the menubar
-    currentMenuBar = parent->menuBar();
-    connect(parent->menuBar(),  SIGNAL(triggered(QAction*)),
-            this,               SLOT(userMenu(QAction*)));
+    currentMenuBar = taoWindow()->menuBar();
+    connect(taoWindow()->menuBar(), SIGNAL(triggered(QAction*)),
+            this,                   SLOT(userMenu(QAction*)));
 
     toDialogLabel["LookIn"]   = (QFileDialog::DialogLabel)QFileDialog::LookIn;
     toDialogLabel["FileName"] = (QFileDialog::DialogLabel)QFileDialog::FileName;
@@ -286,7 +286,7 @@ Widget::Widget(Window *parent, SourceFile *sf)
     displayDriver = new DisplayDriver;
     current = NULL; // #1180
     connect(this, SIGNAL(displayModeChanged(QString)),
-            parent, SLOT(updateDisplayModeCheckMark(QString)));
+            taoWindow(), SLOT(updateDisplayModeCheckMark(QString)));
 
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
@@ -473,8 +473,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     o.updateStereoIdentPatterns(0);
 
     // Now, o has become invalid ; make sure it can't be redrawn before being
-    // deleted (NB: QMainWindow::setCentralWidget deletes previous widget
-    // asynchronously)
+    // deleted (asynchronously, by deleteLater()).
     o.space->Clear();
     o.isInvalid = true;
 

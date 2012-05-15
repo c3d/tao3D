@@ -42,6 +42,7 @@ class QMenu;
 class QTextEdit;
 class QSplashScreen;
 class QLabel;
+class QStackedWidget;
 QT_END_NAMESPACE
 
 namespace Tao {
@@ -231,6 +232,7 @@ public:
     XLSourceEdit     *srcEdit;
     ToolWindow       *src;
 #endif
+    QStackedWidget   *stackedWidget;
     Widget           *taoWidget;
 private:
     QString           curFile;

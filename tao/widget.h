@@ -105,7 +105,7 @@ public:
     enum ShaderKind { VERTEX, FRAGMENT, GEOMETRY };
 
 public:
-    Widget(Window *parent, SourceFile *sf = NULL);
+    Widget(QWidget *parent, SourceFile *sf = NULL);
     Widget(Widget &other, const QGLFormat &format);
     ~Widget();
 

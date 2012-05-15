@@ -1142,7 +1142,9 @@ void Widget::runProgram()
     else
     {
         // If we had pages, but none matches, re-evaluate the program (#2060)
-        pageName = pageShown <= pageNames.size() ? pageNames[pageShown-1] : "";
+        pageName = pageShown > 0 && pageShown <= pageNames.size()
+            ? pageNames[pageShown-1]
+            : "";
         if (pageId > 0)
             runProgramOnce();
     }

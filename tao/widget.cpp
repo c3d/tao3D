@@ -480,7 +480,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     current = this;
 
-    Window *win = (Window *)parent();
+    Window *win = taoWindow();
     connect(this, SIGNAL(displayModeChanged(QString)),
             win, SLOT(updateDisplayModeCheckMark(QString)));
 
@@ -1068,7 +1068,7 @@ void Widget::runProgramOnce()
     space->Clear();
 
     // Evaluate the program
-    XL::MAIN->EvaluateContextFiles(((Window*)parent())->contextFileNames);
+    XL::MAIN->EvaluateContextFiles(taoWindow()->contextFileNames);
     if (Tree *prog = xlProgram->tree)
         xlProgram->context->Evaluate(prog);
 
@@ -1079,7 +1079,7 @@ void Widget::runProgramOnce()
     {
         std::vector<XL::Error> errors = XL::MAIN->errors->errors;
         std::vector<XL::Error>::iterator ei;
-        Window *window = (Window *) parentWidget();
+        Window *window = taoWindow();
         XL::MAIN->errors->Clear();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
@@ -1107,7 +1107,7 @@ void Widget::runProgramOnce()
     order          = 0;
     currentMenu    = NULL;
     currentToolBar = NULL;
-    currentMenuBar = ((Window*)parent())->menuBar();
+    currentMenuBar = taoWindow()->menuBar();
 
     // Check pending events
     processProgramEvents();
@@ -1192,8 +1192,7 @@ void Widget::print(QPrinter *prt)
     FrameInfo frame(w, h);
 
     // Get the status bar
-    Window *window = (Window *) parentWidget();
-    QStatusBar *status = window->statusBar();
+    QStatusBar *status = taoWindow()->statusBar();
 
     // Set the initial time we want to set and freeze animations
     XL::Save<bool> disableAnimations(animated, false);
@@ -1845,7 +1844,7 @@ QStringList Widget::fontFiles()
         // Some font files are not in a suitable format, so we won't try to
         // embed them (Qt can only load TrueType, TrueType Collection and
         // OpenType files).
-        Window *window = (Window *) parentWidget();
+        Window *window = taoWindow();
         foreach (QString m, fontFileMgr->errors)
             window->addError(m);
     }
@@ -2278,10 +2277,7 @@ uint Widget::showGlErrors()
             count++;
         }
         if (msg.length())
-        {
-            Window *window = (Window *) parentWidget();
-            window->addError(msg);
-        }
+            taoWindow()->addError(msg);
         err = glGetError();
     }
 
@@ -2793,19 +2789,19 @@ void Widget::mousePressEvent(QMouseEvent *event)
         {
         default :
         case Qt::NoModifier :
-            contextMenu = parent()->findChild<QMenu*>(CONTEXT_MENU);
+            contextMenu = taoWindow()->findChild<QMenu*>(CONTEXT_MENU);
             break;
         case Qt::ShiftModifier :
-            contextMenu = parent()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
+            contextMenu = taoWindow()->findChild<QMenu*>(SHIFT_CONTEXT_MENU);
             break;
         case Qt::ControlModifier :
-            contextMenu = parent()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
+            contextMenu = taoWindow()->findChild<QMenu*>(CONTROL_CONTEXT_MENU);
             break;
         case Qt::AltModifier :
-            contextMenu = parent()->findChild<QMenu*>(ALT_CONTEXT_MENU);
+            contextMenu = taoWindow()->findChild<QMenu*>(ALT_CONTEXT_MENU);
             break;
         case Qt::MetaModifier :
-            contextMenu = parent()->findChild<QMenu*>(META_CONTEXT_MENU);
+            contextMenu = taoWindow()->findChild<QMenu*>(META_CONTEXT_MENU);
             break;
         }
 
@@ -3302,10 +3298,9 @@ void Widget::showEvent(QShowEvent *event)
 // ----------------------------------------------------------------------------
 {
     Q_UNUSED(event);
-    Window *window = (Window *) parentWidget();
     bool oldFs = hasAnimations();
     if (! oldFs)
-        window->toggleAnimations();
+        taoWindow()->toggleAnimations();
 }
 
 
@@ -3315,10 +3310,9 @@ void Widget::hideEvent(QHideEvent *event)
 // ----------------------------------------------------------------------------
 {
     Q_UNUSED(event);
-    Window *window = (Window *) parentWidget();
     bool oldFs = hasAnimations();
     if (oldFs)
-        window->toggleAnimations();
+        taoWindow()->toggleAnimations();
 }
 
 
@@ -3339,8 +3333,7 @@ bool Widget::sourceChanged()
         return true;
 
 #ifndef CFG_NOSRCEDIT
-    Window *window = (Window *) parentWidget();
-    if (window->srcEdit->document()->isModified())
+    if (taoWindow()->srcEdit->document()->isModified())
         return true;
 #endif
     return false;
@@ -3421,7 +3414,7 @@ void Widget::updateProgramSource(bool notWhenHidden)
 // ----------------------------------------------------------------------------
 {
 #ifndef CFG_NOSRCEDIT
-    Window *window = (Window *) parentWidget();
+    Window *window = taoWindow();
     if ((window->src->isHidden() && notWhenHidden) ||
         !xlProgram || sourceChanged())
         return;
@@ -3562,10 +3555,7 @@ void Widget::refreshProgram()
             refreshNow();
         }
         if (!inError)
-        {
-            Window *window = (Window *) parentWidget();
-            window->clearErrors();
-        }
+            taoWindow()->clearErrors();
     }
 }
 
@@ -3721,8 +3711,7 @@ void Widget::commitSuccess(QString id, QString msg)
 //   Document was succesfully committed to repository (see doCommit())
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *) parentWidget();
-    window->undoStack->push(new UndoCommand(repository(), id, msg));
+    taoWindow()->undoStack->push(new UndoCommand(repository(), id, msg));
 }
 
 bool Widget::doCommit(ulonglong tick)
@@ -3745,8 +3734,7 @@ bool Widget::doCommit(ulonglong tick)
         XL::Main *xlr = XL::MAIN;
         nextCommit = tick + xlr->options.commit_interval * 1000;
 
-        Window *window = (Window *) parentWidget();
-        window->markChanged(false);
+        taoWinow()->markChanged(false);
 
         return true;
     }
@@ -3807,8 +3795,7 @@ Repository * Widget::repository()
 //   Return the repository associated with the current document (may be NULL)
 // ----------------------------------------------------------------------------
 {
-    Window * win = (Window *)parentWidget();
-    return win->repository();
+    return taoWindow()->repository();
 }
 
 
@@ -4048,8 +4035,7 @@ bool Widget::isReadOnly()
 //   Is document currently flagged read-only?
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *)parentWidget();
-    return window->isReadOnly;
+    return taoWindow()->isReadOnly;
 }
 
 
@@ -5486,7 +5472,7 @@ Tree_p Widget::windowSize(Tree_p self, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
 {
     QSize delta = QSize(width->value, height->value) - geometry().size();
-    QWidget *win = parentWidget();
+    QWidget *win = taoWindow();
     win->resize(win->size() + delta);
     win->updateGeometry();
     return XL::xl_true;
@@ -5709,8 +5695,7 @@ Name_p Widget::showSource(XL::Tree_p self, bool show)
 //   Show or hide source code
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *) parentWidget();
-    bool old = window->showSourceView(show);
+    bool old = taoWindow()->showSourceView(show);
     return old ? XL::xl_true : XL::xl_false;
 }
 
@@ -5725,8 +5710,7 @@ Name_p Widget::fullScreen(XL::Tree_p self, bool fs)
     bFrameBufferReady = false;
 #endif
     bool oldFs = isFullScreen();
-    Window *window = (Window *) parentWidget();
-    window->switchToFullScreen(fs);
+    taoWindow()->switchToFullScreen(fs);
 #ifdef MACOSX_DISPLAYLINK
     CVDisplayLinkSetCurrentCGDisplay(displayLink, getCurrentDisplayID(this));
 #endif
@@ -5863,8 +5847,7 @@ Name_p Widget::slideShow(XL::Tree_p self, bool ss)
 #ifdef Q_OS_MACX
     bFrameBufferReady = false;
 #endif
-    Window *window = (Window *) parentWidget();
-    bool oldMode = window->switchToSlideShow(ss);
+    bool oldMode = taoWindow()->switchToSlideShow(ss);
     return oldMode ? XL::xl_true : XL::xl_false;
 }
 
@@ -5877,8 +5860,7 @@ Name_p Widget::toggleSlideShow(XL::Tree_p self)
 #ifdef Q_OS_MACX
     bFrameBufferReady = false;
 #endif
-    Window *window = (Window *) parentWidget();
-    bool oldMode = window->toggleSlideShow();
+    bool oldMode = taoWindow()->toggleSlideShow();
     return oldMode ? XL::xl_true : XL::xl_false;
 }
 
@@ -5900,6 +5882,21 @@ Name_p Widget::toggleBlankScreen(XL::Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return blankScreen(self, !blanked);
+}
+
+
+Window * Widget::taoWindow()
+// ----------------------------------------------------------------------------
+//   Return a pointer to the Tao main window this widget belongs to
+// ----------------------------------------------------------------------------
+{
+    QWidget * p = parentWidget();
+    Q_ASSERT(p || !"Widget has no parent widget");
+    QWidget *pp = p->parentWidget();
+    Q_ASSERT(pp || !"Widget has no grandparent widget");
+    Window * w = dynamic_cast<Window *>(pp);
+    Q_ASSERT(w || !"Widget grandparent is not QMainWindow");
+    return w;
 }
 
 
@@ -6254,9 +6251,8 @@ Name_p Widget::enableAnimations(XL::Tree_p self, bool fs)
 // ----------------------------------------------------------------------------
 {
     bool oldFs = hasAnimations();
-    Window *window = (Window *) parentWidget();
     if (oldFs != fs)
-        window->toggleAnimations();
+        taoWindow()->toggleAnimations();
     return oldFs ? XL::xl_true : XL::xl_false;
 }
 
@@ -6297,8 +6293,7 @@ Name_p Widget::addDisplayModeToMenu(XL::Tree_p self, text mode, text label)
 //   Add a display mode entry to the view menu
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *) parentWidget();
-    window->addDisplayModeMenu(+mode, +label);
+    taoWindow()->addDisplayModeMenu(+mode, +label);
     return XL::xl_true;
 }
 
@@ -7015,8 +7010,7 @@ Tree_p Widget::listFiles(Context *context, Tree_p self, Tree_p pattern)
 {
     Tree_p result = NULL;
     Tree_p *parent = &result;
-    Window *window = (Window *) parentWidget();
-    Dir current(window->currentProjectFolderPath());
+    Dir current(taoWindow()->currentProjectFolderPath());
     list_files(context, current, self, pattern, parent);
     if (!result)
         result = XL::xl_nil;
@@ -7265,10 +7259,7 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
 
         QString message = currentShaderProgram->log();
         if (message.length())
-        {
-            Window *window = (Window *) parentWidget();
-            window->addError(message);
-        }
+            taoWindow()->addError(message);
     }
     layout->Add(new ShaderProgram(program));
     return result;
@@ -7324,8 +7315,7 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
     }
 
     QString savePath = QDir::currentPath();
-    Window *window = (Window *) parentWidget();
-    QDir::setCurrent(window->currentProjectFolderPath());
+    QDir::setCurrent(taoWindow()->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
     if(! ok)
@@ -9194,8 +9184,7 @@ Tree_p Widget::status(Tree_p self, text caption)
 //   Set the status line of the window
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *) parentWidget();
-    window->statusBar()->showMessage(+caption);
+    taoWindow()->statusBar()->showMessage(+caption);
     return XL::xl_true;
 }
 
@@ -10390,7 +10379,7 @@ void Widget::fileChosen(const QString & filename)
 
     // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
-    QString relFilePath = QDir(((Window*)parent())->currentProjectFolderPath()).
+    QString relFilePath = QDir((taoWindow())->currentProjectFolderPath()).
                           relativeFilePath(file.canonicalFilePath());
     if (relFilePath.contains(".."))
     {
@@ -10580,7 +10569,7 @@ text Widget::currentDocumentFolder()
 //   Return native path to current document folder
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *)Tao()->parentWidget();
+    Window *window = Tao()->taoWindow();
     return +QDir::toNativeSeparators(window->currentProjectFolderPath());
 }
 
@@ -10930,7 +10919,7 @@ Tree_p Widget::closeCurrentDocument(Tree_p self)
 //   Close the current document window
 // ----------------------------------------------------------------------------
 {
-    Window *window = (Window *) current->parentWidget();
+    Window *window = taoWindow();
     // Make sure we are not full screen, because closing window saves the
     // current geometry
     window->switchToFullScreen(false);
@@ -10963,11 +10952,13 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
 {
     if (current)
     {
-        current->inError = true;             // Stop refreshing
+        // Stop refreshing
+        current->inError = true;
 #ifndef CFG_NOSRCEDIT
-        Window *window = (Window *) current->parentWidget();
+        // Load source as plain text
         QString fname = +(current->xlProgram->name);
-        window->loadFileIntoSourceFileView(fname); // Load source as plain text
+        Window *window = Tao()->taoWindow();
+        window->loadFileIntoSourceFileView(fname);
 #endif
     }
     return formulaRuntimeError(self, msg, arg);
@@ -10983,8 +10974,8 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
 
     if (current)
     {
-        Window *window = (Window *) current->parentWidget();
         text message = err.Position() + ": " + err.Message();
+        Window *window = Tao()->taoWindow();
         window->addError(+err.Position() + " : " + +err.Message());
         err.Display();
     }
@@ -11038,7 +11029,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 
     QString fullName = +name;
 
-    if (QAction* act = parent()->findChild<QAction*>(fullName))
+    if (QAction* act = taoWindow()->findChild<QAction*>(fullName))
     {
         // MenuItem found, update label, icon, checkmark if the order is OK.
         if (order < orderedMenuElements.size() &&
@@ -11140,7 +11131,7 @@ Tree_p  Widget::menuItemEnable(Tree_p self, text name, bool enable)
         return XL::xl_false;
 
     QString fullName = +name;
-    if (QAction* act = parent()->findChild<QAction*>(fullName))
+    if (QAction* act = taoWindow()->findChild<QAction*>(fullName))
     {
         act->setEnabled(enable);
         return XL::xl_true;
@@ -11172,7 +11163,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 
     // If the menu is registered, no need to recreate it if the order is exact.
     // This is used at reload time.
-    if (QMenu *tmp = parent()->findChild<QMenu*>(fullname))
+    if (QMenu *tmp = taoWindow()->findChild<QMenu*>(fullname))
     {
         if (lbl == "" && iconFileName == "")
         {
@@ -11215,7 +11206,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
     // The menu is not yet registered. Create it and set the currentMenu.
     if (isContextMenu)
     {
-        currentMenu = new QMenu((Window*)parent());
+        currentMenu = new QMenu(taoWindow());
         connect(currentMenu, SIGNAL(triggered(QAction*)),
                 this,        SLOT(userMenu(QAction*)));
     }
@@ -11250,10 +11241,10 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         {
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
             if (par == currentMenuBar)
-                before = ((Window*)parent())->shareMenu->menuAction();
+                before = taoWindow()->shareMenu->menuAction();
 #else
             if (par == currentMenuBar)
-                before = ((Window*)parent())->helpMenu->menuAction();
+                before = taoWindow()->helpMenu->menuAction();
 #endif
 //            par->addAction(currentMenu->menuAction());
         }
@@ -11295,7 +11286,7 @@ Tree_p  Widget::menuBar(Tree_p self)
     if (!Licences::Check(GUI_FEATURE))
         return XL::xl_false;
 
-    currentMenuBar = ((Window *)parent())->menuBar();
+    currentMenuBar = taoWindow()->menuBar();
     currentToolBar = NULL;
     currentMenu = NULL;
     return XL::xl_true;
@@ -11314,7 +11305,7 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
         return XL::xl_false;
 
     QString fullname = +name;
-    Window *win = (Window *)parent();
+    Window *win = taoWindow();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
     {
         if (order < orderedMenuElements.size() &&
@@ -11401,7 +11392,7 @@ Tree_p  Widget::separator(Tree_p self)
 
     QString fullname = QString("SEPARATOR_%1").arg(order);
 
-    if (QAction *tmp = parent()->findChild<QAction*>(fullname))
+    if (QAction *tmp = taoWindow()->findChild<QAction*>(fullname))
     {
         if (order < orderedMenuElements.size() &&
             orderedMenuElements[order] != NULL &&

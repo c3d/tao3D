@@ -1019,6 +1019,7 @@ private:
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    Window *              taoWindow();
     StereoIdentTexture    newStereoIdentTexture(int i);
     void                  updateStereoIdentPatterns(int nb);
     void        runPurgeAction(XL::Action &action);

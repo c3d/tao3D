@@ -24,6 +24,7 @@
 @code
 import MyModule 1.0
 @endcode
+ * Note that <tt>MyModule</tt> is not enclosed in double quotes.
  *
  * When Tao encounters the import statement, it looks up ModuleName in the
  * list of currently known (and enabled) modules, checks the version
@@ -58,6 +59,7 @@ import MyModule 1.0
 @code
 import MonModule 1.0
 @endcode
+ * Notez que <tt>MonModule</tt> n'apparaît pas entre guillemets.
  *
  * Quand Tao Presentations rencontre le mot-clé import, il recherche MonModule
  * dans la liste des modules connus (et actifs), vérifie que la version
@@ -88,6 +90,38 @@ import MonModule 1.0
  *        a besoin pour fonctionner. Entier, réel ou texte.
  */
 import(modulename:name, version);
+
+/**
+ * @~english
+ * Loads a Tao module.
+ * The requested version is 1.0. Therefore, <tt>import MyModule</tt>
+ * is equivalent to <tt>import MyModule 1.0</tt>.
+ * Note that <tt>ModuleName</tt> is not enclosed in double quotes.
+ * @~french
+ * Charge un module Tao.
+ * La version demandée est 1.0. Par conséquent, <tt>import MonModule</tt>
+ * est équivalent à <tt>import MonModule 1.0</tt>.
+ * Notez que <tt>MonModule</tt> n'apparaît pas entre guillemets.
+ */
+import(modulename:name);
+
+/**
+ * @~english
+ * Loads a source file and makes its definitions available to the main program.
+ * For example:
+ * @code
+import "file.xl"
+import "file.ddd"
+ * @endcode
+ * @~french
+ * Charge un fichier source et rend ses définitions disponibles au programme
+ * principal. Par exemple:
+ * @code
+import "fichier.xl"
+import "fichier.ddd"
+ * @endcode
+ */
+import(file:text);
 
 /**
  * @}

@@ -326,9 +326,11 @@ public:
     void        purgeTaoInfo();
 
 public:
-    // XLR entry points
     static Widget *Tao()                { assert(current); return current; }
     Context *   formulasContext()       { return formulas; }
+    static int  screenNumber() { return qApp->desktop()->screenNumber(Tao()); }
+
+    // XLR entry points
 
     // Getting attributes
     Text_p      page(Context *context, text name, Tree_p body);

@@ -1,5 +1,7 @@
 Here are the steps to create a new (official) release of Tao Presentations
 
+1) BUILDING
+
 Once:
 
 - Make sure the code is up-to-date (git pull, git submodule update, git status).
@@ -36,15 +38,51 @@ On all platforms:
   $ git tag 1.0-beta5
 - Build Tao and make packages (all editions).
   $ ./build_all.sh
-- Do an internal build (run configure with no edition name). Thus you get all
-  the modules and templates to put on the web site, and you also get temporary
-  licenses for testing.
-  $ make distclean
-  $ ./configure
+- If some modules that are not packaged with Tao have been modified since the
+  last build (currently: Alioscopy and 2D-plus-Depth display modules), build
+  them:
+  $ ./configure modules+=+display_alioscopy modules+=+display_2dplusdepth
   $ make -j3 install
 
 Once:
 
+- Build the Tao documentation for the web site:
+  $ ./make_doc_tarball.sh
 - Create an annotated tag with the MD5 hash of all kits.
   Take inspiration from 'git show 1.0-beta4' for instance. 
   $ git tag -a 1.0-beta5
+
+
+2) PUBLISHING
+
+- Upload Discovery files to http://ge.tt/ (login is contact@taodyne.com).
+  Take note of the ID of each file,
+    * Each file is assigned a URL like http://ge.tt/9Jf9pEH that opens a web
+      page where the file can be downloaded (there is also a direct link
+      available by clicking on "Download"). In this exemple the file ID is
+      "9Jf9pEH".
+- Edit the product comparison page in the PrestaShop CMS backend (Tools/CMS,
+  products/compare). Use the HTML editor. Search for "/dl/".
+  The URLs to be used for each Tao Discovery download is:
+    http://www.taodyne.com/dl/g/<file_id>
+  ...for instance: http://www/taodyne.com/dl/g/9Jf9pEH
+    * There is a rewrite rule in /var/www/.htaccess that redirects
+      to http://ge.tt.
+- Upload ALL Tao packages to www.taodyne.com:
+    scp Tao* taodyne@www.taodyne.com:git/software
+  Move each file to the correct subdirectory.
+- Create symlinks for the new version in /var/www/shop/download
+    * There is a helper script, update_links.sh.
+- Update the download URLs in the PrestaShop product pages (under
+  modules/Other modules/Multidéclinaison téléchargeable, Configure, top right
+  icon).
+- Update the product version in the product pages for Discovery, Creativity,
+  Impress.
+- git remove, git add, git commit, git tag under ~taodyne/git/software.
+    * For instance for Discovery, Windows, 1.09:
+      mv "Tao Presentations Discovery 1.09.exe" win/Discovery ; cd win/Discovery ; git rm *1.08* ; git add * ; git commit -m "Discovery 1.09 for Windows." ; git tag 1.09
+- Delete the old symlinks in /var/www/shop/download.
+- Update documentation:
+  scp taodoc*.tar.bz2 www-data@www.taodyne.com:/var/www/docs
+  Extract the file, it will create taodoc-*/{modules,help}.
+  Replace /var/www/docs/{modules,help} with the new ones.

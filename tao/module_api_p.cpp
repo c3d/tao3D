@@ -110,6 +110,8 @@ ModuleApiPrivate::ModuleApiPrivate()
     // Current document info
     currentDocumentFolder =  Widget::currentDocumentFolder;
     taoRunTime            =  Application::runTime;
+
+    screenNumber = Widget::screenNumber;
 }
 
 TAO_END

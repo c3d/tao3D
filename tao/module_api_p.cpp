@@ -29,6 +29,7 @@
 #include "licence.h"
 #include "info_trash_can.h"
 #include "application.h"
+#include "window.h"
 
 TAO_BEGIN
 
@@ -112,6 +113,9 @@ ModuleApiPrivate::ModuleApiPrivate()
     taoRunTime            =  Application::runTime;
 
     screenNumber = Widget::screenNumber;
+    addWidget    = Window::addWidget;
+    removeWidget = Window::removeWidget;
+    setCurrentWidget    = Window::setCurrentWidget;
 }
 
 TAO_END

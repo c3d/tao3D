@@ -28,6 +28,7 @@
 #include <QUndoStack>
 #include <QUndoView>
 #include <QPointer>
+#include <QStackedWidget>
 #include "main.h"
 #include "tao.h"
 #ifndef CFG_NOGIT
@@ -90,11 +91,16 @@ public:
     bool     needNewWindow();
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
+    bool     hasStackedWidget() { return (stackedWidget->count() >= 1); }
 
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;
 
+public:
+    static void        addWidget(void * w);
+    static void        removeWidget(void * w);
+    static void        setCurrentWidget(void * w);
 
 public:
     QUndoStack       * undoStack;
@@ -231,6 +237,7 @@ public:
     XLSourceEdit     *srcEdit;
     ToolWindow       *src;
 #endif
+    QStackedWidget   *stackedWidget;
     Widget           *taoWidget;
 private:
     QString           curFile;

@@ -59,6 +59,7 @@
 #include <QtWebKit>
 #include <QProcessEnvironment>
 #include <QStringList>
+#include <QDesktopServices>
 
 
 #if defined(CONFIG_MINGW)

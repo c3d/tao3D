@@ -63,7 +63,6 @@
 #include <bfs.h>
 #include <QList>
 #include <QRegExp>
-#include <QStackedWidget>
 #ifndef Q_OS_MACX
 #include <QFSFileEngine>
 #endif
@@ -2885,6 +2884,56 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return NULL;
+}
+
+void Window::addWidget(void * w)
+// ----------------------------------------------------------------------------
+//   (Module API) Add a QWidget to the QStackedWidget of this window
+// ----------------------------------------------------------------------------
+{
+    Window * win = Widget::Tao()->taoWindow();
+    QWidget * widget = (QWidget *)w;
+    widget->setParent(win->stackedWidget);  // CHECK: required?
+    win->stackedWidget->addWidget((QWidget*) w);
+}
+
+
+void Window::removeWidget(void * w)
+// ----------------------------------------------------------------------------
+//   (Module API) Remove a QWidget from the QStackedWidget of this window
+// ----------------------------------------------------------------------------
+{
+    // Note: can't use Widget::Tao() here, so that this function may be called
+    // when there is no current Tao widget (e.g., called from the main event
+    // loop when the window is closed).
+    QWidget *widget = (QWidget *)w;
+    Window *window = NULL;
+    foreach (QWidget *top, QApplication::topLevelWidgets())
+    {
+        window = dynamic_cast<Window *>(top);
+        if (!window)
+            continue;
+        int found = window->stackedWidget->indexOf(widget);
+        if (found >= 1)
+        {
+            if (window->stackedWidget->currentWidget() == widget)
+                window->stackedWidget->setCurrentIndex(0);
+            window->stackedWidget->removeWidget(widget);
+            break;
+        }
+    }
+}
+
+
+void Window::setCurrentWidget(void * w)
+// ----------------------------------------------------------------------------
+//   (Module API) Select the QWidget to be shown (NULL for default)
+// ----------------------------------------------------------------------------
+{
+    Window * win = Widget::Tao()->taoWindow();
+    if (!w)
+        w = win->taoWidget;
+    win->stackedWidget->setCurrentWidget((QWidget *) w);
 }
 
 }

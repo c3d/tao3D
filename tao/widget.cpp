@@ -3309,6 +3309,15 @@ void Widget::hideEvent(QHideEvent *event)
 // ----------------------------------------------------------------------------
 {
     Q_UNUSED(event);
+
+    // We don't want to stop refreshing if we are hidden because another widget
+    // has become active (QStackedWidget).
+    // Use case: a primitive implemented in a module calls
+    // ModuleApi::setCurrentWidget to show its own stuff: program refresh has
+    // to continue normally.
+    if (taoWindow()->hasStackedWidget())
+        return;
+
     bool oldFs = hasAnimations();
     if (oldFs)
         taoWindow()->toggleAnimations();

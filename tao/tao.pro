@@ -54,7 +54,7 @@ win32 {
     LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
-    LIBS += -lXss
+    LIBS += -lXss -lGLU
 }
 
 # Input

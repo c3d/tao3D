@@ -27,6 +27,7 @@
 #include "widget.h"
 #include "tao_gl.h"
 #include "info_trash_can.h"
+#include <QMovie>
 
 TAO_BEGIN
 

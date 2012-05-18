@@ -4,7 +4,7 @@
 //
 //   File Description:
 //
-//     Lines of text rotating like a mobile.
+//     Sample of lines of text rotating like a mobile.
 //
 //
 //
@@ -16,7 +16,6 @@
 // ****************************************************************************
 // Copyright Taodyne SAS, 2012
 // Contributors:
-//   Christophe de Dinechin <christophe@taodyne.com>
 //   Catherine Burvelle <catherine@taodyne.com>
 //
 // <contact@taodyne.com>
@@ -54,8 +53,7 @@
 // Images are free photos from http://www.folp.free.fr/
 // ****************************************************************************
 
-import Animate
-import TaoVisuals
+import "mobile.xl"
 
 page "Init",
     shaded_background
@@ -75,22 +73,6 @@ page "Init",
 
         text "Revenez à cette page pour redémarrer." en "Come back to this page to watch the show again."
 
-
-// ============================================================================
-//
-//    CONFIGURATION
-//
-// ============================================================================
-
-// Vertical space after a bullets.
-BulletH -> 150
-SubBulletH -> 60
-
-// Angle between two consecutive bullets (subject to followong coefficient)
-DeltaAngle -> 8
-
-// Coefficient used to modify angle difference from top to bottom
-Coeff -> 2
 
 
 // ============================================================================
@@ -139,179 +121,3 @@ page "Mobile",
             color "white"
             image 400,100,0.5,0.5, "madrid.jpg"
         mobile_bullet 7, text "Madrid"
-
-
-// ============================================================================
-//
-//    FUNCTIONS
-//
-// ============================================================================
-
-
-
-mobile_story X:integer, Y:integer, Z:integer, Body:tree ->
-// ----------------------------------------------------------------------------
-//   Position a story
-// ----------------------------------------------------------------------------
-    locally
-        color "tao_sea", 0.7
-        translate X, Y, Z
-        rotatey 420 * fade_in(page_time, 30)
-        Body
-
-
-// Do not touch this definition
-Yangle ->  Coeff * (-DeltaAngle - 10 * fade_out(page_time, 3*Time))
-
-mobile_bullet Time:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw a bullet
-// ----------------------------------------------------------------------------
-    translatey -BulletH
-    show fade_at(page_time, 2*Time)
-    rotatey Yangle
-    text_box 0, 0, 850, 2*BulletH,
-        color "tao_sea"
-        font "Comic Sans MS", 40, bold
-        align 0
-        vertical_align 0
-        anchor
-            translate -30, 10, 0
-            color "white"
-            light 0
-            light_position 200, 200, 400
-            rotatey (3+Time) * page_time
-            texture_wrap true, true
-            texture "earth.bmp"
-            sphere 0, 0, 0, 40
-        Body
-
-
-mobile_subbullet Time:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw a subbullet
-// ----------------------------------------------------------------------------
-    translatey -SubBulletH
-    show fade_at(page_time, 2*Time)
-    rotatey Yangle
-    text_box 0, 0, 800, 2*SubBulletH,
-        font "Comic Sans MS", 40
-        align 0
-        vertical_align 0
-        anchor
-            translate -20, 10, 0
-            color "white"
-            light 0
-            light_position 200, 200, 400
-            rotatey (3+Time) * page_time
-            texture_wrap true, true
-            texture "moon-lowres.jpg"
-            sphere 0, 0, 0, 35
-        Body
-
-
-mobile_nobullet Time:real, T:tree ->
-// ----------------------------------------------------------------------------
-//   Draw non-bullet body and don't modify the rotation for next one
-// ----------------------------------------------------------------------------
-    locally
-        show fade_at(page_time, 2*Time)
-        rotatey Yangle
-        T
-
-shaded_background ->
-// ----------------------------------------------------------------------------
-//   Show a Mobile title
-// ----------------------------------------------------------------------------
-    locally
-        scale_background
-        ztrans_background -10000
-        show 0.6
-        clear_color 1,1,1,1
-        color "white"
-
-        linear_gradient 0, 0, slide_width, slide_height, slide_width, slide_height,
-            gradient_color 0, 1.0, 1.0, 1.0, 1.0
-            gradient_color 0.4, 0.933, 0.737, 0.122, 1.0
-            gradient_color 0.8, 0.933, 0.737, 0.122, 1.0
-            gradient_color 1, 0.882, 0.29, 0.129, 1.0
-
-        rectangle 0, 0, slide_width, slide_height
-
-        path
-            move_to -slide_width/2, -slide_height/2
-            quad_to -slide_width/4 - 100, 0, 0,    slide_width/2, slide_height/2, 0
-            quad_to -slide_width/4 , 0, 0,    -slide_width/2, -slide_height/2, 0
-        path
-            move_to -slide_width/2, -slide_height/2
-            quad_to -slide_width/4 - 100, 100, 0,    slide_width/2, slide_height/2+100, 0
-            quad_to -slide_width/4 , 0, 0,    -slide_width/2, -slide_height/2, 0
-
-
-
-
-// Logical dimensions for the slide. You can put anything you want here,
-// but the aspect ratio should match that of the background picture and be
-// close to the aspect ratio of the screens you are going to use.
-// This will be used to define the logical coordinates of anything that
-// follows "scale_contents".
-slide_width -> 1920.0
-slide_height -> 1200.0
-
-
-
-// ============================================================================
-//
-//    General
-//
-// ============================================================================
-
-// Two ways to scale contents when resizing the window :
-// For background pictures, we'd rather not see some white around them,
-// so we scale to crop the picture ("max").
-// For contents, on the other hand, we want to keep everything visible, so
-// we scale to fit the contents ("min").
-scale3 S:real -> scale S, S, S
-background_scale -> max(window_width/slide_width, window_height/slide_height)
-contents_scale -> min(window_width/slide_width, window_height/slide_height)
-scale_background -> scale3 background_scale
-scale_contents -> scale3 contents_scale
-
-// Z translation without change in dimensions
-ztrans_contents Z:real ->
-    Z0 -> 6000.0
-    Z0 := camera_position at 3
-    translatez Z/contents_scale
-    scale3 (Z0-Z)/Z0
-
-ztrans_background Z:real ->
-    Z0 -> 6000.0
-    Z0 := camera_position at 3
-    translatez Z/background_scale
-    scale3 (Z0-Z)/Z0
-
-
-
-// ============================================================================
-//
-//   Language management
-//
-// ============================================================================
-
-lang -> "fr"
-Fr:text en En:text -> if lang = "en" then En else Fr
-En:text fr Fr:text -> if lang = "fr" then Fr else En
-french Body -> if lang = "fr" then Body
-english Body -> if lang = "en" then Body
-language L:text -> lang := L; refresh 0.1
-
-// ============================================================================
-//
-//    Keys for the presentations in this directory
-//
-// ============================================================================
-
-presentation_eye_distance -> 30
-key "e" -> language "en"
-key "f" -> language "fr"
-

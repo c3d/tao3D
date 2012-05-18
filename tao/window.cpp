@@ -92,7 +92,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NOSRCEDIT
       srcEdit(NULL), src(NULL),
 #endif
-      taoWidget(NULL), curFile(), uri(NULL),
+      stackedWidget(NULL), taoWidget(NULL), curFile(), uri(NULL),
 #ifndef CFG_NOFULLSCREEN
       slideShowMode(false),
 #endif
@@ -126,8 +126,10 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     addDockWidget(Qt::BottomDockWidgetArea, errorDock);
 
     // Create the main widget for displaying Tao stuff
-    taoWidget = new Widget(this);
-    setCentralWidget(taoWidget);
+    stackedWidget = new QStackedWidget(this);
+    taoWidget = new Widget(stackedWidget);
+    stackedWidget->addWidget(taoWidget);
+    setCentralWidget(stackedWidget);
 
     // Undo/redo management
     undoStack = new QUndoStack();
@@ -914,7 +916,11 @@ bool Window::setStereo(bool on)
     newFormat.setStereo(on);
     IFTRACE(displaymode)
         std::cerr << (char*)(on?"En":"Dis") << "abling stereo buffers\n";
+    Q_ASSERT(stackedWidget->indexOf(taoWidget) == 0);
+    stackedWidget->removeWidget(taoWidget);
+    taoWidget->deleteLater();
     taoWidget = new Widget(*taoWidget, newFormat);
+    stackedWidget->insertWidget(0, taoWidget);
     connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
             SLOT(showHandCursor(bool)));
     connect(zoomInAct, SIGNAL(triggered()), taoWidget,
@@ -923,7 +929,6 @@ bool Window::setStereo(bool on)
             SLOT(zoomOut()));
     connect(resetViewAct, SIGNAL(triggered()), taoWidget,
             SLOT(resetView()));
-    setCentralWidget(taoWidget);
     taoWidget->show();
     taoWidget->setFocus();
     taoWidget->makeCurrent();
@@ -2879,6 +2884,56 @@ Window *Window::findWindow(const QString &fileName)
             return mainWin;
     }
     return NULL;
+}
+
+void Window::addWidget(void * w)
+// ----------------------------------------------------------------------------
+//   (Module API) Add a QWidget to the QStackedWidget of this window
+// ----------------------------------------------------------------------------
+{
+    Window * win = Widget::Tao()->taoWindow();
+    QWidget * widget = (QWidget *)w;
+    widget->setParent(win->stackedWidget);  // CHECK: required?
+    win->stackedWidget->addWidget((QWidget*) w);
+}
+
+
+void Window::removeWidget(void * w)
+// ----------------------------------------------------------------------------
+//   (Module API) Remove a QWidget from the QStackedWidget of this window
+// ----------------------------------------------------------------------------
+{
+    // Note: can't use Widget::Tao() here, so that this function may be called
+    // when there is no current Tao widget (e.g., called from the main event
+    // loop when the window is closed).
+    QWidget *widget = (QWidget *)w;
+    Window *window = NULL;
+    foreach (QWidget *top, QApplication::topLevelWidgets())
+    {
+        window = dynamic_cast<Window *>(top);
+        if (!window)
+            continue;
+        int found = window->stackedWidget->indexOf(widget);
+        if (found >= 1)
+        {
+            if (window->stackedWidget->currentWidget() == widget)
+                window->stackedWidget->setCurrentIndex(0);
+            window->stackedWidget->removeWidget(widget);
+            break;
+        }
+    }
+}
+
+
+void Window::setCurrentWidget(void * w)
+// ----------------------------------------------------------------------------
+//   (Module API) Select the QWidget to be shown (NULL for default)
+// ----------------------------------------------------------------------------
+{
+    Window * win = Widget::Tao()->taoWindow();
+    if (!w)
+        w = win->taoWidget;
+    win->stackedWidget->setCurrentWidget((QWidget *) w);
 }
 
 }

@@ -44,6 +44,11 @@
 #include "tao_gl.h"
 #include "statistics.h"
 
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QFileDialog>
+#include <QGridLayout>
+#include <QTextCursor>
 #include <QImage>
 #include <QTimeLine>
 #include <QTimer>
@@ -51,6 +56,7 @@
 #include <QList>
 #include <QColorDialog>
 #include <QFontDialog>
+#include <QMutex>
 #include <iostream>
 #include <map>
 #include <set>

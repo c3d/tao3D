@@ -1,5 +1,5 @@
 @INCLUDE = ../../Doxyfile
 PROJECT_NAME = \"Lens Flare\"
-PROJECT_NUMBER = 1.0
-QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.LensFlare.1.0
+PROJECT_NUMBER = 1.001
+QHP_NAMESPACE = com.taodyne.TaoPresentations.modules.LensFlare.1.001
 QHP_VIRTUAL_FOLDER = LensFlare

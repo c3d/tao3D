@@ -1,0 +1,221 @@
+// ****************************************************************************
+//  picture_slider.ddd                                              Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Example of dynamic picture slider with Tao Presentations.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+// This document normally uses some images from http://www.premiumpixels.com/
+
+// Import module
+import SlideShow3D
+
+
+// ============================================================================
+//
+//                                SETTINGS
+//
+// ============================================================================
+
+// Number of pictures
+pictures_number := 6
+
+// Disable selection
+enable_selection_rectangle false
+
+// Automatic movement
+auto -> false
+
+// Control keys
+key "Right" -> slider_next // Move forward
+key "Left" -> slider_previous // Move backward
+key "Space" -> // Enable or disable automatic movement
+    if auto then
+        auto := false
+    else
+        auto := true
+    // Refresh
+    time
+
+// General scaling to adapt document to various displays
+// (it has been built in 1920:1080)
+window_scale -> min (window_width / 1920, window_height / 1080)
+
+// ============================================================================
+//
+//                                  PAGES
+//
+// ============================================================================
+
+page "picture slider",
+// -------------------------------------------------
+//    Main scene
+// -------------------------------------------------
+    background
+    picture_slider
+
+
+// ============================================================================
+//
+//                                 FUNCTIONS
+//
+// ============================================================================
+
+picture_slider ->
+// -------------------------------------------------
+//    Draw picture slider
+// -------------------------------------------------
+    background_slider
+    automatic_slider
+    slider_loop true
+    slider_offset 8, 0, 0
+    slider pictures_number, picture
+
+
+picture N:integer ->
+// -------------------------------------------------
+//    Draw picture N (i.e picture1.png, etc.)
+// -------------------------------------------------
+    a := slider_fade_x 5.0
+    locally
+        color "white", a
+        image_px 0, 0, 1000, 480, "picture" & text N & ".png"
+    pagination N
+
+
+pagination N:integer ->
+// -------------------------------------------------
+//    Draw pagination of a picture N
+// -------------------------------------------------
+    locally
+        color "white"
+        // Reset all previous transformations
+        reset_transform
+        // rescaling
+        scale window_scale, window_scale, window_scale
+        // Set correct position
+        // (if slider_count is pair or not)
+        if (slider_count mod 2) = 0 then
+            translatex -30 * (slider_count / 2) - 15
+        else
+            translatex -30 * ((slider_count / 2) + 1)
+        translatex 30 * N
+        // Set correct image (if item is showed or nor)
+        if N = slider_front_item then
+            image 0, -300, 1, 1, "slider/page_on.png"
+        else
+            image 0, -300, 1, 1, "slider/page_off.png"
+
+
+background ->
+// -------------------------------------------------
+//    Draw main background
+// -------------------------------------------------
+    locally
+        color "white"
+        translatez -200
+        image_px 0, 0, window_width * 2, window_height * 2, "slider/background.png"
+
+
+background_slider ->
+// -------------------------------------------------
+//    Draw slider background
+// -------------------------------------------------
+    // Adapt slider to various displays
+    scale window_scale, window_scale, window_scale
+    left_arrow
+    right_arrow
+    locally
+        color "white"
+        image 0, -35, 1, 1, "slider/font.png"
+
+
+left_arrow ->
+// -------------------------------------------------
+//    Left control (move backward)
+// -------------------------------------------------
+    active_widget
+        color "white"
+        image -475, 0, 1, 1, "slider/left.png"
+        on_click
+            slider_previous
+
+
+right_arrow ->
+// -------------------------------------------------
+//    Right control (move forward)
+// -------------------------------------------------
+    active_widget
+        color "white"
+        image 475, 0, 1, 1, "slider/right.png"
+        on_click
+            slider_next
+
+
+automatic_slider ->
+// -------------------------------------------------
+//    Enable or disable automatic slider
+// -------------------------------------------------
+    if auto then
+        slider_auto_move page_time * 0.3
+        text_box 0, -500, 800, 500,
+            align_center
+            vertical_align_center
+            help_disable tao_language
+    else
+        text_box 0, -500, 800, 500,
+            align_center
+            vertical_align_center
+            help_enable tao_language
+
+
+// Helpers
+help_disable "fr" -> text "Appuyer sur la bare espace pour désactiver le défilement automatique"
+help_disable "en" -> text "Press space bar to disable automatic slider"
+help_enable "fr" -> text "Appuyer sur la bare espace pour activer le défilement automatique"
+help_enable "en" -> text "Press space bar to enable automatic slider"

@@ -1,0 +1,340 @@
+// ****************************************************************************
+//  theme.xl                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     General slide-based theme
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+import Animate
+
+
+
+// ============================================================================
+//
+//     Page settings
+//
+// ============================================================================
+
+// Logical dimensions for the slide. You can put anything you want here,
+// but the aspect ratio should match that of the background picture and be
+// close to the aspect ratio of the screens you are going to use.
+// This will be used to define the logical coordinates of anything that
+// follows "scale_contents".
+// Here, we use the size of our background picture
+slide_width  -> 1920
+slide_height -> 1280
+
+
+
+// ============================================================================
+//
+//    General description of the slide
+//
+// ============================================================================
+
+slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default story slide
+// ----------------------------------------------------------------------------
+    base_slide Title,
+        slide_default_title
+        story Body
+
+
+base_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a base slide (no story, no layout)
+// ----------------------------------------------------------------------------
+    page Title,
+        slide_default_background
+        Body
+
+
+slide_default_background ->
+// ----------------------------------------------------------------------------
+//   The default background for the slide
+// ----------------------------------------------------------------------------
+    clear_color 1,1,1,1
+    background -6000,
+        color "white"
+        image 0, 0, 110%, 110%, "Background.jpg"
+
+
+background Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw something in the background. Backgrounds always fill the screen.
+// ----------------------------------------------------------------------------
+    locally
+        scale_background
+        ztrans_background Depth
+        Body
+
+
+contents Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw contents, i.e. always fit in the screen
+// ----------------------------------------------------------------------------
+    locally
+        scale_contents
+        ztrans_contents Depth
+        Body
+
+
+title Body ->
+// ----------------------------------------------------------------------------
+//   Draw a title
+// ----------------------------------------------------------------------------
+    slide_text_box 0, 500, 1600, 150,
+        title_style
+        Body
+
+
+slide_default_title ->
+// ----------------------------------------------------------------------------
+//    Draw the default title, using the page's title
+// ----------------------------------------------------------------------------
+    title
+        text page_label
+
+
+main_title Body ->
+// ----------------------------------------------------------------------------
+//   Draw a main title (centered on the slide)
+// ----------------------------------------------------------------------------
+    slide_text_box 0, 0, 1600, 450,
+        title_style
+        Body
+
+
+main_title_slide Title:text ->
+// ----------------------------------------------------------------------------
+//    Create a complete slide with a main title
+// ----------------------------------------------------------------------------
+    base_slide Title,
+        main_title
+            text Title
+
+
+title_style ->
+// ----------------------------------------------------------------------------
+//   Default style for titles
+// ----------------------------------------------------------------------------
+    font "TeX Gyre Adventor", "Arial", 80, bold
+    color theme_color "lightblue"
+    align 0.5
+    vertical_align 0.5
+
+
+story Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the story, i.e. a rectangle somewhere in the middle
+// ----------------------------------------------------------------------------
+    slide_text_box 0, -100, 1600, 900,
+        story_style
+        Body
+
+
+story_style ->
+// ----------------------------------------------------------------------------
+//   Default style for the story
+// ----------------------------------------------------------------------------
+    font "Arial Rounded MT Bold", "Arial Narrow", 55
+    color theme_color "yellow"
+    align 0
+    vertical_align 0.3
+
+
+left_column Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the left side of the story
+// ----------------------------------------------------------------------------
+    slide_text_box -450, -100, 700, 900,
+        story_style
+        Body
+
+
+right_column Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the right side of the story
+// ----------------------------------------------------------------------------
+    slide_text_box 450, -100, 700, 900,
+        story_style
+        Body
+
+
+slide_text_box X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a box containing text or other elements
+// ----------------------------------------------------------------------------
+    locally
+        scale_contents
+        slide_text_box_noscale X, Y, W, H, Body
+
+
+slide_text_box_noscale X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a text box with decorations
+// ----------------------------------------------------------------------------
+    locally
+        ztrans_contents -200
+        color "black", 0.5
+        line_width 5
+        line_color theme_color "orange"
+        rounded_rectangle X, Y, W+5, H+5, 20
+    text_box X, Y, W, H, Body
+
+
+
+// ============================================================================
+//
+//    Smart rescaling of the contents
+//
+// ============================================================================
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture, using the ma function.
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents, using the min function.
+background_scale -> max(window_width/slide_width, window_height/slide_height)
+contents_scale   -> min(window_width/slide_width, window_height/slide_height)
+scale_background -> scale3 background_scale
+scale_contents   -> scale3 contents_scale
+scale3 S:real    -> scale S, S, S
+
+ztrans_contents Z:real ->
+// ----------------------------------------------------------------------------
+//   Translate a content in Z without a change in apparent dimensions
+// ----------------------------------------------------------------------------
+    Z0 -> camera_position at 3
+    translatez Z/contents_scale
+    scale3 (Z0-Z)/Z0
+
+
+ztrans_background Z:real ->
+// ----------------------------------------------------------------------------
+//    Translate a backgtround in Z without a change in apparent dimensions
+// ----------------------------------------------------------------------------
+    Z0 -> camera_position at 3
+    translatez Z/background_scale
+    scale3 (Z0-Z)/Z0
+
+
+
+// ============================================================================
+//
+//    Colors
+//
+// ============================================================================
+
+// A few colors we selected for the theme (these are from the Taodyne palette)
+theme_color "red"       -> "#AA0022"
+theme_color "orange"    -> "#DD3311"
+theme_color "yellow"    -> "#EEAA11"
+theme_color "green"     -> "#88BB00"
+theme_color "ocean"     -> "#229988"
+theme_color "sky"       -> "#3399FF"
+theme_color "navy"      -> "#003366"
+theme_color "purple"    -> "#CC0099"
+theme_color "grey"      -> "#555"
+theme_color "lightblue" -> "#3399FF"
+theme_color "darkblue"  -> "#003366"
+theme_color "darkgreen" -> "#006633"
+theme_color "blue1"    -> "#D0EAF0"
+theme_color "blue2"    -> "#8FB4CB"
+theme_color "blue3"    -> "#7AA9C1"
+theme_color "blue4"    -> "#1D456B"
+
+
+
+// ============================================================================
+//
+//   Bullets and paragraphs
+//
+// ============================================================================
+
+* T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a bullet point with a given text
+// ----------------------------------------------------------------------------
+    margins 100, 0
+    paragraph_space 30, 30
+    paragraph_break
+    anchor
+        light 0
+        light_position 100, 100, 100
+        translate -30, 20, 5
+        color theme_color "red"
+        sphere 0, 0, 0, 25, 25, 10, 10, 10
+    text T
+
+
+- T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a second-level bullet point
+// ----------------------------------------------------------------------------
+    margins 160, 0
+    paragraph_space 0, 0
+    paragraph_break
+    anchor
+        translate -45, 15, 5
+        light 0
+        light_position 1000, 1000, 1000
+        color theme_color "orange"
+        rotatey 25
+        rotatex 25
+        cube 0, 0, 0, 30, 15, 15
+    text T
+
+
+$ T:text ->
+// ----------------------------------------------------------------------------
+//  Show a simple paragraph
+// ----------------------------------------------------------------------------
+    paragraph_break
+    text T

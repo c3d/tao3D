@@ -27,10 +27,13 @@
 #include <QSharedPointer>
 #include <QUndoStack>
 #include <QUndoView>
+#include <QPointer>
+#include <QStackedWidget>
 #include "main.h"
 #include "tao.h"
 #ifndef CFG_NOGIT
 #include "repository.h"
+#include "update_application.h"
 #endif
 
 QT_BEGIN_NAMESPACE
@@ -88,11 +91,16 @@ public:
     bool     needNewWindow();
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
+    bool     hasStackedWidget() { return (stackedWidget->count() >= 1); }
 
     bool isUntitled;
     bool isReadOnly;
     bool loadInProgress;
 
+public:
+    static void        addWidget(void * w);
+    static void        removeWidget(void * w);
+    static void        setCurrentWidget(void * w);
 
 public:
     QUndoStack       * undoStack;
@@ -112,8 +120,6 @@ public slots:
 #endif
     void pageSetup();
     void print();
-    void removeSplashScreen();
-    void deleteAboutSplash();
     void showMessage(QString message)  { showMessage(message, 2000); }
     void setReadOnly(bool ro);
     void clearErrors();
@@ -174,6 +180,7 @@ private slots:
     void clearUndoStack();
 #endif
     void about();
+    void update();
     void preferences();
     void licenses();
     void onlineDoc();
@@ -230,6 +237,7 @@ public:
     XLSourceEdit     *srcEdit;
     ToolWindow       *src;
 #endif
+    QStackedWidget   *stackedWidget;
     Widget           *taoWidget;
 private:
     QString           curFile;
@@ -288,6 +296,7 @@ private:
     QAction          *diffAct;
 #endif
     QAction          *aboutAct;
+    QAction          *updateAct;
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
@@ -330,8 +339,8 @@ public:
     QMenu            *shareMenu;
 #endif
     QMenu            *helpMenu;
-    SplashScreen     *splashScreen;
-    SplashScreen     *aboutSplash;
+    QPointer<SplashScreen>
+                      splashScreen, aboutSplash;
     bool              deleteOnOpenFailed;
 
 };

@@ -336,7 +336,7 @@ enable_depth_mask ();
  * @see Pour plus d'information, voir http://www.opengl.org/sdk/docs/man/xhtml/glDepthFunc.xml
 
  */
-depth_func (func:text);
+depth_function (func:text);
 
 /**
  * @~english
@@ -434,5 +434,13 @@ meta_modifier     -> (keyboard_modifiers and 16#10000000) <> 0
 @endcode
  */
 boolean meta_modifier();
+
+/**
+ * @~english
+ * Do not execute a block of code.
+ * @~french
+ * Empêche l'exécution d'un bloc de code.
+ */
+disabled (B: block);
 
 /** @} */

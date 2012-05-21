@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   19
-#define TAO_MODULE_API_AGE       0
+#define TAO_MODULE_API_CURRENT   22
+#define TAO_MODULE_API_AGE       3
 
 // ========================================================================
 //
@@ -382,6 +382,40 @@ struct ModuleApi
 
     // Return the full path (native format) to the current document folder
     std::string (*currentDocumentFolder)();
+
+    // ------------------------------------------------------------------------
+    //   Licence checking (continued)
+    // ------------------------------------------------------------------------
+
+    // If the current build of Tao is Impress, return true. If not Impress:
+    // return true if a valid license is found for the requested feature name,
+    // false otherwise. When no license is found, an information dialog
+    // is shown.
+    bool (*checkImpressOrLicense)(std::string featureName);
+
+    // ------------------------------------------------------------------------
+    //   Main window
+    // ------------------------------------------------------------------------
+
+    // Return the index of the screen that contains the largest part of the
+    // main window (see QDesktopWidget::screenNumber()).
+    int (*screenNumber)();
+
+    // The main display area of the Tao Presentations window can handle
+    // several widgets (see QStackedWidget).
+    // A module can temporarily replace the default display widget with its
+    // own using the following functions.
+    // widget must be a pointer to a QWidget object.
+    //    Add a QWidget to the list. Note: ownership is transferred.
+    void (*addWidget)(void * widget);
+    //    Remove a QWidget from the list (and take back ownership of the
+    //    object). If widget is the current one, the default Tao widget becomes
+    //    visible again.
+    void (*removeWidget)(void * widget);
+    //    Make a Qwidget the active one in the main Tao window. widget must
+    //    be a pointer previously passed to addWidget, or NULL to
+    //    revert to the default display.
+    void (*setCurrentWidget)(void * widget);
 };
 
 }

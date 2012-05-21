@@ -25,7 +25,7 @@
 import Animate
 
 license_ok ->
-    if check_license ("Carousel 1.002", false) then
+    if check_impress_or_license "Carousel 1.002" then
         true
     else
         if blink (1.0, 1.0, 300.0) then
@@ -137,6 +137,7 @@ xs -> 0.0
 xs := 0.0
 zs -> 0.0
 zs := 0.0
+thr -> 2.0 / carousel_count
 
 
 carousel_display ->
@@ -156,6 +157,8 @@ carousel_display ->
     carousel_front := 1
     carousel_items with 1 .. carousel_count
 
+// Item at the front of the carousel
+carousel_front_item -> 0
 
 carousel_items N:integer ->
 // ----------------------------------------------------------------------------
@@ -165,7 +168,8 @@ carousel_items N:integer ->
         a := (carousel_angle - N) * 2 * pi / carousel_count
         xs := sin a
         zs := cos a
-
+        if (zs >= (1.0 - thr) and abs(xs) < thr) then
+            carousel_front_item := N
         if zs * carousel_front >= 0 then
             translate carousel_width * xs, 0, carousel_depth * zs
             rotatey -xs * 80

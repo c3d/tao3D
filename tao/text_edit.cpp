@@ -21,6 +21,7 @@
 // ****************************************************************************
 #include "text_edit.h"
 #include <QTextBlock>
+#include <QTextList>
 #include <iostream>
 #include "runtime.h"
 #include "tao_tree.h"

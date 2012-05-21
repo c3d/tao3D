@@ -1,7 +1,42 @@
 Change log for Tao Presentations
 
+1.09 (04-May-2012)
+
+#2064 Add template: Simple slides
+#2060 Blank page if the title of the current page changes
+#2058 Update licensing terms in templates
+#2057 Change limitations of Discovery Edition
+#2050 Add template: Shift
+#2040 Add template: Opening pane
+#2032 Text attributes not restored properly after text_span
+#2030 align 1 no longer aligns right
+#2025 Wrong line width after text_span
+#300  Show EULA dialog on first start
+
+1.08 (20-Apr-2012)
+
+#2020 Add canvas primitive, like frame_texture, but persistent
+#2014 Add new primtives to SlideShow3D module
+#2011 Crash when using "with" keyword on huge lists
+#2003 Document primitives load_csv, load_tsv, load_data
+#2000 Create PointCloud module
+#1996 Add 'disabled' keyword
+#1994 Add command-line option and primitives to log performance statistics
+#1993 Crash when offline rendering is started from command line and main window is closed
+#1992 Page and command choosers are first drawn incompletely
+#1987 Crash in off-line rendering with splash screen in stack trace
+#1986 Document does not always open on first page
+#1985 Strange behaviour of optimized load_csv
+#1984 PageUp/PageDown do not change page when Animate is imported
+#1923 Document carousel_angle, add a way to know if we are in front
+#1903 Add possibility to update easily Tao main application
+#1507 ObjectLoader: crash on Linux if VBOs are enabled
+#1991 Highlight current page when showing page chooser
+#1497 Pictures produced by the offscreen renderer have incorrect transparency
+
 1.07 (16-Mar-2012)
 
+#1983 VLCAudioVideo: Windows: many VLC files are duplicated
 #1979 Add Declipse mode support for 2D+Depth screens
 #1977 Add base_name and dir_name primitives
 #1976 Add depth_func primitive to change glDepthFunc 
@@ -14,8 +49,8 @@ Change log for Tao Presentations
 #1965 locally inside locally executed twice
 #1964 VLCAudioVideo: reduce video start time; improve performance on MacOSX
 #1961 VLCAudioVideo: add support for per-media VLC options
-#1497 Pictures produced by the offscreen renderer have transparency
 #1645 Incorrect mouse position reported by on_click with stereoscopy
+#1497 Pictures produced by the offscreen renderer have incorrect transparency
 
 1.06 (04-Mar-2012)
 

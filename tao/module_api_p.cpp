@@ -29,6 +29,7 @@
 #include "licence.h"
 #include "info_trash_can.h"
 #include "application.h"
+#include "window.h"
 
 TAO_BEGIN
 
@@ -104,11 +105,17 @@ ModuleApiPrivate::ModuleApiPrivate()
     // License checking
     hasLicense = Licences::Has;
     checkLicense = Licences::Check;
+    checkImpressOrLicense = Licences::CheckImpressOrLicense;
     blink      = Widget::blink;
 
     // Current document info
     currentDocumentFolder =  Widget::currentDocumentFolder;
     taoRunTime            =  Application::runTime;
+
+    screenNumber = Widget::screenNumber;
+    addWidget    = Window::addWidget;
+    removeWidget = Window::removeWidget;
+    setCurrentWidget    = Window::setCurrentWidget;
 }
 
 TAO_END

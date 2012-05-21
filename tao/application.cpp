@@ -43,6 +43,10 @@
 #include "licence.h"
 #include "version.h"
 #include "preferences_pages.h"
+#include "update_application.h"
+#if defined (CFG_WITH_EULA)
+#include "eula_dialog.h"
+#endif
 
 #include <QString>
 #include <QSettings>
@@ -55,6 +59,7 @@
 #include <QtWebKit>
 #include <QProcessEnvironment>
 #include <QStringList>
+#include <QDesktopServices>
 
 
 #if defined(CONFIG_MINGW)
@@ -84,12 +89,12 @@ Application::Application(int & argc, char ** argv)
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
+      updateApp(),
       startDir(QDir::currentPath()),
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
       appInitialized(false)
-
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -125,13 +130,21 @@ Application::Application(int & argc, char ** argv)
     // Set current directory
     QDir::setCurrent(applicationDirPath());
 
+    // Clean options
     QStringList cmdLineArguments = arguments();
-    // Internal clean option
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
     {
         internalCleanEverythingAsIfTaoWereNeverRun();
-        exit(0);
+        ::exit(0);
     }
+#if defined (CFG_WITH_EULA)
+    if (cmdLineArguments.contains("--reset-eula"))
+    {
+        EulaDialog::resetAccepted();
+        ::exit(0);
+    }
+#endif
+
     bool showSplash = true;
     if (cmdLineArguments.contains("-nosplash") ||
         cmdLineArguments.contains("-h"))
@@ -174,6 +187,21 @@ Application::Application(int & argc, char ** argv)
     // Check main application licence
     if (!Licences::Check(TAO_LICENCE_STR, true))
         ::exit(15);
+
+#if defined (CFG_WITH_EULA)
+    // Show End-User License Agreement if not previously accepted for this
+    // version
+    if (! EulaDialog::previouslyAccepted())
+    {
+        EulaDialog eula;
+#if defined (Q_OS_MACX)
+        eula.show();
+        eula.raise();
+#endif
+        if (eula.exec() != QMessageBox::Ok)
+            ::exit(1);
+    }
+#endif
 
     // Show splash screen
     if (showSplash)
@@ -354,6 +382,10 @@ Application::Application(int & argc, char ** argv)
     if (XL::MAIN->options.enable_modules)
         checkModules();
 
+    // Check for update now if wanted
+    if(GeneralPage::checkForUpdate())
+        updateApp.check();
+
     // Record application start time (licensing)
     startTime = Widget::trueCurrentTime();
 
@@ -437,6 +469,36 @@ void Application::cleanup()
         blockScreenSaver(false);
     if (moduleManager)
         moduleManager->saveConfig();
+
+#if TAO_EDITION_IS_DISCOVERY
+
+    // Gentle reminder that Tao is not free
+
+    QString title = tr("Tao Presentations");
+    QString text = tr("<h3>Reminder</h3>");
+    QString info;
+    info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
+    QMessageBox box;
+    box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+    box.button(QMessageBox::Ok)->setText(tr("Buy now"));
+    box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
+    box.setDefaultButton(QMessageBox::Cancel);
+    box.setWindowTitle(title);
+    box.setText(text);
+    box.setInformativeText(info);
+    // Icon from:
+    // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
+    // Author: Ivan M. (www.visual-blast.com)
+    // License: free for commercial use, do not redistribute
+    QPixmap pm(":/images/shopping_cart.png");
+    box.setIconPixmap(pm);
+
+    if (box.exec() == QMessageBox::Ok)
+    {
+        QUrl url("http://www.taodyne.com/taopresentations/buynow");
+        QDesktopServices::openUrl(url);
+    }
+#endif
 }
 
 
@@ -470,11 +532,7 @@ bool Application::processCommandLine()
             sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
-        {
             window->splashScreen = splash;
-            QObject::connect(splash, SIGNAL(destroyed(QObject*)),
-                             window, SLOT(removeSplashScreen()));
-        }
         window->deleteOnOpenFailed = true;
         connect(window, SIGNAL(openFinished(bool)),
                 this, SLOT(onOpenFinished(bool)));
@@ -521,8 +579,7 @@ bool Application::processCommandLine()
     if (splash && pendingOpen == 0)
     {
         splash->close();
-        splash->deleteLater();
-        splash = NULL;
+        delete splash;
     }
 
     if (hadWin && !pendingOpen)
@@ -612,8 +669,7 @@ void Application::onOpenFinished(bool ok)
     if (pendingOpen == 0 && splash)
     {
         splash->close();
-        splash->deleteLater();
-        splash = NULL;
+        delete splash;
         Window * win = findFirstTaoWindow();
         if (win && win->isUntitled)
         {
@@ -791,8 +847,7 @@ void Application::checkOfflineRendering()
     Widget *widget = findFirstTaoWindow()->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    connect(widget, SIGNAL(renderFramesDone()),
-            this,   SLOT(onRenderingDone()));
+    doNotEnterEventLoop = true;
     widget->renderFrames(x, y, start, end, folder, fps, page, disp);
 }
 
@@ -807,16 +862,6 @@ void Application::printRenderingProgress(int percent)
         std::cout << "..." << std::flush;
     else
         std::cout << "\n";
-}
-
-
-void Application::onRenderingDone()
-// ----------------------------------------------------------------------------
-//   Rendering option completed
-// ----------------------------------------------------------------------------
-{
-    //findFirstTaoWindow()->close();
-    doNotEnterEventLoop = true;
 }
 
 

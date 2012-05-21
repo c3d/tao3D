@@ -27,7 +27,10 @@
 #  define glewInit()
 #endif
 
-#include <QtOpenGL>
+#include <QGLFormat>
+#include <QGLFramebufferObject>
+#include <QGLShaderProgram>
+
 #ifdef CONFIG_MACOSX 
 #  include <OpenGL/glu.h>
 #else

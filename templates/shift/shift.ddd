@@ -1,0 +1,276 @@
+// ****************************************************************************
+//  shift.ddd                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The Shift template. Pages are divided in half horizontally. The right
+//     arrow key and the space bar enable to reveal items progressively.
+//     Use the left arrow to go back. Up and left arrows navigate through
+//     pages. Ctrl-G (Cmd-G on Mac) shows a page selector.
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+// ============================================================================
+//
+// Image credits:
+//
+// -- images/1024px-Phoenix_canariensis_ag.JPG
+//
+// By Amanda Grobe (Own work)
+// [CC-BY-SA-2.5 (www.creativecommons.org/licenses/by-sa/2.5)],
+// via Wikimedia Commons
+//
+// http://commons.wikimedia.org/wiki/File%3APhoenix_canariensis_ag.JPG
+//
+// -- images/768px-Washingtonia_robusta.jpg
+//
+// By en:user:Geographer (en:Image:Washingtonia_robusta.jpg)
+// [GFDL (http://www.gnu.org/copyleft/fdl.html),
+//  CC-BY-SA-3.0 (http://creativecommons.org/licenses/by-sa/3.0/) or
+//  CC-BY-2.5 (http://creativecommons.org/licenses/by/2.5)],
+// via Wikimedia Commons
+//
+// http://commons.wikimedia.org/wiki/File%3AWashingtonia_robusta.jpg
+//
+// ============================================================================
+
+
+import "shift.xl"
+
+
+// ============================================================================
+//
+//   Pages
+//
+// ============================================================================
+
+
+slide "Palm Trees",
+// ----------------------------------------------------------------------------
+//    Title page
+// ----------------------------------------------------------------------------
+    text_box 0, 0, 800, 600,
+        palm_green
+        font "Verdana", 80
+        vertical_align_center
+        align_center
+        text trn "Palm Trees"
+    at_step 1
+
+trn "fr", "Palm Trees" -> "Les palmiers"
+
+
+slide "Phoenix canariensis",
+// ----------------------------------------------------------------------------
+//    First page has 4 panels, defined below
+// ----------------------------------------------------------------------------
+    display_panel with 1..4
+
+
+slide "Washingtonia robusta",
+// ----------------------------------------------------------------------------
+//    Second page has 3 panels
+// ----------------------------------------------------------------------------
+    display_panel with 1..3
+    if step > 2 then skip -1
+
+
+panel "Phoenix canariensis", 1 ->
+// ----------------------------------------------------------------------------
+//   Photo
+// ----------------------------------------------------------------------------
+    rotatey 20
+    show fade_in(smooth_step, 1)
+    image 0, 0, 0.6, 0.6, "1024px-Phoenix_canariensis_ag.JPG"
+
+
+panel "Phoenix canariensis", 2 ->
+// ----------------------------------------------------------------------------
+//   Second pane
+// ----------------------------------------------------------------------------
+    title text "Phoenix canariensis"
+
+    story_box
+        subtitle text "Description"
+        bullet text trn "Native from the Canary Islands"
+        bullet text trn "Large (10-20m), solitary palm"
+        bullet text trn "Long pinnate leaves (4-6m)"
+
+trn "fr", "Native from the Canary Islands" -> "Originaire des îles Canaries"
+trn "fr", "Large (10-20m), solitary palm" -> "Palmier solitaire, de grande taille (10 à 20m)"
+trn "fr", "Long pinnate leaves (4-6m)" -> "Feuilles pennées de 4 à 6m"
+
+
+panel "Phoenix canariensis", 3 ->
+// ----------------------------------------------------------------------------
+//   Third pane
+// ----------------------------------------------------------------------------
+    title text "Phoenix canariensis"
+
+    story_box
+        subtitle text trn "Main uses"
+        bullet text trn "Ornemental"
+        bullet text trn "Building (trunk, leaves)"
+        bullet text trn "Palm syrup (made from the sap)"
+
+trn "fr", "Main uses" -> "Utilisations principales"
+trn "fr", "Ornemental" -> "Ornementale"
+trn "fr", "Building (trunk, leaves)" -> "Construction (tronc, palmes)"
+trn "fr", "Palm syrup (made from the sap)" -> "Sirop de palme (à partir de la sève)"
+
+
+panel "Phoenix canariensis", 4 ->
+// ----------------------------------------------------------------------------
+//    Fourth pane
+// ----------------------------------------------------------------------------
+    locally
+        translatez -20
+        line_color "black", 0.8
+        color "#DDD", 0.15
+        line_width 1
+        rounded_rectangle -40, 0, 580, 560, 20
+    title text trn "Other species"
+    story_box
+        subtitle text "P. dactylifera"
+        bullet text trn "The ""true"" date palm"
+        sep
+
+        subtitle text "P. acaulis"
+        bullet text trn "The dwarf date palm"
+        sep
+
+        subtitle text "P. atlantica"
+        bullet text trn "Endangered species from Cape Verde"
+        sep
+
+trn "fr", "Other species" -> "Autres espèces"
+trn "fr", "The ""true"" date palm" -> "Le «vrai» palmier-dattier"
+trn "fr", "The dwarf date palm" -> "Le palmier-dattier nain"
+trn "fr", "Endangered species from Cape Verde" -> "Une espèce menacée du Cap Vert"
+
+
+
+panel "Washingtonia robusta", 1 ->
+// ----------------------------------------------------------------------------
+//   Photo
+// ----------------------------------------------------------------------------
+    rotatey 20
+    show fade_in(smooth_step, 1)
+    image 0, 0, 0.8, 0.8, "768px-Washingtonia_robusta.jpg"
+
+
+panel "Washingtonia robusta", 2 ->
+// ----------------------------------------------------------------------------
+//   Second pane
+// ----------------------------------------------------------------------------
+    title text "Washingtonia robusta"
+
+    story_box
+        bullet text trn "Large tree, 25 to 30m (82 to 98ft)"
+        bullet text trn "Commonly grown for ornamental purposes"
+        bullet text trn "Introduced to Los Angeles to beautify the town for the 1932 Summer Olympics"
+
+trn "fr", "Large tree, 25 to 30m (82 to 98ft)" ->
+          "Peut mesurer jusqu'à 30 m (25 m en général)"
+trn "fr", "Commonly grown for ornamental purposes" ->
+          "Couramment utilisé comme arbre d'ornement"
+trn "fr", "Introduced to Los Angeles to beautify the town for the 1932 Summer Olympics" ->
+          "Planté à Los Angeles à l'occasion des Jeux Olympiques d'été en 1932"
+
+panel "Washingtonia robusta", 3 ->
+// ----------------------------------------------------------------------------
+//   Third pane
+// ----------------------------------------------------------------------------
+    title
+        + trn "Oil analysis"
+        + trn "(fatty acids)"
+
+    locally
+        arc_sector  0.00, 40.60, 280, trn "Oleic"
+        arc_sector 40.60, 17.87, 210, trn "Lauric"
+        arc_sector 58.47, 16.26, 320, trn "Linoleic"
+        arc_sector 74.73, 11.43, 100, trn "Myristic"
+        arc_sector 86.16,  9.23, 150, trn "Palmitic"
+        arc_sector 95.39,  4.61,   0, trn "Others"
+
+trn "fr", "Oil analysis" -> "Analyse de l'huile"
+trn "fr", "(fatty acids)" -> "(acides gras)"
+trn "fr", "Oleic" -> "Oléique"
+trn "fr", "Lauric" -> "Laurique"
+trn "fr", "Linoleic" -> "Linoléique"
+trn "fr", "Myristic" -> "Myristique"
+trn "fr", "Palmitic" -> "Palmitique"
+trn "fr", "Others" -> "Autres"
+
+
+
+
+
+
+// ============================================================================
+//
+//   Key bindings (navigation, language selection)
+//
+// ============================================================================
+
+key "Right" -> skip 1
+key "Left" -> skip -1
+key "Space" -> skip 1
+
+key "e" -> Lang := "en"
+key "f" -> Lang := "fr"
+
+
+// ============================================================================
+//
+//   Support for multiple languages
+//
+// ============================================================================
+
+Lang -> ""
+trn T:text -> trn Lang, T
+trn "", T:text -> trn tao_language, T
+// Catch-all definition, must occur last (i.e., after all lines: trn "fr",...)
+trn Lang:text, T:text -> T
+

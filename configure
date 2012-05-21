@@ -23,6 +23,8 @@ usage() {
   echo "                  generation of a valid 120-day licence. "
   echo "  --silent        Add qmake option CONFIG+=silent (produce less verbose output)."
   echo "  --disable-doc   Do not build documentation."
+  echo "  --with-eula     Enable the End-User License Agreement dialog (REQUIRED for "
+  echo "                  official builds)"
   echo ""
   echo "Edition Name:"
   echo ""
@@ -104,11 +106,14 @@ while [ $# -ne 0 ] ; do
       PARM="$PARM DISABLE_DOC=1"
       shift
       ;;
+    --with-eula)
+      PARM="$PARM DEFINES+=CFG_WITH_EULA"
+      shift
+      ;;
     discovery)
       EDITION="Discovery"
       D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
-      D="$D DEFINES+=CFG_NORELOAD DEFINES+=CFG_TIMED_FULLSCREEN"
-      D="$D DEFINES+=CFG_NOMODULEUPDATE"
+      D="DEFINES+=CFG_EVALUATION_WATERMARK_TIME=600" # seconds
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth"
       EDITION_FLAGS="$D $M"
       shift ; done=1

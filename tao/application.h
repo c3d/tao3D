@@ -27,11 +27,13 @@
 #if defined (Q_OS_WIN32)
 #include "dde_widget.h"
 #endif
+#include "update_application.h"
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
 #include <QTranslator>
 #include <QPixmap>
+#include <QPointer>
 
 namespace Tao {
 
@@ -108,7 +110,6 @@ protected slots:
 #endif
     void           checkOfflineRendering();
     void           printRenderingProgress(int percent);
-    void           onRenderingDone();
 
 protected:
     static QString defaultUserDocumentsFolderPath();
@@ -120,25 +121,27 @@ public:
     static bool  recursiveDelete(QString path);
 
 public:
-    bool         hasGLMultisample, hasFBOMultisample;
-    bool         hasGLStereoBuffers;
-    bool         useShaderLighting;
-    int          tex2DMinFilter, tex2DMagFilter;
-    Vendor       vendorID;
-    uint         maxTextureCoords;
-    uint         maxTextureUnits;
-    text         GLVendor;
-    text         GLRenderer;
-    text         GLVersionAvailable;
-    text         GLExtensionsAvailable;
-    QString      lang;
-    GCThread *   gcThread;
+    bool               hasGLMultisample, hasFBOMultisample;
+    bool               hasGLStereoBuffers;
+    bool               useShaderLighting;
+    int                tex2DMinFilter, tex2DMagFilter;
+    Vendor             vendorID;
+    uint               maxTextureCoords;
+    uint               maxTextureUnits;
+    text               GLVendor;
+    text               GLRenderer;
+    text               GLVersionAvailable;
+    text               GLExtensionsAvailable;
+    QString            lang;
+    GCThread *         gcThread;
+    UpdateApplication  updateApp;
 
 private:
     QStringList  pathList;
     QStringList  urlList;
     QString      startDir;
-    SplashScreen *splash;
+    QPointer<SplashScreen>
+                 splash;
     int          pendingOpen;
     bool         hadWin;
     XL::source_names contextFiles;

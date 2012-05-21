@@ -58,6 +58,7 @@ struct Chooser : Activity
     // Add an element to a chooser
     void                AddItem(text caption, XL::Tree *function);
     void                AddCommands(Context *ctx ,text prefix, text label);
+    void                SetCurrentItem(text caption);
 
 public:
     SourceFile * xlProgram;

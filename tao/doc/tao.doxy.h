@@ -32,7 +32,8 @@
  * @~
  * @ref getting_started \n
  * @ref tao_documents \n
- * @ref adding_extensions \n
+ * @ref xlref \n
+ * @ref imports \n
  * @ref platform_notes \n
  * @ref credits
  */
@@ -112,7 +113,11 @@
  *    These files may be <tt>.ddd</tt> files themselves, as long as they are
  *    valid Tao documents on their own. For instance, you may want to subdivide
  *    a long or complex presentation into several shorter ones, and then create
- *    a main <tt>.ddd</tt> file that will simply import all the others. @n
+ *    a main <tt>.ddd</tt> file that will simply import all the others:
+ * @code
+import "first_part.ddd"
+import "second_part.ddd"
+ * @endcode
  *    When an imported file cannot be opened as a Tao document on its own,
  *    it is usual to name it with a <tt>.xl</tt> extension to denote that the
  *    file is XL(R) language source.
@@ -143,7 +148,11 @@
  *    Ces fichiers peuvent être eux-même des fichiers <tt>.ddd</tt>, s'ils sont
  *    des documents Tao valides. Vous pouvez par exemple diviser une
  *    présentation longue ou complexe en plusieurs documents plus courts, puis
- *    créer un fichier <tt>.ddd</tt> principal qui importe les autres. @n
+ *    créer un fichier <tt>.ddd</tt> principal qui importe les autres :
+ * @code
+import "first_part.ddd"
+import "second_part.ddd"
+ * @endcode
  *    Lorsqu'un fichier importé ne peut pas être ouvert directement comme un
  *    document Tao, il est habituel de le nommer avec l'extension <tt>.xl</tt>
  *    pour mettre en évidence qu'il s'agit de source XL(R).
@@ -289,8 +298,9 @@ mon_cercle Rayon:real ->
  * @section secXLRef The XLR Language
  *
  * The XLR programming language is the basis of the Tao document syntax.
- * Detailed information is available in <a href="XLRef.html">the XLR language
- * reference guide</a>. However, a deep knowledge of XL is not needed to write
+ * Detailed information is available in the
+ * \ref xlref "XLR language reference guide".
+ * However, a deep knowledge of XL is not needed to write
  * Tao documents.
  *
  * @~french
@@ -298,8 +308,9 @@ mon_cercle Rayon:real ->
  *
  * Le langage de programmation XL (ou XLR) est la base des documents
  * Tao Presentations.
- * Des informations détaillées sont disponibles dans <a href="XLRef.html">le
- * guide de référence du langage XLR</a> (en anglais). Toutefois, une
+ * Des informations détaillées sont disponibles dans
+ * \ref xlref "le guide de référence du langage XLR" (en anglais).
+ * Toutefois, une
  * connaissance approfondie de XL n'est pas nécessaire pour écrire des
  * documents Tao.
  *
@@ -545,16 +556,27 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  */
 /**
  * @~english
- * @page adding_extensions Adding Extensions
+ * @page xlref XLR Language Reference
+ *
+ * @htmlinclude XLRef.html
+ *
+ * @~french
+ * @page xlref Guide de référence du language XLR
+ *
+ * @htmlinclude XLRef.html
+ */
+/**
+ * @~english
+ * @page imports Importing Files and Modules
  *
  * The extensible nature of Tao Presentation helps you define and organize your
- * own re-usable pieces of documents. There are several ways of organising your
+ * own re-usable pieces of documents. There are several ways of organizing your
  * files.
  *
- * @section secImport The import statement
+ * @section secImport Importing files
  *
  * The simplest way to group your own presentations in a reuseable fashion, is
- * to use the @c import keyword to refer to an external file from any Tao
+ * to use the @ref import keyword to refer to an external file from any Tao
  * document.
  *
  * For instance, let's assume that you are writing a presentation
@@ -566,7 +588,8 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *
  * One way of doing this is to create three files: @c SalesReport.ddd
  * (the main document), @c US.ddd (the slides for the US region) and
- * @c Europe.ddd (for Europe), and use the @c import statement:
+ * @c Europe.ddd (for Europe), and use the @c import statement. For this
+ * usage, @c import expects a file name enclosed in double quotes:
  * @code
 // SalesReport.ddd
 
@@ -705,16 +728,16 @@ import "xl:my_definitions.xl"
  * below.
  *
  * @~french
- * @page adding_extensions Ajouter des extensions
+ * @page imports Importer des fichiers et de modules
  *
  * La nature extensible de Tao Presentations vous aide à définir et organiser
  * vos propres éléments de documents. Il existe plusieurs façons d'organiser
  * vos fichiers.
  *
- * @section secImport La directive import
+ * @section secImport L'import de fichiers
  *
  * La manière la plus simple de regrouper vos fichiers Tao Presentations et de
- * les réutiliser est d'utiliser le mot-clé @c import qui permet de faire
+ * les réutiliser est d'utiliser le mot-clé @ref import qui permet de faire
  * référence à un fichier externe depuis n'importe quel document Tao.
  *
  * Par exemple, supposons que vous écriviez une présentation intitulée
@@ -727,7 +750,8 @@ import "xl:my_definitions.xl"
  * Une façon d'obtenir ce résultat est de créer trois fichiers :
  * @c RapportDesVentes.ddd (le document principal), @c US.ddd (les pages
  * concernant la région US) et @c Europe.ddd (pour l'Europe). Dans le document
- * principal vous utilisez la directive @c import :
+ * principal vous utilisez la directive @c import. Pour cet usage, @c import
+ * attend un nom de fichier entre guillemets :
  * @code
 // RapportDesVentes.ddd
 

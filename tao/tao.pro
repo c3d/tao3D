@@ -54,7 +54,7 @@ win32 {
     LIBS += -limagehlp -lws2_32 # ws2_32 for ntohs()
 }
 linux-g++* {
-    LIBS += -lXss
+    LIBS += -lXss -lGLU
 }
 
 # Input
@@ -124,6 +124,7 @@ HEADERS +=     activity.h \
     tool_window.h \
     transforms.h \
     tree_cloning.h \
+    update_application.h \
     widget.h \
     widget_surface.h \
     window.h \
@@ -197,6 +198,7 @@ SOURCES +=     activity.cpp \
     tool_window.cpp \
     transforms.cpp \
     tree_cloning.cpp \
+    update_application.cpp \
     widget.cpp \
     widget_surface.cpp \
     window.cpp
@@ -305,6 +307,11 @@ contains(DEFINES, CFG_NOFULLSCREEN) {
 }
 contains(DEFINES, CFG_NOMODULEUPDATE) {
     !build_pass:message("Module update is disabled")
+}
+contains(DEFINES, CFG_WITH_EULA) {
+    !build_pass:message("EULA dialog is enabled")
+    HEADERS += eula_dialog.h
+    SOURCES += eula_dialog.cpp
 }
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 

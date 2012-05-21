@@ -40,12 +40,13 @@
        vlc_audio_video \
        stereo_decoder \
        carousel \
-       revolving_texts
+       revolving_texts \
+       point_cloud \
+       network_access
     OTHER_MODULES =     \
-        audio_video \
         hello_world     \
-        network_access   \
         taoTester    \
+        database \
         tao_synchro
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

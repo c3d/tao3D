@@ -1,17 +1,17 @@
 # ******************************************************************************
-#  simple_lides.pro                                                 Tao project
+#  simple_slides.pro                                                Tao project
 # ******************************************************************************
 # File Description:
-# Project file for document template: simple slides
+# Project file for document template: Simple Slides
 
 TEMPLATE = subdirs
 
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/simple_slides
-files.files = template.ini simple_slides.ddd simple_slides.png earth.bmp Corsica.jpg clouds.png
+files.files = template.ini simple_slides.ddd theme.xl simple_slides.png
 
-INSTALLS += files
+images.path = $$APPINST/templates/simple_slides/images
+images.files = images/*
 
-OTHER_FILES += simple_slides.ddd simple_slides.png \
-  earth.bmp Corsica.jpg clouds.png
+INSTALLS += files images

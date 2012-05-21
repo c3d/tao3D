@@ -55,7 +55,7 @@ exec 4>&2
 { time {
 for v in discovery creativity impress ; do
   doo make distclean
-  doo ./configure $v && doo "make -j3 install $MAKEFLAGS" && doo "make kit $MAKEFLAGS" && cp_kit
+  doo ./configure --with-eula $v && doo "make -j3 kit $MAKEFLAGS" && cp_kit
 done ;
 } >$LOG 2>&1; }
 exec 4>&-

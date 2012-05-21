@@ -514,8 +514,7 @@ bool DisplayDriver::setStereo(bool on)
 //   Enable or disable quad buffers for current widget
 // ----------------------------------------------------------------------------
 {
-    Window * window = (Window*)Widget::Tao()->parentWidget();
-    return window->setStereo(on);
+    return Widget::Tao()->taoWindow()->setStereo(on);
 }
 
 

@@ -44,6 +44,11 @@
 #include "tao_gl.h"
 #include "statistics.h"
 
+#include <QApplication>
+#include <QDesktopWidget>
+#include <QFileDialog>
+#include <QGridLayout>
+#include <QTextCursor>
 #include <QImage>
 #include <QTimeLine>
 #include <QTimer>
@@ -51,6 +56,7 @@
 #include <QList>
 #include <QColorDialog>
 #include <QFontDialog>
+#include <QMutex>
 #include <iostream>
 #include <map>
 #include <set>
@@ -105,7 +111,7 @@ public:
     enum ShaderKind { VERTEX, FRAGMENT, GEOMETRY };
 
 public:
-    Widget(Window *parent, SourceFile *sf = NULL);
+    Widget(QWidget *parent, SourceFile *sf = NULL);
     Widget(Widget &other, const QGLFormat &format);
     ~Widget();
 
@@ -114,6 +120,7 @@ public slots:
     void        dawdle();
     void        draw();
     void        runProgram();
+    void        runProgramOnce();
     void        print(QPrinter *printer);
     void        appFocusChanged(QWidget *prev, QWidget *next);
     void        userMenu(QAction *action);
@@ -148,7 +155,7 @@ public slots:
     void        renderFrames(int w, int h, double startT, double endT,
                              QString dir, double fps = 25.0, int page = -1,
                              QString displayName = "");
-    void        cancelRenderFrames() { renderFramesCanceled = true; }
+    void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
 
 
 signals:
@@ -244,6 +251,7 @@ public:
     // Timing
     ulonglong   now();
     void        printStatistics();
+    void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
     void        resetTimes() { pageStartTime = startTime = frozenTime
                                = CurrentTime(); }
@@ -324,9 +332,11 @@ public:
     void        purgeTaoInfo();
 
 public:
-    // XLR entry points
     static Widget *Tao()                { assert(current); return current; }
     Context *   formulasContext()       { return formulas; }
+    static int  screenNumber() { return qApp->desktop()->screenNumber(Tao()); }
+
+    // XLR entry points
 
     // Getting attributes
     Text_p      page(Context *context, text name, Tree_p body);
@@ -419,6 +429,8 @@ public:
     Name_p      toggleAutoHideCursor(XL::Tree_p self);
     Name_p      showStatistics(Tree_p self, bool ss);
     Name_p      toggleShowStatistics(Tree_p self);
+    Name_p      logStatistics(Tree_p self, bool ss);
+    Name_p      toggleLogStatistics(Tree_p self);
     Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -658,7 +670,9 @@ public:
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog, Integer_p depth=NULL);
+                             double w, double h, Tree_p prog,
+                             Integer_p depth=NULL, bool canvas=false);
+    Integer *   framePixelCount(Tree_p self, int alphaMin);
     Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
@@ -820,6 +834,7 @@ public:
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
     Name_p      checkLicense(Tree_p self, Text_p feature, Name_p critical);
+    Name_p      checkImpressOrLicense(Tree_p self, Text_p feature);
     Name_p      blink(Tree_p self, Real_p on, Real_p off, Real_p after);
 
     // z order management
@@ -922,6 +937,7 @@ private:
     GLuint                watermark;
     text                  watermarkText;
     int                   watermarkWidth, watermarkHeight;
+    bool                  showingEvaluationWatermark;
 #ifdef Q_OS_MACX
     bool                  frameBufferReady();
     char                  bFrameBufferReady;
@@ -968,6 +984,7 @@ private:
     bool                  stereoBuffersEnabled;
     int                   stereoSkip;
     bool                  holdOff;
+    unsigned int          droppedFramesLocked();
     unsigned int          droppedFrames;
 #else
     QBasicTimer           timer;
@@ -1002,13 +1019,14 @@ private:
     Qt::CursorShape       savedCursorShape;
     QCursor               cachedCursor;
     bool                  mouseCursorHidden;
-    bool                  renderFramesCanceled;
+    int                   renderFramesCanceled;
     bool                  inOfflineRendering;
     int                   offlineRenderingWidth;
     int                   offlineRenderingHeight;
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
 
 private:
+    Window *              taoWindow();
     StereoIdentTexture    newStereoIdentTexture(int i);
     void                  updateStereoIdentPatterns(int nb);
     void        runPurgeAction(XL::Action &action);

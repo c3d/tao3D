@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  simple_slides.ddd                                               Tao project
+//  SimpleSlides.ddd                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//        Some basic themes for presentations.
+//     An example of simple slide
 //
 //
 //
@@ -14,122 +14,81 @@
 //
 //
 // ****************************************************************************
-// This document is released under the GNU General Public License.
-// See http://www.gnu.org/copyleft/gpl.html and Matthew 25:22 for details
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
-//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
-//  (C) 2010 Taodyne SAS
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
 // ****************************************************************************
 
-
-import Slides
-
-// Work around to Bug#1032
-syntax ( PREFIX 370 !* !- !+ )
-
-// Available Themes:
-// "" / "Default", "WhiteOnBlack", "WhiteOnGray",
-// "Rounded", "Keyboard", "Seyes"
+import VLCAudioVideo
 
 
-// ============================================================================
-//
-//                                 Keyboard theme
-//
-// ============================================================================
+// Main title slide
+main_title_slide "Automatic formatting saves time"
 
 
-theme "Keyboard"
+// A simple text slide
+slide "Describe slides as simple text",
+    * "Automatic slide layout "
+    - "Focus on the story, not the appearance"
+    - "Changing the theme globally is easy"
 
-title_slide "Keyboard style (Title)",
-    text "Lorem ipsum dolor sit amet"
-    line_break
-    text "consectetur adipisicing"
+    * "Description is a simple text file"
+    - "Wiki-like syntax"
+    - ("... with real programming capabilities: " & text_time)
+    - "Use any text editor"
 
-slide "Keyboard style (Slide)", "Lorem Ipsum",
-    text "Lorem ipsum dolor sit amet"
-    * "Consectetur adipisicing"
-    - "Elit, sed do eiusmod tempor incididunt"
-    * "Ut labore et dolore magna"
 
-picture_slide "Keyboard style (Drawing)",
+// A slightly more complex slide layout
+base_slide "More complex layouts",
+    slide_default_title
+    contents 400,
+        translate 500, -450, 0
+        color "white"
+        rotatey 180 * sin time ^ 12
+        image 0, 0, 0.5, 0.5, "TaodyneLogo.png"
+    left_column
+        * "Columns"
+        * "Custom layouts"
+        * "Pictures, animations"
+        * "Movies"
     locally
-        color_hsv 30 * time, 20%, 80%, 60%
-        rotatez 5 * time
-        ellipse 0, 0, 400, 150
-    locally
-        color "white", 50%
-        texture "Corsica.jpg"
-        rotatez 30
-        rounded_rectangle 100, 30, 150, 120, 20
+        color 0.5, 0.5, 0.5, 0.5
+        rectangle 300, 50, 500, 280
+        movie 300, 50, 1, 1, "http://www.youtube.com/watch?v=WWx7ij08pZU"
 
 
-// ============================================================================
-//
-//                                 Keyboard Seyes
-//
-// ============================================================================
-
-
-theme "Seyes"
-
-title_slide "Seyes style (Title)",
-    text "This is the Seyes theme"
-
-slide "Seyes style (Slide)",
-    * "Bullet level 1"
-    - "Bullet level 2"
-    !- "Text without bullet level 2"
-    reset_style
-    text "Regular text"
-
-
-// ============================================================================
-//
-//                                 Keyboard WhiteOnBlack
-//
-// ============================================================================
-
-
-theme "WhiteOnBlack"
-
-title_slide "White on Black (Title)",
-    text "This is the White on Black theme"
-
-slide "White On Black (Slide)",
-    * "Bullet level 1"
-    - "Bullet level 2"
-
-picture_slide "White on Black (Picture)",
-    color "white"
-    wscale -> slide_height / 1600
-    image 0, 0, wscale, wscale, "Corsica.jpg"
-
-
-// ============================================================================
-//
-//                                 Keyboard WhiteOnGray
-//
-// ============================================================================
-
-
-theme "WhiteOnGray"
-
-title_slide "White on Gray (Title)",
-    text "This is the White on Gray theme"
-
-slide "White On Gray (Slide)",
-    * "Bullet level 1"
-    - "Bullet level 2"
-
-picture_slide "White on Gray (3D)",
-    texture_wrap true, true
-    color "white"
-    texture "earth.bmp"
-    rotatey 2.3 * time
-    sphere 0, 0, 0, slide_height * 0.6
-    texture "clouds.png"
-    rotatey 0.6 * time
-    sphere 0, 0, 0, slide_height * 0.6 + 5
-
+// Formatting time as text
+text_time -> (text hours & ":" & zero minutes & ":" & zero seconds)
+zero N:integer -> if N<10 then "0" & text N else text N

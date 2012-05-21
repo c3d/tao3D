@@ -131,8 +131,10 @@ void NewDocumentWizard::accept()
         docPath = newPath;
     }
 
+#if !defined(CFG_NOGIT)
     // Create project to avoid prompt when document is first opened
     RepositoryFactory::repository(dstPath, RepositoryFactory::Create);
+#endif
 
     QDialog::accept();
 }

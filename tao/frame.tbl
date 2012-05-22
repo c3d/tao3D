@@ -69,3 +69,8 @@ PREFIX(CanvasWithDepth,  integer,  "canvas_with_depth",
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
        RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(FramePixelCount, integer, "frame_pixel_count",
+       PARM(alphaMin, integer, "Minimum alpha"),
+       RTAO(framePixelCount(self, alphaMin)),
+       GROUP(widget)
+       SYNOPSIS("Count non-transparent pixels in current frame"))

@@ -1141,7 +1141,9 @@ void Widget::runProgram()
     else
     {
         // If we had pages, but none matches, re-evaluate the program (#2060)
-        pageName = pageShown <= pageNames.size() ? pageNames[pageShown-1] : "";
+        pageName = pageShown > 0 && pageShown <= pageNames.size()
+            ? pageNames[pageShown-1]
+            : "";
         if (pageId > 0)
             runProgramOnce();
     }
@@ -3722,6 +3724,7 @@ void Widget::commitSuccess(QString id, QString msg)
     taoWindow()->undoStack->push(new UndoCommand(repository(), id, msg));
 }
 
+
 bool Widget::doCommit(ulonglong tick)
 // ----------------------------------------------------------------------------
 //   Commit files previously written to repository and reset next commit time
@@ -3742,7 +3745,7 @@ bool Widget::doCommit(ulonglong tick)
         XL::Main *xlr = XL::MAIN;
         nextCommit = tick + xlr->options.commit_interval * 1000;
 
-        taoWinow()->markChanged(false);
+        taoWindow()->markChanged(false);
 
         return true;
     }
@@ -6477,7 +6480,7 @@ Tree_p Widget::clearColor(Tree_p self, double r, double g, double b, double a)
 
 Tree_p Widget::motionBlur(Tree_p self, double f)
 // ----------------------------------------------------------------------------
-//    Set the RGB clear (background) color
+//    Set the motion blur factor
 // ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(f);
@@ -7152,6 +7155,27 @@ Integer* Widget::textureUnit(Tree_p self)
     return new Integer(layout->currentTexture.unit);
 }
 
+
+Integer *Widget::framePixelCount(Tree_p self, int alphaMin)
+// ----------------------------------------------------------------------------
+//    Return number of non-transparent pixels in the current frame
+// ----------------------------------------------------------------------------
+{
+    ulonglong result = 0;
+    if (frameInfo)
+    {
+        QImage image = frameInfo->toImage();
+        int width = image.width();
+        int height = image.height();
+        for (int r = 0; r < height; r++)
+            for (int c = 0; c < width; c++)
+                if (qAlpha(image.pixel(c, r)) > alphaMin)
+                    result++;
+    }
+    return new Integer(result, self->Position());
+}
+
+
 Integer_p Widget::lightsMask(Tree_p self)
 // ----------------------------------------------------------------------------
 //  Return a bitmask of all current activated lights
@@ -7159,6 +7183,7 @@ Integer_p Widget::lightsMask(Tree_p self)
 {
     return new Integer(layout->currentLights);
 }
+
 
 Tree_p Widget::perPixelLighting(Tree_p self,  bool enable)
 // ----------------------------------------------------------------------------
@@ -7168,6 +7193,7 @@ Tree_p Widget::perPixelLighting(Tree_p self,  bool enable)
     layout->Add(new PerPixelLighting(enable));
     return XL::xl_true;
 }
+
 
 Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 // ----------------------------------------------------------------------------

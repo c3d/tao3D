@@ -28,11 +28,11 @@
 
 TAO_BEGIN
 
-FrameInfo::FrameInfo(uint w, uint h)
+FrameInfo::FrameInfo(uint w, uint h, GLenum f)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : w(w), h(h), refreshTime(-1), clearColor(1, 1, 1, 0)
+    : w(w), h(h), format(f), refreshTime(-1), clearColor(1, 1, 1, 0)
 {
     resize(w, h);
 }
@@ -42,7 +42,7 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor - Don't copy the framebuffers
 // ----------------------------------------------------------------------------
-    : XL::Info(o), w(o.w), h(o.h), refreshTime(o.refreshTime),
+    : XL::Info(o), w(o.w), h(o.h), format(o.format), refreshTime(o.refreshTime),
       clearColor(o.clearColor)
 {
     resize(w, h);
@@ -91,6 +91,7 @@ void FrameInfo::resize(uint w, uint h)
     // we first draw in a multisample buffer
     // with 4 samples per pixel. This cannot be used directly as texture.
     QGLFramebufferObjectFormat format;
+    format.setInternalTextureFormat(this->format);
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
 #if !defined(Q_OS_LINUX)
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
@@ -309,6 +310,15 @@ ModuleApi::fbo * FrameInfo::newFrameBufferObject(uint w, uint h)
 // ----------------------------------------------------------------------------
 {
     return (ModuleApi::fbo *)new FrameInfo(w, h);
+}
+
+
+ModuleApi::fbo * FrameInfo::newFrameBufferObjectWithFormat(uint w, uint h, uint format)
+// ----------------------------------------------------------------------------
+//   Create a framebuffer object with a specified format
+// ----------------------------------------------------------------------------
+{
+    return (ModuleApi::fbo *)new FrameInfo(w, h, format);
 }
 
 

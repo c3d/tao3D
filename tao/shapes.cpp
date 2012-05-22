@@ -131,8 +131,8 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)
     {
-        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP;
-        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP;
+        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     }

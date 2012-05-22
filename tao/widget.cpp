@@ -2244,6 +2244,9 @@ void Widget::setupGL()
 
     // Really nice perspective calculations
     glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+
+    // Center (0, 0) on the center of a pixel to avoid unwanted interpolations
+    glTranslatef(0.5, 0.5, 0.0);
 }
 
 

@@ -1,11 +1,11 @@
 // ****************************************************************************
-//  opening_pane.ddd                                                Tao project
+//  opening_pane.xl                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     background for opening_pane template.
-//
+//     Library for opening_pane template.
+//     Uses flowers.xl file for background drawing.
 //
 //
 //
@@ -53,7 +53,7 @@
 // ****************************************************************************
 
 import Animate 1.0
-
+import "flowers.xl"
 
 // ============================================================================
 //
@@ -75,6 +75,20 @@ line_color "story"-> line_color "white"
 slide_width -> 1920.0
 slide_height -> 1200.0
 
+// boxes scroll on time or on key down.
+scroll -> "step"
+// Steps are seconds
+time_scroll -> scroll := "time"
+// Steps are key down events.
+key_scroll -> scroll := "step"
+
+do_scroll -> 
+    if scroll = "step" then
+        smooth_step
+    else
+        page_time
+
+
 // ============================================================================
 //
 //                                  SLIDES
@@ -83,7 +97,8 @@ slide_height -> 1200.0
 
 slide T:text, Body ->
     page T,
-        compute_smooth_step
+        if scroll = "step" then
+            compute_smooth_step
         background -1000
         scale_contents
         locally Body
@@ -103,17 +118,17 @@ op_story Start:real,End:real,Hue:real,X:real,Y:real,W:real,H:real,Body ->
 // The background color has the given "Hue".
 // The box is located in "X", "Y" with size "W"x"H"
 // The box displays the "Body"
-    if smooth_step >= Start-1 and smooth_step <= End+1 then
+    if do_scroll >= Start-1 and do_scroll <= End+1 then
         locally
             SW->1.0
             SH->1.0
 
             if W > H then
-                SW := fade_between(smooth_step, Start, End)
+                SW := fade_between(do_scroll, Start, End)
                 SH := 1.0
             else
                 SW := 1.0
-                SH := fade_between(smooth_step, Start, End)
+                SH := fade_between(do_scroll, Start, End)
 
             if SW > 0.01 and SH > 0.01 then
                 color_hsv Hue, 0.8, 0.4, 0.5
@@ -134,7 +149,7 @@ op_bullet Step:real, T:text ->
 // ----------------------------------------------------------------------------
 // The text "T" appears after the step Step
     paragraph_break
-    show fade_at(smooth_step, Step)
+    show fade_at(do_scroll, Step)
     font "op_text"
     anchor
         translate -20, 12, 0
@@ -161,133 +176,6 @@ op_text T:text ->
     font "op_text"
     text T
 
-// ============================================================================
-//
-//                                 BACKGROUND
-//
-// ============================================================================
-watermark -> "white"
-
-spiral X, Y, Z ->
-// ----------------------------------------------------------------------------
-//   Draw a spiral
-// ----------------------------------------------------------------------------
-    locally
-        color "transparent"
-        line_color watermark
-        translate X, Y, Z
-        scale3 0.4
-        rotatez 20 * time
-        path
-            cubic_to  20,  50, 0,      50,   0, 0,      25, -25, 0
-            cubic_to   0, -50, 0,     -50, -10, 0,     -30,  30, 0
-            cubic_to   0,  80, 0,      50,  50, 0,      60,  30, 0
-            cubic_to  80,   0, 0,      70, -50, 0,      50, -60, 0
-
-// ----------------------------------------------------------------------------
-//   Draw 3 kinds of flowers
-// ----------------------------------------------------------------------------
-petal N ->
-    locally
-        rotatez N*72
-        circle 15, 0, 7
-
-flower X, Y, Z ->
-    locally
-        line_color "transparent"
-        translate X, Y, Z
-        rotatez 20 * time
-        color watermark
-        circle 0, 0, 4
-        petal with 0..4
-
-petal2 N ->
-    locally
-        rotatez N*72
-        path
-            cubic_to 50, 50, 0,     50, -50, 0,     0, 0, 0
-
-
-flower2 X, Y, Z ->
-    locally
-        translate X, Y, Z
-        color watermark
-        line_color "transparent"
-        petal2 with 0..4
-
-petal3 N ->
-    locally
-        rotatez N*72
-        translatex 10
-        path
-            cubic_to 50, 50, 0,     50, -50, 0,     0, 0, 0
-
-flower3 X, Y, Z ->
-    locally
-        translate X, Y, Z
-        line_color "transparent"
-        color watermark
-        circle 0, 0, 6
-        color "transparent"
-        line_color watermark
-        petal3 with 0..4
-
-arabesque X, Y, Z ->
-// ----------------------------------------------------------------------------
-//   Draw an arabesque
-// ----------------------------------------------------------------------------
-    locally
-        translate X, Y, Z
-        color watermark
-        circle 5,-1,5
-        path
-            cubic_to   20,   50, 0,      50,    0, 0,      25,  -25, 0
-            cubic_to    0,  -50, 0,     -50,  -10, 0,     -30,   30, 0
-            cubic_to    0,   80, 0,      50,   50, 0,      60,   30, 0
-            cubic_to   80,    0, 0,      65,  -50, 0,      45,  -60, 0
-            cubic_to  -50, -120, 0,    -270,  -50, 0,    -300, -300, 0
-            cubic_to -260,  -60, 0,     -40, -130, 0,      50,  -75, 0
-            cubic_to   85,  -50, 0,      95,    0, 0,      80,   30, 0
-            cubic_to   60,   80, 0,     -20,   80, 0,     -40,   30, 0
-            cubic_to  -55,  -15, 0,       0,  -55, 0,      25,  -30, 0
-            cubic_to   50,    0, 0,      20,   50, 0,       0,    0, 0
-
-fall tt:real, T:tree ->
-// ----------------------------------------------------------------------------
-//   Fall movement
-// ----------------------------------------------------------------------------
-    locally
-        if sin (tt/3) > 0 then
-            translatey (window_height + 100) / 2 * cos (tt/3)
-            translatex 20 * sin (tt*2)
-            rotatez 25 * cos (tt/2)
-            T
-
-
-// ----------------------------------------------------------------------------
-//   Draw 2 kinds of leaf
-// ----------------------------------------------------------------------------
-leaf1 X, Y, Z ->
-    locally
-        translate X, Y, Z
-        scale3 0.2
-        line_color "transparent"
-        color watermark
-        path
-            cubic_to -140, 100,0,    -250, -50,0,    -300,-50,0
-            cubic_to -250,-100,0,    -150,-150,0,       0,  0,0
-
-leaf2 X, Y, Z ->
-    locally
-        translate X, Y, Z
-        scale3 0.2
-        line_color "transparent"
-        color watermark
-        path
-            cubic_to -140, 100,0,    -240, -60, 0,    -300, -50, 0
-            cubic_to -250,-100,0,    -150,-150, 0,      20, -20, 0
-            quad_to  -100,   0, 0,   -180, -60, 0
-            quad_to   -90,  50, 0,      0,   0, 0
 
 background Z ->
 // ----------------------------------------------------------------------------

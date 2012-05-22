@@ -73,6 +73,7 @@ void ResetTransform::Draw(Layout *where)
     where->has3D = false;
 }
 
+
 void Rotation::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //    Rotation in a drawing
@@ -81,10 +82,6 @@ void Rotation::Draw(Layout *where)
     // BUG? fmod required to avoid incorrect rotations with large values
     // (>1290000000)
     amount = fmod(amount, 360.0);
-//    std::cerr << "Rotation::Draw on "<< where << " with amount % 360 "
-//            << amount << std::endl;
-//    printMatrix();
-    glRotated(amount, xaxis, yaxis, zaxis);
     double amod90 = fmod(amount, 90.0);
     if (amod90 < -0.01 || amod90 > 0.01)
         where->hasPixelBlur = true;
@@ -96,8 +93,18 @@ void Rotation::Draw(Layout *where)
             where->planarRotation += amount;
         else if (zaxis < 0)
             where->planarRotation -= amount;
+
+        if (where->offset != Vector3())
+        {
+            glTranslated(where->offset.x, where->offset.y, where->offset.z);
+            glRotated(amount, xaxis, yaxis, zaxis);
+            glTranslated(-where->offset.x, -where->offset.y, -where->offset.z);
+        }
+        else
+        {
+            glRotated(amount, xaxis, yaxis, zaxis);
+        }
     }
-    where->offset = Point3();
 }
 
 
@@ -106,14 +113,9 @@ void Translation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-//    std::cerr << "Translate::Draw on " << where << " xaxis is " << xaxis
-//            << std::endl;
-//    printMatrix();
     glTranslatef(xaxis, yaxis, zaxis);
-//    printMatrix();
     if (zaxis != 0.0)
         where->hasPixelBlur = true;
-    where->offset = Point3();
 }
 
 
@@ -122,14 +124,22 @@ void Scale::Draw(Layout *where)
 //    Scale in a drawing
 // ----------------------------------------------------------------------------
 {
-    glScalef(xaxis, yaxis, zaxis);
+    if (where->offset != Vector3())
+    {
+        glTranslated(where->offset.x, where->offset.y, where->offset.z);
+        glScalef(xaxis, yaxis, zaxis);
+        glTranslated(-where->offset.x, -where->offset.y, -where->offset.z);
+    }
+    else
+    {
+        glScalef(xaxis, yaxis, zaxis);
+    }
     if (xaxis != 1.0 || yaxis != 1.0)
         where->hasPixelBlur = true;
     if (xaxis == yaxis && xaxis == zaxis)
         where->planarScale *= xaxis;
     else
         where->has3D = true;
-    where->offset = Point3();
 }
 
 

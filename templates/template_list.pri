@@ -15,7 +15,8 @@ DEFAULT_TEMPLATES =   \
     picture_slider \
     shift \
     simple_slides \
-    opening_pane
+    opening_pane \
+    blue_gold
 
 OTHER_TEMPLATES =     \
     mapping \

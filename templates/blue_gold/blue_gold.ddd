@@ -1,0 +1,157 @@
+// ****************************************************************************
+//  blue_gold.ddd                                                   Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The Water template. One only page divided on some panels with a
+//     dynamic water surface in the background.
+//     The right arrow key move forward the slideshow.
+//     Use the left arrow to go back.
+//     Ctrl-G (Cmd-G on Mac) shows a page selector.
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+// ============================================================================
+//
+// Image credits:
+//
+// -- images/stones.JPG
+// http://www.wallconvert.com/converted/stones-in-water-macro-photo-.1920x1080-137155.html
+//
+// -- images/water_withdrawals.jpg
+// http://www.tuxboard.com/photos/2011/03/Carte-Consommation-personnelle-eau-par-pays-640x317.jpg
+//
+// -- images/agricultural_use.png
+// http://www.wrsc.org/attach_image/agricultural-water-use-global-2001
+//
+// -- images/waterscarity2025.jpg
+// http://www.waternunc.com/gb/pws2025.htm
+//
+// -- images/carte_eau.jpg
+// http://www.droitalenergie.org/?p=3209&lang=en
+//
+// -- images/agricultures.jpg
+// http://www.tuxboard.com/photos/2011/03/Carte-eau-prevelements-agricultures-640x439.jpg
+//
+// -- images/monde-2020.jpg
+// http://www.tuxboard.com/photos/2011/03/Carte-eau-dans-le-monde-2020-640x404.jpg
+//
+// ============================================================================
+
+import SlideShow3D
+
+slide "Water, blue gold" fr "L'eau, l'or bleu",
+// -------------------------------------------------
+//    Main slide
+// -------------------------------------------------
+    // Raining effect
+    locally
+        color "white"
+        raining "stones.jpg", 1 // Add a water surface with raining effect at the speed 1 drop / s
+        mouse_drop              // Use mouse to add drops to the water surface
+    // Slideshow effect
+    locally
+        slider_offset 0, -200, 0 // Offsets between each panel
+        slider 3, panel          // Create slider
+
+
+panel 1 ->
+// -------------------------------------------------
+//    Draw first panel of the slide
+// -------------------------------------------------
+    show (slider_fade_y 10)
+    // Contents of the panel
+    story_box 
+        *"On earth..." fr "Sur la terre..."
+        -"70% of water, but only 0.3% accessible and drinkable." fr "70% d'eau, dont seulement 0.3% de potable et d'accessible." 
+        -"9 countries are divided 60% of the world reserves." fr "Neuf pays se partagent 60% des réserves mondiales." 
+        -"1.5 billions of people have no access to drinkable water." fr "1,5 milliards de personnes n'ont pas accès à l'eau potable."
+    // Left image
+    image_box
+        +"water_withdrawals.jpg" fr "carte_eau.jpg"
+
+
+panel 2 ->
+// -------------------------------------------------
+//    Draw second panle of the slide
+// -------------------------------------------------
+    show (slider_fade_y 10)
+    // Contents of the panel
+    story_box 
+        *"Problems of water management" fr "Problèmes de gestion de l'eau" 
+        -"An european uses 8 times more water today than before" fr "1,5 milliards de personnes n'ont pas accès à l'eau potable." 
+        -"The farming uses 70 % of the world takings with approximately 50% lost." fr "L'agriculture utilise 70% des prélevements mondiaux dont environ 50% de perdus." 
+        -"Pollution of ecosystems by sewerage." fr "Pollutions des ecosystèmes par les eaux usées."
+    // Left image
+    image_box 
+        +"agricultural_use.png" fr "agricultures.jpg"
+
+
+panel 3 ->
+// -------------------------------------------------
+//    Draw third panel of the slide
+// -------------------------------------------------
+    show (slider_fade_y 10)
+    // Contents of the pane
+    story_box 
+        *"Towards a drinkable water shortage" fr "Vers une pénurie d'eau potable" 
+        -"The water consumption increases twice as fast that the demographic growth rate." fr "La consommation d'eau augmente deux fois plus vite que le taux de croissante démographique." 
+        -"Before 2025, the quantity of available fresh water should fall of a third." fr "D'ici 2025, la quantité d'eau douce disponible devrait avoir chutée d'un tiers." 
+        -"Then, 35% of humans will be concerned by the water shortage." fr "A cette date, 35% des humains seront concernés par la pénurie d'eau."
+    // Left image
+    image_box
+        +"waterscarity2025.jpg" fr "monde-2020.jpg"
+
+
+/*
+*   Keys to move into the presentation
+*/
+key "Right" -> slider_next          // Move foward the presentation
+key "Left"  -> slider_previous      // Move backward the presentation
+key "Return" -> slider_front_item 1 // Reset the presentation
+
+// Change  language
+key "e" -> language "en"
+key "f" -> language "fr"
+

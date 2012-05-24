@@ -163,6 +163,32 @@ struct TextureMode : Attribute
 };
 
 
+struct TextureMinFilter : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture minifying filter setting
+// ----------------------------------------------------------------------------
+{
+    TextureMinFilter(GLenum filter)
+        : Attribute(), filter(filter) {}
+    virtual void Draw(Layout *where);
+    GLenum filter;
+    virtual text        Type() { return "TextureMinFilter";}
+};
+
+
+struct TextureMagFilter : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture magnification filter setting
+// ----------------------------------------------------------------------------
+{
+    TextureMagFilter(GLenum filter)
+        : Attribute(), filter(filter) {}
+    virtual void Draw(Layout *where);
+    GLenum filter;
+    virtual text        Type() { return "TextureMagFilter";}
+};
+
+
 struct TextureTransform : Attribute
 // ----------------------------------------------------------------------------
 //    Record a texture transform

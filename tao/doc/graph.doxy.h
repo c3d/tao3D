@@ -1001,6 +1001,9 @@ texture_transform (body:tree);
  * @~english
  * Texture wrapping.
  * Controls the wrapping of the texture along @c S and @c T axis.
+ * When @param s is @c true, @c GL_TEXTURE_WRAP_S is set to @c GL_REPEAT@,
+ * otherwise @c GL_CLAMP_TO_EDGE is used. The same goes for @param t which
+ * controls @c GL_TEXTURE_WRAP_T.
  * @param s is the pre-transformation horizontal axis (like X).
  * @param t is the pre-transformation vertical axis (like Y).
  *
@@ -1010,6 +1013,9 @@ texture_transform (body:tree);
  * @~french
  * Continuité des textures.
  * Contrôle la continuité de la texture courante le long des axes @c S et @c T.
+ * Lorsque @param s vaut @c true, @c GL_TEXTURE_WRAP_S vaut @c GL_REPEAT,
+ * sinon il vaut @c GL_CLAMP_TO_EDGE. De la même manière, @param t permet de
+ * changer la valeur de @c GL_TEXTURE_WRAP_T.
  * @param s true pour activer GL_TEXTURE_WRAP_S.
  * @param t true pour activer GL_TEXTURE_WRAP_T.
  *

@@ -943,6 +943,92 @@ texture_unit();
 
 /**
  * @~english
+ * Selects the texture magnification filter function.
+ * The specified value overrides the settings in the preference dialog.
+ * It applies to the current texture only.
+ * Possible values are:
+ *
+ * @~french
+ * Sélectionne la fonction du filtre de grossissement des textures.
+ * La valeur passée à cette primitive remplace la valeur choisie dans la
+ * boite de préférences. Elle s'applique seulement à la texture en cours.
+ * Les valeurs possibles sont:
+ *
+ * @~
+ * - "NEAREST"
+ * - "LINEAR"
+ *
+ * @~english
+ * Internally, this primitive sets the @c GL_TEXTURE_MAG_FILTER.
+ * @c NEAREST stands for @c GL_NEAREST and @c LINEAR stands for @c GL_LINEAR.
+ * @n
+ * The following example shows an image in "pixel perfect" mode. That is,
+ * the image is shown with no interpolation or anti-aliasing whatsoever,
+ * and one pixel in the source image gives one pixel on the screen. This
+ * is useful for instance to display a picture that contains small text,
+ * making sure the text remains legible. @n
+ * Note that when the image is not magnified nor minified, it is the
+ * magnification filter that applies.
+ *
+ * @~french
+ * En interne, cette primitive définit @c GL_TEXTURE_MAG_FILTER.
+ * @c NEAREST correspond à @c GL_NEAREST, @c LINEAR correspond à @c GL_LINEAR.
+ * @n
+ * L'exemple qui suit affiche une image sans interpolation ou
+ * anti-crénelage. À un pixel de l'image correspond un pixel à l'écran.
+ * C'est utile par exemple pour afficher une image contenant du texte de
+ * petite taille, afin de conserver une lisibilité parfaite. @n
+ * Notez que lorsque l'image n'est ni grossi ni réduite, c'est le filtre
+ * de grossissement qui s'applique.
+ * @~
+ * @code
+color "white"
+texture "image.png"
+texture_mag_filter "NEAREST"
+rectangle 0, 0, texture_width, texture_height
+ * @endcode
+ */
+texture_mag_filter(filter:text);
+
+/**
+ * @~english
+ * Selects the texture minifying filter function.
+ * The specified value overrides the settings in the preference dialog.
+ * It applies to the current texture only.
+ * Possible values are:
+ *
+ * @~french
+ * Sélectionne la fonction du filtre de réduction des textures.
+ * La valeur passée à cette primitive remplace la valeur choisie dans la
+ * boite de préférences. Elle s'applique seulement à la texture en cours.
+ * Les valeurs possibles sont:
+ *
+ * @~
+ * - "NEAREST"
+ * - "LINEAR"
+ * - "NEAREST_MIPMAP_NEAREST"
+ * - "LINEAR_MIPMAP_NEAREST"
+ * - "NEAREST_MIPMAP_LINEAR"
+ * - "LINEAR_MIPMAP_LINEAR"
+ *
+ * @~english
+ * Mipmap modes apply only to static textures (@ref texture), not to
+ * dynamic ones (@ref frame). @n
+ * Internally, this primitive sets @c GL_TEXTURE_MIN_FILTER. The above
+ * values correspond to the OpenGL modes of similar name (@c NEAREST stands
+ * for @c GL_NEAREST, and so on). @n
+ *
+ * @~french
+ * Les modes mipmap ne s'appliquent qu'aux textures statiques (@ref
+ * texture) et non aux textures dynamiques (@ref frame). @n
+ * En interne, cette primitive définit @c GL_TEXTURE_MIN_FILTER.
+ * Chaque valeur correspond aux mode OpenGL qui porte un nom similaire
+ * (@c NEAREST correspond à @c GL_NEAREST, etc.). @n
+ */
+texture_min_filter(filter:text);
+
+/**
+ * @~english
  * Create a GL animated texture.
  * Build a GL texture images from an animated image file and make it the
  * current texture. Supported format are:

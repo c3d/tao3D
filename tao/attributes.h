@@ -41,7 +41,6 @@ struct Attribute : Drawing
     virtual Box3        Bounds(Layout *l);
     virtual Box3        Space(Layout *l);
     virtual bool        IsAttribute()                   { return true; }
-    virtual text        Type() { return "Attribute";}
 };
 
 
@@ -53,7 +52,6 @@ struct DrawingBreak : Attribute
     DrawingBreak(BreakOrder order): order(order) {}
     virtual Drawing *   Break(BreakOrder &order, uint &sz);
     virtual void        DrawSelection(Layout *l);
-    virtual text        Type() { return "DrawingBreak";}
     BreakOrder order;
 };
 
@@ -67,7 +65,6 @@ struct ColorAttribute : Attribute
         Attribute(), color(r, g, b, a) {}
     Color color;
     virtual void        Evaluate(Layout *l)     { Draw(l); }
-    virtual text        Type() { return "ColorAttribute";}
 };
 
 
@@ -79,7 +76,6 @@ struct LineColor : ColorAttribute
     LineColor(float r, float g, float b, float a):
         ColorAttribute(r,g,b,a) {}
     virtual void        Draw(Layout *where);
-    virtual text        Type() { return "LineColor";}
 };
 
 
@@ -91,7 +87,6 @@ struct FillColor : ColorAttribute
     FillColor(float r, float g, float b, float a):
         ColorAttribute(r,g,b,a) {}
     virtual void        Draw(Layout *where);
-    virtual text        Type() { return "FillColor";}
 };
 
 
@@ -102,7 +97,6 @@ struct CachedDrawing : Attribute
 {
     CachedDrawing(GLuint displayList): displayList(displayList) {}
     virtual void        Draw(Layout *where);
-    virtual text        Type() { return "CachedDrawing";}
     GLuint              displayList;
 };
 
@@ -120,7 +114,6 @@ struct FillTexture : Attribute
     GLenum glType;
     bool   mipmap;
     GLenum minFilt, magFilt;
-    virtual text        Type() { return "FillTexture";}
 };
 
 
@@ -133,7 +126,6 @@ struct TextureUnit : Attribute
         : Attribute(), glUnit(glUnit) {}
     virtual void Draw(Layout *where);
     uint  glUnit;
-    virtual text        Type() { return "TextureUnit";}
 };
 
 
@@ -146,7 +138,6 @@ struct TextureWrap : Attribute
         : Attribute(), s(s), t(t) {}
     virtual void Draw(Layout *where);
     bool s, t;
-    virtual text        Type() { return "TextureWrap";}
 };
 
 
@@ -159,7 +150,6 @@ struct TextureMode : Attribute
         : Attribute(), mode(mode) {}
     virtual void Draw(Layout *where);
     GLenum mode;
-    virtual text        Type() { return "TextureMode";}
 };
 
 
@@ -172,7 +162,6 @@ struct TextureMinFilter : Attribute
         : Attribute(), filter(filter) {}
     virtual void Draw(Layout *where);
     GLenum filter;
-    virtual text        Type() { return "TextureMinFilter";}
 };
 
 
@@ -185,7 +174,6 @@ struct TextureMagFilter : Attribute
         : Attribute(), filter(filter) {}
     virtual void Draw(Layout *where);
     GLenum filter;
-    virtual text        Type() { return "TextureMagFilter";}
 };
 
 
@@ -198,7 +186,6 @@ struct TextureTransform : Attribute
         : Attribute(), enable(enable) {}
     virtual void Draw(Layout *where);
     bool  enable;
-    virtual text        Type() { return "TextureTransform";}
 };
 
 
@@ -210,7 +197,6 @@ struct Visibility : Attribute
     Visibility(float v) : Attribute(), visibility(v) {}
     virtual void Draw(Layout *where);
     scale visibility;
-    virtual text        Type() { return "Visibility";}
 };
 
 
@@ -222,7 +208,6 @@ struct LineWidth : Attribute
     LineWidth(float w) : Attribute(), width(w) {}
     virtual void Draw(Layout *where);
     float width;
-    virtual text        Type() { return "LineWidth";}
 };
 
 
@@ -236,7 +221,6 @@ struct LineStipple : Attribute
     virtual void Draw(Layout *where);
     uint16 scale;
     uint16 pattern;
-    virtual text        Type() { return "LineStipple";}
 };
 
 
@@ -249,7 +233,6 @@ struct FontChange : Attribute
     virtual void Draw(Layout *where);
     QFont font;
     virtual void        Evaluate(Layout *l)     { Draw(l); }
-    virtual text        Type() { return "FontChange";}
 };
 
 
@@ -264,7 +247,6 @@ struct JustificationChange : Attribute
     float amount;
     Axis  axis;
     virtual void        Evaluate(Layout *l)     { Draw(l); }
-    virtual text        Type() { return "JustificationChange";}
 };
 
 
@@ -275,7 +257,6 @@ struct PartialJustificationChange : JustificationChange
 {
     PartialJustificationChange(float a, Axis x): JustificationChange(a, x) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "PartialJustificationChange";}
 };
 
 
@@ -286,7 +267,6 @@ struct CenteringChange : JustificationChange
 {
     CenteringChange(float a, Axis x): JustificationChange(a, x) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "CenteringChange";}
 };
 
 
@@ -297,7 +277,6 @@ struct SpreadChange : JustificationChange
 {
     SpreadChange(float a, Axis x): JustificationChange(a, x) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "SpreadChange";}
 };
 
 
@@ -308,7 +287,6 @@ struct SpacingChange : JustificationChange
 {
     SpacingChange(float a, Axis x): JustificationChange(a, x) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "SpacingChange";}
 };
 
 
@@ -321,7 +299,6 @@ struct MinimumSpacingChange : JustificationChange
         : JustificationChange(a, x), before(b) {}
     virtual void Draw(Layout *where);
     coord before;
-    virtual text Type() { return "MinimumSpacingChange";}
 };
 
 
@@ -334,7 +311,6 @@ struct HorizontalMarginChange : Attribute
     virtual void Draw(Layout *where);
     coord left, right;
     virtual void Evaluate(Layout *l)     { Draw(l); }
-    virtual text Type() { return "HorizontalMarginChange";}
 };
 
 
@@ -347,7 +323,6 @@ struct VerticalMarginChange : Attribute
     virtual void Draw(Layout *where);
     coord top, bottom;
     virtual void Evaluate(Layout *l)     { Draw(l); }
-    virtual text Type() { return "VerticalMarginChange";}
 };
 
 
@@ -358,7 +333,6 @@ struct DepthTest : Attribute
 {
     DepthTest(bool enable): enable(enable) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "DepthTest";}
     bool enable;
 };
 
@@ -370,7 +344,6 @@ struct DepthMask : Attribute
 {
     DepthMask(bool enable): enable(enable) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "DepthMask";}
     bool enable;
 };
 
@@ -382,7 +355,6 @@ struct DepthFunc : Attribute
 {
     DepthFunc(GLenum func): func(func) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "DepthFunc";}
     GLenum func;
 };
 
@@ -394,7 +366,6 @@ struct BlendFunc : Attribute
 {
     BlendFunc(GLenum sf, GLenum df): sfactor(sf), dfactor(df) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "BlendFunc"; }
     GLenum sfactor, dfactor;
 };
 
@@ -407,7 +378,6 @@ struct BlendFuncSeparate : BlendFunc
     BlendFuncSeparate(GLenum sf, GLenum df, GLenum sfa, GLenum dfa)
         : BlendFunc(sf, df), sfalpha(sfa), dfalpha(dfa) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "BlendFuncSeparate"; }
     GLenum sfalpha, dfalpha;
 };
 
@@ -419,7 +389,6 @@ struct BlendEquation : Attribute
 {
     BlendEquation(GLenum be) : equation(be) {}
     virtual void Draw(Layout *where);
-    virtual text Type() { return "BlendEquation"; }
     GLenum equation;
 };
 
@@ -443,7 +412,6 @@ struct RecordMouseCoordinates : Attribute
     RecordMouseCoordinates(Tree *self): self(self) {}
     virtual void Draw(Layout *where);
     Tree_p self;
-    virtual text        Type() { return "RecordMouseCoordinates";}
 };
 
 

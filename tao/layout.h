@@ -194,8 +194,6 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
-    virtual text        Type() { return "Layout"; }
-
     // Used to optimize away texturing and programs if in Identify
     static bool         InIdentify()    { return inIdentify; }
     

@@ -112,12 +112,14 @@ struct FillTexture : Attribute
 //    Record a texture change
 // ----------------------------------------------------------------------------
 {
-    FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D, bool mipmap = false)
-        : Attribute(), glName(glName), glType(glType), mipmap(mipmap) {}
+    FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D,bool mipmap = false)
+        : Attribute(), glName(glName), glType(glType), mipmap(mipmap),
+          minFilt(GL_LINEAR), magFilt(GL_LINEAR) {}
     virtual void Draw(Layout *where);
     uint   glName;
     GLenum glType;
     bool   mipmap;
+    GLenum minFilt, magFilt;
     virtual text        Type() { return "FillTexture";}
 };
 

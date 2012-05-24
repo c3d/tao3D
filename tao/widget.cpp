@@ -6774,7 +6774,10 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
+    FillTexture * ft = new FillTexture(texId, GL_TEXTURE_2D, true);
+    ft->minFilt = TaoApp->tex2DMinFilter;
+    ft->magFilt = TaoApp->tex2DMagFilter;
+    layout->Add(ft);
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -6899,7 +6902,10 @@ Integer* Widget::image(Context *context,
     double w = w0 * sx;
     double h = h0 * sy;
 
-    layout->Add(new FillTexture(texId));
+    FillTexture * ft = new FillTexture(texId, GL_TEXTURE_2D, true);
+    ft->minFilt = TaoApp->tex2DMinFilter;
+    ft->magFilt = TaoApp->tex2DMagFilter;
+    layout->Add(ft);
     layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));

@@ -101,8 +101,8 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
     {
-        min = TaoApp->tex2DMinFilter;
-        mag = TaoApp->tex2DMagFilter;
+        min = texture.minFilt;
+        mag = texture.magFilt;
         if (!texture.mipmap)
         {
             if (min == GL_NEAREST_MIPMAP_NEAREST ||

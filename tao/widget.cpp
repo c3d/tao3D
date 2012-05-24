@@ -5557,6 +5557,12 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(GREATER);
     TEST_GLENUM(NOTEQUAL);
     TEST_GLENUM(GEQUAL);
+    TEST_GLENUM(NEAREST);
+    TEST_GLENUM(LINEAR);
+    TEST_GLENUM(NEAREST_MIPMAP_NEAREST);
+    TEST_GLENUM(LINEAR_MIPMAP_NEAREST);
+    TEST_GLENUM(NEAREST_MIPMAP_LINEAR);
+    TEST_GLENUM(LINEAR_MIPMAP_LINEAR);
 #undef TEST_GLENUM
 
     return e;
@@ -6774,7 +6780,10 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
+    FillTexture * ft = new FillTexture(texId, GL_TEXTURE_2D, true);
+    ft->minFilt = TaoApp->tex2DMinFilter;
+    ft->magFilt = TaoApp->tex2DMagFilter;
+    layout->Add(ft);
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -6899,7 +6908,10 @@ Integer* Widget::image(Context *context,
     double w = w0 * sx;
     double h = h0 * sy;
 
-    layout->Add(new FillTexture(texId));
+    FillTexture * ft = new FillTexture(texId, GL_TEXTURE_2D, true);
+    ft->minFilt = TaoApp->tex2DMinFilter;
+    ft->magFilt = TaoApp->tex2DMagFilter;
+    layout->Add(ft);
     layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
@@ -7049,6 +7061,32 @@ Tree_p Widget::textureMode(Tree_p self, text mode)
     GLenum glMode = TextToGLEnum(mode, GL_MODULATE);
     layout->currentTexture.mode = glMode;
     layout->Add(new TextureMode(glMode));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textureMinFilter(Tree_p self, text filter)
+// ----------------------------------------------------------------------------
+//   Set the minifying filter function for textures
+// ----------------------------------------------------------------------------
+{
+    GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
+    layout->currentTexture.minFilt = glFilt;
+    layout->Add(new TextureMinFilter(glFilt));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textureMagFilter(Tree_p self, text filter)
+// ----------------------------------------------------------------------------
+//   Set the minifying filter function for textures
+// ----------------------------------------------------------------------------
+{
+    GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
+    layout->currentTexture.magFilt = glFilt;
+    layout->Add(new TextureMagFilter(glFilt));
 
     return XL::xl_true;
 }

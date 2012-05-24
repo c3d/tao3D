@@ -112,12 +112,14 @@ struct FillTexture : Attribute
 //    Record a texture change
 // ----------------------------------------------------------------------------
 {
-    FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D, bool mipmap = false)
-        : Attribute(), glName(glName), glType(glType), mipmap(mipmap) {}
+    FillTexture(uint glName, GLenum glType = GL_TEXTURE_2D,bool mipmap = false)
+        : Attribute(), glName(glName), glType(glType), mipmap(mipmap),
+          minFilt(GL_LINEAR), magFilt(GL_LINEAR) {}
     virtual void Draw(Layout *where);
     uint   glName;
     GLenum glType;
     bool   mipmap;
+    GLenum minFilt, magFilt;
     virtual text        Type() { return "FillTexture";}
 };
 
@@ -158,6 +160,32 @@ struct TextureMode : Attribute
     virtual void Draw(Layout *where);
     GLenum mode;
     virtual text        Type() { return "TextureMode";}
+};
+
+
+struct TextureMinFilter : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture minifying filter setting
+// ----------------------------------------------------------------------------
+{
+    TextureMinFilter(GLenum filter)
+        : Attribute(), filter(filter) {}
+    virtual void Draw(Layout *where);
+    GLenum filter;
+    virtual text        Type() { return "TextureMinFilter";}
+};
+
+
+struct TextureMagFilter : Attribute
+// ----------------------------------------------------------------------------
+//    Record a texture magnification filter setting
+// ----------------------------------------------------------------------------
+{
+    TextureMagFilter(GLenum filter)
+        : Attribute(), filter(filter) {}
+    virtual void Draw(Layout *where);
+    GLenum filter;
+    virtual text        Type() { return "TextureMagFilter";}
 };
 
 

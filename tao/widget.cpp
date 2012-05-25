@@ -6776,14 +6776,13 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         layout->currentTexture.width  = rinfo->width;
         layout->currentTexture.height = rinfo->height;
         layout->currentTexture.type   = GL_TEXTURE_2D;
+        layout->currentTexture.minFilt = TaoApp->tex2DMinFilter;
+        layout->currentTexture.magFilt = TaoApp->tex2DMagFilter;
 
         texId = layout->currentTexture.id;
     }
 
-    FillTexture * ft = new FillTexture(texId, GL_TEXTURE_2D, true);
-    ft->minFilt = TaoApp->tex2DMinFilter;
-    ft->magFilt = TaoApp->tex2DMagFilter;
-    layout->Add(ft);
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());

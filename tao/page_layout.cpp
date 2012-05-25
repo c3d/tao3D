@@ -187,6 +187,27 @@ LayoutLine::~LayoutLine()
 }
 
 
+#ifdef __GNUG__
+#include <cxxabi.h>
+#endif
+static text demangle(const char *symbol)
+// ----------------------------------------------------------------------------
+//    Demangle C++ symbol (GNU g++ only)
+// ----------------------------------------------------------------------------
+{
+    text result(symbol);
+#ifdef __GNUG__
+    int status = 0;
+    char *realname = abi::__cxa_demangle(symbol, 0, 0, &status);
+    if (status == 0)
+    {
+        result = text(realname);
+        free(realname);
+    }
+#endif
+    return result;
+}
+
 void LayoutLine::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Compute line layout and draw the placed elements
@@ -205,7 +226,8 @@ void LayoutLine::Draw(Layout *where)
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
         IFTRACE(justify)
-                std::cerr << "--LayoutLine::Draw child is " << child->Type() << std::endl;
+                std::cerr << "--LayoutLine::Draw child is "
+                          << demangle(typeid(*child).name()) << std::endl;
 
         Layout * ll = dynamic_cast<Layout*>(child);
 
@@ -324,7 +346,7 @@ Box3 LayoutLine::Space(Layout *where)
         result |= childSpace;
         IFTRACE(justify)
                 std::cerr << "--LayoutLine::Space["<<this<<"] : child "
-                             << child->Type() << " height = "
+                             << demangle(typeid(*child).name()) << " height = "
                           << childSpace.Height() << " -- Total height = "
                           << result.Height()  << std::endl;
 

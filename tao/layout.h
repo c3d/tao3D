@@ -49,7 +49,7 @@ struct TextureState
     TextureState(): wrapS(false), wrapT(false),
                     id(0), unit(0), width(0), height(0),
                     type(GL_TEXTURE_2D), mode(GL_MODULATE),
-                    mipmap(false) {}
+                    mipmap(false), minFilt(GL_LINEAR), magFilt(GL_LINEAR) {}
 
     bool          wrapS, wrapT;
     GLuint        id, unit;
@@ -57,6 +57,7 @@ struct TextureState
     GLenum        type;
     GLenum        mode;
     bool          mipmap;
+    GLenum        minFilt, magFilt;
 };
 
 
@@ -192,8 +193,6 @@ public:
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();
-
-    virtual text        Type() { return "Layout"; }
 
     // Used to optimize away texturing and programs if in Identify
     static bool         InIdentify()    { return inIdentify; }

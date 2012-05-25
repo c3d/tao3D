@@ -101,8 +101,8 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
     {
-        min = TaoApp->tex2DMinFilter;
-        mag = TaoApp->tex2DMagFilter;
+        min = texture.minFilt;
+        mag = texture.magFilt;
         if (!texture.mipmap)
         {
             if (min == GL_NEAREST_MIPMAP_NEAREST ||
@@ -131,8 +131,8 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)
     {
-        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP;
-        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP;
+        GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE;
+        GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE;
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     }

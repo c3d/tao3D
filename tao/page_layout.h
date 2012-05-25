@@ -54,7 +54,6 @@ public:
 
     void                Compute(Layout *where);
     LayoutLine *        Remaining();
-    virtual text        Type() { return "LayoutLine";}
 
 public:
     LineJustifier       line;
@@ -91,7 +90,6 @@ public:
     virtual PageLayout *Remaining();
 
     virtual void        Compute(Layout *where);
-    virtual text        Type() { return "PageLayout";}
 
 public:
     // Space requested for the layout
@@ -123,8 +121,6 @@ struct RevertLayoutState : LayoutState, Attribute
                 std::cerr << "<-RevertLayoutState::Draw ["<< this
                           << "]\n";
     }
-
-    virtual text Type() { return "RevertLayoutState";}
 };
 
 
@@ -141,7 +137,6 @@ public:
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
     virtual void        Clear();
-    virtual text        Type() { return "Textflow";}
     void                addBox(PageLayout *b) { boxes.insert(b); }
     void                removeBox(PageLayout *b) { boxes.erase(b); }
 
@@ -197,7 +192,6 @@ struct BlockLayout : Layout
     {
     }
     virtual void         Add(Drawing *child) { flow->Add(child);}
-    virtual text         Type() { return "BlockLayout";}
     virtual Box3         Space(Layout *) { return Box3(); }
     virtual Box3         Bounds(Layout *) { return Box3(); }
 
@@ -230,7 +224,6 @@ struct AnchorLayout : Layout
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
-    virtual text        Type() { return "AnchorLayout";}
 };
 
 

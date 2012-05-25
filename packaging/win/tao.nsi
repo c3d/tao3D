@@ -119,7 +119,7 @@ LangString create_qlaunch ${LANG_FRENCH} "Créer un raccourci dans la barre de la
 
 ; Installer sections
 
-Section $(sec_tao)
+Section $(sec_tao) SectionTao
 
   SectionIn RO
   
@@ -145,7 +145,7 @@ Section $(sec_tao)
 SectionEnd
 
 ; Optional section (can be disabled by the user)
-Section $(sec_shortcuts)
+Section $(sec_shortcuts) SectionShortcuts
 
   SetShellVarContext all
   CreateDirectory "$SMPROGRAMS\Tao Presentations"
@@ -154,7 +154,7 @@ Section $(sec_shortcuts)
 SectionEnd
 
 ; Optional
-Section $(sec_register)
+Section $(sec_register) SectionRegister
 
   push "tao"
   call RegisterURIScheme
@@ -166,6 +166,24 @@ Section $(sec_register)
 
 SectionEnd
 
+; Language strings for components descriptions (shown when hovering the mouse over a component)
+
+; English
+LangString DESC_SectionTao       ${LANG_ENGLISH} "The main application. This component is required."
+LangString DESC_SectionShortcuts ${LANG_ENGLISH} "Adds a Tao Presentation entry to the start menu."
+LangString DESC_SectionRegister  ${LANG_ENGLISH} "Associates the .ddd file extension to Tao Presentations and registers the tao:// and taos:// URI schemes."
+
+; French
+LangString DESC_SectionTao       ${LANG_FRENCH} "L'application principale. Ce composant est nécessaire."
+LangString DESC_SectionShortcuts ${LANG_FRENCH} "Ajoute Tao Presentations au menu Démarrer."
+LangString DESC_SectionRegister  ${LANG_FRENCH} "Associe l'extension .ddd à Tao Presentations et enregistre les schémas d'URI tao:// et taos://."
+
+; Set the component descriptions
+!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionTao} $(DESC_SectionTao)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionShortcuts} $(DESC_SectionShortcuts)
+  !insertmacro MUI_DESCRIPTION_TEXT ${SectionRegister} $(DESC_SectionRegister)
+!insertmacro MUI_FUNCTION_DESCRIPTION_END
 
 Function RegisterURIScheme
 

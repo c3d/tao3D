@@ -82,10 +82,10 @@ Tree *FontParsingAction::DoText(Text *what)
             // Parse string as "family/style"
             text family = desc.substr(0, slash);
             text style = desc.substr(slash + 1, std::string::npos);
-            IFTRACE(fontparsing)
-                std::cerr << "  Font family='" << family
-                          << "' style='" << style << "'\n";
             int size = font.pointSize();
+            IFTRACE(fontparsing)
+                std::cerr << "  Requesting font: family='" << family
+                          << "' style='" << style << "' size=" << size << "\n";
             font = QFontDatabase().font(+family, +style, size);
         }
         else
@@ -96,11 +96,20 @@ Tree *FontParsingAction::DoText(Text *what)
             text family = what->value;
             if (family == "Times")
                 family = "Times New Roman";
+            IFTRACE(fontparsing)
+                std::cerr << "  Requesting font: family='" << family << "'\n";
             font.setFamily(+family);
         }
         exactMatch = font.exactMatch();
         IFTRACE(fontparsing)
-            std::cerr << "Exact match: " << exactMatch << "\n";
+        {
+            std::cerr << "  Returned font:   family='" << +font.family()
+#if QT_VERSION > 0x040800
+                      << "' style='" << +font.styleName()
+#endif
+                      << "' size=" << font.pointSize() << "\n"
+                      << "  Exact match: " << exactMatch << "\n";
+        }
     }
     return what;
 }

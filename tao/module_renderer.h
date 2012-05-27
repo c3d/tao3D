@@ -47,8 +47,6 @@ struct ModuleRenderer : Drawing
 
     virtual ~ModuleRenderer();
 
-    virtual text  Type() { return "ModuleRenderer";}
-
     // Drawing interface
     virtual void  Draw(Layout *where);
     virtual void  Identify(Layout *where);

@@ -945,18 +945,19 @@ texture_unit();
  * @~english
  * Selects the texture magnification filter function.
  * The specified value overrides the settings in the preference dialog.
- * It applies to the current texture only.
- * Possible values are:
+ * It applies to the current layout (including later child layouts) for the
+ * current texture unit. Possible values are:
  *
  * @~french
  * Sélectionne la fonction du filtre de grossissement des textures.
  * La valeur passée à cette primitive remplace la valeur choisie dans la
- * boite de préférences. Elle s'applique seulement à la texture en cours.
+ * boite de préférences. Elle s'applique au <em>layout</em> en cours (y compris
+ * les <em>layouts</em> fils à venir), pour l'unité de texture courante.
  * Les valeurs possibles sont:
  *
  * @~
- * - "NEAREST"
- * - "LINEAR"
+ * - @c "NEAREST"
+ * - @c "LINEAR"
  *
  * @~english
  * Internally, this primitive sets the @c GL_TEXTURE_MAG_FILTER.
@@ -978,7 +979,7 @@ texture_unit();
  * anti-crénelage. À un pixel de l'image correspond un pixel à l'écran.
  * C'est utile par exemple pour afficher une image contenant du texte de
  * petite taille, afin de conserver une lisibilité parfaite. @n
- * Notez que lorsque l'image n'est ni grossi ni réduite, c'est le filtre
+ * Notez que lorsque l'image n'est ni grossie ni réduite, c'est le filtre
  * de grossissement qui s'applique.
  * @~
  * @code
@@ -1004,12 +1005,12 @@ texture_mag_filter(filter:text);
  * Les valeurs possibles sont:
  *
  * @~
- * - "NEAREST"
- * - "LINEAR"
- * - "NEAREST_MIPMAP_NEAREST"
- * - "LINEAR_MIPMAP_NEAREST"
- * - "NEAREST_MIPMAP_LINEAR"
- * - "LINEAR_MIPMAP_LINEAR"
+ * - @c "NEAREST"
+ * - @c "LINEAR"
+ * - @c "NEAREST_MIPMAP_NEAREST"
+ * - @c "LINEAR_MIPMAP_NEAREST"
+ * - @c "NEAREST_MIPMAP_LINEAR"
+ * - @c "LINEAR_MIPMAP_LINEAR"
  *
  * @~english
  * Mipmap modes apply only to static textures (@ref texture), not to

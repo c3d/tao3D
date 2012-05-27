@@ -27,7 +27,7 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
-//#include "attributes.h"
+#include "application.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -49,7 +49,9 @@ struct TextureState
     TextureState(): wrapS(false), wrapT(false),
                     id(0), unit(0), width(0), height(0),
                     type(GL_TEXTURE_2D), mode(GL_MODULATE),
-                    mipmap(false), minFilt(GL_LINEAR), magFilt(GL_LINEAR) {}
+                    mipmap(false),
+                    minFilt(TaoApp->tex2DMinFilter),
+                    magFilt(TaoApp->tex2DMagFilter) {}
 
     bool          wrapS, wrapT;
     GLuint        id, unit;
@@ -193,8 +195,6 @@ public:
     uint                CharacterId();
     double              PrinterScaling();
     text                PrettyId();
-
-    virtual text        Type() { return "Layout"; }
 
     // Used to optimize away texturing and programs if in Identify
     static bool         InIdentify()    { return inIdentify; }

@@ -125,8 +125,6 @@ void FillTexture::Draw(Layout *where)
     where->fillTextures[glUnit].id   = glName;
     where->fillTextures[glUnit].type = glType;
     where->fillTextures[glUnit].mipmap = mipmap;
-    where->fillTextures[glUnit].minFilt = minFilt;
-    where->fillTextures[glUnit].magFilt = magFilt;
 }
 
 void TextureUnit::Draw(Layout *where)

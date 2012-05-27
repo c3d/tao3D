@@ -41,8 +41,6 @@ struct Shape : Drawing
 {
     Shape(): Drawing() {}
 
-    virtual text        Type() { return "Shape";}
-
 public:
     // Shape parameters
     static void         enableTexCoord(uint units, void *texCoord);
@@ -67,7 +65,6 @@ struct Shape2 : Shape
     virtual void        Draw(Layout *where);
     virtual void        Identify(Layout *);
     virtual void        Draw(GraphicPath &path);
-    virtual text        Type() { return "Shape 2D";}
 };
 
 

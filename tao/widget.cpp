@@ -3553,6 +3553,12 @@ void Widget::refreshProgram()
             {
                 XL::SourceFile &sf = **it;
                 XL::MAIN->LoadFile(sf.name);
+                if (XL::Tree *prog = sf.tree)
+                {
+                    Renormalize renorm(this);
+                    sf.tree = prog->Do(renorm);
+                    xl_tree_copy(prog, sf.tree);
+                }
                 inError = false;
             }
             updateProgramSource();

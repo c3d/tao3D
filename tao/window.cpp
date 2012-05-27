@@ -54,6 +54,7 @@
 #include "assistant.h"
 #include "licence.h"
 #include "license_dialog.h"
+#include "normalize.h"
 
 #include <iostream>
 #include <sstream>
@@ -2355,8 +2356,10 @@ bool Window::updateProgram(const QString &fileName)
         // Clean menus and reload XL program
         resetTaoMenus();
         if (!sf->tree)
+        {
             if (xlRuntime->LoadFile(fn, true))
                 hadError = true;
+        }
 
         // Check if we can access the file
         if (!fileInfo.isWritable())
@@ -2368,6 +2371,14 @@ bool Window::updateProgram(const QString &fileName)
             return true;
         sf = &xlRuntime->files[fn];
     }
+
+    if (Tree *prog = sf->tree)
+    {
+        Renormalize renorm(taoWidget);
+        sf->tree = prog->Do(renorm);
+        xl_tree_copy(prog, sf->tree);
+    }
+
 
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();

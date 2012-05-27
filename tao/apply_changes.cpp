@@ -61,11 +61,25 @@ bool ImportedFilesChanged(import_set &done,
                 sf.hash = os.str();
 
                 if (!prev_hash.empty() && sf.hash != prev_hash)
+                {
+                    IFTRACE(filesync)
+                        std::cerr << "Reload: Hash changed from " << prev_hash
+                                  << " to " << sf.hash
+                                  << " for file " << sf.name << "\n";
                     sf.changed = true;
+                }
             }
             time_t modified = QFileInfo(+sf.name).lastModified().toTime_t();
             if (modified > sf.modified)
+            {
+                IFTRACE(filesync)
+                    std::cerr << "Reload: Date changed from "
+                              << ctime(&sf.modified)
+                              << " to "
+                              << ctime(&modified)
+                              << " for " << sf.name << "\n";
                 result = true;
+            }
         }
     }
     return result;

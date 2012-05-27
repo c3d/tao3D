@@ -836,6 +836,7 @@ bool Window::saveFile(const QString &fileName)
     // function fails to save all the fonts of a multi-page doc
     // QApplication::processEvents();
 
+    bool needReload = false;
     do
     {
         QTextStream out(&file);
@@ -844,15 +845,19 @@ bool Window::saveFile(const QString &fileName)
         QApplication::setOverrideCursor(Qt::BusyCursor);
 #endif
 #ifndef CFG_NOSRCEDIT
-        out << srcEdit->toPlainText();
-#else
+        if (srcEdit->isVisible())
+        {
+            out << srcEdit->toPlainText();
+            needReload = true;
+        }
+        else
+#endif
         if (Tree *prog = taoWidget->xlProgram->tree)
         {
             std::ostringstream renderOut;
             renderOut << prog;
             out << +renderOut.str();
         }
-#endif
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -860,10 +865,11 @@ bool Window::saveFile(const QString &fileName)
     setCurrentFile(fileName);
 
     text fn = +fileName;
-
-    xlRuntime->LoadFile(fn);
-
-    updateProgram(fileName);
+    if (needReload)
+    {
+        xlRuntime->LoadFile(fn);
+        updateProgram(fileName);
+    }
 #ifndef CFG_NOSRCEDIT
     srcEdit->setXLNames(taoWidget->listNames());
 #endif

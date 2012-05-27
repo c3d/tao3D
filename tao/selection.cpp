@@ -261,7 +261,7 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
 {
     uint current = ObjectAtPoint(x, widget->height() - y);
     IFTRACE(widgets)
-            std::cerr<<"Focus " << current << std::endl;
+        std::cerr << "Focus " << current << std::endl;
     if (current != previous)
     {
         if (previous > 0)

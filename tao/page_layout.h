@@ -26,6 +26,8 @@
 #include "shapes.h"
 #include "justification.h"
 #include "attributes.h"
+
+
 TAO_BEGIN
 
 struct LayoutLine : Drawing
@@ -112,14 +114,14 @@ struct RevertLayoutState : LayoutState, Attribute
     virtual void  Draw(Layout *where)
     {
         IFTRACE(justify)
-                std::cerr << "->RevertLayoutState::Draw ["<< this
-                          << "] not used offset " << offset
-                          << " inherited offset " << where->Offset() << " \n";
+            std::cerr << "->RevertLayoutState::Draw ["<< this
+                      << "] not used offset " << offset
+                      << " inherited offset " << where->Offset() << " \n";
         offset = where->Offset();
         where->InheritState(this);
         IFTRACE(justify)
-                std::cerr << "<-RevertLayoutState::Draw ["<< this
-                          << "]\n";
+            std::cerr << "<-RevertLayoutState::Draw ["<< this
+                      << "]\n";
     }
 };
 
@@ -150,14 +152,15 @@ public:
     void rewindFlow(Drawings::iterator rewindPoint)
     {
         IFTRACE(justify)
-                std::cerr << "TextFlow::rewindFlow "<<this<<std::endl;
+            std::cerr << "TextFlow::rewindFlow "<< this << std::endl;
         currentIterator = rewindPoint;
     }
 
 public:
+    typedef std::set<PageLayout*> page_layouts;
     text                  flowName;
     std::set<uint>        textBoxIds; // Set of layoutID for selection
-    std::set<PageLayout*> boxes; // Set of boxes displaying this text flow
+    page_layouts          boxes;      // Set of boxes displaying this text flow
     PageLayout *          currentTextBox; // The currently used pageLayout
 
 private:
@@ -175,9 +178,9 @@ struct BlockLayout : Layout
     {
         IFTRACE(justify)
         {
-                std::cerr << "<->BlockLayout::BlockLayout ["<<this
-                <<"] from flow -- revert =" << revert<<"\n ";
-                revert->toDebugString(std::cerr);
+            std::cerr << "<->BlockLayout::BlockLayout ["<< this
+                      << "] from flow -- revert =" << revert <<"\n ";
+            revert->toDebugString(std::cerr);
         }
 
     }
@@ -185,8 +188,9 @@ struct BlockLayout : Layout
         revert(new RevertLayoutState(*(o.flow)))
     {
         IFTRACE(justify)
-                std::cerr << "<->BlockLayout::BlockLayout ["<<this
-                <<"] from BlockLayout " << &o << " revert=" << revert<<std::endl;
+            std::cerr << "<->BlockLayout::BlockLayout ["<< this
+                      << "] from BlockLayout " << &o
+                      << " revert=" << revert << std::endl;
     }
     ~BlockLayout()
     {
@@ -198,8 +202,8 @@ struct BlockLayout : Layout
     RevertLayoutState *  Revert()
     {
         IFTRACE(justify)
-                std::cerr << "<->BlockLayout::Revert [" << this <<"] revert = "
-                             << revert << "\n ";
+            std::cerr << "<->BlockLayout::Revert [" << this <<"] revert = "
+                      << revert << "\n ";
         return revert;
     }
 

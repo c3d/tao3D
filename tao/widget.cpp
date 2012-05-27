@@ -2346,8 +2346,8 @@ bool Widget::forwardEvent(QMouseEvent *event)
                           event->modifiers());
         IFTRACE(widgets)
         {
-            std::cerr << "forwardEvent::Event type "<< event->type()
-                    << " Event->x="<<nx <<" Event->y="<< ny
+            std::cerr << "forwardEvent::Event type " << event->type()
+                    << " Event->x=" << nx <<" Event->y=" << ny
                     << " focusWidget name " << +(focus->objectName())
                     << std::endl;
         }

@@ -69,11 +69,12 @@ void TextUnit::Draw(Layout *where)
     bool        dbgDirect  = (widget->lastModifiers() & dbgMod) == dbgMod;
     IFTRACE(justify)
     {
-        std::cerr << "<->TextUnit::Draw(Layout *" << where<<") [" << this
-                << "] offset0 :" << offset0 // << " font " << +font.toString()
-                << " Layout font " << +where->font.toString()
-                << " Layout color " << where->fillColor
-                << std::endl;
+        std::cerr << "<->TextUnit::Draw(Layout *" << where
+                  <<") [" << this
+                  << "] offset0 :" << offset0 // << " font " << +font.toString()
+                  << " Layout font " << +where->font.toString()
+                  << " Layout color " << where->fillColor
+                  << std::endl;
         toDebugString(std::cerr);
     }
 

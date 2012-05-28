@@ -2346,8 +2346,8 @@ bool Widget::forwardEvent(QMouseEvent *event)
                           event->modifiers());
         IFTRACE(widgets)
         {
-            std::cerr << "forwardEvent::Event type "<< event->type()
-                    << " Event->x="<<nx <<" Event->y="<< ny
+            std::cerr << "forwardEvent::Event type " << event->type()
+                    << " Event->x=" << nx <<" Event->y=" << ny
                     << " focusWidget name " << +(focus->objectName())
                     << std::endl;
         }
@@ -3553,6 +3553,12 @@ void Widget::refreshProgram()
             {
                 XL::SourceFile &sf = **it;
                 XL::MAIN->LoadFile(sf.name);
+                if (XL::Tree *prog = sf.tree)
+                {
+                    Renormalize renorm(this);
+                    sf.tree = prog->Do(renorm);
+                    xl_tree_copy(prog, sf.tree);
+                }
                 inError = false;
             }
             updateProgramSource();

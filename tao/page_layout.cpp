@@ -27,8 +27,11 @@
 #include "gl_keepers.h"
 #include "window.h"
 #include "path3d.h"
+#include "demangle.h"
 #include <QFontMetrics>
 #include <QFont>
+
+
 TAO_BEGIN
 
 // ============================================================================
@@ -160,8 +163,8 @@ LayoutLine::LayoutLine(coord left, coord right, TextFlow *flow)
       flowRewindPoint(*(flow->getCurrentIterator()))
 {
     IFTRACE(justify)
-            std::cerr << "##### "<<left <<" ##### new LayoutLine L-R " << this
-            <<"##### "<< right <<" #####\n";
+        std::cerr << "##### "<< left <<" ##### new LayoutLine L-R " << this
+                  <<"##### "<< right <<" #####\n";
 }
 
 
@@ -173,8 +176,8 @@ LayoutLine::LayoutLine(const LayoutLine &o)
       flowRewindPoint(*(flow->getCurrentIterator()))
 {
     IFTRACE(justify)
-            std::cerr << "##### "<<left <<" ##### new LayoutLine " << this
-            <<"##### "<< right <<" ##### Copy of "<<&o<<"\n";
+        std::cerr << "##### "<<left <<" ##### new LayoutLine " << this
+                  <<"##### "<< right <<" ##### Copy of "<< &o << "\n";
 }
 
 
@@ -187,34 +190,15 @@ LayoutLine::~LayoutLine()
 }
 
 
-#ifdef __GNUG__
-#include <cxxabi.h>
-#endif
-static text demangle(const char *symbol)
-// ----------------------------------------------------------------------------
-//    Demangle C++ symbol (GNU g++ only)
-// ----------------------------------------------------------------------------
-{
-    text result(symbol);
-#ifdef __GNUG__
-    int status = 0;
-    char *realname = abi::__cxa_demangle(symbol, 0, 0, &status);
-    if (status == 0)
-    {
-        result = text(realname);
-        free(realname);
-    }
-#endif
-    return result;
-}
-
 void LayoutLine::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Compute line layout and draw the placed elements
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "->LayoutLine:"<<this<<":Draw(Layout * "<<where<<")\n";
+        std::cerr << "->LayoutLine:" << this
+                  << ":Draw(Layout * " << where << ")\n";
+
     // Compute layout
     Compute(where);
 
@@ -226,8 +210,8 @@ void LayoutLine::Draw(Layout *where)
         LineJustifier::Place &place = *p;
         Drawing *child = place.item;
         IFTRACE(justify)
-                std::cerr << "--LayoutLine::Draw child is "
-                          << demangle(typeid(*child).name()) << std::endl;
+            std::cerr << "--LayoutLine::Draw child is "
+                      << demangle(typeid(*child).name()) << std::endl;
 
         Layout * ll = dynamic_cast<Layout*>(child);
 
@@ -240,7 +224,7 @@ void LayoutLine::Draw(Layout *where)
     }
 
     IFTRACE(justify)
-            std::cerr << "<-LayoutLine:"<<this<<":Draw\n";
+        std::cerr << "<-LayoutLine:"<< this << ":Draw\n";
 }
 
 
@@ -333,8 +317,8 @@ Box3 LayoutLine::Space(Layout *where)
     LineJustifier::PlacesIterator p;
 
     IFTRACE(justify)
-            std::cerr << "->LayoutLine::Space["<<this<<"] : result = " << result
-                      << std::endl;
+        std::cerr << "->LayoutLine::Space[" << this
+                  << "] : result = " << result << std::endl;
 
     for (p = places.begin(); p != places.end(); p++)
     {
@@ -345,15 +329,15 @@ Box3 LayoutLine::Space(Layout *where)
         Box3 childSpace = child->Space(where);
         result |= childSpace;
         IFTRACE(justify)
-                std::cerr << "--LayoutLine::Space["<<this<<"] : child "
-                             << demangle(typeid(*child).name()) << " height = "
-                          << childSpace.Height() << " -- Total height = "
-                          << result.Height()  << std::endl;
+            std::cerr << "--LayoutLine::Space[" << this << "] : child "
+                      << demangle(typeid(*child).name()) << " height = "
+                      << childSpace.Height() << " -- Total height = "
+                      << result.Height()  << std::endl;
 
     }
     IFTRACE(justify)
-            std::cerr << "<-LayoutLine::Space["<<this<<"] : result = " << result
-                      << std::endl;
+        std::cerr << "<-LayoutLine::Space[" << this
+                  << "] : result = " << result << std::endl;
     return result;
 }
 
@@ -377,7 +361,7 @@ void LayoutLine::Compute(Layout *layout)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr <<"-> LayoutLine::Compute[" << this << "]\n";
+        std::cerr <<"-> LayoutLine::Compute[" << this << "]\n";
     // If we already computed the placement, re-use that
     if (line.places.size())
     {
@@ -440,7 +424,7 @@ PageLayout::PageLayout(Widget *widget, TextFlow *flow)
       page(&lines,&current), selectId(0)
 {
     IFTRACE(justify)
-            std::cerr << "PageLayout::PageLayout " << this << std::endl;
+        std::cerr << "PageLayout::PageLayout " << this << std::endl;
     lastFlowPoint = *(flow->getCurrentIterator());
     flow->addBox(this);
     Inherit(widget->layout);
@@ -456,7 +440,7 @@ PageLayout::PageLayout(const PageLayout &o)
       page(&lines, &current), selectId(0)
 {
     IFTRACE(justify)
-            std::cerr << "PageLayout::PageLayout " << this << std::endl;
+        std::cerr << "PageLayout::PageLayout " << this << std::endl;
     lastFlowPoint = *(flow->getCurrentIterator());
     flow->addBox(this);
     Inherit(flow);
@@ -470,7 +454,7 @@ PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "PageLayout::~PageLayout " << this << std::endl;
+        std::cerr << "PageLayout::~PageLayout " << this << std::endl;
     if (flow)
         flow->removeBox(this);
 
@@ -535,8 +519,8 @@ void PageLayout::Draw(Layout *where)
 //   taking the layout offset from the placed position
 {
     IFTRACE(justify)
-            std::cerr << "->PageLayout::Draw ["<< this << "] offset "
-                      << where->Offset() <<  "\n";
+        std::cerr << "->PageLayout::Draw ["<< this << "] offset "
+                  << where->Offset() <<  "\n";
     flow->offset = where->Offset();
     flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
@@ -578,9 +562,9 @@ void PageLayout::Draw(Layout *where)
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
         IFTRACE(justify)
-                std::cerr << "--PageLayout::Draw ["<< this
-                          << "] saved y = " << flow->offset.y
-                          << " -- new y = " << flow->offset.y + place.position << "\n";
+            std::cerr << "--PageLayout::Draw ["<< this
+                      << "] saved y = " << flow->offset.y
+                      << " -- new y = " << flow->offset.y + place.position << "\n";
         XL::Save<coord> saveY(flow->offset.y, flow->offset.y + place.position);
         GLAllStateKeeper glSave(glSaveBits(),
                                 hasMatrix, false, hasTextureMatrix);
@@ -591,9 +575,9 @@ void PageLayout::Draw(Layout *where)
     if(where)
        where->previousTextures = previousTextures;
     IFTRACE(justify)
-            std::cerr << "<-PageLayout::Draw ["<< this << "] flow->offset = "
-                      << flow->Offset()
-                      << " -- where->offset = "<<  where->Offset() << "\n";
+        std::cerr << "<-PageLayout::Draw ["<< this << "] flow->offset = "
+                  << flow->Offset()
+                  << " -- where->offset = "<<  where->Offset() << "\n";
 }
 
 
@@ -809,11 +793,11 @@ void PageLayout::Compute(Layout */*where*/)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
+        std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
     if (flow->atEnd() )
     {
         IFTRACE(justify)
-                std::cerr << "<-PageLayout::Compute ["<< this <<"] Flow at end\n";
+            std::cerr << "<-PageLayout::Compute ["<< this <<"] Flow at end\n";
         return;
     }
     // Get attributes from surrounding context
@@ -825,8 +809,8 @@ void PageLayout::Compute(Layout */*where*/)
     {
         flow->rewindFlow(lastFlowPoint);
         IFTRACE(justify)
-                std::cerr << "<-PageLayout::Compute ["<< this
-                <<"] (already computed)\n";
+            std::cerr << "<-PageLayout::Compute ["<< this
+                      <<"] (already computed)\n";
         return;
     }
 
@@ -923,8 +907,8 @@ TextFlow::TextFlow(Layout *layout, text flowName)
     : Layout(*layout), flowName(flowName), currentTextBox(NULL), currentIterator(items.begin())
 {
     IFTRACE(justify)
-            std::cerr << "TextFlow::TextFlow[" << this
-            << "] flowname " << flowName << std::endl;
+        std::cerr << "TextFlow::TextFlow[" << this
+                  << "] flowname " << flowName << std::endl;
 }
 
 
@@ -933,7 +917,7 @@ TextFlow::~TextFlow()
 //    If we got a child, then we need to delete it
 // ----------------------------------------------------------------------------
 {
-    for (std::set<PageLayout*>::iterator i = boxes.begin(); i != boxes.end(); i++)
+    for (page_layouts::iterator i = boxes.begin(); i != boxes.end(); i++)
         (*i)->flow = NULL;
 
     Clear();
@@ -1022,12 +1006,13 @@ void TextFlow::Clear()
 //   Reset the layout to the initial setup
 // ----------------------------------------------------------------------------
 {
-    for (std::set<PageLayout*>::iterator i = boxes.begin(); i != boxes.end(); i++)
+    for (page_layouts::iterator i = boxes.begin(); i != boxes.end(); i++)
         (*i)->Clear();
 
     textBoxIds.clear();
     Layout::Clear();
 }
+
 
 
 // ============================================================================
@@ -1073,8 +1058,8 @@ void AnchorLayout::Draw(Layout *where)
 
     Vector3 &o = where->offset;
     IFTRACE(justify)
-            std::cerr << "AnchorLayout:"<<this<<":Draw(Layout *" << where
-            << ") translate to " << o <<std::endl;
+        std::cerr << "AnchorLayout:" << this << ":Draw(Layout *" << where
+                  << ") translate to " << o <<std::endl;
 
     glTranslatef(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());

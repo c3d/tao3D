@@ -1,0 +1,123 @@
+// ****************************************************************************
+//  Mobile.ddd                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Sample of lines of text rotating like a mobile.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Catherine Burvelle <catherine@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+//
+//
+// Images are free photos from http://www.folp.free.fr/
+// ****************************************************************************
+
+import "mobile.xl"
+
+page "Init",
+    shaded_background
+    scale_contents
+    font "Comic Sans MS", 40
+    text_box 0,0,600,400,
+        color "tao_sea"
+        paragraph_space 30, 30
+        align_center
+        text "Page de démarrage" en "Initial page."
+        paragraph_break
+        text_span
+            bold
+            text "Appuyez sur la touche 'flèche bas' pour voir l'exemple." en <<Hit "down" key to see the sample>>
+
+        paragraph_break
+
+        text "Revenez à cette page pour redémarrer." en "Come back to this page to watch the show again."
+
+
+
+// ============================================================================
+//
+//    PAGE SAMPLE
+//
+// ============================================================================
+
+
+page "Mobile",
+// ----------------------------------------------------------------------------
+//   Description du Mobile
+// ----------------------------------------------------------------------------
+    shaded_background
+    scale_contents
+    locally
+        show fade_in(page_time, 5)
+        text_box -200, slide_height/2-80, 1050, 80,
+            vertical_align 0
+            color "tao_sea"
+            font "Comic Sans MS", 50, bold
+            text "Quelle sera votre prochaine destination ? " en "What's your next destination ?"
+
+    mobile_story -200,300, 30,
+        mobile_nobullet 2,
+            color "white"
+            image 200,0,0.5,0.5, "amsterdam.jpg"
+        mobile_bullet 2, text "Amsterdam "
+        mobile_nobullet 3,
+            color "white"
+            image 500,0,0.5,0.5, "auxerre.jpg"
+        mobile_bullet 3, text "Auxerre"
+        mobile_nobullet 4,
+            color "white"
+            image 850,0,0.5,0.5, "grece.jpg"
+        mobile_bullet 4, text "La Grèce" en "Greece"
+        mobile_nobullet 5,
+            color "white"
+            image 100,0,0.5,0.5, "larochelle.jpg"
+        mobile_bullet 5, text "La Rochelle"
+        mobile_nobullet 6,
+            color "white"
+            image 850,0,0.5,0.5, "maldives.jpg"
+        mobile_bullet 6, text "Les îles Maldives" en "Maldive ilands"
+        mobile_nobullet 7,
+            color "white"
+            image 400,100,0.5,0.5, "madrid.jpg"
+        mobile_bullet 7, text "Madrid"

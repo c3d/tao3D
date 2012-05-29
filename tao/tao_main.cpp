@@ -40,6 +40,7 @@
 #include "tao_utf8.h"
 #include "version.h"
 #include "decryption.h"
+#include "normalize.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -531,6 +532,17 @@ text Main::Decrypt(text file)
         }
     }
     return "";
+}
+
+
+Tree *Main::Normalize(Tree *input)
+// ----------------------------------------------------------------------------
+//   Normalize the input tree
+// ----------------------------------------------------------------------------
+{
+    Renormalize renorm(Widget::Tao());
+    input = input->Do(renorm);
+    return input;
 }
 
 

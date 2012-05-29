@@ -18,8 +18,10 @@ Change log for Tao Presentations
 #2074 Some modules don't work correctly when swithing to quad buffer display
 #2072 VLCAudioVideo: implement efficient full screen playback through movie_fullscreen
 #2070 Crash enabling quad buffer stereoscopy on document with no page
+#2069 Document open on same page name as previous opened document
 #2067 Make language reference more easy to find in the online documentation
 #2066 Crash on invalid for loop
+#2053 Add "Mobile" template
 #2051 Crash after syntax error
 #2036 Add WaterSurface module
 

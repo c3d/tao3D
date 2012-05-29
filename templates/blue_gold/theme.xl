@@ -181,9 +181,7 @@ title_style ->
 // ----------------------------------------------------------------------------
 //   Default style for titles
 // ----------------------------------------------------------------------------
-    font "Chalk"
-    bold
-    font_size 180
+    font "Yanone Kaffeesatz", bold, 140
     color theme_color "lightblue"
     align 0.5
     vertical_align 0.5
@@ -314,9 +312,8 @@ story_box Body ->
         translate 400, 50, 30
         rotatez -6
         rotatex -35
-        text_box 0, 0, 950, 1200,
-            font "Chalk"
-            bold
+        text_box 0, 0, 1150, 1200,
+            font "Yanone Kaffeesatz"
             vertical_align 0.5
             align_left
             color "black"
@@ -343,7 +340,9 @@ image_box Body ->
     margins 100, 0
     paragraph_space 30, 30
     paragraph_break
-    font_size 90
+    font_size 110
+    line_width 2
+    line_color "white"
     text T
 
 
@@ -361,7 +360,9 @@ image_box Body ->
         translate -30, 10, 5
         color theme_color "lightblue"
         sphere 0, 0, 0, 25, 25, 10, 10, 10
-    font_size 70
+    font_size 90
+    line_width 2
+    line_color "white"
     text T
 
 

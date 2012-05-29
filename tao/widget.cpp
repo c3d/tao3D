@@ -1080,6 +1080,7 @@ void Widget::runProgramOnce()
         std::vector<XL::Error>::iterator ei;
         Window *window = taoWindow();
         XL::MAIN->errors->Clear();
+        window->clearErrors();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
             text pos = (*ei).Position();
@@ -1093,6 +1094,7 @@ void Widget::runProgramOnce()
                 window->addError(+message);
             }
         }
+        inError = true;
     }
 
     // Clean the end of the old menu list.
@@ -3559,9 +3561,9 @@ void Widget::refreshProgram()
                     sf.tree = prog->Do(renorm);
                     xl_tree_copy(prog, sf.tree);
                 }
-                inError = false;
             }
             updateProgramSource();
+            inError = false;
             needRefresh = true;
         }
         if (needRefresh)

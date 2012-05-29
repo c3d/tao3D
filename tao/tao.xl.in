@@ -139,6 +139,8 @@ stereoscopy_settings ->
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth)", {enable_stereoscopy "2dplusdepth"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth Declipse)", {enable_stereoscopy "2dplusdepth_declipse"; z_far 20000}
         chooser_choice tr "Enable stereoscopy (2D-plus-Depth far)", {enable_stereoscopy "2dplusdepth"; z_far 1e6}
+    if has_display_mode tridelity then
+        chooser_choice tr "Enable stereoscopy (Tridelity MV)", {enable_stereoscopy tridelity}
     if has_display_mode "anaglyph" then
         chooser_choice tr "Enable stereoscopy (anaglyph)", {enable_stereoscopy "anaglyph"}
     if has_display_mode "checkerboard" then

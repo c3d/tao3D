@@ -111,6 +111,9 @@ enable_stereoscopy(mode:name);
  * - "alioscopy": suitable encoding for
  *   <a href="http://www.alioscopy.com">Alioscopy® glass-free 3D
  *   displays</a>.
+ * - "tridelity": suitable encoding for
+ *   <a href="http://www.tridelity.com">Tridelity® glass-free 3D Multi-View
+ *   displays</a>.
  * @note Display modes are implemented as modules. Some modes may
  * or may not be available, depending on your version of Tao Presentations.
  * You can obtain a list of all
@@ -146,6 +149,8 @@ enable_stereoscopy(mode:name);
  *   compression verticale.
  * - "alioscopy": un encodage adapté aux
  *   <a href="http://www.alioscopy.com">écrans 3D Alioscopy® sans lunettes</a>.
+ * - "tridelity": un encodage adapté aux
+ *   <a href="http://www.tridelity.com">écrans Multi-Vue 3D Tridelity® sans lunettes</a>.
  * @note Les modes d'affichage sont implémentés sous forme de modules. Certains
  * peuvent ne pas être disponibles, selon votre version de Tao Presentations.
  * Vous pouvez obtenir une liste de tous les modes valides dans votre

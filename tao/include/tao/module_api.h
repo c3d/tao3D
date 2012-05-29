@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   22
-#define TAO_MODULE_API_AGE       3
+#define TAO_MODULE_API_CURRENT   23
+#define TAO_MODULE_API_AGE       4
 
 // ========================================================================
 //
@@ -324,10 +324,6 @@ struct ModuleApi
     // Default internal format is GL_RGBA8.
     ModuleApi::fbo *   (*newFrameBufferObject)(uint w, uint h);
 
-    // Create a new framebuffer object with a specified internal format.
-    ModuleApi::fbo *   (*newFrameBufferObjectWithFormat)(uint w, uint h,
-                                                         uint format);
-
     // Delete a framebuffer object.
     void               (*deleteFrameBufferObject)(ModuleApi::fbo * obj);
 
@@ -421,6 +417,14 @@ struct ModuleApi
     //    be a pointer previously passed to addWidget, or NULL to
     //    revert to the default display.
     void (*setCurrentWidget)(void * widget);
+
+    // ------------------------------------------------------------------------
+    //   Rendering to framebuffer/texture
+    // ------------------------------------------------------------------------
+
+    // Create a new framebuffer object with a specified internal format.
+    ModuleApi::fbo *   (*newFrameBufferObjectWithFormat)(uint w, uint h,
+                                                         uint format);
 };
 
 }

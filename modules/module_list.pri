@@ -30,6 +30,7 @@
        display_alioscopy \
        display_checkerboard \
        display_2dplusdepth \
+       display_tridelity \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \

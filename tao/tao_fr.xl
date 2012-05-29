@@ -27,6 +27,7 @@ if tr_lang <> tao_language and tao_language = "fr" then
     tr "Enable stereoscopy (2D-plus-Depth)", "Activer stéréoscopie (2D-plus-Depth)"
     tr "Enable stereoscopy (2D-plus-Depth Declipse)", "Activer stéréoscopie (2D-plus-Depth Declipse)"
     tr "Enable stereoscopy (2D-plus-Depth far)", "Activer stéréoscopie (2D-plus-Depth lointain)"
+    tr "Enable stereoscopy (Tridelity)", "Activer stéréoscopie (Tridelity MV)"
     tr "Enable stereoscopy (anaglyph)", "Activer stéréoscopie (anaglyphe)"
     tr "Enable stereoscopy (checkerboard)", "Activer stéréoscopie (damier)"
     tr "Increase eye distance", "Augmenter effet 3D"

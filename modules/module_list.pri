@@ -30,6 +30,7 @@
        display_alioscopy \
        display_checkerboard \
        display_2dplusdepth \
+       display_tridelity \
        shaders/monjori  \
        shaders/flares  \
        shaders/sinuous \
@@ -42,12 +43,12 @@
        carousel \
        revolving_texts \
        point_cloud \
-       network_access
+       network_access \
+       water_surface
     OTHER_MODULES =     \
         hello_world     \
         taoTester    \
-        database \
-        tao_synchro
+        database
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories
     LSOUT=$$system(ls)

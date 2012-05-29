@@ -148,6 +148,7 @@ panel 3 ->
 *   Keys to move into the presentation
 */
 key "Right" -> slider_next          // Move foward the presentation
+key "Space" -> slider_next
 key "Left"  -> slider_previous      // Move backward the presentation
 key "Return" -> slider_front_item 1 // Reset the presentation
 

@@ -54,6 +54,7 @@
 #include "assistant.h"
 #include "licence.h"
 #include "license_dialog.h"
+#include "normalize.h"
 
 #include <iostream>
 #include <sstream>
@@ -836,6 +837,7 @@ bool Window::saveFile(const QString &fileName)
     // function fails to save all the fonts of a multi-page doc
     // QApplication::processEvents();
 
+    bool needReload = false;
     do
     {
         QTextStream out(&file);
@@ -844,15 +846,19 @@ bool Window::saveFile(const QString &fileName)
         QApplication::setOverrideCursor(Qt::BusyCursor);
 #endif
 #ifndef CFG_NOSRCEDIT
-        out << srcEdit->toPlainText();
-#else
+        if (srcEdit->isVisible())
+        {
+            out << srcEdit->toPlainText();
+            needReload = true;
+        }
+        else
+#endif
         if (Tree *prog = taoWidget->xlProgram->tree)
         {
             std::ostringstream renderOut;
             renderOut << prog;
             out << +renderOut.str();
         }
-#endif
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -860,10 +866,11 @@ bool Window::saveFile(const QString &fileName)
     setCurrentFile(fileName);
 
     text fn = +fileName;
-
-    xlRuntime->LoadFile(fn);
-
-    updateProgram(fileName);
+    if (needReload)
+    {
+        taoWidget->loadFile(fn);
+        updateProgram(fileName);
+    }
 #ifndef CFG_NOSRCEDIT
     srcEdit->setXLNames(taoWidget->listNames());
 #endif
@@ -2349,8 +2356,10 @@ bool Window::updateProgram(const QString &fileName)
         // Clean menus and reload XL program
         resetTaoMenus();
         if (!sf->tree)
-            if (xlRuntime->LoadFile(fn, true))
+        {
+            if (taoWidget->loadFile(fn, true))
                 hadError = true;
+        }
 
         // Check if we can access the file
         if (!fileInfo.isWritable())
@@ -2358,7 +2367,7 @@ bool Window::updateProgram(const QString &fileName)
     }
     else
     {
-        if (xlRuntime->LoadFile(fn, true))
+        if (taoWidget->loadFile(fn, true))
             return true;
         sf = &xlRuntime->files[fn];
     }
@@ -2555,8 +2564,7 @@ void Window::updateContext(QString docPath)
     QStringList mods = ModuleManager::moduleManager()->anonymousXL();
     foreach (QString module, mods)
         contextFileNames.push_back(+module);
-
-    XL::MAIN->LoadContextFiles(contextFileNames);
+    taoWidget->loadContextFiles(contextFileNames);
 }
 
 

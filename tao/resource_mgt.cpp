@@ -109,7 +109,8 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
         inf = inf->LastStatement();
         IFTRACE(resources)
         {
-            std::cerr << "Return last arg: "<<inf->right->AsText()<< std::endl;
+            std::cerr << "Return last arg: "
+                      << inf->right->AsText() << std::endl;
         }
         return inf->right->AsText();
     }
@@ -125,16 +126,13 @@ Text * ResourceMgt::getArg(Prefix * what, int pos)
     }
 
     IFTRACE(resources)
-    {
-        std::cerr << "pos is: "<<pos<< std::endl;
-    }
+        std::cerr << "pos is: "<< pos << std::endl;
+
     if (next && (next->name ==  "\n" || next->name == ";"))
     {
         IFTRACE(resources)
-        {
-            std::cerr << "returning next->right: "<< next->right->AsText()
-                    << std::endl;
-        }
+            std::cerr << "returning next->right: " << next->right->AsText()
+                      << std::endl;
         return next->right->AsText();
     }
 

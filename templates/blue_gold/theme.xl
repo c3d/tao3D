@@ -181,7 +181,7 @@ title_style ->
 // ----------------------------------------------------------------------------
 //   Default style for titles
 // ----------------------------------------------------------------------------
-    font "Yanone Kaffeesatz", bold, 140
+    font "Yanone Kaffeesatz", "Yanone Kaffeesatz Regular", bold, 140
     color theme_color "lightblue"
     align 0.5
     vertical_align 0.5
@@ -313,7 +313,7 @@ story_box Body ->
         rotatez -6
         rotatex -35
         text_box 0, 0, 1150, 1200,
-            font "Yanone Kaffeesatz"
+            font "Yanone Kaffeesatz", "Yanone Kaffeesatz Regular"
             vertical_align 0.5
             align_left
             color "black"

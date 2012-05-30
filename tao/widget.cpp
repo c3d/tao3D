@@ -497,6 +497,7 @@ Widget::~Widget()
 // ----------------------------------------------------------------------------
 {
     xlProgram = NULL;           // Mark widget as invalid
+    current = NULL;
     delete space;
     delete path;
     delete mouseFocusTracker;
@@ -881,7 +882,7 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inError || inDraw)
+    if (inDraw)
         return false;
 
     if (gotoPageName != "")
@@ -1080,6 +1081,7 @@ void Widget::runProgramOnce()
         std::vector<XL::Error>::iterator ei;
         Window *window = taoWindow();
         XL::MAIN->errors->Clear();
+        window->clearErrors();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
             text pos = (*ei).Position();
@@ -1093,6 +1095,7 @@ void Widget::runProgramOnce()
                 window->addError(+message);
             }
         }
+        inError = true;
     }
 
     // Clean the end of the old menu list.
@@ -3387,6 +3390,26 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
+int Widget::loadFile(text name, bool updateContext)
+// ----------------------------------------------------------------------------
+//   Load regular source file in current widget
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    return XL::MAIN->LoadFile(name, updateContext);
+}
+
+
+void Widget::loadContextFiles(XL::source_names &files)
+// ----------------------------------------------------------------------------
+//   Load context files in current context
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    XL::MAIN->LoadContextFiles(files);
+}    
+
+
 void Widget::reloadProgram(XL::Tree *newProg)
 // ----------------------------------------------------------------------------
 //   Set the program to reload
@@ -3550,20 +3573,15 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
+            TaoSave saveCurrent(current, this);
             purgeTaoInfo();
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
                 XL::MAIN->LoadFile(sf.name);
-                if (XL::Tree *prog = sf.tree)
-                {
-                    Renormalize renorm(this);
-                    sf.tree = prog->Do(renorm);
-                    xl_tree_copy(prog, sf.tree);
-                }
-                inError = false;
             }
             updateProgramSource();
+            inError = false;
             needRefresh = true;
         }
         if (needRefresh)

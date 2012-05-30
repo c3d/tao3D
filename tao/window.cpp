@@ -868,7 +868,7 @@ bool Window::saveFile(const QString &fileName)
     text fn = +fileName;
     if (needReload)
     {
-        xlRuntime->LoadFile(fn);
+        taoWidget->loadFile(fn);
         updateProgram(fileName);
     }
 #ifndef CFG_NOSRCEDIT
@@ -2357,7 +2357,7 @@ bool Window::updateProgram(const QString &fileName)
         resetTaoMenus();
         if (!sf->tree)
         {
-            if (xlRuntime->LoadFile(fn, true))
+            if (taoWidget->loadFile(fn, true))
                 hadError = true;
         }
 
@@ -2367,18 +2367,10 @@ bool Window::updateProgram(const QString &fileName)
     }
     else
     {
-        if (xlRuntime->LoadFile(fn, true))
+        if (taoWidget->loadFile(fn, true))
             return true;
         sf = &xlRuntime->files[fn];
     }
-
-    if (Tree *prog = sf->tree)
-    {
-        Renormalize renorm(taoWidget);
-        sf->tree = prog->Do(renorm);
-        xl_tree_copy(prog, sf->tree);
-    }
-
 
     taoWidget->updateProgram(sf);
     taoWidget->updateGL();
@@ -2572,8 +2564,7 @@ void Window::updateContext(QString docPath)
     QStringList mods = ModuleManager::moduleManager()->anonymousXL();
     foreach (QString module, mods)
         contextFileNames.push_back(+module);
-
-    XL::MAIN->LoadContextFiles(contextFileNames);
+    taoWidget->loadContextFiles(contextFileNames);
 }
 
 

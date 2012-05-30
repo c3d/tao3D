@@ -114,6 +114,7 @@ picture_slider ->
     automatic_slider
     slider_loop true
     slider_offset 8, 0, 0
+    slider_max_items (pictures_number + 1)
     slider pictures_number, picture
 
 

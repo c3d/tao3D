@@ -1,7 +1,8 @@
 Change log for Tao Presentations
 
-1.10
+1.10 (30-May-2012)
 
+#2123 Page chooser: strip newline character
 #2119 Occasionally, reloading with only constant changes will cause a complete reload
 #2117 "Save" destroys changes and saves old version
 #2115 image primitive does not honor the global texture filter settings
@@ -23,6 +24,7 @@ Change log for Tao Presentations
 #2066 Crash on invalid for loop
 #2053 Add "Mobile" template
 #2051 Crash after syntax error
+#2043 Add support for Tridelity multi-view displays
 #2036 Add WaterSurface module
 
 1.09 (04-May-2012)

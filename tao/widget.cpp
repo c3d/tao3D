@@ -2174,7 +2174,9 @@ void Widget::reset()
     animated = true;
     blanked = false;
     stereoIdent = false;
-    pageShown = 1;
+    pageShown = 1;       // BUG #1986
+    gotoPageName = "";   // BUG #2069
+    pageName = "";       // BUG #2069
 }
 
 

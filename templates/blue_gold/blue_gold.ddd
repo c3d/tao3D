@@ -81,7 +81,7 @@
 
 import SlideShow3D
 
-slide "Water, blue gold" fr "L'eau, l'or bleu",
+slide "Water, the blue gold" fr "L'eau, l'or bleu",
 // -------------------------------------------------
 //    Main slide
 // -------------------------------------------------
@@ -104,9 +104,9 @@ panel 1 ->
     // Contents of the panel
     story_box 
         *"On earth..." fr "Sur la terre..."
-        -"70% of water, but only 0.3% accessible and drinkable." fr "70% d'eau, dont seulement 0.3% de potable et d'accessible." 
-        -"9 countries are divided 60% of the world reserves." fr "Neuf pays se partagent 60% des réserves mondiales." 
-        -"1.5 billions of people have no access to drinkable water." fr "1,5 milliards de personnes n'ont pas accès à l'eau potable."
+        -"70% of water, but only 0.3% is accessible and drinkable." fr "70% d'eau, dont seulement 0.3% d'eau potable et accessible."
+        -"9 countries have 60% of the world reserves." fr "Neuf pays se partagent 60% des réserves mondiales."
+        -"1.5 billion people have no access to drinkable water." fr "1,5 milliard de personnes n'ont pas accès à l'eau potable."
     // Left image
     image_box
         +"water_withdrawals.jpg" fr "carte_eau.jpg"
@@ -114,15 +114,15 @@ panel 1 ->
 
 panel 2 ->
 // -------------------------------------------------
-//    Draw second panle of the slide
+//    Draw second panel of the slide
 // -------------------------------------------------
     show (slider_fade_y 10)
     // Contents of the panel
     story_box 
         *"Problems of water management" fr "Problèmes de gestion de l'eau" 
-        -"An european uses 8 times more water today than before" fr "1,5 milliards de personnes n'ont pas accès à l'eau potable." 
-        -"The farming uses 70 % of the world takings with approximately 50% lost." fr "L'agriculture utilise 70% des prélevements mondiaux dont environ 50% de perdus." 
-        -"Pollution of ecosystems by sewerage." fr "Pollutions des ecosystèmes par les eaux usées."
+        -"A european uses 8 times more water today than before." fr "Un Européen utilise 8 fois plus d'eau que par le passé."
+        -"Farming accounts for 70% of water used in the world, with approximately 50% lost." fr "L'agriculture représente 70% des prélevements mondiaux dont environ 50% sont perdus." 
+        -"Ecosystems are polluted by sewerage." fr "Les écosystèmes sont pollués par les eaux usées."
     // Left image
     image_box 
         +"agricultural_use.png" fr "agricultures.jpg"
@@ -136,8 +136,8 @@ panel 3 ->
     // Contents of the pane
     story_box 
         *"Towards a drinkable water shortage" fr "Vers une pénurie d'eau potable" 
-        -"The water consumption increases twice as fast that the demographic growth rate." fr "La consommation d'eau augmente deux fois plus vite que le taux de croissante démographique." 
-        -"Before 2025, the quantity of available fresh water should fall of a third." fr "D'ici 2025, la quantité d'eau douce disponible devrait avoir chutée d'un tiers." 
+        -"Water consumption increases twice as fast as the demographic growth rate." fr "La consommation d'eau augmente deux fois plus vite que le taux de croissante démographique." 
+        -"Before 2025, the quantity of available fresh water will be reduced by one third." fr "D'ici 2025, la quantité d'eau douce disponible devrait avoir chuté d'un tiers." 
         -"Then, 35% of humans will be concerned by the water shortage." fr "A cette date, 35% des humains seront concernés par la pénurie d'eau."
     // Left image
     image_box
@@ -148,6 +148,7 @@ panel 3 ->
 *   Keys to move into the presentation
 */
 key "Right" -> slider_next          // Move foward the presentation
+key "Space" -> slider_next
 key "Left"  -> slider_previous      // Move backward the presentation
 key "Return" -> slider_front_item 1 // Reset the presentation
 

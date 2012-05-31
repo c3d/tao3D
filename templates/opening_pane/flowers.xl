@@ -1,0 +1,175 @@
+// ****************************************************************************
+//  flowers.xl                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Flowers, leaves, spirals and arabesque.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+watermark -> "white"
+
+spiral X, Y, Z ->
+// ----------------------------------------------------------------------------
+//   Draw a spiral
+// ----------------------------------------------------------------------------
+    locally
+        color "transparent"
+        line_color watermark
+        translate X, Y, Z
+        scale3 0.4
+        rotatez 20 * time
+        path
+            cubic_to  20,  50, 0,      50,   0, 0,      25, -25, 0
+            cubic_to   0, -50, 0,     -50, -10, 0,     -30,  30, 0
+            cubic_to   0,  80, 0,      50,  50, 0,      60,  30, 0
+            cubic_to  80,   0, 0,      70, -50, 0,      50, -60, 0
+
+// ----------------------------------------------------------------------------
+//   Draw 3 kinds of flowers
+// ----------------------------------------------------------------------------
+petal N ->
+    locally
+        rotatez N*72
+        circle 15, 0, 7
+
+flower X, Y, Z ->
+    locally
+        line_color "transparent"
+        translate X, Y, Z
+        rotatez 20 * time
+        color watermark
+        circle 0, 0, 4
+        petal with 0..4
+
+petal2 N ->
+    locally
+        rotatez N*72
+        path
+            cubic_to 50, 50, 0,     50, -50, 0,     0, 0, 0
+
+
+flower2 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        color watermark
+        line_color "transparent"
+        petal2 with 0..4
+
+petal3 N ->
+    locally
+        rotatez N*72
+        translatex 10
+        path
+            cubic_to 50, 50, 0,     50, -50, 0,     0, 0, 0
+
+flower3 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        line_color "transparent"
+        color watermark
+        circle 0, 0, 6
+        color "transparent"
+        line_color watermark
+        petal3 with 0..4
+
+arabesque X, Y, Z ->
+// ----------------------------------------------------------------------------
+//   Draw an arabesque
+// ----------------------------------------------------------------------------
+    locally
+        translate X, Y, Z
+        color watermark
+        circle 5,-1,5
+        path
+            cubic_to   20,   50, 0,      50,    0, 0,      25,  -25, 0
+            cubic_to    0,  -50, 0,     -50,  -10, 0,     -30,   30, 0
+            cubic_to    0,   80, 0,      50,   50, 0,      60,   30, 0
+            cubic_to   80,    0, 0,      65,  -50, 0,      45,  -60, 0
+            cubic_to  -50, -120, 0,    -270,  -50, 0,    -300, -300, 0
+            cubic_to -260,  -60, 0,     -40, -130, 0,      50,  -75, 0
+            cubic_to   85,  -50, 0,      95,    0, 0,      80,   30, 0
+            cubic_to   60,   80, 0,     -20,   80, 0,     -40,   30, 0
+            cubic_to  -55,  -15, 0,       0,  -55, 0,      25,  -30, 0
+            cubic_to   50,    0, 0,      20,   50, 0,       0,    0, 0
+
+fall tt:real, T:tree ->
+// ----------------------------------------------------------------------------
+//   Fall movement
+// ----------------------------------------------------------------------------
+    locally
+        if sin (tt/3) > 0 then
+            translatey (window_height + 100) / 2 * cos (tt/3)
+            translatex 20 * sin (tt*2)
+            rotatez 25 * cos (tt/2)
+            T
+
+
+// ----------------------------------------------------------------------------
+//   Draw 2 kinds of leaf
+// ----------------------------------------------------------------------------
+leaf1 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        scale3 0.2
+        line_color "transparent"
+        color watermark
+        path
+            cubic_to -140, 100,0,    -250, -50,0,    -300,-50,0
+            cubic_to -250,-100,0,    -150,-150,0,       0,  0,0
+
+leaf2 X, Y, Z ->
+    locally
+        translate X, Y, Z
+        scale3 0.2
+        line_color "transparent"
+        color watermark
+        path
+            cubic_to -140, 100,0,    -240, -60, 0,    -300, -50, 0
+            cubic_to -250,-100,0,    -150,-150, 0,      20, -20, 0
+            quad_to  -100,   0, 0,   -180, -60, 0
+            quad_to   -90,  50, 0,      0,   0, 0
+

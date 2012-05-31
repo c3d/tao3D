@@ -1,5 +1,32 @@
 Change log for Tao Presentations
 
+1.10 (30-May-2012)
+
+#2123 Page chooser: strip newline character
+#2119 Occasionally, reloading with only constant changes will cause a complete reload
+#2117 "Save" destroys changes and saves old version
+#2115 image primitive does not honor the global texture filter settings
+#2113 Add Blue Gold template to illustrate WaterSurface module
+#2111 Windows installer: missing component descriptions
+#2098 Regression since 1.09: Pan and Zoom no longer works
+#2097 White texture on white background has grey borders
+#2096 Add primitives texture_min_filter and texture_mag_filter
+#2095 Make it possible to rotate around current position of text cursor
+#2094 Using translate inside a locally inside a text box impacts the rest of the text box
+#2093 Add frame_pixel_count primitive to count non-transparent pixels in a canvas
+#2090 Windows, MacOSX: Upgrade to Qt 4.8.1
+#2079 Memory leak when screen is blanked or shows stereo identification pattern
+#2074 Some modules don't work correctly when swithing to quad buffer display
+#2072 VLCAudioVideo: implement efficient full screen playback through movie_fullscreen
+#2070 Crash enabling quad buffer stereoscopy on document with no page
+#2069 Document open on same page name as previous opened document
+#2067 Make language reference more easy to find in the online documentation
+#2066 Crash on invalid for loop
+#2053 Add "Mobile" template
+#2051 Crash after syntax error
+#2043 Add support for Tridelity multi-view displays
+#2036 Add WaterSurface module
+
 1.09 (04-May-2012)
 
 #2064 Add template: Simple slides

@@ -23,13 +23,42 @@ doo(){
   "$@"
 }
 
+# If specified Doxyfile contains an @INCLUDE command, return the path to
+# the directory that contains the included file.
+find_included_doxyfile_dir() {
+    local included=`cat $1 | awk '/@INCLUDE/{print $3}'`
+    [ "$included" ] && dirname $included
+}
+
+# Look for a default layout file for a given Doxyfile and language
+find_doxygenlayout() {
+    local doxyfile=$1
+    local lang=$2
+
+    local doxyfile_dir=`dirname $doxyfile`
+    local included_doxyfile_dir=`find_included_doxyfile_dir $doxyfile`
+    totest="$doxyfile_dir/DoxygenLayout_$lang.xml"
+    [ "$included_doxyfile_dir" ] && totest="$totest $included_doxyfile_dir/DoxygenLayout_$lang.xml"
+    totest="$totest $doxyfile_dir/DoxygenLayout.xml"
+    [ "$included_doxyfile_dir" ] && totest="$totest $included_doxyfile_dir/DoxygenLayout.xml"
+    for t in $totest ; do
+       if [ -e "$t" ] ; then
+           echo $t
+           return
+       fi
+    done
+}
+
 if [ -e "$DOXYFILE" ] ; then
     LANGUAGES=`echo $DOXYLANG | tr , ' '`
     for lang in $LANGUAGES ; do
+        doxygenlayout=`find_doxygenlayout $DOXYFILE $lang`
+        [ "$doxygenlayout" ] && echo "[doxygen.sh] # Using layout file: $doxygenlayout"
         htmlout=output/$lang/html
         qchout=output/$lang/qch
         (
             cat "$DOXYFILE" ;
+            [ "$doxygenlayout" ] && echo LAYOUT_FILE = $doxygenlayout ;
             echo OUTPUT_LANGUAGE=`longname $lang` ;
             echo HTML_OUTPUT=$htmlout
         ) > Doxyfile.tmp

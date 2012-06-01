@@ -46,7 +46,7 @@ equals(HAS_DOXYGEN, 1) {
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_geeks_en.png; $$DOXYGEN
+  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_logo.png; $$DOXYGEN
   doc.depends = cp_examples cp_logo version xlref
 
   webdoc.commands = doxygen DoxyfileWebdoc
@@ -62,7 +62,7 @@ equals(HAS_DOXYGEN, 1) {
                                 cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
                                 for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
 
-  cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_geeks_en.png output/\$\$l/html ; done
+  cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_logo.png output/\$\$l/html ; done
 
   xlref.target = XLRef.html
   equals(HAS_TEXMACS, true) {

@@ -51,6 +51,8 @@ FILES_COMMON = \
 	modules/module_list.pri \
 	modules/tbl_wrap \
 	modules/Doxyfile \
+	modules/DoxygenLayout_en.xml \
+	modules/DoxygenLayout_fr.xml \
 	$(OBJECT_LOADER_FILES) \
 	$(HELLO_WORLD_FILES) \
 	$(LOREM_IPSUM_FILES) \

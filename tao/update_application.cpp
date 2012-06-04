@@ -91,7 +91,7 @@ void UpdateApplication::update()
 //    Prepare to launch update
 // ----------------------------------------------------------------------------
 {
-    QString name = QString("Tao Presentations %1 %2").arg(edition).arg(version);
+    QString name = QString("Tao Presentations %1 %2").arg(edition).arg(version, 0, 'f', 2);
 
     // Ask for update
     QString title = tr("%1 available").arg(name);

@@ -26,7 +26,7 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
 #elif defined(Q_OS_WIN)
     from = "git://git.taodyne.com/software/win/";
 #else
-    from = "git://git.taodyne.com/software/linux32/others/";
+    from = "git://git.taodyne.com/software/linux";
 
     // Check if we are on Debian or Ubuntu distribution to get .deb package
     QString cmd("uname");
@@ -35,8 +35,20 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
     Process cp(cmd, args);
     text errors, output;
     if(cp.done(&errors, &output))
-        if(output.find("Ubuntu") || output.find("Debian"))
-            from = "git://git.taodyne.com/software/linux32/debian/";
+    {
+        // Check bits number
+        if(output.find("x86_64") != output.npos)
+            from += "64";
+        else
+            from += "32";
+
+        // Check os name
+        if(output.find("Ubuntu") != output.npos ||
+           output.find("Debian") != output.npos)
+            from += "/debian/";
+        else
+            from += "/others/";
+    }
 #endif
 
 #ifdef TAO_EDITION
@@ -65,7 +77,7 @@ void UpdateApplication::check(bool msg)
         if(!repo)
         {
             IFTRACE(update)
-                    debug() << "Begin check for update from" << from.toStdString() << std::endl;
+                    debug() << "Begin check for update from " << from.toStdString() << std::endl;
 
             // Use empty repository
             repo = RepositoryFactory::repository("", RepositoryFactory::NoLocalRepo);

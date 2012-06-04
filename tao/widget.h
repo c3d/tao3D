@@ -224,6 +224,8 @@ public:
     bool        sourceChanged();
     void        normalizeProgram();
     void        updateProgram(SourceFile *sf);
+    int         loadFile(text file, bool updateContext = false);
+    void        loadContextFiles(XL::source_names &files);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
     void        preloadSelectionCode();
@@ -496,6 +498,8 @@ public:
     Integer*    fillTextureFromSVG(Context *, Tree_p self, text svg);
     Tree_p      textureWrap(Tree_p self, bool s, bool t);
     Tree_p      textureMode(Tree_p self, text mode);
+    Tree_p      textureMinFilter(Tree_p self, text filter);
+    Tree_p      textureMagFilter(Tree_p self, text filter);
     Tree_p      textureTransform(Context *context, Tree_p self, Tree_p code);
     Integer*    textureWidth(Tree_p self);
     Integer*    textureHeight(Tree_p self);

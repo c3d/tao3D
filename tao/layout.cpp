@@ -672,7 +672,7 @@ void LayoutState::toDebugString(std::ostream &out) const
 //   Show debug information
 // ----------------------------------------------------------------------------
 {
-    out << "LayoutState["<<this<<"]\n";
+    out << "LayoutState[" << this << "]\n";
     out << "\tfont            = " << font.toString().toStdString() << std::endl;
     out << "\tleft            = " << left << std::endl;
     out << "\tright           = " << right << std::endl;

@@ -384,6 +384,10 @@ void Chooser::AddItem(text caption, Tree *function)
 //    Add an item to the list
 // ----------------------------------------------------------------------------
 {
+    // Multiple spaces, tabs, newlines... are replaced by a single space
+    QString qcap(+caption);
+    caption = +qcap.replace(QRegExp("\\s+"), " ");
+
     items.push_back(ChooserItem(caption, function));
 }
 

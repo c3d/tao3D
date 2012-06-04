@@ -302,3 +302,13 @@ PREFIX(HasTexture, tree,  "has_texture",
        SYNOPSIS("Return result of evaluation.")
        DESCRIPTION("Return result of evaluation.")
        RETURNS(tree, "Return result of evaluation."))
+PREFIX(SetTextureMinFilter,  tree,  "texture_min_filter",
+       PARM(fn, text, "The texture minifying function (GL_NEAREST, GL_LINEAR etc.)"),
+       RTAO(textureMinFilter(self, fn)),
+       GROUP(graph)
+       SYNOPSIS("Set the texture minifying filter function"))
+PREFIX(SetTextureMagFilter,  tree,  "texture_mag_filter",
+       PARM(fn, text, "The texture magnification function (GL_NEAREST, GL_LINEAR etc.)"),
+       RTAO(textureMagFilter(self, fn)),
+       GROUP(graph)
+       SYNOPSIS("Set the texture magnification filter function"))

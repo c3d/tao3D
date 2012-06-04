@@ -42,7 +42,6 @@ struct Manipulator : Drawing
 {
     typedef const Point3 &      kPoint3;
 
-    virtual text        Type() {return "Manipulator";}
     Manipulator(Tree *self);
 
     virtual void        Draw(Layout *layout);

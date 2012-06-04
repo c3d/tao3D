@@ -15,7 +15,10 @@ DEFAULT_TEMPLATES =   \
     picture_slider \
     shift \
     simple_slides \
-    opening_pane
+    opening_pane \
+    blue_gold \
+    rising_text \
+    mobile
 
 OTHER_TEMPLATES =     \
     mapping \

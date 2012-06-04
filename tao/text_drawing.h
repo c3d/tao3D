@@ -41,7 +41,7 @@ struct TextUnit : Shape
         : Shape(), source(source), start(start), end(end) {
         IFTRACE(justify)
         {
-            std::cerr << "<->TextUnit::TextUnit["<<this<<"]";
+            std::cerr << "<->TextUnit::TextUnit[" << this << "]";
             toDebugString(std::cerr);
         }
     }
@@ -49,7 +49,7 @@ struct TextUnit : Shape
     {
         source = NULL;
         IFTRACE(justify)
-            std::cerr << "<->TextUnit::~TextUnit["<<this<<"]\n";
+            std::cerr << "<->TextUnit::~TextUnit[" << this << "]\n";
     }
 
     virtual void        Draw(Layout *where);
@@ -60,7 +60,6 @@ struct TextUnit : Shape
     virtual TextUnit *  Break(BreakOrder &order, uint &sz);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
-    virtual text        Type()      { return "TextUnit"; }
 
     void                toDebugString(std::ostream &out);
     void                toText(std::ostream &out);

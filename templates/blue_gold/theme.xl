@@ -1,0 +1,382 @@
+// ****************************************************************************
+//  theme.xl                                                      Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Definitions for the "Blue Gold" template.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Baptiste Soulisse <soulisse@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+import Animate
+import WaterSurface
+
+// ============================================================================
+//
+//   Language management
+//
+// ============================================================================
+
+// Switching languages
+LANG -> ""
+lang -> if LANG = "" then tao_language else LANG
+Fr:text en En:text      -> if lang = "en" then En else Fr
+En:text fr Fr:text      -> if lang = "fr" then Fr else En
+french Body             -> if lang = "fr" then Body
+english Body            -> if lang = "en" then Body
+language L:text         -> LANG := L; refresh 0.1
+
+// Menu entries
+menu      "menu:language", tr "Language"
+menu_item "menu:language > French", tr "French",
+    language "fr"
+menu_item "menu:language > English", tr "English",
+    language "en"
+
+// Translation of menu entries
+if tr_lang <> tao_language and tao_language = "fr" then
+    tr "Language", "Langue"
+    tr "English", "Anglais"
+    tr "French", "Français"
+
+
+// ============================================================================
+//
+//     Page settings
+//
+// ============================================================================
+
+// Logical dimensions for the slide. You can put anything you want here,
+// but the aspect ratio should match that of the background picture and be
+// close to the aspect ratio of the screens you are going to use.
+// This will be used to define the logical coordinates of anything that
+// follows "scale_contents".
+// Here, we use the size of our background picture
+slide_width  -> 1920
+slide_height -> 1280
+
+
+
+// ============================================================================
+//
+//    General description of the slide
+//
+// ============================================================================
+
+slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default story slide
+// ----------------------------------------------------------------------------
+    base_slide Title,
+        locally
+            Body
+            scale_contents
+        slide_default_title
+
+
+base_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a base slide (no story, no layout)
+// ----------------------------------------------------------------------------
+    page Title,
+        clear_color 1, 1, 1, 1
+        Body
+
+
+background Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw something in the background. Backgrounds always fill the screen.
+// ----------------------------------------------------------------------------
+    locally
+        scale_background
+        ztrans_background Depth
+        Body
+
+
+contents Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw contents, i.e. always fit in the screen
+// ----------------------------------------------------------------------------
+    locally
+        scale_contents
+        ztrans_contents Depth
+        Body
+
+
+slide_default_title ->
+// ----------------------------------------------------------------------------
+//    Draw the default title, using the page's title
+// ----------------------------------------------------------------------------
+    title
+        text page_label
+
+
+title Body ->
+// ----------------------------------------------------------------------------
+//   Draw a titlee
+// ----------------------------------------------------------------------------
+    locally
+      title_style
+      scale_contents
+      frame_texture 450, 550,
+        text_box 0, 0, 450, 550,
+          align 0.5
+          vertical_align 0.5
+          color "white"
+          Body
+      translate -400, 400, 20
+      rotatez 6
+      locally
+          translate 7, -7, -10
+          color "black", 0.3
+          rectangle 450,550
+      locally
+          rectangle 450,550
+
+
+title_style ->
+// ----------------------------------------------------------------------------
+//   Default style for titles
+// ----------------------------------------------------------------------------
+    font "Yanone Kaffeesatz", "Yanone Kaffeesatz Regular", bold, 140
+    color theme_color "lightblue"
+    align 0.5
+    vertical_align 0.5
+
+
+slide_text_box X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a box containing text or other elements
+// ----------------------------------------------------------------------------
+    locally
+        scale_contents
+        slide_text_box_noscale X, Y, W, H, Body
+
+
+
+slide_text_box_noscale X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a text box with decorations
+// ----------------------------------------------------------------------------
+    locally
+        ztrans_contents -200
+        color "black", 0.5
+        line_width 3
+        line_color theme_color "lightblue"
+        rounded_rectangle X, Y, W+5, H+5, 20
+    text_box X, Y, W, H, Body
+
+
+// ============================================================================
+//
+//   Water theme
+//
+// ============================================================================
+
+raining Img:text, Number:integer ->
+    reset_transform
+    background -6000,
+        locally
+            locally
+                seconds
+                add_random_drops "rain", Number
+            // Bind underwater texture
+            texture_unit 1
+            texture Img
+            colored_water_surface "rain", slide_width * 110%, slide_height * 110%
+
+mouse_drop ->
+    enable_selection_rectangle false
+    locally
+        add_drop "rain", mouse_x / window_width, mouse_y / window_width, 0.6, 0.1
+
+
+// ============================================================================
+//
+//    Smart rescaling of the contents
+//
+// ============================================================================
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture, using the ma function.
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents, using the min function.
+background_scale -> max(window_width/slide_width, window_height/slide_height)
+contents_scale   -> min(window_width/slide_width, window_height/slide_height)
+scale_background -> scale3 background_scale
+scale_contents   -> scale3 contents_scale
+scale3 S:real    -> scale S, S, S
+
+ztrans_contents Z:real ->
+// ----------------------------------------------------------------------------
+//   Translate a content in Z without a change in apparent dimensions
+// ----------------------------------------------------------------------------
+    Z0 -> camera_position at 3
+    translatez Z/contents_scale
+    scale3 (Z0-Z)/Z0
+
+
+ztrans_background Z:real ->
+// ----------------------------------------------------------------------------
+//    Translate a backgtround in Z without a change in apparent dimensions
+// ----------------------------------------------------------------------------
+    Z0 -> camera_position at 3
+    translatez Z/background_scale
+    scale3 (Z0-Z)/Z0
+
+
+
+// ============================================================================
+//
+//    Colors
+//
+// ============================================================================
+
+// A few colors we selected for the theme (these are from the Taodyne palette)
+theme_color "red"       -> "#AA0022"
+theme_color "orange"    -> "#DD3311"
+theme_color "yellow"    -> "#EEAA11"
+theme_color "green"     -> "#88BB00"
+theme_color "ocean"     -> "#229988"
+theme_color "sky"       -> "#3399FF"
+theme_color "navy"      -> "#003366"
+theme_color "purple"    -> "#CC0099"
+theme_color "grey"      -> "#555"
+theme_color "lightblue" -> "#3399FF"
+theme_color "darkblue"  -> "#003366"
+theme_color "darkgreen" -> "#006633"
+theme_color "blue1"    -> "#D0EAF0"
+theme_color "blue2"    -> "#8FB4CB"
+theme_color "blue3"    -> "#7AA9C1"
+theme_color "blue4"    -> "#1D456B"
+
+
+
+// ============================================================================
+//
+//   Bullets and paragraphs
+//
+// ============================================================================
+
+
+story_box Body ->
+// ----------------------------------------------------------------------------
+//   Story box
+// ----------------------------------------------------------------------------
+    locally
+        scale_contents
+        translate 400, 50, 30
+        rotatez -6
+        rotatex -35
+        text_box 0, 0, 1150, 1200,
+            font "Yanone Kaffeesatz", "Yanone Kaffeesatz Regular"
+            vertical_align 0.5
+            align_left
+            color "black"
+            Body
+
+
+image_box Body ->
+// ----------------------------------------------------------------------------
+//   Image box
+// ----------------------------------------------------------------------------
+    locally
+        color "white"
+        scale_contents
+        line_color "black"
+        translate -600, -210, 0
+        rotatey 35
+        Body
+
+
+* T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a bullet point with a given text
+// ----------------------------------------------------------------------------
+    margins 100, 0
+    paragraph_space 30, 30
+    paragraph_break
+    font_size 110
+    line_width 2
+    line_color "white"
+    text T
+
+
+- T:text ->
+// ----------------------------------------------------------------------------
+//   Draw a second-level bullet point
+// ----------------------------------------------------------------------------
+    margins 200, 0
+    paragraph_space 0, 0
+    paragraph_break
+    anchor
+        line_width 0
+        light 0
+        light_position 100, 100, 100
+        translate -30, 10, 5
+        color theme_color "lightblue"
+        sphere 0, 0, 0, 25, 25, 10, 10, 10
+    font_size 90
+    line_width 2
+    line_color "white"
+    text T
+
+
++ T:text ->
+// ----------------------------------------------------------------------------
+//  Show a simple image
+// ----------------------------------------------------------------------------
+    image_px 0, 0, 800, 600, T
+
+
+$ T:text ->
+// ----------------------------------------------------------------------------
+//  Show a simple paragraph
+// ----------------------------------------------------------------------------
+    paragraph_break
+    text T
+

@@ -44,12 +44,20 @@ struct FrameInfo : XL::Info, InfoTrashCan
     typedef std::map<const QGLContext *, QGLFramebufferObject *> fbo_map;
     typedef std::map<const QGLContext *, GLuint> tex_map;
 
-    FrameInfo(uint width = 512, uint height = 512);
+// On MacOSX, GL_RGBA8 is not supported
+#if defined(Q_OS_MACX)
+    FrameInfo(uint width = 512, uint height = 512, uint format = GL_RGBA);
+#else
+    FrameInfo(uint width = 512, uint height = 512, uint format = GL_RGBA8);
+#endif
+
     FrameInfo(const FrameInfo &other);
     ~FrameInfo();
     virtual void Delete() { trash.push_back(this); }
 
     void        resize(uint width, uint height);
+    void        setFormat(uint format);
+
     void        begin(bool clearContents = true);
     void        end();
     GLuint      bind();
@@ -59,6 +67,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
     QImage      toImage();
 
     uint    w, h;
+    uint    format; // Internal texture format
     double  refreshTime;
     fbo_map render_fbos;
     fbo_map texture_fbos;
@@ -72,6 +81,8 @@ struct FrameInfo : XL::Info, InfoTrashCan
     // Static methods exported by the module interface. See module_api.h.
 
     static ModuleApi::fbo *   newFrameBufferObject(uint w, uint h);
+    static ModuleApi::fbo *   newFrameBufferObjectWithFormat(uint w, uint h,
+                                                             uint format);
     static void               deleteFrameBufferObject(ModuleApi::fbo * obj);
     static void               resizeFrameBufferObject(ModuleApi::fbo * obj,
                                                       uint w, uint h);

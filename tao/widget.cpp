@@ -497,6 +497,7 @@ Widget::~Widget()
 // ----------------------------------------------------------------------------
 {
     xlProgram = NULL;           // Mark widget as invalid
+    current = NULL;
     delete space;
     delete path;
     delete mouseFocusTracker;
@@ -881,7 +882,7 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inError || inDraw)
+    if (inDraw)
         return false;
 
     if (gotoPageName != "")
@@ -1080,6 +1081,7 @@ void Widget::runProgramOnce()
         std::vector<XL::Error>::iterator ei;
         Window *window = taoWindow();
         XL::MAIN->errors->Clear();
+        window->clearErrors();
         for (ei = errors.begin(); ei != errors.end(); ei++)
         {
             text pos = (*ei).Position();
@@ -1093,6 +1095,7 @@ void Widget::runProgramOnce()
                 window->addError(+message);
             }
         }
+        inError = true;
     }
 
     // Clean the end of the old menu list.
@@ -2171,7 +2174,9 @@ void Widget::reset()
     animated = true;
     blanked = false;
     stereoIdent = false;
-    pageShown = 1;
+    pageShown = 1;       // BUG #1986
+    gotoPageName = "";   // BUG #2069
+    pageName = "";       // BUG #2069
 }
 
 
@@ -2346,8 +2351,8 @@ bool Widget::forwardEvent(QMouseEvent *event)
                           event->modifiers());
         IFTRACE(widgets)
         {
-            std::cerr << "forwardEvent::Event type "<< event->type()
-                    << " Event->x="<<nx <<" Event->y="<< ny
+            std::cerr << "forwardEvent::Event type " << event->type()
+                    << " Event->x=" << nx <<" Event->y=" << ny
                     << " focusWidget name " << +(focus->objectName())
                     << std::endl;
         }
@@ -3385,6 +3390,26 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
+int Widget::loadFile(text name, bool updateContext)
+// ----------------------------------------------------------------------------
+//   Load regular source file in current widget
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    return XL::MAIN->LoadFile(name, updateContext);
+}
+
+
+void Widget::loadContextFiles(XL::source_names &files)
+// ----------------------------------------------------------------------------
+//   Load context files in current context
+// ----------------------------------------------------------------------------
+{
+    TaoSave saveCurrent(current, this);
+    XL::MAIN->LoadContextFiles(files);
+}    
+
+
 void Widget::reloadProgram(XL::Tree *newProg)
 // ----------------------------------------------------------------------------
 //   Set the program to reload
@@ -3548,14 +3573,15 @@ void Widget::refreshProgram()
         // If we were not successful with simple changes, reload everything...
         if (needBigHammer)
         {
+            TaoSave saveCurrent(current, this);
             purgeTaoInfo();
             for (it = iset.begin(); it != iset.end(); it++)
             {
                 XL::SourceFile &sf = **it;
                 XL::MAIN->LoadFile(sf.name);
-                inError = false;
             }
             updateProgramSource();
+            inError = false;
             needRefresh = true;
         }
         if (needRefresh)
@@ -5557,6 +5583,12 @@ static GLenum TextToGLEnum(text t, GLenum e)
     TEST_GLENUM(GREATER);
     TEST_GLENUM(NOTEQUAL);
     TEST_GLENUM(GEQUAL);
+    TEST_GLENUM(NEAREST);
+    TEST_GLENUM(LINEAR);
+    TEST_GLENUM(NEAREST_MIPMAP_NEAREST);
+    TEST_GLENUM(LINEAR_MIPMAP_NEAREST);
+    TEST_GLENUM(NEAREST_MIPMAP_LINEAR);
+    TEST_GLENUM(LINEAR_MIPMAP_LINEAR);
 #undef TEST_GLENUM
 
     return e;
@@ -6770,6 +6802,8 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         layout->currentTexture.width  = rinfo->width;
         layout->currentTexture.height = rinfo->height;
         layout->currentTexture.type   = GL_TEXTURE_2D;
+        layout->currentTexture.minFilt = TaoApp->tex2DMinFilter;
+        layout->currentTexture.magFilt = TaoApp->tex2DMagFilter;
 
         texId = layout->currentTexture.id;
     }
@@ -6891,6 +6925,8 @@ Integer* Widget::image(Context *context,
     layout->currentTexture.width  = rinfo->width;
     layout->currentTexture.height = rinfo->height;
     layout->currentTexture.type   = GL_TEXTURE_2D;
+    layout->currentTexture.minFilt = TaoApp->tex2DMinFilter;
+    layout->currentTexture.magFilt = TaoApp->tex2DMagFilter;
 
     uint texId   = layout->currentTexture.id;
 
@@ -6899,7 +6935,7 @@ Integer* Widget::image(Context *context,
     double w = w0 * sx;
     double h = h0 * sy;
 
-    layout->Add(new FillTexture(texId));
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
     layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
@@ -7049,6 +7085,32 @@ Tree_p Widget::textureMode(Tree_p self, text mode)
     GLenum glMode = TextToGLEnum(mode, GL_MODULATE);
     layout->currentTexture.mode = glMode;
     layout->Add(new TextureMode(glMode));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textureMinFilter(Tree_p self, text filter)
+// ----------------------------------------------------------------------------
+//   Set the minifying filter function for textures
+// ----------------------------------------------------------------------------
+{
+    GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
+    layout->currentTexture.minFilt = glFilt;
+    layout->Add(new TextureMinFilter(glFilt));
+
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::textureMagFilter(Tree_p self, text filter)
+// ----------------------------------------------------------------------------
+//   Set the minifying filter function for textures
+// ----------------------------------------------------------------------------
+{
+    GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
+    layout->currentTexture.magFilt = glFilt;
+    layout->Add(new TextureMagFilter(glFilt));
 
     return XL::xl_true;
 }

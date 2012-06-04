@@ -943,6 +943,93 @@ texture_unit();
 
 /**
  * @~english
+ * Selects the texture magnification filter function.
+ * The specified value overrides the settings in the preference dialog.
+ * It applies to the current layout (including later child layouts) for the
+ * current texture unit. Possible values are:
+ *
+ * @~french
+ * Sélectionne la fonction du filtre de grossissement des textures.
+ * La valeur passée à cette primitive remplace la valeur choisie dans la
+ * boite de préférences. Elle s'applique au <em>layout</em> en cours (y compris
+ * les <em>layouts</em> fils à venir), pour l'unité de texture courante.
+ * Les valeurs possibles sont:
+ *
+ * @~
+ * - @c "NEAREST"
+ * - @c "LINEAR"
+ *
+ * @~english
+ * Internally, this primitive sets the @c GL_TEXTURE_MAG_FILTER.
+ * @c NEAREST stands for @c GL_NEAREST and @c LINEAR stands for @c GL_LINEAR.
+ * @n
+ * The following example shows an image in "pixel perfect" mode. That is,
+ * the image is shown with no interpolation or anti-aliasing whatsoever,
+ * and one pixel in the source image gives one pixel on the screen. This
+ * is useful for instance to display a picture that contains small text,
+ * making sure the text remains legible. @n
+ * Note that when the image is not magnified nor minified, it is the
+ * magnification filter that applies.
+ *
+ * @~french
+ * En interne, cette primitive définit @c GL_TEXTURE_MAG_FILTER.
+ * @c NEAREST correspond à @c GL_NEAREST, @c LINEAR correspond à @c GL_LINEAR.
+ * @n
+ * L'exemple qui suit affiche une image sans interpolation ou
+ * anti-crénelage. À un pixel de l'image correspond un pixel à l'écran.
+ * C'est utile par exemple pour afficher une image contenant du texte de
+ * petite taille, afin de conserver une lisibilité parfaite. @n
+ * Notez que lorsque l'image n'est ni grossie ni réduite, c'est le filtre
+ * de grossissement qui s'applique.
+ * @~
+ * @code
+color "white"
+texture "image.png"
+texture_mag_filter "NEAREST"
+rectangle 0, 0, texture_width, texture_height
+ * @endcode
+ */
+texture_mag_filter(filter:text);
+
+/**
+ * @~english
+ * Selects the texture minifying filter function.
+ * The specified value overrides the settings in the preference dialog.
+ * It applies to the current texture only.
+ * Possible values are:
+ *
+ * @~french
+ * Sélectionne la fonction du filtre de réduction des textures.
+ * La valeur passée à cette primitive remplace la valeur choisie dans la
+ * boite de préférences. Elle s'applique seulement à la texture en cours.
+ * Les valeurs possibles sont:
+ *
+ * @~
+ * - @c "NEAREST"
+ * - @c "LINEAR"
+ * - @c "NEAREST_MIPMAP_NEAREST"
+ * - @c "LINEAR_MIPMAP_NEAREST"
+ * - @c "NEAREST_MIPMAP_LINEAR"
+ * - @c "LINEAR_MIPMAP_LINEAR"
+ *
+ * @~english
+ * Mipmap modes apply only to static textures (@ref texture), not to
+ * dynamic ones (@ref frame). @n
+ * Internally, this primitive sets @c GL_TEXTURE_MIN_FILTER. The above
+ * values correspond to the OpenGL modes of similar name (@c NEAREST stands
+ * for @c GL_NEAREST, and so on). @n
+ *
+ * @~french
+ * Les modes mipmap ne s'appliquent qu'aux textures statiques (@ref
+ * texture) et non aux textures dynamiques (@ref frame). @n
+ * En interne, cette primitive définit @c GL_TEXTURE_MIN_FILTER.
+ * Chaque valeur correspond aux mode OpenGL qui porte un nom similaire
+ * (@c NEAREST correspond à @c GL_NEAREST, etc.). @n
+ */
+texture_min_filter(filter:text);
+
+/**
+ * @~english
  * Create a GL animated texture.
  * Build a GL texture images from an animated image file and make it the
  * current texture. Supported format are:
@@ -1001,6 +1088,9 @@ texture_transform (body:tree);
  * @~english
  * Texture wrapping.
  * Controls the wrapping of the texture along @c S and @c T axis.
+ * When @param s is @c true, @c GL_TEXTURE_WRAP_S is set to @c GL_REPEAT@,
+ * otherwise @c GL_CLAMP_TO_EDGE is used. The same goes for @param t which
+ * controls @c GL_TEXTURE_WRAP_T.
  * @param s is the pre-transformation horizontal axis (like X).
  * @param t is the pre-transformation vertical axis (like Y).
  *
@@ -1010,6 +1100,9 @@ texture_transform (body:tree);
  * @~french
  * Continuité des textures.
  * Contrôle la continuité de la texture courante le long des axes @c S et @c T.
+ * Lorsque @param s vaut @c true, @c GL_TEXTURE_WRAP_S vaut @c GL_REPEAT,
+ * sinon il vaut @c GL_CLAMP_TO_EDGE. De la même manière, @param t permet de
+ * changer la valeur de @c GL_TEXTURE_WRAP_T.
  * @param s true pour activer GL_TEXTURE_WRAP_S.
  * @param t true pour activer GL_TEXTURE_WRAP_T.
  *

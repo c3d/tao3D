@@ -26,6 +26,8 @@
 #include "shapes.h"
 #include "justification.h"
 #include "attributes.h"
+
+
 TAO_BEGIN
 
 struct LayoutLine : Drawing
@@ -54,7 +56,6 @@ public:
 
     void                Compute(Layout *where);
     LayoutLine *        Remaining();
-    virtual text        Type() { return "LayoutLine";}
 
 public:
     LineJustifier       line;
@@ -91,7 +92,6 @@ public:
     virtual PageLayout *Remaining();
 
     virtual void        Compute(Layout *where);
-    virtual text        Type() { return "PageLayout";}
 
 public:
     // Space requested for the layout
@@ -114,17 +114,15 @@ struct RevertLayoutState : LayoutState, Attribute
     virtual void  Draw(Layout *where)
     {
         IFTRACE(justify)
-                std::cerr << "->RevertLayoutState::Draw ["<< this
-                          << "] not used offset " << offset
-                          << " inherited offset " << where->Offset() << " \n";
+            std::cerr << "->RevertLayoutState::Draw ["<< this
+                      << "] not used offset " << offset
+                      << " inherited offset " << where->Offset() << " \n";
         offset = where->Offset();
         where->InheritState(this);
         IFTRACE(justify)
-                std::cerr << "<-RevertLayoutState::Draw ["<< this
-                          << "]\n";
+            std::cerr << "<-RevertLayoutState::Draw ["<< this
+                      << "]\n";
     }
-
-    virtual text Type() { return "RevertLayoutState";}
 };
 
 
@@ -141,7 +139,6 @@ public:
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
     virtual void        Clear();
-    virtual text        Type() { return "Textflow";}
     void                addBox(PageLayout *b) { boxes.insert(b); }
     void                removeBox(PageLayout *b) { boxes.erase(b); }
 
@@ -155,14 +152,15 @@ public:
     void rewindFlow(Drawings::iterator rewindPoint)
     {
         IFTRACE(justify)
-                std::cerr << "TextFlow::rewindFlow "<<this<<std::endl;
+            std::cerr << "TextFlow::rewindFlow "<< this << std::endl;
         currentIterator = rewindPoint;
     }
 
 public:
+    typedef std::set<PageLayout*> page_layouts;
     text                  flowName;
     std::set<uint>        textBoxIds; // Set of layoutID for selection
-    std::set<PageLayout*> boxes; // Set of boxes displaying this text flow
+    page_layouts          boxes;      // Set of boxes displaying this text flow
     PageLayout *          currentTextBox; // The currently used pageLayout
 
 private:
@@ -180,9 +178,9 @@ struct BlockLayout : Layout
     {
         IFTRACE(justify)
         {
-                std::cerr << "<->BlockLayout::BlockLayout ["<<this
-                <<"] from flow -- revert =" << revert<<"\n ";
-                revert->toDebugString(std::cerr);
+            std::cerr << "<->BlockLayout::BlockLayout ["<< this
+                      << "] from flow -- revert =" << revert <<"\n ";
+            revert->toDebugString(std::cerr);
         }
 
     }
@@ -190,22 +188,22 @@ struct BlockLayout : Layout
         revert(new RevertLayoutState(*(o.flow)))
     {
         IFTRACE(justify)
-                std::cerr << "<->BlockLayout::BlockLayout ["<<this
-                <<"] from BlockLayout " << &o << " revert=" << revert<<std::endl;
+            std::cerr << "<->BlockLayout::BlockLayout ["<< this
+                      << "] from BlockLayout " << &o
+                      << " revert=" << revert << std::endl;
     }
     ~BlockLayout()
     {
     }
     virtual void         Add(Drawing *child) { flow->Add(child);}
-    virtual text         Type() { return "BlockLayout";}
     virtual Box3         Space(Layout *) { return Box3(); }
     virtual Box3         Bounds(Layout *) { return Box3(); }
 
     RevertLayoutState *  Revert()
     {
         IFTRACE(justify)
-                std::cerr << "<->BlockLayout::Revert [" << this <<"] revert = "
-                             << revert << "\n ";
+            std::cerr << "<->BlockLayout::Revert [" << this <<"] revert = "
+                      << revert << "\n ";
         return revert;
     }
 
@@ -230,7 +228,6 @@ struct AnchorLayout : Layout
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
-    virtual text        Type() { return "AnchorLayout";}
 };
 
 

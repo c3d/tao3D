@@ -70,7 +70,10 @@ Once:
       to http://ge.tt.
 - Upload ALL Tao packages to www.taodyne.com:
     scp Tao* taodyne@www.taodyne.com:git/software
-  Move each file to the correct subdirectory.
+  Update the Git repositories used by "Check for update":
+    * Use the helper script:
+      cd git/software
+      ./newversion.sh
 - Create symlinks for the new version in /var/www/shop/download
     * There is a helper script, update_links.sh.
 - Update the download URLs in the PrestaShop product pages (under
@@ -78,11 +81,10 @@ Once:
   icon).
 - Update the product version in the product pages for Discovery, Creativity,
   Impress.
-- git remove, git add, git commit, git tag under ~taodyne/git/software.
-    * For instance for Discovery, Windows, 1.09:
-      mv "Tao Presentations Discovery 1.09.exe" win/Discovery ; cd win/Discovery ; git rm *1.08* ; git add * ; git commit -m "Discovery 1.09 for Windows." ; git tag 1.09
 - Delete the old symlinks in /var/www/shop/download.
 - Update documentation:
   scp taodoc*.tar.bz2 www-data@www.taodyne.com:/var/www/docs
   Extract the file, it will create taodoc-*/{modules,help}.
   Replace /var/www/docs/{modules,help} with the new ones.
+- Updload the modules that have been modified, update the repositories
+  under git/modules.

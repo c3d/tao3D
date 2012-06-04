@@ -104,10 +104,7 @@
 #ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
 
-enum MacOSWidgetEventType
-{
-    DisplayLink = QEvent::User
-};
+static int DisplayLink = -1;
 #endif
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
@@ -204,6 +201,16 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       editCursor(NULL),
       isInvalid(false)
 {
+#ifdef MACOSX_DISPLAYLINK
+    if (DisplayLink == -1)
+    {
+        DisplayLink = QEvent::registerEventType();
+        IFTRACE(layoutevents)
+            std::cerr << "Event type allocated for DisplayLink: "
+                      << DisplayLink << "\n";
+    }
+#endif
+
     setObjectName(QString("Widget"));
     memset(focusProjection, 0, sizeof focusProjection);
     memset(focusModel, 0, sizeof focusModel);
@@ -2951,6 +2958,51 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
+bool Widget::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Process event
+// ----------------------------------------------------------------------------
+{
+    int type = event->type();
+
+#ifdef MACOSX_DISPLAYLINK
+    if (type == DisplayLink)
+    {
+        displayLinkMutex.lock();
+        pendingDisplayLinkEvent = false;
+        displayLinkMutex.unlock();
+        if (holdOff)
+        {
+            holdOff = false;
+            return true;
+        }
+        QTimerEvent e(0);
+        timerEvent(&e);
+        return true;
+    }
+    else if (type == QEvent::MouseMove ||
+             type == QEvent::KeyPress  ||
+             type == QEvent::KeyRelease)
+    {
+        // Skip next frame, to keep some processing power for subsequent
+        // user events. This effectively gives a higher priority to them
+        // than to timer events.
+        holdOff = true;
+    }
+#endif
+
+    // Process user events after the Mac code because DisplayLink is a user
+    // event
+    if (event->type() >= QEvent::User)
+    {
+        refreshNow(event);
+        return true;
+    }
+
+    return QGLWidget::event(event);
+}
+
+
 #ifdef MACOSX_DISPLAYLINK
 
 static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
@@ -3003,43 +3055,6 @@ void Widget::displayLinkEvent()
     displayLinkMutex.unlock();
     if (!pending)
         qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
-}
-
-
-bool Widget::event(QEvent *event)
-// ----------------------------------------------------------------------------
-//    Special treatment for events of the MacOSWidgetEvent type
-// ----------------------------------------------------------------------------
-{
-    switch (event->type())
-    {
-    case DisplayLink:
-        {
-        displayLinkMutex.lock();
-        pendingDisplayLinkEvent = false;
-        displayLinkMutex.unlock();
-        if (holdOff)
-        {
-            holdOff = false;
-            return true;
-        }
-        QTimerEvent e(0);
-        timerEvent(&e);
-        return true;
-        }
-    case QEvent::MouseMove:
-    case QEvent::KeyPress:
-    case QEvent::KeyRelease:
-        // Skip next frame, to keep some processing power for subsequent
-        // user events. This effectively gives a higher priority to them
-        // than to timer events.
-        holdOff = true;
-        break;
-    default:
-        break;
-    }
-
-    return QGLWidget::event(event);
 }
 
 static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
@@ -5728,6 +5743,45 @@ double Widget::optimalDefaultRefresh()
     if (VSyncEnabled())
         return 0.0;
     return 0.016;
+}
+
+
+Tree_p Widget::postEvent(int eventType)
+// ----------------------------------------------------------------------------
+//    Post user event to this widget
+// ----------------------------------------------------------------------------
+{
+    if (eventType < QEvent::User || eventType > QEvent::MaxUser)
+        return XL::xl_false;
+    qApp->postEvent(this, new QEvent(QEvent::Type(eventType)));
+    return XL::xl_true;
+}
+
+
+void Widget::postEventAPI(int eventType)
+// ----------------------------------------------------------------------------
+//    Export postEvent to the module API
+// ----------------------------------------------------------------------------
+{
+    Tao()->postEvent(eventType);
+}
+
+
+Integer_p Widget::registerUserEvent(int number)
+// ----------------------------------------------------------------------------
+//    Return an available Qt user event type for each value of number
+// ----------------------------------------------------------------------------
+{
+    static std::map<int, int> user_events;
+
+    if (!user_events.count(number))
+    {
+        user_events[number] = QEvent::registerEventType();
+        IFTRACE(layoutevents)
+            std::cerr << "Registered Qt event type " << user_events[number]
+                      << " for user_event " << number << "\n";
+    }
+    return new Integer(user_events[number]);
 }
 
 

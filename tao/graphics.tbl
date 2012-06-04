@@ -459,6 +459,17 @@ PREFIX(DefaultRefreshGet, tree, "default_refresh",
        DESCRIPTION("Get the document refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
+PREFIX(PostEvent, tree, "post_event",
+       PARM(event_type, integer, "Identifier of the user event to post"),
+       RTAO(postEvent(event_type)),
+       SYNOPSIS("Post a user event for the Tao widget."))
+PREFIX(UserEvent, tree, "user_event",
+       PARM(number, integer, "An identifier for the event"),
+       RTAO(registerUserEvent(number)),
+       SYNOPSIS("Allocate a user event for use with post_event and refresh_on.")
+       DESCRIPTION("Returns an available user event type. "
+                   "The value returned for a given number is always the same. "
+                   "It can be passed to post_event or refresh_on."))
 #ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),

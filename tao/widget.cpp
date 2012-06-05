@@ -2993,7 +2993,7 @@ bool Widget::event(QEvent *event)
 
     // Process user events after the Mac code because DisplayLink is a user
     // event
-    if (event->type() >= QEvent::User)
+    if (type >= QEvent::User)
     {
         refreshNow(event);
         return true;

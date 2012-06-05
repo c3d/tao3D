@@ -144,7 +144,7 @@ void UpdateApplication::start()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Begin to download the update" << to.fileName().toStdString() << std::endl;
+            debug() << "Begin to download the update to " << to.fileName().toStdString() << std::endl;
 
     aborted = false;
 
@@ -177,6 +177,9 @@ void UpdateApplication::extract()
     args << "-xf" << info.fileName();
     Process cp(cmd, args, info.path());
     cp.waitForFinished();
+
+    IFTRACE(update)
+        debug() << "Extract update" << std::endl;
 
     if(cp.done())
     {

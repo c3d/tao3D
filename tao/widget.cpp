@@ -123,6 +123,25 @@ static Point3 defaultCameraPosition(0, 0, 3000);
 
 
 
+static inline Widget * findTaoWidget()
+// ----------------------------------------------------------------------------
+//   Find the Widget on the main Window. Use when Tao() is not set.
+// ----------------------------------------------------------------------------
+{
+    Widget * w = NULL;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        Window * window = dynamic_cast<Window *>(widget);
+        if (window)
+        {
+            w = window->taoWidget;
+            break;
+        }
+    }
+    return w;
+}
+
+
 static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   Return the options we will use when creating the widget
@@ -5763,7 +5782,8 @@ void Widget::postEventAPI(int eventType)
 //    Export postEvent to the module API
 // ----------------------------------------------------------------------------
 {
-    Tao()->postEvent(eventType);
+    Widget * w = current ? current : findTaoWidget();
+    w->postEvent(eventType);
 }
 
 

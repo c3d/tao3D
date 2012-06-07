@@ -5341,7 +5341,8 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     // This primitive really belongs to the StereoDecoder module, but it's
     // not trivial to move it into the module (due to the StereoLayout class).
     // Unlicenced behavior shows only left eye
-    if (!Licences::Check("StereoDecoder 1.0") && !blink(1, 1, 300))
+    if (!Licences::CheckImpressOrLicense("StereoDecoder 1.0") &&
+        !blink(1, 1, 300))
         vpts = 1;
 
     Context *currentContext = context;

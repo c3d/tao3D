@@ -407,7 +407,7 @@ public:
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
     Tree_p      postEvent(int eventType);
-    Integer_p   registerUserEvent(int number);
+    Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
     Integer_p   hours(Tree_p self, double t);

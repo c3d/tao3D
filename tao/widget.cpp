@@ -5787,21 +5787,21 @@ void Widget::postEventAPI(int eventType)
 }
 
 
-Integer_p Widget::registerUserEvent(int number)
+Integer_p Widget::registerUserEvent(text name)
 // ----------------------------------------------------------------------------
-//    Return an available Qt user event type for each value of number
+//    Return an available Qt user event type for each name
 // ----------------------------------------------------------------------------
 {
-    static std::map<int, int> user_events;
+    static std::map<text, int> user_events;
 
-    if (!user_events.count(number))
+    if (!user_events.count(name))
     {
-        user_events[number] = QEvent::registerEventType();
+        user_events[name] = QEvent::registerEventType();
         IFTRACE(layoutevents)
-            std::cerr << "Registered Qt event type " << user_events[number]
-                      << " for user_event " << number << "\n";
+            std::cerr << "Registered Qt event type " << user_events[name]
+                      << " for user_event '" << name << "'\n";
     }
-    return new Integer(user_events[number]);
+    return new Integer(user_events[name]);
 }
 
 

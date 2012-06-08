@@ -464,8 +464,8 @@ PREFIX(PostEvent, tree, "post_event",
        RTAO(postEvent(event_type)),
        SYNOPSIS("Post a user event for the Tao widget."))
 PREFIX(UserEvent, tree, "user_event",
-       PARM(number, integer, "An identifier for the event"),
-       RTAO(registerUserEvent(number)),
+       PARM(name, text, "An identifier for the event"),
+       RTAO(registerUserEvent(name)),
        SYNOPSIS("Allocate a user event for use with post_event and refresh_on.")
        DESCRIPTION("Returns an available user event type. "
                    "The value returned for a given number is always the same. "

@@ -7219,7 +7219,7 @@ Integer* Widget::textureUnit(Tree_p self)
 }
 
 
-Integer *Widget::framePixelCount(Tree_p self, int alphaMin)
+Integer *Widget::framePixelCount(Tree_p self, float alphaMin)
 // ----------------------------------------------------------------------------
 //    Return number of non-transparent pixels in the current frame
 // ----------------------------------------------------------------------------
@@ -7232,7 +7232,7 @@ Integer *Widget::framePixelCount(Tree_p self, int alphaMin)
         int height = image.height();
         for (int r = 0; r < height; r++)
             for (int c = 0; c < width; c++)
-                if (qAlpha(image.pixel(c, r)) > alphaMin)
+                if (qAlpha(image.pixel(c, r)) > alphaMin * 255)
                     result++;
     }
     return new Integer(result, self->Position());

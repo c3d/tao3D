@@ -68,14 +68,48 @@ frame( x:real, y:real, w:real, h:real, body:tree);
 
 /**
  * @~english
- * Create a texture.
- * Make a texture out of the described content
+ * Create a dynamic texture.
+ * Make a dynamic texture described by the supplied content. The
+ * texture is cleared each time.
  *
  * @~french
- * Crée une texture.
- * Crée une texture à partir du code fourni
+ * Crée une texture dynamique.
+ * Crée une texture dynamique décrite par le code fourni. La texture
+ * est effacée à chaque fois.
  */
 frame_texture( w:real, h:real, body:tree);
+
+/**
+ * @~english
+ * Create a persistent dynamic texture.
+ * Make a dynamic texture that persists over time, and can therefore
+ * be used to create the texture incrementally. The texture is
+ * cleared if the canvas is resized.
+ *
+ * @~french
+ * Crée une texture dynamique.
+ * Crée une texture dynamique décrite par le code fourni, persistante
+ * au cours du temps. La texture est effacée lorsque le canevas est
+ * redimensionné.
+ */
+canvas( w:real, h:real, body:tree);
+
+
+/**
+ * @~english
+ * Count non-transparent pixels in the current canvas or texture.
+ * Return the number of non-transparent pixels in the current canvas
+ * or dynamic texture. The minimum alpha indicates the alpha value above which
+ * a pixel will be considered non-transparent, between 0.0 and 1.0.
+ * This function can only be used within a @ref canvas or @ref frame_texture.
+ *
+ * @~french
+ * Compte le nombre de pixels non transparents dans une texture dynamique
+ * Retuourne le nombre de pixels non-transparents dans un canevas ou
+ * texture dynamique. La valeur de canal alpha donnée en argument
+ * spécifie le seuil d'opacité minimum, entre 0.0 et 1.0.
+ */
+frame_pixel_count(alphaMin:real);
 
 
 /**

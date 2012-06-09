@@ -198,6 +198,8 @@ Layout *Layout::AddChild(uint childId,
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(layoutevents)
+        std::cerr << "Adding child id " << childId << " to " << id << "\n";
     Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
@@ -438,8 +440,10 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 
     if (NeedRefresh(e, now))
     {
+        XL::Save<uint> saveId(widget->id, id);
         IFTRACE(layoutevents)
-            std::cerr << "Layout " << layoutId << " needs updating\n";
+            std::cerr << "Layout " << layoutId
+                      << " id " << id << " needs updating\n";
 
         refreshEvents.clear();
         nextRefresh = DBL_MAX;

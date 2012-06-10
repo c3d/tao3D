@@ -44,11 +44,11 @@
        revolving_texts \
        point_cloud \
        network_access \
-       water_surface
+       water_surface \
+       remote_control
     OTHER_MODULES =     \
         hello_world     \
         taoTester    \
-        remote_control \
         database
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

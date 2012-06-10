@@ -48,6 +48,7 @@
     OTHER_MODULES =     \
         hello_world     \
         taoTester    \
+        remote_control \
         database
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

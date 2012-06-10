@@ -210,9 +210,9 @@ public:
     void        timerEvent(QTimerEvent *);
     void        showEvent(QShowEvent *);
     void        hideEvent(QHideEvent *);
-#ifdef MACOSX_DISPLAYLINK
     virtual
     bool        event(QEvent *event);
+#ifdef MACOSX_DISPLAYLINK
     void        displayLinkEvent();
 #endif
     void        startPanning(QMouseEvent *);
@@ -406,6 +406,8 @@ public:
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
+    Tree_p      postEvent(int eventType);
+    Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
     Integer_p   hours(Tree_p self, double t);
@@ -1057,6 +1059,7 @@ public:
     void                  drawWatermark();
     static void           drawWatermarkAPI();
     static double         trueCurrentTime();
+    static void           postEventAPI(int eventType);
 
 private:
     void                  processProgramEvents();

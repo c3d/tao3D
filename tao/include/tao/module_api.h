@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   23
-#define TAO_MODULE_API_AGE       4
+#define TAO_MODULE_API_CURRENT   24
+#define TAO_MODULE_API_AGE       5
 
 // ========================================================================
 //
@@ -425,6 +425,13 @@ struct ModuleApi
     // Create a new framebuffer object with a specified internal format.
     ModuleApi::fbo *   (*newFrameBufferObjectWithFormat)(uint w, uint h,
                                                          uint format);
+
+
+
+    // Post a user event to the graphical widget. See also refreshOn().
+    // Please allocate eventType with QEvent::registerEventType() to avoid
+    // conflicts with other modules or the main application.
+    void (*postEvent)(int eventType);
 };
 
 }

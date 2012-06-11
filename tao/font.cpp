@@ -35,6 +35,8 @@
 
 TAO_BEGIN
 
+QMap<QPair<QString, QString>, bool> FontParsingAction::exactMatchCache;
+
 
 Tree *FontParsingAction::Do (Tree *what)
 // ----------------------------------------------------------------------------
@@ -73,6 +75,7 @@ Tree *FontParsingAction::DoText(Text *what)
 {
     if (!exactMatch)
     {
+        text family, style;
         text desc = what->value;
         IFTRACE(fontparsing)
             std::cerr << "Parsing font description: '" <<  desc << "'\n";
@@ -80,8 +83,8 @@ Tree *FontParsingAction::DoText(Text *what)
         if (slash != std::string::npos)
         {
             // Parse string as "family/style"
-            text family = desc.substr(0, slash);
-            text style = desc.substr(slash + 1, std::string::npos);
+            family = desc.substr(0, slash);
+            style = desc.substr(slash + 1, std::string::npos);
             int size = font.pointSize();
             IFTRACE(fontparsing)
                 std::cerr << "  Requesting font: family='" << family
@@ -93,14 +96,21 @@ Tree *FontParsingAction::DoText(Text *what)
             // Font workaround for QTBUG-736 (apparently still not fixed in
             // 4.6)
             // http://bugreports.qt.nokia.com/browse/QTBUG-736
-            text family = what->value;
+            family = what->value;
             if (family == "Times")
                 family = "Times New Roman";
             IFTRACE(fontparsing)
                 std::cerr << "  Requesting font: family='" << family << "'\n";
             font.setFamily(+family);
         }
-        exactMatch = font.exactMatch();
+        QPair<QString, QString> key(+family, +style);
+        if (!exactMatchCache.contains(key))
+        {
+            exactMatchCache[key] = font.exactMatch();
+            IFTRACE(fontparsing)
+                std::cerr << "  Caching exact match flag\n";
+        }
+        exactMatch = exactMatchCache[key];
         IFTRACE(fontparsing)
         {
             std::cerr << "  Returned font:   family='" << +font.family()

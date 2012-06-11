@@ -22,6 +22,7 @@
 // ****************************************************************************
 
 #include "font_file_manager.h"
+#include "font.h"
 #include "options.h"
 #include "tao_utf8.h"
 #include "application.h"
@@ -262,6 +263,7 @@ void FontFileManager::UnloadEmbeddedFonts(const QList<int> &ids)
                 std::cerr << "Unloading font id " << id << "\n";
         QFontDatabase::removeApplicationFont(id);
     }
+    FontParsingAction::exactMatchCache.clear();
 }
 
 

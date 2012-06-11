@@ -28,6 +28,8 @@
 #include "tao_tree.h"
 #include "action.h"
 #include <QFont>
+#include <QMap>
+#include <QPair>
 
 TAO_BEGIN
 
@@ -55,6 +57,9 @@ public:
     Context_p   context;
     QFont       font;
     bool        exactMatch;
+
+public:
+    static QMap<QPair<QString, QString>, bool> exactMatchCache;
 };
 
 

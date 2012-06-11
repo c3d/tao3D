@@ -86,14 +86,14 @@ cp_and_fix_framework() {
   doo strip -x "${LIB}"
   doo ${FIX_QT_REFS} "${LIB}" "${SRC}"
   if [ -e "${SRC}/${FNAME}/Resources" ] ; then
-    doo cp -r "${SRC}/${FNAME}/Resources" "${DEST}/${FNAME}/Resources"
+    doo cp -R "${SRC}/${FNAME}/Resources" "${DEST}/${FNAME}/Resources"
   fi
 }
 
 cp_and_fix_plugins() {
   # cp_and_fix_plugins <plugins_src> <qt_framework_src> <plugins_dest>
   # Ex: cp_and_fix_plugins /Developer/Applications/Qt/plugins /Library/Frameworks ./MyApp.app/Contents/plugins
-  doo cp -r "$1" "$3"
+  doo cp -R "$1" "$3"
   find "$3" -name "*.dylib" -print | while read f ; do
       doo ${FIX_QT_REFS} "$f" "$2"
     done

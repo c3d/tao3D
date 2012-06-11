@@ -5291,7 +5291,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
 
-    Layout *childLayout = layout->AddChild(layout->id, child, context);
+    Layout *childLayout = layout->AddChild(selectionId(), child, context);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
     return result;
@@ -5382,7 +5382,7 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     Layout *childLayout = new StereoLayout(*layout, vpts);
-    childLayout = layout->AddChild(layout->id, child, context, childLayout);
+    childLayout = layout->AddChild(selectionId(), child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
     return result;
@@ -6985,7 +6985,7 @@ Integer* Widget::image(Context *context,
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     double sx = sxp.Pointer() ? (double) sxp : 1.0;
     double sy = syp.Pointer() ? (double) syp : 1.0;
 
@@ -8402,7 +8402,7 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
 //   Create a new text edit widget and render text in it
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     Tree * result = textEditTexture(context, self, w, h, prog);
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -8940,8 +8940,12 @@ struct LoadTextInfo : Info
 //  Records text values loaded by a given load_text
 // ----------------------------------------------------------------------------
 {
-    QFileInfo   fileInfo;
-    Text_p      loaded;
+    struct PerFile
+    {
+        QFileInfo   fileInfo;
+        Text_p      loaded;
+    };
+    std::map<text, PerFile> file;
 };
 
 
@@ -8951,20 +8955,34 @@ Text_p Widget::loadText(Tree_p self, text file)
 // ----------------------------------------------------------------------------
 {
     bool doLoad = false;
-    text qualified = "doc:" + file;
-    QFileInfo fileInfo(+qualified);
+    QFileInfo fileInfo(+file);
+    if (!fileInfo.isAbsolute())
+    {
+        file = "doc:" + file;
+        fileInfo.setFile(+file);
+    }
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
+    LoadTextInfo::PerFile *pf = NULL;
     if (info)
     {
-        if (fileInfo.lastModified() > info->fileInfo.lastModified())
+        pf = &info->file[file];
+        if (!pf->loaded)
+        {
+            pf->loaded = new Text("", "\"", "\"", self->Position());
             doLoad = true;
+        }
+        else if (fileInfo.lastModified() > pf->fileInfo.lastModified())
+        {
+            doLoad = true;
+        }
     }
     else
     {
         info = new LoadTextInfo;
+        pf = &info->file[file];
         self->SetInfo<LoadTextInfo>(info);
-        info->loaded = new Text("", "\"", "\"", self->Position());
+        pf->loaded = new Text("", "\"", "\"", self->Position());
         doLoad = true;
     }
 
@@ -8972,7 +8990,7 @@ Text_p Widget::loadText(Tree_p self, text file)
     {
         if (fileInfo.exists())
         {
-            text &value = info->loaded->value;
+            text &value = pf->loaded->value;
 
             QFile file(fileInfo.canonicalFilePath());
             file.open(QIODevice::ReadOnly);
@@ -8980,9 +8998,9 @@ Text_p Widget::loadText(Tree_p self, text file)
             QString data = textStream.readAll();
             value = +data;
         }
-        info->fileInfo = fileInfo;
+        pf->fileInfo = fileInfo;
     }
-    return info->loaded;
+    return pf->loaded;
 }
 
 
@@ -9367,7 +9385,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    Layout *childLayout = layout->AddChild(0, prog, context);
+    Layout *childLayout = layout->AddChild(selectionId(), prog, context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Integer_p tex = frameTexture(context, self, w, h, prog);
 
@@ -9827,7 +9845,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     if (! urlTexture(self, w, h, url, progress))
         return XL::xl_false;
 
@@ -9882,7 +9900,7 @@ Tree_p Widget::lineEdit(Tree_p self,
 //   Draw a line editor in the current frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -9931,7 +9949,7 @@ Tree_p Widget::radioButton(Tree_p self,
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     radioButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -9977,7 +9995,7 @@ Tree_p Widget::checkBoxButton(Tree_p self,
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -10024,7 +10042,7 @@ Tree_p Widget::pushButton(Tree_p self,
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     pushButtonTexture(self, w, h, name, lbl, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -10296,7 +10314,7 @@ Tree_p Widget::colorChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     colorChooserTexture(self, w, h, action);
 
@@ -10348,7 +10366,7 @@ Tree_p Widget::fontChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     fontChooserTexture(self, w, h, action);
 
@@ -10585,7 +10603,7 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 //   Draw a file chooser in the GL widget
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     fileChooserTexture(self, w, h, properties);
 
@@ -10681,7 +10699,7 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(layout->id));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     groupBoxTexture(self, w, h, lbl);
 

@@ -146,6 +146,18 @@ Application::Application(int & argc, char ** argv)
         ::exit(0);
     }
 #endif
+    if (cmdLineArguments.contains("--version"))
+    {
+
+#ifdef TAO_EDITION
+#define EDSTR TAO_EDITION
+#else
+#define EDSTR "(internal)"
+#endif
+        std::cout << "Tao Presentations " EDSTR " " GITREV " (" GITSHA1 ")\n";
+#undef EDSTR
+        ::exit(0);
+    }
 
     bool showSplash = true;
     if (cmdLineArguments.contains("-nosplash") ||

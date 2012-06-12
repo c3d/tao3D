@@ -5341,7 +5341,8 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     // This primitive really belongs to the StereoDecoder module, but it's
     // not trivial to move it into the module (due to the StereoLayout class).
     // Unlicenced behavior shows only left eye
-    if (!Licences::Check("StereoDecoder 1.0") && !blink(1, 1, 300))
+    if (!Licences::CheckImpressOrLicense("StereoDecoder 1.0") &&
+        !blink(1, 1, 300))
         vpts = 1;
 
     Context *currentContext = context;
@@ -8865,8 +8866,12 @@ struct LoadTextInfo : Info
 //  Records text values loaded by a given load_text
 // ----------------------------------------------------------------------------
 {
-    QFileInfo   fileInfo;
-    Text_p      loaded;
+    struct PerFile
+    {
+        QFileInfo   fileInfo;
+        Text_p      loaded;
+    };
+    std::map<text, PerFile> file;
 };
 
 
@@ -8876,20 +8881,34 @@ Text_p Widget::loadText(Tree_p self, text file)
 // ----------------------------------------------------------------------------
 {
     bool doLoad = false;
-    text qualified = "doc:" + file;
-    QFileInfo fileInfo(+qualified);
+    QFileInfo fileInfo(+file);
+    if (!fileInfo.isAbsolute())
+    {
+        file = "doc:" + file;
+        fileInfo.setFile(+file);
+    }
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
+    LoadTextInfo::PerFile *pf = NULL;
     if (info)
     {
-        if (fileInfo.lastModified() > info->fileInfo.lastModified())
+        pf = &info->file[file];
+        if (!pf->loaded)
+        {
+            pf->loaded = new Text("", "\"", "\"", self->Position());
             doLoad = true;
+        }
+        else if (fileInfo.lastModified() > pf->fileInfo.lastModified())
+        {
+            doLoad = true;
+        }
     }
     else
     {
         info = new LoadTextInfo;
+        pf = &info->file[file];
         self->SetInfo<LoadTextInfo>(info);
-        info->loaded = new Text("", "\"", "\"", self->Position());
+        pf->loaded = new Text("", "\"", "\"", self->Position());
         doLoad = true;
     }
 
@@ -8897,7 +8916,7 @@ Text_p Widget::loadText(Tree_p self, text file)
     {
         if (fileInfo.exists())
         {
-            text &value = info->loaded->value;
+            text &value = pf->loaded->value;
 
             QFile file(fileInfo.canonicalFilePath());
             file.open(QIODevice::ReadOnly);
@@ -8905,9 +8924,9 @@ Text_p Widget::loadText(Tree_p self, text file)
             QString data = textStream.readAll();
             value = +data;
         }
-        info->fileInfo = fileInfo;
+        pf->fileInfo = fileInfo;
     }
-    return info->loaded;
+    return pf->loaded;
 }
 
 

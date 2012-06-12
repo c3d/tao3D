@@ -527,7 +527,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  *
  * The user's Tao folder is <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> on Windows,
  * <tt>$HOME/Library/Application Support/Tao Presentations</tt> on MacOSX,
- * and <tt>$HOME/.local/Taodyne/Tao Presentations</tt> on Linux.
+ * and <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> on Linux.
  * The application folder is where Tao Presentation is installed.
  * 
  * @~french
@@ -552,7 +552,7 @@ image 0, 0, 100%, 100%, "image:file.jpg"
  * Le chemin du dossier utilisateur Tao est
  * <tt>%%LOCALAPPDATA%\\Taodyne\\Tao Presentations</tt> sous Windows,
  * <tt>$HOME/Library/Application Support/Tao Presentations</tt> sous MacOSX,
- * et <tt>$HOME/.local/Taodyne/Tao Presentations</tt> sous Linux.
+ * et <tt>$HOME/.local/share/data/Taodyne/Tao Presentations</tt> sous Linux.
  */
 /**
  * @~english

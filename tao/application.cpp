@@ -990,8 +990,7 @@ QString Application::defaultProjectFolderPath()
 
 QString Application::defaultTaoPreferencesFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder proposed to find user.xl, style.xl, etc...
-//    (user preferences for tao application)
+//    The folder proposed to find user.xl, theme.xl, etc...
 // ----------------------------------------------------------------------------
 {
     return QDesktopServices::storageLocation(QDesktopServices::DataLocation);

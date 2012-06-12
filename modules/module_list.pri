@@ -44,7 +44,8 @@
        revolving_texts \
        point_cloud \
        network_access \
-       water_surface
+       water_surface \
+       remote_control
     OTHER_MODULES =     \
         hello_world     \
         taoTester    \

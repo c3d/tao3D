@@ -104,10 +104,7 @@
 #ifdef MACOSX_DISPLAYLINK
 #include <CoreVideo/CoreVideo.h>
 
-enum MacOSWidgetEventType
-{
-    DisplayLink = QEvent::User
-};
+static int DisplayLink = -1;
 #endif
 
 #define TAO_CLIPBOARD_MIME_TYPE "application/tao-clipboard"
@@ -124,6 +121,25 @@ namespace Tao {
 
 static Point3 defaultCameraPosition(0, 0, 3000);
 
+
+
+static inline Widget * findTaoWidget()
+// ----------------------------------------------------------------------------
+//   Find the Widget on the main Window. Use when Tao() is not set.
+// ----------------------------------------------------------------------------
+{
+    Widget * w = NULL;
+    foreach (QWidget *widget, QApplication::topLevelWidgets())
+    {
+        Window * window = dynamic_cast<Window *>(widget);
+        if (window)
+        {
+            w = window->taoWidget;
+            break;
+        }
+    }
+    return w;
+}
 
 
 static inline QGLFormat TaoGLFormat()
@@ -204,6 +220,16 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       editCursor(NULL),
       isInvalid(false)
 {
+#ifdef MACOSX_DISPLAYLINK
+    if (DisplayLink == -1)
+    {
+        DisplayLink = QEvent::registerEventType();
+        IFTRACE(layoutevents)
+            std::cerr << "Event type allocated for DisplayLink: "
+                      << DisplayLink << "\n";
+    }
+#endif
+
     setObjectName(QString("Widget"));
     memset(focusProjection, 0, sizeof focusProjection);
     memset(focusModel, 0, sizeof focusModel);
@@ -2951,6 +2977,51 @@ void Widget::wheelEvent(QWheelEvent *event)
 }
 
 
+bool Widget::event(QEvent *event)
+// ----------------------------------------------------------------------------
+//    Process event
+// ----------------------------------------------------------------------------
+{
+    int type = event->type();
+
+#ifdef MACOSX_DISPLAYLINK
+    if (type == DisplayLink)
+    {
+        displayLinkMutex.lock();
+        pendingDisplayLinkEvent = false;
+        displayLinkMutex.unlock();
+        if (holdOff)
+        {
+            holdOff = false;
+            return true;
+        }
+        QTimerEvent e(0);
+        timerEvent(&e);
+        return true;
+    }
+    else if (type == QEvent::MouseMove ||
+             type == QEvent::KeyPress  ||
+             type == QEvent::KeyRelease)
+    {
+        // Skip next frame, to keep some processing power for subsequent
+        // user events. This effectively gives a higher priority to them
+        // than to timer events.
+        holdOff = true;
+    }
+#endif
+
+    // Process user events after the Mac code because DisplayLink is a user
+    // event
+    if (type >= QEvent::User)
+    {
+        refreshNow(event);
+        return true;
+    }
+
+    return QGLWidget::event(event);
+}
+
+
 #ifdef MACOSX_DISPLAYLINK
 
 static CVReturn displayLinkCallback(CVDisplayLinkRef displayLink,
@@ -3003,43 +3074,6 @@ void Widget::displayLinkEvent()
     displayLinkMutex.unlock();
     if (!pending)
         qApp->postEvent(this, new QEvent((QEvent::Type)DisplayLink));
-}
-
-
-bool Widget::event(QEvent *event)
-// ----------------------------------------------------------------------------
-//    Special treatment for events of the MacOSWidgetEvent type
-// ----------------------------------------------------------------------------
-{
-    switch (event->type())
-    {
-    case DisplayLink:
-        {
-        displayLinkMutex.lock();
-        pendingDisplayLinkEvent = false;
-        displayLinkMutex.unlock();
-        if (holdOff)
-        {
-            holdOff = false;
-            return true;
-        }
-        QTimerEvent e(0);
-        timerEvent(&e);
-        return true;
-        }
-    case QEvent::MouseMove:
-    case QEvent::KeyPress:
-    case QEvent::KeyRelease:
-        // Skip next frame, to keep some processing power for subsequent
-        // user events. This effectively gives a higher priority to them
-        // than to timer events.
-        holdOff = true;
-        break;
-    default:
-        break;
-    }
-
-    return QGLWidget::event(event);
 }
 
 static CGDirectDisplayID getCurrentDisplayID(const  QWidget *widget)
@@ -5257,7 +5291,8 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
 
-    Layout *childLayout = layout->AddChild(selectionId(), child, context);
+    Layout *childLayout = layout->AddChild(selectionId(layout->id), child,
+                                           context);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
     return result;
@@ -5348,7 +5383,8 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     Layout *childLayout = new StereoLayout(*layout, vpts);
-    childLayout = layout->AddChild(selectionId(), child, context, childLayout);
+    childLayout = layout->AddChild(selectionId(layout->id), child, context,
+                                   childLayout);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
     return result;
@@ -5729,6 +5765,46 @@ double Widget::optimalDefaultRefresh()
     if (VSyncEnabled())
         return 0.0;
     return 0.016;
+}
+
+
+Tree_p Widget::postEvent(int eventType)
+// ----------------------------------------------------------------------------
+//    Post user event to this widget
+// ----------------------------------------------------------------------------
+{
+    if (eventType < QEvent::User || eventType > QEvent::MaxUser)
+        return XL::xl_false;
+    qApp->postEvent(this, new QEvent(QEvent::Type(eventType)));
+    return XL::xl_true;
+}
+
+
+void Widget::postEventAPI(int eventType)
+// ----------------------------------------------------------------------------
+//    Export postEvent to the module API
+// ----------------------------------------------------------------------------
+{
+    Widget * w = current ? current : findTaoWidget();
+    w->postEvent(eventType);
+}
+
+
+Integer_p Widget::registerUserEvent(text name)
+// ----------------------------------------------------------------------------
+//    Return an available Qt user event type for each name
+// ----------------------------------------------------------------------------
+{
+    static std::map<text, int> user_events;
+
+    if (!user_events.count(name))
+    {
+        user_events[name] = QEvent::registerEventType();
+        IFTRACE(layoutevents)
+            std::cerr << "Registered Qt event type " << user_events[name]
+                      << " for user_event '" << name << "'\n";
+    }
+    return new Integer(user_events[name]);
 }
 
 
@@ -6911,7 +6987,8 @@ Integer* Widget::image(Context *context,
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     double sx = sxp.Pointer() ? (double) sxp : 1.0;
     double sy = syp.Pointer() ? (double) syp : 1.0;
 
@@ -8328,7 +8405,8 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
 //   Create a new text edit widget and render text in it
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     Tree * result = textEditTexture(context, self, w, h, prog);
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -9311,7 +9389,8 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 //   Draw a frame with the current text flow
 // ----------------------------------------------------------------------------
 {
-    Layout *childLayout = layout->AddChild(selectionId(), prog, context);
+    Layout *childLayout = layout->AddChild(selectionId(layout->id), prog,
+                                           context);
     XL::Save<Layout *> saveLayout(layout, childLayout);
     Integer_p tex = frameTexture(context, self, w, h, prog);
 
@@ -9771,7 +9850,8 @@ Tree_p Widget::urlPaint(Tree_p self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     if (! urlTexture(self, w, h, url, progress))
         return XL::xl_false;
 
@@ -9826,7 +9906,8 @@ Tree_p Widget::lineEdit(Tree_p self,
 //   Draw a line editor in the current frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -9875,7 +9956,8 @@ Tree_p Widget::radioButton(Tree_p self,
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     radioButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -9921,7 +10003,8 @@ Tree_p Widget::checkBoxButton(Tree_p self,
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -9968,7 +10051,8 @@ Tree_p Widget::pushButton(Tree_p self,
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
     pushButtonTexture(self, w, h, name, lbl, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -10240,7 +10324,8 @@ Tree_p Widget::colorChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
 
     colorChooserTexture(self, w, h, action);
 
@@ -10292,7 +10377,8 @@ Tree_p Widget::fontChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
 
     fontChooserTexture(self, w, h, action);
 
@@ -10529,7 +10615,8 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 //   Draw a file chooser in the GL widget
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
 
     fileChooserTexture(self, w, h, properties);
 
@@ -10625,7 +10712,8 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
+    XL::Save<Layout *> saveLayout(layout,
+                                  layout->AddChild(selectionId(layout->id)));
 
     groupBoxTexture(self, w, h, lbl);
 

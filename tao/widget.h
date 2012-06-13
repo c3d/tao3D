@@ -260,8 +260,6 @@ public:
 
     // Selection
     GLuint      selectionId()           { return ++id; }
-    // This one will not create a selection if cur == 0
-    GLuint      selectionId(GLuint cur) { if (cur) return ++id; return cur; }
     GLuint      selectionCurrentId()    { return id; }
     GLuint      selectionHandleId()     { return handleId; }
     GLuint      selectionCapacity()     { return maxId * (maxIdDepth + 3); }

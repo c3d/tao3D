@@ -559,6 +559,7 @@ bool Application::processCommandLine()
         switch (st)
         {
         case 0:
+            window->hide(); // #2165
             delete window;
             window = NULL;
             break;

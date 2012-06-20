@@ -542,7 +542,8 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
-        if (!QFileInfo(sourceFile).isAbsolute())
+        if (!sourceFile.contains("://") &&
+            !QFileInfo(sourceFile).isAbsolute())
             sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)

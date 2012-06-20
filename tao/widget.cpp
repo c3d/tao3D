@@ -4741,8 +4741,6 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::KeyPress);
-
     IFTRACE(pages)
         std::cerr << "Displaying page '" << name
                   << "' target '" << pageName << "'\n";
@@ -4786,7 +4784,6 @@ XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 //   Indicate the chaining of pages, returns previous information
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::KeyPress);
     text old = pageLinks[key];
     pageLinks[key] = name;
     return new Text(old);

@@ -149,8 +149,8 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 
     glPushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
-    glTranslatef(p.x, p.y, p.z);
-    glScalef(bounds.Width(), bounds.Height(), bounds.Depth());
+    GL->translate(p.x, p.y, p.z);
+    GL->scale(bounds.Width(), bounds.Height(), bounds.Depth());
 
     // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);

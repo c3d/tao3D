@@ -68,9 +68,10 @@ struct GraphicState
     void setColor(float r, float g, float b, float a);
 
     // Transform
-    void translate(float x, float y, float z);
-    void rotate(float a, float x, float y, float z);
-    void scale(float x, float y, float z);
+    void translate(double x, double y, double z);
+    void rotate(double a, double x, double y, double z);
+    void scale(double x, double y, double z);
+
 
     static GraphicState* State() { Q_ASSERT(current); return current; }
 

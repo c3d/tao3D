@@ -269,9 +269,9 @@ void TextUnit::DrawDirect(Layout *where)
                 continue;
 
             GLMatrixKeeper save;
-            glTranslatef(x, y, z);
+            GL->translate(x, y, z);
             scale gscale = glyph.scalingFactor;
-            glScalef(gscale, gscale, gscale);
+            GL->scale(gscale, gscale, gscale);
 
             if (!skip)
             {

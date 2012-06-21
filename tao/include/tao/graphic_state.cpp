@@ -119,6 +119,8 @@ void GraphicState::setColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 {
     bool changed = false;
+
+    // Compare with previous color
     if(r != color[0])
     {
         color[0] = r;
@@ -146,7 +148,7 @@ void GraphicState::setColor(float r, float g, float b, float a)
 }
 
 
-void GraphicState::translate(float x, float y, float z)
+void GraphicState::translate(double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup translation
 // ----------------------------------------------------------------------------
@@ -157,25 +159,25 @@ void GraphicState::translate(float x, float y, float z)
 }
 
 
-void GraphicState::rotate(float a, float x, float y, float z)
+void GraphicState::rotate(double a, double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup rotation
 // ----------------------------------------------------------------------------
 {
     // Do not need to rotate if all values are null
     if(a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
-        glRotatef(a, x, y, z);
+        glRotated(a, x, y, z);
 }
 
 
-void GraphicState::scale(float x, float y, float z)
+void GraphicState::scale(double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup scale
 // ----------------------------------------------------------------------------
 {
     // Do not need to scale if all values are equals to 1
     if((x != 1.0) || (y != 1.0) || (z != 1.0))
-        glScalef(x, y, z);
+        glScaled(x, y, z);
 }
 
 

@@ -4405,7 +4405,7 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         GLMatrixKeeper saveGL;
         Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        glTranslatef(v.x, v.y, v.z);
+        GL->translate(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;

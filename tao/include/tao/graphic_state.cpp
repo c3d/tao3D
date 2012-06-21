@@ -86,6 +86,33 @@ void GraphicState::textureMatrix()
 }
 
 
+void GraphicState::printMatrix(GLuint model)
+// ----------------------------------------------------------------------------
+//    Print GL matrix on stderr
+// ----------------------------------------------------------------------------
+{
+    GLdouble matrix[16];
+    std::cerr << "Current matrix is " << matrixMode <<std::endl;
+    if (model != matrixMode)
+    {
+        glMatrixMode(model);
+        std::cerr << "Matrix mode set to " << model <<std::endl;
+        glGetDoublev(model, matrix);
+        glMatrixMode(matrixMode);
+        std::cerr << "Matrix mode restored to " << matrixMode <<std::endl;
+    }
+    else
+        glGetDoublev(matrixMode, matrix);
+
+    for (int i = 0; i < 16; i+=4)
+    {
+        std::cerr << matrix[i] << "  " << matrix[i+1] << "  " << matrix[i+2]
+                << "  " <<matrix[i+3] << "  " <<std::endl;
+    }
+
+}
+
+
 void GraphicState::setColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup color

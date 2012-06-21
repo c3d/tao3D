@@ -28,6 +28,7 @@
 
 TAO_BEGIN
 
+struct TextureState;
 struct ModelState;
 struct GraphicState;
 
@@ -60,6 +61,8 @@ struct GraphicState
     void projectionMatrix();
     void modelViewMatrix();
     void textureMatrix();
+
+    void printMatrix(GLuint model);
 
     // Draw management
     void setColor(float r, float g, float b, float a);

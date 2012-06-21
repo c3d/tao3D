@@ -161,34 +161,6 @@ void MoveToRel::Draw(Layout *where)
 }
 
 
-void printMatrix(GLint model)
-// ----------------------------------------------------------------------------
-//    Print GL matrix on stderr
-// ----------------------------------------------------------------------------
-{
-    GLdouble matrix[16];
-    GLint cur = 0;
-    glGetIntegerv(GL_MATRIX_MODE, &cur);
-    std::cerr << "Current matrix is " << cur <<std::endl;
-    if (model != -1 && model != cur)
-    {
-        glMatrixMode(model);
-        std::cerr << "Matrix mode set to " << model <<std::endl;
-        glGetDoublev(model, matrix);
-        glMatrixMode(cur);
-        std::cerr << "Matrix mode restored to " << cur <<std::endl;
-    }
-    else
-        glGetDoublev(cur, matrix);
-
-    for (int i = 0; i < 16; i+=4)
-    {
-        std::cerr << matrix[i] << "  " << matrix[i+1] << "  " << matrix[i+2]
-                << "  " <<matrix[i+3] << "  " <<std::endl;
-    }
-
-}
-
 TAO_END
 
 

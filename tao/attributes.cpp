@@ -137,9 +137,9 @@ void TextureUnit::Draw(Layout *where)
     if(glUnit && (TaoApp->vendorID == ATI))
     {
         glActiveTexture(GL_TEXTURE0 + glUnit);
-        glMatrixMode(GL_TEXTURE);
+        GL->textureMatrix();
         glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
+        GL->modelViewMatrix();
         glActiveTexture(GL_TEXTURE0);
     }
 
@@ -196,9 +196,9 @@ void TextureTransform::Draw(Layout *where)
     uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
-        glMatrixMode(GL_TEXTURE);
+        GL->textureMatrix();
     else
-        glMatrixMode(GL_MODELVIEW);
+        GL->modelViewMatrix();
 }
 
 

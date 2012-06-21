@@ -2161,7 +2161,7 @@ void Widget::setup(double w, double h, const Box *picking)
     glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
-    glMatrixMode(GL_PROJECTION);
+    GL->projectionMatrix();
     glLoadIdentity();
 
     // Restrict the picking area if any is given as input
@@ -2189,7 +2189,7 @@ void Widget::setup(double w, double h, const Box *picking)
     glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
 
     // Setup the model-view matrix
-    glMatrixMode(GL_MODELVIEW);
+    GL->modelViewMatrix();
     resetModelviewMatrix();
 
     // Reset default GL parameters
@@ -10928,9 +10928,9 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     glEnable(GL_TEXTURE_2D);
-    glMatrixMode(GL_PROJECTION);
+    GL->projectionMatrix();
     glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
+    GL->modelViewMatrix();
     glLoadIdentity();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
     float tw = w/texw, th = h/texh;

@@ -2163,7 +2163,7 @@ void Widget::setup(double w, double h, const Box *picking)
 
     // Setup the projection matrix
     GL->setMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL->loadIdentity();
 
     // Restrict the picking area if any is given as input
     if (picking)
@@ -2184,10 +2184,11 @@ void Widget::setup(double w, double h, const Box *picking)
         b.Normalize();
         Vector size = b.upper - b.lower;
         Point center = b.lower + size / 2;
-        gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+        GL->pickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
     double zf = 0.5 / (zoom * scaling);
-    glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL->setFrustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL->loadMatrix();
 
     // Setup the model-view matrix
     GL->setMatrixMode(GL_MODELVIEW);
@@ -2251,8 +2252,8 @@ void Widget::setupGL()
     GL->enable(GL_POLYGON_OFFSET_LINE);
     GL->enable(GL_POLYGON_OFFSET_POINT);
     GL->setColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glLineWidth(1);
-    glLineStipple(1, -1);
+    GL->setLineWidth(1);
+    GL->setLineStipple(1, -1);
 
     // Disable all texture units
     for(int i = GL->maxTextureUnits - 1; i > 0 ; i--)
@@ -2269,7 +2270,7 @@ void Widget::setupGL()
     GL->disable(GL_TEXTURE_2D);
     GL->disable(GL_TEXTURE_RECTANGLE_ARB);
     GL->disable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
+    GL->shadeModel(GL_SMOOTH);
     GL->disable(GL_LIGHTING);
     GL->disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
@@ -10931,7 +10932,8 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     GL->enable(GL_TEXTURE_2D);
     GL->setMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
     GL->setMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();

@@ -196,8 +196,9 @@ Activity *Chooser::Display(void)
     // Initialize an "overlay" projection mode
     GLAllStateKeeper saveGL(GL_ALL_ATTRIB_BITS, true, true, 0);
     GL->setMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, ww, 0, wh);
+    GL->loadIdentity();
+    GL->setOrtho2D(0, ww, 0, wh);
+    GL->loadMatrix();
     GL->setMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 

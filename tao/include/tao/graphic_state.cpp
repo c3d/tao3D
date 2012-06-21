@@ -129,8 +129,6 @@ void GraphicState::loadIdentity()
 {
     currentMatrix->matrix.LoadIdentity();
     currentMatrix->needUpdate = true;
-
-    loadMatrix();
 }
 
 
@@ -232,18 +230,21 @@ void GraphicState::setOrtho(float left, float right,
     if ( (deltaX == 0.0f) || (deltaY == 0.0f) || (deltaZ == 0.0f) )
         return;
 
-    ortho(0, 0) = 2.0f / deltaX;
+    ortho(0, 0) = 2.0 / deltaX;
     ortho(0, 3) = -(right + left) / deltaX;
-    ortho(1, 1) = 2.0f / deltaY;
+
+    ortho(1, 1) = 2.0 / deltaY;
     ortho(1, 3) = -(top + bottom) / deltaY;
-    ortho(2, 2) = -2.0f / deltaZ;
+
+    ortho(2, 2) =  -2.0 / deltaZ;
     ortho(2, 3) = -(nearZ + farZ) / deltaZ;
+
     ortho(3, 3) = 1.0;
 
     ortho(0, 1) = ortho(0, 2) = 0.0;
     ortho(1, 0) = ortho(1, 2) = 0.0;
     ortho(2, 0) = ortho(2, 1) = 0.0;
-    ortho(3, 0) = ortho(3, 1) = ortho(3, 2);
+    ortho(3, 0) = ortho(3, 1) = ortho(3, 2) = 0.0;
 
     // Update current matrix
     currentMatrix->matrix    *= ortho;

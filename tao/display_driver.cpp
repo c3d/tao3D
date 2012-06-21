@@ -342,7 +342,8 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     // Setup viewport and geometry
     glViewport(0, 0, w, h);
     GL->setMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
     GL->setMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
@@ -655,12 +656,13 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 
     // Setup the projection matrix
     GL->setMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL->loadIdentity();
     double nearRatio = zNear()/toScreen;
     double delta = stereoDelta(i, numCameras);
     double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
-    glFrustum (-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
+    GL->setFrustum(-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
+    GL->loadMatrix();
 }
 
 

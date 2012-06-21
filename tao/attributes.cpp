@@ -233,7 +233,7 @@ void LineStipple::Draw(Layout *where)
     (void) where;
     if (scale)
     {
-        glLineStipple(scale, pattern);
+        GL->setLineStipple(scale, pattern);
         GL->enable(GL_LINE_STIPPLE);
     }
     else

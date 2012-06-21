@@ -30,6 +30,7 @@
 #include "save.h"
 #include "tree-clone.h"
 #include "coords3d.h"
+#include "graphic_state.h"
 #include "matrix.h"
 #include "opcodes.h"
 #include "drawing.h"
@@ -914,6 +915,7 @@ private:
     QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
+    GraphicState *        graphicState;
     FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;

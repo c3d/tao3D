@@ -136,6 +136,7 @@ HEADERS +=     activity.h \
     include/tao/tao_gl.h \
     include/tao/tao_info.h \
     include/tao/tao_utf8.h \
+    include/tao/graphic_state.h
 
 SOURCES +=     activity.cpp \
     application.cpp \
@@ -201,7 +202,8 @@ SOURCES +=     activity.cpp \
     update_application.cpp \
     widget.cpp \
     widget_surface.cpp \
-    window.cpp
+    window.cpp \
+    include/tao/graphic_state.cpp
 
 win32 {
     HEADERS += dde_widget.h

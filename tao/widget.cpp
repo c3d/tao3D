@@ -170,7 +170,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
-      space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
+      space(NULL), layout(NULL), graphicState(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -248,6 +248,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Create the main page we draw on
     space = new SpaceLayout(this);
     layout = space;
+
+    // Initialize graphic state
+    graphicState = new GraphicState();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
@@ -357,7 +360,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
       runOnNextDraw(true), clearCol(o.clearCol),
-      space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
+      space(NULL), layout(NULL), graphicState(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
@@ -456,6 +459,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Create new layout to draw into
     space = new SpaceLayout(this);
     layout = space;
+
+    // Initialize graphic state
+    graphicState = new GraphicState();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));

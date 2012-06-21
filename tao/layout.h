@@ -34,6 +34,7 @@
 #include <QEvent>
 #include <float.h>
 #include "matrix.h"
+#include "graphic_state.h"
 
 #define MAX_TEX_UNITS 64
 
@@ -61,22 +62,6 @@ struct TextureState
     bool          mipmap;
     GLenum        minFilt, magFilt;
 };
-
-
-struct ModelState
-// ----------------------------------------------------------------------------
-//   The state of the model we want to preserve
-// ----------------------------------------------------------------------------
-{
-    ModelState(): tx(0), ty(0), tz(0),
-                  sx(1), sy(1), sz(1),
-                  rotation(1, 0, 0, 0) {}
-
-    float tx, ty, tz;     // Translate parameters
-    float sx, sy, sz;     // Scaling parameters
-    Quaternion rotation;  // Rotation parameters
-};
-
 
 struct LayoutState
 // ----------------------------------------------------------------------------

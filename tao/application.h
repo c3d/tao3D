@@ -43,20 +43,12 @@ struct SplashScreen;
 struct ModuleManager;
 struct GCThread;
 
-enum Vendor {
-    ATI = 0,
-    NVIDIA = 1,
-    INTEL = 2,
-    LAST = 3
-};
-
 class Application : public QApplication
 // ----------------------------------------------------------------------------
 //    The main Tao application
 // ----------------------------------------------------------------------------
 {
 public:
-    static text vendorsList[LAST];
     static QPixmap *padlockIcon;
 
     Q_OBJECT
@@ -125,13 +117,6 @@ public:
     bool               hasGLStereoBuffers;
     bool               useShaderLighting;
     int                tex2DMinFilter, tex2DMagFilter;
-    Vendor             vendorID;
-    uint               maxTextureCoords;
-    uint               maxTextureUnits;
-    text               GLVendor;
-    text               GLRenderer;
-    text               GLVersionAvailable;
-    text               GLExtensionsAvailable;
     QString            lang;
     GCThread *         gcThread;
     UpdateApplication  updateApp;

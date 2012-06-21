@@ -28,12 +28,57 @@ TAO_BEGIN
 // Current graphic state
 GraphicState* GraphicState::current = NULL;
 
+// Vendors list
+text GraphicState::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
+
+
 GraphicState::GraphicState()
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : matrixMode(GL_MODELVIEW)
+    : maxTextureCoords(0), maxTextureUnits(0), matrixMode(GL_MODELVIEW)
 {
+    // Ask graphic card constructor to OpenGL
+    vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+    int vendorNum = 0;
+
+    // Search in vendors list
+    for(int i = 0; i < LAST; i++)
+    {
+        if(! vendor.compare(vendorsList[i]))
+        {
+            vendorNum = i;
+            break;
+        }
+    }
+
+    switch(vendorNum)
+    {
+    case 0: vendorID = ATI; break;
+    case 1: vendorID = NVIDIA; break;
+    case 2: vendorID = INTEL; break;
+    }
+
+    const GLubyte *str;
+
+    // Get OpenGL supported version
+    str = glGetString(GL_VERSION);
+    version = (const char*) str;
+
+    // Get OpenGL supported extentions
+    str = glGetString(GL_EXTENSIONS);
+    extensionsAvailable = (const char*) str;
+
+    // Get OpenGL renderer (GPU)
+    str = glGetString(GL_RENDERER);
+    renderer = (const char*) str;
+
+    // Get number of maximum texture units and coords in fragment shaders
+    // (texture units are limited to 4 otherwise)
+    glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+    glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
+
+
     // Set defaut color
     color[0] = 1.0;
     color[1] = 1.0;

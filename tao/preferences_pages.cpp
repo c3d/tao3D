@@ -27,6 +27,7 @@
 #include "application.h"
 #include "module_info_dialog.h"
 #include "tao_gl.h"
+#include "graphic_state.h"
 
 
 namespace Tao {
@@ -596,11 +597,11 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     QGroupBox *info = new QGroupBox(trUtf8("OpenGL\302\256 information"));
     QGridLayout *grid = new QGridLayout;
     grid->addWidget(new QLabel(tr("Vendor:")), 1, 1);
-    grid->addWidget(new QLabel(+TaoApp->GLVendor), 1, 2);
+    grid->addWidget(new QLabel(+GL->vendor), 1, 2);
     grid->addWidget(new QLabel(tr("Renderer:")), 2, 1);
-    grid->addWidget(new QLabel(+TaoApp->GLRenderer), 2, 2);
+    grid->addWidget(new QLabel(+GL->renderer), 2, 2);
     grid->addWidget(new QLabel(tr("Version:")), 3, 1);
-    grid->addWidget(new QLabel(+TaoApp->GLVersionAvailable), 3, 2);
+    grid->addWidget(new QLabel(+GL->version), 3, 2);
     info->setLayout(grid);
 
     QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));

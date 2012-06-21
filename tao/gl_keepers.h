@@ -115,7 +115,7 @@ struct GLAllStateKeeper : GLStateKeeper
             glPushMatrix();
         }
 
-        for(uint i = 0; i <  TaoApp->maxTextureCoords; i++)
+        for(uint i = 0; i <  GL->maxTextureCoords; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {
@@ -135,7 +135,7 @@ struct GLAllStateKeeper : GLStateKeeper
             glPopMatrix();
         }
 
-        for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
+        for(uint i = 0; i < GL->maxTextureCoords; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {

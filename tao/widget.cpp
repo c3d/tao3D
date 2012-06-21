@@ -2255,7 +2255,7 @@ void Widget::setupGL()
     glLineStipple(1, -1);
 
     // Disable all texture units
-    for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
+    for(int i = GL->maxTextureUnits - 1; i > 0 ; i--)
     {
         if(layout->textureUnits & (1 << i))
         {
@@ -6835,7 +6835,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > TaoApp->maxTextureUnits)
+    if(texUnit > GL->maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7214,7 +7214,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     uint texUnit = layout->currentTexture.unit;
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= TaoApp->maxTextureCoords)
+    if(texUnit >= GL->maxTextureCoords)
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
@@ -7286,7 +7286,7 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(unit > TaoApp->maxTextureUnits)
+    if(unit > GL->maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7661,6 +7661,7 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
 // ----------------------------------------------------------------------------
 {
     if (!currentShaderProgram)
+
     {
         Ooops("No shader program while executing $1", self);
         return XL::xl_false;
@@ -12178,7 +12179,7 @@ XL::Text_p Widget::GLVersion(XL::Tree_p self)
 //   Return OpenGL supported version
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(TaoApp->GLVersionAvailable);
+    return new XL::Text(GL->version);
 }
 
 
@@ -12187,18 +12188,19 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
 //   Check is an OpenGL extensions is supported
 // ----------------------------------------------------------------------------
 {
-    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring avail = GL->extensionsAvailable.c_str();
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
+
 
 bool Widget::isGLExtensionAvailable(text name)
 // ----------------------------------------------------------------------------
 //   Module interface to isGLExtensionAvailable
 // ----------------------------------------------------------------------------
 {
-    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring avail = GL->extensionsAvailable.c_str();
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? true : false;

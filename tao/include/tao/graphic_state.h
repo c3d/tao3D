@@ -79,10 +79,27 @@ struct GraphicState
     static GraphicState* State() { Q_ASSERT(current); return current; }
 
 public:
-    GLenum     matrixMode;
-    GLfloat    color[4];
+    enum Vendor {
+        ATI = 0,
+        NVIDIA = 1,
+        INTEL = 2,
+        LAST = 3
+    };
+
+public:
+    Vendor       vendorID;
+    GLuint       maxTextureCoords;
+    GLuint       maxTextureUnits;
+    text         vendor;
+    text         renderer;
+    text         version;
+    text         extensionsAvailable;
+
+    GLenum       matrixMode;
+    GLfloat      color[4];
 
     static GraphicState* current;
+    static text          vendorsList[LAST];
 
 };
 

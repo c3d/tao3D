@@ -134,7 +134,7 @@ void TextureUnit::Draw(Layout *where)
 {
     // Fig a bug with ATI drivers which set texture matrices
     // to null instead of identity
-    if(glUnit && (TaoApp->vendorID == ATI))
+    if(glUnit && (GL->vendorID == GL->ATI))
     {
         glActiveTexture(GL_TEXTURE0 + glUnit);
         GL->textureMatrix();
@@ -143,7 +143,7 @@ void TextureUnit::Draw(Layout *where)
         glActiveTexture(GL_TEXTURE0);
     }
 
-    if(glUnit < TaoApp->maxTextureCoords)
+    if(glUnit < GL->maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
         where->currentTexture.unit = glUnit;

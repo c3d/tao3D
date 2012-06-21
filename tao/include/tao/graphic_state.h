@@ -61,6 +61,17 @@ struct GraphicState
     void loadIdentity();
     void printMatrix(GLuint model);
 
+    void setFrustum(float left, float right, float bottom, float top,
+                    float nearZ, float farZ);
+    void setPerspective(float fovy, float aspect, float nearZ, float farZ);
+    void setOrtho(float left, float right, float bottom,
+                  float top, float nearZ, float farZ);
+    void setOrtho2D(float left, float right, float bottom, float top);
+    void pickMatrix(float x, float y, float width, float height,
+                    int viewport[4]);
+
+
+
     // Draw management
     void setColor(float r, float g, float b, float a);
 
@@ -98,6 +109,7 @@ public:
 
     GLenum       matrixMode;
     MatrixState* currentMatrix;
+    MatrixState  projectionMatrix;
 
     GLfloat      color[4];
 

@@ -100,6 +100,11 @@ void GraphicState::setMatrixMode(GLenum mode)
     if(matrixMode != mode)
     {
         matrixMode = mode;
+        switch(mode)
+        {
+        case GL_PROJECTION: currentMatrix = &projectionMatrix; break;
+        default: break;
+        }
         glMatrixMode(mode);
     }
 }
@@ -131,7 +136,7 @@ void GraphicState::loadIdentity()
 
 void GraphicState::printMatrix(GLuint model)
 // ----------------------------------------------------------------------------
-//    Print GL matrix on stderr
+//    Print GL matrix on stderr : GL_MODELVIEW/GL_PROJECTION/GL_TEXTURE
 // ----------------------------------------------------------------------------
 {
     GLenum matrixName;
@@ -160,6 +165,117 @@ void GraphicState::printMatrix(GLuint model)
         std::cerr << matrix[i] << "  " << matrix[i+1] << "  " << matrix[i+2]
                 << "  " <<matrix[i+3] << "  " <<std::endl;
     }
+}
+
+void GraphicState::setFrustum(float left, float right,
+                              float bottom, float top,
+                              float nearZ, float farZ)
+// ----------------------------------------------------------------------------
+//     Multiply the current matrix by a perspective matrix
+// ----------------------------------------------------------------------------
+{
+    float       deltaX = right - left;
+    float       deltaY = top - bottom;
+    float       deltaZ = farZ - nearZ;
+    Matrix4     frust(false);
+
+    if ( (nearZ <= 0.0f) || (farZ <= 0.0f) ||
+         (deltaX <= 0.0f) || (deltaY <= 0.0f) || (deltaZ <= 0.0f) )
+         return;
+
+    frust(0, 0) = 2.0f * nearZ / deltaX;
+    frust(1, 0) = frust(2, 0) = frust(3, 0) = 0.0f;
+
+    frust(1, 1) = 2.0f * nearZ / deltaY;
+    frust(0, 1) = frust(2, 1) = frust(3, 1) = 0.0f;
+
+    frust(0, 2) = (right + left) / deltaX;
+    frust(1, 2) = (top + bottom) / deltaY;
+    frust(2, 2) = -(nearZ + farZ) / deltaZ;
+    frust(3, 2) = -1.0f;
+
+    frust(2, 3) = -2.0f * nearZ * farZ / deltaZ;
+    frust(0, 3) = frust(1, 3) = frust(3, 3) = 0.0f;
+
+    // Update current matrix
+    currentMatrix->matrix    *= frust;
+    currentMatrix->needUpdate = true;
+}
+
+
+void GraphicState::setPerspective(float fovy, float aspect, float nearZ, float farZ)
+// ----------------------------------------------------------------------------
+//    Set up a perspective projection matrix
+// ----------------------------------------------------------------------------
+{
+   float frustumW, frustumH;
+
+   frustumH = tanf( fovy / 360.0f * M_PI ) * nearZ;
+   frustumW = frustumH * aspect;
+
+   setFrustum(-frustumW, frustumW, -frustumH, frustumH, nearZ, farZ );
+}
+
+
+void GraphicState::setOrtho(float left, float right,
+                            float bottom, float top,
+                            float nearZ, float farZ)
+// ----------------------------------------------------------------------------
+//    Multiply the current matrix with an orthographic matrix
+// ----------------------------------------------------------------------------
+{
+    float       deltaX = right - left;
+    float       deltaY = top - bottom;
+    float       deltaZ = farZ - nearZ;
+    Matrix4     ortho(false);
+
+    if ( (deltaX == 0.0f) || (deltaY == 0.0f) || (deltaZ == 0.0f) )
+        return;
+
+    ortho(0, 0) = 2.0f / deltaX;
+    ortho(0, 3) = -(right + left) / deltaX;
+    ortho(1, 1) = 2.0f / deltaY;
+    ortho(1, 3) = -(top + bottom) / deltaY;
+    ortho(2, 2) = -2.0f / deltaZ;
+    ortho(2, 3) = -(nearZ + farZ) / deltaZ;
+    ortho(3, 3) = 1.0;
+
+    ortho(0, 1) = ortho(0, 2) = 0.0;
+    ortho(1, 0) = ortho(1, 2) = 0.0;
+    ortho(2, 0) = ortho(2, 1) = 0.0;
+    ortho(3, 0) = ortho(3, 1) = ortho(3, 2);
+
+    // Update current matrix
+    currentMatrix->matrix    *= ortho;
+    currentMatrix->needUpdate = true;
+}
+
+
+void GraphicState::setOrtho2D(float left, float right, float bottom, float top)
+// ----------------------------------------------------------------------------
+//    Multiply the current matrix with an 2D orthographic matrix
+// ----------------------------------------------------------------------------
+{
+    setOrtho(left, right, bottom, top, -1, 1);
+}
+
+
+void GraphicState::pickMatrix(float x, float y, float width, float height,
+                              int viewport[4])
+// ----------------------------------------------------------------------------
+//    Define a picking region
+// ----------------------------------------------------------------------------
+{
+    if (width <= 0 || height <= 0)
+        return;
+
+    float sx = viewport[2] / width;
+    float sy = viewport[3] / height;
+    float tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width;
+    float ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height;
+
+    currentMatrix->matrix.Translate(tx, ty, 0);
+    currentMatrix->matrix.Scale(sx, sy, 1.0);
 }
 
 
@@ -205,7 +321,10 @@ void GraphicState::translate(double x, double y, double z)
 {
     // Do not need to translate if all values are null
     if(x != 0.0 || y != 0.0 || z != 0.0)
+    {
         glTranslatef(x, y, z);
+        currentMatrix->needUpdate = true;
+    }
 }
 
 
@@ -216,7 +335,10 @@ void GraphicState::rotate(double a, double x, double y, double z)
 {
     // Do not need to rotate if all values are null
     if(a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
+    {
         glRotated(a, x, y, z);
+        currentMatrix->needUpdate = true;
+    }
 }
 
 
@@ -227,7 +349,10 @@ void GraphicState::scale(double x, double y, double z)
 {
     // Do not need to scale if all values are equals to 1
     if((x != 1.0) || (y != 1.0) || (z != 1.0))
+    {
         glScaled(x, y, z);
+        currentMatrix->needUpdate = true;
+    }
 }
 
 

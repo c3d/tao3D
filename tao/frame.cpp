@@ -182,8 +182,8 @@ void FrameInfo::begin(bool clearContents)
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();
 
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_STENCIL_TEST);
+    GL->disable(GL_TEXTURE_2D);
+    GL->disable(GL_STENCIL_TEST);
 
     if (clearContents)
         clear();
@@ -226,9 +226,9 @@ GLuint FrameInfo::bind()
     glBindTexture(GL_TEXTURE_2D, texId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glEnable(GL_TEXTURE_2D);
+    GL->enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
+        GL->enable(GL_MULTISAMPLE);
     return texId;
 }
 

@@ -181,5 +181,24 @@ void GraphicState::scale(double x, double y, double z)
 }
 
 
+void GraphicState::enable(GLenum cap)
+// ----------------------------------------------------------------------------
+//    Enable capability
+// ----------------------------------------------------------------------------
+{
+    glEnable(cap);
+}
+
+
+void GraphicState::disable(GLenum cap)
+// ----------------------------------------------------------------------------
+//    Disable capability
+// ----------------------------------------------------------------------------
+{
+    glDisable(cap);
+}
+
+
+
 TAO_END
 

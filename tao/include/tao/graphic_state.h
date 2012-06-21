@@ -67,11 +67,14 @@ struct GraphicState
     // Draw management
     void setColor(float r, float g, float b, float a);
 
-    // Transform
+    // Transformations
     void translate(double x, double y, double z);
     void rotate(double a, double x, double y, double z);
     void scale(double x, double y, double z);
 
+    // Misc
+    void enable(GLenum cap);
+    void disable(GLenum cap);
 
     static GraphicState* State() { Q_ASSERT(current); return current; }
 
@@ -80,6 +83,7 @@ public:
     GLfloat    color[4];
 
     static GraphicState* current;
+
 };
 
 TAO_END

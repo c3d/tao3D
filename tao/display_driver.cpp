@@ -352,12 +352,12 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     // Clear depth information, disable color blending so that texture alpha
     // is ignored
     glClear(GL_DEPTH_BUFFER_BIT);
-    glDisable(GL_BLEND);
+    GL->disable(GL_BLEND);
 
     // Not sure why, but without this I often have a blank screen
-    glDisable(GL_POLYGON_OFFSET_FILL);
-    glDisable(GL_POLYGON_OFFSET_LINE);
-    glDisable(GL_POLYGON_OFFSET_POINT);
+    GL->disable(GL_POLYGON_OFFSET_FILL);
+    GL->disable(GL_POLYGON_OFFSET_LINE);
+    GL->disable(GL_POLYGON_OFFSET_POINT);
 
     glBegin(GL_QUADS);
     glTexCoord2i( 0 , 0);

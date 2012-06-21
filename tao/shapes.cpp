@@ -96,7 +96,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
-    glEnable(texture.type);
+    GL->enable(texture.type);
     glBindTexture(texture.type, texture.id);
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
@@ -138,7 +138,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     }
 
     if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
+        GL->enable(GL_MULTISAMPLE);
 }
 
 
@@ -149,7 +149,7 @@ void Shape::unbindTexture(TextureState& texture)
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
     glBindTexture(texture.type, 0);
-    glDisable(texture.type);
+    GL->disable(texture.type);
 }
 
 
@@ -340,7 +340,7 @@ void PlaceholderRectangle::Draw(Layout *where)
 
     GL->setColor(0.3, 0.7, 0.9, 0.7);
     glLineWidth(1);
-    glDisable(GL_LINE_STIPPLE);
+    GL->disable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
     path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);

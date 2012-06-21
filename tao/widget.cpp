@@ -757,9 +757,9 @@ void Widget::drawSelection()
         id = idDepth = 0;
         selectionTrees.clear();
         space->ClearAttributes();
-        glDisable(GL_DEPTH_TEST);
+        GL->disable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
-        glEnable(GL_DEPTH_TEST);
+        GL->enable(GL_DEPTH_TEST);
     }
 }
 
@@ -2236,20 +2236,20 @@ void Widget::setupGL()
 // ----------------------------------------------------------------------------
 {
     // Setup other
-    glEnable(GL_BLEND);
+    GL->enable(GL_BLEND);
     if (inOfflineRendering)
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POINT_SMOOTH);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glEnable(GL_POLYGON_OFFSET_POINT);
+    GL->enable(GL_DEPTH_TEST);
+    GL->enable(GL_LINE_SMOOTH);
+    GL->enable(GL_POINT_SMOOTH);
+    GL->enable(GL_MULTISAMPLE);
+    GL->enable(GL_POLYGON_OFFSET_FILL);
+    GL->enable(GL_POLYGON_OFFSET_LINE);
+    GL->enable(GL_POLYGON_OFFSET_POINT);
     GL->setColor(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);
@@ -2261,20 +2261,20 @@ void Widget::setupGL()
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
-            glDisable(GL_TEXTURE_2D);
+            GL->disable(GL_TEXTURE_2D);
         }
     }
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    glDisable(GL_CULL_FACE);
+    GL->disable(GL_TEXTURE_2D);
+    GL->disable(GL_TEXTURE_RECTANGLE_ARB);
+    GL->disable(GL_CULL_FACE);
     glShadeModel(GL_SMOOTH);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
+    GL->disable(GL_LIGHTING);
+    GL->disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
     glAlphaFunc(GL_GREATER, 0.01);
-    glEnable(GL_ALPHA_TEST);
+    GL->enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -10921,14 +10921,14 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 //   Draw a texture centered over the full widget with wrapping enabled
 // ----------------------------------------------------------------------------
 {
-    glDisable(GL_DEPTH_TEST);
+    GL->disable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glEnable(GL_TEXTURE_2D);
+    GL->enable(GL_TEXTURE_2D);
     GL->projectionMatrix();
     glLoadIdentity();
     GL->modelViewMatrix();
@@ -10951,7 +10951,7 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glTexCoord2f(x1, y2);
     glVertex2i  (-1,  1);
     glEnd();
-    glEnable(GL_DEPTH_TEST);
+    GL->enable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 }
 

@@ -204,7 +204,7 @@ int RasterText::printf(const char *format...)
 
     // Save GL state
     glPushAttrib(GL_LIGHTING_BIT | GL_LIST_BIT);
-    glDisable(GL_LIGHTING);
+    GL->disable(GL_LIGHTING);
     GLint prog = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
     if (prog)

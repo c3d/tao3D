@@ -36,7 +36,8 @@ GraphicState::GraphicState()
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : maxTextureCoords(0), maxTextureUnits(0), matrixMode(GL_MODELVIEW)
+    : maxTextureCoords(0), maxTextureUnits(0), matrixMode(GL_MODELVIEW),
+      shadeMode(GL_SMOOTH), lineWidth(1), stippleFactor(1), stipplePattern(1)
 {
     // Ask graphic card constructor to OpenGL
     vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
@@ -199,6 +200,33 @@ void GraphicState::scale(double x, double y, double z)
 }
 
 
+void GraphicState::setLineWidth(float width)
+// ----------------------------------------------------------------------------
+//    Specify the width of rasterized lines
+// ----------------------------------------------------------------------------
+{
+    if(width != lineWidth)
+    {
+        lineWidth = width;
+        glLineWidth(width);
+    }
+}
+
+
+void GraphicState::setLineStipple(GLint factor, GLushort pattern)
+// ----------------------------------------------------------------------------
+//    Specify the line stipple pattern
+// ----------------------------------------------------------------------------
+{
+    if((factor != stippleFactor) || (pattern != stipplePattern))
+    {
+        stippleFactor = factor;
+        stipplePattern = pattern;
+        glLineStipple(factor, pattern);
+    }
+}
+
+
 void GraphicState::enable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Enable capability
@@ -214,6 +242,16 @@ void GraphicState::disable(GLenum cap)
 // ----------------------------------------------------------------------------
 {
     glDisable(cap);
+}
+
+
+void GraphicState::shadeModel(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Select shading mode
+// ----------------------------------------------------------------------------
+{
+    if(mode != shadeMode)
+        glShadeModel(mode);
 }
 
 

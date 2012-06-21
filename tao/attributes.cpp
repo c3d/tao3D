@@ -221,7 +221,7 @@ void LineWidth::Draw(Layout *where)
 {
     where->lineWidth = width;
     if (width > 0.0)
-        glLineWidth(width * where->PrinterScaling());
+        GL->setLineWidth(width * where->PrinterScaling());
 }
 
 

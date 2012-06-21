@@ -70,9 +70,13 @@ struct GraphicState
     void rotate(double a, double x, double y, double z);
     void scale(double x, double y, double z);
 
+    void setLineWidth(float width);
+    void setLineStipple(GLint factor, GLushort pattern);
+
     // Misc
     void enable(GLenum cap);
     void disable(GLenum cap);
+    void shadeModel(GLenum mode);
 
     static GraphicState* State() { Q_ASSERT(current); return current; }
 
@@ -95,6 +99,11 @@ public:
 
     GLenum       matrixMode;
     GLfloat      color[4];
+
+    GLenum       shadeMode;
+    GLuint       lineWidth;
+    GLint        stippleFactor;
+    GLushort     stipplePattern;
 
     static GraphicState* current;
     static text          vendorsList[LAST];

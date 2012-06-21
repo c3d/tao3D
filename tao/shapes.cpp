@@ -339,7 +339,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     Draw(path);
 
     GL->setColor(0.3, 0.7, 0.9, 0.7);
-    glLineWidth(1);
+    GL->setLineWidth(1);
     GL->disable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();

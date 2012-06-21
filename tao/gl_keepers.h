@@ -111,7 +111,7 @@ struct GLAllStateKeeper : GLStateKeeper
     {
         if (saveProjection)
         {
-            GL->projectionMatrix();
+            GL->setMatrixMode(GL_PROJECTION);
             glPushMatrix();
         }
 
@@ -120,18 +120,18 @@ struct GLAllStateKeeper : GLStateKeeper
             if (saveTextureMatrix & (1 << i))
             {
                 glActiveTexture(GL_TEXTURE0 + i);
-                GL->textureMatrix();
+                GL->setMatrixMode(GL_TEXTURE);
                 glPushMatrix();
             }
         }
 
-        GL->modelViewMatrix();
+        GL->setMatrixMode(GL_MODELVIEW);
     }
     ~GLAllStateKeeper()
     {
         if (saveProjection)
         {
-            GL->projectionMatrix();
+            GL->setMatrixMode(GL_PROJECTION);
             glPopMatrix();
         }
 
@@ -140,12 +140,12 @@ struct GLAllStateKeeper : GLStateKeeper
             if (saveTextureMatrix & (1 << i))
             {
                 glActiveTexture(GL_TEXTURE0 + i);
-                GL->textureMatrix();
+                GL->setMatrixMode(GL_TEXTURE);
                 glPopMatrix();
             }
         }
 
-        GL->modelViewMatrix();
+        GL->setMatrixMode(GL_MODELVIEW);
     }
 
 private:

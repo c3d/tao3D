@@ -306,10 +306,10 @@ Activity *Selection::Display(void)
 {
     GLStateKeeper save;
 
-    GL->projectionMatrix();
+    GL->setMatrixMode(GL_PROJECTION);
     glLoadIdentity();
     gluOrtho2D(0, widget->width(), 0, widget->height());
-    GL->modelViewMatrix();
+    GL->setMatrixMode(GL_MODELVIEW);
     glLoadIdentity();
 
     Box b = rectangle;

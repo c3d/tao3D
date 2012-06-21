@@ -58,9 +58,7 @@ struct GraphicState
     GraphicState();
 
     // Matrix management
-    void projectionMatrix();
-    void modelViewMatrix();
-    void textureMatrix();
+    void setMatrixMode(GLenum mode);
 
     void printMatrix(GLuint model);
 

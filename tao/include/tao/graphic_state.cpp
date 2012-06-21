@@ -89,44 +89,17 @@ GraphicState::GraphicState()
 }
 
 
-void GraphicState::projectionMatrix()
-// ----------------------------------------------------------------------------
-//    Set projection matrix
-// ----------------------------------------------------------------------------
-{
-    // Setup the projection matrix
-    if(matrixMode != GL_PROJECTION)
-    {
-        matrixMode = GL_PROJECTION;
-        glMatrixMode(GL_PROJECTION);
-    }
-}
-
-
-void GraphicState::modelViewMatrix()
-// ----------------------------------------------------------------------------
-//    Setup modelview matrix
-// ----------------------------------------------------------------------------
-{
-    // Setup the projection matrix
-    if(matrixMode != GL_MODELVIEW)
-    {
-        matrixMode = GL_MODELVIEW;
-        glMatrixMode(GL_MODELVIEW);
-    }
-}
-
-
-void GraphicState::textureMatrix()
+void GraphicState::setMatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
 //    Setup texture matrix
+//    Set matrix mode
 // ----------------------------------------------------------------------------
 {
-    // Setup the projection matrix
-    if(matrixMode != GL_TEXTURE)
+    // Setup the new matrix mode
+    if(matrixMode != mode)
     {
-        matrixMode = GL_TEXTURE;
-        glMatrixMode(GL_TEXTURE);
+        matrixMode = mode;
+        glMatrixMode(mode);
     }
 }
 

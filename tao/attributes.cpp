@@ -137,9 +137,9 @@ void TextureUnit::Draw(Layout *where)
     if(glUnit && (GL->vendorID == GL->ATI))
     {
         glActiveTexture(GL_TEXTURE0 + glUnit);
-        GL->textureMatrix();
+        GL->setMatrixMode(GL_TEXTURE);
         glLoadIdentity();
-        GL->modelViewMatrix();
+        GL->setMatrixMode(GL_MODELVIEW);
         glActiveTexture(GL_TEXTURE0);
     }
 
@@ -196,9 +196,9 @@ void TextureTransform::Draw(Layout *where)
     uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
-        GL->textureMatrix();
+        GL->setMatrixMode(GL_TEXTURE);
     else
-        GL->modelViewMatrix();
+        GL->setMatrixMode(GL_MODELVIEW);
 }
 
 

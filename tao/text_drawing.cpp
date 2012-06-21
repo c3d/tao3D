@@ -87,7 +87,7 @@ void TextUnit::Draw(Layout *where)
     IFTRACE(textselect)
     {
         glDisable(GL_TEXTURE_2D);
-        glColor4f(0.8, 0.4, 0.3, 0.2);
+        GL->setColor(0.8, 0.4, 0.3, 0.2);
         XL::Save<Point3> save(where->offset, offset0);
         Identify(where);
     }

@@ -44,7 +44,7 @@ void Shape3::DrawSelection(Layout *layout)
     }
 }
 
-    
+
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape

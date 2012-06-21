@@ -695,7 +695,7 @@ void Widget::drawStereoIdent()
     if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
         updateStereoIdentPatterns(stereoPlanes);
     StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
-    glColor4f(1.0, 1.0, 1.0, 1.0);
+    GL->setColor(1.0, 1.0, 1.0, 1.0);
     drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
 }
 
@@ -2249,7 +2249,7 @@ void Widget::setupGL()
     glEnable(GL_POLYGON_OFFSET_FILL);
     glEnable(GL_POLYGON_OFFSET_LINE);
     glEnable(GL_POLYGON_OFFSET_POINT);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+    GL->setColor(1.0f, 1.0f, 1.0f, 1.0f);
     glLineWidth(1);
     glLineStipple(1, -1);
 
@@ -10909,7 +10909,7 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
-    glColor4f(1.0, 1.0, 1.0, 0.2);
+    GL->setColor(1.0, 1.0, 1.0, 0.2);
     drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
 }
 

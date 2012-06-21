@@ -211,14 +211,14 @@ int RasterText::printf(const char *format...)
         glUseProgram(0);
 
     // Draw background
-    glColor4f(0.0, 0.0, 0.0, 0.5);
+    GL->setColor(0.0, 0.0, 0.0, 0.5);
     glWindowPos2d(inst->pos.x, inst->pos.y);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (int i = 0; i < 2*len; i++)
         glBitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
     // Draw text
-    glColor3f(1.0, 1.0, 1.0);
+    GL->setColor(1.0, 1.0, 1.0, 1.0);
     glWindowPos2d(inst->pos.x + 2, inst->pos.y + 1);
     glListBase(inst->fontOffset);
     glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);

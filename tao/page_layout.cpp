@@ -722,7 +722,7 @@ void PageLayout::Identify(Layout */*where*/)
         { x,     y + h, z }
     };
 
-    glColor4f(0.2,0.6,1.0,0.1);
+    GL->setColor(0.2,0.6,1.0,0.1);
     glVertexPointer(3, GL_DOUBLE, 0, array);
     glEnableClientState(GL_VERTEX_ARRAY);
     glDrawArrays(GL_QUADS, 0, 4);

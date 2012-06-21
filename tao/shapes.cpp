@@ -187,7 +187,7 @@ bool Shape::setFillColor(Layout *where)
         if (v >= 0.01)
         {
             if (!where->hasMaterial)
-                glColor4f(color.red, color.green, color.blue, v);
+                GL->setColor(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             return true;
         }
@@ -210,7 +210,7 @@ bool Shape::setLineColor(Layout *where)
         if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
-                glColor4f(color.red, color.green, color.blue, v);
+                GL->setColor(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             return true;
         }
@@ -338,7 +338,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     GraphicPath path;
     Draw(path);
 
-    glColor4f(0.3, 0.7, 0.9, 0.7);
+    GL->setColor(0.3, 0.7, 0.9, 0.7);
     glLineWidth(1);
     glDisable(GL_LINE_STIPPLE);
 

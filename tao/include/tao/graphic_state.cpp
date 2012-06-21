@@ -105,30 +105,61 @@ void GraphicState::setMatrixMode(GLenum mode)
 }
 
 
+void GraphicState::loadMatrix()
+// ----------------------------------------------------------------------------
+//    Load current matrix
+// ----------------------------------------------------------------------------
+{
+    if(currentMatrix->needUpdate)
+        glLoadMatrixd(currentMatrix->matrix.Data());
+
+    currentMatrix->needUpdate = false;
+}
+
+
+void GraphicState::loadIdentity()
+// ----------------------------------------------------------------------------
+//    Load identity matrix
+// ----------------------------------------------------------------------------
+{
+    currentMatrix->matrix.LoadIdentity();
+    currentMatrix->needUpdate = true;
+
+    loadMatrix();
+}
+
+
 void GraphicState::printMatrix(GLuint model)
 // ----------------------------------------------------------------------------
 //    Print GL matrix on stderr
 // ----------------------------------------------------------------------------
 {
+    GLenum matrixName;
+    switch(model)
+    {
+    case GL_PROJECTION: matrixName = GL_PROJECTION_MATRIX; break;
+    case GL_TEXTURE:    matrixName = GL_TEXTURE_MATRIX;    break;
+    default :           matrixName = GL_MODELVIEW_MATRIX;  break;
+    }
+
     GLdouble matrix[16];
     std::cerr << "Current matrix is " << matrixMode <<std::endl;
     if (model != matrixMode)
     {
         glMatrixMode(model);
         std::cerr << "Matrix mode set to " << model <<std::endl;
-        glGetDoublev(model, matrix);
+        glGetDoublev(matrixName, matrix);
         glMatrixMode(matrixMode);
         std::cerr << "Matrix mode restored to " << matrixMode <<std::endl;
     }
     else
-        glGetDoublev(matrixMode, matrix);
+        glGetDoublev(matrixName, matrix);
 
     for (int i = 0; i < 16; i+=4)
     {
         std::cerr << matrix[i] << "  " << matrix[i+1] << "  " << matrix[i+2]
                 << "  " <<matrix[i+3] << "  " <<std::endl;
     }
-
 }
 
 

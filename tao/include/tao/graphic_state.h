@@ -24,6 +24,7 @@
 // ****************************************************************************
 
 #include "coords3d.h"
+#include "matrix.h"
 #include "tao_gl.h"
 
 TAO_BEGIN
@@ -35,18 +36,15 @@ struct GraphicState;
 //  Shortcut
 #define GL              Tao::GraphicState::State()
 
-struct ModelState
+struct MatrixState
 // ----------------------------------------------------------------------------
-//   The state of the model we want to preserve
+//   The state of a matrix we want to preserve
 // ----------------------------------------------------------------------------
 {
-    ModelState(): tx(0), ty(0), tz(0),
-                  sx(1), sy(1), sz(1),
-                  rotation(1, 0, 0, 0) {}
+    MatrixState() : needUpdate(false) {}
 
-    float tx, ty, tz;     // Translate parameters
-    float sx, sy, sz;     // Scaling parameters
-    Quaternion rotation;  // Rotation parameters
+    bool    needUpdate;
+    Matrix4 matrix;
 };
 
 
@@ -59,7 +57,8 @@ struct GraphicState
 
     // Matrix management
     void setMatrixMode(GLenum mode);
-
+    void loadMatrix();
+    void loadIdentity();
     void printMatrix(GLuint model);
 
     // Draw management
@@ -98,6 +97,8 @@ public:
     text         extensionsAvailable;
 
     GLenum       matrixMode;
+    MatrixState* currentMatrix;
+
     GLfloat      color[4];
 
     GLenum       shadeMode;

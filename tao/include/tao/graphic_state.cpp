@@ -90,6 +90,35 @@ GraphicState::GraphicState()
 }
 
 
+void GraphicState::pushMatrix()
+// ----------------------------------------------------------------------------
+//    Push current matrix in the stack
+// ----------------------------------------------------------------------------
+{
+    switch(matrixMode)
+    {
+    case GL_PROJECTION: projStack.push(*currentMatrix); break;
+    default: break;
+    }
+}
+
+
+void GraphicState::popMatrix()
+// ----------------------------------------------------------------------------
+//    Pop last matrix of the stack
+// ----------------------------------------------------------------------------
+{
+    switch(matrixMode)
+    {
+    case GL_PROJECTION: (*currentMatrix) = projStack.top(); projStack.pop(); break;
+    default: break;
+    }
+
+    currentMatrix->needUpdate = true;
+    loadMatrix();
+}
+
+
 void GraphicState::setMatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
 //    Setup texture matrix
@@ -412,6 +441,14 @@ void GraphicState::shadeModel(GLenum mode)
 }
 
 
+std::ostream & GraphicState::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[GraphicState] ";
+    return std::cerr;
+}
 
 TAO_END
 

@@ -112,7 +112,7 @@ struct GLAllStateKeeper : GLStateKeeper
         if (saveProjection)
         {
             GL->setMatrixMode(GL_PROJECTION);
-            glPushMatrix();
+            GL->pushMatrix();
         }
 
         for(uint i = 0; i <  GL->maxTextureCoords; i++)
@@ -132,7 +132,7 @@ struct GLAllStateKeeper : GLStateKeeper
         if (saveProjection)
         {
             GL->setMatrixMode(GL_PROJECTION);
-            glPopMatrix();
+            GL->popMatrix();
         }
 
         for(uint i = 0; i < GL->maxTextureCoords; i++)

@@ -26,6 +26,7 @@
 #include "coords3d.h"
 #include "matrix.h"
 #include "tao_gl.h"
+#include <stack>
 
 TAO_BEGIN
 
@@ -47,7 +48,6 @@ struct MatrixState
     Matrix4 matrix;
 };
 
-
 struct GraphicState
 // ----------------------------------------------------------------------------
 //   Class to manage graphic states
@@ -56,6 +56,8 @@ struct GraphicState
     GraphicState();
 
     // Matrix management
+    void pushMatrix();
+    void popMatrix();
     void setMatrixMode(GLenum mode);
     void loadMatrix();
     void loadIdentity();
@@ -69,8 +71,6 @@ struct GraphicState
     void setOrtho2D(float left, float right, float bottom, float top);
     void pickMatrix(float x, float y, float width, float height,
                     int viewport[4]);
-
-
 
     // Draw management
     void setColor(float r, float g, float b, float a);
@@ -89,6 +89,8 @@ struct GraphicState
     void shadeModel(GLenum mode);
 
     static GraphicState* State() { Q_ASSERT(current); return current; }
+
+    std::ostream & debug();
 
 public:
     enum Vendor {
@@ -118,6 +120,9 @@ public:
     GLint        stippleFactor;
     GLushort     stipplePattern;
 
+    std::stack<MatrixState> projStack; // the stack for projection matrices
+
+public:
     static GraphicState* current;
     static text          vendorsList[LAST];
 

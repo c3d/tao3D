@@ -403,7 +403,8 @@ FramePainter::FramePainter(FrameInfo *info)
     : QPainter(), info(info), save()
 {
     // Draw without any transformation (reset the coordinates system)
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
 
     // Clear the render FBO
     info->checkGLContext();

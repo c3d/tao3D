@@ -132,8 +132,11 @@ void GraphicState::setMatrixMode(GLenum mode)
         switch(mode)
         {
         case GL_PROJECTION: currentMatrix = &projectionMatrix; break;
+        case GL_MODELVIEW:  currentMatrix = &mvMatrix; break;
         default: break;
         }
+
+        // TO REMOVE
         glMatrixMode(mode);
     }
 }
@@ -193,6 +196,26 @@ void GraphicState::printMatrix(GLuint model)
                 << "  " <<matrix[i+3] << "  " <<std::endl;
     }
 }
+
+
+void GraphicState::pickMatrix(float x, float y, float width, float height,
+                              int viewport[4])
+// ----------------------------------------------------------------------------
+//    Define a picking region
+// ----------------------------------------------------------------------------
+{
+    if (width <= 0 || height <= 0)
+        return;
+
+    float sx = viewport[2] / width;
+    float sy = viewport[3] / height;
+    float tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width;
+    float ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height;
+
+    translate(tx, ty, 0);
+    scale(sx, sy, 1.0);
+}
+
 
 void GraphicState::setFrustum(float left, float right,
                               float bottom, float top,
@@ -290,22 +313,61 @@ void GraphicState::setOrtho2D(float left, float right, float bottom, float top)
 }
 
 
-void GraphicState::pickMatrix(float x, float y, float width, float height,
-                              int viewport[4])
-// ----------------------------------------------------------------------------
-//    Define a picking region
-// ----------------------------------------------------------------------------
+void GraphicState::setLookAt(float eyeX, float eyeY, float eyeZ,
+                             float centerX, float centerY, float centerZ,
+                             float upX, float upY, float upZ)
+// ----------------------------------------------------------------------------+
+//    Multiply the current matrix with a viewing matrix
+// ----------------------------------------------------------------------------+
 {
-    if (width <= 0 || height <= 0)
-        return;
+    Vector3 eye(eyeX, eyeY, eyeZ);
+    Vector3 center(centerX, centerY, centerZ);
+    Vector3 up(upX, upY, upZ);
 
-    float sx = viewport[2] / width;
-    float sy = viewport[3] / height;
-    float tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width;
-    float ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height;
+    setLookAt(eye, center, up);
+}
 
-    currentMatrix->matrix.Translate(tx, ty, 0);
-    currentMatrix->matrix.Scale(sx, sy, 1.0);
+
+void GraphicState::setLookAt(Vector3 eye, Vector3 center, Vector3 up)
+// ----------------------------------------------------------------------------+
+//    Multiply the current matrix with a viewing matrix
+// ----------------------------------------------------------------------------+
+{
+    // Compute forward vector
+    Vector3 forward = (center - eye).Normalize();
+
+    // Compute side vector
+    Vector3 side = forward;
+    up.Normalize();
+    side.Cross(up).Normalize();
+
+    // Compute new up vector
+    Vector3 upVector = side;
+    upVector.Cross(forward).Normalize();
+
+    Matrix4 view(false);
+
+    view(0, 0) = side.x;
+    view(1, 0) = side.y;
+    view(2, 0) = side.z;
+    view(0, 1) = upVector.x;
+    view(1, 1) = upVector.y;
+    view(2, 1) = upVector.z;
+    view(0, 2) = -forward.x;
+    view(1, 2) = -forward.y;
+    view(2, 2) = -forward.z;
+    view(3, 3) = 1.0;
+
+    view(3, 0) = view(3, 1) = view(3, 2) = 0.0;
+    view(0, 3) = view(1, 3) = view(2, 3) = 0.0;
+
+    // Update current matrix
+    currentMatrix->matrix *= view;
+
+    // TO REMOVE
+    currentMatrix->needUpdate = true;
+    loadMatrix();
+    translate(-eye.x, -eye.y, -eye.z);
 }
 
 

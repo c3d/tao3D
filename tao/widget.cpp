@@ -2219,15 +2219,13 @@ void Widget::resetModelviewMatrix()
 //   Reset the model-view matrix, used by reset_transform and setup
 // ----------------------------------------------------------------------------
 {
-    glLoadIdentity();
+    GL->loadIdentity();
 
     // Position the camera
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
     toTarget *= cameraToScreen;
     Point3 target = cameraPosition + toTarget;
-    gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-              target.x, target.y ,target.z,
-              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
+    GL->setLookAt(cameraPosition, target, cameraUpVector);
 }
 
 
@@ -10935,7 +10933,8 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     GL->loadIdentity();
     GL->loadMatrix();
     GL->setMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
     float tw = w/texw, th = h/texh;
     float x1 = -tw/2, x2 = tw/2;

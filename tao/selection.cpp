@@ -311,7 +311,8 @@ Activity *Selection::Display(void)
     GL->loadMatrix();
     gluOrtho2D(0, widget->width(), 0, widget->height());
     GL->setMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
 
     Box b = rectangle;
     b.Normalize();

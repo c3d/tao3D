@@ -345,7 +345,8 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     GL->loadIdentity();
     GL->loadMatrix();
     GL->setMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
 
     // Select draw buffer
     glDrawBuffer(GL_BACK);
@@ -683,7 +684,7 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
 
     // Setup the model-view matrix
     GL->setMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL->loadIdentity();
     double delta = stereoDelta(i, numCameras);
     double shiftLength = eyeSeparation() * delta;
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
@@ -695,13 +696,7 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     Widget::Tao()->eye = i;
     Widget::Tao()->eyesNumber = numCameras;
 
-    gluLookAt(cameraPosition.x + shift.x,
-              cameraPosition.y + shift.y,
-              cameraPosition.z + shift.z,
-              target.x + shift.x,
-              target.y + shift.y,
-              target.z + shift.z,
-              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
+    GL->setLookAt(cameraPosition + shift, target + shift, cameraUpVector);
 }
 
 

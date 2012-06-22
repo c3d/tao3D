@@ -200,7 +200,8 @@ Activity *Chooser::Display(void)
     GL->setOrtho2D(0, ww, 0, wh);
     GL->loadMatrix();
     GL->setMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL->loadIdentity();
+    GL->loadMatrix();
 
     // Draw the chooser box
     widget->drawSelection(NULL, Box3(mx, my, 0, mw, mh, 0), "chooser_box");

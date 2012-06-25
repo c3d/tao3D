@@ -185,6 +185,7 @@ private slots:
     void preferences();
     void licenses();
     void onlineDoc();
+    void tutorialsPage();
     void documentWasModified();
     void checkFiles();
     void displayModeTriggered(bool on);
@@ -301,6 +302,7 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
+    QAction          *tutorialsPageAct;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

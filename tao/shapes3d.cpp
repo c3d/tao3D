@@ -147,11 +147,10 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 {
     Point3 p = bounds.Center() + where->Offset();
 
-    glPushMatrix();
+    GL->pushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
     GL->translate(p.x, p.y, p.z);
     GL->scale(bounds.Width(), bounds.Height(), bounds.Depth());
-
     // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
@@ -226,7 +225,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     }
 
     glPopAttrib();
-    glPopMatrix();
+    GL->popMatrix();
 }
 
 // ============================================================================

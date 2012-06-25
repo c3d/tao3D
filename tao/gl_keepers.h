@@ -64,12 +64,12 @@ struct GLMatrixKeeper
         : save(save)
     {
         if (save)
-            glPushMatrix();
+            GL->pushMatrix();
     }
     ~GLMatrixKeeper()
     {
         if (save)
-            glPopMatrix();
+            GL->popMatrix();
     }
 
 private:

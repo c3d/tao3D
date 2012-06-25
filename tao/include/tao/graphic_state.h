@@ -115,7 +115,7 @@ public:
 
     GLenum       matrixMode;
     MatrixState* currentMatrix;
-    MatrixState  projectionMatrix;
+    MatrixState  projMatrix;
     MatrixState  mvMatrix;
 
     GLfloat      color[4];
@@ -126,6 +126,7 @@ public:
     GLushort     stipplePattern;
 
     std::stack<MatrixState> projStack; // the stack for projection matrices
+    std::stack<MatrixState> mvStack;   // the stack for modelview matrices
 
 public:
     static GraphicState* current;

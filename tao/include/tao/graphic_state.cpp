@@ -98,6 +98,7 @@ void GraphicState::pushMatrix()
     switch(matrixMode)
     {
     case GL_PROJECTION: projStack.push(*currentMatrix); break;
+    case GL_MODELVIEW: mvStack.push(*currentMatrix); break;
     default: break;
     }
 }
@@ -111,6 +112,7 @@ void GraphicState::popMatrix()
     switch(matrixMode)
     {
     case GL_PROJECTION: (*currentMatrix) = projStack.top(); projStack.pop(); break;
+    case GL_MODELVIEW: (*currentMatrix) = mvStack.top(); mvStack.pop(); break;
     default: break;
     }
 
@@ -131,7 +133,7 @@ void GraphicState::setMatrixMode(GLenum mode)
         matrixMode = mode;
         switch(mode)
         {
-        case GL_PROJECTION: currentMatrix = &projectionMatrix; break;
+        case GL_PROJECTION: currentMatrix = &projMatrix; break;
         case GL_MODELVIEW:  currentMatrix = &mvMatrix; break;
         default: break;
         }
@@ -212,8 +214,8 @@ void GraphicState::pickMatrix(float x, float y, float width, float height,
     float tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width;
     float ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height;
 
-    translate(tx, ty, 0);
-    scale(sx, sy, 1.0);
+    currentMatrix->matrix.Translate(tx, ty, 0);
+    currentMatrix->matrix.Scale(sx, sy, 1.0);
 }
 
 
@@ -366,8 +368,8 @@ void GraphicState::setLookAt(Vector3 eye, Vector3 center, Vector3 up)
 
     // TO REMOVE
     currentMatrix->needUpdate = true;
+    currentMatrix->matrix.Translate(-eye.x, -eye.y, -eye.z);
     loadMatrix();
-    translate(-eye.x, -eye.y, -eye.z);
 }
 
 
@@ -414,8 +416,9 @@ void GraphicState::translate(double x, double y, double z)
     // Do not need to translate if all values are null
     if(x != 0.0 || y != 0.0 || z != 0.0)
     {
-        glTranslatef(x, y, z);
+        currentMatrix->matrix.Translate(x, y, z);
         currentMatrix->needUpdate = true;
+        loadMatrix();
     }
 }
 
@@ -428,8 +431,9 @@ void GraphicState::rotate(double a, double x, double y, double z)
     // Do not need to rotate if all values are null
     if(a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
     {
-        glRotated(a, x, y, z);
+        currentMatrix->matrix.Rotate(a, x, y, z);
         currentMatrix->needUpdate = true;
+        loadMatrix();
     }
 }
 
@@ -442,8 +446,9 @@ void GraphicState::scale(double x, double y, double z)
     // Do not need to scale if all values are equals to 1
     if((x != 1.0) || (y != 1.0) || (z != 1.0))
     {
-        glScaled(x, y, z);
+        currentMatrix->matrix.Scale(x, y, z);
         currentMatrix->needUpdate = true;
+        loadMatrix();
     }
 }
 

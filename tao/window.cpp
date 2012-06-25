@@ -55,6 +55,7 @@
 #include "licence.h"
 #include "license_dialog.h"
 #include "normalize.h"
+#include "examples_menu.h"
 
 #include <iostream>
 #include <sstream>
@@ -1950,6 +1951,24 @@ void Window::createMenus()
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
+
+    ExamplesMenu * examplesMenu = new ExamplesMenu;
+    QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
+    Templates templates = Templates(tdir);
+    foreach (Template t, templates)
+    {
+        if (t.mainFile == "blank.ddd")
+            continue;
+        QString name(t.name);
+        // Strip "(Demo) " or "(Démo) "
+        name.replace(QRegExp("^\\([^)]+\\) "), "");
+        examplesMenu->addExample(name,
+                                 t.mainFileFullPath(),
+                                 t.description);
+    }
+    connect(examplesMenu, SIGNAL(openDocument(QString)),
+            this, SLOT(openReadOnly(QString)));
+    helpMenu->addMenu(examplesMenu);
 }
 
 

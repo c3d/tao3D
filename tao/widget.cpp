@@ -6362,7 +6362,7 @@ Infix_p Widget::currentModelMatrix(Tree_p self)
 //   Return the current model matrix converting from object to world space
 // ----------------------------------------------------------------------------
 {
-    Tree *result = xl_real_list(self, 16, layout->model.Data());
+    Tree *result = xl_real_list(self, 16, layout->model.Data(false));
     return result->AsInfix();
 }
 

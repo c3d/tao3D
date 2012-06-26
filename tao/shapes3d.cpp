@@ -113,6 +113,8 @@ void Cube::Draw(Layout *where)
 
     setTexture(where);
 
+    GL->loadMatrix();
+
     // Draw filled faces
     if (setFillColor(where))
         glDrawArrays(GL_QUADS, 0, 24);
@@ -151,6 +153,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     glPushAttrib(GL_ENABLE_BIT);
     GL->translate(p.x, p.y, p.z);
     GL->scale(bounds.Width(), bounds.Height(), bounds.Depth());
+    GL->loadMatrix();
     // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);

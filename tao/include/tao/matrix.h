@@ -57,10 +57,13 @@ struct Matrix4
     }
 
 
-    coord* Data()
+    coord* Data(bool changed = true)
     {
        // We don't know the result matrix (possibly modified by user)
-       type = UNKNOWN;
+       // But if specified, then do not changed type
+       if(changed)
+           type = UNKNOWN;
+
        return m[0];
     }
 
@@ -454,7 +457,8 @@ struct Matrix4
            if (current == IDENTITY)
                type = ROTATION;
            else
-               type = current | ROTATION;
+               if(current != UNKNOWN)
+                   type = current | ROTATION;
         }
     }
 
@@ -512,7 +516,8 @@ struct Matrix4
             if (current == IDENTITY)
                 type = ROTATION;
             else
-                type = current | ROTATION;
+                if(current != UNKNOWN)
+                    type = current | ROTATION;
          }
     }
 

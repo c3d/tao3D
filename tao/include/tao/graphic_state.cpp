@@ -157,7 +157,7 @@ void GraphicState::loadMatrix()
 // ----------------------------------------------------------------------------
 {
     if(currentMatrix->needUpdate)
-        glLoadMatrixd(currentMatrix->matrix.Data());
+        glLoadMatrixd(currentMatrix->matrix.Data(false));
 
     currentMatrix->needUpdate = false;
 }
@@ -224,7 +224,6 @@ void GraphicState::translate(double x, double y, double z)
     {
         currentMatrix->matrix.Translate(x, y, z);
         currentMatrix->needUpdate = true;
-        loadMatrix();
     }
 }
 
@@ -239,7 +238,6 @@ void GraphicState::rotate(double a, double x, double y, double z)
     {
         currentMatrix->matrix.Rotate(a, x, y, z);
         currentMatrix->needUpdate = true;
-        loadMatrix();
     }
 }
 
@@ -254,7 +252,6 @@ void GraphicState::scale(double x, double y, double z)
     {
         currentMatrix->matrix.Scale(x, y, z);
         currentMatrix->needUpdate = true;
-        loadMatrix();
     }
 }
 

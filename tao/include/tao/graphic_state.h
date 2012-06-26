@@ -30,8 +30,7 @@
 
 TAO_BEGIN
 
-struct TextureState;
-struct ModelState;
+struct MatrixState;
 struct GraphicState;
 
 //  Shortcut
@@ -100,7 +99,7 @@ struct GraphicState
     void enable(GLenum cap);
     void disable(GLenum cap);
 
-    static GraphicState* State() { Q_ASSERT(current); return current; }
+    static inline GraphicState* State() { Q_ASSERT(current); return current; }
 
     std::ostream & debug();
 

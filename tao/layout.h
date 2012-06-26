@@ -39,7 +39,6 @@
 #define MAX_TEX_UNITS 64
 
 TAO_BEGIN
-
 struct Widget;
 
 struct TextureState

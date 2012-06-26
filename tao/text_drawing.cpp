@@ -195,10 +195,13 @@ void TextUnit::DrawCached(Layout *where)
         glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        GL->loadMatrix();
         glDrawArrays(GL_QUADS, 0, count);
+
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        GL->disable(GL_TEXTURE_RECTANGLE_ARB);
     }
 
     where->offset = Point3(x, y, z);
@@ -272,7 +275,7 @@ void TextUnit::DrawDirect(Layout *where)
             GL->translate(x, y, z);
             scale gscale = glyph.scalingFactor;
             GL->scale(gscale, gscale, gscale);
-
+            GL->loadMatrix();
             if (!skip)
             {
                 setTexture(where);

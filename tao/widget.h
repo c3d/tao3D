@@ -259,18 +259,20 @@ public:
                                = CurrentTime(); }
 
     // Selection
-    GLuint      selectionId()           { return ++id; }
+    GLuint      shapeId()               { return ++id; }
+    GLuint      selectionId()           { return id = (++id & ~SELECTION_MASK) | SHAPE_SELECTED; }
     GLuint      selectionCurrentId()    { return id; }
     GLuint      selectionHandleId()     { return handleId; }
     GLuint      selectionCapacity()     { return maxId * (maxIdDepth + 3); }
 
     enum
     {
-        HANDLE_SELECTED    =  0x10000000, // A handle is selected
-        CHARACTER_SELECTED =  0x20000000, // A character was selected
+        SHAPE_SELECTED     =  0x10000000, // Normal shape selection
+        HANDLE_SELECTED    =  0x20000000, // A handle is selected
+        CHARACTER_SELECTED =  0x30000000, // A character was selected
         CONTAINER_OPENED   =  0x40000000, // A shape container was opened
-        CONTAINER_SELECTED =  0x80000000, // Container is selected
-        SELECTION_MASK     = ~0xF0000000  // Mask for "regular" selection
+        CONTAINER_SELECTED =  0x50000000, // Container is selected
+        SELECTION_MASK     =  0x70000000  // Mask for "regular" selection
     };
     void        select(uint id, uint count = 1);
     uint        selected(uint i);

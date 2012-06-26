@@ -146,6 +146,18 @@ Application::Application(int & argc, char ** argv)
         ::exit(0);
     }
 #endif
+    if (cmdLineArguments.contains("--version"))
+    {
+
+#ifdef TAO_EDITION
+#define EDSTR TAO_EDITION
+#else
+#define EDSTR "(internal)"
+#endif
+        std::cout << "Tao Presentations " EDSTR " " GITREV " (" GITSHA1 ")\n";
+#undef EDSTR
+        ::exit(0);
+    }
 
     bool showSplash = true;
     if (cmdLineArguments.contains("-nosplash") ||
@@ -530,7 +542,8 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
-        if (!QFileInfo(sourceFile).isAbsolute())
+        if (!sourceFile.contains("://") &&
+            !QFileInfo(sourceFile).isAbsolute())
             sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
@@ -547,6 +560,7 @@ bool Application::processCommandLine()
         switch (st)
         {
         case 0:
+            window->hide(); // #2165
             delete window;
             window = NULL;
             break;

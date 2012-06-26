@@ -130,17 +130,173 @@ constant (t:tree);
  * Sets the refresh time for the current layout.
  *
  * The current layout (that is, the enclosing @ref locally or @ref shape) will
- * be re-executed every @p interval seconds.
+ * be re-executed after @p interval seconds.
  *
  * @~french
- * Définit un intervalle de rafraîchissement du layout courant.
+ * Définit un délai de rafraîchissement du layout courant.
  *
  * Le @a layout courant (c'est-à-dire, la commande @ref locally ou @ref shape
- * qui contient le @ref refresh) sera ré-exécuté toutes les @p interval
+ * qui contient le @ref refresh) sera ré-exécuté dans @p interval
  * secondes.
+ * @~
+ * @see refresh_on, no_refresh_on
  */
 refresh (interval:real);
 
+
+/**
+ * @~english
+ * Request refresh of the current layout on a specific event.
+ *
+ * The current layout (that is, the enclosing @ref locally or @ref shape) will
+ * be re-executed whenever an event of type @p event is processed. @n
+ * Possible values for @p event are:
+ * - @c TimerEvent
+ * - @c MouseButtonPressEvent
+ * - @c MouseButtonReleaseEvent
+ * - @c MouseButtonDblClickEvent
+ * - @c MouseMoveEvent
+ * - @c KeyPressEvent
+ * - @c KeyReleaseEvent
+ *
+ * For instance, the following code counts the number of clicks:
+ *
+ * @~french
+ * Programme un rafraîchissement du layout courant sur un événement donné.
+ *
+ * Le @a layout courant (c'est-à-dire, la commande @ref locally ou @ref shape
+ * qui contient le @ref refresh) sera ré-exécuté lorsqu'un événement de type
+ * @p event sera reçu. @n
+ * Les valeurs admissibles pour @p event sont:
+ * - @c TimerEvent
+ * - @c MouseButtonPressEvent
+ * - @c MouseButtonReleaseEvent
+ * - @c MouseButtonDblClickEvent
+ * - @c MouseMoveEvent
+ * - @c KeyPressEvent
+ * - @c KeyReleaseEvent
+ *
+ * Par exemple, le code suivant compte le nombre de clics:
+ * @~
+ * @code
+N -> -1
+locally
+    N := N+1
+    text text N
+    refresh_on MouseButtonPressEvent
+ * @endcode
+ * @see refresh, no_refresh_on
+ */
+refresh_on (event:integer);
+
+
+/**
+ * @~english
+ * Cancels refresh of the current layout on a specific event.
+ *
+ * This primitive removes the specified event type from the list of events that
+ * will trigger a refresh of the current layout. @n
+ * For example, the following code will display the mouse coordinates every
+ * two seconds (an not whenever a mouse event is received).
+ *
+ * @~french
+ * Annule le rafraîchissement du layout courant sur un événement donné.
+ *
+ * Cette primitive supprime le type d'événement spécifié de la liste des
+ * événements qui provoqueront un rafraîchissement du @a layout courant.
+ * Par exemple, le code suivant affiche la position de la souris toutes les
+ * deux secondes environ (et non à chaque fois qu'un événement souris est
+ * reçu).
+ *
+ * @~
+ * @code
+locally
+    refresh 2.0
+    text text screen_mouse_x & ", " & text screen_mouse_y
+    no_refresh_on MouseMoveEvent
+ * @endcode
+ * @see refresh_on, refresh
+ */
+no_refresh_on (event:integer);
+
+
+#ifndef DOXYGEN
+// I keep this undocumented for the time being for several reasons:
+//
+// 1) I fail to find reasonable use cases to illustrate the primitives
+// 2) post_event has an unexpected behavior when used in a layout that
+//    depends on time (fast refresh), like:
+//      locally { time ; post_event user_event "MyEvent" }
+//      locally { circle mouse_x, mouse_y, 10 }
+//    This code will make Tao enter a tight loop, sending and processing
+//    user event, because a time-dependant layout with unspecified next
+//    refresh always gets executed on any event (including user events).
+//    See Layout::NeedRefresh(). Then the mouse-dependant layout rarely gets
+//    executed.
+// 3) There is a one frame delay between 'post_event U' and the actual refresh
+//    of the layouts that call 'refresh_on U'.
+//
+// In fact I have exported these primitives essentially for testing purposes
+// (see #2128), and I have considered they implement #1271. But there may be
+// some more work needed.
+
+/**
+ * @~english
+ * Returns an event type (identifier) for the specified name.
+ *
+ * Allocates an event identifier in the user-defined range and associates it to
+ * @p name. A given name always returns the same event identifier. @n
+ * The returned value may be used as a paramter to @ref refresh_on,
+ * @ref no_refresh_on and @ref post_event.
+ *
+ * @~french
+ * Renvoie un identifiant d'événement pour le nom donné.
+ *
+ * Cette primitive sélectionne un identifiant dans l'intervalle des événements
+ * utilisateur, et l'associe à @p name. Pour une valeur donnée de @p name, c'est
+ * toujours le même identifiant d'événement qui est renvoyé. @n
+ * La valeur donnée par cette fonction peut être utilisée avec @ref refresh_on,
+ * @ref no_refresh_on et @ref post_event.
+ *
+ * @~
+ * @see refresh_on, no_refresh_on, post_event
+ */
+user_event (name:text);
+
+
+/**
+ * @~english
+ * Inserts a new event in the event queue.
+ *
+ * An event with the specified event type is created and posted into the widget's
+ * event queue. For example:
+ *
+ * @~french
+ * Insère un événement dans la queue d'événements.
+ *
+ * Un événement du type spécifié est créé et inséré dans la queue d'événements
+ * du @a widget graphique. Par exemple :
+ *
+ * @~
+ * @code
+locally
+    X -> 0
+    X := 0
+    refresh_on user_event "Reset"
+    locally
+        refresh 1.0
+        X := X + 1
+        text text X
+
+locally
+    refresh_on MouseButtonPressEvent
+    post_event user_event "Reset"
+ * @endcode
+ * @see refresh_on, no_refresh_on, post_event
+ */
+post_event (type:integer);
+
+#endif
 
 /**
  * @~english

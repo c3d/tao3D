@@ -479,7 +479,7 @@ void Assistant::readStandardError()
 {
     IFTRACE(assistant)
     {
-        QByteArray ba = proc->readAllStandardOutput();
+        QByteArray ba = proc->readAllStandardError();
         QString output = QString::fromLocal8Bit(ba.data());
         QStringList lines = output.split('\n');
         foreach (QString line, lines)

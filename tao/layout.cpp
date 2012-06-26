@@ -551,6 +551,12 @@ bool Layout::NeedRefresh(QEvent *e, double when)
     QEvent::Type type = e->type();
     if (type != QEvent::Timer && refreshEvents.count(type))
         return true;
+    // /!\ Don't check for (type == QEvent::Timer) below! If nextRefresh is
+    // expired, then no matter which event is being processed, we need to
+    // refresh. Otherwise the following test case would not run smooth when
+    // moving the mouse:
+    //   locally { translatex 100*sin time ; rectangle 0, 0, 150, 100 }
+    //   locally { circle mouse_x, mouse_y, 50 }
     if (nextRefresh != DBL_MAX && nextRefresh <= when)
         return true;
     return false;

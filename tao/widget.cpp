@@ -4741,8 +4741,6 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 //   Start a new page, returns the previously named page
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::KeyPress);
-
     IFTRACE(pages)
         std::cerr << "Displaying page '" << name
                   << "' target '" << pageName << "'\n";
@@ -4786,7 +4784,6 @@ XL::Text_p Widget::pageLink(Tree_p self, text key, text name)
 //   Indicate the chaining of pages, returns previous information
 // ----------------------------------------------------------------------------
 {
-    refreshOn(QEvent::KeyPress);
     text old = pageLinks[key];
     pageLinks[key] = name;
     return new Text(old);
@@ -5729,7 +5726,13 @@ Tree_p Widget::noRefreshOn(Tree_p self, int eventType)
 // ----------------------------------------------------------------------------
 {
     if (layout)
-        layout->NoRefreshOn((QEvent::Type)eventType);
+    {
+        QEvent::Type type = (QEvent::Type) eventType;
+        IFTRACE(layoutevents)
+            std::cerr << "  Request not to refresh layout " << (void*)layout
+                      << " on event " << LayoutState::ToText(type) <<"\n";
+        layout->NoRefreshOn(type);
+    }
 
     return XL::xl_true;
 }
@@ -5773,7 +5776,10 @@ Tree_p Widget::postEvent(int eventType)
 {
     if (eventType < QEvent::User || eventType > QEvent::MaxUser)
         return XL::xl_false;
-    qApp->postEvent(this, new QEvent(QEvent::Type(eventType)));
+    QEvent::Type type = (QEvent::Type) eventType;
+    IFTRACE(layoutevents)
+        std::cerr << "  Post event " << LayoutState::ToText(type) << "\n";
+    qApp->postEvent(this, new QEvent(type));
     return XL::xl_true;
 }
 

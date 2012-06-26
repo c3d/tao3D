@@ -90,6 +90,13 @@ GraphicState::GraphicState()
 }
 
 
+// ============================================================================
+//
+//                        Matrix management functions
+//
+// ============================================================================
+
+
 void GraphicState::pushMatrix()
 // ----------------------------------------------------------------------------
 //    Push current matrix in the stack
@@ -198,6 +205,65 @@ void GraphicState::printMatrix(GLuint model)
                 << "  " <<matrix[i+3] << "  " <<std::endl;
     }
 }
+
+
+// ============================================================================
+//
+//                        Transformations functions
+//
+// ============================================================================
+
+
+void GraphicState::translate(double x, double y, double z)
+// ----------------------------------------------------------------------------
+//    Setup translation
+// ----------------------------------------------------------------------------
+{
+    // Do not need to translate if all values are null
+    if(x != 0.0 || y != 0.0 || z != 0.0)
+    {
+        currentMatrix->matrix.Translate(x, y, z);
+        currentMatrix->needUpdate = true;
+        loadMatrix();
+    }
+}
+
+
+void GraphicState::rotate(double a, double x, double y, double z)
+// ----------------------------------------------------------------------------
+//    Setup rotation
+// ----------------------------------------------------------------------------
+{
+    // Do not need to rotate if all values are null
+    if(a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
+    {
+        currentMatrix->matrix.Rotate(a, x, y, z);
+        currentMatrix->needUpdate = true;
+        loadMatrix();
+    }
+}
+
+
+void GraphicState::scale(double x, double y, double z)
+// ----------------------------------------------------------------------------
+//    Setup scale
+// ----------------------------------------------------------------------------
+{
+    // Do not need to scale if all values are equals to 1
+    if((x != 1.0) || (y != 1.0) || (z != 1.0))
+    {
+        currentMatrix->matrix.Scale(x, y, z);
+        currentMatrix->needUpdate = true;
+        loadMatrix();
+    }
+}
+
+
+// ============================================================================
+//
+//                       Camera management functions.
+//
+// ============================================================================
 
 
 void GraphicState::pickMatrix(float x, float y, float width, float height,
@@ -373,82 +439,117 @@ void GraphicState::setLookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
+void GraphicState::setViewport(int x, int y, int w, int h)
+// ----------------------------------------------------------------------------
+//    Set the viewport of the scene
+// ----------------------------------------------------------------------------
+{
+    if((viewport[0] == x) && (viewport[1] == y) &&
+       (viewport[2] == w) && (viewport[3] == h))
+            return;
+
+    // Update viewport
+    viewport[0] = x;
+    viewport[1] = y;
+    viewport[2] = w;
+    viewport[3] = h;
+
+    glViewport(x, y, w, h);
+}
+
+
+// ============================================================================
+//
+//                       Scene management functions.
+//
+// ============================================================================
+
+
 void GraphicState::setColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup color
 // ----------------------------------------------------------------------------
 {
-    bool changed = false;
-
-    // Compare with previous color
-    if(r != color[0])
-    {
-        color[0] = r;
-        changed = true;
-    }
-    if(g != color[1])
-    {
-        color[1] = g;
-        changed = true;
-    }
-    if(b != color[2])
-    {
-        color[2] = b;
-        changed = true;
-    }
-    if(a != color[3])
-    {
-        color[3] = a;
-        changed = true;
-    }
-
     // Do not need to setup color if it has not changed
-    if(changed)
-        glColor4f(r, g, b, a);
+    if((r == color[0]) && (g == color[1]) &&
+       (b == color[2]) && (a == color[3]))
+        return;
+
+    // Update color
+    color[0] = r;
+    color[1] = g;
+    color[2] = b;
+    color[3] = a;
+    glColor4f(r, g, b, a);
 }
 
 
-void GraphicState::translate(double x, double y, double z)
+void GraphicState::setClearColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
-//    Setup translation
+//    Setup clear color
 // ----------------------------------------------------------------------------
 {
-    // Do not need to translate if all values are null
-    if(x != 0.0 || y != 0.0 || z != 0.0)
+    // Do not need to setup clear color if it has not changed
+    if((r == clearColor[0]) && (g == clearColor[1]) &&
+       (b == clearColor[2]) && (a == clearColor[3]))
+
+    // Update color
+    clearColor[0] = r;
+    clearColor[1] = g;
+    clearColor[2] = b;
+    clearColor[3] = a;
+    glClearColor(r, g, b, a);
+}
+
+
+void GraphicState::setClear(GLenum mask)
+// ----------------------------------------------------------------------------
+//    Clear buffers to preset values
+// ----------------------------------------------------------------------------
+{
+    if(clearMask != mask)
     {
-        currentMatrix->matrix.Translate(x, y, z);
-        currentMatrix->needUpdate = true;
-        loadMatrix();
+        clearMask = mask;
+        glClear(mask);
     }
 }
 
 
-void GraphicState::rotate(double a, double x, double y, double z)
+void GraphicState::setShadeModel(GLenum mode)
 // ----------------------------------------------------------------------------
-//    Setup rotation
+//    Select shading mode
 // ----------------------------------------------------------------------------
 {
-    // Do not need to rotate if all values are null
-    if(a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
+    if(mode != shadeMode)
     {
-        currentMatrix->matrix.Rotate(a, x, y, z);
-        currentMatrix->needUpdate = true;
-        loadMatrix();
+        shadeMode = mode;
+        glShadeModel(mode);
     }
 }
 
 
-void GraphicState::scale(double x, double y, double z)
+void GraphicState::setDepthFunc(GLenum func)
 // ----------------------------------------------------------------------------
-//    Setup scale
+//    Specify the value used for depth buffer comparisons
 // ----------------------------------------------------------------------------
 {
-    // Do not need to scale if all values are equals to 1
-    if((x != 1.0) || (y != 1.0) || (z != 1.0))
+    if(depthFunc != func)
     {
-        currentMatrix->matrix.Scale(x, y, z);
-        currentMatrix->needUpdate = true;
-        loadMatrix();
+        depthFunc = func;
+        glDepthFunc(func);
+    }
+}
+
+
+void GraphicState::setDepthMask(GLboolean flag)
+// ----------------------------------------------------------------------------
+//     Enable or disable writing into the depth buffer
+// ----------------------------------------------------------------------------
+{
+    if(depthMask != flag)
+    {
+        depthMask = flag;
+        glDepthMask(flag);
     }
 }
 
@@ -480,6 +581,13 @@ void GraphicState::setLineStipple(GLint factor, GLushort pattern)
 }
 
 
+// ============================================================================
+//
+//                       Misc functions.
+//
+// ============================================================================
+
+
 void GraphicState::enable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Enable capability
@@ -497,15 +605,6 @@ void GraphicState::disable(GLenum cap)
     glDisable(cap);
 }
 
-
-void GraphicState::shadeModel(GLenum mode)
-// ----------------------------------------------------------------------------
-//    Select shading mode
-// ----------------------------------------------------------------------------
-{
-    if(mode != shadeMode)
-        glShadeModel(mode);
-}
 
 
 std::ostream & GraphicState::debug()

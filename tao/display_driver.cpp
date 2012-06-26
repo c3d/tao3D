@@ -271,7 +271,7 @@ void DisplayDriver::displayBackBuffer(void *)
     // Setup viewport
     int w = renderWidth();
     int h = renderHeight();
-    glViewport(0, 0, w, h);
+    GL->setViewport(0, 0, w, h);
 
     // Setup projection and modelview matrices
     setProjectionMatrix(w, h);
@@ -314,7 +314,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     o->resize(w, h);
     o->fbo->begin();
 
-    glViewport(0, 0, w, h);
+    GL->setViewport(0, 0, w, h);
 
     // Setup projection and modelview matrices
     setProjectionMatrix(w, h);
@@ -340,7 +340,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     // Draw a full-screen textured quad
 
     // Setup viewport and geometry
-    glViewport(0, 0, w, h);
+    GL->setViewport(0, 0, w, h);
     GL->setMatrixMode(GL_PROJECTION);
     GL->loadIdentity();
     GL->loadMatrix();

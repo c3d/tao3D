@@ -63,6 +63,12 @@ struct GraphicState
     void loadIdentity();
     void printMatrix(GLuint model);
 
+    // Transformations
+    void translate(double x, double y, double z);
+    void rotate(double a, double x, double y, double z);
+    void scale(double x, double y, double z);
+
+    // Camera management
     void pickMatrix(float x, float y, float width, float height,
                     int viewport[4]);
     void setFrustum(float left, float right, float bottom, float top,
@@ -75,14 +81,17 @@ struct GraphicState
                    float centerX, float centerY, float centerZ,
                    float upX, float upY, float upZ);
     void setLookAt(Vector3 eye, Vector3 center, Vector3 up);
+    void setViewport(int x, int y, int w, int h);
 
-    // Draw management
+    // Scene management
     void setColor(float r, float g, float b, float a);
+    void setClearColor(float r, float g, float b, float a);
+    void setClear(GLenum mask);
 
-    // Transformations
-    void translate(double x, double y, double z);
-    void rotate(double a, double x, double y, double z);
-    void scale(double x, double y, double z);
+    void setShadeModel(GLenum mode);
+
+    void setDepthFunc(GLenum func);
+    void setDepthMask(GLboolean flag);
 
     void setLineWidth(float width);
     void setLineStipple(GLint factor, GLushort pattern);
@@ -90,7 +99,6 @@ struct GraphicState
     // Misc
     void enable(GLenum cap);
     void disable(GLenum cap);
-    void shadeModel(GLenum mode);
 
     static GraphicState* State() { Q_ASSERT(current); return current; }
 
@@ -103,6 +111,8 @@ public:
         INTEL = 2,
         LAST = 3
     };
+
+    typedef std::stack<MatrixState> matrixState;
 
 public:
     Vendor       vendorID;
@@ -118,15 +128,22 @@ public:
     MatrixState  projMatrix;
     MatrixState  mvMatrix;
 
+    GLint        viewport[4];
     GLfloat      color[4];
+    GLfloat      clearColor[4];
+    GLenum       clearMask;
 
     GLenum       shadeMode;
+
+    GLboolean    depthMask;
+    GLenum       depthFunc;
+
     GLuint       lineWidth;
     GLint        stippleFactor;
     GLushort     stipplePattern;
 
-    std::stack<MatrixState> projStack; // the stack for projection matrices
-    std::stack<MatrixState> mvStack;   // the stack for modelview matrices
+    matrixState projStack; // the stack for projection matrices
+    matrixState mvStack;   // the stack for modelview matrices
 
 public:
     static GraphicState* current;

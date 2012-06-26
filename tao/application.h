@@ -124,7 +124,6 @@ public:
     bool               hasGLMultisample, hasFBOMultisample;
     bool               hasGLStereoBuffers;
     bool               useShaderLighting;
-    int                tex2DMinFilter, tex2DMagFilter;
     Vendor             vendorID;
     uint               maxTextureCoords;
     uint               maxTextureUnits;

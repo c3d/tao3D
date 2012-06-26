@@ -87,7 +87,7 @@ void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = false;
-    GL->enable(GL_COLOR_MATERIAL);
+    GL.enable(GL_COLOR_MATERIAL);
     where->lineColor = color;
 }
 
@@ -98,7 +98,7 @@ void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = false;
-    GL->enable(GL_COLOR_MATERIAL);
+    GL.enable(GL_COLOR_MATERIAL);
     where->fillColor = color;
 }
 
@@ -134,16 +134,16 @@ void TextureUnit::Draw(Layout *where)
 {
     // Fig a bug with ATI drivers which set texture matrices
     // to null instead of identity
-    if(glUnit && (GL->vendorID == GL->ATI))
+    if(glUnit && (GL.vendorID == GL.ATI))
     {
         glActiveTexture(GL_TEXTURE0 + glUnit);
-        GL->setMatrixMode(GL_TEXTURE);
+        GL.setMatrixMode(GL_TEXTURE);
         glLoadIdentity();
-        GL->setMatrixMode(GL_MODELVIEW);
+        GL.setMatrixMode(GL_MODELVIEW);
         glActiveTexture(GL_TEXTURE0);
     }
 
-    if(glUnit < GL->maxTextureCoords)
+    if(glUnit < GL.maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
         where->currentTexture.unit = glUnit;
@@ -196,9 +196,9 @@ void TextureTransform::Draw(Layout *where)
     uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
-        GL->setMatrixMode(GL_TEXTURE);
+        GL.setMatrixMode(GL_TEXTURE);
     else
-        GL->setMatrixMode(GL_MODELVIEW);
+        GL.setMatrixMode(GL_MODELVIEW);
 }
 
 
@@ -221,7 +221,7 @@ void LineWidth::Draw(Layout *where)
 {
     where->lineWidth = width;
     if (width > 0.0)
-        GL->setLineWidth(width * where->PrinterScaling());
+        GL.setLineWidth(width * where->PrinterScaling());
 }
 
 
@@ -233,12 +233,12 @@ void LineStipple::Draw(Layout *where)
     (void) where;
     if (scale)
     {
-        GL->setLineStipple(scale, pattern);
-        GL->enable(GL_LINE_STIPPLE);
+        GL.setLineStipple(scale, pattern);
+        GL.enable(GL_LINE_STIPPLE);
     }
     else
     {
-        GL->disable(GL_LINE_STIPPLE);
+        GL.disable(GL_LINE_STIPPLE);
     }
 }
 
@@ -351,9 +351,9 @@ void DepthTest::Draw(Layout *)
 // ----------------------------------------------------------------------------
 {
     if (enable)
-        GL->enable(GL_DEPTH_TEST);
+        GL.enable(GL_DEPTH_TEST);
     else
-        GL->disable(GL_DEPTH_TEST);
+        GL.disable(GL_DEPTH_TEST);
 }
 
 
@@ -362,7 +362,7 @@ void DepthMask::Draw(Layout *)
 //   Enable or disable the depth mask
 // ----------------------------------------------------------------------------
 {
-    GL->setDepthMask(enable ? GL_TRUE : GL_FALSE);
+    GL.setDepthMask(enable ? GL_TRUE : GL_FALSE);
 }
 
 
@@ -371,7 +371,7 @@ void DepthFunc::Draw(Layout *)
 //   Specifies the depth comparison function
 // ----------------------------------------------------------------------------
 {
-    GL->setDepthFunc(func);
+    GL.setDepthFunc(func);
 }
 
 

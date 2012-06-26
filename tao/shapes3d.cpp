@@ -113,7 +113,7 @@ void Cube::Draw(Layout *where)
 
     setTexture(where);
 
-    GL->loadMatrix();
+    GL.loadMatrix();
 
     // Draw filled faces
     if (setFillColor(where))
@@ -149,11 +149,11 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 {
     Point3 p = bounds.Center() + where->Offset();
 
-    GL->pushMatrix();
+    GL.pushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
-    GL->translate(p.x, p.y, p.z);
-    GL->scale(bounds.Width(), bounds.Height(), bounds.Depth());
-    GL->loadMatrix();
+    GL.translate(p.x, p.y, p.z);
+    GL.scale(bounds.Width(), bounds.Height(), bounds.Depth());
+    GL.loadMatrix();
     // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
@@ -161,7 +161,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
-        GL->enable(GL_NORMALIZE);
+        GL.enable(GL_NORMALIZE);
         glEnableClientState(GL_NORMAL_ARRAY);
         glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
     }
@@ -182,7 +182,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         // shapes in case of no shaders thanks to
         // backface culling (doesn't need to draw back faces)
         v = where->visibility * where->fillColor.alpha;
-        GL->enable(GL_CULL_FACE);
+        GL.enable(GL_CULL_FACE);
         if(v != 1.0)
         {
             // Use painter algorithm to apply correctly
@@ -190,7 +190,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
             // This was made necessary by Bug #1403.
             glCullFace(GL_FRONT);
             // Read Only mode of depth buffer
-            GL->setDepthMask(false);
+            GL.setDepthMask(false);
 
             if (setFillColor(where))
                 glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
@@ -215,20 +215,20 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Disable normals
     if(where->currentLights || where->programId)
     {
-        GL->disable(GL_NORMALIZE);
+        GL.disable(GL_NORMALIZE);
         glDisableClientState(GL_NORMAL_ARRAY);
     }
 
     // Disable cullface
     if(! where->programId && culling)
     {
-        GL->disable(GL_CULL_FACE);
+        GL.disable(GL_CULL_FACE);
         if(v != 1.0)
-            GL->setDepthMask(true);
+            GL.setDepthMask(true);
     }
 
     glPopAttrib();
-    GL->popMatrix();
+    GL.popMatrix();
 }
 
 // ============================================================================

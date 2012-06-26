@@ -47,7 +47,7 @@ bool Shape::setTexture(Layout *where)
     if (where->InIdentify())
         return !where->fillTextures.empty();
 
-    for(uint i = 0; i < GL->maxTextureUnits; i++)
+    for(uint i = 0; i < GL.maxTextureUnits; i++)
     {
         //Determine if there is a current and previous texture
         bool hasCurrent = where->fillTextures.count(i);
@@ -96,7 +96,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
-    GL->enable(texture.type);
+    GL.enable(texture.type);
     glBindTexture(texture.type, texture.id);
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
@@ -138,7 +138,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     }
 
     if (TaoApp->hasGLMultisample)
-        GL->enable(GL_MULTISAMPLE);
+        GL.enable(GL_MULTISAMPLE);
 }
 
 
@@ -149,7 +149,7 @@ void Shape::unbindTexture(TextureState& texture)
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
     glBindTexture(texture.type, 0);
-    GL->disable(texture.type);
+    GL.disable(texture.type);
 }
 
 
@@ -187,7 +187,7 @@ bool Shape::setFillColor(Layout *where)
         if (v >= 0.01)
         {
             if (!where->hasMaterial)
-                GL->setColor(color.red, color.green, color.blue, v);
+                GL.setColor(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             return true;
         }
@@ -210,7 +210,7 @@ bool Shape::setLineColor(Layout *where)
         if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
-                GL->setColor(color.red, color.green, color.blue, v);
+                GL.setColor(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             return true;
         }
@@ -247,7 +247,7 @@ bool Shape::setShader(Layout *where)
             glUniform1i(textures, where->textureUnits);
 
             GLint vendor = glGetUniformLocation(where->programId, "vendor");
-            glUniform1i(vendor, GL->vendorID);
+            glUniform1i(vendor, GL.vendorID);
 
             // Set texture units
             GLint tex0 = glGetUniformLocation(where->programId, "tex0");
@@ -338,9 +338,9 @@ void PlaceholderRectangle::Draw(Layout *where)
     GraphicPath path;
     Draw(path);
 
-    GL->setColor(0.3, 0.7, 0.9, 0.7);
-    GL->setLineWidth(1);
-    GL->disable(GL_LINE_STIPPLE);
+    GL.setColor(0.3, 0.7, 0.9, 0.7);
+    GL.setLineWidth(1);
+    GL.disable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
     path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);

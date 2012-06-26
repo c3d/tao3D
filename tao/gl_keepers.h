@@ -64,12 +64,12 @@ struct GLMatrixKeeper
         : save(save)
     {
         if (save)
-            GL->pushMatrix();
+            GL.pushMatrix();
     }
     ~GLMatrixKeeper()
     {
         if (save)
-            GL->popMatrix();
+            GL.popMatrix();
     }
 
 private:
@@ -111,41 +111,41 @@ struct GLAllStateKeeper : GLStateKeeper
     {
         if (saveProjection)
         {
-            GL->setMatrixMode(GL_PROJECTION);
-            GL->pushMatrix();
+            GL.setMatrixMode(GL_PROJECTION);
+            GL.pushMatrix();
         }
 
-        for(uint i = 0; i <  GL->maxTextureCoords; i++)
+        for(uint i = 0; i <  GL.maxTextureCoords; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {
                 glActiveTexture(GL_TEXTURE0 + i);
-                GL->setMatrixMode(GL_TEXTURE);
+                GL.setMatrixMode(GL_TEXTURE);
                 glPushMatrix();
             }
         }
 
-        GL->setMatrixMode(GL_MODELVIEW);
+        GL.setMatrixMode(GL_MODELVIEW);
     }
     ~GLAllStateKeeper()
     {
         if (saveProjection)
         {
-            GL->setMatrixMode(GL_PROJECTION);
-            GL->popMatrix();
+            GL.setMatrixMode(GL_PROJECTION);
+            GL.popMatrix();
         }
 
-        for(uint i = 0; i < GL->maxTextureCoords; i++)
+        for(uint i = 0; i < GL.maxTextureCoords; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {
                 glActiveTexture(GL_TEXTURE0 + i);
-                GL->setMatrixMode(GL_TEXTURE);
+                GL.setMatrixMode(GL_TEXTURE);
                 glPopMatrix();
             }
         }
 
-        GL->setMatrixMode(GL_MODELVIEW);
+        GL.setMatrixMode(GL_MODELVIEW);
     }
 
 private:

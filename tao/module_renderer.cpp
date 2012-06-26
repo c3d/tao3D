@@ -174,7 +174,7 @@ bool ModuleRenderer::HasTexture(uint texUnit)
 //  Check if a texture is bound at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > GL->maxTextureUnits)
+    if(texUnit > GL.maxTextureUnits)
         return false;
 
     uint hasTexture = currentLayout->textureUnits & (1 << texUnit);

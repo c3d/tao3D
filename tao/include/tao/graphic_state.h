@@ -34,7 +34,7 @@ struct MatrixState;
 struct GraphicState;
 
 //  Shortcut
-#define GL              Tao::GraphicState::State()
+#define GL  (*Tao::GraphicState::State())
 
 struct MatrixState
 // ----------------------------------------------------------------------------

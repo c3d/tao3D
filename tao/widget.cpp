@@ -696,7 +696,7 @@ void Widget::drawStereoIdent()
     if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
         updateStereoIdentPatterns(stereoPlanes);
     StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
-    GL->setColor(1.0, 1.0, 1.0, 1.0);
+    GL.setColor(1.0, 1.0, 1.0, 1.0);
     drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
 }
 
@@ -717,7 +717,7 @@ void Widget::drawScene()
     space->ClearAttributes();
     if (blanked)
     {
-        GL->setClearColor(0.0, 0.0, 0.0, 1.0);
+        GL.setClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     else if (stereoIdent)
@@ -757,9 +757,9 @@ void Widget::drawSelection()
         id = idDepth = 0;
         selectionTrees.clear();
         space->ClearAttributes();
-        GL->disable(GL_DEPTH_TEST);
+        GL.disable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
-        GL->enable(GL_DEPTH_TEST);
+        GL.enable(GL_DEPTH_TEST);
     }
 }
 
@@ -772,11 +772,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    GL->setDepthFunc(GL_ALWAYS);
+    GL.setDepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    GL->setDepthFunc(GL_LEQUAL);
+    GL.setDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled(Statistics::TO_SCREEN))
@@ -794,7 +794,7 @@ void Widget::setGlClearColor()
 {
     qreal r, g, b, a;
     clearCol.getRgbF(&r, &g, &b, &a);
-    GL->setClearColor(r, g, b, a);
+    GL.setClearColor(r, g, b, a);
 }
 
 
@@ -2159,11 +2159,11 @@ void Widget::setup(double w, double h, const Box *picking)
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
 
-    GL->setViewport(vx, vy, vw, vh);
+    GL.setViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
-    GL->setMatrixMode(GL_PROJECTION);
-    GL->loadIdentity();
+    GL.setMatrixMode(GL_PROJECTION);
+    GL.loadIdentity();
 
     // Restrict the picking area if any is given as input
     if (picking)
@@ -2184,14 +2184,14 @@ void Widget::setup(double w, double h, const Box *picking)
         b.Normalize();
         Vector size = b.upper - b.lower;
         Point center = b.lower + size / 2;
-        GL->pickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+        GL.pickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
     double zf = 0.5 / (zoom * scaling);
-    GL->setFrustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
-    GL->loadMatrix();
+    GL.setFrustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL.loadMatrix();
 
     // Setup the model-view matrix
-    GL->setMatrixMode(GL_MODELVIEW);
+    GL.setMatrixMode(GL_MODELVIEW);
     resetModelviewMatrix();
 
     // Reset default GL parameters
@@ -2219,13 +2219,13 @@ void Widget::resetModelviewMatrix()
 //   Reset the model-view matrix, used by reset_transform and setup
 // ----------------------------------------------------------------------------
 {
-    GL->loadIdentity();
+    GL.loadIdentity();
 
     // Position the camera
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
     toTarget *= cameraToScreen;
     Point3 target = cameraPosition + toTarget;
-    GL->setLookAt(cameraPosition, target, cameraUpVector);
+    GL.setLookAt(cameraPosition, target, cameraUpVector);
 }
 
 
@@ -2235,45 +2235,45 @@ void Widget::setupGL()
 // ----------------------------------------------------------------------------
 {
     // Setup other
-    GL->enable(GL_BLEND);
+    GL.enable(GL_BLEND);
     if (inOfflineRendering)
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    GL->setDepthFunc(GL_LEQUAL);
-    GL->enable(GL_DEPTH_TEST);
-    GL->enable(GL_LINE_SMOOTH);
-    GL->enable(GL_POINT_SMOOTH);
-    GL->enable(GL_MULTISAMPLE);
-    GL->enable(GL_POLYGON_OFFSET_FILL);
-    GL->enable(GL_POLYGON_OFFSET_LINE);
-    GL->enable(GL_POLYGON_OFFSET_POINT);
-    GL->setColor(1.0f, 1.0f, 1.0f, 1.0f);
-    GL->setLineWidth(1);
-    GL->setLineStipple(1, -1);
+    GL.setDepthFunc(GL_LEQUAL);
+    GL.enable(GL_DEPTH_TEST);
+    GL.enable(GL_LINE_SMOOTH);
+    GL.enable(GL_POINT_SMOOTH);
+    GL.enable(GL_MULTISAMPLE);
+    GL.enable(GL_POLYGON_OFFSET_FILL);
+    GL.enable(GL_POLYGON_OFFSET_LINE);
+    GL.enable(GL_POLYGON_OFFSET_POINT);
+    GL.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+    GL.setLineWidth(1);
+    GL.setLineStipple(1, -1);
 
     // Disable all texture units
-    for(int i = GL->maxTextureUnits - 1; i > 0 ; i--)
+    for(int i = GL.maxTextureUnits - 1; i > 0 ; i--)
     {
         if(layout->textureUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
-            GL->disable(GL_TEXTURE_2D);
+            GL.disable(GL_TEXTURE_2D);
         }
     }
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    GL->disable(GL_TEXTURE_2D);
-    GL->disable(GL_TEXTURE_RECTANGLE_ARB);
-    GL->disable(GL_CULL_FACE);
-    GL->setShadeModel(GL_SMOOTH);
-    GL->disable(GL_LIGHTING);
-    GL->disable(GL_COLOR_MATERIAL);
+    GL.disable(GL_TEXTURE_2D);
+    GL.disable(GL_TEXTURE_RECTANGLE_ARB);
+    GL.disable(GL_CULL_FACE);
+    GL.setShadeModel(GL_SMOOTH);
+    GL.disable(GL_LIGHTING);
+    GL.disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
     glAlphaFunc(GL_GREATER, 0.01);
-    GL->enable(GL_ALPHA_TEST);
+    GL.enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -4404,7 +4404,7 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         GLMatrixKeeper saveGL;
         Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        GL->translate(v.x, v.y, v.z);
+        GL.translate(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -6834,7 +6834,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > GL->maxTextureUnits)
+    if(texUnit > GL.maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7213,7 +7213,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     uint texUnit = layout->currentTexture.unit;
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= GL->maxTextureCoords)
+    if(texUnit >= GL.maxTextureCoords)
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
@@ -7285,7 +7285,7 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(unit > GL->maxTextureUnits)
+    if(unit > GL.maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -10910,7 +10910,7 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
-    GL->setColor(1.0, 1.0, 1.0, 0.2);
+    GL.setColor(1.0, 1.0, 1.0, 0.2);
     drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
 }
 
@@ -10921,20 +10921,20 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 //   Draw a texture centered over the full widget with wrapping enabled
 // ----------------------------------------------------------------------------
 {
-    GL->disable(GL_DEPTH_TEST);
-    GL->setDepthMask(GL_FALSE);
+    GL.disable(GL_DEPTH_TEST);
+    GL.setDepthMask(GL_FALSE);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    GL->enable(GL_TEXTURE_2D);
-    GL->setMatrixMode(GL_PROJECTION);
-    GL->loadIdentity();
-    GL->loadMatrix();
-    GL->setMatrixMode(GL_MODELVIEW);
-    GL->loadIdentity();
-    GL->loadMatrix();
+    GL.enable(GL_TEXTURE_2D);
+    GL.setMatrixMode(GL_PROJECTION);
+    GL.loadIdentity();
+    GL.loadMatrix();
+    GL.setMatrixMode(GL_MODELVIEW);
+    GL.loadIdentity();
+    GL.loadMatrix();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
     float tw = w/texw, th = h/texh;
     float x1 = -tw/2, x2 = tw/2;
@@ -10953,8 +10953,8 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glTexCoord2f(x1, y2);
     glVertex2i  (-1,  1);
     glEnd();
-    GL->enable(GL_DEPTH_TEST);
-    GL->setDepthMask(GL_TRUE);
+    GL.enable(GL_DEPTH_TEST);
+    GL.setDepthMask(GL_TRUE);
 }
 
 
@@ -12180,7 +12180,7 @@ XL::Text_p Widget::GLVersion(XL::Tree_p self)
 //   Return OpenGL supported version
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(GL->version);
+    return new XL::Text(GL.version);
 }
 
 
@@ -12189,7 +12189,7 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
 //   Check is an OpenGL extensions is supported
 // ----------------------------------------------------------------------------
 {
-    kstring avail = GL->extensionsAvailable.c_str();
+    kstring avail = GL.extensionsAvailable.c_str();
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
@@ -12201,7 +12201,7 @@ bool Widget::isGLExtensionAvailable(text name)
 //   Module interface to isGLExtensionAvailable
 // ----------------------------------------------------------------------------
 {
-    kstring avail = GL->extensionsAvailable.c_str();
+    kstring avail = GL.extensionsAvailable.c_str();
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? true : false;

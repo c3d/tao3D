@@ -55,41 +55,41 @@ struct GraphicState
     GraphicState();
 
     // Matrix management
-    void PushMatrix();
-    void PopMatrix();
-    void MatrixMode(GLenum mode);
-    void LoadMatrix();
-    void LoadIdentity();
-    void PrintMatrix(GLuint model);
+    virtual void PushMatrix();
+    virtual void PopMatrix();
+    virtual void MatrixMode(GLenum mode);
+    virtual void LoadMatrix();
+    virtual void LoadIdentity();
+    virtual void PrintMatrix(GLuint model);
 
     // Transformations
-    void Translate(double x, double y, double z);
-    void Rotate(double a, double x, double y, double z);
-    void Scale(double x, double y, double z);
+    virtual void Translate(double x, double y, double z);
+    virtual void Rotate(double a, double x, double y, double z);
+    virtual void Scale(double x, double y, double z);
 
     // Camera management
-    void PickMatrix(float x, float y, float width, float height,
+    virtual void PickMatrix(float x, float y, float width, float height,
                     int viewport[4]);
-    void Frustum(float left, float right, float bottom, float top,
+    virtual void Frustum(float left, float right, float bottom, float top,
                  float nearZ, float farZ);
-    void Perspective(float fovy, float aspect, float nearZ, float farZ);
-    void Ortho(float left, float right, float bottom,
+    virtual void Perspective(float fovy, float aspect, float nearZ, float farZ);
+    virtual void Ortho(float left, float right, float bottom,
                float top, float nearZ, float farZ);
-    void Ortho2D(float left, float right, float bottom, float top);
-    void LookAt(float eyeX, float eyeY, float eyeZ,
+    virtual void Ortho2D(float left, float right, float bottom, float top);
+    virtual void LookAt(float eyeX, float eyeY, float eyeZ,
                 float centerX, float centerY, float centerZ,
                 float upX, float upY, float upZ);
-    void LookAt(Vector3 eye, Vector3 center, Vector3 up);
+    virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
 
     // Draw management
-    void Color(float r, float g, float b, float a);
-    void LineWidth(float width);
-    void LineStipple(GLint factor, GLushort pattern);
+    virtual void Color(float r, float g, float b, float a);
+    virtual void LineWidth(float width);
+    virtual void LineStipple(GLint factor, GLushort pattern);
 
     // Misc
-    void Enable(GLenum cap);
-    void Disable(GLenum cap);
-    void ShadeModel(GLenum mode);
+    virtual void Enable(GLenum cap);
+    virtual void Disable(GLenum cap);
+    virtual void ShadeModel(GLenum mode);
 
     static inline GraphicState* State() { Q_ASSERT(current); return current; }
 

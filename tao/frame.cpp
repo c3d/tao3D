@@ -182,8 +182,8 @@ void FrameInfo::begin(bool clearContents)
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();
 
-    GL.disable(GL_TEXTURE_2D);
-    GL.disable(GL_STENCIL_TEST);
+    GL.Disable(GL_TEXTURE_2D);
+    GL.Disable(GL_STENCIL_TEST);
 
     if (clearContents)
         clear();
@@ -226,9 +226,9 @@ GLuint FrameInfo::bind()
     glBindTexture(GL_TEXTURE_2D, texId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    GL.enable(GL_TEXTURE_2D);
+    GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        GL.enable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
     return texId;
 }
 
@@ -403,8 +403,8 @@ FramePainter::FramePainter(FrameInfo *info)
     : QPainter(), info(info), save()
 {
     // Draw without any transformation (reset the coordinates system)
-    GL.loadIdentity();
-    GL.loadMatrix();
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     // Clear the render FBO
     info->checkGLContext();

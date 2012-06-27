@@ -96,7 +96,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 // ----------------------------------------------------------------------------
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
-    GL.enable(texture.type);
+    GL.Enable(texture.type);
     glBindTexture(texture.type, texture.id);
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
@@ -138,7 +138,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     }
 
     if (TaoApp->hasGLMultisample)
-        GL.enable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
 }
 
 
@@ -149,7 +149,7 @@ void Shape::unbindTexture(TextureState& texture)
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
     glBindTexture(texture.type, 0);
-    GL.disable(texture.type);
+    GL.Disable(texture.type);
 }
 
 
@@ -187,7 +187,7 @@ bool Shape::setFillColor(Layout *where)
         if (v >= 0.01)
         {
             if (!where->hasMaterial)
-                GL.setColor(color.red, color.green, color.blue, v);
+                GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             return true;
         }
@@ -210,7 +210,7 @@ bool Shape::setLineColor(Layout *where)
         if (v >= 0.01 && width > 0.0)
         {
             if (!where->hasMaterial)
-                GL.setColor(color.red, color.green, color.blue, v);
+                GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
             return true;
         }
@@ -338,9 +338,9 @@ void PlaceholderRectangle::Draw(Layout *where)
     GraphicPath path;
     Draw(path);
 
-    GL.setColor(0.3, 0.7, 0.9, 0.7);
-    GL.setLineWidth(1);
-    GL.disable(GL_LINE_STIPPLE);
+    GL.Color(0.3, 0.7, 0.9, 0.7);
+    GL.LineWidth(1);
+    GL.Disable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
     path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);

@@ -55,41 +55,41 @@ struct GraphicState
     GraphicState();
 
     // Matrix management
-    void pushMatrix();
-    void popMatrix();
-    void setMatrixMode(GLenum mode);
-    void loadMatrix();
-    void loadIdentity();
-    void printMatrix(GLuint model);
-
-    void pickMatrix(float x, float y, float width, float height,
-                    int viewport[4]);
-    void setFrustum(float left, float right, float bottom, float top,
-                    float nearZ, float farZ);
-    void setPerspective(float fovy, float aspect, float nearZ, float farZ);
-    void setOrtho(float left, float right, float bottom,
-                  float top, float nearZ, float farZ);
-    void setOrtho2D(float left, float right, float bottom, float top);
-    void setLookAt(float eyeX, float eyeY, float eyeZ,
-                   float centerX, float centerY, float centerZ,
-                   float upX, float upY, float upZ);
-    void setLookAt(Vector3 eye, Vector3 center, Vector3 up);
-
-    // Draw management
-    void setColor(float r, float g, float b, float a);
+    void PushMatrix();
+    void PopMatrix();
+    void MatrixMode(GLenum mode);
+    void LoadMatrix();
+    void LoadIdentity();
+    void PrintMatrix(GLuint model);
 
     // Transformations
-    void translate(double x, double y, double z);
-    void rotate(double a, double x, double y, double z);
-    void scale(double x, double y, double z);
+    void Translate(double x, double y, double z);
+    void Rotate(double a, double x, double y, double z);
+    void Scale(double x, double y, double z);
 
-    void setLineWidth(float width);
-    void setLineStipple(GLint factor, GLushort pattern);
+    // Camera management
+    void PickMatrix(float x, float y, float width, float height,
+                    int viewport[4]);
+    void Frustum(float left, float right, float bottom, float top,
+                 float nearZ, float farZ);
+    void Perspective(float fovy, float aspect, float nearZ, float farZ);
+    void Ortho(float left, float right, float bottom,
+               float top, float nearZ, float farZ);
+    void Ortho2D(float left, float right, float bottom, float top);
+    void LookAt(float eyeX, float eyeY, float eyeZ,
+                float centerX, float centerY, float centerZ,
+                float upX, float upY, float upZ);
+    void LookAt(Vector3 eye, Vector3 center, Vector3 up);
+
+    // Draw management
+    void Color(float r, float g, float b, float a);
+    void LineWidth(float width);
+    void LineStipple(GLint factor, GLushort pattern);
 
     // Misc
-    void enable(GLenum cap);
-    void disable(GLenum cap);
-    void shadeModel(GLenum mode);
+    void Enable(GLenum cap);
+    void Disable(GLenum cap);
+    void ShadeModel(GLenum mode);
 
     static inline GraphicState* State() { Q_ASSERT(current); return current; }
 

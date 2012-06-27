@@ -96,13 +96,13 @@ void Rotation::Draw(Layout *where)
 
         if (where->offset != Vector3())
         {
-            GL.translate(where->offset.x, where->offset.y, where->offset.z);
-            GL.rotate(amount, xaxis, yaxis, zaxis);
-            GL.translate(-where->offset.x, -where->offset.y, -where->offset.z);
+            GL.Translate(where->offset.x, where->offset.y, where->offset.z);
+            GL.Rotate(amount, xaxis, yaxis, zaxis);
+            GL.Translate(-where->offset.x, -where->offset.y, -where->offset.z);
         }
         else
         {
-            GL.rotate(amount, xaxis, yaxis, zaxis);
+            GL.Rotate(amount, xaxis, yaxis, zaxis);
         }
     }
 }
@@ -113,7 +113,7 @@ void Translation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    GL.translate(xaxis, yaxis, zaxis);
+    GL.Translate(xaxis, yaxis, zaxis);
     if (zaxis != 0.0)
         where->hasPixelBlur = true;
 }
@@ -126,13 +126,13 @@ void Scale::Draw(Layout *where)
 {
     if (where->offset != Vector3())
     {
-        GL.translate(where->offset.x, where->offset.y, where->offset.z);
-        GL.scale(xaxis, yaxis, zaxis);
-        GL.translate(-where->offset.x, -where->offset.y, -where->offset.z);
+        GL.Translate(where->offset.x, where->offset.y, where->offset.z);
+        GL.Scale(xaxis, yaxis, zaxis);
+        GL.Translate(-where->offset.x, -where->offset.y, -where->offset.z);
     }
     else
     {
-        GL.scale(xaxis, yaxis, zaxis);
+        GL.Scale(xaxis, yaxis, zaxis);
     }
     if (xaxis != 1.0 || yaxis != 1.0)
         where->hasPixelBlur = true;

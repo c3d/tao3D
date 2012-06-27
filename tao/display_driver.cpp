@@ -341,12 +341,12 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 
     // Setup viewport and geometry
     glViewport(0, 0, w, h);
-    GL.setMatrixMode(GL_PROJECTION);
-    GL.loadIdentity();
-    GL.loadMatrix();
-    GL.setMatrixMode(GL_MODELVIEW);
-    GL.loadIdentity();
-    GL.loadMatrix();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     // Select draw buffer
     glDrawBuffer(GL_BACK);
@@ -354,12 +354,12 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     // Clear depth information, disable color blending so that texture alpha
     // is ignored
     glClear(GL_DEPTH_BUFFER_BIT);
-    GL.disable(GL_BLEND);
+    GL.Disable(GL_BLEND);
 
     // Not sure why, but without this I often have a blank screen
-    GL.disable(GL_POLYGON_OFFSET_FILL);
-    GL.disable(GL_POLYGON_OFFSET_LINE);
-    GL.disable(GL_POLYGON_OFFSET_POINT);
+    GL.Disable(GL_POLYGON_OFFSET_FILL);
+    GL.Disable(GL_POLYGON_OFFSET_LINE);
+    GL.Disable(GL_POLYGON_OFFSET_POINT);
 
     glBegin(GL_QUADS);
     glTexCoord2i( 0 , 0);
@@ -656,14 +656,14 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
     getCamera(NULL, NULL, NULL, &toScreen);
 
     // Setup the projection matrix
-    GL.setMatrixMode(GL_PROJECTION);
-    GL.loadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
     double nearRatio = zNear()/toScreen;
     double delta = stereoDelta(i, numCameras);
     double shift = -eyeSeparation() * delta * nearRatio;
     double f = 0.5 * nearRatio / zoom();
-    GL.setFrustum(-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
-    GL.loadMatrix();
+    GL.Frustum(-w*f + shift, w*f + shift, -h*f, h*f, zNear(), zFar());
+    GL.LoadMatrix();
 }
 
 
@@ -683,8 +683,8 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     getCamera(&cameraPosition, &cameraTarget, &cameraUpVector, &toScreen);
 
     // Setup the model-view matrix
-    GL.setMatrixMode(GL_MODELVIEW);
-    GL.loadIdentity();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
     double delta = stereoDelta(i, numCameras);
     double shiftLength = eyeSeparation() * delta;
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
@@ -696,7 +696,7 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     Widget::Tao()->eye = i;
     Widget::Tao()->eyesNumber = numCameras;
 
-    GL.setLookAt(cameraPosition + shift, target + shift, cameraUpVector);
+    GL.LookAt(cameraPosition + shift, target + shift, cameraUpVector);
 }
 
 

@@ -90,7 +90,14 @@ GraphicState::GraphicState()
 }
 
 
-void GraphicState::pushMatrix()
+// ============================================================================
+//
+//                        Matrix management functions
+//
+// ============================================================================
+
+
+void GraphicState::PushMatrix()
 // ----------------------------------------------------------------------------
 //    Push current matrix in the stack
 // ----------------------------------------------------------------------------
@@ -104,7 +111,7 @@ void GraphicState::pushMatrix()
 }
 
 
-void GraphicState::popMatrix()
+void GraphicState::PopMatrix()
 // ----------------------------------------------------------------------------
 //    Pop last matrix of the stack
 // ----------------------------------------------------------------------------
@@ -117,11 +124,11 @@ void GraphicState::popMatrix()
     }
 
     currentMatrix->needUpdate = true;
-    loadMatrix();
+    LoadMatrix();
 }
 
 
-void GraphicState::setMatrixMode(GLenum mode)
+void GraphicState::MatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
 //    Setup texture matrix
 //    Set matrix mode
@@ -144,7 +151,7 @@ void GraphicState::setMatrixMode(GLenum mode)
 }
 
 
-void GraphicState::loadMatrix()
+void GraphicState::LoadMatrix()
 // ----------------------------------------------------------------------------
 //    Load current matrix
 // ----------------------------------------------------------------------------
@@ -156,7 +163,7 @@ void GraphicState::loadMatrix()
 }
 
 
-void GraphicState::loadIdentity()
+void GraphicState::LoadIdentity()
 // ----------------------------------------------------------------------------
 //    Load identity matrix
 // ----------------------------------------------------------------------------
@@ -166,7 +173,7 @@ void GraphicState::loadIdentity()
 }
 
 
-void GraphicState::printMatrix(GLuint model)
+void GraphicState::PrintMatrix(GLuint model)
 // ----------------------------------------------------------------------------
 //    Print GL matrix on stderr : GL_MODELVIEW/GL_PROJECTION/GL_TEXTURE
 // ----------------------------------------------------------------------------
@@ -206,7 +213,7 @@ void GraphicState::printMatrix(GLuint model)
 // ============================================================================
 
 
-void GraphicState::translate(double x, double y, double z)
+void GraphicState::Translate(double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup translation
 // ----------------------------------------------------------------------------
@@ -220,7 +227,7 @@ void GraphicState::translate(double x, double y, double z)
 }
 
 
-void GraphicState::rotate(double a, double x, double y, double z)
+void GraphicState::Rotate(double a, double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup rotation
 // ----------------------------------------------------------------------------
@@ -234,7 +241,7 @@ void GraphicState::rotate(double a, double x, double y, double z)
 }
 
 
-void GraphicState::scale(double x, double y, double z)
+void GraphicState::Scale(double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup scale
 // ----------------------------------------------------------------------------
@@ -255,7 +262,7 @@ void GraphicState::scale(double x, double y, double z)
 // ============================================================================
 
 
-void GraphicState::pickMatrix(float x, float y, float width, float height,
+void GraphicState::PickMatrix(float x, float y, float width, float height,
                               int viewport[4])
 // ----------------------------------------------------------------------------
 //    Define a picking region
@@ -274,7 +281,7 @@ void GraphicState::pickMatrix(float x, float y, float width, float height,
 }
 
 
-void GraphicState::setFrustum(float left, float right,
+void GraphicState::Frustum(float left, float right,
                               float bottom, float top,
                               float nearZ, float farZ)
 // ----------------------------------------------------------------------------
@@ -310,7 +317,7 @@ void GraphicState::setFrustum(float left, float right,
 }
 
 
-void GraphicState::setPerspective(float fovy, float aspect, float nearZ, float farZ)
+void GraphicState::Perspective(float fovy, float aspect, float nearZ, float farZ)
 // ----------------------------------------------------------------------------
 //    Set up a perspective projection matrix
 // ----------------------------------------------------------------------------
@@ -320,11 +327,11 @@ void GraphicState::setPerspective(float fovy, float aspect, float nearZ, float f
    frustumH = tanf( fovy / 360.0f * M_PI ) * nearZ;
    frustumW = frustumH * aspect;
 
-   setFrustum(-frustumW, frustumW, -frustumH, frustumH, nearZ, farZ );
+   Frustum(-frustumW, frustumW, -frustumH, frustumH, nearZ, farZ );
 }
 
 
-void GraphicState::setOrtho(float left, float right,
+void GraphicState::Ortho(float left, float right,
                             float bottom, float top,
                             float nearZ, float farZ)
 // ----------------------------------------------------------------------------
@@ -361,16 +368,16 @@ void GraphicState::setOrtho(float left, float right,
 }
 
 
-void GraphicState::setOrtho2D(float left, float right, float bottom, float top)
+void GraphicState::Ortho2D(float left, float right, float bottom, float top)
 // ----------------------------------------------------------------------------
 //    Multiply the current matrix with an 2D orthographic matrix
 // ----------------------------------------------------------------------------
 {
-    setOrtho(left, right, bottom, top, -1, 1);
+    Ortho(left, right, bottom, top, -1, 1);
 }
 
 
-void GraphicState::setLookAt(float eyeX, float eyeY, float eyeZ,
+void GraphicState::LookAt(float eyeX, float eyeY, float eyeZ,
                              float centerX, float centerY, float centerZ,
                              float upX, float upY, float upZ)
 // ----------------------------------------------------------------------------+
@@ -381,11 +388,11 @@ void GraphicState::setLookAt(float eyeX, float eyeY, float eyeZ,
     Vector3 center(centerX, centerY, centerZ);
     Vector3 up(upX, upY, upZ);
 
-    setLookAt(eye, center, up);
+    LookAt(eye, center, up);
 }
 
 
-void GraphicState::setLookAt(Vector3 eye, Vector3 center, Vector3 up)
+void GraphicState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 // ----------------------------------------------------------------------------+
 //    Multiply the current matrix with a viewing matrix
 // ----------------------------------------------------------------------------+
@@ -424,17 +431,17 @@ void GraphicState::setLookAt(Vector3 eye, Vector3 center, Vector3 up)
     // TO REMOVE
     currentMatrix->needUpdate = true;
     currentMatrix->matrix.Translate(-eye.x, -eye.y, -eye.z);
-    loadMatrix();
+    LoadMatrix();
 }
 
 
 // ============================================================================
 //
-//                       Scene management functions.
+//                       Draw management functions.
 //
 // ============================================================================
 
-void GraphicState::setColor(float r, float g, float b, float a)
+void GraphicState::Color(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup color
 // ----------------------------------------------------------------------------
@@ -453,7 +460,7 @@ void GraphicState::setColor(float r, float g, float b, float a)
 }
 
 
-void GraphicState::setLineWidth(float width)
+void GraphicState::LineWidth(float width)
 // ----------------------------------------------------------------------------
 //    Specify the width of rasterized lines
 // ----------------------------------------------------------------------------
@@ -466,7 +473,7 @@ void GraphicState::setLineWidth(float width)
 }
 
 
-void GraphicState::setLineStipple(GLint factor, GLushort pattern)
+void GraphicState::LineStipple(GLint factor, GLushort pattern)
 // ----------------------------------------------------------------------------
 //    Specify the line stipple pattern
 // ----------------------------------------------------------------------------
@@ -486,7 +493,7 @@ void GraphicState::setLineStipple(GLint factor, GLushort pattern)
 //
 // ============================================================================
 
-void GraphicState::enable(GLenum cap)
+void GraphicState::Enable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Enable capability
 // ----------------------------------------------------------------------------
@@ -495,7 +502,7 @@ void GraphicState::enable(GLenum cap)
 }
 
 
-void GraphicState::disable(GLenum cap)
+void GraphicState::Disable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Disable capability
 // ----------------------------------------------------------------------------
@@ -504,7 +511,7 @@ void GraphicState::disable(GLenum cap)
 }
 
 
-void GraphicState::shadeModel(GLenum mode)
+void GraphicState::ShadeModel(GLenum mode)
 // ----------------------------------------------------------------------------
 //    Select shading mode
 // ----------------------------------------------------------------------------

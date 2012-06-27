@@ -204,21 +204,21 @@ int RasterText::printf(const char *format...)
 
     // Save GL state
     glPushAttrib(GL_LIGHTING_BIT | GL_LIST_BIT);
-    GL.disable(GL_LIGHTING);
+    GL.Disable(GL_LIGHTING);
     GLint prog = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
     if (prog)
         glUseProgram(0);
 
     // Draw background
-    GL.setColor(0.0, 0.0, 0.0, 0.5);
+    GL.Color(0.0, 0.0, 0.0, 0.5);
     glWindowPos2d(inst->pos.x, inst->pos.y);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (int i = 0; i < 2*len; i++)
         glBitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
     // Draw text
-    GL.setColor(1.0, 1.0, 1.0, 1.0);
+    GL.Color(1.0, 1.0, 1.0, 1.0);
     glWindowPos2d(inst->pos.x + 2, inst->pos.y + 1);
     glListBase(inst->fontOffset);
     glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);

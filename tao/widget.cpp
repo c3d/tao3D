@@ -696,7 +696,7 @@ void Widget::drawStereoIdent()
     if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
         updateStereoIdentPatterns(stereoPlanes);
     StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
-    GL.setColor(1.0, 1.0, 1.0, 1.0);
+    GL.Color(1.0, 1.0, 1.0, 1.0);
     drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
 }
 
@@ -757,9 +757,9 @@ void Widget::drawSelection()
         id = idDepth = 0;
         selectionTrees.clear();
         space->ClearAttributes();
-        GL.disable(GL_DEPTH_TEST);
+        GL.Disable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
-        GL.enable(GL_DEPTH_TEST);
+        GL.Enable(GL_DEPTH_TEST);
     }
 }
 
@@ -2162,8 +2162,8 @@ void Widget::setup(double w, double h, const Box *picking)
     glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
-    GL.setMatrixMode(GL_PROJECTION);
-    GL.loadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
 
     // Restrict the picking area if any is given as input
     if (picking)
@@ -2184,14 +2184,14 @@ void Widget::setup(double w, double h, const Box *picking)
         b.Normalize();
         Vector size = b.upper - b.lower;
         Point center = b.lower + size / 2;
-        GL.pickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+        GL.PickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
     double zf = 0.5 / (zoom * scaling);
-    GL.setFrustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
-    GL.loadMatrix();
+    GL.Frustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL.LoadMatrix();
 
     // Setup the model-view matrix
-    GL.setMatrixMode(GL_MODELVIEW);
+    GL.MatrixMode(GL_MODELVIEW);
     resetModelviewMatrix();
 
     // Reset default GL parameters
@@ -2219,13 +2219,13 @@ void Widget::resetModelviewMatrix()
 //   Reset the model-view matrix, used by reset_transform and setup
 // ----------------------------------------------------------------------------
 {
-    GL.loadIdentity();
+    GL.LoadIdentity();
 
     // Position the camera
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
     toTarget *= cameraToScreen;
     Point3 target = cameraPosition + toTarget;
-    GL.setLookAt(cameraPosition, target, cameraUpVector);
+    GL.LookAt(cameraPosition, target, cameraUpVector);
 }
 
 
@@ -2235,23 +2235,23 @@ void Widget::setupGL()
 // ----------------------------------------------------------------------------
 {
     // Setup other
-    GL.enable(GL_BLEND);
+    GL.Enable(GL_BLEND);
     if (inOfflineRendering)
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
-    GL.enable(GL_DEPTH_TEST);
-    GL.enable(GL_LINE_SMOOTH);
-    GL.enable(GL_POINT_SMOOTH);
-    GL.enable(GL_MULTISAMPLE);
-    GL.enable(GL_POLYGON_OFFSET_FILL);
-    GL.enable(GL_POLYGON_OFFSET_LINE);
-    GL.enable(GL_POLYGON_OFFSET_POINT);
-    GL.setColor(1.0f, 1.0f, 1.0f, 1.0f);
-    GL.setLineWidth(1);
-    GL.setLineStipple(1, -1);
+    GL.Enable(GL_DEPTH_TEST);
+    GL.Enable(GL_LINE_SMOOTH);
+    GL.Enable(GL_POINT_SMOOTH);
+    GL.Enable(GL_MULTISAMPLE);
+    GL.Enable(GL_POLYGON_OFFSET_FILL);
+    GL.Enable(GL_POLYGON_OFFSET_LINE);
+    GL.Enable(GL_POLYGON_OFFSET_POINT);
+    GL.Color(1.0f, 1.0f, 1.0f, 1.0f);
+    GL.LineWidth(1);
+    GL.LineStipple(1, -1);
 
     // Disable all texture units
     for(int i = GL.maxTextureUnits - 1; i > 0 ; i--)
@@ -2260,20 +2260,20 @@ void Widget::setupGL()
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
-            GL.disable(GL_TEXTURE_2D);
+            GL.Disable(GL_TEXTURE_2D);
         }
     }
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    GL.disable(GL_TEXTURE_2D);
-    GL.disable(GL_TEXTURE_RECTANGLE_ARB);
-    GL.disable(GL_CULL_FACE);
-    GL.shadeModel(GL_SMOOTH);
-    GL.disable(GL_LIGHTING);
-    GL.disable(GL_COLOR_MATERIAL);
+    GL.Disable(GL_TEXTURE_2D);
+    GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
+    GL.Disable(GL_CULL_FACE);
+    GL.ShadeModel(GL_SMOOTH);
+    GL.Disable(GL_LIGHTING);
+    GL.Disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
     glAlphaFunc(GL_GREATER, 0.01);
-    GL.enable(GL_ALPHA_TEST);
+    GL.Enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -4404,7 +4404,7 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         GLMatrixKeeper saveGL;
         Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        GL.translate(v.x, v.y, v.z);
+        GL.Translate(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -10910,7 +10910,7 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
-    GL.setColor(1.0, 1.0, 1.0, 0.2);
+    GL.Color(1.0, 1.0, 1.0, 0.2);
     drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
 }
 
@@ -10921,20 +10921,20 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 //   Draw a texture centered over the full widget with wrapping enabled
 // ----------------------------------------------------------------------------
 {
-    GL.disable(GL_DEPTH_TEST);
+    GL.Disable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    GL.enable(GL_TEXTURE_2D);
-    GL.setMatrixMode(GL_PROJECTION);
-    GL.loadIdentity();
-    GL.loadMatrix();
-    GL.setMatrixMode(GL_MODELVIEW);
-    GL.loadIdentity();
-    GL.loadMatrix();
+    GL.Enable(GL_TEXTURE_2D);
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
     float tw = w/texw, th = h/texh;
     float x1 = -tw/2, x2 = tw/2;
@@ -10953,7 +10953,7 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glTexCoord2f(x1, y2);
     glVertex2i  (-1,  1);
     glEnd();
-    GL.enable(GL_DEPTH_TEST);
+    GL.Enable(GL_DEPTH_TEST);
     glDepthMask(GL_TRUE);
 }
 

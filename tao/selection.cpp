@@ -306,13 +306,13 @@ Activity *Selection::Display(void)
 {
     GLStateKeeper save;
 
-    GL.setMatrixMode(GL_PROJECTION);
-    GL.loadIdentity();
-    GL.loadMatrix();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
     gluOrtho2D(0, widget->width(), 0, widget->height());
-    GL.setMatrixMode(GL_MODELVIEW);
-    GL.loadIdentity();
-    GL.loadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     Box b = rectangle;
     b.Normalize();

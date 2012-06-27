@@ -113,7 +113,7 @@ void Cube::Draw(Layout *where)
 
     setTexture(where);
 
-    GL.loadMatrix();
+    GL.LoadMatrix();
 
     // Draw filled faces
     if (setFillColor(where))
@@ -149,11 +149,11 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 {
     Point3 p = bounds.Center() + where->Offset();
 
-    GL.pushMatrix();
+    GL.PushMatrix();
     glPushAttrib(GL_ENABLE_BIT);
-    GL.translate(p.x, p.y, p.z);
-    GL.scale(bounds.Width(), bounds.Height(), bounds.Depth());
-    GL.loadMatrix();
+    GL.Translate(p.x, p.y, p.z);
+    GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
+    GL.LoadMatrix();
     // Set Vertices
     glEnableClientState(GL_VERTEX_ARRAY);
     glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
@@ -161,7 +161,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
-        GL.enable(GL_NORMALIZE);
+        GL.Enable(GL_NORMALIZE);
         glEnableClientState(GL_NORMAL_ARRAY);
         glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
     }
@@ -182,7 +182,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         // shapes in case of no shaders thanks to
         // backface culling (doesn't need to draw back faces)
         v = where->visibility * where->fillColor.alpha;
-        GL.enable(GL_CULL_FACE);
+        GL.Enable(GL_CULL_FACE);
         if(v != 1.0)
         {
             // Use painter algorithm to apply correctly
@@ -215,20 +215,20 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Disable normals
     if(where->currentLights || where->programId)
     {
-        GL.disable(GL_NORMALIZE);
+        GL.Disable(GL_NORMALIZE);
         glDisableClientState(GL_NORMAL_ARRAY);
     }
 
     // Disable cullface
     if(! where->programId && culling)
     {
-        GL.disable(GL_CULL_FACE);
+        GL.Disable(GL_CULL_FACE);
         if(v != 1.0)
             glDepthMask(true);
     }
 
     glPopAttrib();
-    GL.popMatrix();
+    GL.PopMatrix();
 }
 
 // ============================================================================

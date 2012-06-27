@@ -87,7 +87,7 @@ void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = false;
-    GL.enable(GL_COLOR_MATERIAL);
+    GL.Enable(GL_COLOR_MATERIAL);
     where->lineColor = color;
 }
 
@@ -98,7 +98,7 @@ void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = false;
-    GL.enable(GL_COLOR_MATERIAL);
+    GL.Enable(GL_COLOR_MATERIAL);
     where->fillColor = color;
 }
 
@@ -137,9 +137,9 @@ void TextureUnit::Draw(Layout *where)
     if(glUnit && (GL.vendorID == GL.ATI))
     {
         glActiveTexture(GL_TEXTURE0 + glUnit);
-        GL.setMatrixMode(GL_TEXTURE);
+        GL.MatrixMode(GL_TEXTURE);
         glLoadIdentity();
-        GL.setMatrixMode(GL_MODELVIEW);
+        GL.MatrixMode(GL_MODELVIEW);
         glActiveTexture(GL_TEXTURE0);
     }
 
@@ -196,9 +196,9 @@ void TextureTransform::Draw(Layout *where)
     uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
-        GL.setMatrixMode(GL_TEXTURE);
+        GL.MatrixMode(GL_TEXTURE);
     else
-        GL.setMatrixMode(GL_MODELVIEW);
+        GL.MatrixMode(GL_MODELVIEW);
 }
 
 
@@ -221,7 +221,7 @@ void LineWidth::Draw(Layout *where)
 {
     where->lineWidth = width;
     if (width > 0.0)
-        GL.setLineWidth(width * where->PrinterScaling());
+        GL.LineWidth(width * where->PrinterScaling());
 }
 
 
@@ -233,12 +233,12 @@ void LineStipple::Draw(Layout *where)
     (void) where;
     if (scale)
     {
-        GL.setLineStipple(scale, pattern);
-        GL.enable(GL_LINE_STIPPLE);
+        GL.LineStipple(scale, pattern);
+        GL.Enable(GL_LINE_STIPPLE);
     }
     else
     {
-        GL.disable(GL_LINE_STIPPLE);
+        GL.Disable(GL_LINE_STIPPLE);
     }
 }
 
@@ -351,9 +351,9 @@ void DepthTest::Draw(Layout *)
 // ----------------------------------------------------------------------------
 {
     if (enable)
-        GL.enable(GL_DEPTH_TEST);
+        GL.Enable(GL_DEPTH_TEST);
     else
-        GL.disable(GL_DEPTH_TEST);
+        GL.Disable(GL_DEPTH_TEST);
 }
 
 

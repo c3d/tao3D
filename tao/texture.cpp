@@ -163,9 +163,9 @@ GLuint ImageTextureInfo::bind(text file)
                     TaoApp->tex2DMagFilter);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
                     TaoApp->tex2DMinFilter);
-    GL.enable(GL_TEXTURE_2D);
+    GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        GL.enable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
     width = texinfo.width;
     height = texinfo.height;
 
@@ -258,9 +258,9 @@ GLuint AnimatedTextureInfo::bind(text file)
     glBindTexture(GL_TEXTURE_2D, texinfo.id);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    GL.enable(GL_TEXTURE_2D);
+    GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        GL.enable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
     width = texinfo.width;
     height = texinfo.height;
 

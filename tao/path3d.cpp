@@ -411,7 +411,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 //   Draw the graphic path using the current texture, fill and line color
 // ----------------------------------------------------------------------------
 {
-    GL.loadMatrix();
+    GL.LoadMatrix();
 
     // Do not bother setting up textures and programs if we are in selection
     if (tessel != GL_SELECT)

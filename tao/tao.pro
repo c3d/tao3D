@@ -203,7 +203,7 @@ SOURCES +=     activity.cpp \
     widget.cpp \
     widget_surface.cpp \
     window.cpp \
-    include/tao/graphic_state.cpp
+    graphic_state.cpp
 
 win32 {
     HEADERS += dde_widget.h

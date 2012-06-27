@@ -717,7 +717,7 @@ void Widget::drawScene()
     space->ClearAttributes();
     if (blanked)
     {
-        GL.setClearColor(0.0, 0.0, 0.0, 1.0);
+        glClearColor(0.0, 0.0, 0.0, 1.0);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     else if (stereoIdent)
@@ -772,11 +772,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    GL.setDepthFunc(GL_ALWAYS);
+    glDepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    GL.setDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled(Statistics::TO_SCREEN))
@@ -794,7 +794,7 @@ void Widget::setGlClearColor()
 {
     qreal r, g, b, a;
     clearCol.getRgbF(&r, &g, &b, &a);
-    GL.setClearColor(r, g, b, a);
+    glClearColor (r, g, b, a);
 }
 
 
@@ -2159,7 +2159,7 @@ void Widget::setup(double w, double h, const Box *picking)
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
 
-    GL.setViewport(vx, vy, vw, vh);
+    glViewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
     GL.setMatrixMode(GL_PROJECTION);
@@ -2241,7 +2241,7 @@ void Widget::setupGL()
                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    GL.setDepthFunc(GL_LEQUAL);
+    glDepthFunc(GL_LEQUAL);
     GL.enable(GL_DEPTH_TEST);
     GL.enable(GL_LINE_SMOOTH);
     GL.enable(GL_POINT_SMOOTH);
@@ -2268,7 +2268,7 @@ void Widget::setupGL()
     GL.disable(GL_TEXTURE_2D);
     GL.disable(GL_TEXTURE_RECTANGLE_ARB);
     GL.disable(GL_CULL_FACE);
-    GL.setShadeModel(GL_SMOOTH);
+    GL.shadeModel(GL_SMOOTH);
     GL.disable(GL_LIGHTING);
     GL.disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
@@ -10922,7 +10922,7 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 // ----------------------------------------------------------------------------
 {
     GL.disable(GL_DEPTH_TEST);
-    GL.setDepthMask(GL_FALSE);
+    glDepthMask(GL_FALSE);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -10954,7 +10954,7 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glVertex2i  (-1,  1);
     glEnd();
     GL.enable(GL_DEPTH_TEST);
-    GL.setDepthMask(GL_TRUE);
+    glDepthMask(GL_TRUE);
 }
 
 

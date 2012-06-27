@@ -90,13 +90,6 @@ GraphicState::GraphicState()
 }
 
 
-// ============================================================================
-//
-//                        Matrix management functions
-//
-// ============================================================================
-
-
 void GraphicState::pushMatrix()
 // ----------------------------------------------------------------------------
 //    Push current matrix in the stack
@@ -205,7 +198,6 @@ void GraphicState::printMatrix(GLuint model)
                 << "  " <<matrix[i+3] << "  " <<std::endl;
     }
 }
-
 
 // ============================================================================
 //
@@ -436,31 +428,11 @@ void GraphicState::setLookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
-void GraphicState::setViewport(int x, int y, int w, int h)
-// ----------------------------------------------------------------------------
-//    Set the viewport of the scene
-// ----------------------------------------------------------------------------
-{
-    if((viewport[0] == x) && (viewport[1] == y) &&
-       (viewport[2] == w) && (viewport[3] == h))
-            return;
-
-    // Update viewport
-    viewport[0] = x;
-    viewport[1] = y;
-    viewport[2] = w;
-    viewport[3] = h;
-
-    glViewport(x, y, w, h);
-}
-
-
 // ============================================================================
 //
 //                       Scene management functions.
 //
 // ============================================================================
-
 
 void GraphicState::setColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
@@ -478,76 +450,6 @@ void GraphicState::setColor(float r, float g, float b, float a)
     color[2] = b;
     color[3] = a;
     glColor4f(r, g, b, a);
-}
-
-
-void GraphicState::setClearColor(float r, float g, float b, float a)
-// ----------------------------------------------------------------------------
-//    Setup clear color
-// ----------------------------------------------------------------------------
-{
-    // Do not need to setup clear color if it has not changed
-    if((r == clearColor[0]) && (g == clearColor[1]) &&
-       (b == clearColor[2]) && (a == clearColor[3]))
-
-    // Update color
-    clearColor[0] = r;
-    clearColor[1] = g;
-    clearColor[2] = b;
-    clearColor[3] = a;
-    glClearColor(r, g, b, a);
-}
-
-
-void GraphicState::setClear(GLenum mask)
-// ----------------------------------------------------------------------------
-//    Clear buffers to preset values
-// ----------------------------------------------------------------------------
-{
-    if(clearMask != mask)
-    {
-        clearMask = mask;
-        glClear(mask);
-    }
-}
-
-
-void GraphicState::setShadeModel(GLenum mode)
-// ----------------------------------------------------------------------------
-//    Select shading mode
-// ----------------------------------------------------------------------------
-{
-    if(mode != shadeMode)
-    {
-        shadeMode = mode;
-        glShadeModel(mode);
-    }
-}
-
-
-void GraphicState::setDepthFunc(GLenum func)
-// ----------------------------------------------------------------------------
-//    Specify the value used for depth buffer comparisons
-// ----------------------------------------------------------------------------
-{
-    if(depthFunc != func)
-    {
-        depthFunc = func;
-        glDepthFunc(func);
-    }
-}
-
-
-void GraphicState::setDepthMask(GLboolean flag)
-// ----------------------------------------------------------------------------
-//     Enable or disable writing into the depth buffer
-// ----------------------------------------------------------------------------
-{
-    if(depthMask != flag)
-    {
-        depthMask = flag;
-        glDepthMask(flag);
-    }
 }
 
 
@@ -584,7 +486,6 @@ void GraphicState::setLineStipple(GLint factor, GLushort pattern)
 //
 // ============================================================================
 
-
 void GraphicState::enable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Enable capability
@@ -602,6 +503,15 @@ void GraphicState::disable(GLenum cap)
     glDisable(cap);
 }
 
+
+void GraphicState::shadeModel(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Select shading mode
+// ----------------------------------------------------------------------------
+{
+    if(mode != shadeMode)
+        glShadeModel(mode);
+}
 
 
 std::ostream & GraphicState::debug()

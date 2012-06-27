@@ -362,7 +362,7 @@ void DepthMask::Draw(Layout *)
 //   Enable or disable the depth mask
 // ----------------------------------------------------------------------------
 {
-    GL.setDepthMask(enable ? GL_TRUE : GL_FALSE);
+    glDepthMask(enable ? GL_TRUE : GL_FALSE);
 }
 
 
@@ -371,7 +371,7 @@ void DepthFunc::Draw(Layout *)
 //   Specifies the depth comparison function
 // ----------------------------------------------------------------------------
 {
-    GL.setDepthFunc(func);
+    glDepthFunc(func);
 }
 
 

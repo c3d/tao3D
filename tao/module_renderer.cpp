@@ -261,6 +261,9 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
+    // Load matrix before draw
+    GL.LoadMatrix();
+
     currentLayout = where;
     callback(arg);
 }

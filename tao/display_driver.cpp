@@ -271,7 +271,7 @@ void DisplayDriver::displayBackBuffer(void *)
     // Setup viewport
     int w = renderWidth();
     int h = renderHeight();
-    glViewport(0, 0, w, h);
+    GL.Viewport(0, 0, w, h);
 
     // Setup projection and modelview matrices
     setProjectionMatrix(w, h);
@@ -283,7 +283,7 @@ void DisplayDriver::displayBackBuffer(void *)
 
     // Clear color and depth information
     setGlClearColor();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set suitable GL parameters for drawing
     setupGl();
@@ -314,7 +314,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     o->resize(w, h);
     o->fbo->begin();
 
-    glViewport(0, 0, w, h);
+    GL.Viewport(0, 0, w, h);
 
     // Setup projection and modelview matrices
     setProjectionMatrix(w, h);
@@ -322,7 +322,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 
     // Clear color and depth information
     setGlClearColor();
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
     // Set suitable GL parameters for drawing
     setupGl();
@@ -340,7 +340,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     // Draw a full-screen textured quad
 
     // Setup viewport and geometry
-    glViewport(0, 0, w, h);
+    GL.Viewport(0, 0, w, h);
     GL.MatrixMode(GL_PROJECTION);
     GL.LoadIdentity();
     GL.LoadMatrix();
@@ -353,7 +353,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
 
     // Clear depth information, disable color blending so that texture alpha
     // is ignored
-    glClear(GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_DEPTH_BUFFER_BIT);
     GL.Disable(GL_BLEND);
 
     // Not sure why, but without this I often have a blank screen
@@ -486,7 +486,7 @@ void DisplayDriver::drawActivities()
 
 void DisplayDriver::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the widget
+//   Clear color with the color specified in the widget
 // ----------------------------------------------------------------------------
 {
     Widget::Tao()->setGlClearColor();

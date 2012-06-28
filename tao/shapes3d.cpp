@@ -190,7 +190,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
             // This was made necessary by Bug #1403.
             glCullFace(GL_FRONT);
             // Read Only mode of depth buffer
-            glDepthMask(false);
+            GL.DepthMask(false);
 
             if (setFillColor(where))
                 glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
@@ -224,7 +224,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     {
         GL.Disable(GL_CULL_FACE);
         if(v != 1.0)
-            glDepthMask(true);
+            GL.DepthMask(true);
     }
 
     glPopAttrib();

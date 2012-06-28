@@ -80,11 +80,16 @@ struct GraphicState
                 float centerX, float centerY, float centerZ,
                 float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
+    virtual void Viewport(int x, int y, int w, int h);
 
     // Draw management
     virtual void Color(float r, float g, float b, float a);
+    virtual void ClearColor(float r, float g, float b, float a);
+    virtual void Clear(GLuint mask);
     virtual void LineWidth(float width);
     virtual void LineStipple(GLint factor, GLushort pattern);
+    virtual void DepthMask(GLboolean flag);
+    virtual void DepthFunc(GLenum func);
 
     // Misc
     virtual void Enable(GLenum cap);
@@ -117,12 +122,18 @@ public:
     MatrixState  projMatrix;
     MatrixState  mvMatrix;
 
+    GLint        viewport[4];
+
     GLfloat      color[4];
+    GLfloat      clearColor[4];
 
     GLenum       shadeMode;
     GLuint       lineWidth;
     GLint        stippleFactor;
     GLushort     stipplePattern;
+
+    GLboolean    depthMask;
+    GLenum       depthFunc;
 
     std::stack<MatrixState> projStack; // the stack for projection matrices
     std::stack<MatrixState> mvStack;   // the stack for modelview matrices

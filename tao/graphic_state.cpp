@@ -86,6 +86,9 @@ GraphicState::GraphicState()
     color[2] = 1.0;
     color[3] = 1.0;
 
+    // Setup default depth func
+    depthFunc = GL_LESS;
+
     current = this;
 }
 
@@ -435,6 +438,25 @@ void GraphicState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
+void GraphicState::Viewport(int x, int y, int w, int h)
+// ----------------------------------------------------------------------------
+//    Set the viewport
+// ----------------------------------------------------------------------------
+{
+    // Do not need to setup viewport if it has not changed
+    if((x == viewport[0]) && (y == viewport[1]) &&
+       (w == viewport[2]) && (h == viewport[3]))
+        return;
+
+    // Update viewport
+    viewport[0] = x;
+    viewport[1] = y;
+    viewport[2] = w;
+    viewport[3] = h;
+    glViewport(x, y, w, h);
+}
+
+
 // ============================================================================
 //
 //                       Draw management functions.
@@ -457,6 +479,35 @@ void GraphicState::Color(float r, float g, float b, float a)
     color[2] = b;
     color[3] = a;
     glColor4f(r, g, b, a);
+}
+
+
+void GraphicState::ClearColor(float r, float g, float b, float a)
+// ----------------------------------------------------------------------------
+//    Setup clear color
+// ----------------------------------------------------------------------------
+{
+    // Do not need to setup clear color if it has not changed
+    if((r == clearColor[0]) && (g == clearColor[1]) &&
+       (b == clearColor[2]) && (a == clearColor[3]))
+        return;
+
+    // Update clear color
+    clearColor[0] = r;
+    clearColor[1] = g;
+    clearColor[2] = b;
+    clearColor[3] = a;
+    glClearColor(r, g, b, a);
+}
+
+
+void GraphicState::Clear(GLuint mask)
+// ----------------------------------------------------------------------------
+//    Clear buffers to preset values
+// ----------------------------------------------------------------------------
+{
+    // Do not need to be optimised
+    glClear(mask);
 }
 
 
@@ -483,6 +534,32 @@ void GraphicState::LineStipple(GLint factor, GLushort pattern)
         stippleFactor = factor;
         stipplePattern = pattern;
         glLineStipple(factor, pattern);
+    }
+}
+
+
+void GraphicState::DepthMask(GLboolean flag)
+// ----------------------------------------------------------------------------
+//    Enable or disable writing into the depth buffer
+// ----------------------------------------------------------------------------
+{
+    if(depthMask != flag)
+    {
+        depthMask = flag;
+        glDepthMask(flag);
+    }
+}
+
+
+void GraphicState::DepthFunc(GLenum func)
+// ----------------------------------------------------------------------------
+//    Specify the value used for depth buffer comparisons
+// ----------------------------------------------------------------------------
+{
+    if(depthFunc != func)
+    {
+        depthFunc = func;
+        glDepthFunc(func);
     }
 }
 

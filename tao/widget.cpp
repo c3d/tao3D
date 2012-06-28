@@ -717,8 +717,8 @@ void Widget::drawScene()
     space->ClearAttributes();
     if (blanked)
     {
-        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL.ClearColor(0.0, 0.0, 0.0, 1.0);
+        GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     else if (stereoIdent)
     {
@@ -772,11 +772,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    glDepthFunc(GL_ALWAYS);
+    GL.DepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    glDepthFunc(GL_LEQUAL);
+    GL.DepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled(Statistics::TO_SCREEN))
@@ -789,12 +789,12 @@ void Widget::drawActivities()
 
 void Widget::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the widget
+//   Clear color with the color specified in the widget
 // ----------------------------------------------------------------------------
 {
     qreal r, g, b, a;
     clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+    GL.ClearColor (r, g, b, a);
 }
 
 
@@ -832,7 +832,7 @@ void Widget::draw()
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
     }
 
@@ -2114,7 +2114,7 @@ void Widget::resizeGL(int width, int height)
     QEvent r(QEvent::Resize);
     refreshNow(&r);
     glClearAccum(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_ACCUM_BUFFER_BIT);
+    GL.Clear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -2159,7 +2159,7 @@ void Widget::setup(double w, double h, const Box *picking)
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
 
-    glViewport(vx, vy, vw, vh);
+    GL.Viewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
     GL.MatrixMode(GL_PROJECTION);
@@ -2241,7 +2241,7 @@ void Widget::setupGL()
                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LEQUAL);
+    GL.DepthFunc(GL_LEQUAL);
     GL.Enable(GL_DEPTH_TEST);
     GL.Enable(GL_LINE_SMOOTH);
     GL.Enable(GL_POINT_SMOOTH);
@@ -10922,7 +10922,7 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 // ----------------------------------------------------------------------------
 {
     GL.Disable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
+    GL.DepthMask(GL_FALSE);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -10954,7 +10954,7 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glVertex2i  (-1,  1);
     glEnd();
     GL.Enable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+    GL.DepthMask(GL_TRUE);
 }
 
 

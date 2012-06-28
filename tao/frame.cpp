@@ -238,9 +238,9 @@ void FrameInfo::clear()
 //   Clear the contents of a frame buffer object
 // ----------------------------------------------------------------------------
 {
-    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
+    GL.ClearColor(clearColor.red, clearColor.green, clearColor.blue,
                  clearColor.alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 
@@ -409,8 +409,8 @@ FramePainter::FramePainter(FrameInfo *info)
     // Clear the render FBO
     info->checkGLContext();
     info->render_fbo->bind();
-    glClearColor(0,0,0,0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.ClearColor(0,0,0,0);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     info->render_fbo->release();
 
     begin(info->render_fbo);

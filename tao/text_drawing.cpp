@@ -196,6 +196,7 @@ void TextUnit::DrawCached(Layout *where)
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 
+        // Load model view matrix
         GL.LoadMatrix();
         glDrawArrays(GL_QUADS, 0, count);
 
@@ -507,6 +508,9 @@ void TextUnit::Identify(Layout *where)
 
     // Find length of text span and compute per-char spread
     float spread = where->alongX.perSolid;
+
+    // Load model view matrix
+    GL.LoadMatrix();
 
     // Prepare to draw with the quad
     glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);

@@ -385,7 +385,7 @@ uint Layout::Selected()
 // ----------------------------------------------------------------------------
 {
     uint selected = Display()->selected(id);
-    selected &= Widget::SELECTION_MASK;
+    selected &= ~Widget::SELECTION_MASK;
     return selected + ChildrenSelected();
 }
 
@@ -712,8 +712,9 @@ void Layout::PushLayout(Layout *where)
         widget->selectionContainerPush();
 
         uint open = widget->selected(id);
-        if (open & Widget::CONTAINER_OPENED)
-            groupId |= Widget::CONTAINER_OPENED;
+        if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
+            groupId = (groupId & ~Widget::SELECTION_MASK)
+                | Widget::CONTAINER_OPENED;
         glPushName(groupId);
     }
 }
@@ -740,7 +741,7 @@ uint Layout::CharacterId()
 //    We also increment the widget's selection ID so that we account
 //    for the right number of selectable items
 {
-    display->selectionId();
+    display->shapeId();
     return ++charId;
 }
 

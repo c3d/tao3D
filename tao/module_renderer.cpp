@@ -274,6 +274,9 @@ void ModuleRenderer::Identify(Layout *where)
 //   Identify object under cursor
 // ----------------------------------------------------------------------------
 {
+    // Load matrix before identify
+    GL.LoadMatrix();
+
     XL::Save<bool> inIdentify(where->inIdentify, true);
     glUseProgram(0); // Necessary for #1464
     currentLayout = where;

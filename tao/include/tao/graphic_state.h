@@ -55,12 +55,14 @@ struct GraphicState
     GraphicState();
 
     // Matrix management
-    virtual void PushMatrix();
-    virtual void PopMatrix();
-    virtual void MatrixMode(GLenum mode);
-    virtual void LoadMatrix();
-    virtual void LoadIdentity();
-    virtual void PrintMatrix(GLuint model);
+    virtual coord* ModelViewMatrix();
+    virtual coord* ProjectionMatrix();
+    virtual void   PushMatrix();
+    virtual void   PopMatrix();
+    virtual void   MatrixMode(GLenum mode);
+    virtual void   LoadMatrix();
+    virtual void   LoadIdentity();
+    virtual void   PrintMatrix(GLuint model);
 
     // Transformations
     virtual void Translate(double x, double y, double z);
@@ -69,16 +71,16 @@ struct GraphicState
 
     // Camera management
     virtual void PickMatrix(float x, float y, float width, float height,
-                    int viewport[4]);
+                            int viewport[4]);
     virtual void Frustum(float left, float right, float bottom, float top,
-                 float nearZ, float farZ);
+                         float nearZ, float farZ);
     virtual void Perspective(float fovy, float aspect, float nearZ, float farZ);
     virtual void Ortho(float left, float right, float bottom,
-               float top, float nearZ, float farZ);
+                       float top, float nearZ, float farZ);
     virtual void Ortho2D(float left, float right, float bottom, float top);
     virtual void LookAt(float eyeX, float eyeY, float eyeZ,
-                float centerX, float centerY, float centerZ,
-                float upX, float upY, float upZ);
+                        float centerX, float centerY, float centerZ,
+                        float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
     virtual void Viewport(int x, int y, int w, int h);
 

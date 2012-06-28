@@ -127,7 +127,6 @@ void GraphicState::PopMatrix()
     }
 
     currentMatrix->needUpdate = true;
-    LoadMatrix();
 }
 
 

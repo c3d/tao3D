@@ -442,7 +442,6 @@ void ConvertScreenCoordinates::Draw(Layout *where)
     }
 
     widget->recordProjection(info->projection, info->model, info->viewport);
-
     info->coordinates = widget->objectToWorld(x, y, info->projection, info->model, info->viewport);
 }
 

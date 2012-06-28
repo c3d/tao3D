@@ -4419,22 +4419,23 @@ void Widget::recordProjection(GLdouble *proj, GLdouble *model, GLint *viewport)
 //   Record the transformation matrix for the current projection
 // ----------------------------------------------------------------------------
 {
-    // Is this really necessary? Did Valgrind show that GL fails to fill them?
-    memset(proj, 0, sizeof focusProjection);
-    memset(model, 0, sizeof focusModel);
-    memset(viewport, 0, sizeof focusViewport);
-
-    glGetDoublev(GL_PROJECTION_MATRIX, proj);
-    glGetDoublev(GL_MODELVIEW_MATRIX, model);
-    viewport[0] = mouseTrackingViewport[0];
-    viewport[1] = mouseTrackingViewport[1];
-    viewport[2] = mouseTrackingViewport[2];
-    viewport[3] = mouseTrackingViewport[3];
-    if (viewport[2] == 0 && viewport[3] == 0)
+    memcpy(proj, GL.ProjectionMatrix(), sizeof focusProjection);
+    memcpy(model, GL.ModelViewMatrix(), sizeof focusModel);
+    if (mouseTrackingViewport[2] == 0 && mouseTrackingViewport[3] == 0)
     {
         // mouseTrackingViewport not set (by display module), default to
         // current viewport
-        glGetIntegerv(GL_VIEWPORT, viewport);
+        viewport[0] = GL.viewport[0];
+        viewport[1] = GL.viewport[1];
+        viewport[2] = GL.viewport[2];
+        viewport[3] = GL.viewport[3];
+    }
+    else
+    {
+        viewport[0] = mouseTrackingViewport[0];
+        viewport[1] = mouseTrackingViewport[1];
+        viewport[2] = mouseTrackingViewport[2];
+        viewport[3] = mouseTrackingViewport[3];
     }
 }
 

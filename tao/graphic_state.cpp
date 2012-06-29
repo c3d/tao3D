@@ -36,7 +36,7 @@ GraphicState::GraphicState()
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
-    : maxTextureCoords(0), maxTextureUnits(0), matrixMode(GL_MODELVIEW),
+    : GraphicStateApi(), maxTextureCoords(0), maxTextureUnits(0), matrixMode(GL_MODELVIEW),
       shadeMode(GL_SMOOTH), lineWidth(1), stippleFactor(1), stipplePattern(1)
 {
     // Ask graphic card constructor to OpenGL
@@ -78,13 +78,6 @@ GraphicState::GraphicState()
     // (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
-
-
-    // Set defaut color
-    color[0] = 1.0;
-    color[1] = 1.0;
-    color[2] = 1.0;
-    color[3] = 1.0;
 
     // Setup default depth func
     depthFunc = GL_LESS;
@@ -475,7 +468,7 @@ void GraphicState::Viewport(int x, int y, int w, int h)
 
 // ============================================================================
 //
-//                       Draw management functions.
+//                       Attribute management functions.
 //
 // ============================================================================
 
@@ -485,15 +478,17 @@ void GraphicState::Color(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 {
     // Do not need to setup color if it has not changed
-    if((r == color[0]) && (g == color[1]) &&
-       (b == color[2]) && (a == color[3]))
+    if((r == currentColor.color[0]) &&
+       (g == currentColor.color[1]) &&
+       (b == currentColor.color[2]) &&
+       (a == currentColor.color[3]))
         return;
 
-    // Update color
-    color[0] = r;
-    color[1] = g;
-    color[2] = b;
-    color[3] = a;
+    // Update current color
+    currentColor.color[0] = r;
+    currentColor.color[1] = g;
+    currentColor.color[2] = b;
+    currentColor.color[3] = a;
     glColor4f(r, g, b, a);
 }
 
@@ -504,15 +499,17 @@ void GraphicState::ClearColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 {
     // Do not need to setup clear color if it has not changed
-    if((r == clearColor[0]) && (g == clearColor[1]) &&
-       (b == clearColor[2]) && (a == clearColor[3]))
+    if((r == currentColor.clearColor[0]) &&
+       (g == currentColor.clearColor[1]) &&
+       (b == currentColor.clearColor[2]) &&
+       (a == currentColor.clearColor[3]))
         return;
 
     // Update clear color
-    clearColor[0] = r;
-    clearColor[1] = g;
-    clearColor[2] = b;
-    clearColor[3] = a;
+    currentColor.clearColor[0] = r;
+    currentColor.clearColor[1] = g;
+    currentColor.clearColor[2] = b;
+    currentColor.clearColor[3] = a;
     glClearColor(r, g, b, a);
 }
 
@@ -579,12 +576,6 @@ void GraphicState::DepthFunc(GLenum func)
     }
 }
 
-
-// ============================================================================
-//
-//                       Misc functions.
-//
-// ============================================================================
 
 void GraphicState::Enable(GLenum cap)
 // ----------------------------------------------------------------------------

@@ -18,23 +18,29 @@
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-//  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
-//  (C) 2010 Taodyne SAS
+//  (C) 2012 Baptiste Soulisse <soulisse.baptiste@taodyne.com>
+//  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
 #include "coords3d.h"
 #include "matrix.h"
-#include "tao_gl.h"
+#include "graphic_state_api.h"
 #include <stack>
 
 TAO_BEGIN
 
-struct MatrixState;
-struct GraphicState;
-
 //  Shortcut
 #define GL  (*Tao::GraphicState::State())
+
+struct ColorAttrib {
+// ----------------------------------------------------------------------------
+//   The state of color attributes
+// ----------------------------------------------------------------------------
+    int          restores;
+    GLfloat      color[4];
+    GLfloat      clearColor[4];
+};
+
 
 struct MatrixState
 // ----------------------------------------------------------------------------
@@ -47,7 +53,7 @@ struct MatrixState
     Matrix4 matrix;
 };
 
-struct GraphicState
+struct GraphicState : GraphicStateApi
 // ----------------------------------------------------------------------------
 //   Class to manage graphic states
 // ----------------------------------------------------------------------------
@@ -84,7 +90,7 @@ struct GraphicState
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
     virtual void Viewport(int x, int y, int w, int h);
 
-    // Draw management
+    // Attributes management
     virtual void Color(float r, float g, float b, float a);
     virtual void ClearColor(float r, float g, float b, float a);
     virtual void Clear(GLuint mask);
@@ -92,8 +98,6 @@ struct GraphicState
     virtual void LineStipple(GLint factor, GLushort pattern);
     virtual void DepthMask(GLboolean flag);
     virtual void DepthFunc(GLenum func);
-
-    // Misc
     virtual void Enable(GLenum cap);
     virtual void Disable(GLenum cap);
     virtual void ShadeModel(GLenum mode);
@@ -125,9 +129,7 @@ public:
     MatrixState  mvMatrix;
 
     GLint        viewport[4];
-
-    GLfloat      color[4];
-    GLfloat      clearColor[4];
+    ColorAttrib  currentColor;
 
     GLenum       shadeMode;
     GLuint       lineWidth;
@@ -144,8 +146,9 @@ public:
     static GraphicState* current;
     static text          vendorsList[LAST];
 
+
 };
 
 TAO_END
 
-#endif // STATES_H
+#endif // GRAPHIC_STATE_H

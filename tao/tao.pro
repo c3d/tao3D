@@ -128,6 +128,7 @@ HEADERS +=     activity.h \
     widget.h \
     widget_surface.h \
     window.h \
+    graphic_state.h \
     include/tao/coords.h \
     include/tao/coords3d.h \
     include/tao/matrix.h \
@@ -136,8 +137,7 @@ HEADERS +=     activity.h \
     include/tao/tao_gl.h \
     include/tao/tao_info.h \
     include/tao/tao_utf8.h \
-    include/tao/graphic_state_api.h \
-    include/tao/graphic_state.h
+    include/tao/graphic_state_api.h
 
 SOURCES +=     activity.cpp \
     application.cpp \

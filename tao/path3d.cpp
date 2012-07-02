@@ -99,7 +99,8 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
-    for(uint i = 0; i < GL.maxTextureCoords; i++)
+    uint maxtc = GL.MaxTextureCoords();
+    for(uint i = 0; i < maxtc; i++)
     {
         //Active texture coordinates only for used units
         if (poly->textureUnits & (1 << i))
@@ -849,7 +850,8 @@ void GraphicPath::Draw(const Vector3 &offset,
                     glEnableClientState(GL_NORMAL_ARRAY);
 
                     //Active texture coordinates for all used units
-                    for(uint i = 0; i < GL.maxTextureCoords ; i++)
+                    uint maxtc = GL.MaxTextureCoords();
+                    for(uint i = 0; i < maxtc ; i++)
                     {
                         if(texUnits & (1 << i))
                         {
@@ -864,7 +866,7 @@ void GraphicPath::Draw(const Vector3 &offset,
                     glDisableClientState(GL_VERTEX_ARRAY);
                     glDisableClientState(GL_NORMAL_ARRAY);
 
-                    for(uint i = 0; i < GL.maxTextureCoords ; i++)
+                    for(uint i = 0; i < maxtc ; i++)
                     {
                         if(texUnits & (1 << i))
                         {

@@ -1,12 +1,12 @@
-#ifndef GRAPHIC_STATE_H
-#define GRAPHIC_STATE_H
+#ifndef OPENGL_STATE_H
+#define OPENGL_STATE_H
 // ****************************************************************************
-//  graphic_state.h                                                 Tao project
+//  opengl_state.h                                                 Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Manage graphic state
+//     Manage OpenGL state
 //
 //
 //
@@ -19,18 +19,16 @@
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 2012 Baptiste Soulisse <soulisse.baptiste@taodyne.com>
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
 #include "coords3d.h"
 #include "matrix.h"
-#include "graphic_state_api.h"
+#include "graphic_state.h"
 #include <stack>
 
 TAO_BEGIN
-
-//  Shortcut
-#define GL  (*Tao::GraphicState::State())
 
 struct MatrixState
 // ----------------------------------------------------------------------------
@@ -44,12 +42,22 @@ struct MatrixState
 };
 
 
-struct GraphicState : GraphicStateApi
+struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 //   Class to manage graphic states
 // ----------------------------------------------------------------------------
 {
-    GraphicState();
+    OpenGLState();
+
+    // Return attributes of state
+    virtual uint   MaxTextureCoords()           { return maxTextureCoords; }
+    virtual uint   MaxTextureUnits()            { return maxTextureUnits; }
+    virtual text   Vendor()                     { return vendor; }
+    virtual text   Renderer()                   { return renderer; }
+    virtual text   Version()                    { return version; }
+    virtual uint   VendorID()                   { return vendorID; }
+    virtual bool   IsATIOpenGL()                { return vendorID == ATI; }
+
 
     // Matrix management
     virtual coord* ModelViewMatrix();
@@ -80,6 +88,7 @@ struct GraphicState : GraphicStateApi
                         float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
     virtual void Viewport(int x, int y, int w, int h);
+    virtual int *Viewport()           { return viewport; }
 
     // Attributes management
     virtual void Color(float r, float g, float b, float a);
@@ -93,20 +102,20 @@ struct GraphicState : GraphicStateApi
     virtual void Disable(GLenum cap);
     virtual void ShadeModel(GLenum mode);
 
-    static inline GraphicState* State() { Q_ASSERT(current); return current; }
-
     std::ostream & debug();
 
 public:
-    enum Vendor {
-        ATI = 0,
-        NVIDIA = 1,
-        INTEL = 2,
-        LAST = 3
+    enum VendorID
+    {
+        UNKNOWN = 0,
+        ATI,
+        NVIDIA,
+        INTEL,
+        LAST_VENDOR
     };
 
 public:
-    Vendor       vendorID;
+    enum VendorID vendorID;
     GLuint       maxTextureCoords;
     GLuint       maxTextureUnits;
     text         vendor;
@@ -135,10 +144,7 @@ public:
     std::stack<MatrixState> mvStack;   // the stack for modelview matrices
 
 public:
-    static GraphicState* current;
-    static text          vendorsList[LAST];
-
-
+    static text          vendorsList[LAST_VENDOR];
 };
 
 TAO_END

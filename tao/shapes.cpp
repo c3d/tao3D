@@ -47,7 +47,8 @@ bool Shape::setTexture(Layout *where)
     if (where->InIdentify())
         return !where->fillTextures.empty();
 
-    for(uint i = 0; i < GL.maxTextureUnits; i++)
+    uint maxtu = GL.MaxTextureUnits();
+    for(uint i = 0; i < maxtu; i++)
     {
         //Determine if there is a current and previous texture
         bool hasCurrent = where->fillTextures.count(i);
@@ -247,7 +248,7 @@ bool Shape::setShader(Layout *where)
             glUniform1i(textures, where->textureUnits);
 
             GLint vendor = glGetUniformLocation(where->programId, "vendor");
-            glUniform1i(vendor, GL.vendorID);
+            glUniform1i(vendor, GL.VendorID());
 
             // Set texture units
             GLint tex0 = glGetUniformLocation(where->programId, "tex0");

@@ -81,6 +81,7 @@
 #include "info_trash_can.h"
 #include "tao_info.h"
 #include "preferences_pages.h"
+#include "opengl_state.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -250,7 +251,8 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     layout = space;
 
     // Initialize graphic state
-    graphicState = new GraphicState();
+    graphicState = new OpenGLState();
+    graphicState->MakeCurrent();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
@@ -461,7 +463,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     layout = space;
 
     // Initialize graphic state
-    graphicState = new GraphicState();
+    graphicState = new OpenGLState();
+    graphicState->MakeCurrent();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
@@ -2235,6 +2238,9 @@ void Widget::setupGL()
 //   Setup default GL parameters
 // ----------------------------------------------------------------------------
 {
+    // Make sure we are in the correct widget's graphic state
+    graphicState->MakeCurrent();
+
     // Setup other
     GL.Enable(GL_BLEND);
     if (inOfflineRendering)
@@ -2255,7 +2261,8 @@ void Widget::setupGL()
     GL.LineStipple(1, -1);
 
     // Disable all texture units
-    for(int i = GL.maxTextureUnits - 1; i > 0 ; i--)
+    uint maxtu = GL.MaxTextureUnits();
+    for(int i = maxtu - 1; i > 0 ; i--)
     {
         if(layout->textureUnits & (1 << i))
         {
@@ -4426,10 +4433,11 @@ void Widget::recordProjection(GLdouble *proj, GLdouble *model, GLint *viewport)
     {
         // mouseTrackingViewport not set (by display module), default to
         // current viewport
-        viewport[0] = GL.viewport[0];
-        viewport[1] = GL.viewport[1];
-        viewport[2] = GL.viewport[2];
-        viewport[3] = GL.viewport[3];
+        GLint *glvp = GL.Viewport();
+        viewport[0] = glvp[0];
+        viewport[1] = glvp[1];
+        viewport[2] = glvp[2];
+        viewport[3] = glvp[3];
     }
     else
     {
@@ -6834,7 +6842,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > GL.maxTextureUnits)
+    if(texUnit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7212,7 +7220,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     uint texUnit = layout->currentTexture.unit;
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= GL.maxTextureCoords)
+    if(texUnit >= GL.MaxTextureCoords())
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
@@ -7284,7 +7292,7 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(unit > GL.maxTextureUnits)
+    if(unit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -12168,7 +12176,7 @@ XL::Text_p Widget::GLVersion(XL::Tree_p self)
 //   Return OpenGL supported version
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(GL.version);
+    return new XL::Text(GL.Version());
 }
 
 
@@ -12177,10 +12185,7 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
 //   Check is an OpenGL extensions is supported
 // ----------------------------------------------------------------------------
 {
-    kstring avail = GL.extensionsAvailable.c_str();
-    kstring req = name.c_str();
-    bool isAvailable = (strstr(avail, req) != NULL);
-    return isAvailable ? XL::xl_true : XL::xl_false;
+    return isGLExtensionAvailable(name) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -12189,10 +12194,14 @@ bool Widget::isGLExtensionAvailable(text name)
 //   Module interface to isGLExtensionAvailable
 // ----------------------------------------------------------------------------
 {
-    kstring avail = GL.extensionsAvailable.c_str();
-    kstring req = name.c_str();
-    bool isAvailable = (strstr(avail, req) != NULL);
-    return isAvailable ? true : false;
+    if (OpenGLState *opengl = dynamic_cast<OpenGLState *> (&GL))
+    {
+        kstring avail = opengl->extensionsAvailable.c_str();
+        kstring req = name.c_str();
+        bool isAvailable = (strstr(avail, req) != NULL);
+        return isAvailable;
+    }
+    return false;
 }
 
 

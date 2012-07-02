@@ -28,12 +28,30 @@
 
 TAO_BEGIN
 
-struct GraphicStateApi
+//  Shortcut
+#define GL  (*Tao::GraphicState::State())
+
+
+struct GraphicState
 // ----------------------------------------------------------------------------
 //   Interface to manage graphic states
 // ----------------------------------------------------------------------------
 {
-    GraphicStateApi() {}
+    GraphicState() {}
+    virtual ~GraphicState()             { if (current == this) current = NULL; }
+
+    // Return the current graphic state (one per widget)
+    static GraphicState *State()        { return current; }
+    void   MakeCurrent()                { current = this; }
+
+    // Return attributes of state
+    virtual uint   MaxTextureCoords() = 0;
+    virtual uint   MaxTextureUnits() = 0;
+    virtual text   Vendor() = 0;
+    virtual text   Renderer() = 0;
+    virtual text   Version() = 0;
+    virtual uint   VendorID() = 0;
+    virtual bool   IsATIOpenGL() = 0;
 
     // Matrix management
     virtual coord* ModelViewMatrix() = 0;
@@ -63,6 +81,7 @@ struct GraphicStateApi
                         float upX, float upY, float upZ) = 0;
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up) = 0;
     virtual void Viewport(int x, int y, int w, int h) = 0;
+    virtual int *Viewport() = 0;
 
     // Draw management
     virtual void Color(float r, float g, float b, float a) = 0;
@@ -77,6 +96,9 @@ struct GraphicStateApi
     virtual void Enable(GLenum cap) = 0;
     virtual void Disable(GLenum cap) = 0;
     virtual void ShadeModel(GLenum mode) = 0;
+
+protected:
+    static GraphicState *       current;
 };
 
 TAO_END

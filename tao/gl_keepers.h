@@ -115,7 +115,8 @@ struct GLAllStateKeeper : GLStateKeeper
             GL.PushMatrix();
         }
 
-        for(uint i = 0; i <  GL.maxTextureCoords; i++)
+        uint max = GL.MaxTextureCoords();
+        for(uint i = 0; i <  max; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {
@@ -135,7 +136,8 @@ struct GLAllStateKeeper : GLStateKeeper
             GL.PopMatrix();
         }
 
-        for(uint i = 0; i < GL.maxTextureCoords; i++)
+        uint max = GL.MaxTextureCoords();
+        for(uint i = 0; i < max; i++)
         {
             if (saveTextureMatrix & (1 << i))
             {

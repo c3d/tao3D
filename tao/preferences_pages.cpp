@@ -597,11 +597,11 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     QGroupBox *info = new QGroupBox(trUtf8("OpenGL\302\256 information"));
     QGridLayout *grid = new QGridLayout;
     grid->addWidget(new QLabel(tr("Vendor:")), 1, 1);
-    grid->addWidget(new QLabel(+GL.vendor), 1, 2);
+    grid->addWidget(new QLabel(+GL.Vendor()), 1, 2);
     grid->addWidget(new QLabel(tr("Renderer:")), 2, 1);
-    grid->addWidget(new QLabel(+GL.renderer), 2, 2);
+    grid->addWidget(new QLabel(+GL.Renderer()), 2, 2);
     grid->addWidget(new QLabel(tr("Version:")), 3, 1);
-    grid->addWidget(new QLabel(+GL.version), 3, 2);
+    grid->addWidget(new QLabel(+GL.Version()), 3, 2);
     info->setLayout(grid);
 
     QGroupBox *settings = new QGroupBox(trUtf8("OpenGL\302\256 settings"));

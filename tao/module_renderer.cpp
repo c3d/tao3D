@@ -160,11 +160,12 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
 //   Bind the texture as defined by current layout attributes
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->layout->currentTexture.id = id;
-    Widget::Tao()->layout->currentTexture.type = type;
+    Layout *layout = Widget::Tao()->layout;
+    layout->currentTexture.id = id;
+    layout->currentTexture.type = type;
 
-    Widget::Tao()->layout->Add(new FillTexture(id, type));
-    Widget::Tao()->layout->hasAttributes = true;
+    layout->Add(new FillTexture(id, type));
+    layout->hasAttributes = true;
     return false;
 }
 
@@ -174,7 +175,7 @@ bool ModuleRenderer::HasTexture(uint texUnit)
 //  Check if a texture is bound at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > GL.maxTextureUnits)
+    if(texUnit > GL.MaxTextureUnits())
         return false;
 
     uint hasTexture = currentLayout->textureUnits & (1 << texUnit);

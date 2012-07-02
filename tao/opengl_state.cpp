@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  states.cpp                                                      Tao project
+//  opengl_state.cpp                                               Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Manage Opengl states
+//     Manage OpenGL states
 //
 //
 //
@@ -16,48 +16,56 @@
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "graphic_state.h"
+#include "opengl_state.h"
+#include <cassert>
+
 
 TAO_BEGIN
 
-// Current graphic state
-GraphicState* GraphicState::current = NULL;
-
-// Vendors list
-text GraphicState::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
-
-
-GraphicState::GraphicState()
+text OpenGLState::vendorsList[LAST_VENDOR] =
 // ----------------------------------------------------------------------------
-//    Constructor
+//   List of vendors (we use that for some optimizations)
 // ----------------------------------------------------------------------------
-    : GraphicStateApi(), maxTextureCoords(0), maxTextureUnits(0), matrixMode(GL_MODELVIEW),
-      shadeMode(GL_SMOOTH), lineWidth(1), stippleFactor(1), stipplePattern(1)
+{
+    "Unknown vendor",
+    "ATI Technologies Inc.",
+    "NVIDIA Corporation",
+    "Intel"
+};
+
+
+// FIXME: Is there a better place for this than here?
+GraphicState *GraphicState::current = NULL;
+
+
+OpenGLState::OpenGLState()
+// ----------------------------------------------------------------------------
+//    Constructor make sure we are a singleton, and initializes it
+// ----------------------------------------------------------------------------
+    : GraphicState(),
+      maxTextureCoords(0), maxTextureUnits(0),
+      matrixMode(GL_MODELVIEW),
+      shadeMode(GL_SMOOTH),
+      lineWidth(1), stippleFactor(1), stipplePattern(1)
 {
     // Ask graphic card constructor to OpenGL
     vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
-    int vendorNum = 0;
 
     // Search in vendors list
-    for(int i = 0; i < LAST; i++)
+    vendorID = UNKNOWN;
+    for(uint i = UNKNOWN; i < LAST_VENDOR; i++)
     {
-        if(! vendor.compare(vendorsList[i]))
+        if(!vendor.compare(vendorsList[i]))
         {
-            vendorNum = i;
+            vendorID = (enum VendorID) i;
             break;
         }
-    }
-
-    switch(vendorNum)
-    {
-    case 0: vendorID = ATI; break;
-    case 1: vendorID = NVIDIA; break;
-    case 2: vendorID = INTEL; break;
     }
 
     const GLubyte *str;
@@ -81,8 +89,6 @@ GraphicState::GraphicState()
 
     // Setup default depth func
     depthFunc = GL_LESS;
-
-    current = this;
 }
 
 
@@ -92,7 +98,7 @@ GraphicState::GraphicState()
 //
 // ============================================================================
 
-coord* GraphicState::ModelViewMatrix()
+coord* OpenGLState::ModelViewMatrix()
 // ----------------------------------------------------------------------------
 //    Return model view matrix
 // ----------------------------------------------------------------------------
@@ -101,7 +107,7 @@ coord* GraphicState::ModelViewMatrix()
 }
 
 
-coord* GraphicState::ProjectionMatrix()
+coord* OpenGLState::ProjectionMatrix()
 // ----------------------------------------------------------------------------
 //    Return projection matrix
 // ----------------------------------------------------------------------------
@@ -110,7 +116,7 @@ coord* GraphicState::ProjectionMatrix()
 }
 
 
-void GraphicState::PushMatrix()
+void OpenGLState::PushMatrix()
 // ----------------------------------------------------------------------------
 //    Push current matrix in the stack
 // ----------------------------------------------------------------------------
@@ -124,15 +130,17 @@ void GraphicState::PushMatrix()
 }
 
 
-void GraphicState::PopMatrix()
+void OpenGLState::PopMatrix()
 // ----------------------------------------------------------------------------
 //    Pop last matrix of the stack
 // ----------------------------------------------------------------------------
 {
     switch(matrixMode)
     {
-    case GL_PROJECTION: (*currentMatrix) = projStack.top(); projStack.pop(); break;
-    case GL_MODELVIEW: (*currentMatrix) = mvStack.top(); mvStack.pop(); break;
+    case GL_PROJECTION:
+        (*currentMatrix) = projStack.top(); projStack.pop(); break;
+    case GL_MODELVIEW:
+        (*currentMatrix) = mvStack.top(); mvStack.pop(); break;
     default: break;
     }
 
@@ -140,7 +148,7 @@ void GraphicState::PopMatrix()
 }
 
 
-void GraphicState::MatrixMode(GLenum mode)
+void OpenGLState::MatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
 //    Setup texture matrix
 //    Set matrix mode
@@ -163,7 +171,7 @@ void GraphicState::MatrixMode(GLenum mode)
 }
 
 
-void GraphicState::LoadMatrix()
+void OpenGLState::LoadMatrix()
 // ----------------------------------------------------------------------------
 //    Load current matrix
 // ----------------------------------------------------------------------------
@@ -175,7 +183,7 @@ void GraphicState::LoadMatrix()
 }
 
 
-void GraphicState::LoadIdentity()
+void OpenGLState::LoadIdentity()
 // ----------------------------------------------------------------------------
 //    Load identity matrix
 // ----------------------------------------------------------------------------
@@ -185,7 +193,7 @@ void GraphicState::LoadIdentity()
 }
 
 
-void GraphicState::PrintMatrix(GLuint model)
+void OpenGLState::PrintMatrix(GLuint model)
 // ----------------------------------------------------------------------------
 //    Print GL matrix on stderr : GL_MODELVIEW/GL_PROJECTION/GL_TEXTURE
 // ----------------------------------------------------------------------------
@@ -225,7 +233,7 @@ void GraphicState::PrintMatrix(GLuint model)
 // ============================================================================
 
 
-void GraphicState::Translate(double x, double y, double z)
+void OpenGLState::Translate(double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup translation
 // ----------------------------------------------------------------------------
@@ -239,7 +247,7 @@ void GraphicState::Translate(double x, double y, double z)
 }
 
 
-void GraphicState::Rotate(double a, double x, double y, double z)
+void OpenGLState::Rotate(double a, double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup rotation
 // ----------------------------------------------------------------------------
@@ -253,7 +261,7 @@ void GraphicState::Rotate(double a, double x, double y, double z)
 }
 
 
-void GraphicState::Scale(double x, double y, double z)
+void OpenGLState::Scale(double x, double y, double z)
 // ----------------------------------------------------------------------------
 //    Setup scale
 // ----------------------------------------------------------------------------
@@ -274,7 +282,7 @@ void GraphicState::Scale(double x, double y, double z)
 // ============================================================================
 
 
-void GraphicState::PickMatrix(float x, float y, float width, float height,
+void OpenGLState::PickMatrix(float x, float y, float width, float height,
                               int viewport[4])
 // ----------------------------------------------------------------------------
 //    Define a picking region
@@ -293,7 +301,7 @@ void GraphicState::PickMatrix(float x, float y, float width, float height,
 }
 
 
-void GraphicState::Frustum(float left, float right,
+void OpenGLState::Frustum(float left, float right,
                               float bottom, float top,
                               float nearZ, float farZ)
 // ----------------------------------------------------------------------------
@@ -329,7 +337,7 @@ void GraphicState::Frustum(float left, float right,
 }
 
 
-void GraphicState::Perspective(float fovy, float aspect, float nearZ, float farZ)
+void OpenGLState::Perspective(float fovy, float aspect, float nearZ, float farZ)
 // ----------------------------------------------------------------------------
 //    Set up a perspective projection matrix
 // ----------------------------------------------------------------------------
@@ -343,7 +351,7 @@ void GraphicState::Perspective(float fovy, float aspect, float nearZ, float farZ
 }
 
 
-void GraphicState::Ortho(float left, float right,
+void OpenGLState::Ortho(float left, float right,
                             float bottom, float top,
                             float nearZ, float farZ)
 // ----------------------------------------------------------------------------
@@ -380,7 +388,7 @@ void GraphicState::Ortho(float left, float right,
 }
 
 
-void GraphicState::Ortho2D(float left, float right, float bottom, float top)
+void OpenGLState::Ortho2D(float left, float right, float bottom, float top)
 // ----------------------------------------------------------------------------
 //    Multiply the current matrix with an 2D orthographic matrix
 // ----------------------------------------------------------------------------
@@ -389,7 +397,7 @@ void GraphicState::Ortho2D(float left, float right, float bottom, float top)
 }
 
 
-void GraphicState::LookAt(float eyeX, float eyeY, float eyeZ,
+void OpenGLState::LookAt(float eyeX, float eyeY, float eyeZ,
                              float centerX, float centerY, float centerZ,
                              float upX, float upY, float upZ)
 // ----------------------------------------------------------------------------+
@@ -404,7 +412,7 @@ void GraphicState::LookAt(float eyeX, float eyeY, float eyeZ,
 }
 
 
-void GraphicState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
+void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 // ----------------------------------------------------------------------------+
 //    Multiply the current matrix with a viewing matrix
 // ----------------------------------------------------------------------------+
@@ -447,7 +455,7 @@ void GraphicState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
-void GraphicState::Viewport(int x, int y, int w, int h)
+void OpenGLState::Viewport(int x, int y, int w, int h)
 // ----------------------------------------------------------------------------
 //    Set the viewport
 // ----------------------------------------------------------------------------
@@ -472,7 +480,7 @@ void GraphicState::Viewport(int x, int y, int w, int h)
 //
 // ============================================================================
 
-void GraphicState::Color(float r, float g, float b, float a)
+void OpenGLState::Color(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup color
 // ----------------------------------------------------------------------------
@@ -493,7 +501,7 @@ void GraphicState::Color(float r, float g, float b, float a)
 }
 
 
-void GraphicState::ClearColor(float r, float g, float b, float a)
+void OpenGLState::ClearColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup clear color
 // ----------------------------------------------------------------------------
@@ -514,7 +522,7 @@ void GraphicState::ClearColor(float r, float g, float b, float a)
 }
 
 
-void GraphicState::Clear(GLuint mask)
+void OpenGLState::Clear(GLuint mask)
 // ----------------------------------------------------------------------------
 //    Clear buffers to preset values
 // ----------------------------------------------------------------------------
@@ -524,7 +532,7 @@ void GraphicState::Clear(GLuint mask)
 }
 
 
-void GraphicState::LineWidth(float width)
+void OpenGLState::LineWidth(float width)
 // ----------------------------------------------------------------------------
 //    Specify the width of rasterized lines
 // ----------------------------------------------------------------------------
@@ -537,7 +545,7 @@ void GraphicState::LineWidth(float width)
 }
 
 
-void GraphicState::LineStipple(GLint factor, GLushort pattern)
+void OpenGLState::LineStipple(GLint factor, GLushort pattern)
 // ----------------------------------------------------------------------------
 //    Specify the line stipple pattern
 // ----------------------------------------------------------------------------
@@ -551,7 +559,7 @@ void GraphicState::LineStipple(GLint factor, GLushort pattern)
 }
 
 
-void GraphicState::DepthMask(GLboolean flag)
+void OpenGLState::DepthMask(GLboolean flag)
 // ----------------------------------------------------------------------------
 //    Enable or disable writing into the depth buffer
 // ----------------------------------------------------------------------------
@@ -564,7 +572,7 @@ void GraphicState::DepthMask(GLboolean flag)
 }
 
 
-void GraphicState::DepthFunc(GLenum func)
+void OpenGLState::DepthFunc(GLenum func)
 // ----------------------------------------------------------------------------
 //    Specify the value used for depth buffer comparisons
 // ----------------------------------------------------------------------------
@@ -577,7 +585,7 @@ void GraphicState::DepthFunc(GLenum func)
 }
 
 
-void GraphicState::Enable(GLenum cap)
+void OpenGLState::Enable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Enable capability
 // ----------------------------------------------------------------------------
@@ -586,7 +594,7 @@ void GraphicState::Enable(GLenum cap)
 }
 
 
-void GraphicState::Disable(GLenum cap)
+void OpenGLState::Disable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Disable capability
 // ----------------------------------------------------------------------------
@@ -595,7 +603,7 @@ void GraphicState::Disable(GLenum cap)
 }
 
 
-void GraphicState::ShadeModel(GLenum mode)
+void OpenGLState::ShadeModel(GLenum mode)
 // ----------------------------------------------------------------------------
 //    Select shading mode
 // ----------------------------------------------------------------------------
@@ -605,12 +613,12 @@ void GraphicState::ShadeModel(GLenum mode)
 }
 
 
-std::ostream & GraphicState::debug()
+std::ostream & OpenGLState::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "[GraphicState] ";
+    std::cerr << "[OpenGLState] ";
     return std::cerr;
 }
 

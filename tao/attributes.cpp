@@ -87,7 +87,7 @@ void LineColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = false;
-    glEnable(GL_COLOR_MATERIAL);
+    GL.Enable(GL_COLOR_MATERIAL);
     where->lineColor = color;
 }
 
@@ -98,7 +98,7 @@ void FillColor::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = false;
-    glEnable(GL_COLOR_MATERIAL);
+    GL.Enable(GL_COLOR_MATERIAL);
     where->fillColor = color;
 }
 
@@ -134,16 +134,16 @@ void TextureUnit::Draw(Layout *where)
 {
     // Fig a bug with ATI drivers which set texture matrices
     // to null instead of identity
-    if(glUnit && (TaoApp->vendorID == ATI))
+    if(glUnit && (GL.vendorID == GL.ATI))
     {
         glActiveTexture(GL_TEXTURE0 + glUnit);
-        glMatrixMode(GL_TEXTURE);
+        GL.MatrixMode(GL_TEXTURE);
         glLoadIdentity();
-        glMatrixMode(GL_MODELVIEW);
+        GL.MatrixMode(GL_MODELVIEW);
         glActiveTexture(GL_TEXTURE0);
     }
 
-    if(glUnit < TaoApp->maxTextureCoords)
+    if(glUnit < GL.maxTextureCoords)
     {
         where->textureUnits |= 1 << glUnit;
         where->currentTexture.unit = glUnit;
@@ -196,9 +196,9 @@ void TextureTransform::Draw(Layout *where)
     uint glUnit = where->currentTexture.unit;
     glActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
-        glMatrixMode(GL_TEXTURE);
+        GL.MatrixMode(GL_TEXTURE);
     else
-        glMatrixMode(GL_MODELVIEW);
+        GL.MatrixMode(GL_MODELVIEW);
 }
 
 
@@ -221,7 +221,7 @@ void LineWidth::Draw(Layout *where)
 {
     where->lineWidth = width;
     if (width > 0.0)
-        glLineWidth(width * where->PrinterScaling());
+        GL.LineWidth(width * where->PrinterScaling());
 }
 
 
@@ -233,12 +233,12 @@ void LineStipple::Draw(Layout *where)
     (void) where;
     if (scale)
     {
-        glLineStipple(scale, pattern);
-        glEnable(GL_LINE_STIPPLE);
+        GL.LineStipple(scale, pattern);
+        GL.Enable(GL_LINE_STIPPLE);
     }
     else
     {
-        glDisable(GL_LINE_STIPPLE);
+        GL.Disable(GL_LINE_STIPPLE);
     }
 }
 
@@ -351,9 +351,9 @@ void DepthTest::Draw(Layout *)
 // ----------------------------------------------------------------------------
 {
     if (enable)
-        glEnable(GL_DEPTH_TEST);
+        GL.Enable(GL_DEPTH_TEST);
     else
-        glDisable(GL_DEPTH_TEST);
+        GL.Disable(GL_DEPTH_TEST);
 }
 
 
@@ -362,7 +362,7 @@ void DepthMask::Draw(Layout *)
 //   Enable or disable the depth mask
 // ----------------------------------------------------------------------------
 {
-    glDepthMask(enable ? GL_TRUE : GL_FALSE);
+    GL.DepthMask(enable ? GL_TRUE : GL_FALSE);
 }
 
 
@@ -371,7 +371,7 @@ void DepthFunc::Draw(Layout *)
 //   Specifies the depth comparison function
 // ----------------------------------------------------------------------------
 {
-    glDepthFunc(func);
+    GL.DepthFunc(func);
 }
 
 

@@ -174,7 +174,7 @@ bool ModuleRenderer::HasTexture(uint texUnit)
 //  Check if a texture is bound at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > TaoApp->maxTextureUnits)
+    if(texUnit > GL.maxTextureUnits)
         return false;
 
     uint hasTexture = currentLayout->textureUnits & (1 << texUnit);
@@ -261,6 +261,9 @@ void ModuleRenderer::Draw(Layout *where)
 //   Draw stuff in layout by calling previously registered render callback
 // ----------------------------------------------------------------------------
 {
+    // Load matrix before draw
+    GL.LoadMatrix();
+
     currentLayout = where;
     callback(arg);
 }

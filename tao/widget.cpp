@@ -170,7 +170,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), clearCol(255, 255, 255, 255),
-      space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
+      space(NULL), layout(NULL), graphicState(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
@@ -248,6 +248,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Create the main page we draw on
     space = new SpaceLayout(this);
     layout = space;
+
+    // Initialize graphic state
+    graphicState = new GraphicState();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
@@ -357,7 +360,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
       runOnNextDraw(true), clearCol(o.clearCol),
-      space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
+      space(NULL), layout(NULL), graphicState(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
       lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
@@ -457,6 +460,9 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     space = new SpaceLayout(this);
     layout = space;
 
+    // Initialize graphic state
+    graphicState = new GraphicState();
+
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
     idleTimer.start(100);
@@ -525,6 +531,7 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     current = NULL;
     delete space;
+    delete graphicState;
     delete path;
     delete mouseFocusTracker;
     // REVISIT: delete activities?
@@ -689,7 +696,7 @@ void Widget::drawStereoIdent()
     if (stereoIdentPatterns.size() < (size_t)stereoPlanes)
         updateStereoIdentPatterns(stereoPlanes);
     StereoIdentTexture pattern = stereoIdentPatterns[stereoPlane];
-    glColor4f(1.0, 1.0, 1.0, 1.0);
+    GL.Color(1.0, 1.0, 1.0, 1.0);
     drawFullScreenTexture(pattern.w, pattern.h, pattern.tex, true);
 }
 
@@ -710,8 +717,8 @@ void Widget::drawScene()
     space->ClearAttributes();
     if (blanked)
     {
-        glClearColor(0.0, 0.0, 0.0, 1.0);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL.ClearColor(0.0, 0.0, 0.0, 1.0);
+        GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
     else if (stereoIdent)
     {
@@ -750,9 +757,9 @@ void Widget::drawSelection()
         id = idDepth = 0;
         selectionTrees.clear();
         space->ClearAttributes();
-        glDisable(GL_DEPTH_TEST);
+        GL.Disable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
-        glEnable(GL_DEPTH_TEST);
+        GL.Enable(GL_DEPTH_TEST);
     }
 }
 
@@ -765,11 +772,11 @@ void Widget::drawActivities()
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     setupGL();
-    glDepthFunc(GL_ALWAYS);
+    GL.DepthFunc(GL_ALWAYS);
     for (Activity *a = activities; a; a = a->Display()) ;
     selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
                                // Isn't everything drawn by a->Display()?
-    glDepthFunc(GL_LEQUAL);
+    GL.DepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
     if (stats.isEnabled(Statistics::TO_SCREEN))
@@ -782,12 +789,12 @@ void Widget::drawActivities()
 
 void Widget::setGlClearColor()
 // ----------------------------------------------------------------------------
-//   Call glClearColor with the color specified in the widget
+//   Clear color with the color specified in the widget
 // ----------------------------------------------------------------------------
 {
     qreal r, g, b, a;
     clearCol.getRgbF(&r, &g, &b, &a);
-    glClearColor (r, g, b, a);
+    GL.ClearColor (r, g, b, a);
 }
 
 
@@ -825,7 +832,7 @@ void Widget::draw()
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
         return;
     }
 
@@ -2108,7 +2115,7 @@ void Widget::resizeGL(int width, int height)
     QEvent r(QEvent::Resize);
     refreshNow(&r);
     glClearAccum(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_ACCUM_BUFFER_BIT);
+    GL.Clear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -2153,11 +2160,11 @@ void Widget::setup(double w, double h, const Box *picking)
     uint s = printer && picking ? printOverscaling : 1;
     GLint vx = 0, vy = 0, vw = w * s, vh = h * s;
 
-    glViewport(vx, vy, vw, vh);
+    GL.Viewport(vx, vy, vw, vh);
 
     // Setup the projection matrix
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
 
     // Restrict the picking area if any is given as input
     if (picking)
@@ -2178,13 +2185,14 @@ void Widget::setup(double w, double h, const Box *picking)
         b.Normalize();
         Vector size = b.upper - b.lower;
         Point center = b.lower + size / 2;
-        gluPickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
+        GL.PickMatrix(center.x, center.y, size.x+1, size.y+1, viewport);
     }
     double zf = 0.5 / (zoom * scaling);
-    glFrustum (-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL.Frustum(-w*zf, w*zf, -h*zf, h*zf, zNear, zFar);
+    GL.LoadMatrix();
 
     // Setup the model-view matrix
-    glMatrixMode(GL_MODELVIEW);
+    GL.MatrixMode(GL_MODELVIEW);
     resetModelviewMatrix();
 
     // Reset default GL parameters
@@ -2212,15 +2220,13 @@ void Widget::resetModelviewMatrix()
 //   Reset the model-view matrix, used by reset_transform and setup
 // ----------------------------------------------------------------------------
 {
-    glLoadIdentity();
+    GL.LoadIdentity();
 
     // Position the camera
     Vector3 toTarget = Vector3(cameraTarget - cameraPosition).Normalize();
     toTarget *= cameraToScreen;
     Point3 target = cameraPosition + toTarget;
-    gluLookAt(cameraPosition.x, cameraPosition.y, cameraPosition.z,
-              target.x, target.y ,target.z,
-              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
+    GL.LookAt(cameraPosition, target, cameraUpVector);
 }
 
 
@@ -2230,45 +2236,45 @@ void Widget::setupGL()
 // ----------------------------------------------------------------------------
 {
     // Setup other
-    glEnable(GL_BLEND);
+    GL.Enable(GL_BLEND);
     if (inOfflineRendering)
         glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-    glDepthFunc(GL_LEQUAL);
-    glEnable(GL_DEPTH_TEST);
-    glEnable(GL_LINE_SMOOTH);
-    glEnable(GL_POINT_SMOOTH);
-    glEnable(GL_MULTISAMPLE);
-    glEnable(GL_POLYGON_OFFSET_FILL);
-    glEnable(GL_POLYGON_OFFSET_LINE);
-    glEnable(GL_POLYGON_OFFSET_POINT);
-    glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
-    glLineWidth(1);
-    glLineStipple(1, -1);
+    GL.DepthFunc(GL_LEQUAL);
+    GL.Enable(GL_DEPTH_TEST);
+    GL.Enable(GL_LINE_SMOOTH);
+    GL.Enable(GL_POINT_SMOOTH);
+    GL.Enable(GL_MULTISAMPLE);
+    GL.Enable(GL_POLYGON_OFFSET_FILL);
+    GL.Enable(GL_POLYGON_OFFSET_LINE);
+    GL.Enable(GL_POLYGON_OFFSET_POINT);
+    GL.Color(1.0f, 1.0f, 1.0f, 1.0f);
+    GL.LineWidth(1);
+    GL.LineStipple(1, -1);
 
     // Disable all texture units
-    for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
+    for(int i = GL.maxTextureUnits - 1; i > 0 ; i--)
     {
         if(layout->textureUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
-            glDisable(GL_TEXTURE_2D);
+            GL.Disable(GL_TEXTURE_2D);
         }
     }
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, 0);
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_TEXTURE_RECTANGLE_ARB);
-    glDisable(GL_CULL_FACE);
-    glShadeModel(GL_SMOOTH);
-    glDisable(GL_LIGHTING);
-    glDisable(GL_COLOR_MATERIAL);
+    GL.Disable(GL_TEXTURE_2D);
+    GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
+    GL.Disable(GL_CULL_FACE);
+    GL.ShadeModel(GL_SMOOTH);
+    GL.Disable(GL_LIGHTING);
+    GL.Disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
     glAlphaFunc(GL_GREATER, 0.01);
-    glEnable(GL_ALPHA_TEST);
+    GL.Enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
     glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
@@ -4399,7 +4405,7 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
         GLMatrixKeeper saveGL;
         Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
-        glTranslatef(v.x, v.y, v.z);
+        GL.Translate(v.x, v.y, v.z);
         recordProjection();
         QFocusEvent focusIn(QEvent::FocusIn, Qt::ActiveWindowFocusReason);
         QObject *fin = focusWidget;
@@ -6355,7 +6361,7 @@ Infix_p Widget::currentModelMatrix(Tree_p self)
 //   Return the current model matrix converting from object to world space
 // ----------------------------------------------------------------------------
 {
-    Tree *result = xl_real_list(self, 16, layout->model.Data());
+    Tree *result = xl_real_list(self, 16, layout->model.Data(false));
     return result->AsInfix();
 }
 
@@ -6827,7 +6833,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > TaoApp->maxTextureUnits)
+    if(texUnit > GL.maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7205,7 +7211,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     uint texUnit = layout->currentTexture.unit;
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= TaoApp->maxTextureCoords)
+    if(texUnit >= GL.maxTextureCoords)
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
@@ -7277,7 +7283,7 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(unit > TaoApp->maxTextureUnits)
+    if(unit > GL.maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7652,6 +7658,7 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
 // ----------------------------------------------------------------------------
 {
     if (!currentShaderProgram)
+
     {
         Ooops("No shader program while executing $1", self);
         return XL::xl_false;
@@ -10890,7 +10897,7 @@ void Widget::drawWatermark()
 {
     if (!watermark || !watermarkWidth || !watermarkHeight)
         return;
-    glColor4f(1.0, 1.0, 1.0, 0.2);
+    GL.Color(1.0, 1.0, 1.0, 0.2);
     drawFullScreenTexture(watermarkWidth, watermarkHeight, watermark);
 }
 
@@ -10901,18 +10908,20 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 //   Draw a texture centered over the full widget with wrapping enabled
 // ----------------------------------------------------------------------------
 {
-    glDisable(GL_DEPTH_TEST);
-    glDepthMask(GL_FALSE);
+    GL.Disable(GL_DEPTH_TEST);
+    GL.DepthMask(GL_FALSE);
     glBindTexture(GL_TEXTURE_2D, tex);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glEnable(GL_TEXTURE_2D);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.Enable(GL_TEXTURE_2D);
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
     float w = DisplayDriver::renderWidth(), h = DisplayDriver::renderHeight();
     float tw = w/texw, th = h/texh;
     float x1 = -tw/2, x2 = tw/2;
@@ -10931,8 +10940,8 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     glTexCoord2f(x1, y2);
     glVertex2i  (-1,  1);
     glEnd();
-    glEnable(GL_DEPTH_TEST);
-    glDepthMask(GL_TRUE);
+    GL.Enable(GL_DEPTH_TEST);
+    GL.DepthMask(GL_TRUE);
 }
 
 
@@ -12158,7 +12167,7 @@ XL::Text_p Widget::GLVersion(XL::Tree_p self)
 //   Return OpenGL supported version
 // ----------------------------------------------------------------------------
 {
-    return new XL::Text(TaoApp->GLVersionAvailable);
+    return new XL::Text(GL.version);
 }
 
 
@@ -12167,18 +12176,19 @@ Name_p Widget::isGLExtensionAvailable(XL::Tree_p self, text name)
 //   Check is an OpenGL extensions is supported
 // ----------------------------------------------------------------------------
 {
-    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring avail = GL.extensionsAvailable.c_str();
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? XL::xl_true : XL::xl_false;
 }
+
 
 bool Widget::isGLExtensionAvailable(text name)
 // ----------------------------------------------------------------------------
 //   Module interface to isGLExtensionAvailable
 // ----------------------------------------------------------------------------
 {
-    kstring avail = TaoApp->GLExtensionsAvailable.c_str();
+    kstring avail = GL.extensionsAvailable.c_str();
     kstring req = name.c_str();
     bool isAvailable = (strstr(avail, req) != NULL);
     return isAvailable ? true : false;

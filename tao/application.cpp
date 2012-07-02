@@ -79,7 +79,6 @@ XL_DEFINE_TRACES
 
 namespace Tao {
 
-text Application::vendorsList[LAST] = { "ATI Technologies Inc.", "NVIDIA Corporation", "Intel" };
 QPixmap * Application::padlockIcon = NULL;
 
 Application::Application(int & argc, char ** argv)
@@ -88,7 +87,6 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
-      maxTextureCoords(0), maxTextureUnits(0),
       updateApp(),
       startDir(QDir::currentPath()),
       splash(NULL),
@@ -283,50 +281,6 @@ Application::Application(int & argc, char ** argv)
     useShaderLighting = PerformancesPage::perPixelLighting();
     tex2DMinFilter = PerformancesPage::texture2DMinFilter();
     tex2DMagFilter = PerformancesPage::texture2DMagFilter();
-
-    {
-        QGLWidget gl;
-        gl.makeCurrent();
-
-        // Ask graphic card constructor to OpenGL
-        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
-        int vendorNum = 0;
-
-        // Search in vendors list
-        for(int i = 0; i < LAST; i++)
-        {
-            if(! GLVendor.compare(vendorsList[i]))
-            {
-                vendorNum = i;
-                break;
-            }
-        }
-
-        switch(vendorNum)
-        {
-        case 0: vendorID = ATI; break;
-        case 1: vendorID = NVIDIA; break;
-        case 2: vendorID = INTEL; break;
-        }
-
-        const GLubyte *str;
-        // Get OpenGL supported version
-        str = glGetString(GL_VERSION);
-        GLVersionAvailable = (const char*) str;
-
-        // Get OpenGL supported extentions
-        str = glGetString(GL_EXTENSIONS);
-        GLExtensionsAvailable = (const char*) str;
-
-        // Get OpenGL renderer (GPU)
-        str = glGetString(GL_RENDERER);
-        GLRenderer = (const char*) str;
-
-        // Get number of maximum texture units and coords in fragment shaders
-        // (texture units are limited to 4 otherwise)
-        glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
-    }
 
     {
         QGLWidget gl(QGLFormat(QGL::StereoBuffers));

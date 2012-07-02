@@ -32,6 +32,8 @@ private slots:
     void           abortDownload();
     void           onDownloadError(QProcess::ProcessError error);
 
+    std::ostream & debug();
+
 private:
     QString                   from;             // Remote repository
     QFile                     to;               // Local directory

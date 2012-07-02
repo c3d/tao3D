@@ -195,11 +195,13 @@ Activity *Chooser::Display(void)
 
     // Initialize an "overlay" projection mode
     GLAllStateKeeper saveGL(GL_ALL_ATTRIB_BITS, true, true, 0);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, ww, 0, wh);
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.Ortho2D(0, ww, 0, wh);
+    GL.LoadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     // Draw the chooser box
     widget->drawSelection(NULL, Box3(mx, my, 0, mw, mh, 0), "chooser_box");

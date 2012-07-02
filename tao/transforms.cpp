@@ -96,13 +96,13 @@ void Rotation::Draw(Layout *where)
 
         if (where->offset != Vector3())
         {
-            glTranslated(where->offset.x, where->offset.y, where->offset.z);
-            glRotated(amount, xaxis, yaxis, zaxis);
-            glTranslated(-where->offset.x, -where->offset.y, -where->offset.z);
+            GL.Translate(where->offset.x, where->offset.y, where->offset.z);
+            GL.Rotate(amount, xaxis, yaxis, zaxis);
+            GL.Translate(-where->offset.x, -where->offset.y, -where->offset.z);
         }
         else
         {
-            glRotated(amount, xaxis, yaxis, zaxis);
+            GL.Rotate(amount, xaxis, yaxis, zaxis);
         }
     }
 }
@@ -113,7 +113,7 @@ void Translation::Draw(Layout *where)
 //    Rotation in a drawing
 // ----------------------------------------------------------------------------
 {
-    glTranslatef(xaxis, yaxis, zaxis);
+    GL.Translate(xaxis, yaxis, zaxis);
     if (zaxis != 0.0)
         where->hasPixelBlur = true;
 }
@@ -126,13 +126,13 @@ void Scale::Draw(Layout *where)
 {
     if (where->offset != Vector3())
     {
-        glTranslated(where->offset.x, where->offset.y, where->offset.z);
-        glScalef(xaxis, yaxis, zaxis);
-        glTranslated(-where->offset.x, -where->offset.y, -where->offset.z);
+        GL.Translate(where->offset.x, where->offset.y, where->offset.z);
+        GL.Scale(xaxis, yaxis, zaxis);
+        GL.Translate(-where->offset.x, -where->offset.y, -where->offset.z);
     }
     else
     {
-        glScalef(xaxis, yaxis, zaxis);
+        GL.Scale(xaxis, yaxis, zaxis);
     }
     if (xaxis != 1.0 || yaxis != 1.0)
         where->hasPixelBlur = true;
@@ -160,34 +160,6 @@ void MoveToRel::Draw(Layout *where)
     where->offset += Vector3(xaxis, yaxis, zaxis);
 }
 
-
-void printMatrix(GLint model)
-// ----------------------------------------------------------------------------
-//    Print GL matrix on stderr
-// ----------------------------------------------------------------------------
-{
-    GLdouble matrix[16];
-    GLint cur = 0;
-    glGetIntegerv(GL_MATRIX_MODE, &cur);
-    std::cerr << "Current matrix is " << cur <<std::endl;
-    if (model != -1 && model != cur)
-    {
-        glMatrixMode(model);
-        std::cerr << "Matrix mode set to " << model <<std::endl;
-        glGetDoublev(model, matrix);
-        glMatrixMode(cur);
-        std::cerr << "Matrix mode restored to " << cur <<std::endl;
-    }
-    else
-        glGetDoublev(cur, matrix);
-
-    for (int i = 0; i < 16; i+=4)
-    {
-        std::cerr << matrix[i] << "  " << matrix[i+1] << "  " << matrix[i+2]
-                << "  " <<matrix[i+3] << "  " <<std::endl;
-    }
-
-}
 
 TAO_END
 

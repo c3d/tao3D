@@ -56,13 +56,18 @@ struct Matrix4
         type = UNKNOWN;
     }
 
-    coord* Data()
+
+    coord* Data(bool changed = true)
     {
        // We don't know the result matrix (possibly modified by user)
-       type = UNKNOWN;
+       // But if specified, then do not changed type
+       if(changed)
+           type = UNKNOWN;
+
        return m[0];
     }
 
+    inline coord& operator()(int row, int column);
 
     inline void LoadIdentity();
 
@@ -170,21 +175,22 @@ struct Matrix4
             tmp.m[0][1] = m[0][1] * o.m[0][0] + m[1][1] * o.m[0][1] + m[2][1] * o.m[0][2] + m[3][1] * o.m[0][3];
             tmp.m[0][2] = m[0][2] * o.m[0][0] + m[1][2] * o.m[0][1] + m[2][2] * o.m[0][2] + m[3][2] * o.m[0][3];
             tmp.m[0][3] = m[0][3] * o.m[0][0] + m[1][3] * o.m[0][1] + m[2][3] * o.m[0][2] + m[3][3] * o.m[0][3];
-            tmp.m[1][0] = m[0][0] * o.m[1][0] + m[1][0] * o.m[1][1] + m[2][0] * o.m[1][2] + m[3][0] * o.m[1][3];
 
             // Second column
+            tmp.m[1][0] = m[0][0] * o.m[1][0] + m[1][0] * o.m[1][1] + m[2][0] * o.m[1][2] + m[3][0] * o.m[1][3];
             tmp.m[1][1] = m[0][1] * o.m[1][0] + m[1][1] * o.m[1][1] + m[2][1] * o.m[1][2] + m[3][1] * o.m[1][3];
             tmp.m[1][2] = m[0][2] * o.m[1][0] + m[1][2] * o.m[1][1] + m[2][2] * o.m[1][2] + m[3][2] * o.m[1][3];
             tmp.m[1][3] = m[0][3] * o.m[1][0] + m[1][3] * o.m[1][1] + m[2][3] * o.m[1][2] + m[3][3] * o.m[1][3];
-            tmp.m[2][0] = m[0][0] * o.m[2][0] + m[1][0] * o.m[2][1] + m[2][0] * o.m[2][2] + m[3][0] * o.m[2][3];
+
 
             // Third column
+            tmp.m[2][0] = m[0][0] * o.m[2][0] + m[1][0] * o.m[2][1] + m[2][0] * o.m[2][2] + m[3][0] * o.m[2][3];
             tmp.m[2][1] = m[0][1] * o.m[2][0] + m[1][1] * o.m[2][1] + m[2][1] * o.m[2][2] + m[3][1] * o.m[2][3];
             tmp.m[2][2] = m[0][2] * o.m[2][0] + m[1][2] * o.m[2][1] + m[2][2] * o.m[2][2] + m[3][2] * o.m[2][3];
             tmp.m[2][3] = m[0][3] * o.m[2][0] + m[1][3] * o.m[2][1] + m[2][3] * o.m[2][2] + m[3][3] * o.m[2][3];
-            tmp.m[3][0] = m[0][0] * o.m[3][0] + m[1][0] * o.m[3][1] + m[2][0] * o.m[3][2] + m[3][0] * o.m[3][3];
 
             // Fourth column
+            tmp.m[3][0] = m[0][0] * o.m[3][0] + m[1][0] * o.m[3][1] + m[2][0] * o.m[3][2] + m[3][0] * o.m[3][3];
             tmp.m[3][1] = m[0][1] * o.m[3][0] + m[1][1] * o.m[3][1] + m[2][1] * o.m[3][2] + m[3][1] * o.m[3][3];
             tmp.m[3][2] = m[0][2] * o.m[3][0] + m[1][2] * o.m[3][1] + m[2][2] * o.m[3][2] + m[3][2] * o.m[3][3];
             tmp.m[3][3] = m[0][3] * o.m[3][0] + m[1][3] * o.m[3][1] + m[2][3] * o.m[3][2] + m[3][3] * o.m[3][3];
@@ -260,6 +266,40 @@ struct Matrix4
 
         return *this;
     }
+
+
+    Matrix4& operator =(const Matrix4& o)
+    {
+        // First column
+        m[0][0] = o.m[0][0];
+        m[0][1] = o.m[0][1];
+        m[0][2] = o.m[0][2];
+        m[0][3] = o.m[0][3];
+
+        // Second column
+        m[1][0] = o.m[1][0];
+        m[1][1] = o.m[1][1];
+        m[1][2] = o.m[1][2];
+        m[1][3] = o.m[1][3];
+
+        // Third column
+        m[2][0] = o.m[2][0];
+        m[2][1] = o.m[2][1];
+        m[2][2] = o.m[2][2];
+        m[2][3] = o.m[2][3];
+
+        // Fourth column
+        m[3][0] = o.m[3][0];
+        m[3][1] = o.m[3][1];
+        m[3][2] = o.m[3][2];
+        m[3][3] = o.m[3][3];
+
+        // Update matrix type
+        type = o.type;
+
+        return *this;
+    }
+
 
     void Translate(coord tx, coord ty, coord tz)
     {
@@ -417,7 +457,8 @@ struct Matrix4
            if (current == IDENTITY)
                type = ROTATION;
            else
-               type = current | ROTATION;
+               if(current != UNKNOWN)
+                   type = current | ROTATION;
         }
     }
 
@@ -475,20 +516,25 @@ struct Matrix4
             if (current == IDENTITY)
                 type = ROTATION;
             else
-                type = current | ROTATION;
+                if(current != UNKNOWN)
+                    type = current | ROTATION;
          }
     }
 
-    private:
-        coord     m[4][4];
-        int       type;
-        enum {
-            IDENTITY        = 1,   // Identity matrix
-            UNKNOWN         = 2,   // Unknown matrix
-            TRANSLATION     = 3,   // Simple translation matrix
-            SCALING         = 4,   // Simple scaling matrix
-            ROTATION        = 5    // Simple rotation matrix
-        };
+
+public:
+    enum {
+        IDENTITY        = 1,   // Identity matrix
+        UNKNOWN         = 2,   // Unknown matrix
+        TRANSLATION     = 3,   // Simple translation matrix
+        SCALING         = 4,   // Simple scaling matrix
+        ROTATION        = 5    // Simple rotation matrix
+    };
+    int       type;
+
+private:
+    coord     m[4][4];
+
 };
 
 
@@ -500,14 +546,24 @@ struct Matrix4
 
 inline void Matrix4::LoadIdentity()
 {
-    m[0][0] = 1.0; m[0][1] = 0.0; m[0][2] = 0.0; m[0][3] = 0.0;
-    m[1][0] = 0.0; m[1][1] = 1.0; m[1][2] = 0.0; m[1][3] = 0.0;
-    m[2][0] = 0.0; m[2][1] = 0.0; m[2][2] = 1.0; m[2][3] = 0.0;
-    m[3][0] = 0.0; m[3][1] = 0.0; m[3][2] = 0.0; m[3][3] = 1.0;
+    if(type != IDENTITY)
+    {
+        m[0][0] = 1.0; m[0][1] = 0.0; m[0][2] = 0.0; m[0][3] = 0.0;
+        m[1][0] = 0.0; m[1][1] = 1.0; m[1][2] = 0.0; m[1][3] = 0.0;
+        m[2][0] = 0.0; m[2][1] = 0.0; m[2][2] = 1.0; m[2][3] = 0.0;
+        m[3][0] = 0.0; m[3][1] = 0.0; m[3][2] = 0.0; m[3][3] = 1.0;
 
-    // Update matrix type
-    type = IDENTITY;
+        // Update matrix type
+        type = IDENTITY;
+    }
 }
+
+
+inline coord& Matrix4::operator()(int row, int col)
+{
+    return m[col][row];
+}
+
 
 inline Matrix4 operator +(const Matrix4& l, const Matrix4 &r)
 {
@@ -550,6 +606,39 @@ inline Matrix4 operator /(const Matrix4& l, scale s)
     result /= s;
     return result;
 }
+
+inline std::ostream& operator<< (std::ostream &out, Matrix4 m)
+// ----------------------------------------------------------------------------
+//   Display a Matrix 4x4
+// ----------------------------------------------------------------------------
+{
+    out << "[";
+
+    out << m(0, 0) << " "
+        << m(1, 0) << " "
+        << m(2, 0) << " "
+        << m(3, 0) << std::endl;
+
+    out << m(0, 1) << " "
+        << m(1, 1) << " "
+        << m(2, 1) << " "
+        << m(3, 1) << std::endl;
+
+    out << m(0, 2) << " "
+        << m(1, 2) << " "
+        << m(2, 2) << " "
+        << m(3, 2) << std::endl;
+
+    out << m(0, 3) << " "
+        << m(1, 3) << " "
+        << m(2, 3) << " "
+        << m(3, 3);
+
+    out << "]" << std::endl;
+
+    return out;
+}
+
 
 TAO_END
 

@@ -86,8 +86,8 @@ void TextUnit::Draw(Layout *where)
 
     IFTRACE(textselect)
     {
-        glDisable(GL_TEXTURE_2D);
-        glColor4f(0.8, 0.4, 0.3, 0.2);
+        GL.Disable(GL_TEXTURE_2D);
+        GL.Color(0.8, 0.4, 0.3, 0.2);
         XL::Save<Point3> save(where->offset, offset0);
         Identify(where);
     }
@@ -184,9 +184,9 @@ void TextUnit::DrawCached(Layout *where)
             blur = GL_NEAREST;
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
         glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
-        glEnable(GL_TEXTURE_RECTANGLE_ARB);
+        GL.Enable(GL_TEXTURE_RECTANGLE_ARB);
         if (TaoApp->hasGLMultisample)
-            glEnable(GL_MULTISAMPLE);
+            GL.Enable(GL_MULTISAMPLE);
 
         // Assure that the last active texture unit is 0. Fix #1918.
         glClientActiveTexture(GL_TEXTURE0);
@@ -195,10 +195,13 @@ void TextUnit::DrawCached(Layout *where)
         glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
         glEnableClientState(GL_VERTEX_ARRAY);
         glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+
+        GL.LoadMatrix();
         glDrawArrays(GL_QUADS, 0, count);
+
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
     }
 
     where->offset = Point3(x, y, z);
@@ -269,10 +272,10 @@ void TextUnit::DrawDirect(Layout *where)
                 continue;
 
             GLMatrixKeeper save;
-            glTranslatef(x, y, z);
+            GL.Translate(x, y, z);
             scale gscale = glyph.scalingFactor;
-            glScalef(gscale, gscale, gscale);
-
+            GL.Scale(gscale, gscale, gscale);
+            GL.LoadMatrix();
             if (!skip)
             {
                 setTexture(where);

@@ -308,16 +308,17 @@ Activity *Selection::Display(void)
 {
     GLStateKeeper save;
 
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-    gluOrtho2D(0, widget->width(), 0, widget->height());
-    glMatrixMode(GL_MODELVIEW);
-    glLoadIdentity();
+    GL.MatrixMode(GL_PROJECTION);
+    GL.LoadIdentity();
+    GL.Ortho2D(0, widget->width(), 0, widget->height());
+    GL.LoadMatrix();
+    GL.MatrixMode(GL_MODELVIEW);
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     Box b = rectangle;
     b.Normalize();
     Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
-    widget->setupGL();
     widget->drawSelection(NULL, b3, "selection_rectangle", 0);
 
     return next;

@@ -26,6 +26,7 @@
 #include "tao.h"
 #include "tao_gl.h"
 #include "coords.h"
+#include "graphic_state.h"
 
 
 TAO_BEGIN

@@ -722,7 +722,7 @@ void PageLayout::Identify(Layout */*where*/)
         { x,     y + h, z }
     };
 
-    glColor4f(0.2,0.6,1.0,0.1);
+    GL.Color(0.2,0.6,1.0,0.1);
     glVertexPointer(3, GL_DOUBLE, 0, array);
     glEnableClientState(GL_VERTEX_ARRAY);
     glDrawArrays(GL_QUADS, 0, 4);
@@ -1061,7 +1061,7 @@ void AnchorLayout::Draw(Layout *where)
         std::cerr << "AnchorLayout:" << this << ":Draw(Layout *" << where
                   << ") translate to " << o <<std::endl;
 
-    glTranslatef(o.x, o.y, o.z);
+    GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Draw(where);
 }
@@ -1074,7 +1074,7 @@ void AnchorLayout::DrawSelection(Layout *where)
 {
     GLMatrixKeeper saveMatrix;
     Vector3 &o = where->offset;
-    glTranslatef(o.x, o.y, o.z);
+    GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     return Layout::DrawSelection(where);
 }
@@ -1087,7 +1087,7 @@ void AnchorLayout::Identify(Layout *where)
 {
     GLMatrixKeeper saveMatrix;
     Vector3 &o = where->offset;
-    glTranslatef(o.x, o.y, o.z);
+    GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Identify(where);
 }

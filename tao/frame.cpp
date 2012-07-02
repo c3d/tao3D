@@ -182,8 +182,8 @@ void FrameInfo::begin(bool clearContents)
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();
 
-    glDisable(GL_TEXTURE_2D);
-    glDisable(GL_STENCIL_TEST);
+    GL.Disable(GL_TEXTURE_2D);
+    GL.Disable(GL_STENCIL_TEST);
 
     if (clearContents)
         clear();
@@ -226,9 +226,9 @@ GLuint FrameInfo::bind()
     glBindTexture(GL_TEXTURE_2D, texId);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glEnable(GL_TEXTURE_2D);
+    GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
+        GL.Enable(GL_MULTISAMPLE);
     return texId;
 }
 
@@ -238,9 +238,9 @@ void FrameInfo::clear()
 //   Clear the contents of a frame buffer object
 // ----------------------------------------------------------------------------
 {
-    glClearColor(clearColor.red, clearColor.green, clearColor.blue,
+    GL.ClearColor(clearColor.red, clearColor.green, clearColor.blue,
                  clearColor.alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 
@@ -403,13 +403,14 @@ FramePainter::FramePainter(FrameInfo *info)
     : QPainter(), info(info), save()
 {
     // Draw without any transformation (reset the coordinates system)
-    glLoadIdentity();
+    GL.LoadIdentity();
+    GL.LoadMatrix();
 
     // Clear the render FBO
     info->checkGLContext();
     info->render_fbo->bind();
-    glClearColor(0,0,0,0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.ClearColor(0,0,0,0);
+    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     info->render_fbo->release();
 
     begin(info->render_fbo);

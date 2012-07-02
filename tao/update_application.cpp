@@ -10,6 +10,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QTextStream>
+#include <sstream>
 
 namespace Tao {
 
@@ -25,7 +26,7 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
 #elif defined(Q_OS_WIN)
     from = "git://git.taodyne.com/software/win/";
 #else
-    from = "git://git.taodyne.com/software/linux32/others/";
+    from = "git://git.taodyne.com/software/linux";
 
     // Check if we are on Debian or Ubuntu distribution to get .deb package
     QString cmd("uname");
@@ -34,8 +35,20 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
     Process cp(cmd, args);
     text errors, output;
     if(cp.done(&errors, &output))
-        if(output.find("Ubuntu") || output.find("Debian"))
-            from = "git://git.taodyne.com/software/linux32/debian/";
+    {
+        // Check bits number
+        if(output.find("x86_64") != output.npos)
+            from += "64";
+        else
+            from += "32";
+
+        // Check os name
+        if(output.find("Ubuntu") != output.npos ||
+           output.find("Debian") != output.npos)
+            from += "/debian/";
+        else
+            from += "/others/";
+    }
 #endif
 
 #ifdef TAO_EDITION
@@ -63,6 +76,9 @@ void UpdateApplication::check(bool msg)
     {
         if(!repo)
         {
+            IFTRACE(update)
+                    debug() << "Begin check for update from " << from.toStdString() << std::endl;
+
             // Use empty repository
             repo = RepositoryFactory::repository("", RepositoryFactory::NoLocalRepo);
             connect(repo.data(),
@@ -87,7 +103,7 @@ void UpdateApplication::update()
 //    Prepare to launch update
 // ----------------------------------------------------------------------------
 {
-    QString name = QString("Tao Presentations %1 %2").arg(edition).arg(version);
+    QString name = QString("Tao Presentations %1 %2").arg(edition).arg(version, 0, 'f', 2);
 
     // Ask for update
     QString title = tr("%1 available").arg(name);
@@ -127,6 +143,9 @@ void UpdateApplication::start()
 //    Start update
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(update)
+            debug() << "Begin to download the update to " << to.fileName().toStdString() << std::endl;
+
     aborted = false;
 
     // Show progress of current download
@@ -159,12 +178,18 @@ void UpdateApplication::extract()
     Process cp(cmd, args, info.path());
     cp.waitForFinished();
 
+    IFTRACE(update)
+        debug() << "Extract update" << std::endl;
+
     if(cp.done())
     {
         // Show final message
         QString title = tr("Download finished");
         QString msg = tr("%1 has been downloaded successfully.").arg(info.completeBaseName());
         QMessageBox::information(NULL, title, msg);
+
+        IFTRACE(update)
+                debug() << "Download successfull" << std::endl;
     }
     else
     {
@@ -172,6 +197,9 @@ void UpdateApplication::extract()
         QString msg = tr("Extraction failed.\nExit code: %1")
                          .arg(cp.err);
         QMessageBox::warning(NULL, tr("Error"), msg);
+
+        IFTRACE(update)
+                debug() << "Extraction failed: " << cp.err.toStdString() << std::endl;
     }
 }
 
@@ -187,11 +215,17 @@ void UpdateApplication::processRemoteTags(QStringList tags)
         QString latest = tags[tags.size() - 1];
         version = latest.toDouble();
 
+        IFTRACE(update)
+                debug() << "Latest version: " << latest.toStdString() << std::endl;
+
         // Get current version
         QString ver = GITREV;
         QRegExp rxp("([^-]*)");
         rxp.indexIn(ver);
         double current = rxp.cap(1).toDouble();
+
+        IFTRACE(update)
+                debug() << "Current version: " << current << std::endl;
 
         // Update if current version is older than the remote one
         bool upToDate = (current >= version);
@@ -214,6 +248,11 @@ void UpdateApplication::processRemoteTags(QStringList tags)
             // Clear process
             proc.clear();
         }
+    }
+    else
+    {
+        IFTRACE(update)
+                debug() << "No remote tags" << std::endl;
     }
 }
 
@@ -239,6 +278,9 @@ void UpdateApplication::onDownloadFinished(int exitCode, QProcess::ExitStatus st
         QString msg = tr("Download failed.\nExit code: %1\n%2")
                          .arg(exitCode).arg(proc->err);
         QMessageBox::warning(NULL, tr("Error"), msg);
+
+        IFTRACE(update)
+                debug() << "Download failed : " << proc->err.toStdString() << std::endl;
     }
     else
     {
@@ -247,6 +289,7 @@ void UpdateApplication::onDownloadFinished(int exitCode, QProcess::ExitStatus st
     }
 
     updating = false;
+
     // Clear process
     proc.clear();
     // Delete file
@@ -261,6 +304,9 @@ void UpdateApplication::abortDownload()
 {
     Q_ASSERT(proc);
     Q_ASSERT(repo);
+
+    IFTRACE(update)
+            debug() << "Abort download" << std::endl;
 
     aborted = true;
     updating = false;
@@ -288,7 +334,22 @@ void UpdateApplication::onDownloadError(QProcess::ProcessError error)
     QString err = Process::processErrorToString(error);
     QString msg = tr("Download failed: %1").arg(err);
     QMessageBox::warning(NULL, tr("Error"), msg);
+
+    IFTRACE(update)
+            debug() << "Download error :" << err.toStdString() << std::endl;
+
     to.remove();
 }
+
+
+std::ostream & UpdateApplication::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[Update] ";
+    return std::cerr;
+}
+
 
 }

@@ -143,9 +143,9 @@ void LightId::Draw(Layout *where)
     if (enable)
     {
 	where->currentLights |= 1 << id;
-	glEnable(where->lightId);
-	glEnable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
+        GL.Enable(where->lightId);
+        GL.Enable(GL_LIGHTING);
+        GL.Enable(GL_COLOR_MATERIAL);
 	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
 	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
@@ -155,11 +155,11 @@ void LightId::Draw(Layout *where)
     else
     {
 	where->currentLights ^= 1 << id;
-	glDisable(where->lightId);
+        GL.Disable(where->lightId);
 	if(! where->currentLights)
 	{
-	    glDisable(GL_LIGHTING);
-	    glDisable(GL_COLOR_MATERIAL);
+            GL.Disable(GL_LIGHTING);
+            GL.Disable(GL_COLOR_MATERIAL);
 	}
     }
 }
@@ -180,7 +180,7 @@ void Material::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     where->hasMaterial = true;
-    glDisable(GL_COLOR_MATERIAL);
+    GL.Disable(GL_COLOR_MATERIAL);
     glMaterialfv(face, function, &args[0]);
 
     // Determine is the diffuse material

@@ -32,16 +32,6 @@ TAO_BEGIN
 //  Shortcut
 #define GL  (*Tao::GraphicState::State())
 
-struct ColorAttrib {
-// ----------------------------------------------------------------------------
-//   The state of color attributes
-// ----------------------------------------------------------------------------
-    int          restores;
-    GLfloat      color[4];
-    GLfloat      clearColor[4];
-};
-
-
 struct MatrixState
 // ----------------------------------------------------------------------------
 //   The state of a matrix we want to preserve
@@ -52,6 +42,7 @@ struct MatrixState
     bool    needUpdate;
     Matrix4 matrix;
 };
+
 
 struct GraphicState : GraphicStateApi
 // ----------------------------------------------------------------------------
@@ -129,7 +120,8 @@ public:
     MatrixState  mvMatrix;
 
     GLint        viewport[4];
-    ColorAttrib  currentColor;
+    GLfloat      color[4];
+    GLfloat      clearColor[4];
 
     GLenum       shadeMode;
     GLuint       lineWidth;

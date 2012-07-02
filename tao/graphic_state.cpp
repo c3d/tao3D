@@ -478,17 +478,17 @@ void GraphicState::Color(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 {
     // Do not need to setup color if it has not changed
-    if((r == currentColor.color[0]) &&
-       (g == currentColor.color[1]) &&
-       (b == currentColor.color[2]) &&
-       (a == currentColor.color[3]))
+    if((r == color[0]) &&
+       (g == color[1]) &&
+       (b == color[2]) &&
+       (a == color[3]))
         return;
 
     // Update current color
-    currentColor.color[0] = r;
-    currentColor.color[1] = g;
-    currentColor.color[2] = b;
-    currentColor.color[3] = a;
+    color[0] = r;
+    color[1] = g;
+    color[2] = b;
+    color[3] = a;
     glColor4f(r, g, b, a);
 }
 
@@ -499,17 +499,17 @@ void GraphicState::ClearColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 {
     // Do not need to setup clear color if it has not changed
-    if((r == currentColor.clearColor[0]) &&
-       (g == currentColor.clearColor[1]) &&
-       (b == currentColor.clearColor[2]) &&
-       (a == currentColor.clearColor[3]))
+    if((r == clearColor[0]) &&
+       (g == clearColor[1]) &&
+       (b == clearColor[2]) &&
+       (a == clearColor[3]))
         return;
 
     // Update clear color
-    currentColor.clearColor[0] = r;
-    currentColor.clearColor[1] = g;
-    currentColor.clearColor[2] = b;
-    currentColor.clearColor[3] = a;
+    clearColor[0] = r;
+    clearColor[1] = g;
+    clearColor[2] = b;
+    clearColor[3] = a;
     glClearColor(r, g, b, a);
 }
 

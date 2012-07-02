@@ -1045,6 +1045,7 @@ void FixedSizePoint::Draw(Layout *where)
 //   Draw a point at the given location
 // ----------------------------------------------------------------------------
 {
+    GL.LoadMatrix();
     setTexture(where);
     if (setFillColor(where))
     {

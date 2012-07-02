@@ -137,6 +137,7 @@ HEADERS +=     activity.h \
     include/tao/tao_gl.h \
     include/tao/tao_info.h \
     include/tao/tao_utf8.h \
+    include/tao/graphic_state_api.h \
     include/tao/graphic_state.h
 
 SOURCES +=     activity.cpp \

@@ -2244,10 +2244,10 @@ void Widget::setupGL()
     // Setup other
     GL.Enable(GL_BLEND);
     if (inOfflineRendering)
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                            GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GL.DepthFunc(GL_LEQUAL);
     GL.Enable(GL_DEPTH_TEST);
     GL.Enable(GL_LINE_SMOOTH);
@@ -2280,7 +2280,7 @@ void Widget::setupGL()
     GL.Disable(GL_LIGHTING);
     GL.Disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
-    glAlphaFunc(GL_GREATER, 0.01);
+    GL.AlphaFunc(GL_GREATER, 0.01);
     GL.Enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
@@ -2288,7 +2288,7 @@ void Widget::setupGL()
     glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 
     // Really nice perspective calculations
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    GL.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 
@@ -4470,14 +4470,14 @@ Point3 Widget::unproject (coord x, coord y, coord z,
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     x3dn = y3dn = z3dn = 0.0;
-    gluUnProject(x, y, 0.0,
+    GL.UnProject(x, y, 0.0,
                  model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
     x3df = y3df = z3df = 0;
-    gluUnProject(x, y, 1.0,
+    GL.UnProject(x, y, 1.0,
                  model, proj, viewport,
                  &x3df, &y3df, &z3df);
 
@@ -4536,7 +4536,7 @@ Point3 Widget::project (coord x, coord y, coord z,
 // ----------------------------------------------------------------------------
 {
     GLdouble wx, wy, wz;
-    gluProject(x, y, z,
+    GL.Project(x, y, z,
                  model, proj, viewport,
                  &wx, &wy, &wz);
 
@@ -4553,7 +4553,7 @@ Point3 Widget::objectToWorld(coord x, coord y,
     Point3 pos, win;
 
     // Map object coordinates to window coordinates
-    gluProject(x, y, 0,
+    GL.Project(x, y, 0,
                model, proj, viewport,
                &win.x, &win.y, &win.z);
 
@@ -4577,7 +4577,7 @@ Point3 Widget::windowToWorld(coord x, coord y,
                  &pixelDepth);
 
     // Map window coordinates to object coordinates
-    gluUnProject(x, y, pixelDepth,
+    GL.UnProject(x, y, pixelDepth,
                  model, proj, viewport,
                  &pos.x,
                  &pos.y,

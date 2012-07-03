@@ -91,6 +91,10 @@ struct OpenGLState : GraphicState
     virtual void   MatrixMode(GLenum mode);
     virtual void   LoadMatrix();
     virtual void   LoadIdentity();
+    virtual void   MultMatrices(const coord *m1,const coord *m2,coord *result);
+    virtual void   MultMatrixVec(const coord matrix[16], const coord in[4],
+                                 coord out[4]);
+    virtual bool   InvertMatrix(const GLdouble m[16], GLdouble invOut[16]);
     virtual void   PrintMatrix(GLuint model);
 
     // Transformations
@@ -99,6 +103,14 @@ struct OpenGLState : GraphicState
     virtual void Scale(double x, double y, double z);
 
     // Camera management
+    virtual bool Project(coord objx, coord objy, coord objz,
+                         const coord* mv, const coord* proj,
+                         const int* viewport,
+                         coord *winx, coord *winy, coord *winz);
+    virtual bool UnProject(coord winx, coord winy, coord winz,
+                           const coord* mv, const coord* proj,
+                           const int* viewport,
+                           coord *objx, coord *objy, coord *objz);
     virtual void PickMatrix(float x, float y, float width, float height,
                             int viewport[4]);
     virtual void Frustum(float left, float right, float bottom, float top,
@@ -122,9 +134,19 @@ struct OpenGLState : GraphicState
     virtual void LineStipple(GLint factor, GLushort pattern);
     virtual void DepthMask(GLboolean flag);
     virtual void DepthFunc(GLenum func);
+    virtual void ShadeModel(GLenum mode);
+    virtual void Hint(GLenum target, GLenum mode);
     virtual void Enable(GLenum cap);
     virtual void Disable(GLenum cap);
-    virtual void ShadeModel(GLenum mode);
+
+    // Blend
+    virtual void BlendFunc(GLenum sfactor, GLenum dfactor);
+    virtual void BlendFuncSeparate(GLenum sRgb, GLenum dRgb,
+                                   GLenum sAlpha, GLenum dAlpha);
+    virtual void BlendEquation(GLenum mode);
+
+    // Alpha
+    virtual void AlphaFunc(GLenum func, float ref);
 
     std::ostream & debug();
 

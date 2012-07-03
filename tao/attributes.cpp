@@ -380,7 +380,7 @@ void BlendFunc::Draw(Layout *where)
 //   Change the blend function
 // ----------------------------------------------------------------------------
 {
-    glBlendFunc(sfactor, dfactor);
+    GL.BlendFunc(sfactor, dfactor);
     where->hasBlending = true;
 }
 
@@ -390,7 +390,7 @@ void BlendFuncSeparate::Draw(Layout *where)
 //   Change the blend function separately for alpha and color
 // ----------------------------------------------------------------------------
 {
-    glBlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
+    GL.BlendFuncSeparate(sfactor, dfactor, sfalpha, dfalpha);
     where->hasBlending = true;
 }
 
@@ -400,7 +400,7 @@ void BlendEquation::Draw(Layout *where)
 //   Change the blend equation
 // ----------------------------------------------------------------------------
 {
-    glBlendEquation(equation);
+    GL.BlendEquation(equation);
     where->hasBlending = true;
 }
 

@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1 plus MathML 2.0//EN">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:x="http://www.texmacs.org/2002/extensions" xmlns:m="http://www.w3.org/1998/Math/MathML">
+<html xmlns:m="http://www.w3.org/1998/Math/MathML" xmlns="http://www.w3.org/1999/xhtml" xmlns:x="http://www.texmacs.org/2002/extensions">
   <head>
     <title>The XLR Programming Language</title>
-    <meta content="TeXmacs 1.0.7.10" name="generator"></meta>
+    <meta content="TeXmacs 1.0.7.14" name="generator"></meta>
     <style type="text/css">
       body { text-align: justify } h5 { display: inline; padding-right: 1em }
       h6 { display: inline; padding-right: 1em } table { border-collapse:
@@ -316,8 +316,8 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
       The key takeaway is that the conversion of concept to code is
       necessarily <em>lossy</em>. Minimizing the loss remains a worthy goal,
       but doing so is difficult. By drawing our attention to the conversion
-      process itself, concept programming gives us new tools to solve old
-      problems.
+      process itself, concept programming gives us new and useful tools to
+      solve old problems.
     </p>
     <p>
       <a id="auto-35"></a><h5>Pseudo-metrics</h5>Among the tools brought by concept
@@ -1040,7 +1040,7 @@ x
       precedence separate statements, whereas infix operators with a higher
       precedence separate expressions. For example, the semi-colon <tt class="verbatim">;</tt>
       or <tt class="verbatim">else</tt> separate statements, whereas <tt class="verbatim">+</tt>
-      or <tt class="verbatim">and</tt> separate instructions.
+      or <tt class="verbatim">and</tt> separate expressions.
     </p>
     <p>
       More precisely:
@@ -1189,9 +1189,12 @@ if 6 apples weight 1.5 kg then
       </tr></tbody>
     </table>
     <p>
-      As a general stylistic rule, it is recommended to limit the introduction
-      of new operators using <tt class="verbatim">syntax</tt> statements<a id="auto-149"></a>, as
-      this can easily confuse a reader not familiar with the new notation.
+      As a general stylistic rule, it is recommended to use restraint when
+      introducing new operators using <tt class="verbatim">syntax</tt> statements<a id="auto-149"></a>,
+      as this can easily confuse a reader who is not familiar with the new
+      notation. On the other hand, there are cases where good use of new and
+      well-chosen operators will render the code much more readable and easy
+      to maintain.
     </p>
     <p>
       <a id="auto-150"></a><h5>Format of syntax configuration</h5>Spaces and
@@ -1512,11 +1515,15 @@ if <em><font color="blue">false</font></em> then <em><font color="blue">TrueClau
       input type.
     </p>
     <p>
-      Rewrites in a sequence belong to the context<a id="auto-195"></a> for the entire
-      sequence (contexts are defined in Section <a href="#binding">3.2</a>). In other
-      words, declarations are visible to prior elements in the sequence and
-      need not be evaluated, as shown in Figure <a href="#out-of-order-declarations">16</a>, which
-      computes <tt class="verbatim">4</tt>:
+      An expression may use declarations that follow it in the same sequence.
+      Declarations are visible to prior elements in the sequence and need not
+      be evaluated, as shown in Figure <a href="#out-of-order-declarations">16</a>, which computes <tt
+      class="verbatim">4</tt>. More generally, rewrites in a sequence belong to the
+      context<a id="auto-195"></a> for the entire sequence (contexts are defined in
+      Section <a href="#binding">3.2</a>).
+    </p>
+    <p>
+      <strong></strong>
     </p>
     <table align="center" id="out-of-order-declarations">
       <tbody><tr>
@@ -1652,8 +1659,10 @@ data a,b</pre></td>
       <a id="footnr-6"></a>
       <sup><a href="#footnote-6">6</a></sup>
       . If there is a return type declaration and the implementation does not
-      actually return the declared return type, evaluation of that
-      implementation fails.
+      actually return the declared return type, a type error expression of the
+      form
+      <tt class="verbatim">type_error ExpectedType, ActualValue</tt>
+      will attempt to correct the problem.
     </p>
     <p>
       A type declaration can also be placed on the left of an assignment, see
@@ -1667,35 +1676,53 @@ data a,b</pre></td>
     </p>
     <p>
       An assignment is valid even if the reference on the left of <tt class="verbatim">:=</tt>
-      had not previously been bound. The assignment creates a binding in
-      global scope for that reference if there was no previous binding<a id="auto-216"></a>,
-      or replaces the value of the existing binding if there was one. This is
-      shown in Figure <a href="#local-and-nonlocal-assignment">20</a>: 
+      had not previously been bound. In that case, it creates a new binding<a
+      id="auto-216"></a> in the current context. This is shown in Figure <a href="#creating-a-new-binding">6.15</a>.
     </p>
-    <table align="center" id="local-and-nonlocal-assignment">
+    <table align="center">
       <tbody><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
-// Assigns to global X
-assigns_to_global -&gt; X := 1</pre></td>
+// Assigns to locally created X
+assigns_to_local -&gt; X := 1</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 20. </b><a id="auto-217"></a>Assignment to global variable
+            <b>Figure 20. </b><a id="auto-217"></a>Creating a new binding<a id="creating-a-new-binding"></a>
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      <a id="auto-218"></a><h5>Local variables</h5>If the left side of an assignment is
-      a type declaration<a id="auto-219"></a><a id="auto-220"></a>, that assignment creates a new
-      binding<a id="auto-221"></a> in the local scope<a id="auto-222"></a><a id="auto-223"></a>, as
-      illustrated in Figure <a href="#assign-to-new-local">21</a>. That binding has a return type
-      declaration<a id="auto-224"></a><a id="auto-225"></a> associated with it, so that later
+      On the other hand, if there is an existing binding, the assignment
+      replaces the corresponding bound value. This is shown in Figure <a href="#nonlocal-assignment">6.15</a>:
+    </p>
+    <table align="center">
+      <tbody><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
+// Assigns to global X defined below
+assigns_to_global -&gt; X := 1
+X -&gt; 0</pre></td>
+      </tr><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
+      </tr><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
+          <font size="-1"><p>
+            <b>Figure 21. </b><a id="auto-218"></a>Assignment to existing binding<a id="nonlocal-assignment"></a>
+          </p></font>
+        </p></td>
+      </tr></tbody>
+    </table>
+    <p>
+      <a id="auto-219"></a><h5>Local variables</h5>If the left side of an assignment is
+      a type declaration<a id="auto-220"></a><a id="auto-221"></a>, that assignment creates a new
+      binding<a id="auto-222"></a> in the local scope<a id="auto-223"></a><a id="auto-224"></a>, as
+      illustrated in Figure <a href="#assign-to-new-local">22</a>. That binding has a return type
+      declaration<a id="auto-225"></a><a id="auto-226"></a> associated with it, so that later
       assignments to that same name will only succeed if the type of the
       assigned value matches the previously declared type. This is shown in
-      Figure <a href="#assign-to-new-local">21</a>:
+      Figure <a href="#assign-to-new-local">22</a>:
     </p>
     <table align="center" id="assign-to-new-local">
       <tbody><tr>
@@ -1710,84 +1737,39 @@ assigns_new -&gt; X:integer := 1</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 21. </b><a id="auto-226"></a>Assigning to new local variable
+            <b>Figure 22. </b><a id="auto-227"></a>Assigning to new local variable
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      <a id="auto-227"></a><h5>Assigning to parameters</h5>If the left side of an
-      assignment is a parameter<a id="auto-228"></a> with a type declaration, that
-      assignment affects the binding of that parameter. However, if the
-      parameter has no type declaration, the assignment affects the binding
-      referenced by the argument bound to that parameter<a id="auto-229"></a>, as
-      illustrated in Figure <a href="#assign-to-parameter">22</a>. This makes it possible to
-      implement assignment-like operators:
+      <a id="auto-228"></a><h5>Assigning to references</h5>If the left side of an
+      assignment is a reference, then the assignment will apply to the
+      referred value, as shown in Figure <a href="#assign-to-reference-example">23</a>. This may either
+      modify the referred value if a binding already exists, or create a new
+      binding in the context being referred to if no binding exists.
     </p>
     <table align="center">
       <tbody><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
-A : integer := 5
-A += 3
-
-// Effectively assign to A
-X+=Y -&gt; X:=X+Y</pre></td>
+Data -&gt;
+    0 -&gt; 3
+    1 -&gt; 2
+Data.0 := 4 // replaces 3
+Data.2 := 5 // Creates new binding 2-&gt;5 in Data</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 22. </b><a id="auto-230"></a>Assigning to parameter
+            <b>Figure 23. </b><a id="auto-229"></a>Assignment to references
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      <a id="assign-to-parameter"></a>Using an assignment in an expression<a id="auto-231"></a><a id="auto-232"></a> is
-      equivalent to using the value bound to the variable after the
-      assignment. For instance, <tt class="verbatim">sin(x:=f(0))</tt> is equivalent to
-      <tt class="verbatim">x:=f(0)</tt> followed by <tt class="verbatim">sin(x)</tt>.
-    </p>
-    <p>
-      An assignment can override a binding<a id="auto-233"></a> established by a
-      parameter or rewrite declaration. However, assigning to a pattern proves
-      tricky because of lazy evaluation<a id="auto-234"></a> (see Section <a href="#lazy-evaluation">3.3.3</a>),
-      and is best avoided. The rationale for this behavior is explained in
-      Section <a href="#index-operators">3.1.7</a>.
-    </p>
-    <table align="center" id="assignments-cant-override-patterns">
-      <tbody><tr>
-        <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
-// Declare rewrites for prefix foo
-foo 0 -&gt; 3
-foo N -&gt; 5
-
-// This works as expected
-foo 0 := 32
-
-// Illegal: on-demand evaluation of N fails
-foo N := 5
-
-// Legal, changes foo 0
-N := 0
-foo N := 44
-
-// Legal, creates foo 5
-N := 5
-foo N := 55</pre></td>
-      </tr><tr>
-        <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
-      </tr><tr>
-        <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
-          <font size="-1"><p>
-            <b>Figure 23. </b><a id="auto-235"></a>Assignments do not override patterns
-          </p></font>
-        </p></td>
-      </tr></tbody>
-    </table>
-    <p>
-      An assignment can also assign to the following expressions<a id="auto-236"></a>
-      (see Section <a href="#tree-operations">4.1.9</a>):
+      <a id="assign-to-reference-example"></a>An assignment can also assign to the following special
+      references<a id="auto-230"></a> (see Section <a href="#tree-operations">4.1.9</a>):
     </p>
     <ul>
       <li>
@@ -1806,6 +1788,50 @@ foo N := 55</pre></td>
         class="verbatim">X</tt> is a block or text and the assigned value is a text
       </li>
     </ul>
+    <p>
+      <a id="auto-231"></a><h5>Assigning to parameters</h5>Assigning to a reference is
+      particularly useful for parameters<a id="auto-232"></a>. In some cases, parameters
+      may be bound without being evaluated (see Section <a href="#lazy-evaluation">3.3.3</a>).
+      This means that the parameter is bound to a reference. In that case,
+      assigning to the parameter will assign to the reference, making it
+      possible to implement assignment-like operations, as illustrated in
+      Figure <a href="#assign-to-parameter">24</a>.
+    </p>
+    <table align="center">
+      <tbody><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
+A : integer := 5
+A+=3
+
+// Effectively assign to A
+X+=Y -&gt; X:=X+Y</pre></td>
+      </tr><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
+      </tr><tr>
+        <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
+          <font size="-1"><p>
+            <b>Figure 24. </b><a id="auto-233"></a>Assigning to parameter
+          </p></font>
+        </p></td>
+      </tr></tbody>
+    </table>
+    <p>
+      <a id="assign-to-parameter"></a>In that example, the context for evaluating the
+      implementation <tt class="verbatim">X:=X+Y</tt> will contain a binding for <tt
+      class="verbatim">X</tt> in the form <tt class="verbatim">X-&gt;(A-&gt;5).A</tt>, where <tt
+      class="verbatim">(A-&gt;5)</tt> is the original execution context. The expression
+      <tt class="verbatim">(A-&gt;5).A</tt> means that we evaluate <tt class="verbatim">A</tt> in
+      the context that existed at the point where expression <tt class="verbatim">A+=3</tt>
+      was evaluated. Therefore, assigning to <tt class="verbatim">X</tt> will affect the
+      existing binding,, resulting in the updated binding <tt class="verbatim">A-&gt;8</tt>
+      in the original context.
+    </p>
+    <p>
+      <a id="auto-234"></a><h5>Assignments as expressions</h5>Using an assignment in an
+      expression<a id="auto-235"></a><a id="auto-236"></a> is equivalent to using the value bound
+      to the variable after the assignment. For instance, <tt class="verbatim">sin(x:=f(0))</tt>
+      is equivalent to <tt class="verbatim">x:=f(0)</tt> followed by <tt class="verbatim">sin(x)</tt>.
+    </p>
     <h4 id="auto-237">3.1.5<span style="margin-left: 1em"></span>Guards</h4>
     <p>
       <a id="auto-238"></a><a id="auto-239"></a>The infix <tt class="verbatim">when</tt> operator in a
@@ -1813,7 +1839,7 @@ foo N := 55</pre></td>
       condition that must be true for the pattern to apply.
     </p>
     <p>
-      Figure <a href="#guard">24</a> shows an improved definition of the factorial
+      Figure <a href="#guard">25</a> shows an improved definition of the factorial
       function which only applies for non-negative values. This set of
       rewrites is ignored for a negative <tt class="verbatim">integer</tt> value.
     </p>
@@ -1827,7 +1853,7 @@ N! when N &gt; 0 -&gt; N * (N-1)!</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 24. </b><a id="auto-240"></a>Guard limit the validity of
+            <b>Figure 25. </b><a id="auto-240"></a>Guard limit the validity of
             operations
           </p></font>
         </p></td>
@@ -1849,7 +1875,7 @@ N! when N &gt; 0 -&gt; N * (N-1)!</pre></td>
       the evaluation of the right node begins<a id="auto-243"></a><a id="auto-244"></a>.
     </p>
     <p>
-      Figure <a href="#sequence">25</a> for instance guarantees that the code will first
+      Figure <a href="#sequence">26</a> for instance guarantees that the code will first
       <tt class="verbatim">write</tt> &quot;A&quot;, then <tt class="verbatim">write
       &quot;B&quot;</tt>, then write the result of the sum <tt class="verbatim">f(100)+f(200)</tt>.
       However, the implementation is entirely free to compute <tt class="verbatim">f(100)</tt>
@@ -1865,7 +1891,7 @@ write f(100)+f(200)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 25. </b><a id="auto-245"></a>Code writing <tt class="verbatim">A</tt>, then
+            <b>Figure 26. </b><a id="auto-245"></a>Code writing <tt class="verbatim">A</tt>, then
             <tt class="verbatim">B</tt>, then <tt class="verbatim">f(100)+f(200)</tt>
           </p></font>
         </p></td>
@@ -1887,7 +1913,7 @@ write f(100)+f(200)</pre></td>
       indexing operations<a id="auto-254"></a><a id="auto-255"></a>.
     </p>
     <p>
-      For example, consider the declarations in Figure <a href="#structured-data">26</a>.
+      For example, consider the declarations in Figure <a href="#structured-data">27</a>.
     </p>
     <table align="center" id="structured-data">
       <tbody><tr>
@@ -1903,7 +1929,7 @@ MyData -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 26. </b><a id="auto-256"></a>Structured data
+            <b>Figure 27. </b><a id="auto-256"></a>Structured data
           </p></font>
         </p></td>
       </tr></tbody>
@@ -1973,7 +1999,7 @@ MyData -&gt;
       obey XLR naming rules, e.g. to interface to a function named <tt class="verbatim">_foobar_</tt>.
     </p>
     <p>
-      Figure <a href="#C-interface">27</a> shows two ways of making the <tt class="verbatim">sin</tt>
+      Figure <a href="#C-interface">28</a> shows two ways of making the <tt class="verbatim">sin</tt>
       function of the C standard library available to an XLR program. The
       first one uses an XLR-style rewrite, whereas the second one uses a
       C-style syntax:
@@ -1988,7 +2014,7 @@ extern double sin(double);</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 27. </b><a id="auto-262"></a>Creating an interface for a C
+            <b>Figure 28. </b><a id="auto-262"></a>Creating an interface for a C
             function
           </p></font>
         </p></td>
@@ -2058,7 +2084,7 @@ extern double sin(double);</pre></td>
     <p>
       A <em>machine interface</em><a id="auto-268"></a> is a rewrite where the
       implementation is a prefix of two names, the first one being <tt class="verbatim">opcode</tt><a
-      id="auto-269"></a>. Figure <a href="#opcode-declaration">28</a> shows how a specific tree rewrite can
+      id="auto-269"></a>. Figure <a href="#opcode-declaration">29</a> shows how a specific tree rewrite can
       be connected to the generation of machine-level opcodes:
     </p>
     <table align="center" id="opcode-declaration">
@@ -2070,7 +2096,7 @@ extern double sin(double);</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 28. </b><a id="auto-270"></a>Generating machine code using opcode
+            <b>Figure 29. </b><a id="auto-270"></a>Generating machine code using opcode
             declarations
           </p></font>
         </p></td>
@@ -2083,11 +2109,12 @@ extern double sin(double);</pre></td>
     <h3 id="auto-271"><a id="binding"></a>3.2<span style="margin-left: 1em"></span>Binding References to
     Values</h3>
     <p>
-      A rewrite declaration of the form <tt class="verbatim">Pattern-&gt;Implementation</tt>
+      A <em>rewrite declaration</em> of the form <tt class="verbatim">Pattern-&gt;Implementation</tt>
       is said to <em>bind</em><a id="auto-272"></a> its pattern to its implementation. A
-      sequence of declarations is called a <em>context</em><a id="auto-273"></a>. For
-      example, <tt class="verbatim">{x-&gt;3;y-&gt;4}</tt> is a context that binds <tt
-      class="verbatim">x</tt> to <tt class="verbatim">3</tt> and <tt class="verbatim">y</tt> to <tt class="verbatim">4</tt>.
+      sequence of rewrite declarations is called a <em>context</em><a id="auto-273"></a>.
+      For example, <tt class="verbatim">{x-&gt;3;y-&gt;4}</tt> is a context that binds
+      <tt class="verbatim">x</tt> to <tt class="verbatim">3</tt> and <tt class="verbatim">y</tt> to <tt
+      class="verbatim">4</tt>.
     </p>
     <h4 id="auto-274">3.2.1<span style="margin-left: 1em"></span>Context Order</h4>
     <p>
@@ -2176,6 +2203,14 @@ extern double sin(double);</pre></td>
         <tt class="verbatim">A B</tt> in the current context. The index <tt class="verbatim">B</tt>
         will be evaluated in the current context if required to match patterns
         in <tt class="verbatim">A</tt>, as explained in Section <a href="#evaluation">3.3</a>.
+      </li>
+      <li>
+        Special forms described in  Section <a href="#tree-operations">4.1.9</a>, such as <tt
+        class="verbatim">left X</tt> refer to children of <tt class="verbatim">infix</tt>, <tt
+        class="verbatim">prefix</tt>, <tt class="verbatim">postfix</tt> or <tt class="verbatim">block</tt>
+        trees. They can be used as a reference in an assignment, and will
+        modify the tree being referred to. This can be used to directly
+        manipulate the program structure. 
       </li>
     </ul>
     <h3 id="auto-293"><a id="evaluation"></a>3.3<span style="margin-left: 1em"></span>Evaluation</h3>
@@ -2389,12 +2424,19 @@ extern double sin(double);</pre></td>
         context if the sequence only contains declarations.
       </li>
       <li>
-        A prefix with a sequence on the left evaluates as if the right child
-        was added at the end of the sequence, and the sequence then evaluated.
-        In other words, evaluating <tt class="verbatim">(A;B) C</tt> is equivalent to
-        evaluating <tt class="verbatim">(A;B;C)</tt>. For example, <tt class="verbatim">(x-&gt;3;y-&gt;4)(x+y)</tt>
-        evaluates as <tt class="verbatim">7</tt>, and <tt class="verbatim">(x:integer-&gt;x+1)
-        3</tt> evaluates as <tt class="verbatim">4</tt>.
+        If <tt class="verbatim">C</tt> is a context and <tt class="verbatim">E</tt> is an
+        expression, evaluating <tt class="verbatim">C E</tt> is equivalent to evaluating
+        <tt class="verbatim">E</tt> in the current context, then evaluating the result
+        in the context of <tt class="verbatim">C</tt>. For example, <tt class="verbatim">(0-&gt;3)(1-1)</tt>
+        will evaluate <tt class="verbatim">1-1</tt>, resulting in <tt class="verbatim">0</tt>,
+        then evaluate the result in the context <tt class="verbatim">0-&gt;3</tt>,
+        resulting in the value <tt class="verbatim">3</tt>.
+      </li>
+      <li>
+        If <tt class="verbatim">C</tt> is a context and <tt class="verbatim">E</tt> is an
+        expression, evaluating <tt class="verbatim">C.E</tt> is equivalent to evaluating
+        <tt class="verbatim">E</tt> in the context of <tt class="verbatim">C</tt>. For example,
+        <tt class="verbatim">(foo-&gt;1;bar-&gt;2).bar</tt> will return <tt class="verbatim">2</tt>.
       </li>
     </ol>
     <h4 id="auto-309"><a id="lazy-evaluation"></a>3.3.3<span style="margin-left: 1em"></span>Lazy evaluation</h4>
@@ -2417,7 +2459,7 @@ extern double sin(double);</pre></td>
           The argument is compared to a constant value or bound name, see
           Section <a href="#standard-evaluation">3.3.1</a>, and the static value of the tree is not
           sufficient to perform the comparison. For example, in Figure <a
-          href="#evaluation-for-comparison">29</a>, the expression <tt class="verbatim">4+X</tt> requires evaluation
+          href="#evaluation-for-comparison">30</a>, the expression <tt class="verbatim">4+X</tt> requires evaluation
           of <tt class="verbatim">X</tt> for comparison with <tt class="verbatim">4</tt> to check
           if it matches <tt class="verbatim">A+A</tt>; the expression <tt class="verbatim">B+B</tt>
           can be statically bound to the form <tt class="verbatim">A+A</tt> without
@@ -2438,7 +2480,7 @@ B+C  // B and C evaluated</pre></td>
           </tr><tr>
             <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
               <font size="-1"><p>
-                <b>Figure 29. </b><a id="auto-313"></a>Evaluation for comparison
+                <b>Figure 30. </b><a id="auto-313"></a>Evaluation for comparison
               </p></font>
             </p></td>
           </tr></tbody>
@@ -2448,7 +2490,7 @@ B+C  // B and C evaluated</pre></td>
         <p>
           The argument is tested against a parameter with a type declaration,
           and the static type of the tree is not sufficient to guarantee a
-          match. For example, in Figure <a href="#evaluation-for-type-comparison">30</a>, the expression <tt
+          match. For example, in Figure <a href="#evaluation-for-type-comparison">31</a>, the expression <tt
           class="verbatim">Z+1</tt> can statically be found to match the form <tt class="verbatim">X+Y</tt>,
           so <tt class="verbatim">Z</tt> needn't be evaluated. On the other hand, in <tt
           class="verbatim">1+Z</tt>, it is necessary to evaluate <tt class="verbatim">Z</tt> to
@@ -2465,7 +2507,7 @@ Z + 1 // Z not evaluated
           </tr><tr>
             <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
               <font size="-1"><p>
-                <b>Figure 30. </b><a id="auto-314"></a>Evaluation for type comparison
+                <b>Figure 31. </b><a id="auto-314"></a>Evaluation for type comparison
               </p></font>
             </p></td>
           </tr></tbody>
@@ -2478,6 +2520,13 @@ Z + 1 // Z not evaluated
         class="verbatim">B</tt>.
       </li>
     </ol>
+    <p>
+      When lazy evaluation happens, the expression being bound is a closure as
+      explained in Section <a href="#standard-evaluation">3.3.1</a>, i.e. it will be an expression
+      of the form <tt class="verbatim">C.E</tt> where <tt class="verbatim">C</tt> is the original
+      evaluation context and <tt class="verbatim">E</tt> is the original expression to
+      evaluate.
+    </p>
     <h4 id="auto-315"><a id="explicit-evaluation"></a>3.3.4<span style="margin-left: 1em"></span>Explicit evaluation</h4>
     <p>
       <a id="auto-316"></a><a id="auto-317"></a>Expressions are also evaluated in the following
@@ -2497,12 +2546,26 @@ Z + 1 // Z not evaluated
         The program itself is evaluated. Most useful programs are sequences.
       </li>
     </ol>
+    <p>
+      The explicit evaluation of a name does not change the value bound to
+      that name in the current context. For example, if the current context
+      contains <tt class="verbatim">A-&gt;write &quot;Hello&quot;</tt>, each explicit
+      evaluation of <tt class="verbatim">A</tt> will cause the message <tt class="verbatim">Hello</tt>
+      to be written.
+    </p>
     <h4 id="auto-318">3.3.5<span style="margin-left: 1em"></span>Memoization</h4>
     <p>
       <a id="auto-319"></a>Whenever a parameter is evaluated, the evaluated result may
-      be used for all subsequent demand-based evaluations, a process called
-      <em>memoization</em>. Memoization does not happen for explicit
-      evaluations. This is illustrated with the example in Figure <a href="#explicit-vs-lazy-evaluation">31</a>:
+      be used for all subsequent demand-based evaluations of the same tree, a
+      process called <em>memoization</em>. What is memoized is associated with
+      the original tree.
+    </p>
+    <p>
+      
+    </p>
+    <p>
+      Memoization does not happen for explicit evaluations. This is
+      illustrated with the example in Figure <a href="#explicit-vs-lazy-evaluation">32</a>:
     </p>
     <table align="center" id="explicit-vs-lazy-evaluation">
       <tbody><tr>
@@ -2521,13 +2584,13 @@ foo bar</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 31. </b><a id="auto-320"></a>Explicit vs. lazy evaluation
+            <b>Figure 32. </b><a id="auto-320"></a>Explicit vs. lazy evaluation
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      <a id="auto-321"></a>In Figure <a href="#explicit-vs-lazy-evaluation">31</a>, evaluation happens as follows:
+      <a id="auto-321"></a>In Figure <a href="#explicit-vs-lazy-evaluation">32</a>, evaluation happens as follows:
     </p>
     <ol>
       <li>
@@ -2625,7 +2688,7 @@ foo bar</pre></td>
       class="verbatim">T</tt> is a special form of tree rewrite declaration where the
       pattern has the form <tt class="verbatim">type X</tt>. A type definition declares
       a type name, and the pattern that the type must match. For example,
-      Figure <a href="#simple-type">32</a> declares a type named <tt class="verbatim">complex</tt>
+      Figure <a href="#simple-type">33</a> declares a type named <tt class="verbatim">complex</tt>
       requiring two real numbers called <tt class="verbatim">re</tt> and <tt class="verbatim">im</tt>,
       and another type named <tt class="verbatim">ifte</tt><a id="auto-347"></a> that contains
       three arbitrary trees called <tt class="verbatim">Cond</tt>, <tt class="verbatim">TrueC</tt>
@@ -2642,7 +2705,7 @@ block_type -&gt; type[(BlockChild)]</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 32. </b><a id="auto-348"></a>Simple type declaration
+            <b>Figure 33. </b><a id="auto-348"></a>Simple type declaration
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2651,7 +2714,7 @@ block_type -&gt; type[(BlockChild)]</pre></td>
       The outermost block of a type pattern, if it exists, is not part of the
       type pattern<a id="auto-349"></a><a id="auto-350"></a><a id="auto-351"></a>. To create a type matching
       a specific block shape, two nested bocks are required, as illustrated
-      with <tt class="verbatim">paren_block_type</tt> in Figure <a href="#block-type-declaration">33</a>:
+      with <tt class="verbatim">paren_block_type</tt> in Figure <a href="#block-type-declaration">34</a>:
     </p>
     <table align="center" id="block-type-declaration">
       <tbody><tr>
@@ -2662,7 +2725,7 @@ paren_block_type -&gt; type((BlockChild))</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 33. </b><a id="auto-352"></a>Simple type declaration
+            <b>Figure 34. </b><a id="auto-352"></a>Simple type declaration
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2673,8 +2736,8 @@ paren_block_type -&gt; type((BlockChild))</pre></td>
       -&gt; type TypePattern</tt>, whereas a type <em>declaration</em><a id="auto-353"></a><a
       id="auto-354"></a> declares the type of an entity and has the form <tt class="verbatim">Name:Type</tt>.
       The type defined by a type definition can be used on the right of a type
-      declaration. For example, Figure <a href="#using-complex">34</a> shows how to use the
-      <tt class="verbatim">complex</tt> type defined in Figure <a href="#simple-type">32</a> in
+      declaration. For example, Figure <a href="#using-complex">35</a> shows how to use the
+      <tt class="verbatim">complex</tt> type defined in Figure <a href="#simple-type">33</a> in
       parameters.
     </p>
     <table align="center" id="using-complex">
@@ -2686,7 +2749,7 @@ Z1:complex+Z2:complex -&gt; (Z1.re+Z2.re; Z1.im+Z2.im)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 34. </b><a id="auto-355"></a>Using the <tt class="verbatim">complex</tt>
+            <b>Figure 35. </b><a id="auto-355"></a>Using the <tt class="verbatim">complex</tt>
             type
           </p></font>
         </p></td>
@@ -2696,10 +2759,10 @@ Z1:complex+Z2:complex -&gt; (Z1.re+Z2.re; Z1.im+Z2.im)</pre></td>
       Parameters<a id="auto-356"></a> of types such as <tt class="verbatim">complex</tt> are
       contexts with declarations for the individual variables of the pattern
       of the type. For example, a <tt class="verbatim">complex</tt> like <tt class="verbatim">Z1</tt>
-      in Figure <a href="#using-complex">34</a> contains a rewrite for <tt class="verbatim">re</tt> and
-      a rewrite for <tt class="verbatim">im</tt>. Figure <a href="#binding-for-complex-parameter">35</a> possible
+      in Figure <a href="#using-complex">35</a> contains a rewrite for <tt class="verbatim">re</tt> and
+      a rewrite for <tt class="verbatim">im</tt>. Figure <a href="#binding-for-complex-parameter">36</a> possible
       bindings<a id="auto-357"></a> when using the complex addition operator defined in
-      Figure <a href="#using-complex">34</a>. The standard index notation<a id="auto-358"></a> described
+      Figure <a href="#using-complex">35</a>. The standard index notation<a id="auto-358"></a> described
       in Section <a href="#index-operators">3.1.7</a> applies, e.g. in <tt class="verbatim">Z1.re</tt>,
       and these bindings can be assigned to.
     </p>
@@ -2724,14 +2787,14 @@ Z2 -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 35. </b><a id="auto-359"></a>Binding for a <tt class="verbatim">complex</tt>
+            <b>Figure 36. </b><a id="auto-359"></a>Binding for a <tt class="verbatim">complex</tt>
             parameter
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      Figure <a href="#making-two-types-equivalent">36</a> shows two ways to make type <tt class="verbatim">A</tt>
+      Figure <a href="#making-two-types-equivalent">37</a> shows two ways to make type <tt class="verbatim">A</tt>
       equivalent to type <tt class="verbatim">B</tt>:
     </p>
     <table align="center" id="making-two-types-equivalent">
@@ -2744,7 +2807,7 @@ A -&gt; type X:B</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 36. </b><a id="auto-360"></a>Making type <tt class="verbatim">A</tt>
+            <b>Figure 37. </b><a id="auto-360"></a>Making type <tt class="verbatim">A</tt>
             equivalent to type <tt class="verbatim">B</tt>
           </p></font>
         </p></td>
@@ -2756,7 +2819,7 @@ A -&gt; type X:B</pre></td>
       pattern being recognized. It is often recommended to make data types
       easier to identify by making the pattern more specific<a id="auto-364"></a>, for
       instance by including the type name in the pattern itself, as shown in
-      Figure <a href="#more-specific-complex-types">37</a>:
+      Figure <a href="#more-specific-complex-types">38</a>:
     </p>
     <table align="center" id="more-specific-complex-types">
       <tbody><tr>
@@ -2767,7 +2830,7 @@ complex -&gt; type complex(re:real; im:real)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 37. </b><a id="auto-365"></a>Named patterns for <tt class="verbatim">complex</tt>
+            <b>Figure 38. </b><a id="auto-365"></a>Named patterns for <tt class="verbatim">complex</tt>
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2776,7 +2839,7 @@ complex -&gt; type complex(re:real; im:real)</pre></td>
       In general, multiple notations for a same type<a id="auto-366"></a> can coexist.
       In that case, it is necessary to define a form for trees that the other
       possible forms will reduce to. This form is called the <em>normal
-      form</em>. This is illustrated in Figure <a href="#complex-normal-form">38</a>, where the
+      form</em>. This is illustrated in Figure <a href="#complex-normal-form">39</a>, where the
       normal form is <tt class="verbatim">complex(re;im)</tt> and the other notations
       are rewritten to this normal form for convenience.
     </p>
@@ -2795,7 +2858,7 @@ A:real + B:real*i -&gt; complex(A;B)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 38. </b><a id="auto-367"></a>Creating a normal form for the
+            <b>Figure 39. </b><a id="auto-367"></a>Creating a normal form for the
             complex type
           </p></font>
         </p></td>
@@ -2804,7 +2867,7 @@ A:real + B:real*i -&gt; complex(A;B)</pre></td>
     <h4 id="auto-368">3.4.4<span style="margin-left: 1em"></span>Properties</h4>
     <p>
       <a id="auto-369"></a><a id="auto-370"></a>A <em>properties definition</em> is a rewrite
-      declaration like the one shown in Figure <a href="#properties-declaration">39</a> where:
+      declaration like the one shown in Figure <a href="#properties-declaration">40</a> where:
     </p>
     <ol>
       <li>
@@ -2818,7 +2881,7 @@ A:real + B:real*i -&gt; complex(A;B)</pre></td>
       </li>
       <li>
         The block optionally contains one or more <tt class="verbatim">inherit</tt><a
-        id="auto-372"></a> prefix (see Section <a href="#data-inheritance">43</a>)
+        id="auto-372"></a> prefix (see Section <a href="#data-inheritance">44</a>)
       </li>
     </ol>
     <table align="center" id="properties-declaration">
@@ -2834,7 +2897,7 @@ color -&gt; properties
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 39. </b><a id="auto-373"></a>Properties declaration
+            <b>Figure 40. </b><a id="auto-373"></a>Properties declaration
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2849,8 +2912,8 @@ color -&gt; properties
       assignment or by using the property name as a prefix.
     </p>
     <p>
-      For example, Figure <a href="#color-properties">40</a> shows how the <tt class="verbatim">color</tt>
-      type defined in Figure <a href="#properties-declaration">39</a> can be used in a parameter
+      For example, Figure <a href="#color-properties">41</a> shows how the <tt class="verbatim">color</tt>
+      type defined in Figure <a href="#properties-declaration">40</a> can be used in a parameter
       declaration<a id="auto-380"></a>, and how a <tt class="verbatim">color</tt> argument<a id="auto-381"></a>
       can be passed.
     </p>
@@ -2868,7 +2931,7 @@ write_color { red 0.5; green 0.2; blue 0.6 }</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 40. </b><a id="auto-382"></a>Color properties
+            <b>Figure 41. </b><a id="auto-382"></a>Color properties
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2893,7 +2956,7 @@ write_color { red 0.5; green 0.2; blue 0.6 }</pre></td>
     <p>
       This makes it possible to set default value in the caller's context,
       which will be injected in the argument, as illustrated in Figure <a
-      href="#setting-default-arguments">41</a>, where the expression <tt class="verbatim">C.red</tt> in <tt class="verbatim">write_color</tt>
+      href="#setting-default-arguments">42</a>, where the expression <tt class="verbatim">C.red</tt> in <tt class="verbatim">write_color</tt>
       will evaluate to <tt class="verbatim">0.5</tt>, and the argument <tt class="verbatim">C.alpha</tt>
       will evaluate to <tt class="verbatim">1.0</tt> as specified by the default value:
     </p>
@@ -2907,7 +2970,7 @@ write_color (blue 0.6; green 0.2)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 41. </b><a id="auto-385"></a>Setting default arguments from the
+            <b>Figure 42. </b><a id="auto-385"></a>Setting default arguments from the
             current context
           </p></font>
         </p></td>
@@ -2917,7 +2980,7 @@ write_color (blue 0.6; green 0.2)</pre></td>
       It is sufficient for the block argument to define all required
       properties<a id="auto-386"></a><a id="auto-387"></a>. The block argument may also contain
       more code than just the references to the setters, as illustrated in
-      Figure <a href="#extra-code-for-properties">42</a>:
+      Figure <a href="#extra-code-for-properties">43</a>:
     </p>
     <table align="center" id="extra-code-for-properties">
       <tbody><tr>
@@ -2933,7 +2996,7 @@ write_color
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 42. </b><a id="auto-388"></a>Additional code in properties
+            <b>Figure 43. </b><a id="auto-388"></a>Additional code in properties
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2946,7 +3009,7 @@ write_color
       <a id="auto-390"></a><a id="auto-391"></a>Properties declarations may <em>inherit</em> data
       from one or more other types by using one or more <tt class="verbatim">inherit</tt>
       prefixes in the properties declaration, as illustrated in Figure <a
-      href="#data-inheritance">43</a>, where the type <tt class="verbatim">rgb</tt> contains three
+      href="#data-inheritance">44</a>, where the type <tt class="verbatim">rgb</tt> contains three
       properties called <tt class="verbatim">red</tt>, <tt class="verbatim">green</tt> and <tt
       class="verbatim">blue</tt>, and the type <tt class="verbatim">rgba</tt> additionally
       contains an <tt class="verbatim">alpha</tt> property:
@@ -2966,7 +3029,7 @@ rgba -&gt; properties
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 43. </b><a id="auto-392"></a>Data inheritance
+            <b>Figure 44. </b><a id="auto-392"></a>Data inheritance
           </p></font>
         </p></td>
       </tr></tbody>
@@ -2988,10 +3051,10 @@ rgba -&gt; properties
     <p>
       <a id="auto-400"></a>Type checks can be declared explicitly to create types
       identifying arbitrary forms of trees that would be otherwise difficult
-      to specify. This is illustrated in Figure <a href="#arbitrary-type">44</a> where we
+      to specify. This is illustrated in Figure <a href="#arbitrary-type">45</a> where we
       define an <tt class="verbatim">odd</tt> type that contains only odd integers. We
       could similarly add a type check to the definition of <tt class="verbatim">rgb</tt>
-      in Figure <a href="#data-inheritance">43</a> to make sure that <tt class="verbatim">red</tt>, <tt
+      in Figure <a href="#data-inheritance">44</a> to make sure that <tt class="verbatim">red</tt>, <tt
       class="verbatim">green</tt> and <tt class="verbatim">blue</tt> are between <tt class="verbatim">0.0</tt>
       and <tt class="verbatim">1.0</tt>.
     </p>
@@ -3006,7 +3069,7 @@ odd -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 44. </b><a id="auto-401"></a>Defining a type identifying an
+            <b>Figure 45. </b><a id="auto-401"></a>Defining a type identifying an
             arbitrary AST shape
           </p></font>
         </p></td>
@@ -3015,7 +3078,7 @@ odd -&gt;
     <p>
       The type check for a type can be invoked explicitly using the infix <tt
       class="verbatim">contains</tt> (with the type on the left) or <tt class="verbatim">is_a</tt><a
-      id="auto-402"></a> (with the type on the right).  This is shown in Figure <a href="#contains-tests">45</a>.
+      id="auto-402"></a> (with the type on the right).  This is shown in Figure <a href="#contains-tests">46</a>.
       The first type check <tt class="verbatim">odd contains 3</tt> should return <tt
       class="verbatim">true</tt>, since <tt class="verbatim">3</tt> belongs to the <tt class="verbatim">odd</tt>
       type. The second type check should return <tt class="verbatim">false</tt> since
@@ -3031,7 +3094,7 @@ if (red 1; green 1) is_a rgb then fail else pass</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 45. </b><a id="auto-403"></a>Explicit type check
+            <b>Figure 46. </b><a id="auto-403"></a>Explicit type check
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3042,7 +3105,7 @@ if (red 1; green 1) is_a rgb then fail else pass</pre></td>
       <a id="auto-405"></a><a id="auto-406"></a>Prefix forms with the same name as a type can be
       provided to make it easy to convert values to type <tt class="verbatim">T</tt>.
       Such forms are called <em>explicit type conversions</em>. This is
-      illustrated in Figure <a href="#explicit-type-conversion">46</a>:
+      illustrated in Figure <a href="#explicit-type-conversion">47</a>:
     </p>
     <table align="center" id="explicit-type-conversion">
       <tbody><tr>
@@ -3054,7 +3117,7 @@ rgb  C:rgba -&gt; (red C.red; green C.green; blue C.blue)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 46. </b><a id="auto-407"></a>Explicit type conversion
+            <b>Figure 47. </b><a id="auto-407"></a>Explicit type conversion
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3063,7 +3126,7 @@ rgb  C:rgba -&gt; (red C.red; green C.green; blue C.blue)</pre></td>
       <a id="auto-408"></a>An <em>automatic type conversion</em> is an infix <tt class="verbatim">as</tt>
       form with a type on the right. If such a form exists, it can be invoked
       to automatically convert a value to the type on the right of <tt class="verbatim">as</tt>.
-      This is illustrated in Figure <a href="#automatic-type-conversion">47</a>.
+      This is illustrated in Figure <a href="#automatic-type-conversion">48</a>.
     </p>
     <table align="center" id="automatic-type-conversion">
       <tbody><tr>
@@ -3075,7 +3138,7 @@ X:integer as real -&gt; real X
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 47. </b><a id="auto-409"></a>Automatic type conversion
+            <b>Figure 48. </b><a id="auto-409"></a>Automatic type conversion
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3084,7 +3147,7 @@ X:integer as real -&gt; real X
     <p>
       <a id="auto-411"></a><a id="auto-412"></a>Since type definitions are just regular rewrites,
       a type definition may contain a more complex pattern on the left of the
-      rewrite. This is illustrated in Figure <a href="#parameterized-type">48</a>, where we define
+      rewrite. This is illustrated in Figure <a href="#parameterized-type">49</a>, where we define
       a <tt class="verbatim">one_modulo N</tt> type that generalizes the <tt class="verbatim">odd</tt>
       type.
     </p>
@@ -3100,14 +3163,14 @@ show X:(one_modulo 1)</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 48. </b><a id="auto-413"></a>Parameterized type
+            <b>Figure 49. </b><a id="auto-413"></a>Parameterized type
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
       It is also possible to define tree forms that are neither name nor
-      prefix. Figure <a href="#infix-type">49</a> shows how we can use an infix form with
+      prefix. Figure <a href="#infix-type">50</a> shows how we can use an infix form with
       the <tt class="verbatim">..</tt> operator to declare a range type.
     </p>
     <table align="center" id="infix-type">
@@ -3122,7 +3185,7 @@ foo X:1..5 -&gt; write X</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 49. </b><a id="auto-414"></a>Declaring a range type using an infix
+            <b>Figure 50. </b><a id="auto-414"></a>Declaring a range type using an infix
             form
           </p></font>
         </p></td>
@@ -3132,7 +3195,7 @@ foo X:1..5 -&gt; write X</pre></td>
     <p>
       <a id="auto-416"></a><a id="auto-417"></a>The infix <tt class="verbatim">-&gt;</tt> operator can be
       used in a type definition to identify specific forms of rewrites that
-      perform a particular kind of tree transformation. Figure <a href="#rewrite-type">50</a>
+      perform a particular kind of tree transformation. Figure <a href="#rewrite-type">51</a>
       illustrates this usage to declare an <tt class="verbatim">adder</tt> type that
       will only match rewrites declaring an infix <tt class="verbatim">+</tt> node:
     </p>
@@ -3145,7 +3208,7 @@ adder -&gt; type {X+Y -&gt; Z}</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 50. </b><a id="auto-418"></a>Declaration of a rewrite type
+            <b>Figure 51. </b><a id="auto-418"></a>Declaration of a rewrite type
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3802,7 +3865,7 @@ adder -&gt; type {X+Y -&gt; Z}</pre></td>
     <h4 id="auto-475">4.2.1<span style="margin-left: 1em"></span>Tests</h4>
     <p>
       The defintion of the if-then-else statement in the library is as shown
-      in Figure <a href="#if-then-else-definition">51</a><a id="auto-476"></a>:
+      in Figure <a href="#if-then-else-definition">52</a><a id="auto-476"></a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -3815,7 +3878,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 51. </b><a id="auto-477"></a>Library definition of if-then-else
+            <b>Figure 52. </b><a id="auto-477"></a>Library definition of if-then-else
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3823,7 +3886,7 @@ if false then TrueClause else FalseClause  -&gt; FalseClause</pre></td>
     <p>
       <a id="if-then-else-definition"></a>This definition requires the value to be a <tt class="verbatim">boolean</tt>,
       i.e. <tt class="verbatim">true</tt> or <tt class="verbatim">false</tt>. The <tt class="verbatim">good</tt><a
-      id="auto-478"></a>  function shown in Figure <a href="#good-function">52</a> provides a behavior
+      id="auto-478"></a>  function shown in Figure <a href="#good-function">53</a> provides a behavior
       closer to what is seen in languages such as C, where the value <tt
       class="verbatim">0</tt> is logically false and non-zero values are logically true.
     </p>
@@ -3843,7 +3906,7 @@ good Other -&gt; true</pre><p>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 52. </b><a id="auto-479"></a>The <tt class="verbatim">good</tt> function
+            <b>Figure 53. </b><a id="auto-479"></a>The <tt class="verbatim">good</tt> function
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3873,7 +3936,7 @@ loop Body -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 53. </b><a id="auto-481"></a>Infinite loop
+            <b>Figure 54. </b><a id="auto-481"></a>Infinite loop
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3881,7 +3944,7 @@ loop Body -&gt;
     <h4 id="auto-482">4.2.3<span style="margin-left: 1em"></span>Conditional Loops (<tt class="verbatim">while</tt>
     and <tt class="verbatim">until</tt> loops)</h4>
     <p>
-      <a id="infinite-loop"></a>Figure <a href="#while-loop">54</a> shows an implementation for the <tt
+      <a id="infinite-loop"></a>Figure <a href="#while-loop">55</a> shows an implementation for the <tt
       class="verbatim">while</tt> loop, which runs while a given condition is true.
       Explicit evaluation is not required for <tt class="verbatim">Condition</tt>
       because it is evaluated only once in the implementation of the <tt
@@ -3902,7 +3965,7 @@ while Condition loop Body -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 54. </b><a id="auto-483"></a>While loop
+            <b>Figure 55. </b><a id="auto-483"></a>While loop
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3924,7 +3987,7 @@ until Condition loop Body -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 55. </b><a id="auto-484"></a>Until loop
+            <b>Figure 56. </b><a id="auto-484"></a>Until loop
           </p></font>
         </p></td>
       </tr></tbody>
@@ -3934,7 +3997,7 @@ until Condition loop Body -&gt;
     <p>
       <a id="until-loop"></a>The <tt class="verbatim">for</tt> loop is the most complex kind of
       loop. It exists in multiple variants. The simplest one, shown in Figure
-      <a href="#for-loop-integer-range">56</a>, iterates over a range of <tt class="verbatim">integer</tt>
+      <a href="#for-loop-integer-range">57</a>, iterates over a range of <tt class="verbatim">integer</tt>
       values. Notice that it creates a local <tt class="verbatim">Index</tt> variable to
       ensure it doesn't modify <tt class="verbatim">Variable</tt> unless the loop is
       actually executed.
@@ -3953,13 +4016,13 @@ for Variable in Low:integer..High:integer loop Body -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 56. </b><a id="auto-486"></a>For loop on an integer range
+            <b>Figure 57. </b><a id="auto-486"></a>For loop on an integer range
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      <a id="for-loop-integer-range"></a>The <tt class="verbatim">for</tt> loop shown in Figure <a href="#for-loop-container">57</a>
+      <a id="for-loop-integer-range"></a>The <tt class="verbatim">for</tt> loop shown in Figure <a href="#for-loop-container">58</a>
       iterates on all elements of a container such as a list or a range. It
       updates its <tt class="verbatim">Variable</tt> for each iteration with a new
       element in the container.
@@ -3978,14 +4041,14 @@ for Variable in Container loop Body -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 57. </b><a id="auto-487"></a>For loop on a container
+            <b>Figure 58. </b><a id="auto-487"></a>For loop on a container
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
       <a id="for-loop-container"></a>There are several other kinds of <tt class="verbatim">for</tt> loops,
-      corresponding to the patterns shown in Figure <a href="#other-for-loops">58</a>:
+      corresponding to the patterns shown in Figure <a href="#other-for-loops">59</a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -3998,7 +4061,7 @@ for Variable in Low:real..High:real step Step:real</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 58. </b><a id="auto-488"></a>Other kinds of <tt class="verbatim">for</tt>
+            <b>Figure 59. </b><a id="auto-488"></a>Other kinds of <tt class="verbatim">for</tt>
             loop
           </p></font>
         </p></td>
@@ -4027,7 +4090,7 @@ for Variable in Low:real..High:real step Step:real</pre></td>
       href="#list-operations">4.1.10</a>, but also as a type. The range type <tt class="verbatim">low..high</tt>
       accepts all values between <tt class="verbatim">low</tt> and <tt class="verbatim">high</tt>
       included. It is defined in a way substantially equivalent to Figure <a
-      href="#range-type-definition">59</a>:
+      href="#range-type-definition">60</a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -4040,7 +4103,7 @@ low..high -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 59. </b><a id="auto-493"></a>Range and range type definition
+            <b>Figure 60. </b><a id="auto-493"></a>Range and range type definition
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4057,7 +4120,7 @@ low..high -&gt;
     <p>
       Ranges of <tt class="verbatim">integer</tt> can also be interpreted as lists, with
       <tt class="verbatim">head</tt> and <tt class="verbatim">tail</tt> operations implemented in
-      a way substantially similar to Figure <a href="#ranges-as-lists">60</a>. Lazy evaluation
+      a way substantially similar to Figure <a href="#ranges-as-lists">61</a>. Lazy evaluation
       ensures that very large ranges can be processed efficiently (see Section
       <a href="#infinite-data-structures">5.7.7</a>).
     </p>
@@ -4071,7 +4134,7 @@ tail low:integer..high:integer -&gt; if low &lt;  high then low+1..high else nil
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 60. </b><a id="auto-495"></a>Ranges as lists
+            <b>Figure 61. </b><a id="auto-495"></a>Ranges as lists
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4085,12 +4148,12 @@ tail low:integer..high:integer -&gt; if low &lt;  high then low+1..high else nil
       The notation <tt class="verbatim">A|B</tt> in types is a <em>union type</em> for
       <tt class="verbatim">A</tt> and <tt class="verbatim">B</tt>, i.e. a type that can accept any
       element of types <tt class="verbatim">A</tt> or <tt class="verbatim">B</tt>. It is
-      pre-defined in the standard library as in Figure <a href="#union-type-definition">61</a>:
+      pre-defined in the standard library as in Figure <a href="#union-type-definition">62</a>:
     </p>
     <table align="center" id="union-type-definition">
       <tbody><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
-type A|B -&gt;
+A|B -&gt;
     contains X:A -&gt; true
     contains X:B -&gt; true
     contains X -&gt; false</pre></td>
@@ -4099,7 +4162,7 @@ type A|B -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 61. </b><a id="auto-497"></a>Union type definition
+            <b>Figure 62. </b><a id="auto-497"></a>Union type definition
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4107,12 +4170,12 @@ type A|B -&gt;
     <p>
       Union types facilitate the definition of functions that work correctly
       on a multiplicity of data types, but not necessarily all of them, as
-      shown in Figure <a href="#using-union-types">62</a>:
+      shown in Figure <a href="#using-union-types">63</a>:
     </p>
     <table align="center" id="using-union-types">
       <tbody><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
-type number           -&gt; X:(integer|real)
+number                -&gt; type X:(integer|real)
 succ X:number         -&gt; X + 1
 pred X:(integer|real) -&gt; X-1</pre></td>
       </tr><tr>
@@ -4120,7 +4183,7 @@ pred X:(integer|real) -&gt; X-1</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 62. </b><a id="auto-498"></a>Using union types
+            <b>Figure 63. </b><a id="auto-498"></a>Using union types
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4131,20 +4194,20 @@ pred X:(integer|real) -&gt; X-1</pre></td>
       notation <tt class="verbatim">enumeration(A, B, C)</tt> corresponds to an
       enumeration accepting the names <tt class="verbatim">A</tt>, <tt class="verbatim">B</tt>,
       <tt class="verbatim">C</tt>... This notation is pre-defined in the standard
-      library as in Figure <a href="#enum-type-definition">63</a>:
+      library as in Figure <a href="#enum-type-definition">64</a>:
     </p>
     <table align="center" id="enum-type-definition">
       <tbody><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em"><pre class="verbatim" xml:space="preserve">
-type enumeration(A:name,Rest) -&gt;
-    contains X:name -&gt; text X = text A or enumeration(Rest) has X
+enumeration(A:name,Rest) -&gt;
+    contains X:name -&gt; text X = text A or enumeration(Rest) contains X
     contains X -&gt; false</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; height: 0.5em"></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 63. </b><a id="auto-500"></a>Enumeration type definition
+            <b>Figure 64. </b><a id="auto-500"></a>Enumeration type definition
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4159,7 +4222,7 @@ type enumeration(A:name,Rest) -&gt;
     <p>
       Type declarations in a type definition are used to declare actual types,
       so a type that matches type declarations cannot be defined by a simple
-      pattern. Figure <a href="#type-declaration-type">64</a> shows how the standard library defines a
+      pattern. Figure <a href="#type-declaration-type">65</a> shows how the standard library defines a
       <tt class="verbatim">type_declaration</tt> type using a type check.
     </p>
     <table align="center" id="type-declaration-type">
@@ -4173,7 +4236,7 @@ type type_declaration -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 64. </b><a id="auto-502"></a>Type matching a type declaration
+            <b>Figure 65. </b><a id="auto-502"></a>Type matching a type declaration
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4186,7 +4249,7 @@ type type_declaration -&gt;
     <h4 id="auto-504"><a id="import-statement"></a>4.4.1<span style="margin-left: 1em"></span>Import statement</h4>
     <p>
       The <tt class="verbatim">import</tt> prefix imports a source file or a module<a
-      id="auto-505"></a><a id="auto-506"></a><a id="auto-507"></a>, as shown in Figure <a href="#import-statement-example">65</a>:
+      id="auto-505"></a><a id="auto-506"></a><a id="auto-507"></a>, as shown in Figure <a href="#import-statement-example">66</a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -4200,7 +4263,7 @@ import MOD = LongMessage 1.3</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 65. </b><a id="auto-508"></a>Import statements examples
+            <b>Figure 66. </b><a id="auto-508"></a>Import statements examples
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4283,7 +4346,7 @@ import MOD = LongMessage 1.3</pre></td>
     <h4 id="auto-516">4.4.2<span style="margin-left: 1em"></span>Declaring a module</h4>
     <p>
       A module is identified by a module description<a id="auto-517"></a><a id="auto-518"></a>
-      similar to Figure <a href="#module-definition">66</a>:
+      similar to Figure <a href="#module-definition">67</a>:
     </p>
     <table align="center">
       <tbody><tr>
@@ -4303,7 +4366,7 @@ module_description
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 66. </b><a id="auto-519"></a>Module definition
+            <b>Figure 67. </b><a id="auto-519"></a>Module definition
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4356,7 +4419,7 @@ module_description
       Since arguments are evaluated lazily, the evaluation of one fragment of
       the form does not imply the evaluation of any other. This makes it
       possible to correctly evaluate infinite data structures, as illustrated
-      in Figure <a href="#infinite-list">67</a>.
+      in Figure <a href="#infinite-list">68</a>.
     </p>
     <table align="center" id="infinite-list">
       <tbody><tr>
@@ -4372,7 +4435,7 @@ head tail tail tail integers_above 4</pre></td>
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 67. </b><a id="auto-542"></a>Lazy evaluation of an infinite list
+            <b>Figure 68. </b><a id="auto-542"></a>Lazy evaluation of an infinite list
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4400,7 +4463,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 68. </b><a id="auto-548"></a>Controlled compilation
+            <b>Figure 69. </b><a id="auto-548"></a>Controlled compilation
           </p></font>
         </p></td>
       </tr></tbody>
@@ -4603,7 +4666,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
     <h3 id="auto-556">6.11<span style="margin-left: 1em"></span>Code generation for trees</h3>
     <p>
       Evaluation functions are functions with the signature shown in Figure <a
-      href="#rewrite-code">69</a>:
+      href="#rewrite-code">70</a>:
     </p>
     <table align="center" id="rewrite-code">
       <tbody><tr>
@@ -4614,14 +4677,14 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 69. </b><a id="auto-557"></a>Signature for rewrite code with two
+            <b>Figure 70. </b><a id="auto-557"></a>Signature for rewrite code with two
             variables.
           </p></font>
         </p></td>
       </tr></tbody>
     </table>
     <p>
-      Unfortunately, the signature in Figure <a href="#rewrite-code">69</a> is not valid in C
+      Unfortunately, the signature in Figure <a href="#rewrite-code">70</a> is not valid in C
       or C++, so we need a lot of casting to achieve the desired effect.
     </p>
     <p>
@@ -4646,7 +4709,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       For example, if a rewrite is <tt class="verbatim">X+Y-&gt;foo X,Y</tt>, then the
       <tt class="verbatim">code</tt> field for <tt class="verbatim">foo X,Y</tt> will have <tt
       class="verbatim">X</tt> as its second argument and <tt class="verbatim">Y</tt> as its third
-      argument, as shown in Figure <a href="#rewrite-code">69</a>.
+      argument, as shown in Figure <a href="#rewrite-code">70</a>.
     </p>
     <p>
       
@@ -4666,7 +4729,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       associated <tt class="verbatim">code</tt> will take additional arguments
       representing all the captured values. For instance, a closure for <tt
       class="verbatim">write X,Y</tt> that captures variables <tt class="verbatim">X</tt> and <tt
-      class="verbatim">Y</tt> will have the signature shown in Figure <a href="#closure-code">70</a>:
+      class="verbatim">Y</tt> will have the signature shown in Figure <a href="#closure-code">71</a>:
     </p>
     <table align="center" id="closure-code">
       <tbody><tr>
@@ -4677,7 +4740,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
       </tr><tr>
         <td style="text-align: left; padding-left: 0em; padding-right: 0em; padding-left: 1.5em; padding-right: 1.5em"><p>
           <font size="-1"><p>
-            <b>Figure 70. </b><a id="auto-560"></a>Signature for rewrite code with two
+            <b>Figure 71. </b><a id="auto-560"></a>Signature for rewrite code with two
             variables.
           </p></font>
         </p></td>
@@ -4787,7 +4850,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             2.3.1<span style="margin-left: 1em"></span>Integer constants <span style="margin-left: 5mm"></span> <a
-            href="#auto-62">5</a>
+            href="#auto-62">4</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -4805,7 +4868,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             2.3.4<span style="margin-left: 1em"></span>Name and operator symbols<a id="auto-89"></a>
-            <span style="margin-left: 5mm"></span> <a href="#auto-89">6</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-89">37</a>
           </p>
         </div>
         <div style="margin-left: 24px">
@@ -4816,7 +4879,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div>
         <div style="margin-left: 48px">
           <p>
-            2.4.1<span style="margin-left: 1em"></span>Infix nodes <span style="margin-left: 5mm"></span> <a href="#auto-102">7</a>
+            2.4.1<span style="margin-left: 1em"></span>Infix nodes <span style="margin-left: 5mm"></span> <a href="#auto-102">6</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -4843,7 +4906,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             2.5.2<span style="margin-left: 1em"></span>Associativity <span style="margin-left: 5mm"></span> <a
-            href="#auto-124">8</a>
+            href="#auto-124">7</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -4882,13 +4945,13 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             3.1.1<span style="margin-left: 1em"></span>Rewrite declarations <span style="margin-left: 5mm"></span>
-            <a href="#auto-181">12</a>
+            <a href="#auto-181">11</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.1.2<span style="margin-left: 1em"></span>Data declaration <span style="margin-left: 5mm"></span> <a
-            href="#auto-197">13</a>
+            href="#auto-197">12</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -4904,22 +4967,32 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div>
         <div style="margin-left: 96px">
           <p>
-            Local variables <span style="margin-left: 5mm"></span> <a href="#auto-218">13</a>
+            Local variables <span style="margin-left: 5mm"></span> <a href="#auto-219">13</a>
           </p>
         </div>
         <div style="margin-left: 96px">
           <p>
-            Assigning to parameters <span style="margin-left: 5mm"></span> <a href="#auto-227">14</a>
+            Assigning to references <span style="margin-left: 5mm"></span> <a href="#auto-228">13</a>
+          </p>
+        </div>
+        <div style="margin-left: 96px">
+          <p>
+            Assigning to parameters <span style="margin-left: 5mm"></span> <a href="#auto-231">14</a>
+          </p>
+        </div>
+        <div style="margin-left: 96px">
+          <p>
+            Assignments as expressions <span style="margin-left: 5mm"></span> <a href="#auto-234">14</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.5<span style="margin-left: 1em"></span>Guards <span style="margin-left: 5mm"></span> <a href="#auto-237">15</a>
+            3.1.5<span style="margin-left: 1em"></span>Guards <span style="margin-left: 5mm"></span> <a href="#auto-237">14</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.6<span style="margin-left: 1em"></span>Sequences <span style="margin-left: 5mm"></span> <a href="#auto-241">15</a>
+            3.1.6<span style="margin-left: 1em"></span>Sequences <span style="margin-left: 5mm"></span> <a href="#auto-241">14</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -4930,12 +5003,12 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div>
         <div style="margin-left: 96px">
           <p>
-            Comparison with C <span style="margin-left: 5mm"></span> <a href="#auto-257">16</a>
+            Comparison with C <span style="margin-left: 5mm"></span> <a href="#auto-257">15</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.1.8<span style="margin-left: 1em"></span>C interface <span style="margin-left: 5mm"></span> <a href="#auto-259">16</a>
+            3.1.8<span style="margin-left: 1em"></span>C interface <span style="margin-left: 5mm"></span> <a href="#auto-259">15</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -4958,52 +5031,52 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.2.2<span style="margin-left: 1em"></span>Scoping <span style="margin-left: 5mm"></span> <a href="#auto-277">17</a>
+            3.2.2<span style="margin-left: 1em"></span>Scoping <span style="margin-left: 5mm"></span> <a href="#auto-277">16</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.2.3<span style="margin-left: 1em"></span>Current context <span style="margin-left: 5mm"></span> <a
-            href="#auto-285">18</a>
+            href="#auto-285">17</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.2.4<span style="margin-left: 1em"></span>References <span style="margin-left: 5mm"></span> <a href="#auto-290">18</a>
+            3.2.4<span style="margin-left: 1em"></span>References <span style="margin-left: 5mm"></span> <a href="#auto-290">17</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            3.3<span style="margin-left: 1em"></span>Evaluation <span style="margin-left: 5mm"></span> <a href="#auto-293">18</a>
+            3.3<span style="margin-left: 1em"></span>Evaluation <span style="margin-left: 5mm"></span> <a href="#auto-293">17</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.1<span style="margin-left: 1em"></span>Standard evaluation <span style="margin-left: 5mm"></span>
-            <a href="#auto-295">19</a>
+            <a href="#auto-295">17</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.2<span style="margin-left: 1em"></span>Special forms <span style="margin-left: 5mm"></span> <a
-            href="#auto-306">20</a>
+            href="#auto-306">18</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.3<span style="margin-left: 1em"></span>Lazy evaluation <span style="margin-left: 5mm"></span> <a
-            href="#auto-309">20</a>
+            href="#auto-309">19</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.3.4<span style="margin-left: 1em"></span>Explicit evaluation <span style="margin-left: 5mm"></span>
-            <a href="#auto-315">20</a>
+            <a href="#auto-315">19</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            3.3.5<span style="margin-left: 1em"></span>Memoization <span style="margin-left: 5mm"></span> <a href="#auto-318">20</a>
+            3.3.5<span style="margin-left: 1em"></span>Memoization <span style="margin-left: 5mm"></span> <a href="#auto-318">19</a>
           </p>
         </div>
         <div style="margin-left: 24px">
@@ -5014,7 +5087,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             3.4.1<span style="margin-left: 1em"></span>Predefined types <span style="margin-left: 5mm"></span> <a
-            href="#auto-328">21</a>
+            href="#auto-328">20</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5026,7 +5099,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             3.4.3<span style="margin-left: 1em"></span>Normal form for a type <span style="margin-left: 5mm"></span>
-            <a href="#auto-361">22</a>
+            <a href="#auto-361">21</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5043,13 +5116,13 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             3.4.6<span style="margin-left: 1em"></span>Explicit type check <span style="margin-left: 5mm"></span>
-            <a href="#auto-394">24</a>
+            <a href="#auto-394">23</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             3.4.7<span style="margin-left: 1em"></span>Explicit and automatic type conversions
-            <span style="margin-left: 5mm"></span> <a href="#auto-404">24</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-404">23</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5061,56 +5134,56 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             3.4.9<span style="margin-left: 1em"></span>Rewrite types <span style="margin-left: 5mm"></span> <a
-            href="#auto-415">25</a>
+            href="#auto-415">24</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>4<span style="margin-left: 1em"></span>Standard XL library</b> <span style="margin-left: 5mm"></span>
-          <a href="#auto-419">25</a>
+          <a href="#auto-419">24</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             4.1<span style="margin-left: 1em"></span>Built-in operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-421">25</a>
+            href="#auto-421">24</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.1.1<span style="margin-left: 1em"></span>Arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-425">26</a>
+            4.1.1<span style="margin-left: 1em"></span>Arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-425">24</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.1.2<span style="margin-left: 1em"></span>Comparison <span style="margin-left: 5mm"></span> <a href="#auto-429">26</a>
+            4.1.2<span style="margin-left: 1em"></span>Comparison <span style="margin-left: 5mm"></span> <a href="#auto-429">25</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.3<span style="margin-left: 1em"></span>Bitwise arithmetic <span style="margin-left: 5mm"></span>
-            <a href="#auto-432">26</a>
+            <a href="#auto-432">25</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.4<span style="margin-left: 1em"></span>Boolean operations <span style="margin-left: 5mm"></span>
-            <a href="#auto-436">26</a>
+            <a href="#auto-436">25</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.5<span style="margin-left: 1em"></span>Mathematical functions <span style="margin-left: 5mm"></span>
-            <a href="#auto-439">27</a>
+            <a href="#auto-439">26</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.1.6<span style="margin-left: 1em"></span>Text functions <span style="margin-left: 5mm"></span> <a
-            href="#auto-442">27</a>
+            href="#auto-442">26</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.1.7<span style="margin-left: 1em"></span>Conversions <span style="margin-left: 5mm"></span> <a href="#auto-445">27</a>
+            4.1.7<span style="margin-left: 1em"></span>Conversions <span style="margin-left: 5mm"></span> <a href="#auto-445">26</a>
           </p>
         </div>
         <div style="margin-left: 48px">
@@ -5128,312 +5201,331 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
         <div style="margin-left: 48px">
           <p>
             4.1.10<span style="margin-left: 1em"></span>List operations, map, reduce and filter
-            <span style="margin-left: 5mm"></span> <a href="#auto-464">28</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-464">27</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             4.2<span style="margin-left: 1em"></span>Control structures <span style="margin-left: 5mm"></span> <a
-            href="#auto-474">29</a>
+            href="#auto-474">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.2.1<span style="margin-left: 1em"></span>Tests <span style="margin-left: 5mm"></span> <a href="#auto-475">29</a>
+            4.2.1<span style="margin-left: 1em"></span>Tests <span style="margin-left: 5mm"></span> <a href="#auto-475">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.2.2<span style="margin-left: 1em"></span>Loops <span style="margin-left: 5mm"></span> <a href="#auto-477">29</a>
+            4.2.2<span style="margin-left: 1em"></span>Infinite Loops <span style="margin-left: 5mm"></span> <a
+            href="#auto-480">28</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.2.3<span style="margin-left: 1em"></span>Error handling <span style="margin-left: 5mm"></span> <a
-            href="#auto-478">29</a>
+            4.2.3<span style="margin-left: 1em"></span>Conditional Loops (<tt>while</tt> and
+            <tt>until</tt> loops) <span style="margin-left: 5mm"></span> <a href="#auto-482">29</a>
+          </p>
+        </div>
+        <div style="margin-left: 48px">
+          <p>
+            4.2.4<span style="margin-left: 1em"></span>Controlled Loops (<tt>for</tt> loops)
+            <span style="margin-left: 5mm"></span> <a href="#auto-485">29</a>
+          </p>
+        </div>
+        <div style="margin-left: 48px">
+          <p>
+            4.2.5<span style="margin-left: 1em"></span>Excursions<b></b> <span style="margin-left: 5mm"></span> <a
+            href="#auto-489">30</a>
+          </p>
+        </div>
+        <div style="margin-left: 48px">
+          <p>
+            4.2.6<span style="margin-left: 1em"></span>Error handling <span style="margin-left: 5mm"></span> <a
+            href="#auto-490">30</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             4.3<span style="margin-left: 1em"></span>Library-defined types <span style="margin-left: 5mm"></span>
-            <a href="#auto-479">30</a>
+            <a href="#auto-491">30</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.3.1<span style="margin-left: 1em"></span>Range and range types <span style="margin-left: 5mm"></span>
-            <a href="#auto-480">30</a>
+            <a href="#auto-492">30</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            4.3.2<span style="margin-left: 1em"></span>Union types <span style="margin-left: 5mm"></span> <a href="#auto-484">30</a>
+            4.3.2<span style="margin-left: 1em"></span>Union types <span style="margin-left: 5mm"></span> <a href="#auto-496">30</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.3.3<span style="margin-left: 1em"></span>Enumeration types <span style="margin-left: 5mm"></span> <a
-            href="#auto-487">30</a>
+            href="#auto-499">30</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.3.4<span style="margin-left: 1em"></span>A type matching type declarations <span
-            style="margin-left: 5mm"></span> <a href="#auto-489">30</a>
+            style="margin-left: 5mm"></span> <a href="#auto-501">31</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            4.4<span style="margin-left: 1em"></span>Modules <span style="margin-left: 5mm"></span> <a href="#auto-491">30</a>
+            4.4<span style="margin-left: 1em"></span>Modules <span style="margin-left: 5mm"></span> <a href="#auto-503">31</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.4.1<span style="margin-left: 1em"></span>Import statement <span style="margin-left: 5mm"></span> <a
-            href="#auto-492">31</a>
+            href="#auto-504">31</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             4.4.2<span style="margin-left: 1em"></span>Declaring a module <span style="margin-left: 5mm"></span>
-            <a href="#auto-504">31</a>
+            <a href="#auto-516">32</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>5<span style="margin-left: 1em"></span>Example code</b> <span style="margin-left: 5mm"></span> <a
-          href="#auto-508">31</a>
+          href="#auto-520">32</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             5.1<span style="margin-left: 1em"></span>Minimum and maximum <span style="margin-left: 5mm"></span> <a
-            href="#auto-509">31</a>
+            href="#auto-521">32</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.2<span style="margin-left: 1em"></span>Complex numbers <span style="margin-left: 5mm"></span> <a
-            href="#auto-510">31</a>
+            href="#auto-522">32</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.3<span style="margin-left: 1em"></span>Vector and Matrix computations <span style="margin-left: 5mm"></span>
-            <a href="#auto-511">31</a>
+            <a href="#auto-523">32</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.4<span style="margin-left: 1em"></span>Linked lists with dynamic allocation <span
-            style="margin-left: 5mm"></span> <a href="#auto-512">31</a>
+            style="margin-left: 5mm"></span> <a href="#auto-524">32</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.5<span style="margin-left: 1em"></span>Input / Output <span style="margin-left: 5mm"></span> <a
-            href="#auto-513">32</a>
+            href="#auto-525">32</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.6<span style="margin-left: 1em"></span>Object-Oriented Programming <span style="margin-left: 5mm"></span>
-            <a href="#auto-514">32</a>
+            <a href="#auto-526">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.6.1<span style="margin-left: 1em"></span>Classes <span style="margin-left: 5mm"></span> <a href="#auto-515">32</a>
+            5.6.1<span style="margin-left: 1em"></span>Classes <span style="margin-left: 5mm"></span> <a href="#auto-527">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.6.2<span style="margin-left: 1em"></span>Methods <span style="margin-left: 5mm"></span> <a href="#auto-516">32</a>
+            5.6.2<span style="margin-left: 1em"></span>Methods <span style="margin-left: 5mm"></span> <a href="#auto-528">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.3<span style="margin-left: 1em"></span>Dynamic dispatch <span style="margin-left: 5mm"></span> <a
-            href="#auto-517">32</a>
+            href="#auto-529">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.4<span style="margin-left: 1em"></span>Polymorphism <span style="margin-left: 5mm"></span> <a
-            href="#auto-518">32</a>
+            href="#auto-530">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.6.5<span style="margin-left: 1em"></span>Inheritance <span style="margin-left: 5mm"></span> <a href="#auto-519">32</a>
+            5.6.5<span style="margin-left: 1em"></span>Inheritance <span style="margin-left: 5mm"></span> <a href="#auto-531">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.6<span style="margin-left: 1em"></span>Multi-methods <span style="margin-left: 5mm"></span> <a
-            href="#auto-520">32</a>
+            href="#auto-532">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.6.7<span style="margin-left: 1em"></span>Object prototypes <span style="margin-left: 5mm"></span> <a
-            href="#auto-521">33</a>
+            href="#auto-533">33</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             5.7<span style="margin-left: 1em"></span>Functional-Programming <span style="margin-left: 5mm"></span>
-            <a href="#auto-522">33</a>
+            <a href="#auto-534">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.7.1<span style="margin-left: 1em"></span>Map <span style="margin-left: 5mm"></span> <a href="#auto-523">33</a>
+            5.7.1<span style="margin-left: 1em"></span>Map <span style="margin-left: 5mm"></span> <a href="#auto-535">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.7.2<span style="margin-left: 1em"></span>Reduce <span style="margin-left: 5mm"></span> <a href="#auto-524">33</a>
+            5.7.2<span style="margin-left: 1em"></span>Reduce <span style="margin-left: 5mm"></span> <a href="#auto-536">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            5.7.3<span style="margin-left: 1em"></span>Filter <span style="margin-left: 5mm"></span> <a href="#auto-525">33</a>
+            5.7.3<span style="margin-left: 1em"></span>Filter <span style="margin-left: 5mm"></span> <a href="#auto-537">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.4<span style="margin-left: 1em"></span>Functions as first-class objects <span
-            style="margin-left: 5mm"></span> <a href="#auto-526">33</a>
+            style="margin-left: 5mm"></span> <a href="#auto-538">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.5<span style="margin-left: 1em"></span>Anonymous functions (Lambda) <span style="margin-left: 5mm"></span>
-            <a href="#auto-527">33</a>
+            <a href="#auto-539">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.6<span style="margin-left: 1em"></span>Y-Combinator <span style="margin-left: 5mm"></span> <a
-            href="#auto-528">34</a>
+            href="#auto-540">33</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             5.7.7<span style="margin-left: 1em"></span>Infinite data structures <span style="margin-left: 5mm"></span>
-            <a href="#auto-529">34</a>
+            <a href="#auto-541">33</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
           <b>6<span style="margin-left: 1em"></span>Implementation notes</b> <span style="margin-left: 5mm"></span>
-          <a href="#auto-531">34</a>
+          <a href="#auto-543">33</a>
         </p>
         <div style="margin-left: 24px">
           <p>
             6.1<span style="margin-left: 1em"></span>Lazy evaluation <span style="margin-left: 5mm"></span> <a
-            href="#auto-532">34</a>
+            href="#auto-544">33</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.2<span style="margin-left: 1em"></span>Type inference <span style="margin-left: 5mm"></span> <a
-            href="#auto-533">34</a>
+            href="#auto-545">33</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.3<span style="margin-left: 1em"></span>Built-in operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-534">?</a>
+            href="#auto-546">33</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.4<span style="margin-left: 1em"></span>Controlled compilation <span style="margin-left: 5mm"></span>
-            <a href="#auto-535">?</a>
+            <a href="#auto-547">33</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.5<span style="margin-left: 1em"></span>Tree representation <span style="margin-left: 5mm"></span> <a
-            href="#auto-538">?</a>
+            href="#auto-550">34</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.6<span style="margin-left: 1em"></span>Evaluation of trees <span style="margin-left: 5mm"></span> <a
-            href="#auto-539">?</a>
+            href="#auto-551">34</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            6.7<span style="margin-left: 1em"></span>Tree position <span style="margin-left: 5mm"></span> <a href="#auto-540">?</a>
+            6.7<span style="margin-left: 1em"></span>Tree position <span style="margin-left: 5mm"></span> <a href="#auto-552">34</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.8<span style="margin-left: 1em"></span>Actions on trees <span style="margin-left: 5mm"></span> <a
-            href="#auto-541">?</a>
+            href="#auto-553">35</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
-            6.9<span style="margin-left: 1em"></span>Symbols <span style="margin-left: 5mm"></span> <a href="#auto-542">?</a>
+            6.9<span style="margin-left: 1em"></span>Symbols <span style="margin-left: 5mm"></span> <a href="#auto-554">35</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.10<span style="margin-left: 1em"></span>Evaluating trees <span style="margin-left: 5mm"></span> <a
-            href="#auto-543">?</a>
+            href="#auto-555">35</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.11<span style="margin-left: 1em"></span>Code generation for trees <span style="margin-left: 5mm"></span>
-            <a href="#auto-544">?</a>
+            <a href="#auto-556">35</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
             6.11.1<span style="margin-left: 1em"></span>Right side of a rewrite <span style="margin-left: 5mm"></span>
-            <a href="#auto-546">?</a>
+            <a href="#auto-558">35</a>
           </p>
         </div>
         <div style="margin-left: 48px">
           <p>
-            6.11.2<span style="margin-left: 1em"></span>Closures <span style="margin-left: 5mm"></span> <a href="#auto-547">?</a>
+            6.11.2<span style="margin-left: 1em"></span>Closures <span style="margin-left: 5mm"></span> <a href="#auto-559">35</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.12<span style="margin-left: 1em"></span>Tail recursion <span style="margin-left: 5mm"></span> <a
-            href="#auto-549">?</a>
+            href="#auto-561">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.13<span style="margin-left: 1em"></span>Partial recompilation <span style="margin-left: 5mm"></span>
-            <a href="#auto-550">?</a>
+            <a href="#auto-562">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.14<span style="margin-left: 1em"></span>Machine Interface <span style="margin-left: 5mm"></span> <a
-            href="#auto-551">?</a>
+            href="#auto-563">36</a>
           </p>
         </div>
         <div style="margin-left: 24px">
           <p>
             6.15<span style="margin-left: 1em"></span>Machine Types and Normal Types <span
-            style="margin-left: 5mm"></span> <a href="#auto-552">?</a>
+            style="margin-left: 5mm"></span> <a href="#auto-564">36</a>
           </p>
         </div>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
-          <b>Index</b> <span style="margin-left: 5mm"></span> <a href="#auto-90">6</a>
+          <b>Index</b> <span style="margin-left: 5mm"></span> <a href="#auto-90">40</a>
         </p>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
-          <b>List of figures</b> <span style="margin-left: 5mm"></span> <a href="#auto-91">6</a>
+          <b>List of figures</b> <span style="margin-left: 5mm"></span> <a href="#auto-91">43</a>
         </p>
         <p style="margin-top: 1em; margin-bottom: 0.5em">
-          <b>List of tables</b> <span style="margin-left: 5mm"></span> <a href="#auto-92">6</a>
+          <b>List of tables</b> <span style="margin-left: 5mm"></span> <a href="#auto-92">45</a>
         </p>
       </div>
     </div>
@@ -5453,48 +5545,48 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             argument <span style="margin-left: 5mm"></span> <a href="#auto-192">12</a>
           </p><p>
-            arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-426">26</a>
+            arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-426">24</a>
           </p><div style="margin-left: 24px">
             <p>
-              bitwise <span style="margin-left: 5mm"></span> <a href="#auto-434">26</a>
+              bitwise <span style="margin-left: 5mm"></span> <a href="#auto-434">25</a>
             </p>
           </div><p>
             array
           </p><div style="margin-left: 24px">
             <p>
-              as function <span style="margin-left: 5mm"></span> <a href="#auto-258">16</a>
+              as function <span style="margin-left: 5mm"></span> <a href="#auto-258">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
               index <span style="margin-left: 5mm"></span> <a href="#auto-251">15</a>
             </p>
           </div><p>
-            array index <span style="margin-left: 5mm"></span> <a href="#auto-252">16</a>
+            array index <span style="margin-left: 5mm"></span> <a href="#auto-252">15</a>
           </p><p>
             art <span style="margin-left: 5mm"></span> <a href="#auto-41">3</a>
           </p><p>
             assignment <span style="margin-left: 5mm"></span> <a href="#auto-175">11</a>, <a href="#auto-213">13</a>,
-            <a href="#auto-289">18</a>
+            <a href="#auto-289">17</a>
           </p><div style="margin-left: 24px">
             <p>
-              in expression <span style="margin-left: 5mm"></span> <a href="#auto-231">14</a>
+              in expression <span style="margin-left: 5mm"></span> <a href="#auto-235">14</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              to parameter <span style="margin-left: 5mm"></span> <a href="#auto-228">14</a>
+              to parameter <span style="margin-left: 5mm"></span> <a href="#auto-232">14</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
               to type declaration <span style="margin-left: 5mm"></span> <a href="#auto-211">13</a>, <a
-              href="#auto-219">13</a>
+              href="#auto-220">13</a>
             </p>
           </div><p>
-            associativity <span style="margin-left: 5mm"></span> <a href="#auto-117">7</a>, <a href="#auto-125">8</a>
+            associativity <span style="margin-left: 5mm"></span> <a href="#auto-117">7</a>, <a href="#auto-125">7</a>
           </p><p>
             AST
           </p><div style="margin-left: 24px">
             <p>
-              manipulations <span style="margin-left: 5mm"></span> <a href="#auto-456">28</a>
+              manipulations <span style="margin-left: 5mm"></span> <a href="#auto-456">27</a>
             </p>
           </div><p>
             AST (abstract syntax tree) <span style="margin-left: 5mm"></span> <a href="#auto-16">1</a>
@@ -5511,65 +5603,61 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              local scope <span style="margin-left: 5mm"></span> <a href="#auto-221">13</a>
+              local scope <span style="margin-left: 5mm"></span> <a href="#auto-222">13</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of module names <span style="margin-left: 5mm"></span> <a href="#auto-503">31</a>
+              of module names <span style="margin-left: 5mm"></span> <a href="#auto-515">32</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              override <span style="margin-left: 5mm"></span> <a href="#auto-233">14</a>
+              parameters <span style="margin-left: 5mm"></span> <a href="#auto-302">18</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              parameters <span style="margin-left: 5mm"></span> <a href="#auto-302">19</a>
-            </p>
-          </div><div style="margin-left: 24px">
-            <p>
-              with return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-225">14</a>
+              with return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-226">13</a>
             </p>
           </div><p>
             bindings
           </p><div style="margin-left: 24px">
             <p>
-              in type definitions <span style="margin-left: 5mm"></span> <a href="#auto-357">22</a>
+              in type definitions <span style="margin-left: 5mm"></span> <a href="#auto-357">21</a>
             </p>
           </div><p>
-            bitwise arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-433">26</a>
+            bitwise arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-433">25</a>
           </p><p>
-            block <span style="margin-left: 5mm"></span> <a href="#auto-100">7</a>, <a href="#auto-112">7</a>, <a
-            href="#auto-340">21</a>
+            block <span style="margin-left: 5mm"></span> <a href="#auto-100">6</a>, <a href="#auto-112">7</a>, <a
+            href="#auto-340">20</a>
           </p><p>
-            block delimiters <span style="margin-left: 5mm"></span> <a href="#auto-113">7</a>, <a href="#auto-155">11</a>
+            block delimiters <span style="margin-left: 5mm"></span> <a href="#auto-113">7</a>, <a href="#auto-155">10</a>
           </p><p>
             block type <span style="margin-left: 5mm"></span> <a href="#auto-14">1</a>
           </p><p>
-            boolean <span style="margin-left: 5mm"></span> <a href="#auto-342">21</a>, <a href="#auto-437">27</a>
+            boolean <span style="margin-left: 5mm"></span> <a href="#auto-342">21</a>, <a href="#auto-437">25</a>
           </p><p>
-            built-in operations <span style="margin-left: 5mm"></span> <a href="#auto-422">25</a>
+            built-in operations <span style="margin-left: 5mm"></span> <a href="#auto-422">24</a>
           </p><p>
-            builtins.xl <span style="margin-left: 5mm"></span> <a href="#auto-424">25</a>
+            builtins.xl <span style="margin-left: 5mm"></span> <a href="#auto-424">24</a>
           </p><p>
-            C interface <span style="margin-left: 5mm"></span> <a href="#auto-260">16</a>
+            C interface <span style="margin-left: 5mm"></span> <a href="#auto-260">15</a>
           </p><p>
-            C symbols <span style="margin-left: 5mm"></span> <a href="#auto-160">11</a>
+            C symbols <span style="margin-left: 5mm"></span> <a href="#auto-160">10</a>
           </p><p>
-            catch-all rewrite <span style="margin-left: 5mm"></span> <a href="#auto-283">17</a>
+            catch-all rewrite <span style="margin-left: 5mm"></span> <a href="#auto-283">16</a>
           </p><p>
-            child <span style="margin-left: 5mm"></span> <a href="#auto-460">28</a>
+            child <span style="margin-left: 5mm"></span> <a href="#auto-460">27</a>
           </p><p>
-            child node <span style="margin-left: 5mm"></span> <a href="#auto-101">7</a>
+            child node <span style="margin-left: 5mm"></span> <a href="#auto-101">6</a>
           </p><p>
-            closing <span style="margin-left: 5mm"></span> <a href="#auto-463">28</a>
+            closing <span style="margin-left: 5mm"></span> <a href="#auto-463">27</a>
           </p><p>
-            closure <span style="margin-left: 5mm"></span> <a href="#auto-304">19</a>
+            closure <span style="margin-left: 5mm"></span> <a href="#auto-304">18</a>
           </p><p>
-            code space <span style="margin-left: 5mm"></span> <a href="#auto-33">3</a>
+            code space <span style="margin-left: 5mm"></span> <a href="#auto-33">2</a>
           </p><p>
             comments <span style="margin-left: 5mm"></span> <a href="#auto-58">4</a>
           </p><p>
-            comparisons <span style="margin-left: 5mm"></span> <a href="#auto-430">26</a>
+            comparisons <span style="margin-left: 5mm"></span> <a href="#auto-430">25</a>
           </p><p>
             concept <span style="margin-left: 5mm"></span> <a href="#auto-31">2</a>
           </p><p>
@@ -5579,41 +5667,41 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             constant symbols <span style="margin-left: 5mm"></span> <a href="#auto-190">12</a>
           </p><p>
-            contains <span style="margin-left: 5mm"></span> <a href="#auto-399">24</a>
+            contains <span style="margin-left: 5mm"></span> <a href="#auto-399">23</a>
           </p><p>
-            context <span style="margin-left: 5mm"></span> <a href="#auto-195">13</a>, <a href="#auto-273">16</a>
+            context <span style="margin-left: 5mm"></span> <a href="#auto-195">12</a>, <a href="#auto-273">16</a>
           </p><div style="margin-left: 24px">
             <p>
-              current <span style="margin-left: 5mm"></span> <a href="#auto-287">18</a>
+              current <span style="margin-left: 5mm"></span> <a href="#auto-287">17</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-280">17</a>
+              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-280">16</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              parameter context <span style="margin-left: 5mm"></span> <a href="#auto-305">19</a>
+              parameter context <span style="margin-left: 5mm"></span> <a href="#auto-305">18</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              passed with arguments <span style="margin-left: 5mm"></span> <a href="#auto-303">19</a>
+              passed with arguments <span style="margin-left: 5mm"></span> <a href="#auto-303">18</a>
             </p>
           </div><p>
-            context order <span style="margin-left: 5mm"></span> <a href="#auto-275">17</a>, <a href="#auto-297">19</a>
+            context order <span style="margin-left: 5mm"></span> <a href="#auto-275">16</a>, <a href="#auto-297">17</a>
           </p><p>
             control characters <span style="margin-left: 5mm"></span> <a href="#auto-78">5</a>
           </p><p>
             conversion
           </p><div style="margin-left: 24px">
             <p>
-              from number to text <span style="margin-left: 5mm"></span> <a href="#auto-450">27</a>
+              from number to text <span style="margin-left: 5mm"></span> <a href="#auto-450">26</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              from text to number <span style="margin-left: 5mm"></span> <a href="#auto-449">27</a>
+              from text to number <span style="margin-left: 5mm"></span> <a href="#auto-449">26</a>
             </p>
           </div><p>
-            conversions <span style="margin-left: 5mm"></span> <a href="#auto-446">27</a>
+            conversions <span style="margin-left: 5mm"></span> <a href="#auto-446">26</a>
           </p><p>
             C.syntax <span style="margin-left: 5mm"></span> <a href="#auto-263">16</a>
           </p><div style="margin-left: 24px">
@@ -5621,11 +5709,11 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
               connexion to xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-265">16</a>
             </p>
           </div><p>
-            C.syntax file <span style="margin-left: 5mm"></span> <a href="#auto-159">11</a>
+            C.syntax file <span style="margin-left: 5mm"></span> <a href="#auto-159">10</a>
           </p><p>
-            current context <span style="margin-left: 5mm"></span> <a href="#auto-286">18</a>
+            current context <span style="margin-left: 5mm"></span> <a href="#auto-286">17</a>
           </p><p>
-            data declaration <span style="margin-left: 5mm"></span> <a href="#auto-199">13</a>
+            data declaration <span style="margin-left: 5mm"></span> <a href="#auto-199">12</a>
           </p><p>
             data declarations <span style="margin-left: 5mm"></span> <a href="#auto-172">11</a>
           </p><p>
@@ -5636,11 +5724,11 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             declaration <span style="margin-left: 5mm"></span> <a href="#auto-246">15</a>
           </p><div style="margin-left: 24px">
             <p>
-              of data <span style="margin-left: 5mm"></span> <a href="#auto-198">13</a>
+              of data <span style="margin-left: 5mm"></span> <a href="#auto-198">12</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of rewrites <span style="margin-left: 5mm"></span> <a href="#auto-182">12</a>
+              of rewrites <span style="margin-left: 5mm"></span> <a href="#auto-182">11</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -5651,12 +5739,12 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             default prefix (precedence) <span style="margin-left: 5mm"></span> <a href="#auto-130">8</a>
           </p><p>
-            default value <span style="margin-left: 5mm"></span> <a href="#auto-377">23</a>
+            default value <span style="margin-left: 5mm"></span> <a href="#auto-377">22</a>
           </p><p>
             definition
           </p><div style="margin-left: 24px">
             <p>
-              of properties <span style="margin-left: 5mm"></span> <a href="#auto-376">23</a>
+              of properties <span style="margin-left: 5mm"></span> <a href="#auto-376">22</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -5675,22 +5763,22 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
               as index operator <span style="margin-left: 5mm"></span> <a href="#auto-250">15</a>
             </p>
           </div><p>
-            double quote <span style="margin-left: 5mm"></span> <a href="#auto-82">6</a>
+            double quote <span style="margin-left: 5mm"></span> <a href="#auto-82">5</a>
           </p><p>
             DSL (domain-specific language) <span style="margin-left: 5mm"></span> <a href="#auto-18">2</a>
           </p><p>
-            evaluation <span style="margin-left: 5mm"></span> <a href="#auto-165">11</a>, <a href="#auto-294">18</a>
+            evaluation <span style="margin-left: 5mm"></span> <a href="#auto-165">11</a>, <a href="#auto-294">17</a>
           </p><div style="margin-left: 24px">
             <p>
-              data declaration arguments <span style="margin-left: 5mm"></span> <a href="#auto-201">13</a>
+              data declaration arguments <span style="margin-left: 5mm"></span> <a href="#auto-201">12</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              demand-based <span style="margin-left: 5mm"></span> <a href="#auto-312">20</a>
+              demand-based <span style="margin-left: 5mm"></span> <a href="#auto-312">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              explicit <span style="margin-left: 5mm"></span> <a href="#auto-317">20</a>
+              explicit <span style="margin-left: 5mm"></span> <a href="#auto-317">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -5706,49 +5794,49 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              lazy <span style="margin-left: 5mm"></span> <a href="#auto-234">14</a>, <a href="#auto-311">20</a>
+              lazy <span style="margin-left: 5mm"></span> <a href="#auto-311">19</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              mismatch <span style="margin-left: 5mm"></span> <a href="#auto-301">19</a>
+              mismatch <span style="margin-left: 5mm"></span> <a href="#auto-301">18</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-299">19</a>
+              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-299">18</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              order <span style="margin-left: 5mm"></span> <a href="#auto-244">15</a>
+              order <span style="margin-left: 5mm"></span> <a href="#auto-244">14</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              special forms <span style="margin-left: 5mm"></span> <a href="#auto-308">20</a>
+              special forms <span style="margin-left: 5mm"></span> <a href="#auto-308">18</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              standard case <span style="margin-left: 5mm"></span> <a href="#auto-296">19</a>
+              standard case <span style="margin-left: 5mm"></span> <a href="#auto-296">17</a>
             </p>
           </div><p>
-            evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-179">12</a>
+            evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-179">11</a>
           </p><p>
             execution (of programs) <span style="margin-left: 5mm"></span> <a href="#auto-164">11</a>
           </p><p>
-            explicit evaluation <span style="margin-left: 5mm"></span> <a href="#auto-316">20</a>
+            explicit evaluation <span style="margin-left: 5mm"></span> <a href="#auto-316">19</a>
           </p><p>
-            explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-395">24</a>
+            explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-395">23</a>
           </p><p>
-            explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-405">24</a>
+            explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-405">23</a>
           </p><p>
             exponent (for real constants) <span style="margin-left: 5mm"></span> <a href="#auto-72">5</a>
           </p><p>
             expression
           </p><div style="margin-left: 24px">
             <p>
-              allowed on left of assignment <span style="margin-left: 5mm"></span> <a href="#auto-236">15</a>
+              allowed on left of assignment <span style="margin-left: 5mm"></span> <a href="#auto-230">14</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              assignment as expression <span style="margin-left: 5mm"></span> <a href="#auto-232">14</a>
+              assignment as expression <span style="margin-left: 5mm"></span> <a href="#auto-236">14</a>
             </p>
           </div><p>
             expression (as opposed to statement) <span style="margin-left: 5mm"></span> <a href="#auto-137">8</a>
@@ -5758,179 +5846,185 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             Extensible language and runtime <span style="margin-left: 5mm"></span> <a href="#auto-4">1</a>
           </p><p>
-            extern syntax <span style="margin-left: 5mm"></span> <a href="#auto-261">16</a>
+            extern syntax <span style="margin-left: 5mm"></span> <a href="#auto-261">15</a>
           </p><p>
-            external syntax file <span style="margin-left: 5mm"></span> <a href="#auto-158">11</a>
+            external syntax file <span style="margin-left: 5mm"></span> <a href="#auto-158">10</a>
           </p><p>
-            field index <span style="margin-left: 5mm"></span> <a href="#auto-254">16</a>
+            field index <span style="margin-left: 5mm"></span> <a href="#auto-254">15</a>
           </p><p>
             filter <span style="margin-left: 5mm"></span> <a href="#auto-25">2</a>
           </p><p>
-            filter operation <span style="margin-left: 5mm"></span> <a href="#auto-471">29</a>
+            filter operation <span style="margin-left: 5mm"></span> <a href="#auto-471">28</a>
           </p><p>
             function <span style="margin-left: 5mm"></span> <a href="#auto-110">7</a>
           </p><p>
             function precedence <span style="margin-left: 5mm"></span> <a href="#auto-109">7</a>, <a href="#auto-131">8</a>,
-            <a href="#auto-154">11</a>
+            <a href="#auto-154">10</a>
           </p><p>
             functional programming <span style="margin-left: 5mm"></span> <a href="#auto-20">2</a>, <a
             href="#auto-26">2</a>
           </p><p>
-            getter <span style="margin-left: 5mm"></span> <a href="#auto-383">23</a>
+            getter <span style="margin-left: 5mm"></span> <a href="#auto-383">22</a>
           </p><p>
-            guard <span style="margin-left: 5mm"></span> <a href="#auto-238">15</a>
+            good (function) <span style="margin-left: 5mm"></span> <a href="#auto-478">28</a>
+          </p><p>
+            guard <span style="margin-left: 5mm"></span> <a href="#auto-238">14</a>
           </p><p>
             guard (in a rewrite declaration) <span style="margin-left: 5mm"></span> <a href="#auto-174">11</a>
           </p><p>
-            hash sign (as a radix delimiter) <span style="margin-left: 5mm"></span> <a href="#auto-65">5</a>
+            hash sign (as a radix delimiter) <span style="margin-left: 5mm"></span> <a href="#auto-65">4</a>
           </p><p>
             if-then-else
           </p><div style="margin-left: 24px">
             <p>
-              statement <span style="margin-left: 5mm"></span> <a href="#auto-28">2</a>
+              library definition <span style="margin-left: 5mm"></span> <a href="#auto-476">28</a>
+            </p>
+          </div><div style="margin-left: 24px">
+            <p>
+              statement <span style="margin-left: 5mm"></span> <a href="#auto-28">2</a>, <a href="#auto-184">11</a>
+            </p>
+          </div><div style="margin-left: 24px">
+            <p>
+              type <span style="margin-left: 5mm"></span> <a href="#auto-347">21</a>
             </p>
           </div><p>
-            if-then-else statement <span style="margin-left: 5mm"></span> <a href="#auto-184">12</a>
-          </p><p>
-            if-then-else type <span style="margin-left: 5mm"></span> <a href="#auto-347">21</a>
-          </p><p>
             implementation <span style="margin-left: 5mm"></span> <a href="#auto-171">11</a>
           </p><p>
-            import <span style="margin-left: 5mm"></span> <a href="#auto-494">31</a>
+            import <span style="margin-left: 5mm"></span> <a href="#auto-506">31</a>
           </p><div style="margin-left: 24px">
             <p>
-              with a short name <span style="margin-left: 5mm"></span> <a href="#auto-499">31</a>
+              with a short name <span style="margin-left: 5mm"></span> <a href="#auto-511">31</a>
             </p>
           </div><p>
             indentation <span style="margin-left: 5mm"></span> <a href="#auto-55">4</a>, <a href="#auto-151">10</a>,
-            <a href="#auto-156">11</a>
+            <a href="#auto-156">10</a>
           </p><p>
-            indentation (in long text) <span style="margin-left: 5mm"></span> <a href="#auto-85">35</a>
+            indentation (in long text) <span style="margin-left: 5mm"></span> <a href="#auto-85">6</a>
           </p><p>
             index
           </p><div style="margin-left: 24px">
             <p>
-              array <span style="margin-left: 5mm"></span> <a href="#auto-253">16</a>
+              array <span style="margin-left: 5mm"></span> <a href="#auto-253">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              field <span style="margin-left: 5mm"></span> <a href="#auto-255">16</a>
+              field <span style="margin-left: 5mm"></span> <a href="#auto-255">15</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              for user-defined types <span style="margin-left: 5mm"></span> <a href="#auto-358">22</a>
+              for user-defined types <span style="margin-left: 5mm"></span> <a href="#auto-358">21</a>
             </p>
           </div><p>
-            index operator <span style="margin-left: 5mm"></span> <a href="#auto-180">12</a>, <a href="#auto-249">15</a>,
-            <a href="#auto-292">18</a>
+            index operator <span style="margin-left: 5mm"></span> <a href="#auto-180">11</a>, <a href="#auto-249">15</a>,
+            <a href="#auto-292">17</a>
           </p><p>
-            infix <span style="margin-left: 5mm"></span> <a href="#auto-97">6</a>, <a href="#auto-103">7</a>, <a
-            href="#auto-337">21</a>
+            infix <span style="margin-left: 5mm"></span> <a href="#auto-97">6</a>, <a href="#auto-103">6</a>, <a
+            href="#auto-337">20</a>
           </p><p>
             infix type <span style="margin-left: 5mm"></span> <a href="#auto-11">1</a>
           </p><p>
             infix vs. prefix vs. postfix <span style="margin-left: 5mm"></span> <a href="#auto-118">7</a>,
             <a href="#auto-127">8</a>
           </p><p>
-            inherit <span style="margin-left: 5mm"></span> <a href="#auto-372">23</a>, <a href="#auto-390">23</a>
+            inherit <span style="margin-left: 5mm"></span> <a href="#auto-372">22</a>, <a href="#auto-390">23</a>
           </p><p>
-            integer <span style="margin-left: 5mm"></span> <a href="#auto-331">21</a>
+            integer <span style="margin-left: 5mm"></span> <a href="#auto-331">20</a>
           </p><p>
-            integer constant <span style="margin-left: 5mm"></span> <a href="#auto-63">5</a>
+            integer constant <span style="margin-left: 5mm"></span> <a href="#auto-63">4</a>
           </p><p>
             integer type <span style="margin-left: 5mm"></span> <a href="#auto-7">1</a>
           </p><p>
-            interval arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-482">30</a>
+            interval arithmetic <span style="margin-left: 5mm"></span> <a href="#auto-494">30</a>
           </p><p>
-            is_a <span style="margin-left: 5mm"></span> <a href="#auto-402">24</a>
+            is_a <span style="margin-left: 5mm"></span> <a href="#auto-402">23</a>
           </p><p>
             lambda function <span style="margin-left: 5mm"></span> <a href="#auto-194">12</a>
           </p><p>
-            lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-310">20</a>
+            lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-310">19</a>
           </p><p>
-            left <span style="margin-left: 5mm"></span> <a href="#auto-458">28</a>
+            left <span style="margin-left: 5mm"></span> <a href="#auto-458">27</a>
           </p><p>
-            library <span style="margin-left: 5mm"></span> <a href="#auto-420">25</a>
+            library <span style="margin-left: 5mm"></span> <a href="#auto-420">24</a>
           </p><p>
             line-terminating characters <span style="margin-left: 5mm"></span> <a href="#auto-77">5</a>
           </p><p>
             list
           </p><div style="margin-left: 24px">
             <p>
-              comma-separated <span style="margin-left: 5mm"></span> <a href="#auto-467">29</a>
+              comma-separated <span style="margin-left: 5mm"></span> <a href="#auto-467">27</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              operations on lists <span style="margin-left: 5mm"></span> <a href="#auto-466">28</a>
+              operations on lists <span style="margin-left: 5mm"></span> <a href="#auto-466">27</a>
             </p>
           </div><p>
-            list operations <span style="margin-left: 5mm"></span> <a href="#auto-465">28</a>
+            list operations <span style="margin-left: 5mm"></span> <a href="#auto-465">27</a>
           </p><p>
             literal node types <span style="margin-left: 5mm"></span> <a href="#auto-61">4</a>
           </p><p>
-            local scope <span style="margin-left: 5mm"></span> <a href="#auto-222">14</a>
+            local scope <span style="margin-left: 5mm"></span> <a href="#auto-223">13</a>
           </p><p>
-            long text <span style="margin-left: 5mm"></span> <a href="#auto-83">6</a>
+            long text <span style="margin-left: 5mm"></span> <a href="#auto-83">5</a>
           </p><p>
             machine interface <span style="margin-left: 5mm"></span> <a href="#auto-268">16</a>
           </p><p>
             map <span style="margin-left: 5mm"></span> <a href="#auto-23">2</a>
           </p><p>
-            map operation <span style="margin-left: 5mm"></span> <a href="#auto-469">29</a>
+            map operation <span style="margin-left: 5mm"></span> <a href="#auto-469">28</a>
           </p><p>
-            mathematical functions <span style="margin-left: 5mm"></span> <a href="#auto-440">27</a>
+            mathematical functions <span style="margin-left: 5mm"></span> <a href="#auto-440">26</a>
           </p><p>
             memoization
           </p><div style="margin-left: 24px">
             <p>
-              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-300">19</a>
+              of arguments <span style="margin-left: 5mm"></span> <a href="#auto-300">18</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              of parameters <span style="margin-left: 5mm"></span> <a href="#auto-319">20</a>
+              of parameters <span style="margin-left: 5mm"></span> <a href="#auto-319">19</a>
             </p>
           </div><p>
             meta-programming <span style="margin-left: 5mm"></span> <a href="#auto-21">2</a>
           </p><p>
-            module <span style="margin-left: 5mm"></span> <a href="#auto-493">31</a>
+            module <span style="margin-left: 5mm"></span> <a href="#auto-505">31</a>
           </p><div style="margin-left: 24px">
             <p>
-              description <span style="margin-left: 5mm"></span> <a href="#auto-506">31</a>
+              description <span style="margin-left: 5mm"></span> <a href="#auto-518">32</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              import <span style="margin-left: 5mm"></span> <a href="#auto-495">31</a>
+              import <span style="margin-left: 5mm"></span> <a href="#auto-507">31</a>
             </p>
           </div><p>
-            module description <span style="margin-left: 5mm"></span> <a href="#auto-505">31</a>
+            module description <span style="margin-left: 5mm"></span> <a href="#auto-517">32</a>
           </p><p>
-            module path <span style="margin-left: 5mm"></span> <a href="#auto-497">31</a>
+            module path <span style="margin-left: 5mm"></span> <a href="#auto-509">31</a>
           </p><p>
             music <span style="margin-left: 5mm"></span> <a href="#auto-43">3</a>
           </p><p>
-            name <span style="margin-left: 5mm"></span> <a href="#auto-91">6</a>, <a href="#auto-335">21</a>
+            name <span style="margin-left: 5mm"></span> <a href="#auto-91">43</a>, <a href="#auto-335">20</a>
           </p><p>
             name type <span style="margin-left: 5mm"></span> <a href="#auto-10">1</a>
           </p><p>
             noise <span style="margin-left: 5mm"></span> <a href="#auto-42">3</a>
           </p><p>
-            normal form <span style="margin-left: 5mm"></span> <a href="#auto-362">22</a>
+            normal form <span style="margin-left: 5mm"></span> <a href="#auto-362">21</a>
           </p><p>
-            normal XLR <span style="margin-left: 5mm"></span> <a href="#auto-50">4</a>
+            normal XLR <span style="margin-left: 5mm"></span> <a href="#auto-50">3</a>
           </p><p>
             off-side rule <span style="margin-left: 5mm"></span> <a href="#auto-52">4</a>
           </p><p>
             opcode <span style="margin-left: 5mm"></span> <a href="#auto-269">16</a>
           </p><p>
-            opening <span style="margin-left: 5mm"></span> <a href="#auto-462">28</a>
+            opening <span style="margin-left: 5mm"></span> <a href="#auto-462">27</a>
           </p><p>
             operand (in prefix and postfix) <span style="margin-left: 5mm"></span> <a href="#auto-107">7</a>
           </p><p>
-            operator <span style="margin-left: 5mm"></span> <a href="#auto-336">21</a>
+            operator <span style="margin-left: 5mm"></span> <a href="#auto-336">20</a>
           </p><p>
-            operator symbols <span style="margin-left: 5mm"></span> <a href="#auto-92">6</a>
+            operator symbols <span style="margin-left: 5mm"></span> <a href="#auto-92">45</a>
           </p><p>
-            operators <span style="margin-left: 5mm"></span> <a href="#auto-143">10</a>
+            operators <span style="margin-left: 5mm"></span> <a href="#auto-143">8</a>
           </p><p>
             overloading <span style="margin-left: 5mm"></span> <a href="#auto-209">13</a>
           </p><p>
@@ -5941,11 +6035,11 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             parameters
           </p><div style="margin-left: 24px">
             <p>
-              of types <span style="margin-left: 5mm"></span> <a href="#auto-356">22</a>
+              of types <span style="margin-left: 5mm"></span> <a href="#auto-356">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              with properties types <span style="margin-left: 5mm"></span> <a href="#auto-374">23</a>
+              with properties types <span style="margin-left: 5mm"></span> <a href="#auto-374">22</a>
             </p>
           </div><p>
             parsing <span style="margin-left: 5mm"></span> <a href="#auto-115">7</a>, <a href="#auto-128">8</a>
@@ -5959,29 +6053,29 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              making type pattern specific <span style="margin-left: 5mm"></span> <a href="#auto-364">22</a>
+              making type pattern specific <span style="margin-left: 5mm"></span> <a href="#auto-364">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              matching <span style="margin-left: 5mm"></span> <a href="#auto-298">19</a>
+              matching <span style="margin-left: 5mm"></span> <a href="#auto-298">17</a>
             </p>
           </div><p>
-            postfix <span style="margin-left: 5mm"></span> <a href="#auto-99">7</a>, <a href="#auto-106">7</a>, <a
-            href="#auto-339">21</a>
+            postfix <span style="margin-left: 5mm"></span> <a href="#auto-99">6</a>, <a href="#auto-106">7</a>, <a
+            href="#auto-339">20</a>
           </p><p>
             postfix type <span style="margin-left: 5mm"></span> <a href="#auto-13">1</a>
           </p><p>
-            power operator <span style="margin-left: 5mm"></span> <a href="#auto-427">26</a>
+            power operator <span style="margin-left: 5mm"></span> <a href="#auto-427">24</a>
           </p><p>
-            precedence <span style="margin-left: 5mm"></span> <a href="#auto-116">7</a>, <a href="#auto-121">8</a>, <a
-            href="#auto-145">10</a>
+            precedence <span style="margin-left: 5mm"></span> <a href="#auto-116">7</a>, <a href="#auto-121">7</a>, <a
+            href="#auto-145">8</a>
           </p><p>
-            predefined types <span style="margin-left: 5mm"></span> <a href="#auto-330">21</a>
+            predefined types <span style="margin-left: 5mm"></span> <a href="#auto-330">20</a>
           </p><p>
-            predicate <span style="margin-left: 5mm"></span> <a href="#auto-472">29</a>
+            predicate <span style="margin-left: 5mm"></span> <a href="#auto-472">28</a>
           </p><p>
             prefix <span style="margin-left: 5mm"></span> <a href="#auto-98">6</a>, <a href="#auto-105">7</a>, <a
-            href="#auto-338">21</a>
+            href="#auto-338">20</a>
           </p><p>
             prefix type <span style="margin-left: 5mm"></span> <a href="#auto-12">1</a>
           </p><p>
@@ -5990,17 +6084,17 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             properties <span style="margin-left: 5mm"></span> <a href="#auto-369">22</a>
           </p><div style="margin-left: 24px">
             <p>
-              arguments <span style="margin-left: 5mm"></span> <a href="#auto-381">23</a>
+              arguments <span style="margin-left: 5mm"></span> <a href="#auto-381">22</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              as parameter types <span style="margin-left: 5mm"></span> <a href="#auto-380">23</a>
+              as parameter types <span style="margin-left: 5mm"></span> <a href="#auto-380">22</a>
             </p>
           </div><p>
             property <span style="margin-left: 5mm"></span> <a href="#auto-371">22</a>
           </p><div style="margin-left: 24px">
             <p>
-              default value <span style="margin-left: 5mm"></span> <a href="#auto-378">23</a>
+              default value <span style="margin-left: 5mm"></span> <a href="#auto-378">22</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -6008,10 +6102,10 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              setting <span style="margin-left: 5mm"></span> <a href="#auto-379">23</a>
+              setting <span style="margin-left: 5mm"></span> <a href="#auto-379">22</a>
             </p>
           </div><p>
-            property definition <span style="margin-left: 5mm"></span> <a href="#auto-375">23</a>
+            property definition <span style="margin-left: 5mm"></span> <a href="#auto-375">22</a>
           </p><p>
             pseudo-metric <span style="margin-left: 5mm"></span> <a href="#auto-36">3</a>
           </p><p>
@@ -6020,62 +6114,61 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             radix
           </p><div style="margin-left: 24px">
             <p>
-              in integer numbers <span style="margin-left: 5mm"></span> <a href="#auto-64">5</a>
+              in integer numbers <span style="margin-left: 5mm"></span> <a href="#auto-64">4</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
               in real numbers <span style="margin-left: 5mm"></span> <a href="#auto-70">5</a>
             </p>
           </div><p>
-            range <span style="margin-left: 5mm"></span> <a href="#auto-473">29</a>
+            range <span style="margin-left: 5mm"></span> <a href="#auto-473">28</a>
           </p><p>
-            real <span style="margin-left: 5mm"></span> <a href="#auto-332">21</a>
+            real <span style="margin-left: 5mm"></span> <a href="#auto-332">20</a>
           </p><p>
             real type <span style="margin-left: 5mm"></span> <a href="#auto-8">1</a>
           </p><p>
             reduce <span style="margin-left: 5mm"></span> <a href="#auto-24">2</a>
           </p><p>
-            reduce operation <span style="margin-left: 5mm"></span> <a href="#auto-470">29</a>
+            reduce operation <span style="margin-left: 5mm"></span> <a href="#auto-470">28</a>
           </p><p>
-            reference <span style="margin-left: 5mm"></span> <a href="#auto-291">18</a>
+            reference <span style="margin-left: 5mm"></span> <a href="#auto-291">17</a>
           </p><p>
             required property <span style="margin-left: 5mm"></span> <a href="#auto-386">23</a>
           </p><p>
             return type declaration <span style="margin-left: 5mm"></span> <a href="#auto-207">13</a>
           </p><div style="margin-left: 24px">
             <p>
-              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-224">14</a>
+              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-225">13</a>
             </p>
           </div><p>
-            rewrite declaration <span style="margin-left: 5mm"></span> <a href="#auto-183">12</a>
+            rewrite declaration <span style="margin-left: 5mm"></span> <a href="#auto-183">11</a>
           </p><p>
             rewrite declarations <span style="margin-left: 5mm"></span> <a href="#auto-169">11</a>
           </p><p>
-            rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-416">25</a>
+            rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-416">24</a>
           </p><p>
-            right <span style="margin-left: 5mm"></span> <a href="#auto-459">28</a>
+            right <span style="margin-left: 5mm"></span> <a href="#auto-459">27</a>
           </p><p>
-            scope <span style="margin-left: 5mm"></span> <a href="#auto-278">17</a>
+            scope <span style="margin-left: 5mm"></span> <a href="#auto-278">16</a>
           </p><div style="margin-left: 24px">
             <p>
-              creation <span style="margin-left: 5mm"></span> <a href="#auto-288">18</a>
+              creation <span style="margin-left: 5mm"></span> <a href="#auto-288">17</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-281">17</a>
+              enclosing <span style="margin-left: 5mm"></span> <a href="#auto-281">16</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              for modules <span style="margin-left: 5mm"></span> <a href="#auto-501">31</a>
+              for modules <span style="margin-left: 5mm"></span> <a href="#auto-513">31</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              global <span style="margin-left: 5mm"></span> <a href="#auto-282">17</a>
+              global <span style="margin-left: 5mm"></span> <a href="#auto-282">16</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              local <span style="margin-left: 5mm"></span> <a href="#auto-223">14</a>, <a href="#auto-229">14</a>, <a
-              href="#auto-279">17</a>
+              local <span style="margin-left: 5mm"></span> <a href="#auto-224">13</a>, <a href="#auto-279">16</a>
             </p>
           </div><p>
             self <span style="margin-left: 5mm"></span> <a href="#auto-203">13</a>
@@ -6084,25 +6177,25 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             semantics <span style="margin-left: 5mm"></span> <a href="#auto-163">11</a>
           </p><p>
-            sequence <span style="margin-left: 5mm"></span> <a href="#auto-177">11</a>, <a href="#auto-242">15</a>
+            sequence <span style="margin-left: 5mm"></span> <a href="#auto-177">11</a>, <a href="#auto-242">14</a>
           </p><div style="margin-left: 24px">
             <p>
-              evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-243">15</a>
+              evaluation order <span style="margin-left: 5mm"></span> <a href="#auto-243">14</a>
             </p>
           </div><p>
             sequence operator <span style="margin-left: 5mm"></span> <a href="#auto-178">11</a>
           </p><p>
-            setter <span style="margin-left: 5mm"></span> <a href="#auto-384">23</a>
+            setter <span style="margin-left: 5mm"></span> <a href="#auto-384">22</a>
           </p><p>
-            shadowed binding <span style="margin-left: 5mm"></span> <a href="#auto-276">17</a>
+            shadowed binding <span style="margin-left: 5mm"></span> <a href="#auto-276">16</a>
           </p><p>
             shadowing
           </p><div style="margin-left: 24px">
             <p>
-              in modules <span style="margin-left: 5mm"></span> <a href="#auto-502">31</a>
+              in modules <span style="margin-left: 5mm"></span> <a href="#auto-514">31</a>
             </p>
           </div><p>
-            short module name <span style="margin-left: 5mm"></span> <a href="#auto-498">31</a>
+            short module name <span style="margin-left: 5mm"></span> <a href="#auto-510">31</a>
           </p><p>
             signal-noise ratio <span style="margin-left: 5mm"></span> <a href="#auto-40">3</a>
           </p><p>
@@ -6110,9 +6203,9 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             spaces (for indentation) <span style="margin-left: 5mm"></span> <a href="#auto-53">4</a>
           </p><p>
-            special forms <span style="margin-left: 5mm"></span> <a href="#auto-307">20</a>
+            special forms <span style="margin-left: 5mm"></span> <a href="#auto-307">18</a>
           </p><p>
-            standard operators <span style="margin-left: 5mm"></span> <a href="#auto-144">10</a>
+            standard operators <span style="margin-left: 5mm"></span> <a href="#auto-144">8</a>
           </p><p>
             statement <span style="margin-left: 5mm"></span> <a href="#auto-136">8</a>, <a href="#auto-247">15</a>
           </p><p>
@@ -6122,40 +6215,40 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p><p>
             subject and complement <span style="margin-left: 5mm"></span> <a href="#auto-138">8</a>
           </p><p>
-            symbol <span style="margin-left: 5mm"></span> <a href="#auto-334">21</a>, <a href="#auto-461">28</a>
+            symbol <span style="margin-left: 5mm"></span> <a href="#auto-334">20</a>, <a href="#auto-461">27</a>
           </p><p>
-            symbols <span style="margin-left: 5mm"></span> <a href="#auto-90">6</a>, <a href="#auto-89">6</a>
+            symbols <span style="margin-left: 5mm"></span> <a href="#auto-90">40</a>, <a href="#auto-89">37</a>
           </p><p>
             syntactic noise <span style="margin-left: 5mm"></span> <a href="#auto-37">3</a>
           </p><p>
             syntax
           </p><div style="margin-left: 24px">
             <p>
-              in modules <span style="margin-left: 5mm"></span> <a href="#auto-500">31</a>
+              in modules <span style="margin-left: 5mm"></span> <a href="#auto-512">31</a>
             </p>
           </div><p>
-            syntax configuration <span style="margin-left: 5mm"></span> <a href="#auto-49">4</a>, <a href="#auto-132">8</a>,
-            <a href="#auto-141">9</a>
+            syntax configuration <span style="margin-left: 5mm"></span> <a href="#auto-49">3</a>, <a href="#auto-132">8</a>,
+            <a href="#auto-141">8</a>
           </p><p>
-            syntax statement <span style="margin-left: 5mm"></span> <a href="#auto-123">8</a>, <a href="#auto-147">10</a>,
+            syntax statement <span style="margin-left: 5mm"></span> <a href="#auto-123">7</a>, <a href="#auto-147">10</a>,
             <a href="#auto-149">10</a>
           </p><p>
             tabs (for indentation) <span style="margin-left: 5mm"></span> <a href="#auto-54">4</a>
           </p><p>
-            text <span style="margin-left: 5mm"></span> <a href="#auto-333">21</a>
+            text <span style="margin-left: 5mm"></span> <a href="#auto-333">20</a>
           </p><p>
-            text delimiters <span style="margin-left: 5mm"></span> <a href="#auto-79">5</a>, <a href="#auto-157">11</a>
+            text delimiters <span style="margin-left: 5mm"></span> <a href="#auto-79">5</a>, <a href="#auto-157">10</a>
           </p><p>
-            text functions <span style="margin-left: 5mm"></span> <a href="#auto-443">27</a>
+            text functions <span style="margin-left: 5mm"></span> <a href="#auto-443">26</a>
           </p><p>
             text literals <span style="margin-left: 5mm"></span> <a href="#auto-75">5</a>
           </p><p>
             text type <span style="margin-left: 5mm"></span> <a href="#auto-9">1</a>
           </p><p>
-            tree <span style="margin-left: 5mm"></span> <a href="#auto-341">21</a>
+            tree <span style="margin-left: 5mm"></span> <a href="#auto-341">20</a>
           </p><div style="margin-left: 24px">
             <p>
-              operations <span style="margin-left: 5mm"></span> <a href="#auto-455">28</a>
+              operations <span style="margin-left: 5mm"></span> <a href="#auto-455">27</a>
             </p>
           </div><p>
             tree rewrite <span style="margin-left: 5mm"></span> <a href="#auto-167">11</a>
@@ -6169,11 +6262,11 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              check <span style="margin-left: 5mm"></span> <a href="#auto-398">24</a>
+              check <span style="margin-left: 5mm"></span> <a href="#auto-398">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              conversions <span style="margin-left: 5mm"></span> <a href="#auto-406">24</a>, <a href="#auto-447">27</a>
+              conversions <span style="margin-left: 5mm"></span> <a href="#auto-406">23</a>, <a href="#auto-447">26</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -6185,11 +6278,11 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-396">24</a>
+              explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-396">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              identifying arbitrary tree shapes <span style="margin-left: 5mm"></span> <a href="#auto-400">24</a>
+              identifying arbitrary tree shapes <span style="margin-left: 5mm"></span> <a href="#auto-400">23</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -6197,7 +6290,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              normal form <span style="margin-left: 5mm"></span> <a href="#auto-363">22</a>
+              normal form <span style="margin-left: 5mm"></span> <a href="#auto-363">21</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -6209,7 +6302,7 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              predefined <span style="margin-left: 5mm"></span> <a href="#auto-329">21</a>
+              predefined <span style="margin-left: 5mm"></span> <a href="#auto-329">20</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
@@ -6217,19 +6310,19 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-417">25</a>
+              rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-417">24</a>
             </p>
           </div><p>
-            type check <span style="margin-left: 5mm"></span> <a href="#auto-397">24</a>
+            type check <span style="margin-left: 5mm"></span> <a href="#auto-397">23</a>
           </p><p>
             type declaration <span style="margin-left: 5mm"></span> <a href="#auto-206">13</a>, <a href="#auto-325">20</a>
           </p><div style="margin-left: 24px">
             <p>
-              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-210">13</a>, <a href="#auto-220">13</a>
+              in assignment <span style="margin-left: 5mm"></span> <a href="#auto-210">13</a>, <a href="#auto-221">13</a>
             </p>
           </div><div style="margin-left: 24px">
             <p>
-              vs. type definition <span style="margin-left: 5mm"></span> <a href="#auto-353">22</a>
+              vs. type definition <span style="margin-left: 5mm"></span> <a href="#auto-353">21</a>
             </p>
           </div><p>
             type declarations <span style="margin-left: 5mm"></span> <a href="#auto-173">11</a>
@@ -6237,12 +6330,12 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             type definition <span style="margin-left: 5mm"></span> <a href="#auto-344">21</a>
           </p><div style="margin-left: 24px">
             <p>
-              vs. type declaration <span style="margin-left: 5mm"></span> <a href="#auto-354">22</a>
+              vs. type declaration <span style="margin-left: 5mm"></span> <a href="#auto-354">21</a>
             </p>
           </div><p>
             type pattern <span style="margin-left: 5mm"></span> <a href="#auto-349">21</a>
           </p><p>
-            undefined form <span style="margin-left: 5mm"></span> <a href="#auto-284">17</a>
+            undefined form <span style="margin-left: 5mm"></span> <a href="#auto-284">16</a>
           </p><p>
             underscore
           </p><div style="margin-left: 24px">
@@ -6252,18 +6345,18 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </div><p>
             UTF-8 <span style="margin-left: 5mm"></span> <a href="#auto-76">5</a>
           </p><p>
-            value (of text literals) <span style="margin-left: 5mm"></span> <a href="#auto-87">41</a>
+            value (of text literals) <span style="margin-left: 5mm"></span> <a href="#auto-87">6</a>
           </p><p>
             variable <span style="margin-left: 5mm"></span> <a href="#auto-188">12</a>
           </p><p>
-            when infix operator <span style="margin-left: 5mm"></span> <a href="#auto-239">15</a>
+            when infix operator <span style="margin-left: 5mm"></span> <a href="#auto-239">14</a>
           </p><p>
-            XL0 (abstract syntax tree for XLR) <span style="margin-left: 5mm"></span> <a href="#auto-47">4</a>
+            XL0 (abstract syntax tree for XLR) <span style="margin-left: 5mm"></span> <a href="#auto-47">3</a>
           </p><p>
             XLR (eXtensible Language and Runtime <span style="margin-left: 5mm"></span> <a href="#auto-5">1</a>
           </p><p>
-            xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-48">4</a>, <a href="#auto-108">7</a>, <a
-            href="#auto-122">8</a>, <a href="#auto-142">10</a>, <a href="#auto-423">25</a>
+            xl.syntax <span style="margin-left: 5mm"></span> <a href="#auto-48">3</a>, <a href="#auto-108">7</a>, <a
+            href="#auto-122">7</a>, <a href="#auto-142">8</a>, <a href="#auto-423">24</a>
           </p><div style="margin-left: 24px">
             <p>
               connexion to C.syntax <span style="margin-left: 5mm"></span> <a href="#auto-264">16</a>
@@ -6300,17 +6393,17 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             Valid real constants <span style="margin-left: 5mm"></span> <a href="#auto-73">5</a>
           </p>
           <p>
-            Valid text constants <span style="margin-left: 5mm"></span> <a href="#auto-84">6</a>
+            Valid text constants <span style="margin-left: 5mm"></span> <a href="#auto-84">5</a>
           </p>
           <p>
-            Long text and indentation <span style="margin-left: 5mm"></span> <a href="#auto-86">38</a>
+            Long text and indentation <span style="margin-left: 5mm"></span> <a href="#auto-86">6</a>
           </p>
           <p>
             Examples of valid operator and name symbols <span style="margin-left: 5mm"></span>
             <a href="#auto-94">6</a>
           </p>
           <p>
-            Default syntax configuration file <span style="margin-left: 5mm"></span> <a href="#auto-146">10</a>
+            Default syntax configuration file <span style="margin-left: 5mm"></span> <a href="#auto-146">9</a>
           </p>
           <p>
             Use of the <tt>syntax</tt> specification in a source file <span
@@ -6327,10 +6420,10 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p>
           <p>
             Declarations are visible to the entire sequence containing them
-            <span style="margin-left: 5mm"></span> <a href="#auto-196">13</a>
+            <span style="margin-left: 5mm"></span> <a href="#auto-196">12</a>
           </p>
           <p>
-            Declaring a comma-separated list <span style="margin-left: 5mm"></span> <a href="#auto-200">13</a>
+            Declaring a comma-separated list <span style="margin-left: 5mm"></span> <a href="#auto-200">12</a>
           </p>
           <p>
             Declaring a <tt>complex</tt> data type <span style="margin-left: 5mm"></span> <a
@@ -6340,27 +6433,31 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             Simple type declarations <span style="margin-left: 5mm"></span> <a href="#auto-208">13</a>
           </p>
           <p>
-            Assignment to global variable <span style="margin-left: 5mm"></span> <a href="#auto-217">13</a>
+            Creating a new binding<a id="creating-a-new-binding"></a> <span style="margin-left: 5mm"></span> <a href="#auto-217">13</a>
           </p>
           <p>
-            Assigning to new local variable <span style="margin-left: 5mm"></span> <a href="#auto-226">14</a>
+            Assignment to existing binding<a id="nonlocal-assignment"></a> <span style="margin-left: 5mm"></span> <a
+            href="#auto-218">13</a>
           </p>
           <p>
-            Assigning to parameter <span style="margin-left: 5mm"></span> <a href="#auto-230">14</a>
+            Assigning to new local variable <span style="margin-left: 5mm"></span> <a href="#auto-227">13</a>
           </p>
           <p>
-            Assignments do not override patterns <span style="margin-left: 5mm"></span> <a href="#auto-235">15</a>
+            Assignment to references <span style="margin-left: 5mm"></span> <a href="#auto-229">13</a>
+          </p>
+          <p>
+            Assigning to parameter <span style="margin-left: 5mm"></span> <a href="#auto-233">14</a>
           </p>
           <p>
             Guard limit the validity of operations <span style="margin-left: 5mm"></span> <a
-            href="#auto-240">15</a>
+            href="#auto-240">14</a>
           </p>
           <p>
             Code writing <tt>A</tt>, then <tt>B</tt>, then
             <tt>f(100)+f(200)</tt> <span style="margin-left: 5mm"></span> <a href="#auto-245">15</a>
           </p>
           <p>
-            Structured data <span style="margin-left: 5mm"></span> <a href="#auto-256">16</a>
+            Structured data <span style="margin-left: 5mm"></span> <a href="#auto-256">15</a>
           </p>
           <p>
             Creating an interface for a C function <span style="margin-left: 5mm"></span> <a
@@ -6371,10 +6468,10 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             <a href="#auto-270">16</a>
           </p>
           <p>
-            Evaluation for comparison <span style="margin-left: 5mm"></span> <a href="#auto-313">20</a>
+            Evaluation for comparison <span style="margin-left: 5mm"></span> <a href="#auto-313">19</a>
           </p>
           <p>
-            Evaluation for type comparison <span style="margin-left: 5mm"></span> <a href="#auto-314">20</a>
+            Evaluation for type comparison <span style="margin-left: 5mm"></span> <a href="#auto-314">19</a>
           </p>
           <p>
             Explicit vs. lazy evaluation <span style="margin-left: 5mm"></span> <a href="#auto-320">20</a>
@@ -6383,35 +6480,35 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-348">21</a>
           </p>
           <p>
-            Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-352">22</a>
+            Simple type declaration <span style="margin-left: 5mm"></span> <a href="#auto-352">21</a>
           </p>
           <p>
-            Using the <tt>complex</tt> type <span style="margin-left: 5mm"></span> <a href="#auto-355">22</a>
+            Using the <tt>complex</tt> type <span style="margin-left: 5mm"></span> <a href="#auto-355">21</a>
           </p>
           <p>
             Binding for a <tt>complex</tt> parameter <span style="margin-left: 5mm"></span> <a
-            href="#auto-359">22</a>
+            href="#auto-359">21</a>
           </p>
           <p>
             Making type <tt>A</tt> equivalent to type <tt>B</tt> <span style="margin-left: 5mm"></span>
-            <a href="#auto-360">22</a>
+            <a href="#auto-360">21</a>
           </p>
           <p>
-            Named patterns for <tt>complex</tt> <span style="margin-left: 5mm"></span> <a href="#auto-365">22</a>
+            Named patterns for <tt>complex</tt> <span style="margin-left: 5mm"></span> <a href="#auto-365">21</a>
           </p>
           <p>
             Creating a normal form for the complex type <span style="margin-left: 5mm"></span>
             <a href="#auto-367">22</a>
           </p>
           <p>
-            Properties declaration <span style="margin-left: 5mm"></span> <a href="#auto-373">23</a>
+            Properties declaration <span style="margin-left: 5mm"></span> <a href="#auto-373">22</a>
           </p>
           <p>
-            Color properties <span style="margin-left: 5mm"></span> <a href="#auto-382">23</a>
+            Color properties <span style="margin-left: 5mm"></span> <a href="#auto-382">22</a>
           </p>
           <p>
             Setting default arguments from the current context <span style="margin-left: 5mm"></span>
-            <a href="#auto-385">23</a>
+            <a href="#auto-385">22</a>
           </p>
           <p>
             Additional code in properties <span style="margin-left: 5mm"></span> <a href="#auto-388">23</a>
@@ -6421,13 +6518,13 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p>
           <p>
             Defining a type identifying an arbitrary AST shape <span style="margin-left: 5mm"></span>
-            <a href="#auto-401">24</a>
+            <a href="#auto-401">23</a>
           </p>
           <p>
-            Explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-403">24</a>
+            Explicit type check <span style="margin-left: 5mm"></span> <a href="#auto-403">23</a>
           </p>
           <p>
-            Explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-407">24</a>
+            Explicit type conversion <span style="margin-left: 5mm"></span> <a href="#auto-407">23</a>
           </p>
           <p>
             Automatic type conversion <span style="margin-left: 5mm"></span> <a href="#auto-409">24</a>
@@ -6437,13 +6534,34 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
           </p>
           <p>
             Declaring a range type using an infix form <span style="margin-left: 5mm"></span> <a
-            href="#auto-414">25</a>
+            href="#auto-414">24</a>
           </p>
           <p>
-            Declaration of a rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-418">25</a>
+            Declaration of a rewrite type <span style="margin-left: 5mm"></span> <a href="#auto-418">24</a>
           </p>
           <p>
-            Declaration of if-then-else <span style="margin-left: 5mm"></span> <a href="#auto-476">29</a>
+            Library definition of if-then-else <span style="margin-left: 5mm"></span> <a href="#auto-477">28</a>
+          </p>
+          <p>
+            The <tt>good</tt> function <span style="margin-left: 5mm"></span> <a href="#auto-479">28</a>
+          </p>
+          <p>
+            Infinite loop <span style="margin-left: 5mm"></span> <a href="#auto-481">28</a>
+          </p>
+          <p>
+            While loop <span style="margin-left: 5mm"></span> <a href="#auto-483">29</a>
+          </p>
+          <p>
+            Until loop <span style="margin-left: 5mm"></span> <a href="#auto-484">29</a>
+          </p>
+          <p>
+            For loop on an integer range <span style="margin-left: 5mm"></span> <a href="#auto-486">29</a>
+          </p>
+          <p>
+            For loop on a container <span style="margin-left: 5mm"></span> <a href="#auto-487">29</a>
+          </p>
+          <p>
+            Other kinds of <tt>for</tt> loop <span style="margin-left: 5mm"></span> <a href="#auto-488">29</a>
           </p>
           <p>
             <p>
@@ -6452,42 +6570,42 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             
             <span style="margin-left: 5mm"></span>
             
-            <a href="#auto-481">30</a>
+            <a href="#auto-493">30</a>
           </p>
           <p>
-            Ranges as lists <span style="margin-left: 5mm"></span> <a href="#auto-483">30</a>
+            Ranges as lists <span style="margin-left: 5mm"></span> <a href="#auto-495">30</a>
           </p>
           <p>
-            Union type definition <span style="margin-left: 5mm"></span> <a href="#auto-485">30</a>
+            Union type definition <span style="margin-left: 5mm"></span> <a href="#auto-497">30</a>
           </p>
           <p>
-            Using union types <span style="margin-left: 5mm"></span> <a href="#auto-486">30</a>
+            Using union types <span style="margin-left: 5mm"></span> <a href="#auto-498">30</a>
           </p>
           <p>
-            Enumeration type definition <span style="margin-left: 5mm"></span> <a href="#auto-488">30</a>
+            Enumeration type definition <span style="margin-left: 5mm"></span> <a href="#auto-500">31</a>
           </p>
           <p>
-            Type matching a type declaration <span style="margin-left: 5mm"></span> <a href="#auto-490">30</a>
+            Type matching a type declaration <span style="margin-left: 5mm"></span> <a href="#auto-502">31</a>
           </p>
           <p>
-            Import statements examples <span style="margin-left: 5mm"></span> <a href="#auto-496">31</a>
+            Import statements examples <span style="margin-left: 5mm"></span> <a href="#auto-508">31</a>
           </p>
           <p>
-            Module definition <span style="margin-left: 5mm"></span> <a href="#auto-507">31</a>
+            Module definition <span style="margin-left: 5mm"></span> <a href="#auto-519">32</a>
           </p>
           <p>
-            Lazy evaluation of an infinite list <span style="margin-left: 5mm"></span> <a href="#auto-530">34</a>
+            Lazy evaluation of an infinite list <span style="margin-left: 5mm"></span> <a href="#auto-542">33</a>
           </p>
           <p>
-            Controlled compilation <span style="margin-left: 5mm"></span> <a href="#auto-536">?</a>
-          </p>
-          <p>
-            Signature for rewrite code with two variables. <span style="margin-left: 5mm"></span>
-            <a href="#auto-545">?</a>
+            Controlled compilation <span style="margin-left: 5mm"></span> <a href="#auto-548">34</a>
           </p>
           <p>
             Signature for rewrite code with two variables. <span style="margin-left: 5mm"></span>
-            <a href="#auto-548">?</a>
+            <a href="#auto-557">35</a>
+          </p>
+          <p>
+            Signature for rewrite code with two variables. <span style="margin-left: 5mm"></span>
+            <a href="#auto-560">35</a>
           </p>
         </p></font>
       </div>
@@ -6501,37 +6619,37 @@ compile {if Condition then TrueForm else FalseForm} -&gt;
             href="#auto-266">16</a>
           </p>
           <p>
-            Arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-428">26</a>
+            Arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-428">25</a>
           </p>
           <p>
-            Comparisons <span style="margin-left: 5mm"></span> <a href="#auto-431">26</a>
+            Comparisons <span style="margin-left: 5mm"></span> <a href="#auto-431">25</a>
           </p>
           <p>
-            Bitwise arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-435">26</a>
+            Bitwise arithmetic operations <span style="margin-left: 5mm"></span> <a href="#auto-435">25</a>
           </p>
           <p>
-            Boolean operations <span style="margin-left: 5mm"></span> <a href="#auto-438">27</a>
+            Boolean operations <span style="margin-left: 5mm"></span> <a href="#auto-438">25</a>
           </p>
           <p>
-            Mathematical operations <span style="margin-left: 5mm"></span> <a href="#auto-441">27</a>
+            Mathematical operations <span style="margin-left: 5mm"></span> <a href="#auto-441">26</a>
           </p>
           <p>
-            Text operations <span style="margin-left: 5mm"></span> <a href="#auto-444">27</a>
+            Text operations <span style="margin-left: 5mm"></span> <a href="#auto-444">26</a>
           </p>
           <p>
-            Conversions <span style="margin-left: 5mm"></span> <a href="#auto-448">27</a>
+            Conversions <span style="margin-left: 5mm"></span> <a href="#auto-448">26</a>
           </p>
           <p>
             Date and time <span style="margin-left: 5mm"></span> <a href="#auto-453">27</a>
           </p>
           <p>
-            Tree operations <span style="margin-left: 5mm"></span> <a href="#auto-457">28</a>
+            Tree operations <span style="margin-left: 5mm"></span> <a href="#auto-457">27</a>
           </p>
           <p>
-            List operations <span style="margin-left: 5mm"></span> <a href="#auto-468">29</a>
+            List operations <span style="margin-left: 5mm"></span> <a href="#auto-468">27</a>
           </p>
           <p>
-            LLVM operations <span style="margin-left: 5mm"></span> <a href="#auto-537">?</a>
+            LLVM operations <span style="margin-left: 5mm"></span> <a href="#auto-549">34</a>
           </p>
         </p></font>
       </div>

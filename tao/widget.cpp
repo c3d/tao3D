@@ -4470,14 +4470,14 @@ Point3 Widget::unproject (coord x, coord y, coord z,
     // Get 3D coordinates for the near plane based on window coordinates
     GLdouble x3dn, y3dn, z3dn;
     x3dn = y3dn = z3dn = 0.0;
-    gluUnProject(x, y, 0.0,
+    GL.UnProject(x, y, 0.0,
                  model, proj, viewport,
                  &x3dn, &y3dn, &z3dn);
 
     // Same with far-plane 3D coordinates
     GLdouble x3df, y3df, z3df;
     x3df = y3df = z3df = 0;
-    gluUnProject(x, y, 1.0,
+    GL.UnProject(x, y, 1.0,
                  model, proj, viewport,
                  &x3df, &y3df, &z3df);
 
@@ -4536,7 +4536,7 @@ Point3 Widget::project (coord x, coord y, coord z,
 // ----------------------------------------------------------------------------
 {
     GLdouble wx, wy, wz;
-    gluProject(x, y, z,
+    GL.Project(x, y, z,
                  model, proj, viewport,
                  &wx, &wy, &wz);
 
@@ -4553,7 +4553,7 @@ Point3 Widget::objectToWorld(coord x, coord y,
     Point3 pos, win;
 
     // Map object coordinates to window coordinates
-    gluProject(x, y, 0,
+    GL.Project(x, y, 0,
                model, proj, viewport,
                &win.x, &win.y, &win.z);
 
@@ -4577,7 +4577,7 @@ Point3 Widget::windowToWorld(coord x, coord y,
                  &pixelDepth);
 
     // Map window coordinates to object coordinates
-    gluUnProject(x, y, pixelDepth,
+    GL.UnProject(x, y, pixelDepth,
                  model, proj, viewport,
                  &pos.x,
                  &pos.y,

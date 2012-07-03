@@ -68,6 +68,14 @@ struct GraphicState
     virtual void Scale(double x, double y, double z) = 0;
 
     // Camera management
+    virtual bool Project(coord objx, coord objy, coord objz,
+                         const coord* mv, const coord* proj,
+                         const int* viewport,
+                         coord *winx, coord *winy, coord *winz) = 0;
+    virtual bool UnProject(coord winx, coord winy, coord winz,
+                           const coord* mv, const coord* proj,
+                           const int* viewport,
+                           coord *objx, coord *objy, coord *objz) = 0;
     virtual void PickMatrix(float x, float y, float width, float height,
                             int viewport[4]) = 0;
     virtual void Frustum(float left, float right, float bottom, float top,

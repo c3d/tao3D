@@ -193,6 +193,99 @@ void OpenGLState::LoadIdentity()
 }
 
 
+void OpenGLState::MultMatrices(const coord *m1, const coord *m2, coord *result)
+// ----------------------------------------------------------------------------
+//    Multiply two 4x4 matrices (source: glu)
+// ----------------------------------------------------------------------------
+{
+    for (int i= 0; i < 4; i++) {
+        for (int j = 0; j < 4; j++) {
+            result[i * 4 + j] = m1[i * 4 + 0] * m2[0 * 4 + j] +
+                                m1[i * 4 + 1] * m2[1 * 4 + j] +
+                                m1[i * 4 + 2] * m2[2 * 4 + j] +
+                                m1[i * 4 + 3] * m2[3 * 4 + j];
+        }
+    }
+}
+
+
+void OpenGLState::MultMatrixVec(const coord matrix[16], const coord in[4],
+                                 coord out[4])
+// ----------------------------------------------------------------------------
+//    Multiply a matrix by a vector (source: glu)
+// ----------------------------------------------------------------------------
+{
+    for (int i = 0; i < 4; i++) {
+        out[i] = in[0] * matrix[0 * 4 + i] +
+                 in[1] * matrix[1 * 4 + i] +
+                 in[2] * matrix[2 * 4 + i] +
+                 in[3] * matrix[3 * 4 + i];
+    }
+}
+
+
+bool OpenGLState::InvertMatrix(const GLdouble m[16], GLdouble invOut[16])
+// ----------------------------------------------------------------------------
+//    Compute inverse of a matrix (source: glu)
+// ----------------------------------------------------------------------------
+{
+    double inv[16], det;
+    int i;
+
+    // First column
+    inv[0] =   m[5]*m[10]*m[15] - m[5]*m[11]*m[14] - m[9]*m[6]*m[15]
+             + m[9]*m[7]*m[14] + m[13]*m[6]*m[11] - m[13]*m[7]*m[10];
+    inv[1] =  -m[1]*m[10]*m[15] + m[1]*m[11]*m[14] + m[9]*m[2]*m[15]
+             - m[9]*m[3]*m[14] - m[13]*m[2]*m[11] + m[13]*m[3]*m[10];
+    inv[2] =   m[1]*m[6]*m[15] - m[1]*m[7]*m[14] - m[5]*m[2]*m[15]
+             + m[5]*m[3]*m[14] + m[13]*m[2]*m[7] - m[13]*m[3]*m[6];
+    inv[3] =  -m[1]*m[6]*m[11] + m[1]*m[7]*m[10] + m[5]*m[2]*m[11]
+             - m[5]*m[3]*m[10] - m[9]*m[2]*m[7] + m[9]*m[3]*m[6];
+
+    // Second column
+    inv[4] =  -m[4]*m[10]*m[15] + m[4]*m[11]*m[14] + m[8]*m[6]*m[15]
+             - m[8]*m[7]*m[14] - m[12]*m[6]*m[11] + m[12]*m[7]*m[10];
+    inv[5] =   m[0]*m[10]*m[15] - m[0]*m[11]*m[14] - m[8]*m[2]*m[15]
+             + m[8]*m[3]*m[14] + m[12]*m[2]*m[11] - m[12]*m[3]*m[10];
+    inv[6] =  -m[0]*m[6]*m[15] + m[0]*m[7]*m[14] + m[4]*m[2]*m[15]
+             - m[4]*m[3]*m[14] - m[12]*m[2]*m[7] + m[12]*m[3]*m[6];
+    inv[7] =   m[0]*m[6]*m[11] - m[0]*m[7]*m[10] - m[4]*m[2]*m[11]
+             + m[4]*m[3]*m[10] + m[8]*m[2]*m[7] - m[8]*m[3]*m[6];
+
+    // Third column
+    inv[8] =   m[4]*m[9]*m[15] - m[4]*m[11]*m[13] - m[8]*m[5]*m[15]
+             + m[8]*m[7]*m[13] + m[12]*m[5]*m[11] - m[12]*m[7]*m[9];
+    inv[9] =  -m[0]*m[9]*m[15] + m[0]*m[11]*m[13] + m[8]*m[1]*m[15]
+             - m[8]*m[3]*m[13] - m[12]*m[1]*m[11] + m[12]*m[3]*m[9];
+    inv[10] =  m[0]*m[5]*m[15] - m[0]*m[7]*m[13] - m[4]*m[1]*m[15]
+             + m[4]*m[3]*m[13] + m[12]*m[1]*m[7] - m[12]*m[3]*m[5];
+    inv[11] = -m[0]*m[5]*m[11] + m[0]*m[7]*m[9] + m[4]*m[1]*m[11]
+             - m[4]*m[3]*m[9] - m[8]*m[1]*m[7] + m[8]*m[3]*m[5];
+
+    // Fourht column
+    inv[12] = -m[4]*m[9]*m[14] + m[4]*m[10]*m[13] + m[8]*m[5]*m[14]
+             - m[8]*m[6]*m[13] - m[12]*m[5]*m[10] + m[12]*m[6]*m[9];
+    inv[13] =  m[0]*m[9]*m[14] - m[0]*m[10]*m[13] - m[8]*m[1]*m[14]
+             + m[8]*m[2]*m[13] + m[12]*m[1]*m[10] - m[12]*m[2]*m[9];
+    inv[14] = -m[0]*m[5]*m[14] + m[0]*m[6]*m[13] + m[4]*m[1]*m[14]
+             - m[4]*m[2]*m[13] - m[12]*m[1]*m[6] + m[12]*m[2]*m[5];
+    inv[15] =  m[0]*m[5]*m[10] - m[0]*m[6]*m[9] - m[4]*m[1]*m[10]
+             + m[4]*m[2]*m[9] + m[8]*m[1]*m[6] - m[8]*m[2]*m[5];
+
+    // Compute determinant
+    det = m[0]*inv[0] + m[1]*inv[4] + m[2]*inv[8] + m[3]*inv[12];
+    if (det == 0)
+        return false;
+
+    det = 1.0 / det;
+
+    for (i = 0; i < 16; i++)
+        invOut[i] = inv[i] * det;
+
+    return true;
+}
+
+
 void OpenGLState::PrintMatrix(GLuint model)
 // ----------------------------------------------------------------------------
 //    Print GL matrix on stderr : GL_MODELVIEW/GL_PROJECTION/GL_TEXTURE
@@ -280,6 +373,97 @@ void OpenGLState::Scale(double x, double y, double z)
 //                       Camera management functions.
 //
 // ============================================================================
+
+bool OpenGLState::Project(coord objx, coord objy, coord objz,
+                          const coord* mv, const coord* proj,
+                          const int* viewport,
+                          coord *winx, coord *winy, coord *winz)
+// ----------------------------------------------------------------------------
+//     Map object coordinates to window coordinates (source: glu)
+// ----------------------------------------------------------------------------
+{
+    // Transformations matrices
+    double in[4];
+    double out[4];
+
+    in[0] = objx;
+    in[1] = objy;
+    in[2] = objz;
+    in[3] = 1.0;
+
+    // Compute vectors
+    MultMatrixVec(mv, in, out);
+    MultMatrixVec(proj, out, in);
+
+    if (in[3] == 0.0)
+        return false;
+
+    in[0] /= in[3];
+    in[1] /= in[3];
+    in[2] /= in[3];
+
+    // Map x, y and z to range 0-1
+    in[0] = in[0] * 0.5 + 0.5;
+    in[1] = in[1] * 0.5 + 0.5;
+    in[2] = in[2] * 0.5 + 0.5;
+
+    // Map x,y to viewport
+    in[0] = in[0] * viewport[2] + viewport[0];
+    in[1] = in[1] * viewport[3] + viewport[1];
+
+    *winx = in[0];
+    *winy = in[1];
+    *winz = in[2];
+
+    return true;
+}
+
+
+bool OpenGLState::UnProject(coord winx, coord winy, coord winz,
+                             const coord* mv, const coord* proj,
+                             const int* viewport,
+                             coord *objx, coord *objy, coord *objz)
+// ----------------------------------------------------------------------------
+//     Map window coordinates to object coordinates (source: glu)
+// ----------------------------------------------------------------------------
+{
+    // Transformations matrices
+    double finalMatrix[16];
+    double in[4];
+    double out[4];
+
+    MultMatrices(mv, proj, finalMatrix);
+    if (! InvertMatrix(finalMatrix, finalMatrix))
+        return false;
+
+    in[0] = winx;
+    in[1] = winy;
+    in[2] = winz;
+    in[3] = 1.0;
+
+    // Map x and y from window coordinates
+    in[0] = (in[0] - viewport[0]) / viewport[2];
+    in[1] = (in[1] - viewport[1]) / viewport[3];
+
+    // Map to range -1 to 1
+    in[0] = in[0] * 2 - 1;
+    in[1] = in[1] * 2 - 1;
+    in[2] = in[2] * 2 - 1;
+
+    MultMatrixVec(finalMatrix, in, out);
+    if (out[3] == 0.0)
+        return false;
+
+    out[0] /= out[3];
+    out[1] /= out[3];
+    out[2] /= out[3];
+
+    *objx = out[0];
+    *objy = out[1];
+    *objz = out[2];
+
+    return true;
+}
 
 
 void OpenGLState::PickMatrix(float x, float y, float width, float height,

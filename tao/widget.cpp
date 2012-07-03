@@ -2244,10 +2244,10 @@ void Widget::setupGL()
     // Setup other
     GL.Enable(GL_BLEND);
     if (inOfflineRendering)
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                            GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     else
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     GL.DepthFunc(GL_LEQUAL);
     GL.Enable(GL_DEPTH_TEST);
     GL.Enable(GL_LINE_SMOOTH);
@@ -2280,7 +2280,7 @@ void Widget::setupGL()
     GL.Disable(GL_LIGHTING);
     GL.Disable(GL_COLOR_MATERIAL);
     glUseProgram(0);
-    glAlphaFunc(GL_GREATER, 0.01);
+    GL.AlphaFunc(GL_GREATER, 0.01);
     GL.Enable(GL_ALPHA_TEST);
 
     // Turn on sphere map automatic texture coordinate generation
@@ -2288,7 +2288,7 @@ void Widget::setupGL()
     glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_SPHERE_MAP);
 
     // Really nice perspective calculations
-    glHint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
+    GL.Hint(GL_PERSPECTIVE_CORRECTION_HINT, GL_NICEST);
 }
 
 

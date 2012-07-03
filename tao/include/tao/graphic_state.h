@@ -104,6 +104,16 @@ struct GraphicState
     virtual void Enable(GLenum cap) = 0;
     virtual void Disable(GLenum cap) = 0;
     virtual void ShadeModel(GLenum mode) = 0;
+    virtual void Hint(GLenum target, GLenum mode) = 0;
+
+    // Blend
+    virtual void BlendFunc(GLenum sfactor, GLenum dfactor) = 0;
+    virtual void BlendFuncSeparate(GLenum sRgb, GLenum dRgb,
+                                   GLenum sAlpha, GLenum dAlpha) = 0;
+    virtual void BlendEquation(GLenum mode) = 0;
+
+    // Alpha
+    virtual void AlphaFunc(GLenum func, float ref) = 0;
 
 protected:
     static GraphicState *       current;

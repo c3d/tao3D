@@ -50,9 +50,15 @@ OpenGLState::OpenGLState()
 // ----------------------------------------------------------------------------
     : GraphicState(),
       maxTextureCoords(0), maxTextureUnits(0),
-      matrixMode(GL_MODELVIEW),
-      shadeMode(GL_SMOOTH),
-      lineWidth(1), stippleFactor(1), stipplePattern(1)
+      matrixMode(GL_MODELVIEW), shadeMode(GL_SMOOTH),
+      lineWidth(1), stippleFactor(1), stipplePattern(1),
+      depthMask(true), depthFunc(GL_LESS),
+      textureCompressionHint(GL_DONT_CARE),
+      perspectiveCorrectionHint(GL_DONT_CARE),
+      srcRgb(GL_ONE), destRgb(GL_ZERO),
+      srcAlpha(GL_ONE), destAlpha(GL_ZERO),
+      blendMode(GL_FUNC_ADD),
+      alphaFunc(GL_ALWAYS), alphaRef(0.0)
 {
     // Ask graphic card constructor to OpenGL
     vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
@@ -86,9 +92,6 @@ OpenGLState::OpenGLState()
     // (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
-
-    // Setup default depth func
-    depthFunc = GL_LESS;
 }
 
 
@@ -769,6 +772,41 @@ void OpenGLState::DepthFunc(GLenum func)
 }
 
 
+void OpenGLState::ShadeModel(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Select shading mode
+// ----------------------------------------------------------------------------
+{
+    if(mode != shadeMode)
+        glShadeModel(mode);
+}
+
+
+void OpenGLState::Hint(GLenum target, GLenum mode)
+// ----------------------------------------------------------------------------
+//   Specify implementation-specific hints
+// ----------------------------------------------------------------------------
+{
+    switch(target)
+    {
+    case GL_PERSPECTIVE_CORRECTION_HINT:
+        if(perspectiveCorrectionHint == mode)
+            return;
+        perspectiveCorrectionHint = mode;
+        break;
+    case GL_TEXTURE_COMPRESSION_HINT:
+        if(textureCompressionHint == mode)
+            return;
+        textureCompressionHint = mode;
+        break;
+    default:   // Others hints are not used in Tao
+        break;
+    }
+
+    glHint(target, mode);
+}
+
+
 void OpenGLState::Enable(GLenum cap)
 // ----------------------------------------------------------------------------
 //    Enable capability
@@ -787,13 +825,65 @@ void OpenGLState::Disable(GLenum cap)
 }
 
 
-void OpenGLState::ShadeModel(GLenum mode)
+void OpenGLState::BlendFunc(GLenum sfactor, GLenum dfactor)
 // ----------------------------------------------------------------------------
-//    Select shading mode
+//   Specify pixel arithmetic
 // ----------------------------------------------------------------------------
 {
-    if(mode != shadeMode)
-        glShadeModel(mode);
+    if((srcRgb != sfactor) || (destRgb != dfactor) ||
+       (srcAlpha != sfactor) || (destAlpha != dfactor))
+    {
+        srcRgb    = sfactor;
+        destRgb   = dfactor;
+        srcAlpha  = sfactor;
+        destAlpha = dfactor;
+        glBlendFunc(sfactor, dfactor);
+    }
+}
+
+
+void OpenGLState::BlendFuncSeparate(GLenum sRgb, GLenum dRgb,
+                                    GLenum sAlpha, GLenum dAlpha)
+// ----------------------------------------------------------------------------
+//   Specify pixel arithmetic for RGB and alpha components separately
+// ----------------------------------------------------------------------------
+{
+    if((srcRgb != sRgb) || (destRgb != dRgb) ||
+       (srcAlpha != sAlpha) || (destAlpha != dAlpha))
+    {
+        srcRgb    = sRgb;
+        destRgb   = dRgb;
+        srcAlpha  = sAlpha;
+        destAlpha = dAlpha;
+        glBlendFuncSeparate(sRgb, dRgb, sAlpha, dAlpha);
+    }
+}
+
+
+void OpenGLState::BlendEquation(GLenum mode)
+// ----------------------------------------------------------------------------
+//   Specify the equation used for RGB and Alpha blend equation
+// ----------------------------------------------------------------------------
+{
+    if(blendMode != mode)
+    {
+        blendMode = mode;
+        glBlendEquation(mode);
+    }
+}
+
+
+void OpenGLState::AlphaFunc(GLenum func, float ref)
+// ----------------------------------------------------------------------------
+//   Specify the alpha test function
+// ----------------------------------------------------------------------------
+{
+    if((alphaFunc != func) || (alphaRef != ref))
+    {
+        alphaFunc = func;
+        alphaRef  = ref;
+        glAlphaFunc(func, ref);
+    }
 }
 
 

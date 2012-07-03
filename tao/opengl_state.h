@@ -110,9 +110,19 @@ struct OpenGLState : GraphicState
     virtual void LineStipple(GLint factor, GLushort pattern);
     virtual void DepthMask(GLboolean flag);
     virtual void DepthFunc(GLenum func);
+    virtual void ShadeModel(GLenum mode);
+    virtual void Hint(GLenum target, GLenum mode);
     virtual void Enable(GLenum cap);
     virtual void Disable(GLenum cap);
-    virtual void ShadeModel(GLenum mode);
+
+    // Blend
+    virtual void BlendFunc(GLenum sfactor, GLenum dfactor);
+    virtual void BlendFuncSeparate(GLenum sRgb, GLenum dRgb,
+                                   GLenum sAlpha, GLenum dAlpha);
+    virtual void BlendEquation(GLenum mode);
+
+    // Alpha
+    virtual void AlphaFunc(GLenum func, float ref);
 
     std::ostream & debug();
 
@@ -135,6 +145,7 @@ public:
     text         version;
     text         extensionsAvailable;
 
+    // Matrix settings
     GLenum       matrixMode;
     MatrixState* currentMatrix;
     MatrixState  projMatrix;
@@ -149,8 +160,22 @@ public:
     GLint        stippleFactor;
     GLushort     stipplePattern;
 
+    // Depth settings
     GLboolean    depthMask;
     GLenum       depthFunc;
+
+    // Hint
+    GLenum       textureCompressionHint;
+    GLenum       perspectiveCorrectionHint;
+
+    // Blend settings
+    GLenum       srcRgb, destRgb;
+    GLenum       srcAlpha, destAlpha;
+    GLenum       blendMode;
+
+    // Alpha settings
+    GLenum       alphaFunc;
+    GLclampf     alphaRef;
 
     std::stack<MatrixState> projStack; // the stack for projection matrices
     std::stack<MatrixState> mvStack;   // the stack for modelview matrices

@@ -65,7 +65,6 @@ HEADERS +=     activity.h \
     attributes.h \
     binpack.h \
     chooser.h \
-    color.h \
     decryption.h \
     destination_folder_dialog.h \
     dir.h \
@@ -130,8 +129,10 @@ HEADERS +=     activity.h \
     widget_surface.h \
     window.h \
     opengl_state.h \
+    opengl_save.h \
     include/tao/coords.h \
     include/tao/coords3d.h \
+    include/tao/color.h \
     include/tao/matrix.h \
     include/tao/module_api.h \
     include/tao/module_info.h \
@@ -206,7 +207,8 @@ SOURCES +=     activity.cpp \
     widget.cpp \
     widget_surface.cpp \
     window.cpp \
-    opengl_state.cpp
+    opengl_state.cpp \
+    opengl_save.cpp
 
 win32 {
     HEADERS += dde_widget.h

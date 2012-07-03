@@ -28,8 +28,18 @@
 
 TAO_BEGIN
 
-//  Shortcut
+//  Shortcut to the current state
 #define GL  (*Tao::GraphicState::State())
+
+
+struct GraphicSave
+// ----------------------------------------------------------------------------
+//   Used to save/restore a graphic state
+// ----------------------------------------------------------------------------
+{
+    GraphicSave()               {}
+    virtual ~GraphicSave()      {}
+};
 
 
 struct GraphicState
@@ -44,6 +54,10 @@ struct GraphicState
     static GraphicState *State()        { return current; }
     void   MakeCurrent()                { current = this; }
 
+    // Saving and restoring state
+    virtual GraphicSave *       Save() = 0;
+    virtual void                Restore(GraphicSave *saved) = 0;
+
     // Return attributes of state
     virtual uint   MaxTextureCoords() = 0;
     virtual uint   MaxTextureUnits() = 0;
@@ -56,8 +70,6 @@ struct GraphicState
     // Matrix management
     virtual coord* ModelViewMatrix() = 0;
     virtual coord* ProjectionMatrix() = 0;
-    virtual void   PushMatrix() = 0;
-    virtual void   PopMatrix() = 0;
     virtual void   MatrixMode(GLenum mode) = 0;
     virtual void   LoadMatrix() = 0;
     virtual void   LoadIdentity() = 0;

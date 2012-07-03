@@ -28,7 +28,7 @@ TAO_BEGIN
 
 struct Color
 // ----------------------------------------------------------------------------
-//    A three-dimensional vector
+//    A representation for RGBA color
 // ----------------------------------------------------------------------------
 {
     typedef float percent;
@@ -45,6 +45,11 @@ struct Color
         green = o.green;
         alpha = o.alpha;
         return *this;
+    }
+
+    bool operator==(const Color &o)
+    {
+        return red==o.red && green==o.green && blue==o.blue && alpha==o.alpha;
     }
 
     Color& Set(percent r, percent g, percent b, percent a = 1)

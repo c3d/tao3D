@@ -1,0 +1,40 @@
+// ****************************************************************************
+//  graphics_state.tbl                                             Tao project 
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     List of the various graphics states to save/restore
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+#ifndef GFLAG
+#define GFLAG(glenum, name)     GS(bool, name)
+#endif
+
+GS(GLenum,              matrixMode)
+GS(MatrixState,         mvMatrix)
+GS(MatrixState,         projMatrix)
+GS(ViewportState,       viewport)
+GS(Tao::Color,          color)
+GS(Tao::Color,          clearColor)
+GS(GLenum,              shadeMode)
+GS(GLuint,              lineWidth)
+GS(GLint,               stippleFactor)
+GS(GLushort,            stipplePattern)
+GS(GLboolean,           depthMask)
+GS(GLenum,              depthFunc)
+GFLAG(GL_LINE_STIPPLE,  lineStipple)
+
+#undef GS
+#undef GFLAG

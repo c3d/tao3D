@@ -24,11 +24,14 @@
 // ****************************************************************************
 
 #include "coords3d.h"
+#include "color.h"
 #include "matrix.h"
 #include "graphic_state.h"
 #include <stack>
 
 TAO_BEGIN
+
+struct OpenGLSave;              // Structure used to save/restore state
 
 struct MatrixState
 // ----------------------------------------------------------------------------
@@ -37,8 +40,28 @@ struct MatrixState
 {
     MatrixState() : needUpdate(false) {}
 
-    bool    needUpdate;
+    // The copy constructor is invoked by OpenGLSave when restoring
+    // This forces the 'needUpdate' flag to true so that we reload
+    // the restored matrix at the next LoadMatrix
+    MatrixState &operator= (const MatrixState &other)
+    {
+        matrix = other.matrix;
+        needUpdate = true;
+        return *this;
+    }
+
+public:
     Matrix4 matrix;
+    bool    needUpdate;
+};
+
+
+struct ViewportState
+// ----------------------------------------------------------------------------
+//    Represent the viewport information in a more readable way
+// ----------------------------------------------------------------------------
+{
+    int x, y, w, h;
 };
 
 
@@ -48,6 +71,10 @@ struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 {
     OpenGLState();
+
+    // Saving and restoring state
+    virtual GraphicSave *       Save();
+    virtual void                Restore(GraphicSave *saved);
 
     // Return attributes of state
     virtual uint   MaxTextureCoords()           { return maxTextureCoords; }
@@ -62,8 +89,6 @@ struct OpenGLState : GraphicState
     // Matrix management
     virtual coord* ModelViewMatrix();
     virtual coord* ProjectionMatrix();
-    virtual void   PushMatrix();
-    virtual void   PopMatrix();
     virtual void   MatrixMode(GLenum mode);
     virtual void   LoadMatrix();
     virtual void   LoadIdentity();
@@ -88,7 +113,7 @@ struct OpenGLState : GraphicState
                         float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
     virtual void Viewport(int x, int y, int w, int h);
-    virtual int *Viewport()           { return viewport; }
+    virtual int *Viewport()           { return (int *) &viewport.x; }
 
     // Attributes management
     virtual void Color(float r, float g, float b, float a);
@@ -103,6 +128,11 @@ struct OpenGLState : GraphicState
     virtual void ShadeModel(GLenum mode);
 
     std::ostream & debug();
+
+public:
+#define GS(type, name)                          \
+    void set_##name(const type &name);
+#include "opengl_state.tbl"
 
 public:
     enum VendorID
@@ -123,28 +153,21 @@ public:
     text         version;
     text         extensionsAvailable;
 
-    GLenum       matrixMode;
     MatrixState* currentMatrix;
-    MatrixState  projMatrix;
-    MatrixState  mvMatrix;
 
-    GLint        viewport[4];
-    GLfloat      color[4];
-    GLfloat      clearColor[4];
-
-    GLenum       shadeMode;
-    GLuint       lineWidth;
-    GLint        stippleFactor;
-    GLushort     stipplePattern;
-
-    GLboolean    depthMask;
-    GLenum       depthFunc;
-
-    std::stack<MatrixState> projStack; // the stack for projection matrices
-    std::stack<MatrixState> mvStack;   // the stack for modelview matrices
+#define GS(type, name)                          \
+    type name;
+#define GFLAG(enum, name)                       \
+    bool name:1;
+#include "opengl_state.tbl"
 
 public:
     static text          vendorsList[LAST_VENDOR];
+
+private:
+    // Structure used to push/pop state
+    friend class OpenGLSave;
+    OpenGLSave *save;
 };
 
 TAO_END

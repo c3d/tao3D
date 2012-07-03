@@ -29,6 +29,7 @@
 #include "runtime.h"
 #include "opcodes.h"
 #include "gl_keepers.h"
+#include "opengl_state.h"
 #include "frame.h"
 #include "texture.h"
 #include "svg.h"
@@ -81,7 +82,6 @@
 #include "info_trash_can.h"
 #include "tao_info.h"
 #include "preferences_pages.h"
-#include "opengl_state.h"
 
 #include <QDialog>
 #include <QTextCursor>

@@ -26,6 +26,8 @@
 #include "widget.h"
 #include "tao_gl.h"
 #include "application.h"
+#include "gl_keepers.h"
+
 
 TAO_BEGIN
 
@@ -149,8 +151,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
 {
     Point3 p = bounds.Center() + where->Offset();
 
-    GL.PushMatrix();
-    glPushAttrib(GL_ENABLE_BIT);
+    GLAllStateKeeper save;
     GL.Translate(p.x, p.y, p.z);
     GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
     GL.LoadMatrix();
@@ -226,10 +227,9 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         if(v != 1.0)
             GL.DepthMask(true);
     }
-
-    glPopAttrib();
-    GL.PopMatrix();
 }
+
+
 
 // ============================================================================
 //

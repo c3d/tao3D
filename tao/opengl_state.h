@@ -33,35 +33,34 @@ TAO_BEGIN
 
 struct OpenGLSave;              // Structure used to save/restore state
 
-struct MatrixState
-// ----------------------------------------------------------------------------
-//   The state of a matrix we want to preserve
-// ----------------------------------------------------------------------------
-{
-    MatrixState() : needUpdate(false) {}
-
-    // The copy constructor is invoked by OpenGLSave when restoring
-    // This forces the 'needUpdate' flag to true so that we reload
-    // the restored matrix at the next LoadMatrix
-    MatrixState &operator= (const MatrixState &other)
-    {
-        matrix = other.matrix;
-        needUpdate = true;
-        return *this;
-    }
-
-public:
-    Matrix4 matrix;
-    bool    needUpdate;
-};
-
-
 struct ViewportState
 // ----------------------------------------------------------------------------
 //    Represent the viewport information in a more readable way
 // ----------------------------------------------------------------------------
 {
+    ViewportState(int x, int y, int w, int h): x(x), y(y), w(w), h(h) {}
+    bool operator==(const ViewportState &o)
+    {
+        return x==o.x && y==o.y && w==o.w && h==o.h;
+    }
+    bool operator!=(const ViewportState &o) { return !operator==(o); }
     int x, y, w, h;
+};
+
+
+struct LineStippleState
+// ----------------------------------------------------------------------------
+//    Represent line stipple information
+// ----------------------------------------------------------------------------
+{
+    LineStippleState(GLint f, GLushort p): factor(f), pattern(p) {}
+    bool operator==(const LineStippleState &o)
+    {
+        return factor == o.factor && pattern == o.pattern;
+    }
+    bool operator!=(const LineStippleState &o) { return !operator==(o); }
+    GLint factor;
+    GLushort pattern;
 };
 
 
@@ -131,7 +130,7 @@ struct OpenGLState : GraphicState
 
 public:
 #define GS(type, name)                          \
-    void set_##name(const type &name);
+    bool name##_isDirty : 1;
 #include "opengl_state.tbl"
 
 public:
@@ -152,8 +151,6 @@ public:
     text         renderer;
     text         version;
     text         extensionsAvailable;
-
-    MatrixState* currentMatrix;
 
 #define GS(type, name)                          \
     type name;

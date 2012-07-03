@@ -13,47 +13,37 @@ struct Matrix4
 // ----------------------------------------------------------------------------
 {
     Matrix4(bool loadIdentity = true)
+        : type (UNKNOWN)
     {
         if(loadIdentity)
             LoadIdentity();
-        else
-            type = UNKNOWN;
     }
 
     Matrix4(const coord *data)
+        : type(UNKNOWN)
     {
         for (int row = 0; row < 4; ++row)
             for (int col = 0; col < 4; ++col)
-                m[col][row] = data[row * 4 + col];
-
-        // Update matrix type
-        type = UNKNOWN;
+                m[col][row] = *data++;
     }
 
     Matrix4(coord m11, coord m12, coord m13, coord m14,
             coord m21, coord m22, coord m23, coord m24,
             coord m31, coord m32, coord m33, coord m34,
             coord m41, coord m42, coord m43, coord m44)
+        : type(UNKNOWN)
     {
         m[0][0] = m11; m[0][1] = m21; m[0][2] = m31; m[0][3] = m41;
         m[1][0] = m12; m[1][1] = m22; m[1][2] = m32; m[1][3] = m42;
         m[2][0] = m13; m[2][1] = m23; m[2][2] = m33; m[2][3] = m43;
         m[3][0] = m14; m[3][1] = m24; m[3][2] = m34; m[3][3] = m44;
-
-        // Update matrix type
-        type = UNKNOWN;
     }
 
 
     Matrix4(const Matrix4& o)
+        : type(o.type)
     {
-        m[0][0] = o.m[0][0]; m[0][1] = o.m[0][1]; m[0][2] = o.m[0][2]; m[0][3] = o.m[0][3];
-        m[1][0] = o.m[1][0]; m[1][1] = o.m[1][1]; m[1][2] = o.m[1][2]; m[1][3] = o.m[1][3];
-        m[2][0] = o.m[2][0]; m[2][1] = o.m[2][1]; m[2][2] = o.m[2][2]; m[2][3] = o.m[2][3];
-        m[3][0] = o.m[3][0]; m[3][1] = o.m[3][1]; m[3][2] = o.m[3][2]; m[3][3] = o.m[3][3];
-
-         // Update matrix type
-        type = UNKNOWN;
+        memcpy(m, o.m, sizeof m);
     }
 
 
@@ -69,7 +59,7 @@ struct Matrix4
 
     inline coord& operator()(int row, int column);
 
-    inline void LoadIdentity();
+    inline Matrix4 &LoadIdentity();
 
     double Determinant()
     {
@@ -300,10 +290,24 @@ struct Matrix4
         return *this;
     }
 
-
-    void Translate(coord tx, coord ty, coord tz)
+    bool operator==(const Matrix4 &o)
     {
+        if (type != o.type)
+            return false;
+        for (uint r = 0; r < 3; r++)
+            for (uint c = 0; c < 3; c++)
+                if (m[r][c] != o.m[r][c])
+                    return false;
+        return true;
+    }
 
+    bool operator!=(const Matrix4 &o)
+    {
+        return !operator==(o);
+    }
+
+    Matrix4 &Translate(coord tx, coord ty, coord tz)
+    {
         if (type == IDENTITY)
         {
             // If identity, just need to affect the translation vector
@@ -346,14 +350,15 @@ struct Matrix4
             else if (type != (ROTATION | TRANSLATION))
                 type = UNKNOWN;
         }
+        return *this;
     }
 
-    void Translate(Vector3& v)
+    Matrix4 &Translate(Vector3& v)
     {
-       Translate(v.x, v.y, v.z);
+        return Translate(v.x, v.y, v.z);
     }
 
-    void Scale(coord sx, coord sy, coord sz)
+    Matrix4 &Scale(coord sx, coord sy, coord sz)
     {
         if (type == IDENTITY)
         {
@@ -391,19 +396,20 @@ struct Matrix4
             m[2][0] *= sz; m[2][1] *= sz; m[2][2] *= sz; m[2][3] *= sz;
             type = UNKNOWN;
         }
+        return *this;
     }
 
-    void Scale(Vector3 v)
+    Matrix4 &Scale(Vector3 v)
     {
-        Scale(v.x, v.y, v.z);
+        return Scale(v.x, v.y, v.z);
     }
 
-    void Rotate(coord a, coord rx, coord ry, coord rz)
+    Matrix4 &Rotate(coord a, coord rx, coord ry, coord rz)
     {
         double length = sqrt(rx * rx + ry * ry + rz * rz);
 
         // Rotate if only the axis is not null
-        if ( length > 0.0 )
+        if (length > 0.0)
         {
            double ca = cos(a * M_PI / 180.0);
            double sa = sin(a * M_PI / 180.0);
@@ -456,21 +462,21 @@ struct Matrix4
            // Update matrix type
            if (current == IDENTITY)
                type = ROTATION;
-           else
-               if(current != UNKNOWN)
-                   type = current | ROTATION;
+           else if(current != UNKNOWN)
+               type = current | ROTATION;
         }
+        return *this;
     }
 
-    void Rotate(coord a, Vector3& v)
+    Matrix4 &Rotate(coord a, Vector3& v)
     {
-        Rotate(a, v.x, v.y, v.z);
+        return Rotate(a, v.x, v.y, v.z);
     }
 
-    void Rotate(Quaternion& q)
+    Matrix4 &Rotate(Quaternion& q)
     {
         // Rotate if only the quaternion is not null
-        if ( q.Length() > 0.0 )
+        if (q.Length() > 0.0)
         {
             Matrix4 rot(false);
             coord xx, yy, zz, xy, yz, zx, xs, ys, zs;
@@ -518,17 +524,17 @@ struct Matrix4
             else
                 if(current != UNKNOWN)
                     type = current | ROTATION;
-         }
+        }
+        return *this;
     }
-
 
 public:
     enum {
-        IDENTITY        = 1,   // Identity matrix
-        UNKNOWN         = 2,   // Unknown matrix
-        TRANSLATION     = 3,   // Simple translation matrix
-        SCALING         = 4,   // Simple scaling matrix
-        ROTATION        = 5    // Simple rotation matrix
+        UNKNOWN         = 0,   // Unknown matrix
+        TRANSLATION     = 1,   // Simple translation matrix
+        SCALING         = 2,   // Simple scaling matrix
+        ROTATION        = 4,   // Simple rotation matrix
+        IDENTITY        = 7    // Identity matrix (TRANSLATION|SCALING|ROTATION)
     };
     int       type;
 
@@ -544,7 +550,7 @@ private:
 //
 // ============================================================================
 
-inline void Matrix4::LoadIdentity()
+inline Matrix4 &Matrix4::LoadIdentity()
 {
     if(type != IDENTITY)
     {
@@ -556,6 +562,7 @@ inline void Matrix4::LoadIdentity()
         // Update matrix type
         type = IDENTITY;
     }
+    return *this;
 }
 
 

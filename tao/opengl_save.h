@@ -112,7 +112,8 @@ inline OpenGLSave::~OpenGLSave()
 #define GS(type, name)                                  \
     if (saved_##name)                                   \
     {                                                   \
-        gs->set_##name(name##_stack.back());            \
+        gs->name = name##_stack.back();                 \
+        gs->name##_isDirty = true;                      \
         name##_stack.pop_back();                        \
     }
 #include "opengl_state.tbl"

@@ -46,6 +46,24 @@ GraphicState *GraphicState::current = NULL;
 
 
 // Test if we need to save a state
+#define CHANGE(name, value, Code)               \
+    do                                          \
+    {                                           \
+        if (name != value)                      \
+        {                                       \
+            if (save)                           \
+                save->save_##name(name);        \
+            name##_isDirty = true;              \
+            name = value;                       \
+        }                                       \
+        if (name##_isDirty)                     \
+        {                                       \
+            Code;                               \
+            name##_isDirty = false;             \
+        }                                       \
+    } while (0)
+
+
 #define SAVE(name)                              \
     do                                          \
     {                                           \
@@ -53,13 +71,24 @@ GraphicState *GraphicState::current = NULL;
             save->save_##name(name);            \
     } while (0)
 
-#define SAVE_MATRIX()                           \
+
+#define CHANGE_MATRIX(Code)                     \
     do                                          \
     {                                           \
         if (matrixMode == GL_MODELVIEW)         \
+        {                                       \
             SAVE(mvMatrix);                     \
+            Matrix4 &matrix = mvMatrix;         \
+            Code;                               \
+            mvMatrix_isDirty = true;            \
+        }                                       \
         else                                    \
+        {                                       \
             SAVE(projMatrix);                   \
+            Matrix4 &matrix = projMatrix;       \
+            Code;                               \
+            projMatrix_isDirty = true;          \
+        }                                       \
     } while(0)
 
 
@@ -68,11 +97,14 @@ OpenGLState::OpenGLState()
 //    Constructor make sure we are a singleton, and initializes it
 // ----------------------------------------------------------------------------
     : GraphicState(),
-      currentMatrix(&mvMatrix),
+#define GS(type, name)          name##_isDirty(true),
+#include "opengl_state.tbl"
       maxTextureCoords(0), maxTextureUnits(0),
       matrixMode(GL_MODELVIEW),
+      viewport(0, 0, 0, 0),
       shadeMode(GL_SMOOTH),
-      lineWidth(1), stippleFactor(1), stipplePattern(1),
+      lineWidth(1),
+      stipple(1, -1),
       save(NULL)
 {
     // Ask graphic card constructor to OpenGL
@@ -150,7 +182,7 @@ coord* OpenGLState::ModelViewMatrix()
 //    Return model view matrix
 // ----------------------------------------------------------------------------
 {
-    return mvMatrix.matrix.Data(false);
+    return mvMatrix.Data(false);
 }
 
 
@@ -159,7 +191,7 @@ coord* OpenGLState::ProjectionMatrix()
 //    Return projection matrix
 // ----------------------------------------------------------------------------
 {
-    return projMatrix.matrix.Data(false);
+    return projMatrix.Data(false);
 }
 
 
@@ -169,20 +201,7 @@ void OpenGLState::MatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
 {
     // Setup the new matrix mode
-    if(matrixMode != mode)
-    {
-        SAVE(matrixMode);
-        matrixMode = mode;
-        switch(mode)
-        {
-        case GL_PROJECTION: currentMatrix = &projMatrix; break;
-        case GL_MODELVIEW:  currentMatrix = &mvMatrix; break;
-        default: break;
-        }
-
-        // TO REMOVE
-        glMatrixMode(mode);
-    }
+    CHANGE(matrixMode, mode, glMatrixMode(mode));
 }
 
 
@@ -191,10 +210,18 @@ void OpenGLState::LoadMatrix()
 //    Load current matrix
 // ----------------------------------------------------------------------------
 {
-    SAVE_MATRIX();
-    if(currentMatrix->needUpdate)
-        glLoadMatrixd(currentMatrix->matrix.Data(false));
-    currentMatrix->needUpdate = false;
+    if (mvMatrix_isDirty)
+    {
+        MatrixMode(GL_MODELVIEW);
+        glLoadMatrixd(mvMatrix.Data(false));
+        mvMatrix_isDirty = false;
+    }
+    if (projMatrix_isDirty)
+    {
+        MatrixMode(GL_PROJECTION);
+        glLoadMatrixd(projMatrix.Data(false));
+        projMatrix_isDirty = false;
+    }
 }
 
 
@@ -203,9 +230,19 @@ void OpenGLState::LoadIdentity()
 //    Load identity matrix
 // ----------------------------------------------------------------------------
 {
-    SAVE_MATRIX();
-    currentMatrix->matrix.LoadIdentity();
-    currentMatrix->needUpdate = true;
+    switch(matrixMode)
+    {
+    case GL_MODELVIEW:
+        SAVE(mvMatrix);
+        mvMatrix.LoadIdentity();
+        mvMatrix_isDirty = true;
+        break;
+    case GL_PROJECTION:
+        SAVE(projMatrix);
+        projMatrix.LoadIdentity();
+        projMatrix_isDirty = true;
+        break;
+    }
 }
 
 
@@ -256,12 +293,8 @@ void OpenGLState::Translate(double x, double y, double z)
 // ----------------------------------------------------------------------------
 {
     // Do not need to translate if all values are null
-    if(x != 0.0 || y != 0.0 || z != 0.0)
-    {
-        SAVE_MATRIX();
-        currentMatrix->matrix.Translate(x, y, z);
-        currentMatrix->needUpdate = true;
-    }
+    if (x != 0.0 || y != 0.0 || z != 0.0)
+        CHANGE_MATRIX(matrix.Translate(x, y, z));
 }
 
 
@@ -271,12 +304,8 @@ void OpenGLState::Rotate(double a, double x, double y, double z)
 // ----------------------------------------------------------------------------
 {
     // Do not need to rotate if all values are null
-    if(a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
-    {
-        SAVE_MATRIX();
-        currentMatrix->matrix.Rotate(a, x, y, z);
-        currentMatrix->needUpdate = true;
-    }
+    if (a != 0.0 && (x != 0.0 || y != 0.0 || z != 0.0))
+        CHANGE_MATRIX(matrix.Rotate(a, x, y, z));
 }
 
 
@@ -286,12 +315,8 @@ void OpenGLState::Scale(double x, double y, double z)
 // ----------------------------------------------------------------------------
 {
     // Do not need to scale if all values are equals to 1
-    if((x != 1.0) || (y != 1.0) || (z != 1.0))
-    {
-        SAVE_MATRIX();
-        currentMatrix->matrix.Scale(x, y, z);
-        currentMatrix->needUpdate = true;
-    }
+    if (x != 1.0 || y != 1.0 || z != 1.0)
+        CHANGE_MATRIX(matrix.Scale(x, y, z));
 }
 
 
@@ -312,15 +337,12 @@ void OpenGLState::PickMatrix(float x, float y,
     if (width <= 0 || height <= 0)
         return;
 
-    SAVE_MATRIX();
-
     float sx = viewport[2] / width;
     float sy = viewport[3] / height;
     float tx = (viewport[2] + 2.0 * (viewport[0] - x)) / width;
     float ty = (viewport[3] + 2.0 * (viewport[1] - y)) / height;
 
-    currentMatrix->matrix.Translate(tx, ty, 0);
-    currentMatrix->matrix.Scale(sx, sy, 1.0);
+    CHANGE_MATRIX(matrix.Translate(tx, ty, 0).Scale(sx, sy, 1.0));
 }
 
 
@@ -340,8 +362,6 @@ void OpenGLState::Frustum(float left, float right,
          (deltaX <= 0.0f) || (deltaY <= 0.0f) || (deltaZ <= 0.0f) )
          return;
 
-    SAVE_MATRIX();
-
     frust(0, 0) = 2.0f * nearZ / deltaX;
     frust(1, 0) = frust(2, 0) = frust(3, 0) = 0.0f;
 
@@ -357,8 +377,7 @@ void OpenGLState::Frustum(float left, float right,
     frust(0, 3) = frust(1, 3) = frust(3, 3) = 0.0f;
 
     // Update current matrix
-    currentMatrix->matrix    *= frust;
-    currentMatrix->needUpdate = true;
+    CHANGE_MATRIX(matrix *= frust);
 }
 
 
@@ -392,7 +411,6 @@ void OpenGLState::Ortho(float left, float right,
     if ( (deltaX == 0.0f) || (deltaY == 0.0f) || (deltaZ == 0.0f) )
         return;
 
-    SAVE_MATRIX();
     ortho(0, 0) = 2.0 / deltaX;
     ortho(0, 3) = -(right + left) / deltaX;
 
@@ -410,8 +428,7 @@ void OpenGLState::Ortho(float left, float right,
     ortho(3, 0) = ortho(3, 1) = ortho(3, 2) = 0.0;
 
     // Update current matrix
-    currentMatrix->matrix    *= ortho;
-    currentMatrix->needUpdate = true;
+    CHANGE_MATRIX(matrix *= ortho);
 }
 
 
@@ -444,8 +461,6 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 //    Multiply the current matrix with a viewing matrix
 // ----------------------------------------------------------------------------+
 {
-    SAVE_MATRIX();
-
     // Compute forward vector
     Vector3 forward = (center - eye).Normalize();
 
@@ -475,11 +490,11 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
     view(0, 3) = view(1, 3) = view(2, 3) = 0.0;
 
     // Update current matrix
-    currentMatrix->matrix *= view;
+    CHANGE_MATRIX(matrix *= view;
+                  /* TO REMOVE */
+                  matrix.Translate(-eye.x, -eye.y, -eye.z));
 
-    // TO REMOVE
-    currentMatrix->needUpdate = true;
-    currentMatrix->matrix.Translate(-eye.x, -eye.y, -eye.z);
+    // TO REMOVE?
     LoadMatrix();
 }
 
@@ -490,17 +505,8 @@ void OpenGLState::Viewport(int x, int y, int w, int h)
 // ----------------------------------------------------------------------------
 {
     // Do not need to setup viewport if it has not changed
-    if(x == viewport.x && y == viewport.y &&
-       w == viewport.w && h == viewport.h)
-        return;
-
-    // Update viewport
-    SAVE(viewport);
-    viewport.x = x;
-    viewport.y = y;
-    viewport.w = w;
-    viewport.h = h;
-    glViewport(x, y, w, h);
+    ViewportState newViewport(x, y, w, h);
+    CHANGE(viewport, newViewport, glViewport(x, y, w, h));
 }
 
 
@@ -518,13 +524,7 @@ void OpenGLState::Color(float r, float g, float b, float a)
 {
     // Do not need to setup color if it has not changed
     Tao::Color c = Tao::Color(r, g, b, a);
-    if (color == c)
-       return;
-
-    // Update current color
-    SAVE(color);
-    color = c;
-    glColor4f(r, g, b, a);
+    CHANGE(color, c, glColor4f(r, g, b, a));
 }
 
 
@@ -535,13 +535,7 @@ void OpenGLState::ClearColor(float r, float g, float b, float a)
 {
     // Do not need to setup clear color if it has not changed
     Tao::Color c = Tao::Color(r, g, b, a);
-    if (clearColor == c)
-        return;
-
-    // Update clear color
-    SAVE(clearColor);
-    clearColor = c;
-    glClearColor(r, g, b, a);
+    CHANGE(clearColor, c, glClearColor(r, g, b, a));
 }
 
 
@@ -560,12 +554,7 @@ void OpenGLState::LineWidth(float width)
 //    Specify the width of rasterized lines
 // ----------------------------------------------------------------------------
 {
-    if(width != lineWidth)
-    {
-        SAVE(lineWidth);
-        lineWidth = width;
-        glLineWidth(width);
-    }
+    CHANGE(lineWidth, width, glLineWidth(width));
 }
 
 
@@ -574,14 +563,8 @@ void OpenGLState::LineStipple(GLint factor, GLushort pattern)
 //    Specify the line stipple pattern
 // ----------------------------------------------------------------------------
 {
-    if((factor != stippleFactor) || (pattern != stipplePattern))
-    {
-        SAVE(stippleFactor);
-        SAVE(stipplePattern);
-        stippleFactor = factor;
-        stipplePattern = pattern;
-        glLineStipple(factor, pattern);
-    }
+    LineStippleState newStipple(factor, pattern);
+    CHANGE(stipple, newStipple, glLineStipple(factor, pattern));
 }
 
 
@@ -590,12 +573,7 @@ void OpenGLState::DepthMask(GLboolean flag)
 //    Enable or disable writing into the depth buffer
 // ----------------------------------------------------------------------------
 {
-    if(depthMask != flag)
-    {
-        SAVE(depthMask);
-        depthMask = flag;
-        glDepthMask(flag);
-    }
+    CHANGE(depthMask, flag, glDepthMask(flag));
 }
 
 
@@ -604,12 +582,7 @@ void OpenGLState::DepthFunc(GLenum func)
 //    Specify the value used for depth buffer comparisons
 // ----------------------------------------------------------------------------
 {
-    if(depthFunc != func)
-    {
-        SAVE(depthFunc);
-        depthFunc = func;
-        glDepthFunc(func);
-    }
+    CHANGE(depthFunc, func, glDepthFunc(func));
 }
 
 
@@ -630,6 +603,8 @@ void OpenGLState::Enable(GLenum cap)
         }                                       \
         return;
 #include "opengl_state.tbl"
+    default:
+        break;
     }
 
     glEnable(cap);
@@ -653,6 +628,8 @@ void OpenGLState::Disable(GLenum cap)
         }                                       \
         return;
 #include "opengl_state.tbl"
+    default:
+        break;
     }
 
     glDisable(cap);
@@ -664,12 +641,7 @@ void OpenGLState::ShadeModel(GLenum mode)
 //    Select shading mode
 // ----------------------------------------------------------------------------
 {
-    if(mode != shadeMode)
-    {
-        SAVE(shadeMode);
-        shadeMode = mode;            
-        glShadeModel(mode);
-    }
+    CHANGE(shadeMode, mode, glShadeModel(mode));
 }
 
 

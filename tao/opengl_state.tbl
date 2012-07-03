@@ -23,15 +23,14 @@
 #endif
 
 GS(GLenum,              matrixMode)
-GS(MatrixState,         mvMatrix)
-GS(MatrixState,         projMatrix)
+GS(Matrix4,             mvMatrix)
+GS(Matrix4,             projMatrix)
 GS(ViewportState,       viewport)
 GS(Tao::Color,          color)
 GS(Tao::Color,          clearColor)
 GS(GLenum,              shadeMode)
 GS(GLuint,              lineWidth)
-GS(GLint,               stippleFactor)
-GS(GLushort,            stipplePattern)
+GS(LineStippleState,    stipple)
 GS(GLboolean,           depthMask)
 GS(GLenum,              depthFunc)
 GFLAG(GL_LINE_STIPPLE,  lineStipple)

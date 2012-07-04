@@ -343,7 +343,6 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     GL.Viewport(0, 0, w, h);
     GL.MatrixMode(GL_PROJECTION);
     GL.LoadIdentity();
-    GL.LoadMatrix();
     GL.MatrixMode(GL_MODELVIEW);
     GL.LoadIdentity();
     GL.LoadMatrix();

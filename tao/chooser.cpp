@@ -198,7 +198,6 @@ Activity *Chooser::Display(void)
     GL.MatrixMode(GL_PROJECTION);
     GL.LoadIdentity();
     GL.Ortho2D(0, ww, 0, wh);
-    GL.LoadMatrix();
     GL.MatrixMode(GL_MODELVIEW);
     GL.LoadIdentity();
     GL.LoadMatrix();

@@ -64,6 +64,43 @@ struct LineStippleState
 };
 
 
+struct BlendFunctionState
+// ----------------------------------------------------------------------------
+//   Represent blend function state
+// ----------------------------------------------------------------------------
+{
+    BlendFunctionState(GLenum srcRgb, GLenum destRgb, GLenum srcA, GLenum dstA)
+        : srcRgb(srcRgb), destRgb(destRgb), srcAlpha(srcA), destAlpha(dstA) {}
+    bool operator==(const BlendFunctionState &o)
+    {
+        return (srcRgb == o.srcRgb && destRgb == o.destRgb &&
+                srcAlpha == o.srcAlpha && destAlpha == o.destAlpha);
+    }
+    bool operator!=(const BlendFunctionState &o) { return !operator==(o); }
+    GLenum srcRgb;
+    GLenum destRgb;
+    GLenum srcAlpha;
+    GLenum destAlpha;
+};
+
+
+struct AlphaFunctionState
+// ----------------------------------------------------------------------------
+//   Represent alpha function state
+// ----------------------------------------------------------------------------
+{
+    AlphaFunctionState(GLenum func, GLfloat ref): func(func), ref(ref) {}
+    bool operator==(const AlphaFunctionState &o)
+    {
+        return func == o.func && ref == o.ref;
+    }
+    bool operator!=(const AlphaFunctionState &o) { return !operator==(o); }
+    GLenum func;
+    GLfloat ref;
+};
+
+
+
 struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 //   Class to manage graphic states
@@ -74,6 +111,7 @@ struct OpenGLState : GraphicState
     // Saving and restoring state
     virtual GraphicSave *       Save();
     virtual void                Restore(GraphicSave *saved);
+    virtual void                Sync(ulonglong which = ~0ULL);
 
     // Return attributes of state
     virtual uint   MaxTextureCoords()           { return maxTextureCoords; }
@@ -176,8 +214,8 @@ public:
 
 #define GS(type, name)                          \
     type name;
-#define GFLAG(enum, name)                       \
-    bool name:1;
+#define GFLAG(name)                             \
+    bool glflag_##name:1;
 #include "opengl_state.tbl"
 
 public:

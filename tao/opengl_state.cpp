@@ -176,7 +176,7 @@ void OpenGLState::Sync(ulonglong which)
 #define SYNC(name, Code)                                \
     do                                                  \
     {                                                   \
-        if (name##_isDirty && (which & SAVE_##name))    \
+        if (name##_isDirty && (which & STATE_##name))   \
         {                                               \
             Code;                                       \
             name##_isDirty = false;                     \
@@ -199,6 +199,22 @@ void OpenGLState::Sync(ulonglong which)
              matrixMode_isDirty = false;
          }
          glLoadMatrixd(projMatrix.Data(false)));
+    SYNC(textureMatrix,
+         if (matrixMode_isDirty || matrixMode != GL_TEXTURE)
+         {
+             glMatrixMode(GL_TEXTURE);
+             matrixMode = GL_TEXTURE;
+             matrixMode_isDirty = false;
+         }
+         glLoadMatrixd(textureMatrix.Data(false)));
+    SYNC(colorMatrix,
+         if (matrixMode_isDirty || matrixMode != GL_COLOR)
+         {
+             glMatrixMode(GL_COLOR);
+             matrixMode = GL_COLOR;
+             matrixMode_isDirty = false;
+         }
+         glLoadMatrixd(colorMatrix.Data(false)));
     SYNC(matrixMode,
          glMatrixMode(matrixMode));
     SYNC(viewport,
@@ -283,7 +299,7 @@ void OpenGLState::LoadMatrix()
 //    Load current matrix
 // ----------------------------------------------------------------------------
 {
-    Sync(SAVE_mvMatrix | SAVE_projMatrix);
+    Sync(STATE_mvMatrix | STATE_projMatrix);
 }
 
 

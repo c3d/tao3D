@@ -24,6 +24,8 @@
 
 GS(Matrix4,             mvMatrix)
 GS(Matrix4,             projMatrix)
+GS(Matrix4,             textureMatrix)
+GS(Matrix4,             colorMatrix)
 GS(GLenum,              matrixMode)
 GS(ViewportState,       viewport)
 GS(Tao::Color,          color)

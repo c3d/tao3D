@@ -33,6 +33,15 @@ TAO_BEGIN
 
 struct OpenGLSave;              // Structure used to save/restore state
 
+enum StateBits
+{
+#define GS(type, name)          STATE_BIT_##name,
+#include "opengl_state.tbl"
+#define GS(type, name)          STATE_##name = 1ULL << STATE_BIT_##name,
+#include "opengl_state.tbl"
+};
+
+
 struct ViewportState
 // ----------------------------------------------------------------------------
 //    Represent the viewport information in a more readable way
@@ -98,7 +107,6 @@ struct AlphaFunctionState
     GLenum func;
     GLfloat ref;
 };
-
 
 
 struct OpenGLState : GraphicState

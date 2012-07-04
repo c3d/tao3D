@@ -24,15 +24,6 @@
 
 TAO_BEGIN
 
-enum SaveBits
-{
-#define GS(type, name)          SAVE_BIT_##name,
-#include "opengl_state.tbl"
-#define GS(type, name)          SAVE_##name = 1U << SAVE_BIT_##name,
-#include "opengl_state.tbl"
-};
-
-
 struct OpenGLSave : GraphicSave
 // ----------------------------------------------------------------------------
 //   Demand-based saving of the state held in a GraphicState
@@ -96,7 +87,9 @@ inline OpenGLSave::OpenGLSave(ulong flags, OpenGLState *gs)
 // ----------------------------------------------------------------------------
 //   Initialize all save_X flags to false, save graphic state and link in list
     : gs(gs ? gs : gs = ((OpenGLState *) &GL)),
-#define GS(type, name)  saved_##name(false), saving_##name(flags & SAVE_##name),
+#define GS(type, name)                          \
+      saved_##name(false),                      \
+      saving_##name(flags & STATE_##name),
 #include "opengl_state.tbl"
       oldSave(gs->save)
 {

@@ -117,6 +117,59 @@ struct AlphaFunctionState
 };
 
 
+struct TextureState
+// ----------------------------------------------------------------------------
+//   The state of a single texture (single texture unit)
+// ----------------------------------------------------------------------------
+{
+    TextureState();
+    bool operator ==(const TextureState &o)
+    {
+        return (wrapS == o.wrapS && wrapT == o.wrapT &&
+                id == o.id &&
+                /* ignore width and height on purpose */
+                type == o.type && mode == o.mode &&
+                minFilt == o.minFilt && magFilt == o.magFilt &&
+                matrix == o.matrix);
+    }
+    bool operator!=(const TextureState &o) { return !operator==(o); }
+    void Sync(const TextureState &newState);
+
+public:
+    GLuint      unit, id;
+    GLuint      width, height;
+    GLenum      type, mode;
+    GLenum      minFilt, magFilt;
+    Matrix4     matrix;
+    bool        wrapS, wrapT, mipmap;
+};
+
+
+struct TexturesState
+// ----------------------------------------------------------------------------
+//    The state of all textures on all texture units
+// ----------------------------------------------------------------------------
+{
+    TexturesState(): active(0), state() {}
+    bool operator==(const TexturesState &o)
+    {
+        uint max = state.size();
+        if (max != o.state.size())
+            return false;
+        for (uint i = 0; i < max; i++)
+            if (state[i] != o.state[i])
+                return false;
+        return true;
+    }
+    bool operator!=(const TexturesState &o) { return !operator==(o); }
+    void Sync(const TexturesState &newState);
+
+public:
+    ulonglong active;
+    std::vector<TextureState>   state;
+};
+
+
 
 // ============================================================================
 //

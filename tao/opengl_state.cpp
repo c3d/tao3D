@@ -24,6 +24,7 @@
 
 #include "opengl_state.h"
 #include "opengl_save.h"
+#include "application.h"
 #include <cassert>
 
 
@@ -971,6 +972,27 @@ std::ostream & OpenGLState::debug()
     std::cerr << "[OpenGLState] ";
     return std::cerr;
 }
+
+
+
+// ============================================================================
+// 
+//    TextureState class
+// 
+// ============================================================================
+
+TextureState::TextureState()
+// ----------------------------------------------------------------------------
+//   Initialize a texture state
+// ----------------------------------------------------------------------------
+  : unit(0), id(0), width(0), height(0),
+    type(GL_TEXTURE_2D), mode(GL_MODULATE),
+    minFilt(TaoApp->tex2DMinFilter),
+    magFilt(TaoApp->tex2DMagFilter),
+    matrix(),
+    wrapS(false), wrapT(false),
+    mipmap(false)
+{}
 
 TAO_END
 

@@ -813,8 +813,8 @@ void OpenGLState::Clear(GLuint mask)
 //    Clear buffers to preset values
 // ----------------------------------------------------------------------------
 {
-    // Do not need to be optimised
-    glClear(mask);
+    Sync(STATE_clearColor);     // Make sure we have right clear color
+    glClear(mask);              // Immediate execution
 }
 
 

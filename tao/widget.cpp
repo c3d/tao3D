@@ -9445,16 +9445,16 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     Layout *parent = layout;
     do
     {
-        GLAllStateKeeper saveGL;
-        XL::Save<Layout *> saveLayout(layout, layout->NewChild());
+        GLAllStateKeeper      saveGL;
+        XL::Save<Layout *>    saveLayout(layout, layout->NewChild());
         XL::Save<FrameInfo *> saveFrameInfo(frameInfo, pFrame);
-        XL::Save<Point3> saveCenter(cameraTarget, Point3(0,0,0));
-        XL::Save<Point3> saveEye(cameraPosition, defaultCameraPosition);
-        XL::Save<Vector3> saveUp(cameraUpVector, Vector3(0,1,0));
+        XL::Save<Point3>      saveCenter(cameraTarget, Point3(0,0,0));
+        XL::Save<Point3>      saveEye(cameraPosition, defaultCameraPosition);
+        XL::Save<Vector3>     saveUp(cameraUpVector, Vector3(0,1,0));
         XL::Save<double> saveCamToScr(cameraToScreen,
                                       (cameraTarget-cameraPosition).Length());
-        XL::Save<double> saveZoom(zoom, 1);
-        XL::Save<double> saveScaling(scaling, scalingFactorFromCamera());
+        XL::Save<double>      saveZoom(zoom, 1);
+        XL::Save<double>      saveScaling(scaling, scalingFactorFromCamera());
 
         // Clear the background and setup initial state
         frame.resize(w,h);

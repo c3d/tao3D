@@ -10927,7 +10927,6 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     GL.Enable(GL_TEXTURE_2D);
     GL.MatrixMode(GL_PROJECTION);
     GL.LoadIdentity();
-    GL.LoadMatrix();
     GL.MatrixMode(GL_MODELVIEW);
     GL.LoadIdentity();
     GL.LoadMatrix();

@@ -70,19 +70,40 @@ GraphicState *GraphicState::current = NULL;
 #define CHANGE_MATRIX(Code)                     \
     do                                          \
     {                                           \
-        if (matrixMode == GL_MODELVIEW)         \
+        switch(matrixMode)                      \
+        {                                       \
+        case GL_MODELVIEW:                      \
         {                                       \
             SAVE(mvMatrix);                     \
             Matrix4 &matrix = mvMatrix;         \
             Code;                               \
             mvMatrix_isDirty = true;            \
+            break;                              \
         }                                       \
-        else                                    \
+        case GL_PROJECTION:                     \
         {                                       \
             SAVE(projMatrix);                   \
             Matrix4 &matrix = projMatrix;       \
             Code;                               \
             projMatrix_isDirty = true;          \
+            break;                              \
+        }                                       \
+        case GL_TEXTURE:                        \
+        {                                       \
+            SAVE(textureMatrix);                \
+            Matrix4 &matrix = textureMatrix;    \
+            Code;                               \
+            textureMatrix_isDirty = true;       \
+            break;                              \
+        }                                       \
+        case GL_COLOR:                          \
+        {                                       \
+            SAVE(colorMatrix);                  \
+            Matrix4 &matrix = colorMatrix;      \
+            Code;                               \
+            colorMatrix_isDirty = true;         \
+            break;                              \
+        }                                       \
         }                                       \
     } while(0)
 
@@ -183,36 +204,37 @@ void OpenGLState::Sync(ulonglong which)
         }                                               \
     } while(0)
 
+    GLenum mmode = matrixMode;
     SYNC(mvMatrix,
-         if (matrixMode_isDirty || matrixMode != GL_MODELVIEW)
+         if (matrixMode_isDirty || mmode != GL_MODELVIEW)
          {
              glMatrixMode(GL_MODELVIEW);
-             matrixMode = GL_MODELVIEW;
-             matrixMode_isDirty = false;
+             mmode = GL_MODELVIEW;
+             matrixMode_isDirty = mmode != matrixMode;
          }
          glLoadMatrixd(mvMatrix.Data(false)));
     SYNC(projMatrix,
-         if (matrixMode_isDirty || matrixMode != GL_PROJECTION)
+         if (matrixMode_isDirty || mmode != GL_PROJECTION)
          {
              glMatrixMode(GL_PROJECTION);
-             matrixMode = GL_PROJECTION;
-             matrixMode_isDirty = false;
+             mmode = GL_PROJECTION;
+             matrixMode_isDirty = mmode != matrixMode;
          }
          glLoadMatrixd(projMatrix.Data(false)));
     SYNC(textureMatrix,
-         if (matrixMode_isDirty || matrixMode != GL_TEXTURE)
+         if (matrixMode_isDirty || mmode != GL_TEXTURE)
          {
              glMatrixMode(GL_TEXTURE);
-             matrixMode = GL_TEXTURE;
-             matrixMode_isDirty = false;
+             mmode = GL_TEXTURE;
+             matrixMode_isDirty = mmode != matrixMode;
          }
          glLoadMatrixd(textureMatrix.Data(false)));
     SYNC(colorMatrix,
-         if (matrixMode_isDirty || matrixMode != GL_COLOR)
+         if (matrixMode_isDirty || mmode != GL_COLOR)
          {
              glMatrixMode(GL_COLOR);
-             matrixMode = GL_COLOR;
-             matrixMode_isDirty = false;
+             mmode = GL_COLOR;
+             matrixMode_isDirty = mmode != matrixMode;
          }
          glLoadMatrixd(colorMatrix.Data(false)));
     SYNC(matrixMode,

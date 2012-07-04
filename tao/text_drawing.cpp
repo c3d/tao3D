@@ -531,8 +531,8 @@ void TextUnit::Identify(Layout *where)
             continue;
 
         if (canSel)
-            glLoadName((charId & ~Widget::SELECTION_MASK) |
-                       Widget::CHARACTER_SELECTED);
+            GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                        Widget::CHARACTER_SELECTED);
 
         sd = glyph.scalingFactor * descent;
         sh = glyph.scalingFactor * height;
@@ -568,8 +568,8 @@ void TextUnit::Identify(Layout *where)
     if (sel && canSel && max <= end)
     {
         charId++;
-        glLoadName((charId & ~Widget::SELECTION_MASK) |
-                   Widget::CHARACTER_SELECTED);
+        GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                    Widget::CHARACTER_SELECTED);
         if (glyphs.Find(font, ' ', texUnits, glyph, false))
         {
             sd = glyph.scalingFactor * descent;
@@ -1275,8 +1275,8 @@ void TextFormula::Identify(Layout *where)
     TextSelect          *sel    = widget->textSelection();
 
     if (!info && where->id)
-        glLoadName((charId & ~Widget::SELECTION_MASK) |
-                   Widget::CHARACTER_SELECTED);
+        GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                    Widget::CHARACTER_SELECTED);
 
     if (sel)
         sel->last = charId + 1;
@@ -1428,8 +1428,8 @@ void TextValue::Identify(Layout *where)
     TextSelect          *sel    = widget->textSelection();
 
     if (!info && where->id)
-        glLoadName((charId & ~Widget::SELECTION_MASK) |
-                   Widget::CHARACTER_SELECTED);
+        GL.LoadName((charId & ~Widget::SELECTION_MASK) |
+                    Widget::CHARACTER_SELECTED);
 
     if (sel)
         sel->last = charId + 1;

@@ -42,6 +42,7 @@ GS(GLenum,              destAlpha)
 GS(GLenum,              blendMode)
 GS(GLenum,              alphaFunc)
 GS(GLclampf,            alphaRef)
+GS(GLenum,              renderMode)
 GFLAG(GL_LINE_STIPPLE,  lineStipple)
 
 #undef GS

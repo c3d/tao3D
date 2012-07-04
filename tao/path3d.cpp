@@ -1178,14 +1178,14 @@ void GraphicPath::Identify(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected(layout))
     {
-        glPushName(layout->id);
+        GL.PushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
             child->Identify(layout);
         }
-        glPopName();
+        GL.PopName();
     }
 }
 

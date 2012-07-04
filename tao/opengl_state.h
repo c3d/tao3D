@@ -76,18 +76,18 @@ struct OpenGLState : GraphicState
     virtual void                Restore(GraphicSave *saved);
 
     // Return attributes of state
-    virtual uint   MaxTextureCoords()           { return maxTextureCoords; }
-    virtual uint   MaxTextureUnits()            { return maxTextureUnits; }
-    virtual text   Vendor()                     { return vendor; }
-    virtual text   Renderer()                   { return renderer; }
-    virtual text   Version()                    { return version; }
-    virtual uint   VendorID()                   { return vendorID; }
-    virtual bool   IsATIOpenGL()                { return vendorID == ATI; }
-
+    virtual uint   MaxTextureCoords()       { return maxTextureCoords; }
+    virtual uint   MaxTextureUnits()        { return maxTextureUnits; }
+    virtual text   Vendor()                 { return vendor; }
+    virtual text   Renderer()               { return renderer; }
+    virtual text   Version()                { return version; }
+    virtual uint   VendorID()               { return vendorID; }
+    virtual bool   IsATIOpenGL()            { return vendorID == ATI; }
+    virtual coord* ModelViewMatrix()        { return mvMatrix.Data(false); }
+    virtual coord* ProjectionMatrix()       { return projMatrix.Data(false); }
+    virtual int*   Viewport()               { return (int *) &viewport.x; }
 
     // Matrix management
-    virtual coord* ModelViewMatrix();
-    virtual coord* ProjectionMatrix();
     virtual void   MatrixMode(GLenum mode);
     virtual void   LoadMatrix();
     virtual void   LoadIdentity();
@@ -124,7 +124,6 @@ struct OpenGLState : GraphicState
                         float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
     virtual void Viewport(int x, int y, int w, int h);
-    virtual int *Viewport()           { return (int *) &viewport.x; }
 
     // Attributes management
     virtual void Color(float r, float g, float b, float a);
@@ -147,6 +146,14 @@ struct OpenGLState : GraphicState
 
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref);
+
+    // Selection
+    virtual int  RenderMode(GLenum mode);
+    virtual void SelectBuffer(int size, uint* buffer);
+    virtual void InitNames();
+    virtual void LoadName(uint name);
+    virtual void PushName(uint name);
+    virtual void PopName();
 
     std::ostream & debug();
 

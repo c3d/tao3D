@@ -112,6 +112,7 @@ OpenGLState::OpenGLState()
       srcAlpha(GL_ONE), destAlpha(GL_ZERO),
       blendMode(GL_FUNC_ADD),
       alphaFunc(GL_ALWAYS), alphaRef(0.0),
+      renderMode(GL_RENDER),
       save(NULL)
 {
     // Ask graphic card constructor to OpenGL
@@ -180,24 +181,6 @@ void OpenGLState::Restore(GraphicSave *saved)
 //                        Matrix management functions
 //
 // ============================================================================
-
-coord* OpenGLState::ModelViewMatrix()
-// ----------------------------------------------------------------------------
-//    Return model view matrix
-// ----------------------------------------------------------------------------
-{
-    return mvMatrix.Data(false);
-}
-
-
-coord* OpenGLState::ProjectionMatrix()
-// ----------------------------------------------------------------------------
-//    Return projection matrix
-// ----------------------------------------------------------------------------
-{
-    return projMatrix.Data(false);
-}
-
 
 void OpenGLState::MatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
@@ -900,6 +883,74 @@ void OpenGLState::AlphaFunc(GLenum func, float ref)
     CHANGE(alphaRef, ref, update = true);
     if (update)
         glAlphaFunc(func, ref);
+}
+
+
+
+
+// ============================================================================
+//
+//                       Selection functions.
+//
+// ============================================================================
+
+int OpenGLState::RenderMode(GLenum mode)
+// ----------------------------------------------------------------------------
+//   Set rasterization mode
+// ----------------------------------------------------------------------------
+{
+    CHANGE(renderMode, mode, return glRenderMode(mode));
+    return 0;
+}
+
+
+void OpenGLState::SelectBuffer(int size, uint* buffer)
+// ----------------------------------------------------------------------------
+//   Establish a buffer for selection mode values
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glSelectBuffer(size, buffer);
+}
+
+
+void OpenGLState::InitNames()
+// ----------------------------------------------------------------------------
+//   Initialize the name stack
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glInitNames();
+}
+
+
+void OpenGLState::LoadName(uint name)
+// ----------------------------------------------------------------------------
+//   Load a name onto the name stack
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glLoadName(name);
+}
+
+
+void OpenGLState::PushName(uint name)
+// ----------------------------------------------------------------------------
+//    Specifies a name that will be pushed onto the name stack.
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glPushName(name);
+}
+
+
+void OpenGLState::PopName()
+// ----------------------------------------------------------------------------
+//    Pop the last name out the name stack.
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glPopName();
 }
 
 

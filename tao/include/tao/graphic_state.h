@@ -66,10 +66,11 @@ struct GraphicState
     virtual text   Version() = 0;
     virtual uint   VendorID() = 0;
     virtual bool   IsATIOpenGL() = 0;
-
-    // Matrix management
     virtual coord* ModelViewMatrix() = 0;
     virtual coord* ProjectionMatrix() = 0;
+    virtual int*   Viewport() = 0;
+
+    // Matrix management
     virtual void   MatrixMode(GLenum mode) = 0;
     virtual void   LoadMatrix() = 0;
     virtual void   LoadIdentity() = 0;
@@ -101,7 +102,6 @@ struct GraphicState
                         float upX, float upY, float upZ) = 0;
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up) = 0;
     virtual void Viewport(int x, int y, int w, int h) = 0;
-    virtual int *Viewport() = 0;
 
     // Draw management
     virtual void Color(float r, float g, float b, float a) = 0;
@@ -126,6 +126,15 @@ struct GraphicState
 
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref) = 0;
+
+    // Selection
+    virtual int  RenderMode(GLenum mode) = 0;
+    virtual void SelectBuffer(int size, uint* buffer) = 0;
+    virtual void InitNames() = 0;
+    virtual void LoadName(uint name) = 0;
+    virtual void PushName(uint name) = 0;
+    virtual void PopName() = 0;
+
 
 protected:
     static GraphicState *       current;

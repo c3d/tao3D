@@ -191,17 +191,17 @@ void TextUnit::DrawCached(Layout *where)
         // Assure that the last active texture unit is 0. Fix #1918.
         glClientActiveTexture(GL_TEXTURE0);
         // Draw a list of rectangles with the textures
-        glVertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
-        glTexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+        GL.VertexPointer(3, GL_DOUBLE, 0, &quads[0].x);
+        GL.TexCoordPointer(2, GL_DOUBLE, 0, &texCoords[0].x);
+        GL.EnableClientState(GL_VERTEX_ARRAY);
+        GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
 
         // Load model view matrix
         GL.LoadMatrix();
-        glDrawArrays(GL_QUADS, 0, count);
+        GL.DrawArrays(GL_QUADS, 0, count);
 
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+        GL.DisableClientState(GL_VERTEX_ARRAY);
+        GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
         GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
     }
 
@@ -281,10 +281,10 @@ void TextUnit::DrawDirect(Layout *where)
             {
                 setTexture(where);
                 if (setFillColor(where))
-                    glCallList(glyph.interior);
+                    GL.CallList(glyph.interior);
             }
             if (setLineColor(where))
-                glCallList(glyph.outline);
+                GL.CallList(glyph.outline);
 
             x += glyph.advance + spread;
         }
@@ -513,8 +513,8 @@ void TextUnit::Identify(Layout *where)
     GL.LoadMatrix();
 
     // Prepare to draw with the quad
-    glVertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
-    glEnableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, &quad[0].x);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
 
     // Loop over all characters in the text span
     uint i, next = 0, max = str.length();
@@ -545,7 +545,7 @@ void TextUnit::Identify(Layout *where)
         quad[1] = Point3(charX2, charY1, z);
         quad[2] = Point3(charX2, charY2, z);
         quad[3] = Point3(charX1, charY2, z);
-        glDrawArrays(GL_QUADS, 0, 4);
+        GL.DrawArrays(GL_QUADS, 0, 4);
 
         // Advance to next character
         if (unicode == '\n')
@@ -583,13 +583,13 @@ void TextUnit::Identify(Layout *where)
             quad[1] = Point3(charX2, charY1, z);
             quad[2] = Point3(charX2, charY2, z);
             quad[3] = Point3(charX1, charY2, z);
-            glDrawArrays(GL_QUADS, 0, 4);
+            GL.DrawArrays(GL_QUADS, 0, 4);
         }
     }
 
     // Disable drawing with the quad
-    glDisableClientState(GL_VERTEX_ARRAY);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
 
     where->offset = Point3(x, y, z);
 }

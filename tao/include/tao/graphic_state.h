@@ -104,20 +104,47 @@ struct GraphicState
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up) = 0;
     virtual void Viewport(int x, int y, int w, int h) = 0;
 
-    // Draw management
+    // Drawing functions
+    virtual void DrawBuffer(GLenum mode) = 0;
+    virtual void Begin(GLenum mode) = 0;
+    virtual void End() = 0;
+    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 0) = 0;
+    virtual void Vertex3v(const coord* v) = 0;
+    virtual void Normal(coord nx, coord ny, coord nz) = 0;
+    virtual void TexCoord(coord s, coord t) = 0;
+    virtual void MultiTexCoord3v(GLenum target, const coord *array) = 0;
+    virtual void EnableClientState(GLenum cap) = 0;
+    virtual void DisableClientState(GLenum cap) = 0;
+    virtual void DrawArrays(GLenum mode, int first, int count) = 0;
+    virtual void VertexPointer(int size, GLenum type, int stride,
+                               const void* pointer) = 0;
+    virtual void NormalPointer(GLenum type, int stride,
+                               const void* pointer) = 0;
+    virtual void TexCoordPointer(int size, GLenum type, int stride,
+                                 const void* pointer) = 0;
+    virtual void ColorPointer(int size, GLenum type, int stride,
+                              const void* pointer) = 0;
+    virtual void NewList(uint list, GLenum mode) = 0;
+    virtual void EndList() = 0;
+    virtual uint GenLists(uint range) = 0;
+    virtual void DeleteLists(uint list, uint range) = 0;
+    virtual void CallList(uint list) = 0;
+    virtual void CallLists(uint size, GLenum type, const void* lists) = 0;
+    virtual void ListBase(uint base) = 0;
+
+    // Attributes management
     virtual void Color(float r, float g, float b, float a) = 0;
     virtual void ClearColor(float r, float g, float b, float a) = 0;
     virtual void Clear(GLuint mask) = 0;
     virtual void LineWidth(float width) = 0;
     virtual void LineStipple(GLint factor, GLushort pattern) = 0;
+    virtual void CullFace(GLenum mode) = 0;
     virtual void DepthMask(GLboolean flag) = 0;
     virtual void DepthFunc(GLenum func) = 0;
-
-    // Misc
-    virtual void Enable(GLenum cap) = 0;
-    virtual void Disable(GLenum cap) = 0;
     virtual void ShadeModel(GLenum mode) = 0;
     virtual void Hint(GLenum target, GLenum mode) = 0;
+    virtual void Enable(GLenum cap) = 0;
+    virtual void Disable(GLenum cap) = 0;
 
     // Blend
     virtual void BlendFunc(GLenum sfactor, GLenum dfactor) = 0;

@@ -239,12 +239,41 @@ struct OpenGLState : GraphicState
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
     virtual void Viewport(int x, int y, int w, int h);
 
+    // Draw functions
+    virtual void DrawBuffer(GLenum  mode);
+    virtual void Begin(GLenum mode);
+    virtual void End();
+    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 0);
+    virtual void Vertex3v(const coord* array);
+    virtual void Normal(coord nx, coord ny, coord nz);
+    virtual void TexCoord(coord s, coord t);
+    virtual void MultiTexCoord3v(GLenum target, const coord *array);
+    virtual void EnableClientState(GLenum cap);
+    virtual void DisableClientState(GLenum cap);
+    virtual void DrawArrays(GLenum mode, int first, int count);
+    virtual void VertexPointer(int size, GLenum type, int stride,
+                               const void* pointer);
+    virtual void NormalPointer(GLenum type, int stride,
+                               const void* pointer);
+    virtual void TexCoordPointer(int size, GLenum type, int stride,
+                                 const void* pointer);
+    virtual void ColorPointer(int size, GLenum type, int stride,
+                              const void* pointer);
+    virtual void NewList(uint list, GLenum mode);
+    virtual void EndList();
+    virtual uint GenLists(uint range);
+    virtual void DeleteLists(uint list, uint range);
+    virtual void CallList(uint list);
+    virtual void CallLists(uint size, GLenum type, const void* pointer);
+    virtual void ListBase(uint base);
+
     // Attributes management
     virtual void Color(float r, float g, float b, float a);
     virtual void ClearColor(float r, float g, float b, float a);
     virtual void Clear(GLuint mask);
     virtual void LineWidth(float width);
     virtual void LineStipple(GLint factor, GLushort pattern);
+    virtual void CullFace(GLenum mode);
     virtual void DepthMask(GLboolean flag);
     virtual void DepthFunc(GLenum func);
     virtual void ShadeModel(GLenum mode);

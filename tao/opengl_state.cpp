@@ -121,7 +121,7 @@ OpenGLState::OpenGLState()
       viewport(0, 0, 0, 0),
       shadeMode(GL_SMOOTH),
       lineWidth(1),
-      stipple(1, -1),
+      stipple(1, -1), cullMode(GL_BACK),
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
       perspectiveCorrectionHint(GL_DONT_CARE),
@@ -163,6 +163,10 @@ OpenGLState::OpenGLState()
     // (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
+
+    // As we don't known if GL context is single or double buffered,
+    // we initialize bufferMode to 0
+    bufferMode = 0;
 }
 
 
@@ -241,6 +245,8 @@ void OpenGLState::Sync(ulonglong which)
          glLoadMatrixd(colorMatrix.Data(false)));
     SYNC(matrixMode,
          glMatrixMode(matrixMode));
+    SYNC(bufferMode,
+         glDrawBuffer(bufferMode));
     SYNC(viewport,
          glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
     SYNC(color,
@@ -254,6 +260,8 @@ void OpenGLState::Sync(ulonglong which)
          glLineWidth(lineWidth));
     SYNC(stipple,
          glLineStipple(stipple.factor, stipple.pattern));
+    SYNC(cullMode,
+         glCullFace(cullMode));
     SYNC(depthMask,
          glDepthMask(depthMask));
     SYNC(depthFunc,
@@ -752,6 +760,235 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
+// ============================================================================
+//
+//                            Drawing functions.
+//
+// ============================================================================
+
+void OpenGLState::DrawBuffer(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Specify which color buffers are to be drawn into
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    CHANGE(bufferMode, mode);
+}
+
+
+void OpenGLState::Begin(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Delimit the vertices of a primitive or a group of like primitives
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glBegin(mode);
+}
+
+
+void OpenGLState::End()
+// ----------------------------------------------------------------------------
+//    Delimit the vertices of a primitive or a group of like primitives
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glEnd();
+}
+
+
+void OpenGLState::Vertex(coord x, coord y, coord z, coord w)
+// ----------------------------------------------------------------------------
+//    Specify a vertex within Begin/End
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    GL.Vertex(x, y, z, w);
+}
+
+
+void OpenGLState::Vertex3v(const coord *array)
+// ----------------------------------------------------------------------------
+//    Specify a set of vertices
+// ----------------------------------------------------------------------------
+{
+    glVertex3dv(array);
+}
+
+
+void OpenGLState::Normal(coord nx, coord ny, coord nz)
+// ----------------------------------------------------------------------------
+//    Specify a normal within Begin/End
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glNormal3d(nx, ny, nz);
+}
+
+
+void OpenGLState::TexCoord(coord s, coord t)
+// ----------------------------------------------------------------------------
+//    Specify a texture coordinate within Begin/End
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glTexCoord2d(s, t);
+}
+
+
+void OpenGLState::MultiTexCoord3v(GLenum target, const coord *array)
+// ----------------------------------------------------------------------------
+//    Specify the coordinate of a texture unit
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glMultiTexCoord3dv(target, array);
+}
+
+
+void OpenGLState::EnableClientState(GLenum cap)
+// ----------------------------------------------------------------------------
+//    Enable client-side capability
+// ----------------------------------------------------------------------------
+{
+    glEnableClientState(cap);
+}
+
+
+void OpenGLState::DisableClientState(GLenum cap)
+// ----------------------------------------------------------------------------
+//    Disable client-side capability
+// ----------------------------------------------------------------------------
+{
+    glDisableClientState(cap);
+}
+
+
+void OpenGLState::DrawArrays(GLenum mode, int first, int count)
+// ----------------------------------------------------------------------------
+//    Render primitives from array data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glDrawArrays(mode, first, count);
+}
+
+
+void OpenGLState::VertexPointer(int size, GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of vertex data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glVertexPointer(size, type, stride, pointer);
+}
+
+
+void OpenGLState::NormalPointer(GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of normal data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glNormalPointer(type, stride, pointer);
+}
+
+
+void OpenGLState::TexCoordPointer(int size, GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of texture coordinates
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glTexCoordPointer(size, type, stride, pointer);
+}
+
+
+void OpenGLState::ColorPointer(int size, GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of color data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glColorPointer(size, type, stride, pointer);
+}
+
+
+void OpenGLState::NewList(uint list, GLenum mode)
+// ----------------------------------------------------------------------------
+//    Create a display list
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glNewList(list, mode);
+}
+
+
+void OpenGLState::EndList()
+// ----------------------------------------------------------------------------
+//    Replace a display list
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glEndList();
+}
+
+
+uint OpenGLState::GenLists(uint range)
+// ----------------------------------------------------------------------------
+//    Generate a contiguous set of empty display lists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGenLists(range);
+}
+
+
+void OpenGLState::DeleteLists(uint list, uint range)
+// ----------------------------------------------------------------------------
+//    Delete a contiguous group of display lists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glDeleteLists(list, range);
+}
+
+
+void OpenGLState::CallList(uint list)
+// ----------------------------------------------------------------------------
+//    Execute a display list
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glCallList(list);
+}
+
+
+void OpenGLState::CallLists(uint size, GLenum type, const void *pointer)
+// ----------------------------------------------------------------------------
+//    Execute a list of display lists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glCallLists(size, type, pointer);
+}
+
+
+void OpenGLState::ListBase(uint base)
+// ----------------------------------------------------------------------------
+//    Set the display-list base for glCallLists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glListBase(base);
+}
+
+
+// ============================================================================
+//
+//                       Attribute management functions.
+//
+// ============================================================================
+
 void OpenGLState::Viewport(int x, int y, int w, int h)
 // ----------------------------------------------------------------------------
 //    Set the viewport
@@ -821,6 +1058,15 @@ void OpenGLState::LineStipple(GLint factor, GLushort pattern)
 }
 
 
+void OpenGLState::CullFace(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Specify whether front- or back-facing facets can be culled
+// ----------------------------------------------------------------------------
+{
+    CHANGE(cullMode, mode);
+}
+
+
 void OpenGLState::DepthMask(GLboolean flag)
 // ----------------------------------------------------------------------------
 //    Enable or disable writing into the depth buffer
@@ -878,13 +1124,11 @@ void OpenGLState::Enable(GLenum cap)
 #define GS(type, name)
 #define GFLAG(name) case name: CHANGE(glflag_##name, true); return;
 #include "opengl_state.tbl"
-
     default:
         // Other enable/disable operations are not cached
         glEnable(cap);
         break;
     }
-
 }
 
 

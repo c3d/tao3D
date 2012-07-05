@@ -151,7 +151,7 @@ RasterText::~RasterText()
     QGLContext *context = (QGLContext *)instances.key(this, NULL);
     Q_ASSERT(context || !"Delete RasterText instance not in map");
     context->makeCurrent();
-    glDeleteLists(32+fontOffset, 95);
+    GL.DeleteLists(32+fontOffset, 95);
     current->makeCurrent();
 }
 
@@ -163,11 +163,11 @@ void RasterText::makeRasterFont()
 {
     GLuint i;
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    fontOffset = glGenLists (128);
+    fontOffset = GL.GenLists(128);
     for (i = 32; i < 127; i++) {
-        glNewList(i+fontOffset, GL_COMPILE);
+        GL.NewList(i+fontOffset, GL_COMPILE);
             glBitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
-        glEndList();
+        GL.EndList();
     }
 }
 
@@ -220,8 +220,8 @@ int RasterText::printf(const char *format...)
     // Draw text
     GL.Color(1.0, 1.0, 1.0, 1.0);
     glWindowPos2d(inst->pos.x + 2, inst->pos.y + 1);
-    glListBase(inst->fontOffset);
-    glCallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
+    GL.ListBase(inst->fontOffset);
+    GL.CallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
 
     // Restore GL state
     glPopAttrib();

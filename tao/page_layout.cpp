@@ -725,10 +725,10 @@ void PageLayout::Identify(Layout */*where*/)
     GL.Color(0.2,0.6,1.0,0.1);
     // Load model view matrix
     GL.LoadMatrix();
-    glVertexPointer(3, GL_DOUBLE, 0, array);
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glDrawArrays(GL_QUADS, 0, 4);
-    glDisableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, array);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.DrawArrays(GL_QUADS, 0, 4);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 

@@ -24,6 +24,7 @@
 
 #include "opengl_state.h"
 #include "opengl_save.h"
+#include "application.h"
 #include <cassert>
 
 
@@ -46,7 +47,7 @@ GraphicState *GraphicState::current = NULL;
 
 
 // Test if we need to save a state
-#define CHANGE(name, value, Code)               \
+#define CHANGE(name, value)                     \
     do                                          \
     {                                           \
         if (name != value)                      \
@@ -55,11 +56,6 @@ GraphicState *GraphicState::current = NULL;
                 save->save_##name(name);        \
             name##_isDirty = true;              \
             name = value;                       \
-        }                                       \
-        if (name##_isDirty)                     \
-        {                                       \
-            Code;                               \
-            name##_isDirty = false;             \
         }                                       \
     } while (0)
 
@@ -75,19 +71,40 @@ GraphicState *GraphicState::current = NULL;
 #define CHANGE_MATRIX(Code)                     \
     do                                          \
     {                                           \
-        if (matrixMode == GL_MODELVIEW)         \
+        switch(matrixMode)                      \
+        {                                       \
+        case GL_MODELVIEW:                      \
         {                                       \
             SAVE(mvMatrix);                     \
             Matrix4 &matrix = mvMatrix;         \
             Code;                               \
             mvMatrix_isDirty = true;            \
+            break;                              \
         }                                       \
-        else                                    \
+        case GL_PROJECTION:                     \
         {                                       \
             SAVE(projMatrix);                   \
             Matrix4 &matrix = projMatrix;       \
             Code;                               \
             projMatrix_isDirty = true;          \
+            break;                              \
+        }                                       \
+        case GL_TEXTURE:                        \
+        {                                       \
+            SAVE(textureMatrix);                \
+            Matrix4 &matrix = textureMatrix;    \
+            Code;                               \
+            textureMatrix_isDirty = true;       \
+            break;                              \
+        }                                       \
+        case GL_COLOR:                          \
+        {                                       \
+            SAVE(colorMatrix);                  \
+            Matrix4 &matrix = colorMatrix;      \
+            Code;                               \
+            colorMatrix_isDirty = true;         \
+            break;                              \
+        }                                       \
         }                                       \
     } while(0)
 
@@ -108,10 +125,9 @@ OpenGLState::OpenGLState()
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
       perspectiveCorrectionHint(GL_DONT_CARE),
-      srcRgb(GL_ONE), destRgb(GL_ZERO),
-      srcAlpha(GL_ONE), destAlpha(GL_ZERO),
-      blendMode(GL_FUNC_ADD),
-      alphaFunc(GL_ALWAYS), alphaRef(0.0),
+      blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
+      blendEquation(GL_FUNC_ADD),
+      alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER),
       save(NULL)
 {
@@ -175,6 +191,98 @@ void OpenGLState::Restore(GraphicSave *saved)
 }
 
 
+void OpenGLState::Sync(ulonglong which)
+// ----------------------------------------------------------------------------
+//    Synchronize all pending changes and send them to the card
+// ----------------------------------------------------------------------------
+{
+#define SYNC(name, Code)                                \
+    do                                                  \
+    {                                                   \
+        if (name##_isDirty && (which & STATE_##name))   \
+        {                                               \
+            Code;                                       \
+            name##_isDirty = false;                     \
+        }                                               \
+    } while(0)
+
+    GLenum mmode = matrixMode;
+    SYNC(mvMatrix,
+         if (matrixMode_isDirty || mmode != GL_MODELVIEW)
+         {
+             glMatrixMode(GL_MODELVIEW);
+             mmode = GL_MODELVIEW;
+             matrixMode_isDirty = mmode != matrixMode;
+         }
+         glLoadMatrixd(mvMatrix.Data(false)));
+    SYNC(projMatrix,
+         if (matrixMode_isDirty || mmode != GL_PROJECTION)
+         {
+             glMatrixMode(GL_PROJECTION);
+             mmode = GL_PROJECTION;
+             matrixMode_isDirty = mmode != matrixMode;
+         }
+         glLoadMatrixd(projMatrix.Data(false)));
+    SYNC(textureMatrix,
+         if (matrixMode_isDirty || mmode != GL_TEXTURE)
+         {
+             glMatrixMode(GL_TEXTURE);
+             mmode = GL_TEXTURE;
+             matrixMode_isDirty = mmode != matrixMode;
+         }
+         glLoadMatrixd(textureMatrix.Data(false)));
+    SYNC(colorMatrix,
+         if (matrixMode_isDirty || mmode != GL_COLOR)
+         {
+             glMatrixMode(GL_COLOR);
+             mmode = GL_COLOR;
+             matrixMode_isDirty = mmode != matrixMode;
+         }
+         glLoadMatrixd(colorMatrix.Data(false)));
+    SYNC(matrixMode,
+         glMatrixMode(matrixMode));
+    SYNC(viewport,
+         glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
+    SYNC(color,
+         glColor4f(color.red, color.green, color.blue, color.alpha));
+    SYNC(clearColor,
+         Tao::Color &c = clearColor;
+         glClearColor(c.red,c.green,c.blue,c.alpha));
+    SYNC(shadeMode,
+         glShadeModel(shadeMode));
+    SYNC(lineWidth,
+         glLineWidth(lineWidth));
+    SYNC(stipple,
+         glLineStipple(stipple.factor, stipple.pattern));
+    SYNC(depthMask,
+         glDepthMask(depthMask));
+    SYNC(depthFunc,
+         glDepthFunc(depthFunc));
+    SYNC(textureCompressionHint,
+         glHint(GL_TEXTURE_COMPRESSION_HINT, textureCompressionHint));
+    SYNC(perspectiveCorrectionHint,
+         glHint(GL_PERSPECTIVE_CORRECTION_HINT, perspectiveCorrectionHint));
+    SYNC(blendFunction,
+         BlendFunctionState &b = blendFunction;
+         glBlendFuncSeparate(b.srcRgb, b.destRgb, b.srcAlpha, b.destAlpha));
+    SYNC(blendEquation,
+         glBlendEquation(blendEquation));
+    SYNC(alphaFunc,
+         glAlphaFunc(alphaFunc.func, alphaFunc.ref));
+
+#define GS(type, name)
+#define GFLAG(name)                             \
+    SYNC(glflag_##name,                         \
+    if (glflag_##name)                          \
+        glEnable(name);                         \
+    else                                        \
+        glDisable(name));
+#include "opengl_state.tbl"
+
+#undef SYNC
+}
+
+
 
 // ============================================================================
 //
@@ -188,7 +296,7 @@ void OpenGLState::MatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
 {
     // Setup the new matrix mode
-    CHANGE(matrixMode, mode, glMatrixMode(mode));
+    CHANGE(matrixMode, mode);
 }
 
 
@@ -197,18 +305,7 @@ void OpenGLState::LoadMatrix()
 //    Load current matrix
 // ----------------------------------------------------------------------------
 {
-    if (mvMatrix_isDirty)
-    {
-        MatrixMode(GL_MODELVIEW);
-        glLoadMatrixd(mvMatrix.Data(false));
-        mvMatrix_isDirty = false;
-    }
-    if (projMatrix_isDirty)
-    {
-        MatrixMode(GL_PROJECTION);
-        glLoadMatrixd(projMatrix.Data(false));
-        projMatrix_isDirty = false;
-    }
+    Sync(STATE_mvMatrix | STATE_projMatrix);
 }
 
 
@@ -217,19 +314,7 @@ void OpenGLState::LoadIdentity()
 //    Load identity matrix
 // ----------------------------------------------------------------------------
 {
-    switch(matrixMode)
-    {
-    case GL_MODELVIEW:
-        SAVE(mvMatrix);
-        mvMatrix.LoadIdentity();
-        mvMatrix_isDirty = true;
-        break;
-    case GL_PROJECTION:
-        SAVE(projMatrix);
-        projMatrix.LoadIdentity();
-        projMatrix_isDirty = true;
-        break;
-    }
+    CHANGE_MATRIX(matrix.LoadIdentity());
 }
 
 
@@ -674,7 +759,7 @@ void OpenGLState::Viewport(int x, int y, int w, int h)
 {
     // Do not need to setup viewport if it has not changed
     ViewportState newViewport(x, y, w, h);
-    CHANGE(viewport, newViewport, glViewport(x, y, w, h));
+    CHANGE(viewport, newViewport);
 }
 
 
@@ -692,7 +777,7 @@ void OpenGLState::Color(float r, float g, float b, float a)
 {
     // Do not need to setup color if it has not changed
     Tao::Color c = Tao::Color(r, g, b, a);
-    CHANGE(color, c, glColor4f(r, g, b, a));
+    CHANGE(color, c);
 }
 
 
@@ -703,7 +788,7 @@ void OpenGLState::ClearColor(float r, float g, float b, float a)
 {
     // Do not need to setup clear color if it has not changed
     Tao::Color c = Tao::Color(r, g, b, a);
-    CHANGE(clearColor, c, glClearColor(r, g, b, a));
+    CHANGE(clearColor, c);
 }
 
 
@@ -712,8 +797,8 @@ void OpenGLState::Clear(GLuint mask)
 //    Clear buffers to preset values
 // ----------------------------------------------------------------------------
 {
-    // Do not need to be optimised
-    glClear(mask);
+    Sync(STATE_clearColor);     // Make sure we have right clear color
+    glClear(mask);              // Immediate execution
 }
 
 
@@ -722,7 +807,7 @@ void OpenGLState::LineWidth(float width)
 //    Specify the width of rasterized lines
 // ----------------------------------------------------------------------------
 {
-    CHANGE(lineWidth, width, glLineWidth(width));
+    CHANGE(lineWidth, width);
 }
 
 
@@ -732,7 +817,7 @@ void OpenGLState::LineStipple(GLint factor, GLushort pattern)
 // ----------------------------------------------------------------------------
 {
     LineStippleState newStipple(factor, pattern);
-    CHANGE(stipple, newStipple, glLineStipple(factor, pattern));
+    CHANGE(stipple, newStipple);
 }
 
 
@@ -741,7 +826,7 @@ void OpenGLState::DepthMask(GLboolean flag)
 //    Enable or disable writing into the depth buffer
 // ----------------------------------------------------------------------------
 {
-    CHANGE(depthMask, flag, glDepthMask(flag));
+    CHANGE(depthMask, flag);
 }
 
 
@@ -750,7 +835,7 @@ void OpenGLState::DepthFunc(GLenum func)
 //    Specify the value used for depth buffer comparisons
 // ----------------------------------------------------------------------------
 {
-    CHANGE(depthFunc, func, glDepthFunc(func));
+    CHANGE(depthFunc, func);
 }
 
 
@@ -759,7 +844,7 @@ void OpenGLState::ShadeModel(GLenum mode)
 //    Select shading mode
 // ----------------------------------------------------------------------------
 {
-    CHANGE(shadeMode, mode, glShadeModel(mode));
+    CHANGE(shadeMode, mode);
 }
 
 
@@ -771,12 +856,12 @@ void OpenGLState::Hint(GLenum target, GLenum mode)
     switch(target)
     {
     case GL_PERSPECTIVE_CORRECTION_HINT:
-        CHANGE(perspectiveCorrectionHint, mode, glHint(target, mode));
+        CHANGE(perspectiveCorrectionHint, mode);
         break;
     case GL_TEXTURE_COMPRESSION_HINT:
-        CHANGE(textureCompressionHint, mode, glHint(target, mode));
+        CHANGE(textureCompressionHint, mode);
         break;
-    default:   // Others hints are not used in Tao
+    default:   // Others hints are not used in Tao, still execute them
         glHint(target, mode);
         break;
     }
@@ -791,20 +876,15 @@ void OpenGLState::Enable(GLenum cap)
     switch(cap)
     {
 #define GS(type, name)
-#define GFLAG(flag, name)                       \
-        case flag: if (!name)                   \
-        {                                       \
-            SAVE(name);                         \
-            name = true;                        \
-            glEnable(flag);                     \
-        }                                       \
-        return;
+#define GFLAG(name) case name: CHANGE(glflag_##name, true); return;
 #include "opengl_state.tbl"
+
     default:
+        // Other enable/disable operations are not cached
+        glEnable(cap);
         break;
     }
 
-    glEnable(cap);
 }
 
 
@@ -816,20 +896,14 @@ void OpenGLState::Disable(GLenum cap)
     switch(cap)
     {
 #define GS(type, name)
-#define GFLAG(flag, name)                       \
-        case flag: if (name)                    \
-        {                                       \
-            SAVE(name);                         \
-            name = false;                       \
-            glDisable(flag);                    \
-        }                                       \
-        return;
+#define GFLAG(name) case name: CHANGE(glflag_##name, false); return;
 #include "opengl_state.tbl"
     default:
+        // Other enable/disable operations are not cached
+        glDisable(cap);
         break;
     }
 
-    glDisable(cap);
 }
 
 
@@ -838,13 +912,8 @@ void OpenGLState::BlendFunc(GLenum sfactor, GLenum dfactor)
 //   Specify pixel arithmetic
 // ----------------------------------------------------------------------------
 {
-    bool update = false;
-    CHANGE(srcRgb, sfactor, update = true);
-    CHANGE(destRgb, dfactor, update = true);
-    CHANGE(srcAlpha, sfactor, update = true);
-    CHANGE(destAlpha, dfactor, update = true);
-    if (update)
-        glBlendFunc(sfactor, dfactor);
+    BlendFunctionState bfs(sfactor, dfactor, sfactor, dfactor);
+    CHANGE(blendFunction, bfs);
 }
 
 
@@ -854,13 +923,8 @@ void OpenGLState::BlendFuncSeparate(GLenum sRgb, GLenum dRgb,
 //   Specify pixel arithmetic for RGB and alpha components separately
 // ----------------------------------------------------------------------------
 {
-    bool update = false;
-    CHANGE(srcRgb, sRgb, update = true);
-    CHANGE(destRgb, dRgb, update = true);
-    CHANGE(srcAlpha, sAlpha, update = true);
-    CHANGE(destAlpha, dAlpha, update = true);
-    if (update)
-        glBlendFuncSeparate(sRgb, dRgb, sAlpha, dAlpha);
+    BlendFunctionState bfs(sRgb, dRgb, sAlpha, dAlpha);
+    CHANGE(blendFunction, bfs);
 }
 
 
@@ -869,7 +933,7 @@ void OpenGLState::BlendEquation(GLenum mode)
 //   Specify the equation used for RGB and Alpha blend equation
 // ----------------------------------------------------------------------------
 {
-    CHANGE(blendMode, mode, glBlendEquation(mode));
+    CHANGE(blendEquation, mode);
 }
 
 
@@ -878,11 +942,8 @@ void OpenGLState::AlphaFunc(GLenum func, float ref)
 //   Specify the alpha test function
 // ----------------------------------------------------------------------------
 {
-    bool update = false;
-    CHANGE(alphaFunc, func, update = true);
-    CHANGE(alphaRef, ref, update = true);
-    if (update)
-        glAlphaFunc(func, ref);
+    AlphaFunctionState af(func, ref);
+    CHANGE(alphaFunc, af);
 }
 
 
@@ -899,7 +960,10 @@ int OpenGLState::RenderMode(GLenum mode)
 //   Set rasterization mode
 // ----------------------------------------------------------------------------
 {
-    CHANGE(renderMode, mode, return glRenderMode(mode));
+    CHANGE(renderMode, mode);
+    if(renderMode_isDirty)
+        return glRenderMode(mode);
+
     return 0;
 }
 
@@ -962,6 +1026,27 @@ std::ostream & OpenGLState::debug()
     std::cerr << "[OpenGLState] ";
     return std::cerr;
 }
+
+
+
+// ============================================================================
+// 
+//    TextureState class
+// 
+// ============================================================================
+
+TextureState::TextureState()
+// ----------------------------------------------------------------------------
+//   Initialize a texture state
+// ----------------------------------------------------------------------------
+  : unit(0), id(0), width(0), height(0),
+    type(GL_TEXTURE_2D), mode(GL_MODULATE),
+    minFilt(TaoApp->tex2DMinFilter),
+    magFilt(TaoApp->tex2DMagFilter),
+    matrix(),
+    wrapS(false), wrapT(false),
+    mipmap(false)
+{}
 
 TAO_END
 

@@ -105,5 +105,3 @@ Activity *Activity::MouseMove(int x, int y, bool active)
 }
 
 TAO_END
-
-

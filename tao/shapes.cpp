@@ -87,7 +87,10 @@ bool Shape::setTexture(Layout *where)
     //Update used texture units
     where->previousTextures = where->fillTextures;
 
-    return !(where->fillTextures.empty());
+    bool hasTextures = !where->fillTextures.empty();
+    if (hasTextures)
+        GL.Sync();
+    return hasTextures;
 }
 
 
@@ -190,6 +193,7 @@ bool Shape::setFillColor(Layout *where)
             if (!where->hasMaterial)
                 GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
+            GL.Sync();
             return true;
         }
     }
@@ -213,6 +217,7 @@ bool Shape::setLineColor(Layout *where)
             if (!where->hasMaterial)
                 GL.Color(color.red, color.green, color.blue, v);
             where->PolygonOffset();
+            GL.Sync();
             return true;
         }
     }

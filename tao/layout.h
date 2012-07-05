@@ -27,40 +27,18 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
-#include "application.h"
 #include <vector>
 #include <set>
 #include <QFont>
 #include <QEvent>
 #include <float.h>
 #include "matrix.h"
-#include "graphic_state.h"
+#include "opengl_state.h"
 
 #define MAX_TEX_UNITS 64
 
 TAO_BEGIN
 struct Widget;
-
-struct TextureState
-// ----------------------------------------------------------------------------
-//   The state of the texture we want to preserve
-// ----------------------------------------------------------------------------
-{
-    TextureState(): wrapS(false), wrapT(false),
-                    id(0), unit(0), width(0), height(0),
-                    type(GL_TEXTURE_2D), mode(GL_MODULATE),
-                    mipmap(false),
-                    minFilt(TaoApp->tex2DMinFilter),
-                    magFilt(TaoApp->tex2DMagFilter) {}
-
-    bool          wrapS, wrapT;
-    GLuint        id, unit;
-    GLuint        width, height;
-    GLenum        type;
-    GLenum        mode;
-    bool          mipmap;
-    GLenum        minFilt, magFilt;
-};
 
 struct LayoutState
 // ----------------------------------------------------------------------------

@@ -33,6 +33,23 @@ TAO_BEGIN
 
 struct OpenGLSave;              // Structure used to save/restore state
 
+
+
+// ============================================================================
+//
+//   Elements necessary for the OpenGL state
+//
+// ============================================================================
+
+enum StateBits
+{
+#define GS(type, name)          STATE_BIT_##name,
+#include "opengl_state.tbl"
+#define GS(type, name)          STATE_##name = 1ULL << STATE_BIT_##name,
+#include "opengl_state.tbl"
+};
+
+
 struct ViewportState
 // ----------------------------------------------------------------------------
 //    Represent the viewport information in a more readable way
@@ -64,6 +81,102 @@ struct LineStippleState
 };
 
 
+struct BlendFunctionState
+// ----------------------------------------------------------------------------
+//   Represent blend function state
+// ----------------------------------------------------------------------------
+{
+    BlendFunctionState(GLenum srcRgb, GLenum destRgb, GLenum srcA, GLenum dstA)
+        : srcRgb(srcRgb), destRgb(destRgb), srcAlpha(srcA), destAlpha(dstA) {}
+    bool operator==(const BlendFunctionState &o)
+    {
+        return (srcRgb == o.srcRgb && destRgb == o.destRgb &&
+                srcAlpha == o.srcAlpha && destAlpha == o.destAlpha);
+    }
+    bool operator!=(const BlendFunctionState &o) { return !operator==(o); }
+    GLenum srcRgb;
+    GLenum destRgb;
+    GLenum srcAlpha;
+    GLenum destAlpha;
+};
+
+
+struct AlphaFunctionState
+// ----------------------------------------------------------------------------
+//   Represent alpha function state
+// ----------------------------------------------------------------------------
+{
+    AlphaFunctionState(GLenum func, GLfloat ref): func(func), ref(ref) {}
+    bool operator==(const AlphaFunctionState &o)
+    {
+        return func == o.func && ref == o.ref;
+    }
+    bool operator!=(const AlphaFunctionState &o) { return !operator==(o); }
+    GLenum func;
+    GLfloat ref;
+};
+
+
+struct TextureState
+// ----------------------------------------------------------------------------
+//   The state of a single texture (single texture unit)
+// ----------------------------------------------------------------------------
+{
+    TextureState();
+    bool operator ==(const TextureState &o)
+    {
+        return (wrapS == o.wrapS && wrapT == o.wrapT &&
+                id == o.id &&
+                /* ignore width and height on purpose */
+                type == o.type && mode == o.mode &&
+                minFilt == o.minFilt && magFilt == o.magFilt &&
+                matrix == o.matrix);
+    }
+    bool operator!=(const TextureState &o) { return !operator==(o); }
+    void Sync(const TextureState &newState);
+
+public:
+    GLuint      unit, id;
+    GLuint      width, height;
+    GLenum      type, mode;
+    GLenum      minFilt, magFilt;
+    Matrix4     matrix;
+    bool        wrapS, wrapT, mipmap;
+};
+
+
+struct TexturesState
+// ----------------------------------------------------------------------------
+//    The state of all textures on all texture units
+// ----------------------------------------------------------------------------
+{
+    TexturesState(): active(0), state() {}
+    bool operator==(const TexturesState &o)
+    {
+        uint max = state.size();
+        if (max != o.state.size())
+            return false;
+        for (uint i = 0; i < max; i++)
+            if (state[i] != o.state[i])
+                return false;
+        return true;
+    }
+    bool operator!=(const TexturesState &o) { return !operator==(o); }
+    void Sync(const TexturesState &newState);
+
+public:
+    ulonglong active;
+    std::vector<TextureState>   state;
+};
+
+
+
+// ============================================================================
+//
+//   The OpenGL state itself
+//
+// ============================================================================
+
 struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 //   Class to manage graphic states
@@ -74,6 +187,7 @@ struct OpenGLState : GraphicState
     // Saving and restoring state
     virtual GraphicSave *       Save();
     virtual void                Restore(GraphicSave *saved);
+    virtual void                Sync(ulonglong which = ~0ULL);
 
     // Return attributes of state
     virtual uint   MaxTextureCoords()       { return maxTextureCoords; }
@@ -183,8 +297,8 @@ public:
 
 #define GS(type, name)                          \
     type name;
-#define GFLAG(enum, name)                       \
-    bool name:1;
+#define GFLAG(name)                             \
+    bool glflag_##name:1;
 #include "opengl_state.tbl"
 
 public:

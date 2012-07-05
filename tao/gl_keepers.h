@@ -38,7 +38,7 @@ struct GLAttribKeeper : OpenGLSave
 //   By default, all attributes are saved (GL_ALL_ATTRIB_BITS)
 {
     GLAttribKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS)
-        : OpenGLSave(~(SAVE_mvMatrix | SAVE_projMatrix | SAVE_viewport))
+        : OpenGLSave(~(STATE_mvMatrix | STATE_projMatrix | STATE_viewport))
     { (void) bits; }
 };
 
@@ -50,7 +50,7 @@ struct GLMatrixKeeper : OpenGLSave
 //   Caller is responsible for current matrix mode (model or projection view)
 {
     GLMatrixKeeper(bool save=true)
-        : OpenGLSave(save ? (SAVE_mvMatrix | SAVE_projMatrix) : 0)
+        : OpenGLSave(save ? (STATE_mvMatrix | STATE_projMatrix) : 0)
     { }
 };
 
@@ -61,7 +61,7 @@ struct GLStateKeeper : OpenGLSave
 // ----------------------------------------------------------------------------
 {
     GLStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS, bool save = true):
-        OpenGLSave(save ? ~0U : ~(SAVE_mvMatrix | SAVE_projMatrix))
+        OpenGLSave(save ? ~0U : ~(STATE_mvMatrix | STATE_projMatrix))
     { (void) bits; }
 };
 
@@ -75,8 +75,8 @@ struct GLAllStateKeeper : OpenGLSave
                      bool saveModel = true,
                      bool saveProjection = true,
                      uint64 saveTextureMatrix = ~0UL)
-        : OpenGLSave((saveModel         ? ~0U : ~SAVE_mvMatrix) &
-                     (saveProjection    ? ~0U : ~SAVE_projMatrix))
+        : OpenGLSave((saveModel         ? ~0U : ~STATE_mvMatrix) &
+                     (saveProjection    ? ~0U : ~STATE_projMatrix))
     { (void) bits; (void) saveTextureMatrix; }
 };
 

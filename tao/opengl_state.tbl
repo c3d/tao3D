@@ -19,12 +19,14 @@
 // ****************************************************************************
 
 #ifndef GFLAG
-#define GFLAG(glenum, name)     GS(bool, name)
+#define GFLAG(name)     GS(bool, glflag_##name)
 #endif
 
-GS(GLenum,              matrixMode)
 GS(Matrix4,             mvMatrix)
 GS(Matrix4,             projMatrix)
+GS(Matrix4,             textureMatrix)
+GS(Matrix4,             colorMatrix)
+GS(GLenum,              matrixMode)
 GS(ViewportState,       viewport)
 GS(Tao::Color,          color)
 GS(Tao::Color,          clearColor)
@@ -35,15 +37,28 @@ GS(GLboolean,           depthMask)
 GS(GLenum,              depthFunc)
 GS(GLenum,              textureCompressionHint)
 GS(GLenum,              perspectiveCorrectionHint)
-GS(GLenum,              srcRgb)
-GS(GLenum,              destRgb)
-GS(GLenum,              srcAlpha)
-GS(GLenum,              destAlpha)
-GS(GLenum,              blendMode)
-GS(GLenum,              alphaFunc)
-GS(GLclampf,            alphaRef)
+GS(BlendFunctionState,  blendFunction)
+GS(GLenum,              blendEquation)
+GS(AlphaFunctionState,  alphaFunc)
 GS(GLenum,              renderMode)
-GFLAG(GL_LINE_STIPPLE,  lineStipple)
+
+GFLAG(GL_LINE_STIPPLE)
+GFLAG(GL_COLOR_MATERIAL)
+GFLAG(GL_TEXTURE_2D)
+GFLAG(GL_MULTISAMPLE)
+GFLAG(GL_LIGHTING)
+GFLAG(GL_NORMALIZE)
+GFLAG(GL_CULL_FACE)
+GFLAG(GL_TEXTURE_RECTANGLE_ARB)
+GFLAG(GL_LINE_SMOOTH)
+GFLAG(GL_POINT_SMOOTH)
+GFLAG(GL_POLYGON_OFFSET_FILL)
+GFLAG(GL_POLYGON_OFFSET_LINE)
+GFLAG(GL_POLYGON_OFFSET_POINT)
+GFLAG(GL_BLEND)
+GFLAG(GL_ALPHA_TEST)
+GFLAG(GL_DEPTH_TEST)
+GFLAG(GL_STENCIL_TEST)
 
 #undef GS
 #undef GFLAG

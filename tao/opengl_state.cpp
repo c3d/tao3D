@@ -1245,7 +1245,6 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
         glBindTexture(ts.type, ts.id);
         type = ts.type;
         id = ts.id;
-        if (active) glEnable(type); else glDisable(type);
     }
 
     SYNC_TEXTURE(active,

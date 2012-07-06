@@ -103,6 +103,11 @@ struct GraphicState
                         float upX, float upY, float upZ) = 0;
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up) = 0;
     virtual void Viewport(int x, int y, int w, int h) = 0;
+    virtual void WindowPos(coord x, coord y, coord z = 0) = 0;
+    virtual void PixelStorei(GLenum pname,  int param) = 0;
+    virtual void Bitmap(uint  width,  uint  height, coord  xorig,
+                        coord  yorig,  coord  xmove, coord  ymove,
+                        const uchar *  bitmap) = 0;
 
     // Drawing functions
     virtual void DrawBuffer(GLenum mode) = 0;

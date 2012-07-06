@@ -162,11 +162,11 @@ void RasterText::makeRasterFont()
 // ----------------------------------------------------------------------------
 {
     GLuint i;
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
     fontOffset = GL.GenLists(128);
     for (i = 32; i < 127; i++) {
         GL.NewList(i+fontOffset, GL_COMPILE);
-            glBitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
+            GL.Bitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
         GL.EndList();
     }
 }
@@ -212,14 +212,14 @@ int RasterText::printf(const char *format...)
 
     // Draw background
     GL.Color(0.0, 0.0, 0.0, 0.5);
-    glWindowPos2d(inst->pos.x, inst->pos.y);
-    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    GL.WindowPos(inst->pos.x, inst->pos.y);
+    GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
     for (int i = 0; i < 2*len; i++)
-        glBitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
+        GL.Bitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
     // Draw text
     GL.Color(1.0, 1.0, 1.0, 1.0);
-    glWindowPos2d(inst->pos.x + 2, inst->pos.y + 1);
+    GL.WindowPos(inst->pos.x + 2, inst->pos.y + 1);
     GL.ListBase(inst->fontOffset);
     GL.CallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
 

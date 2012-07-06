@@ -760,6 +760,37 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
+void OpenGLState::WindowPos(coord x, coord y, coord z)
+// ----------------------------------------------------------------------------
+//    Specify the raster position in window coordinates for pixel operations
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glWindowPos3d(x, y, z);
+}
+
+
+void OpenGLState::PixelStorei(GLenum pname,  int param)
+// ----------------------------------------------------------------------------
+//    Set pixel storage modes
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glPixelStorei(pname, param);
+}
+
+
+void OpenGLState::Bitmap(uint  width,  uint  height, coord  xorig,
+                         coord  yorig,  coord  xmove, coord  ymove,
+                         const uchar *  bitmap)
+// ----------------------------------------------------------------------------
+//    Draw a bitmap
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
+}
+
 // ============================================================================
 //
 //                            Drawing functions.
@@ -771,7 +802,6 @@ void OpenGLState::DrawBuffer(GLenum mode)
 //    Specify which color buffers are to be drawn into
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     CHANGE(bufferMode, mode);
 }
 
@@ -802,7 +832,7 @@ void OpenGLState::Vertex(coord x, coord y, coord z, coord w)
 // ----------------------------------------------------------------------------
 {
     // Not need to be optimised
-    GL.Vertex(x, y, z, w);
+    glVertex4d(x, y, z, w);
 }
 
 
@@ -811,6 +841,7 @@ void OpenGLState::Vertex3v(const coord *array)
 //    Specify a set of vertices
 // ----------------------------------------------------------------------------
 {
+    // Not need to be optimised
     glVertex3dv(array);
 }
 

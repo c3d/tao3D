@@ -125,48 +125,55 @@ struct TextureState
     TextureState();
     bool operator ==(const TextureState &o)
     {
-        return (wrapS == o.wrapS && wrapT == o.wrapT &&
-                id == o.id &&
-                /* ignore width and height on purpose */
-                type == o.type && mode == o.mode &&
+        return (type == o.type && mode == o.mode && id == o.id &&
+                /* ignore unit, width and height on purpose */
                 minFilt == o.minFilt && magFilt == o.magFilt &&
-                matrix == o.matrix);
+                matrix == o.matrix &&
+                active == o.active &&
+                wrapS == o.wrapS && wrapT == o.wrapT && wrapR == o.wrapR &&
+                mipmap == o.mipmap);
     }
     bool operator!=(const TextureState &o) { return !operator==(o); }
-    void Sync(const TextureState &newState);
+    void Sync(GLuint unit, const TextureState &newState, bool force = false);
 
 public:
+    GLenum      type, mode;
     GLuint      unit, id;
     GLuint      width, height;
-    GLenum      type, mode;
     GLenum      minFilt, magFilt;
     Matrix4     matrix;
-    bool        wrapS, wrapT, mipmap;
+    bool        active : 1;
+    bool        wrapS  : 1;
+    bool        wrapT  : 1;
+    bool        wrapR  : 1;
+    bool        mipmap : 1;
 };
 
 
+#define MAX_TEXTURE_UNITS 64
 struct TexturesState
 // ----------------------------------------------------------------------------
 //    The state of all textures on all texture units
 // ----------------------------------------------------------------------------
 {
-    TexturesState(): active(0), state() {}
+    TexturesState(): dirty(~0ULL), textures() {}
     bool operator==(const TexturesState &o)
     {
-        uint max = state.size();
-        if (max != o.state.size())
+        uint max = textures.size();
+        if (max != o.textures.size())
             return false;
         for (uint i = 0; i < max; i++)
-            if (state[i] != o.state[i])
+            if (textures[i] != o.textures[i])
                 return false;
         return true;
     }
     bool operator!=(const TexturesState &o) { return !operator==(o); }
-    void Sync(const TexturesState &newState);
+    TexturesState &operator=(const TexturesState &o);
+    void Sync(TexturesState &newState);
 
 public:
-    ulonglong active;
-    std::vector<TextureState>   state;
+    ulonglong dirty;
+    std::vector<TextureState>   textures;
 };
 
 
@@ -262,6 +269,12 @@ struct OpenGLState : GraphicState
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref);
 
+    // Textures
+    virtual void ActiveTexture(GLenum id);
+    virtual void BindTexture(GLenum type, GLuint id);
+    virtual void TexParameteri(GLenum type, GLenum pname, GLint param);
+    virtual void TexEnvi(GLenum type, GLenum pname, GLint param);
+
     std::ostream & debug();
 
 public:
@@ -281,12 +294,14 @@ public:
 
 public:
     enum VendorID vendorID;
-    GLuint       maxTextureCoords;
-    GLuint       maxTextureUnits;
-    text         vendor;
-    text         renderer;
-    text         version;
-    text         extensionsAvailable;
+    GLuint        maxTextureCoords;
+    GLuint        maxTextureUnits;
+    text          vendor;
+    text          renderer;
+    text          version;
+    text          extensionsAvailable;
+    TexturesState currentTextures;
+    TextureState *currentUnit;
 
 #define GS(type, name)                          \
     type name;
@@ -301,6 +316,20 @@ private:
     // Structure used to push/pop state
     friend class OpenGLSave;
     OpenGLSave *save;
+
+    // Return the current texture state and texture matrix
+    TextureState &ActiveTexture()
+    {
+        if (activeTexture >= textures.textures.size())
+            textures.textures.resize(activeTexture + 1);
+        textures.dirty |= 1ULL << activeTexture;
+        textures_isDirty = true;
+        return textures.textures[activeTexture];
+    }
+    Matrix4&    TextureMatrix()
+    {
+        return ActiveTexture().matrix;
+    }
 };
 
 TAO_END

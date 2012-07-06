@@ -2266,13 +2266,13 @@ void Widget::setupGL()
     {
         if(layout->textureUnits & (1 << i))
         {
-            glActiveTexture(GL_TEXTURE0 + i);
-            glBindTexture(GL_TEXTURE_2D, 0);
+            GL.ActiveTexture(GL_TEXTURE0 + i);
+            GL.BindTexture(GL_TEXTURE_2D, 0);
             GL.Disable(GL_TEXTURE_2D);
         }
     }
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, 0);
+    GL.ActiveTexture(GL_TEXTURE0);
+    GL.BindTexture(GL_TEXTURE_2D, 0);
     GL.Disable(GL_TEXTURE_2D);
     GL.Disable(GL_TEXTURE_RECTANGLE_ARB);
     GL.Disable(GL_CULL_FACE);

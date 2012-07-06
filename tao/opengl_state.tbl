@@ -22,9 +22,9 @@
 #define GFLAG(name)     GS(bool, glflag_##name)
 #endif
 
+GS(TexturesState,       textures)
 GS(Matrix4,             mvMatrix)
 GS(Matrix4,             projMatrix)
-GS(Matrix4,             textureMatrix)
 GS(Matrix4,             colorMatrix)
 GS(GLenum,              matrixMode)
 GS(ViewportState,       viewport)
@@ -40,10 +40,10 @@ GS(GLenum,              perspectiveCorrectionHint)
 GS(BlendFunctionState,  blendFunction)
 GS(GLenum,              blendEquation)
 GS(AlphaFunctionState,  alphaFunc)
+GS(GLuint,              activeTexture)
 
 GFLAG(GL_LINE_STIPPLE)
 GFLAG(GL_COLOR_MATERIAL)
-GFLAG(GL_TEXTURE_2D)
 GFLAG(GL_MULTISAMPLE)
 GFLAG(GL_LIGHTING)
 GFLAG(GL_NORMALIZE)

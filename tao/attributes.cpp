@@ -136,11 +136,12 @@ void TextureUnit::Draw(Layout *where)
     // to null instead of identity
     if(glUnit && GL.IsATIOpenGL())
     {
-        glActiveTexture(GL_TEXTURE0 + glUnit);
+        GL.ActiveTexture(GL_TEXTURE0 + glUnit);
         GL.MatrixMode(GL_TEXTURE);
-        glLoadIdentity();
+        GL.LoadIdentity();
         GL.MatrixMode(GL_MODELVIEW);
-        glActiveTexture(GL_TEXTURE0);
+        GL.ActiveTexture(GL_TEXTURE0);
+        GL.Sync();
     }
 
     if(glUnit < GL.MaxTextureCoords())
@@ -194,7 +195,7 @@ void TextureTransform::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     uint glUnit = where->currentTexture.unit;
-    glActiveTexture(GL_TEXTURE0 + glUnit);
+    GL.ActiveTexture(GL_TEXTURE0 + glUnit);
     if (enable)
         GL.MatrixMode(GL_TEXTURE);
     else

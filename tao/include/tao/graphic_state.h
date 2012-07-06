@@ -128,6 +128,12 @@ struct GraphicState
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref) = 0;
 
+    // Textures
+    virtual void ActiveTexture(GLenum id) = 0;
+    virtual void BindTexture(GLenum type, GLuint id) = 0;
+    virtual void TexParameteri(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexEnvi(GLenum type, GLenum pname, GLint param) = 0;
+
 protected:
     static GraphicState *       current;
 };

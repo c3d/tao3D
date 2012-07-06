@@ -249,6 +249,7 @@ struct OpenGLState : GraphicState
 
     // Attributes management
     virtual void Color(float r, float g, float b, float a);
+    virtual void Materialfv(GLenum face, GLenum pname, const GLfloat *val);
     virtual void ClearColor(float r, float g, float b, float a);
     virtual void Clear(GLuint mask);
     virtual void LineWidth(float width);

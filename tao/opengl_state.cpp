@@ -120,6 +120,11 @@ OpenGLState::OpenGLState()
       currentUnit(NULL),
       matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0),
+      color(1,1,1,1), clearColor(0,0,0,1),
+      frontAmbient(0,0,0,0), frontDiffuse(0,0,0,0),
+      frontSpecular(0,0,0,0), frontEmission(0,0,0,0), frontShininess(0),
+      backAmbient(0,0,0,0), backDiffuse(0,0,0,0),
+      backSpecular(0,0,0,0), backEmission(0,0,0,0), backShininess(0),
       shadeMode(GL_SMOOTH),
       lineWidth(1),
       stipple(1, -1),
@@ -297,6 +302,26 @@ void OpenGLState::Sync(ulonglong which)
     SYNC(clearColor,
          Tao::Color &c = clearColor;
          glClearColor(c.red,c.green,c.blue,c.alpha));
+    SYNC(frontAmbient,
+         glMaterialfv(GL_FRONT, GL_AMBIENT, frontAmbient.Data()));
+    SYNC(frontDiffuse,
+         glMaterialfv(GL_FRONT, GL_DIFFUSE, frontDiffuse.Data()));
+    SYNC(frontSpecular,
+         glMaterialfv(GL_FRONT, GL_SPECULAR, frontSpecular.Data()));
+    SYNC(frontEmission,
+         glMaterialfv(GL_FRONT, GL_EMISSION, frontEmission.Data()));
+    SYNC(frontShininess,
+         glMaterialf(GL_FRONT, GL_SHININESS, frontShininess));
+    SYNC(backAmbient,
+         glMaterialfv(GL_BACK, GL_AMBIENT, backAmbient.Data()));
+    SYNC(backDiffuse,
+         glMaterialfv(GL_BACK, GL_DIFFUSE, backDiffuse.Data()));
+    SYNC(backSpecular,
+         glMaterialfv(GL_BACK, GL_SPECULAR, backSpecular.Data()));
+    SYNC(backEmission,
+         glMaterialfv(GL_BACK, GL_EMISSION, backEmission.Data()));
+    SYNC(backShininess,
+         glMaterialf(GL_BACK, GL_SHININESS, backShininess));
     SYNC(shadeMode,
          glShadeModel(shadeMode));
     SYNC(lineWidth,
@@ -848,6 +873,66 @@ void OpenGLState::Color(float r, float g, float b, float a)
 }
 
 
+void OpenGLState::Materialfv(GLenum face, GLenum pname, const GLfloat *val)
+// ----------------------------------------------------------------------------
+//    Change material parameters
+// ----------------------------------------------------------------------------
+{
+    bool front = face == GL_FRONT || face == GL_FRONT_AND_BACK;
+    bool back  = face == GL_BACK || face == GL_FRONT_AND_BACK;
+
+    if (front || back)
+    {
+        switch(pname)
+        {
+        case GL_AMBIENT:
+        {
+            Tao::Color ambient(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontAmbient, ambient);
+            if (back)   CHANGE(backAmbient, ambient);
+            return;
+        }
+        case GL_DIFFUSE:
+        {
+            Tao::Color diffuse(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontDiffuse, diffuse);
+            if (back)   CHANGE(backDiffuse, diffuse);
+            return;
+        }
+        case GL_SPECULAR:
+        {
+            Tao::Color specular(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontSpecular, specular);
+            if (back)   CHANGE(backSpecular, specular);
+            return;
+        }
+        case GL_EMISSION:
+        {
+            Tao::Color emission(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontEmission, emission);
+            if (back)   CHANGE(backEmission, emission);
+            return;
+        }
+        case GL_SHININESS:
+        {
+            float shininess = val[0];
+            if (front)  CHANGE(frontShininess, shininess);
+            if (back)   CHANGE(backShininess, shininess);
+            return;
+        }
+
+        default:
+            // Other parameters fall through and are executed immediately
+            break;
+        }
+    }
+
+    // Default case: just apply it directly
+    glMaterialfv(face, pname, val);
+}
+
+
+
 void OpenGLState::ClearColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup clear color
@@ -1160,6 +1245,7 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
         glBindTexture(ts.type, ts.id);
         type = ts.type;
         id = ts.id;
+        if (active) glEnable(type); else glDisable(type);
     }
 
     SYNC_TEXTURE(active,

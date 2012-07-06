@@ -106,6 +106,7 @@ struct GraphicState
 
     // Draw management
     virtual void Color(float r, float g, float b, float a) = 0;
+    virtual void Materialfv(GLenum face, GLenum pname, const GLfloat *val) = 0;
     virtual void ClearColor(float r, float g, float b, float a) = 0;
     virtual void Clear(GLuint mask) = 0;
     virtual void LineWidth(float width) = 0;

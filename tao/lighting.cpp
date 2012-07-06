@@ -181,7 +181,7 @@ void Material::Draw(Layout *where)
 {
     where->hasMaterial = true;
     GL.Disable(GL_COLOR_MATERIAL);
-    glMaterialfv(face, function, &args[0]);
+    GL.Materialfv(face, function, &args[0]);
 
     // Determine is the diffuse material
     // is visible or not (use for transparency)

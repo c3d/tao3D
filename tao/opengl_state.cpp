@@ -26,6 +26,7 @@
 #include "opengl_save.h"
 #include "application.h"
 #include <cassert>
+#include <ostream>
 
 
 TAO_BEGIN
@@ -1186,6 +1187,20 @@ void OpenGLState::TexEnvi(GLenum type, GLenum pname, GLint param)
     {
         glTexEnvi(type, pname, param);
     }
+}
+
+
+TextureState &OpenGLState::ActiveTexture()
+// ----------------------------------------------------------------------------
+//    Return the current active texture
+// ----------------------------------------------------------------------------
+{
+    if (activeTexture >= textures.textures.size())
+        textures.textures.resize(activeTexture + 1);
+    textures.dirty |= 1ULL << activeTexture;
+    SAVE(textures);
+    textures_isDirty = true;
+    return textures.textures[activeTexture];
 }
 
 

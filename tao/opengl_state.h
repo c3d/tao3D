@@ -319,14 +319,7 @@ private:
     OpenGLSave *save;
 
     // Return the current texture state and texture matrix
-    TextureState &ActiveTexture()
-    {
-        if (activeTexture >= textures.textures.size())
-            textures.textures.resize(activeTexture + 1);
-        textures.dirty |= 1ULL << activeTexture;
-        textures_isDirty = true;
-        return textures.textures[activeTexture];
-    }
+    TextureState &ActiveTexture();
     Matrix4&    TextureMatrix()
     {
         return ActiveTexture().matrix;

@@ -49,8 +49,8 @@ equals(HAS_DOXYGEN, 1) {
   doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_logo.png; $$DOXYGEN
   doc.depends = cp_examples cp_logo version xlref
 
-  webdoc.commands = doxygen DoxyfileWebdoc
-  webdoc.depends = cp_examples_webdoc version xlref
+  webdoc.commands = export DOXYLANG=$$DOXYLANG ; export DOXYOUTPUT=webhtml ; $$DOXYGEN DoxyfileWebdoc
+  webdoc.depends = cp_examples_webdoc cp_logo_webdoc version xlref
 
   LANGUAGES=$$replace(DOXYLANG, ',', ' ')
   cp_examples.commands = for l in $$LANGUAGES ; do \
@@ -58,11 +58,15 @@ equals(HAS_DOXYGEN, 1) {
                            cp ../tao/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
                          done
 
-  cp_examples_webdoc.commands = mkdir -p webhtml/examples ; \
-                                cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
-                                for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
+  cp_examples_webdoc.commands = for l in $$LANGUAGES ; do \
+                                  mkdir -p webhtml/\$\$l/html/examples ; \
+                                  cp ../tao/doc/examples/*.ddd webhtml/\$\$l/html/examples/ ; \
+                                  for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/examples/ 2>/dev/null || : ; done ; \
+                                done
 
   cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_logo.png output/\$\$l/html ; done
+
+  cp_logo_webdoc.commands = for l in $$LANGUAGES ; do mkdir -p webhtml/\$\$l/html ; cp images/Taodyne_logo.png webhtml/\$\$l/html ; done
 
   xlref.target = XLRef.html
   equals(HAS_TEXMACS, true) {
@@ -84,7 +88,7 @@ equals(HAS_DOXYGEN, 1) {
   QMAKE_CLEAN += project_number.doxinclude
   QMAKE_DISTCLEAN += project_number.doxinclude
 
-  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref cp_logo xlref clean version install_html
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref cp_logo cp_logo_webdoc xlref clean version install_html
 
   INSTALLS += install_doc
 

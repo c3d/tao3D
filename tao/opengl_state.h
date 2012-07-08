@@ -237,12 +237,6 @@ struct OpenGLState : GraphicState
                         float centerX, float centerY, float centerZ,
                         float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
-    virtual void Viewport(int x, int y, int w, int h);
-    virtual void WindowPos(coord x, coord y, coord z = 0);
-    virtual void PixelStorei(GLenum pname,  int param);
-    virtual void Bitmap(uint  width,  uint  height, coord  xorig,
-                        coord  yorig,  coord  xmove, coord  ymove,
-                        const uchar *  bitmap);
 
     // Draw functions
     virtual void DrawBuffer(GLenum  mode);
@@ -271,8 +265,16 @@ struct OpenGLState : GraphicState
     virtual void CallList(uint list);
     virtual void CallLists(uint size, GLenum type, const void* pointer);
     virtual void ListBase(uint base);
+    virtual void Bitmap(uint  width,  uint  height, coord  xorig,
+                        coord  yorig,  coord  xmove, coord  ymove,
+                        const uchar *  bitmap);
+
 
     // Attributes management
+    virtual void Viewport(int x, int y, int w, int h);
+    virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1);
+    virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1);
+    virtual void PixelStorei(GLenum pname,  int param);
     virtual void Color(float r, float g, float b, float a);
     virtual void ClearColor(float r, float g, float b, float a);
     virtual void Clear(GLuint mask);

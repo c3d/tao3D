@@ -118,9 +118,8 @@ OpenGLState::OpenGLState()
 #include "opengl_state.tbl"
       maxTextureCoords(0), maxTextureUnits(0),
       matrixMode(GL_MODELVIEW),
-      viewport(0, 0, 0, 0),
-      shadeMode(GL_SMOOTH),
-      lineWidth(1),
+      viewport(0, 0, 0, 0), listBase(0),
+      shadeMode(GL_SMOOTH), lineWidth(1),
       stipple(1, -1), cullMode(GL_BACK),
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
@@ -277,6 +276,8 @@ void OpenGLState::Sync(ulonglong which)
          glBlendEquation(blendEquation));
     SYNC(alphaFunc,
          glAlphaFunc(alphaFunc.func, alphaFunc.ref));
+    SYNC(listBase,
+         glListBase(listBase));
 
 #define GS(type, name)
 #define GFLAG(name)                             \
@@ -760,36 +761,6 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
-void OpenGLState::WindowPos(coord x, coord y, coord z)
-// ----------------------------------------------------------------------------
-//    Specify the raster position in window coordinates for pixel operations
-// ----------------------------------------------------------------------------
-{
-    // Not need to be optimised
-    glWindowPos3d(x, y, z);
-}
-
-
-void OpenGLState::PixelStorei(GLenum pname,  int param)
-// ----------------------------------------------------------------------------
-//    Set pixel storage modes
-// ----------------------------------------------------------------------------
-{
-    // Not need to be optimised
-    glPixelStorei(pname, param);
-}
-
-
-void OpenGLState::Bitmap(uint  width,  uint  height, coord  xorig,
-                         coord  yorig,  coord  xmove, coord  ymove,
-                         const uchar *  bitmap)
-// ----------------------------------------------------------------------------
-//    Draw a bitmap
-// ----------------------------------------------------------------------------
-{
-    // Not need to be optimised
-    glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
-}
 
 // ============================================================================
 //
@@ -1009,9 +980,21 @@ void OpenGLState::ListBase(uint base)
 //    Set the display-list base for glCallLists
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glListBase(base);
 }
+
+
+void OpenGLState::Bitmap(uint  width,  uint  height, coord  xorig,
+                         coord  yorig,  coord  xmove, coord  ymove,
+                         const uchar *  bitmap)
+// ----------------------------------------------------------------------------
+//    Draw a bitmap
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
+}
+
 
 
 // ============================================================================
@@ -1031,12 +1014,39 @@ void OpenGLState::Viewport(int x, int y, int w, int h)
 }
 
 
+void OpenGLState::RasterPos(coord x, coord y, coord z, coord w)
+// ----------------------------------------------------------------------------
+//    Specify the raster position in window coordinates for pixel operations
+// ----------------------------------------------------------------------------
+{
+    // Not optimised because depending of too much
+    // settings (modelview and proj matrices, viewport, etc.) but
+    // not often used in Tao.
+    glRasterPos4d(x, y, z, w);
+}
 
-// ============================================================================
-//
-//                       Attribute management functions.
-//
-// ============================================================================
+
+void OpenGLState::WindowPos(coord x, coord y, coord z, coord w)
+// ----------------------------------------------------------------------------
+//    Specify the raster position in window coordinates for pixel operations
+// ----------------------------------------------------------------------------
+{
+    // Not optimised because depending of too much
+    // settings (modelview and proj matrices, viewport, etc.) but
+    // not often used in Tao.
+    glWindowPos3d(x, y, z);
+}
+
+
+void OpenGLState::PixelStorei(GLenum pname,  int param)
+// ----------------------------------------------------------------------------
+//    Set pixel storage modes
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glPixelStorei(pname, param);
+}
+
 
 void OpenGLState::Color(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------

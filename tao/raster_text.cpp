@@ -21,6 +21,7 @@
 // ****************************************************************************
 
 #include "raster_text.h"
+#include "gl_keepers.h"
 #include <stdarg.h>
 #include <iostream>
 
@@ -164,6 +165,7 @@ void RasterText::makeRasterFont()
     GLuint i;
     GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
     fontOffset = GL.GenLists(128);
+    GL.Sync();
     for (i = 32; i < 127; i++) {
         GL.NewList(i+fontOffset, GL_COMPILE);
             GL.Bitmap(8, 13, 0.0, 2.0, 10.0, 0.0, rasters[i-32]);
@@ -202,29 +204,32 @@ int RasterText::printf(const char *format...)
         len = sizeof(text) - 1;
     va_end(ap);
 
-    // Save GL state
-    glPushAttrib(GL_LIGHTING_BIT | GL_LIST_BIT);
-    GL.Disable(GL_LIGHTING);
+
     GLint prog = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
     if (prog)
         glUseProgram(0);
+    {
+        // Save GL state
+        GLStateKeeper save(GL_LIGHTING_BIT | GL_LIST_BIT);
+        GL.Disable(GL_LIGHTING);
 
-    // Draw background
-    GL.Color(0.0, 0.0, 0.0, 0.5);
-    GL.WindowPos(inst->pos.x, inst->pos.y);
-    GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
-    for (int i = 0; i < 2*len; i++)
-        GL.Bitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
+        // Draw background
+        GL.Color(0.0, 0.0, 0.0, 0.5);
+        GL.Sync();
+        GL.WindowPos(inst->pos.x, inst->pos.y);
+        GL.PixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        for (int i = 0; i < 2*len; i++)
+            GL.Bitmap(5, 17, 0.0, 2.0, 5.0, 0.0, background);
 
-    // Draw text
-    GL.Color(1.0, 1.0, 1.0, 1.0);
-    GL.WindowPos(inst->pos.x + 2, inst->pos.y + 1);
-    GL.ListBase(inst->fontOffset);
-    GL.CallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
+        // Draw text
+        GL.Color(1.0, 1.0, 1.0, 1.0);
+        GL.Sync();
+        GL.WindowPos(inst->pos.x + 2, inst->pos.y + 1);
+        GL.ListBase(inst->fontOffset);
+        GL.CallLists(len, GL_UNSIGNED_BYTE, (GLubyte *) text);
+    }
 
-    // Restore GL state
-    glPopAttrib();
     if (prog)
         glUseProgram(prog);
 

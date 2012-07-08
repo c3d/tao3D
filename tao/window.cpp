@@ -56,6 +56,7 @@
 #include "license_dialog.h"
 #include "normalize.h"
 #include "examples_menu.h"
+#include "texture_cache.h"
 
 #include <iostream>
 #include <sstream>
@@ -2248,6 +2249,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Close any module possibly imported by previous document
     ModuleManager::moduleManager()->unloadImported();
+
+    // Drop textures
+    TextureCache::instance()->clear();
 
     taoWidget->reset();
 

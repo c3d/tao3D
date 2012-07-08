@@ -81,6 +81,7 @@
 #include "info_trash_can.h"
 #include "tao_info.h"
 #include "preferences_pages.h"
+#include "texture_cache.h"
 
 #include <QDialog>
 #include <QTextCursor>
@@ -491,7 +492,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Texture and glyph cache do not support multiple GL contexts. So,
     // clear them here so that textures or GL lists created with the
     // previous context are not re-used with the new.
-    ImageTextureInfo::textures.clear();
+    TextureCache::instance()->clear();
     if (o.watermark)
         glDeleteTextures(1, &o.watermark);
 
@@ -6881,17 +6882,18 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
 
-        layout->currentTexture.id     = rinfo->bind(img);
-        layout->currentTexture.width  = rinfo->width;
-        layout->currentTexture.height = rinfo->height;
+        ImageTextureInfo::Texture t = rinfo->load(img);
+        layout->currentTexture.id     = t.id;
+        layout->currentTexture.width  = t.width;
+        layout->currentTexture.height = t.height;
         layout->currentTexture.type   = GL_TEXTURE_2D;
-        layout->currentTexture.minFilt = TaoApp->tex2DMinFilter;
-        layout->currentTexture.magFilt = TaoApp->tex2DMagFilter;
+        layout->currentTexture.minFilt = TextureCache::instance()->minFilter();
+        layout->currentTexture.magFilt = TextureCache::instance()->magFilter();
 
         texId = layout->currentTexture.id;
     }
 
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -7005,12 +7007,13 @@ Integer* Widget::image(Context *context,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
 
-    layout->currentTexture.id     = rinfo->bind(filename);
-    layout->currentTexture.width  = rinfo->width;
-    layout->currentTexture.height = rinfo->height;
+    ImageTextureInfo::Texture t = rinfo->load(filename);
+    layout->currentTexture.id     = t.id;
+    layout->currentTexture.width  = t.width;
+    layout->currentTexture.height = t.height;
     layout->currentTexture.type   = GL_TEXTURE_2D;
-    layout->currentTexture.minFilt = TaoApp->tex2DMinFilter;
-    layout->currentTexture.magFilt = TaoApp->tex2DMagFilter;
+    layout->currentTexture.minFilt = TextureCache::instance()->minFilter();
+    layout->currentTexture.magFilt = TextureCache::instance()->magFilter();
 
     uint texId   = layout->currentTexture.id;
 
@@ -7019,7 +7022,7 @@ Integer* Widget::image(Context *context,
     double w = w0 * sx;
     double h = h0 * sy;
 
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D, true));
+    layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
     layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));

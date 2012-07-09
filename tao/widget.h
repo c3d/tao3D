@@ -255,8 +255,8 @@ public:
     void        printStatistics();
     void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
-    void        resetTimes() { pageStartTime = startTime = frozenTime
-                               = CurrentTime(); }
+    void        resetTimes()            { pageStartTime = startTime
+                                          = frozenTime = CurrentTime(); }
 
     // Selection
     GLuint      shapeId()               { return ++id; }

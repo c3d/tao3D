@@ -706,16 +706,19 @@ void Layout::PushLayout(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Check if the group was opened. If so, update OpenGL name
-    if (uint groupId = id)
+    if (id & Widget::SHAPE_SELECTED)
     {
-        Widget *widget = where->Display();
-        widget->selectionContainerPush();
-
-        uint open = widget->selected(id);
-        if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
-            groupId = (groupId & ~Widget::SELECTION_MASK)
-                | Widget::CONTAINER_OPENED;
-        glPushName(groupId);
+        if (uint groupId = id)
+        {
+            Widget *widget = where->Display();
+            widget->selectionContainerPush();
+            
+            uint open = widget->selected(id);
+            if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
+                groupId = (groupId & ~Widget::SELECTION_MASK)
+                    | Widget::CONTAINER_OPENED;
+            glPushName(groupId);
+        }
     }
 }
 
@@ -725,7 +728,7 @@ void Layout::PopLayout(Layout *where)
 //   Restore information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    if (id)
+    if (id & Widget::SHAPE_SELECTED)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPop();

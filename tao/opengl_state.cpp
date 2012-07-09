@@ -117,16 +117,14 @@ OpenGLState::OpenGLState()
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
       maxTextureCoords(0), maxTextureUnits(0),
-      matrixMode(GL_MODELVIEW),
-      viewport(0, 0, 0, 0), listBase(0),
-      shadeMode(GL_SMOOTH), lineWidth(1),
-      stipple(1, -1), cullMode(GL_BACK),
+      matrixMode(GL_MODELVIEW), viewport(0, 0, 0, 0),
+      listBase(0), pointSize(1), shadeMode(GL_SMOOTH),
+      lineWidth(1), stipple(1, -1), cullMode(GL_BACK),
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
       perspectiveCorrectionHint(GL_DONT_CARE),
       blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
-      blendEquation(GL_FUNC_ADD),
-      alphaFunc(GL_ALWAYS, 0.0),
+      blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER),
       save(NULL)
 {
@@ -248,6 +246,8 @@ void OpenGLState::Sync(ulonglong which)
          glDrawBuffer(bufferMode));
     SYNC(viewport,
          glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
+    SYNC(pointSize,
+         glPointSize(pointSize));
     SYNC(color,
          glColor4f(color.red, color.green, color.blue, color.alpha));
     SYNC(clearColor,
@@ -1045,6 +1045,15 @@ void OpenGLState::PixelStorei(GLenum pname,  int param)
 {
     // Not need to be optimised
     glPixelStorei(pname, param);
+}
+
+
+void OpenGLState::PointSize(coord size)
+// ----------------------------------------------------------------------------
+//    Specify the diameter of rasterized pointsC Specification
+// ----------------------------------------------------------------------------
+{
+    CHANGE(pointSize, size);
 }
 
 

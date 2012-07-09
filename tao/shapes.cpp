@@ -1051,11 +1051,11 @@ void FixedSizePoint::Draw(Layout *where)
 //   Draw a point at the given location
 // ----------------------------------------------------------------------------
 {
-    GL.LoadMatrix();
     setTexture(where);
     if (setFillColor(where))
     {
-        glPointSize(radius * where->PrinterScaling());
+        GL.PointSize(radius * where->PrinterScaling());
+        GL.Sync();
         GL.Begin(GL_POINTS);
         GL.Vertex(center.x, center.y, center.z);
         GL.End();

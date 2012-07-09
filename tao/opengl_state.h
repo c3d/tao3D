@@ -275,6 +275,7 @@ struct OpenGLState : GraphicState
     virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1);
     virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1);
     virtual void PixelStorei(GLenum pname,  int param);
+    virtual void PointSize(coord size);
     virtual void Color(float r, float g, float b, float a = 1.0);
     virtual void ClearColor(float r, float g, float b, float a = 1.0);
     virtual void Clear(GLuint mask);

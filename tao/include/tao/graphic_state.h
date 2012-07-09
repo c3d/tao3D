@@ -139,6 +139,7 @@ struct GraphicState
     virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1) = 0;
     virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1) = 0;
     virtual void PixelStorei(GLenum pname,  int param) = 0;
+    virtual void PointSize(coord size) = 0;
     virtual void Color(float r, float g, float b, float a = 1.0) = 0;
     virtual void ClearColor(float r, float g, float b, float a = 1.0) = 0;
     virtual void Clear(GLuint mask) = 0;

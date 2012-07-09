@@ -56,6 +56,7 @@
 #include "license_dialog.h"
 #include "normalize.h"
 #include "examples_menu.h"
+#include "texture_cache.h"
 
 #include <iostream>
 #include <sstream>
@@ -689,7 +690,6 @@ again:
         if (!openProject(projpath, fileNameOnly, false))
             return false;
 #endif
-    updateContext(projpath);
 
     return saveFile(fileName);
 }
@@ -839,6 +839,8 @@ bool Window::saveFile(const QString &fileName)
     // QApplication::processEvents();
 
     bool needReload = false;
+    bool dirChanged = (QFileInfo(fileName).absolutePath() !=
+                       QFileInfo(curFile).absolutePath());
     do
     {
         QTextStream out(&file);
@@ -859,6 +861,8 @@ bool Window::saveFile(const QString &fileName)
             std::ostringstream renderOut;
             renderOut << prog;
             out << +renderOut.str();
+            if (dirChanged)
+                needReload = true;
         }
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
@@ -870,6 +874,8 @@ bool Window::saveFile(const QString &fileName)
     if (needReload)
     {
         taoWidget->loadFile(fn);
+        if (dirChanged)
+            updateContext(QFileInfo(fileName).absolutePath());
         updateProgram(fileName);
     }
 #ifndef CFG_NOSRCEDIT
@@ -2248,6 +2254,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Close any module possibly imported by previous document
     ModuleManager::moduleManager()->unloadImported();
+
+    // Drop textures
+    TextureCache::instance()->clear();
 
     taoWidget->reset();
 

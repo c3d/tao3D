@@ -8,7 +8,7 @@ Once:
 - Update version.pri if needed.
 - See if the version of some modules needs updating. To get the list of modules
   that have changed since the last public release (for example, 1.01):
-  $ cd modules ; ./check_changes 1.01
+  $ cd modules ; ./check_changes.sh 1.01
   If some modules changed, increment their version number (typically in
   modulename/modulename.xl, modulename/doc/Doxyfile.in but also where the module
   checks for licenses: grep for hasLicense, checkLicense, checkImpressOrLicense,
@@ -39,9 +39,10 @@ On all platforms:
 - Build Tao and make packages (all editions).
   $ ./build_all.sh
 - If some modules that are not packaged with Tao have been modified since the
-  last build (currently: Alioscopy and 2D-plus-Depth display modules), build
-  them:
-  $ ./configure modules+=+display_alioscopy modules+=+display_2dplusdepth
+  last build (currently: Alioscopy, 2D-plus-Depth and Tridelity display modules),
+  build them:
+  $ ./configure modules+=+display_alioscopy modules+=+display_2dplusdepth \
+                modules+=+display_tridelity
   $ make -j3 install
 
 Once:

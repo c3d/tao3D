@@ -122,6 +122,7 @@ HEADERS +=     activity.h \
     text_drawing.h \
     text_edit.h \
     texture.h \
+    texture_cache.h \
     tool_window.h \
     transforms.h \
     tree_cloning.h \
@@ -197,6 +198,7 @@ SOURCES +=     activity.cpp \
     text_drawing.cpp \
     text_edit.cpp \
     texture.cpp \
+    texture_cache.cpp \
     tool_window.cpp \
     transforms.cpp \
     tree_cloning.cpp \

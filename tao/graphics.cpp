@@ -28,6 +28,7 @@
 #include "types.h"
 #include "drawing.h"
 #include "module_manager.h"
+#include "texture_cache.h"
 #include <iostream>
 
 

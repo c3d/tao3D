@@ -706,7 +706,7 @@ void Layout::PushLayout(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Check if the group was opened. If so, update OpenGL name
-    if (id & Widget::SHAPE_SELECTED)
+    if (id & Widget::SELECTION_MASK)
     {
         if (uint groupId = id)
         {

@@ -114,12 +114,12 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                 childSelected = false;
 
                 IFTRACE(selection)
-                    std::cerr << "Selection " << std::hex << *selPtr << " depth " << depth << ": ";
-
+                    std::cerr << "Selection " << std::hex << *selPtr
+                              << " depth " << depth << ": ";
 
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
-                parentId = selected = (*ptr++);
+                parentId = selected = *ptr++;
 
                 // Check if we have a handleId or character ID
                 while (ptr < selNext)

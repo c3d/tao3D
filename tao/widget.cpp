@@ -867,7 +867,6 @@ void Widget::draw()
     stats.end(Statistics::FRAME);
 
     // Remember number of elements drawn for GL selection buffer capacity
-    id &= ~SELECTION_MASK;
     if (maxId < id + 100 || maxId > 2 * (id + 100))
         maxId = id + 100;
 
@@ -4660,7 +4659,7 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
     GLAttribKeeper     saveGL;
     resetLayout(layout);
-    selectionSpace.id = (id & ~SELECTION_MASK) | HANDLE_SELECTED;
+    selectionSpace.id = id | HANDLE_SELECTED;
     selectionSpace.isSelection = true;
     (XL::XLCall("draw_" + handleName), p.x, p.y, p.z) (xlProgram);
 
@@ -5281,6 +5280,7 @@ Tree_p Widget::shapeAction(Tree_p self, text name, Tree_p action)
 
     return XL::xl_true;
 }
+
 
 Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
 // ----------------------------------------------------------------------------

@@ -107,7 +107,7 @@ struct GraphicState
     virtual void DrawBuffer(GLenum mode) = 0;
     virtual void Begin(GLenum mode) = 0;
     virtual void End() = 0;
-    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 0) = 0;
+    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 1.0) = 0;
     virtual void Vertex3v(const coord* v) = 0;
     virtual void Normal(coord nx, coord ny, coord nz) = 0;
     virtual void TexCoord(coord s, coord t) = 0;
@@ -139,8 +139,8 @@ struct GraphicState
     virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1) = 0;
     virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1) = 0;
     virtual void PixelStorei(GLenum pname,  int param) = 0;
-    virtual void Color(float r, float g, float b, float a) = 0;
-    virtual void ClearColor(float r, float g, float b, float a) = 0;
+    virtual void Color(float r, float g, float b, float a = 1.0) = 0;
+    virtual void ClearColor(float r, float g, float b, float a = 1.0) = 0;
     virtual void Clear(GLuint mask) = 0;
     virtual void LineWidth(float width) = 0;
     virtual void LineStipple(GLint factor, GLushort pattern) = 0;

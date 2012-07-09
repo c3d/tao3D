@@ -242,7 +242,7 @@ struct OpenGLState : GraphicState
     virtual void DrawBuffer(GLenum  mode);
     virtual void Begin(GLenum mode);
     virtual void End();
-    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 0);
+    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 1);
     virtual void Vertex3v(const coord* array);
     virtual void Normal(coord nx, coord ny, coord nz);
     virtual void TexCoord(coord s, coord t);
@@ -275,8 +275,8 @@ struct OpenGLState : GraphicState
     virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1);
     virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1);
     virtual void PixelStorei(GLenum pname,  int param);
-    virtual void Color(float r, float g, float b, float a);
-    virtual void ClearColor(float r, float g, float b, float a);
+    virtual void Color(float r, float g, float b, float a = 1.0);
+    virtual void ClearColor(float r, float g, float b, float a = 1.0);
     virtual void Clear(GLuint mask);
     virtual void LineWidth(float width);
     virtual void LineStipple(GLint factor, GLushort pattern);

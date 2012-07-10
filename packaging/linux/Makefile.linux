@@ -22,7 +22,9 @@ ARCH=$(OS).$(shell uname -m)
 
 ########
 
-kit: deb tar
+kit:
+	$(MAKE) -f Makefile.linux deb
+	$(MAKE) -f Makefile.linux tar
 
 # .tar.bz2 package
 

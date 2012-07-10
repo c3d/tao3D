@@ -44,7 +44,7 @@ struct ImageTextureInfo : XL::Info
     ImageTextureInfo();
     ~ImageTextureInfo();
 
-    Texture load(text img);
+    Texture load(text img, text docPath);
     operator data_t() { return this; }
     uint        width, height;
     bool        mipmap;

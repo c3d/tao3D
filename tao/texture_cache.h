@@ -131,7 +131,8 @@ class CachedTexture
     };
 
 public:
-    CachedTexture(TextureCache &cache, const QString &path, bool mipmap,
+    CachedTexture(TextureCache &cache, const QString &path,
+                  const QString &docPath, bool mipmap,
                   bool compress, bool cacheCompressed = true);
     ~CachedTexture();
 
@@ -159,7 +160,7 @@ private:
     void            checkFile();
 
 public:
-    QString         path, canonicalPath;
+    QString         path, docPath, canonicalPath;
     GLuint          id;
     int             width, height;
     bool            mipmap, compress;
@@ -207,7 +208,7 @@ public:
     TextureCache();
     virtual ~TextureCache() { clear(); }
 
-    CachedTexture * load(const QString &img);
+    CachedTexture * load(const QString &img, const QString &docPath);
     CachedTexture * bind(GLuint id);
 
     GLenum          minFilter() { return minFilt; }
@@ -246,7 +247,9 @@ private slots:
     void            doPrintStatistics();
 
 private:
-    QMap <QString, CachedTexture *>  fromName;
+    typedef QPair<QString, QString> TextureName; // (file path, doc path)
+
+    QMap <TextureName, CachedTexture *> fromName;
     QMap <GLuint, CachedTexture *>   fromId;
     LRU                              memLRU, GL_LRU;
     qint64                           memSize, GLSize, maxMemSize, maxGLSize;

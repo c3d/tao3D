@@ -1170,6 +1170,9 @@ void OpenGLState::TexParameteri(GLenum type, GLenum pname, GLint param)
     case GL_TEXTURE_WRAP_R:
         ts.wrapR = param == GL_REPEAT;
         break;
+    default:
+        Sync(STATE_textures);
+        glTexParameteri(type, pname, param);
     }
 }
 

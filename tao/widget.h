@@ -256,12 +256,12 @@ public:
     void        printStatistics();
     void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
-    void        resetTimes() { pageStartTime = startTime = frozenTime
-                               = CurrentTime(); }
+    void        resetTimes()            { pageStartTime = startTime
+                                          = frozenTime = CurrentTime(); }
 
     // Selection
     GLuint      shapeId()               { return ++id; }
-    GLuint      selectionId()           { return id = (++id & ~SELECTION_MASK) | SHAPE_SELECTED; }
+    GLuint      selectionId()           { return ++id | SHAPE_SELECTED; }
     GLuint      selectionCurrentId()    { return id; }
     GLuint      selectionHandleId()     { return handleId; }
     GLuint      selectionCapacity()     { return maxId * (maxIdDepth + 3); }

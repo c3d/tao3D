@@ -27,13 +27,15 @@
 #include "color.h"
 #include "justification.h"
 #include "tao_gl.h"
+#include "application.h"
+#include "texture_cache.h"
+#include "matrix.h"
+#include "opengl_state.h"
 #include <vector>
 #include <set>
 #include <QFont>
 #include <QEvent>
 #include <float.h>
-#include "matrix.h"
-#include "opengl_state.h"
 
 
 TAO_BEGIN

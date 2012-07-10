@@ -25,6 +25,7 @@
 #include "opengl_state.h"
 #include "opengl_save.h"
 #include "application.h"
+#include "texture_cache.h"
 #include <cassert>
 #include <ostream>
 
@@ -1190,6 +1191,35 @@ void OpenGLState::TexEnvi(GLenum type, GLenum pname, GLint param)
 }
 
 
+void OpenGLState::TexImage2D(GLenum target, GLint level, GLint internalformat,
+                             GLsizei width, GLsizei height, GLint border,
+                             GLenum format, GLenum type,
+                             const GLvoid *pixels )
+// ----------------------------------------------------------------------------
+//    Define an uncompressed image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures);
+    glTexImage2D(target, level, internalformat, width, height, border,
+                 format, type, pixels);
+}
+
+
+void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
+                                       GLenum internalformat,
+                                       GLsizei width, GLsizei height,
+                                       GLint border, GLsizei imgSize,
+                                       const GLvoid *data)
+// ----------------------------------------------------------------------------
+//    Define a compressed image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures);
+    glCompressedTexImage2D(target, level, internalformat,
+                           width, height, border, imgSize, data);
+}
+
+
 TextureState &OpenGLState::ActiveTexture()
 // ----------------------------------------------------------------------------
 //    Return the current active texture
@@ -1227,8 +1257,8 @@ TextureState::TextureState()
 // ----------------------------------------------------------------------------
   : type(GL_TEXTURE_2D), mode(GL_MODULATE),
     unit(0), id(0), width(0), height(0),
-    minFilt(TaoApp->tex2DMinFilter),
-    magFilt(TaoApp->tex2DMagFilter),
+    minFilt(TextureCache::instance()->minFilter()),
+    magFilt(TextureCache::instance()->magFilter()),
     matrix(),
     active(false),
     wrapS(false), wrapT(false), wrapR(false),

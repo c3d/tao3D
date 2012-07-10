@@ -28,6 +28,7 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
+#include "texture_cache.h"
 #include <QPainterPath>
 #include "lighting.h"
 TAO_BEGIN
@@ -101,24 +102,31 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 {
     GL.ActiveTexture(GL_TEXTURE0 + texture.unit);
     GL.Enable(texture.type);
-    GL.BindTexture(texture.type, texture.id);
+    bool mipmap = false;
+    if (texture.type == GL_TEXTURE_2D)
+    {
+        CachedTexture *cached = TextureCache::instance()->bind(texture.id);
+        if (cached)
+            mipmap = cached->mipmap;
+        else
+            GL.BindTexture(texture.type, texture.id);
+    }
+    else
+    {
+        GL.BindTexture(texture.type, texture.id);
+    }
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
     {
         min = texture.minFilt;
         mag = texture.magFilt;
-        if (!texture.mipmap)
+        if (!mipmap)
         {
             if (min == GL_NEAREST_MIPMAP_NEAREST ||
                 min == GL_LINEAR_MIPMAP_NEAREST  ||
                 min == GL_NEAREST_MIPMAP_LINEAR  ||
                 min == GL_LINEAR_MIPMAP_LINEAR)
                 min = GL_LINEAR;
-            if (mag == GL_NEAREST_MIPMAP_NEAREST ||
-                mag == GL_LINEAR_MIPMAP_NEAREST  ||
-                mag == GL_NEAREST_MIPMAP_LINEAR  ||
-                mag == GL_LINEAR_MIPMAP_LINEAR)
-                mag = GL_LINEAR;
         }
     }
     else

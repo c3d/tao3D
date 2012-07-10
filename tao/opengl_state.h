@@ -275,6 +275,15 @@ struct OpenGLState : GraphicState
     virtual void BindTexture(GLenum type, GLuint id);
     virtual void TexParameteri(GLenum type, GLenum pname, GLint param);
     virtual void TexEnvi(GLenum type, GLenum pname, GLint param);
+    virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
+                            GLsizei width, GLsizei height, GLint border,
+                            GLenum format, GLenum type,
+                            const GLvoid *pixels );
+    virtual void CompressedTexImage2D(GLenum target, GLint level,
+                                      GLenum internalformat,
+                                      GLsizei width, GLsizei height,
+                                      GLint border, GLsizei imgSize,
+                                      const GLvoid *data);
 
     std::ostream & debug();
 
@@ -295,12 +304,8 @@ public:
 
 public:
     enum VendorID vendorID;
-    GLuint        maxTextureCoords;
-    GLuint        maxTextureUnits;
-    text          vendor;
-    text          renderer;
-    text          version;
-    text          extensionsAvailable;
+    GLuint        maxTextureCoords, maxTextureUnits;
+    text          vendor, renderer, version, extensionsAvailable;
     TexturesState currentTextures;
     TextureState *currentUnit;
 

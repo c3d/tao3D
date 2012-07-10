@@ -10,6 +10,7 @@
 DOXYFILE="$1"
 [ "$1" = "" ] && DOXYFILE=Doxyfile
 [ "$DOXYLANG" = "" ] && DOXYLANG=en
+[ "$DOXYOUTPUT" = "" ] && DOXYOUTPUT=output
 
 longname() {
     case $1 in
@@ -54,8 +55,8 @@ if [ -e "$DOXYFILE" ] ; then
     for lang in $LANGUAGES ; do
         doxygenlayout=`find_doxygenlayout $DOXYFILE $lang`
         [ "$doxygenlayout" ] && echo "[doxygen.sh] # Using layout file: $doxygenlayout"
-        htmlout=output/$lang/html
-        qchout=output/$lang/qch
+        htmlout=$DOXYOUTPUT/$lang/html
+        qchout=$DOXYOUTPUT/$lang/qch
         (
             cat "$DOXYFILE" ;
             [ "$doxygenlayout" ] && echo LAYOUT_FILE = $doxygenlayout ;

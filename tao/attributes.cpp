@@ -124,7 +124,6 @@ void FillTexture::Draw(Layout *where)
     where->fillTextures[glUnit].unit = glUnit;
     where->fillTextures[glUnit].id   = glName;
     where->fillTextures[glUnit].type = glType;
-    where->fillTextures[glUnit].mipmap = mipmap;
 }
 
 void TextureUnit::Draw(Layout *where)

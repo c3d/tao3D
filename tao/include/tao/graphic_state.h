@@ -134,6 +134,15 @@ struct GraphicState
     virtual void BindTexture(GLenum type, GLuint id) = 0;
     virtual void TexParameteri(GLenum type, GLenum pname, GLint param) = 0;
     virtual void TexEnvi(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
+                            GLsizei width, GLsizei height, GLint border,
+                            GLenum format, GLenum type,
+                            const GLvoid *pixels ) = 0;
+    virtual void CompressedTexImage2D(GLenum target, GLint level,
+                                      GLenum internalformat,
+                                      GLsizei width, GLsizei height,
+                                      GLint border, GLsizei imgSize,
+                                      const GLvoid *data) = 0;
 
 protected:
     static GraphicState *       current;

@@ -312,6 +312,7 @@ public:
 
 public:
     static text          vendorsList[LAST_VENDOR];
+    static uint ShowErrors();
 
 private:
     // Structure used to push/pop state

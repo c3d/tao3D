@@ -207,7 +207,7 @@ void OpenGLState::Restore(GraphicSave *saved)
 }
 
 
-uint glShowErrors()
+uint OpenGLState::ShowErrors()
 // ----------------------------------------------------------------------------
 //   Display all OpenGL errors in the error window
 // ----------------------------------------------------------------------------
@@ -262,7 +262,7 @@ void OpenGLState::Sync(ulonglong which)
         {                                               \
             Code;                                       \
             name##_isDirty = false;                     \
-            glShowErrors();                             \
+            ShowErrors();                               \
         }                                               \
     } while(0)
 
@@ -1251,7 +1251,7 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
         {                                       \
             name = ts.name;                     \
             Code;                               \
-            glShowErrors();                     \
+            OpenGLState::ShowErrors();          \
         }                                       \
     } while(0)
 

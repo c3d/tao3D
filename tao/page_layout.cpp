@@ -589,7 +589,6 @@ void PageLayout::DrawSelection(Layout *where)
     // Remember the initial selection ID
     Widget     *widget   = where->Display();
     TextSelect *sel      = widget->textSelection();
-    uint        selected = widget->selected(id);
     GLuint      lineStart, lineEnd;
 
     flow->currentTextBox = this;
@@ -607,11 +606,12 @@ void PageLayout::DrawSelection(Layout *where)
     }
 
     // Check if the text layout was opened, if so draw the text box
+    uint selected = widget->selected(id);
     if (selected)
     {
         Box3 bounds = space;
         XL::Save<Point3> zeroOffset(flow->offset, Point3(0,0,0));
-        if (selected & Widget::CONTAINER_OPENED)
+        if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
             widget->drawSelection(flow, bounds, "open_textbox", where->id);
         else
             widget->drawSelection(flow, bounds, "selected_textbox", where->id);

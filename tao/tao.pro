@@ -74,6 +74,7 @@ HEADERS +=     activity.h \
     drag.h \
     drawing.h \
     error_message_dialog.h \
+    examples_menu.h \
     font.h \
     font_file_manager.h \
     frame.h \
@@ -121,6 +122,7 @@ HEADERS +=     activity.h \
     text_drawing.h \
     text_edit.h \
     texture.h \
+    texture_cache.h \
     tool_window.h \
     transforms.h \
     tree_cloning.h \
@@ -151,6 +153,7 @@ SOURCES +=     activity.cpp \
     drag.cpp \
     drawing.cpp \
     error_message_dialog.cpp \
+    examples_menu.cpp \
     font.cpp \
     font_file_manager.cpp \
     frame.cpp \
@@ -195,6 +198,7 @@ SOURCES +=     activity.cpp \
     text_drawing.cpp \
     text_edit.cpp \
     texture.cpp \
+    texture_cache.cpp \
     tool_window.cpp \
     transforms.cpp \
     tree_cloning.cpp \

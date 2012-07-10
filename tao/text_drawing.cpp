@@ -524,7 +524,8 @@ void TextUnit::Identify(Layout *where)
             continue;
 
         if (canSel)
-            glLoadName(charId | Widget::CHARACTER_SELECTED);
+            glLoadName((charId & ~Widget::SELECTION_MASK) |
+                       Widget::CHARACTER_SELECTED);
 
         sd = glyph.scalingFactor * descent;
         sh = glyph.scalingFactor * height;
@@ -560,7 +561,8 @@ void TextUnit::Identify(Layout *where)
     if (sel && canSel && max <= end)
     {
         charId++;
-        glLoadName(charId | Widget::CHARACTER_SELECTED);
+        glLoadName((charId & ~Widget::SELECTION_MASK) |
+                   Widget::CHARACTER_SELECTED);
         if (glyphs.Find(font, ' ', texUnits, glyph, false))
         {
             sd = glyph.scalingFactor * descent;
@@ -1180,7 +1182,8 @@ void TextFormula::DrawSelection(Layout *where)
     // Check if formula is selected and we are not editing it
     if (sel && sel->textMode)
     {
-        if (!info && widget->selected(charId | Widget::CHARACTER_SELECTED))
+        if (!info && widget->selected((charId & ~Widget::SELECTION_MASK) |
+                                      Widget::CHARACTER_SELECTED))
         {
             // No info: create one
 
@@ -1265,7 +1268,8 @@ void TextFormula::Identify(Layout *where)
     TextSelect          *sel    = widget->textSelection();
 
     if (!info && where->id)
-        glLoadName(charId | Widget::CHARACTER_SELECTED);
+        glLoadName((charId & ~Widget::SELECTION_MASK) |
+                   Widget::CHARACTER_SELECTED);
 
     if (sel)
         sel->last = charId + 1;
@@ -1342,7 +1346,8 @@ void TextValue::DrawSelection(Layout *where)
     // Check if value is selected and we are not editing it
     if (sel && sel->textMode)
     {
-        if (!info && widget->selected(charId | Widget::CHARACTER_SELECTED))
+        if (!info && widget->selected((charId & ~Widget::SELECTION_MASK) |
+                                      Widget::CHARACTER_SELECTED))
         {
             // No info: create one
             text edited = text("   ") + text(*value) + "  ";
@@ -1416,7 +1421,8 @@ void TextValue::Identify(Layout *where)
     TextSelect          *sel    = widget->textSelection();
 
     if (!info && where->id)
-        glLoadName(charId | Widget::CHARACTER_SELECTED);
+        glLoadName((charId & ~Widget::SELECTION_MASK) |
+                   Widget::CHARACTER_SELECTED);
 
     if (sel)
         sel->last = charId + 1;
@@ -1507,9 +1513,9 @@ TextSelect::TextSelect(Widget *w)
     for (i = w->selection.begin(); i != last; i++)
     {
         uint id = (*i).first;
-        if (id & Widget::CHARACTER_SELECTED)
+        if ((id & Widget::SELECTION_MASK) == Widget::CHARACTER_SELECTED)
         {
-            id &= Widget::CHARACTER_SELECTED;
+            id &= ~Widget::SELECTION_MASK;
             if (!mark)
                 mark = point = id;
             else
@@ -1691,15 +1697,16 @@ Activity *TextSelect::MouseMove(int x, int y, bool active)
             if (textMode)
             {
                 if (mark)
-                    point = charSelected;
+                    point = charSelected & ~Widget::SELECTION_MASK;
                 else
-                    mark = point = charSelected;
-                textBoxId = selected;
+                    mark = point = charSelected & ~Widget::SELECTION_MASK;
+                textBoxId = (selected & ~Widget::SELECTION_MASK)
+                    | Widget::SHAPE_SELECTED;
                 updateSelection();
             }
             else if (!mark)
             {
-                mark = point = selected;
+                mark = point = selected & ~Widget::SELECTION_MASK;
             }
         }
     }

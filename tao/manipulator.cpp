@@ -427,7 +427,7 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     layout->fillTextures.clear();
 
     // Don't draw the handles if this is an open container
-    if (selected & Widget::CONTAINER_OPENED)
+    if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
         return false;
 
     int mode = CurrentTransformMode();
@@ -617,7 +617,7 @@ bool ControlRectangle::DrawHandles(Layout *layout)
         Widget *widget = layout->Display();
         uint    selected = widget->selected(layout);
         // Don't move if this is an open container BUG#891
-        if (selected & Widget::CONTAINER_OPENED)
+        if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
             return true;
 
         Drag *drag = widget->drag();
@@ -1221,7 +1221,7 @@ bool GraphicPathManipulator::DrawHandles(Layout *layout)
     // individual path control points are moved proportionally
     Widget *widget = layout->Display();
     uint sel = widget->selected(layout);
-    if ((sel & Widget::CONTAINER_OPENED) == 0)
+    if ((sel & Widget::SELECTION_MASK) != Widget::CONTAINER_OPENED)
         return false;
 
     GraphicPathInfo *path_info = path_tree->GetInfo<GraphicPathInfo>();

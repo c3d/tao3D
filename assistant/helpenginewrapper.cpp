@@ -54,6 +54,10 @@
 #include <QtHelp/QHelpIndexModel>
 #include <QtHelp/QHelpSearchEngine>
 
+#ifdef Q_OS_MAC
+#include <QtHelp/QHelpSearchQuery>
+#endif
+
 QT_BEGIN_NAMESPACE
 
 namespace {
@@ -176,12 +180,58 @@ HelpEngineWrapper::~HelpEngineWrapper()
     delete d;
 }
 
+#ifdef Q_OS_MAC
+// This class runs a query that normally always returns results. If it doesn't,
+// we're probably in the scenario described in #2129 so we re-create the search
+// index.
+
+class CheckAndFixSearchIndex : public QObject
+{
+    Q_OBJECT
+
+public:
+    CheckAndFixSearchIndex(QHelpEngineCore * helpEngine,
+                         QHelpSearchEngine * searchEngine)
+        : helpEngine(helpEngine), searchEngine(searchEngine),
+          tmpSearchEngine(helpEngine)
+    {
+        connect(&tmpSearchEngine, SIGNAL(searchingFinished(int)),
+                this, SLOT(searchFinished(int)));
+    }
+
+    void start()
+    {
+        QHelpSearchQuery query(QHelpSearchQuery::ALL,
+                               QStringList(QString("page")));
+        QList<QHelpSearchQuery> queries;
+        queries.append(query);
+        tmpSearchEngine.search(queries);
+    }
+
+private slots:
+    void searchFinished(int hits)
+    {
+        if (!hits)
+            searchEngine->reindexDocumentation();
+        deleteLater();
+    }
+
+private:
+    QHelpEngineCore * helpEngine;
+    QHelpSearchEngine * searchEngine, tmpSearchEngine;
+};
+#endif
+
 void HelpEngineWrapper::initialDocSetupDone()
 {
     TRACE_OBJ
     connect(d->m_helpEngine, SIGNAL(setupFinished()),
             searchEngine(), SLOT(indexDocumentation()));
     setupData();
+
+#ifdef Q_OS_MAC // Workaround for #2129
+    (new CheckAndFixSearchIndex(d->m_helpEngine, searchEngine()))->start();
+#endif
 }
 
 QHelpSearchEngine *HelpEngineWrapper::searchEngine() const

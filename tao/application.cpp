@@ -281,8 +281,6 @@ Application::Application(int & argc, char ** argv)
     }
 
     useShaderLighting = PerformancesPage::perPixelLighting();
-    tex2DMinFilter = PerformancesPage::texture2DMinFilter();
-    tex2DMagFilter = PerformancesPage::texture2DMagFilter();
 
     {
         QGLWidget gl;
@@ -542,7 +540,8 @@ bool Application::processCommandLine()
         if (splash)
             splash->raise();
         QString sourceFile = +(*it);
-        if (!QFileInfo(sourceFile).isAbsolute())
+        if (!sourceFile.contains("://") &&
+            !QFileInfo(sourceFile).isAbsolute())
             sourceFile = startDir + "/" + sourceFile;
         Tao::Window *window = new Tao::Window (xlr, contextFiles);
         if (splash)
@@ -559,6 +558,7 @@ bool Application::processCommandLine()
         switch (st)
         {
         case 0:
+            window->hide(); // #2165
             delete window;
             window = NULL;
             break;

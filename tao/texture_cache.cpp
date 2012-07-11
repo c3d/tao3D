@@ -152,20 +152,18 @@ void TextureCache::printStatistics()
 }
 
 
-CachedTexture * TextureCache::load(const QString &img)
+CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 // ----------------------------------------------------------------------------
-//   Load texture file
+//   Load texture file. docPath is used if img is relative.
 // ----------------------------------------------------------------------------
 {
-    // When the method returns, if id is non-null then width and height are
-    // set
-
-    if (!fromName.contains(img))
+    TextureName name(img, docPath);
+    if (!fromName.contains(name))
     {
-        CachedTexture * cached = new CachedTexture(*this, img, mipmap,
-                                                   compress);
+        CachedTexture * cached = new CachedTexture(*this, img, docPath,
+                                                   mipmap, compress);
         GLuint id = cached->id;
-        fromId[id] = fromName[img] = cached;
+        fromId[id] = fromName[name] = cached;
         if (memSize > maxMemSize)
             purgeMem();
         cached->load();
@@ -179,7 +177,7 @@ CachedTexture * TextureCache::load(const QString &img)
         return cached;
     }
 
-    return fromName[img];
+    return fromName[name];
 }
 
 
@@ -281,7 +279,7 @@ void TextureCache::clear()
     {
         CachedTexture * tex = fromId.take(id);
         Q_ASSERT(tex);
-        fromName.remove(tex->path);
+        fromName.remove(TextureName(tex->path, tex->docPath));
         unlink(tex, memLRU);
         unlink(tex, GL_LRU);
         delete tex;
@@ -376,13 +374,14 @@ std::ostream & TextureCache::debug()
 
 
 CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
+                             const QString &docPath,
                              bool mipmap, bool compress, bool cacheCompressed)
 // ----------------------------------------------------------------------------
 //   Allocate GL texture ID to image
 // ----------------------------------------------------------------------------
-    : path(path), width(0), height(0),  mipmap(mipmap), compress(compress),
-      isDefaultTexture(false), cache(cache), GLsize(0), memLRU(this),
-      GLmemLRU(this), cacheCompressed(cacheCompressed)
+    : path(path), docPath(docPath), width(0), height(0),  mipmap(mipmap),
+      compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
+      memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed)
 {
     glGenTextures(1, &id);
 }
@@ -405,29 +404,22 @@ void CachedTexture::load()
 {
     Q_ASSERT(!loaded());
 
-    isDefaultTexture = false;
-
-    QString p(path);
-    image.load(p);
+    QString p(findPath());
+    if (p != "")
+        image.load(p);
     if (image.isNull())
     {
-        p = QString("texture:" + path);
+        p = QString(":/images/default_image.svg");
         image.load(p);
-
-        if (image.isNull())
-        {
-            p = QString(":/images/default_image.svg");
-            image.load(p);
-            isDefaultTexture = true;
-            canonicalPath = QString();
-        }
+        canonicalPath = QString();
+        isDefaultTexture = true;
     }
-
-    if (!isDefaultTexture)
+    else
     {
-        canonicalPath = QFileInfo(p).canonicalFilePath();
+        canonicalPath = p;
         fileLastModified = QFileInfo(p).lastModified();
         fileLastChecked.start();
+        isDefaultTexture = false;
     }
 
     width = image.width();
@@ -441,7 +433,7 @@ void CachedTexture::load()
         else
             debug() << "File->Mem  +" << bytesToText(size)
                     << " (" << width << "x" << height << " pixels, "
-                    << "'" << +path << "')\n";
+                    << "'" << +path << "' ['" << +canonicalPath << "'])\n";
     }
 
     cache.memSize += size;
@@ -638,13 +630,13 @@ GLuint CachedTexture::bind()
 
 QString CachedTexture::findPath()
 // ----------------------------------------------------------------------------
-//   Resolve path to texture file (empty if file not found)
+//   Resolve path to texture (returns canonical path, empty if file not found)
 // ----------------------------------------------------------------------------
 {
-    QFileInfo info(path);
+    QFileInfo info(QDir(docPath), path);
     if (info.exists())
         return info.canonicalFilePath();
-    QFileInfo qualified("texture:" + path);
+    QFileInfo qualified(QDir(docPath), "texture:" + path);
     if (qualified.exists())
         return qualified.canonicalFilePath();
     return "";
@@ -671,7 +663,8 @@ void CachedTexture::checkFile()
     }
     else
     {
-        if (QFileInfo(canonicalPath).exists())
+        QFileInfo info(QDir(docPath), canonicalPath);
+        if (info.exists())
         {
             QString newPath = findPath();
             if (newPath != canonicalPath)
@@ -683,7 +676,7 @@ void CachedTexture::checkFile()
             }
             else
             {
-                QDateTime modified = QFileInfo(canonicalPath).lastModified();
+                QDateTime modified = info.lastModified();
                 if (modified.msecsTo(fileLastModified) < 0)
                 {
                     IFTRACE(texturecache)

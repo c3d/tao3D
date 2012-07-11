@@ -1,6 +1,6 @@
 Change log for Tao Presentations
 
-1.11 (09-Jul-2012)
+1.11 (10-Jul-2012)
 
 #2255 Selection rectangle in Hello World doesn't show on the center of Earth
 #2244 Typo in Mapping module
@@ -15,6 +15,7 @@ Change log for Tao Presentations
 #2168 Primitives refresh_on and no_refresh_on are not documented
 #2166 ObjectLoader: slow rendering of textured model
 #2165 Crash when non-existent file is given on the command line
+#2164 Incorrect plural: "No form matches"
 #2160 Keypress event should not trigger unconditional refresh of whole document
 #2153 MacOSX: font rendering performance regression in build 1.10
 #2148 Texture returned by frame_texture may be bogus

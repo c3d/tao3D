@@ -6881,7 +6881,8 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
             self->SetInfo<ImageTextureInfo>(rinfo);
         }
 
-        ImageTextureInfo::Texture t = rinfo->load(img);
+        text docPath = +taoWindow()->currentProjectFolderPath();
+        ImageTextureInfo::Texture t = rinfo->load(img, docPath);
         layout->currentTexture.id     = t.id;
         layout->currentTexture.width  = t.width;
         layout->currentTexture.height = t.height;
@@ -7005,7 +7006,8 @@ Integer* Widget::image(Context *context,
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
 
-    ImageTextureInfo::Texture t = rinfo->load(filename);
+    text docPath = +taoWindow()->currentProjectFolderPath();
+    ImageTextureInfo::Texture t = rinfo->load(filename, docPath);
     layout->currentTexture.id     = t.id;
     layout->currentTexture.width  = t.width;
     layout->currentTexture.height = t.height;
@@ -7075,7 +7077,8 @@ Infix_p Widget::imageSize(Context *context,
         rinfo = new ImageTextureInfo();
         self->SetInfo<ImageTextureInfo>(rinfo);
     }
-    ImageTextureInfo::Texture t = rinfo->load(filename);
+    text docPath = +taoWindow()->currentProjectFolderPath();
+    ImageTextureInfo::Texture t = rinfo->load(filename, docPath);
     if (t.id != ImageTextureInfo::defaultTexture().id)
     {
         w = t.width; h = t.height;

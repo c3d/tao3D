@@ -77,12 +77,12 @@ page "Welcome",
         locally
             color "white"
             adjust 0.5
-            image 0, 0, 150% , 150% , "welcome/MacBookPro.png"
+            image 0, 0, 150% , 150% , "MacBookPro.png"
             locally
                 welcome_flow 40, 18, page_time
             color "white"
             translatez 500
-            image 0, -1500, 100% , 100% , "welcome/Taodyne_Logo.svg"
+            image 0, -1500, 100% , 100% , "Taodyne_Logo.svg"
 
     text_box 300, 150, window_width, window_height,
         font "Ubuntu", 80, bold
@@ -129,7 +129,7 @@ welcome_background ->
     locally
         translatez bg_z
         color "white"
-        image 0.0, 0.0, bg_sx, bg_sy, "welcome/background.png"
+        image 0.0, 0.0, bg_sx, bg_sy, "background.png"
 
 
 welcome_flow Shown:integer, Displayed:integer, Time:real ->
@@ -150,7 +150,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     picT N:integer -> N + ptime mod 1
 
     pimg N:integer -> (picN N mod 15) + 1
-    pname N:integer -> "welcome/picto_" & text (pimg N) & ".png"
+    pname N:integer -> "picto_" & text (pimg N) & ".png"
 
     picto N:integer ->
         locally

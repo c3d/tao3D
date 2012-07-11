@@ -85,13 +85,13 @@ ImageTextureInfo::Texture &ImageTextureInfo::defaultTexture()
 }
 
 
-ImageTextureInfo::Texture ImageTextureInfo::load(text file)
+ImageTextureInfo::Texture ImageTextureInfo::load(text file, text docPath)
 // ----------------------------------------------------------------------------
 //   Load the given GL texture
 // ----------------------------------------------------------------------------
 {
     Texture texture;
-    CachedTexture * cached = TextureCache::instance()->load(+file);
+    CachedTexture * cached = TextureCache::instance()->load(+file, +docPath);
     texture.id = cached->id;
     width = texture.width = cached->width;
     height = texture.height = cached->height;

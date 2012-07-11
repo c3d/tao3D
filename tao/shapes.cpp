@@ -28,6 +28,7 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
+#include "texture_cache.h"
 #include <QPainterPath>
 #include "lighting.h"
 TAO_BEGIN
@@ -99,26 +100,33 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 //    Bind the given texture
 // ----------------------------------------------------------------------------
 {
-    glActiveTexture(GL_TEXTURE0 + texture.unit);
+    GL.ActiveTexture(GL_TEXTURE0 + texture.unit);
     GL.Enable(texture.type);
-    glBindTexture(texture.type, texture.id);
+    bool mipmap = false;
+    if (texture.type == GL_TEXTURE_2D)
+    {
+        CachedTexture *cached = TextureCache::instance()->bind(texture.id);
+        if (cached)
+            mipmap = cached->mipmap;
+        else
+            GL.BindTexture(texture.type, texture.id);
+    }
+    else
+    {
+        GL.BindTexture(texture.type, texture.id);
+    }
     GLint min, mag;
     if (texture.type == GL_TEXTURE_2D)
     {
         min = texture.minFilt;
         mag = texture.magFilt;
-        if (!texture.mipmap)
+        if (!mipmap)
         {
             if (min == GL_NEAREST_MIPMAP_NEAREST ||
                 min == GL_LINEAR_MIPMAP_NEAREST  ||
                 min == GL_NEAREST_MIPMAP_LINEAR  ||
                 min == GL_LINEAR_MIPMAP_LINEAR)
                 min = GL_LINEAR;
-            if (mag == GL_NEAREST_MIPMAP_NEAREST ||
-                mag == GL_LINEAR_MIPMAP_NEAREST  ||
-                mag == GL_NEAREST_MIPMAP_LINEAR  ||
-                mag == GL_LINEAR_MIPMAP_LINEAR)
-                mag = GL_LINEAR;
         }
     }
     else
@@ -128,17 +136,17 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
         else
             min = mag = GL_NEAREST;
     }
-    glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
-    glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
-    glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
+    GL.TexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
+    GL.TexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
+    GL.TexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)
     {
         GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE;
         GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+        GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+        GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     }
 
     if (TaoApp->hasGLMultisample)
@@ -151,8 +159,8 @@ void Shape::unbindTexture(TextureState& texture)
 //    Unbind the given texture
 // ----------------------------------------------------------------------------
 {
-    glActiveTexture(GL_TEXTURE0 + texture.unit);
-    glBindTexture(texture.type, 0);
+    GL.ActiveTexture(GL_TEXTURE0 + texture.unit);
+    GL.BindTexture(texture.type, 0);
     GL.Disable(texture.type);
 }
 

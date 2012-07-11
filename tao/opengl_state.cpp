@@ -25,7 +25,9 @@
 #include "opengl_state.h"
 #include "opengl_save.h"
 #include "application.h"
+#include "texture_cache.h"
 #include <cassert>
+#include <ostream>
 
 
 TAO_BEGIN
@@ -68,44 +70,44 @@ GraphicState *GraphicState::current = NULL;
     } while (0)
 
 
-#define CHANGE_MATRIX(Code)                     \
-    do                                          \
-    {                                           \
-        switch(matrixMode)                      \
-        {                                       \
-        case GL_MODELVIEW:                      \
-        {                                       \
-            SAVE(mvMatrix);                     \
-            Matrix4 &matrix = mvMatrix;         \
-            Code;                               \
-            mvMatrix_isDirty = true;            \
-            break;                              \
-        }                                       \
-        case GL_PROJECTION:                     \
-        {                                       \
-            SAVE(projMatrix);                   \
-            Matrix4 &matrix = projMatrix;       \
-            Code;                               \
-            projMatrix_isDirty = true;          \
-            break;                              \
-        }                                       \
-        case GL_TEXTURE:                        \
-        {                                       \
-            SAVE(textureMatrix);                \
-            Matrix4 &matrix = textureMatrix;    \
-            Code;                               \
-            textureMatrix_isDirty = true;       \
-            break;                              \
-        }                                       \
-        case GL_COLOR:                          \
-        {                                       \
-            SAVE(colorMatrix);                  \
-            Matrix4 &matrix = colorMatrix;      \
-            Code;                               \
-            colorMatrix_isDirty = true;         \
-            break;                              \
-        }                                       \
-        }                                       \
+#define CHANGE_MATRIX(Code)                             \
+    do                                                  \
+    {                                                   \
+        switch(matrixMode)                              \
+        {                                               \
+        case GL_MODELVIEW:                              \
+        {                                               \
+            SAVE(mvMatrix);                             \
+            Matrix4 &matrix = mvMatrix;                 \
+            Code;                                       \
+            mvMatrix_isDirty = true;                    \
+            break;                                      \
+        }                                               \
+        case GL_PROJECTION:                             \
+        {                                               \
+            SAVE(projMatrix);                           \
+            Matrix4 &matrix = projMatrix;               \
+            Code;                                       \
+            projMatrix_isDirty = true;                  \
+            break;                                      \
+        }                                               \
+        case GL_TEXTURE:                                \
+        {                                               \
+            SAVE(textures);                             \
+            Matrix4 &matrix = TextureMatrix();          \
+            Code;                                       \
+            textures_isDirty = true;                    \
+            break;                                      \
+        }                                               \
+        case GL_COLOR:                                  \
+        {                                               \
+            SAVE(colorMatrix);                          \
+            Matrix4 &matrix = colorMatrix;              \
+            Code;                                       \
+            colorMatrix_isDirty = true;                 \
+            break;                                      \
+        }                                               \
+        }                                               \
     } while(0)
 
 
@@ -117,15 +119,24 @@ OpenGLState::OpenGLState()
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
       maxTextureCoords(0), maxTextureUnits(0),
-      matrixMode(GL_MODELVIEW), viewport(0, 0, 0, 0),
-      listBase(0), pointSize(1), shadeMode(GL_SMOOTH),
-      lineWidth(1), stipple(1, -1), cullMode(GL_BACK),
+      currentUnit(NULL), matrixMode(GL_MODELVIEW),
+      viewport(0, 0, 0, 0), listBase(0), pointSize(1),
+      color(1,1,1,1), clearColor(0,0,0,1),
+      frontAmbient(0,0,0,0), frontDiffuse(0,0,0,0),
+      frontSpecular(0,0,0,0), frontEmission(0,0,0,0), frontShininess(0),
+      backAmbient(0,0,0,0), backDiffuse(0,0,0,0),
+      backSpecular(0,0,0,0), backEmission(0,0,0,0), backShininess(0),
+      shadeMode(GL_SMOOTH), lineWidth(1),
+      stipple(1, -1), cullMode(GL_BACK),
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
       perspectiveCorrectionHint(GL_DONT_CARE),
       blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
-      renderMode(GL_RENDER),
+      renderMode(GL_RENDER), activeTexture(0),
+#define GS(type, name)
+#define GFLAG(name)     glflag_##name(false),
+#include "opengl_state.tbl"
       save(NULL)
 {
     // Ask graphic card constructor to OpenGL
@@ -164,6 +175,13 @@ OpenGLState::OpenGLState()
     // As we don't known if GL context is single or double buffered,
     // we initialize bufferMode to 0
     bufferMode = 0;
+
+    if (maxTextureUnits > MAX_TEXTURE_UNITS)
+        maxTextureUnits = MAX_TEXTURE_UNITS;
+
+    // Initialize texture unit 0
+    textures.textures.push_back(TextureState());
+    currentUnit = &textures.textures[0];
 }
 
 
@@ -192,11 +210,54 @@ void OpenGLState::Restore(GraphicSave *saved)
 }
 
 
+uint OpenGLState::ShowErrors()
+// ----------------------------------------------------------------------------
+//   Display all OpenGL errors in the error window
+// ----------------------------------------------------------------------------
+{
+    static GLenum last = GL_NO_ERROR;
+    static unsigned int count = 0;
+    GLenum err = glGetError();
+    uint errorsFound = 0;
+    while (err != GL_NO_ERROR)
+    {
+        errorsFound++;
+        if (!count)
+        {
+            char *p = (char *) gluErrorString(err);
+            std::cerr << "GL Error: " << p
+                      << "[error code: " << err << "]\n";
+            last = err;
+        }
+        if (err != last || count == 100)
+        {
+            std::cerr << "GL Error: Error " << last
+                      << " repeated " << count << " times\n";
+            count = 0;
+        }
+        else
+        {
+            count++;
+        }
+        err = glGetError();
+    }
+
+    return errorsFound;
+}
+
+
 void OpenGLState::Sync(ulonglong which)
 // ----------------------------------------------------------------------------
 //    Synchronize all pending changes and send them to the card
 // ----------------------------------------------------------------------------
 {
+    bool needSync =
+#define GS(type, name) name##_isDirty |
+#include "opengl_state.tbl"
+        false;
+    if (!needSync)
+        return;
+
 #define SYNC(name, Code)                                \
     do                                                  \
     {                                                   \
@@ -204,10 +265,14 @@ void OpenGLState::Sync(ulonglong which)
         {                                               \
             Code;                                       \
             name##_isDirty = false;                     \
+            ShowErrors();                               \
         }                                               \
     } while(0)
 
     GLenum mmode = matrixMode;
+    SYNC(textures,
+         currentTextures.Sync(textures);
+         matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
     SYNC(mvMatrix,
          if (matrixMode_isDirty || mmode != GL_MODELVIEW)
          {
@@ -224,14 +289,6 @@ void OpenGLState::Sync(ulonglong which)
              matrixMode_isDirty = mmode != matrixMode;
          }
          glLoadMatrixd(projMatrix.Data(false)));
-    SYNC(textureMatrix,
-         if (matrixMode_isDirty || mmode != GL_TEXTURE)
-         {
-             glMatrixMode(GL_TEXTURE);
-             mmode = GL_TEXTURE;
-             matrixMode_isDirty = mmode != matrixMode;
-         }
-         glLoadMatrixd(textureMatrix.Data(false)));
     SYNC(colorMatrix,
          if (matrixMode_isDirty || mmode != GL_COLOR)
          {
@@ -253,6 +310,26 @@ void OpenGLState::Sync(ulonglong which)
     SYNC(clearColor,
          Tao::Color &c = clearColor;
          glClearColor(c.red,c.green,c.blue,c.alpha));
+    SYNC(frontAmbient,
+         glMaterialfv(GL_FRONT, GL_AMBIENT, frontAmbient.Data()));
+    SYNC(frontDiffuse,
+         glMaterialfv(GL_FRONT, GL_DIFFUSE, frontDiffuse.Data()));
+    SYNC(frontSpecular,
+         glMaterialfv(GL_FRONT, GL_SPECULAR, frontSpecular.Data()));
+    SYNC(frontEmission,
+         glMaterialfv(GL_FRONT, GL_EMISSION, frontEmission.Data()));
+    SYNC(frontShininess,
+         glMaterialf(GL_FRONT, GL_SHININESS, frontShininess));
+    SYNC(backAmbient,
+         glMaterialfv(GL_BACK, GL_AMBIENT, backAmbient.Data()));
+    SYNC(backDiffuse,
+         glMaterialfv(GL_BACK, GL_DIFFUSE, backDiffuse.Data()));
+    SYNC(backSpecular,
+         glMaterialfv(GL_BACK, GL_SPECULAR, backSpecular.Data()));
+    SYNC(backEmission,
+         glMaterialfv(GL_BACK, GL_EMISSION, backEmission.Data()));
+    SYNC(backShininess,
+         glMaterialf(GL_BACK, GL_SHININESS, backShininess));
     SYNC(shadeMode,
          glShadeModel(shadeMode));
     SYNC(lineWidth,
@@ -1068,6 +1145,66 @@ void OpenGLState::Color(float r, float g, float b, float a)
 }
 
 
+void OpenGLState::Materialfv(GLenum face, GLenum pname, const GLfloat *val)
+// ----------------------------------------------------------------------------
+//    Change material parameters
+// ----------------------------------------------------------------------------
+{
+    bool front = face == GL_FRONT || face == GL_FRONT_AND_BACK;
+    bool back  = face == GL_BACK || face == GL_FRONT_AND_BACK;
+
+    if (front || back)
+    {
+        switch(pname)
+        {
+        case GL_AMBIENT:
+        {
+            Tao::Color ambient(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontAmbient, ambient);
+            if (back)   CHANGE(backAmbient, ambient);
+            return;
+        }
+        case GL_DIFFUSE:
+        {
+            Tao::Color diffuse(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontDiffuse, diffuse);
+            if (back)   CHANGE(backDiffuse, diffuse);
+            return;
+        }
+        case GL_SPECULAR:
+        {
+            Tao::Color specular(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontSpecular, specular);
+            if (back)   CHANGE(backSpecular, specular);
+            return;
+        }
+        case GL_EMISSION:
+        {
+            Tao::Color emission(val[0], val[1], val[2], val[3]);
+            if (front)  CHANGE(frontEmission, emission);
+            if (back)   CHANGE(backEmission, emission);
+            return;
+        }
+        case GL_SHININESS:
+        {
+            float shininess = val[0];
+            if (front)  CHANGE(frontShininess, shininess);
+            if (back)   CHANGE(backShininess, shininess);
+            return;
+        }
+
+        default:
+            // Other parameters fall through and are executed immediately
+            break;
+        }
+    }
+
+    // Default case: just apply it directly
+    glMaterialfv(face, pname, val);
+}
+
+
+
 void OpenGLState::ClearColor(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
 //    Setup clear color
@@ -1172,8 +1309,22 @@ void OpenGLState::Enable(GLenum cap)
     switch(cap)
     {
 #define GS(type, name)
-#define GFLAG(name) case name: CHANGE(glflag_##name, true); return;
+#define GFLAG(name)                             \
+    case name:                                  \
+        CHANGE(glflag_##name, true);            \
+        return;
 #include "opengl_state.tbl"
+
+    case GL_TEXTURE_1D:
+    case GL_TEXTURE_2D:
+    case GL_TEXTURE_3D:
+    {
+        TextureState &ts = ActiveTexture();
+        ts.type = cap;
+        ts.active = true;
+        break;
+    }
+
     default:
         // Other enable/disable operations are not cached
         glEnable(cap);
@@ -1192,6 +1343,17 @@ void OpenGLState::Disable(GLenum cap)
 #define GS(type, name)
 #define GFLAG(name) case name: CHANGE(glflag_##name, false); return;
 #include "opengl_state.tbl"
+
+    case GL_TEXTURE_1D:
+    case GL_TEXTURE_2D:
+    case GL_TEXTURE_3D:
+    {
+        TextureState &ts = ActiveTexture();
+        ts.type = cap;
+        ts.active = false;
+        break;
+    }
+
     default:
         // Other enable/disable operations are not cached
         glDisable(cap);
@@ -1239,7 +1401,6 @@ void OpenGLState::AlphaFunc(GLenum func, float ref)
     AlphaFunctionState af(func, ref);
     CHANGE(alphaFunc, af);
 }
-
 
 
 
@@ -1312,6 +1473,125 @@ void OpenGLState::PopName()
 }
 
 
+
+// ============================================================================
+//
+//                       Texture management functions.
+//
+// ============================================================================
+
+void OpenGLState::ActiveTexture(GLenum active)
+// ----------------------------------------------------------------------------
+//   Set the currently active texture
+// ----------------------------------------------------------------------------
+{
+    if (active >= GL_TEXTURE0 && active < GL_TEXTURE0 + maxTextureUnits)
+        CHANGE(activeTexture, active - GL_TEXTURE0);
+}
+
+
+void OpenGLState::BindTexture(GLenum type, GLuint texture)
+// ----------------------------------------------------------------------------
+//   Bind a texture on the current texture unit
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    ts.type = type;
+    ts.id = texture;
+}
+
+
+void OpenGLState::TexParameteri(GLenum type, GLenum pname, GLint param)
+// ----------------------------------------------------------------------------
+//   Change parameters for a texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    ts.type = type;
+    switch(pname)
+    {
+    case GL_TEXTURE_MIN_FILTER:
+        ts.minFilt = param;
+        break;
+    case GL_TEXTURE_MAG_FILTER:
+        ts.magFilt = param;
+        break;
+    case GL_TEXTURE_WRAP_S:
+        ts.wrapS = param == GL_REPEAT;
+        break;
+    case GL_TEXTURE_WRAP_T:
+        ts.wrapT = param == GL_REPEAT;
+        break;
+    case GL_TEXTURE_WRAP_R:
+        ts.wrapR = param == GL_REPEAT;
+        break;
+    default:
+        Sync(STATE_textures);
+        glTexParameteri(type, pname, param);
+    }
+}
+
+
+void OpenGLState::TexEnvi(GLenum type, GLenum pname, GLint param)
+// ----------------------------------------------------------------------------
+//   Change environment for a texture
+// ----------------------------------------------------------------------------
+{
+    if (type == GL_TEXTURE_ENV && pname == GL_TEXTURE_ENV_MODE)
+    {
+        TextureState &ts = ActiveTexture();
+        ts.mode = param;
+    }
+    else
+    {
+        glTexEnvi(type, pname, param);
+    }
+}
+
+
+void OpenGLState::TexImage2D(GLenum target, GLint level, GLint internalformat,
+                             GLsizei width, GLsizei height, GLint border,
+                             GLenum format, GLenum type,
+                             const GLvoid *pixels )
+// ----------------------------------------------------------------------------
+//    Define an uncompressed image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures);
+    glTexImage2D(target, level, internalformat, width, height, border,
+                 format, type, pixels);
+}
+
+
+void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
+                                       GLenum internalformat,
+                                       GLsizei width, GLsizei height,
+                                       GLint border, GLsizei imgSize,
+                                       const GLvoid *data)
+// ----------------------------------------------------------------------------
+//    Define a compressed image
+// ----------------------------------------------------------------------------
+{
+    Sync(STATE_textures);
+    glCompressedTexImage2D(target, level, internalformat,
+                           width, height, border, imgSize, data);
+}
+
+
+TextureState &OpenGLState::ActiveTexture()
+// ----------------------------------------------------------------------------
+//    Return the current active texture
+// ----------------------------------------------------------------------------
+{
+    if (activeTexture >= textures.textures.size())
+        textures.textures.resize(activeTexture + 1);
+    textures.dirty |= 1ULL << activeTexture;
+    SAVE(textures);
+    textures_isDirty = true;
+    return textures.textures[activeTexture];
+}
+
+
 std::ostream & OpenGLState::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
@@ -1333,14 +1613,160 @@ TextureState::TextureState()
 // ----------------------------------------------------------------------------
 //   Initialize a texture state
 // ----------------------------------------------------------------------------
-  : unit(0), id(0), width(0), height(0),
-    type(GL_TEXTURE_2D), mode(GL_MODULATE),
-    minFilt(TaoApp->tex2DMinFilter),
-    magFilt(TaoApp->tex2DMagFilter),
+  : type(GL_TEXTURE_2D), mode(GL_MODULATE),
+    unit(0), id(0), width(0), height(0),
+    minFilt(TextureCache::instance()->minFilter()),
+    magFilt(TextureCache::instance()->magFilter()),
     matrix(),
-    wrapS(false), wrapT(false),
+    active(false),
+    wrapS(false), wrapT(false), wrapR(false),
     mipmap(false)
 {}
+
+
+void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
+// ----------------------------------------------------------------------------
+//   Sync a texture state with a new value
+// ----------------------------------------------------------------------------
+{
+    if (force || *this != ts)
+        glActiveTexture(GL_TEXTURE0 + unit);
+
+#define SYNC_TEXTURE(name, Code)                \
+    do                                          \
+    {                                           \
+        if (force || name != ts.name)           \
+        {                                       \
+            name = ts.name;                     \
+            Code;                               \
+            OpenGLState::ShowErrors();          \
+        }                                       \
+    } while(0)
+
+    if (force || type != ts.type || id != ts.id)
+    {
+        glBindTexture(ts.type, ts.id);
+        type = ts.type;
+        id = ts.id;
+    }
+
+    SYNC_TEXTURE(active,
+                 if (active) glEnable(type); else glDisable(type));
+    SYNC_TEXTURE(mode,
+                 glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode));
+    SYNC_TEXTURE(minFilt,
+                 glTexParameteri (type, GL_TEXTURE_MIN_FILTER, minFilt));
+    SYNC_TEXTURE(magFilt,
+                 glTexParameteri (type, GL_TEXTURE_MAG_FILTER, magFilt));
+    SYNC_TEXTURE(matrix,
+                 glMatrixMode(GL_TEXTURE);
+                 glLoadMatrixd(matrix.Data(false)));
+    SYNC_TEXTURE(wrapS,
+                 glTexParameteri(type, GL_TEXTURE_WRAP_S,
+                                 wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+    SYNC_TEXTURE(wrapT,
+                 glTexParameteri(type, GL_TEXTURE_WRAP_T,
+                                 wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+    SYNC_TEXTURE(wrapR,
+                 glTexParameteri(type, GL_TEXTURE_WRAP_R,
+                                 wrapR ? GL_REPEAT : GL_CLAMP_TO_EDGE));
+
+#undef SYNC_TEXTURE
+}
+
+
+TexturesState &TexturesState::operator=(const TexturesState &o)
+// ----------------------------------------------------------------------------
+//    Copy a texture state
+// ----------------------------------------------------------------------------
+{
+    uint max = textures.size();
+    uint omax = o.textures.size();
+    ulonglong d = 0;
+
+    // Compare all the texture states we write to mark changed ones as dirty
+    uint tmax = max < omax ? max : omax;
+    for (uint t = 0; t < tmax; t++)
+    {
+        if (textures[t] != o.textures[t])
+            d |= 1ULL << t;
+        textures[t] = o.textures[t];
+    }
+
+    // Check if number of textures changed
+    if (omax < max)
+    {
+        // Number of textures diminished, truncate my textures to match
+        textures.resize(omax);
+    }
+    else if (omax > max)
+    {
+        // Number of textures increased, append new textures and mark dirty
+        for (uint t = max; t < omax; t++)
+        {
+            const TextureState &ts = o.textures[t];
+            textures.push_back(ts);
+            d |= 1ULL << t;
+        }
+    }
+
+    dirty = d;
+    return *this;
+}
+
+
+void TexturesState::Sync(TexturesState &nt)
+// ----------------------------------------------------------------------------
+//   Sync with a new texture state
+// ----------------------------------------------------------------------------
+{
+    uint max = textures.size();
+    uint nmax = nt.textures.size();
+    ulonglong dirty = nt.dirty;
+
+    // Quick bail out if nothing to do
+    if (dirty == 0 && max == nmax)
+        return;
+
+    // Synchronize all textures that are common between the two states
+    uint tmax = max < nmax ? max : nmax;
+    for (uint t = 0; t < tmax; t++)
+    {
+        if (dirty & (1ULL<<t))
+        {
+            TextureState &ts = textures[t];
+            TextureState &nts = nt.textures[t];
+            ts.Sync(t, nts);
+        }
+    }
+
+    // Check if number of textures changed
+    if (nmax < max)
+    {
+        // Number of textures decreased, deactivate extra textures
+        for (uint t = nmax; t < max; t++)
+        {
+            TextureState &ts = textures[t];
+            glActiveTexture(GL_TEXTURE0 + t);
+            glBindTexture(ts.type, 0);
+            glDisable(ts.type);
+        }
+        textures.resize(nmax);
+    }
+    else if (nmax > max)
+    {
+        // Number of textures increased, activate extra textures
+        for (uint t = max; t < nmax; t++)
+        {
+            TextureState &nts = nt.textures[t];
+            textures.push_back(nts);
+            TextureState &ts = textures.back();
+            ts.Sync(t, nts, true);
+        }
+    }
+
+    nt.dirty = 0;
+}
 
 TAO_END
 

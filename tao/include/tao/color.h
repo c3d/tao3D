@@ -120,6 +120,8 @@ struct Color
         return *this;
     }
 
+    percent *Data()     { return &red; }
+
 public:
     percent red, green, blue, alpha;
 };

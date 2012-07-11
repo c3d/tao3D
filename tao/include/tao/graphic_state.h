@@ -141,6 +141,7 @@ struct GraphicState
     virtual void PixelStorei(GLenum pname,  int param) = 0;
     virtual void PointSize(coord size) = 0;
     virtual void Color(float r, float g, float b, float a = 1.0) = 0;
+    virtual void Materialfv(GLenum face, GLenum pname, const GLfloat *val) = 0;
     virtual void ClearColor(float r, float g, float b, float a = 1.0) = 0;
     virtual void Clear(GLuint mask) = 0;
     virtual void LineWidth(float width) = 0;
@@ -170,6 +171,20 @@ struct GraphicState
     virtual void PushName(uint name) = 0;
     virtual void PopName() = 0;
 
+    // Textures
+    virtual void ActiveTexture(GLenum id) = 0;
+    virtual void BindTexture(GLenum type, GLuint id) = 0;
+    virtual void TexParameteri(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexEnvi(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
+                            GLsizei width, GLsizei height, GLint border,
+                            GLenum format, GLenum type,
+                            const GLvoid *pixels ) = 0;
+    virtual void CompressedTexImage2D(GLenum target, GLint level,
+                                      GLenum internalformat,
+                                      GLsizei width, GLsizei height,
+                                      GLint border, GLsizei imgSize,
+                                      const GLvoid *data) = 0;
 
 protected:
     static GraphicState *       current;

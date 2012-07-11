@@ -107,20 +107,27 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
             uint    size    = ptr[0];
             GLuint *selPtr  = ptr + 3;
             GLuint *selNext = selPtr + size;
+
             if ((*selPtr & Widget::SELECTION_MASK) && ptr[1] <= depth)
             {
                 depth = ptr[1];
                 childSelected = false;
 
+                IFTRACE(selection)
+                    std::cerr << "Selection " << std::hex << *selPtr
+                              << " depth " << depth << ": ";
+
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
-                parentId = selected = (*ptr++);
+                parentId = selected = *ptr++;
 
                 // Check if we have a handleId or character ID
                 while (ptr < selNext)
                 {
                     GLuint child = *ptr++;
                     GLuint selType = child & Widget::SELECTION_MASK;
+                    IFTRACE(selection)
+                        std::cerr << std::hex << child << " ";
                     if (selType == Widget::HANDLE_SELECTED)
                         handleId = (child & ~Widget::SELECTION_MASK);
                     else if (selType == Widget::CHARACTER_SELECTED)
@@ -131,6 +138,9 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
                     else if (!childSelected)
                         childSelected = child;
                 }
+
+                IFTRACE(selection)
+                    std::cerr << "\n";
             }
 
             ptr = selNext;
@@ -319,6 +329,7 @@ Activity *Selection::Display(void)
     Box b = rectangle;
     b.Normalize();
     Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
+    GL.DepthFunc(GL_ALWAYS);
     widget->drawSelection(NULL, b3, "selection_rectangle", 0);
 
     return next;

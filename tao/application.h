@@ -116,7 +116,6 @@ public:
     bool               hasGLMultisample, hasFBOMultisample;
     bool               hasGLStereoBuffers;
     bool               useShaderLighting;
-    int                tex2DMinFilter, tex2DMagFilter;
     QString            lang;
     GCThread *         gcThread;
     UpdateApplication  updateApp;

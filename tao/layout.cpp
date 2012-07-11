@@ -728,7 +728,7 @@ void Layout::PopLayout(Layout *where)
 //   Restore information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    if (id & Widget::SHAPE_SELECTED)
+    if (id & Widget::SELECTION_MASK)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPop();

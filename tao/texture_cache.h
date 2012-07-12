@@ -210,6 +210,9 @@ public:
 
     CachedTexture * load(const QString &img, const QString &docPath);
     CachedTexture * bind(GLuint id);
+    void            setMinMagFilters(GLuint id);
+    void            setMinFilter(GLuint id, GLenum filter);
+    void            setMagFilter(GLuint id, GLenum filter);
 
     GLenum          minFilter() { return minFilt; }
     GLenum          magFilter() { return magFilt; }
@@ -264,6 +267,22 @@ private:
 
 private:
     static TextureCache * textureCache;
+};
+
+
+struct TextureCacheAPI
+// ----------------------------------------------------------------------------
+//    Export some TextureCache functions to module API
+// ----------------------------------------------------------------------------
+{
+    static bool bind(GLuint id)
+    {
+        return TextureCache::instance()->bind(id);
+    }
+    static void setMinMagFilters(GLuint id)
+    {
+        TextureCache::instance()->setMinMagFilters(id);
+    }
 };
 
 }

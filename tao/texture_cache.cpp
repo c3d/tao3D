@@ -224,6 +224,38 @@ CachedTexture * TextureCache::bind(GLuint id)
 }
 
 
+void TextureCache::setMinMagFilters(GLuint id)
+// ----------------------------------------------------------------------------
+//   Set GL texture filters to the values currently configured in cache
+// ----------------------------------------------------------------------------
+{
+    setMinFilter(id, minFilter());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
+}
+
+
+void TextureCache::setMinFilter(GLuint id, GLenum filter)
+// ----------------------------------------------------------------------------
+//   Set GL texture minifying filter for texture 'id'
+// ----------------------------------------------------------------------------
+{
+    CachedTexture * cached = fromId[id];
+    Q_ASSERT(cached);
+
+    if ( !cached->mipmap &&
+         (filter == GL_NEAREST_MIPMAP_NEAREST ||
+          filter == GL_LINEAR_MIPMAP_NEAREST  ||
+          filter == GL_NEAREST_MIPMAP_LINEAR  ||
+          filter == GL_LINEAR_MIPMAP_LINEAR))
+    {
+        // Fallback to GL_LINEAR when a mipmap filter is requested but texture
+        // was not loaded with mipmapping enabled
+        filter = GL_LINEAR;
+    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+}
+
+
 void TextureCache::purgeMem()
 // ----------------------------------------------------------------------------
 //   Drop the least recently used textures from main memory

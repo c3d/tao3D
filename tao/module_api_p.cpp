@@ -30,6 +30,7 @@
 #include "info_trash_can.h"
 #include "application.h"
 #include "window.h"
+#include "texture_cache.h"
 
 TAO_BEGIN
 
@@ -118,6 +119,10 @@ ModuleApiPrivate::ModuleApiPrivate()
     addWidget    = Window::addWidget;
     removeWidget = Window::removeWidget;
     setCurrentWidget    = Window::setCurrentWidget;
+
+    // Texture cache
+    textureCacheBind = TextureCacheAPI::bind;
+    textureCacheSetMinMagFilters = TextureCacheAPI::setMinMagFilters;
 }
 
 TAO_END

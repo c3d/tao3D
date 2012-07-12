@@ -48,8 +48,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   24
-#define TAO_MODULE_API_AGE       5
+#define TAO_MODULE_API_CURRENT   25
+#define TAO_MODULE_API_AGE       6
 
 // ========================================================================
 //
@@ -432,6 +432,22 @@ struct ModuleApi
     // Please allocate eventType with QEvent::registerEventType() to avoid
     // conflicts with other modules or the main application.
     void (*postEvent)(int eventType);
+
+
+    // ------------------------------------------------------------------------
+    //   Texture cache
+    // ------------------------------------------------------------------------
+
+    // Bind a texture previously allocated by the Tao texture cache (texture
+    // or image_* primitives).
+    // Do not just use glBindTexture, because there is no guarrantee that the
+    // texture data is available to the GPU. It may have been purged by the
+    // cache.
+    bool (*textureCacheBind)(uint id);
+    // Set minifying and magnification filters for a texture previously
+    // allocated by the Tao texture cache. This function uses the values
+    // currently defined in the application settings.
+    void (*textureCacheSetMinMagFilters)(uint id);
 };
 
 }

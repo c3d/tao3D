@@ -189,7 +189,8 @@ void LensFlare::DrawFlare(Flare flare, Vector3 pos)
     // General scaling rate of flares textures of size 256 * 256
     scale *= 128;
 
-    glBindTexture(GL_TEXTURE_2D, flare.id);
+    tao->textureCacheBind(flare.id);
+    tao->textureCacheSetMinMagFilters(flare.id);
     tao->SetShader(0);
     glColor4f(flare.color[0],
               flare.color[1],

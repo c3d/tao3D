@@ -529,7 +529,7 @@ void CachedTexture::transfer()
 
     int before = image.byteCount();
 
-    bool copiedCompressed = false;
+    bool copiedCompressed = false, didNotCompress = false;
     int copiedSize = 0;
 
     if (compress)
@@ -576,14 +576,22 @@ void CachedTexture::transfer()
                                          GL_TEXTURE_COMPRESSED_IMAGE_SIZE,
                                          &cmpsz);
 
-            if (cacheCompressed && cmpsz)
+            if (cacheCompressed)
             {
-                // Cache compressed data for next time
-                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
-                                         GL_TEXTURE_INTERNAL_FORMAT,
-                                         &image.fmt);
-                glGetCompressedTexImage(GL_TEXTURE_2D, 0,
-                                        image.allocateCompressed(cmpsz));
+                if (cmp && cmpsz)
+                {
+                    // Cache compressed data for next time
+                    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
+                                             GL_TEXTURE_INTERNAL_FORMAT,
+                                             &image.fmt);
+                    glGetCompressedTexImage(GL_TEXTURE_2D, 0,
+                                            image.allocateCompressed(cmpsz));
+                }
+                else
+                {
+                    // We will not try to compress this one again
+                    didNotCompress = true;
+                }
             }
 
             GLsize = cmpsz;
@@ -635,6 +643,15 @@ void CachedTexture::transfer()
             debug() << "Compression saved " << bytesToText(saved)
                     << " Mem\n";
         cache.memSize -= saved;
+    }
+    else
+    {
+        if (compress && didNotCompress)
+        {
+            IFTRACE(texturecache)
+                debug() << "GL did not compress - will not ask again\n";
+            compress = false;
+        }
     }
 
     cache.GLSize += GLsize;

@@ -158,9 +158,10 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 // ----------------------------------------------------------------------------
 {
     TextureName name(img, docPath);
-    if (!fromName.contains(name))
+    CachedTexture * cached = fromName[name];
+    if (!cached)
     {
-        CachedTexture * cached = new CachedTexture(*this, img, docPath,
+        cached = new CachedTexture(*this, img, docPath,
                                                    mipmap, compress);
         GLuint id = cached->id;
         fromId[id] = fromName[name] = cached;
@@ -174,10 +175,9 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
             insert(cached, GL_LRU);
         }
         printStatistics();
-        return cached;
     }
 
-    return fromName[name];
+    return cached;
 }
 
 
@@ -186,11 +186,9 @@ CachedTexture * TextureCache::bind(GLuint id)
 //   Bind GL texture if it exists and return object
 // ----------------------------------------------------------------------------
 {
-    if (!fromId.contains(id))
-        return 0;
-
     CachedTexture * cached = fromId[id];
-    Q_ASSERT(cached);
+    if (!cached)
+        return NULL;
 
     if (!cached->transferred())
     {

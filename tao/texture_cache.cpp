@@ -259,7 +259,7 @@ void TextureCache::purgeGLMem()
 
         CachedTexture * tex = GL_LRU.last->tex;
         unlink(tex, GL_LRU);
-        tex->purge();
+        tex->purgeGL();
 
         Q_ASSERT(GLSize >= 0);
     }
@@ -286,6 +286,20 @@ void TextureCache::clear()
     }
     Q_ASSERT(fromId.isEmpty());
     Q_ASSERT(fromName.isEmpty());
+}
+
+
+void TextureCache::purge()
+// ----------------------------------------------------------------------------
+//   Purge all textures in cache (free memory but keep texture id valid)
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(texturecache)
+        debug() << "Purging\n";
+
+    QList<GLuint> ids = fromId.keys();
+    foreach (GLuint id, ids)
+        fromId[id]->purge();
 }
 
 
@@ -392,7 +406,7 @@ CachedTexture::~CachedTexture()
 //   Delete texture
 // ----------------------------------------------------------------------------
 {
-    clear();
+    purge();
     glDeleteTextures(1, &id);
 }
 
@@ -403,6 +417,10 @@ void CachedTexture::load()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(!loaded());
+
+    // Update load parameters (in case cache settings changed)
+    mipmap = cache.mipmap;
+    compress = cache.compress;
 
     QString p(findPath());
     if (p != "")
@@ -455,7 +473,7 @@ void CachedTexture::unload()
 }
 
 
-void CachedTexture::clear()
+void CachedTexture::purge()
 // ----------------------------------------------------------------------------
 //   Remove texture data from memory and GL memory
 // ----------------------------------------------------------------------------
@@ -463,7 +481,7 @@ void CachedTexture::clear()
     if (loaded())
         unload();
     if (transferred())
-        purge();
+        purgeGL();
 }
 
 
@@ -593,7 +611,7 @@ void CachedTexture::transfer()
 }
 
 
-void CachedTexture::purge()
+void CachedTexture::purgeGL()
 // ----------------------------------------------------------------------------
 //   Remove texture data from GL memory, keep texture ID, update cached size
 // ----------------------------------------------------------------------------
@@ -699,7 +717,7 @@ void CachedTexture::checkFile()
     {
         IFTRACE(texturecache)
             debug() << "Reloading\n";
-        clear();
+        purge();
         load();
         transfer();
     }

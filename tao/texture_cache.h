@@ -140,9 +140,9 @@ public:
     void            unload();
 
     void            transfer();
-    void            purge();
+    void            purgeGL();
 
-    void            clear();
+    void            purge();
 
     GLuint          bind();
 
@@ -218,10 +218,11 @@ public:
 
 public slots:
     void            clear();
+    void            purge();
     void            setMaxMemSize(qint64 bytes) { maxMemSize = bytes; }
     void            setMaxGLSize(qint64 bytes)  { maxGLSize  = bytes; }
-    void            setMipmap(bool enable)      { mipmap = enable; clear(); }
-    void            setCompression(bool enable) { compress = enable; clear(); }
+    void            setMipmap(bool enable)      { mipmap = enable; purge(); }
+    void            setCompression(bool enable) { compress = enable; purge(); }
     void            setMinFilter(GLenum filter) { minFilt = filter; }
     void            setMagFilter(GLenum filter) { magFilt = filter; }
 

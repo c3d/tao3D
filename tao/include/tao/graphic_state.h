@@ -173,6 +173,29 @@ struct GraphicState
 
     // Shaders
     virtual void UseProgram(uint prg) = 0;
+    virtual void GetProgram(uint prg, GLenum pname, int* params) = 0;
+    virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
+                                  GLsizei* size, GLenum* type, char *name) = 0;
+
+    virtual int  GetAttribLocation(uint program, const char* name) = 0;
+    virtual void VertexAttrib1fv(uint id, const float *v) = 0;
+    virtual void VertexAttrib2fv(uint id, const float *v) = 0;
+    virtual void VertexAttrib3fv(uint id, const float *v) = 0;
+    virtual void VertexAttrib4fv(uint id, const float *v) = 0;
+
+    virtual int  GetUniformLocation(uint program, const char* name) = 0;
+    virtual void Uniform1i(uint id, int v) = 0;
+    virtual void Uniform1fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform2fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform3fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform4fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void UniformMatrix2fv(uint id, GLsizei size,
+                                  bool transp, const float* m) = 0;
+    virtual void UniformMatrix3fv(uint id, GLsizei size,
+                                  bool transp, const float* m) = 0;
+    virtual void UniformMatrix4fv(uint id, GLsizei size,
+                                  bool transp, const float* m) = 0;
+
 
     // Textures
     virtual void ActiveTexture(GLenum id) = 0;

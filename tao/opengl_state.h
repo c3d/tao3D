@@ -314,8 +314,30 @@ struct OpenGLState : GraphicState
     virtual void PushName(uint name);
     virtual void PopName();
 
-    // Shaders
+    // Shader functions
     virtual void UseProgram(uint prg);
+    virtual void GetProgram(uint prg, GLenum pname, int* params);
+    virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
+                                  GLsizei* size, GLenum* type, char *name);
+
+    virtual int  GetAttribLocation(uint program, const char* name);
+    virtual void VertexAttrib1fv(uint id, const float *v)      { glVertexAttrib1fv(id, v); }
+    virtual void VertexAttrib2fv(uint id, const float *v)      { glVertexAttrib2fv(id, v); }
+    virtual void VertexAttrib3fv(uint id, const float *v)      { glVertexAttrib3fv(id, v); }
+    virtual void VertexAttrib4fv(uint id, const float *v)      { glVertexAttrib4fv(id, v); }
+
+    virtual int  GetUniformLocation(uint program, const char* name);
+    virtual void Uniform1i(uint id, int v)                     { glUniform1i(id, v); }
+    virtual void Uniform1fv(uint id, GLsizei size, const float* v) { glUniform1fv(id, size, v); }
+    virtual void Uniform2fv(uint id, GLsizei size, const float* v) { glUniform2fv(id, size, v); }
+    virtual void Uniform3fv(uint id, GLsizei size, const float* v) { glUniform3fv(id, size, v); }
+    virtual void Uniform4fv(uint id, GLsizei size, const float* v) { glUniform4fv(id, size, v); }
+    virtual void UniformMatrix2fv(uint id, GLsizei size,
+                                  bool transp, const float* m) { glUniformMatrix2fv(id, size, transp, m); }
+    virtual void UniformMatrix3fv(uint id, GLsizei size,
+                                  bool transp, const float* m) { glUniformMatrix3fv(id, size, transp, m); }
+    virtual void UniformMatrix4fv(uint id, GLsizei size,
+                                  bool transp, const float* m) { glUniformMatrix4fv(id, size, transp, m); }
 
     // Textures
     virtual void ActiveTexture(GLenum id);

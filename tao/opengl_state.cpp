@@ -1500,6 +1500,48 @@ void OpenGLState::UseProgram(uint prg)
 }
 
 
+void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
+// ----------------------------------------------------------------------------
+//   Returns a parameter from a program object
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glGetProgramiv(prg, pname, params);
+}
+
+
+void OpenGLState::GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei *length,
+                                   GLsizei* size, GLenum *type, char* name)
+// ----------------------------------------------------------------------------
+//   Returns information about an active uniform variable for the specified shader
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glGetActiveUniform(prg, id, bufSize, length, size, type, name);
+}
+
+
+int OpenGLState::GetAttribLocation(uint program, const char* name)
+// ----------------------------------------------------------------------------
+//   Returns the location of an attribute variable
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGetAttribLocation(program, name);
+}
+
+
+int OpenGLState::GetUniformLocation(uint program, const char* name)
+// ----------------------------------------------------------------------------
+//   Returns the location of a uniform variable
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGetUniformLocation(program, name);
+}
+
+
+
 // ============================================================================
 //
 //                       Texture management functions.

@@ -211,62 +211,62 @@ void ShaderValue::Draw(Layout *where)
 {
     if (where->programId && !where->InIdentify())
     {
-	ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
-	ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();
-	if (!uniform && !attribute)
-	{
-	    kstring cname = name->value.c_str();
-	    GLint uni = glGetUniformLocation(where->programId, cname);
-	    if (uni >= 0)
-	    {
-		uniform = new ShaderUniformInfo(uni);
-		name->SetInfo<ShaderUniformInfo>(uniform);
-	    }
-	    else
-	    {
-		GLint attri = glGetAttribLocation(where->programId, cname);
-		if (attri >= 0)
-		{
-		    attribute = new ShaderAttributeInfo(attri);
-		    name->SetInfo<ShaderAttributeInfo>(attribute);
-		}
-	    }
-	}
+        ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
+        ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();
+        if (!uniform && !attribute)
+        {
+            kstring cname = name->value.c_str();
+            GLint uni = GL.GetUniformLocation(where->programId, cname);
+            if (uni >= 0)
+            {
+                uniform = new ShaderUniformInfo(uni);
+                name->SetInfo<ShaderUniformInfo>(uniform);
+            }
+            else
+            {
+                GLint attri = GL.GetAttribLocation(where->programId, cname);
+                if (attri >= 0)
+                {
+                    attribute = new ShaderAttributeInfo(attri);
+                    name->SetInfo<ShaderAttributeInfo>(attribute);
+                }
+            }
+        }
 
 
-	if (uniform)
-	{
-	    uint id = uniform->id;
-	    GLint type = 0;
+        if (uniform)
+        {
+            uint id = uniform->id;
+            GLint type = 0;
 
-	    GLint uniformMaxLength = 0;
-	    glGetProgramiv(where->programId,
-			   GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
+            GLint uniformMaxLength = 0;
+            GL.GetProgram(where->programId,
+                          GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
 
-	    GLint uniformActive = 0;
-	    glGetProgramiv(where->programId,
-			   GL_ACTIVE_UNIFORMS, &uniformActive);
+            GLint uniformActive = 0;
+            GL.GetProgram(where->programId,
+                          GL_ACTIVE_UNIFORMS, &uniformActive);
 
-	    //Get type of current uniform variable
-	    GLint size = 0;
-			GLint length = 0;
-	    GLchar* uniformName = new GLchar[uniformMaxLength + 1];
-	    for(int index = 0; index < uniformActive; index++)
-	    {
-		glGetActiveUniform (where->programId,
-				    index, uniformMaxLength + 1,
-				    &length, &size, (GLenum*) &type,
-				    uniformName);
+            //Get type of current uniform variable
+            GLint size = 0;
+            GLint length = 0;
+            GLchar* uniformName = new GLchar[uniformMaxLength + 1];
+            for(int index = 0; index < uniformActive; index++)
+            {
+                GL.GetActiveUniform(where->programId,
+                                    index, uniformMaxLength + 1,
+                                    &length, &size, (GLenum*) &type,
+                                    uniformName);
 
-		// If uniform is an array,
-		// compare just name without []
-		if(length >= 3 && uniformName[length - 1] == ']')
-		    if(! strncmp(uniformName,name->value.c_str(), length - 3))
-			break;
+                // If uniform is an array,
+                // compare just name without []
+                if(length >= 3 && uniformName[length - 1] == ']')
+                    if(! strncmp(uniformName,name->value.c_str(), length - 3))
+                        break;
 
-		// Otherwise juste compare
-		if(! strcmp(uniformName,name->value.c_str()))
-		    break;
+                // Otherwise juste compare
+                if(! strcmp(uniformName,name->value.c_str()))
+                    break;
             }
             delete[] uniformName;
 
@@ -281,28 +281,28 @@ void ShaderValue::Draw(Layout *where)
 #ifdef GL_SAMPLER_2D_RECT
             case GL_SAMPLER_2D_RECT:
 #endif
-                glUniform1i(id, values[0]);
+                GL.Uniform1i(id, values[0]);
                 break;
             case GL_FLOAT_VEC2:
-                glUniform2fv(id, (int) (values.size() / 2), &values[0]);
+                GL.Uniform2fv(id, (int) (values.size() / 2), &values[0]);
                 break;
             case GL_FLOAT_VEC3:
-                glUniform3fv(id, (int) (values.size() / 3), &values[0]);
+                GL.Uniform3fv(id, (int) (values.size() / 3), &values[0]);
                 break;
             case GL_FLOAT_VEC4:
-                glUniform4fv(id, (int) (values.size() / 4), &values[0]);
+                GL.Uniform4fv(id, (int) (values.size() / 4), &values[0]);
                 break;
             case GL_FLOAT_MAT2:
-                glUniformMatrix2fv(id, (int) (values.size()/4), 0, &values[0]);
+                GL.UniformMatrix2fv(id, (int) (values.size()/4), 0, &values[0]);
                 break;
             case GL_FLOAT_MAT3:
-                glUniformMatrix3fv(id, (int) (values.size()/9), 0, &values[0]);
+                GL.UniformMatrix3fv(id, (int) (values.size()/9), 0, &values[0]);
                 break;
             case GL_FLOAT_MAT4:
-                glUniformMatrix4fv(id, (int) (values.size()/16), 0, &values[0]);
+                GL.UniformMatrix4fv(id, (int) (values.size()/16), 0, &values[0]);
                 break;
             default:
-                glUniform1fv(id, values.size(), &values[0]);
+                GL.Uniform1fv(id, values.size(), &values[0]);
                 break;
             }
         }
@@ -310,10 +310,10 @@ void ShaderValue::Draw(Layout *where)
         {
             switch(values.size())
             {
-            case 1: glVertexAttrib1fv(uniform->id, &values[0]); break;
-            case 2: glVertexAttrib2fv(uniform->id, &values[0]); break;
-            case 3: glVertexAttrib3fv(uniform->id, &values[0]); break;
-            case 4: glVertexAttrib4fv(uniform->id, &values[0]); break;
+            case 1: GL.VertexAttrib1fv(uniform->id, &values[0]); break;
+            case 2: GL.VertexAttrib2fv(uniform->id, &values[0]); break;
+            case 3: GL.VertexAttrib3fv(uniform->id, &values[0]); break;
+            case 4: GL.VertexAttrib4fv(uniform->id, &values[0]); break;
             }
         }
     }

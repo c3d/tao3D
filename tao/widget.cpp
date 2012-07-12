@@ -2279,7 +2279,7 @@ void Widget::setupGL()
     GL.ShadeModel(GL_SMOOTH);
     GL.Disable(GL_LIGHTING);
     GL.Disable(GL_COLOR_MATERIAL);
-    glUseProgram(0);
+    GL.UseProgram(0);
     GL.AlphaFunc(GL_GREATER, 0.01);
     GL.Enable(GL_ALPHA_TEST);
 

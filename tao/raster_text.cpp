@@ -208,7 +208,7 @@ int RasterText::printf(const char *format...)
     GLint prog = 0;
     glGetIntegerv(GL_CURRENT_PROGRAM, &prog);
     if (prog)
-        glUseProgram(0);
+        GL.UseProgram(0);
     {
         // Save GL state
         GLStateKeeper save(GL_LIGHTING_BIT | GL_LIST_BIT);
@@ -231,7 +231,7 @@ int RasterText::printf(const char *format...)
     }
 
     if (prog)
-        glUseProgram(prog);
+        GL.UseProgram(prog);
 
     return len;
 }

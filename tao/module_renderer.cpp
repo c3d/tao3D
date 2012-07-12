@@ -279,7 +279,7 @@ void ModuleRenderer::Identify(Layout *where)
     GL.LoadMatrix();
 
     XL::Save<bool> inIdentify(where->inIdentify, true);
-    glUseProgram(0); // Necessary for #1464
+    GL.UseProgram(0); // Necessary for #1464
     currentLayout = where;
 
     if(identify)

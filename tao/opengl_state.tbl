@@ -55,6 +55,7 @@ GS(BlendFunctionState,  blendFunction)
 GS(GLenum,              blendEquation)
 GS(AlphaFunctionState,  alphaFunc)
 GS(GLenum,              renderMode)
+GS(GLuint,              shaderProgram)
 GS(GLuint,              activeTexture)
 
 GFLAG(GL_VERTEX_ARRAY)

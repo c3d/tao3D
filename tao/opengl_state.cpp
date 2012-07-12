@@ -133,7 +133,7 @@ OpenGLState::OpenGLState()
       perspectiveCorrectionHint(GL_DONT_CARE),
       blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
-      renderMode(GL_RENDER), activeTexture(0),
+      renderMode(GL_RENDER), shaderProgram(0), activeTexture(0),
 #define GS(type, name)
 #define GFLAG(name)     glflag_##name(false),
 #include "opengl_state.tbl"
@@ -184,6 +184,15 @@ OpenGLState::OpenGLState()
     currentUnit = &textures.textures[0];
 }
 
+
+std::ostream & OpenGLState::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[OpenGLState] ";
+    return std::cerr;
+}
 
 
 // ============================================================================
@@ -355,6 +364,8 @@ void OpenGLState::Sync(ulonglong which)
          glAlphaFunc(alphaFunc.func, alphaFunc.ref));
     SYNC(listBase,
          glListBase(listBase));
+    SYNC(shaderProgram,
+         glUseProgram(shaderProgram));
 
 #define GS(type, name)
 #define GFLAG(name)                             \
@@ -1097,7 +1108,7 @@ void OpenGLState::RasterPos(coord x, coord y, coord z, coord w)
 // ----------------------------------------------------------------------------
 {
     // Not optimised because depending of too much
-    // settings (modelview and proj matrices, viewport, etc.) but
+    // settings (modelview and proj matrices, viewport, etc.) and
     // not often used in Tao.
     glRasterPos4d(x, y, z, w);
 }
@@ -1109,7 +1120,7 @@ void OpenGLState::WindowPos(coord x, coord y, coord z, coord w)
 // ----------------------------------------------------------------------------
 {
     // Not optimised because depending of too much
-    // settings (modelview and proj matrices, viewport, etc.) but
+    // settings (modelview and proj matrices, viewport, etc.) and
     // not often used in Tao.
     glWindowPos3d(x, y, z);
 }
@@ -1476,6 +1487,21 @@ void OpenGLState::PopName()
 
 // ============================================================================
 //
+//                       Shader management functions.
+//
+// ============================================================================
+
+void OpenGLState::UseProgram(uint prg)
+// ----------------------------------------------------------------------------
+//   Set shader program
+// ----------------------------------------------------------------------------
+{
+    CHANGE(shaderProgram, prg);
+}
+
+
+// ============================================================================
+//
 //                       Texture management functions.
 //
 // ============================================================================
@@ -1590,17 +1616,6 @@ TextureState &OpenGLState::ActiveTexture()
     textures_isDirty = true;
     return textures.textures[activeTexture];
 }
-
-
-std::ostream & OpenGLState::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[OpenGLState] ";
-    return std::cerr;
-}
-
 
 
 // ============================================================================

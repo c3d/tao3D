@@ -314,6 +314,9 @@ struct OpenGLState : GraphicState
     virtual void PushName(uint name);
     virtual void PopName();
 
+    // Shaders
+    virtual void UseProgram(uint prg);
+
     // Textures
     virtual void ActiveTexture(GLenum id);
     virtual void BindTexture(GLenum type, GLuint id);

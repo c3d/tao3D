@@ -171,6 +171,9 @@ struct GraphicState
     virtual void PushName(uint name) = 0;
     virtual void PopName() = 0;
 
+    // Shaders
+    virtual void UseProgram(uint prg) = 0;
+
     // Textures
     virtual void ActiveTexture(GLenum id) = 0;
     virtual void BindTexture(GLenum type, GLuint id) = 0;

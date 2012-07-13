@@ -450,7 +450,7 @@ int Window::open(QString fileName, bool readOnly)
 {
     bool  isDir = false;
     QString dir;
-    if (isTutorial(curFile))
+    if (curFile.startsWith(Application::defaultTaoApplicationFolderPath()))
         dir = Application::defaultProjectFolderPath();
     else
         dir = currentProjectFolderPath();

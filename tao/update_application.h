@@ -24,13 +24,15 @@ public:
     void           start();
     void           check(bool msg = false);
     void           update();    
-    void           extract();
+    bool           extract();
 
 private slots:
     void           processRemoteTags(QStringList tags);
     void           onDownloadFinished(int exitCode, QProcess::ExitStatus status);
     void           abortDownload();
     void           onDownloadError(QProcess::ProcessError error);
+
+    std::ostream & debug();
 
 private:
     QString                   from;             // Remote repository

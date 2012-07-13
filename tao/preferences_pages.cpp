@@ -27,6 +27,7 @@
 #include "application.h"
 #include "module_info_dialog.h"
 #include "tao_gl.h"
+#include "texture_cache.h"
 
 
 namespace Tao {
@@ -615,7 +616,21 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     connect(vs, SIGNAL(toggled(bool)),
             this, SLOT(setVSync(bool)));
     settingsLayout->addWidget(vs, 2, 1, 1, 2);
-    settingsLayout->addWidget(new QLabel(tr("2D texture magnification:")), 3, 1);
+    QCheckBox *ct = new QCheckBox(tr("Compress 2D textures"));
+    ct->setChecked(texture2DCompress());
+    connect(ct, SIGNAL(toggled(bool)),
+            this, SLOT(setTexture2DCompress(bool)));
+    connect(ct, SIGNAL(toggled(bool)),
+            TextureCache::instance(), SLOT(setCompression(bool)));
+    settingsLayout->addWidget(ct, 3, 1, 1, 2);
+    QCheckBox *mm = new QCheckBox(tr("Generate mipmaps for 2D textures"));
+    mm->setChecked(texture2DMipmap());
+    connect(mm, SIGNAL(toggled(bool)),
+            this, SLOT(setTexture2DMipmap(bool)));
+    connect(mm, SIGNAL(toggled(bool)),
+            TextureCache::instance(), SLOT(setMipmap(bool)));
+    settingsLayout->addWidget(mm, 4, 1, 1, 2);
+    settingsLayout->addWidget(new QLabel(tr("2D texture magnification:")), 5, 1);
     magCombo = new QComboBox;
     magCombo->addItem(tr("Pixellated"), QVariant(GL_NEAREST));
     magCombo->addItem(tr("Smooth"), QVariant(GL_LINEAR));
@@ -625,8 +640,8 @@ PerformancesPage::PerformancesPage(QWidget *parent)
         magCombo->setCurrentIndex(magIndex);
     connect(magCombo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(texture2DMagFilterChanged(int)));
-    settingsLayout->addWidget(magCombo, 3, 2);
-    settingsLayout->addWidget(new QLabel(tr("2D texture reduction:")), 4, 1);
+    settingsLayout->addWidget(magCombo, 5, 2);
+    settingsLayout->addWidget(new QLabel(tr("2D texture reduction:")), 6, 1);
     minCombo = new QComboBox;
     minCombo->addItem(tr("Pixellated"), QVariant(GL_NEAREST));
     minCombo->addItem(tr("Smooth"), QVariant(GL_LINEAR));
@@ -644,7 +659,31 @@ PerformancesPage::PerformancesPage(QWidget *parent)
         minCombo->setCurrentIndex(minIndex);
     connect(minCombo, SIGNAL(currentIndexChanged(int)),
             this,  SLOT(texture2DMinFilterChanged(int)));
-    settingsLayout->addWidget(minCombo, 4, 2);
+    settingsLayout->addWidget(minCombo, 6, 2);
+    settingsLayout->addWidget(new QLabel(tr("Texture cache max. memory:")), 7, 1);
+    cacheMemCombo = new QComboBox;
+    cacheMemCombo->addItem(tr("0 (default)"), QVariant(0));
+    cacheMemCombo->addItem(tr("Unlimited"), QVariant(CACHE_UNLIMITED));
+    QVariant cmemSaved = QVariant(TextureCache::instance()->maxMem());
+    int cmemIndex = cacheMemCombo->findData(cmemSaved);
+    if (cmemIndex != -1)
+        cacheMemCombo->setCurrentIndex(cmemIndex);
+    connect(cacheMemCombo, SIGNAL(currentIndexChanged(int)),
+            this,  SLOT(textureCacheMaxMemChanged(int)));
+    settingsLayout->addWidget(cacheMemCombo, 7, 2);
+    settingsLayout->addWidget(new QLabel(tr("Texture cache max. GL memory:")), 8, 1);
+    cacheGLMemCombo = new QComboBox;
+    cacheGLMemCombo->addItem(tr("64 MiB"), QVariant(64*CACHE_MB));
+    cacheGLMemCombo->addItem(tr("Unlimited (default)"),
+                             QVariant(CACHE_UNLIMITED));
+    QVariant cgmemSaved = QVariant(TextureCache::instance()->maxGLMem());
+    int cgmemIndex = cacheGLMemCombo->findData(cgmemSaved);
+    if (cgmemIndex != -1)
+        cacheGLMemCombo->setCurrentIndex(cgmemIndex);
+    connect(cacheGLMemCombo, SIGNAL(currentIndexChanged(int)),
+            this,  SLOT(textureCacheMaxGLMemChanged(int)));
+    settingsLayout->addWidget(cacheGLMemCombo, 8, 2);
+
     settings->setLayout(settingsLayout);
 
     QVBoxLayout *mainLayout = new QVBoxLayout;
@@ -687,6 +726,34 @@ void PerformancesPage::setVSync(bool on)
 }
 
 
+void PerformancesPage::setTexture2DCompress(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == texture2DMinFilterDefault())
+        settings.remove("Texture2DCompress");
+    else
+        settings.setValue("Texture2DCompress", QVariant(on));
+}
+
+
+void PerformancesPage::setTexture2DMipmap(bool on)
+// ----------------------------------------------------------------------------
+//   Save setting
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (on == texture2DMinFilterDefault())
+        settings.remove("Texture2DMipmap");
+    else
+        settings.setValue("Texture2DMipmap", QVariant(on));
+}
+
+
 void PerformancesPage::setTexture2DMinFilter(int value)
 // ----------------------------------------------------------------------------
 //   Save setting, update application
@@ -698,7 +765,7 @@ void PerformancesPage::setTexture2DMinFilter(int value)
         settings.remove("Texture2DMinFilter");
     else
         settings.setValue("Texture2DMinFilter", QVariant(value));
-    TaoApp->tex2DMinFilter = value;
+    TextureCache::instance()->setMinFilter(value);
 }
 
 
@@ -723,7 +790,7 @@ void PerformancesPage::setTexture2DMagFilter(int value)
         settings.remove("Texture2DMagFilter");
     else
         settings.setValue("Texture2DMagFilter", QVariant(value));
-    TaoApp->tex2DMagFilter = value;
+    TextureCache::instance()->setMagFilter(value);
 }
 
 
@@ -734,6 +801,56 @@ void PerformancesPage::texture2DMagFilterChanged(int index)
 {
     int mag = magCombo->itemData(index).toInt();
     setTexture2DMagFilter(mag);
+}
+
+
+void PerformancesPage::setTextureCacheMaxMem(qint64 bytes)
+// ----------------------------------------------------------------------------
+//   Save setting, update texture cache value
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (bytes == textureCacheMaxMemDefault())
+        settings.remove("TextureCacheMaxMem");
+    else
+        settings.setValue("TextureCacheMaxMem", QVariant(bytes));
+    TextureCache::instance()->setMaxMemSize(bytes);
+}
+
+
+void PerformancesPage::textureCacheMaxMemChanged(int index)
+// ----------------------------------------------------------------------------
+//   Set texture cache max memory from combo box index
+// ----------------------------------------------------------------------------
+{
+    quint64 bytes = cacheMemCombo->itemData(index).toLongLong();
+    setTextureCacheMaxMem(bytes);
+}
+
+
+void PerformancesPage::setTextureCacheMaxGLMem(qint64 bytes)
+// ----------------------------------------------------------------------------
+//   Save setting, update texture cache value
+// ----------------------------------------------------------------------------
+{
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    if (bytes == textureCacheMaxMemDefault())
+        settings.remove("TextureCacheMaxGLMem");
+    else
+        settings.setValue("TextureCacheMaxGLMem", QVariant(bytes));
+    TextureCache::instance()->setMaxGLSize(bytes);
+}
+
+
+void PerformancesPage::textureCacheMaxGLMemChanged(int index)
+// ----------------------------------------------------------------------------
+//   Set texture cache max GL memory from combo box index
+// ----------------------------------------------------------------------------
+{
+    quint64 bytes = cacheGLMemCombo->itemData(index).toLongLong();
+    setTextureCacheMaxGLMem(bytes);
 }
 
 
@@ -763,6 +880,32 @@ bool PerformancesPage::VSync()
 }
 
 
+bool PerformancesPage::texture2DCompress()
+// ----------------------------------------------------------------------------
+//   Use compressed internal format when a texture is loaded from file?
+// ----------------------------------------------------------------------------
+{
+    bool dflt = texture2DCompressDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool ret = settings.value("Texture2DCompress", QVariant(dflt)).toBool();
+    return ret;
+}
+
+
+bool PerformancesPage::texture2DMipmap()
+// ----------------------------------------------------------------------------
+//   Create a mipmap when a texture is loaded from file?
+// ----------------------------------------------------------------------------
+{
+    bool dflt = texture2DMipmapDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    bool ret = settings.value("Texture2DMipmap", QVariant(dflt)).toBool();
+    return ret;
+}
+
+
 int PerformancesPage::texture2DMinFilter()
 // ----------------------------------------------------------------------------
 //   Read setting for 2D texture minifying
@@ -789,6 +932,34 @@ int PerformancesPage::texture2DMagFilter()
 }
 
 
+qint64 PerformancesPage::textureCacheMaxMem()
+// ----------------------------------------------------------------------------
+//   Read setting for texture cache memory size
+// ----------------------------------------------------------------------------
+{
+    qint64 dflt = textureCacheMaxMemDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    qint64 ret = settings.value("TextureCacheMaxMem",
+                                QVariant(dflt)).toLongLong();
+    return ret;
+}
+
+
+qint64 PerformancesPage::textureCacheMaxGLMem()
+// ----------------------------------------------------------------------------
+//   Read setting for texture cache GL memory size
+// ----------------------------------------------------------------------------
+{
+    qint64 dflt = textureCacheMaxGLMemDefault();
+    QSettings settings;
+    settings.beginGroup(PERFORMANCES_GROUP);
+    qint64 ret = settings.value("TextureCacheMaxGLMem",
+                                QVariant(dflt)).toLongLong();
+    return ret;
+}
+
+
 bool PerformancesPage::perPixelLightingDefault()
 // ----------------------------------------------------------------------------
 //   Should per-pixel lighting be enabled by default?
@@ -801,6 +972,24 @@ bool PerformancesPage::perPixelLightingDefault()
 bool PerformancesPage::VSyncDefault()
 // ----------------------------------------------------------------------------
 //   Should VSync be enabled by default?
+// ----------------------------------------------------------------------------
+{
+    return true;
+}
+
+
+bool PerformancesPage::texture2DCompressDefault()
+// ----------------------------------------------------------------------------
+//   Should texture be stored as GL_COMPRESSED_RGBA by default?
+// ----------------------------------------------------------------------------
+{
+    return false;
+}
+
+
+bool PerformancesPage::texture2DMipmapDefault()
+// ----------------------------------------------------------------------------
+//   Should texture mipmaps be created by default?
 // ----------------------------------------------------------------------------
 {
     return true;
@@ -822,6 +1011,24 @@ int PerformancesPage::texture2DMagFilterDefault()
 // ----------------------------------------------------------------------------
 {
     return GL_LINEAR;
+}
+
+
+qint64 PerformancesPage::textureCacheMaxMemDefault()
+// ----------------------------------------------------------------------------
+//   Default value for the max memory size of the texture cache
+// ----------------------------------------------------------------------------
+{
+    return 0;
+}
+
+
+qint64 PerformancesPage::textureCacheMaxGLMemDefault()
+// ----------------------------------------------------------------------------
+//   Default value for the max GL memory size of the texture cache
+// ----------------------------------------------------------------------------
+{
+    return CACHE_UNLIMITED;
 }
 
 }

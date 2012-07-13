@@ -1,18 +1,32 @@
 Change log for Tao Presentations
 
-1.10-20120619
+1.11 (10-Jul-2012)
 
+#2255 Selection rectangle in Hello World doesn't show on the center of Earth
+#2244 Typo in Mapping module
+#2217 Stereoscopic 3D display modules require HD license when they should not
+#2202 Implement texture cache
+#2200 When selecting text, the surrounding text box often disappears
+#2192 Crash on "Save as..."
+#2188 Add "Tutorials" menu
+#2187 Add "Examples" menu
+#2177 Command line does not accept tao URIs anymore
+#2176 VLCAudioVideo: linux: application not properly identified in audio settings dialog
+#2168 Primitives refresh_on and no_refresh_on are not documented
 #2166 ObjectLoader: slow rendering of textured model
+#2165 Crash when non-existent file is given on the command line
+#2164 Incorrect plural: "No form matches"
 #2160 Keypress event should not trigger unconditional refresh of whole document
 #2153 MacOSX: font rendering performance regression in build 1.10
+#2148 Texture returned by frame_texture may be bogus
 #2140 blank_screen primitive acts like full_screen
 #2138 Array indexing may fail if there are "too many" arrays
 #2134 On-line help "Modules" section doesn't talk about modules
 #2133 Fix Taodyne logo in on-line help
+#2129 MacOSX documentation: search tab returns no result
 #2128 Add RemoteControl module
 #2093 Add frame_pixel_count primitive to count non-transparent pixels in a canvas
 #1916 load_text doesn't load absolute paths
-#1271 Add primitives user_event and post_event
 
 1.10 (30-May-2012)
 

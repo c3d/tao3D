@@ -55,6 +55,8 @@
 #include "licence.h"
 #include "license_dialog.h"
 #include "normalize.h"
+#include "examples_menu.h"
+#include "texture_cache.h"
 
 #include <iostream>
 #include <sstream>
@@ -688,7 +690,6 @@ again:
         if (!openProject(projpath, fileNameOnly, false))
             return false;
 #endif
-    updateContext(projpath);
 
     return saveFile(fileName);
 }
@@ -838,6 +839,8 @@ bool Window::saveFile(const QString &fileName)
     // QApplication::processEvents();
 
     bool needReload = false;
+    bool dirChanged = (QFileInfo(fileName).absolutePath() !=
+                       QFileInfo(curFile).absolutePath());
     do
     {
         QTextStream out(&file);
@@ -858,6 +861,8 @@ bool Window::saveFile(const QString &fileName)
             std::ostringstream renderOut;
             renderOut << prog;
             out << +renderOut.str();
+            if (dirChanged)
+                needReload = true;
         }
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
@@ -869,6 +874,8 @@ bool Window::saveFile(const QString &fileName)
     if (needReload)
     {
         taoWidget->loadFile(fn);
+        if (dirChanged)
+            updateContext(QFileInfo(fileName).absolutePath());
         updateProgram(fileName);
     }
 #ifndef CFG_NOSRCEDIT
@@ -1509,6 +1516,16 @@ void Window::onlineDoc()
 }
 
 
+void Window::tutorialsPage()
+// ----------------------------------------------------------------------------
+//    Open the tutorials page on the web
+// ----------------------------------------------------------------------------
+{
+    QString url("http://taodyne.com/taopresentations/1.0/tutorials/");
+    QDesktopServices::openUrl(url);
+ }
+
+
 void Window::documentWasModified()
 // ----------------------------------------------------------------------------
 //   Record when the document was modified
@@ -1777,6 +1794,11 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
+    tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
+    tutorialsPageAct->setStatusTip(tr("Open the tutorials page on the web"));
+    tutorialsPageAct->setObjectName("tutorialsPage");
+    connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
+
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
@@ -1950,6 +1972,25 @@ void Window::createMenus()
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
+    helpMenu->addAction(tutorialsPageAct);
+
+    ExamplesMenu * examplesMenu = new ExamplesMenu;
+    QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
+    Templates templates = Templates(tdir);
+    foreach (Template t, templates)
+    {
+        if (t.mainFile == "blank.ddd")
+            continue;
+        QString name(t.name);
+        // Strip "(Demo) " or "(Démo) "
+        name.replace(QRegExp("^\\([^)]+\\) "), "");
+        examplesMenu->addExample(name,
+                                 t.mainFileFullPath(),
+                                 t.description);
+    }
+    connect(examplesMenu, SIGNAL(openDocument(QString)),
+            this, SLOT(openReadOnly(QString)));
+    helpMenu->addMenu(examplesMenu);
 }
 
 
@@ -2213,6 +2254,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Close any module possibly imported by previous document
     ModuleManager::moduleManager()->unloadImported();
+
+    // Drop textures
+    TextureCache::instance()->clear();
 
     taoWidget->reset();
 

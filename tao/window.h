@@ -115,6 +115,7 @@ public slots:
     void sourceViewBecameVisible(bool visible);
 #endif
     int  open(QString fileName = "", bool readOnly = false);
+    int  openReadOnly(QString fileName = "")  { return open(fileName, true); }
 #ifndef CFG_NONETWORK
     void openUri();
 #endif
@@ -184,6 +185,7 @@ private slots:
     void preferences();
     void licenses();
     void onlineDoc();
+    void tutorialsPage();
     void documentWasModified();
     void checkFiles();
     void displayModeTriggered(bool on);
@@ -300,6 +302,7 @@ private:
     QAction          *preferencesAct;
     QAction          *licensesAct;
     QAction          *onlineDocAct;
+    QAction          *tutorialsPageAct;
 #ifndef CFG_NOFULLSCREEN
     QAction          *slideShowAct;
 #endif

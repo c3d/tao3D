@@ -48,15 +48,37 @@ for mod in `dirs "$INST/modules"` ; do
 done
 echo
 
-# Tao
+# Disabled
+
+## Tao (without modules)
+#
+#BS=""
+#printf "TAO: ("
+#for lang in `dirs "$INST/doc"` ; do
+#  printf "$lang "
+#  if [ -d "$INST/doc/$lang/html" ] ; then
+#    mkdir -p $DEST/help/$lang
+#    cp -R "$INST/doc/$lang/html"/* $DEST/help/$lang
+#  fi
+#  BS="\b"
+#done
+#printf "$BS) "
+#echo
+#
+#fi
+
+# Tao and modules in a self-contained HTML docset
 
 BS=""
-printf "TAO: ("
-for lang in `dirs "$INST/doc"` ; do
+printf "TAO+MODULES: "
+printf "building... "
+(cd doc ; make webdoc 2>/dev/null >/dev/null || echo "make webdoc failed!")
+printf "("
+for lang in `dirs "doc/webhtml"` ; do
   printf "$lang "
-  if [ -d "$INST/doc/$lang/html" ] ; then
+  if [ -d "doc/webhtml/$lang/html" ] ; then
     mkdir -p $DEST/help/$lang
-    cp -R "$INST/doc/$lang/html"/* $DEST/help/$lang
+    cp -R "doc/webhtml/$lang/html"/* $DEST/help/$lang
   fi
   BS="\b"
 done

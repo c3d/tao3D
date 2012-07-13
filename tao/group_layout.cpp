@@ -52,7 +52,7 @@ void GroupLayout::DrawSelection(Layout *where)
 
     Widget *widget = Display();
     uint selected = widget->selected(id);
-    bool open = selected & Widget::CONTAINER_OPENED;
+    bool open = (selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED;
     bool sel = (selected || groupDrag) && !open;
 
     if (open)

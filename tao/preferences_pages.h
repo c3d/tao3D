@@ -139,28 +139,42 @@ public:
 public:
     static bool    perPixelLighting();
     static bool    VSync();
+    static bool    texture2DCompress();
+    static bool    texture2DMipmap();
     static int     texture2DMinFilter();
     static int     texture2DMagFilter();
+    static qint64  textureCacheMaxMem();
+    static qint64  textureCacheMaxGLMem();
 
 protected slots:
     void           setPerPixelLighting(bool on);
     void           setVSync(bool on);
+    void           setTexture2DMipmap(bool on);
+    void           setTexture2DCompress(bool on);
     void           setTexture2DMinFilter(int value);
     void           texture2DMinFilterChanged(int index);
     void           setTexture2DMagFilter(int value);
     void           texture2DMagFilterChanged(int index);
+    void           setTextureCacheMaxMem(qint64 bytes);
+    void           textureCacheMaxMemChanged(int index);
+    void           setTextureCacheMaxGLMem(qint64 bytes);
+    void           textureCacheMaxGLMemChanged(int index);
 
 protected:
     static bool    perPixelLightingDefault();
     static bool    VSyncDefault();
+    static bool    texture2DMipmapDefault();
+    static bool    texture2DCompressDefault();
     static int     texture2DMinFilterDefault();
     static int     texture2DMagFilterDefault();
+    static qint64  textureCacheMaxMemDefault();
+    static qint64  textureCacheMaxGLMemDefault();
 
 protected:
     QRadioButton * lightFixed;
     QRadioButton * lightVShader;
     QRadioButton * lightFShader;
-    QComboBox    * magCombo, * minCombo;
+    QComboBox    * magCombo, * minCombo, * cacheMemCombo, * cacheGLMemCombo;
 };
 
 }

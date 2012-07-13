@@ -28,6 +28,7 @@
 #include "justification.h"
 #include "tao_gl.h"
 #include "application.h"
+#include "texture_cache.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -49,16 +50,14 @@ struct TextureState
     TextureState(): wrapS(false), wrapT(false),
                     id(0), unit(0), width(0), height(0),
                     type(GL_TEXTURE_2D), mode(GL_MODULATE),
-                    mipmap(false),
-                    minFilt(TaoApp->tex2DMinFilter),
-                    magFilt(TaoApp->tex2DMagFilter) {}
+                    minFilt(TextureCache::instance()->minFilter()),
+                    magFilt(TextureCache::instance()->magFilter()) {}
 
     bool          wrapS, wrapT;
     GLuint        id, unit;
     GLuint        width, height;
     GLenum        type;
     GLenum        mode;
-    bool          mipmap;
     GLenum        minFilt, magFilt;
 };
 

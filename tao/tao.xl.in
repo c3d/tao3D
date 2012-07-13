@@ -124,8 +124,10 @@ stereoscopy_settings ->
     if has_display_mode quadstereo then
         chooser_choice tr "Enable stereoscopy", {enable_stereoscopy true}
     if has_display_mode hsplitstereo then
+        chooser_choice tr "Enable stereoscopy (side by side)", {enable_stereoscopy hsplit}
         chooser_choice tr "Enable stereoscopy (horizontal split)", {enable_stereoscopy hsplit}
     if has_display_mode vsplitstereo then
+        chooser_choice tr "Enable stereoscopy (over/under)", {enable_stereoscopy vsplit}
         chooser_choice tr "Enable stereoscopy (vertical split)", {enable_stereoscopy vsplit}
     if has_display_mode hintstereo then
         chooser_choice tr "Enable stereoscopy (horizontal interleave)", {enable_stereoscopy interleave}

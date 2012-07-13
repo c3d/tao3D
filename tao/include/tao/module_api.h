@@ -369,8 +369,8 @@ struct ModuleApi
     bool (*checkLicense)(std::string featureName, bool critical);
 
     // Blink if the application has been running longer that specified duration.
-    // Return true if (current_time % (on + off)) <= on and the application was
-    // started more that 'after' seconds ago, false otherwise.
+    // Return true if (current_time % (on + off)) <= on or the application was
+    // started less than 'after' seconds ago, false otherwise.
     // Note: calls refreshOn to refresh automatically on next transition.
     bool (*blink)(double on, double off, double after);
 

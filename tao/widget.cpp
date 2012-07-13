@@ -492,6 +492,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Texture and glyph cache do not support multiple GL contexts. So,
     // clear them here so that textures or GL lists created with the
     // previous context are not re-used with the new.
+    AnimatedTextureInfo::textures.clear();
     TextureCache::instance()->clear();
     if (o.watermark)
         glDeleteTextures(1, &o.watermark);

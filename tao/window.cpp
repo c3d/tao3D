@@ -449,7 +449,11 @@ int Window::open(QString fileName, bool readOnly)
 //   2: don't know yet (asynchronous opening of an URI)
 {
     bool  isDir = false;
-    QString dir = currentProjectFolderPath();
+    QString dir;
+    if (curFile.startsWith(Application::defaultTaoApplicationFolderPath()))
+        dir = Application::defaultProjectFolderPath();
+    else
+        dir = currentProjectFolderPath();
     if (!fileName.isEmpty())
     {
         // Process 'file://' like a regular path because: (1) it is simpler,
@@ -2744,14 +2748,13 @@ void Window::restartFullScreenTimer()
 
 QString Window::currentProjectFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder to use in the "Save as..."/"Open File..." dialogs
+//    The current document folder
 // ----------------------------------------------------------------------------
 {
     if (repo)
         return repo->path;
 
-    if ( !currentProjectFolder.isEmpty() &&
-         !isTutorial(curFile))
+    if ( !currentProjectFolder.isEmpty())
         return currentProjectFolder;
 
     return Application::defaultProjectFolderPath();

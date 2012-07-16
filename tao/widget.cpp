@@ -129,17 +129,13 @@ static inline Widget * findTaoWidget()
 //   Find the Widget on the main Window. Use when Tao() is not set.
 // ----------------------------------------------------------------------------
 {
-    Widget * w = NULL;
     foreach (QWidget *widget, QApplication::topLevelWidgets())
     {
         Window * window = dynamic_cast<Window *>(widget);
         if (window)
-        {
-            w = window->taoWidget;
-            break;
-        }
+            return window->taoWidget;
     }
-    return w;
+    return NULL;
 }
 
 
@@ -2383,9 +2379,9 @@ bool Widget::forwardEvent(QMouseEvent *event)
                     << " focusWidget name " << +(focus->objectName())
                     << std::endl;
         }
-
         return focus->event(&local);
     }
+
     return false;
 }
 
@@ -3442,7 +3438,7 @@ void Widget::loadContextFiles(XL::source_names &files)
 {
     TaoSave saveCurrent(current, this);
     XL::MAIN->LoadContextFiles(files);
-}    
+}
 
 
 void Widget::reloadProgram(XL::Tree *newProg)
@@ -4390,12 +4386,11 @@ bool Widget::requestFocus(QWidget *widget, coord x, coord y)
 //   Some other widget request the focus
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(widgets)
-            std::cerr << "Widget::requestFocus name "
-                      << +(widget->objectName()) << std::endl;
-
     if (!focusWidget)
     {
+        IFTRACE(widgets)
+                std::cerr << "Widget::requestFocus name "
+                          << +(widget->objectName()) << std::endl;
         GLMatrixKeeper saveGL;
         Vector3 v = layout->Offset() + Vector3(x, y, 0);
         focusWidget = widget;
@@ -8415,7 +8410,7 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
 //   Create a new text edit widget and render text in it
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     Tree * result = textEditTexture(context, self, w, h, prog);
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -9858,7 +9853,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     if (! urlTexture(self, w, h, url, progress))
         return XL::xl_false;
 
@@ -9913,7 +9908,7 @@ Tree_p Widget::lineEdit(Tree_p self,
 //   Draw a line editor in the current frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
@@ -9962,7 +9957,7 @@ Tree_p Widget::radioButton(Tree_p self,
 //   Draw a radio button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     radioButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -10008,7 +10003,7 @@ Tree_p Widget::checkBoxButton(Tree_p self,
 //   Draw a check button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     checkBoxButtonTexture(self, w, h, name, lbl, sel, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -10055,7 +10050,7 @@ Tree_p Widget::pushButton(Tree_p self,
 //   Draw a push button in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     pushButtonTexture(self, w, h, name, lbl, act);
     return abstractButton(self, name, x, y, w, h);
 }
@@ -10193,7 +10188,7 @@ void Widget::colorChanged(const QColor & col)
     IFTRACE (widgets)
     {
         std::cerr << "Color "<< col.name().toStdString()
-                  << "was chosen for reference "<< colorAction << "\n";
+                  << " was chosen for reference "<< colorAction << "\n";
     }
 
     // The tree to be evaluated needs its own symbol table before evaluation
@@ -10327,7 +10322,7 @@ Tree_p Widget::colorChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     colorChooserTexture(self, w, h, action);
 
@@ -10379,7 +10374,7 @@ Tree_p Widget::fontChooser(Tree_p self,
 //   Draw a color chooser
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     fontChooserTexture(self, w, h, action);
 
@@ -10576,7 +10571,7 @@ void Widget::fileChosen(const QString & filename)
     IFTRACE (widgets)
     {
         std::cerr << "File "<< filename.toStdString()
-                  << "was chosen for reference "<< fileAction << "\n";
+                  << " was chosen for reference "<< fileAction << "\n";
     }
 
     // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
@@ -10616,7 +10611,7 @@ Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
 //   Draw a file chooser in the GL widget
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     fileChooserTexture(self, w, h, properties);
 
@@ -10712,7 +10707,7 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
 //   Draw a group box in the curent frame
 // ----------------------------------------------------------------------------
 {
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
+    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
 
     groupBoxTexture(self, w, h, lbl);
 

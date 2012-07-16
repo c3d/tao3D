@@ -172,8 +172,15 @@ bool UpdateApplication::extract()
 //    Extract update
 // ----------------------------------------------------------------------------
 {
-    QString cmd = qApp->applicationDirPath() + "/git/bin/tar";
-    QString tar = GitRepository::resolveExePath(cmd);
+    QStringList cmds;
+    cmds << qApp->applicationDirPath() + "/git/bin/tar" << "tar";
+    QString tar;
+    foreach (QString cmd, cmds)
+    {
+        tar = GitRepository::resolveExePath(cmd);
+        if (!tar.isEmpty())
+            break;
+    }
     if(tar.isEmpty())
     {
         IFTRACE(update)

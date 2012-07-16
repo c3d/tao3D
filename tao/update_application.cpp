@@ -28,7 +28,7 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
 #elif defined(Q_OS_WIN)
     from = "git://git.taodyne.com/software/win/";
 #else
-    from = "git://git.taodyne.com/software/linux/";
+    from = "git://git.taodyne.com/software/linux";
 
     // Check if we are on Debian or Ubuntu distribution to get .deb package
     QString cmd("uname");

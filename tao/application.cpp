@@ -720,14 +720,13 @@ void Application::blockScreenSaver(bool block)
     //   The technique depends on the screen saver being used. Here is what we
     //   do to prevent the screen saver from running:
     //     1. Call (once) the XSS API: XScreenSaverSuspend
-    //     2. Periodically call the Xlib API: XResetScreenSaver
-    //     3. Periodically execute the command given in the
+    //     2. Call (once) the xdg-screensaver command
+    //     3. Periodically call the Xlib API: XResetScreenSaver
+    //     4. Periodically execute the command given in the
     //        TAO_SS_HEARTBEAT_CMD environment variable, if defined.
-    //   Therefore, all screen savers that support the Xlib or XSS APIs are
-    //   automatically disabled. For other screen savers you will have to
-    //   define TAO_SS_HEARTBEAT_CMD.
-    //     * Example for Gnome:
-    //         TAO_SS_HEARTBEAT_CMD="gnome-screensaver-command -p"
+    //   Therefore, all screen savers that support the Xlib or XSS APIs or the
+    //   xdg-screensaver script, are automatically disabled. For other screen
+    //   savers you will have to define TAO_SS_HEARTBEAT_CMD.
     //     * Example for xscreensaver:
     //         TAO_SS_HEARTBEAT_CMD="xscreensaver-command -deactivate"
 
@@ -743,6 +742,11 @@ void Application::blockScreenSaver(bool block)
         SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE, 0, 0);
 #elif defined(CONFIG_LINUX)
         XScreenSaverSuspend(xDisplay, True);
+        if (Window * win = findFirstTaoWindow())
+        {
+            QString xdgss = QString("xdg-screensaver suspend %1").arg(win->winId());
+            QProcess::execute(xdgss);
+        }
         QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
 #endif
     }
@@ -757,6 +761,11 @@ void Application::blockScreenSaver(bool block)
         SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE, 0, 0);
 #elif defined(CONFIG_LINUX)
         XScreenSaverSuspend(xDisplay, False);
+        if (Window * win = findFirstTaoWindow())
+        {
+            QString xdgss = QString("xdg-screensaver resume %1").arg(win->winId());
+            QProcess::execute(xdgss);
+        }
 #endif
     }
 }

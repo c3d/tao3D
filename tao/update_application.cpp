@@ -11,6 +11,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QTextStream>
+#include <QDesktopServices>
 #include <sstream>
 
 namespace Tao {
@@ -115,9 +116,10 @@ void UpdateApplication::update()
     if(ret == QMessageBox::Yes)
     {
         // Choose folder
+        QString desktop = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
         QString folder = QFileDialog::getExistingDirectory(NULL,
                              tr("Select destination folder"),
-                             Application::defaultProjectFolderPath());
+                             desktop);
 
         if(! folder.isEmpty())
         {

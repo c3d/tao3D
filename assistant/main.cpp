@@ -60,6 +60,8 @@
 
 #include <QtSql/QSqlDatabase>
 
+#include <stdlib.h>
+
 #include "collectionconfiguration.h"
 #include "helpenginewrapper.h"
 #include "mainwindow.h"
@@ -302,7 +304,17 @@ void setupTranslation(const QString &fileName, const QString &dir)
 void setupTranslations()
 {
     TRACE_OBJ
-    QString locale = QLocale().name().left(2);
+    QString locale;
+#if QT_VERSION >= 0x040800
+    if (char *env = getenv("LANG"))
+        locale = QString::fromLocal8Bit(env).left(2);
+    else
+        locale = QLocale::system().uiLanguages().value(0).left(2);
+#else
+    locale = QLocale().name().left(2);
+#endif
+    if (locale == "C")
+        locale = "en";
     locale = QSettings("Taodyne", "Tao Presentations")
             .value("uiLanguage", locale).toString();
     const QString &resourceDir

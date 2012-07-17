@@ -61,6 +61,8 @@
 #include <QStringList>
 #include <QDesktopServices>
 
+#include <stdlib.h>
+
 
 #if defined(CONFIG_MINGW)
 #include <windows.h>
@@ -116,9 +118,18 @@ Application::Application(int & argc, char ** argv)
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
 
-    // Load translations, based on current locale. Preferences may override
-    // current locale.
+    // Load translations, based on (the first that is defined wins):
+    //  - Application preferences
+    //  - LANG
+    //  - Preferred language from system
+#if QT_VERSION >= 0x040800
+    if (char *env = getenv("LANG"))
+        lang = QString::fromLocal8Bit(env).left(2);
+    else
+        lang = QLocale::system().uiLanguages().value(0).left(2);
+#else
     lang = QLocale().name().left(2);
+#endif
     if (lang == "C")
         lang = "en";
     lang = QSettings().value("uiLanguage", lang).toString();

@@ -16,86 +16,27 @@
 namespace Tao {
 
 
-UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMessage(false)
+UpdateApplication::UpdateApplication()
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
 {
-    // Define remote repository for each OS
-#if defined(Q_OS_MACX)
-    from = "git://git.taodyne.com/software/macosx/";
-#elif defined(Q_OS_WIN)
-    from = "git://git.taodyne.com/software/win/";
-#else
-    from = "git://git.taodyne.com/software/linux/";
-
-    // Check if we are on Debian or Ubuntu distribution to get .deb package
-    QString cmd("uname");
-    QStringList args;
-    args << "-a";
-    Process cp(cmd, args);
-    text errors, output;
-    if(cp.done(&errors, &output))
-    {
-        // Check bits number
-        if(output.find("x86_64") != output.npos)
-            from += "64";
-        else
-            from += "32";
-
-        // Check os name
-        if(output.find("Ubuntu") != output.npos ||
-           output.find("Debian") != output.npos)
-            from += "/debian/";
-        else
-            from += "/others/";
-    }
-#endif
+    url = "http://localhost/software/win/";
 
 #ifdef TAO_EDITION
     // Get current edition
     edition = TAO_EDITION;
-    from += edition;
+    url += edition;
 #endif
 
     // Create a message box to display download progress
-    progress = new QMessageBox;
-    progress->addButton(tr("Cancel"), QMessageBox::RejectRole);
-    progress->setWindowModality(Qt::WindowModal);
+    dialog = new QProgressDialog();
 }
 
 
 void UpdateApplication::check(bool msg)
-// ----------------------------------------------------------------------------
-//    Check for new update
-// ----------------------------------------------------------------------------
 {
-    useMessage = msg;
-
-    // No need to update if already doing it
-    if(!updating)
-    {
-        if(!repo)
-        {
-            IFTRACE(update)
-                    debug() << "Begin check for update from " << from.toStdString() << std::endl;
-
-            // Use empty repository
-            repo = RepositoryFactory::repository("", RepositoryFactory::NoLocalRepo);
-            connect(repo.data(),
-                    SIGNAL(asyncGetRemoteTagsComplete(QStringList)),
-                    this,
-                    SLOT(processRemoteTags(QStringList)));
-        }
-
-        if(repo && repo->valid())
-        {
-            // Get the list of remote tags and process it
-            proc = repo->asyncGetRemoteTags(from);
-            repo->dispatch(proc);
-            updating = true;
-        }
-    }
+    update();
 }
 
 
@@ -104,7 +45,12 @@ void UpdateApplication::update()
 //    Prepare to launch update
 // ----------------------------------------------------------------------------
 {
-    QString name = QString("Tao Presentations %1 %2").arg(edition).arg(version, 0, 'f', 2);
+    IFTRACE(update)
+            debug() << "Prepare to update" << std::endl;
+
+    version = 1.11;
+    QString name = QString("/Tao Presentations %1 %2").arg(edition).arg(version, 0, 'f', 2);
+    url += name + ".exe";
 
     // Ask for update
     QString title = tr("%1 available").arg(name);
@@ -119,22 +65,41 @@ void UpdateApplication::update()
                              tr("Select destination folder"),
                              Application::defaultProjectFolderPath());
 
+        // Verify if folder exists
         if(! folder.isEmpty())
         {
             // Set complete filename
-            to.setFileName(folder + "/" + name + ".tar");
-            info.setFile(to);
+            QString filename = folder + "/" + name + ".exe";
+            if(QFile::exists(filename))
+            {
+                ret = QMessageBox::question(NULL, tr("Downloader"),
+                                            tr("There already exists a file called %1 in "
+                                               "the specified directory. Overwrite?").arg(name),
+                                            QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+                if(ret == QMessageBox::No)
+                    return;
 
+                QFile::remove(filename);
+            }
+
+            // Check if we can write file
+            file = new QFile(filename);
+            info = QFileInfo((*file));
+
+            if(!file->open(QIODevice::WriteOnly))
+            {
+                QMessageBox::information(NULL, "Downloader",
+                                         tr("Unable to save the file %1: %2.")
+                                         .arg(name).arg(file->errorString()));
+                delete file;
+                file = NULL;
+                return;
+            }
+
+            downloadRequestAborted = false;
             // Start update
             start();
         }
-    }
-    else
-    {
-        updating = false;
-
-        // Delete process
-        proc.clear();
     }
 }
 
@@ -144,221 +109,126 @@ void UpdateApplication::start()
 //    Start update
 // ----------------------------------------------------------------------------
 {
+    // Start timer
+    downloadTime.start();
+
     IFTRACE(update)
-            debug() << "Begin to download the update to " << to.fileName().toStdString() << std::endl;
+            debug() << "Start update" << std::endl;
 
-    aborted = false;
+    QUrl tmp(url);
+    QNetworkRequest request(tmp);
+    reply = manager.get(request);
+    connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
+    connect(reply, SIGNAL(readyRead()), this, SLOT(downloadReadyRead()));
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
+    connect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
 
-    // Show progress of current download
-    progress->setWindowTitle(tr("Downloading..."));
-    progress->setText(tr("Downloading %1...").arg(info.completeBaseName()));
-    progress->show();
-
-    connect(progress, SIGNAL(buttonClicked(QAbstractButton*)), this,
-            SLOT(abortDownload()), Qt::UniqueConnection);
-
-    // Begin download of the new version
-    proc = repo->asyncArchive(from, to.fileName());
-    connect(proc.data(), SIGNAL(finished(int,QProcess::ExitStatus)), this,
-            SLOT(onDownloadFinished(int,QProcess::ExitStatus)), Qt::UniqueConnection);
-    connect(proc.data(), SIGNAL(error(QProcess::ProcessError)),
-            this, SLOT(onDownloadError(QProcess::ProcessError)), Qt::UniqueConnection);
-    repo->dispatch(proc);
+    dialog->exec();
 }
 
 
-bool UpdateApplication::extract()
+void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
 // ----------------------------------------------------------------------------
-//    Extract update
+//    Update progress bar
 // ----------------------------------------------------------------------------
 {
-    QString cmd = qApp->applicationDirPath() + "/git/bin/tar";
-    QString tar = GitRepository::resolveExePath(cmd);
-    if(tar.isEmpty())
-    {
-        IFTRACE(update)
-            debug() << "Extraction failed.\nExit code: tar not found" << std::endl;
-        return false;
+    if(downloadRequestAborted)
+        return;
+
+    // calculate the download speed
+    double speed = bytesReceived * 1000.0 / downloadTime.elapsed();
+    QString unit;
+    if (speed < 1024) {
+        unit = "bytes/sec";
+    } else if (speed < 1024*1024) {
+        speed /= 1024;
+        unit = "kB/s";
+    } else {
+        speed /= 1024*1024;
+        unit = "MB/s";
     }
 
-    // Extract update
-    QStringList args;
-    args << "-xf" << info.fileName();
-    Process cp(tar, args, info.path());
-    cp.waitForFinished();
+    QString msg = tr("Downloading %1 : %2 %3");
 
+    dialog->setLabelText(msg.arg(info.completeBaseName())
+                         .arg(speed, 3, 'f', 1).arg(unit));
+    dialog->setMaximum(bytesTotal);
+    dialog->setValue(bytesReceived);
+}
+
+
+void UpdateApplication::cancelDownload()
+// ----------------------------------------------------------------------------
+//    Cancel download
+// ----------------------------------------------------------------------------
+{
     IFTRACE(update)
-        debug() << "Extract update: " << tar.toStdString() << std::endl;
+            debug() << "Download aborted" << std::endl;
 
-    if(cp.done())
+    downloadRequestAborted = true;
+    reply->abort();
+}
+
+
+void UpdateApplication::downloadReadyRead()
+// ----------------------------------------------------------------------------
+//    Write current download into a file
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(update)
+            debug() << "Write file to " << info.path().toStdString() << std::endl;
+
+    if(file)
+        file->write(reply->readAll());
+}
+
+
+void UpdateApplication::downloadFinished()
+// ----------------------------------------------------------------------------
+//    Finish download
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(update)
+            debug() << "Download finished" << std::endl;
+
+    //progressDialog->hide();
+    if(downloadRequestAborted)
     {
-        // Show final message
-        QString title = tr("Download finished");
-        QString msg = tr("%1 has been downloaded successfully.").arg(info.completeBaseName());
-        QMessageBox::information(NULL, title, msg);
+        if(file)
+        {
+            file->close();
+            file->remove();
+            delete file;
+            file = NULL;
+        }
+        reply->deleteLater();
+        return;
+    }
 
+    if(reply->error())
+    {
+        //Download failed
+        QMessageBox::information(NULL, "Download failed", tr("Failed: %1").arg(reply->errorString()));
+    }
+    else
+    {
         IFTRACE(update)
                 debug() << "Download successfull" << std::endl;
 
-        return true;
-    }
-    else
-    {
-        // Show error message
-        QString msg = tr("Extraction failed.\nExit code: %1")
-                         .arg(cp.err);
-        QMessageBox::warning(NULL, tr("Error"), msg);
+        // Write file
+        downloadReadyRead();
 
-        IFTRACE(update)
-                debug() << "Extraction failed: " << cp.err.toStdString() << std::endl;
-
-        return false;
-    }
-}
-
-
-void UpdateApplication::processRemoteTags(QStringList tags)
-// ----------------------------------------------------------------------------
-//   Process the list of remote tags for Tao application
-// ----------------------------------------------------------------------------
-{
-    if(! tags.isEmpty())
-    {
-        // Get latest version of the remote
-        QString latest = tags[tags.size() - 1];
-        version = latest.toDouble();
-
-        IFTRACE(update)
-                debug() << "Latest version: " << latest.toStdString() << std::endl;
-
-        // Get current version
-        QString ver = GITREV;
-        QRegExp rxp("([^-]*)");
-        rxp.indexIn(ver);
-        double current = rxp.cap(1).toDouble();
-
-        IFTRACE(update)
-                debug() << "Current version: " << current << std::endl;
-
-        // Update if current version is older than the remote one
-        bool upToDate = (current >= version);
-        if(!upToDate)
-        {
-            update();
-        }
-        else
-        {
-            // Show an informative message if wanted
-            if(useMessage)
-            {
-                QString title = tr("No update available");
-                QString msg = tr("Tao Presentations %1 is up-to-date.").arg(edition);
-                QMessageBox::information(NULL, title, msg);
-            }
-
-            updating = false;
-
-            // Clear process
-            proc.clear();
-        }
-    }
-    else
-    {
-        IFTRACE(update)
-                debug() << "No remote tags" << std::endl;
-    }
-}
-
-
-void UpdateApplication::onDownloadFinished(int exitCode, QProcess::ExitStatus status)
-// ----------------------------------------------------------------------------
-//    Define action on download finished
-// ----------------------------------------------------------------------------
-{
-    bool downloaded, extracted;
-
-    // Close progress dialog
-    progress->close();
-
-    if (aborted)
-        return;
-
-    if (exitCode != QProcess::NormalExit)
-        return;    // onDownloadError will handle this case
-
-    downloaded = (status ==  QProcess::NormalExit && exitCode == 0);
-    if(! downloaded)
-    {
-        // Show error message
-        QString msg = tr("Download failed.\nExit code: %1\n%2")
-                         .arg(exitCode).arg(proc->err);
-        QMessageBox::warning(NULL, tr("Error"), msg);
-
-        IFTRACE(update)
-                debug() << "Download failed : " << proc->err.toStdString() << std::endl;
-    }
-    else
-    {
-        // Extract download
-        extracted = extract();
+        QString msg = tr("Download of %1 successfull (saved to %2)\n").arg(info.completeBaseName()).arg(info.path());
+        QMessageBox::information(NULL, tr("Download successfull"), msg);
     }
 
-    updating = false;
-
-    // Delete archive if download has failed or
-    //  extraction is successful.
-    if(! downloaded || extracted)
-    {
-        // Clear process
-        proc.clear();
-        // Delete file
-        to.remove();
-    }
-}
-
-
-void UpdateApplication::abortDownload()
-// ----------------------------------------------------------------------------
-//    Abort current download
-// ----------------------------------------------------------------------------
-{
-    Q_ASSERT(proc);
-    Q_ASSERT(repo);
-
-    IFTRACE(update)
-            debug() << "Abort download" << std::endl;
-
-    aborted = true;
-    updating = false;
-
-    process_p p = proc;
-    proc.clear();
-    if (p)
-        repo->abort(p);
-
-    to.remove();
-}
-
-
-void UpdateApplication::onDownloadError(QProcess::ProcessError error)
-// ----------------------------------------------------------------------------
-//    Display error dialog on download error
-// ----------------------------------------------------------------------------
-{
-    if (aborted)
-        return;
-
-    updating = false;
-
-    progress->close();
-    QString err = Process::processErrorToString(error);
-    QString msg = tr("Download failed: %1").arg(err);
-    QMessageBox::warning(NULL, tr("Error"), msg);
-
-    IFTRACE(update)
-            debug() << "Download error :" << err.toStdString() << std::endl;
-
-    to.remove();
+    // Close I/O
+    file->flush();
+    file->close();
+    reply->deleteLater();
+    reply = NULL;
+    delete file;
+    file = NULL;
 }
 
 
@@ -370,6 +240,7 @@ std::ostream & UpdateApplication::debug()
     std::cerr << "[Update] ";
     return std::cerr;
 }
+
 
 
 }

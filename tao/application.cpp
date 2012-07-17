@@ -170,6 +170,12 @@ Application::Application(int & argc, char ** argv)
         ::exit(0);
     }
 
+#ifdef Q_OS_MACX
+    // Bug #2300 Tex Gyre Adventor font doesn't show up with LANG=fr_FR.UTF-8
+    // Core Text bug?
+    setlocale(LC_NUMERIC, "C");
+#endif
+
     bool showSplash = true;
     if (cmdLineArguments.contains("-nosplash") ||
         cmdLineArguments.contains("-h"))

@@ -47,12 +47,13 @@ class UpdateApplication : public QObject
 public:
     UpdateApplication();
 
-    void     start();
     void     check(bool msg = false);
+    void     start();
     void     update();
     void     extract();
 
 private slots:
+    void     processCheckForUpdate();
     void     downloadFinished();
     void     downloadReadyRead();
     void     downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
@@ -61,10 +62,11 @@ private slots:
     std::ostream & debug();
 
 private:
-    QString                url;
+    QString                system;           // Operating system
     QString                edition;          // Tao edition
     double                 version;          // Tao version
 
+    QString                url;
     QFile*                 file;
     QFileInfo              info;
 

@@ -68,6 +68,8 @@ debian:
 	chmod 0755 debian/usr/share/applications/taopresentations.desktop
 	mkdir -p debian/usr/share/icons/hicolor/scalable/apps
 	cp taopresentations.svg debian/usr/share/icons/hicolor/scalable/apps
+	mkdir -p debian/usr/share/mime/packages
+	cp taopresentations.xml debian/usr/share/mime/packages
 
 prepare: debian
 	$(MAKE) -C ../../ install && cp -Rp ../../install/* $(DEBTAO)

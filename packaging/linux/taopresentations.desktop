@@ -3,6 +3,7 @@ Type=Application
 Categories=Graphics;Office;Development;Presentation;
 Exec=/opt/Taodyne/TaoPresentations/tao %u
 Icon=taopresentations
+MimeType=application/com.taodyne.taopresentationsdoc;
 
 Name=Tao Presentations
 Comment=Create and show 2D and 3D presentations

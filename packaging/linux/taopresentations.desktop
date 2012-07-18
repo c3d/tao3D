@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Categories=Graphics;Office;Development;Presentation;
+Exec=/opt/Taodyne/TaoPresentations/tao %u
+Icon=taopresentations
+
+Name=Tao Presentations
+Comment=Create and show 2D and 3D presentations
+
+Comment[fr]=Créez et affichez des presentations en 2D et 3D

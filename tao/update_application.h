@@ -46,11 +46,15 @@ class UpdateApplication : public QObject
 
 public:
     UpdateApplication();
+    ~UpdateApplication();
 
+    void     close();
     void     check(bool msg = false);
+
+private:
     void     start();
     void     update();
-    void     extract();
+    void     readIniFile();
 
 private slots:
     void     processCheckForUpdate();
@@ -62,9 +66,10 @@ private slots:
     std::ostream & debug();
 
 private:
-    QString                system;           // Operating system
-    QString                edition;          // Tao edition
     double                 version;          // Tao version
+    QString                edition;          // Tao edition
+    QString                fileName;         // Update fileName
+    QString                system;           // Operating system
 
     QString                url;
     QFile*                 file;
@@ -74,6 +79,7 @@ private:
     QNetworkReply*         reply;
     QNetworkAccessManager* manager;
     QTime                  downloadTime;
+    bool                   updating;
     bool                   downloadRequestAborted;
 };
 

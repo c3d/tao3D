@@ -16,7 +16,7 @@
 namespace Tao {
 
 
-UpdateApplication::UpdateApplication()
+UpdateApplication::UpdateApplication() : updating(false)
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
@@ -58,42 +58,97 @@ UpdateApplication::UpdateApplication()
 
     // Create a dialog to display download progress
     dialog = new QProgressDialog();
+    dialog->setWindowTitle(tr("New update available"));
+}
+
+
+UpdateApplication::~UpdateApplication()
+{
+    IFTRACE(update)
+            debug() << "Delete update application" << std::endl;
+
+    close();
+
+    // Delete manager
+    manager->deleteLater();
+    manager = NULL;
+
+    // Delete dialog
+    dialog->deleteLater();
+    dialog = NULL;
+}
+
+
+void UpdateApplication::close()
+{
+    IFTRACE(update)
+            debug() << "Close update" << std::endl;
+
+    dialog->close();
+
+    // Disconnect slots
+    disconnect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
+    disconnect(reply, SIGNAL(downloadProgress(qint64,qint64)),
+            this, SLOT(downloadProgress(qint64,qint64)));
+    disconnect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
+
+    // Delete I/O
+    if(file)
+    {
+        file->close();
+        delete file;
+        file = NULL;
+    }
+
+    // Delete reply
+    if(reply)
+    {
+        reply->abort();
+        reply->deleteLater();
+        reply = NULL;
+    }
 }
 
 
 void UpdateApplication::check(bool msg)
 {    
-    // Define url to check for update
-    QUrl url("http://localhost/update.ini");
-
-    IFTRACE(update)
-            debug() << "Check for update from " <<  url.toString().toStdString() << std::endl;
-
-    // Set complete filename
-    QString filename = QDir::temp().absolutePath() + "/update.ini";
-    if(QFile::exists(filename))
-        QFile::remove(filename);
-
-    // Create file
-    file = new QFile(filename);
-    info = QFileInfo((*file));
-
-    // Check if we can write file
-    if(!file->open(QIODevice::WriteOnly))
+    if(! updating)
     {
-        delete file;
-        file = NULL;
-        return;
-    }
+        // Define url to check for update
+        QUrl url("http://localhost/update.ini");
 
-    // Sent request
-    QNetworkRequest request(url);
-    reply = manager->get(request);
-    connect(reply, SIGNAL(finished()), this, SLOT(processCheckForUpdate()), Qt::UniqueConnection);
+        IFTRACE(update)
+                debug() << "Check for update from " <<  url.toString().toStdString() << std::endl;
+
+        // Set complete filename
+        QString filename = QDir::temp().absolutePath() + "/update.ini";
+        if(QFile::exists(filename))
+            QFile::remove(filename);
+
+        // Create file
+        file = new QFile(filename);
+        info.setFile(*file);
+
+        // Check if we can write file
+        if(!file->open(QIODevice::WriteOnly))
+        {
+            delete file;
+            file = NULL;
+            return;
+        }
+
+        updating = true;
+
+        // Sent request
+        QNetworkRequest request(url);
+        reply = manager->get(request);
+        connect(reply, SIGNAL(finished()), this, SLOT(processCheckForUpdate()), Qt::UniqueConnection);
+
+    }
 }
 
 
-void UpdateApplication::update()
+void UpdateApplication::start()
 // ----------------------------------------------------------------------------
 //    Prepare to launch update
 // ----------------------------------------------------------------------------
@@ -102,6 +157,7 @@ void UpdateApplication::update()
             debug() << "Prepare to update from: " << url.toStdString() << std::endl;
 
     QFileInfo urlInfo(url);
+    fileName = urlInfo.fileName();
 
     // Ask for update
     QString title = tr("%1 available").arg(urlInfo.completeBaseName());
@@ -120,7 +176,6 @@ void UpdateApplication::update()
         if(! folder.isEmpty())
         {
             // Set complete filename
-            QString fileName = urlInfo.fileName();
             QString completeFileName = folder + "/" + fileName;
             if(QFile::exists(completeFileName))
             {
@@ -137,7 +192,7 @@ void UpdateApplication::update()
 
             // Create file
             file = new QFile(completeFileName);
-            info = QFileInfo((*file));
+            info.setFile(*file);
 
             // Check if we can write file
             if(!file->open(QIODevice::WriteOnly))
@@ -151,20 +206,31 @@ void UpdateApplication::update()
                 return;
             }
 
-            downloadRequestAborted = false;
-
-            // Start update
-            start();
+            update();
         }
+        else
+        {
+            // Close update
+            updating = false;
+            close();
+        }
+    }
+    else
+    {
+        // Close update
+        updating = false;
+        close();
     }
 }
 
 
-void UpdateApplication::start()
+void UpdateApplication::update()
 // ----------------------------------------------------------------------------
-//    Start update
+//    Launch update
 // ----------------------------------------------------------------------------
 {
+    downloadRequestAborted = false;
+
     // Start timer
     downloadTime.start();
 
@@ -189,6 +255,18 @@ void UpdateApplication::start()
 }
 
 
+void UpdateApplication::readIniFile()
+{
+    // Read ini file to get version and path of latest update
+    QString iniPath = QDir::temp().absolutePath() + "/update.ini";
+    QSettings settings(iniPath, QSettings::IniFormat);
+    settings.beginGroup(system + " - " + edition);
+    version = settings.value("version", "").toDouble();
+    url     = settings.value("url", "").toString();
+    settings.endGroup();
+}
+
+
 void UpdateApplication::processCheckForUpdate()
 // ----------------------------------------------------------------------------
 //    Process to check for update
@@ -207,24 +285,16 @@ void UpdateApplication::processCheckForUpdate()
     file->flush();
     file->close();
 
-    // Read update.ini file to get version and path of latest update
-    QString inipath = QDir::temp().absolutePath() + "/update.ini";
-    QSettings settings(inipath, QSettings::IniFormat);
-    version = settings.value("version", "").toDouble();
-    settings.beginGroup(system + " - " + edition);
-    url = settings.value("url", "").toString();
-    settings.endGroup();
+    // Read update.ini file
+    readIniFile();
 
-    // Delete reply and remove file
+    // Remove file and delete reply
     disconnect(reply, SIGNAL(finished()), this,
                SLOT(processCheckForUpdate()));
-    reply->deleteLater();
-    reply = NULL;
     file->remove();
-    delete file;
-    file = NULL;
+    close();
 
-    // Get current version
+    // Get current version of Tao
     QString ver = GITREV;
     QRegExp rxp("([^-]*)");
     rxp.indexIn(ver);
@@ -237,10 +307,13 @@ void UpdateApplication::processCheckForUpdate()
     bool upToDate = (current >= version);
     if(!upToDate)
     {
-        update();
+        // Start update
+        start();
     }
     else
     {
+        updating = false;
+
         QString title = tr("No update available");
         QString msg = tr("Tao Presentations %1 is up-to-date.")
                       .arg(edition);
@@ -265,13 +338,13 @@ void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal
     double speed = bytesReceived * 1000.0 / downloadTime.elapsed();
     QString unit;
     if (speed < 1024) {
-        unit = "bytes/sec";
+        unit = tr("bytes/sec");
     } else if (speed < 1024*1024) {
         speed /= 1024;
-        unit = "kB/s";
+        unit = tr("kB/s");
     } else {
         speed /= 1024*1024;
-        unit = "MB/s";
+        unit = tr("MB/s");
     }
 
     // Update progress dialog
@@ -289,7 +362,7 @@ void UpdateApplication::cancelDownload()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Download aborted" << std::endl;
+            debug() << "Abort download" << std::endl;
 
     // Abort download
     downloadRequestAborted = true;
@@ -316,22 +389,13 @@ void UpdateApplication::downloadFinished()
 //    Finish download
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(update)
-            debug() << "Download finished" << std::endl;
-
     dialog->hide();
+    updating = false;
 
     // Case of download aborted
     if(downloadRequestAborted)
     {
-        if(file)
-        {
-            file->close();
-            file->remove();
-            delete file;
-            file = NULL;
-        }
-        reply->deleteLater();
+        close();
         return;
     }
 
@@ -355,12 +419,7 @@ void UpdateApplication::downloadFinished()
     }
 
     // Close I/O
-    file->flush();
-    file->close();
-    reply->deleteLater();
-    reply = NULL;
-    delete file;
-    file = NULL;
+    close();
 }
 
 

@@ -28,6 +28,7 @@
 #include "dde_widget.h"
 #endif
 #include "update_application.h"
+#include "qtlocalpeer.h"
 #include <QApplication>
 #include <QDir>
 #include <QStringList>
@@ -82,7 +83,6 @@ public:
     void           addUrlCompletion(QString url);
     bool           processCommandLine();
     Window *       findFirstTaoWindow();
-    void           loadUri(QString uri);
     void           blockScreenSaver(bool block);
     void           enableVSync(bool on);
 
@@ -90,6 +90,7 @@ signals:
     void           allWindowsReady();
 
 public slots:
+    void           loadUri(QString uri);
     void           saveDebugTraceSettings();
     void           checkingModule(QString name);
     void           updatingModule(QString name);
@@ -101,6 +102,7 @@ protected:
     void           loadFonts();
     void           checkModules();
     virtual bool   event(QEvent *e);
+    bool           initSingleInstance();
 
 protected slots:
     void           cleanup();
@@ -159,6 +161,7 @@ private:
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;
 #endif
+    QtLocalPeer *peer;
 };
 
 #define TaoApp  ((Application *) qApp)

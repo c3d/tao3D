@@ -96,7 +96,7 @@ Application::Application(int & argc, char ** argv)
       splash(NULL),
       pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), doNotEnterEventLoop(false),
-      appInitialized(false)
+      appInitialized(false), peer(NULL)
 {
 #if defined(Q_OS_WIN32)
     // DDEWidget handles file/URI open request from the system (double click on
@@ -233,6 +233,10 @@ Application::Application(int & argc, char ** argv)
             ::exit(1);
     }
 #endif
+
+    // Possibly run in client/server mode (a single instance of Tao)
+    if (arguments().contains("--one-instance"))
+        initSingleInstance();
 
     // Show splash screen
     if (showSplash)
@@ -645,6 +649,9 @@ void Application::loadUri(QString uri)
 //   Create a new window to load a document from a Tao URI
 // ----------------------------------------------------------------------------
 {
+    IFTRACE2(ipc, fileload)
+        std::cerr << "Opening '" << +uri << "'\n";
+
     if (!appInitialized)
     {
         // Event delivered before Application constructor could complete.
@@ -1384,4 +1391,55 @@ void Application::addUrlCompletion(QString url)
 }
 
 
+bool Application::initSingleInstance()
+// ----------------------------------------------------------------------------
+//    Start as a server, or send file/URI to existing server and exit
+// ----------------------------------------------------------------------------
+{
+    QString id;
+    if (char *env = getenv("TAO_INSTANCE"))
+        id = QString::fromLocal8Bit(env);
+
+    peer = new QtLocalPeer(this, id);
+    if (peer->isClient())
+    {
+        IFTRACE(ipc)
+            std::cerr << "Starting as client (instance id '" << +id << "')\n";
+        foreach (QString arg, arguments())
+        {
+            if (QFileInfo(arg) == QFileInfo(applicationFilePath()))
+                continue;
+
+            if (!arg.startsWith("-"))
+            {
+                // Assume file path or URI. Make relative paths absolute.
+                if (!arg.contains("://") &&
+                    !QFileInfo(arg).isAbsolute())
+                    arg = startDir + "/" + arg;
+
+                IFTRACE(ipc)
+                    std::cerr << "Sending to server: '" << +arg << "'\n";
+                if (!peer->sendMessage(arg, 10000))
+                {
+                    IFTRACE(ipc)
+                        std::cerr << "Failed, proceeding with file open\n";
+                    return false;
+                }
+                IFTRACE(ipc)
+                    std::cerr << "Command sent, exiting\n";
+                ::exit(0);
+            }
+        }
+        std::cerr << "No file or URI found on command line\n";
+        ::exit(1);
+    }
+    else
+    {
+        IFTRACE(ipc)
+            std::cerr << "Starting as server (instance id '" << +id << "')\n";
+        connect(peer, SIGNAL(messageReceived(QString)),
+                this, SLOT(loadUri(QString)));
+    }
+    return true;
+}
 }

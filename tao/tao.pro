@@ -104,6 +104,8 @@ HEADERS +=     activity.h \
     preferences_dialog.h \
     preferences_pages.h \
     process.h \
+    qtlocalpeer.h \
+    qtlockedfile.h \
     raster_text.h \
     render_to_file_dialog.h \
     repository.h \
@@ -181,6 +183,8 @@ SOURCES +=     activity.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     process.cpp \
+    qtlocalpeer.cpp \
+    qtlockedfile.cpp \
     raster_text.cpp \
     render_to_file_dialog.cpp \
     repository.cpp \
@@ -209,7 +213,11 @@ SOURCES +=     activity.cpp \
 
 win32 {
     HEADERS += dde_widget.h
-    SOURCES += dde_widget.cpp
+    SOURCES += dde_widget.cpp qtlockedfile_win.cpp
+}
+
+unix {
+    SOURCES += qtlockedfile_unix.cpp
 }
 
 # Check compile-time options

@@ -10133,6 +10133,8 @@ Tree_p Widget::colorChooser(Tree_p self, text treeName, Tree_p action)
     colorAction = action;
     colorName = treeName;
 
+    if (!colorAction->Symbols())
+        colorAction->SetSymbols(self->Symbols());
     // Setup the color dialog
     colorDialog = new QColorDialog(this);
     colorDialog->setObjectName("colorDialog");
@@ -10237,7 +10239,7 @@ void Widget::updateColorDialog()
 
 
 QFontDialog *Widget::fontDialog = NULL;
-Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
+Tree_p Widget::fontChooser(Tree_p self, text name, Tree_p action)
 // ----------------------------------------------------------------------------
 //   Draw a font chooser
 // ----------------------------------------------------------------------------
@@ -10258,6 +10260,8 @@ Tree_p Widget::fontChooser(Tree_p self, Tree_p action)
     fontDialog->setOption(QFontDialog::NoButtons, true);
     fontDialog->setOption(QFontDialog::DontUseNativeDialog, false);
     fontDialog->setModal(false);
+    if (!name.empty())
+        selectionFont = QFont(+name);
     updateFontDialog();
 
     fontDialog->show();
@@ -10312,110 +10316,6 @@ void Widget::updateFontDialog()
     if (!fontDialog)
         return;
     fontDialog->setCurrentFont(selectionFont);
-}
-
-
-Tree_p Widget::colorChooser(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h,
-                            Tree_p action)
-// ----------------------------------------------------------------------------
-//   Draw a color chooser
-// ----------------------------------------------------------------------------
-{
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-
-    colorChooserTexture(self, w, h, action);
-
-    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
-    if (currentShape)
-        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
-    return XL::xl_true;
-}
-
-
-Integer* Widget::colorChooserTexture(Tree_p self,
-                                   double w, double h, Tree_p action)
-// ----------------------------------------------------------------------------
-//   Make a texture out of a given color chooser
-// ----------------------------------------------------------------------------
-{
-    if (w < 16) w = 16;
-    if (h < 16) h = 16;
-
-    // Get or build the current frame if we don't have one
-    ColorChooserSurface *surface = self->GetInfo<ColorChooserSurface>();
-    if (!surface)
-    {
-        surface = new ColorChooserSurface(self, this, action);
-        self->SetInfo<ColorChooserSurface> (surface);
-    }
-
-    // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-
-    return new Integer(texId, self->Position());
-}
-
-
-Tree_p Widget::fontChooser(Tree_p self,
-                           Real_p x, Real_p y, Real_p w, Real_p h,
-                           Tree_p action)
-// ----------------------------------------------------------------------------
-//   Draw a color chooser
-// ----------------------------------------------------------------------------
-{
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-
-    fontChooserTexture(self, w, h, action);
-
-    FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
-    if (currentShape)
-        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
-    return XL::xl_true;
-}
-
-
-Integer* Widget::fontChooserTexture(Tree_p self, double w, double h,
-                                  Tree_p action)
-// ----------------------------------------------------------------------------
-//   Make a texture out of a given color chooser
-// ----------------------------------------------------------------------------
-{
-    if (w < 16) w = 16;
-    if (h < 16) h = 16;
-
-    // Get or build the current frame if we don't have one
-    FontChooserSurface *surface = self->GetInfo<FontChooserSurface>();
-    if (!surface)
-    {
-        surface = new FontChooserSurface(self, this, action);
-        self->SetInfo<FontChooserSurface> (surface);
-    }
-
-    // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-
-    return new Integer(texId, self->Position());
 }
 
 
@@ -10602,60 +10502,6 @@ void Widget::fileChosen(const QString & filename)
     // Evaluate the input tree
     TaoSave saveCurrent(current, this);
     XL::MAIN->context->Evaluate(toBeEvaluated);
-}
-
-
-Tree_p Widget::fileChooser(Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
-                           Tree_p properties)
-// ----------------------------------------------------------------------------
-//   Draw a file chooser in the GL widget
-// ----------------------------------------------------------------------------
-{
-    XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-
-    fileChooserTexture(self, w, h, properties);
-
-    FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
-    if (currentShape)
-        layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
-    return XL::xl_true;
-}
-
-
-Integer* Widget::fileChooserTexture(Tree_p self, double w, double h,
-                                  Tree_p properties)
-// ----------------------------------------------------------------------------
-//   Make a texture out of a given file chooser
-// ----------------------------------------------------------------------------
-{
-    if (w < 16) w = 16;
-    if (h < 16) h = 16;
-
-    // Get or build the current frame if we don't have one
-    FileChooserSurface *surface = self->GetInfo<FileChooserSurface>();
-    if (!surface)
-    {
-        surface = new FileChooserSurface(self, this);
-        self->SetInfo<FileChooserSurface> (surface);
-    }
-    currentFileDialog = (QFileDialog *)surface->widget;
-
-    updateFileDialog(properties, self);
-
-    // Resize to requested size, and bind texture
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
-    layout->Add(new FillTexture(texId));
-    layout->hasAttributes = true;
-
-    return new Integer(texId, self->Position());
 }
 
 

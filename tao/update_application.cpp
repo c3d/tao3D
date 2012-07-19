@@ -53,8 +53,10 @@ UpdateApplication::UpdateApplication()
            system += " 32";
    }
 #endif
+    // Create network manager
+    manager = new QNetworkAccessManager();
 
-    // Create a message box to display download progress
+    // Create a dialog to display download progress
     dialog = new QProgressDialog();
 }
 
@@ -86,8 +88,8 @@ void UpdateApplication::check(bool msg)
 
     // Sent request
     QNetworkRequest request(url);
-    reply = manager.get(request);
-    connect(reply, SIGNAL(finished()), this, SLOT(processCheckForUpdate()));
+    reply = manager->get(request);
+    connect(reply, SIGNAL(finished()), this, SLOT(processCheckForUpdate()), Qt::UniqueConnection);
 }
 
 
@@ -125,7 +127,8 @@ void UpdateApplication::update()
                 ret = QMessageBox::question(NULL, tr("File existing"),
                                             tr("There already exists a file called %1 in "
                                                "the specified directory. Overwrite it?").arg(fileName),
-                                            QMessageBox::Yes|QMessageBox::No, QMessageBox::No);
+                                            QMessageBox::Yes|QMessageBox::No,
+                                            QMessageBox::No);
                 if(ret == QMessageBox::No)
                     return;
 
@@ -141,7 +144,8 @@ void UpdateApplication::update()
             {
                 QMessageBox::information(NULL, "Update failed",
                                          tr("Unable to save the file %1: %2.")
-                                         .arg(completeFileName).arg(file->errorString()));
+                                         .arg(completeFileName)
+                                         .arg(file->errorString()));
                 delete file;
                 file = NULL;
                 return;
@@ -167,17 +171,21 @@ void UpdateApplication::start()
     IFTRACE(update)
             debug() << "Start update from " << url.toStdString() << std::endl;
 
-    // Sent request
+    // Create request
     QUrl tmp(url);
     QNetworkRequest request(tmp);
-    reply = manager.get(request);
-    connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
-    connect(reply, SIGNAL(readyRead()), this, SLOT(downloadReadyRead()));
-    connect(reply, SIGNAL(downloadProgress(qint64,qint64)), this, SLOT(downloadProgress(qint64,qint64)));
-    connect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
 
-    // Show progress dialog
-    dialog->exec();
+    // Set a own user-agent as QT default user agent
+    // gets rejected (known issue).
+    request.setRawHeader("User-Agent", "Tao Presentations");
+
+    // Send request
+    reply = manager->get(request);
+    connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()),
+            Qt::UniqueConnection);
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
+            this, SLOT(downloadProgress(qint64,qint64)));
+    connect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
 }
 
 
@@ -208,7 +216,8 @@ void UpdateApplication::processCheckForUpdate()
     settings.endGroup();
 
     // Delete reply and remove file
-    disconnect(reply, SIGNAL(finished()), this, SLOT(processCheckForUpdate()));
+    disconnect(reply, SIGNAL(finished()), this,
+               SLOT(processCheckForUpdate()));
     reply->deleteLater();
     reply = NULL;
     file->remove();
@@ -233,7 +242,8 @@ void UpdateApplication::processCheckForUpdate()
     else
     {
         QString title = tr("No update available");
-        QString msg = tr("Tao Presentations %1 is up-to-date.").arg(edition);
+        QString msg = tr("Tao Presentations %1 is up-to-date.")
+                      .arg(edition);
         QMessageBox::information(NULL, title, msg);
     }
 }
@@ -244,6 +254,10 @@ void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal
 //    Update progress bar
 // ----------------------------------------------------------------------------
 {
+    // Show progress dialog
+    if(dialog->isHidden())
+        dialog->show();
+
     if(downloadRequestAborted)
         return;
 
@@ -305,7 +319,6 @@ void UpdateApplication::downloadFinished()
     IFTRACE(update)
             debug() << "Download finished" << std::endl;
 
-    // Hide progress dialog
     dialog->hide();
 
     // Case of download aborted
@@ -325,7 +338,8 @@ void UpdateApplication::downloadFinished()
     if(reply->error())
     {
         //Download failed
-        QMessageBox::information(NULL, "Download failed", tr("Failed: %1").arg(reply->errorString()));
+        QMessageBox::information(NULL, "Download failed",
+                                 tr("Failed: %1").arg(reply->errorString()));
     }
     else
     {
@@ -335,7 +349,8 @@ void UpdateApplication::downloadFinished()
         // Write file
         downloadReadyRead();
 
-        QString msg = tr("Download of %1 successfull (saved to %2)\n").arg(info.completeBaseName()).arg(info.path());
+        QString msg = tr("Download of %1 successfull (saved to %2)\n")
+                      .arg(info.completeBaseName()).arg(info.path());
         QMessageBox::information(NULL, tr("Download successfull"), msg);
     }
 
@@ -357,7 +372,6 @@ std::ostream & UpdateApplication::debug()
     std::cerr << "[Update] ";
     return std::cerr;
 }
-
 
 
 }

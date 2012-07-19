@@ -72,7 +72,7 @@ private:
 
     QProgressDialog*       dialog;
     QNetworkReply*         reply;
-    QNetworkAccessManager  manager;
+    QNetworkAccessManager* manager;
     QTime                  downloadTime;
     bool                   downloadRequestAborted;
 };

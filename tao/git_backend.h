@@ -101,12 +101,12 @@ public:
 
 public:
     static  bool        checkGit();
+    static  QString     resolveExePath(QString cmd);
 
 protected:
     static  bool        checkGitCmd();
     static  bool        checkCmd(QString cmd, QString var, QString &out);
     static  QString     checkExe(QString cmd);
-    static  QString     resolveExePath(QString cmd);
     static  bool        showGitSelectionDialog();
 
 signals:

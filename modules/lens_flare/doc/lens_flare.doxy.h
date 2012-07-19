@@ -22,7 +22,7 @@
  * than the built-in form @ref sun_flare(sx:real, sy:real, sz:real, tx:real, ty:real, tz:real).
  * @include lens_flare.ddd
  *
- * @image html lens_flare.png "Output from lens_flare.ddd"
+ * @image html lens_flare.png "Lens flare effect"
  *
  *
  * @note In order to use correctly the depth test, the lens flare have to be drawn after the others elements.

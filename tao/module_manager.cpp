@@ -1262,9 +1262,10 @@ double ModuleManager::parseVersion(text versionId)
 //    Parse the text form of version numbers
 // ----------------------------------------------------------------------------
 {
-    double ver = -1.0;
-    kstring sver = versionId.c_str();
-    sscanf(sver, "%lf", &ver);
+    bool ok = false;
+    double ver = QLocale(QLocale::C).toFloat(+versionId, &ok);
+    if (!ok)
+        return -1.0;
     return ver;
 }
 

@@ -158,9 +158,10 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 // ----------------------------------------------------------------------------
 {
     TextureName name(img, docPath);
-    if (!fromName.contains(name))
+    CachedTexture * cached = fromName.value(name);
+    if (!cached)
     {
-        CachedTexture * cached = new CachedTexture(*this, img, docPath,
+        cached = new CachedTexture(*this, img, docPath,
                                                    mipmap, compress);
         GLuint id = cached->id;
         fromId[id] = fromName[name] = cached;
@@ -174,10 +175,9 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
             insert(cached, GL_LRU);
         }
         printStatistics();
-        return cached;
     }
 
-    return fromName[name];
+    return cached;
 }
 
 
@@ -186,11 +186,9 @@ CachedTexture * TextureCache::bind(GLuint id)
 //   Bind GL texture if it exists and return object
 // ----------------------------------------------------------------------------
 {
-    if (!fromId.contains(id))
-        return 0;
-
-    CachedTexture * cached = fromId[id];
-    Q_ASSERT(cached);
+    CachedTexture * cached = fromId.value(id);
+    if (!cached)
+        return NULL;
 
     if (!cached->transferred())
     {
@@ -221,6 +219,38 @@ CachedTexture * TextureCache::bind(GLuint id)
     relink(cached, GL_LRU);
     cached->bind();
     return cached;
+}
+
+
+void TextureCache::setMinMagFilters(GLuint id)
+// ----------------------------------------------------------------------------
+//   Set GL texture filters to the values currently configured in cache
+// ----------------------------------------------------------------------------
+{
+    setMinFilter(id, minFilter());
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
+}
+
+
+void TextureCache::setMinFilter(GLuint id, GLenum filter)
+// ----------------------------------------------------------------------------
+//   Set GL texture minifying filter for texture 'id'
+// ----------------------------------------------------------------------------
+{
+    CachedTexture * cached = fromId[id];
+    Q_ASSERT(cached);
+
+    if ( !cached->mipmap &&
+         (filter == GL_NEAREST_MIPMAP_NEAREST ||
+          filter == GL_LINEAR_MIPMAP_NEAREST  ||
+          filter == GL_NEAREST_MIPMAP_LINEAR  ||
+          filter == GL_LINEAR_MIPMAP_LINEAR))
+    {
+        // Fallback to GL_LINEAR when a mipmap filter is requested but texture
+        // was not loaded with mipmapping enabled
+        filter = GL_LINEAR;
+    }
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
 
 
@@ -259,7 +289,7 @@ void TextureCache::purgeGLMem()
 
         CachedTexture * tex = GL_LRU.last->tex;
         unlink(tex, GL_LRU);
-        tex->purge();
+        tex->purgeGL();
 
         Q_ASSERT(GLSize >= 0);
     }
@@ -286,6 +316,20 @@ void TextureCache::clear()
     }
     Q_ASSERT(fromId.isEmpty());
     Q_ASSERT(fromName.isEmpty());
+}
+
+
+void TextureCache::purge()
+// ----------------------------------------------------------------------------
+//   Purge all textures in cache (free memory but keep texture id valid)
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(texturecache)
+        debug() << "Purging\n";
+
+    QList<GLuint> ids = fromId.keys();
+    foreach (GLuint id, ids)
+        fromId[id]->purge();
 }
 
 
@@ -392,7 +436,7 @@ CachedTexture::~CachedTexture()
 //   Delete texture
 // ----------------------------------------------------------------------------
 {
-    clear();
+    purge();
     glDeleteTextures(1, &id);
 }
 
@@ -403,6 +447,10 @@ void CachedTexture::load()
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(!loaded());
+
+    // Update load parameters (in case cache settings changed)
+    mipmap = cache.mipmap;
+    compress = cache.compress;
 
     QString p(findPath());
     if (p != "")
@@ -455,7 +503,7 @@ void CachedTexture::unload()
 }
 
 
-void CachedTexture::clear()
+void CachedTexture::purge()
 // ----------------------------------------------------------------------------
 //   Remove texture data from memory and GL memory
 // ----------------------------------------------------------------------------
@@ -463,7 +511,7 @@ void CachedTexture::clear()
     if (loaded())
         unload();
     if (transferred())
-        purge();
+        purgeGL();
 }
 
 
@@ -481,7 +529,7 @@ void CachedTexture::transfer()
 
     int before = image.byteCount();
 
-    bool copiedCompressed = false;
+    bool copiedCompressed = false, didNotCompress = false;
     int copiedSize = 0;
 
     if (compress)
@@ -528,14 +576,22 @@ void CachedTexture::transfer()
                                          GL_TEXTURE_COMPRESSED_IMAGE_SIZE,
                                          &cmpsz);
 
-            if (cacheCompressed && cmpsz)
+            if (cacheCompressed)
             {
-                // Cache compressed data for next time
-                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
-                                         GL_TEXTURE_INTERNAL_FORMAT,
-                                         &image.fmt);
-                glGetCompressedTexImage(GL_TEXTURE_2D, 0,
-                                        image.allocateCompressed(cmpsz));
+                if (cmp && cmpsz)
+                {
+                    // Cache compressed data for next time
+                    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
+                                             GL_TEXTURE_INTERNAL_FORMAT,
+                                             &image.fmt);
+                    glGetCompressedTexImage(GL_TEXTURE_2D, 0,
+                                            image.allocateCompressed(cmpsz));
+                }
+                else
+                {
+                    // We will not try to compress this one again
+                    didNotCompress = true;
+                }
             }
 
             GLsize = cmpsz;
@@ -588,12 +644,21 @@ void CachedTexture::transfer()
                     << " Mem\n";
         cache.memSize -= saved;
     }
+    else
+    {
+        if (compress && didNotCompress)
+        {
+            IFTRACE(texturecache)
+                debug() << "GL did not compress - will not ask again\n";
+            compress = false;
+        }
+    }
 
     cache.GLSize += GLsize;
 }
 
 
-void CachedTexture::purge()
+void CachedTexture::purgeGL()
 // ----------------------------------------------------------------------------
 //   Remove texture data from GL memory, keep texture ID, update cached size
 // ----------------------------------------------------------------------------
@@ -699,7 +764,7 @@ void CachedTexture::checkFile()
     {
         IFTRACE(texturecache)
             debug() << "Reloading\n";
-        clear();
+        purge();
         load();
         transfer();
     }

@@ -708,17 +708,15 @@ void Layout::PushLayout(Layout *where)
     // Check if the group was opened. If so, update OpenGL name
     if (id & Widget::SELECTION_MASK)
     {
-        if (uint groupId = id)
-        {
-            Widget *widget = where->Display();
-            widget->selectionContainerPush();
-            
-            uint open = widget->selected(id);
-            if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
-                groupId = (groupId & ~Widget::SELECTION_MASK)
-                    | Widget::CONTAINER_OPENED;
-            glPushName(groupId);
-        }
+        uint groupId = id;
+        Widget *widget = where->Display();
+        widget->selectionContainerPush();
+
+        uint open = widget->selected(id);
+        if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
+            groupId = (groupId & ~Widget::SELECTION_MASK)
+                | Widget::CONTAINER_OPENED;
+        glPushName(groupId);
     }
 }
 

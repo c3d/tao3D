@@ -395,15 +395,18 @@ void UpdateApplication::downloadFinished()
     // Case of download aborted
     if(downloadRequestAborted)
     {
+        file->remove();
         close();
         return;
     }
 
     if(reply->error())
     {
-        //Download failed
+        // Download failed
         QMessageBox::information(NULL, "Download failed",
                                  tr("Failed: %1").arg(reply->errorString()));
+        // Remove file
+        file->remove();
     }
     else
     {

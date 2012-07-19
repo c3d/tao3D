@@ -135,7 +135,6 @@ public slots:
     void        colorRejected();
     void        updateColorDialog();
     void        fontChosen(const QFont &);
-    void        fontChanged(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
     void        fileChosen(const QString & filename);

@@ -10255,8 +10255,6 @@ Tree_p Widget::fontChooser(Tree_p self, text name, Tree_p action)
     fontDialog->setObjectName("fontDialog");
     connect(fontDialog, SIGNAL(fontSelected (const QFont&)),
             this, SLOT(fontChosen(const QFont &)));
-    connect(fontDialog, SIGNAL(currentFontChanged (const QFont&)),
-            this, SLOT(fontChanged(const QFont &)));
 
     fontDialog->setOption(QFontDialog::NoButtons, true);
     fontDialog->setOption(QFontDialog::DontUseNativeDialog, false);
@@ -10275,15 +10273,6 @@ Tree_p Widget::fontChooser(Tree_p self, text name, Tree_p action)
 
 
 void Widget::fontChosen(const QFont& ft)
-// ----------------------------------------------------------------------------
-//    A font was selected. Evaluate the action.
-// ----------------------------------------------------------------------------
-{
-    fontChanged(ft);
-}
-
-
-void Widget::fontChanged(const QFont& ft)
 // ----------------------------------------------------------------------------
 //    A font was selected. Evaluate the action.
 // ----------------------------------------------------------------------------

@@ -21,9 +21,6 @@ OPTION(autocommit, "Interval for automatic commit in milliseconds",
 OPTION(autopull, "Interval for automatic pull in milliseconds",
        pull_interval = INTEGER(1000, 100000))
 
-OPTVAR(prefer_opengl, bool, false)
-OPTION(opengl, "Prefer OpenGL for rendering", prefer_opengl = true)
-
 OPTION(nosplash, "Disable splash screen", ;)
 
 OPTVAR(slideshow, bool, false)

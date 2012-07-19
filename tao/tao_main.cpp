@@ -80,12 +80,6 @@ int main(int argc, char **argv)
     win_redirect_io();
 #endif
 
-    // We need to brute-force option parsing here, the OpenGL choice must
-    // be made before calling the QApplication constructor...
-    for (int a = 1; a < argc; a++)
-        if (text(argv[a]) == "-gl")
-            QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
-
     // Initialize and run the Tao application
     int ret = 0;
     {

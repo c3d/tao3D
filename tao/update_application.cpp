@@ -16,6 +16,12 @@
 namespace Tao {
 
 
+// ============================================================================
+//
+//                      Update Application
+//
+// ============================================================================
+
 UpdateApplication::UpdateApplication() : updating(false)
 // ----------------------------------------------------------------------------
 //    Constructor
@@ -53,6 +59,7 @@ UpdateApplication::UpdateApplication() : updating(false)
            system += " 32";
    }
 #endif
+
     // Create network manager
     manager = new QNetworkAccessManager();
 
@@ -63,10 +70,10 @@ UpdateApplication::UpdateApplication() : updating(false)
 
 
 UpdateApplication::~UpdateApplication()
+// ----------------------------------------------------------------------------
+//    Destructor
+// ----------------------------------------------------------------------------
 {
-    IFTRACE(update)
-            debug() << "Delete update application" << std::endl;
-
     close();
 
     // Delete manager
@@ -76,10 +83,16 @@ UpdateApplication::~UpdateApplication()
     // Delete dialog
     dialog->deleteLater();
     dialog = NULL;
+
+    IFTRACE(update)
+            debug() << "Delete update application" << std::endl;
 }
 
 
 void UpdateApplication::close()
+// ----------------------------------------------------------------------------
+//    Close update
+// ----------------------------------------------------------------------------
 {
     IFTRACE(update)
             debug() << "Close update" << std::endl;
@@ -111,6 +124,9 @@ void UpdateApplication::close()
 
 
 void UpdateApplication::check(bool msg)
+// ----------------------------------------------------------------------------
+//    Check for new update
+// ----------------------------------------------------------------------------
 {    
     if(! updating)
     {
@@ -118,7 +134,8 @@ void UpdateApplication::check(bool msg)
         QUrl url("http://localhost/update.ini");
 
         IFTRACE(update)
-                debug() << "Check for update from " <<  url.toString().toStdString() << std::endl;
+                debug() << "Check for update from " <<  url.toString().toStdString()
+                        << std::endl;
 
         // Set complete filename
         QString filename = QDir::temp().absolutePath() + "/update.ini";
@@ -142,8 +159,8 @@ void UpdateApplication::check(bool msg)
         // Sent request
         QNetworkRequest request(url);
         reply = manager->get(request);
-        connect(reply, SIGNAL(finished()), this, SLOT(processCheckForUpdate()), Qt::UniqueConnection);
-
+        connect(reply, SIGNAL(finished()), this,
+                SLOT(processCheckForUpdate()), Qt::UniqueConnection);
     }
 }
 
@@ -154,10 +171,15 @@ void UpdateApplication::start()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Prepare to update from: " << url.toStdString() << std::endl;
+            debug() << "Prepare to update from: " << url.toStdString()
+                    << std::endl;
 
     QFileInfo urlInfo(url);
-    fileName = urlInfo.fileName();
+
+    // If a filename is set in the ini file, use it
+    // Otherwise use filename of the url
+    if(fileName.isEmpty())
+        fileName = urlInfo.fileName();
 
     // Ask for update
     QString title = tr("%1 available").arg(urlInfo.completeBaseName());
@@ -185,7 +207,11 @@ void UpdateApplication::start()
                                             QMessageBox::Yes|QMessageBox::No,
                                             QMessageBox::No);
                 if(ret == QMessageBox::No)
+                {
+                    close();
+                    updating = false;
                     return;
+                }
 
                 QFile::remove(completeFileName);
             }
@@ -201,9 +227,10 @@ void UpdateApplication::start()
                                          tr("Unable to save the file %1: %2.")
                                          .arg(completeFileName)
                                          .arg(file->errorString()));
-                delete file;
-                file = NULL;
+                close();
+                updating = false;
                 return;
+
             }
 
             update();
@@ -235,14 +262,16 @@ void UpdateApplication::update()
     downloadTime.start();
 
     IFTRACE(update)
-            debug() << "Start update from " << url.toStdString() << std::endl;
+            debug() << "Update from " << url.toStdString()
+                    << " to " << file->fileName().toStdString()
+                    << std::endl;
 
     // Create request
     QUrl tmp(url);
     QNetworkRequest request(tmp);
 
     // Set a own user-agent as QT default user agent
-    // gets rejected (known issue).
+    // gets rejected (QT known issue).
     request.setRawHeader("User-Agent", "Tao Presentations");
 
     // Send request
@@ -256,13 +285,19 @@ void UpdateApplication::update()
 
 
 void UpdateApplication::readIniFile()
+// ----------------------------------------------------------------------------
+//    Parse update.ini file
+// ----------------------------------------------------------------------------
 {
-    // Read ini file to get version and path of latest update
+    // Read ini file
     QString iniPath = QDir::temp().absolutePath() + "/update.ini";
     QSettings settings(iniPath, QSettings::IniFormat);
-    settings.beginGroup(system + " - " + edition);
+
+    // Get version, name and path of latest update
     version = settings.value("version", "").toDouble();
-    url     = settings.value("url", "").toString();
+    settings.beginGroup(system + " - " + edition);
+    fileName = settings.value("filename", "").toString();
+    url      = settings.value("url", "").toString();
     settings.endGroup();
 }
 
@@ -376,7 +411,8 @@ void UpdateApplication::downloadReadyRead()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Write file to " << info.path().toStdString() << std::endl;
+            debug() << "Write file to " << info.path().toStdString()
+                    << std::endl;
 
     // Write file from reply
     if(file)
@@ -402,9 +438,13 @@ void UpdateApplication::downloadFinished()
 
     if(reply->error())
     {
+        IFTRACE(update)
+                debug() << "Download failed: " << reply->errorString().toStdString()
+                        << std::endl;
+
         // Download failed
         QMessageBox::information(NULL, "Download failed",
-                                 tr("Failed: %1").arg(reply->errorString()));
+                                 tr("Download failed: %1").arg(reply->errorString()));
         // Remove file
         file->remove();
     }

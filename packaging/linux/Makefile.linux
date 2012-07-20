@@ -65,7 +65,7 @@ debian:
 	ln -sf $(INSTROOT)/tao debian/usr/bin/tao
 	mkdir -p debian/usr/share/applications
 	cp taopresentations.desktop debian/usr/share/applications
-	chmod 0755 debian/usr/share/applications/taopresentations.desktop
+	chmod 0644 debian/usr/share/applications/taopresentations.desktop
 	mkdir -p debian/usr/share/icons/hicolor/scalable/apps
 	cp taopresentations.svg debian/usr/share/icons/hicolor/scalable/apps
 	mkdir -p debian/usr/share/mime/packages

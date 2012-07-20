@@ -1,3 +1,23 @@
+// ****************************************************************************
+//  update_application.cpp                                            Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Update Tao application.
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//  (C) 2012 Taodyne SAS
+// ****************************************************************************
 #include "update_application.h"
 #include "tree.h"
 #include "tao_tree.h"
@@ -60,12 +80,18 @@ UpdateApplication::UpdateApplication() : updating(false)
    }
 #endif
 
-    // Create network manager
-    manager = new QNetworkAccessManager();
+   // Get current version of Tao
+   QString ver = GITREV;
+   QRegExp rxp("([^-]*)");
+   rxp.indexIn(ver);
+   version = rxp.cap(1).toDouble();
 
-    // Create a dialog to display download progress
-    dialog = new QProgressDialog();
-    dialog->setWindowTitle(tr("New update available"));
+   // Create network manager
+   manager = new QNetworkAccessManager();
+
+   // Create a dialog to display download progress
+   dialog = new QProgressDialog();
+   dialog->setWindowTitle(tr("New update available"));
 }
 
 
@@ -272,7 +298,8 @@ void UpdateApplication::update()
 
     // Set a own user-agent as QT default user agent
     // gets rejected (QT known issue).
-    request.setRawHeader("User-Agent", "Tao Presentations");
+    QString user("Tao Presentations %1");
+    request.setRawHeader("User-Agent", (user.arg(version)).toAscii());
 
     // Send request
     reply = manager->get(request);
@@ -294,7 +321,7 @@ void UpdateApplication::readIniFile()
     QSettings settings(iniPath, QSettings::IniFormat);
 
     // Get version, name and path of latest update
-    version = settings.value("version", "").toDouble();
+    remoteVersion = settings.value("version", "").toDouble();
     settings.beginGroup(system + " - " + edition);
     fileName = settings.value("filename", "").toString();
     url      = settings.value("url", "").toString();
@@ -329,17 +356,11 @@ void UpdateApplication::processCheckForUpdate()
     file->remove();
     close();
 
-    // Get current version of Tao
-    QString ver = GITREV;
-    QRegExp rxp("([^-]*)");
-    rxp.indexIn(ver);
-    double current = rxp.cap(1).toDouble();
-
     IFTRACE(update)
-            debug() << "Remote version is " << version << std::endl;
+            debug() << "Remote version is " << remoteVersion << std::endl;
 
     // Update if current version is older than the remote one
-    bool upToDate = (current >= version);
+    bool upToDate = (version >= remoteVersion);
     if(!upToDate)
     {
         // Start update
@@ -443,7 +464,7 @@ void UpdateApplication::downloadFinished()
                         << std::endl;
 
         // Download failed
-        QMessageBox::information(NULL, "Download failed",
+        QMessageBox::information(NULL, tr("Download failed"),
                                  tr("Download failed: %1").arg(reply->errorString()));
         // Remove file
         file->remove();

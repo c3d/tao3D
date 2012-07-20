@@ -6,7 +6,7 @@
 //
 //   File Description:
 //
-//     Update Tao application.
+//     Define how update Tao application.
 //
 //
 //
@@ -17,9 +17,8 @@
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
-//  (C) 2010 Jerome Forissier <jerome@taodyne.com>
-//  (C) 2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Taodyne SAS
+//  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//  (C) 2012 Taodyne SAS
 // ****************************************************************************
 #include "repository.h"
 #include "process.h"
@@ -66,15 +65,21 @@ private slots:
     std::ostream & debug();
 
 private:
+    // Tao infos
     double                 version;          // Tao version
     QString                edition;          // Tao edition
-    QString                fileName;         // Update fileName
     QString                system;           // Operating system
 
+    // Update infos
+    double                 remoteVersion;    // Remote version
+    QString                fileName;         // Update fileName
     QString                url;
+
+    // I/O
     QFile*                 file;
     QFileInfo              info;
 
+    // Network
     QProgressDialog*       dialog;
     QNetworkReply*         reply;
     QNetworkAccessManager* manager;

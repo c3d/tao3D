@@ -103,8 +103,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NORELOAD
       fileCheckTimer(this),
 #endif
-      splashScreen(NULL), aboutSplash(NULL),
-      deleteOnOpenFailed(false)
+      splashScreen(NULL), aboutSplash(NULL)
 {
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
@@ -401,11 +400,7 @@ void Window::newFile()
 //   Create a new file (either in a new window or in the current one)
 // ----------------------------------------------------------------------------
 {
-#ifdef CFG_MDI
-    if (!needNewWindow())
-#else
     if (maybeSave())
-#endif
     {
         QString fileName = findUnusedUntitledFile();
         XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
@@ -419,14 +414,6 @@ void Window::newFile()
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
     }
-#ifdef CFG_MDI
-    else
-    {
-        Window *other = new Window(xlRuntime, contextFileNames);
-        other->move(x() + 40, y() + 40);
-        other->show();
-    }
-#endif
 }
 
 
@@ -448,6 +435,12 @@ int Window::open(QString fileName, bool readOnly)
 //   1: success
 //   2: don't know yet (asynchronous opening of an URI)
 {
+    if (fileName == curFile)
+        return 1;
+
+    if (fileName == welcomePath())
+        readOnly = true;
+
     bool  isDir = false;
     QString dir;
     if (curFile.startsWith(Application::defaultTaoApplicationFolderPath()))
@@ -488,9 +481,8 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(onModuleUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
-                bool ok = uri->get();  // Will emit a signal when done
-                if (!ok && deleteOnOpenFailed)
-                    deleteLater();
+                if (!uri->get())  // Will emit a signal when done
+                    return 0;
                 return 2;
             }
         }
@@ -530,11 +522,7 @@ int Window::open(QString fileName, bool readOnly)
                              tr("%1: File not found").arg(fileName));
         return 0;
     }
-#ifdef CFG_MDI
-    if (!needNewWindow())
-#else
     if (maybeSave())
-#endif
     {
         if (readOnly)
             isReadOnly = true;
@@ -544,25 +532,19 @@ int Window::open(QString fileName, bool readOnly)
         if (!loadFile(fileName, !isReadOnly))
             return 0;
     }
-#ifdef CFG_MDI
-    else
-    {
-        Window *other = new Window(xlRuntime, contextFileNames, "",
-                                   readOnly);
-        other->move(x() + 40, y() + 40);
-        other->show();
-        other->loadFile(fileName, true);
-
-        if (other->isUntitled)
-        {
-            other->hide();
-            delete other;
-        }
-        return 0;
-    }
-#endif
-    deleteOnOpenFailed = 0;
+    if (fileName == welcomePath())
+            isUntitled = true;  // CHECK
     return 1;
+}
+
+
+QString Window::welcomePath()
+// ----------------------------------------------------------------------------
+//   Path to the "welcome" document
+// ----------------------------------------------------------------------------
+{
+    QFileInfo tutorial("system:welcome/welcome.ddd");
+    return tutorial.canonicalFilePath();
 }
 
 
@@ -838,9 +820,6 @@ bool Window::saveFile(const QString &fileName)
 
     isUntitled = false;
     statusBar()->showMessage(tr("Saving..."));
-    // FIXME: can't call processEvent here, or the "Save with fonts..."
-    // function fails to save all the fonts of a multi-page doc
-    // QApplication::processEvents();
 
     bool needReload = false;
     bool dirChanged = (QFileInfo(fileName).absolutePath() !=
@@ -1290,9 +1269,9 @@ void Window::onUriGetFailed()
 //    Called asynchronously when open() failed to open an URI
 // ----------------------------------------------------------------------------
 {
-    if (deleteOnOpenFailed)
-        deleteLater();
     emit openFinished(false);
+    open(welcomePath());
+    show();
 }
 
 
@@ -1303,8 +1282,9 @@ void Window::onDocReady(QString path)
 {
     int st = open(path);
     bool ok = (st == 1);
-    if (ok)
-        show();
+    if (!ok)
+        open(welcomePath());
+    show();
     emit openFinished(ok);
 }
 
@@ -1499,7 +1479,7 @@ void Window::licenses()
     }
 #endif
 
-    QMessageBox *msgBox = new LicenseDialog();
+    QMessageBox *msgBox = new LicenseDialog(this);
 
     msgBox->raise();
 #ifdef Q_WS_MAC
@@ -2174,7 +2154,6 @@ void Window::showMessage(QString message, int timeout)
         return splashScreen->showMessage(message);
 
     statusBar()->showMessage(message, timeout);
-    QCoreApplication::processEvents();
 }
 
 

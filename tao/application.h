@@ -81,13 +81,9 @@ public:
     QStringList    urlCompletions();
     void           addPathCompletion(QString path);
     void           addUrlCompletion(QString url);
-    bool           processCommandLine();
-    Window *       findFirstTaoWindow();
+    void           processCommandLineFile();
     void           blockScreenSaver(bool block);
     void           enableVSync(bool on);
-
-signals:
-    void           allWindowsReady();
 
 public slots:
     void           loadUri(QString uri);
@@ -100,17 +96,24 @@ protected:
     void           loadSettings();
     void           loadDebugTraceSettings();
     void           loadFonts();
+#if defined (Q_OS_WIN32)
+    void           installDDEWidget();
+#endif
+    bool           loadLicenses();
+    bool           installTranslators();
+    bool           checkGL();
     void           checkModules();
     virtual bool   event(QEvent *e);
-    bool           initSingleInstance();
+    QString        getFileOrUriFromCommandLine();
+    bool           singleInstanceClientTalkedToServer();
 
 protected slots:
+    void           deferredInit();
     void           cleanup();
-    void           onOpenFinished(bool ok);
 #if defined (CONFIG_MACOSX) || defined (CONFIG_LINUX)
     void           simulateUserActivity();
 #endif
-    void           checkOfflineRendering();
+    bool           checkOfflineRendering();
     void           printRenderingProgress(int percent);
 
 protected:
@@ -118,6 +121,7 @@ protected:
     static bool    createDefaultProjectFolder();
 
 public:
+    Window *     window() { Q_ASSERT(win); return win; }
     void         updateSearchPaths(QString path = "");
     static bool  createDefaultTaoPrefFolder();
     static bool  recursiveDelete(QString path);
@@ -136,6 +140,8 @@ public:
     QString            lang;
     GCThread *         gcThread;
     UpdateApplication  updateApp;
+    bool               readyToLoad;
+    QString            pendingOpen;
 
 private:
     QStringList  pathList;
@@ -143,8 +149,7 @@ private:
     QString      startDir;
     QPointer<SplashScreen>
                  splash;
-    int          pendingOpen;
-    bool         hadWin;
+    Window *     win;
     XL::source_names contextFiles;
     XL::Main *   xlr;
     QString      savedUri;
@@ -154,9 +159,7 @@ private:
     QString      ssHeartBeatCommand;
 #endif
     ModuleManager * moduleManager;
-    bool         doNotEnterEventLoop;
     QTranslator  translator, qtTranslator, qtHelpTranslator;
-    bool         appInitialized;
     double       startTime;
 #if defined (Q_OS_WIN32)
     DDEWidget    dde;

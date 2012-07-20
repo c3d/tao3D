@@ -84,9 +84,7 @@ int main(int argc, char **argv)
     int ret = 0;
     {
         Tao::Application tao(argc, argv);
-        bool ok = tao.processCommandLine();
-        if (ok)
-            ret = tao.exec();
+        ret = tao.exec();
         // Note: keep this inside a block so that ~Application gets called!
     }
 

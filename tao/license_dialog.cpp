@@ -35,7 +35,7 @@ QList<LicenseDialog *> LicenseDialog::dialogs;
 
 
 LicenseDialog::LicenseDialog(QWidget *parent)
-    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow())
+    : QMessageBox(parent)
 // ----------------------------------------------------------------------------
 //   Create a license dialog with general information about licenses
 // ----------------------------------------------------------------------------
@@ -45,8 +45,7 @@ LicenseDialog::LicenseDialog(QWidget *parent)
 
 
 LicenseDialog::LicenseDialog(const QString &message, QWidget *parent)
-    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow()),
-      message(message)
+    : QMessageBox(parent),  message(message)
 // ----------------------------------------------------------------------------
 //   Create the license dialog with general info and a custom (HTML) message
 // ----------------------------------------------------------------------------

@@ -1260,7 +1260,6 @@ void Widget::print(QPrinter *prt)
         status->showMessage(tr("Printing page %1/%2...")
                             .arg(pageToPrint - firstPage + 1)
                             .arg(lastPage - firstPage + 1));
-        QApplication::processEvents();
 
         // We draw small fragments for overscaling
         for (int r = -n+1; r < n; r++)

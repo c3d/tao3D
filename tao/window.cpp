@@ -443,7 +443,8 @@ int Window::open(QString fileName, bool readOnly)
 
     bool  isDir = false;
     QString dir;
-    if (curFile.startsWith(Application::defaultTaoApplicationFolderPath()))
+    QString curFileN = QDir::toNativeSeparators(curFile);
+    if (curFileN.startsWith(Application::defaultTaoApplicationFolderPath()))
         dir = Application::defaultProjectFolderPath();
     else
         dir = currentProjectFolderPath();

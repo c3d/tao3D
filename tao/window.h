@@ -92,6 +92,7 @@ public:
     bool     setStereo(bool on);
     void     addDisplayModeMenu(QString mode, QString label);
     bool     hasStackedWidget() { return (stackedWidget->count() >= 1); }
+    QString  welcomePath();
 
     bool isUntitled;
     bool isReadOnly;
@@ -344,7 +345,6 @@ public:
     QMenu            *helpMenu;
     QPointer<SplashScreen>
                       splashScreen, aboutSplash;
-    bool              deleteOnOpenFailed;
 
 };
 

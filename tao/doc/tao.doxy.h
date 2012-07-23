@@ -981,6 +981,10 @@ import "xl:mes_définitions.xl"
  *   - <b>XLR</b>: XLR is a dynamically-compiled language based on parse tree
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
+ *   - <b>Qt Solutions</b>: Tao Presentations contains portions of
+ *   the Qt Solutions component by Nokia. These portions are subject to the
+ *   following licensing terms:
+ * @verbinclude "QtSolutionsLicense.txt"
  *
  * @~french
  * @page credits Remerciements
@@ -996,6 +1000,10 @@ import "xl:mes_définitions.xl"
  *   - <b>XLR</b>: XLR est un langage compilé dynamiquement basé sur des
  *   réécritures d'arbres. Cf. <a href="http://xlr.sf.net/">xlr.sf.net</a>
  *   pour plus d'informations.
+ *   - <b>Qt Solutions</b>: Tao Presentations contient des portions du
+ *   composant Qt Solutions de Nokia. Ces portions sont soumises à la license
+ *   suivante :
+ * @verbinclude "QtSolutionsLicense.txt"
  */
 
 /**

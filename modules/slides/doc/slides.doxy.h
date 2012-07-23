@@ -14,7 +14,7 @@
  * matter of using the @ref theme function with the suitable value, before using
  * the slide commands. For example:
  @code
-import Slides 1.0
+import Slides
 
 // Show a title slide with the default theme (black on white)
 title_slide "My title slide",

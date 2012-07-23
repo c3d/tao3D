@@ -135,7 +135,6 @@ public slots:
     void        colorRejected();
     void        updateColorDialog();
     void        fontChosen(const QFont &);
-    void        fontChanged(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
     void        fileChosen(const QString & filename);
@@ -735,28 +734,9 @@ public:
     Tree_p      setButtonGroupAction(Tree_p self, Tree_p action);
 
     Tree_p      colorChooser(Tree_p self, text name, Tree_p action);
-    Tree_p      colorChooser(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h,
-                             Tree_p action);
-    Integer*    colorChooserTexture(Tree_p self,
-                                    double w, double h,
-                                    Tree_p action);
 
-    Tree_p      fontChooser(Tree_p self, Tree_p action);
-    Tree_p      fontChooser(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h,
-                            Tree_p action);
-    Integer*    fontChooserTexture(Tree_p self,
-                                   double w, double h,
-                                   Tree_p action);
-
+    Tree_p      fontChooser(Tree_p self, text name, Tree_p action);
     Tree_p      fileChooser(Tree_p self, Tree_p action);
-    Tree_p      fileChooser(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h,
-                            Tree_p action);
-    Integer*    fileChooserTexture(Tree_p self,
-                                    double w, double h,
-                                    Tree_p action);
     Tree_p      setFileDialogAction(Tree_p self, Tree_p action);
     Tree_p      setFileDialogDirectory(Tree_p self, text dirname);
     Tree_p      setFileDialogFilter(Tree_p self, text filters);
@@ -884,6 +864,7 @@ private:
     friend class PageLayout;
     friend class DisplayDriver;
     friend class GCThread;
+    friend class WidgetSurface;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;

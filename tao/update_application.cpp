@@ -91,8 +91,8 @@ UpdateApplication::UpdateApplication() : updating(false)
 
    // Create a dialog to display download progress
    dialog = new QProgressDialog();
-   dialog->setWindowTitle(tr("New update available"));
-   dialog->setFixedSize(250, 100);
+   dialog->setWindowTitle(tr("Downloading new update"));
+   dialog->setFixedSize(300, 100);
 }
 
 
@@ -343,15 +343,15 @@ void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal
                 unit = tr("bytes/sec");
             } else if (speed < 1024*1024) {
                 speed /= 1024;
-                unit = tr("kB/s");
+                unit = tr("Kb/s");
             } else {
                 speed /= 1024*1024;
-                unit = tr("MB/s");
+                unit = tr("Mb/s");
             }
 
             // Update progress dialog
-            QString msg = tr("Downloading %1 : %2 %3");
-            dialog->setLabelText(msg.arg(info.completeBaseName())
+            QString msg = tr("Downloading Tao Presentations %1 : %2 %3");
+            dialog->setLabelText(msg.arg(remoteVersion)
                                  .arg(speed, 3, 'f', 1).arg(unit));
             dialog->setMaximum(bytesTotal);
             dialog->setValue(bytesReceived);

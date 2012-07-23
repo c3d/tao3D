@@ -51,9 +51,9 @@ public:
     void     check(bool msg = false);
 
 private:
-    void     start();
     void     update();
     void     readIniFile();
+    void     createFile();
 
 private slots:
     void     processCheckForUpdate();
@@ -72,16 +72,17 @@ private:
 
     // Update infos
     double                 remoteVersion;    // Remote version
-    QString                fileName;         // Update fileName
-    QString                url;
+    QString                fileName;
+    QUrl                   url;
 
     // I/O
     QFile*                 file;
     QFileInfo              info;
+    QProgressDialog*       dialog;
 
     // Network
-    QProgressDialog*       dialog;
     QNetworkReply*         reply;
+    QNetworkRequest        request;
     QNetworkAccessManager* manager;
     QTime                  downloadTime;
     bool                   updating;

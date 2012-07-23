@@ -70,7 +70,7 @@ UpdateApplication::UpdateApplication() : updating(false)
           output.find("Debian") != output.npos)
            system = "Debian";
        else
-           system = "Others";
+           system = "Others linux";
 
        // Check bits number
        if(output.find("x86_64") != output.npos)
@@ -111,7 +111,7 @@ UpdateApplication::~UpdateApplication()
     dialog = NULL;
 
     IFTRACE(update)
-            debug() << "Delete update application" << std::endl;
+            debug() << "Delete update application\n";
 }
 
 
@@ -121,7 +121,7 @@ void UpdateApplication::close()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Close update" << std::endl;
+            debug() << "Close update\n";
 
     dialog->close();
 
@@ -160,8 +160,8 @@ void UpdateApplication::check(bool msg)
         QUrl url("http://localhost/update.ini");
 
         IFTRACE(update)
-                debug() << "Check for update from " <<  url.toString().toStdString()
-                        << std::endl;
+                debug() << "Check for update from "
+                        <<  url.toString().toStdString() << "\n";
 
         // Set complete filename
         QString filename = QDir::temp().absolutePath() + "/update.ini";
@@ -191,92 +191,6 @@ void UpdateApplication::check(bool msg)
 }
 
 
-void UpdateApplication::start()
-// ----------------------------------------------------------------------------
-//    Prepare to launch update
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(update)
-            debug() << "Prepare to update from: " << url.toStdString()
-                    << std::endl;
-
-    QFileInfo urlInfo(url);
-
-    // If a filename is set in the ini file, use it
-    // Otherwise use filename of the url
-    if(fileName.isEmpty())
-        fileName = urlInfo.fileName();
-
-    // Ask for update
-    QString title = tr("%1 available").arg(urlInfo.completeBaseName());
-    QString msg = tr("A new version of Tao Presentations is available, would you download it now ?");
-    int ret = QMessageBox::question(NULL, title, msg,
-                                    QMessageBox::Yes | QMessageBox::No);
-
-    if(ret == QMessageBox::Yes)
-    {
-        // Choose folder
-        QString folder = QFileDialog::getExistingDirectory(NULL,
-                             tr("Select destination folder"),
-                             Application::defaultProjectFolderPath());
-
-        // Verify if folder exists
-        if(! folder.isEmpty())
-        {
-            // Set complete filename
-            QString completeFileName = folder + "/" + fileName;
-            if(QFile::exists(completeFileName))
-            {
-                ret = QMessageBox::question(NULL, tr("File existing"),
-                                            tr("There already exists a file called %1 in "
-                                               "the specified directory. Overwrite it?").arg(fileName),
-                                            QMessageBox::Yes|QMessageBox::No,
-                                            QMessageBox::No);
-                if(ret == QMessageBox::No)
-                {
-                    close();
-                    updating = false;
-                    return;
-                }
-
-                QFile::remove(completeFileName);
-            }
-
-            // Create file
-            file = new QFile(completeFileName);
-            info.setFile(*file);
-
-            // Check if we can write file
-            if(!file->open(QIODevice::WriteOnly))
-            {
-                QMessageBox::information(NULL, "Update failed",
-                                         tr("Unable to save the file %1: %2.")
-                                         .arg(completeFileName)
-                                         .arg(file->errorString()));
-                close();
-                updating = false;
-                return;
-
-            }
-
-            update();
-        }
-        else
-        {
-            // Close update
-            updating = false;
-            close();
-        }
-    }
-    else
-    {
-        // Close update
-        updating = false;
-        close();
-    }
-}
-
-
 void UpdateApplication::update()
 // ----------------------------------------------------------------------------
 //    Launch update
@@ -288,13 +202,11 @@ void UpdateApplication::update()
     downloadTime.start();
 
     IFTRACE(update)
-            debug() << "Update from " << url.toStdString()
-                    << " to " << file->fileName().toStdString()
-                    << std::endl;
+            debug() << "Update from "
+                    << url.toString().toStdString() << "\n";
 
     // Create request
-    QUrl tmp(url);
-    QNetworkRequest request(tmp);
+    request.setUrl(url);
 
     // Set a own user-agent as QT default user agent
     // gets rejected (QT known issue).
@@ -322,9 +234,8 @@ void UpdateApplication::readIniFile()
 
     // Get version, name and path of latest update
     remoteVersion = settings.value("version", "").toDouble();
-    settings.beginGroup(system + " - " + edition);
-    fileName = settings.value("filename", "").toString();
-    url      = settings.value("url", "").toString();
+    settings.beginGroup(system);
+    url.setUrl(settings.value(edition, "").toString());
     settings.endGroup();
 }
 
@@ -338,7 +249,7 @@ void UpdateApplication::processCheckForUpdate()
         return;
 
     IFTRACE(update)
-               debug() << "Check for update finished" << std::endl;
+               debug() << "Check for update finished\n";
 
     // Write file
     downloadReadyRead();
@@ -350,25 +261,43 @@ void UpdateApplication::processCheckForUpdate()
     // Read update.ini file
     readIniFile();
 
-    // Remove file and delete reply
+    // Remove file and close reply
     disconnect(reply, SIGNAL(finished()), this,
                SLOT(processCheckForUpdate()));
     file->remove();
     close();
 
     IFTRACE(update)
-            debug() << "Remote version is " << remoteVersion << std::endl;
+            debug() << "Remote version is "
+                    << remoteVersion << "\n";
 
     // Update if current version is older than the remote one
     bool upToDate = (version >= remoteVersion);
     if(!upToDate)
     {
-        // Start update
-        start();
+        // Ask for update
+        QString title = tr("Tao Presentations %1 available").arg(remoteVersion);
+        QString msg = tr("A new version of Tao Presentations is available, would you download it now ?");
+        int ret = QMessageBox::question(NULL, title, msg,
+                                        QMessageBox::Yes | QMessageBox::No);
+
+        if(ret == QMessageBox::Yes)
+        {
+            // Start update
+            update();
+        }
+        else
+        {
+            // Close update
+            updating = false;
+            close();
+        }
+
     }
     else
     {
         updating = false;
+        close();
 
         QString title = tr("No update available");
         QString msg = tr("Tao Presentations %1 is up-to-date.")
@@ -383,32 +312,45 @@ void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal
 //    Update progress bar
 // ----------------------------------------------------------------------------
 {
-    // Show progress dialog
-    if(dialog->isHidden())
-        dialog->show();
+    // Assure that downloaded file is
+    // big enough to show dialog
+    //(avoid it in case of redirection)
+    if(bytesTotal > 1000)
+    {
+        if(downloadRequestAborted)
+            return;
 
-    if(downloadRequestAborted)
-        return;
+        if(! file)
+        {
+            createFile();
+        }
+        else
+        {
+            // Calculate the download speed
+            double speed = bytesReceived * 1000.0 / downloadTime.elapsed();
+            QString unit;
+            if (speed < 1024) {
+                unit = tr("bytes/sec");
+            } else if (speed < 1024*1024) {
+                speed /= 1024;
+                unit = tr("kB/s");
+            } else {
+                speed /= 1024*1024;
+                unit = tr("MB/s");
+            }
 
-    // Calculate the download speed
-    double speed = bytesReceived * 1000.0 / downloadTime.elapsed();
-    QString unit;
-    if (speed < 1024) {
-        unit = tr("bytes/sec");
-    } else if (speed < 1024*1024) {
-        speed /= 1024;
-        unit = tr("kB/s");
-    } else {
-        speed /= 1024*1024;
-        unit = tr("MB/s");
+            // Update progress dialog
+            QString msg = tr("Downloading %1 : %2 %3");
+            dialog->setLabelText(msg.arg(info.completeBaseName())
+                                 .arg(speed, 3, 'f', 1).arg(unit));
+            dialog->setMaximum(bytesTotal);
+            dialog->setValue(bytesReceived);
+
+            // Show progress dialog
+            if(dialog->isHidden())
+                dialog->show();
+        }
     }
-
-    // Update progress dialog
-    QString msg = tr("Downloading %1 : %2 %3");
-    dialog->setLabelText(msg.arg(info.completeBaseName())
-                         .arg(speed, 3, 'f', 1).arg(unit));
-    dialog->setMaximum(bytesTotal);
-    dialog->setValue(bytesReceived);
 }
 
 
@@ -418,7 +360,7 @@ void UpdateApplication::cancelDownload()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Abort download" << std::endl;
+            debug() << "Abort download\n";
 
     // Abort download
     downloadRequestAborted = true;
@@ -432,8 +374,8 @@ void UpdateApplication::downloadReadyRead()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Write file to " << info.path().toStdString()
-                    << std::endl;
+            debug() << "Write file to "
+                    << info.path().toStdString() << "\n";
 
     // Write file from reply
     if(file)
@@ -447,43 +389,143 @@ void UpdateApplication::downloadFinished()
 // ----------------------------------------------------------------------------
 {
     dialog->hide();
-    updating = false;
 
-    // Case of download aborted
-    if(downloadRequestAborted)
+    // Redirection
+    int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (code >= 300 && code < 400) // Redirection
     {
-        file->remove();
+        // Get the redirection url
+        url = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+
+        // Because the redirection url can be relative,
+        // we have to use the previous one to resolve it
+        url = reply->url().resolved(url);
+
+        // Close previous update
         close();
-        return;
-    }
 
-    if(reply->error())
-    {
         IFTRACE(update)
-                debug() << "Download failed: " << reply->errorString().toStdString()
-                        << std::endl;
+                debug() << "Redirected to "
+                        << url.toString().toStdString() << "\n";
 
-        // Download failed
-        QMessageBox::information(NULL, tr("Download failed"),
-                                 tr("Download failed: %1").arg(reply->errorString()));
-        // Remove file
-        file->remove();
+        // Restart update
+        update();
+
     }
     else
     {
-        IFTRACE(update)
-                debug() << "Download successfull" << std::endl;
+        updating = false;
 
-        // Write file
-        downloadReadyRead();
+        // Case of download aborted
+        if(downloadRequestAborted)
+        {
+            if(file)
+                file->remove();
+            close();
+            return;
+        }
 
-        QString msg = tr("Download of %1 successfull (saved to %2)\n")
-                      .arg(info.completeBaseName()).arg(info.path());
-        QMessageBox::information(NULL, tr("Download successfull"), msg);
+        // Case of error
+        if(reply->error())
+        {
+            IFTRACE(update)
+                    debug() << "Download failed: "
+                            << reply->errorString().toStdString() << "\n";
+
+
+            // Download failed
+            QMessageBox::information(NULL, tr("Download failed"),
+                                     tr("Download failed: %1").arg(reply->errorString()));
+            // Remove file
+            if(file)
+                file->remove();
+        }
+        else
+        {
+            IFTRACE(update)
+                    debug() << "Download successfull\n";
+
+            // Write file
+            downloadReadyRead();
+
+            QString msg = tr("Download of %1 successfull (saved to %2)\n")
+                          .arg(info.completeBaseName()).arg(info.path());
+            QMessageBox::information(NULL, tr("Download successfull"), msg);
+        }
+
+        // Close I/O
+        close();
     }
 
-    // Close I/O
-    close();
+}
+
+
+void UpdateApplication::createFile()
+// ----------------------------------------------------------------------------
+//    Create the update file
+// ----------------------------------------------------------------------------
+{
+    if(! fileName.isEmpty())
+        return;
+
+    // Get correct filename
+    QFileInfo info(url.toString());
+    fileName = (info.fileName().split("?"))[0];
+
+    IFTRACE(update)
+            debug() << "Create file " << fileName.toStdString() << std::endl;
+
+    // Choose folder
+    QString folder = QFileDialog::getExistingDirectory(NULL,
+                                                       tr("Select destination folder"),
+                                                       Application::defaultProjectFolderPath());
+
+    if(! folder.isEmpty())
+    {
+        // Set complete filename
+        QString completeFileName = folder + "/" + fileName;
+
+        if(QFile::exists(completeFileName))
+        {
+            int ret = QMessageBox::question(NULL, tr("File existing"),
+                                            tr("There already exists a file called %1 in "
+                                               "the specified directory. Overwrite it?").arg(fileName),
+                                            QMessageBox::Yes|QMessageBox::No,
+                                            QMessageBox::No);
+            if(ret == QMessageBox::No)
+            {
+                close();
+                updating = false;
+                downloadRequestAborted = true;
+                return;
+            }
+
+            QFile::remove(completeFileName);
+        }
+
+        // Set complete filename
+        file = new QFile(completeFileName);
+        info.setFile(*file);
+
+        if(!file->open(QIODevice::WriteOnly))
+        {
+            QMessageBox::information(NULL, "Update failed",
+                                     tr("Unable to save the file %1: %2.")
+                                     .arg(completeFileName)
+                                     .arg(file->errorString()));
+            downloadRequestAborted = true;
+            // Close update
+            updating = false;
+            close();
+        }
+    }
+    else
+    {
+        downloadRequestAborted = true;
+        // Close update
+        updating = false;
+        close();
+    }
 }
 
 

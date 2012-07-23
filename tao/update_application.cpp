@@ -68,15 +68,15 @@ UpdateApplication::UpdateApplication() : updating(false)
        // Check os name
        if(output.find("Ubuntu") != output.npos ||
           output.find("Debian") != output.npos)
-           system = "Debian";
+           system = "Linux Ubuntu";
        else
            system = "Others linux";
 
        // Check bits number
        if(output.find("x86_64") != output.npos)
-           system += " 64";
+           system += " x86_64";
        else
-           system += " 32";
+           system += " x86";
    }
 #endif
 
@@ -123,6 +123,8 @@ void UpdateApplication::close()
     IFTRACE(update)
             debug() << "Close update\n";
 
+    fileName = "";
+
     dialog->close();
 
     // Disconnect slots
@@ -154,7 +156,7 @@ void UpdateApplication::check(bool msg)
 //    Check for new update
 // ----------------------------------------------------------------------------
 {    
-    if(! updating)
+    if((! updating) && (! edition.isEmpty()))
     {
         // Define url to check for update
         QUrl url("http://localhost/update.ini");
@@ -163,13 +165,13 @@ void UpdateApplication::check(bool msg)
                 debug() << "Check for update from "
                         <<  url.toString().toStdString() << "\n";
 
-        // Set complete filename
-        QString filename = QDir::temp().absolutePath() + "/update.ini";
-        if(QFile::exists(filename))
-            QFile::remove(filename);
+        // Set update file name
+        QString updateName = QDir::temp().absolutePath() + "/update.ini";
+        if(QFile::exists(updateName))
+            QFile::remove(updateName);
 
         // Create file
-        file = new QFile(filename);
+        file = new QFile(updateName);
         info.setFile(*file);
 
         // Check if we can write file
@@ -182,8 +184,15 @@ void UpdateApplication::check(bool msg)
 
         updating = true;
 
+        // Specify url
+        request.setUrl(url);
+
+        // Set a own user-agent as QT default user agent
+        // gets rejected (QT known issue).
+        QString user("Tao Presentations %1");
+        request.setRawHeader("User-Agent", (user.arg(version)).toAscii());
+
         // Sent request
-        QNetworkRequest request(url);
         reply = manager->get(request);
         connect(reply, SIGNAL(finished()), this,
                 SLOT(processCheckForUpdate()), Qt::UniqueConnection);
@@ -207,11 +216,6 @@ void UpdateApplication::update()
 
     // Create request
     request.setUrl(url);
-
-    // Set a own user-agent as QT default user agent
-    // gets rejected (QT known issue).
-    QString user("Tao Presentations %1");
-    request.setRawHeader("User-Agent", (user.arg(version)).toAscii());
 
     // Send request
     reply = manager->get(request);
@@ -273,7 +277,7 @@ void UpdateApplication::processCheckForUpdate()
 
     // Update if current version is older than the remote one
     bool upToDate = (version >= remoteVersion);
-    if(!upToDate)
+    if(!upToDate && !url.isEmpty())
     {
         // Ask for update
         QString title = tr("Tao Presentations %1 available").arg(remoteVersion);
@@ -472,9 +476,6 @@ void UpdateApplication::createFile()
     QFileInfo info(url.toString());
     fileName = (info.fileName().split("?"))[0];
 
-    IFTRACE(update)
-            debug() << "Create file " << fileName.toStdString() << std::endl;
-
     // Choose folder
     QString folder = QFileDialog::getExistingDirectory(NULL,
                                                        tr("Select destination folder"),
@@ -502,6 +503,9 @@ void UpdateApplication::createFile()
 
             QFile::remove(completeFileName);
         }
+
+        IFTRACE(update)
+                debug() << "Create file " << completeFileName.toStdString() << std::endl;
 
         // Set complete filename
         file = new QFile(completeFileName);

@@ -72,8 +72,8 @@ private:
 
     // Update infos
     double                 remoteVersion;    // Remote version
-    QString                fileName;
-    QUrl                   url;
+    QString                fileName;         // Remote filename
+    QUrl                   url;              // Remote url
 
     // I/O
     QFile*                 file;

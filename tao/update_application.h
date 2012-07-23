@@ -79,6 +79,7 @@ private:
     QFile*                 file;
     QFileInfo              info;
     QProgressDialog*       dialog;
+    bool                   useMsg;
 
     // Network
     QNetworkReply*         reply;

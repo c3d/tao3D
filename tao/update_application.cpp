@@ -92,6 +92,7 @@ UpdateApplication::UpdateApplication() : updating(false)
    // Create a dialog to display download progress
    dialog = new QProgressDialog();
    dialog->setWindowTitle(tr("New update available"));
+   dialog->setFixedSize(250, 100);
 }
 
 
@@ -158,8 +159,10 @@ void UpdateApplication::check(bool msg)
 {    
     if((! updating) && (! edition.isEmpty()))
     {
-        // Define url to check for update
-        QUrl url("http://localhost/update.ini");
+        useMsg = msg;
+
+        // Define url where check for update
+        QUrl url("http://www.taodyne.com/shop/download/update.ini");
 
         IFTRACE(update)
                 debug() << "Check for update from "
@@ -303,10 +306,13 @@ void UpdateApplication::processCheckForUpdate()
         updating = false;
         close();
 
-        QString title = tr("No update available");
-        QString msg = tr("Tao Presentations %1 is up-to-date.")
-                      .arg(edition);
-        QMessageBox::information(NULL, title, msg);
+        if(useMsg)
+        {
+            QString title = tr("No update available");
+            QString msg = tr("Tao Presentations %1 is up-to-date.")
+                          .arg(edition);
+            QMessageBox::information(NULL, title, msg);
+        }
     }
 }
 

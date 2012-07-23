@@ -57,11 +57,13 @@ public:
     virtual bool        requestFocus(Layout *l, coord x, coord y);
     int                 width()         { return widget->width(); }
     int                 height()        { return widget->height(); }
+    Tree               *evaluate(Tree * t);
 
     QWidget *           widget;
     GLuint              textureId;
     bool                dirty;
     XL::Tree_p          tree;
+
 
 protected slots:
     void                repaint();
@@ -247,61 +249,6 @@ protected:
 };
 
 
-struct ColorChooserSurface : WidgetSurface
-// ----------------------------------------------------------------------------
-//    Hold information about a QColorChooser
-// ----------------------------------------------------------------------------
-{
-    Q_OBJECT;
-public:
-    typedef ColorChooserSurface * data_t;
-    ColorChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *action);
-    operator data_t() { return this; }
-    virtual GLuint bind();
-
-private:
-    XL::Tree_p action;
-public slots:
-    void colorChosen(const QColor &color);
-};
-
-
-struct FontChooserSurface : WidgetSurface
-// ----------------------------------------------------------------------------
-//    Hold information about a QFontChooser
-// ----------------------------------------------------------------------------
-{
-    Q_OBJECT;
-public:
-    typedef FontChooserSurface * data_t;
-    FontChooserSurface(XL::Tree *t, Widget *parent, XL::Tree *action);
-    operator data_t() { return this; }
-    virtual GLuint bind();
-
-private:
-    XL::Tree_p action;
-public slots:
-    void fontChosen(const QFont &font);
-};
-
-
-struct FileChooserSurface : WidgetSurface
-// ----------------------------------------------------------------------------
-//    Hold information about a QFontChooser
-// ----------------------------------------------------------------------------
-{
-    Q_OBJECT;
-public:
-    typedef FileChooserSurface * data_t;
-    FileChooserSurface(XL::Tree *t, Widget *parent);
-    operator data_t() { return this; }
-    virtual GLuint bind();
-
-public slots:
-    void hideWidget();
-};
-
-
 struct AbstractSliderSurface : WidgetSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a Slider
@@ -325,9 +272,9 @@ public slots:
 
 
 // ============================================================================
-// 
+//
 //   Entering widget surfaces in the symbols table
-// 
+//
 // ============================================================================
 
 extern void EnterWidgetSurfaces();

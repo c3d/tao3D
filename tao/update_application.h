@@ -24,7 +24,7 @@ public:
     void           start();
     void           check(bool msg = false);
     void           update();    
-    void           extract();
+    bool           extract();
 
 private slots:
     void           processRemoteTags(QStringList tags);

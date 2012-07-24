@@ -5,6 +5,7 @@
 #include "context.h"
 #include "version.h"
 #include "application.h"
+#include "git_backend.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QDialog>
@@ -26,7 +27,7 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
 #elif defined(Q_OS_WIN)
     from = "git://git.taodyne.com/software/win/";
 #else
-    from = "git://git.taodyne.com/software/linux";
+    from = "git://git.taodyne.com/software/linux/";
 
     // Check if we are on Debian or Ubuntu distribution to get .deb package
     QString cmd("uname");
@@ -166,20 +167,28 @@ void UpdateApplication::start()
 }
 
 
-void UpdateApplication::extract()
+bool UpdateApplication::extract()
 // ----------------------------------------------------------------------------
 //    Extract update
 // ----------------------------------------------------------------------------
 {
+    QString cmd = qApp->applicationDirPath() + "/git/bin/tar";
+    QString tar = GitRepository::resolveExePath(cmd);
+    if(tar.isEmpty())
+    {
+        IFTRACE(update)
+            debug() << "Extraction failed.\nExit code: tar not found" << std::endl;
+        return false;
+    }
+
     // Extract update
-    QString cmd("tar");
     QStringList args;
     args << "-xf" << info.fileName();
-    Process cp(cmd, args, info.path());
+    Process cp(tar, args, info.path());
     cp.waitForFinished();
 
     IFTRACE(update)
-        debug() << "Extract update" << std::endl;
+        debug() << "Extract update: " << tar.toStdString() << std::endl;
 
     if(cp.done())
     {
@@ -190,6 +199,8 @@ void UpdateApplication::extract()
 
         IFTRACE(update)
                 debug() << "Download successfull" << std::endl;
+
+        return true;
     }
     else
     {
@@ -200,6 +211,8 @@ void UpdateApplication::extract()
 
         IFTRACE(update)
                 debug() << "Extraction failed: " << cp.err.toStdString() << std::endl;
+
+        return false;
     }
 }
 
@@ -262,6 +275,8 @@ void UpdateApplication::onDownloadFinished(int exitCode, QProcess::ExitStatus st
 //    Define action on download finished
 // ----------------------------------------------------------------------------
 {
+    bool downloaded, extracted;
+
     // Close progress dialog
     progress->close();
 
@@ -271,8 +286,8 @@ void UpdateApplication::onDownloadFinished(int exitCode, QProcess::ExitStatus st
     if (exitCode != QProcess::NormalExit)
         return;    // onDownloadError will handle this case
 
-    bool success = (status ==  QProcess::NormalExit && exitCode == 0);
-    if(! success)
+    downloaded = (status ==  QProcess::NormalExit && exitCode == 0);
+    if(! downloaded)
     {
         // Show error message
         QString msg = tr("Download failed.\nExit code: %1\n%2")
@@ -285,15 +300,20 @@ void UpdateApplication::onDownloadFinished(int exitCode, QProcess::ExitStatus st
     else
     {
         // Extract download
-        extract();
+        extracted = extract();
     }
 
     updating = false;
 
-    // Clear process
-    proc.clear();
-    // Delete file
-    to.remove();
+    // Delete archive if download has failed or
+    //  extraction is successful.
+    if(! downloaded || extracted)
+    {
+        // Clear process
+        proc.clear();
+        // Delete file
+        to.remove();
+    }
 }
 
 

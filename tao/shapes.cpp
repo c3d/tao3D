@@ -102,42 +102,32 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 {
     GL.ActiveTexture(GL_TEXTURE0 + texture.unit);
     GL.Enable(texture.type);
-    bool mipmap = false;
+    CachedTexture *cached = NULL;
     if (texture.type == GL_TEXTURE_2D)
     {
-        CachedTexture *cached = TextureCache::instance()->bind(texture.id);
+        cached = TextureCache::instance()->bind(texture.id);
         if (cached)
-            mipmap = cached->mipmap;
-        else
-            GL.BindTexture(texture.type, texture.id);
-    }
-    else
-    {
-        GL.BindTexture(texture.type, texture.id);
-    }
-    GLint min, mag;
-    if (texture.type == GL_TEXTURE_2D)
-    {
-        min = texture.minFilt;
-        mag = texture.magFilt;
-        if (!mipmap)
         {
-            if (min == GL_NEAREST_MIPMAP_NEAREST ||
-                min == GL_LINEAR_MIPMAP_NEAREST  ||
-                min == GL_NEAREST_MIPMAP_LINEAR  ||
-                min == GL_LINEAR_MIPMAP_LINEAR)
-                min = GL_LINEAR;
+            TextureCache *cache = TextureCache::instance();
+            // Do not call glTexParameteri directly for min filter, because we
+            // need to deal with the case where minFilt would need mipmapping
+            // but texture has no mipmap
+            cache->setMinFilter(texture.id, texture.minFilt);
+            GL.TexParameteri(texture.type, GL_TEXTURE_MAG_FILTER,
+                             texture.magFilt);
         }
     }
-    else
+    if (!cached)
     {
+        glBindTexture(texture.type, texture.id);
+        GLint min, mag;
         if (hasPixelBlur)
             min = mag = GL_LINEAR;
         else
             min = mag = GL_NEAREST;
+        GL.TexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
+        GL.TexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
     }
-    GL.TexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
-    GL.TexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
     GL.TexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D

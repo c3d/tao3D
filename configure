@@ -47,6 +47,12 @@ usage() {
   echo "              - Creativity and Impress are the same except for the name and"
   echo "                license string. The web store will bundle some module licenses "
   echo "                with the application (one bundle for Creativity, one for Impress)."
+  echo "  youactive   Configure for Tao Presentations YouActive. Same as Creativity, but"
+  echo "              includes additional modules used in the YouActive solution (DIP)."
+  echo "              - All default modules (except autostereoscopic displays), as well as"
+  echo "                YouActive-specific modules are built and packaged, with no license."
+  echo "              - Application license template is packaged (not signed):"
+  echo "                'Tao Presentations YouActive <version>.*'"
   echo "  <empty>     Configure for an internal build."
   echo "              Replicates our 'beta' build:"
   echo "              - All default modules are built and packaged, with 120-day licenses."
@@ -120,6 +126,13 @@ while [ $# -ne 0 ] ; do
     creativity)
       EDITION="Creativity"
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
+      EDITION_FLAGS="DEFINES+=CFG_NOGIT $M"
+      shift ; done=1
+      ;;
+    youactive)
+      EDITION="YouActive"
+      M="modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
+      M="$M modules+=+DIP"
       EDITION_FLAGS="DEFINES+=CFG_NOGIT $M"
       shift ; done=1
       ;;

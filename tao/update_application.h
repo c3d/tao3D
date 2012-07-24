@@ -54,40 +54,40 @@ private:
     void     update();
     void     readIniFile();
     void     createFile();
+    void     writeReplyToFile();
 
 private slots:
-    void     processCheckForUpdate();
+    void     processCheckForUpdateReply();
     void     downloadFinished();
-    void     downloadReadyRead();
     void     downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void     cancelDownload();
 
     std::ostream & debug();
 
 private:
-    // Tao infos
-    double                 version;          // Tao version
-    QString                edition;          // Tao edition
-    QString                system;           // Operating system
+    // Tao info
+    double                   version;
+    QString                  edition;
+    QString                  system;
 
-    // Update infos
-    double                 remoteVersion;    // Remote version
-    QString                fileName;         // Remote filename
-    QUrl                   url;              // Remote url
+    // Update info
+    double                   remoteVersion;
+    QString                  fileName;
+    QUrl                     url;
 
     // I/O
-    QFile*                 file;
-    QFileInfo              info;
-    QProgressDialog*       dialog;
-    bool                   useMsg;
+    QFile *                  file;
+    QFileInfo                info;
+    QProgressDialog *        dialog;
+    bool                     useMsg;
 
     // Network
-    QNetworkReply*         reply;
-    QNetworkRequest        request;
-    QNetworkAccessManager* manager;
-    QTime                  downloadTime;
-    bool                   updating;
-    bool                   downloadRequestAborted;
+    QNetworkReply *          reply;
+    QNetworkRequest          request;
+    QNetworkAccessManager *  manager;
+    QTime                    downloadTime;
+    bool                     updating;
+    bool                     downloadRequestAborted;
 };
 
 }

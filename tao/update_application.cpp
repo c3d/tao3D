@@ -18,6 +18,7 @@
 //  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
+
 #include "update_application.h"
 #include "tree.h"
 #include "tao_tree.h"
@@ -25,7 +26,7 @@
 #include "context.h"
 #include "version.h"
 #include "application.h"
-#include "git_backend.h"
+#include "tao_utf8.h"
 #include <QDir>
 #include <QFileDialog>
 #include <QDialog>
@@ -93,7 +94,6 @@ UpdateApplication::UpdateApplication() : updating(false)
    // Create a dialog to display download progress
    dialog = new QProgressDialog();
    dialog->setWindowTitle(tr("New update available"));
-   dialog->setFixedSize(250, 100);
 }
 
 
@@ -104,13 +104,8 @@ UpdateApplication::~UpdateApplication()
 {
     close();
 
-    // Delete manager
-    manager->deleteLater();
-    manager = NULL;
-
-    // Delete dialog
-    dialog->deleteLater();
-    dialog = NULL;
+    delete manager;
+    delete dialog;
 
     IFTRACE(update)
             debug() << "Delete update application\n";
@@ -129,22 +124,15 @@ void UpdateApplication::close()
 
     dialog->close();
 
-    // Disconnect slots
-    disconnect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
-    disconnect(reply, SIGNAL(downloadProgress(qint64,qint64)),
-            this, SLOT(downloadProgress(qint64,qint64)));
-    disconnect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
-
     // Delete I/O
-    if(file)
+    if (file)
     {
-        file->close();
         delete file;
         file = NULL;
     }
 
     // Delete reply
-    if(reply)
+    if (reply)
     {
         reply->abort();
         reply->deleteLater();
@@ -166,20 +154,15 @@ void UpdateApplication::check(bool msg)
         QUrl url("http://www.taodyne.com/shop/download/update.ini");
 
         IFTRACE(update)
-                debug() << "Check for update from "
-                        <<  url.toString().toStdString() << "\n";
-
-        // Set update file name
-        QString updateName = QDir::temp().absolutePath() + "/update.ini";
-        if(QFile::exists(updateName))
-            QFile::remove(updateName);
+            debug() << "Downloading: '" << +url.toString() << "'\n";
 
         // Create file
+        QString updateName = QDir::temp().absolutePath() + "/update.ini";
         file = new QFile(updateName);
         info.setFile(*file);
 
         // Check if we can write file
-        if(!file->open(QIODevice::WriteOnly))
+        if(!file->open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
             delete file;
             file = NULL;
@@ -191,15 +174,14 @@ void UpdateApplication::check(bool msg)
         // Specify url
         request.setUrl(url);
 
-        // Set a own user-agent as QT default user agent
-        // gets rejected (QT known issue).
+        // Set user agent
         QString user("Tao Presentations %1");
         request.setRawHeader("User-Agent", (user.arg(version)).toAscii());
 
         // Sent request
         reply = manager->get(request);
         connect(reply, SIGNAL(finished()), this,
-                SLOT(processCheckForUpdate()), Qt::UniqueConnection);
+                SLOT(processCheckForUpdateReply()), Qt::UniqueConnection);
     }
 }
 
@@ -215,8 +197,7 @@ void UpdateApplication::update()
     downloadTime.start();
 
     IFTRACE(update)
-            debug() << "Update from "
-                    << url.toString().toStdString() << "\n";
+        debug() << "Downloading: '" << +url.toString() << "'\n";
 
     // Create request
     request.setUrl(url);
@@ -228,6 +209,7 @@ void UpdateApplication::update()
     connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
             this, SLOT(downloadProgress(qint64,qint64)));
     connect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
+    dialog->show();
 }
 
 
@@ -236,9 +218,17 @@ void UpdateApplication::readIniFile()
 //    Parse update.ini file
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(update)
+    {
+        debug() << "Content:\n";
+        file->open(QIODevice::ReadOnly | QIODevice::Text);
+        while (file->bytesAvailable())
+            debug() << " " << +QString(file->readLine());
+        file->close();
+    }
+
     // Read ini file
-    QString iniPath = QDir::temp().absolutePath() + "/update.ini";
-    QSettings settings(iniPath, QSettings::IniFormat);
+    QSettings settings(file->fileName(), QSettings::IniFormat);
 
     // Get version, name and path of latest update
     remoteVersion = settings.value("version", "").toDouble();
@@ -248,7 +238,7 @@ void UpdateApplication::readIniFile()
 }
 
 
-void UpdateApplication::processCheckForUpdate()
+void UpdateApplication::processCheckForUpdateReply()
 // ----------------------------------------------------------------------------
 //    Process to check for update
 // ----------------------------------------------------------------------------
@@ -257,27 +247,23 @@ void UpdateApplication::processCheckForUpdate()
         return;
 
     IFTRACE(update)
-               debug() << "Check for update finished\n";
+        debug() << "Check for update reply received\n";
 
     // Write file
-    downloadReadyRead();
+    writeReplyToFile();
 
     // Close I/O
-    file->flush();
     file->close();
 
     // Read update.ini file
     readIniFile();
 
     // Remove file and close reply
-    disconnect(reply, SIGNAL(finished()), this,
-               SLOT(processCheckForUpdate()));
     file->remove();
     close();
 
     IFTRACE(update)
-            debug() << "Remote version is "
-                    << remoteVersion << "\n";
+        debug() << "Remote version is " << remoteVersion << "\n";
 
     // Update if current version is older than the remote one
     bool upToDate = (version >= remoteVersion);
@@ -356,10 +342,6 @@ void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal
                                  .arg(speed, 3, 'f', 1).arg(unit));
             dialog->setMaximum(bytesTotal);
             dialog->setValue(bytesReceived);
-
-            // Show progress dialog
-            if(dialog->isHidden())
-                dialog->show();
         }
     }
 }
@@ -373,24 +355,23 @@ void UpdateApplication::cancelDownload()
     IFTRACE(update)
             debug() << "Abort download\n";
 
-    // Abort download
     downloadRequestAborted = true;
-    reply->abort();
+    delete reply;
+    reply = NULL;
 }
 
 
-void UpdateApplication::downloadReadyRead()
+void UpdateApplication::writeReplyToFile()
 // ----------------------------------------------------------------------------
-//    Write current download into a file
+//    Write reply to file
 // ----------------------------------------------------------------------------
 {
     IFTRACE(update)
-            debug() << "Write file to "
-                    << info.path().toStdString() << "\n";
+        debug() << "Writing to " << +file->fileName() << "\n";
 
-    // Write file from reply
-    if(file)
-        file->write(reply->readAll());
+    Q_ASSERT(file);
+    Q_ASSERT(file->isOpen());
+    file->write(reply->readAll());
 }
 
 
@@ -454,14 +435,13 @@ void UpdateApplication::downloadFinished()
         else
         {
             IFTRACE(update)
-                    debug() << "Download successfull\n";
+                debug() << "Download successful\n";
 
             // Write file
-            downloadReadyRead();
+            writeReplyToFile();
 
-            QString msg = tr("Download of %1 successfull (saved to %2)\n")
-                          .arg(info.completeBaseName()).arg(info.path());
-            QMessageBox::information(NULL, tr("Download successfull"), msg);
+            QString msg = tr("%1 downloaded sucessfully\n").arg(file->fileName());
+            QMessageBox::information(NULL, tr("Download successful"), msg);
         }
 
         // Close I/O
@@ -479,9 +459,8 @@ void UpdateApplication::createFile()
     if(! fileName.isEmpty())
         return;
 
-    // Get correct filename
-    QFileInfo info(url.toString());
-    fileName = (info.fileName().split("?"))[0];
+    // Keep the name of the remote file in the URL
+    fileName = QFileInfo(url.path()).fileName();
 
     // Choose folder
     QString desktop = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
@@ -508,18 +487,16 @@ void UpdateApplication::createFile()
                 downloadRequestAborted = true;
                 return;
             }
-
-            QFile::remove(completeFileName);
         }
 
         IFTRACE(update)
-                debug() << "Create file " << completeFileName.toStdString() << std::endl;
+                debug() << "Create file '" << completeFileName.toStdString() << "'\n";
 
         // Set complete filename
         file = new QFile(completeFileName);
         info.setFile(*file);
 
-        if(!file->open(QIODevice::WriteOnly))
+        if(!file->open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
             QMessageBox::information(NULL, "Update failed",
                                      tr("Unable to save the file %1: %2.")

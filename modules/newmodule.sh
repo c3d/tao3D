@@ -224,6 +224,9 @@ function create_module() {
     } >> $M/$M.xl
   fi
 
+  # Create empty secondary .xl file
+  [ "$WITH_CRYPT" = "y" ] && touch $M/${M}2.xl
+
   # .taokey.notsigned
   [ "$WITH_LICENSE" = "y" ] && edit newmodule/newmodule.taokey.notsigned.t > $M/$M.taokey.notsigned
 

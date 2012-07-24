@@ -382,6 +382,8 @@ public:
     type name;
 #define GFLAG(name)                             \
     bool glflag_##name:1;
+#define GCLIENTSTATE(name)                      \
+    bool glclientstate_##name:1;
 #include "opengl_state.tbl"
 
 public:

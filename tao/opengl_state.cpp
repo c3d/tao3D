@@ -136,7 +136,8 @@ OpenGLState::OpenGLState()
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER), shaderProgram(0), activeTexture(0),
 #define GS(type, name)
-#define GFLAG(name)     glflag_##name(false),
+#define GFLAG(name)             glflag_##name(false),
+#define GCLIENTSTATE(name)      glclientstate_##name(false),
 #include "opengl_state.tbl"
       save(NULL)
 {
@@ -377,10 +378,16 @@ void OpenGLState::Sync(ulonglong which)
 #define GS(type, name)
 #define GFLAG(name)                             \
     SYNC(glflag_##name,                         \
-    if (glflag_##name)                          \
-        glEnable(name);                         \
-    else                                        \
-        glDisable(name));
+         if (glflag_##name)                     \
+             glEnable(name);                    \
+         else                                   \
+             glDisable(name));
+#define GLCLIENTSTATE(name)                     \
+    SYNC(glclientstate_##name,                  \
+         if (glflag_##name)                     \
+             glEnableClientState(name);         \
+         else                                   \
+             glDisableClientState(name));
 #include "opengl_state.tbl"
 
 #undef SYNC
@@ -947,7 +954,20 @@ void OpenGLState::EnableClientState(GLenum cap)
 //    Enable client-side capability
 // ----------------------------------------------------------------------------
 {
-    glEnableClientState(cap);
+    switch(cap)
+    {
+#define GS(type, name)
+#define GCLIENTSTATE(name)                      \
+    case name:                                  \
+        CHANGE(glclientstate_##name, true);     \
+        return;
+#include "opengl_state.tbl"
+
+    default:
+        // Other enable/disable operations are not cached
+        glEnableClientState(cap);
+        break;
+    }
 }
 
 
@@ -956,7 +976,20 @@ void OpenGLState::DisableClientState(GLenum cap)
 //    Disable client-side capability
 // ----------------------------------------------------------------------------
 {
-    glDisableClientState(cap);
+    switch(cap)
+    {
+#define GS(type, name)
+#define GCLIENTSTATE(name)                      \
+    case name:                                  \
+        CHANGE(glclientstate_##name, false);    \
+        return;
+#include "opengl_state.tbl"
+
+    default:
+        // Other enable/disable operations are not cached
+        glDisableClientState(cap);
+        break;
+    }
 }
 
 
@@ -970,7 +1003,8 @@ void OpenGLState::DrawArrays(GLenum mode, int first, int count)
 }
 
 
-void OpenGLState::VertexPointer(int size, GLenum type, int stride, const void* pointer)
+void OpenGLState::VertexPointer(int size, GLenum type,
+                                int stride, const void* pointer)
 // ----------------------------------------------------------------------------
 //    Define an array of vertex data
 // ----------------------------------------------------------------------------
@@ -990,7 +1024,8 @@ void OpenGLState::NormalPointer(GLenum type, int stride, const void* pointer)
 }
 
 
-void OpenGLState::TexCoordPointer(int size, GLenum type, int stride, const void* pointer)
+void OpenGLState::TexCoordPointer(int size, GLenum type,
+                                  int stride, const void* pointer)
 // ----------------------------------------------------------------------------
 //    Define an array of texture coordinates
 // ----------------------------------------------------------------------------
@@ -1000,7 +1035,8 @@ void OpenGLState::TexCoordPointer(int size, GLenum type, int stride, const void*
 }
 
 
-void OpenGLState::ColorPointer(int size, GLenum type, int stride, const void* pointer)
+void OpenGLState::ColorPointer(int size, GLenum type,
+                               int stride, const void* pointer)
 // ----------------------------------------------------------------------------
 //    Define an array of color data
 // ----------------------------------------------------------------------------

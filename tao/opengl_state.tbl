@@ -19,7 +19,10 @@
 // ****************************************************************************
 
 #ifndef GFLAG
-#define GFLAG(name)     GS(bool, glflag_##name)
+#define GFLAG(name)             GS(bool, glflag_##name)
+#endif
+#ifndef GCLIENTSTATE
+#define GCLIENTSTATE(name)      GS(bool, glclientstate_##name)
 #endif
 
 GS(TexturesState,       textures)
@@ -58,10 +61,10 @@ GS(GLenum,              renderMode)
 GS(GLuint,              shaderProgram)
 GS(GLuint,              activeTexture)
 
-GFLAG(GL_VERTEX_ARRAY)
-GFLAG(GL_NORMAL_ARRAY)
-GFLAG(GL_TEXTURE_COORD_ARRAY)
-GFLAG(GL_COLOR_ARRAY)
+//GCLIENTSTATE(GL_VERTEX_ARRAY)
+//GCLIENTSTATE(GL_NORMAL_ARRAY)
+//GCLIENTSTATE(GL_TEXTURE_COORD_ARRAY)
+//GCLIENTSTATE(GL_COLOR_ARRAY)
 GFLAG(GL_LINE_STIPPLE)
 GFLAG(GL_COLOR_MATERIAL)
 GFLAG(GL_MULTISAMPLE)
@@ -81,3 +84,4 @@ GFLAG(GL_STENCIL_TEST)
 
 #undef GS
 #undef GFLAG
+#undef GCLIENTSTATE

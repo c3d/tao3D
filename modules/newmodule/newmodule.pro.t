@@ -38,6 +38,7 @@ include(../licenses.pri)
 
 #ifdef WITH_DOC
 QMAKE_SUBSTITUTES = doc/Doxyfile.in
+QMAKE_DISTCLEAN = doc/Doxyfile
 DOXYFILE = doc/Doxyfile
 DOXYLANG = en,fr
 include(../modules_doc.pri)

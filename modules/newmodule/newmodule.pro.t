@@ -26,7 +26,9 @@ CRYPT_XL_SOURCES = @@MODULE_DIR@@2.xl
 include(../crypt_xl.pri)
 #endif
 
+#ifdef WITH_ICON
 INSTALLS    += thismod_icon
+#endif
 INSTALLS    -= thismod_bin
 
 #ifdef WITH_LICENSE
@@ -36,6 +38,7 @@ include(../licenses.pri)
 
 #ifdef WITH_DOC
 QMAKE_SUBSTITUTES = doc/Doxyfile.in
+QMAKE_DISTCLEAN = doc/Doxyfile
 DOXYFILE = doc/Doxyfile
 DOXYLANG = en,fr
 include(../modules_doc.pri)

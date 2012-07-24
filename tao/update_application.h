@@ -58,9 +58,9 @@ private:
 
 private slots:
     void     processCheckForUpdateReply();
-    void     downloadFinished();
     void     downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void     cancelDownload();
+    void     downloadFinished();
 
     std::ostream & debug();
 
@@ -79,7 +79,7 @@ private:
     QFile *                  file;
     QFileInfo                info;
     QProgressDialog *        dialog;
-    bool                     useMsg;
+    bool                     useMsg;       // Show message boxes
 
     // Network
     QNetworkReply *          reply;

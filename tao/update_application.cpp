@@ -93,7 +93,7 @@ UpdateApplication::UpdateApplication() : updating(false)
 
    // Create a dialog to display download progress
    dialog = new QProgressDialog();
-   dialog->setWindowTitle(tr("New update available"));
+   dialog->setWindowTitle(tr("Checking for update"));
 }
 
 
@@ -170,6 +170,7 @@ void UpdateApplication::check(bool msg)
         }
 
         updating = true;
+        downloadRequestAborted = false;
 
         // Specify url
         request.setUrl(url);
@@ -191,8 +192,6 @@ void UpdateApplication::update()
 //    Launch update
 // ----------------------------------------------------------------------------
 {
-    downloadRequestAborted = false;
-
     // Start timer
     downloadTime.start();
 
@@ -243,8 +242,18 @@ void UpdateApplication::processCheckForUpdateReply()
 //    Process to check for update
 // ----------------------------------------------------------------------------
 {
-    if(reply->error())
+    // Case of error
+    if(reply->error() && useMsg)
+    {
+        IFTRACE(update)
+                debug() << "Check for update failed: "
+                        << reply->errorString().toStdString() << "\n";
+
+        // Download failed
+        QMessageBox::information(NULL, tr("Check for update failed"),
+                                 tr("Check for update failed: %1").arg(reply->errorString()));
         return;
+    }
 
     IFTRACE(update)
         debug() << "Check for update reply received\n";
@@ -330,15 +339,15 @@ void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal
                 unit = tr("bytes/sec");
             } else if (speed < 1024*1024) {
                 speed /= 1024;
-                unit = tr("kB/s");
+                unit = tr("Kb/s");
             } else {
                 speed /= 1024*1024;
-                unit = tr("MB/s");
+                unit = tr("Mb/s");
             }
 
             // Update progress dialog
-            QString msg = tr("Downloading %1 : %2 %3");
-            dialog->setLabelText(msg.arg(info.completeBaseName())
+            QString msg = tr("Downloading Tao Presentations %1 : %2 %3");
+            dialog->setLabelText(msg.arg(remoteVersion)
                                  .arg(speed, 3, 'f', 1).arg(unit));
             dialog->setMaximum(bytesTotal);
             dialog->setValue(bytesReceived);

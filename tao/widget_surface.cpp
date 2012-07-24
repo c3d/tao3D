@@ -29,6 +29,7 @@
 #include "apply_changes.h"
 #include "tree_cloning.h"
 #include "text_edit.h"
+#include "widget.h"
 #include <QtWebKit>
 #include <cstring>
 #include <string>
@@ -51,9 +52,10 @@ WidgetSurface::WidgetSurface(Tree * t, QWidget *widget)
 {
     IFTRACE(widgets)
     {
-        std::cerr << "CONSTRUCTOR this : "<< this << " --- Widget : "
-                << widget << "  --- Widget class : \""<<
-                widget->metaObject()->className()<< "\"\n";
+        std::cerr << "WidgetSurface CONSTRUCTOR this : "<< this
+                  << "  --- Widget : " << widget
+                  << "  --- Widget class : \""
+                  << widget->metaObject()->className()<< "\"\n";
     }
 
     widget->hide();
@@ -70,8 +72,9 @@ WidgetSurface::~WidgetSurface()
     {
         IFTRACE(widgets)
         {
-            std::cerr << "DESTRUCTOR this : "<< this << " --- Widget : "
-                    << widget << "\n";
+            std::cerr << "WidgetSurface DESTRUCTOR this : "<< this
+                      << " --- Widget : "
+                      << widget << "\n";
         }
 
         Widget *parent = dynamic_cast<Widget *>(widget->parent());
@@ -81,6 +84,26 @@ WidgetSurface::~WidgetSurface()
         widget = NULL;
     }
     glDeleteTextures(1, &textureId);
+}
+
+
+Tree* WidgetSurface::evaluate(Tree * t)
+// ----------------------------------------------------------------------------
+//   Set the executing environment and evaluate t
+// ----------------------------------------------------------------------------
+{
+    if (Widget::current)
+        return XL::MAIN->context->Evaluate(t);
+
+    // Set the environment
+    Widget* w = dynamic_cast<Widget*>(widget->parent());
+    if (!w)
+        return XL::xl_nil;
+
+    Widget::TaoSave saveCurrent(Widget::current, w);
+    // Evaluate the input tree
+    return XL::MAIN->context->Evaluate(t);
+
 }
 
 
@@ -471,7 +494,7 @@ void AbstractButtonSurface::clicked(bool checked)
     // Evaluate the action. The actual context doesn't matter much, because
     // the action is usually a closure capturing the original context
     if (action)
-        XL::MAIN->context->Evaluate(action);
+        evaluate(action);
     repaint();
 }
 
@@ -513,181 +536,13 @@ void AbstractButtonSurface::toggled(bool checked)
     toBeEvaluated->SetSymbols(symbols);
 
     // Evaluate the input tree
-    XL::MAIN->context->Evaluate(toBeEvaluated);
+    evaluate(toBeEvaluated);
     repaint();
 }
 
 
 
-// ============================================================================
-//
-//   Color Chooser
-//
-// ============================================================================
 
-ColorChooserSurface::ColorChooserSurface(XL::Tree *t,
-                                         Widget *parent, XL::Tree *act)
-// ----------------------------------------------------------------------------
-//    Create the Color Chooser surface
-// ----------------------------------------------------------------------------
-    : WidgetSurface(t, new QColorDialog(parent)), action(act)
-{
-    QColorDialog *diag = (QColorDialog *) widget;
-    diag->setObjectName("colorDialogSurface");
-    connect(diag, SIGNAL(colorSelected (const QColor&)),
-            this, SLOT(colorChosen(const QColor &)));
-    diag->setModal(false);
-    diag->setOption(QColorDialog::ShowAlphaChannel, true);
-}
-
-
-GLuint ColorChooserSurface::bind()
-// ----------------------------------------------------------------------------
-//    Activate the widget
-// ----------------------------------------------------------------------------
-//    At least on MacOSX, the color chooser shows in its own window
-{
-//    QColorDialog *diag = (QColorDialog *) widget;
-//    diag->setOption(QColorDialog::DontUseNativeDialog, false);
-
-    widget->setVisible(true);
-    dirty = true;
-    return WidgetSurface::bind();
-
-}
-
-
-void ColorChooserSurface::colorChosen(const QColor &col)
-// ----------------------------------------------------------------------------
-//    A color was selected. Evaluate the action.
-// ----------------------------------------------------------------------------
-{
-    IFTRACE (widgets)
-    {
-        std::cerr << "Color "<< +col.name()
-                  << "was chosen for reference "<< action
-                  <<"\nand action " << action << "\n";
-    }
-
-
-    // Replace "red", "green", "blue" or "alpha".
-    // REVISIT: Perform actual definitions of these variables
-    ColorTreeClone replacer(col);
-    XL::Tree *toBeEvaluated = action;
-    XL::Symbols *symbols = toBeEvaluated->Symbols();
-    toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(symbols);
-
-    // Evaluate the input tree
-    XL::MAIN->context->Evaluate(toBeEvaluated);
-
-    widget->setVisible(false);
-    repaint();
-
-}
-
-
-
-// ============================================================================
-//
-//    Font Chooser
-//
-// ============================================================================
-
-FontChooserSurface::FontChooserSurface(XL::Tree *t,
-                                       Widget *parent,
-                                       XL::Tree *act)
-// ----------------------------------------------------------------------------
-//    Create the Font Chooser surface
-// ----------------------------------------------------------------------------
-  : WidgetSurface(t, new QFontDialog(parent)), action(act)
-{
-    QFontDialog *diag = (QFontDialog *) widget;
-    diag->setObjectName("fontDialogSurface");
-    connect(diag, SIGNAL(fontSelected (const QFont&)),
-            this, SLOT(fontChosen(const QFont&)));
-    diag->setModal(false);
-}
-
-
-GLuint FontChooserSurface::bind()
-// ----------------------------------------------------------------------------
-//   Display the font chooser
-// ----------------------------------------------------------------------------
-{
-    widget->setVisible(true);
-    return WidgetSurface::bind();
-}
-
-
-void FontChooserSurface::fontChosen(const QFont& ft)
-// ----------------------------------------------------------------------------
-//    A font was selected. Evaluate the action.
-// ----------------------------------------------------------------------------
-{
-    IFTRACE (widgets)
-    {
-        std::cerr << "Font "<< +ft.toString()
-                  << "was chosen for reference "<< action
-                  <<"\nand action " << action << "\n";
-    }
-
-    // Replace the various keywords
-    FontTreeClone replacer(ft);
-    XL::Tree *toBeEvaluated = action;
-    XL::Symbols *symbols = toBeEvaluated->Symbols();
-    toBeEvaluated = toBeEvaluated->Do(replacer);
-    toBeEvaluated->SetSymbols(symbols);
-
-    // Evaluate the input tree
-    XL::MAIN->context->Evaluate(toBeEvaluated);
-
-    widget->setVisible(false);
-    repaint();
-}
-
-
-
-// ============================================================================
-//
-//    File Chooser
-//
-// ============================================================================
-
-FileChooserSurface::FileChooserSurface(XL::Tree *t, Widget *parent)
-// ----------------------------------------------------------------------------
-//    Create the File Chooser surface
-// ----------------------------------------------------------------------------
-  : WidgetSurface(t, new QFileDialog(parent))
-{
-    QFileDialog *diag = (QFileDialog *) widget;
-    diag->setObjectName("fileDialogSurface");
-    connect(diag, SIGNAL(fileSelected (const QString&)),
-            parent, SLOT(fileChosen(const QString&)));
-    connect(diag, SIGNAL(fileSelected (const QString&)),
-            this, SLOT(hideWidget()));
-    diag->setModal(false);
-}
-
-
-GLuint FileChooserSurface::bind()
-// ----------------------------------------------------------------------------
-//   Display the file chooser
-// ----------------------------------------------------------------------------
-{
-    widget->setVisible(true);
-    return WidgetSurface::bind();
-}
-
-
-void FileChooserSurface::hideWidget()
-// ----------------------------------------------------------------------------
-//    A file was selected. Evaluate the action.
-// ----------------------------------------------------------------------------
-{
-     widget->setVisible(false);
-     repaint();
-}
 
 // ============================================================================
 //
@@ -817,9 +672,9 @@ TAO_END
 
 
 // ****************************************************************************
-// 
+//
 //    Code generation from widget_surface.tbl
-// 
+//
 // ****************************************************************************
 
 #include "graphics.h"

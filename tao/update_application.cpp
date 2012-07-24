@@ -11,6 +11,7 @@
 #include <QDialog>
 #include <QDialogButtonBox>
 #include <QTextStream>
+#include <QDesktopServices>
 #include <sstream>
 
 namespace Tao {
@@ -27,7 +28,7 @@ UpdateApplication::UpdateApplication() : aborted(false), updating(false), useMes
 #elif defined(Q_OS_WIN)
     from = "git://git.taodyne.com/software/win/";
 #else
-    from = "git://git.taodyne.com/software/linux/";
+    from = "git://git.taodyne.com/software/linux";
 
     // Check if we are on Debian or Ubuntu distribution to get .deb package
     QString cmd("uname");
@@ -115,9 +116,10 @@ void UpdateApplication::update()
     if(ret == QMessageBox::Yes)
     {
         // Choose folder
+        QString desktop = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
         QString folder = QFileDialog::getExistingDirectory(NULL,
                              tr("Select destination folder"),
-                             Application::defaultProjectFolderPath());
+                             desktop);
 
         if(! folder.isEmpty())
         {
@@ -172,8 +174,15 @@ bool UpdateApplication::extract()
 //    Extract update
 // ----------------------------------------------------------------------------
 {
-    QString cmd = qApp->applicationDirPath() + "/git/bin/tar";
-    QString tar = GitRepository::resolveExePath(cmd);
+    QStringList cmds;
+    cmds << qApp->applicationDirPath() + "/git/bin/tar" << "tar";
+    QString tar;
+    foreach (QString cmd, cmds)
+    {
+        tar = GitRepository::resolveExePath(cmd);
+        if (!tar.isEmpty())
+            break;
+    }
     if(tar.isEmpty())
     {
         IFTRACE(update)

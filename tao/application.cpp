@@ -61,6 +61,8 @@
 #include <QStringList>
 #include <QDesktopServices>
 
+#include <stdlib.h>
+
 
 #if defined(CONFIG_MINGW)
 #include <windows.h>
@@ -87,50 +89,42 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
-      updateApp(),
+      updateApp(), readyToLoad(false),
       startDir(QDir::currentPath()),
-      splash(NULL),
-      pendingOpen(0), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), doNotEnterEventLoop(false),
-      appInitialized(false)
+      splash(NULL), xlr(NULL), screenSaverBlocked(false),
+      moduleManager(NULL), peer(NULL)
 {
 #if defined(Q_OS_WIN32)
-    // DDEWidget handles file/URI open request from the system (double click on
-    // .ddd file, click on a Tao URI).
-    // It is created ASAP to minimize risk of timeout (Windows7 waits no more
-    // than ~2 seconds after launching the process and before showing an error
-    // dialog "There was a problem sending a command to the program").
-    // Prevent window from being drawn by show()
-    dde.setAttribute(Qt::WA_DontShowOnScreen);
-    // show() is required or widget won't receive winEvent()
-    dde.show();
-    // Mark window 'not visible' to Qt, or closing the last top-level window
-    // would not cause the application to exit
-    dde.hide();
+    installDDEWidget();
 #endif
 
+    // Initialize application when event loop starts. Some initialization code
+    // requires the vent lopp to run properly (splash screen update...)
+    QTimer::singleShot(0, this, SLOT(deferredInit()));
+    // Do not set the flag before the real main window is show, otherwise a
+    // URI download dialog (or any other top-level dialog) may cause the app
+    // to exit when closed.
+    setQuitOnLastWindowClosed(false);
+}
+
+
+void Application::deferredInit()
+// ----------------------------------------------------------------------------
+//   Application initialization, run as soon as event loop is started
+// ----------------------------------------------------------------------------
+{
     // Set some useful parameters for the application
     setApplicationName ("Tao Presentations");
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
 
-    // Load translations, based on current locale. Preferences may override
-    // current locale.
-    lang = QLocale().name().left(2);
-    if (lang == "C")
-        lang = "en";
-    lang = QSettings().value("uiLanguage", lang).toString();
-    if (translator.load(QString("tao_") + lang, applicationDirPath()))
-        installTranslator(&translator);
-    if (qtTranslator.load(QString("qt_") + lang, applicationDirPath()))
-        installTranslator(&qtTranslator);
-    if (qtHelpTranslator.load(QString("qt_help_")+ lang, applicationDirPath()))
-        installTranslator(&qtHelpTranslator);
+    // UI translation
+    installTranslators();
 
-    // Set current directory
     QDir::setCurrent(applicationDirPath());
 
-    // Clean options
+    // Check command-line options that cause an immediate exit
+
     QStringList cmdLineArguments = arguments();
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
     {
@@ -157,10 +151,11 @@ Application::Application(int & argc, char ** argv)
         ::exit(0);
     }
 
-    bool showSplash = true;
-    if (cmdLineArguments.contains("-nosplash") ||
-        cmdLineArguments.contains("-h"))
-        showSplash = false;
+#ifdef Q_OS_MACX
+    // Bug #2300 Tex Gyre Adventor font doesn't show up with LANG=fr_FR.UTF-8
+    // Core Text bug?
+    setlocale(LC_NUMERIC, "C");
+#endif
 
     if (cmdLineArguments.contains("-norepo") ||
         cmdLineArguments.contains("-nogit"))
@@ -175,30 +170,47 @@ Application::Application(int & argc, char ** argv)
     QFileInfo builtins  ("system:builtins.xl");
 
     // Create the globals (MAIN)
-    XL::Main * xlr = new Main(argc, argv, "xl_tao",
-                              +syntax.canonicalFilePath(),
-                              +stylesheet.canonicalFilePath(),
-                              +builtins.canonicalFilePath());
+    QVector<char *> args;
+    foreach (QString arg, arguments())
+        args.append(strdup(arg.toUtf8().constData()));
+    xlr = new Main(args.size(), args.data(), "xl_tao",
+                   +syntax.canonicalFilePath(),
+                   +stylesheet.canonicalFilePath(),
+                   +builtins.canonicalFilePath());
+
+    loadLicenses();
+
+    // Create and start garbage collection thread
+    gcThread = new GCThread;
+    if (xlr->options.threaded_gc)
+    {
+        IFTRACE(memory)
+            std::cerr << "Threaded GC is enabled\n";
+        gcThread->moveToThread(gcThread);
+        gcThread->start();
+    }
 
     // #1891 load padlock icon for license dialog
     QPixmap pm(":/images/tao_padlock.svg");
     padlockIcon = new QPixmap(pm.scaled(64, 64, Qt::IgnoreAspectRatio,
                                         Qt::SmoothTransformation));
 
-    // Load licenses
-    QList<QDir> dirs;
-    dirs << QDir(Application::userLicenseFolderPath())
-         << QDir(Application::appLicenseFolderPath());
-    foreach (QDir dir, dirs)
+    // OpenGL checks
+    if (!checkGL())
     {
-        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
-                                                   QDir::Files);
-        Licences::AddLicenceFiles(licences);
+        exit(1);
+        return;
     }
+
+    // Create main window
+    win = new Window (xlr, contextFiles);
 
     // Check main application licence
     if (!Licences::Check(TAO_LICENCE_STR, true))
-        ::exit(15);
+    {
+        exit(15);
+        return;
+    }
 
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
@@ -211,17 +223,26 @@ Application::Application(int & argc, char ** argv)
         eula.raise();
 #endif
         if (eula.exec() != QMessageBox::Ok)
-            ::exit(1);
+        {
+            exit(1);
+            return;
+        }
     }
 #endif
 
+    // Possibly run in client/server mode (a single instance of Tao)
+    if (arguments().contains("--one-instance"))
+        if (singleInstanceClientTalkedToServer())
+            return;
+
     // Show splash screen
+    bool showSplash = !(cmdLineArguments.contains("-nosplash") ||
+                        cmdLineArguments.contains("-h"));
     if (showSplash)
     {
         splash = new SplashScreen();
         splash->show();
         splash->raise();
-        QApplication::processEvents();
     }
 
     // Now time to install the "persistent" error handler
@@ -238,16 +259,6 @@ Application::Application(int & argc, char ** argv)
     // Load settings
     loadDebugTraceSettings();
 
-    // Create and start garbage collection thread
-    gcThread = new GCThread;
-    if (xlr->options.threaded_gc)
-    {
-        IFTRACE(memory)
-            std::cerr << "Threaded GC is enabled\n";
-        gcThread->moveToThread(gcThread);
-        gcThread->start();
-    }
-
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
     gs->setAttribute(QWebSettings::JavascriptEnabled, true);
@@ -263,19 +274,155 @@ Application::Application(int & argc, char ** argv)
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);
 
+#ifndef CFG_NOGIT
+    if (!RepositoryFactory::available())
+    {
+        // Nothing (dialog box already shown by Repository class)
+    }
+#endif //CFG_NOGIT
+
+    // Create default folder for Tao documents
+    // ("Save as..." box will land there)
+    createDefaultProjectFolder();
+
+    loadSettings();
+
+    loadFonts();
+
+    // The aboutToQuit signal is the recommended way for cleaning things up
+    connect(this, SIGNAL(aboutToQuit()), this, SLOT(cleanup()));
+
+#if defined (CONFIG_LINUX)
+    xDisplay = XOpenDisplay(NULL);
+    Q_ASSERT(xDisplay);
+    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
+    ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
+#endif
+
+    XL::MAIN = this->xlr = xlr;
+    if (XL::MAIN->options.enable_modules)
+        checkModules();
+
+    // Check for update now if wanted
+    if(GeneralPage::checkForUpdate())
+        updateApp.check();
+
+    // Record application start time (licensing)
+    startTime = Widget::trueCurrentTime();
+
+    // We're ready to go
+    processCommandLineFile();
+}
+
+
+Application::~Application()
+// ----------------------------------------------------------------------------
+//   Delete the Tao application
+// ----------------------------------------------------------------------------
+{
+    if (gcThread)
+    {
+        IFTRACE(memory)
+            std::cerr << "Stopping GC thread...\n";
+        gcThread->quit();
+        gcThread->wait();
+        IFTRACE(memory)
+            std::cerr << "GC thread stopped\n";
+        delete gcThread;
+    }
+}
+
+
+#if defined(Q_OS_WIN32)
+void Application::installDDEWidget()
+// ----------------------------------------------------------------------------
+//   Create DDE widget (receives file/URI open requests from the OS)
+// ----------------------------------------------------------------------------
+{
+    // DDEWidget handles file/URI open request from the system (double click on
+    // .ddd file, click on a Tao URI).
+    // It is created ASAP to minimize risk of timeout (Windows7 waits no more
+    // than ~2 seconds after launching the process and before showing an error
+    // dialog "There was a problem sending a command to the program").
+    // Prevent window from being drawn by show()
+    dde.setAttribute(Qt::WA_DontShowOnScreen);
+    // show() is required or widget won't receive winEvent()
+    dde.show();
+    // Mark window 'not visible' to Qt, or closing the last top-level window
+    // would not cause the application to exit
+    dde.hide();
+}
+#endif
+
+
+bool Application::loadLicenses()
+// ----------------------------------------------------------------------------
+//   Load all Tao license files that can be found in standard locations
+// ----------------------------------------------------------------------------
+{
+    QList<QDir> dirs;
+    dirs << QDir(Application::userLicenseFolderPath())
+         << QDir(Application::appLicenseFolderPath());
+    foreach (QDir dir, dirs)
+    {
+        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+                                                   QDir::Files);
+        Licences::AddLicenceFiles(licences);
+    }
+
+    return true;
+}
+
+
+bool Application::installTranslators()
+// ----------------------------------------------------------------------------
+//   Setup translations
+// ----------------------------------------------------------------------------
+{
+    // Load translations, based on (the first that is defined wins):
+    //  - Application preferences
+    //  - LANG
+    //  - Preferred language from system
+#if QT_VERSION >= 0x040800
+    if (char *env = getenv("LANG"))
+        lang = QString::fromLocal8Bit(env).left(2);
+    else
+        lang = QLocale::system().uiLanguages().value(0).left(2);
+#else
+    lang = QLocale().name().left(2);
+#endif
+    if (lang == "C")
+        lang = "en";
+    lang = QSettings().value("uiLanguage", lang).toString();
+    if (translator.load(QString("tao_") + lang, applicationDirPath()))
+        installTranslator(&translator);
+    if (qtTranslator.load(QString("qt_") + lang, applicationDirPath()))
+        installTranslator(&qtTranslator);
+    if (qtHelpTranslator.load(QString("qt_help_")+ lang, applicationDirPath()))
+        installTranslator(&qtHelpTranslator);
+
+    return true;
+}
+
+
+bool Application::checkGL()
+// ----------------------------------------------------------------------------
+//   Check if GL implementation can be used
+// ----------------------------------------------------------------------------
+{
     // Basic sanity tests to check if we can actually run
     if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
         QMessageBox::warning(NULL, tr("OpenGL support"),
                              tr("This system doesn't support OpenGL 2.0."));
-        ::exit(1);
+        return false;
     }
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
     {
         QMessageBox::warning(NULL, tr("FBO support"),
                              tr("This system doesn't support Frame Buffer "
                                 "Objects."));
-        ::exit(1);
+        return false;
     }
 
     useShaderLighting = PerformancesPage::perPixelLighting();
@@ -320,65 +467,8 @@ Application::Application(int & argc, char ** argv)
                               "look jagged."));
     }
 
-#ifndef CFG_NOGIT
-    if (!RepositoryFactory::available())
-    {
-        // Nothing (dialog box already shown by Repository class)
-    }
-#endif //CFG_NOGIT
-    // Create default folder for Tao documents
-    // ("Save as..." box will land there)
-    createDefaultProjectFolder();
-
-    loadSettings();
-
-    loadFonts();
-
-    // The aboutToQuit signal is the recommended way for cleaning things up
-    connect(this, SIGNAL(aboutToQuit()), this, SLOT(cleanup()));
-
-#if defined (CONFIG_LINUX)
-    xDisplay = XOpenDisplay(NULL);
-    Q_ASSERT(xDisplay);
-    QProcessEnvironment env = QProcessEnvironment::systemEnvironment();
-    ssHeartBeatCommand = env.value("TAO_SS_HEARTBEAT_CMD");
-#endif
-
-    XL::MAIN = this->xlr = xlr;
-    if (XL::MAIN->options.enable_modules)
-        checkModules();
-
-    // Check for update now if wanted
-    if(GeneralPage::checkForUpdate())
-        updateApp.check();
-
-    // Record application start time (licensing)
-    startTime = Widget::trueCurrentTime();
-
-    // We're ready to go
-    appInitialized = true;
-    if (!savedUri.isEmpty())
-        loadUri(savedUri);
+    return true;
 }
-
-
-Application::~Application()
-// ----------------------------------------------------------------------------
-//   Delete the Tao application
-// ----------------------------------------------------------------------------
-{
-    if (gcThread)
-    {
-        IFTRACE(memory)
-            std::cerr << "Stopping GC thread...\n";
-        gcThread->quit();
-        gcThread->wait();
-        IFTRACE(memory)
-            std::cerr << "GC thread stopped\n";
-        delete gcThread;
-    }
-}
-
 
 void Application::checkModules()
 // ----------------------------------------------------------------------------
@@ -468,189 +558,74 @@ void Application::cleanup()
 }
 
 
-bool Application::processCommandLine()
+void Application::processCommandLineFile()
 // ----------------------------------------------------------------------------
 //   Handle command-line files or URIs
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(win);
+
+    // Find file or URI
+    QString toOpen = getFileOrUriFromCommandLine();
+
     // Fetch info for XL files
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
-    QFileInfo tutorial  ("system:welcome/welcome.ddd");
-
     if (user.exists())
         contextFiles.push_back(+user.canonicalFilePath());
     if (theme.exists())
         contextFiles.push_back(+theme.canonicalFilePath());
 
-    connect(this, SIGNAL(allWindowsReady()),
-            this, SLOT(checkOfflineRendering()));
+    if (splash)
+        win->splashScreen = splash;
 
-    // Create the windows for each file or URI on the command line
-    XL::source_names &names = xlr->file_names;
-    XL::source_names::iterator it;
-    for (it = names.begin(); it != names.end(); it++)
+    win->setWindowModified(false);
+    if (toOpen.isEmpty())
     {
-        if (splash)
-            splash->raise();
-        QString sourceFile = +(*it);
-        if (!sourceFile.contains("://") &&
-            !QFileInfo(sourceFile).isAbsolute())
-            sourceFile = startDir + "/" + sourceFile;
-        Tao::Window *window = new Tao::Window (xlr, contextFiles);
-        if (splash)
-            window->splashScreen = splash;
-        window->deleteOnOpenFailed = true;
-        connect(window, SIGNAL(openFinished(bool)),
-                this, SLOT(onOpenFinished(bool)));
-#if defined(Q_OS_MACX)
-        // BUG#1503
-        window->show();
-#endif
-        int st = window->open(sourceFile);
-        window->markChanged(false);
-        switch (st)
-        {
-        case 0:
-            window->hide(); // #2165
-            delete window;
-            window = NULL;
-            break;
-        case 1:
-            window->show();
-            hadWin = true;
-            break;
-        case 2:
-            window->show();
-            if (splash)
-                splash->raise();
-            pendingOpen++;
-            break;
-        default:
-            Q_ASSERT(!"Unexpected return value");
-            break;
-        }
+        toOpen = pendingOpen;
+        pendingOpen = "";
     }
+    if (toOpen.isEmpty())
+        toOpen = win->welcomePath();
+    Q_ASSERT(!toOpen.isEmpty());
+    int st = win->open(toOpen);
+    win->markChanged(false);
+    if (st == 0)
+        win->open(win->welcomePath());
+    win->show();
 
-    if (!findFirstTaoWindow())
-    {
-        // Open tutorial file read-only
-        QString tuto = tutorial.canonicalFilePath();
-        Tao::Window *untitled = new Tao::Window(xlr, contextFiles);
-        untitled->open(tuto, true);
-        untitled->isUntitled = true;
-        untitled->isReadOnly = true;
-        untitled->show();
-        hadWin = true;
-    }
+    // Now that main window has been shown (if it had to), we can set the
+    // "quit on last window closed" flag.
+    setQuitOnLastWindowClosed(true);
 
-    if (splash && pendingOpen == 0)
+    if (splash)
     {
         splash->close();
         delete splash;
     }
 
-    if (hadWin && !pendingOpen)
+    checkOfflineRendering();
+
+    readyToLoad = true;
+    if (!pendingOpen.isEmpty())
     {
-        emit allWindowsReady();
-        if (doNotEnterEventLoop)
-            return false;
+        loadUri(pendingOpen);
+        pendingOpen = "";
     }
-
-    return (hadWin || pendingOpen);
-}
-
-
-Window * Application::findFirstTaoWindow()
-// ----------------------------------------------------------------------------
-//   Enumerate Tao top-level windows and return first instance, or NULL
-// ----------------------------------------------------------------------------
-{
-    Window *window = NULL;
-    foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {
-        window = dynamic_cast<Window *>(widget);
-        if (window)
-            break;
-    }
-    return window;
 }
 
 
 void Application::loadUri(QString uri)
 // ----------------------------------------------------------------------------
-//   Create a new window to load a document from a Tao URI
+//   Load a Tao URI into main window
 // ----------------------------------------------------------------------------
 {
-    if (!appInitialized)
-    {
-        // Event delivered before Application constructor could complete.
-        // Save URI, constructor will open it
-        savedUri = uri;
-        return;
-    }
-
-    Window *window = findFirstTaoWindow();
-    if (!window)
-    {
-        window = new Tao::Window (xlr, contextFiles);
-        window->deleteOnOpenFailed = true;
-    }
-
-    connect(window, SIGNAL(openFinished(bool)),
-            this, SLOT(onOpenFinished(bool)));
-    int st = window->open(uri);
-    window->markChanged(false);
-    switch (st)
-    {
-    case 0:
-        QMessageBox::warning(window, tr("Error"),
-                             tr("Could not open %1.\n").arg(uri));
-        break;
-    case 1:
-        window->show();
-        hadWin = true;
-        break;
-    case 2:
-        window->show();
-        if (splash)
-            splash->raise();
-        pendingOpen++;
-        break;
-    default:
-        Q_ASSERT(!"Unexpected return value");
-        break;
-    }
-}
-
-
-void Application::onOpenFinished(bool ok)
-// ----------------------------------------------------------------------------
-//   Decrement count of pending opens, delete splash screen accordingly
-// ----------------------------------------------------------------------------
-{
-    if (ok)
-        hadWin = true;
-
-    if (pendingOpen)
-        pendingOpen--;
-    if (pendingOpen == 0 && splash)
-    {
-        splash->close();
-        delete splash;
-        Window * win = findFirstTaoWindow();
-        if (win && win->isUntitled)
-        {
-            // E.g., start Tao by clicking on a module or template link,
-            // or give a template / module URL on the command line.
-            // Load welcome screen now
-            QFileInfo tutorial("system:welcome/welcome.ddd");
-            QString tuto = tutorial.canonicalFilePath();
-            win->setWindowModified(false); // Prevent "Save?" question
-            win->open(tuto, true);
-        }
-        emit allWindowsReady();
-    }
+    IFTRACE2(ipc, fileload)
+        std::cerr << "Request to open '" << +uri << "'\n";
+    if (readyToLoad)
+        win->open(uri);
+    else
+        pendingOpen = uri;
 }
 
 
@@ -674,14 +649,13 @@ void Application::blockScreenSaver(bool block)
     //   The technique depends on the screen saver being used. Here is what we
     //   do to prevent the screen saver from running:
     //     1. Call (once) the XSS API: XScreenSaverSuspend
-    //     2. Periodically call the Xlib API: XResetScreenSaver
-    //     3. Periodically execute the command given in the
+    //     2. Call (once) the xdg-screensaver command
+    //     3. Periodically call the Xlib API: XResetScreenSaver
+    //     4. Periodically execute the command given in the
     //        TAO_SS_HEARTBEAT_CMD environment variable, if defined.
-    //   Therefore, all screen savers that support the Xlib or XSS APIs are
-    //   automatically disabled. For other screen savers you will have to
-    //   define TAO_SS_HEARTBEAT_CMD.
-    //     * Example for Gnome:
-    //         TAO_SS_HEARTBEAT_CMD="gnome-screensaver-command -p"
+    //   Therefore, all screen savers that support the Xlib or XSS APIs or the
+    //   xdg-screensaver script, are automatically disabled. For other screen
+    //   savers you will have to define TAO_SS_HEARTBEAT_CMD.
     //     * Example for xscreensaver:
     //         TAO_SS_HEARTBEAT_CMD="xscreensaver-command -deactivate"
 
@@ -697,6 +671,11 @@ void Application::blockScreenSaver(bool block)
         SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, FALSE, 0, 0);
 #elif defined(CONFIG_LINUX)
         XScreenSaverSuspend(xDisplay, True);
+        if (win)
+        {
+            QString xdgss = QString("xdg-screensaver suspend %1").arg(win->winId());
+            QProcess::execute(xdgss);
+        }
         QTimer::singleShot(30000, this, SLOT(simulateUserActivity()));
 #endif
     }
@@ -711,6 +690,11 @@ void Application::blockScreenSaver(bool block)
         SystemParametersInfo(SPI_SETSCREENSAVEACTIVE, TRUE, 0, 0);
 #elif defined(CONFIG_LINUX)
         XScreenSaverSuspend(xDisplay, False);
+        if (win)
+        {
+            QString xdgss = QString("xdg-screensaver resume %1").arg(win->winId());
+            QProcess::execute(xdgss);
+        }
 #endif
     }
 }
@@ -753,34 +737,27 @@ void Application::simulateUserActivity()
 
 #endif
 
-void Application::checkOfflineRendering()
+bool Application::checkOfflineRendering()
 // ----------------------------------------------------------------------------
 //   Start offline rendering if command line switch present and we have 1 doc
 // ----------------------------------------------------------------------------
 {
     QString ropts = +XL::MAIN->options.rendering_options;
     if (ropts == "-")
-        return;
+        return false;
 
     if (ropts == "")
     {
         std::cerr << +tr("-render: option requires parameters\n");
-        return;
+        return false;
     }
-
-    int n = 0;
-    foreach (QWidget *widget, QApplication::topLevelWidgets())
-        if (dynamic_cast<Window *>(widget))
-            n++;
-    if (n != 1)
-        return;
 
     QStringList parms = ropts.split(",");
     int nparms = parms.size();
     if (nparms < 7 || nparms > 8)
     {
         std::cerr << +tr("-render: too few or too many parameters\n");
-        return;
+        return false;
     }
 
     int idx = 0;
@@ -804,7 +781,7 @@ void Application::checkOfflineRendering()
         QStringList names = DisplayDriver::allDisplayFunctions();
         foreach (QString name, names)
             std::cout << "  " << +name << "\n";
-        return;
+        return false;
     }
 
     std::cout << "Starting offline rendering: page=" << page << " x=" << x
@@ -812,11 +789,12 @@ void Application::checkOfflineRendering()
               << " fps=" << fps << " folder=\"" << +folder << "\""
               << " displaymode=\"" << +disp << "\"\n";
 
-    Widget *widget = findFirstTaoWindow()->taoWidget;
+    Widget *widget = win->taoWidget;
     connect(widget, SIGNAL(renderFramesProgress(int)),
             this,   SLOT(printRenderingProgress(int)));
-    doNotEnterEventLoop = true;
     widget->renderFrames(x, y, start, end, folder, fps, page, disp);
+
+    return true;
 }
 
 
@@ -1312,4 +1290,69 @@ void Application::addUrlCompletion(QString url)
 }
 
 
+QString Application::getFileOrUriFromCommandLine()
+// ----------------------------------------------------------------------------
+//    Return first path or URI given on command line
+// ----------------------------------------------------------------------------
+{
+    Q_ASSERT(xlr);
+
+    XL::source_names &names = xlr->file_names;
+    XL::source_names::iterator it;
+    for (it = names.begin(); it != names.end(); it++)
+    {
+        QString arg = +(*it);
+        // Make relative paths absolute.
+        if (!arg.contains("://") && !QFileInfo(arg).isAbsolute())
+            arg = startDir + "/" + arg;
+        return arg;
+    }
+
+    return QString();
+}
+
+
+bool Application::singleInstanceClientTalkedToServer()
+// ----------------------------------------------------------------------------
+//    Start as a server, or send file/URI to existing server and exit
+// ----------------------------------------------------------------------------
+{
+    // Returns true if file on command line has been processed
+    QString id;
+    if (char *env = getenv("TAO_INSTANCE"))
+        id = QString::fromLocal8Bit(env);
+
+    peer = new QtLocalPeer(this, id);
+    if (peer->isClient())
+    {
+        IFTRACE(ipc)
+            std::cerr << "Starting as client (instance id '" << +id << "')\n";
+        QString uri = getFileOrUriFromCommandLine();
+        if (!uri.isEmpty())
+        {
+            IFTRACE(ipc)
+                std::cerr << "Sending to server: '" << +uri << "'\n";
+            if (!peer->sendMessage(uri, 10000))
+            {
+                IFTRACE(ipc)
+                    std::cerr << "Failed, proceeding with file open\n";
+                return false;
+            }
+            IFTRACE(ipc)
+                std::cerr << "Command sent, exiting\n";
+            exit(0);
+            return true;
+        }
+        std::cerr << "No file or URI found on command line\n";
+        ::exit(1);
+    }
+    else
+    {
+        IFTRACE(ipc)
+            std::cerr << "Starting as server (instance id '" << +id << "')\n";
+        connect(peer, SIGNAL(messageReceived(QString)),
+                this, SLOT(loadUri(QString)));
+    }
+    return false;
+}
 }

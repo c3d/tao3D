@@ -141,7 +141,7 @@ AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
             textures.erase(first);
         }
 
-        // Read the image file and convert to proper GL image format
+        // Read the image file
         movie.setFileName(+file);
         if (!movie.isValid())
         {
@@ -150,6 +150,8 @@ AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
         }
         movie.start();
 
+        // Allocate texture ID
+        glGenTextures(1, &texinfo.id);
 
         // Remember the texture for next time
         textures[file] = texinfo;
@@ -178,7 +180,7 @@ GLuint AnimatedTextureInfo::bind(text file)
         QImage texture = QGLWidget::convertToGLFormat(image);
 
         // Generate the GL texture
-        glGenTextures(1, &texinfo.id);
+        Q_ASSERT(texinfo.id);
         glBindTexture(GL_TEXTURE_2D, texinfo.id);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      texinfo.width, texinfo.height, 0, GL_RGBA,

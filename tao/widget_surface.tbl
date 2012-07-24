@@ -168,70 +168,23 @@ PREFIX(CheckBoxButtonTexture,  tree,  "check_box_button_texture",
        GROUP(widget)
        SYNOPSIS("Make a texture out of a given checkbox button")
        DESCRIPTION("Make a texture out of a given checkbox button"))
-
-PREFIX(ColorChooser,  tree,  "color_chooser",
-       PARM(x,real, )
-       PARM(y,real, )
-       PARM(w,real, )
-       PARM(h,real, )
-       PARM(t,tree, ),
-       RTAO(colorChooser(self, x, y, w, h, t)),
-       GROUP()
-       SYNOPSIS("")
-       DESCRIPTION(""))
 PREFIX(ColorChooserNow,  tree,  "color_chooser",
-       PARM(n, text, "x-coordinate")
-       PARM(t,tree, "y-coordinate"),
+       PARM(n, text, "name")
+       PARM(t,tree, "code"),
        RTAO(colorChooser(self, n, t)),
        GROUP(widget)
        SYNOPSIS("Draw a color chooser")
        DESCRIPTION("Pop a window with the platform dependant color chooser inside.\
 Once the color is chosen Names 'red', 'green', 'blue', and 'alpha' are replaced in the given tree by the corresponding value in the selected color. Then the resulting tree is evaluated. \
  'name' is used to register and uses a color attribute : 'line_color' and 'color' are defined.  "))
-
-PREFIX(ColorChooserTexture,  tree,  "color_chooser_texture",
-       PARM(w,real, "width")
-       PARM(h,real, "height")
-       PARM(t,tree, "tree to update with new color"),
-       RTAO(colorChooserTexture(self, w, h, t)),
-       GROUP(widget)
-       SYNOPSIS("Make a texture out of a given color chooser")
-       DESCRIPTION("Make a texture out of a given color chooser"))
 PREFIX(FontChooserNow,  tree,  "font_chooser",
+       PARM(n, text, "name")
        PARM(t,tree, ),
-       RTAO(fontChooser(self, t)),
+       RTAO(fontChooser(self, n, t)),
        GROUP()
-       SYNOPSIS("")
-       DESCRIPTION(""))
-PREFIX(FontChooser,  tree,  "font_chooser",
-       PARM(x,real, "x-coordinate")
-       PARM(y,real, "y-coordinate")
-       PARM(w,real, "width")
-       PARM(h,real, "height")
-       PARM(t,tree, "tree to update with new font"),
-       RTAO(fontChooser(self, x, y, w, h, t)),
-       GROUP(widget)
        SYNOPSIS("font chooser")
        DESCRIPTION("Pop a window with the platform dependant font chooser inside. \
 Once the font is chosen, Names 'font_family', 'font_size', 'font_weight', 'font_slant', 'font_stretch', 'font_is_italic', and 'font_is_bold' are replaced by their corresponding values in the selected font. The resulting tree is then evaluated."))
-PREFIX(FontChooserTexture,  tree,  "font_chooser_texture",
-       PARM(w,real, "width")
-       PARM(h,real, "height")
-       PARM(t,tree, "tree to update with new font"),
-       RTAO(fontChooserTexture(self, w, h, t)),
-       GROUP(widget)
-       SYNOPSIS("Make a texture out of a given color chooser")
-       DESCRIPTION("Make a texture out of a given color chooser"))
-PREFIX(FileChooser,  tree,  "file_chooser",
-       PARM(x,real, )
-       PARM(y,real, )
-       PARM(w,real, )
-       PARM(h,real, )
-       PARM(t,tree, ),
-       RTAO(fileChooser(self, x, y, w, h, t)),
-       GROUP()
-       SYNOPSIS("")
-       DESCRIPTION(""))
 PREFIX(FileChooserNow,  tree,  "file_chooser",
        PARM(t,tree, "x-coordinate"),
        RTAO(fileChooser(self, t)),
@@ -240,14 +193,6 @@ PREFIX(FileChooserNow,  tree,  "file_chooser",
        DESCRIPTION("Pop a window with the platform dependant file chooser inside. \
 The file_chooser can be parameterized with 4 atributes which are 'action', 'directory', 'label' and 'filter'. Those attributes are defined in the function with file_chooser_ prefix. \
 Once the file is selected, Names 'file_name', 'file_directory', 'file_path', and 'rel_file_path' are replaced by their corresponding values from the selected file."))
-PREFIX(FileChooserTexture,  tree,  "file_chooser_texture",
-       PARM(w,real, "width")
-       PARM(h,real, "height")
-       PARM(t,tree, "tree to update with new file"),
-       RTAO(fileChooserTexture(self, w, h, t)),
-       GROUP(widget)
-       SYNOPSIS("Make a texture out of a given file chooser")
-       DESCRIPTION("Make a texture out of a given file chooser"))
 PREFIX(SetFileDialogAction,  tree,  "file_chooser_action",
        PARM(t, code, "The action to modify and execute when file is chosen."),
        RTAO(setFileDialogAction(self, t)),

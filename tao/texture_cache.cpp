@@ -159,7 +159,7 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 // ----------------------------------------------------------------------------
 {
     TextureName name(img, docPath);
-    CachedTexture * cached = fromName[name];
+    CachedTexture * cached = fromName.value(name);
     if (!cached)
     {
         cached = new CachedTexture(*this, img, docPath,
@@ -187,7 +187,7 @@ CachedTexture * TextureCache::bind(GLuint id)
 //   Bind GL texture if it exists and return object
 // ----------------------------------------------------------------------------
 {
-    CachedTexture * cached = fromId[id];
+    CachedTexture * cached = fromId.value(id);
     if (!cached)
         return NULL;
 

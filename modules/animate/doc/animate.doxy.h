@@ -27,6 +27,7 @@
  * @~
  @code
 import Animate
+
 key "Right" -> skip 1
 key "Left"  -> skip -1
 compute_smooth_step

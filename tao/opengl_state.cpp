@@ -275,6 +275,7 @@ void OpenGLState::Sync(ulonglong which)
     if (!needSync)
         return;
 
+    bool traceErrors = XLTRACE(glerrors);
 #define SYNC(name, Code)                                \
     do                                                  \
     {                                                   \
@@ -282,7 +283,8 @@ void OpenGLState::Sync(ulonglong which)
         {                                               \
             Code;                                       \
             name##_isDirty = false;                     \
-            ShowErrors(#name);                          \
+            if (traceErrors)                            \
+                ShowErrors(#name);                      \
         }                                               \
     } while(0)
 
@@ -1733,6 +1735,7 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
 {
     if (force || *this != ts)
         glActiveTexture(GL_TEXTURE0 + unit);
+    bool traceErrors = XLTRACE(glerrors);
 
 #define SYNC_TEXTURE(name, Code)                \
     do                                          \
@@ -1741,7 +1744,8 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
         {                                       \
             name = ts.name;                     \
             Code;                               \
-            OpenGLState::ShowErrors(#name);     \
+            if (traceErrors)                    \
+                OpenGLState::ShowErrors(#name); \
         }                                       \
     } while(0)
 

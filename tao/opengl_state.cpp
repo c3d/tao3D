@@ -220,7 +220,7 @@ void OpenGLState::Restore(GraphicSave *saved)
 }
 
 
-uint OpenGLState::ShowErrors()
+uint OpenGLState::ShowErrors(kstring msg)
 // ----------------------------------------------------------------------------
 //   Display all OpenGL errors in the error window
 // ----------------------------------------------------------------------------
@@ -235,16 +235,20 @@ uint OpenGLState::ShowErrors()
         if (!count)
         {
             char *p = (char *) gluErrorString(err);
-            std::cerr << "GL Error: " << p
-                      << "[error code: " << err << "]\n";
+            std::cerr << "GL Error: " << p;
+            if (msg)
+                std::cerr << " in " << msg << " ";
+            std::cerr << "[error code: " << err << "]\n";
             IFTRACE(glerrors)
                 tao_stack_trace(2);
             last = err;
         }
         if (err != last || count == 100)
         {
-            std::cerr << "GL Error: Error " << last
-                      << " repeated " << count << " times\n";
+            std::cerr << "GL Error: Error " << last;
+            if (msg)
+                std::cerr << " in " << msg << " ";
+            std::cerr << " repeated " << count << " times\n";
             count = 0;
         }
         else
@@ -277,7 +281,7 @@ void OpenGLState::Sync(ulonglong which)
         {                                               \
             Code;                                       \
             name##_isDirty = false;                     \
-            ShowErrors();                               \
+            ShowErrors(#name);                          \
         }                                               \
     } while(0)
 
@@ -1701,7 +1705,7 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
         {                                       \
             name = ts.name;                     \
             Code;                               \
-            OpenGLState::ShowErrors();          \
+            OpenGLState::ShowErrors(#name);     \
         }                                       \
     } while(0)
 

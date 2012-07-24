@@ -386,7 +386,7 @@ public:
 
 public:
     static text          vendorsList[LAST_VENDOR];
-    static uint ShowErrors();
+    static uint ShowErrors(kstring msg = NULL);
 
 private:
     // Structure used to push/pop state

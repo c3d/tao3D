@@ -91,7 +91,7 @@ UpdateApplication::UpdateApplication() : updating(false)
 
    // Create a dialog to display download progress
    dialog = new QProgressDialog();
-   dialog->setWindowTitle(tr("Downloading new update"));
+   dialog->setWindowTitle(tr("Checking for update"));
    dialog->setFixedSize(300, 100);
 }
 
@@ -186,6 +186,7 @@ void UpdateApplication::check(bool msg)
         }
 
         updating = true;
+        downloadRequestAborted = false;
 
         // Specify url
         request.setUrl(url);
@@ -208,8 +209,6 @@ void UpdateApplication::update()
 //    Launch update
 // ----------------------------------------------------------------------------
 {
-    downloadRequestAborted = false;
-
     // Start timer
     downloadTime.start();
 

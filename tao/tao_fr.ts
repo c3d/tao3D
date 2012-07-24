@@ -1769,72 +1769,82 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
     </message>
     <message>
         <location filename="update_application.cpp" line="94"/>
-        <source>Downloading new update</source>
-        <translation>Téléchargement de la mise-à-jour</translation>
+        <source>Checking for update</source>
+        <translation>Vérification de mise à jour</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="286"/>
+        <location filename="update_application.cpp" line="262"/>
+        <source>Check for update failed</source>
+        <translation>Echec de la vérification de mise àjour</translation>
+    </message>
+    <message>
+        <location filename="update_application.cpp" line="263"/>
+        <source>Check for update failed: %1</source>
+        <translation>Echec de la vérification de mise à jour: %1</translation>
+    </message>
+    <message>
+        <location filename="update_application.cpp" line="295"/>
         <source>Tao Presentations %1 available</source>
         <translation>Tao Presentations %1 disponible</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="287"/>
+        <location filename="update_application.cpp" line="296"/>
         <source>A new version of Tao Presentations is available, would you download it now ?</source>
         <translation>Une nouvelle version de Tao Presentations est disponible, voulez-vous la télécharger maintenant ?</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="343"/>
+        <location filename="update_application.cpp" line="352"/>
         <source>bytes/sec</source>
         <translation>octets/sec</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="346"/>
+        <location filename="update_application.cpp" line="355"/>
         <source>Kb/s</source>
         <translation>Ko/s</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="349"/>
+        <location filename="update_application.cpp" line="358"/>
         <source>Mb/s</source>
         <translation>Mo/s</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="353"/>
+        <location filename="update_application.cpp" line="362"/>
         <source>Downloading Tao Presentations %1 : %2 %3</source>
         <translation>Téléchargement de Tao Presentations %1 : %2 %3</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="447"/>
+        <location filename="update_application.cpp" line="456"/>
         <source>Download failed</source>
         <translation>Echec du téléchargement</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="461"/>
+        <location filename="update_application.cpp" line="470"/>
         <source>Download of %1 successfull (saved to %2)
 </source>
         <translation>Téléchargement de %1 réussi</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="463"/>
+        <location filename="update_application.cpp" line="472"/>
         <source>Download successfull</source>
         <translation>Téléchargement réussi</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="487"/>
+        <location filename="update_application.cpp" line="496"/>
         <source>Select destination folder</source>
         <translation>Choississez un dossier de destination</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="497"/>
+        <location filename="update_application.cpp" line="506"/>
         <source>File existing</source>
         <translation>Le fichier existe déjà</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="498"/>
+        <location filename="update_application.cpp" line="507"/>
         <source>There already exists a file called %1 in the specified directory. Overwrite it?</source>
         <translation>Il existe déjà un fichier nommé %1 dans le repertoire indiqué. Voulez-vous l&apos;écraser?</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="523"/>
+        <location filename="update_application.cpp" line="532"/>
         <source>Unable to save the file %1: %2.</source>
         <translation>Impossible de sauver le fichier %1: %2.</translation>
     </message>
@@ -1865,12 +1875,12 @@ Code: %1</translation>
         <translation type="obsolete">Erreur</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="311"/>
+        <location filename="update_application.cpp" line="320"/>
         <source>No update available</source>
         <translation>Aucune mise à jour disponible</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="312"/>
+        <location filename="update_application.cpp" line="321"/>
         <source>Tao Presentations %1 is up-to-date.</source>
         <translation>Tao Presentations %1 est à jour.</translation>
     </message>
@@ -1883,7 +1893,7 @@ Code : %1
 %2</translation>
     </message>
     <message>
-        <location filename="update_application.cpp" line="448"/>
+        <location filename="update_application.cpp" line="457"/>
         <source>Download failed: %1</source>
         <translation>Échec du téléchargement : %1</translation>
     </message>

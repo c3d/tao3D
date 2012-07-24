@@ -57,29 +57,29 @@ private:
 
 private slots:
     void     processCheckForUpdate();
-    void     downloadFinished();
-    void     downloadReadyRead();
     void     downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
     void     cancelDownload();
+    void     downloadReadyRead();
+    void     downloadFinished();
 
     std::ostream & debug();
 
 private:
     // Tao infos
-    double                 version;          // Tao version
-    QString                edition;          // Tao edition
-    QString                system;           // Operating system
+    double                 version;        // Tao version
+    QString                edition;        // Tao edition
+    QString                system;         // Operating system
 
     // Update infos
-    double                 remoteVersion;    // Remote version
-    QString                fileName;         // Remote filename
-    QUrl                   url;              // Remote url
+    double                 remoteVersion;  // Remote version
+    QString                fileName;       // Remote filename
+    QUrl                   url;            // Remote url
 
     // I/O
-    QFile*                 file;
-    QFileInfo              info;
-    QProgressDialog*       dialog;
-    bool                   useMsg;
+    QFile*                 file;           // Download file
+    QFileInfo              info;           // Download info
+    QProgressDialog*       dialog;         // Progress dialog
+    bool                   useMsg;         // Show messages box
 
     // Network
     QNetworkReply*         reply;

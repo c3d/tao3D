@@ -1119,6 +1119,8 @@ void OpenGLState::WindowPos(coord x, coord y, coord z, coord w)
 //    Specify the raster position in window coordinates for pixel operations
 // ----------------------------------------------------------------------------
 {
+    (void) w;
+
     // Not optimised because depending of too much
     // settings (modelview and proj matrices, viewport, etc.) and
     // not often used in Tao.

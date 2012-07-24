@@ -252,8 +252,18 @@ void UpdateApplication::processCheckForUpdate()
 //    Process to check for update
 // ----------------------------------------------------------------------------
 {
-    if(reply->error())
+    // Case of error
+    if(reply->error() && useMsg)
+    {
+        IFTRACE(update)
+                debug() << "Check for update failed: "
+                        << reply->errorString().toStdString() << "\n";
+
+        // Download failed
+        QMessageBox::information(NULL, tr("Check for update failed"),
+                                 tr("Check for update failed: %1").arg(reply->errorString()));
         return;
+    }
 
     IFTRACE(update)
                debug() << "Check for update finished\n";

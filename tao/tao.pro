@@ -414,7 +414,7 @@ QMAKE_EXTRA_TARGETS += changelog
 !system(perl -e "exit"):error("Can't execute perl")
 DEFS = $$join(DEFINES, " -D", " -D")
 tao_xl.target = tao.xl
-tao_xl.commands = perl preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
+tao_xl.commands = perl ../tools/preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
 tao_xl.files = tao.xl
 tao_xl.path = $$APPINST
 tao_xl.depends = tao.xl.in

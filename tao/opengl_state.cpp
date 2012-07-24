@@ -26,6 +26,7 @@
 #include "opengl_save.h"
 #include "application.h"
 #include "texture_cache.h"
+#include "tao_main.h"
 #include <cassert>
 #include <ostream>
 
@@ -236,6 +237,8 @@ uint OpenGLState::ShowErrors()
             char *p = (char *) gluErrorString(err);
             std::cerr << "GL Error: " << p
                       << "[error code: " << err << "]\n";
+            IFTRACE(glerrors)
+                tao_stack_trace(2);
             last = err;
         }
         if (err != last || count == 100)

@@ -155,120 +155,6 @@ static LONG WINAPI TaoPrimaryExceptionFilter(LPEXCEPTION_POINTERS ep)
 }
 
 
-static void TaoStackTrace(int fd)
-// ----------------------------------------------------------------------------
-//    We are working on it for Windows...
-// ----------------------------------------------------------------------------
-{
-#ifdef _WIN64
-    // TODO: provide a x64 friendly version of the following
-#else
-
-    LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
-    if (!ep)
-        ep = TopLevelExceptionPointers;
-    if (ep)
-    {
-        static char buffer[512];
-        int two = fileno(stderr);
-    
-        // Initialize the STACKFRAME structure.
-        STACKFRAME StackFrame;
-        memset(&StackFrame, 0, sizeof(StackFrame));
-
-        StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
-        StackFrame.AddrPC.Mode = AddrModeFlat;
-        StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
-        StackFrame.AddrStack.Mode = AddrModeFlat;
-        StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
-        StackFrame.AddrFrame.Mode = AddrModeFlat;
-
-        HANDLE hProcess = GetCurrentProcess();
-        HANDLE hThread = GetCurrentThread();
-
-        // Initialize the symbol handler.
-        SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
-        SymInitialize(hProcess, NULL, TRUE);
-
-        while (true)
-        {
-            if (!StackWalk(IMAGE_FILE_MACHINE_I386,
-                           hProcess, hThread, &StackFrame,
-                           ep->ContextRecord, NULL, SymFunctionTableAccess,
-                           SymGetModuleBase, NULL))
-                break;
-
-            if (StackFrame.AddrFrame.Offset == 0)
-                break;
-
-            // Print the PC in hexadecimal.
-            DWORD PC = StackFrame.AddrPC.Offset;
-            size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
-
-            // Print the parameters.  Assume there are four.
-            size += snprintf(buffer + size, sizeof buffer - size,
-                             " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
-                             StackFrame.Params[0], StackFrame.Params[1],
-                             StackFrame.Params[2], StackFrame.Params[3]);
-            write (fd, buffer, size);
-            write (two, buffer, size);
-
-            // Verify the PC belongs to a module in this process.
-            if (!SymGetModuleBase(hProcess, PC))
-            {
-                char msg[] = "<unknown module>";
-                write (fd, msg, sizeof msg - 1);
-                write (two, msg, sizeof msg - 1);
-                continue;
-            }
-
-            // Print the symbol name.
-            IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
-            memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
-            symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
-            symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
-
-            DWORD dwDisp;
-            if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
-            {
-                write(fd, "\n", 1);
-                write(two, "\n", 1);
-                continue;
-            }
-
-            buffer[511] = 0;
-            if (dwDisp > 0)
-                size = snprintf(buffer, sizeof buffer,
-                                ", %s()+%04lu", symbol->Name, dwDisp);
-            else
-                size = snprintf(buffer, sizeof buffer,
-                                ", %s", symbol->Name);
-            
-
-            // Print the source file and line number information.
-            IMAGEHLP_LINE line;
-            memset(&line, 0, sizeof(line));
-            line.SizeOfStruct = sizeof(line);
-            if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
-            {
-                size += snprintf(buffer + size, sizeof buffer - size,
-                                 ", %s, line %lu",
-                                 line.FileName, line.LineNumber);
-                if (dwDisp > 0)
-                    size += snprintf(buffer + size, sizeof buffer - size,
-                                     "+%04lu", dwDisp);
-            }
-
-            if (size < sizeof buffer)
-                buffer[size++] = '\n';
-            write (fd, buffer, size);
-            write (two, buffer, size);
-        } // while(true)
-    }
-#endif // WIN64
-}
-
-
 void win_redirect_io()
 // ----------------------------------------------------------------------------
 //   Send stdout and stderr to parent console if we have one, or to a file
@@ -442,28 +328,8 @@ void signal_handler(int sigid)
     Write(fd, buffer, size);
 
     // Backtrace
-#ifdef CONFIG_MINGW
-    TaoStackTrace(fd);
-#else // Real operating systems
-    void *addresses[128];
-    int count = backtrace(addresses, 128);
-    for (int i = 0; i < count; i++)
-    {
-        size = snprintf(buffer, sizeof buffer,
-                        "%4d %18p ", i, addresses[i]);
-            
-        Dl_info info;
-        if (dladdr(addresses[i], &info))
-            size += snprintf(buffer + size, sizeof buffer - size,
-                             "%32s [%s]",
-                             info.dli_sname, info.dli_fname);
-        if (size < sizeof buffer)
-            buffer[size++] = '\n';
-
-        Write(fd, buffer, size);
-        Write(two, buffer, size);
-    }
-#endif // Test which (non-) operating system we have
+    tao_stack_trace(fd);
+    tao_stack_trace(two);
         
     // Dump the flight recorder
     Write (fd, "\n\n", 2);
@@ -474,6 +340,144 @@ void signal_handler(int sigid)
 
     // Install the default signal handler and resume
     install_signal_handler((sig_t) SIG_DFL);
+}
+
+
+void tao_stack_trace(int fd)
+// ----------------------------------------------------------------------------
+//    Dump a stack trace on the given file descriptor
+// ----------------------------------------------------------------------------
+// We are still  working on it for Windows...
+{
+#ifndef CONFIG_MINGW
+    void *addresses[128];
+    char buffer[512];
+    int count = backtrace(addresses, 128);
+    for (int i = 0; i < count; i++)
+    {
+        uint size = snprintf(buffer, sizeof buffer,
+                             "%4d %18p ", i, addresses[i]);
+            
+        Dl_info info;
+        if (dladdr(addresses[i], &info))
+            size += snprintf(buffer + size, sizeof buffer - size,
+                             "%32s [%s]",
+                             info.dli_sname, info.dli_fname);
+        if (size < sizeof buffer)
+            buffer[size++] = '\n';
+
+        Write(fd, buffer, size);
+    }
+
+#else // Test for the non-operating systems
+
+#ifdef _WIN64
+    // TODO: provide a x64 friendly version of the following
+#else
+
+    LPEXCEPTION_POINTERS ep = PrimaryExceptionPointers;
+    if (!ep)
+        ep = TopLevelExceptionPointers;
+    if (ep)
+    {
+        static char buffer[512];
+        int two = fileno(stderr);
+    
+        // Initialize the STACKFRAME structure.
+        STACKFRAME StackFrame;
+        memset(&StackFrame, 0, sizeof(StackFrame));
+
+        StackFrame.AddrPC.Offset = ep->ContextRecord->Eip;
+        StackFrame.AddrPC.Mode = AddrModeFlat;
+        StackFrame.AddrStack.Offset = ep->ContextRecord->Esp;
+        StackFrame.AddrStack.Mode = AddrModeFlat;
+        StackFrame.AddrFrame.Offset = ep->ContextRecord->Ebp;
+        StackFrame.AddrFrame.Mode = AddrModeFlat;
+
+        HANDLE hProcess = GetCurrentProcess();
+        HANDLE hThread = GetCurrentThread();
+
+        // Initialize the symbol handler.
+        SymSetOptions(SYMOPT_DEFERRED_LOADS|SYMOPT_LOAD_LINES);
+        SymInitialize(hProcess, NULL, TRUE);
+
+        while (true)
+        {
+            if (!StackWalk(IMAGE_FILE_MACHINE_I386,
+                           hProcess, hThread, &StackFrame,
+                           ep->ContextRecord, NULL, SymFunctionTableAccess,
+                           SymGetModuleBase, NULL))
+                break;
+
+            if (StackFrame.AddrFrame.Offset == 0)
+                break;
+
+            // Print the PC in hexadecimal.
+            DWORD PC = StackFrame.AddrPC.Offset;
+            size_t size = snprintf(buffer, sizeof buffer, "%08lX", PC);
+
+            // Print the parameters.  Assume there are four.
+            size += snprintf(buffer + size, sizeof buffer - size,
+                             " (0x%08lX 0x%08lX 0x%08lX 0x%08lX)",
+                             StackFrame.Params[0], StackFrame.Params[1],
+                             StackFrame.Params[2], StackFrame.Params[3]);
+            write (fd, buffer, size);
+            write (two, buffer, size);
+
+            // Verify the PC belongs to a module in this process.
+            if (!SymGetModuleBase(hProcess, PC))
+            {
+                char msg[] = "<unknown module>";
+                write (fd, msg, sizeof msg - 1);
+                write (two, msg, sizeof msg - 1);
+                continue;
+            }
+
+            // Print the symbol name.
+            IMAGEHLP_SYMBOL *symbol = (IMAGEHLP_SYMBOL *) buffer;
+            memset(symbol, 0, sizeof(IMAGEHLP_SYMBOL));
+            symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL);
+            symbol->MaxNameLength = 512 - sizeof(IMAGEHLP_SYMBOL);
+
+            DWORD dwDisp;
+            if (!SymGetSymFromAddr(hProcess, PC, &dwDisp, symbol))
+            {
+                write(fd, "\n", 1);
+                write(two, "\n", 1);
+                continue;
+            }
+
+            buffer[511] = 0;
+            if (dwDisp > 0)
+                size = snprintf(buffer, sizeof buffer,
+                                ", %s()+%04lu", symbol->Name, dwDisp);
+            else
+                size = snprintf(buffer, sizeof buffer,
+                                ", %s", symbol->Name);
+            
+
+            // Print the source file and line number information.
+            IMAGEHLP_LINE line;
+            memset(&line, 0, sizeof(line));
+            line.SizeOfStruct = sizeof(line);
+            if (SymGetLineFromAddr(hProcess, PC, &dwDisp, &line))
+            {
+                size += snprintf(buffer + size, sizeof buffer - size,
+                                 ", %s, line %lu",
+                                 line.FileName, line.LineNumber);
+                if (dwDisp > 0)
+                    size += snprintf(buffer + size, sizeof buffer - size,
+                                     "+%04lu", dwDisp);
+            }
+
+            if (size < sizeof buffer)
+                buffer[size++] = '\n';
+            write (fd, buffer, size);
+            write (two, buffer, size);
+        } // while(true)
+    }
+#endif // WIN64
+#endif // MINGW
 }
 
 

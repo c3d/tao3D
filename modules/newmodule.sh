@@ -152,6 +152,13 @@ function set_vars() {
   VERSION="1.0" ; # ask VERSION "Version"
   AUTHOR="Taodyne SAS" ; ask AUTHOR "Author"
   WEBSITE="http://www.taodyne.com" ; ask WEBSITE "Web site"
+  help_text "Icon"
+  help_text "Modules normally have a custom icon for the module preferences page."
+  help_text "If you answer 'y' to the following question, a default icon file (icon.png)"
+  help_text "will be copied into the new module directory. You should later replace it"
+  help_text "with your own."
+  help_text "Answering 'n' will not copy any icon file, and Tao will show a default icon."
+  WITH_ICON=y ; ask_yes_no WITH_ICON "Copy icon?"
   WITH_LICENSE=n ; ask_yes_no WITH_LICENSE "Create license file template (.taokey.notsigned)?"
   [ "$WITH_LICENSE" = "y" ] && FEATURES="$SHORT_NAME 1\\.0.*"
   help_text "Encryption"
@@ -184,7 +191,7 @@ pp_defines=""
 function edit_setup() {
   f_sedscript=$(mktemp /tmp/newmodule.sed.XXXXX)
   dump_vars | sed 's/[\%]/\\&/g;s/\([^=]*\)=\(.*\)/s%@@\1@@%\2%/' > $f_sedscript
-  for varname in WITH_DOC WITH_LICENSE WITH_CRYPT WITH_IMPORT_NAME WITH_AUTO_LOAD ; do
+  for varname in WITH_DOC WITH_LICENSE WITH_CRYPT WITH_IMPORT_NAME WITH_AUTO_LOAD WITH_ICON ; do
     local val=$(eval echo \$$varname)
     [ "$val" = "y" ] && pp_defines="$pp_defines -D$varname"
   done
@@ -226,6 +233,9 @@ function create_module() {
 
   # Create empty secondary .xl file
   [ "$WITH_CRYPT" = "y" ] && touch $M/${M}2.xl
+
+  # Icon
+  [ "$WITH_ICON" = "y" ] && cp newmodule/icon.png $M
 
   # .taokey.notsigned
   [ "$WITH_LICENSE" = "y" ] && edit newmodule/newmodule.taokey.notsigned.t > $M/$M.taokey.notsigned

@@ -26,7 +26,9 @@ CRYPT_XL_SOURCES = @@MODULE_DIR@@2.xl
 include(../crypt_xl.pri)
 #endif
 
+#ifdef WITH_ICON
 INSTALLS    += thismod_icon
+#endif
 INSTALLS    -= thismod_bin
 
 #ifdef WITH_LICENSE

@@ -197,18 +197,18 @@ struct OpenGLState : GraphicState
     virtual void                Sync(ulonglong which = ~0ULL);
 
     // Return attributes of state
-    virtual uint   MaxTextureCoords()           { return maxTextureCoords; }
-    virtual uint   MaxTextureUnits()            { return maxTextureUnits; }
-    virtual text   Vendor()                     { return vendor; }
-    virtual text   Renderer()                   { return renderer; }
-    virtual text   Version()                    { return version; }
-    virtual uint   VendorID()                   { return vendorID; }
-    virtual bool   IsATIOpenGL()                { return vendorID == ATI; }
-
+    virtual uint   MaxTextureCoords()       { return maxTextureCoords; }
+    virtual uint   MaxTextureUnits()        { return maxTextureUnits; }
+    virtual text   Vendor()                 { return vendor; }
+    virtual text   Renderer()               { return renderer; }
+    virtual text   Version()                { return version; }
+    virtual uint   VendorID()               { return vendorID; }
+    virtual bool   IsATIOpenGL()            { return vendorID == ATI; }
+    virtual coord* ModelViewMatrix()        { return mvMatrix.Data(false); }
+    virtual coord* ProjectionMatrix()       { return projMatrix.Data(false); }
+    virtual int*   Viewport()               { return (int *) &viewport.x; }
 
     // Matrix management
-    virtual coord* ModelViewMatrix();
-    virtual coord* ProjectionMatrix();
     virtual void   MatrixMode(GLenum mode);
     virtual void   LoadMatrix();
     virtual void   LoadIdentity();
@@ -244,16 +244,52 @@ struct OpenGLState : GraphicState
                         float centerX, float centerY, float centerZ,
                         float upX, float upY, float upZ);
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up);
-    virtual void Viewport(int x, int y, int w, int h);
-    virtual int *Viewport()           { return (int *) &viewport.x; }
+
+    // Draw functions
+    virtual void DrawBuffer(GLenum  mode);
+    virtual void Begin(GLenum mode);
+    virtual void End();
+    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 1);
+    virtual void Vertex3v(const coord* array);
+    virtual void Normal(coord nx, coord ny, coord nz);
+    virtual void TexCoord(coord s, coord t);
+    virtual void MultiTexCoord3v(GLenum target, const coord *array);
+    virtual void EnableClientState(GLenum cap);
+    virtual void DisableClientState(GLenum cap);
+    virtual void DrawArrays(GLenum mode, int first, int count);
+    virtual void VertexPointer(int size, GLenum type, int stride,
+                               const void* pointer);
+    virtual void NormalPointer(GLenum type, int stride,
+                               const void* pointer);
+    virtual void TexCoordPointer(int size, GLenum type, int stride,
+                                 const void* pointer);
+    virtual void ColorPointer(int size, GLenum type, int stride,
+                              const void* pointer);
+    virtual void NewList(uint list, GLenum mode);
+    virtual void EndList();
+    virtual uint GenLists(uint range);
+    virtual void DeleteLists(uint list, uint range);
+    virtual void CallList(uint list);
+    virtual void CallLists(uint size, GLenum type, const void* pointer);
+    virtual void ListBase(uint base);
+    virtual void Bitmap(uint  width,  uint  height, coord  xorig,
+                        coord  yorig,  coord  xmove, coord  ymove,
+                        const uchar *  bitmap);
+
 
     // Attributes management
-    virtual void Color(float r, float g, float b, float a);
+    virtual void Viewport(int x, int y, int w, int h);
+    virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1);
+    virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1);
+    virtual void PixelStorei(GLenum pname,  int param);
+    virtual void PointSize(coord size);
+    virtual void Color(float r, float g, float b, float a = 1.0);
     virtual void Materialfv(GLenum face, GLenum pname, const GLfloat *val);
-    virtual void ClearColor(float r, float g, float b, float a);
+    virtual void ClearColor(float r, float g, float b, float a = 1.0);
     virtual void Clear(GLuint mask);
     virtual void LineWidth(float width);
     virtual void LineStipple(GLint factor, GLushort pattern);
+    virtual void CullFace(GLenum mode);
     virtual void DepthMask(GLboolean flag);
     virtual void DepthFunc(GLenum func);
     virtual void ShadeModel(GLenum mode);
@@ -269,6 +305,39 @@ struct OpenGLState : GraphicState
 
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref);
+
+    // Selection
+    virtual int  RenderMode(GLenum mode);
+    virtual void SelectBuffer(int size, uint* buffer);
+    virtual void InitNames();
+    virtual void LoadName(uint name);
+    virtual void PushName(uint name);
+    virtual void PopName();
+
+    // Shader functions
+    virtual void UseProgram(uint prg);
+    virtual void GetProgram(uint prg, GLenum pname, int* params);
+    virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
+                                  GLsizei* size, GLenum* type, char *name);
+
+    virtual int  GetAttribLocation(uint program, const char* name);
+    virtual void VertexAttrib1fv(uint id, const float *v)      { glVertexAttrib1fv(id, v); }
+    virtual void VertexAttrib2fv(uint id, const float *v)      { glVertexAttrib2fv(id, v); }
+    virtual void VertexAttrib3fv(uint id, const float *v)      { glVertexAttrib3fv(id, v); }
+    virtual void VertexAttrib4fv(uint id, const float *v)      { glVertexAttrib4fv(id, v); }
+
+    virtual int  GetUniformLocation(uint program, const char* name);
+    virtual void Uniform1i(uint id, int v)                     { glUniform1i(id, v); }
+    virtual void Uniform1fv(uint id, GLsizei size, const float* v) { glUniform1fv(id, size, v); }
+    virtual void Uniform2fv(uint id, GLsizei size, const float* v) { glUniform2fv(id, size, v); }
+    virtual void Uniform3fv(uint id, GLsizei size, const float* v) { glUniform3fv(id, size, v); }
+    virtual void Uniform4fv(uint id, GLsizei size, const float* v) { glUniform4fv(id, size, v); }
+    virtual void UniformMatrix2fv(uint id, GLsizei size,
+                                  bool transp, const float* m) { glUniformMatrix2fv(id, size, transp, m); }
+    virtual void UniformMatrix3fv(uint id, GLsizei size,
+                                  bool transp, const float* m) { glUniformMatrix3fv(id, size, transp, m); }
+    virtual void UniformMatrix4fv(uint id, GLsizei size,
+                                  bool transp, const float* m) { glUniformMatrix4fv(id, size, transp, m); }
 
     // Textures
     virtual void ActiveTexture(GLenum id);

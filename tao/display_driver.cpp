@@ -279,7 +279,7 @@ void DisplayDriver::displayBackBuffer(void *)
 
     // If no FBO is bound, select draw buffer
     if (!fbname)
-        glDrawBuffer(GL_BACK);
+        GL.DrawBuffer(GL_BACK);
 
     // Clear color and depth information
     setGlClearColor();
@@ -348,7 +348,7 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     GL.LoadMatrix();
 
     // Select draw buffer
-    glDrawBuffer(GL_BACK);
+    GL.DrawBuffer(GL_BACK);
 
     // Clear depth information, disable color blending so that texture alpha
     // is ignored
@@ -360,16 +360,16 @@ void DisplayDriver::displayBackBufferFBO(void *obj)
     GL.Disable(GL_POLYGON_OFFSET_LINE);
     GL.Disable(GL_POLYGON_OFFSET_POINT);
 
-    glBegin(GL_QUADS);
+    GL.Begin(GL_QUADS);
     glTexCoord2i( 0 , 0);
-    glVertex2i  (-1, -1);
+    GL.Vertex   (-1, -1);
     glTexCoord2i( 1 , 0);
-    glVertex2i  ( 1, -1);
+    GL.Vertex   ( 1, -1);
     glTexCoord2i( 1,  1);
-    glVertex2i  ( 1,  1);
+    GL.Vertex   ( 1,  1);
     glTexCoord2i( 0,  1);
-    glVertex2i  (-1,  1);
-    glEnd();
+    GL.Vertex   (-1,  1);
+    GL.End();
 }
 
 

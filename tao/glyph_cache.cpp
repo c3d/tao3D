@@ -71,17 +71,17 @@ PerFontGlyphCache::~PerFontGlyphCache()
     {
         GlyphEntry &e = (*ci).second;
         if (e.interior)
-            glDeleteLists(e.interior, 1);
+            GL.DeleteLists(e.interior, 1);
         if (e.outline)
-            glDeleteLists(e.outline, 1);
+            GL.DeleteLists(e.outline, 1);
     }
     for (TextMap::iterator ti = texts.begin(); ti != texts.end(); ti++)
     {
         GlyphEntry &e = (*ti).second;
         if (e.interior)
-            glDeleteLists(e.interior, 1);
+            GL.DeleteLists(e.interior, 1);
         if (e.outline)
-            glDeleteLists(e.outline, 1);
+            GL.DeleteLists(e.outline, 1);
     }
 }
 
@@ -336,16 +336,16 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         {
             // Create an OpenGL display list for the glyph
             if (!entry.interior)
-                entry.interior = glGenLists(1);
-            glNewList(entry.interior, GL_COMPILE);
+                entry.interior = GL.GenLists(1);
+            GL.NewList(entry.interior, GL_COMPILE);
             path.Draw(Vector3(0,0,0), texUnits, GL_POLYGON, GLU_TESS_WINDING_ODD);
-            glEndList();
+            GL.EndList();
         }
 
         if (!entry.outline || entry.lineWidth != lineWidth)
         {
             if (!entry.outline)
-                entry.outline = glGenLists(1);
+                entry.outline = GL.GenLists(1);
             entry.lineWidth = lineWidth;
 
             // Render outline in a GL list
@@ -357,10 +357,10 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             QPainterPath stroke = stroker.createStroke(qtPath);
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
-            glNewList(entry.outline, GL_COMPILE);
+            GL.NewList(entry.outline, GL_COMPILE);
             strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
                             GLU_TESS_WINDING_POSITIVE);
-            glEndList();
+            GL.EndList();
         }
 
         // Store the new or updated entry
@@ -466,16 +466,16 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         {
             // Create an OpenGL display list for the glyph
             if (!entry.interior)
-                entry.interior = glGenLists(1);
-            glNewList(entry.interior, GL_COMPILE);
+                entry.interior = GL.GenLists(1);
+            GL.NewList(entry.interior, GL_COMPILE);
             path.Draw(Vector3(0,0,0), texUnits, GL_POLYGON, GLU_TESS_WINDING_ODD);
-            glEndList();
+            GL.EndList();
         }
 
         if (!entry.outline || entry.lineWidth != lineWidth)
         {
             if (!entry.outline)
-                entry.outline = glGenLists(1);
+                entry.outline = GL.GenLists(1);
             entry.lineWidth = lineWidth;
 
             // Render outline in a GL list
@@ -487,10 +487,10 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             QPainterPath stroke = stroker.createStroke(qtPath);
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
-            glNewList(entry.outline, GL_COMPILE);
+            GL.NewList(entry.outline, GL_COMPILE);
             strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
                             GLU_TESS_WINDING_POSITIVE);
-            glEndList();
+            GL.EndList();
         }
 
         // Store the new or updated entry

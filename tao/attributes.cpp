@@ -109,7 +109,7 @@ void CachedDrawing::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     (void) where;
-    glCallList(displayList);
+    GL.CallList(displayList);
 }
 
 

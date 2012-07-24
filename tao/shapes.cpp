@@ -161,8 +161,8 @@ void Shape::enableTexCoord(uint unit, void *texCoord)
 // ----------------------------------------------------------------------------
 {
     glClientActiveTexture( GL_TEXTURE0 + unit);
-    glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-    glTexCoordPointer(2, GL_DOUBLE, 0, texCoord);
+    GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+    GL.TexCoordPointer(2, GL_DOUBLE, 0, texCoord);
 }
 
 
@@ -172,7 +172,7 @@ void Shape::disableTexCoord(uint unit)
 // ----------------------------------------------------------------------------
 {
     glClientActiveTexture( GL_TEXTURE0 + unit);
-    glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+    GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
 }
 
 
@@ -233,9 +233,9 @@ bool Shape::setShader(Layout *where)
 
     // Activate current shader
     if (where->globalProgramId)
-        glUseProgram(where->globalProgramId);
+        GL.UseProgram(where->globalProgramId);
     else
-        glUseProgram(where->programId);
+        GL.UseProgram(where->programId);
 
     // In order to improve performance of large and complex 3D models,
     // we use a shader based ligting (Feature #1508), which needs some
@@ -1049,26 +1049,26 @@ void FixedSizePoint::Draw(Layout *where)
 //   Draw a point at the given location
 // ----------------------------------------------------------------------------
 {
-    GL.LoadMatrix();
     setTexture(where);
     if (setFillColor(where))
     {
-        glPointSize(radius * where->PrinterScaling());
-        glBegin(GL_POINTS);
-        glVertex3f(center.x, center.y, center.z);
-        glEnd();
+        GL.PointSize(radius * where->PrinterScaling());
+        GL.Sync();
+        GL.Begin(GL_POINTS);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.End();
 
 #ifdef CONFIG_LINUX
         // This is a workaround for a bug seen on some Linux distros
         // (e.g. Ubuntu 10.04 running on a system with Intel Mobile 4 graphics)
         // where GL_POINTS are not detected in GL_SELECT mode.
         // Drawing a null-sized quad makes the point selectable.
-        glBegin(GL_QUADS);
-        glVertex3f(center.x, center.y, center.z);
-        glVertex3f(center.x, center.y, center.z);
-        glVertex3f(center.x, center.y, center.z);
-        glVertex3f(center.x, center.y, center.z);
-        glEnd();
+        GL.Begin(GL_QUADS);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.Vertex(center.x, center.y, center.z);
+        GL.End();
 #endif
     }
 }

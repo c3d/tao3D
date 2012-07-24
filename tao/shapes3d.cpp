@@ -97,14 +97,14 @@ void Cube::Draw(Layout *where)
         { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0}, { 1,  0,  0},
     };
 
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, vertices);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, vertices);
 
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_FLOAT, 0, normals);
+        GL.EnableClientState(GL_NORMAL_ARRAY);
+        GL.NormalPointer(GL_FLOAT, 0, normals);
     }
 
     //Active texture coordinates for all used units
@@ -119,21 +119,21 @@ void Cube::Draw(Layout *where)
 
     // Draw filled faces
     if (setFillColor(where))
-        glDrawArrays(GL_QUADS, 0, 24);
+        GL.DrawArrays(GL_QUADS, 0, 24);
 
     // Draw wireframe
     if (setLineColor(where))
         for (uint face = 0; face < 6; face++)
-            glDrawArrays(GL_LINE_LOOP, 4*face, 4);
+            GL.DrawArrays(GL_LINE_LOOP, 4*face, 4);
 
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
         if(((*it).second).id)
             disableTexCoord((*it).first);
 
     if(where->currentLights || where->programId)
-        glDisableClientState(GL_NORMAL_ARRAY);
+        GL.DisableClientState(GL_NORMAL_ARRAY);
 
-    glDisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 
@@ -156,15 +156,15 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
     GL.LoadMatrix();
     // Set Vertices
-    glEnableClientState(GL_VERTEX_ARRAY);
-    glVertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
+    GL.EnableClientState(GL_VERTEX_ARRAY);
+    GL.VertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
 
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
         GL.Enable(GL_NORMALIZE);
-        glEnableClientState(GL_NORMAL_ARRAY);
-        glNormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
+        GL.EnableClientState(GL_NORMAL_ARRAY);
+        GL.NormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
     }
 
     //Active texture coordinates for all used units
@@ -189,24 +189,24 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
             // Use painter algorithm to apply correctly
             // transparency on shapes
             // This was made necessary by Bug #1403.
-            glCullFace(GL_FRONT);
+            GL.CullFace(GL_FRONT);
             // Read Only mode of depth buffer
             GL.DepthMask(false);
 
             if (setFillColor(where))
-                glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+                GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
 
-            glCullFace(GL_BACK);
+            GL.CullFace(GL_BACK);
         }
     }
 
     if (setFillColor(where))
-        glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+        GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
-        glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
+        GL.DrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
 
 
-    glDisableClientState(GL_VERTEX_ARRAY);
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 
     // Disable texture coordinates
     for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
@@ -217,7 +217,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     if(where->currentLights || where->programId)
     {
         GL.Disable(GL_NORMALIZE);
-        glDisableClientState(GL_NORMAL_ARRAY);
+        GL.DisableClientState(GL_NORMAL_ARRAY);
     }
 
     // Disable cullface

@@ -711,12 +711,12 @@ void Layout::PushLayout(Layout *where)
         uint groupId = id;
         Widget *widget = where->Display();
         widget->selectionContainerPush();
-
+        
         uint open = widget->selected(id);
         if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
             groupId = (groupId & ~Widget::SELECTION_MASK)
                 | Widget::CONTAINER_OPENED;
-        glPushName(groupId);
+        GL.PushName(groupId);
     }
 }
 
@@ -730,7 +730,7 @@ void Layout::PopLayout(Layout *where)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPop();
-        glPopName();
+        GL.PopName();
     }
 }
 

@@ -67,10 +67,11 @@ struct GraphicState
     virtual text   Version() = 0;
     virtual uint   VendorID() = 0;
     virtual bool   IsATIOpenGL() = 0;
-
-    // Matrix management
     virtual coord* ModelViewMatrix() = 0;
     virtual coord* ProjectionMatrix() = 0;
+    virtual int*   Viewport() = 0;
+
+    // Matrix management
     virtual void   MatrixMode(GLenum mode) = 0;
     virtual void   LoadMatrix() = 0;
     virtual void   LoadIdentity() = 0;
@@ -101,24 +102,57 @@ struct GraphicState
                         float centerX, float centerY, float centerZ,
                         float upX, float upY, float upZ) = 0;
     virtual void LookAt(Vector3 eye, Vector3 center, Vector3 up) = 0;
-    virtual void Viewport(int x, int y, int w, int h) = 0;
-    virtual int *Viewport() = 0;
 
-    // Draw management
-    virtual void Color(float r, float g, float b, float a) = 0;
+    // Drawing functions
+    virtual void DrawBuffer(GLenum mode) = 0;
+    virtual void Begin(GLenum mode) = 0;
+    virtual void End() = 0;
+    virtual void Vertex(coord x, coord y, coord z = 0, coord w = 1.0) = 0;
+    virtual void Vertex3v(const coord* v) = 0;
+    virtual void Normal(coord nx, coord ny, coord nz) = 0;
+    virtual void TexCoord(coord s, coord t) = 0;
+    virtual void MultiTexCoord3v(GLenum target, const coord *array) = 0;
+    virtual void EnableClientState(GLenum cap) = 0;
+    virtual void DisableClientState(GLenum cap) = 0;
+    virtual void DrawArrays(GLenum mode, int first, int count) = 0;
+    virtual void VertexPointer(int size, GLenum type, int stride,
+                               const void* pointer) = 0;
+    virtual void NormalPointer(GLenum type, int stride,
+                               const void* pointer) = 0;
+    virtual void TexCoordPointer(int size, GLenum type, int stride,
+                                 const void* pointer) = 0;
+    virtual void ColorPointer(int size, GLenum type, int stride,
+                              const void* pointer) = 0;
+    virtual void NewList(uint list, GLenum mode) = 0;
+    virtual void EndList() = 0;
+    virtual uint GenLists(uint range) = 0;
+    virtual void DeleteLists(uint list, uint range) = 0;
+    virtual void CallList(uint list) = 0;
+    virtual void CallLists(uint size, GLenum type, const void* lists) = 0;
+    virtual void ListBase(uint base) = 0;
+    virtual void Bitmap(uint  width,  uint  height, coord  xorig,
+                        coord  yorig,  coord  xmove, coord  ymove,
+                        const uchar *  bitmap) = 0;
+
+    // Attributes management
+    virtual void Viewport(int x, int y, int w, int h) = 0;
+    virtual void RasterPos(coord x, coord y, coord z = 0, coord w = 1) = 0;
+    virtual void WindowPos(coord x, coord y, coord z = 0, coord w = 1) = 0;
+    virtual void PixelStorei(GLenum pname,  int param) = 0;
+    virtual void PointSize(coord size) = 0;
+    virtual void Color(float r, float g, float b, float a = 1.0) = 0;
     virtual void Materialfv(GLenum face, GLenum pname, const GLfloat *val) = 0;
-    virtual void ClearColor(float r, float g, float b, float a) = 0;
+    virtual void ClearColor(float r, float g, float b, float a = 1.0) = 0;
     virtual void Clear(GLuint mask) = 0;
     virtual void LineWidth(float width) = 0;
     virtual void LineStipple(GLint factor, GLushort pattern) = 0;
+    virtual void CullFace(GLenum mode) = 0;
     virtual void DepthMask(GLboolean flag) = 0;
     virtual void DepthFunc(GLenum func) = 0;
-
-    // Misc
-    virtual void Enable(GLenum cap) = 0;
-    virtual void Disable(GLenum cap) = 0;
     virtual void ShadeModel(GLenum mode) = 0;
     virtual void Hint(GLenum target, GLenum mode) = 0;
+    virtual void Enable(GLenum cap) = 0;
+    virtual void Disable(GLenum cap) = 0;
 
     // Blend
     virtual void BlendFunc(GLenum sfactor, GLenum dfactor) = 0;
@@ -128,6 +162,40 @@ struct GraphicState
 
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref) = 0;
+
+    // Selection
+    virtual int  RenderMode(GLenum mode) = 0;
+    virtual void SelectBuffer(int size, uint* buffer) = 0;
+    virtual void InitNames() = 0;
+    virtual void LoadName(uint name) = 0;
+    virtual void PushName(uint name) = 0;
+    virtual void PopName() = 0;
+
+    // Shaders
+    virtual void UseProgram(uint prg) = 0;
+    virtual void GetProgram(uint prg, GLenum pname, int* params) = 0;
+    virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
+                                  GLsizei* size, GLenum* type, char *name) = 0;
+
+    virtual int  GetAttribLocation(uint program, const char* name) = 0;
+    virtual void VertexAttrib1fv(uint id, const float *v) = 0;
+    virtual void VertexAttrib2fv(uint id, const float *v) = 0;
+    virtual void VertexAttrib3fv(uint id, const float *v) = 0;
+    virtual void VertexAttrib4fv(uint id, const float *v) = 0;
+
+    virtual int  GetUniformLocation(uint program, const char* name) = 0;
+    virtual void Uniform1i(uint id, int v) = 0;
+    virtual void Uniform1fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform2fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform3fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform4fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void UniformMatrix2fv(uint id, GLsizei size,
+                                  bool transp, const float* m) = 0;
+    virtual void UniformMatrix3fv(uint id, GLsizei size,
+                                  bool transp, const float* m) = 0;
+    virtual void UniformMatrix4fv(uint id, GLsizei size,
+                                  bool transp, const float* m) = 0;
+
 
     // Textures
     virtual void ActiveTexture(GLenum id) = 0;

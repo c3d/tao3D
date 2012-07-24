@@ -331,8 +331,8 @@ struct DisplayListInfo : XL::Info, InfoTrashCan
 //    Store information about a display list
 // ----------------------------------------------------------------------------
 {
-    DisplayListInfo(): displayListID(glGenLists(1)) {}
-    ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
+    DisplayListInfo(): displayListID(GL.GenLists(1)) {}
+    ~DisplayListInfo() { GL.DeleteLists(displayListID, 1); }
     virtual void Delete() { trash.push_back(this); }
     GLuint      displayListID;
 };
@@ -2279,7 +2279,7 @@ void Widget::setupGL()
     GL.ShadeModel(GL_SMOOTH);
     GL.Disable(GL_LIGHTING);
     GL.Disable(GL_COLOR_MATERIAL);
-    glUseProgram(0);
+    GL.UseProgram(0);
     GL.AlphaFunc(GL_GREATER, 0.01);
     GL.Enable(GL_ALPHA_TEST);
 
@@ -9531,9 +9531,9 @@ Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
 
-        glNewList(info->displayListID, GL_COMPILE);
+        GL.NewList(info->displayListID, GL_COMPILE);
         layout->Draw(NULL);
-        glEndList();
+        GL.EndList();
 
         stats.end(Statistics::DRAW);
         stats.begin(Statistics::EXEC);
@@ -10944,16 +10944,16 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
     {
         x1 += 0.5; x2 += 0.5; y1 += 0.5; y2 += 0.5;
     }
-    glBegin(GL_QUADS);
+    GL.Begin(GL_QUADS);
     glTexCoord2f(x1, y1);
-    glVertex2i  (-1, -1);
+    GL.Vertex  (-1, -1);
     glTexCoord2f(x2, y1);
-    glVertex2i  ( 1, -1);
+    GL.Vertex   ( 1, -1);
     glTexCoord2f(x2, y2);
-    glVertex2i  ( 1,  1);
+    GL.Vertex   ( 1,  1);
     glTexCoord2f(x1, y2);
-    glVertex2i  (-1,  1);
-    glEnd();
+    GL.Vertex   (-1,  1);
+    GL.End();
     GL.Enable(GL_DEPTH_TEST);
     GL.DepthMask(GL_TRUE);
 }

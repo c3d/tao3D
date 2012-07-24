@@ -119,24 +119,21 @@ OpenGLState::OpenGLState()
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
       maxTextureCoords(0), maxTextureUnits(0),
-      currentUnit(NULL),
-      matrixMode(GL_MODELVIEW),
-      viewport(0, 0, 0, 0),
+      currentUnit(NULL), matrixMode(GL_MODELVIEW),
+      viewport(0, 0, 0, 0), listBase(0), pointSize(1),
       color(1,1,1,1), clearColor(0,0,0,1),
       frontAmbient(0,0,0,0), frontDiffuse(0,0,0,0),
       frontSpecular(0,0,0,0), frontEmission(0,0,0,0), frontShininess(0),
       backAmbient(0,0,0,0), backDiffuse(0,0,0,0),
       backSpecular(0,0,0,0), backEmission(0,0,0,0), backShininess(0),
-      shadeMode(GL_SMOOTH),
-      lineWidth(1),
-      stipple(1, -1),
+      shadeMode(GL_SMOOTH), lineWidth(1),
+      stipple(1, -1), cullMode(GL_BACK),
       depthMask(true), depthFunc(GL_LESS),
       textureCompressionHint(GL_DONT_CARE),
       perspectiveCorrectionHint(GL_DONT_CARE),
       blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
-      blendEquation(GL_FUNC_ADD),
-      alphaFunc(GL_ALWAYS, 0.0),
-      activeTexture(0),
+      blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
+      renderMode(GL_RENDER), shaderProgram(0), activeTexture(0),
 #define GS(type, name)
 #define GFLAG(name)     glflag_##name(false),
 #include "opengl_state.tbl"
@@ -174,6 +171,11 @@ OpenGLState::OpenGLState()
     // (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
+
+    // As we don't known if GL context is single or double buffered,
+    // we initialize bufferMode to 0
+    bufferMode = 0;
+
     if (maxTextureUnits > MAX_TEXTURE_UNITS)
         maxTextureUnits = MAX_TEXTURE_UNITS;
 
@@ -182,6 +184,15 @@ OpenGLState::OpenGLState()
     currentUnit = &textures.textures[0];
 }
 
+
+std::ostream & OpenGLState::debug()
+// ----------------------------------------------------------------------------
+//   Convenience method to log with a common prefix
+// ----------------------------------------------------------------------------
+{
+    std::cerr << "[OpenGLState] ";
+    return std::cerr;
+}
 
 
 // ============================================================================
@@ -297,8 +308,12 @@ void OpenGLState::Sync(ulonglong which)
          glLoadMatrixd(colorMatrix.Data(false)));
     SYNC(matrixMode,
          glMatrixMode(matrixMode));
+    SYNC(bufferMode,
+         glDrawBuffer(bufferMode));
     SYNC(viewport,
          glViewport(viewport.x, viewport.y, viewport.w, viewport.h));
+    SYNC(pointSize,
+         glPointSize(pointSize));
     SYNC(color,
          glColor4f(color.red, color.green, color.blue, color.alpha));
     SYNC(clearColor,
@@ -330,6 +345,8 @@ void OpenGLState::Sync(ulonglong which)
          glLineWidth(lineWidth));
     SYNC(stipple,
          glLineStipple(stipple.factor, stipple.pattern));
+    SYNC(cullMode,
+         glCullFace(cullMode));
     SYNC(depthMask,
          glDepthMask(depthMask));
     SYNC(depthFunc,
@@ -345,6 +362,10 @@ void OpenGLState::Sync(ulonglong which)
          glBlendEquation(blendEquation));
     SYNC(alphaFunc,
          glAlphaFunc(alphaFunc.func, alphaFunc.ref));
+    SYNC(listBase,
+         glListBase(listBase));
+    SYNC(shaderProgram,
+         glUseProgram(shaderProgram));
 
 #define GS(type, name)
 #define GFLAG(name)                             \
@@ -365,24 +386,6 @@ void OpenGLState::Sync(ulonglong which)
 //                        Matrix management functions
 //
 // ============================================================================
-
-coord* OpenGLState::ModelViewMatrix()
-// ----------------------------------------------------------------------------
-//    Return model view matrix
-// ----------------------------------------------------------------------------
-{
-    return mvMatrix.Data(false);
-}
-
-
-coord* OpenGLState::ProjectionMatrix()
-// ----------------------------------------------------------------------------
-//    Return projection matrix
-// ----------------------------------------------------------------------------
-{
-    return projMatrix.Data(false);
-}
-
 
 void OpenGLState::MatrixMode(GLenum mode)
 // ----------------------------------------------------------------------------
@@ -846,6 +849,248 @@ void OpenGLState::LookAt(Vector3 eye, Vector3 center, Vector3 up)
 }
 
 
+
+// ============================================================================
+//
+//                            Drawing functions.
+//
+// ============================================================================
+
+void OpenGLState::DrawBuffer(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Specify which color buffers are to be drawn into
+// ----------------------------------------------------------------------------
+{
+    CHANGE(bufferMode, mode);
+}
+
+
+void OpenGLState::Begin(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Delimit the vertices of a primitive or a group of like primitives
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glBegin(mode);
+}
+
+
+void OpenGLState::End()
+// ----------------------------------------------------------------------------
+//    Delimit the vertices of a primitive or a group of like primitives
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glEnd();
+}
+
+
+void OpenGLState::Vertex(coord x, coord y, coord z, coord w)
+// ----------------------------------------------------------------------------
+//    Specify a vertex within Begin/End
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glVertex4d(x, y, z, w);
+}
+
+
+void OpenGLState::Vertex3v(const coord *array)
+// ----------------------------------------------------------------------------
+//    Specify a set of vertices
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glVertex3dv(array);
+}
+
+
+void OpenGLState::Normal(coord nx, coord ny, coord nz)
+// ----------------------------------------------------------------------------
+//    Specify a normal within Begin/End
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glNormal3d(nx, ny, nz);
+}
+
+
+void OpenGLState::TexCoord(coord s, coord t)
+// ----------------------------------------------------------------------------
+//    Specify a texture coordinate within Begin/End
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glTexCoord2d(s, t);
+}
+
+
+void OpenGLState::MultiTexCoord3v(GLenum target, const coord *array)
+// ----------------------------------------------------------------------------
+//    Specify the coordinate of a texture unit
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glMultiTexCoord3dv(target, array);
+}
+
+
+void OpenGLState::EnableClientState(GLenum cap)
+// ----------------------------------------------------------------------------
+//    Enable client-side capability
+// ----------------------------------------------------------------------------
+{
+    glEnableClientState(cap);
+}
+
+
+void OpenGLState::DisableClientState(GLenum cap)
+// ----------------------------------------------------------------------------
+//    Disable client-side capability
+// ----------------------------------------------------------------------------
+{
+    glDisableClientState(cap);
+}
+
+
+void OpenGLState::DrawArrays(GLenum mode, int first, int count)
+// ----------------------------------------------------------------------------
+//    Render primitives from array data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glDrawArrays(mode, first, count);
+}
+
+
+void OpenGLState::VertexPointer(int size, GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of vertex data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glVertexPointer(size, type, stride, pointer);
+}
+
+
+void OpenGLState::NormalPointer(GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of normal data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glNormalPointer(type, stride, pointer);
+}
+
+
+void OpenGLState::TexCoordPointer(int size, GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of texture coordinates
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glTexCoordPointer(size, type, stride, pointer);
+}
+
+
+void OpenGLState::ColorPointer(int size, GLenum type, int stride, const void* pointer)
+// ----------------------------------------------------------------------------
+//    Define an array of color data
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glColorPointer(size, type, stride, pointer);
+}
+
+
+void OpenGLState::NewList(uint list, GLenum mode)
+// ----------------------------------------------------------------------------
+//    Create a display list
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glNewList(list, mode);
+}
+
+
+void OpenGLState::EndList()
+// ----------------------------------------------------------------------------
+//    Replace a display list
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glEndList();
+}
+
+
+uint OpenGLState::GenLists(uint range)
+// ----------------------------------------------------------------------------
+//    Generate a contiguous set of empty display lists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGenLists(range);
+}
+
+
+void OpenGLState::DeleteLists(uint list, uint range)
+// ----------------------------------------------------------------------------
+//    Delete a contiguous group of display lists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glDeleteLists(list, range);
+}
+
+
+void OpenGLState::CallList(uint list)
+// ----------------------------------------------------------------------------
+//    Execute a display list
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glCallList(list);
+}
+
+
+void OpenGLState::CallLists(uint size, GLenum type, const void *pointer)
+// ----------------------------------------------------------------------------
+//    Execute a list of display lists
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glCallLists(size, type, pointer);
+}
+
+
+void OpenGLState::ListBase(uint base)
+// ----------------------------------------------------------------------------
+//    Set the display-list base for glCallLists
+// ----------------------------------------------------------------------------
+{
+    glListBase(base);
+}
+
+
+void OpenGLState::Bitmap(uint  width,  uint  height, coord  xorig,
+                         coord  yorig,  coord  xmove, coord  ymove,
+                         const uchar *  bitmap)
+// ----------------------------------------------------------------------------
+//    Draw a bitmap
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
+}
+
+
+
+// ============================================================================
+//
+//                       Attribute management functions.
+//
+// ============================================================================
+
 void OpenGLState::Viewport(int x, int y, int w, int h)
 // ----------------------------------------------------------------------------
 //    Set the viewport
@@ -857,12 +1102,48 @@ void OpenGLState::Viewport(int x, int y, int w, int h)
 }
 
 
+void OpenGLState::RasterPos(coord x, coord y, coord z, coord w)
+// ----------------------------------------------------------------------------
+//    Specify the raster position in window coordinates for pixel operations
+// ----------------------------------------------------------------------------
+{
+    // Not optimised because depending of too much
+    // settings (modelview and proj matrices, viewport, etc.) and
+    // not often used in Tao.
+    glRasterPos4d(x, y, z, w);
+}
 
-// ============================================================================
-//
-//                       Attribute management functions.
-//
-// ============================================================================
+
+void OpenGLState::WindowPos(coord x, coord y, coord z, coord w)
+// ----------------------------------------------------------------------------
+//    Specify the raster position in window coordinates for pixel operations
+// ----------------------------------------------------------------------------
+{
+    // Not optimised because depending of too much
+    // settings (modelview and proj matrices, viewport, etc.) and
+    // not often used in Tao.
+    glWindowPos3d(x, y, z);
+}
+
+
+void OpenGLState::PixelStorei(GLenum pname,  int param)
+// ----------------------------------------------------------------------------
+//    Set pixel storage modes
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glPixelStorei(pname, param);
+}
+
+
+void OpenGLState::PointSize(coord size)
+// ----------------------------------------------------------------------------
+//    Specify the diameter of rasterized pointsC Specification
+// ----------------------------------------------------------------------------
+{
+    CHANGE(pointSize, size);
+}
+
 
 void OpenGLState::Color(float r, float g, float b, float a)
 // ----------------------------------------------------------------------------
@@ -975,6 +1256,15 @@ void OpenGLState::LineStipple(GLint factor, GLushort pattern)
 }
 
 
+void OpenGLState::CullFace(GLenum mode)
+// ----------------------------------------------------------------------------
+//    Specify whether front- or back-facing facets can be culled
+// ----------------------------------------------------------------------------
+{
+    CHANGE(cullMode, mode);
+}
+
+
 void OpenGLState::DepthMask(GLboolean flag)
 // ----------------------------------------------------------------------------
 //    Enable or disable writing into the depth buffer
@@ -1051,7 +1341,6 @@ void OpenGLState::Enable(GLenum cap)
         glEnable(cap);
         break;
     }
-
 }
 
 
@@ -1124,6 +1413,140 @@ void OpenGLState::AlphaFunc(GLenum func, float ref)
     CHANGE(alphaFunc, af);
 }
 
+
+
+// ============================================================================
+//
+//                       Selection functions.
+//
+// ============================================================================
+
+int OpenGLState::RenderMode(GLenum mode)
+// ----------------------------------------------------------------------------
+//   Set rasterization mode
+// ----------------------------------------------------------------------------
+{
+    CHANGE(renderMode, mode);
+    if(renderMode_isDirty)
+        return glRenderMode(mode);
+
+    return 0;
+}
+
+
+void OpenGLState::SelectBuffer(int size, uint* buffer)
+// ----------------------------------------------------------------------------
+//   Establish a buffer for selection mode values
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glSelectBuffer(size, buffer);
+}
+
+
+void OpenGLState::InitNames()
+// ----------------------------------------------------------------------------
+//   Initialize the name stack
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glInitNames();
+}
+
+
+void OpenGLState::LoadName(uint name)
+// ----------------------------------------------------------------------------
+//   Load a name onto the name stack
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glLoadName(name);
+}
+
+
+void OpenGLState::PushName(uint name)
+// ----------------------------------------------------------------------------
+//    Specifies a name that will be pushed onto the name stack.
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glPushName(name);
+}
+
+
+void OpenGLState::PopName()
+// ----------------------------------------------------------------------------
+//    Pop the last name out the name stack.
+// ----------------------------------------------------------------------------
+{
+    // Must be reimplemented ?
+    glPopName();
+}
+
+
+
+// ============================================================================
+//
+//                       Shader management functions.
+//
+// ============================================================================
+
+void OpenGLState::UseProgram(uint prg)
+// ----------------------------------------------------------------------------
+//   Set shader program
+// ----------------------------------------------------------------------------
+{
+    CHANGE(shaderProgram, prg);
+}
+
+
+void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
+// ----------------------------------------------------------------------------
+//   Returns a parameter from a program object
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glGetProgramiv(prg, pname, params);
+}
+
+
+void OpenGLState::GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei *length,
+                                   GLsizei* size, GLenum *type, char* name)
+// ----------------------------------------------------------------------------
+//   Returns information about an active uniform variable for the specified shader
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glGetActiveUniform(prg, id, bufSize, length, size, type, name);
+}
+
+
+int OpenGLState::GetAttribLocation(uint program, const char* name)
+// ----------------------------------------------------------------------------
+//   Returns the location of an attribute variable
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGetAttribLocation(program, name);
+}
+
+
+int OpenGLState::GetUniformLocation(uint program, const char* name)
+// ----------------------------------------------------------------------------
+//   Returns the location of a uniform variable
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGetUniformLocation(program, name);
+}
+
+
+
+// ============================================================================
+//
+//                       Texture management functions.
+//
+// ============================================================================
 
 void OpenGLState::ActiveTexture(GLenum active)
 // ----------------------------------------------------------------------------
@@ -1235,17 +1658,6 @@ TextureState &OpenGLState::ActiveTexture()
     textures_isDirty = true;
     return textures.textures[activeTexture];
 }
-
-
-std::ostream & OpenGLState::debug()
-// ----------------------------------------------------------------------------
-//   Convenience method to log with a common prefix
-// ----------------------------------------------------------------------------
-{
-    std::cerr << "[OpenGLState] ";
-    return std::cerr;
-}
-
 
 
 // ============================================================================

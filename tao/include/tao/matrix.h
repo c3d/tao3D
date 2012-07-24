@@ -4,6 +4,7 @@
 #include "coords3d.h"
 #include "coords.h"
 #include <iostream>
+#include "string.h"
 
 TAO_BEGIN
 

@@ -69,9 +69,9 @@ void Manipulator::DrawSelection(Layout *layout)
     if (sel)
     {
         widget->selectionTrees.insert(self);
-        glPushName(layout->id);
+        GL.PushName(layout->id);
         DrawHandles(layout);
-        glPopName();
+        GL.PopName();
     }
 }
 

@@ -79,7 +79,7 @@ static void CALLBACK tessBegin(GLenum mode, PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
-    glBegin(mode);
+    GL.Begin(mode);
 }
 
 
@@ -89,7 +89,7 @@ static void CALLBACK tessEnd(PolygonData *poly)
 // ----------------------------------------------------------------------------
 {
     (void) poly;
-    glEnd();
+    GL.End();
 }
 
 
@@ -104,9 +104,9 @@ static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
     {
         //Active texture coordinates only for used units
         if (poly->textureUnits & (1 << i))
-            glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
+            GL.MultiTexCoord3v(GL_TEXTURE0 + i, &vertex->texture.x);
     }
-    glVertex3dv(&vertex->vertex.x);
+    GL.Vertex3v(&vertex->vertex.x);
 }
 
 
@@ -844,10 +844,10 @@ void GraphicPath::Draw(const Vector3 &offset,
                     IFTRACE(paths)
                         std::cerr << std::endl;
 
-                    glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-                    glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
-                    glEnableClientState(GL_VERTEX_ARRAY);
-                    glEnableClientState(GL_NORMAL_ARRAY);
+                    GL.VertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
+                    GL.NormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
+                    GL.EnableClientState(GL_VERTEX_ARRAY);
+                    GL.EnableClientState(GL_NORMAL_ARRAY);
 
                     //Active texture coordinates for all used units
                     uint maxtc = GL.MaxTextureCoords();
@@ -856,22 +856,22 @@ void GraphicPath::Draw(const Vector3 &offset,
                         if(texUnits & (1 << i))
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
-                            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
-                                              tdata);
+                            GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+                            GL.TexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
+                                               tdata);
                         }
                     }
 
-                    glDrawArrays(mode, 0, size);
-                    glDisableClientState(GL_VERTEX_ARRAY);
-                    glDisableClientState(GL_NORMAL_ARRAY);
+                    GL.DrawArrays(mode, 0, size);
+                    GL.DisableClientState(GL_VERTEX_ARRAY);
+                    GL.DisableClientState(GL_NORMAL_ARRAY);
 
                     for(uint i = 0; i < maxtc ; i++)
                     {
                         if(texUnits & (1 << i))
                         {
                             glClientActiveTexture( GL_TEXTURE0 + i );
-                            glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+                            GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
                         }
                     }
                 }
@@ -1178,14 +1178,14 @@ void GraphicPath::Identify(Layout *layout)
     Widget *widget = layout->Display();
     if (widget->selected(layout))
     {
-        glPushName(layout->id);
+        GL.PushName(layout->id);
         control_points::iterator i;
         for (i = controls.begin(); i != controls.end(); i++)
         {
             ControlPoint *child = *i;
             child->Identify(layout);
         }
-        glPopName();
+        GL.PopName();
     }
 }
 

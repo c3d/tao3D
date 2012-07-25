@@ -1312,7 +1312,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     // Create output directory if needed
     if (!QFileInfo(dir).exists())
         QDir().mkdir(dir);
-    if (!QFileInfo(dir).isDir())
+    if (!QFileInfo(dir).isDir() && dir != "/dev/null")
         return;
 
     TaoSave saveCurrent(current, this);
@@ -1428,9 +1428,12 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir)
                 .arg(currentFrame, digits, 10, QLatin1Char('0'));
-        SaveImage *thread = new SaveImage(fileName, frame.toImage());
-        saveThreads.push_back(thread);
-        thread->start();
+        if (dir != "/dev/null")
+        {
+            SaveImage *thread = new SaveImage(fileName, frame.toImage());
+            saveThreads.push_back(thread);
+            thread->start();
+        }
 
         currentFrame++;
 
@@ -1441,9 +1444,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     double elapsed = fpsTimer.elapsed();
     IFTRACE(fps)
         std::cerr << "Rendered " << currentFrame << " frames in "
-                  << elapsed << " ms "
-                  << ", approximately " << 1000 * currentFrame / elapsed
-              << " FPS\n";
+                  << elapsed << " ms, approximately"
+                  << 1000 * currentFrame / elapsed << " FPS\n";
     while(saveThreads.size())
     {
         SaveImage *thread = saveThreads.back();
@@ -1454,9 +1456,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     elapsed = fpsTimer.elapsed();
     IFTRACE(fps)
         std::cerr << "Saved " << currentFrame << " frames in "
-                  << elapsed << " ms "
-                  << ", approximately " << 1000 * currentFrame / elapsed
-              << " FPS\n";
+                  << elapsed << " ms, approximately "
+                  << 1000 * currentFrame / elapsed << " FPS\n";
 
     // Done with offline rendering
     inOfflineRendering = false;

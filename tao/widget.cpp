@@ -954,12 +954,15 @@ bool Widget::refreshNow(QEvent *event)
         stats.end(Statistics::EXEC);
     }
 
-    // Redraw all
-    TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
-    updateGL();
+    if (!inOfflineRendering)
+    {
+        // Redraw all
+        TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
+        updateGL();
 
-    if (changed)
-        processProgramEvents();
+        if (changed)
+            processProgramEvents();
+    }
 
     return changed;
 }
@@ -1411,7 +1414,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         {
             QTimerEvent e(0);
             refreshNow(&e);
-            
         }
 
         // Draw the layout in the frame context
@@ -1444,7 +1446,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     double elapsed = fpsTimer.elapsed();
     IFTRACE(fps)
         std::cerr << "Rendered " << currentFrame << " frames in "
-                  << elapsed << " ms, approximately"
+                  << elapsed << " ms, approximately "
                   << 1000 * currentFrame / elapsed << " FPS\n";
     while(saveThreads.size())
     {

@@ -43,7 +43,8 @@ class UpdateApplication : public QObject
 {
     Q_OBJECT
 
-    enum State { Idle, WaitingForUpdate, Downloading };
+    enum State { Idle, WaitingForUpdate, Downloading, Downloaded,
+                 NetworkErrorCheck, NetworkErrorDownload };
 
 public:
     UpdateApplication();
@@ -55,9 +56,12 @@ private:
     void     startDownload();
     void     readIniFile();
     bool     createFile();
+    void     saveDownloadedData();
     void     showNoUpdateAvailable();
+    void     showDownloadSuccessful();
     void     resetRequest();
     QString  appName();
+    void     connectSignals(QNetworkReply *reply);
 
 public slots:
     void     cancel();
@@ -66,6 +70,7 @@ private slots:
     void     processReply();
     void     downloadFinished();
     void     downloadProgress(qint64 bytesRcvd, qint64 bytesTotal);
+    void     networkError(QNetworkReply::NetworkError err);
 
     std::ostream & debug();
 
@@ -86,7 +91,9 @@ private:
     QProgressDialog *        progress;
     bool                     show;
     QString                  dialogTitle;
-    QPixmap                  downloadIcon, checkmarkIcon;
+    QPixmap                  downloadIcon,
+                             checkmarkIcon,
+                             connectionErrorIcon;
 
     // Network
     QNetworkReply *          reply;
@@ -94,6 +101,7 @@ private:
     QNetworkAccessManager *  manager;
     QTime                    downloadTime;
     int                      code;
+    QString                  errorString;
 };
 
 }

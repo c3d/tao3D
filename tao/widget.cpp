@@ -1289,6 +1289,20 @@ void Widget::print(QPrinter *prt)
 }
 
 
+struct SaveImage : QThread
+// ----------------------------------------------------------------------------
+//   A separate thread used to store rendered images to disk
+// ----------------------------------------------------------------------------
+{
+    SaveImage(QString filename, QImage image):
+        QThread(), filename(filename), image(image) {}
+    void run()    { image.save(filename); image = QImage(); }
+public:
+    QString filename;
+    QImage  image;
+};
+
+
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           QString dir, double fps, int page, QString disp)
 // ----------------------------------------------------------------------------
@@ -1348,6 +1362,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     int currentFrame = 1, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
     int digits = (int)log10(frameCount) + 1;
+
+    std::vector<SaveImage*> saveThreads;
+
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
 #define CHECK_CANCELED() \
@@ -1409,13 +1426,22 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir)
                 .arg(currentFrame, digits, 10, QLatin1Char('0'));
-        QImage image(frame.toImage());
-        image.save(fileName);
+        SaveImage *thread = new SaveImage(fileName, frame.toImage());
+        saveThreads.push_back(thread);
+        thread->start();
 
         currentFrame++;
 
         QApplication::processEvents();
         CHECK_CANCELED();
+    }
+
+    while(saveThreads.size())
+    {
+        SaveImage *thread = saveThreads.back();
+        thread->wait();
+        delete thread;
+        saveThreads.pop_back();
     }
 
     // Done with offline rendering

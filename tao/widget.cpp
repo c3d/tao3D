@@ -1463,6 +1463,9 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     if (!prevDisplay.isEmpty())
         displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
+
+    // Redraw
+    refreshNow();
 }
 
 

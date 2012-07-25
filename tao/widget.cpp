@@ -987,9 +987,6 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 //   Current layout (if any) should be updated on specified event
 // ----------------------------------------------------------------------------
 {
-    if (inOfflineRendering)
-        return;
-
     if (!layout)
         return;
 
@@ -1387,7 +1384,16 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           << "New page number is " << pageShown << "\n";
         }
 
-        runProgram();
+        if (currentFrame == 1)
+        {
+            runProgram();
+        }
+        else
+        {
+            QTimerEvent e(0);
+            refreshNow(&e);
+            
+        }
 
         // Draw the layout in the frame context
         id = idDepth = 0;

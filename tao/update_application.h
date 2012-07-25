@@ -43,51 +43,57 @@ class UpdateApplication : public QObject
 {
     Q_OBJECT
 
+    enum State { Idle, WaitingForUpdate, Downloading };
+
 public:
     UpdateApplication();
     ~UpdateApplication();
 
-    void     close();
-    void     check(bool msg = false);
+    void     check(bool show = false);
 
 private:
-    void     update();
+    void     startDownload();
     void     readIniFile();
-    void     createFile();
-    void     writeReplyToFile();
+    bool     createFile();
+    void     showNoUpdateAvailable();
+    void     resetRequest();
+    QString  appName();
+
+public slots:
+    void     cancel();
 
 private slots:
-    void     processCheckForUpdateReply();
-    void     downloadProgress(qint64 bytesReceived, qint64 bytesTotal);
-    void     cancelDownload();
+    void     processReply();
     void     downloadFinished();
+    void     downloadProgress(qint64 bytesRcvd, qint64 bytesTotal);
 
     std::ostream & debug();
 
 private:
+    State                    state;
+
     // Tao info
     double                   version;
     QString                  edition;
-    QString                  system;
+    QString                  target;
 
     // Update info
     double                   remoteVersion;
-    QString                  fileName;
     QUrl                     url;
 
     // I/O
     QFile *                  file;
-    QFileInfo                info;
-    QProgressDialog *        dialog;
-    bool                     useMsg;       // Show message boxes
+    QProgressDialog *        progress;
+    bool                     show;
+    QString                  dialogTitle;
+    QPixmap                  downloadIcon, checkmarkIcon;
 
     // Network
     QNetworkReply *          reply;
     QNetworkRequest          request;
     QNetworkAccessManager *  manager;
     QTime                    downloadTime;
-    bool                     updating;
-    bool                     downloadRequestAborted;
+    int                      code;
 };
 
 }

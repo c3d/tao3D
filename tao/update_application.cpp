@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  update_application.cpp                                            Tao project
+//  update_application.cpp                                         Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -33,9 +33,36 @@
 #include <QDialogButtonBox>
 #include <QTextStream>
 #include <QDesktopServices>
+#include <QMessageBox>
 #include <sstream>
 
 namespace Tao {
+
+
+static void setBoxMinimumWidth(QMessageBox &box, int width)
+// ----------------------------------------------------------------------------
+//    Set minimum width of a message box
+// ----------------------------------------------------------------------------
+{
+    QSpacerItem* spacer = new QSpacerItem(width, 0, QSizePolicy::Minimum,
+                                          QSizePolicy::Expanding);
+    QGridLayout* layout = dynamic_cast<QGridLayout*>(box.layout());
+    if (!layout)
+        return;
+    layout->addItem(spacer, layout->rowCount(), 0, 1,
+                    layout->columnCount());
+}
+
+
+static QPixmap loadIcon(QString path)
+// ----------------------------------------------------------------------------
+//    Load image file for use as a message box icon
+// ----------------------------------------------------------------------------
+{
+    return QPixmap(path).scaled(64, 64,
+                                Qt::IgnoreAspectRatio,
+                                Qt::SmoothTransformation);
+}
 
 
 // ============================================================================
@@ -44,20 +71,33 @@ namespace Tao {
 //
 // ============================================================================
 
-UpdateApplication::UpdateApplication() : updating(false)
+UpdateApplication::UpdateApplication()
 // ----------------------------------------------------------------------------
 //    Constructor
 // ----------------------------------------------------------------------------
+  : state(Idle), file(NULL), progress(NULL),
+    dialogTitle(QString(tr("Tao Presentations update"))),
+    downloadIcon(loadIcon(":/images/download.png")),
+    checkmarkIcon(loadIcon(":images/checkmark.png")),
+    reply(NULL), manager(NULL), code(-1)
 {
+    // download.png from http://www.iconfinder.com/icondetails/2085/128
+    // Author: Alexandre Moore
+    // License: LGPL
+    //
+    // checkmark.png from http://www.iconfinder.com/icondetails/3207/128
+    // Author: Everaldo Coelho
+    // License: LGPL
+
 #ifdef TAO_EDITION
    // Get current edition
    edition = TAO_EDITION;
 #endif
 
 #if defined(Q_OS_MACX)
-   system = "MacOSX";
+   target = "MacOSX";
 #elif defined(Q_OS_WIN)
-   system = "Windows";
+   target = "Windows";
 #else
    // Check if we are on Debian or Ubuntu distribution to get .deb package
    QString cmd("uname");
@@ -67,18 +107,18 @@ UpdateApplication::UpdateApplication() : updating(false)
    text errors, output;
    if(cp.done(&errors, &output))
    {
-       // Check os name
+       // Check OS name
        if(output.find("Ubuntu") != output.npos ||
           output.find("Debian") != output.npos)
-           system = "Linux Ubuntu";
+           target = "Linux .deb";
        else
-           system = "Others linux";
+           target = "Linux .tar.bz2";
 
-       // Check bits number
+       // Check architecture
        if(output.find("x86_64") != output.npos)
-           system += " x86_64";
+           target += " x86_64";
        else
-           system += " x86";
+           target += " x86";
    }
 #endif
 
@@ -88,12 +128,18 @@ UpdateApplication::UpdateApplication() : updating(false)
    rxp.indexIn(ver);
    version = rxp.cap(1).toDouble();
 
-   // Create network manager
-   manager = new QNetworkAccessManager();
+   resetRequest();
 
-   // Create a dialog to display download progress
-   dialog = new QProgressDialog();
-   dialog->setWindowTitle(tr("Checking for update"));
+   progress = new QProgressDialog(TaoApp->windowWidget());
+   progress->setFixedSize(500, 100);
+   connect(progress, SIGNAL(canceled()),
+           this, SLOT(cancel()));
+   progress->setWindowTitle(dialogTitle);
+
+   IFTRACE(update)
+       debug() << "Current version: edition='" << +edition
+               << "' version=" << version
+               << " target='" << +target << "'\n";
 }
 
 
@@ -102,374 +148,372 @@ UpdateApplication::~UpdateApplication()
 //    Destructor
 // ----------------------------------------------------------------------------
 {
-    close();
-
-    delete manager;
-    delete dialog;
-
     IFTRACE(update)
-            debug() << "Delete update application\n";
+        debug() << "Destructor\n";
+    // FIXME crash on MacOSX
+    // delete progress;
 }
 
 
-void UpdateApplication::close()
+void UpdateApplication::resetRequest()
 // ----------------------------------------------------------------------------
-//    Close update
+//    Initialize HTTP request
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(update)
-            debug() << "Close update\n";
-
-    fileName = "";
-
-    dialog->close();
-
-    // Delete I/O
-    if (file)
-    {
-        delete file;
-        file = NULL;
-    }
-
-    // Delete reply
-    if (reply)
-    {
-        reply->abort();
-        reply->deleteLater();
-        reply = NULL;
-    }
+    request = QNetworkRequest();
+    QString ua("Tao Presentations %1");
+    request.setRawHeader("User-Agent", (ua.arg(version)).toAscii());
 }
 
 
-void UpdateApplication::check(bool msg)
+QString UpdateApplication::appName()
 // ----------------------------------------------------------------------------
-//    Check for new update
-// ----------------------------------------------------------------------------
-{    
-    if((! updating) && (! edition.isEmpty()))
-    {
-        useMsg = msg;
-
-        // Define url where check for update
-        QUrl url("http://www.taodyne.com/shop/download/update.ini");
-
-        IFTRACE(update)
-            debug() << "Downloading: '" << +url.toString() << "'\n";
-
-        // Create file
-        QString updateName = QDir::temp().absolutePath() + "/update.ini";
-        file = new QFile(updateName);
-        info.setFile(*file);
-
-        // Check if we can write file
-        if(!file->open(QIODevice::WriteOnly | QIODevice::Truncate))
-        {
-            delete file;
-            file = NULL;
-            return;
-        }
-
-        updating = true;
-        downloadRequestAborted = false;
-
-        // Specify url
-        request.setUrl(url);
-
-        // Set user agent
-        QString user("Tao Presentations %1");
-        request.setRawHeader("User-Agent", (user.arg(version)).toAscii());
-
-        // Sent request
-        reply = manager->get(request);
-        connect(reply, SIGNAL(finished()), this,
-                SLOT(processCheckForUpdateReply()), Qt::UniqueConnection);
-    }
-}
-
-
-void UpdateApplication::update()
-// ----------------------------------------------------------------------------
-//    Launch update
+//    Return "Tao Presentations <EditionName>" or "Tao Presentations"
 // ----------------------------------------------------------------------------
 {
-    // Start timer
-    downloadTime.start();
+    QString ed;
+    if (!edition.isEmpty())
+        ed = " " + edition;
+    return QString("Tao Presentations%1").arg(ed);
+}
+
+
+void UpdateApplication::check(bool show)
+// ----------------------------------------------------------------------------
+//    Check for update
+// ----------------------------------------------------------------------------
+{
+    // This method starts the "check for update" algorithm which is
+    // asynchronous.
+    // If 'show' is true, a progress dialog may be shown during the check, and
+    // a dialog is shown at the end to tell if update is available or not.
+    // If 'show' is false, no interaction with the user occurs
+    // until the algorithm detects that an update is available.
+
+    this->show = show;
+    if (state != Idle)
+    {
+        // Already running. Just show the progress dialog.
+        progress->show();
+        return;
+    }
+
+    if (edition.isEmpty())
+    {
+        if (show)
+            showNoUpdateAvailable();
+        return;
+    }
+
+    if (!manager)
+        manager = new QNetworkAccessManager();
+
+    progress->setLabelText(tr("Checking for update"));
+    if (show)
+        progress->show();
+
+    // The URL where to get update information from. Redirects to a .ini file.
+    QUrl url("http://www.taodyne.com/taopresentations/1.0/update");
 
     IFTRACE(update)
         debug() << "Downloading: '" << +url.toString() << "'\n";
 
-    // Create request
-    request.setUrl(url);
+    state = WaitingForUpdate;
 
-    // Send request
+    // Create and send HTTP request
+    request.setUrl(url);
     reply = manager->get(request);
-    connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()),
-            Qt::UniqueConnection);
+    connect(reply, SIGNAL(metaDataChanged()), this, SLOT(processReply()));
+    connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
     connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
             this, SLOT(downloadProgress(qint64,qint64)));
-    connect(dialog, SIGNAL(canceled()), this, SLOT(cancelDownload()));
-    dialog->show();
+}
+
+
+void UpdateApplication::startDownload()
+// ----------------------------------------------------------------------------
+//    Start downloading the URL of the Tao file
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(update)
+        debug() << "Downloading: '" << +url.toString() << "'\n";
+
+    Q_ASSERT(!reply);
+    Q_ASSERT(!url.isEmpty());
+
+    QString msg = tr("Downloading Tao Presentations %1...");
+    progress->setLabelText(msg.arg(remoteVersion));
+    progress->show();
+
+    state = Downloading;
+    downloadTime.start();
+
+    request.setUrl(url);
+    reply = manager->get(request);
+    connect(reply, SIGNAL(metaDataChanged()), this, SLOT(processReply()));
+    connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
+    connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
+            this, SLOT(downloadProgress(qint64,qint64)));
 }
 
 
 void UpdateApplication::readIniFile()
 // ----------------------------------------------------------------------------
-//    Parse update.ini file
+//    Get version, name and path of latest update from received .ini file
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(file);
+
     IFTRACE(update)
     {
-        debug() << "Content:\n";
         file->open(QIODevice::ReadOnly | QIODevice::Text);
         while (file->bytesAvailable())
             debug() << " " << +QString(file->readLine());
         file->close();
     }
 
-    // Read ini file
     QSettings settings(file->fileName(), QSettings::IniFormat);
-
-    // Get version, name and path of latest update
     remoteVersion = settings.value("version", "").toDouble();
-    settings.beginGroup(system);
+    settings.beginGroup(target);
     url.setUrl(settings.value(edition, "").toString());
     settings.endGroup();
+
+    IFTRACE(update)
+        debug() << "Remote version is " << +remoteVersion
+                << " download URL: '" << +url.toString() << "'\n";
 }
 
 
-void UpdateApplication::processCheckForUpdateReply()
+void UpdateApplication::showNoUpdateAvailable()
 // ----------------------------------------------------------------------------
-//    Process to check for update
+//    Show message box
 // ----------------------------------------------------------------------------
 {
-    // Case of error
-    if(reply->error() && useMsg)
-    {
-        IFTRACE(update)
-                debug() << "Check for update failed: "
-                        << reply->errorString().toStdString() << "\n";
-
-        // Download failed
-        QMessageBox::information(NULL, tr("Check for update failed"),
-                                 tr("Check for update failed: %1").arg(reply->errorString()));
-        return;
-    }
-
-    IFTRACE(update)
-        debug() << "Check for update reply received\n";
-
-    // Write file
-    writeReplyToFile();
-
-    // Close I/O
-    file->close();
-
-    // Read update.ini file
-    readIniFile();
-
-    // Remove file and close reply
-    file->remove();
-    close();
-
-    IFTRACE(update)
-        debug() << "Remote version is " << remoteVersion << "\n";
-
-    // Update if current version is older than the remote one
-    bool upToDate = (version >= remoteVersion);
-    if(!upToDate && !url.isEmpty())
-    {
-        // Ask for update
-        QString title = tr("Tao Presentations %1 available").arg(remoteVersion);
-        QString msg = tr("A new version of Tao Presentations is available, would you download it now ?");
-        int ret = QMessageBox::question(NULL, title, msg,
-                                        QMessageBox::Yes | QMessageBox::No);
-
-        if(ret == QMessageBox::Yes)
-        {
-            // Start update
-            update();
-        }
-        else
-        {
-            // Close update
-            updating = false;
-            close();
-        }
-
-    }
-    else
-    {
-        updating = false;
-        close();
-
-        if(useMsg)
-        {
-            QString title = tr("No update available");
-            QString msg = tr("Tao Presentations %1 is up-to-date.")
-                          .arg(edition);
-            QMessageBox::information(NULL, title, msg);
-        }
-    }
+    QString msg = tr("%1 is up-to-date.").arg(appName());
+    QString info = tr("<p>There is no new version available for download.<p>");
+    QMessageBox box(TaoApp->windowWidget());
+    box.setIconPixmap(checkmarkIcon);
+    box.setWindowTitle(dialogTitle);
+    box.setText(msg);
+    box.setInformativeText(info);
+    box.setStandardButtons(QMessageBox::Ok);
+    box.exec();
 }
 
 
-void UpdateApplication::downloadProgress(qint64 bytesReceived, qint64 bytesTotal)
+void UpdateApplication::downloadProgress(qint64 bytesRcvd, qint64 bytesTotal)
 // ----------------------------------------------------------------------------
 //    Update progress bar
 // ----------------------------------------------------------------------------
 {
-    // Assure that downloaded file is
-    // big enough to show dialog
-    //(avoid it in case of redirection)
-    if(bytesTotal > 1000)
+    if (state == Downloading)
     {
-        if(downloadRequestAborted)
-            return;
-
-        if(! file)
-        {
-            createFile();
+        // Calculate the download speed
+        // REVISIT: compute speed for the last couple of seconds only?
+        double speed = bytesRcvd * 1000.0 / (downloadTime.elapsed() + 1.0);
+        QString unit;
+        if (speed < 1024) {
+            unit = tr("B/s");
+        } else if (speed < 1024*1024) {
+            speed /= 1024;
+            unit = tr("KB/s");
+        } else {
+            speed /= 1024*1024;
+            unit = tr("MB/s");
         }
-        else
-        {
-            // Calculate the download speed
-            double speed = bytesReceived * 1000.0 / downloadTime.elapsed();
-            QString unit;
-            if (speed < 1024) {
-                unit = tr("bytes/sec");
-            } else if (speed < 1024*1024) {
-                speed /= 1024;
-                unit = tr("Kb/s");
-            } else {
-                speed /= 1024*1024;
-                unit = tr("Mb/s");
-            }
+        QString speedTxt;
+        if (speed < 1000)
+            speedTxt = QString(" (%1 %2)").arg(speed, 3, 'f', 1).arg(unit);
 
-            // Update progress dialog
-            QString msg = tr("Downloading Tao Presentations %1 : %2 %3");
-            dialog->setLabelText(msg.arg(remoteVersion)
-                                 .arg(speed, 3, 'f', 1).arg(unit));
-            dialog->setMaximum(bytesTotal);
-            dialog->setValue(bytesReceived);
+        // Update progress dialog
+        QString msg = tr("Downloading Tao Presentations %1%2");
+        progress->setLabelText(msg.arg(remoteVersion).arg(speedTxt));
+    }
+    progress->setMaximum(bytesTotal);
+    progress->setValue(bytesRcvd);
+}
+
+
+void UpdateApplication::cancel()
+// ----------------------------------------------------------------------------
+//    Cancel check for update or download
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(update)
+        debug() << "Cancel\n";
+    if (file)
+    {
+        file->remove();
+        delete file;
+        file = NULL;
+    }
+    state = Idle;
+    if (reply)
+    {
+        reply->abort();
+        delete reply;
+        reply = NULL;
+    }
+    resetRequest();
+}
+
+
+void UpdateApplication::processReply()
+// ----------------------------------------------------------------------------
+//    Called as we receive new headers
+// ----------------------------------------------------------------------------
+{
+    // Hande redirections
+    code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (code >= 300 && code < 400)
+    {
+        // Get redirect URL
+        url = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+        if (!url.isValid())
+        {
+            // Not yet received
+            return;
+        }
+
+        // In case URL is relative
+        url = reply->url().resolved(url);
+
+        IFTRACE(update)
+                debug() << "Redirected to: '" << +url.toString() <<  "'\n";
+
+        request.setUrl(url);
+        reply->deleteLater();
+        reply = manager->get(request);
+        connect(reply, SIGNAL(metaDataChanged()), this, SLOT(processReply()));
+        connect(reply, SIGNAL(finished()), this, SLOT(downloadFinished()));
+        connect(reply, SIGNAL(downloadProgress(qint64,qint64)),
+                this, SLOT(downloadProgress(qint64,qint64)));
+    }
+    else if (code == 200 && state == Downloading)
+    {
+        if (!createFile())
+        {
+            progress->hide();
+            cancel();
         }
     }
-}
-
-
-void UpdateApplication::cancelDownload()
-// ----------------------------------------------------------------------------
-//    Cancel download
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(update)
-            debug() << "Abort download\n";
-
-    downloadRequestAborted = true;
-    delete reply;
-    reply = NULL;
-}
-
-
-void UpdateApplication::writeReplyToFile()
-// ----------------------------------------------------------------------------
-//    Write reply to file
-// ----------------------------------------------------------------------------
-{
-    IFTRACE(update)
-        debug() << "Writing to " << +file->fileName() << "\n";
-
-    Q_ASSERT(file);
-    Q_ASSERT(file->isOpen());
-    file->write(reply->readAll());
 }
 
 
 void UpdateApplication::downloadFinished()
 // ----------------------------------------------------------------------------
-//    Finish download
+//    Process downloaded data reply
 // ----------------------------------------------------------------------------
 {
-    dialog->hide();
+    if (code != 200)
+        return;
 
-    // Redirection
-    int code = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-    if (code >= 300 && code < 400) // Redirection
+    bool updateAvailable = false;
+    qint64 pid = 0;
+    QString name;
+    switch (state)
     {
-        // Get the redirection url
-        url = reply->attribute(QNetworkRequest::RedirectionTargetAttribute).toUrl();
+    case WaitingForUpdate:
 
-        // Because the redirection url can be relative,
-        // we have to use the previous one to resolve it
-        url = reply->url().resolved(url);
+        // Save and process the update information we have just received
 
-        // Close previous update
-        close();
+        progress->hide();
 
-        IFTRACE(update)
-                debug() << "Redirected to "
-                        << url.toString().toStdString() << "\n";
-
-        // Restart update
-        update();
-
-    }
-    else
-    {
-        updating = false;
-
-        // Case of download aborted
-        if(downloadRequestAborted)
-        {
-            if(file)
-                file->remove();
-            close();
-            return;
-        }
-
-        // Case of error
-        if(reply->error())
+        Q_ASSERT(!file);
+        pid = QCoreApplication::applicationPid();
+        name = QString("tao_update.%1").arg(pid);
+        file = new QFile(QDir::temp().filePath(name));
+        if (!file->open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
             IFTRACE(update)
-                    debug() << "Download failed: "
-                            << reply->errorString().toStdString() << "\n";
+                debug() << "Failed to open: " << +file->fileName() << "\n";
+            delete file;
+            file = NULL;
+            return;
+        }
+        file->write(reply->readAll());
+        file->close();
 
+        reply->deleteLater();
+        reply = NULL;
 
-            // Download failed
-            QMessageBox::information(NULL, tr("Download failed"),
-                                     tr("Download failed: %1").arg(reply->errorString()));
-            // Remove file
-            if(file)
-                file->remove();
+        readIniFile();
+
+        file->remove();
+        delete file;
+        file = NULL;
+
+        // Propose to update if current version is older than the remote one
+        updateAvailable = (version < remoteVersion) && !url.isEmpty();
+        if (updateAvailable)
+        {
+            QString msg = tr("<h3>Update available</h3>");
+            QString info = tr("<p>%1 version %2 is available."
+                             " Do you want to download it now?</p>")
+                            .arg(appName()).arg(remoteVersion);
+            QMessageBox box(TaoApp->windowWidget());
+            setBoxMinimumWidth(box, 400);
+            box.setIconPixmap(downloadIcon);
+            box.setWindowTitle(dialogTitle);
+            box.setText(msg);
+            box.setInformativeText(info);
+            box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+            if (box.exec() == QMessageBox::Yes)
+            {
+                startDownload();
+                break;
+            }
         }
         else
         {
-            IFTRACE(update)
-                debug() << "Download successful\n";
-
-            // Write file
-            writeReplyToFile();
-
-            QString msg = tr("%1 downloaded sucessfully\n").arg(file->fileName());
-            QMessageBox::information(NULL, tr("Download successful"), msg);
+            if (show)
+                showNoUpdateAvailable();
         }
 
-        // Close I/O
-        close();
-    }
+        progress->close();
+        break;
 
+    case Downloading:
+
+        IFTRACE(update)
+                debug() << "Download finished\n";
+
+        progress->hide();
+
+        Q_ASSERT(file);
+        file->write(reply->readAll());
+        file->close();
+
+        QMessageBox::information(NULL, dialogTitle,
+                                 tr("%1 downloaded sucessfully")
+                                     .arg(file->fileName()));
+
+        delete file;
+        file = NULL;
+
+        reply->deleteLater();
+        reply = NULL;
+
+        progress->close();
+        state = Idle;
+        break;
+
+    default:
+        // state == Idle if download is aborted by Application calling cancel
+        break;
+    }
 }
 
 
-void UpdateApplication::createFile()
+bool UpdateApplication::createFile()
 // ----------------------------------------------------------------------------
 //    Create the update file
 // ----------------------------------------------------------------------------
 {
-    if(! fileName.isEmpty())
-        return;
+    Q_ASSERT(!file);
 
     // Keep the name of the remote file in the URL
-    fileName = QFileInfo(url.path()).fileName();
+    QString fileName = QFileInfo(url.path()).fileName();
 
     // Choose folder
     QString desktop = QDesktopServices::storageLocation(QDesktopServices::DesktopLocation);
@@ -477,53 +521,52 @@ void UpdateApplication::createFile()
                                                        tr("Select destination folder"),
                                                        desktop);
 
-    if(! folder.isEmpty())
+    if (!folder.isEmpty())
     {
         // Set complete filename
         QString completeFileName = folder + "/" + fileName;
 
-        if(QFile::exists(completeFileName))
+        file = new QFile(completeFileName);
+
+        if (file->exists())
         {
             int ret = QMessageBox::question(NULL, tr("File existing"),
                                             tr("There already exists a file called %1 in "
                                                "the specified directory. Overwrite it?").arg(fileName),
                                             QMessageBox::Yes|QMessageBox::No,
                                             QMessageBox::No);
-            if(ret == QMessageBox::No)
+            if (ret == QMessageBox::No)
             {
-                close();
-                updating = false;
-                downloadRequestAborted = true;
-                return;
+                delete file;
+                file = NULL;
+                return false;
             }
         }
 
-        IFTRACE(update)
-                debug() << "Create file '" << completeFileName.toStdString() << "'\n";
-
-        // Set complete filename
-        file = new QFile(completeFileName);
-        info.setFile(*file);
-
-        if(!file->open(QIODevice::WriteOnly | QIODevice::Truncate))
+        if (!file->open(QIODevice::WriteOnly | QIODevice::Truncate))
         {
+            IFTRACE(update)
+                debug() << "Could not open file for writing: '"
+                        << +completeFileName
+                        << "' error: " << +file->errorString() << "\n";
+
             QMessageBox::information(NULL, "Update failed",
-                                     tr("Unable to save the file %1: %2.")
+                                     tr("Unable to save to %1: %2.")
                                      .arg(completeFileName)
                                      .arg(file->errorString()));
-            downloadRequestAborted = true;
-            // Close update
-            updating = false;
-            close();
+
+            delete file;
+            file = NULL;
+            return false;
         }
+
+        IFTRACE(update)
+            debug() << "Save to: '" << +completeFileName << "'\n";
+
+        return true;
     }
-    else
-    {
-        downloadRequestAborted = true;
-        // Close update
-        updating = false;
-        close();
-    }
+
+    return false;
 }
 
 
@@ -535,6 +578,5 @@ std::ostream & UpdateApplication::debug()
     std::cerr << "[Update] ";
     return std::cerr;
 }
-
 
 }

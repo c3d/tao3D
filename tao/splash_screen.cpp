@@ -63,8 +63,16 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
     }
 
     setMask(QPixmap(":/images/splash.png").mask());
-    QString version(QObject::tr("Version %1").arg(GITREV));
-    showMessage(version);
+
+    const char * fmt = "<html><head><style type=text/css>"
+            "body {color:\"" TEXT_COLOR "\"}"
+            "</style></head><body>%1</body></html>";
+#ifdef TAO_EDITION
+    edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
+    edition->move(25, 280);
+#endif
+    version = new QLabel(trUtf8(fmt).arg(tr("Version %1").arg(GITREV)), this);
+    version->move(25, 300);
 
     const char * cop = "<html><head><style type=text/css>"
                        "body {color:\"" TEXT_COLOR "\"}"
@@ -83,14 +91,6 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
     label->move(270, 280);
-
-#ifdef TAO_EDITION
-    const char * ed = "<html><head><style type=text/css>"
-            "body {color:\"" TEXT_COLOR "\"}"
-            "</style></head><body>%1</body></html>";
-    edition = new QLabel(trUtf8(ed).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
-    edition->move(25, 280);
-#endif
 }
 
 
@@ -192,10 +192,10 @@ void SplashScreen::showMessage(const QString &message, int, const QColor &)
 {
     this->message = message;
     QPointer<SplashScreen> that(this);
-    QCoreApplication::processEvents();
     if (!that)
         return;
     repaint();
+    QCoreApplication::processEvents();
 }
 
 
@@ -229,6 +229,11 @@ void SplashScreen::showCredits()
         "<p>Qt is a Nokia product. See "
         "<a href=\"http://qt.nokia.com/\">qt.nokia.com</a> for more "
         "information.</p>"
+        "<h3>Qt Solutions</h3>"
+        "<p>This application contains portions of the "
+        "Qt Solutions component by Nokia.</p>"
+        "<p>See the credits page under Help>Documentation for the "
+        "complete legal notice of this component.</p>"
         "<h3>LLVM</h3>"
         "<p>The LLVM Project is a collection of modular and reusable compiler "
         "and toolchain technologies.</p>"

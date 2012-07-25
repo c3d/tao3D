@@ -34,12 +34,25 @@ LOREM_IPSUM_FILES = \
 	modules/lorem_ipsum/doc/Doxyfile.in \
 	modules/lorem_ipsum/doc/lorem_ipsum.doxy.h
 
+NEWMODULE_FILES = \
+	modules/newmodule \
+	modules/newmodule/README \
+	modules/newmodule/icon.png \
+	modules/newmodule/newmodule.pro.t \
+	modules/newmodule/newmodule.taokey.notsigned.t \
+	modules/newmodule/newmodule.xl.t \
+	modules/newmodule/doc \
+	modules/newmodule/doc/Doxyfile.in.t \
+	modules/newmodule/doc/newmodule.doxy.h.t
+
 FILES_COMMON = \
 	doxygen.pri \
 	doxygen.sh \
 	main.pri \
 	main_defs.pri \
 	translations.pri \
+	tools \
+	tools/preprocessor.pl \
 	modules \
 	modules/.gitignore \
 	modules/configure \
@@ -56,6 +69,7 @@ FILES_COMMON = \
 	$(OBJECT_LOADER_FILES) \
 	$(HELLO_WORLD_FILES) \
 	$(LOREM_IPSUM_FILES) \
+	$(NEWMODULE_FILES) \
 	tao \
 	tao/include \
 	$(shell find tao/include) \

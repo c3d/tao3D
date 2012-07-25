@@ -60,7 +60,7 @@ protected:
 
     QString      message;
     QLabel *     label;
-    QLabel *     edition;
+    QLabel *     edition, * version;
     bool         mbPressed, urlClicked;
     QTextDocument licencedTo;
 

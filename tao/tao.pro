@@ -104,6 +104,8 @@ HEADERS +=     activity.h \
     preferences_dialog.h \
     preferences_pages.h \
     process.h \
+    qtlocalpeer.h \
+    qtlockedfile.h \
     raster_text.h \
     render_to_file_dialog.h \
     repository.h \
@@ -181,6 +183,8 @@ SOURCES +=     activity.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     process.cpp \
+    qtlocalpeer.cpp \
+    qtlockedfile.cpp \
     raster_text.cpp \
     render_to_file_dialog.cpp \
     repository.cpp \
@@ -209,7 +213,11 @@ SOURCES +=     activity.cpp \
 
 win32 {
     HEADERS += dde_widget.h
-    SOURCES += dde_widget.cpp
+    SOURCES += dde_widget.cpp qtlockedfile_win.cpp
+}
+
+unix {
+    SOURCES += qtlockedfile_unix.cpp
 }
 
 # Check compile-time options
@@ -406,7 +414,7 @@ QMAKE_EXTRA_TARGETS += changelog
 !system(perl -e "exit"):error("Can't execute perl")
 DEFS = $$join(DEFINES, " -D", " -D")
 tao_xl.target = tao.xl
-tao_xl.commands = perl preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
+tao_xl.commands = perl ../tools/preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
 tao_xl.files = tao.xl
 tao_xl.path = $$APPINST
 tao_xl.depends = tao.xl.in

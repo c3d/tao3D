@@ -1364,6 +1364,8 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     int digits = (int)log10(frameCount) + 1;
 
     std::vector<SaveImage*> saveThreads;
+    QTime fpsTimer;
+    fpsTimer.start();
 
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
@@ -1436,6 +1438,12 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         CHECK_CANCELED();
     }
 
+    double elapsed = fpsTimer.elapsed();
+    IFTRACE(fps)
+        std::cerr << "Rendered " << currentFrame << " frames in "
+                  << elapsed << " ms "
+                  << ", approximately " << 1000 * currentFrame / elapsed
+              << " FPS\n";
     while(saveThreads.size())
     {
         SaveImage *thread = saveThreads.back();
@@ -1443,6 +1451,12 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         delete thread;
         saveThreads.pop_back();
     }
+    elapsed = fpsTimer.elapsed();
+    IFTRACE(fps)
+        std::cerr << "Saved " << currentFrame << " frames in "
+                  << elapsed << " ms "
+                  << ", approximately " << 1000 * currentFrame / elapsed
+              << " FPS\n";
 
     // Done with offline rendering
     inOfflineRendering = false;

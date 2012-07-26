@@ -547,26 +547,56 @@ void UpdateApplication::downloadFinished()
         // Propose to update if current version is older than the remote one
         updateAvailable = (version < remoteVersion) && !url.isEmpty();
         IFTRACE(update)
-            debug() << "Update available: " << updateAvailable << "\n";
+            debug() << "Update available: " << updateAvailable
+                    << " (local " << version << " remote " << remoteVersion
+                    << ")\n";
         if (updateAvailable)
         {
-            QString msg = tr("<h3>Update available</h3>");
-            QString info = tr("<p>%1 version %2 is available."
-                             " Do you want to download it now?</p>")
-                            .arg(appName()).arg(remoteVersion);
-            QMessageBox box(TaoApp->windowWidget());
-            setBoxMinimumWidth(box, 400);
-            box.setIconPixmap(downloadIcon);
-            box.setWindowTitle(dialogTitle);
-            box.setText(msg);
-            box.setInformativeText(info);
-            if (!description.isEmpty())
-                box.setDetailedText(description);
-            box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
-            if (box.exec() == QMessageBox::Yes)
+            bool ok = false;
+            double min = QSettings().value("AppUpdatePromptMinVersion", -1.0)
+                                    .toDouble(&ok);
+            if (!ok)
+                min = -1.0;
+
+            if (show || remoteVersion > min)
             {
-                startDownload();
-                break;
+                if (remoteVersion > min)
+                {
+                    // Remember that user was prompted to download  this
+                    // version. He/she will not be prompted again on application
+                    // startup, unless a newer version exists.
+                    QSettings().setValue("AppUpdatePromptMinVersion",
+                                         remoteVersion);
+                    IFTRACE2(update, settings)
+                            debug() << "Saving AppUpdatePromptMinVersion="
+                                    << remoteVersion << "\n";
+                }
+
+                // Show update dialog
+                QString msg = tr("<h3>Update available</h3>");
+                QString info = tr("<p>%1 version %2 is available."
+                                  " Do you want to download it now?</p>")
+                        .arg(appName()).arg(remoteVersion);
+                QMessageBox box(TaoApp->windowWidget());
+                setBoxMinimumWidth(box, 400);
+                box.setIconPixmap(downloadIcon);
+                box.setWindowTitle(dialogTitle);
+                box.setText(msg);
+                box.setInformativeText(info);
+                if (!description.isEmpty())
+                    box.setDetailedText(description);
+                box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
+                if (box.exec() == QMessageBox::Yes)
+                {
+                    startDownload();
+                    break;
+                }
+            }
+            else
+            {
+                IFTRACE(update)
+                    debug() << "Update available dialog not shown due to "
+                               "AppUpdatePromptMinVersion=" << min << "\n";
             }
         }
         else

@@ -954,12 +954,15 @@ bool Widget::refreshNow(QEvent *event)
         stats.end(Statistics::EXEC);
     }
 
-    // Redraw all
-    TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
-    updateGL();
+    if (!inOfflineRendering)
+    {
+        // Redraw all
+        TaoSave saveCurrent(current, NULL); // draw() assumes current == NULL
+        updateGL();
 
-    if (changed)
-        processProgramEvents();
+        if (changed)
+            processProgramEvents();
+    }
 
     return changed;
 }
@@ -987,9 +990,6 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 //   Current layout (if any) should be updated on specified event
 // ----------------------------------------------------------------------------
 {
-    if (inOfflineRendering)
-        return;
-
     if (!layout)
         return;
 
@@ -1292,6 +1292,20 @@ void Widget::print(QPrinter *prt)
 }
 
 
+struct SaveImage : QThread
+// ----------------------------------------------------------------------------
+//   A separate thread used to store rendered images to disk
+// ----------------------------------------------------------------------------
+{
+    SaveImage(QString filename, QImage image):
+        QThread(), filename(filename), image(image) {}
+    void run()    { image.save(filename); image = QImage(); }
+public:
+    QString filename;
+    QImage  image;
+};
+
+
 void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           QString dir, double fps, int page, QString disp)
 // ----------------------------------------------------------------------------
@@ -1301,7 +1315,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     // Create output directory if needed
     if (!QFileInfo(dir).exists())
         QDir().mkdir(dir);
-    if (!QFileInfo(dir).isDir())
+    if (!QFileInfo(dir).isDir() && dir != "/dev/null")
         return;
 
     TaoSave saveCurrent(current, this);
@@ -1351,6 +1365,11 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     int currentFrame = 1, frameCount = (end_time - start_time) * fps;
     int percent, prevPercent = 0;
     int digits = (int)log10(frameCount) + 1;
+
+    std::vector<SaveImage*> saveThreads;
+    QTime fpsTimer;
+    fpsTimer.start();
+
     for (double t = start_time; t < end_time; t += 1.0/fps)
     {
 #define CHECK_CANCELED() \
@@ -1387,7 +1406,15 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
                           << "New page number is " << pageShown << "\n";
         }
 
-        runProgram();
+        if (currentFrame == 1)
+        {
+            runProgram();
+        }
+        else
+        {
+            QTimerEvent e(0);
+            refreshNow(&e);
+        }
 
         // Draw the layout in the frame context
         id = idDepth = 0;
@@ -1403,8 +1430,12 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         // Convert to .mov with: ffmpeg -i frame%d.png output.mov
         QString fileName = QString("%1/frame%2.png").arg(dir)
                 .arg(currentFrame, digits, 10, QLatin1Char('0'));
-        QImage image(frame.toImage());
-        image.save(fileName);
+        if (dir != "/dev/null")
+        {
+            SaveImage *thread = new SaveImage(fileName, frame.toImage());
+            saveThreads.push_back(thread);
+            thread->start();
+        }
 
         currentFrame++;
 
@@ -1412,11 +1443,32 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         CHECK_CANCELED();
     }
 
+    double elapsed = fpsTimer.elapsed();
+    IFTRACE(fps)
+        std::cerr << "Rendered " << currentFrame << " frames in "
+                  << elapsed << " ms, approximately "
+                  << 1000 * currentFrame / elapsed << " FPS\n";
+    while(saveThreads.size())
+    {
+        SaveImage *thread = saveThreads.back();
+        thread->wait();
+        delete thread;
+        saveThreads.pop_back();
+    }
+    elapsed = fpsTimer.elapsed();
+    IFTRACE(fps)
+        std::cerr << "Saved " << currentFrame << " frames in "
+                  << elapsed << " ms, approximately "
+                  << 1000 * currentFrame / elapsed << " FPS\n";
+
     // Done with offline rendering
     inOfflineRendering = false;
     if (!prevDisplay.isEmpty())
         displayDriver->setDisplayFunction(prevDisplay);
     emit renderFramesDone();
+
+    // Redraw
+    refreshNow();
 }
 
 

@@ -61,6 +61,7 @@ private:
     void     showDownloadSuccessful();
     void     resetRequest();
     QString  appName();
+    QString  remoteVer();
     void     connectSignals(QNetworkReply *reply);
 
 public slots:

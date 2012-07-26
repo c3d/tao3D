@@ -189,6 +189,15 @@ QString UpdateApplication::appName()
 }
 
 
+QString UpdateApplication::remoteVer()
+// ----------------------------------------------------------------------------
+//    Remote version formatted as a string with 2 decimal digits
+// ----------------------------------------------------------------------------
+{
+    return QString("%1").arg(remoteVersion, 0, 'f', 2);
+}
+
+
 void UpdateApplication::connectSignals(QNetworkReply *reply)
 // ----------------------------------------------------------------------------
 //    Connect signals of reply object to 'this'
@@ -268,7 +277,7 @@ void UpdateApplication::startDownload()
     Q_ASSERT(!url.isEmpty());
 
     progress->setLabelText(tr("Downloading %1 %2...").arg(appName())
-                                                     .arg(remoteVersion));
+                                                     .arg(remoteVer()));
     progress->show();
 
     state = Downloading;
@@ -351,7 +360,7 @@ void UpdateApplication::showDownloadSuccessful()
                       "<p>To complete the upgrade, you have to quit "
                       "the application and install the new package.</p>"
                       "<p>You may do it at your convenience.</p>")
-                     .arg(appName()).arg(remoteVersion);
+                     .arg(appName()).arg(remoteVer());
     QMessageBox box(TaoApp->windowWidget());
     setBoxMinimumWidth(box, 400);
     box.setIconPixmap(checkmarkIcon);
@@ -388,7 +397,7 @@ void UpdateApplication::downloadProgress(qint64 bytesRcvd, qint64 bytesTotal)
 
         // Update progress dialog
         QString msg = tr("Downloading Tao Presentations %1%2");
-        progress->setLabelText(msg.arg(remoteVersion).arg(speedTxt));
+        progress->setLabelText(msg.arg(remoteVer()).arg(speedTxt));
     }
     progress->setMaximum(bytesTotal);
     progress->setValue(bytesRcvd);
@@ -576,7 +585,7 @@ void UpdateApplication::downloadFinished()
                 QString msg = tr("<h3>Update available</h3>");
                 QString info = tr("<p>%1 version %2 is available."
                                   " Do you want to download it now?</p>")
-                        .arg(appName()).arg(remoteVersion);
+                        .arg(appName()).arg(remoteVer());
                 QMessageBox box(TaoApp->windowWidget());
                 setBoxMinimumWidth(box, 400);
                 box.setIconPixmap(downloadIcon);

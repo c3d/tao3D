@@ -267,8 +267,8 @@ void UpdateApplication::startDownload()
     Q_ASSERT(!reply);
     Q_ASSERT(!url.isEmpty());
 
-    progress->setLabelText(tr("Downloading %1 %2...").arg(appName()
-                                                     .arg(remoteVersion)));
+    progress->setLabelText(tr("Downloading %1 %2...").arg(appName())
+                                                     .arg(remoteVersion));
     progress->show();
 
     state = Downloading;

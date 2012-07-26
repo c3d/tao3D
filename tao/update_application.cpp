@@ -76,7 +76,7 @@ UpdateApplication::UpdateApplication()
 //    Constructor
 // ----------------------------------------------------------------------------
   : state(Idle), file(NULL), progress(NULL),
-    dialogTitle(QString(tr("Tao Presentations update"))),
+    dialogTitle(QString(tr("Tao Presentations Update"))),
     downloadIcon(loadIcon(":/images/download.png")),
     checkmarkIcon(loadIcon(":images/checkmark.png")),
     connectionErrorIcon(loadIcon(":/images/not_connected.png")),
@@ -216,6 +216,9 @@ void UpdateApplication::check(bool show)
     // If 'show' is false, no interaction with the user occurs
     // until the algorithm detects that an update is available.
 
+    IFTRACE(update)
+        debug() << "Checking for update (interactive: " << show << ")\n";
+
     this->show = show;
     if (show && state != Idle)
     {
@@ -264,8 +267,8 @@ void UpdateApplication::startDownload()
     Q_ASSERT(!reply);
     Q_ASSERT(!url.isEmpty());
 
-    QString msg = tr("Downloading Tao Presentations %1...");
-    progress->setLabelText(msg.arg(remoteVersion));
+    progress->setLabelText(tr("Downloading %1 %2...").arg(appName()
+                                                     .arg(remoteVersion)));
     progress->show();
 
     state = Downloading;
@@ -296,14 +299,25 @@ void UpdateApplication::readIniFile()
     }
 
     QSettings settings(file->fileName(), QSettings::IniFormat);
-    remoteVersion = settings.value("version", "").toDouble();
+    settings.setIniCodec("UTF-8");
+    remoteVersion = settings.value("version", "-1").toDouble();
+    // Read optional, localized description text
+    // For instance for french: read description-fr then description
+    QString descKey = QString("description-%1").arg(TaoApp->lang);
+    description = settings.value(descKey,
+                                 settings.value("description")).toString();
     settings.beginGroup(target);
-    url.setUrl(settings.value(edition, "").toString());
+    url.setUrl(settings.value(edition).toString());
     settings.endGroup();
 
     IFTRACE(update)
+    {
         debug() << "Remote version is " << +remoteVersion
                 << " download URL: '" << +url.toString() << "'\n";
+        if (!description.isEmpty())
+            debug() << "Description string for update dialog:\n"
+                    << +description << "\n";
+    }
 }
 
 
@@ -315,7 +329,7 @@ void UpdateApplication::showNoUpdateAvailable()
     if (!show)
         return;
 
-    QString msg = tr("%1 is up-to-date.").arg(appName());
+    QString msg = tr("<h3>%1 is up to date</h3>").arg(appName());
     QString info = tr("<p>There is no new version available for download.<p>");
     QMessageBox box(TaoApp->windowWidget());
     box.setIconPixmap(checkmarkIcon);
@@ -546,6 +560,8 @@ void UpdateApplication::downloadFinished()
             box.setWindowTitle(dialogTitle);
             box.setText(msg);
             box.setInformativeText(info);
+            if (!description.isEmpty())
+                box.setDetailedText(description);
             box.setStandardButtons(QMessageBox::Yes | QMessageBox::No);
             if (box.exec() == QMessageBox::Yes)
             {

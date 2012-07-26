@@ -231,14 +231,6 @@ function create_module() {
     } >> $M/$M.xl
   fi
 
-  if [ "$WITH_CRYPT" = "y" ] ; then
-    {
-      echo
-      echo "import \"${M}2.xl.crypt\""
-      echo
-    } >> $M/$M.xl
-  fi
-  
   # Create empty secondary .xl file
   [ "$WITH_CRYPT" = "y" ] && touch $M/${M}2.xl
 

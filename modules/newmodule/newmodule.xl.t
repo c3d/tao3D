@@ -17,3 +17,7 @@ module_description
     author "@@AUTHOR@@"
     website "@@WEBSITE@@"
     version @@VERSION@@
+
+#ifdef WITH_CRYPT
+import "@@MODULE_DIR@@2.xl.crypt"
+#endif

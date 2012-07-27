@@ -70,22 +70,23 @@ Once:
     * There is a rewrite rule in /var/www/.htaccess that redirects
       to http://ge.tt.
 - Upload ALL Tao packages to www.taodyne.com:
-    scp Tao* taodyne@www.taodyne.com:git/software
-  Update the Git repositories used by "Check for update":
-    * Use the helper script:
-      cd git/software
-      ./newversion.sh
-- Create symlinks for the new version in /var/www/shop/download
-    * There is a helper script, update_links.sh.
+    scp Tao* www-data@www.taodyne.com:shop/downloads
 - Update the download URLs in the PrestaShop product pages (under
   modules/Other modules/Multidéclinaison téléchargeable, Configure, top right
   icon).
 - Update the product version in the product pages for Discovery, Creativity,
   Impress.
-- Delete the old symlinks in /var/www/shop/download.
+- Update the info file for the "Check for update" feature:
+    vi /var/www/tao_update_info.ini
 - Update documentation:
   scp taodoc*.tar.bz2 www-data@www.taodyne.com:/var/www/docs
   Extract the file, it will create taodoc-*/{modules,help}.
   Replace /var/www/docs/{modules,help} with the new ones.
-- Updload the modules that have been modified, update the repositories
+    V=1.12 ; mv help help_ ; mv modules modules_ ; \
+             mv taodoc-$V/help . ; mv taodoc-$V/modules .
+  Quick-check http://www.taodyne.com/docs/help/en/
+              http://www.taodyne.com/docs/help/fr/
+              http://www.taodyne.com/docs/modules/lens_flare/en/
+              http://www.taodyne.com/docs/modules/lens_flare/fr/
+- Upload the modules that have been modified, update the repositories
   under git/modules.

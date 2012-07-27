@@ -46,7 +46,7 @@ macx {
     QMAKE_SUBSTITUTES += Info.plist.in
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_DISTCLEAN += Info.plist
-    QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
+    QMAKE_CFLAGS += -mmacosx-version-min=10.6 # Avoid warning with font_file_manager_macos.mm
 }
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
@@ -340,7 +340,7 @@ macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     !contains(DEFINES, CFG_NODISPLAYLINK):LIBS += -framework CoreVideo
     LIBS += -framework ApplicationServices -framework Foundation \
-        -Wl,-macosx_version_min,10.5 \
+        -Wl,-macosx_version_min,10.6 \
         -Wl,-rpath,@executable_path/../Frameworks \
         -Wl,-rpath,$$QMAKE_LIBDIR_QT
 

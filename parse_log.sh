@@ -66,7 +66,7 @@ print_ids() {
   for i in $IDS ; do
     [ "$HTML" ] && printf "<a href=\"https://nano.taodyne.com/redmine/issues/$i\">"
     [ "$HASH" ] && printf "#"
-    printf $i
+    printf -- $i
     [ "$HTML" ] && printf "</a>"
     printf "$SPACE"
   done

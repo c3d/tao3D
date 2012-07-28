@@ -10561,12 +10561,14 @@ Tree_p Widget::buttonGroup(Context *context, Tree_p self,
     }
     currentGroup = grpInfo;
 
-    NameToNameReplacement map;
-    map["action"] = "button_group_action";
-    XL::Tree_p toBeEvaluated = map.Replace(buttons);
+    XL::FindChildAction findAction("action", 1);
+    Tree* tmp = buttons->Do(findAction);
+    Prefix * act = NULL;
+    if (tmp && (act = tmp->AsPrefix()))
+        act->left = new XL::Name("button_group_action", act->left->Position());
 
     // Evaluate the input tree
-    context->Evaluate(toBeEvaluated);
+    context->Evaluate(buttons);
     currentGroup = NULL;
 
     return XL::xl_true;
@@ -10582,7 +10584,6 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
     {
         currentGroup->action = action;
     }
-
     return XL::xl_true;
 }
 

@@ -27,7 +27,6 @@
 #if defined (Q_OS_WIN32)
 #include "dde_widget.h"
 #endif
-#include "update_application.h"
 #include "qtlocalpeer.h"
 #include <QApplication>
 #include <QDir>
@@ -43,6 +42,7 @@ struct Window;
 struct SplashScreen;
 struct ModuleManager;
 struct GCThread;
+struct UpdateApplication;
 
 enum Vendor {
     ATI = 0,
@@ -122,6 +122,7 @@ protected:
 
 public:
     Window *     window() { Q_ASSERT(win); return win; }
+    QWidget *    windowWidget() { return (QWidget*)window(); }
     void         updateSearchPaths(QString path = "");
     static bool  createDefaultTaoPrefFolder();
     static bool  recursiveDelete(QString path);
@@ -139,7 +140,7 @@ public:
     text               GLExtensionsAvailable;
     QString            lang;
     GCThread *         gcThread;
-    UpdateApplication  updateApp;
+    UpdateApplication* updateApp;
     bool               readyToLoad;
     QString            pendingOpen;
 

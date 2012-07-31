@@ -47,6 +47,7 @@
        water_surface \
        remote_control
     OTHER_MODULES =     \
+        dip_voting \
         DIP \
         hello_world     \
         taoTester    \

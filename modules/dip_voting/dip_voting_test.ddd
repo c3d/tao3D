@@ -1,0 +1,84 @@
+// ****************************************************************************
+//  dip_voting_test.ddd                                            Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//       Document testing module DIP_voting
+//
+//       
+//
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+//  (C) 2012 Catherine Burvelle <catherine@taodyne.com>
+//  (C) 2012 Taodyne SAS
+// ****************************************************************************
+import DIP_voting
+
+SessionID -> "1234E55A1"
+GameID -> "E55A1234"
+
+dip_start_session SessionID
+dip_voting_start GameId
+dip_voting GameId
+dip_voting_display_all
+dip_voting_end GameId
+
+dip_voting_start GameId
+dip_voting GameId "voting_test_cb"
+dip_voting_end GameId
+dip_end_session SessionID
+page "last page",
+    text_box 0,0,200,200,
+        align_center
+        vertical_align_center
+        line_color "font"
+        font "Arial", 24
+        if nb_error <> 0 then
+            color "red"
+            text "Tests have finished with "
+            text text nb_error
+            text " errors"
+            pargraph_break
+            text "Please, check standard output for more information"
+        else
+            color "green"
+            text "Tests are successful" 
+
+test_count -> 0
+
+test_vote_values 0 -> 10
+test_vote_values 1 -> 3
+test_vote_values 2 -> 1
+test_vote_values 3 -> 5
+
+test_item_types 0 -> "txt"
+test_item_types 1 -> "jpg"
+test_item_types 2 -> "png"
+test_item_types 3 -> "txt"
+
+test_item_uuids 0 -> "1234"
+test_item_uuids 1 -> "5678"
+test_item_uuids 2 -> "90AB"
+test_item_uuids 3 -> "CDEF"
+
+
+voting_test_cb vote_value:integer, item_type:text, item_uuid:text ->
+    writeln (text vote_value) & " " & vote_type & " " & vote_uuid
+    if test_vote_values[test_count] <> vote_value then
+        ERROR test_count, vote_value, test_vote_values[test_count]
+    if test_item_types[test_count] <> item_type then
+        ERROR test_count, item_type, test_item_types[test_count]
+    if test_item_uuids[test_count] <> item_uuid then
+        ERROR test_count, item_uuid, test_item_uuids[test_count]
+    test_count := test_count + 1
+
+nb_error -> 0
+
+ERROR nb:integer, received:text, expected:text ->
+    writeln "ERROR on row " & text nb & ", expected value is |" & expected & "| and received value is |" & received &"|"
+    nb_error := nb_error + 1

@@ -207,7 +207,7 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
-    FontFileManager::UnloadEmbeddedFonts(appFontIds);
+    FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
 }
 
@@ -2225,13 +2225,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
-    QList<int> prev = appFontIds;
-    appFontIds = ffm.LoadEmbeddedFonts(fileName);
-    if (!appFontIds.empty())
+    QList<int> prev = docFontIds;
+    docFontIds = ffm.LoadDocFonts(fileName);
+    if (!docFontIds.empty())
         taoWidget->glyphs().Clear();
     foreach (QString e, ffm.errors)
         addError(e);
-    ffm.UnloadEmbeddedFonts(prev);
+    ffm.UnloadFonts(prev);
     showMessage(msg.arg(tr("Document")));
 
     // Clean previous program

@@ -117,8 +117,7 @@ while [ $# -ne 0 ] ; do
       ;;
     discovery)
       EDITION="Discovery"
-      D="DEFINES+=CFG_NOGIT DEFINES+=CFG_NOEDIT DEFINES+=CFG_NOSRCEDIT"
-      D="DEFINES+=CFG_EVALUATION_WATERMARK_TIME=600" # seconds
+      D="DEFINES+=CFG_NOGIT DEFINES+=CFG_EVALUATION_WATERMARK_TIME=600" # seconds
       M="modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"
       EDITION_FLAGS="$D $M"
       shift ; done=1

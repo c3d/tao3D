@@ -57,6 +57,7 @@
 #include "normalize.h"
 #include "examples_menu.h"
 #include "texture_cache.h"
+#include "update_application.h"
 
 #include <iostream>
 #include <sstream>
@@ -1443,7 +1444,7 @@ void Window::update()
 //    Update the application
 // ----------------------------------------------------------------------------
 {
-    TaoApp->updateApp.check(true);
+    TaoApp->updateApp->check(true);
 }
 
 

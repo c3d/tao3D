@@ -477,7 +477,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     else
     {
         IFTRACE(layoutevents)
-            std::cerr << "Layout " << layoutId << " does not need updating\n";
+            std::cerr << "Layout " << layoutId << " does not need updating"
+                      << " at t=" << now
+                      << " expires at " << nextRefresh << "\n";
 
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);

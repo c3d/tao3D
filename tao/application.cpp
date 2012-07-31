@@ -89,7 +89,7 @@ Application::Application(int & argc, char ** argv)
 // ----------------------------------------------------------------------------
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
-      updateApp(), readyToLoad(false),
+      updateApp(NULL), readyToLoad(false),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), peer(NULL)
@@ -248,6 +248,9 @@ void Application::deferredInit()
     // Now time to install the "persistent" error handler
     install_first_exception_handler();
 
+    // Application updater
+    updateApp = new UpdateApplication;
+
     // Initialize the graphics just below contents of basics.tbl
     xlr->CreateScope();
     Initialize();
@@ -305,7 +308,7 @@ void Application::deferredInit()
 
     // Check for update now if wanted
     if(GeneralPage::checkForUpdate())
-        updateApp.check();
+        updateApp->check();
 
     // Record application start time (licensing)
     startTime = Widget::trueCurrentTime();
@@ -330,6 +333,8 @@ Application::~Application()
             std::cerr << "GC thread stopped\n";
         delete gcThread;
     }
+    if (updateApp)
+        delete updateApp;
 }
 
 
@@ -518,6 +523,7 @@ void Application::cleanup()
 //   Perform last-minute cleanup before application exit
 // ----------------------------------------------------------------------------
 {
+    updateApp->cancel();
     // Closing windows will save windows settings (geometry)
     closeAllWindows();
     saveSettings();

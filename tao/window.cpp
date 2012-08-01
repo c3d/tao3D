@@ -2299,7 +2299,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     isUntitled = false;
     setCurrentFile(fileName); // #1439
-    setReadOnly(isReadOnly);
+    bool ro = false;
+    if (!QFileInfo(fileName).isWritable() ||
+         QDir::toNativeSeparators(curFile).startsWith(
+                Application::defaultTaoApplicationFolderPath()))
+        ro = true;
+    setReadOnly(ro);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);
     if (XL::MAIN->options.slideshow)

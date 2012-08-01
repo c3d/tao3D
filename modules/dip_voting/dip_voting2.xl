@@ -22,63 +22,52 @@
 
 import DIP 1.0
 
-row_count -> 0
+ROW_COUNT -> 0
 
-data vote_values
-data item_types
-data item_uuids
+data VOTE_VALUES
+data ITEM_TYPES
+data ITEM_UUIDS
 
-dip_voting_start Guuid:text ->
+dip_voting_start FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
-//   Start a voting game, given a game UUID
+//   Start a voting feature, given a feature UUID
 // ----------------------------------------------------------------------------
-     page "Start voting " & Guuid,
-        if check_license("DIP_voting 1.0", false) then
-            locally
-                if dip_start_game ("voting", Guuid) <> "" then
-                    dip_next_page
-                time
-        else
-            writeln"dip_voting_start inactive (no license)"
+    dip_start_feature_page FeatureType, Fuuid, "DIP_voting 1.0"
 
 
-dip_voting_end Guuid:text ->
+dip_voting_end FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
-//   End a voting game, given a session UUID
+//   End a voting feature, given a session UUID
 // ----------------------------------------------------------------------------
-    page "End voting " & Guuid,
-        locally
-            if dip_end_game ("voting", Guuid) <> "" then
-                dip_next_page
-            time
+    dip_end_feature_page FeatureType, Fuuid
 
 
-dip_voting Guuid:text, functionName:text ->
+dip_voting FeatureType:text, Fuuid:text, FunctionName:text ->
 // ----------------------------------------------------------------------------
 //   Apply function "functionName" to all voting items
 // ----------------------------------------------------------------------------
-    dip_get_csv "voting", Guuid, functionName
+    dip_get_csv FeatureType, Fuuid, FunctionName
 
 
-dip_voting Guuid:text ->
+dip_voting  FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
 //  Register all voting items in vote_values, item_types and item_uuids tables
 // ----------------------------------------------------------------------------
     row_count := 0
-    dip_get_csv "voting", Guuid, "dip_voting_default_callback"
+    dip_get_csv FeatureType, Fuuid, "dip_voting_default_callback"
     
 
-dip_voting_default_callback vote_value:integer, item_type:text, item_uuid:text ->
+dip_voting_default_callback VoteValue:integer, ItemType:text, ItemUuid:text ->
 // ----------------------------------------------------------------------------
 //  Store an item in vote_values, item_types and item_uuids tables
 // ----------------------------------------------------------------------------
-    vote_values[row_count] := vote_value
-    item_types[row_count]  := item_type
-    item_uuids[row_count]  := item_uuid
-    row_count := row_count + 1
+    VOTE_VALUES[ROW_COUNT] := VoteValue
+    ITEM_TYPES[ROW_COUNT]  := ItemType
+    ITEM_UUIDS[ROW_COUNT]  := ItemUuid
+    ROW_COUNT := ROW_COUNT + 1
 
 dip_voting_display_all ->
-    dip_voting_display with 0 .. row_count
+    dip_voting_display with 0 .. ROW_COUNT
 
-dip_voting_display row:integer ->
-    writeln (text vote_values[row]) & " " & vote_types[row] & " " & vote_uuids[row]
+dip_voting_display Row:integer ->
+    writeln (text VOTE_VALUES[Row]) & " " & VOTE_TYPES[Row] & " " & VOTE_UUIDS[Row]

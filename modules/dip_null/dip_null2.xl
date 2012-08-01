@@ -22,27 +22,15 @@
 
 import DIP 1.0
 
-dip_null_start Guuid:text ->
+dip_null_start T:text, F:text ->
 // ----------------------------------------------------------------------------
-//   Start a null game, given a game UUID
+//   Start a null protocol, given a feature UUID
 // ----------------------------------------------------------------------------
-     page "Start null " & Guuid,
-        if check_license("DIP_null 1.0", false) then
-            locally
-                if dip_start_game ("DIP_null", Guuid) <> "" then
-                    dip_next_page
-                time
-        else
-            writeln "dip_null_start inactive (no license)"
+     dip_start_feature_page T, F ,"DIP_null 1.0"
 
-
-dip_null_end Guuid:text ->
+dip_null_end  T:text, F:text ->
 // ----------------------------------------------------------------------------
-//   End a null game, given a session UUID
+//   End a null feature, given a session UUID
 // ----------------------------------------------------------------------------
-    page "End null " & Guuid,
-        locally
-            if dip_end_game ("null", Guuid) <> "" then
-                dip_next_page
-            time
+     dip_end_feature_page T, F
 

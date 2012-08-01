@@ -1,0 +1,48 @@
+// ****************************************************************************
+//  dip_null2.xl                                                 Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//       DIP_null module definition
+//
+//       Module for DIP interaction that does not use data. 
+//
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2012 Catherine Burvelle <catherine@taodyne.com>
+// Copyright 2012 Taodyne SAS
+// ****************************************************************************
+
+import DIP 1.0
+
+dip_null_start Guuid:text ->
+// ----------------------------------------------------------------------------
+//   Start a null game, given a game UUID
+// ----------------------------------------------------------------------------
+     page "Start null " & Guuid,
+        if check_license("DIP_null 1.0", false) then
+            locally
+                if dip_start_game ("DIP_null", Guuid) <> "" then
+                    dip_next_page
+                time
+        else
+            writeln "dip_null_start inactive (no license)"
+
+
+dip_null_end Guuid:text ->
+// ----------------------------------------------------------------------------
+//   End a null game, given a session UUID
+// ----------------------------------------------------------------------------
+    page "End null " & Guuid,
+        locally
+            if dip_end_game ("null", Guuid) <> "" then
+                dip_next_page
+            time
+

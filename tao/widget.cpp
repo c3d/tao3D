@@ -5688,10 +5688,10 @@ Name_p Widget::depthTest(XL::Tree_p self, bool enable)
 
 Name_p Widget::depthMask(XL::Tree_p self, bool enable)
 // ----------------------------------------------------------------------------
-//   Enable or disable OpenGL depth test
+//   Enable or disable OpenGL depth mask
 // ----------------------------------------------------------------------------
 {
-    layout->Add(new DepthTest(enable));
+    layout->Add(new DepthMask(enable));
     return XL::xl_true;
 }
 

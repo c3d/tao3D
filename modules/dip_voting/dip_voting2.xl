@@ -53,7 +53,7 @@ dip_voting  FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
 //  Register all voting items in vote_values, item_types and item_uuids tables
 // ----------------------------------------------------------------------------
-    row_count := 0
+    ROW_COUNT := 0
     dip_get_csv FeatureType, Fuuid, "dip_voting_default_callback"
     
 

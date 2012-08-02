@@ -672,7 +672,6 @@ void Widget::setupPage()
     pageTree = NULL;
     lastPageName = "";
     newPageNames.clear();
-    Layout::polygonOffset = 0;
 }
 
 
@@ -702,6 +701,7 @@ void Widget::drawScene()
     }
 
     id = idDepth = 0;
+    space->ClearPolygonOffset();
     space->ClearAttributes();
     if (blanked)
     {
@@ -744,6 +744,7 @@ void Widget::drawSelection()
     {
         id = idDepth = 0;
         selectionTrees.clear();
+        space->ClearPolygonOffset();
         space->ClearAttributes();
         glDisable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
@@ -1410,7 +1411,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         // Draw the layout in the frame context
         id = idDepth = 0;
-        Layout::polygonOffset = 0;
+        space->ClearPolygonOffset();
         frame.begin();
         displayDriver->display();
         frame.end();
@@ -1486,6 +1487,7 @@ void Widget::updateSelection()
 {
     id = idDepth = 0;
     selectionTrees.clear();
+    space->ClearPolygonOffset();
     space->ClearAttributes();
     space->DrawSelection(NULL);
 }

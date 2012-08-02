@@ -172,6 +172,7 @@ public:
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
+    virtual void        ClearPolygonOffset();
     virtual uint        Selected();
     virtual uint        ChildrenSelected();
 

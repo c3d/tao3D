@@ -667,9 +667,6 @@ void Widget::setupPage()
     w_event = NULL;
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
-    IFTRACE(pages)
-        std::cerr << "setupPage: found=" << pageFound
-                  << " id=" << pageId << "\n";
     pageId = 0;
     pageFound = 0;
     pageTree = NULL;
@@ -833,10 +830,6 @@ void Widget::draw()
 
     XL::Save<bool> drawing(inDraw, true);
     TaoSave saveCurrent(current, this);
-
-    // Setup the initial drawing environment
-    setupPage();
-
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -1067,6 +1060,7 @@ void Widget::runProgramOnce()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
+    setupPage();
     setCurrentTime();
 
     // Don't run anything if we detected errors running previously
@@ -1247,7 +1241,6 @@ void Widget::print(QPrinter *prt)
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
         {
-            setupPage();
             frozenTime = pagePrintTime;
             runProgram();
         }
@@ -1342,6 +1335,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::Save<double> setPageTime(pageStartTime, start_time);
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
+    XL::Save<page_list> savePageNames(pageNames, pageNames);
 
     GLAllStateKeeper saveGL;
     XL::Save<double> saveScaling(scaling, scaling);
@@ -1385,8 +1379,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Set time and run program
-        XL::Save<page_list> savePageNames(pageNames, pageNames);
-        setupPage();
         currentTime = t;
 
         if (gotoPageName != "")
@@ -4790,8 +4782,12 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(pages)
-        std::cerr << "Displaying page '" << name
-                  << "' target '" << pageName << "'\n";
+        std::cerr << "Displaying page "
+                  << "#" << pageShown
+                  << " T#" << pageId
+                  << " /" << pageTotal
+                  << " target '" << pageName
+                  << "' '" << name << "'\n";
 
     // We start with first page if we had no page set
     if (pageName == "")

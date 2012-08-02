@@ -51,11 +51,17 @@ enum Vendor {
     LAST = 3
 };
 
+
+#define TaoApp  ((Application *) qApp)
+
 class Application : public QApplication
 // ----------------------------------------------------------------------------
 //    The main Tao application
 // ----------------------------------------------------------------------------
 {
+public:
+    enum TaoEdition { Unknown, Discovery, Creativity, Impress, Other };
+
 public:
     static text vendorsList[LAST];
     static QPixmap *padlockIcon;
@@ -75,6 +81,32 @@ public:
     static QString appLicenseFolderPath();
     static QString userLicenseFolderPath();
     static double  runTime();
+    static bool    isDiscovery() { return (TaoApp->edition == Discovery); }
+    static bool    isImpress()   { return (TaoApp->edition == Impress); }
+    static QString editionStr()
+    {
+#ifdef TAO_EDITION
+        return QString(TAO_EDITION);
+#else
+        switch (TaoApp->edition)
+        {
+        case Application::Impress:
+            return "Impress";
+        case Application::Creativity:
+            return "Creativity";
+        case Application::Discovery:
+            return "Discovery";
+        case Application::Other:
+            Q_ASSERT(!"Unexpected edition value (TAO_EDITION not empty)");
+            return "Other";
+        case Application::Unknown:
+        default:
+            Q_ASSERT(!"Edition not set");
+            return "Unknown";
+        }
+
+#endif
+    }
 
 public:
     QStringList    pathCompletions();
@@ -143,6 +175,7 @@ public:
     UpdateApplication* updateApp;
     bool               readyToLoad;
     QString            pendingOpen;
+    TaoEdition         edition;
 
 private:
     QStringList  pathList;
@@ -167,8 +200,6 @@ private:
 #endif
     QtLocalPeer *peer;
 };
-
-#define TaoApp  ((Application *) qApp)
 
 #define DEBUG_TRACES_SETTING_NAME "DebugTraces"
 }

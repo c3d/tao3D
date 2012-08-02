@@ -1,0 +1,76 @@
+// ****************************************************************************
+//  dip_mouse2.xl                                                 Tao project
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//       DIP_mouse module definition
+//
+//       DIP protocol that deals with mouse motion data
+//
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2012 Catherine Burvelle <catherine@taodyne.com>
+// Copyright 2012 Taodyne SAS
+// ****************************************************************************
+
+import DIP 1.0
+
+USER_COUNT -> 0
+
+data USER_UUID
+data MOUSE_BUTTON
+data MOUSE_X
+data MOUSE_Y
+
+
+dip_mouse_start FeatureType:text, Fuuid:text ->
+// ----------------------------------------------------------------------------
+//   Start a mouse feature, given a feature UUID
+// ----------------------------------------------------------------------------
+    dip_start_feature_page FeatureType, Fuuid, "DIP_mouse 1.0"
+
+
+dip_mouse_end FeatureType:text, Fuuid:text ->
+// ----------------------------------------------------------------------------
+//   End a mouse feature, given a session UUID
+// ----------------------------------------------------------------------------
+    dip_end_feature_page FeatureType, Fuuid
+
+
+dip_mouse FeatureType:text, Fuuid:text, FunctionName:text ->
+// ----------------------------------------------------------------------------
+//   Apply function "functionName" to all mouse items
+// ----------------------------------------------------------------------------
+    dip_get_csv FeatureType, Fuuid, FunctionName
+
+
+dip_mouse  FeatureType:text, Fuuid:text ->
+// ----------------------------------------------------------------------------
+//  Register all mouse items in tables
+// ----------------------------------------------------------------------------
+    USER_COUNT := 0
+    dip_get_csv FeatureType, Fuuid, "dip_mouse_default_callback"
+    
+
+dip_mouse_default_callback UserUUID:text, MosueButton:integer, MouseX:real, MouseY:real ->
+// ----------------------------------------------------------------------------
+//  Store an item in tables
+// ----------------------------------------------------------------------------
+    USER_UUID[USER_COUNT] := VoteValue
+    MOUSE_BUTTON[USER_COUNT]  := ItemType
+    MOUSE_X[USER_COUNT]  := ItemUuid
+    MOUSE_Y[USER_COUNT]  := ItemUuid
+    USER_COUNT := USER_COUNT + 1
+
+dip_mouse_display_all ->
+    dip_mouse_display with 0 .. USER_COUNT
+
+dip_mouse_display Row:integer ->
+    writeln USER_UUID[Row]  & " " & (text MOUSE_BUTTON[Row]) & " " & (text MOUSE_X[Row]) & " " &  (text MOUSE_Y[Row])

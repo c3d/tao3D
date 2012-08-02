@@ -63,10 +63,10 @@ dip_mouse_default_callback UserUUID:text, MosueButton:integer, MouseX:real, Mous
 // ----------------------------------------------------------------------------
 //  Store an item in tables
 // ----------------------------------------------------------------------------
-    USER_UUID[USER_COUNT] := VoteValue
-    MOUSE_BUTTON[USER_COUNT]  := ItemType
-    MOUSE_X[USER_COUNT]  := ItemUuid
-    MOUSE_Y[USER_COUNT]  := ItemUuid
+    USER_UUID[USER_COUNT] := UserUUID
+    MOUSE_BUTTON[USER_COUNT]  := MosueButton
+    MOUSE_X[USER_COUNT]  := MouseX
+    MOUSE_Y[USER_COUNT]  := MouseY
     USER_COUNT := USER_COUNT + 1
 
 dip_mouse_display_all ->

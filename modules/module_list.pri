@@ -48,6 +48,9 @@
        remote_control
     OTHER_MODULES =     \
         dip_voting \
+        dip_mouse \
+        dip_null \
+        dip_dedication \
         DIP \
         hello_world     \
         taoTester    \

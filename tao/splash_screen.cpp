@@ -55,12 +55,6 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
             licencedTo.setHtml(s);
         }
     }
-    else
-    {
-        s = QString("<font color=\"" TEXT_COLOR "\">%2</font>")
-            .arg(tr("UNLICENSED"));
-        licencedTo.setHtml(s);
-    }
 
     setMask(QPixmap(":/images/splash.png").mask());
 

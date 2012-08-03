@@ -155,6 +155,7 @@ while [ $# -ne 0 ] ; do
     internal)
       EDITION="Internal"
       with_lic=1
+      shift ; done=1
       ;;
     *)
       done=1
@@ -188,7 +189,7 @@ if [ "$EDITION" ] ; then
   fi
 fi
 
-if [ "$EDITION" = "internal" ] ; then
+if [ "$EDITION" = "Internal" ] ; then
   :
 else
   FLAGS="$FLAGS DEFINES+=CFG_NOGIT modules+=-display_alioscopy modules+=-display_2dplusdepth modules+=-display_tridelity"

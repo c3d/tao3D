@@ -34,6 +34,8 @@ struct Shape3 : Shape
     Shape3(): Shape() {}
     virtual void        Identify(Layout * l) { Draw(l); }
     virtual void        DrawSelection(Layout *layout);
+
+    static bool         setFillColor(Layout *where);
 };
 
 
@@ -55,9 +57,9 @@ struct Mesh
 //   Generic mesh data
 // ----------------------------------------------------------------------------
 {
-    std::vector<Point3> vertices;
-    std::vector<Point3> normals;
-    std::vector<Point>  textures;
+    std::vector<Point3>  vertices;
+    std::vector<Vector3> normals;
+    std::vector<Point>   textures;
 };
 
 

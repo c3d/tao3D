@@ -37,7 +37,7 @@ OPTION(print_resolution, "Set printer resolution in DPI",
        printResolution = INTEGER(72, 3600))
 
 OPTVAR(rendering_options, text, "-")
-OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,displaymode]. "
+OPTION(render, "Offline rendering: -render pagenum,width,height,start-time,end-time,fps,folder[,displaymode]. "
                "Render frames and exit. Single document only. Set 'displaymode' to 'help' "
                "for a list of all available modes.",
        rendering_options = STRING)

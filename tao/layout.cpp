@@ -367,6 +367,16 @@ void Layout::PolygonOffset()
 }
 
 
+void Layout::ClearPolygonOffset()
+// ----------------------------------------------------------------------------
+//   Clear the polygon offset, e.g. for 3D shapes
+// ----------------------------------------------------------------------------
+{
+    polygonOffset = 0;
+    glPolygonOffset (factorBase, unitBase);
+}
+
+
 uint Layout::ChildrenSelected()
 // ----------------------------------------------------------------------------
 //   The sum of chilren selections

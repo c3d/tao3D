@@ -836,8 +836,8 @@ bool Application::checkOfflineRendering()
         return false;
     }
 
-    std::cout << "Starting offline rendering: page=" << page << " x=" << x
-              << " y=" << y << " start=" << start << " end=" << end
+    std::cout << "Starting offline rendering: page=" << page << " width=" << x
+              << " height=" << y << " start=" << start << " end=" << end
               << " fps=" << fps << " folder=\"" << +folder << "\""
               << " displaymode=\"" << +disp << "\"\n";
 

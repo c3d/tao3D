@@ -9103,12 +9103,7 @@ Text_p Widget::taoVersion(Tree_p self)
 {
     static text v = "";
     if (v == "")
-    {
-        QString ver = GITREV;
-        if (!Licences::Has(TAO_LICENCE_STR))
-            ver += tr(" (UNLICENSED)");
-        v = +ver;
-    }
+        v = GITREV;
     return new XL::Text(v);
 }
 
@@ -9118,17 +9113,7 @@ Text_p Widget::taoEdition(Tree_p self)
 //    Return the edition string
 // ----------------------------------------------------------------------------
 {
-#ifdef TAO_EDITION
-    static text edition = "";
-    if (edition == "")
-    {
-        edition = TAO_EDITION;
-    }
-    return new XL::Text(edition);
-#else
-    return new XL::Text("");
-#endif
-
+    return new XL::Text(+Application::editionStr());
 }
 
 
@@ -9923,9 +9908,6 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check("WEB"))
-        return NULL;
-
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -11106,9 +11088,6 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -11233,9 +11212,6 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     bool isContextMenu = false;
 
     // Build the full name of the menu
@@ -11368,9 +11344,6 @@ Tree_p  Widget::menuBar(Tree_p self)
 // Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     currentMenuBar = taoWindow()->menuBar();
     currentToolBar = NULL;
     currentMenu = NULL;
@@ -11386,9 +11359,6 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     QString fullname = +name;
     Window *win = taoWindow();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
@@ -11472,9 +11442,6 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     QString fullname = QString("SEPARATOR_%1").arg(order);
 
     if (QAction *tmp = taoWindow()->findChild<QAction*>(fullname))

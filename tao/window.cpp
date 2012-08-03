@@ -1904,33 +1904,27 @@ void Window::createMenus()
     updateRecentFileActions();
 
 #ifndef CFG_NOEDIT
-    if (Licences::Check(GUI_FEATURE))
-    {
-        editMenu = menuBar()->addMenu(tr("&Edit"));
-        editMenu->setObjectName(EDIT_MENU_NAME);
-        editMenu->addAction(undoAction);
-        editMenu->addAction(redoAction);
-        editMenu->addSeparator();
-        editMenu->addAction(cutAct);
-        editMenu->addAction(copyAct);
-        editMenu->addAction(pasteAct);
-    }
+    editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->setObjectName(EDIT_MENU_NAME);
+    editMenu->addAction(undoAction);
+    editMenu->addAction(redoAction);
+    editMenu->addSeparator();
+    editMenu->addAction(cutAct);
+    editMenu->addAction(copyAct);
+    editMenu->addAction(pasteAct);
 #endif
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if (Licences::Check(GUI_FEATURE))
-    {
-        shareMenu = menuBar()->addMenu(tr("&Share"));
-        shareMenu->setObjectName(SHARE_MENU_NAME);
-        shareMenu->addAction(cloneAct);
-        shareMenu->addAction(fetchAct);
-        shareMenu->addAction(setPullUrlAct);
-        shareMenu->addAction(pushAct);
-        shareMenu->addAction(mergeAct);
-        shareMenu->addAction(checkoutAct);
-        shareMenu->addAction(selectiveUndoAct);
-        shareMenu->addAction(diffAct);
-    }
+    shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->setObjectName(SHARE_MENU_NAME);
+    shareMenu->addAction(cloneAct);
+    shareMenu->addAction(fetchAct);
+    shareMenu->addAction(setPullUrlAct);
+    shareMenu->addAction(pushAct);
+    shareMenu->addAction(mergeAct);
+    shareMenu->addAction(checkoutAct);
+    shareMenu->addAction(selectiveUndoAct);
+    shareMenu->addAction(diffAct);
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
@@ -2000,17 +1994,14 @@ void Window::createToolBars()
         view->addAction(fileToolBar->toggleViewAction());
 
 #ifndef CFG_NOEDIT
-    if (Licences::Check(GUI_FEATURE))
-    {
-        editToolBar = addToolBar(tr("Edit"));
-        editToolBar->setObjectName("editToolBar");
-        editToolBar->addAction(cutAct);
-        editToolBar->addAction(copyAct);
-        editToolBar->addAction(pasteAct);
-        editToolBar->hide();
-        if (view)
-            view->addAction(editToolBar->toggleViewAction());
-    }
+    editToolBar = addToolBar(tr("Edit"));
+    editToolBar->setObjectName("editToolBar");
+    editToolBar->addAction(cutAct);
+    editToolBar->addAction(copyAct);
+    editToolBar->addAction(pasteAct);
+    editToolBar->hide();
+    if (view)
+        view->addAction(editToolBar->toggleViewAction());
 #endif
 
     viewToolBar = addToolBar(tr("View"));
@@ -2024,23 +2015,20 @@ void Window::createToolBars()
         view->addAction(viewToolBar->toggleViewAction());
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if (Licences::Check(GUI_FEATURE))
-    {
-        gitToolBar = new GitToolBar(tr("Git Tools"), this);
-        gitToolBar->setObjectName("gitToolbar");
-        connect(this, SIGNAL(projectChanged(Repository*)),
-                gitToolBar, SLOT(setRepository(Repository*)));
-        connect(this, SIGNAL(projectChanged(Repository*)),
-                this, SLOT(checkDetachedHead()));
-        connect(gitToolBar, SIGNAL(checkedOut(QString)),
-                this, SLOT(reloadCurrentFile()));
-        connect(this, SIGNAL(projectUrlChanged(QString)),
-                gitToolBar, SLOT(showProjectUrl(QString)));
-        addToolBar(gitToolBar);
-        gitToolBar->hide();
-        if (view)
-            view->addAction(gitToolBar->toggleViewAction());
-    }
+    gitToolBar = new GitToolBar(tr("Git Tools"), this);
+    gitToolBar->setObjectName("gitToolbar");
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            gitToolBar, SLOT(setRepository(Repository*)));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            this, SLOT(checkDetachedHead()));
+    connect(gitToolBar, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    connect(this, SIGNAL(projectUrlChanged(QString)),
+            gitToolBar, SLOT(showProjectUrl(QString)));
+    addToolBar(gitToolBar);
+    gitToolBar->hide();
+    if (view)
+        view->addAction(gitToolBar->toggleViewAction());
 #endif
 }
 

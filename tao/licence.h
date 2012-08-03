@@ -25,7 +25,8 @@
 #include "base.h"
 #ifndef KEYGEN
 #include "version.h"
-#if TAO_VERSION_IS_IMPRESS
+#ifdef TAO
+#include "application.h"
 #include <set>
 #endif
 #endif
@@ -80,22 +81,27 @@ public:
 
     static bool CheckImpressOrLicense(text feature)
     {
-#if TAO_EDITION_IS_IMPRESS
-        IFTRACE(lic)
+#ifdef TAO
+        if (Application::isImpress())
         {
-            // Cache request for less verbose logging
-            static std::set<text> checked;
-            if (checked.count(feature) == 0)
+            IFTRACE(lic)
             {
-                debug() << "'" << feature << "' not checked "
-                           "(authorized because build is Impress)\n";
-                checked.insert(feature);
+                // Cache request for less verbose logging
+                static std::set<text> checked;
+                if (checked.count(feature) == 0)
+                {
+                    debug() << "'" << feature << "' not checked "
+                               "(authorized because edition is Impress)\n";
+                    checked.insert(feature);
+                }
             }
+            return true;
         }
-        return true;
-#else
-        return Check(feature, false);
+        else
 #endif
+        {
+            return Check(feature, false);
+        }
     }
 
     static text hostID();

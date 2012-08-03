@@ -91,7 +91,7 @@ Application::Application(int & argc, char ** argv)
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
-      updateApp(NULL), readyToLoad(false),
+      updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
       moduleManager(NULL), peer(NULL)
@@ -144,11 +144,11 @@ void Application::deferredInit()
     {
 
 #ifdef TAO_EDITION
-#define EDSTR TAO_EDITION
+#define EDSTR TAO_EDITION " "
 #else
-#define EDSTR "(internal)"
+#define EDSTR
 #endif
-        std::cout << "Tao Presentations " EDSTR " " GITREV " (" GITSHA1 ")\n";
+        std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
         ::exit(0);
     }
@@ -207,12 +207,30 @@ void Application::deferredInit()
     // Create main window
     win = new Window (xlr, contextFiles);
 
-    // Check main application licence
-    if (!Licences::Check(TAO_LICENCE_STR, true))
+#ifdef TAO_EDITION
+    // Internal or custom build
+    QString lic = QString("Tao Presentations %1 %2").arg(TAO_EDITION)
+                                                    .arg(GITREV);
+    if (!Licences::Check(+lic, true))
     {
         exit(15);
         return;
     }
+    edition = Application::Other;
+#else
+    // No edition name defined at compile time, this is a
+    // Discovery/Creativity/Impress build - do a runtime license check
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
+    QString creat = QString("Tao Presentations Creativity %1").arg(GITREV);
+    if (Licences::Has(+impress))
+        edition = Application::Impress;
+    else if (Licences::Has(+creat))
+        edition = Application::Creativity;
+    else
+        edition = Application::Discovery;
+#endif
+
+
 
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
@@ -376,7 +394,6 @@ bool Application::loadLicenses()
                                                    QDir::Files);
         Licences::AddLicenceFiles(licences);
     }
-
     return true;
 }
 
@@ -578,35 +595,35 @@ void Application::cleanup()
     if (moduleManager)
         moduleManager->saveConfig();
 
-#if TAO_EDITION_IS_DISCOVERY
-
-    // Gentle reminder that Tao is not free
-
-    QString title = tr("Tao Presentations");
-    QString text = tr("<h3>Reminder</h3>");
-    QString info;
-    info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
-    QMessageBox box;
-    box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    box.button(QMessageBox::Ok)->setText(tr("Buy now"));
-    box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
-    box.setDefaultButton(QMessageBox::Cancel);
-    box.setWindowTitle(title);
-    box.setText(text);
-    box.setInformativeText(info);
-    // Icon from:
-    // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
-    // Author: Ivan M. (www.visual-blast.com)
-    // License: free for commercial use, do not redistribute
-    QPixmap pm(":/images/shopping_cart.png");
-    box.setIconPixmap(pm);
-
-    if (box.exec() == QMessageBox::Ok)
+    if (isDiscovery())
     {
-        QUrl url("http://www.taodyne.com/taopresentations/buynow");
-        QDesktopServices::openUrl(url);
+        // Gentle reminder that Tao is not free
+
+        QString title = tr("Tao Presentations");
+        QString text = tr("<h3>Reminder</h3>");
+        QString info;
+        info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
+        QMessageBox box;
+        box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        box.button(QMessageBox::Ok)->setText(tr("Buy now"));
+        box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
+        box.setDefaultButton(QMessageBox::Cancel);
+        box.setWindowTitle(title);
+        box.setText(text);
+        box.setInformativeText(info);
+        // Icon from:
+        // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
+        // Author: Ivan M. (www.visual-blast.com)
+        // License: free for commercial use, do not redistribute
+        QPixmap pm(":/images/shopping_cart.png");
+        box.setIconPixmap(pm);
+
+        if (box.exec() == QMessageBox::Ok)
+        {
+            QUrl url("http://www.taodyne.com/taopresentations/buynow");
+            QDesktopServices::openUrl(url);
+        }
     }
-#endif
 }
 
 

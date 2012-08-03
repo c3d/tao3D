@@ -54,31 +54,22 @@ QMAKE_POST_LINK = $$MAYBE_STRIP_CMD echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +
 
 # REVISIT Move into tao.pro
 # "make install" will generate and copy a temporary licence (licence.taokey)
-# or just an unsigned licence template (licence.taokey.notsigned), depending
-# on project settings: LICENSE_VALIDITY, TAO_EDITION.
+# if SIGN_APP_LICENSE is defined (to an edition name).
 
-include(expires.pri)
-!isEmpty(EXPIRES_LINE):SIGN=1
-contains(TAO_EDITION, Discovery):SIGN=1
-!isEmpty(TAO_EDITION):EDITION_STR="$$TAO_EDITION "
-!build_pass:message(---)
-FEATURES = \"Tao Presentations $${EDITION_STR}1\\..*\"  # Allows any version 1.*
-!build_pass {
-  message(--- We will install the following licence:)
-  message(---)
-  !isEmpty(EXPIRES):message(--- expires $$EXPIRES)
-  message(--- features $$FEATURES)
-  isEmpty(SIGN) {
-    message(--- License file will NOT be signed (template only))
-  } else {
-    message(--- License file will be signed (valid))
+!isEmpty(SIGN_APP_LICENSE) {
+
+  include(expires.pri)
+  !build_pass:message(---)
+  FEATURES = \"Tao Presentations $${SIGN_APP_LICENSE} 1\\..*\"  # Allows any version 1.*
+  !build_pass {
+    message(--- We will install the following licence:)
+    message(---)
+    !isEmpty(EXPIRES):message(--- expires $$EXPIRES)
+    message(--- features $$FEATURES)
   }
-}
-!build_pass:message(---)
-QMAKE_SUBSTITUTES += licence.taokey.notsigned.in
+  !build_pass:message(---)
+  QMAKE_SUBSTITUTES += licence.taokey.notsigned.in
 
-
-!isEmpty(SIGN) {
   # Sign and install licence
   macx:DEP = $$TARGET
   linux-g++*:DEP = $$TARGET
@@ -94,9 +85,4 @@ QMAKE_SUBSTITUTES += licence.taokey.notsigned.in
   QMAKE_EXTRA_TARGETS += licence
   QMAKE_CLEAN += licence.taokey
   QMAKE_DISTCLEAN += licence.taokey.notsigned
-} else {
-  # Install unsigned template
-  licence.files = licence.taokey.notsigned
-  licence.path = $$APPINST/licenses
-  INSTALLS += licence
 }

@@ -42,7 +42,7 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 {
     // Read licence info
     QString s;
-    if (Licences::Has(TAO_LICENCE_STR))
+    if (!Application::isDiscovery())
     {
         QString name = +Licences::Name();
         QString company = +Licences::Company();
@@ -55,22 +55,15 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
             licencedTo.setHtml(s);
         }
     }
-    else
-    {
-        s = QString("<font color=\"" TEXT_COLOR "\">%2</font>")
-            .arg(tr("UNLICENSED"));
-        licencedTo.setHtml(s);
-    }
 
     setMask(QPixmap(":/images/splash.png").mask());
 
     const char * fmt = "<html><head><style type=text/css>"
             "body {color:\"" TEXT_COLOR "\"}"
             "</style></head><body>%1</body></html>";
-#ifdef TAO_EDITION
-    edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
+    edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition")
+                                         .arg(Application::editionStr())), this);
     edition->move(25, 280);
-#endif
     version = new QLabel(trUtf8(fmt).arg(tr("Version %1").arg(GITREV)), this);
     version->move(25, 300);
 

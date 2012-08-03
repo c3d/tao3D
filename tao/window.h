@@ -230,7 +230,7 @@ private:
 private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
-    QList<int>        appFontIds;
+    QList<int>        docFontIds;
     // currentProjectFolder : Used if repo is not used.
     QString          currentProjectFolder;
     QTextEdit        *errorMessages;

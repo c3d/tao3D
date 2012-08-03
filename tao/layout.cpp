@@ -61,7 +61,7 @@ LayoutState::LayoutState()
       hasTextureMatrix(false), printing(false),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
-      hasTransform(false), hasMaterial(false),
+      hasTransform(false), hasMaterial(false), hasDepthAttr(false),
       isSelection(false), groupDrag(false)
 {}
 
@@ -97,7 +97,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasAttributes(o.hasAttributes), 
         hasLighting(false),
         hasBlending(false),
-        hasTransform(o.hasTransform), hasMaterial(false),
+        hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
         isSelection(o.isSelection), groupDrag(false)
 {}
 
@@ -115,6 +115,7 @@ void LayoutState::ClearAttributes(bool all)
         zero.hasTextureMatrix = hasTextureMatrix;
         zero.hasAttributes = hasAttributes;
         zero.hasLighting = hasLighting;
+        zero.hasDepthAttr = hasDepthAttr;
     }
     *this = zero;
 }

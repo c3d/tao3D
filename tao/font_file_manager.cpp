@@ -155,68 +155,44 @@ void FontFileManager::loadApplicationFonts()
 //    Load application fonts
 // ----------------------------------------------------------------------------
 {
-    QString fontPath = Application::defaultTaoApplicationFolderPath();
-    QDir fontDir(fontPath);
-    QFileInfoList contents = fontDir.entryInfoList(fontFileFilter);
-
-    fontPath = Application::defaultTaoFontsFolderPath();
-    fontDir = QDir(fontPath);
-    contents.append(fontDir.entryInfoList(fontFileFilter));
-
-    QTime time;
-    int count = 0;
-    IFTRACE(fonts)
-        time.start();
-    foreach (QFileInfo f, contents)
-    {
-        if (f.isFile())
-        {
-            QString path = f.absoluteFilePath();
-            IFTRACE(fonts)
-            {
-                std::cerr << "Loading default font file '" << +path << "'...";
-                count++;
-            }
-            int id = QFontDatabase::addApplicationFont(path);
-            if (id != -1)
-            {
-                IFTRACE(fonts)
-                    std::cerr << " done (id=" << id << ")\n";
-            }
-            else
-            {
-                IFTRACE(fonts)
-                    std::cerr << " failed\n";
-            }
-        }
-    }
-    IFTRACE(fonts)
-    {
-        int ms = time.elapsed();
-        std::cerr << count << " font files loaded in " << ms << " ms\n";
-    }
+    FontFileManager ffm;
+    ffm.LoadFonts(QDir(Application::defaultTaoFontsFolderPath()));
 }
 
 
-QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
+QList<int> FontFileManager::LoadDocFonts(const QString &docPath)
 // ----------------------------------------------------------------------------
-//    Load the fonts associated with a document (font embedding)
+//    Load the fonts associated with a document (give path to .ddd file)
+// ----------------------------------------------------------------------------
+{
+    QDir fontDir(FontPathFor(docPath));
+    QDir appFontDir(Application::defaultTaoFontsFolderPath());
+    if (fontDir == appFontDir)
+    {
+        // Application fonts, already loaded
+        return QList<int>();
+    }
+
+    return LoadFonts(fontDir);
+}
+
+
+QList<int> FontFileManager::LoadFonts(const QDir &dir)
+// ----------------------------------------------------------------------------
+//    Load all fonts in the specified directory
 // ----------------------------------------------------------------------------
 {
     QList<int> ids;
-    QString fontPath = FontPathFor(docPath);
-    QDir fontDir(fontPath);
-    QDir appFontDir(Application::defaultTaoFontsFolderPath());
-    if (fontDir.canonicalPath() == appFontDir.canonicalPath())
-    {
-        // Application fonts, already loaded
+    if (!dir.exists())
         return ids;
-    }
-    QFileInfoList contents = fontDir.entryInfoList(fontFileFilter);
+    QFileInfoList contents = dir.entryInfoList(fontFileFilter);
     QTime time;
     int count = 0;
     IFTRACE(fonts)
+    {
+        std::cerr << "Looking for fonts in '" << +dir.canonicalPath() << "'\n";
         time.start();
+    }
     foreach (QFileInfo f, contents)
     {
         if (f.isFile())
@@ -224,7 +200,7 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
             QString path = f.absoluteFilePath();
             IFTRACE(fonts)
             {
-                std::cerr << "Loading font file '" << +path << "'...";
+                std::cerr << "Loading font file '" << +f.fileName() << "'...";
                 count++;
             }
             int id = QFontDatabase::addApplicationFont(path);
@@ -239,7 +215,7 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
                 IFTRACE(fonts)
                     std::cerr << " failed\n";
                 errors << QString(QObject::tr("Cannot load font file: %1"))
-                                 .arg(path);
+                                 .arg(f.fileName());
             }
         }
     }
@@ -252,7 +228,8 @@ QList<int> FontFileManager::LoadEmbeddedFonts(const QString &docPath)
     return ids;
 }
 
-void FontFileManager::UnloadEmbeddedFonts(const QList<int> &ids)
+
+void FontFileManager::UnloadFonts(const QList<int> &ids)
 // ----------------------------------------------------------------------------
 //    Unload previously loaded fonts
 // ----------------------------------------------------------------------------

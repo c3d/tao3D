@@ -1272,10 +1272,31 @@ void Application::saveDebugTraceSettings()
 
 void Application::loadFonts()
 // ----------------------------------------------------------------------------
-//    Load default fonts
+//    Load default fonts and fonts from the command line
 // ----------------------------------------------------------------------------
 {
     FontFileManager::loadApplicationFonts();
+
+    // Process font directories given on command line
+
+    QList<QDir> dirs;
+    QStringList args(arguments());
+    int size = args.size();
+    for (int i = 0; i < size; i++)
+    {
+        if ((args[i] == "-fontpath") && (i < size-1))
+        {
+            i++;
+            QString path = args[i];
+            QFileInfo info(QDir(startDir), path);
+            if (info.isDir() && info.isReadable())
+                dirs << QDir(info.absoluteFilePath());
+            else
+                std::cerr << "Invalid directory: '" << +path << "'\n";
+        }
+    }
+    foreach(QDir d, dirs)
+        FontFileManager().LoadFonts(d);
 }
 
 

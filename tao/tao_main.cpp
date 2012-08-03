@@ -411,6 +411,7 @@ void signal_handler(int sigid)
 // ----------------------------------------------------------------------------
 {
     using namespace std;
+    using namespace Tao;
     static char buffer[512];
     int two = fileno(stderr);
 
@@ -419,10 +420,16 @@ void signal_handler(int sigid)
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
                            "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
+                           "GL VENDOR:   %s\n"
+                           "GL RENDERER: %s\n"
+                           "GL VERSION:  %s\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
-                           sig_handler_log);
+                           sig_handler_log,
+                           TaoApp->GLVendor.c_str(),
+                           TaoApp->GLRenderer.c_str(),
+                           TaoApp->GLVersionAvailable.c_str());
     Write(two, buffer, size);
 
     // Prevent recursion in the signal handler

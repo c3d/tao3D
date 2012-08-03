@@ -25,6 +25,7 @@
 
 #include "tao.h"
 
+#include <QDir>
 #include <QFont>
 #include <QString>
 #include <QStringList>
@@ -41,10 +42,11 @@ struct FontFileManager
     ~FontFileManager() {};
 
     void               AddFontFiles(const QFont &font);
-    QList<int>         LoadEmbeddedFonts(const QString &docPath);
+    QList<int>         LoadDocFonts(const QString &docPath);
+    QList<int>         LoadFonts(const QDir &dir);
 
     static void        loadApplicationFonts();
-    static void        UnloadEmbeddedFonts(const QList<int> &ids);
+    static void        UnloadFonts(const QList<int> &ids);
     static QString     FontPathFor(const QString &docPath);
 
     QStringList        fontFiles;

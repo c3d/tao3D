@@ -61,3 +61,7 @@ OPTION(-version, "Print program version and exit", ;)
 
 OPTION(-one-instance, "Run in client/server mode: first instance is the server, "
                       "subsequent instances send any file path to the server and exit", ;)
+
+OPTION(fontpath, "Load fonts from the specified directory. "
+                 "This option may appear multiple times to provide "
+                 "several paths.", STRING) /* Parsed in Application class */

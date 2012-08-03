@@ -90,7 +90,7 @@ HEADERS +=     activity.h \
     justification.h \
     justification.hpp \
     layout.h \
-    licence.h \
+    license.h \
     license_dialog.h \
     lighting.h \
     manipulator.h \
@@ -328,7 +328,7 @@ contains(DEFINES, CFG_WITH_EULA) {
 }
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
-NOWARN_SOURCES += decryption.cpp licence.cpp
+NOWARN_SOURCES += decryption.cpp license.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \

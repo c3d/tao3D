@@ -76,7 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
-#include "licence.h"
+#include "license.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
 #include "tao_info.h"
@@ -5418,8 +5418,8 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 
     // This primitive really belongs to the StereoDecoder module, but it's
     // not trivial to move it into the module (due to the StereoLayout class).
-    // Unlicenced behavior shows only left eye
-    if (!Licences::CheckImpressOrLicense("StereoDecoder 1.0") &&
+    // Unlicensed behavior shows only left eye
+    if (!Licenses::CheckImpressOrLicense("StereoDecoder 1.0") &&
         !blink(1, 1, 300))
         vpts = 1;
 
@@ -10679,7 +10679,7 @@ Name_p Widget::hasLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::Has' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return Licences::Has(feature->value) ? XL::xl_true : XL::xl_false;
+    return Licenses::Has(feature->value) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -10689,7 +10689,7 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 // ----------------------------------------------------------------------------
 {
     bool crit = (critical == XL::xl_true) ? true : false;
-    return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+    return Licenses::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -10698,7 +10698,7 @@ Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::CheckImpressOrLicense' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return Licences::CheckImpressOrLicense(feature->value) ? XL::xl_true
+    return Licenses::CheckImpressOrLicense(feature->value) ? XL::xl_true
                                                            : XL::xl_false;
 }
 

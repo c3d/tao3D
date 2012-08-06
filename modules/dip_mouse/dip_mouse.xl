@@ -1,0 +1,21 @@
+// DIP_mouse module definition
+//
+// Protocol for mouse data exchange with the DIP 
+//
+// Copyright 2012 Taodyne SAS
+
+module_description
+    id "AFA4782B-FC05-41D6-923C-80D7C94E4D72" 
+    name "DIP protocol for mouse"
+    description "Protocol for mouse data exchange with the DIP"
+    import_name "DIP_mouse"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Protocol du DIP pour la souris"
+    description "Protocol d'interaction avec le DIP de données d'une souris."
+
+import "dip_mouse2.xl.crypt"
+

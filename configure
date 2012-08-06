@@ -149,7 +149,7 @@ while [ $# -ne 0 ] ; do
       ;;
     youactive)
       EDITION="YouActive"
-      FLAGS="$FLAGS modules+=+DIP"
+      FLAGS="$FLAGS modules+=+DIP modules+=+dip_dedication modules+=+dip_mouse modules+=+dip_null modules+=+dip_voting"
       shift ; done=1
       ;;
     internal)

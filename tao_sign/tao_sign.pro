@@ -21,7 +21,7 @@ include(../main.pri)
 TEMPLATE = app
 TARGET   = tao_sign
 SOURCES += sign.cpp
-HEADERS += ../tao/licence.h
+HEADERS += ../tao/license.h
 CONFIG  += console static
 CONFIG  -= app_bundle
 QT      -= gui

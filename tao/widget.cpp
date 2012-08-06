@@ -779,6 +779,7 @@ void Widget::drawActivities()
         XL::Save<Layout *> saveLayout2(layout, &licenseOverlaySpace);
 
         setupGL();
+        glDepthFunc(GL_ALWAYS);
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         GLdouble w = width(), h = height();

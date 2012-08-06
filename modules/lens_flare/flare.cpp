@@ -133,8 +133,6 @@ void LensFlare::Draw()
         licensed = tao->checkImpressOrLicense("LensFlare 1.0");
         tested = true;
     }
-    if (!licensed && !tao->blink(1.0, 0.2, 300.0))
-        return;
 
     // Manually determine if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.

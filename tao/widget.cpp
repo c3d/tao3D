@@ -76,7 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
-#include "licence.h"
+#include "license.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
 #include "tao_info.h"
@@ -760,11 +760,43 @@ void Widget::drawActivities()
 {
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+
+    // Force "standard" view for drawing the activities
     setupGL();
     glDepthFunc(GL_ALWAYS);
+
     for (Activity *a = activities; a; a = a->Display()) ;
-    selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
-                               // Isn't everything drawn by a->Display()?
+
+    // Once we have recorded all the shapes in the selection space,
+    // perform actual rendering
+    selectionSpace.Draw(NULL);
+
+    // Check if something is unlicensed somewhere, if so, show Taodyne ad
+    if (Licenses::UnlicensedCount() > 0)
+    {
+        GLStateKeeper save;
+        SpaceLayout licenseOverlaySpace(this);
+        XL::Save<Layout *> saveLayout2(layout, &licenseOverlaySpace);
+
+        setupGL();
+        glDepthFunc(GL_ALWAYS);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        GLdouble w = width(), h = height();
+        gluOrtho2D(-w/2, w/2, -h/2, h/2);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        static XL::Tree_p adCode = XL::xl_parse_text(
+#include "taodyne_ad.h"
+            );
+        if (!adCode->Symbols())
+            adCode->SetSymbols(xlProgram->symbols);
+        xlProgram->context->Evaluate(adCode);
+
+        licenseOverlaySpace.Draw(NULL);
+    }
+
     glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
@@ -4153,6 +4185,7 @@ bool Widget::isReadOnly()
 }
 
 
+
 // ============================================================================
 //
 //    Performance timing
@@ -5418,10 +5451,9 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 
     // This primitive really belongs to the StereoDecoder module, but it's
     // not trivial to move it into the module (due to the StereoLayout class).
-    // Unlicenced behavior shows only left eye
-    if (!Licences::CheckImpressOrLicense("StereoDecoder 1.0") &&
-        !blink(1, 1, 300))
-        vpts = 1;
+    static bool licensed = Licenses::CheckImpressOrLicense("StereoDecoder 1.0");
+    if (!licensed)
+        vpts = viewpoints;
 
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
@@ -10679,7 +10711,7 @@ Name_p Widget::hasLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::Has' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return Licences::Has(feature->value) ? XL::xl_true : XL::xl_false;
+    return Licenses::Has(feature->value) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -10689,7 +10721,7 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 // ----------------------------------------------------------------------------
 {
     bool crit = (critical == XL::xl_true) ? true : false;
-    return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+    return Licenses::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -10698,7 +10730,7 @@ Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::CheckImpressOrLicense' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return Licences::CheckImpressOrLicense(feature->value) ? XL::xl_true
+    return Licenses::CheckImpressOrLicense(feature->value) ? XL::xl_true
                                                            : XL::xl_false;
 }
 

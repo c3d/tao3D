@@ -22,7 +22,7 @@
 // ****************************************************************************
 
 #include "version.h"
-#include "licence.h"
+#include "license.h"
 #include "splash_screen.h"
 #include "tao_utf8.h"
 
@@ -40,19 +40,19 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 //    Splash screen constructor: load the Tao bitmap and show program version
 // ----------------------------------------------------------------------------
 {
-    // Read licence info
+    // Read license info
     QString s;
     if (!Application::isDiscovery())
     {
-        QString name = +Licences::Name();
-        QString company = +Licences::Company();
+        QString name = +Licenses::Name();
+        QString company = +Licenses::Company();
         if (name != "" || company != "")
         {
             s = QString("<font color=\"" TEXT_COLOR "\">%1</font>")
                 .arg(QString("<b>%1</b><br>%2<br>%3")
                      .arg(tr("This product is licensed to:"))
                      .arg(name).arg(company));
-            licencedTo.setHtml(s);
+            licensedTo.setHtml(s);
         }
     }
 
@@ -155,12 +155,12 @@ void SplashScreen::drawContents(QPainter *painter)
     QRect clip;
 
     int x = 270, y = 220, w = 500, h = 225;
-    if (!licencedTo.isEmpty())
+    if (!licensedTo.isEmpty())
     {
         clip.setRect(0, 0, w, h);
         painter->save();
         painter->translate(x, y);
-        licencedTo.drawContents(painter, clip);
+        licensedTo.drawContents(painter, clip);
         painter->restore();
     }
 

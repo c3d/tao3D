@@ -42,12 +42,12 @@ EulaDialog::EulaDialog(QWidget *parent)
     QString title = tr("Tao Presentations");
     QString caption;
     caption = tr("<center><h3>"
-                 "Tao Presentation End-User Licence Agreement"
+                 "Tao Presentation End-User License Agreement"
                  "</h3></center>");
 
     QString msg;
     msg += tr( "<p>Thank you for your interest in Tao Presentations.</p>"
-               "<p>Please read the terms of the licence agreement "
+               "<p>Please read the terms of the license agreement "
                "by clicking the following link: </p>"
                "<center><a href=\"%1\">%1</a></center>"
                "<p>If the link does not open, please copy the "

@@ -90,7 +90,7 @@ HEADERS +=     activity.h \
     justification.h \
     justification.hpp \
     layout.h \
-    licence.h \
+    license.h \
     license_dialog.h \
     lighting.h \
     manipulator.h \
@@ -328,7 +328,7 @@ contains(DEFINES, CFG_WITH_EULA) {
 }
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
-NOWARN_SOURCES += decryption.cpp licence.cpp
+NOWARN_SOURCES += decryption.cpp license.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -401,6 +401,15 @@ revtarget.depends = $$SOURCES \
     $$HEADERS \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
+
+# Pre-processing of taodyne_ad.xl
+QMAKE_CLEAN += taodyne_ad.h
+PRE_TARGETDEPS += taodyne_ad.h
+taodyne_ad.target = taodyne_ad.h
+taodyne_ad.commands = sed -f taodyne_ad.sed < taodyne_ad.xl > taodyne_ad.h
+taodyne_ad.depends = taodyne_ad.xl taodyne_ad.sed
+QMAKE_EXTRA_TARGETS += taodyne_ad
+
 
 # Automatic embedding of changelog file (NEWS)
 system(cp ../NEWS ./NEWS)

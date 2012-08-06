@@ -52,7 +52,7 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
-#include "licence.h"
+#include "license.h"
 #include "license_dialog.h"
 #include "normalize.h"
 #include "examples_menu.h"

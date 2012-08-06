@@ -40,7 +40,7 @@
 #include "display_driver.h"
 #include "gc_thread.h"
 #include "text_drawing.h"
-#include "licence.h"
+#include "license.h"
 #include "version.h"
 #include "preferences_pages.h"
 #include "update_application.h"
@@ -211,7 +211,7 @@ void Application::deferredInit()
     // Internal or custom build
     QString lic = QString("Tao Presentations %1 %2").arg(TAO_EDITION)
                                                     .arg(GITREV);
-    if (!Licences::Check(+lic, true))
+    if (!Licenses::Check(+lic, true))
     {
         exit(15);
         return;
@@ -222,15 +222,13 @@ void Application::deferredInit()
     // Discovery/Creativity/Impress build - do a runtime license check
     QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
     QString creat = QString("Tao Presentations Creativity %1").arg(GITREV);
-    if (Licences::Has(+impress))
+    if (Licenses::Has(+impress))
         edition = Application::Impress;
-    else if (Licences::Has(+creat))
+    else if (Licenses::Has(+creat))
         edition = Application::Creativity;
     else
         edition = Application::Discovery;
 #endif
-
-
 
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
@@ -390,9 +388,9 @@ bool Application::loadLicenses()
          << QDir(Application::appLicenseFolderPath());
     foreach (QDir dir, dirs)
     {
-        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+        QFileInfoList licenses = dir.entryInfoList(QStringList("*.taokey"),
                                                    QDir::Files);
-        Licences::AddLicenceFiles(licences);
+        Licenses::AddLicenseFiles(licenses);
     }
     return true;
 }
@@ -1030,7 +1028,7 @@ QString Application::defaultTaoFontsFolderPath()
 
 QString Application::appLicenseFolderPath()
 // ----------------------------------------------------------------------------
-//    Licences packaged with the application
+//    Licenses packaged with the application
 // ----------------------------------------------------------------------------
 {
     return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
@@ -1039,7 +1037,7 @@ QString Application::appLicenseFolderPath()
 
 QString Application::userLicenseFolderPath()
 // ----------------------------------------------------------------------------
-//    User licences (persist even when Tao is uninstalled/upgraded)
+//    User licenses (persist even when Tao is uninstalled/upgraded)
 // ----------------------------------------------------------------------------
 {
     // Create folder if it does not exist

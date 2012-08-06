@@ -1091,6 +1091,17 @@ void Widget::runProgramOnce()
     if (Tree *prog = xlProgram->tree)
         xlProgram->context->Evaluate(prog);
 
+    // Check if something is unlicensed somewhere, if so show ad
+    if (Licenses::UnlicensedCount() > 0)
+    {
+        static XL::Tree_p adCode = XL::xl_parse_text(
+#include "taodyne_ad.h"
+            );
+        if (!adCode->Symbols())
+            adCode->SetSymbols(xlProgram->symbols);
+        xlProgram->context->Evaluate(adCode);            
+    }
+
     stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)

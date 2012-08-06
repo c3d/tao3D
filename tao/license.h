@@ -98,7 +98,7 @@ public:
             return true;
         }
         else
-#endif
+#endif // TAO
         {
             return Check(feature, false);
         }
@@ -106,7 +106,7 @@ public:
 
     static text hostID();
 
-#endif
+#endif // KEYGEN
 
     static text Name()
     {
@@ -116,6 +116,15 @@ public:
     static text Company()
     {
         return LM().company;
+    }
+
+    static uint UnlicensedCount()
+    {
+        return LM().unlicensedCount;
+    }
+    static float UnlicensedRatio()
+    {
+        return (float) LM().unlicensedCount / LM().licenses.size();
     }
 
 private:
@@ -131,6 +140,7 @@ private:
     text                company;
     text                address;
     text                email;
+    uint                unlicensedCount;
     struct LicenseFile
     {
         std::vector<License>licenses;

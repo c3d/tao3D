@@ -230,8 +230,6 @@ void Application::deferredInit()
         edition = Application::Discovery;
 #endif
 
-
-
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
     // version

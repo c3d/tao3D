@@ -73,7 +73,7 @@ Licenses::Licenses()
 // ----------------------------------------------------------------------------
 //   Initialize the license manager by loading the license file
 // ----------------------------------------------------------------------------
-    : licenses()
+    : licenses(), unlicensedCount(0)
 {}
 
 
@@ -538,6 +538,7 @@ struct CheckStatus
     int   remaining;
 };
 
+
 int Licenses::licenseRemainingDays(text feature)
 // ----------------------------------------------------------------------------
 //   Check if any of the licenses grants us the given feature
@@ -593,7 +594,8 @@ int Licenses::licenseRemainingDays(text feature)
     {
         // No license matches, or they all expired.
         IFTRACE(lic)
-                debug() << "'" << feature << "' not licensed\n";
+            debug() << "'" << feature << "' not licensed\n";
+        unlicensedCount++;
     }
 
     // Cache result

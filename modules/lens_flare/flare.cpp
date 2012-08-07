@@ -132,6 +132,7 @@ void LensFlare::Draw()
     {
         licensed = tao->checkImpressOrLicense("LensFlare 1.0");
         tested = true;
+        Q_UNUSED(licensed);
     }
 
     // Manually determine if the source is occluded by a previous object.

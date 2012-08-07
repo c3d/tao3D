@@ -1,4 +1,4 @@
-translate (window_width/2-100)*cos (minutes*pi), (window_height/2-80)*cos((minutes/3+1)*pi), 0
+translate window_width/2-100, window_height/2-80, 0
 color "black", 0.55
 rounded_rectangle 0,0,180,90,10
 align 0.5

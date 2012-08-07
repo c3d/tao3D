@@ -837,15 +837,6 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-#if defined (CFG_EVALUATION_WATERMARK_TIME)
-    if (! showingEvaluationWatermark &&
-          Application::runTime() > CFG_EVALUATION_WATERMARK_TIME)
-    {
-        setWatermarkText(+tr("Evaluation"), 400, 200);
-        showingEvaluationWatermark = true;
-    }
-#endif
-
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));

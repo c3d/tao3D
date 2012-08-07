@@ -1,11 +1,11 @@
 translate (window_width/2-100)*cos (minutes*pi), (window_height/2-80)*cos((minutes/3+1)*pi), 0
 color "black", 0.55
-rounded_rectangle 0,0,180,90,5
+rounded_rectangle 0,0,180,90,10
 align 0.5
-vertical_align 1
 color "white", 0.9
 if seconds < 30 then
     text_box 0,0,170,80,
+        vertical_align 0.5
         powered_by "fr" -> "Propulsé par "
         powered_by Other -> "Powered by "
         font "Arial", 20
@@ -14,10 +14,12 @@ if seconds < 30 then
         rounded_rectangle 0, 0, 150, 50, 5
 else
     text_box 0,0,180,80,
+        vertical_align 1
         color "#EEAA11", 0.9
         font "Arial", 20
         text "Tao Presentations"
         color "#3399FF", 0.9
         line_break
-        text "www.taodyne.com"
+        font "Arial", 28
+        text "taodyne.com"
     image_px -50, 40, 64, 64, ":/images/App Icon.png"

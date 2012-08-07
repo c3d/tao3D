@@ -6,8 +6,10 @@ vertical_align 1
 color "white", 0.9
 if seconds < 30 then
     text_box 0,0,170,80,
+        powered_by "fr" -> "Propulsé par "
+        powered_by Other -> "Powered by "
         font "Arial", 20
-        text "Powered by "
+        text powered_by tao_language
         texture ":/images/Taodyne-Logo.png"
         rounded_rectangle 0, 0, 150, 50, 5
 else

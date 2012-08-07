@@ -378,97 +378,97 @@
 <context>
     <name>Tao::Application</name>
     <message>
-        <location filename="application.cpp" line="440"/>
+        <location filename="application.cpp" line="438"/>
         <source>OpenGL support</source>
         <translation>Support d&apos;OpenGL</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="441"/>
+        <location filename="application.cpp" line="439"/>
         <source>This system doesn&apos;t support OpenGL 2.0.</source>
         <translation>Cet ordinateur ne permet pas de faire fonctionner l&apos;application (OpenGL 2.0 ou supérieur est requis).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="446"/>
+        <location filename="application.cpp" line="444"/>
         <source>FBO support</source>
         <translation>Support des FBOs</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="447"/>
+        <location filename="application.cpp" line="445"/>
         <source>This system doesn&apos;t support Frame Buffer Objects.</source>
         <translation>Cet ordinateur ne permet pas de faire fonctionner l&apos;application (la fonction FBO est requise).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="533"/>
+        <location filename="application.cpp" line="531"/>
         <source>Information</source>
         <translation>Information</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="534"/>
+        <location filename="application.cpp" line="532"/>
         <source>On this system, graphics and text edges may look jagged.</source>
         <translation>Sur cet ordinateur, il se peut que les graphiques et le texte apparaissent légèrement dentelés.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="565"/>
+        <location filename="application.cpp" line="563"/>
         <source>Checking modules [%1]</source>
         <translation>Vérification des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="578"/>
+        <location filename="application.cpp" line="576"/>
         <source>Updating modules [%1]</source>
         <translation>Mise à jour du module [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="602"/>
+        <location filename="application.cpp" line="600"/>
         <source>Tao Presentations</source>
         <translation>Tao Presentations</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="603"/>
+        <location filename="application.cpp" line="601"/>
         <source>&lt;h3&gt;Reminder&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Rappel&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="605"/>
+        <location filename="application.cpp" line="603"/>
         <source>&lt;p&gt;This is an evaluation copy of Tao Presentations.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Ceci est une version d&apos;évaluation de Tao Presentations.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="608"/>
+        <location filename="application.cpp" line="606"/>
         <source>Buy now</source>
         <translation>Acheter en ligne</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="609"/>
+        <location filename="application.cpp" line="607"/>
         <source>Buy later</source>
         <translation>Acheter plus tard</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="820"/>
+        <location filename="application.cpp" line="818"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="828"/>
+        <location filename="application.cpp" line="826"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1000"/>
+        <location filename="application.cpp" line="998"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1133"/>
-        <location filename="application.cpp" line="1149"/>
-        <location filename="application.cpp" line="1162"/>
-        <location filename="application.cpp" line="1175"/>
+        <location filename="application.cpp" line="1131"/>
+        <location filename="application.cpp" line="1147"/>
+        <location filename="application.cpp" line="1160"/>
+        <location filename="application.cpp" line="1173"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1134"/>
+        <location filename="application.cpp" line="1132"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -479,7 +479,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1150"/>
+        <location filename="application.cpp" line="1148"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -488,7 +488,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1163"/>
+        <location filename="application.cpp" line="1161"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -497,7 +497,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1176"/>
+        <location filename="application.cpp" line="1174"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -875,12 +875,12 @@ Voulez-vouz la supprimer malgré tout ?</translation>
     </message>
     <message>
         <location filename="eula_dialog.cpp" line="44"/>
-        <source>&lt;center&gt;&lt;h3&gt;Tao Presentation End-User Licence Agreement&lt;/h3&gt;&lt;/center&gt;</source>
+        <source>&lt;center&gt;&lt;h3&gt;Tao Presentation End-User License Agreement&lt;/h3&gt;&lt;/center&gt;</source>
         <translation>&lt;center&gt;&lt;h3&gt;Contrat de Licence d&apos;Utilisateur Final&lt;/h3&gt;&lt;/center&gt;</translation>
     </message>
     <message>
         <location filename="eula_dialog.cpp" line="49"/>
-        <source>&lt;p&gt;Thank you for your interest in Tao Presentations.&lt;/p&gt;&lt;p&gt;Please read the terms of the licence agreement by clicking the following link: &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;If the link does not open, please copy the address in a web browser.&lt;/p&gt;&lt;p&gt;&lt;b&gt;By clicking on the &quot;I Accept&quot; button, you express your consent to the above terms and conditions.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;You must accept the agreement to use Tao Presentations.&lt;/p&gt;</source>
+        <source>&lt;p&gt;Thank you for your interest in Tao Presentations.&lt;/p&gt;&lt;p&gt;Please read the terms of the license agreement by clicking the following link: &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;If the link does not open, please copy the address in a web browser.&lt;/p&gt;&lt;p&gt;&lt;b&gt;By clicking on the &quot;I Accept&quot; button, you express your consent to the above terms and conditions.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;You must accept the agreement to use Tao Presentations.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Merci de l&apos;intérêt que vous portez à Tao Presentations.&lt;/p&gt;&lt;p&gt;Veuillez SVP lire attentivement les termes du contrat de licence en cliquant sur le lien suivant : &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;Si le lien ne s&apos;ouvre pas, merci de le copier dans la barre d&apos;adresse de votre navigateur web.&lt;/p&gt;&lt;p&gt;&lt;b&gt;En cliquant sur le bouton &quot;J&apos;accepte&quot;, vous exprimez votre accord avec les termes et conditions du contrat ci-dessus.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Vou devez accepter le contrat pour utiliser Tao Presentations.&lt;/p&gt;</translation>
     </message>
     <message>
@@ -1036,151 +1036,6 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     </message>
 </context>
 <context>
-    <name>Tao::Licences</name>
-    <message>
-        <location filename="licence.cpp" line="169"/>
-        <source>Invalid tag: %1</source>
-        <translation>Mot-clé inconnu: %1</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="172"/>
-        <source>Invalid token</source>
-        <translation>Mot inattendu</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="197"/>
-        <source>Signature verification failed</source>
-        <oldsource>Digest verification failed</oldsource>
-        <translation>La clé n&apos;est pas celle attendue</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="204"/>
-        <source>Invalid signature</source>
-        <oldsource>Invalid digest</oldsource>
-        <translation>Clé invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="221"/>
-        <source>Inconsistent %1</source>
-        <translation>Champ %1 incohérent</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="225"/>
-        <location filename="licence.cpp" line="244"/>
-        <source>Invalid %1</source>
-        <translation>Champ %1 invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="266"/>
-        <source>Invalid features pattern</source>
-        <translation>Format incorrect pour le champ features</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="278"/>
-        <source>Invalid day</source>
-        <translation>Jour invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="284"/>
-        <source>Invalid expiry day</source>
-        <translation>Jour d&apos;expiration invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="316"/>
-        <source>Invalid month name</source>
-        <translation>Mois invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="327"/>
-        <source>Invalid expiry month</source>
-        <translation>Mois d&apos;expiration invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="344"/>
-        <source>Invalid year</source>
-        <translation>Année invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="352"/>
-        <source>Invalid expiry year</source>
-        <translation>Année d&apos;expiration invalide</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="378"/>
-        <source>Missing digital signature</source>
-        <translation>Signature numérique absente</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="620"/>
-        <source>&lt;h3&gt;License Error&lt;/h3&gt;</source>
-        <translation>&lt;h3&gt;Erreur de licence&lt;/h3&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="621"/>
-        <source>&lt;p&gt;There is a problem with licence file:&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;The following error was detected: %2.&lt;/p&gt;&lt;p&gt;The program will now terminate. You need to remove the offending licence file before trying to run the application again.&lt;/p&gt;</source>
-        <oldsource>&lt;p&gt;There is a problem with licence file:&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;The following error was detected: %2.&lt;p&gt;The program will now terminate. You need to remove the offending licence file before trying to run the application again.&lt;/p&gt;</oldsource>
-        <translation>&lt;p&gt;Un problème a été détecté dans le fichier :&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;L&apos;erreur suivante est survenue : %2.&lt;/p&gt;&lt;p&gt;L&apos;application va se terminer. Veuillez supprimer le fichier erroné avant de relancer l&apos;application.&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="628"/>
-        <source>&lt;p&gt;Please contact &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Contactez &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="658"/>
-        <source>http://taodyne.com/shop/en/search?search_query=%1</source>
-        <translation>http://taodyne.com/shop/fr/recherche?search_query=%1</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="660"/>
-        <source>&lt;h3&gt;Warning&lt;/h3&gt;</source>
-        <oldsource>&lt;h3&gt;License Warning&lt;/h3&gt;</oldsource>
-        <translation>&lt;h3&gt;Avertissement&lt;/h3&gt;</translation>
-    </message>
-    <message numerus="yes">
-        <location filename="licence.cpp" line="663"/>
-        <source>&lt;p&gt;The license for the following feature expires in %n day(s):&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
-        <translation>
-            <numerusform>&lt;p&gt;La licence pour la fonctionalité suivante expire dans %n jour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</numerusform>
-            <numerusform>&lt;p&gt;La licence pour la fonctionalité suivante expire dans %n jours :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</numerusform>
-        </translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="666"/>
-        <source>&lt;p&gt;You may obtain new licenses from &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt;.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Vous pouvez renouveler vos licences en contactant &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt;.&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="685"/>
-        <source>&lt;p&gt;Please contact &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
-        <translation>&lt;p&gt;Contactez &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="672"/>
-        <source>&lt;h3&gt;Error&lt;/h3&gt;</source>
-        <translation>&lt;h3&gt;Erreur&lt;/h3&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="675"/>
-        <source>&lt;p&gt;You do not have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
-        <translation>&lt;p&gt;Vous n&apos;avez pas de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
-    </message>
-    <message>
-        <location filename="licence.cpp" line="680"/>
-        <source>&lt;p&gt;You no longer have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
-        <oldsource>&lt;p&gt;You no longer have a valid license for:&lt;center&gt;%1&lt;/center&gt;</oldsource>
-        <translation>&lt;p&gt;Vous n&apos;avez plus de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
-    </message>
-    <message numerus="yes">
-        <location filename="licence.cpp" line="682"/>
-        <source>&lt;p&gt;The license expired %n day(s) ago.&lt;/p&gt;</source>
-        <translation>
-            <numerusform>&lt;p&gt;La licence a expiré il y a %n jour.&lt;/p&gt;</numerusform>
-            <numerusform>&lt;p&gt;La licence a expiré il y a %n jours.&lt;/p&gt;</numerusform>
-        </translation>
-    </message>
-</context>
-<context>
     <name>Tao::LicenseDialog</name>
     <message>
         <location filename="license_dialog.cpp" line="98"/>
@@ -1197,6 +1052,150 @@ Voulez-vous me montrer où elle se trouve ?</translation>
         <source>&lt;h3&gt;To add new licenses&lt;/h3&gt;&lt;p&gt;If you received license files (with the .taokey extension), copy them into the license folder and restart the application. Your new licenses will be loaded automatically.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Open the license folder&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Your host identifier:&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</source>
         <oldsource>&lt;h3&gt;To add new licenses&lt;/h3&gt;&lt;p&gt;If you received license files (with the .taokey extension), copy them into the license folder and restart the application. Your new licenses will be loaded automatically.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Open the license folder&lt;/a&gt;&lt;/center&gt;&lt;p&gt;Your host identifier (hostid):&lt;/p&gt;&lt;center&gt;%3&lt;/center&gt;</oldsource>
         <translation>&lt;h3&gt;Pour installer de nouvelles licences&lt;/h3&gt;&lt;p&gt;Si vous avez reçu des fichiers de licence (avec l&apos;extension .taokey), copiez-les dans le dossier de licences et redémarrez l&apos;application. Vos licences seront prises en compte automatiquement.&lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1%2&quot;&gt;Ouvrir le dossier des licences&lt;/a&gt;&lt;/center&gt;&lt;h3&gt;Identifiant de l&apos;ordinateur :&lt;/h3&gt;&lt;center&gt;%3&lt;/center&gt;</translation>
+    </message>
+</context>
+<context>
+    <name>Tao::Licenses</name>
+    <message>
+        <location filename="license.cpp" line="169"/>
+        <source>Invalid tag: %1</source>
+        <translation>Mot-clé inconnu: %1</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="172"/>
+        <source>Invalid token</source>
+        <translation>Mot inattendu</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="197"/>
+        <source>Signature verification failed</source>
+        <oldsource>Digest verification failed</oldsource>
+        <translation>La clé n&apos;est pas celle attendue</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="204"/>
+        <source>Invalid signature</source>
+        <oldsource>Invalid digest</oldsource>
+        <translation>Clé invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="221"/>
+        <source>Inconsistent %1</source>
+        <translation>Champ %1 incohérent</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="225"/>
+        <location filename="license.cpp" line="244"/>
+        <source>Invalid %1</source>
+        <translation>Champ %1 invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="266"/>
+        <source>Invalid features pattern</source>
+        <translation>Format incorrect pour le champ features</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="278"/>
+        <source>Invalid day</source>
+        <translation>Jour invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="284"/>
+        <source>Invalid expiry day</source>
+        <translation>Jour d&apos;expiration invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="316"/>
+        <source>Invalid month name</source>
+        <translation>Mois invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="327"/>
+        <source>Invalid expiry month</source>
+        <translation>Mois d&apos;expiration invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="344"/>
+        <source>Invalid year</source>
+        <translation>Année invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="352"/>
+        <source>Invalid expiry year</source>
+        <translation>Année d&apos;expiration invalide</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="378"/>
+        <source>Missing digital signature</source>
+        <translation>Signature numérique absente</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="622"/>
+        <source>&lt;h3&gt;License Error&lt;/h3&gt;</source>
+        <translation>&lt;h3&gt;Erreur de licence&lt;/h3&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="623"/>
+        <source>&lt;p&gt;There is a problem with license file:&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;The following error was detected: %2.&lt;/p&gt;&lt;p&gt;The program will now terminate. You need to remove the offending license file before trying to run the application again.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Un problème a été détecté dans le fichier :&lt;/p&gt;&lt;center&gt;&apos;%1&apos;&lt;/center&gt;&lt;p&gt;L&apos;erreur suivante est survenue : %2.&lt;/p&gt;&lt;p&gt;L&apos;application va se terminer. Veuillez supprimer le fichier erroné avant de relancer l&apos;application.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="630"/>
+        <source>&lt;p&gt;Please contact &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Contactez &lt;a href=&quot;http://taodyne.com/&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="660"/>
+        <source>http://taodyne.com/shop/en/search?search_query=%1</source>
+        <translation>http://taodyne.com/shop/fr/recherche?search_query=%1</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="662"/>
+        <source>&lt;h3&gt;Warning&lt;/h3&gt;</source>
+        <oldsource>&lt;h3&gt;License Warning&lt;/h3&gt;</oldsource>
+        <translation>&lt;h3&gt;Avertissement&lt;/h3&gt;</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="license.cpp" line="665"/>
+        <source>&lt;p&gt;The license for the following feature expires in %n day(s):&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
+        <translation>
+            <numerusform>&lt;p&gt;La licence pour la fonctionalité suivante expire dans %n jour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</numerusform>
+            <numerusform>&lt;p&gt;La licence pour la fonctionalité suivante expire dans %n jours :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</numerusform>
+        </translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="668"/>
+        <source>&lt;p&gt;You may obtain new licenses from &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt;.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Vous pouvez renouveler vos licences en contactant &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt;.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="687"/>
+        <source>&lt;p&gt;Please contact &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt; to obtain valid license files.&lt;/p&gt;</source>
+        <translation>&lt;p&gt;Contactez &lt;a href=&quot;%1&quot;&gt;Taodyne&lt;/a&gt; pour obtenir des licences.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="674"/>
+        <source>&lt;h3&gt;Error&lt;/h3&gt;</source>
+        <translation>&lt;h3&gt;Erreur&lt;/h3&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="677"/>
+        <source>&lt;p&gt;You do not have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
+        <translation>&lt;p&gt;Vous n&apos;avez pas de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
+    </message>
+    <message>
+        <location filename="license.cpp" line="682"/>
+        <source>&lt;p&gt;You no longer have a valid license for:&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</source>
+        <oldsource>&lt;p&gt;You no longer have a valid license for:&lt;center&gt;%1&lt;/center&gt;</oldsource>
+        <translation>&lt;p&gt;Vous n&apos;avez plus de licence valide pour :&lt;/p&gt;&lt;center&gt;%1&lt;/center&gt;</translation>
+    </message>
+    <message numerus="yes">
+        <location filename="license.cpp" line="684"/>
+        <source>&lt;p&gt;The license expired %n day(s) ago.&lt;/p&gt;</source>
+        <translation>
+            <numerusform>&lt;p&gt;La licence a expiré il y a %n jour.&lt;/p&gt;</numerusform>
+            <numerusform>&lt;p&gt;La licence a expiré il y a %n jours.&lt;/p&gt;</numerusform>
+        </translation>
     </message>
 </context>
 <context>
@@ -2056,32 +2055,27 @@ Code : %1
 <context>
     <name>Tao::Widget</name>
     <message>
-        <location filename="widget.cpp" line="814"/>
-        <source>Evaluation</source>
-        <translation>Évaluation</translation>
-    </message>
-    <message>
-        <location filename="widget.cpp" line="1256"/>
+        <location filename="widget.cpp" line="1273"/>
         <source>Printing page %1/%2...</source>
         <translation>Impression : page %1/%2...</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2346"/>
+        <location filename="widget.cpp" line="2363"/>
         <source>GL Error: %1 [error code: %2]</source>
         <translation>Erreur GL : %1 [code d&apos;erreur : %2]</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="2352"/>
+        <location filename="widget.cpp" line="2369"/>
         <source>GL Error: error %1 repeated %2 times</source>
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="11528"/>
+        <location filename="widget.cpp" line="11549"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="11529"/>
+        <location filename="widget.cpp" line="11550"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

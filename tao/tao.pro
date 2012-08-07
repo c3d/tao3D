@@ -35,7 +35,6 @@ QT += webkit \
 CONFIG += help
 QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
-DEFINES += TAO
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET

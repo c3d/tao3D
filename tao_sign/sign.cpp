@@ -20,10 +20,10 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
-#define KEYGEN
 #include "license.h"
-#include "license.cpp"
 #include "version.h"
+#include "main.h"
+#include "flight_recorder.h"
 #include <iostream>
 
 XL_DEFINE_TRACES

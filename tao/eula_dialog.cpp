@@ -55,7 +55,7 @@ EulaDialog::EulaDialog(QWidget *parent)
                "<p><b>By clicking on the \"I Accept\" button, you express your "
                "consent to the above terms and conditions.</b></p>"
                "<p>You must accept the agreement to use Tao Presentations.</p>"
-               ).arg("http://taodyne.com/eula");
+               ).arg(tr("http://taodyne.com/eula"));
 
     setWindowTitle(title);
     setText(caption);

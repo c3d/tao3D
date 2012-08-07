@@ -443,6 +443,11 @@
         <translation>Acheter plus tard</translation>
     </message>
     <message>
+        <location filename="application.cpp" line="621"/>
+        <source>http://taodyne.com/taopresentations/buynow</source>
+        <translation>http://taodyne.com/taopresentations/acheter</translation>
+    </message>
+    <message>
         <location filename="application.cpp" line="818"/>
         <source>-render: option requires parameters
 </source>
@@ -882,6 +887,11 @@ Voulez-vouz la supprimer malgré tout ?</translation>
         <location filename="eula_dialog.cpp" line="49"/>
         <source>&lt;p&gt;Thank you for your interest in Tao Presentations.&lt;/p&gt;&lt;p&gt;Please read the terms of the license agreement by clicking the following link: &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;If the link does not open, please copy the address in a web browser.&lt;/p&gt;&lt;p&gt;&lt;b&gt;By clicking on the &quot;I Accept&quot; button, you express your consent to the above terms and conditions.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;You must accept the agreement to use Tao Presentations.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Merci de l&apos;intérêt que vous portez à Tao Presentations.&lt;/p&gt;&lt;p&gt;Veuillez SVP lire attentivement les termes du contrat de licence en cliquant sur le lien suivant : &lt;/p&gt;&lt;center&gt;&lt;a href=&quot;%1&quot;&gt;%1&lt;/a&gt;&lt;/center&gt;&lt;p&gt;Si le lien ne s&apos;ouvre pas, merci de le copier dans la barre d&apos;adresse de votre navigateur web.&lt;/p&gt;&lt;p&gt;&lt;b&gt;En cliquant sur le bouton &quot;J&apos;accepte&quot;, vous exprimez votre accord avec les termes et conditions du contrat ci-dessus.&lt;/b&gt;&lt;/p&gt;&lt;p&gt;Vou devez accepter le contrat pour utiliser Tao Presentations.&lt;/p&gt;</translation>
+    </message>
+    <message>
+        <location filename="eula_dialog.cpp" line="58"/>
+        <source>http://taodyne.com/eula</source>
+        <translation>http://taodyne.com/cluf</translation>
     </message>
     <message>
         <location filename="eula_dialog.cpp" line="66"/>
@@ -1369,6 +1379,11 @@ Emplacement : %2</translation>
         <location filename="new_document_wizard.cpp" line="40"/>
         <source>More from the web...</source>
         <translation>Autres modèles...</translation>
+    </message>
+    <message>
+        <location filename="new_document_wizard.cpp" line="70"/>
+        <source>http://taodyne.com/taopresentations/1.0/templates/</source>
+        <translation>http://taodyne.com/taopresentations/1.0/modeles/</translation>
     </message>
     <message>
         <location filename="new_document_wizard.cpp" line="89"/>
@@ -2325,6 +2340,11 @@ Code : %1
         <location filename="window.cpp" line="1610"/>
         <source>Save &amp;As...</source>
         <translation>Enregistrer &amp;sous...</translation>
+    </message>
+    <message>
+        <location filename="window.cpp" line="1510"/>
+        <source>http://taodyne.com/taopresentations/1.0/tutorials/</source>
+        <translation>http://taodyne.com/taopresentations/1.0/tutoriels/</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1612"/>

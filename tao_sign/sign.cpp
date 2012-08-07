@@ -21,8 +21,8 @@
 // ****************************************************************************
 
 #define KEYGEN
-#include "licence.h"
-#include "licence.cpp"
+#include "license.h"
+#include "license.cpp"
 #include "version.h"
 #include <iostream>
 
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     XL::FlightRecorder::Initialize();
     XL::MAIN = new XL::Main(argc, argv);
     for (int arg = 1; arg < argc; arg++)
-        Tao::Licences::AddLicenceFile(argv[arg]);
+        Tao::Licenses::AddLicenseFile(argv[arg]);
 }
 
 void usage(const char *progname)

@@ -135,7 +135,6 @@ public slots:
     void        colorRejected();
     void        updateColorDialog();
     void        fontChosen(const QFont &);
-    void        fontChanged(const QFont &);
     void        updateFontDialog();
     void        updateDialogs()                { mustUpdateDialogs = true; }
     void        fileChosen(const QString & filename);
@@ -210,9 +209,9 @@ public:
     void        timerEvent(QTimerEvent *);
     void        showEvent(QShowEvent *);
     void        hideEvent(QHideEvent *);
-#ifdef MACOSX_DISPLAYLINK
     virtual
     bool        event(QEvent *event);
+#ifdef MACOSX_DISPLAYLINK
     void        displayLinkEvent();
 #endif
     void        startPanning(QMouseEvent *);
@@ -255,22 +254,24 @@ public:
     void        printStatistics();
     void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
-    void        resetTimes() { pageStartTime = startTime = frozenTime
-                               = CurrentTime(); }
+    void        resetTimes()            { pageStartTime = startTime
+                                          = frozenTime = CurrentTime(); }
 
     // Selection
-    GLuint      selectionId()           { return ++id; }
+    GLuint      shapeId()               { return ++id; }
+    GLuint      selectionId()           { return ++id | SHAPE_SELECTED; }
     GLuint      selectionCurrentId()    { return id; }
     GLuint      selectionHandleId()     { return handleId; }
     GLuint      selectionCapacity()     { return maxId * (maxIdDepth + 3); }
 
     enum
     {
-        HANDLE_SELECTED    =  0x10000000, // A handle is selected
-        CHARACTER_SELECTED =  0x20000000, // A character was selected
+        SHAPE_SELECTED     =  0x10000000, // Normal shape selection
+        HANDLE_SELECTED    =  0x20000000, // A handle is selected
+        CHARACTER_SELECTED =  0x30000000, // A character was selected
         CONTAINER_OPENED   =  0x40000000, // A shape container was opened
-        CONTAINER_SELECTED =  0x80000000, // Container is selected
-        SELECTION_MASK     = ~0xF0000000  // Mask for "regular" selection
+        CONTAINER_SELECTED =  0x50000000, // Container is selected
+        SELECTION_MASK     =  0x70000000  // Mask for "regular" selection
     };
     void        select(uint id, uint count = 1);
     uint        selected(uint i);
@@ -406,6 +407,8 @@ public:
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
+    Tree_p      postEvent(int eventType);
+    Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
     Integer_p   hours(Tree_p self, double t);
@@ -676,7 +679,7 @@ public:
     Integer*    frameTexture(Context *context, Tree_p self,
                              double w, double h, Tree_p prog,
                              Integer_p depth=NULL, bool canvas=false);
-    Integer *   framePixelCount(Tree_p self, int alphaMin);
+    Integer *   framePixelCount(Tree_p self, float alphaMin);
     Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);
     Integer*    thumbnail(Context *, Tree_p self, scale s, double i, text page);
     Integer*    linearGradient(Context *context, Tree_p self,
@@ -731,28 +734,9 @@ public:
     Tree_p      setButtonGroupAction(Tree_p self, Tree_p action);
 
     Tree_p      colorChooser(Tree_p self, text name, Tree_p action);
-    Tree_p      colorChooser(Tree_p self,
-                             Real_p x, Real_p y, Real_p w, Real_p h,
-                             Tree_p action);
-    Integer*    colorChooserTexture(Tree_p self,
-                                    double w, double h,
-                                    Tree_p action);
 
-    Tree_p      fontChooser(Tree_p self, Tree_p action);
-    Tree_p      fontChooser(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h,
-                            Tree_p action);
-    Integer*    fontChooserTexture(Tree_p self,
-                                   double w, double h,
-                                   Tree_p action);
-
+    Tree_p      fontChooser(Tree_p self, text name, Tree_p action);
     Tree_p      fileChooser(Tree_p self, Tree_p action);
-    Tree_p      fileChooser(Tree_p self,
-                            Real_p x, Real_p y, Real_p w, Real_p h,
-                            Tree_p action);
-    Integer*    fileChooserTexture(Tree_p self,
-                                    double w, double h,
-                                    Tree_p action);
     Tree_p      setFileDialogAction(Tree_p self, Tree_p action);
     Tree_p      setFileDialogDirectory(Tree_p self, text dirname);
     Tree_p      setFileDialogFilter(Tree_p self, text filters);
@@ -880,6 +864,7 @@ private:
     friend class PageLayout;
     friend class DisplayDriver;
     friend class GCThread;
+    friend class WidgetSurface;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
@@ -1057,6 +1042,7 @@ public:
     void                  drawWatermark();
     static void           drawWatermarkAPI();
     static double         trueCurrentTime();
+    static void           postEventAPI(int eventType);
 
 private:
     void                  processProgramEvents();

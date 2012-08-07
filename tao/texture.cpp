@@ -22,6 +22,7 @@
 // ****************************************************************************
 
 #include "texture.h"
+#include "texture_cache.h"
 #include "tao_utf8.h"
 #include "application.h"
 
@@ -33,8 +34,6 @@ TAO_BEGIN
 //    Image textures
 // 
 // ============================================================================
-
-ImageTextureInfo::texture_map ImageTextureInfo::textures;
 
 ImageTextureInfo::ImageTextureInfo()
 // ----------------------------------------------------------------------------
@@ -68,11 +67,9 @@ static inline ImageTextureInfo::Texture computeDefaultTexture()
 
         // Generate the GL texture
         glBindTexture(GL_TEXTURE_2D, result.id);
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      result.width, result.height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
-        glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
     }
     return result;
 }
@@ -88,95 +85,28 @@ ImageTextureInfo::Texture &ImageTextureInfo::defaultTexture()
 }
 
 
-ImageTextureInfo::Texture ImageTextureInfo::load(text file)
+ImageTextureInfo::Texture ImageTextureInfo::load(text file, text docPath)
 // ----------------------------------------------------------------------------
 //   Load the given GL texture
 // ----------------------------------------------------------------------------
 {
-    texture_map::iterator found = textures.find(file);
-    Texture texinfo = { 0, 0, 0 };
-    if (found == textures.end())
-    {
-        // Prune the map if it gets too big
-        while (textures.size() > MAX_TEXTURES)
-        {
-            texture_map::iterator first = textures.begin();
-            if ((*first).second.id != defaultTexture().id)
-                glDeleteTextures(1, &(*first).second.id);
-            textures.erase(first);
-        }
-
-        // Read the image file and convert to proper GL image format
-        QString loaded = +file;
-        QImage image(+file);
-        if (image.isNull())
-        {
-            text qualified = "texture:" + file;
-            if (image.load(+qualified))
-                loaded = +qualified;
-        }
-        if (!image.isNull())
-        {
-            IFTRACE(fileload)
-                std::cerr << "Loaded texture: " << +loaded << "\n";
-            texinfo.width = image.width();
-            texinfo.height = image.height();
-            QImage texture = QGLWidget::convertToGLFormat(image);
-
-            // Generate the GL texture
-            glGenTextures(1, &texinfo.id);
-            glBindTexture(GL_TEXTURE_2D, texinfo.id);
-            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
-            glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
-                         texinfo.width, texinfo.height, 0, GL_RGBA,
-                         GL_UNSIGNED_BYTE, texture.bits());
-            glTexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
-        }
-        else
-        {
-            IFTRACE(fileload)
-                std::cerr << "Failed to load texture: " << file << "\n";
-            texinfo = defaultTexture();
-        }
-
-        // Remember the texture for next time
-        textures[file] = texinfo;
-    }
-    else
-    {
-        texinfo = (*found).second;
-    }
-
-    return texinfo;
+    Texture texture;
+    CachedTexture * cached = TextureCache::instance()->load(+file, +docPath);
+    texture.id = cached->id;
+    width = texture.width = cached->width;
+    height = texture.height = cached->height;
+    return texture;
 }
 
 
-GLuint ImageTextureInfo::bind(text file)
-// ----------------------------------------------------------------------------
-//   Bind the given GL texture
-// ----------------------------------------------------------------------------
-{
-    Texture texinfo = load(file);
-
-    glBindTexture(GL_TEXTURE_2D, texinfo.id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,
-                    TaoApp->tex2DMagFilter);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,
-                    TaoApp->tex2DMinFilter);
-    glEnable(GL_TEXTURE_2D);
-    if (TaoApp->hasGLMultisample)
-        glEnable(GL_MULTISAMPLE);
-    width = texinfo.width;
-    height = texinfo.height;
-
-    return texinfo.id;
-}
 
 // ============================================================================
 // 
 //   Movie textures
 // 
 // ============================================================================
+
+AnimatedTextureInfo::texture_map AnimatedTextureInfo::textures;
 
 AnimatedTextureInfo::AnimatedTextureInfo()
 // ----------------------------------------------------------------------------
@@ -211,7 +141,7 @@ AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
             textures.erase(first);
         }
 
-        // Read the image file and convert to proper GL image format
+        // Read the image file
         movie.setFileName(+file);
         if (!movie.isValid())
         {
@@ -220,6 +150,8 @@ AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
         }
         movie.start();
 
+        // Allocate texture ID
+        glGenTextures(1, &texinfo.id);
 
         // Remember the texture for next time
         textures[file] = texinfo;
@@ -248,7 +180,7 @@ GLuint AnimatedTextureInfo::bind(text file)
         QImage texture = QGLWidget::convertToGLFormat(image);
 
         // Generate the GL texture
-        glGenTextures(1, &texinfo.id);
+        Q_ASSERT(texinfo.id);
         glBindTexture(GL_TEXTURE_2D, texinfo.id);
         glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      texinfo.width, texinfo.height, 0, GL_RGBA,

@@ -28,6 +28,7 @@
 #include "gl_keepers.h"
 #include "application.h"
 #include "widget_surface.h"
+#include "texture_cache.h"
 #include <QPainterPath>
 #include "lighting.h"
 TAO_BEGIN
@@ -97,35 +98,33 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
 {
     glActiveTexture(GL_TEXTURE0 + texture.unit);
     glEnable(texture.type);
-    glBindTexture(texture.type, texture.id);
-    GLint min, mag;
+    CachedTexture *cached = NULL;
     if (texture.type == GL_TEXTURE_2D)
     {
-        min = texture.minFilt;
-        mag = texture.magFilt;
-        if (!texture.mipmap)
+        cached = TextureCache::instance()->bind(texture.id);
+        if (cached)
         {
-            if (min == GL_NEAREST_MIPMAP_NEAREST ||
-                min == GL_LINEAR_MIPMAP_NEAREST  ||
-                min == GL_NEAREST_MIPMAP_LINEAR  ||
-                min == GL_LINEAR_MIPMAP_LINEAR)
-                min = GL_LINEAR;
-            if (mag == GL_NEAREST_MIPMAP_NEAREST ||
-                mag == GL_LINEAR_MIPMAP_NEAREST  ||
-                mag == GL_NEAREST_MIPMAP_LINEAR  ||
-                mag == GL_LINEAR_MIPMAP_LINEAR)
-                mag = GL_LINEAR;
+            TextureCache *cache = TextureCache::instance();
+            // Do not call glTexParameteri directly for min filter, because we
+            // need to deal with the case where minFilt would need mipmapping
+            // but texture has no mipmap
+            cache->setMinFilter(texture.id, texture.minFilt);
+            glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER,
+                            texture.magFilt);
         }
     }
-    else
+    if (!cached)
     {
+        glBindTexture(texture.type, texture.id);
+        GLint min, mag;
         if (hasPixelBlur)
             min = mag = GL_LINEAR;
         else
             min = mag = GL_NEAREST;
+        glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
+        glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
     }
-    glTexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
-    glTexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
+
     glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D
@@ -263,6 +262,8 @@ bool Shape::setShader(Layout *where)
 
     return true;
 }
+
+
 
 // ============================================================================
 //

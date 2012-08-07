@@ -22,7 +22,7 @@
 // ****************************************************************************
 
 #include "version.h"
-#include "licence.h"
+#include "license.h"
 #include "splash_screen.h"
 #include "tao_utf8.h"
 
@@ -40,31 +40,32 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 //    Splash screen constructor: load the Tao bitmap and show program version
 // ----------------------------------------------------------------------------
 {
-    // Read licence info
+    // Read license info
     QString s;
-    if (Licences::Has(TAO_LICENCE_STR))
+    if (!Application::isDiscovery())
     {
-        QString name = +Licences::Name();
-        QString company = +Licences::Company();
+        QString name = +Licenses::Name();
+        QString company = +Licenses::Company();
         if (name != "" || company != "")
         {
             s = QString("<font color=\"" TEXT_COLOR "\">%1</font>")
                 .arg(QString("<b>%1</b><br>%2<br>%3")
                      .arg(tr("This product is licensed to:"))
                      .arg(name).arg(company));
-            licencedTo.setHtml(s);
+            licensedTo.setHtml(s);
         }
-    }
-    else
-    {
-        s = QString("<font color=\"" TEXT_COLOR "\">%2</font>")
-            .arg(tr("UNLICENSED"));
-        licencedTo.setHtml(s);
     }
 
     setMask(QPixmap(":/images/splash.png").mask());
-    QString version(QObject::tr("Version %1").arg(GITREV));
-    showMessage(version);
+
+    const char * fmt = "<html><head><style type=text/css>"
+            "body {color:\"" TEXT_COLOR "\"}"
+            "</style></head><body>%1</body></html>";
+    edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition")
+                                         .arg(Application::editionStr())), this);
+    edition->move(25, 280);
+    version = new QLabel(trUtf8(fmt).arg(tr("Version %1").arg(GITREV)), this);
+    version->move(25, 300);
 
     const char * cop = "<html><head><style type=text/css>"
                        "body {color:\"" TEXT_COLOR "\"}"
@@ -83,14 +84,6 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
     connect(label, SIGNAL(linkActivated(QString)),
             this,  SLOT(openUrl(QString)));
     label->move(270, 280);
-
-#ifdef TAO_EDITION
-    const char * ed = "<html><head><style type=text/css>"
-            "body {color:\"" TEXT_COLOR "\"}"
-            "</style></head><body>%1</body></html>";
-    edition = new QLabel(trUtf8(ed).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
-    edition->move(25, 280);
-#endif
 }
 
 
@@ -162,12 +155,12 @@ void SplashScreen::drawContents(QPainter *painter)
     QRect clip;
 
     int x = 270, y = 220, w = 500, h = 225;
-    if (!licencedTo.isEmpty())
+    if (!licensedTo.isEmpty())
     {
         clip.setRect(0, 0, w, h);
         painter->save();
         painter->translate(x, y);
-        licencedTo.drawContents(painter, clip);
+        licensedTo.drawContents(painter, clip);
         painter->restore();
     }
 
@@ -192,10 +185,10 @@ void SplashScreen::showMessage(const QString &message, int, const QColor &)
 {
     this->message = message;
     QPointer<SplashScreen> that(this);
-    QCoreApplication::processEvents();
     if (!that)
         return;
     repaint();
+    QCoreApplication::processEvents();
 }
 
 
@@ -229,6 +222,11 @@ void SplashScreen::showCredits()
         "<p>Qt is a Nokia product. See "
         "<a href=\"http://qt.nokia.com/\">qt.nokia.com</a> for more "
         "information.</p>"
+        "<h3>Qt Solutions</h3>"
+        "<p>This application contains portions of the "
+        "Qt Solutions component by Nokia.</p>"
+        "<p>See the credits page under Help>Documentation for the "
+        "complete legal notice of this component.</p>"
         "<h3>LLVM</h3>"
         "<p>The LLVM Project is a collection of modular and reusable compiler "
         "and toolchain technologies.</p>"

@@ -52,9 +52,12 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
-#include "licence.h"
+#include "license.h"
 #include "license_dialog.h"
 #include "normalize.h"
+#include "examples_menu.h"
+#include "texture_cache.h"
+#include "update_application.h"
 
 #include <iostream>
 #include <sstream>
@@ -101,8 +104,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NORELOAD
       fileCheckTimer(this),
 #endif
-      splashScreen(NULL), aboutSplash(NULL),
-      deleteOnOpenFailed(false)
+      splashScreen(NULL), aboutSplash(NULL)
 {
 #ifndef CFG_NOSRCEDIT
     // Create source editor window
@@ -205,7 +207,7 @@ Window::~Window()
 //   Destroy a document window and free associated resources
 // ----------------------------------------------------------------------------
 {
-    FontFileManager::UnloadEmbeddedFonts(appFontIds);
+    FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
 }
 
@@ -399,11 +401,7 @@ void Window::newFile()
 //   Create a new file (either in a new window or in the current one)
 // ----------------------------------------------------------------------------
 {
-#ifdef CFG_MDI
-    if (!needNewWindow())
-#else
     if (maybeSave())
-#endif
     {
         QString fileName = findUnusedUntitledFile();
         XL::SourceFile *sf = xlRuntime->NewFile(+fileName);
@@ -417,14 +415,6 @@ void Window::newFile()
         taoWidget->updateProgram(sf);
         taoWidget->refresh();
     }
-#ifdef CFG_MDI
-    else
-    {
-        Window *other = new Window(xlRuntime, contextFileNames);
-        other->move(x() + 40, y() + 40);
-        other->show();
-    }
-#endif
 }
 
 
@@ -446,8 +436,19 @@ int Window::open(QString fileName, bool readOnly)
 //   1: success
 //   2: don't know yet (asynchronous opening of an URI)
 {
+    if (fileName == curFile)
+        return 1;
+
+    if (fileName == welcomePath())
+        readOnly = true;
+
     bool  isDir = false;
-    QString dir = currentProjectFolderPath();
+    QString dir;
+    QString curFileN = QDir::toNativeSeparators(curFile);
+    if (curFileN.startsWith(Application::defaultTaoApplicationFolderPath()))
+        dir = Application::defaultProjectFolderPath();
+    else
+        dir = currentProjectFolderPath();
     if (!fileName.isEmpty())
     {
         // Process 'file://' like a regular path because: (1) it is simpler,
@@ -482,9 +483,8 @@ int Window::open(QString fileName, bool readOnly)
                         this, SLOT(onModuleUpToDate(QString)));
                 connect(uri, SIGNAL(getFailed()),
                         this, SLOT(onUriGetFailed()));
-                bool ok = uri->get();  // Will emit a signal when done
-                if (!ok && deleteOnOpenFailed)
-                    deleteLater();
+                if (!uri->get())  // Will emit a signal when done
+                    return 0;
                 return 2;
             }
         }
@@ -524,11 +524,7 @@ int Window::open(QString fileName, bool readOnly)
                              tr("%1: File not found").arg(fileName));
         return 0;
     }
-#ifdef CFG_MDI
-    if (!needNewWindow())
-#else
     if (maybeSave())
-#endif
     {
         if (readOnly)
             isReadOnly = true;
@@ -538,25 +534,19 @@ int Window::open(QString fileName, bool readOnly)
         if (!loadFile(fileName, !isReadOnly))
             return 0;
     }
-#ifdef CFG_MDI
-    else
-    {
-        Window *other = new Window(xlRuntime, contextFileNames, "",
-                                   readOnly);
-        other->move(x() + 40, y() + 40);
-        other->show();
-        other->loadFile(fileName, true);
-
-        if (other->isUntitled)
-        {
-            other->hide();
-            delete other;
-        }
-        return 0;
-    }
-#endif
-    deleteOnOpenFailed = 0;
+    if (fileName == welcomePath())
+            isUntitled = true;  // CHECK
     return 1;
+}
+
+
+QString Window::welcomePath()
+// ----------------------------------------------------------------------------
+//   Path to the "welcome" document
+// ----------------------------------------------------------------------------
+{
+    QFileInfo tutorial("system:welcome/welcome.ddd");
+    return tutorial.canonicalFilePath();
 }
 
 
@@ -688,7 +678,6 @@ again:
         if (!openProject(projpath, fileNameOnly, false))
             return false;
 #endif
-    updateContext(projpath);
 
     return saveFile(fileName);
 }
@@ -833,11 +822,10 @@ bool Window::saveFile(const QString &fileName)
 
     isUntitled = false;
     statusBar()->showMessage(tr("Saving..."));
-    // FIXME: can't call processEvent here, or the "Save with fonts..."
-    // function fails to save all the fonts of a multi-page doc
-    // QApplication::processEvents();
 
     bool needReload = false;
+    bool dirChanged = (QFileInfo(fileName).absolutePath() !=
+                       QFileInfo(curFile).absolutePath());
     do
     {
         QTextStream out(&file);
@@ -858,6 +846,8 @@ bool Window::saveFile(const QString &fileName)
             std::ostringstream renderOut;
             renderOut << prog;
             out << +renderOut.str();
+            if (dirChanged)
+                needReload = true;
         }
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
@@ -869,6 +859,8 @@ bool Window::saveFile(const QString &fileName)
     if (needReload)
     {
         taoWidget->loadFile(fn);
+        if (dirChanged)
+            updateContext(QFileInfo(fileName).absolutePath());
         updateProgram(fileName);
     }
 #ifndef CFG_NOSRCEDIT
@@ -1279,9 +1271,9 @@ void Window::onUriGetFailed()
 //    Called asynchronously when open() failed to open an URI
 // ----------------------------------------------------------------------------
 {
-    if (deleteOnOpenFailed)
-        deleteLater();
     emit openFinished(false);
+    open(welcomePath());
+    show();
 }
 
 
@@ -1292,8 +1284,9 @@ void Window::onDocReady(QString path)
 {
     int st = open(path);
     bool ok = (st == 1);
-    if (ok)
-        show();
+    if (!ok)
+        open(welcomePath());
+    show();
     emit openFinished(ok);
 }
 
@@ -1451,7 +1444,7 @@ void Window::update()
 //    Update the application
 // ----------------------------------------------------------------------------
 {
-    TaoApp->updateApp.check(true);
+    TaoApp->updateApp->check(true);
 }
 
 
@@ -1488,7 +1481,7 @@ void Window::licenses()
     }
 #endif
 
-    QMessageBox *msgBox = new LicenseDialog();
+    QMessageBox *msgBox = new LicenseDialog(this);
 
     msgBox->raise();
 #ifdef Q_WS_MAC
@@ -1507,6 +1500,16 @@ void Window::onlineDoc()
 {
     Assistant::instance()->showDocumentation("index.html");
 }
+
+
+void Window::tutorialsPage()
+// ----------------------------------------------------------------------------
+//    Open the tutorials page on the web
+// ----------------------------------------------------------------------------
+{
+    QString url("http://taodyne.com/taopresentations/1.0/tutorials/");
+    QDesktopServices::openUrl(url);
+ }
 
 
 void Window::documentWasModified()
@@ -1777,6 +1780,11 @@ void Window::createActions()
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
+    tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
+    tutorialsPageAct->setStatusTip(tr("Open the tutorials page on the web"));
+    tutorialsPageAct->setObjectName("tutorialsPage");
+    connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
+
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
     slideShowAct->setStatusTip(tr("Toggle full screen mode"));
@@ -1896,33 +1904,27 @@ void Window::createMenus()
     updateRecentFileActions();
 
 #ifndef CFG_NOEDIT
-    if (Licences::Check(GUI_FEATURE))
-    {
-        editMenu = menuBar()->addMenu(tr("&Edit"));
-        editMenu->setObjectName(EDIT_MENU_NAME);
-        editMenu->addAction(undoAction);
-        editMenu->addAction(redoAction);
-        editMenu->addSeparator();
-        editMenu->addAction(cutAct);
-        editMenu->addAction(copyAct);
-        editMenu->addAction(pasteAct);
-    }
+    editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->setObjectName(EDIT_MENU_NAME);
+    editMenu->addAction(undoAction);
+    editMenu->addAction(redoAction);
+    editMenu->addSeparator();
+    editMenu->addAction(cutAct);
+    editMenu->addAction(copyAct);
+    editMenu->addAction(pasteAct);
 #endif
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if (Licences::Check(GUI_FEATURE))
-    {
-        shareMenu = menuBar()->addMenu(tr("&Share"));
-        shareMenu->setObjectName(SHARE_MENU_NAME);
-        shareMenu->addAction(cloneAct);
-        shareMenu->addAction(fetchAct);
-        shareMenu->addAction(setPullUrlAct);
-        shareMenu->addAction(pushAct);
-        shareMenu->addAction(mergeAct);
-        shareMenu->addAction(checkoutAct);
-        shareMenu->addAction(selectiveUndoAct);
-        shareMenu->addAction(diffAct);
-    }
+    shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->setObjectName(SHARE_MENU_NAME);
+    shareMenu->addAction(cloneAct);
+    shareMenu->addAction(fetchAct);
+    shareMenu->addAction(setPullUrlAct);
+    shareMenu->addAction(pushAct);
+    shareMenu->addAction(mergeAct);
+    shareMenu->addAction(checkoutAct);
+    shareMenu->addAction(selectiveUndoAct);
+    shareMenu->addAction(diffAct);
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
@@ -1950,6 +1952,25 @@ void Window::createMenus()
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
     helpMenu->addAction(onlineDocAct);
+    helpMenu->addAction(tutorialsPageAct);
+
+    ExamplesMenu * examplesMenu = new ExamplesMenu;
+    QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
+    Templates templates = Templates(tdir);
+    foreach (Template t, templates)
+    {
+        if (t.mainFile == "blank.ddd")
+            continue;
+        QString name(t.name);
+        // Strip "(Demo) " or "(Démo) "
+        name.replace(QRegExp("^\\([^)]+\\) "), "");
+        examplesMenu->addExample(name,
+                                 t.mainFileFullPath(),
+                                 t.description);
+    }
+    connect(examplesMenu, SIGNAL(openDocument(QString)),
+            this, SLOT(openReadOnly(QString)));
+    helpMenu->addMenu(examplesMenu);
 }
 
 
@@ -1973,17 +1994,14 @@ void Window::createToolBars()
         view->addAction(fileToolBar->toggleViewAction());
 
 #ifndef CFG_NOEDIT
-    if (Licences::Check(GUI_FEATURE))
-    {
-        editToolBar = addToolBar(tr("Edit"));
-        editToolBar->setObjectName("editToolBar");
-        editToolBar->addAction(cutAct);
-        editToolBar->addAction(copyAct);
-        editToolBar->addAction(pasteAct);
-        editToolBar->hide();
-        if (view)
-            view->addAction(editToolBar->toggleViewAction());
-    }
+    editToolBar = addToolBar(tr("Edit"));
+    editToolBar->setObjectName("editToolBar");
+    editToolBar->addAction(cutAct);
+    editToolBar->addAction(copyAct);
+    editToolBar->addAction(pasteAct);
+    editToolBar->hide();
+    if (view)
+        view->addAction(editToolBar->toggleViewAction());
 #endif
 
     viewToolBar = addToolBar(tr("View"));
@@ -1997,23 +2015,20 @@ void Window::createToolBars()
         view->addAction(viewToolBar->toggleViewAction());
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if (Licences::Check(GUI_FEATURE))
-    {
-        gitToolBar = new GitToolBar(tr("Git Tools"), this);
-        gitToolBar->setObjectName("gitToolbar");
-        connect(this, SIGNAL(projectChanged(Repository*)),
-                gitToolBar, SLOT(setRepository(Repository*)));
-        connect(this, SIGNAL(projectChanged(Repository*)),
-                this, SLOT(checkDetachedHead()));
-        connect(gitToolBar, SIGNAL(checkedOut(QString)),
-                this, SLOT(reloadCurrentFile()));
-        connect(this, SIGNAL(projectUrlChanged(QString)),
-                gitToolBar, SLOT(showProjectUrl(QString)));
-        addToolBar(gitToolBar);
-        gitToolBar->hide();
-        if (view)
-            view->addAction(gitToolBar->toggleViewAction());
-    }
+    gitToolBar = new GitToolBar(tr("Git Tools"), this);
+    gitToolBar->setObjectName("gitToolbar");
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            gitToolBar, SLOT(setRepository(Repository*)));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            this, SLOT(checkDetachedHead()));
+    connect(gitToolBar, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    connect(this, SIGNAL(projectUrlChanged(QString)),
+            gitToolBar, SLOT(showProjectUrl(QString)));
+    addToolBar(gitToolBar);
+    gitToolBar->hide();
+    if (view)
+        view->addAction(gitToolBar->toggleViewAction());
 #endif
 }
 
@@ -2129,7 +2144,6 @@ void Window::showMessage(QString message, int timeout)
         return splashScreen->showMessage(message);
 
     statusBar()->showMessage(message, timeout);
-    QCoreApplication::processEvents();
 }
 
 
@@ -2199,13 +2213,13 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     showMessage(msg.arg(tr("Fonts")));
     FontFileManager ffm;
-    QList<int> prev = appFontIds;
-    appFontIds = ffm.LoadEmbeddedFonts(fileName);
-    if (!appFontIds.empty())
+    QList<int> prev = docFontIds;
+    docFontIds = ffm.LoadDocFonts(fileName);
+    if (!docFontIds.empty())
         taoWidget->glyphs().Clear();
     foreach (QString e, ffm.errors)
         addError(e);
-    ffm.UnloadEmbeddedFonts(prev);
+    ffm.UnloadFonts(prev);
     showMessage(msg.arg(tr("Document")));
 
     // Clean previous program
@@ -2213,6 +2227,9 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     // Close any module possibly imported by previous document
     ModuleManager::moduleManager()->unloadImported();
+
+    // Drop textures
+    TextureCache::instance()->clear();
 
     taoWidget->reset();
 
@@ -2270,7 +2287,12 @@ bool Window::loadFile(const QString &fileName, bool openProj)
     }
     isUntitled = false;
     setCurrentFile(fileName); // #1439
-    setReadOnly(isReadOnly);
+    bool ro = false;
+    if (!QFileInfo(fileName).isWritable() ||
+         QDir::toNativeSeparators(curFile).startsWith(
+                Application::defaultTaoApplicationFolderPath()))
+        ro = true;
+    setReadOnly(ro);
     taoWidget->updateProgramSource(false);
     setWindowModified(false);
     if (XL::MAIN->options.slideshow)
@@ -2700,14 +2722,13 @@ void Window::restartFullScreenTimer()
 
 QString Window::currentProjectFolderPath()
 // ----------------------------------------------------------------------------
-//    The folder to use in the "Save as..."/"Open File..." dialogs
+//    The current document folder
 // ----------------------------------------------------------------------------
 {
     if (repo)
         return repo->path;
 
-    if ( !currentProjectFolder.isEmpty() &&
-         !isTutorial(curFile))
+    if ( !currentProjectFolder.isEmpty())
         return currentProjectFolder;
 
     return Application::defaultProjectFolderPath();

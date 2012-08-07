@@ -107,27 +107,40 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
             uint    size    = ptr[0];
             GLuint *selPtr  = ptr + 3;
             GLuint *selNext = selPtr + size;
-            if (ptr[3] && ptr[1] <= depth)
+
+            if ((*selPtr & Widget::SELECTION_MASK) && ptr[1] <= depth)
             {
                 depth = ptr[1];
                 childSelected = false;
 
+                IFTRACE(selection)
+                    std::cerr << "Selection " << std::hex << *selPtr
+                              << " depth " << depth << ": ";
+
                 // Walk down the hierarchy if item is in a group
                 ptr += 3;
                 parentId = selected = *ptr++;
+
                 // Check if we have a handleId or character ID
                 while (ptr < selNext)
                 {
                     GLuint child = *ptr++;
-                    if (child & Widget::HANDLE_SELECTED)
-                        handleId = child & ~Widget::HANDLE_SELECTED;
-                    else if (child & Widget::CHARACTER_SELECTED)
-                        charSelected = child & ~Widget::CHARACTER_SELECTED;
-                    else if (selected & Widget::CONTAINER_OPENED)
+                    GLuint selType = child & Widget::SELECTION_MASK;
+                    IFTRACE(selection)
+                        std::cerr << std::hex << child << " ";
+                    if (selType == Widget::HANDLE_SELECTED)
+                        handleId = (child & ~Widget::SELECTION_MASK);
+                    else if (selType == Widget::CHARACTER_SELECTED)
+                        charSelected = child & ~Widget::SELECTION_MASK;
+                    else if ((selected & Widget::SELECTION_MASK)
+                             == Widget::CONTAINER_OPENED)
                         selected = child;
                     else if (!childSelected)
                         childSelected = child;
                 }
+
+                IFTRACE(selection)
+                    std::cerr << "\n";
             }
 
             ptr = selNext;
@@ -145,8 +158,6 @@ uint Identify::ObjectInRectangle(const Box &rectangle,
         *childPtr = childSelected;
     if (parentPtr)
         *parentPtr = parentId;
-
-    selected &= Widget::SELECTION_MASK;
 
     widget->stats.end(Statistics::SELECT);
 
@@ -194,7 +205,8 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
             // hierarchy. For example, in a group, we only select the top group
             uint size = ptr[0];
             selected = ptr[3];
-            list.push_back(selected);
+            if (selected & Widget::SELECTION_MASK)
+                list.push_back(selected);
             ptr += 3 + size;
         }
     }
@@ -261,7 +273,7 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
 {
     uint current = ObjectAtPoint(x, widget->height() - y);
     IFTRACE(widgets)
-        std::cerr << "Focus " << current << std::endl;
+        std::cerr << "MouseFocusTracker::Click Focus " << current << std::endl;
     if (current != previous)
     {
         if (previous > 0)
@@ -315,7 +327,9 @@ Activity *Selection::Display(void)
     Box b = rectangle;
     b.Normalize();
     Box3 b3 (b.lower.x, b.lower.y, 0, b.Width(), b.Height(), 0);
+
     widget->setupGL();
+    glDepthFunc(GL_ALWAYS);
     widget->drawSelection(NULL, b3, "selection_rectangle", 0);
 
     return next;
@@ -411,8 +425,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             savedSelection.clear();
 
             // Clicking in some other child of a parent: select parent again
-            parentId &= Widget::SELECTION_MASK;
-            if (parentId && parentId != selected)
+            if (parentId != selected)
                 selected = parentId;
         }
 
@@ -428,7 +441,11 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             else if (childSelected && count == 2)
             {
                 // Double-click on a container: mark it as opened
-                widget->select(selected, Widget::CONTAINER_OPENED);
+                uint bare = selected & ~Widget::SELECTION_MASK;
+                uint normal = bare | Widget::SHAPE_SELECTED;
+                uint opengrp = bare | Widget::CONTAINER_OPENED;
+                widget->select(normal, Widget::CONTAINER_OPENED);
+                widget->select(opengrp, Widget::CONTAINER_OPENED);
                 widget->select(childSelected, 1);
             }
             else

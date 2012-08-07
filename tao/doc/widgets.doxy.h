@@ -21,10 +21,7 @@
  * @param name [text] Name that uniquely identify the widget
  *
  * @section dialogbox_widgets Dialog box widgets
- * Widgets using dialog box like font chooser are available in two formats:
- * -# like other widget in a pair of chooser_texture and chooser with x, y, w, h parameters<BR>
- *   or
- * -# in an independent window.
+ * Standard dialog boxes from OS are also available as pop-up windows. 
  *
  * There is currently three kind of chooser:
  * -# @ref filechooser "file chooser"
@@ -59,11 +56,7 @@
  * @param name [text] Nom qui identifie le @a widget de manière unique.
  *
  * @section dialogbox_widgets Boîtes de dialogue
- * Les éléments d'interface graphiques basés sur des boîtes de dialogue sont
- * disponibles sous deux formes :
- * -# sous forme de texture, comme les autres<BR>
- *   ou
- * -# dans une fenêtre indépendante.
+ * Les boîtes de dialogue courantes sont disponibles au format spécifique de chaque OS.
  *
  * Il y a trois sortes de dialogues de sélection :
  * -# @ref filechooser "Sélection de fichier"
@@ -71,7 +64,7 @@
  * -# @ref colorchooser "Sélection de couleur"
  *
  * Les propriétés spécifiques de chaque dialogue sont précisées par des
- * primitives additionnelles. Par exemple, @ref filter pour préciser le filtre
+ * primitives additionnelles. Par exemple, @p filter pour préciser le filtre
  * d'un dialogue de sélection de fichier.
  *
  * Les valeurs sont renvoyées par le dialogue en remplaçant un mot-clé dans
@@ -612,17 +605,8 @@ text_font_chooser ->
  * Affiche une boîte de dialogue de sélection de police de caractères.
  * @param action L'action à exécuter lorsque la police est choisie.
  */
-font_chooser_texture ( w:real, h:real, action:tree );
 
-/**
- * @copydoc font_chooser_texture
- */
-font_chooser ( action:tree );
-
-/**
- * @copydoc font_chooser_texture
- */
-font_chooser (x:real, y:real, w:real, h:real, action:tree );
+font_chooser ( text:name, action:tree );
 
 /**
  * @}
@@ -696,17 +680,8 @@ shape_color_chooser ->
  * Affiche une boîte de dialogue de sélection de couleur.
  * @param action L'action à exécuter lorsque la couleur est choisie.
  */
-color_chooser_texture ( w:real, h:real, action:tree );
+color_chooser ( text:name, action:tree );
 
-/**
- * @copydoc color_chooser_texture
- */
-color_chooser ( action:tree );
-
-/**
- * @copydoc color_chooser_texture
- */
-color_chooser (x:real, y:real, w:real, h:real, action:tree );
 
 /**
  * @}

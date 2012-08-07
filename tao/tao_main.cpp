@@ -80,19 +80,11 @@ int main(int argc, char **argv)
     win_redirect_io();
 #endif
 
-    // We need to brute-force option parsing here, the OpenGL choice must
-    // be made before calling the QApplication constructor...
-    for (int a = 1; a < argc; a++)
-        if (text(argv[a]) == "-gl")
-            QGL::setPreferredPaintEngine(QPaintEngine::OpenGL);
-
     // Initialize and run the Tao application
     int ret = 0;
     {
         Tao::Application tao(argc, argv);
-        bool ok = tao.processCommandLine();
-        if (ok)
-            ret = tao.exec();
+        ret = tao.exec();
         // Note: keep this inside a block so that ~Application gets called!
     }
 
@@ -419,6 +411,7 @@ void signal_handler(int sigid)
 // ----------------------------------------------------------------------------
 {
     using namespace std;
+    using namespace Tao;
     static char buffer[512];
     int two = fileno(stderr);
 
@@ -427,10 +420,16 @@ void signal_handler(int sigid)
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
                            "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
+                           "GL VENDOR:   %s\n"
+                           "GL RENDERER: %s\n"
+                           "GL VERSION:  %s\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
-                           sig_handler_log);
+                           sig_handler_log,
+                           TaoApp->GLVendor.c_str(),
+                           TaoApp->GLRenderer.c_str(),
+                           TaoApp->GLVersionAvailable.c_str());
     Write(two, buffer, size);
 
     // Prevent recursion in the signal handler

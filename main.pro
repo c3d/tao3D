@@ -35,9 +35,6 @@
 #     Build without document source editor
 #   DEFINES+=CFG_NOMODPREF
 #     Do not include the module page in the preference dialog
-#   DEFINES+=CFG_MDI
-#     Allow several documents to be open simultaneously (Multiple Document
-#     Interface)
 #   DEFINES+=NVALGRIND
 #     Build libxlr without valgrind hooks. Normally not needed, even for release
 #     builds because according to the valgrind documentation, the overhead is

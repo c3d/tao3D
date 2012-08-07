@@ -22,7 +22,7 @@
 #include "license_dialog.h"
 
 #include "application.h"
-#include "licence.h"
+#include "license.h"
 #include "tao_utf8.h"
 
 #include <QPixmap>
@@ -35,7 +35,7 @@ QList<LicenseDialog *> LicenseDialog::dialogs;
 
 
 LicenseDialog::LicenseDialog(QWidget *parent)
-    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow())
+    : QMessageBox(parent)
 // ----------------------------------------------------------------------------
 //   Create a license dialog with general information about licenses
 // ----------------------------------------------------------------------------
@@ -45,8 +45,7 @@ LicenseDialog::LicenseDialog(QWidget *parent)
 
 
 LicenseDialog::LicenseDialog(const QString &message, QWidget *parent)
-    : QMessageBox(parent ? parent : (QWidget *)TaoApp->findFirstTaoWindow()),
-      message(message)
+    : QMessageBox(parent),  message(message)
 // ----------------------------------------------------------------------------
 //   Create the license dialog with general info and a custom (HTML) message
 // ----------------------------------------------------------------------------
@@ -118,7 +117,7 @@ void LicenseDialog::init()
                 "<h3>Your host identifier:</h3>"
                 "<center>%3</center>"
                 ).arg(prefix).arg(Application::userLicenseFolderPath())
-                 .arg(+Licences::hostID());
+                 .arg(+Licenses::hostID());
 
     setWindowTitle(title);
     setText(caption);

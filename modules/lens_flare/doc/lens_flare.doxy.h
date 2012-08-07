@@ -22,12 +22,12 @@
  * than the built-in form @ref sun_flare(sx:real, sy:real, sz:real, tx:real, ty:real, tz:real).
  * @include lens_flare.ddd
  *
- * @image html lens_flare.png "Output from lens_flare.ddd"
+ * @image html lens_flare.png "Lens flare effect"
  *
  *
  * @note In order to use correctly the depth test, the lens flare have to be drawn after the others elements.
  * @note This module integrate already some lens flare textures, which can be used to create differents effects like in the previous example.
- * @note It is also possible to create these textures in Tao thanks to integrated fonctions (@ref frame_texture, @ref radial_gradient, etc.).
+ * @note It is also possible to create these textures in Tao thanks to integrated fonctions (@p frame_texture, @p radial_gradient, etc.).
  *
  * @endtaomoduledescription{LensFlare}
  *
@@ -67,8 +67,8 @@
  *       pouvez charger vos propres textures si les images par défaut ne vous
  *       conviennent pas.
  * @note Il est également possible d'utiliser l'effet halo avec des textures
- *       générées dynamiquement par Tao Presentations (cf. @ref frame_texture,
- *       @ref radial_gradient, etc.).
+ *       générées dynamiquement par Tao Presentations (cf. @p frame_texture,
+ *       @p radial_gradient, etc.).
  *
  * @endtaomoduledescription{LensFlare}
  * @~
@@ -98,14 +98,14 @@ text FLARES_DIR;
  * Creates a local lens flare.
  *
  * Define and evaluate the lens flare tree while
- * preserving the current graphical state like a @ref locally.
+ * preserving the current graphical state like a @p locally.
  *
  * @param contents defines code applied on the current lens flare.
  *
  * @~french
  * Crée un effet de halo.
  * Le code contenu dans @p contents est évalué en préservant les
- * trasformations géométriques (comme @ref locally).
+ * trasformations géométriques (comme @p locally).
  * Utilisez @ref lens_flare_source, @ref lens_flare_target
  * et @ref add_flare pour construire l'effet.
  */

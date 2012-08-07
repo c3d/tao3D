@@ -39,17 +39,15 @@ struct ImageTextureInfo : XL::Info
     typedef ImageTextureInfo *data_t;
     struct  Texture { GLuint id, width, height; };
     typedef std::map<text, Texture> texture_map;
-    enum { MAX_TEXTURES = 500 };
+    enum { MAX_TEXTURES = 6000 };
 
     ImageTextureInfo();
     ~ImageTextureInfo();
 
-    Texture load(text img);
-    GLuint bind(text img);
+    Texture load(text img, text docPath);
     operator data_t() { return this; }
     uint        width, height;
 
-    static texture_map textures;
     static Texture &defaultTexture();
 };
 
@@ -67,6 +65,8 @@ struct AnimatedTextureInfo : ImageTextureInfo
     Texture load(text img);
     GLuint bind(text img);
     operator data_t() { return this; }
+
+    static texture_map textures;
 
 public:
     QMovie movie;

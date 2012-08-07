@@ -27,6 +27,7 @@
  * @~
  @code
 import Animate
+
 key "Right" -> skip 1
 key "Left"  -> skip -1
 compute_smooth_step
@@ -197,7 +198,7 @@ interpolate_zangle(real S, real TargetZ, real Z);
  * Compute value to be used for fade-in effects
  *
  * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
- * The @a Value argument is typically a time computed using @ref page_time
+ * The @a Value argument is typically a time computed using @p page_time
  * The typical usage will be something like:
  @code
  // Fade-in for approximately 4 seconds
@@ -210,7 +211,7 @@ interpolate_zangle(real S, real TargetZ, real Z);
  *
  * Renvoie une valeur qui passe approximativement de 0.0 à 1.0 sur une
  * durée de @a Duration secondes.
- * Le paramètre @a Value est typiquement un temps basé sur @ref page_time
+ * Le paramètre @a Value est typiquement un temps basé sur @p page_time
  * Par exemple :
  @code
  // Fait apparaître le cercle en 4 secondes approximativement
@@ -226,7 +227,7 @@ real fade_in(real Value, real Duration);
  * Compute value to be used for fade-out effects
  *
  * Return a value that fades approximately from 0.0 to 1.0 over @a Duration
- * The @a Value argument is typically a time computed using @ref page_time
+ * The @a Value argument is typically a time computed using @p page_time
  * The typical usage will be something like:
  @code
  // Fade-out for approximately 4 seconds
@@ -239,7 +240,7 @@ real fade_in(real Value, real Duration);
  *
  * Renvoie une valeur qui passe approximativement de 1.0 à 0.0 sur une
  * durée de @a Duration secondes.
- * Le paramètre @a Value est typiquement un temps basé sur @ref page_time
+ * Le paramètre @a Value est typiquement un temps basé sur @p page_time
  * Par exemple :
  @code
  // Fait disparaître le cercle en 4 secondes approximativement

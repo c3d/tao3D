@@ -26,10 +26,11 @@
 #include "widget.h"
 #include "display_driver.h"
 #include "frame.h"
-#include "licence.h"
+#include "license.h"
 #include "info_trash_can.h"
 #include "application.h"
 #include "window.h"
+#include "texture_cache.h"
 
 TAO_BEGIN
 
@@ -40,6 +41,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 {
     scheduleRender   = ModuleRenderer::ScheduleRender;
     refreshOn        = Widget::refreshOn;
+    postEvent        = Widget::postEventAPI;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
     AddToLayout2     = ModuleRenderer::AddToLayout2;
@@ -104,9 +106,9 @@ ModuleApiPrivate::ModuleApiPrivate()
     frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
 
     // License checking
-    hasLicense = Licences::Has;
-    checkLicense = Licences::Check;
-    checkImpressOrLicense = Licences::CheckImpressOrLicense;
+    hasLicense = Licenses::Has;
+    checkLicense = Licenses::Check;
+    checkImpressOrLicense = Licenses::CheckImpressOrLicense;
     blink      = Widget::blink;
 
     // Current document info
@@ -117,6 +119,10 @@ ModuleApiPrivate::ModuleApiPrivate()
     addWidget    = Window::addWidget;
     removeWidget = Window::removeWidget;
     setCurrentWidget    = Window::setCurrentWidget;
+
+    // Texture cache
+    textureCacheBind = TextureCacheAPI::bind;
+    textureCacheSetMinMagFilters = TextureCacheAPI::setMinMagFilters;
 }
 
 TAO_END

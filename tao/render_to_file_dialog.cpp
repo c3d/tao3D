@@ -83,7 +83,7 @@ void RenderToFileDialog::accept()
     // Check/create folder
     QString folder = folderEdit->text();
     QDir dir(folder);
-    if (!dir.exists())
+    if (!dir.exists() && folder != "/dev/null")
     {
         int ret;
         ret = QMessageBox::question(this, tr("Folder does not exist"),

@@ -459,6 +459,17 @@ PREFIX(DefaultRefreshGet, tree, "default_refresh",
        DESCRIPTION("Get the document refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
+PREFIX(PostEvent, tree, "post_event",
+       PARM(event_type, integer, "Identifier of the user event to post"),
+       RTAO(postEvent(event_type)),
+       SYNOPSIS("Post a user event for the Tao widget."))
+PREFIX(UserEvent, tree, "user_event",
+       PARM(name, text, "An identifier for the event"),
+       RTAO(registerUserEvent(name)),
+       SYNOPSIS("Allocate a user event for use with post_event and refresh_on.")
+       DESCRIPTION("Returns an available user event type. "
+                   "The value returned for a given number is always the same. "
+                   "It can be passed to post_event or refresh_on."))
 #ifndef CFG_NOSRCEDIT
 PREFIX(ShowSource, boolean, "show_source",
        PARM(flag, boolean, "Flag controlling whether source is shown"),
@@ -514,7 +525,7 @@ PREFIX(ToggleSlideShow, boolean, "toggle_slide_show", ,
        SYNOPSIS("Toggle slide-show mode"))
 PREFIX(BlankScreen, boolean, "blank_screen",
        PARM(flag, boolean, "Flag controlling blank mode"),
-       RTAO(slideShow(self, flag)),
+       RTAO(blankScreen(self, flag)),
        GROUP(gui)
        SYNOPSIS("Blank screen or show presentation normally")
        DESCRIPTION("Activate or deactivate blank screen mode, depending on "
@@ -1132,3 +1143,30 @@ PREFIX(CheckLicense, boolean,  "check_license",
 PREFIX(CheckImpressOrLicense, boolean,  "check_impress_or_license",
        PARM(feature, text, "The feature name to check"),
        RTAO(checkImpressOrLicense(self, feature)),)
+// Texture cache
+PREFIX(TextureMipmap, boolean, "texture_mipmap",
+       PARM(enable, boolean, "Enable or disable"),
+       return Tao::TextureCache::textureMipmap(enable),
+       SYNOPSIS("Enable or disable mimmap generation for textures")
+       DESCRIPTION("Controls whether mipmaps are created or not when a texture "
+                   "file is loaded. Changing this setting does not cause "
+                   "existing textures to be re-created."))
+PREFIX(TextureCompress, boolean, "texture_compress",
+       PARM(enable, boolean, "Enable or disable"),
+       return Tao::TextureCache::textureCompress(enable),
+       SYNOPSIS("Enable or disable texture compression for textures")
+       DESCRIPTION("Controls whether compression is performed when a texture "
+                   "file is loaded. Changing this setting does not cause "
+                   "existing textures to be re-created."))
+PREFIX(TextureCacheMemSize, integer, "texture_cache_mem_size",
+       PARM(bytes, integer, "The size of the texture cache in main memory"),
+       return Tao::TextureCache::textureCacheMemSize(bytes),
+       SYNOPSIS("Set the size of the texture cache (main memory)")
+       DESCRIPTION("Defines the maximum amount of main memory that may be "
+                   "used to keep textures as they are loaded from disk."))
+PREFIX(TextureCacheGLSize, integer, "texture_cache_gl_size",
+       PARM(bytes, integer, "The size of the texture cache in GL memory"),
+       return Tao::TextureCache::textureCacheGLSize(bytes),
+       SYNOPSIS("Set the size of the texture cache (GL memory)")
+       DESCRIPTION("Defines the maximum amount of GL memory that may be "
+                   "used to keep textures as they are loaded from disk."))

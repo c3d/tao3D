@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# Convenience script to build all versions of Tao Presentations.
+# Convenience script to create the official build of Tao Presentations. 
 # When done, packages are copied into .. (parent directory).
 #
 # Usage: ./build_all.sh
@@ -53,9 +53,7 @@ echo Log file: $LOG >&2
 
 exec 4>&2
 { time {
-for v in discovery creativity impress ; do
   doo make distclean
-  doo ./configure --with-eula $v && doo "make -j3 kit $MAKEFLAGS" && cp_kit
-done ;
+  doo ./configure --with-eula && doo "make -j3 kit $MAKEFLAGS" && cp_kit
 } >$LOG 2>&1; }
 exec 4>&-

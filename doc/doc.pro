@@ -37,20 +37,18 @@ equals(HAS_DOXYGEN, 1) {
   !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
   QMAKE_SUBSTITUTES = Doxyfile.in \
                       DoxyfileWebdoc.in \
-                      TaoPresentations.qhcp.in \
-                      about_help.html.in \
-                      about_help_fr.html.in
+                      TaoPresentations.qhcp.in
   QMAKE_DISTCLEAN += $$replace(QMAKE_SUBSTITUTES, .in, )
 
   include (../modules/module_list.pri)
   MOD_PATHS=$$join(MODULES, "/doc ../modules/", "../modules/", "/doc")
 
   DOXYLANG=en,fr
-  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_geeks_en.png; $$DOXYGEN
+  doc.commands = export DOXYLANG=$$DOXYLANG ; export QHP_ADDFILES=Taodyne_logo.png; $$DOXYGEN
   doc.depends = cp_examples cp_logo version xlref
 
-  webdoc.commands = doxygen DoxyfileWebdoc
-  webdoc.depends = cp_examples_webdoc version xlref
+  webdoc.commands = export DOXYLANG=$$DOXYLANG ; export DOXYOUTPUT=webhtml ; $$DOXYGEN DoxyfileWebdoc
+  webdoc.depends = cp_examples_webdoc cp_logo_webdoc version xlref
 
   LANGUAGES=$$replace(DOXYLANG, ',', ' ')
   cp_examples.commands = for l in $$LANGUAGES ; do \
@@ -58,11 +56,15 @@ equals(HAS_DOXYGEN, 1) {
                            cp ../tao/doc/examples/*.ddd output/\$\$l/html/examples/ ; \
                          done
 
-  cp_examples_webdoc.commands = mkdir -p webhtml/examples ; \
-                                cp ../tao/doc/examples/*.ddd webhtml/examples/ ; \
-                                for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd output/webhtml/examples/ 2>/dev/null || : ; done
+  cp_examples_webdoc.commands = for l in $$LANGUAGES ; do \
+                                  mkdir -p webhtml/\$\$l/html/examples ; \
+                                  cp ../tao/doc/examples/*.ddd webhtml/\$\$l/html/examples/ ; \
+                                  for p in $$MOD_PATHS ; do cp -f \$\$p/*.ddd webhtml/\$\$l/html/examples/ 2>/dev/null || : ; done ; \
+                                done
 
-  cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_geeks_en.png output/\$\$l/html ; done
+  cp_logo.commands = for l in $$LANGUAGES ; do mkdir -p output/\$\$l/html ; cp images/Taodyne_logo.png output/\$\$l/html ; done
+
+  cp_logo_webdoc.commands = for l in $$LANGUAGES ; do mkdir -p webhtml/\$\$l/html ; cp images/Taodyne_logo.png webhtml/\$\$l/html ; done
 
   xlref.target = XLRef.html
   equals(HAS_TEXMACS, true) {
@@ -84,7 +86,7 @@ equals(HAS_DOXYGEN, 1) {
   QMAKE_CLEAN += project_number.doxinclude
   QMAKE_DISTCLEAN += project_number.doxinclude
 
-  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref cp_logo xlref clean version install_html
+  QMAKE_EXTRA_TARGETS += doc webdoc cp_examples cp_examples_webdoc cp_xlref cp_logo cp_logo_webdoc xlref clean version install_html
 
   INSTALLS += install_doc
 

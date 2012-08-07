@@ -1,5 +1,68 @@
 Change log for Tao Presentations
 
+1.12 (26-Jul-2012)
+
+#2341 After Render to Frames, display is left with bogus screen contents
+#2340 Add ability to render frames to /dev/null
+#2339 Add FPS trace (-tfps) for off-line rendering
+#2338 Render frames and storing to disk should be separate threads
+#2337 Timer-based rendering optimization disabled while rendering frames
+#2327 Ubuntu 12.04: crash in gallivm_remove_garbage_collector_callback
+#2306 Linux: register .ddd file extension
+#2304 Parsing of text module version depends on locale
+#2302 MacOSX: UI language not set according to system preferences
+#2301 Ubuntu: screen saver not disabled by full screen mode
+#2300 MacOSX: Tex Gyre Adventor font doesn't show up with LANG=fr_FR.UTF-8
+#2299 Missing application icon on Ubuntu desktop
+#2297 button_group breaks radio_button and check_box_button
+#2295 Remove crashing textured font/color/file chooser
+#2291 File>Open dialog lands in example directory when an example is open
+#2290 Performance regression on welcome screen
+#2288 Animated textures lost when switching to quad buffer stereoscopy
+#2287 Use HTTP protocol to update the Tao application
+#2285 Buttons, lineEdit, Url are not receiving mouse clicks
+#2278 Module import name not always in documentation
+#2277 Significant memory leak with animated_texture
+#2276 Pan and zoom sample keeps zooming in and out (Discovery)
+#2275 GL error 1282 when texture compression is enabled
+#2274 Missing french translations in preferences
+#2272 LensFlare: white squares when texture mipmapping is disabled
+#2269 Textures may disappear when some cache settings are changed
+#2256 A shape may remain selected in a group until you click explicitly out of it
+#2216 Display name inconsistencies between application menu and chooser
+#2132 Windows: check for update downloads a tar file then deletes it
+#2081 Clicking on tao: link makes Tao presentations use 100% CPU and leak memory
+#1196 Module SDK: add script to create new module
+#270  Linux: register tao: URI
+
+1.11 (10-Jul-2012)
+
+#2255 Selection rectangle in Hello World doesn't show on the center of Earth
+#2244 Typo in Mapping module
+#2217 Stereoscopic 3D display modules require HD license when they should not
+#2202 Implement texture cache
+#2200 When selecting text, the surrounding text box often disappears
+#2192 Crash on "Save as..."
+#2188 Add "Tutorials" menu
+#2187 Add "Examples" menu
+#2177 Command line does not accept tao URIs anymore
+#2176 VLCAudioVideo: linux: application not properly identified in audio settings dialog
+#2168 Primitives refresh_on and no_refresh_on are not documented
+#2166 ObjectLoader: slow rendering of textured model
+#2165 Crash when non-existent file is given on the command line
+#2164 Incorrect plural: "No form matches"
+#2160 Keypress event should not trigger unconditional refresh of whole document
+#2153 MacOSX: font rendering performance regression in build 1.10
+#2148 Texture returned by frame_texture may be bogus
+#2140 blank_screen primitive acts like full_screen
+#2138 Array indexing may fail if there are "too many" arrays
+#2134 On-line help "Modules" section doesn't talk about modules
+#2133 Fix Taodyne logo in on-line help
+#2129 MacOSX documentation: search tab returns no result
+#2128 Add RemoteControl module
+#2093 Add frame_pixel_count primitive to count non-transparent pixels in a canvas
+#1916 load_text doesn't load absolute paths
+
 1.10 (30-May-2012)
 
 #2123 Page chooser: strip newline character

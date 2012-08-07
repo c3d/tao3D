@@ -198,9 +198,6 @@ struct ColorTreeClone : NameChangeClone
         return new XL::Name(what->value, what->Position());
     }
     QColor color;
-protected:
-    // Default is to do a deep copy
-    Tree *  Clone(Tree *t) { return t->Do(this); }
  };
 
 
@@ -212,21 +209,21 @@ struct FontTreeClone : NameChangeClone
     FontTreeClone(const QFont &f) : font(f){}
     XL::Tree *DoName(XL::Name *what)
     {
-        if (what->value == "font_family")
+        if (what->value == "family")
             return new XL::Text(+font.family(),
                                 "\"" ,"\"",what->Position());
-        if (what->value == "font_size")
+        if (what->value == "size")
             return new XL::Integer(font.pointSize(), what->Position());
-        if (what->value == "font_weight")
+        if (what->value == "weight")
             return new XL::Integer(font.weight(), what->Position());
-        if (what->value == "font_slant")
+        if (what->value == "slant")
             return new XL::Integer((int) font.style() * 100,
                                    what->Position());
-        if (what->value == "font_stretch")
+        if (what->value == "stretch")
             return new XL::Integer(font.stretch(), what->Position());
-        if (what->value == "font_is_italic")
+        if (what->value == "is_italic")
             return font.italic() ? XL::xl_true : XL::xl_false;
-        if (what->value == "font_is_bold")
+        if (what->value == "is_bold")
             return font.bold() ? XL::xl_true : XL::xl_false;
 
         return new XL::Name(what->value, what->Position());

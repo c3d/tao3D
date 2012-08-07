@@ -35,6 +35,7 @@ QT += webkit \
 CONFIG += help
 QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
+DEFINES += TAO
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET
@@ -46,7 +47,7 @@ macx {
     QMAKE_SUBSTITUTES += Info.plist.in
     QMAKE_INFO_PLIST = Info.plist
     QMAKE_DISTCLEAN += Info.plist
-    QMAKE_CFLAGS += -mmacosx-version-min=10.5 # Avoid warning with font_file_manager_macos.mm
+    QMAKE_CFLAGS += -mmacosx-version-min=10.6 # Avoid warning with font_file_manager_macos.mm
 }
 win32 {
     QMAKE_SUBSTITUTES += tao.rc.in
@@ -74,6 +75,7 @@ HEADERS +=     activity.h \
     drag.h \
     drawing.h \
     error_message_dialog.h \
+    examples_menu.h \
     font.h \
     font_file_manager.h \
     frame.h \
@@ -88,7 +90,7 @@ HEADERS +=     activity.h \
     justification.h \
     justification.hpp \
     layout.h \
-    licence.h \
+    license.h \
     license_dialog.h \
     lighting.h \
     manipulator.h \
@@ -103,6 +105,8 @@ HEADERS +=     activity.h \
     preferences_dialog.h \
     preferences_pages.h \
     process.h \
+    qtlocalpeer.h \
+    qtlockedfile.h \
     raster_text.h \
     render_to_file_dialog.h \
     repository.h \
@@ -121,6 +125,7 @@ HEADERS +=     activity.h \
     text_drawing.h \
     text_edit.h \
     texture.h \
+    texture_cache.h \
     tool_window.h \
     transforms.h \
     tree_cloning.h \
@@ -151,6 +156,7 @@ SOURCES +=     activity.cpp \
     drag.cpp \
     drawing.cpp \
     error_message_dialog.cpp \
+    examples_menu.cpp \
     font.cpp \
     font_file_manager.cpp \
     frame.cpp \
@@ -178,6 +184,8 @@ SOURCES +=     activity.cpp \
     preferences_dialog.cpp \
     preferences_pages.cpp \
     process.cpp \
+    qtlocalpeer.cpp \
+    qtlockedfile.cpp \
     raster_text.cpp \
     render_to_file_dialog.cpp \
     repository.cpp \
@@ -195,6 +203,7 @@ SOURCES +=     activity.cpp \
     text_drawing.cpp \
     text_edit.cpp \
     texture.cpp \
+    texture_cache.cpp \
     tool_window.cpp \
     transforms.cpp \
     tree_cloning.cpp \
@@ -205,7 +214,11 @@ SOURCES +=     activity.cpp \
 
 win32 {
     HEADERS += dde_widget.h
-    SOURCES += dde_widget.cpp
+    SOURCES += dde_widget.cpp qtlockedfile_win.cpp
+}
+
+unix {
+    SOURCES += qtlockedfile_unix.cpp
 }
 
 # Check compile-time options
@@ -315,7 +328,7 @@ contains(DEFINES, CFG_WITH_EULA) {
 }
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
-NOWARN_SOURCES += decryption.cpp licence.cpp
+NOWARN_SOURCES += decryption.cpp license.cpp
 
 !macx {
     HEADERS += include/tao/GL/glew.h \
@@ -328,7 +341,7 @@ macx {
     OBJECTIVE_SOURCES += font_file_manager_macos.mm
     !contains(DEFINES, CFG_NODISPLAYLINK):LIBS += -framework CoreVideo
     LIBS += -framework ApplicationServices -framework Foundation \
-        -Wl,-macosx_version_min,10.5 \
+        -Wl,-macosx_version_min,10.6 \
         -Wl,-rpath,@executable_path/../Frameworks \
         -Wl,-rpath,$$QMAKE_LIBDIR_QT
 
@@ -389,6 +402,15 @@ revtarget.depends = $$SOURCES \
     $$FORMS
 QMAKE_EXTRA_TARGETS += revtarget
 
+# Pre-processing of taodyne_ad.xl
+QMAKE_CLEAN += taodyne_ad.h
+PRE_TARGETDEPS += taodyne_ad.h
+taodyne_ad.target = taodyne_ad.h
+taodyne_ad.commands = sed -f taodyne_ad.sed < taodyne_ad.xl > taodyne_ad.h
+taodyne_ad.depends = taodyne_ad.xl taodyne_ad.sed
+QMAKE_EXTRA_TARGETS += taodyne_ad
+
+
 # Automatic embedding of changelog file (NEWS)
 system(cp ../NEWS ./NEWS)
 QMAKE_CLEAN += NEWS
@@ -402,7 +424,7 @@ QMAKE_EXTRA_TARGETS += changelog
 !system(perl -e "exit"):error("Can't execute perl")
 DEFS = $$join(DEFINES, " -D", " -D")
 tao_xl.target = tao.xl
-tao_xl.commands = perl preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
+tao_xl.commands = perl ../tools/preprocessor.pl $$DEFS tao.xl.in > tao.xl && cp tao.xl \"$$APPINST\"
 tao_xl.files = tao.xl
 tao_xl.path = $$APPINST
 tao_xl.depends = tao.xl.in

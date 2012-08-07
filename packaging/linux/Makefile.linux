@@ -22,7 +22,9 @@ ARCH=$(OS).$(shell uname -m)
 
 ########
 
-kit: deb tar
+kit:
+	$(MAKE) -f Makefile.linux deb
+	$(MAKE) -f Makefile.linux tar
 
 # .tar.bz2 package
 
@@ -61,6 +63,13 @@ DEBTAO = debian$(INSTROOT)
 debian:
 	mkdir -p debian/DEBIAN debian$(INSTROOT) debian/usr/bin
 	ln -sf $(INSTROOT)/tao debian/usr/bin/tao
+	mkdir -p debian/usr/share/applications
+	cp taopresentations.desktop debian/usr/share/applications
+	chmod 0644 debian/usr/share/applications/taopresentations.desktop
+	mkdir -p debian/usr/share/icons/hicolor/scalable/apps
+	cp taopresentations.svg debian/usr/share/icons/hicolor/scalable/apps
+	mkdir -p debian/usr/share/mime/packages
+	cp taopresentations.xml debian/usr/share/mime/packages
 
 prepare: debian
 	$(MAKE) -C ../../ install && cp -Rp ../../install/* $(DEBTAO)
@@ -71,7 +80,8 @@ endif
 	cd $(DEBTAO) ; mv Tao "Tao Presentations"
 	cp tao.sh $(DEBTAO)/tao
 	chmod +x $(DEBTAO)/tao
-	cp control debian/DEBIAN
+	cp control postinst postrm debian/DEBIAN
+	chmod 0755 debian/DEBIAN/postinst debian/DEBIAN/postrm
 	size=$$(du -sk debian | cut -f1); (cd debian/DEBIAN; sed -e "s/@INSTALLED_SIZE@/$$size/" control > control.tmp && mv control.tmp control)
 
 run-dpkg-deb = fakeroot dpkg-deb --build debian $(TAO)-$(ARCH).deb

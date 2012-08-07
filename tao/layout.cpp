@@ -61,7 +61,7 @@ LayoutState::LayoutState()
       hasTextureMatrix(false), printing(false),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
-      hasTransform(false), hasMaterial(false),
+      hasTransform(false), hasMaterial(false), hasDepthAttr(false),
       isSelection(false), groupDrag(false)
 {}
 
@@ -97,7 +97,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasAttributes(o.hasAttributes), 
         hasLighting(false),
         hasBlending(false),
-        hasTransform(o.hasTransform), hasMaterial(false),
+        hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
         isSelection(o.isSelection), groupDrag(false)
 {}
 
@@ -115,6 +115,7 @@ void LayoutState::ClearAttributes(bool all)
         zero.hasTextureMatrix = hasTextureMatrix;
         zero.hasAttributes = hasAttributes;
         zero.hasLighting = hasLighting;
+        zero.hasDepthAttr = hasDepthAttr;
     }
     *this = zero;
 }
@@ -198,6 +199,8 @@ Layout *Layout::AddChild(uint childId,
 //   Add a new layout as a child of this one
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(layoutevents)
+        std::cerr << "Adding child id " << childId << " to " << id << "\n";
     Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
@@ -364,6 +367,16 @@ void Layout::PolygonOffset()
 }
 
 
+void Layout::ClearPolygonOffset()
+// ----------------------------------------------------------------------------
+//   Clear the polygon offset, e.g. for 3D shapes
+// ----------------------------------------------------------------------------
+{
+    polygonOffset = 0;
+    glPolygonOffset (factorBase, unitBase);
+}
+
+
 uint Layout::ChildrenSelected()
 // ----------------------------------------------------------------------------
 //   The sum of chilren selections
@@ -383,7 +396,7 @@ uint Layout::Selected()
 // ----------------------------------------------------------------------------
 {
     uint selected = Display()->selected(id);
-    selected &= Widget::SELECTION_MASK;
+    selected &= ~Widget::SELECTION_MASK;
     return selected + ChildrenSelected();
 }
 
@@ -438,8 +451,10 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 
     if (NeedRefresh(e, now))
     {
+        XL::Save<uint> saveId(widget->id, id);
         IFTRACE(layoutevents)
-            std::cerr << "Layout " << layoutId << " needs updating\n";
+            std::cerr << "Layout " << layoutId
+                      << " id " << id << " needs updating\n";
 
         refreshEvents.clear();
         nextRefresh = DBL_MAX;
@@ -473,7 +488,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
     else
     {
         IFTRACE(layoutevents)
-            std::cerr << "Layout " << layoutId << " does not need updating\n";
+            std::cerr << "Layout " << layoutId << " does not need updating"
+                      << " at t=" << now
+                      << " expires at " << nextRefresh << "\n";
 
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);
@@ -547,6 +564,12 @@ bool Layout::NeedRefresh(QEvent *e, double when)
     QEvent::Type type = e->type();
     if (type != QEvent::Timer && refreshEvents.count(type))
         return true;
+    // /!\ Don't check for (type == QEvent::Timer) below! If nextRefresh is
+    // expired, then no matter which event is being processed, we need to
+    // refresh. Otherwise the following test case would not run smooth when
+    // moving the mouse:
+    //   locally { translatex 100*sin time ; rectangle 0, 0, 150, 100 }
+    //   locally { circle mouse_x, mouse_y, 50 }
     if (nextRefresh != DBL_MAX && nextRefresh <= when)
         return true;
     return false;
@@ -696,14 +719,16 @@ void Layout::PushLayout(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Check if the group was opened. If so, update OpenGL name
-    if (uint groupId = id)
+    if (id & Widget::SELECTION_MASK)
     {
+        uint groupId = id;
         Widget *widget = where->Display();
         widget->selectionContainerPush();
 
         uint open = widget->selected(id);
-        if (open & Widget::CONTAINER_OPENED)
-            groupId |= Widget::CONTAINER_OPENED;
+        if ((open & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
+            groupId = (groupId & ~Widget::SELECTION_MASK)
+                | Widget::CONTAINER_OPENED;
         glPushName(groupId);
     }
 }
@@ -714,7 +739,7 @@ void Layout::PopLayout(Layout *where)
 //   Restore information required to maintain selection hierarchy
 // ----------------------------------------------------------------------------
 {
-    if (id)
+    if (id & Widget::SELECTION_MASK)
     {
         Widget *widget = where->Display();
         widget->selectionContainerPop();
@@ -730,7 +755,7 @@ uint Layout::CharacterId()
 //    We also increment the widget's selection ID so that we account
 //    for the right number of selectable items
 {
-    display->selectionId();
+    display->shapeId();
     return ++charId;
 }
 

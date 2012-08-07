@@ -28,6 +28,7 @@
 #include "justification.h"
 #include "tao_gl.h"
 #include "application.h"
+#include "texture_cache.h"
 #include <vector>
 #include <set>
 #include <QFont>
@@ -49,16 +50,14 @@ struct TextureState
     TextureState(): wrapS(false), wrapT(false),
                     id(0), unit(0), width(0), height(0),
                     type(GL_TEXTURE_2D), mode(GL_MODULATE),
-                    mipmap(false),
-                    minFilt(TaoApp->tex2DMinFilter),
-                    magFilt(TaoApp->tex2DMagFilter) {}
+                    minFilt(TextureCache::instance()->minFilter()),
+                    magFilt(TextureCache::instance()->magFilter()) {}
 
     bool          wrapS, wrapT;
     GLuint        id, unit;
     GLuint        width, height;
     GLenum        type;
     GLenum        mode;
-    bool          mipmap;
     GLenum        minFilt, magFilt;
 };
 
@@ -137,6 +136,7 @@ public:
     bool                hasBlending     : 1;
     bool                hasTransform    : 1;
     bool                hasMaterial     : 1;
+    bool                hasDepthAttr    : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
 
@@ -173,6 +173,7 @@ public:
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
+    virtual void        ClearPolygonOffset();
     virtual uint        Selected();
     virtual uint        ChildrenSelected();
 
@@ -213,6 +214,8 @@ public:
             bits |= GL_LIGHTING_BIT;
         if (hasBlending)
             bits |= GL_COLOR_BUFFER_BIT;
+        if (hasDepthAttr)
+            bits |= GL_DEPTH_BUFFER_BIT;
         return bits;
     }
 

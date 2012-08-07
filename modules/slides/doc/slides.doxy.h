@@ -14,7 +14,7 @@
  * matter of using the @ref theme function with the suitable value, before using
  * the slide commands. For example:
  @code
-import Slides 1.0
+import Slides
 
 // Show a title slide with the default theme (black on white)
 title_slide "My title slide",
@@ -43,7 +43,7 @@ slide "The Keyboard theme",
  * display area is not the same as the aspect ratio of the picture.
  * All elements on the slide are drawn assuming that the slide is 1024x768
  * pixels by default. This can be adjusted with @ref set_slide_size.
- * Use @ref window_width and @ref window_height to get the size of the
+ * Use @p window_width and @p window_height to get the size of the
  * display area. Use @ref slide_width and @ref slide_height to get the size
  * of the slide.
  *
@@ -96,7 +96,7 @@ slide "Le thème Keyboard",
  * que l'image couvre quand même tout l'écran.
  * Par défaut tous les éléments d'une diapositive sont dessinés pour une
  * résolution de 1024x768 pixels. Ceci peut être ajusté en appelant
- * @ref set_slide_size. Utlisez @ref window_width et @ref window_height pour
+ * @ref set_slide_size. Utlisez @p window_width et @p window_height pour
  * obtenir la taille de l'affichage. Utilisez @ref slide_width et
  * @ref slide_height pour obtenir la taille de la diapositive.
  *

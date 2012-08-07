@@ -40,6 +40,25 @@
  * @include multitexturing.ddd
  * @image html multitexturing.png "Multitexturing demo: multitexturing.ddd"
  *
+ * @par Texture cache
+ *
+ * 2D texture created by @ref texture, @ref image or @ref image_px are
+ * normally transferred to the graphics card as soon as they are loaded from
+ * the specified file. More precisely, they are transferred to the OpenGL
+ * implementation, which is then responsible for doing the appropriate memory
+ * management, depending on the card's memory size, and the amount of textures
+ * and other graphics data used by the application.
+ *
+ * In certain circumstances, it is necessary to control how texture
+ * data are sent to OpenGL. For instance, when dealing with large amounts of
+ * textures (several gigabytes), the OpenGL implementation
+ * may return a "GL out of memory" error. In this case, limiting the amount of
+ * data sent to OpenGL, while keeping the rest of the picture data in main
+ * memory may help solve the problem. This can be achieved by the texture cache
+ * which can be configured from the preference page, or with the primitives:
+ * @ref texture_cache_mem_size, @ref texture_cache_gl_size,
+ * @ref texture_compress, and @ref texture_mipmap.
+ *
  * @~french
  * @defgroup graph_env Environnement graphique (couleur des lignes, du remplissage, textures)
  * @ingroup Graphics
@@ -61,6 +80,27 @@
  *
  * @include multitexturing.ddd
  * @image html multitexturing.png "Démonstration : multitexturing.ddd"
+ *
+ * @par Cache de textures
+ *
+ * Les textures bi-dimensionnelles créées par @ref texture, @ref image ou
+ * @ref image_px sont en principe transférées vers la carte graphique dès
+ * qu'elles sont chargées depuis le fichier image. Plus précisément, elles sont
+ * confiées à l'implémentation OpenGL qui les stocke dans la carte ou
+ * en mémoire principale en fonction de la mémoire disponible sur la carte et
+ * de la quantité de textures ou d'autres données graphiques utilisées par
+ * l'application.
+ *
+ * Dans certains cas il est nécessaire de contrôler quelle quantité de textures
+ * est gérée par OpenGL. Par exemple, lorsque de grandes quantités de textures
+ * sont chargées (plusieurs giga-octets), l'implémentation OpenGL peut
+ * déclencher une erreur "dépassement de mémoire GL". Dans ce cas, le fait
+ * de limiter la quantité de données envoyée vers OpenGL tout en conservant
+ * le reste en mémoire principale peut permettre de résoudre le problème.
+ * Cela se fait grâce au cache de textures, qui peut être configuré depuis
+ * la page de préférences, ou grâce aux primitives
+ * @ref texture_cache_mem_size, @ref texture_cache_gl_size,
+ * @ref texture_compress, et @ref texture_mipmap.
  *
  * @~
  * @{
@@ -1027,6 +1067,56 @@ texture_mag_filter(filter:text);
  * (@c NEAREST correspond à @c GL_NEAREST, etc.). @n
  */
 texture_min_filter(filter:text);
+
+/**
+ * @~english
+ * Defines the amount of main memory allocated to textures.
+ * The application will limit the amount of main memory used to cache textures
+ * loaded from files to the specified size, in bytes. When the cache is full
+ * and a new file has to be loaded, the least recently used textures are
+ * purged from main memory. 20% of @p bytes are freed.
+ * @~french
+ * Définit la quantité de mémoire allouée aux textures.
+ * L'application limite l'utilisation de mémoire pour le cache de textures à
+ * la taille spécifiée, en octets. Lorsque le cache est plein et qu'un nouveau
+ * fichier doit être chargé, les textures qui n'ont pas été utilisées récemment
+ * sont supprimées.
+ * 20% de @p bytes sont libérés.
+ */
+texture_cache_mem_size(bytes:integer);
+
+/**
+ * @~english
+ * Defines the amount of texture data sent to OpenGL.
+ * The application will limit the amount of texture data sent to OpenGL to
+ * the specified size, in bytes. When the specified size is reached and a new
+ * texture has to be sent to OpenGL, the least recently used textures are
+ * purged from GL memory. 20% of @p bytes are freed.
+ * @~french
+ * Définit la quantité de textures envoyées à OpenGL.
+ * L'application limite la quantité de textures envoyées à OpenGL à
+ * la taille spécifiée, en octets. Lorsque la taille est atteinte et qu'une
+ * nouvelle texture doit être envoyée à OpenGL, les textures qui n'ont pas été
+ * utilisées récemment sont supprimées de la mémoire GL.
+ * 20% de @p bytes sont libérés.
+ */
+texture_cache_gl_size(bytes:integer);
+
+/**
+ * @~english
+ * Enables or disables creation of mipmaps for new textures.
+ * @~french
+ * Active ou désactive la création de mipmaps pour les nouvelles textures.
+ */
+texture_mipmap(enable:boolean);
+
+/**
+ * @~english
+ * Enables or disables compression of new textures.
+ * @~french
+ * Active ou désactive la compression des nouvelles textures.
+ */
+texture_compress(enable:boolean);
 
 /**
  * @~english

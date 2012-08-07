@@ -132,9 +132,8 @@ void LensFlare::Draw()
     {
         licensed = tao->checkImpressOrLicense("LensFlare 1.0");
         tested = true;
+        Q_UNUSED(licensed);
     }
-    if (!licensed && !tao->blink(1.0, 0.2, 300.0))
-        return;
 
     // Manually determine if the source is occluded by a previous object.
     // If it is, we draw no one of the flares.
@@ -189,7 +188,8 @@ void LensFlare::DrawFlare(Flare flare, Vector3 pos)
     // General scaling rate of flares textures of size 256 * 256
     scale *= 128;
 
-    glBindTexture(GL_TEXTURE_2D, flare.id);
+    tao->textureCacheBind(flare.id);
+    tao->textureCacheSetMinMagFilters(flare.id);
     tao->SetShader(0);
     glColor4f(flare.color[0],
               flare.color[1],

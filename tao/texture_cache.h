@@ -27,6 +27,7 @@
 #include "tao_tree.h"
 #include <QMap>
 #include <QDateTime>
+#include <QtNetwork>
 #include <QTime>
 #include <QTimer>
 #include <iostream>
@@ -89,6 +90,19 @@ struct Image
             sz = 0;
         }
         raw.load(path);
+    }
+
+    // Load uncompressed image from file
+    void loadFromData(const QByteArray &data)
+    {
+        if (compressed)
+        {
+            Q_ASSERT(sz);
+            free(compressed);
+            compressed = 0;
+            sz = 0;
+        }
+        raw.loadFromData(data);
     }
 
     // Used when converting uncompressed to compressed.
@@ -173,10 +187,15 @@ private:
 
     Image           image;
     bool            cacheCompressed;
+    bool            networked;
+    QNetworkReply  *networkReply;
 
     QDateTime       fileLastModified;
     QTime           fileLastChecked;
 };
+
+
+
 
 
 class TextureCache : public QObject
@@ -264,6 +283,9 @@ private:
     bool                             mipmap, compress;
     // Min/mag filters to use
     GLenum                           minFilt, magFilt;
+
+    // Network access manager for all texture network accesses
+    QNetworkAccessManager            network;
 
 private:
     static TextureCache * textureCache;

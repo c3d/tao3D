@@ -24,8 +24,15 @@
 #include "base.h"
 #include "tao_utf8.h"
 #include "preferences_pages.h"
+#include "license.h"
 
 namespace Tao {
+
+// ============================================================================
+// 
+//    Helpers
+// 
+// ============================================================================
 
 TextureCache * TextureCache::textureCache = NULL;
 
@@ -95,6 +102,13 @@ SIZE_SETTER(textureCacheMemSize, maxMemSize)
 SIZE_SETTER(textureCacheGLSize, maxGLSize)
 
 
+
+// ============================================================================
+// 
+//    TextureCache class
+// 
+// ============================================================================
+
 TextureCache::TextureCache()
 // ----------------------------------------------------------------------------
 //   Initialize cache
@@ -105,7 +119,9 @@ TextureCache::TextureCache()
       purgeRatio(0.8), mipmap(PerformancesPage::texture2DMipmap()),
       compress(PerformancesPage::texture2DCompress()),
       minFilt(PerformancesPage::texture2DMinFilter()),
-      magFilt(PerformancesPage::texture2DMagFilter())
+      magFilt(PerformancesPage::texture2DMagFilter()),
+      network(NULL)
+                           
 {
     statTimer.setSingleShot(true);
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
@@ -161,8 +177,7 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
     CachedTexture * cached = fromName.value(name);
     if (!cached)
     {
-        cached = new CachedTexture(*this, img, docPath,
-                                                   mipmap, compress);
+        cached = new CachedTexture(*this, img, docPath, mipmap, compress);
         GLuint id = cached->id;
         fromId[id] = fromName[name] = cached;
         if (memSize > maxMemSize)
@@ -412,10 +427,11 @@ std::ostream & TextureCache::debug()
 
 
 
-
-
-
-
+// ============================================================================
+// 
+//    CachedTexture class
+// 
+// ============================================================================
 
 CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
                              const QString &docPath,
@@ -425,9 +441,17 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
 // ----------------------------------------------------------------------------
     : path(path), docPath(docPath), width(0), height(0),  mipmap(mipmap),
       compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
-      memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed)
+      memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed),
+      networked(path.contains("://")), networkReply(NULL)
 {
     glGenTextures(1, &id);
+    if (networked)
+    {
+        Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
+        QUrl url(path);
+        QNetworkRequest req(url);
+        networkReply = cache.network.get(req);
+    }
 }
 
 
@@ -438,6 +462,8 @@ CachedTexture::~CachedTexture()
 {
     purge();
     glDeleteTextures(1, &id);
+    if (networkReply)
+        networkReply->deleteLater();
 }
 
 
@@ -452,21 +478,35 @@ void CachedTexture::load()
     mipmap = cache.mipmap;
     compress = cache.compress;
 
+
     QString p(findPath());
-    if (p != "")
+    if (networked)
+    {
+        if (networkReply->isFinished() &&
+            networkReply->error() == QNetworkReply::NoError)
+            image.loadFromData(networkReply->readAll());
+    }
+    else if (p != "")
+    {
         image.load(p);
+    }
     if (image.isNull())
     {
         p = QString(":/images/default_image.svg");
         image.load(p);
         canonicalPath = QString();
         isDefaultTexture = true;
+        if (networked)
+            fileLastChecked.start();
     }
     else
     {
         canonicalPath = p;
-        fileLastModified = QFileInfo(p).lastModified();
-        fileLastChecked.start();
+        if (!networked)
+        {
+            fileLastModified = QFileInfo(p).lastModified();
+            fileLastChecked.start();
+        }
         isDefaultTexture = false;
     }
 
@@ -685,8 +725,7 @@ GLuint CachedTexture::bind()
     Q_ASSERT(id);
     Q_ASSERT(transferred());
 
-    if (fileLastChecked.elapsed() > 1000 /* ms */)
-        checkFile();
+    checkFile();
 
     glBindTexture(GL_TEXTURE_2D, id);
     return id;
@@ -698,6 +737,9 @@ QString CachedTexture::findPath()
 //   Resolve path to texture (returns canonical path, empty if file not found)
 // ----------------------------------------------------------------------------
 {
+    if (networked)
+        return path;
+
     QFileInfo info(QDir(docPath), path);
     if (info.exists())
         return info.canonicalFilePath();
@@ -713,6 +755,24 @@ void CachedTexture::checkFile()
 //   Check if file has been modified, deleted, or created - then reload it
 // ----------------------------------------------------------------------------
 {
+    // If networked, we check if the reply is completed
+    if (networked)
+    {
+        if (image.isNull() &&
+            networkReply->isFinished() &&
+            networkReply->error() == QNetworkReply::NoError)
+        {
+            purge();
+            load();
+            transfer();
+        }
+        return;
+    }
+
+    // Don't check too frequently
+    if (fileLastChecked.elapsed() < 1000 /* ms */)
+        return;
+
     fileLastChecked.restart();
 
     bool reload = false;

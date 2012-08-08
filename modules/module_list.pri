@@ -45,7 +45,9 @@
        point_cloud \
        network_access \
        water_surface \
-       remote_control
+       remote_control \
+       regexp
+
     OTHER_MODULES =     \
         dip_voting \
         dip_mouse \

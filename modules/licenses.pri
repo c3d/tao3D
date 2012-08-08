@@ -13,17 +13,24 @@
 
 isEmpty(MODINSTPATH):error(Please include modules.pri before licenses.pri)
 
-!isEmpty(LICENSE_FILES):!isEmpty(SIGN_MODULE_LICENSES) {
+!isEmpty(LICENSE_FILES) {
 
-  # Install all license templates into the module installation directory
-  license_files.path  = $$MODINSTPATH
-  license_files.files = $$LICENSE_FILES
-  INSTALLS += license_files
+  # In Taodyne build environment, enable license checking in modules
+  exists(../tao_sign/expires.pri):DEFINES += USE_LICENSE
 
-  # Tao Presentations full build only (Taodyne)
-  # Generate and sign temporary licenses, and install them into the Tao
-  # licenses folder
-  exists(../tao_sign/expires.pri) {  # Tao full build
+  isEmpty(SIGN_MODULE_LICENSES) {
+
+    # Install all license templates into the module installation directory
+    license_files.path  = $$MODINSTPATH
+    license_files.files = $$LICENSE_FILES
+    INSTALLS += license_files
+
+  } else {
+
+    # Tao Presentations full build only (Taodyne)
+    # Generate and sign temporary licenses, and install them into the Tao
+    # licenses folder
+    !exists(../tao_sign/expires.pri):error(Must be in Taodyne internal build environment to sign licenses)
 
     # Enable license checking in modules
     DEFINES += USE_LICENSE

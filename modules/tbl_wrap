@@ -51,6 +51,7 @@ do
         exit 0
     else
         IN=$1
+        MODNAME=$(basename $IN .tbl)
         shift
     fi
 done
@@ -69,6 +70,7 @@ cat >$OUT << __EOF__
 #include "main.h"
 #include "traces.h"
 #include "tao/module_api.h"
+#include "$MODNAME.h"
 #include <iostream>
 
 /*

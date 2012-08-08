@@ -22,7 +22,6 @@
 //  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
-#include "lens_flare.h"
 
 PREFIX(LensFlare,  tree, "lens_flare",
        PARM(p, code, "The program that represent the content of the frame"),

@@ -492,12 +492,13 @@ void CachedTexture::load()
     }
     if (image.isNull())
     {
-        p = QString(":/images/default_image.svg");
-        image.load(p);
+        if (!networked)
+        {
+            p = QString(":/images/default_image.svg");
+            image.load(p);
+        }
         canonicalPath = QString();
         isDefaultTexture = true;
-        if (networked)
-            fileLastChecked.start();
     }
     else
     {
@@ -510,8 +511,11 @@ void CachedTexture::load()
         isDefaultTexture = false;
     }
 
-    width = image.width();
-    height = image.height();
+    if (!image.isNull())
+    {
+        width = image.width();
+        height = image.height();
+    }
     int size = image.byteCount();
 
     IFTRACE2(texturecache, fileload)
@@ -727,7 +731,8 @@ GLuint CachedTexture::bind()
 
     checkFile();
 
-    glBindTexture(GL_TEXTURE_2D, id);
+    if (!isDefaultTexture || !networked)
+        glBindTexture(GL_TEXTURE_2D, id);
     return id;
 }
 

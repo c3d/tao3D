@@ -27,6 +27,11 @@ PREFIX(RegExpMatch,  boolean, "regexp_match",
        GROUP(module.RegExp)
        SYNOPSIS("Return true of a text matches a regexp"))
 
+INFIX(RegExpMatchInfix,  boolean, text, "matches", text,
+       return regexpMatch(context, self, l, r),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return true of a text matches a regexp"))
+
 PREFIX(RegExpSearch,  integer, "regexp_search",
        PARM(InputValue, text, )
        PARM(Pattern, text, ),
@@ -59,11 +64,22 @@ PREFIX(RegExpParseText,  tree, "regexp_parse_text",
        GROUP(module.RegExp)
        SYNOPSIS("Analyze text using regular expressions"))
 
-PREFIX(RegExpAt,  tree, "regexp",
+PREFIX(RegExpAt,  tree, "regexp_captured",
        PARM(Index, integer, ),
        return regexpAt(context, self, Index),
        GROUP(module.RegExp)
-       SYNOPSIS("Analyze text using regular expressions."))
+       SYNOPSIS("Return the nth capture."))
+
+PREFIX(RegExpPosition,  tree, "regexp_position",
+       PARM(Index, integer, ),
+       return regexpPos(context, self, Index),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return the nth position."))
+
+PREFIX(RegExpMatchedLength,  tree, "regexp_matched_length", ,
+       return regexpMatchedLength(context, self),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return the matched length."))
 
 PREFIX(RegExpEscape,  text, "regexp_escape",
        PARM(Value, text, ),

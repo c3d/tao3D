@@ -39,4 +39,6 @@ Name *regexpMatch(Context *, Tree *self, text input, text pattern);
 Integer *regexpSearch(Context *, Tree *self, text input, text pattern);
 Tree *regexpParse(Context *, Tree *self, text input, Tree *code, RegExpMode m);
 Text *regexpAt(Context *, Tree *self, uint index);
+Integer *regexpPos(Context *, Tree *self, uint index);
+Integer *regexpMatchedLength(Context *, Tree *self);
 Text *regexpEscape(Context *, Tree *self, text toEscape);

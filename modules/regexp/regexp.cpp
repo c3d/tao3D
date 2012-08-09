@@ -215,6 +215,27 @@ Text *regexpAt(Context *, Tree *self, uint index)
 }
 
 
+Integer *regexpPos(Context *, Tree *self, uint index)
+// ----------------------------------------------------------------------------
+//   Return position at given index
+// ----------------------------------------------------------------------------
+{
+    int pos = regexpCurrent.pos(index);
+    return new Integer(pos, self->Position());
+}
+
+
+Integer *regexpMatchedLength(Context *, Tree *self)
+// ----------------------------------------------------------------------------
+//   Return total matched length
+// ----------------------------------------------------------------------------
+{
+    int length = regexpCurrent.matchedLength();
+    return new Integer(length, self->Position());
+   
+}
+
+
 Text *regexpEscape(Context *, Tree *self, text toEscape)
 // ----------------------------------------------------------------------------
 //   Return input text, escaped so that it works in a regexp

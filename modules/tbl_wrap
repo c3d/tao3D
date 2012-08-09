@@ -77,6 +77,7 @@ cat >$OUT << __EOF__
  * Record the version of the API this module is compiled with
  * (for runtime compatibility check)
  */
+DLL_PUBLIC
 unsigned module_api_current = TAO_MODULE_API_CURRENT;
 
 using namespace XL;

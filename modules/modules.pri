@@ -27,6 +27,12 @@ LIBS += -L$${TAOTOPSRC}/libxlr -lxlr
 # A module's native library can install its dependencies in the same directory
 # Windows and MacOS look there by default, Linux does not
 linux-g++*:LIBS += -Wl,-rpath=.
+# On linux, do not export any symbol by default (only those marked DLL_PUBLIC in
+# module_api.h)
+linux-g++* {
+  QMAKE_CXXFLAGS += -fvisibility=hidden
+  QMAKE_CFLAGS   += -fvisibility=hidden
+}
 
 # How to generate *_wrap.cpp from *.tbl
 # Usage:

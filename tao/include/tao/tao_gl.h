@@ -37,8 +37,10 @@
 #include <QGLFramebufferObject>
 #include <QGLShaderProgram>
 
-#ifdef CONFIG_MACOSX 
+#if defined(CONFIG_MACOSX)
 #  include <OpenGL/glu.h>
+#elif defined (CONFIG_LINUX)
+#  include <GL/glu.h>
 #else
    // glu.h included by glew.h
 #endif

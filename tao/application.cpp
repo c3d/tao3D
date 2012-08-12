@@ -618,7 +618,7 @@ void Application::cleanup()
 
         if (box.exec() == QMessageBox::Ok)
         {
-            QUrl url("http://www.taodyne.com/taopresentations/buynow");
+            QUrl url(tr("http://taodyne.com/taopresentations/buynow"));
             QDesktopServices::openUrl(url);
         }
     }

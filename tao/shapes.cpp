@@ -227,9 +227,7 @@ bool Shape::setShader(Layout *where)
         return false;
 
     // Activate current shader
-    if (where->globalProgramId)
-        glUseProgram(where->globalProgramId);
-    else
+    if (where->programId)
         glUseProgram(where->programId);
 
     // In order to improve performance of large and complex 3D models,

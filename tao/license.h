@@ -25,10 +25,8 @@
 #include "base.h"
 #ifndef KEYGEN
 #include "version.h"
-#ifdef TAO
 #include "application.h"
 #include <set>
-#endif
 #endif
 
 #include <vector>
@@ -81,7 +79,6 @@ public:
 
     static bool CheckImpressOrLicense(text feature)
     {
-#ifdef TAO
         if (Application::isImpress())
         {
             IFTRACE(lic)
@@ -98,7 +95,6 @@ public:
             return true;
         }
         else
-#endif // TAO
         {
             return Check(feature, false);
         }

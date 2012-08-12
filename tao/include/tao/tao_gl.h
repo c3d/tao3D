@@ -21,7 +21,13 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#ifndef CONFIG_MACOSX 
+#ifdef CONFIG_LINUX
+#ifndef GL_GLEXT_PROTOTYPES
+#define GL_GLEXT_PROTOTYPES 1
+#endif
+#endif
+
+#ifdef CONFIG_MINGW
 #  include <tao/GL/glew.h>
 #else
 #  define glewInit()
@@ -31,8 +37,10 @@
 #include <QGLFramebufferObject>
 #include <QGLShaderProgram>
 
-#ifdef CONFIG_MACOSX 
+#if defined(CONFIG_MACOSX)
 #  include <OpenGL/glu.h>
+#elif defined (CONFIG_LINUX)
+#  include <GL/glu.h>
 #else
    // glu.h included by glew.h
 #endif

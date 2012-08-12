@@ -20,11 +20,12 @@ include(../main.pri)
 
 TEMPLATE = app
 TARGET   = tao_sign
-SOURCES += sign.cpp
+SOURCES += sign.cpp ../tao/license.cpp
 HEADERS += ../tao/license.h
 CONFIG  += console static
 CONFIG  -= app_bundle
 QT      -= gui
+DEFINES += KEYGEN
 
 # Linux release mode: strip binary, ready for installation on web shop server
 # ("make install" normally does it, but there is no install for tao_sign)

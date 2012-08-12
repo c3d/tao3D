@@ -1507,7 +1507,7 @@ void Window::tutorialsPage()
 //    Open the tutorials page on the web
 // ----------------------------------------------------------------------------
 {
-    QString url("http://taodyne.com/taopresentations/1.0/tutorials/");
+    QString url(tr("http://taodyne.com/taopresentations/1.0/tutorials/"));
     QDesktopServices::openUrl(url);
  }
 

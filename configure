@@ -134,7 +134,6 @@ while [ $# -ne 0 ] ; do
       ;;
     discovery)
       EDITION="Discovery"
-      FLAGS="$FLAGS DEFINES+=CFG_EVALUATION_WATERMARK_TIME=600" # seconds
       shift ; done=1
       ;;
     creativity)

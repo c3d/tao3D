@@ -653,7 +653,7 @@ void Widget::dawdle()
     if (syncDelay < 0)
     {
         refreshProgram();
-        syncDelay = tick + Main::MAIN->options.sync_interval * 1000;
+        nextSync = tick + Main::MAIN->options.sync_interval * 1000;
     }
 #endif
 }

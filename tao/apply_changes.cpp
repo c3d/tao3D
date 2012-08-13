@@ -73,11 +73,14 @@ bool ImportedFilesChanged(import_set &done,
             if (modified > sf.modified)
             {
                 IFTRACE(filesync)
+                {
+                    QString from, to;
+                    from = QString::fromLocal8Bit(ctime(&sf.modified)).trimmed();
+                    to = QString::fromLocal8Bit(ctime(&modified)).trimmed();
                     std::cerr << "Reload: Date changed from "
-                              << ctime(&sf.modified)
-                              << " to "
-                              << ctime(&modified)
+                              << +from << " to "<< +to
                               << " for " << sf.name << "\n";
+                }
                 result = true;
             }
         }

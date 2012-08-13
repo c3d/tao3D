@@ -106,7 +106,7 @@ clean.cp_template:
 
 ########
 
-.cp_sdk_ts:
+.cp_sdk_ts: .tao_install_ts
 ifndef NO_SDK
 	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
 	$(MAKE) -C ../.. -f Makefile.sdk

@@ -188,7 +188,6 @@ private slots:
     void onlineDoc();
     void tutorialsPage();
     void documentWasModified();
-    void checkFiles();
     void displayModeTriggered(bool on);
 #ifdef CFG_TIMED_FULLSCREEN
     void leaveFullScreen();

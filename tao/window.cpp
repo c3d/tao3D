@@ -183,12 +183,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     XL::SourceFile &sf = xlRuntime->files[+sourceFile];
     taoWidget->xlProgram = &sf;
 
-#ifndef CFG_NORELOAD
-    // Fire a timer to check if files changed
-    fileCheckTimer.start(500);
-    connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
-#endif
-
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
             this, SLOT(adjustToScreenResolution(int)));
@@ -337,24 +331,6 @@ void Window::closeEvent(QCloseEvent *event)
     else
     {
         event->ignore();
-    }
-}
-
-
-void Window::checkFiles()
-// ----------------------------------------------------------------------------
-//   Check if any of the open files associated with the widget changed
-// ----------------------------------------------------------------------------
-{
-    if (taoWidget)
-    {
-        XL::SourceFile *prog = taoWidget->xlProgram;
-        if (!isUntitled && !isReadOnly && prog->tree)
-        {
-            import_set done;
-            if (ImportedFilesChanged(done, false))
-                loadFile(+prog->name);
-        }
     }
 }
 

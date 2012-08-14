@@ -145,12 +145,13 @@ static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   This was made necessary by Bug #251
 {
+    // Note: check #2407 if you intend to add QGL::AccumBuffers here
+    // (it is sometimes incompatible with QGL::SampleBuffers)
     QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
          QGL::StencilBuffer     |
-         QGL::AlphaChannel      |
-         QGL::AccumBuffer);
+         QGL::AlphaChannel);
     if (TaoApp->hasGLMultisample)
         options |= QGL::SampleBuffers;
     QGLFormat format(options);
@@ -2171,8 +2172,6 @@ void Widget::resizeGL(int width, int height)
     TaoSave saveCurrent(current, this);
     QEvent r(QEvent::Resize);
     refreshNow(&r);
-    glClearAccum(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_ACCUM_BUFFER_BIT);
 }
 
 

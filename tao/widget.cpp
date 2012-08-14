@@ -2391,13 +2391,6 @@ QFont &Widget::currentFont()
 }
 
 
-Context *Widget::context()
-// ----------------------------------------------------------------------------
-//   Return the symbols for the top-level program
-// ----------------------------------------------------------------------------
-{
-    return xlProgram->context;
-}
 
 
 

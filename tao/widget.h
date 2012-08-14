@@ -182,7 +182,6 @@ public:
     void        updateSelection();
     uint        showGlErrors();
     QFont &     currentFont();
-    Context *   context();
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();

@@ -647,7 +647,6 @@ void Widget::dawdle()
 #endif
 
 #ifndef CFG_NORELOAD
-    // REVISIT: redundant with Window::checkFiles()?
     // Check if it's time to reload
     longlong syncDelay = longlong(nextSync - tick);
     if (syncDelay < 0)

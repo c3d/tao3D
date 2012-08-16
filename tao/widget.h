@@ -43,6 +43,7 @@
 #include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
+#include "file_monitor.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -888,6 +889,7 @@ private:
     bool                  inError;
     bool                  mustUpdateDialogs;
     bool                  runOnNextDraw;
+    FileMonitor           fileMonitor;
 
     // Rendering
     QGradient*            gradient;

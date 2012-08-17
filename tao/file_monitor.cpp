@@ -25,13 +25,11 @@
 #include "tao_utf8.h"
 #include <QDir>
 #include <QMutexLocker>
-
+#include <QTimer>
 
 
 
 namespace Tao {
-
-
 
 
 FileMonitor::FileMonitor()
@@ -170,8 +168,9 @@ FileMonitorThread::FileMonitorThread()
         debug() << "Starting polling thread (" << pollInterval << " ms)\n";
 
     moveToThread(this);
-    connect(&pollingTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
-    pollingTimer.start(pollInterval);
+    // Using a single-shot timer avoids accumulating timeout events in case
+    // checkFiles() takes longer than one period of time
+    QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));
     start();
 }
 
@@ -332,6 +331,8 @@ void FileMonitorThread::checkFiles()
 
     IFTRACE(filemon)
         debug() << "Checked " << checked << " file(s)\n";
+
+    QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));
 }
 
 }

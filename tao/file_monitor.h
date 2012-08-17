@@ -30,7 +30,6 @@
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
-#include <QTimer>
 #include <QThread>
 #include <iostream>
 
@@ -138,7 +137,6 @@ protected slots:
 protected:
     QMutex                   mutex;
     QMap<QString, FileInfo>  files;
-    QTimer                   pollingTimer;
     bool                     dontPollReadOnlyFiles;
 
 private:

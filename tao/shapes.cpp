@@ -227,8 +227,12 @@ bool Shape::setShader(Layout *where)
         return false;
 
     // Activate current shader
-    if (where->programId)
+    static GLuint prev = 0;
+    if (where->programId != prev)
+    {
         glUseProgram(where->programId);
+        prev = where->programId;
+    }
 
     // In order to improve performance of large and complex 3D models,
     // we use a shader based ligting (Feature #1508), which needs some

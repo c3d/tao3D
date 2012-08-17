@@ -263,7 +263,6 @@ void FileMonitorThread::checkFiles()
 {
     QMutexLocker locker(&mutex);
 
-    int checked = 0;
     foreach (QString path, files.keys())
     {
         FileInfo &file = files[path];
@@ -272,7 +271,6 @@ void FileMonitorThread::checkFiles()
             continue;
 
         file.refresh();
-        checked++;
 
         if (file.exists())
         {
@@ -328,9 +326,6 @@ void FileMonitorThread::checkFiles()
             }
         }
     }
-
-    IFTRACE(filemon)
-        debug() << "Checked " << checked << " file(s)\n";
 
     QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));
 }

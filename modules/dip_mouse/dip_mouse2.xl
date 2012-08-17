@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  dip_mouse2.xl                                                 Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //       DIP_mouse module definition
 //
 //       DIP protocol that deals with mouse motion data
 //
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
 // ****************************************************************************
 //  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2012 Jerome Forissier <jerome@taodyne.com>
@@ -30,11 +30,11 @@ data MOUSE_X
 data MOUSE_Y
 
 
-dip_mouse_start FeatureType:text, Fuuid:text ->
+dip_mouse_begin FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
-//   Start a mouse feature, given a feature UUID
+//   Begin a mouse feature, given a feature UUID
 // ----------------------------------------------------------------------------
-    dip_start_feature_page FeatureType, Fuuid, "DIP_mouse 1.0"
+    dip_begin_feature_page FeatureType, Fuuid, "DIP_mouse 1.0"
 
 
 dip_mouse_end FeatureType:text, Fuuid:text ->
@@ -57,14 +57,14 @@ dip_mouse  FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
     USER_COUNT := 0
     dip_get_csv FeatureType, Fuuid, "dip_mouse_default_callback"
-    
 
-dip_mouse_default_callback UserUUID:text, MosueButton:integer, MouseX:real, MouseY:real ->
+
+dip_mouse_default_callback UserUUID:text, MouseButton:integer, MouseX:real, MouseY:real ->
 // ----------------------------------------------------------------------------
 //  Store an item in tables
 // ----------------------------------------------------------------------------
     USER_UUID[USER_COUNT] := UserUUID
-    MOUSE_BUTTON[USER_COUNT]  := MosueButton
+    MOUSE_BUTTON[USER_COUNT]  := MouseButton
     MOUSE_X[USER_COUNT]  := MouseX
     MOUSE_Y[USER_COUNT]  := MouseY
     USER_COUNT := USER_COUNT + 1
@@ -73,4 +73,4 @@ dip_mouse_display_all ->
     dip_mouse_display with 0 .. USER_COUNT
 
 dip_mouse_display Row:integer ->
-    writeln USER_UUID[Row]  & " " & (text MOUSE_BUTTON[Row]) & " " & (text MOUSE_X[Row]) & " " &  (text MOUSE_Y[Row])
+    writeln (text Row) & " - " & USER_UUID[Row]  & " " & (text MOUSE_BUTTON[Row]) & " " & (text MOUSE_X[Row]) & " " &  (text MOUSE_Y[Row])

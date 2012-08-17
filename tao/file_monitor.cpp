@@ -23,6 +23,7 @@
 #include "file_monitor.h"
 #include "base.h"
 #include "tao_utf8.h"
+#include <QDir>
 #include <QMutexLocker>
 
 
@@ -32,11 +33,6 @@ namespace Tao {
 
 
 
-// ============================================================================
-//
-//    Each instance of FileMonitor holds its own list of paths.
-//
-// ============================================================================
 
 FileMonitor::FileMonitor()
 // ----------------------------------------------------------------------------
@@ -44,17 +40,14 @@ FileMonitor::FileMonitor()
 // ----------------------------------------------------------------------------
     : thread(FileMonitorThread::instance())
 {
-    IFTRACE(filemon)
-        debug() << "Creation\n";
-
     FileMonitorThread *t = thread.data();
-
-    connect(this, SIGNAL(added(QString)),   t, SLOT(addPath(QString)));
-    connect(this, SIGNAL(removed(QString)), t, SLOT(removePath(QString)));
 
     connect(t, SIGNAL(created(QString)), this, SLOT(onCreated(QString)));
     connect(t, SIGNAL(changed(QString)), this, SLOT(onChanged(QString)));
     connect(t, SIGNAL(deleted(QString)), this, SLOT(onDeleted(QString)));
+
+    IFTRACE(filemon)
+        debug() << "Created\n";
 }
 
 
@@ -75,10 +68,16 @@ void FileMonitor::addPath(const QString &path)
 //   Add a new path to the list of files and directories being monitored
 // ----------------------------------------------------------------------------
 {
+    if (!QDir::isAbsolutePath(path))
+    {
+        IFTRACE(filemon)
+            debug() << "Error: path is not absolute: '" << +path << "'\n";
+        return;
+    }
     if (!paths.contains(path))
     {
         paths.append(path);
-        emit added(path);
+        thread->addPath(path);
     }
 }
 
@@ -91,7 +90,7 @@ void FileMonitor::removePath(const QString &path)
     if (paths.contains(path))
     {
         paths.removeOne(path);
-        emit removed(path);
+        thread->removePath(path);
         Q_ASSERT(!paths.contains(path));
     }
 }
@@ -151,7 +150,7 @@ std::ostream & FileMonitor::debug()
 
 // ============================================================================
 //
-//    The FileMonitorThread is a singleton used by all FileMonitor instances.
+//    FileMonitorThread is a singleton used by all FileMonitor instances
 //
 // ============================================================================
 
@@ -164,52 +163,63 @@ FileMonitorThread::FileMonitorThread()
 // ----------------------------------------------------------------------------
 //    Start the monitoring thread
 // ----------------------------------------------------------------------------
-    : done(false)
+    : pollInterval(2000), dontPollReadOnlyFiles(true)
 {
     IFTRACE(filemon)
-        debug() << "Creation\n";
+        debug() << "Starting polling thread (" << pollInterval << " ms)\n";
+
+    moveToThread(this);
+    connect(&pollingTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
+    pollingTimer.start(pollInterval);
+    start();
 }
 
 
 FileMonitorThread::~FileMonitorThread()
 // ----------------------------------------------------------------------------
-//    Stop and destroy the monitoring thread
+//    Stop the monitoring thread
 // ----------------------------------------------------------------------------
 {
     IFTRACE(filemon)
         debug() << "Stopping\n";
-    done = true;
+
+    quit();
     wait(2000);
 }
 
 
 void FileMonitorThread::addPath(const QString &path)
 // ----------------------------------------------------------------------------
-//    Increment use count for path
+//    Add path or increment use count
 // ----------------------------------------------------------------------------
 {
     QMutexLocker locker(&mutex);
-    refs[path]++;
-    IFTRACE(filemon)
+    if (files.contains(path))
     {
-        if (refs[path] == 1)
-            debug() << "Adding to monitored list: '" << +path << "'\n";
+        FileInfo &file = files[path];
+        file.refs++;
+        file.ignore = false;
+        return;
     }
+
+    IFTRACE(filemon)
+        debug() << "Adding to monitored list: '" << +path << "'\n";
+    files[path] = FileInfo(path);
 }
 
 
 void FileMonitorThread::removePath(const QString &path)
 // ----------------------------------------------------------------------------
-//    Decrement use count for path
+//    Decrement use count for path or delete it
 // ----------------------------------------------------------------------------
 {
     QMutexLocker locker(&mutex);
-    Q_ASSERT(refs.contains(path));
-    int &count = refs[path];
-    Q_ASSERT(count > 0);
-    if (--count == 0)
+    Q_ASSERT(files.contains(path));
+    FileInfo &info = files[path];
+    Q_ASSERT(info.refs > 0);
+    if (--info.refs == 0)
     {
-        refs.remove(path);
+        files.remove(path);
         IFTRACE(filemon)
             debug() << "Removing from monitored list: '" << +path << "\n";
     }
@@ -243,6 +253,84 @@ std::ostream & FileMonitorThread::debug()
 {
     std::cerr << "[FileMonitorThread] ";
     return std::cerr;
+}
+
+
+void FileMonitorThread::checkFiles()
+// ----------------------------------------------------------------------------
+//   Check all files for changes
+// ----------------------------------------------------------------------------
+{
+    QMutexLocker locker(&mutex);
+
+    int checked = 0;
+    foreach (QString path, files.keys())
+    {
+        FileInfo &file = files[path];
+
+        if (file.ignore)
+            continue;
+
+        file.refresh();
+        checked++;
+
+        if (file.exists())
+        {
+            if (dontPollReadOnlyFiles && !file.isWritable())
+            {
+                IFTRACE(filemon)
+                    debug() << "Read-only file: '" << +path << "'\n";
+                file.ignore = true;
+                continue;
+            }
+
+            QDateTime lastModified;
+            switch (file.lastNotification)
+            {
+            case None:
+            case Deleted:
+                IFTRACE(filemon)
+                    debug() << "Created: '" << +path << "'\n";
+                file.cachedModified = file.lastModified();
+                file.lastNotification = Created;
+                emit created(path);
+                break;
+            case Created:
+            case Changed:
+                lastModified = file.lastModified();
+                if (lastModified > file.cachedModified)
+                {
+                    IFTRACE(filemon)
+                    {
+                        const QString fmt("dd MMM yyyy hh:mm:ss.zzz");
+                        debug() << "Changed: '" << +path << "' ("
+                                << +file.cachedModified.toString(Qt::ISODate)
+                                << " -> "
+                                << +lastModified.toString(Qt::ISODate) << ")\n";
+                    }
+                    file.cachedModified = lastModified;
+                    file.lastNotification = Changed;
+                    emit changed(path);
+                }
+                break;
+            default:
+                break;
+            }
+        }
+        else
+        {
+            if (file.lastNotification != Deleted)
+            {
+                IFTRACE(filemon)
+                    debug() << "Deleted: '" << +path << "'\n";
+                file.lastNotification = Deleted;
+                emit deleted(path);
+            }
+        }
+    }
+
+    IFTRACE(filemon)
+        debug() << "Checked " << checked << " file(s)\n";
 }
 
 }

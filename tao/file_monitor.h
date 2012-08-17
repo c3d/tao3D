@@ -23,21 +23,20 @@
 // ****************************************************************************
 
 #include "tao.h"
+#include <QDateTime>
+#include <QFileInfo>
 #include <QMap>
 #include <QMutex>
 #include <QSharedPointer>
 #include <QString>
 #include <QStringList>
+#include <QTimer>
 #include <QThread>
 #include <iostream>
 
 
-//const unsigned int FMON_POLLING_MS = 2000;
-
-
 
 namespace Tao {
-
 
 class FileMonitorThread;
 
@@ -64,8 +63,6 @@ signals:
     void           deleted(const QString &path);
 
 
-    void           added(const QString &path);
-    void           removed(const QString &path);
 
 protected slots:
     void           onCreated(const QString &path);
@@ -80,7 +77,6 @@ protected:
 
 private:
     QSharedPointer<FileMonitorThread> thread;
-
 };
 
 
@@ -98,7 +94,7 @@ public:
     FileMonitorThread();
     virtual ~FileMonitorThread();
 
-public slots:
+public:
     void           addPath(const QString &path);
     void           removePath(const QString &path);
 
@@ -108,12 +104,39 @@ signals:
     void           deleted(const QString &path);
 
 protected:
-    std::ostream&  debug();
+    enum NotificationKind
+    {
+        None, Created, Changed, Deleted
+    };
+
+    class FileInfo : public QFileInfo
+    {
+    public:
+        FileInfo(const QString &path)
+            : QFileInfo(path),
+              refs(1), ignore(false), lastNotification(None) {}
+        FileInfo()
+            : refs(1), ignore(false), lastNotification(None) {}
+
+    public:
+        QDateTime        cachedModified;
+        int              refs;
+        bool             ignore;
+        NotificationKind lastNotification;
+    };
 
 protected:
-    bool               done;
-    QMutex             mutex;
-    QMap<QString, int> refs;
+    std::ostream&  debug();
+
+protected slots:
+    void           checkFiles();
+
+protected:
+    QMutex                   mutex;
+    QMap<QString, FileInfo>  files;
+    QTimer                   pollingTimer;
+    int                      pollInterval;
+    bool                     dontPollReadOnlyFiles;
 
 private:
     static QWeakPointer<FileMonitorThread> inst;

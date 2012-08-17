@@ -452,6 +452,13 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
         QNetworkRequest req(url);
         networkReply = cache.network.get(req);
     }
+    else
+    {
+        connect(&cache.fileMonitor, SIGNAL(changed(QString)),
+                this, SLOT(onFileChanged(QString)));
+        connect(&cache.fileMonitor, SIGNAL(deleted(QString)),
+                this, SLOT(onFileChanged(QString)));
+    }
 }
 
 
@@ -464,6 +471,11 @@ CachedTexture::~CachedTexture()
     glDeleteTextures(1, &id);
     if (networkReply)
         networkReply->deleteLater();
+    if (absolutePath != "")
+    {
+        // REVISIT Bug if 2 CachedTextures have the same absolutePath
+        cache.fileMonitor.removePath(absolutePath);
+    }
 }
 
 
@@ -486,9 +498,20 @@ void CachedTexture::load()
             networkReply->error() == QNetworkReply::NoError)
             image.loadFromData(networkReply->readAll());
     }
-    else if (p != "")
+    else
     {
-        image.load(p);
+        absolutePath = p;
+        if (p != "")
+        {
+            image.load(p);
+            Q_ASSERT(QDir::isAbsolutePath(p));
+            cache.fileMonitor.addPath(p);
+        }
+        else
+        {
+            // Will look again for the file later
+            pathLastResolved.start();
+        }
     }
     if (image.isNull())
     {
@@ -497,17 +520,10 @@ void CachedTexture::load()
             p = QString(":/images/default_image.svg");
             image.load(p);
         }
-        canonicalPath = QString();
         isDefaultTexture = true;
     }
     else
     {
-        canonicalPath = p;
-        if (!networked)
-        {
-            fileLastModified = QFileInfo(p).lastModified();
-            fileLastChecked.start();
-        }
         isDefaultTexture = false;
     }
 
@@ -525,7 +541,7 @@ void CachedTexture::load()
         else
             debug() << "File->Mem  +" << bytesToText(size)
                     << " (" << width << "x" << height << " pixels, "
-                    << "'" << +path << "' ['" << +canonicalPath << "'])\n";
+                    << "'" << +path << "' ['" << +absolutePath << "'])\n";
     }
 
     cache.memSize += size;
@@ -739,25 +755,25 @@ GLuint CachedTexture::bind()
 
 QString CachedTexture::findPath()
 // ----------------------------------------------------------------------------
-//   Resolve path to texture (returns canonical path, empty if file not found)
+//   Resolve path to texture
 // ----------------------------------------------------------------------------
 {
-    if (networked)
+    if (networked || QDir::isAbsolutePath(path))
         return path;
 
     QFileInfo info(QDir(docPath), path);
     if (info.exists())
-        return info.canonicalFilePath();
+        return info.absoluteFilePath();
     QFileInfo qualified(QDir(docPath), "texture:" + path);
     if (qualified.exists())
-        return qualified.canonicalFilePath();
+        return qualified.absoluteFilePath();
     return "";
 }
 
 
 void CachedTexture::checkFile()
 // ----------------------------------------------------------------------------
-//   Check if file has been modified, deleted, or created - then reload it
+//   Check if file can be resolved or network reply is complete - then load
 // ----------------------------------------------------------------------------
 {
     // If networked, we check if the reply is completed
@@ -767,71 +783,54 @@ void CachedTexture::checkFile()
             networkReply->isFinished() &&
             networkReply->error() == QNetworkReply::NoError)
         {
-            purge();
-            load();
-            transfer();
+            reload();
         }
         return;
     }
 
     // Don't check too frequently
-    if (fileLastChecked.elapsed() < 1000 /* ms */)
+    if (pathLastResolved.elapsed() < 1000 /* ms */)
         return;
 
-    fileLastChecked.restart();
+    pathLastResolved.restart();
 
-    bool reload = false;
-    if (canonicalPath == "")
+    if (absolutePath == "")
     {
         QString newPath = findPath();
         if (newPath != "")
         {
             IFTRACE(texturecache)
                 debug() << "File found: '" << +newPath << "'\n";
-            reload = true;
+            reload();
         }
     }
-    else
-    {
-        QFileInfo info(QDir(docPath), canonicalPath);
-        if (info.exists())
-        {
-            QString newPath = findPath();
-            if (newPath != canonicalPath)
-            {
-                IFTRACE(texturecache)
-                    debug() << "Other file found: '" << +canonicalPath
-                            << "' -> '" << +newPath << "'\n";
-                reload = true;
-            }
-            else
-            {
-                QDateTime modified = info.lastModified();
-                if (modified.msecsTo(fileLastModified) < 0)
-                {
-                    IFTRACE(texturecache)
-                        debug() << "File was modified: '" << +canonicalPath
-                                << "'\n";
-                    reload = true;
-                }
-            }
-        }
-        else
-        {
-            IFTRACE(texturecache)
-                debug() << "File was deleted: '" << +canonicalPath
-                        << "'\n";
-            reload = true;
-        }
-    }
+}
 
-    if (reload)
+
+void CachedTexture::reload()
+// ----------------------------------------------------------------------------
+//   Reload texture e.g., when file was changed
+// ----------------------------------------------------------------------------
+{
+    // FIXME: check cache limits
+
+    IFTRACE(texturecache)
+        debug() << "Reloading\n";
+    purge();
+    load();
+    transfer();
+}
+
+
+void CachedTexture::onFileChanged(const QString &path)
+// ----------------------------------------------------------------------------
+//   Called by file monitor when a registered path changed
+// ----------------------------------------------------------------------------
+{
+    if (path == absolutePath)
     {
-        IFTRACE(texturecache)
-            debug() << "Reloading\n";
-        purge();
-        load();
-        transfer();
+        // Underlying file was modified or deleted
+        reload();
     }
 }
 

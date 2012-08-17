@@ -25,6 +25,7 @@
 #include "tao.h"
 #include "tao_gl.h"
 #include "tao_tree.h"
+#include "file_monitor.h"
 #include <QMap>
 #include <QDateTime>
 #include <QtNetwork>
@@ -130,11 +131,13 @@ struct Image
 
 class TextureCache;
 
-class CachedTexture
+class CachedTexture : public QObject
 // ----------------------------------------------------------------------------
 //    2D texture managed by TextureCache
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
     friend class TextureCache;
 
     struct Links
@@ -168,13 +171,18 @@ public:
     }
     bool            transferred() { return (GLsize != 0); }
 
+    void            reload();
+
+public slots:
+    void            onFileChanged(const QString &path);
+
 private:
     std::ostream &  debug();
     QString         findPath();
     void            checkFile();
 
 public:
-    QString         path, docPath, canonicalPath;
+    QString         path, docPath, absolutePath;
     GLuint          id;
     int             width, height;
     bool            mipmap, compress;
@@ -190,8 +198,7 @@ private:
     bool            networked;
     QNetworkReply  *networkReply;
 
-    QDateTime       fileLastModified;
-    QTime           fileLastChecked;
+    QTime           pathLastResolved;
 };
 
 
@@ -286,6 +293,9 @@ private:
 
     // Network access manager for all texture network accesses
     QNetworkAccessManager            network;
+
+    // Enables reloading files as they change
+    FileMonitor                      fileMonitor;
 
 private:
     static TextureCache * textureCache;

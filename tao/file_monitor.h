@@ -91,8 +91,7 @@ public:
     static QSharedPointer<FileMonitorThread> instance();
 
 public:
-    FileMonitorThread();
-    virtual ~FileMonitorThread();
+    static int                               pollInterval;
 
 public:
     void           addPath(const QString &path);
@@ -102,6 +101,11 @@ signals:
     void           created(const QString &path);
     void           changed(const QString &path);
     void           deleted(const QString &path);
+
+protected:
+    FileMonitorThread();
+public:
+    virtual ~FileMonitorThread();
 
 protected:
     enum NotificationKind
@@ -135,7 +139,6 @@ protected:
     QMutex                   mutex;
     QMap<QString, FileInfo>  files;
     QTimer                   pollingTimer;
-    int                      pollInterval;
     bool                     dontPollReadOnlyFiles;
 
 private:

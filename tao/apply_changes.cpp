@@ -32,8 +32,7 @@
 
 TAO_BEGIN
 
-bool ImportedFilesChanged(import_set &done,
-                          bool markChanged)
+void ScanImportedFiles(import_set &done, bool markChanged)
 // ----------------------------------------------------------------------------
 //   Compute the set of imported symbols
 // ----------------------------------------------------------------------------
@@ -42,7 +41,6 @@ bool ImportedFilesChanged(import_set &done,
 
     source_files &files = MAIN->files;
     source_files::iterator it;
-    bool result = false;
 
     // Loop on source files
     for (it = files.begin(); it != files.end(); it++)
@@ -63,29 +61,14 @@ bool ImportedFilesChanged(import_set &done,
                 if (!prev_hash.empty() && sf.hash != prev_hash)
                 {
                     IFTRACE(filesync)
-                        std::cerr << "Reload: Hash changed from " << prev_hash
+                        std::cerr << "Hash changed from " << prev_hash
                                   << " to " << sf.hash
                                   << " for file " << sf.name << "\n";
                     sf.changed = true;
                 }
             }
-            time_t modified = QFileInfo(+sf.name).lastModified().toTime_t();
-            if (modified > sf.modified)
-            {
-                IFTRACE(filesync)
-                {
-                    QString from, to;
-                    from = QString::fromLocal8Bit(ctime(&sf.modified)).trimmed();
-                    to = QString::fromLocal8Bit(ctime(&modified)).trimmed();
-                    std::cerr << "Reload: Date changed from "
-                              << +from << " to "<< +to
-                              << " for " << sf.name << "\n";
-                }
-                result = true;
-            }
         }
     }
-    return result;
 }
 
 TAO_END

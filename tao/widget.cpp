@@ -315,6 +315,12 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
+
+    // Be notified when source files change
+    connect(&srcFileMonitor, SIGNAL(changed(QString)),
+            this, SLOT(addToReloadList(QString)));
+    connect(&srcFileMonitor, SIGNAL(deleted(QString)),
+            this, SLOT(addToReloadList(QString)));
 }
 
 
@@ -555,7 +561,7 @@ void Widget::runPurgeAction(XL::Action &purge)
     xlProgram->tree->Do(purge);
     // Do it also on imported files
     import_set iset;
-    (void)ImportedFilesChanged(iset, false);
+    ScanImportedFiles(iset, false);
     {
         import_set::iterator it;
         for (it = iset.begin(); it != iset.end(); it++)
@@ -649,12 +655,7 @@ void Widget::dawdle()
 
 #ifndef CFG_NORELOAD
     // Check if it's time to reload
-    longlong syncDelay = longlong(nextSync - tick);
-    if (syncDelay < 0)
-    {
-        refreshProgram();
-        nextSync = tick + Main::MAIN->options.sync_interval * 1000;
-    }
+    refreshProgram();
 #endif
 }
 
@@ -3476,7 +3477,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
-    refreshProgram();
+    refreshProgram(); // REVISIT not needed?
     inError = false;
 }
 
@@ -3487,7 +3488,8 @@ int Widget::loadFile(text name, bool updateContext)
 // ----------------------------------------------------------------------------
 {
     // Stop monitoring source files of previous document (if any)
-    fileMonitor.removeAllPaths();
+    srcFileMonitor.removeAllPaths();
+    toReload.clear();
 
     TaoSave saveCurrent(current, this);
     int ret = XL::MAIN->LoadFile(name, updateContext);
@@ -3499,7 +3501,7 @@ int Widget::loadFile(text name, bool updateContext)
     for (it = files.begin(); it != files.end(); it++)
     {
         SourceFile &sf = (*it).second;
-        fileMonitor.addPath(+sf.name);
+        srcFileMonitor.addPath(+sf.name);
     }
 
     return ret;
@@ -3600,104 +3602,95 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
+    if (toReload.isEmpty())
+        return;
+
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
     if (!prog || xlProgram->readOnly)
         return;
 
-    // Loop on imported files
-    import_set iset;
-    if (ImportedFilesChanged(iset, false))
+    bool needBigHammer = false;
+    bool needRefresh   = false;
+    foreach (QString path, toReload)
     {
-        import_set::iterator it;
-        bool needBigHammer = false;
-        bool needRefresh   = false;
-        for (it = iset.begin(); it != iset.end(); it++)
+        text fname = +path;
+        IFTRACE(filesync)
+            std::cerr << "Must reload " << fname << "\n";
+
+        Tree *replacement = NULL;
+        if (repo)
         {
-            XL::SourceFile &sf = **it;
-            text fname = sf.name;
-            time_t modified = QFileInfo(+fname).lastModified().toTime_t();
-
-            if (modified > sf.modified)
-            {
-                IFTRACE(filesync)
-                    std::cerr << "File " << fname << " changed ("
-                              << modified << " > " << sf.modified
-                              << " delta " << modified - sf.modified << ")\n";
-
-                Tree *replacement = NULL;
-                if (repo)
-                {
-                    replacement = repo->read(fname);
-                }
-                else
-                {
-                    XL::Syntax syntax(XL::MAIN->syntax);
-                    XL::Positions &positions = XL::MAIN->positions;
-                    XL::Errors errors;
-                    XL::Parser parser(fname.c_str(), syntax, positions, errors);
-                    replacement = parser.Parse();
-                }
-
-                // Make sure we reload only once (bug #533)
-                sf.modified = modified;
-
-                if (!replacement)
-                {
-                    // Uh oh, file went away?
-                    needBigHammer = true;
-                }
-                else
-                {
-                    // Make sure we normalize the replacement
-                    Renormalize renorm(this);
-                    replacement = replacement->Do(renorm);
-
-                    // Check if we can simply change some parameters in file
-                    ApplyChanges changes(replacement);
-                    if (!sf.tree->Do(changes))
-                        needBigHammer = true;
-                    else if (fname == xlProgram->name)
-                        updateProgramSource();
-
-                    needRefresh = true;
-
-                    IFTRACE(filesync)
-                    {
-                        if (needBigHammer)
-                            std::cerr << "Need to reload everything.\n";
-                        else
-                            std::cerr << "Surgical replacement worked\n";
-                    }
-
-                } // Replacement checked
-
-            } // If file modified
-        } // For all files
-
-        // If we were not successful with simple changes, reload everything...
-        if (needBigHammer)
+            replacement = repo->read(fname);
+        }
+        else
         {
-            TaoSave saveCurrent(current, this);
-            purgeTaoInfo();
-            for (it = iset.begin(); it != iset.end(); it++)
+            XL::Syntax syntax(XL::MAIN->syntax);
+            XL::Positions &positions = XL::MAIN->positions;
+            XL::Errors errors;
+            XL::Parser parser(fname.c_str(), syntax, positions, errors);
+            replacement = parser.Parse();
+        }
+
+        if (!replacement)
+        {
+            // Uh oh, file went away?
+            needBigHammer = true;
+            break;
+        }
+        else
+        {
+            // Make sure we normalize the replacement
+            Renormalize renorm(this);
+            replacement = replacement->Do(renorm);
+
+            // Check if we can simply change some parameters in file
+            Q_ASSERT(XL::MAIN->files.count(fname));
+            XL::SourceFile &sf = XL::MAIN->files[fname];
+            ApplyChanges changes(replacement);
+            if (!sf.tree->Do(changes))
             {
-                XL::SourceFile &sf = **it;
-                XL::MAIN->LoadFile(sf.name);
+                needBigHammer = true;
+                break;
             }
-            updateProgramSource();
-            inError = false;
+            else if (fname == xlProgram->name)
+            {
+                updateProgramSource();
+            }
+
             needRefresh = true;
-        }
-        if (needRefresh)
-        {
-            // If a file was modified, we need to refresh the screen
-            TaoSave saveCurrent(current, this);
-            refreshNow();
-        }
-        if (!inError)
-            taoWindow()->clearErrors();
+
+            IFTRACE(filesync)
+            {
+                if (needBigHammer)
+                    std::cerr << "Need to reload everything.\n";
+                else
+                    std::cerr << "Surgical replacement worked\n";
+            }
+        } // Replacement checked
+    } // foreach file
+
+    // If we were not successful with simple changes, reload everything...
+    if (needBigHammer)
+    {
+        TaoSave saveCurrent(current, this);
+        purgeTaoInfo();
+        foreach (QString path, toReload)
+            XL::MAIN->LoadFile(+path);
+        updateProgramSource();
+        inError = false;
+        needRefresh = true;
     }
+    if (needRefresh)
+    {
+        // If a file was modified, we need to refresh the screen
+        TaoSave saveCurrent(current, this);
+        refreshNow();
+    }
+    if (!inError)
+        taoWindow()->clearErrors();
+
+    toReload.clear();
 }
 
 
@@ -3753,7 +3746,7 @@ void Widget::finishChanges()
     if (xlProgram->tree)
     {
         import_set done;
-        ImportedFilesChanged(done, true);
+        ScanImportedFiles(done, true);
 
         import_set::iterator f;
         for (f = done.begin(); f != done.end(); f++)

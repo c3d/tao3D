@@ -156,6 +156,7 @@ public slots:
                              QString dir, double fps = 25.0, int page = -1,
                              QString displayName = "");
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
+    void        addToReloadList(const QString &path) { toReload.append(path); }
 
 
 signals:
@@ -889,7 +890,8 @@ private:
     bool                  inError;
     bool                  mustUpdateDialogs;
     bool                  runOnNextDraw;
-    FileMonitor           fileMonitor;
+    FileMonitor           srcFileMonitor;
+    QStringList           toReload;
 
     // Rendering
     QGradient*            gradient;

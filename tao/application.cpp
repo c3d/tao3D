@@ -182,6 +182,9 @@ void Application::deferredInit()
 
     loadLicenses();
 
+    // Adjust file polling frequency
+    FileMonitorThread::pollInterval = xlr->options.sync_interval;
+
     // Create and start garbage collection thread
     gcThread = new GCThread;
     if (xlr->options.threaded_gc)

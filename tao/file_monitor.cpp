@@ -157,13 +157,14 @@ std::ostream & FileMonitor::debug()
 // We use a weak pointer so that when the last FileMonitor object is deleted,
 // the singleton is also deleted and inst becomes NULL.
 QWeakPointer<FileMonitorThread> FileMonitorThread::inst;
+int FileMonitorThread::pollInterval = 1000; /* ms */
 
 
 FileMonitorThread::FileMonitorThread()
 // ----------------------------------------------------------------------------
 //    Start the monitoring thread
 // ----------------------------------------------------------------------------
-    : pollInterval(2000), dontPollReadOnlyFiles(true)
+    : dontPollReadOnlyFiles(true)
 {
     IFTRACE(filemon)
         debug() << "Starting polling thread (" << pollInterval << " ms)\n";

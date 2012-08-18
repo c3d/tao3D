@@ -174,7 +174,11 @@ public:
     void            reload();
 
 public slots:
-    void            onFileChanged(const QString &path);
+    void            onFileCreated(const QString &path,
+                                  const QString &canonicalPath);
+    void            onFileChanged(const QString &path,
+                                  const QString &canonicalPath);
+    void            onFileDeleted(const QString &path);
 
 private:
     std::ostream &  debug();
@@ -182,7 +186,7 @@ private:
     void            checkFile();
 
 public:
-    QString         path, docPath, absolutePath;
+    QString         path, docPath, canonicalPath;
     GLuint          id;
     int             width, height;
     bool            mipmap, compress;
@@ -198,7 +202,7 @@ private:
     bool            networked;
     QNetworkReply  *networkReply;
 
-    QTime           pathLastResolved;
+    bool            inLoad; // REVISIT
 };
 
 

@@ -57,16 +57,16 @@ public slots:
     void           removePath(const QString &path);
 
 signals:
-    void           created(const QString &path);
-    void           changed(const QString &path);
-    void           deleted(const QString &path);
+    void           created(const QString &path, const QString canonicalPath);
+    void           changed(const QString &path, const QString canonicalPath);
+    void           deleted(const QString &path, const QString canonicalPath);
 
 
 
 protected slots:
-    void           onCreated(const QString &path);
-    void           onChanged(const QString &path);
-    void           onDeleted(const QString &path);
+    void           onCreated(const QString &path, const QString canonicalPath);
+    void           onChanged(const QString &path, const QString canonicalPath);
+    void           onDeleted(const QString &path, const QString canonicalPath);
 
 protected:
     std::ostream&  debug();
@@ -97,9 +97,9 @@ public:
     void           removePath(const QString &path);
 
 signals:
-    void           created(const QString &path);
-    void           changed(const QString &path);
-    void           deleted(const QString &path);
+    void           created(const QString &path, const QString canonicalPath);
+    void           changed(const QString &path, const QString canonicalPath);
+    void           deleted(const QString &path, const QString canonicalPath);
 
 protected:
     FileMonitorThread();
@@ -123,6 +123,7 @@ protected:
 
     public:
         QDateTime        cachedModified;
+        QString          cachedCanonicalPath;
         int              refs;
         bool             ignore;
         NotificationKind lastNotification;

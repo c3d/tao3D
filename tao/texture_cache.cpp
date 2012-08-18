@@ -173,11 +173,16 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 //   Load texture file. docPath is used if img is relative.
 // ----------------------------------------------------------------------------
 {
-    TextureName name(img, docPath);
+    // REVISIT: remove docPath
+    QString qimg(img);
+    if (QDir::isRelativePath(img) &&
+        QRegExp("^[a-z]+:").indexIn(img) == -1)
+        qimg = docPath + "/" + img;
+    TextureName name(qimg, docPath);
     CachedTexture * cached = fromName.value(name);
     if (!cached)
     {
-        cached = new CachedTexture(*this, img, docPath, mipmap, compress);
+        cached = new CachedTexture(*this, qimg, docPath, mipmap, compress);
         GLuint id = cached->id;
         fromId[id] = fromName[name] = cached;
         if (memSize > maxMemSize)
@@ -442,7 +447,7 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
     : path(path), docPath(docPath), width(0), height(0),  mipmap(mipmap),
       compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
       memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed),
-      networked(path.contains("://")), networkReply(NULL)
+      networked(path.contains("://")), networkReply(NULL), inLoad(false)
 {
     glGenTextures(1, &id);
     if (networked)
@@ -454,10 +459,12 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
     }
     else
     {
-        connect(&cache.fileMonitor, SIGNAL(changed(QString)),
-                this, SLOT(onFileChanged(QString)));
-        connect(&cache.fileMonitor, SIGNAL(deleted(QString)),
-                this, SLOT(onFileChanged(QString)));
+        connect(&cache.fileMonitor, SIGNAL(created(QString,QString)),
+                this, SLOT(onFileCreated(QString,QString)));
+        connect(&cache.fileMonitor, SIGNAL(changed(QString,QString)),
+                this, SLOT(onFileChanged(QString,QString)));
+        connect(&cache.fileMonitor, SIGNAL(deleted(QString,QString)),
+                this, SLOT(onFileDeleted(QString)));
     }
 }
 
@@ -471,10 +478,10 @@ CachedTexture::~CachedTexture()
     glDeleteTextures(1, &id);
     if (networkReply)
         networkReply->deleteLater();
-    if (absolutePath != "")
+    if (canonicalPath != "")
     {
         // REVISIT Bug if 2 CachedTextures have the same absolutePath
-        cache.fileMonitor.removePath(absolutePath);
+        cache.fileMonitor.removePath(canonicalPath);
     }
 }
 
@@ -491,7 +498,6 @@ void CachedTexture::load()
     compress = cache.compress;
 
 
-    QString p(findPath());
     if (networked)
     {
         if (networkReply->isFinished() &&
@@ -500,25 +506,24 @@ void CachedTexture::load()
     }
     else
     {
-        absolutePath = p;
-        if (p != "")
+        if (canonicalPath == "")
         {
-            image.load(p);
-            Q_ASSERT(QDir::isAbsolutePath(p));
-            cache.fileMonitor.addPath(p);
+            // If file exists, fileMonitor will emit created() synchronously,
+            // which will set canonicalPath
+            inLoad = true; // REVISIT prevent onFileCreated from calling reload
+            cache.fileMonitor.addPath(path);
+            inLoad = false;
+            if (canonicalPath != "")
+                image.load(canonicalPath);
         }
         else
-        {
-            // Will look again for the file later
-            pathLastResolved.start();
-        }
+            image.load(canonicalPath);
     }
     if (image.isNull())
     {
         if (!networked)
         {
-            p = QString(":/images/default_image.svg");
-            image.load(p);
+            image.load(":/images/default_image.svg");
         }
         isDefaultTexture = true;
     }
@@ -541,7 +546,7 @@ void CachedTexture::load()
         else
             debug() << "File->Mem  +" << bytesToText(size)
                     << " (" << width << "x" << height << " pixels, "
-                    << "'" << +path << "' ['" << +absolutePath << "'])\n";
+                    << "'" << +path << "' ['" << +canonicalPath << "'])\n";
     }
 
     cache.memSize += size;
@@ -773,7 +778,7 @@ QString CachedTexture::findPath()
 
 void CachedTexture::checkFile()
 // ----------------------------------------------------------------------------
-//   Check if file can be resolved or network reply is complete - then load
+//   Check if network reply is complete - then load
 // ----------------------------------------------------------------------------
 {
     // If networked, we check if the reply is completed
@@ -786,23 +791,6 @@ void CachedTexture::checkFile()
             reload();
         }
         return;
-    }
-
-    // Don't check too frequently
-    if (pathLastResolved.elapsed() < 1000 /* ms */)
-        return;
-
-    pathLastResolved.restart();
-
-    if (absolutePath == "")
-    {
-        QString newPath = findPath();
-        if (newPath != "")
-        {
-            IFTRACE(texturecache)
-                debug() << "File found: '" << +newPath << "'\n";
-            reload();
-        }
     }
 }
 
@@ -822,14 +810,45 @@ void CachedTexture::reload()
 }
 
 
-void CachedTexture::onFileChanged(const QString &path)
+void CachedTexture::onFileCreated(const QString &path,
+                                  const QString &canonicalPath)
 // ----------------------------------------------------------------------------
-//   Called by file monitor when a registered path changed
+//   Called by file monitor when a registered path is an existing file
 // ----------------------------------------------------------------------------
 {
-    if (path == absolutePath)
+    // Also called when a file is deleted, then re-created
+    if (path == this->path)
     {
-        // Underlying file was modified or deleted
+        this->canonicalPath = canonicalPath;
+        if (!inLoad)
+            reload();
+    }
+}
+
+
+void CachedTexture::onFileChanged(const QString &path,
+                                  const QString &canonicalPath)
+// ----------------------------------------------------------------------------
+//   Called by file monitor when a file is changed
+// ----------------------------------------------------------------------------
+{
+    if (path == this->path)
+    {
+        // Canonical path may have changed if path is a prefixed path
+        this->canonicalPath = canonicalPath;
+        reload();
+    }
+}
+
+
+void CachedTexture::onFileDeleted(const QString &path)
+// ----------------------------------------------------------------------------
+//   Called by file monitor when the file is deleted
+// ----------------------------------------------------------------------------
+{
+    if (path == this->path)
+    {
+        this->canonicalPath = "";
         reload();
     }
 }

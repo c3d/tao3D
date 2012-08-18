@@ -317,9 +317,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
 
     // Be notified when source files change
-    connect(&srcFileMonitor, SIGNAL(changed(QString)),
+    connect(&srcFileMonitor, SIGNAL(changed(QString,QString)),
             this, SLOT(addToReloadList(QString)));
-    connect(&srcFileMonitor, SIGNAL(deleted(QString)),
+    connect(&srcFileMonitor, SIGNAL(deleted(QString,QString)),
             this, SLOT(addToReloadList(QString)));
 }
 

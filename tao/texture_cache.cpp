@@ -173,12 +173,17 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 //   Load texture file. docPath is used if img is relative.
 // ----------------------------------------------------------------------------
 {
-    // REVISIT: remove docPath
     QString qimg(img);
-    if (QDir::isRelativePath(img) &&
+    if (!img.contains("://") && QDir::isRelativePath(img) &&
         QRegExp("^[a-z]+:").indexIn(img) == -1)
+    {
         qimg = docPath + "/" + img;
-    TextureName name(qimg, docPath);
+        if (!QFileInfo(qimg).exists())
+            qimg = "texture:" + img; // Backward-compatibility
+    }
+    // qimg is either a URL, full path or a prefixed path ("image:file.jpg")
+    // It cannot be a relative path.
+    TextureName name(qimg, docPath); // REVISIT: remove docPath
     CachedTexture * cached = fromName.value(name);
     if (!cached)
     {
@@ -452,12 +457,8 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
     glGenTextures(1, &id);
     if (networked)
     {
-        Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
-        QUrl url(path);
-        QNetworkRequest req(url);
         connect(&cache.network, SIGNAL(finished(QNetworkReply*)),
                 this, SLOT(checkReply(QNetworkReply*)));
-        networkReply = cache.network.get(req);
     }
     else
     {
@@ -499,9 +500,18 @@ void CachedTexture::load()
     mipmap = cache.mipmap;
     compress = cache.compress;
 
-
+    int size = 0;
+    bool inProgress = false;
     if (networked)
     {
+        if (networkReply == NULL)
+        {
+            Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
+            QUrl url(path);
+            QNetworkRequest req(url);
+            networkReply = cache.network.get(req);
+            inProgress = true;
+        }
         if (networkReply->isFinished() &&
             networkReply->error() == QNetworkReply::NoError)
             image.loadFromData(networkReply->readAll());
@@ -515,40 +525,43 @@ void CachedTexture::load()
             inLoad = true; // Prevent onFileCreated from calling reload
             cache.fileMonitor.addPath(path);
             inLoad = false;
-            if (canonicalPath != "")
-                image.load(canonicalPath);
         }
-        else
+        if (canonicalPath != "")
             image.load(canonicalPath);
     }
     if (image.isNull())
     {
         if (!networked)
-        {
             image.load(":/images/default_image.svg");
-        }
         isDefaultTexture = true;
     }
     else
     {
         isDefaultTexture = false;
     }
-
     if (!image.isNull())
     {
         width = image.width();
         height = image.height();
+        size = image.byteCount();
     }
-    int size = image.byteCount();
 
     IFTRACE2(texturecache, fileload)
     {
-        if (isDefaultTexture)
-            debug() << "Failed to load: '" << +path << "'\n";
+        if (networked)
+        {
+            if (inProgress)
+                debug() << "Load in progress: '" << +path << "'\n";
+        }
         else
-            debug() << "File->Mem  +" << bytesToText(size)
-                    << " (" << width << "x" << height << " pixels, "
-                    << "'" << +path << "' ['" << +canonicalPath << "'])\n";
+        {
+            if (isDefaultTexture)
+                debug() << "Failed to load: '" << +path << "'\n";
+            else
+                debug() << "File->Mem  +" << bytesToText(size)
+                        << " (" << width << "x" << height << " pixels, "
+                        << "'" << +path << "' ['" << +canonicalPath << "'])\n";
+        }
     }
 
     cache.memSize += size;
@@ -589,6 +602,9 @@ void CachedTexture::transfer()
 {
 #define ADJUST_FOR_MIPMAP_OVERHEAD(sz) \
         do { if (mipmap) { sz *= 1.33; } } while(0)
+
+    if (networked && !loaded())
+        return;
 
     Q_ASSERT(loaded());
     Q_ASSERT(!transferred());
@@ -749,11 +765,12 @@ GLuint CachedTexture::bind()
 //   Bind texture
 // ----------------------------------------------------------------------------
 {
+    if (networked && !transferred())
+        return 0;
+
     Q_ASSERT(id);
     Q_ASSERT(transferred());
-
-    if (!isDefaultTexture || !networked)
-        glBindTexture(GL_TEXTURE_2D, id);
+    glBindTexture(GL_TEXTURE_2D, id);
     return id;
 }
 
@@ -763,11 +780,17 @@ void CachedTexture::checkReply(QNetworkReply *reply)
 //   Check if network reply is complete, if so then load image
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(reply == networkReply);
+
     if (networked &&
         image.isNull() &&
         reply->error() == QNetworkReply::NoError)
     {
+        IFTRACE(texturecache)
+            debug() << "Received: '" << +path << "'\n";
         reload();
+        reply->deleteLater();
+        networkReply = NULL;
     }
 }
 

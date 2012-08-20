@@ -44,6 +44,8 @@ class FileMonitor : public QObject
 //    Monitor a set of file and directory paths for changes.
 // ----------------------------------------------------------------------------
 {
+    friend class FileMonitorThread;
+
     Q_OBJECT
 
 public:
@@ -62,19 +64,33 @@ signals:
     void           deleted(const QString &path, const QString canonicalPath);
 
 
+protected:
+    enum NotificationKind
+    {
+        None, Created, Changed, Deleted
+    };
 
-protected slots:
+    struct MonitoredFile
+    {
+        MonitoredFile(const QString &path)
+            : path(path), lastNotification(None) {}
+        MonitoredFile()
+            : lastNotification(None) {}
+
+        QString              path;
+        QDateTime            cachedModified;
+        QString              cachedCanonicalPath;
+        NotificationKind     lastNotification;
+    };
+
+protected:
+    std::ostream&  debug();
     void           onCreated(const QString &path, const QString canonicalPath);
     void           onChanged(const QString &path, const QString canonicalPath);
     void           onDeleted(const QString &path, const QString canonicalPath);
 
 protected:
-    std::ostream&  debug();
-
-protected:
-    QStringList    paths;
-
-private:
+    QMap<QString, MonitoredFile>      files;
     QSharedPointer<FileMonitorThread> thread;
 };
 
@@ -96,6 +112,9 @@ public:
     void           addPath(const QString &path);
     void           removePath(const QString &path);
 
+    void           addMonitor(FileMonitor *monitor);
+    void           removeMonitor(FileMonitor *monitor);
+
 signals:
     void           created(const QString &path, const QString canonicalPath);
     void           changed(const QString &path, const QString canonicalPath);
@@ -107,26 +126,18 @@ public:
     virtual ~FileMonitorThread();
 
 protected:
-    enum NotificationKind
-    {
-        None, Created, Changed, Deleted
-    };
 
     class FileInfo : public QFileInfo
     {
     public:
         FileInfo(const QString &path)
-            : QFileInfo(path),
-              refs(1), ignore(false), lastNotification(None) {}
+            : QFileInfo(path), refs(1), ignore(false) {}
         FileInfo()
-            : refs(1), ignore(false), lastNotification(None) {}
+            : refs(1), ignore(false) {}
 
     public:
-        QDateTime        cachedModified;
-        QString          cachedCanonicalPath;
-        int              refs;
-        bool             ignore;
-        NotificationKind lastNotification;
+        int   refs;
+        bool  ignore;
     };
 
 protected:
@@ -138,6 +149,7 @@ protected slots:
 protected:
     QMutex                   mutex;
     QMap<QString, FileInfo>  files;
+    QList<FileMonitor *>     monitors;
     bool                     dontPollReadOnlyFiles;
 
 private:

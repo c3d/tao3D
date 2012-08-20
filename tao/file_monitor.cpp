@@ -36,19 +36,12 @@ FileMonitor::FileMonitor()
 // ----------------------------------------------------------------------------
 //    Construct a file monitor object
 // ----------------------------------------------------------------------------
-    : thread(FileMonitorThread::instance())
 {
-    FileMonitorThread *t = thread.data();
-
-    connect(t, SIGNAL(created(QString, QString)),
-            this, SLOT(onCreated(QString, QString)));
-    connect(t, SIGNAL(changed(QString, QString)),
-            this, SLOT(onChanged(QString, QString)));
-    connect(t, SIGNAL(deleted(QString, QString)),
-            this, SLOT(onDeleted(QString, QString)));
-
     IFTRACE(filemon)
-        debug() << "Created\n";
+        debug() << "Creating\n";
+
+    thread = FileMonitorThread::instance();
+    thread->addMonitor(this);
 }
 
 
@@ -61,6 +54,7 @@ FileMonitor::~FileMonitor()
         debug() << "Deleting\n";
 
     removeAllPaths();
+    thread->removeMonitor(this);
 }
 
 
@@ -77,12 +71,17 @@ void FileMonitor::addPath(const QString &path)
             debug() << "Error: relative path not supported: '" << +path << "'\n";
         return;
     }
-    if (!paths.contains(path))
+    if (!files.contains(path))
     {
+        MonitoredFile mf(path);
         QFileInfo file(path);
         if (file.exists())
-            emit created(path, file.canonicalFilePath());
-        paths.append(path);
+        {
+            mf.lastNotification = Created;
+            mf.cachedCanonicalPath =  file.canonicalFilePath();
+            emit created(path, mf.cachedCanonicalPath);
+        }
+        files[path] = mf;
         thread->addPath(path);
     }
 }
@@ -93,11 +92,11 @@ void FileMonitor::removePath(const QString &path)
 //   Remove a path from the list of files and directories being monitored
 // ----------------------------------------------------------------------------
 {
-    if (paths.contains(path))
+    if (files.contains(path))
     {
-        paths.removeOne(path);
+        files.remove(path);
+        Q_ASSERT(!files.contains(path));
         thread->removePath(path);
-        Q_ASSERT(!paths.contains(path));
     }
 }
 
@@ -107,38 +106,35 @@ void FileMonitor::removeAllPaths()
 //   Clear all monitored items
 // ----------------------------------------------------------------------------
 {
-    foreach (QString path, paths)
-        removePath(path);
+    foreach (MonitoredFile file, files)
+        removePath(file.path);
 }
 
 
 void FileMonitor::onCreated(const QString &path, const QString canonicalPath)
 // ----------------------------------------------------------------------------
-//   Called by FileMonitorThread. Emit signal if we know this path.
+//   Called from the monitoring thread when a file is created.
 // ----------------------------------------------------------------------------
 {
-    if (paths.contains(path))
-        emit created(path, canonicalPath);
+    emit created(path, canonicalPath);
 }
 
 
 void FileMonitor::onChanged(const QString &path, const QString canonicalPath)
 // ----------------------------------------------------------------------------
-//   Called by FileMonitorThread. Emit signal if we know this path.
+//   Called from the monitoring thread when file/canonical path changes.
 // ----------------------------------------------------------------------------
 {
-    if (paths.contains(path))
-        emit changed(path, canonicalPath);
+    emit changed(path, canonicalPath);
 }
 
 
 void FileMonitor::onDeleted(const QString &path, const QString canonicalPath)
 // ----------------------------------------------------------------------------
-//   Called by FileMonitorThread. Emit signal if we know this path.
+//   Called from the monitoring thread when a file is deleted or renamed.
 // ----------------------------------------------------------------------------
 {
-    if (paths.contains(path))
-        emit deleted(path, canonicalPath);
+    emit deleted(path, canonicalPath);
 }
 
 
@@ -206,20 +202,12 @@ void FileMonitorThread::addPath(const QString &path)
     {
         FileInfo &file = files[path];
         file.refs++;
-        file.ignore = false;
         return;
     }
 
     IFTRACE(filemon)
-        debug() << "Adding to monitored list: '" << +path << "'\n";
+        debug() << "Adding: '" << +path << "'\n";
 
-    FileInfo file(path);
-    if (file.exists())
-    {
-        // 'created' signal already sent synchronously by FileMonitor
-        file.cachedModified = file.lastModified();
-        file.lastNotification = Created;
-    }
     files[path] = FileInfo(path);
 }
 
@@ -239,6 +227,37 @@ void FileMonitorThread::removePath(const QString &path)
         IFTRACE(filemon)
             debug() << "Removing from monitored list: '" << +path << "\n";
     }
+}
+
+
+void FileMonitorThread::addMonitor(FileMonitor *monitor)
+// ----------------------------------------------------------------------------
+//    Add a FileMonitor instance
+// ----------------------------------------------------------------------------
+{
+    QMutexLocker locker(&mutex);
+    Q_ASSERT(!monitors.contains(monitor));
+    monitors.append(monitor);
+
+    IFTRACE(filemon)
+        debug() << "FileMonitor " << (void*)monitor << " added (count="
+                << monitors.count() << ")\n";
+}
+
+
+void FileMonitorThread::removeMonitor(FileMonitor *monitor)
+// ----------------------------------------------------------------------------
+//    Remove a FileMonitor instance
+// ----------------------------------------------------------------------------
+{
+    QMutexLocker locker(&mutex);
+    Q_ASSERT(monitors.contains(monitor));
+    monitors.removeOne(monitor);
+    Q_ASSERT(!monitors.contains(monitor));
+
+    IFTRACE(filemon)
+        debug() << "FileMonitor " << (void*)monitor << " removed (count="
+                << monitors.count() << ")\n";
 }
 
 
@@ -299,59 +318,74 @@ void FileMonitorThread::checkFiles()
                 continue;
             }
 
-            QDateTime lastModified;
-            QString canonicalPath;
-            switch (file.lastNotification)
+            foreach (FileMonitor *monitor, monitors)
             {
-            case None:
-            case Deleted:
-                IFTRACE(filemon)
-                    debug() << "Created: '" << +path << "' ('"
-                            << +file.canonicalFilePath() << "')\n";
-                file.cachedModified = file.lastModified();
-                file.cachedCanonicalPath = file.canonicalFilePath();
-                file.lastNotification = Created;
-                emit created(path, file.canonicalFilePath());
-                break;
-            case Created:
-            case Changed:
-                lastModified = file.lastModified();
-                canonicalPath = file.canonicalFilePath();
-                if (lastModified > file.cachedModified ||
-                    canonicalPath != file.cachedCanonicalPath)
+                if (!monitor->files.contains(path))
+                    continue;
+
+                FileMonitor::MonitoredFile &mf = monitor->files[path];
+                QDateTime lastModified;
+                QString canonicalPath;
+                switch (mf.lastNotification)
                 {
+                case FileMonitor::None:
+                case FileMonitor::Deleted:
                     IFTRACE(filemon)
+                            debug() << "Created: '" << +path << "' ('"
+                                    << +file.canonicalFilePath() << "')\n";
+                    mf.cachedModified = file.lastModified();
+                    mf.cachedCanonicalPath = file.canonicalFilePath();
+                    mf.lastNotification = FileMonitor::Created;
+                    monitor->onCreated(path, file.canonicalFilePath());
+                    break;
+                case FileMonitor::Created:
+                case FileMonitor::Changed:
+                    lastModified = file.lastModified();
+                    canonicalPath = file.canonicalFilePath();
+                    if ((mf.cachedModified.isValid() &&
+                         lastModified > mf.cachedModified)
+                        || canonicalPath != mf.cachedCanonicalPath)
                     {
-                        const QString fmt("dd MMM yyyy hh:mm:ss.zzz");
-                        debug() << "Changed: '" << +path << "' ('"
-                                << +file.cachedCanonicalPath << "' "
-                                << +file.cachedModified.toString(Qt::ISODate)
-                                << " -> '"
-                                << +canonicalPath << "' "
-                                << +lastModified.toString(Qt::ISODate) << ")\n";
+                        IFTRACE(filemon)
+                        {
+                            const QString fmt("dd MMM yyyy hh:mm:ss.zzz");
+                            debug() << "Changed: '" << +path << "' ('"
+                                    << +mf.cachedCanonicalPath << "' "
+                                    << +mf.cachedModified.toString(Qt::ISODate)
+                                    << " -> '"
+                                    << +canonicalPath << "' "
+                                    << +lastModified.toString(Qt::ISODate) << ")\n";
+                        }
+                        mf.cachedModified = lastModified;
+                        mf.cachedCanonicalPath = canonicalPath;
+                        mf.lastNotification = FileMonitor::Changed;
+                        monitor->onChanged(path, file.canonicalFilePath());
                     }
-                    file.cachedModified = lastModified;
-                    file.cachedCanonicalPath = canonicalPath;
-                    file.lastNotification = Changed;
-                    emit changed(path, file.canonicalFilePath());
+                    break;
+                default:
+                    break;
                 }
-                break;
-            default:
-                break;
-            }
+            } // for each monitor
         }
         else
         {
-            if (file.lastNotification != Deleted)
+            foreach (FileMonitor *monitor, monitors)
             {
-                IFTRACE(filemon)
-                    debug() << "Deleted: '" << +path << "' ('"
-                            << +file.cachedCanonicalPath << "')\n";
-                file.cachedModified = QDateTime();
-                file.cachedCanonicalPath = QString();
-                file.lastNotification = Deleted;
-                emit deleted(path, file.canonicalFilePath());
-            }
+                if (!monitor->files.contains(path))
+                    continue;
+
+                FileMonitor::MonitoredFile &mf = monitor->files[path];
+                if (mf.lastNotification != FileMonitor::Deleted)
+                {
+                    IFTRACE(filemon)
+                        debug() << "Deleted: '" << +path << "' ('"
+                                << +mf.cachedCanonicalPath << "')\n";
+                    mf.cachedModified = QDateTime();
+                    mf.cachedCanonicalPath = QString();
+                    mf.lastNotification = FileMonitor::Deleted;
+                    monitor->onDeleted(path, file.canonicalFilePath());
+                }
+            } // for each monitor
         }
     }
 

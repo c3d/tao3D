@@ -241,6 +241,9 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
     if (active)
         return next;
 
+    IFTRACE(widgets)
+            std::cerr << "MouseFocusTracker::MouseMove " << x << ", " << y << std::endl;
+
     uint current = ObjectAtPoint(x, widget->height() - y);
 
     if (current != previous)
@@ -352,6 +355,8 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
 //   Initial and final click in a selection rectangle
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(widgets)
+            std::cerr << "Selection::Click\n";
     bool firstClick = false;
     bool doneWithSelection = false;
     bool shiftModifier = qApp->keyboardModifiers() & Qt::ShiftModifier;

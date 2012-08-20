@@ -2407,7 +2407,11 @@ bool Widget::forwardEvent(QEvent *event)
 {
     refreshNow(event);
     if (QObject *focus = focusWidget)
+    {
+        IFTRACE(widgets)
+            std::cerr << "forwardEvent::Event type " << event->type() << std::endl;
         return focus->event(event);
+    }
     return false;
 }
 
@@ -2438,7 +2442,9 @@ bool Widget::forwardEvent(QMouseEvent *event)
                     << " focusWidget name " << +(focus->objectName())
                     << std::endl;
         }
-        return focus->event(&local);
+        bool res = focus->event(&local);
+        event->setAccepted(local.isAccepted());
+        return res;
     }
 
     return false;
@@ -3273,7 +3279,7 @@ void Widget::timerEvent(QTimerEvent *event)
         }
     }
 #endif
-    forwardEvent(event);
+    refreshNow(event);
 }
 
 

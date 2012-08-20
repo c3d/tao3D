@@ -2408,7 +2408,6 @@ bool Widget::forwardEvent(QEvent *event)
     refreshNow(event);
     if (QObject *focus = focusWidget)
         return focus->event(event);
-
     return false;
 }
 
@@ -3274,7 +3273,6 @@ void Widget::timerEvent(QTimerEvent *event)
         }
     }
 #endif
-
     forwardEvent(event);
 }
 
@@ -10576,7 +10574,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 //   Set the action to be executed by the current buttonGroup if any.
 // ----------------------------------------------------------------------------
 {
-    if (currentGroup && currentGroup->action)
+    if (currentGroup)
     {
         currentGroup->action = action;
     }

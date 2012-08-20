@@ -120,7 +120,7 @@ void LayoutState::ClearAttributes(bool all)
 }
 
 
-text LayoutState::ToText(QEvent::Type type)
+text LayoutState::ToText(int type)
 // ----------------------------------------------------------------------------
 //   Helper function to display an event type in human-readable form
 // ----------------------------------------------------------------------------
@@ -590,7 +590,7 @@ void Layout::RefreshOn(Layout *layout)
 }
 
 
-void Layout::RefreshOn(QEvent::Type type, double when)
+void Layout::RefreshOn(int type, double when)
 // ----------------------------------------------------------------------------
 //   Ask for refresh on specified event (and time if event is QEvent::Timer)
 // ----------------------------------------------------------------------------
@@ -604,7 +604,7 @@ void Layout::RefreshOn(QEvent::Type type, double when)
 }
 
 
-void Layout::NoRefreshOn(QEvent::Type type)
+void Layout::NoRefreshOn(int type)
 // ----------------------------------------------------------------------------
 //   Layout should NOT be updated on specified event
 // ----------------------------------------------------------------------------

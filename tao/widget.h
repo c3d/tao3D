@@ -1026,10 +1026,10 @@ private:
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
-    void                  refreshOn(QEvent::Type type,
+    void                  refreshOn(int type,
                                     double nextRefresh = DBL_MAX);
 public:
-    static bool           refreshOn(int event_type, double next_refresh);
+    static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,

@@ -1003,7 +1003,7 @@ static QDateTime fromSecsSinceEpoch(double when)
 }
 
 
-void Widget::refreshOn(QEvent::Type type, double nextRefresh)
+void Widget::refreshOn(int type, double nextRefresh)
 // ----------------------------------------------------------------------------
 //   Current layout (if any) should be updated on specified event
 // ----------------------------------------------------------------------------
@@ -1032,14 +1032,14 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 }
 
 
-bool Widget::refreshOn(int event_type, double next_refresh)
+bool Widget::refreshOnAPI(int event_type, double next_refresh)
 // ----------------------------------------------------------------------------
 //   Module interface to refreshOn
 // ----------------------------------------------------------------------------
 {
     if (next_refresh == -1.0)
         next_refresh = DBL_MAX;
-    Tao()->refreshOn((QEvent::Type)event_type, next_refresh);
+    Tao()->refreshOn(event_type, next_refresh);
     return true;
 }
 
@@ -5785,7 +5785,7 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 //    Refresh current layout on event
 // ----------------------------------------------------------------------------
 {
-    refreshOn((QEvent::Type)eventType);
+    refreshOn(eventType);
     return XL::xl_true;
 }
 
@@ -10670,17 +10670,17 @@ bool Widget::blink(double on, double off, double after)
     double runtime = Application::runTime();
     if (runtime <= after)
     {
-        refreshOn((int)QEvent::Timer, after - runtime);
+        refreshOnAPI((int)QEvent::Timer, after - runtime);
         return true;
     }
     double time = Widget::currentTimeAPI();
     double mod = fmod(time, on + off);
     if (mod <= on)
     {
-        refreshOn((int)QEvent::Timer, time + on - mod);
+        refreshOnAPI((int)QEvent::Timer, time + on - mod);
         return true;
     }
-    refreshOn((int)QEvent::Timer, time + on + off - mod);
+    refreshOnAPI((int)QEvent::Timer, time + on + off - mod);
     return false;
 }
 

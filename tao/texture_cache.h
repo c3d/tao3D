@@ -180,10 +180,11 @@ public slots:
                                   const QString &canonicalPath);
     void            onFileDeleted(const QString &path);
 
+private slots:
+    void            checkReply(QNetworkReply *reply);
+
 private:
     std::ostream &  debug();
-    QString         findPath();
-    void            checkFile();
 
 public:
     QString         path, docPath, canonicalPath;
@@ -202,7 +203,7 @@ private:
     bool            networked;
     QNetworkReply  *networkReply;
 
-    bool            inLoad; // REVISIT
+    bool            inLoad;
 };
 
 

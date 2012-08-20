@@ -455,6 +455,8 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
         Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
         QUrl url(path);
         QNetworkRequest req(url);
+        connect(&cache.network, SIGNAL(finished(QNetworkReply*)),
+                this, SLOT(checkReply(QNetworkReply*)));
         networkReply = cache.network.get(req);
     }
     else
@@ -510,7 +512,7 @@ void CachedTexture::load()
         {
             // If file exists, fileMonitor will emit created() synchronously,
             // which will set canonicalPath
-            inLoad = true; // REVISIT prevent onFileCreated from calling reload
+            inLoad = true; // Prevent onFileCreated from calling reload
             cache.fileMonitor.addPath(path);
             inLoad = false;
             if (canonicalPath != "")
@@ -750,47 +752,22 @@ GLuint CachedTexture::bind()
     Q_ASSERT(id);
     Q_ASSERT(transferred());
 
-    checkFile();
-
     if (!isDefaultTexture || !networked)
         glBindTexture(GL_TEXTURE_2D, id);
     return id;
 }
 
 
-QString CachedTexture::findPath()
+void CachedTexture::checkReply(QNetworkReply *reply)
 // ----------------------------------------------------------------------------
-//   Resolve path to texture
-// ----------------------------------------------------------------------------
-{
-    if (networked || QDir::isAbsolutePath(path))
-        return path;
-
-    QFileInfo info(QDir(docPath), path);
-    if (info.exists())
-        return info.absoluteFilePath();
-    QFileInfo qualified(QDir(docPath), "texture:" + path);
-    if (qualified.exists())
-        return qualified.absoluteFilePath();
-    return "";
-}
-
-
-void CachedTexture::checkFile()
-// ----------------------------------------------------------------------------
-//   Check if network reply is complete - then load
+//   Check if network reply is complete, if so then load image
 // ----------------------------------------------------------------------------
 {
-    // If networked, we check if the reply is completed
-    if (networked)
+    if (networked &&
+        image.isNull() &&
+        reply->error() == QNetworkReply::NoError)
     {
-        if (image.isNull() &&
-            networkReply->isFinished() &&
-            networkReply->error() == QNetworkReply::NoError)
-        {
-            reload();
-        }
-        return;
+        reload();
     }
 }
 

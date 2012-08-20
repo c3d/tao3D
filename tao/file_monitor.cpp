@@ -79,6 +79,7 @@ void FileMonitor::addPath(const QString &path)
         {
             mf.lastNotification = Created;
             mf.cachedCanonicalPath =  file.canonicalFilePath();
+            mf.cachedModified = file.lastModified();
             emit created(path, mf.cachedCanonicalPath);
         }
         files[path] = mf;
@@ -225,7 +226,7 @@ void FileMonitorThread::removePath(const QString &path)
     {
         files.remove(path);
         IFTRACE(filemon)
-            debug() << "Removing from monitored list: '" << +path << "\n";
+            debug() << "Removing: '" << +path << "'\n";
     }
 }
 

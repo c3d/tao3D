@@ -307,6 +307,14 @@ void FileMonitorThread::checkFiles()
             continue;
 
         file.refresh();
+        bool prefixed = (QRegExp("^[a-zA-Z]+:").indexIn(path) != -1);
+        if (prefixed)
+        {
+            // Qt bug? QFileInfo tries to resolve the prefixed path only once
+            // This works around the problem
+            file.setFile("");
+            file.setFile(path);
+        }
 
         if (file.exists())
         {
@@ -376,7 +384,8 @@ void FileMonitorThread::checkFiles()
                     continue;
 
                 FileMonitor::MonitoredFile &mf = monitor->files[path];
-                if (mf.lastNotification != FileMonitor::Deleted)
+                if (mf.lastNotification != FileMonitor::Deleted &&
+                    mf.lastNotification != FileMonitor::None)
                 {
                     IFTRACE(filemon)
                         debug() << "Deleted: '" << +path << "' ('"

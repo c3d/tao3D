@@ -179,7 +179,13 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
     {
         name = docPath + "/" + img;
         if (!QFileInfo(name).exists())
-            name = "texture:" + img; // Backward-compatibility
+        {
+             // Backward compatibility
+            QString qualified = "texture:" + img;
+            QFileInfo info(qualified);
+            if (info.exists())
+                name = info.canonicalFilePath();
+        }
     }
     // name is either a URL, full path or a prefixed path ("image:file.jpg").
     // It cannot be a relative path.

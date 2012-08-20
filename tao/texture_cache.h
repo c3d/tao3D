@@ -149,8 +149,7 @@ class CachedTexture : public QObject
 
 public:
     CachedTexture(TextureCache &cache, const QString &path,
-                  const QString &docPath, bool mipmap,
-                  bool compress, bool cacheCompressed = true);
+                  bool mipmap, bool compress, bool cacheCompressed = true);
     ~CachedTexture();
 
     void            load();
@@ -187,7 +186,7 @@ private:
     std::ostream &  debug();
 
 public:
-    QString         path, docPath, canonicalPath;
+    QString         path, canonicalPath;
     GLuint          id;
     int             width, height;
     bool            mipmap, compress;
@@ -282,9 +281,7 @@ private slots:
     void            doPrintStatistics();
 
 private:
-    typedef QPair<QString, QString> TextureName; // (file path, doc path)
-
-    QMap <TextureName, CachedTexture *> fromName;
+    QMap <QString, CachedTexture *>  fromName;
     QMap <GLuint, CachedTexture *>   fromId;
     LRU                              memLRU, GL_LRU;
     qint64                           memSize, GLSize, maxMemSize, maxGLSize;

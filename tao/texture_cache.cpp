@@ -173,21 +173,20 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 //   Load texture file. docPath is used if img is relative.
 // ----------------------------------------------------------------------------
 {
-    QString qimg(img);
-    if (!img.contains("://") && QDir::isRelativePath(img) &&
-        QRegExp("^[a-z]+:").indexIn(img) == -1)
+    QString name(img);
+    if (!name.contains("://") && QDir::isRelativePath(name) &&
+        QRegExp("^[a-z]+:").indexIn(name) == -1)
     {
-        qimg = docPath + "/" + img;
-        if (!QFileInfo(qimg).exists())
-            qimg = "texture:" + img; // Backward-compatibility
+        name = docPath + "/" + img;
+        if (!QFileInfo(name).exists())
+            name = "texture:" + img; // Backward-compatibility
     }
-    // qimg is either a URL, full path or a prefixed path ("image:file.jpg")
+    // name is either a URL, full path or a prefixed path ("image:file.jpg").
     // It cannot be a relative path.
-    TextureName name(qimg, docPath); // REVISIT: remove docPath
     CachedTexture * cached = fromName.value(name);
     if (!cached)
     {
-        cached = new CachedTexture(*this, qimg, docPath, mipmap, compress);
+        cached = new CachedTexture(*this, name, mipmap, compress);
         GLuint id = cached->id;
         fromId[id] = fromName[name] = cached;
         if (memSize > maxMemSize)
@@ -334,7 +333,7 @@ void TextureCache::clear()
     {
         CachedTexture * tex = fromId.take(id);
         Q_ASSERT(tex);
-        fromName.remove(TextureName(tex->path, tex->docPath));
+        fromName.remove(tex->path);
         unlink(tex, memLRU);
         unlink(tex, GL_LRU);
         delete tex;
@@ -444,12 +443,11 @@ std::ostream & TextureCache::debug()
 // ============================================================================
 
 CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
-                             const QString &docPath,
                              bool mipmap, bool compress, bool cacheCompressed)
 // ----------------------------------------------------------------------------
 //   Allocate GL texture ID to image
 // ----------------------------------------------------------------------------
-    : path(path), docPath(docPath), width(0), height(0),  mipmap(mipmap),
+    : path(path), width(0), height(0),  mipmap(mipmap),
       compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
       memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed),
       networked(path.contains("://")), networkReply(NULL), inLoad(false)
@@ -481,11 +479,8 @@ CachedTexture::~CachedTexture()
     glDeleteTextures(1, &id);
     if (networkReply)
         networkReply->deleteLater();
-    if (canonicalPath != "")
-    {
-        // REVISIT Bug if 2 CachedTextures have the same absolutePath
-        cache.fileMonitor.removePath(canonicalPath);
-    }
+    if (path != "")
+        cache.fileMonitor.removePath(path);
 }
 
 

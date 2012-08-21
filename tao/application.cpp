@@ -442,16 +442,50 @@ bool Application::installTranslators()
 }
 
 
+static text getGLText(GLenum name)
+// ----------------------------------------------------------------------------
+//   Helper function. Return a GL string value as a QString.
+// ----------------------------------------------------------------------------
+{
+    return +QString::fromLocal8Bit((const char*)glGetString(name));
+}
+
 bool Application::checkGL()
 // ----------------------------------------------------------------------------
 //   Check if GL implementation can be used
 // ----------------------------------------------------------------------------
 {
+    {
+        // We need a valid GL context to read the information strings
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        if (QGLContext::currentContext()->isValid())
+        {
+            TaoApp->GLVendor   = getGLText(GL_VENDOR);
+            TaoApp->GLRenderer = getGLText(GL_RENDERER);
+            TaoApp->GLVersionAvailable = getGLText(GL_VERSION);
+            TaoApp->GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+
+            // Get number of maximum texture units and coords in fragment shaders
+            // (texture units are limited to 4 otherwise)
+            glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*)&maxTextureUnits);
+        }
+        else
+        {
+            TaoApp->GLVendor = TaoApp->GLRenderer = TaoApp->GLVersionAvailable
+                    = TaoApp->GLExtensionsAvailable = "?";
+        }
+    }
+
     // Basic sanity tests to check if we can actually run
     if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
-        QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL 2.0."));
+        QString msg = tr("This system (%1, %2, %3) doesn't support "
+                         "OpenGL 2.0.").arg(+GLVendor).arg(+GLRenderer)
+                                       .arg(+GLVersionAvailable);
+        QMessageBox::warning(NULL, tr("OpenGL support"), msg);
         return false;
     }
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
@@ -465,11 +499,7 @@ bool Application::checkGL()
     useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
-        QGLWidget gl;
-        gl.makeCurrent();
-
         // Ask graphic card constructor to OpenGL
-        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
         // Search in vendors list
@@ -488,24 +518,6 @@ bool Application::checkGL()
         case 1: vendorID = NVIDIA; break;
         case 2: vendorID = INTEL; break;
         }
-
-        const GLubyte *str;
-        // Get OpenGL supported version
-        str = glGetString(GL_VERSION);
-        GLVersionAvailable = (const char*) str;
-
-        // Get OpenGL supported extentions
-        str = glGetString(GL_EXTENSIONS);
-        GLExtensionsAvailable = (const char*) str;
-
-        // Get OpenGL renderer (GPU)
-        str = glGetString(GL_RENDERER);
-        GLRenderer = (const char*) str;
-
-        // Get number of maximum texture units and coords in fragment shaders
-        // (texture units are limited to 4 otherwise)
-        glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
     {

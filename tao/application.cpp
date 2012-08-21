@@ -150,6 +150,20 @@ void Application::deferredInit()
 #endif
         std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
+
+        ::exit(0);
+    }
+    if (cmdLineArguments.contains("--glinfo"))
+    {
+        glewInit();
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        std::cout << "OpenGL vendor:     " << glGetString(GL_VENDOR) << "\n"
+                  << "OpenGL renderer:   " << glGetString(GL_RENDERER) << "\n"
+                  << "OpenGL version:    " << glGetString(GL_VERSION)  << "\n"
+                  << "OpenGL extensions: " << glGetString(GL_EXTENSIONS)
+                  << "\n";
         ::exit(0);
     }
 

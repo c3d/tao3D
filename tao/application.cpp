@@ -155,15 +155,16 @@ void Application::deferredInit()
     }
     if (cmdLineArguments.contains("--glinfo"))
     {
-        glewInit();
-        QGLWidget gl;
-        gl.makeCurrent();
+        {
+            QGLWidget gl;
+            gl.makeCurrent();
 
-        std::cout << "OpenGL vendor:     " << glGetString(GL_VENDOR) << "\n"
-                  << "OpenGL renderer:   " << glGetString(GL_RENDERER) << "\n"
-                  << "OpenGL version:    " << glGetString(GL_VERSION)  << "\n"
-                  << "OpenGL extensions: " << glGetString(GL_EXTENSIONS)
-                  << "\n";
+            std::cout << "OpenGL vendor:     " << glGetString(GL_VENDOR)
+                      << "\nOpenGL renderer:   " << glGetString(GL_RENDERER)
+                      << "\nOpenGL version:    " << glGetString(GL_VERSION)
+                      << "\nOpenGL extensions: " << glGetString(GL_EXTENSIONS)
+                      << "\n";
+        }
         ::exit(0);
     }
 

@@ -94,7 +94,7 @@ Application::Application(int & argc, char ** argv)
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), peer(NULL)
+      moduleManager(NULL), peer(NULL), textureCache(TextureCache::instance())
 {
 #if defined(Q_OS_WIN32)
     installDDEWidget();

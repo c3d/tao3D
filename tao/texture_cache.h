@@ -31,6 +31,8 @@
 #include <QtNetwork>
 #include <QTime>
 #include <QTimer>
+#include <QSharedPointer>
+#include <QWeakPointer>
 #include <iostream>
 
 const qint64 CACHE_KB = 1024LL;
@@ -219,12 +221,7 @@ class TextureCache : public QObject
     friend class CachedTexture;
 
 public:
-    static TextureCache * instance()
-    {
-        if (!textureCache)
-            textureCache = new TextureCache;
-        return textureCache;
-    }
+    static QSharedPointer<TextureCache> instance();
 
 public:
     // Primitives
@@ -303,7 +300,7 @@ private:
     FileMonitor                      fileMonitor;
 
 private:
-    static TextureCache * textureCache;
+    static QWeakPointer<TextureCache> textureCache;
 };
 
 

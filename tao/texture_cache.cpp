@@ -36,7 +36,7 @@ namespace Tao {
 // 
 // ============================================================================
 
-TextureCache * TextureCache::textureCache = NULL;
+QWeakPointer<TextureCache> TextureCache::textureCache;
 
 
 static text bytesToText(qint64 size)
@@ -63,7 +63,7 @@ static text bytesToText(qint64 size)
 #define BOOL_SETTER(fn, attr)                                               \
 XL::Name_p TextureCache::fn(bool enable)                                    \
 {                                                                           \
-    TextureCache * tc = TextureCache::instance();                           \
+    QSharedPointer<TextureCache> tc = TextureCache::instance();             \
     bool &attr = tc->attr, prev = attr;                                     \
                                                                             \
     if (attr != enable)                                                     \
@@ -86,7 +86,7 @@ BOOL_SETTER(textureCompress, compress)
 #define SIZE_SETTER(fn, attr)                                               \
 XL::Integer_p TextureCache::fn(qint64 val)                                  \
 {                                                                           \
-    TextureCache * tc = TextureCache::instance();                           \
+    QSharedPointer<TextureCache> tc = TextureCache::instance();             \
     qint64 &attr = tc->attr, prev = attr;                                   \
                                                                             \
     if (attr != val)                                                        \
@@ -130,6 +130,26 @@ TextureCache::TextureCache()
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
     IFTRACE2(texturecache, layoutevents)
         debug() << "ID of 'refresh' user event: " << texChangedEvent << "\n";
+}
+
+
+QSharedPointer<TextureCache> TextureCache::instance()
+// ----------------------------------------------------------------------------
+//    Return a pointer to the instance of the texture cache.
+// ----------------------------------------------------------------------------
+{
+    QSharedPointer<TextureCache> ptr;
+    if (!textureCache)
+    {
+        ptr = QSharedPointer<TextureCache>(new TextureCache);
+        textureCache = ptr.toWeakRef();
+    }
+    else
+    {
+        ptr = textureCache.toStrongRef();
+        Q_ASSERT(ptr);
+    }
+    return ptr;
 }
 
 

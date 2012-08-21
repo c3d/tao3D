@@ -25,6 +25,7 @@
 #include "tao_utf8.h"
 #include "preferences_pages.h"
 #include "license.h"
+#include "application.h"
 
 namespace Tao {
 
@@ -792,6 +793,7 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         reload();
         reply->deleteLater();
         networkReply = NULL;
+        TaoApp->windowWidget()->update();
     }
 }
 
@@ -822,7 +824,10 @@ void CachedTexture::onFileCreated(const QString &path,
     {
         this->canonicalPath = canonicalPath;
         if (!inLoad)
+        {
             reload();
+            TaoApp->windowWidget()->update();
+        }
     }
 }
 
@@ -838,6 +843,7 @@ void CachedTexture::onFileChanged(const QString &path,
         // Canonical path may have changed if path is a prefixed path
         this->canonicalPath = canonicalPath;
         reload();
+        TaoApp->windowWidget()->update();
     }
 }
 
@@ -851,6 +857,7 @@ void CachedTexture::onFileDeleted(const QString &path)
     {
         this->canonicalPath = "";
         reload();
+        TaoApp->windowWidget()->update();
     }
 }
 

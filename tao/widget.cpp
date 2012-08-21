@@ -275,7 +275,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Prepare activity to process mouse events even when no click is made
     // (but for performance reasons, mouse tracking is enabled only when program
     // execution asks for MouseMove events)
-    mouseFocusTracker = new MouseFocusTracker("Focus tracking", this);
+    mouseFocusTracker = new MouseFocusTracker(this);
 
     // Find which page overscaling to use
     while (printOverscaling < 8 &&
@@ -469,7 +469,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
             this,           SLOT(userMenu(QAction*)));
 
     // Prepare new mouse tracking activity
-    mouseFocusTracker = new MouseFocusTracker("Focus tracking", this);
+    mouseFocusTracker = new MouseFocusTracker(this);
 
     std::map<text, text>::iterator i;
     for (i = o.xlTranslations.begin(); i != o.xlTranslations.end(); i++)
@@ -10159,7 +10159,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
         currentGridLayout->addWidget(surface->widget, y, x);
         return XL::xl_true;
     }
-
+    layout->Add (new FillColor(1.0, 1.0, 1.0, 1.0));
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));

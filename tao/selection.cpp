@@ -225,11 +225,11 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
 //
 // ============================================================================
 
-MouseFocusTracker::MouseFocusTracker(text t, Widget *w)
+MouseFocusTracker::MouseFocusTracker(Widget *w)
 // ----------------------------------------------------------------------------
 //   Initialize the activity
 // ----------------------------------------------------------------------------
-    : Identify(t, w), previous(0)
+    : Identify("Focus tracking", w), previous(0)
 {}
 
 

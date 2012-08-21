@@ -32,10 +32,11 @@
 namespace Tao {
 
 
-FileMonitor::FileMonitor()
+FileMonitor::FileMonitor(QString name)
 // ----------------------------------------------------------------------------
 //    Construct a file monitor object
 // ----------------------------------------------------------------------------
+    : name(name)
 {
     IFTRACE(filemon)
         debug() << "Creating\n";
@@ -73,6 +74,9 @@ void FileMonitor::addPath(const QString &path)
     }
     if (!files.contains(path))
     {
+        IFTRACE(filemon)
+            debug() << "Adding: '" << +path << "'\n";
+
         MonitoredFile mf(path);
         QFileInfo file(path);
         if (file.exists())
@@ -95,6 +99,9 @@ void FileMonitor::removePath(const QString &path)
 {
     if (files.contains(path))
     {
+        IFTRACE(filemon)
+            debug() << "Removing: '" << +path << "'\n";
+
         files.remove(path);
         Q_ASSERT(!files.contains(path));
         thread->removePath(path);
@@ -144,7 +151,12 @@ std::ostream & FileMonitor::debug()
 //   Convenience method to log with a common prefix
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "[FileMonitor " << (void*)this << "] ";
+    std::cerr << "[FileMonitor ";
+    if (name.isEmpty())
+        std::cerr << (void*)this;
+    else
+        std::cerr << +name;
+    std::cerr << "] ";
     return std::cerr;
 }
 
@@ -206,9 +218,6 @@ void FileMonitorThread::addPath(const QString &path)
         return;
     }
 
-    IFTRACE(filemon)
-        debug() << "Adding: '" << +path << "'\n";
-
     files[path] = FileInfo(path);
 }
 
@@ -223,11 +232,7 @@ void FileMonitorThread::removePath(const QString &path)
     FileInfo &info = files[path];
     Q_ASSERT(info.refs > 0);
     if (--info.refs == 0)
-    {
         files.remove(path);
-        IFTRACE(filemon)
-            debug() << "Removing: '" << +path << "'\n";
-    }
 }
 
 

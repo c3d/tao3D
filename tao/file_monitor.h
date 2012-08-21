@@ -49,7 +49,7 @@ class FileMonitor : public QObject
     Q_OBJECT
 
 public:
-    FileMonitor();
+    FileMonitor(QString name = QString());
     virtual ~FileMonitor();
 
     void           removeAllPaths();
@@ -92,6 +92,7 @@ protected:
 protected:
     QMap<QString, MonitoredFile>      files;
     QSharedPointer<FileMonitorThread> thread;
+    QString                           name;
 };
 
 

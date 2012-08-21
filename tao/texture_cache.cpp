@@ -121,7 +121,7 @@ TextureCache::TextureCache()
       compress(PerformancesPage::texture2DCompress()),
       minFilt(PerformancesPage::texture2DMinFilter()),
       magFilt(PerformancesPage::texture2DMagFilter()),
-      network(NULL)
+      network(NULL), fileMonitor("tex")
                            
 {
     statTimer.setSingleShot(true);

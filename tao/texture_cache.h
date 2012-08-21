@@ -249,6 +249,8 @@ public:
     qint64          maxMem()    { return maxMemSize; }
     qint64          maxGLMem()  { return maxGLSize; }
 
+    int             textureChangedEvent() { return texChangedEvent; }
+
 public slots:
     void            clear();
     void            purge();
@@ -295,6 +297,7 @@ private:
 
     // Network access manager for all texture network accesses
     QNetworkAccessManager            network;
+    int                              texChangedEvent;
 
     // Enables reloading files as they change
     FileMonitor                      fileMonitor;

@@ -26,6 +26,7 @@
 #include "preferences_pages.h"
 #include "license.h"
 #include "application.h"
+#include "widget.h"
 
 namespace Tao {
 
@@ -121,11 +122,14 @@ TextureCache::TextureCache()
       compress(PerformancesPage::texture2DCompress()),
       minFilt(PerformancesPage::texture2DMinFilter()),
       magFilt(PerformancesPage::texture2DMagFilter()),
-      network(NULL), fileMonitor("tex")
+      network(NULL), texChangedEvent(QEvent::registerEventType()),
+      fileMonitor("tex")
                            
 {
     statTimer.setSingleShot(true);
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
+    IFTRACE2(texturecache, layoutevents)
+        debug() << "ID of 'refresh' user event: " << texChangedEvent << "\n";
 }
 
 
@@ -793,7 +797,9 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         reload();
         reply->deleteLater();
         networkReply = NULL;
-        TaoApp->windowWidget()->update();
+        // A simple update is not enough here: the texture id has not yet been
+        // returned, so a XL refresh is needed
+        Widget::postEventAPI(cache.textureChangedEvent());
     }
 }
 

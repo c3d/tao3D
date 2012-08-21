@@ -6937,6 +6937,8 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
 {
     uint texId = 0;
 
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     if (img != "")
     {
         ADJUST_CONTEXT_FOR_INTERPRETER(context);
@@ -7060,6 +7062,8 @@ Integer* Widget::image(Context *context,
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
@@ -7135,6 +7139,8 @@ Infix_p Widget::imageSize(Context *context,
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     GLuint w = 1, h = 1;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);

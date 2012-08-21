@@ -94,7 +94,7 @@ Application::Application(int & argc, char ** argv)
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), peer(NULL)
+      moduleManager(NULL), peer(NULL), textureCache(TextureCache::instance())
 {
 #if defined(Q_OS_WIN32)
     installDDEWidget();
@@ -196,6 +196,9 @@ void Application::deferredInit()
                    +builtins.canonicalFilePath());
 
     loadLicenses();
+
+    // Adjust file polling frequency
+    FileMonitorThread::pollInterval = xlr->options.sync_interval;
 
     // Create and start garbage collection thread
     gcThread = new GCThread;

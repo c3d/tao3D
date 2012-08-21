@@ -25,11 +25,14 @@
 #include "tao.h"
 #include "tao_gl.h"
 #include "tao_tree.h"
+#include "file_monitor.h"
 #include <QMap>
 #include <QDateTime>
 #include <QtNetwork>
 #include <QTime>
 #include <QTimer>
+#include <QSharedPointer>
+#include <QWeakPointer>
 #include <iostream>
 
 const qint64 CACHE_KB = 1024LL;
@@ -130,11 +133,13 @@ struct Image
 
 class TextureCache;
 
-class CachedTexture
+class CachedTexture : public QObject
 // ----------------------------------------------------------------------------
 //    2D texture managed by TextureCache
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
     friend class TextureCache;
 
     struct Links
@@ -146,8 +151,7 @@ class CachedTexture
 
 public:
     CachedTexture(TextureCache &cache, const QString &path,
-                  const QString &docPath, bool mipmap,
-                  bool compress, bool cacheCompressed = true);
+                  bool mipmap, bool compress, bool cacheCompressed = true);
     ~CachedTexture();
 
     void            load();
@@ -168,13 +172,23 @@ public:
     }
     bool            transferred() { return (GLsize != 0); }
 
+    void            reload();
+
+public slots:
+    void            onFileCreated(const QString &path,
+                                  const QString &canonicalPath);
+    void            onFileChanged(const QString &path,
+                                  const QString &canonicalPath);
+    void            onFileDeleted(const QString &path);
+
+private slots:
+    void            checkReply(QNetworkReply *reply);
+
 private:
     std::ostream &  debug();
-    QString         findPath();
-    void            checkFile();
 
 public:
-    QString         path, docPath, canonicalPath;
+    QString         path, canonicalPath;
     GLuint          id;
     int             width, height;
     bool            mipmap, compress;
@@ -190,8 +204,7 @@ private:
     bool            networked;
     QNetworkReply  *networkReply;
 
-    QDateTime       fileLastModified;
-    QTime           fileLastChecked;
+    bool            inLoad;
 };
 
 
@@ -208,12 +221,7 @@ class TextureCache : public QObject
     friend class CachedTexture;
 
 public:
-    static TextureCache * instance()
-    {
-        if (!textureCache)
-            textureCache = new TextureCache;
-        return textureCache;
-    }
+    static QSharedPointer<TextureCache> instance();
 
 public:
     // Primitives
@@ -237,6 +245,8 @@ public:
     GLenum          magFilter() { return magFilt; }
     qint64          maxMem()    { return maxMemSize; }
     qint64          maxGLMem()  { return maxGLSize; }
+
+    int             textureChangedEvent() { return texChangedEvent; }
 
 public slots:
     void            clear();
@@ -270,9 +280,7 @@ private slots:
     void            doPrintStatistics();
 
 private:
-    typedef QPair<QString, QString> TextureName; // (file path, doc path)
-
-    QMap <TextureName, CachedTexture *> fromName;
+    QMap <QString, CachedTexture *>  fromName;
     QMap <GLuint, CachedTexture *>   fromId;
     LRU                              memLRU, GL_LRU;
     qint64                           memSize, GLSize, maxMemSize, maxGLSize;
@@ -286,9 +294,13 @@ private:
 
     // Network access manager for all texture network accesses
     QNetworkAccessManager            network;
+    int                              texChangedEvent;
+
+    // Enables reloading files as they change
+    FileMonitor                      fileMonitor;
 
 private:
-    static TextureCache * textureCache;
+    static QWeakPointer<TextureCache> textureCache;
 };
 
 

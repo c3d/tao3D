@@ -621,14 +621,14 @@ PerformancesPage::PerformancesPage(QWidget *parent)
     connect(ct, SIGNAL(toggled(bool)),
             this, SLOT(setTexture2DCompress(bool)));
     connect(ct, SIGNAL(toggled(bool)),
-            TextureCache::instance(), SLOT(setCompression(bool)));
+            TextureCache::instance().data(), SLOT(setCompression(bool)));
     settingsLayout->addWidget(ct, 3, 1, 1, 2);
     QCheckBox *mm = new QCheckBox(tr("Generate mipmaps for 2D textures"));
     mm->setChecked(texture2DMipmap());
     connect(mm, SIGNAL(toggled(bool)),
             this, SLOT(setTexture2DMipmap(bool)));
     connect(mm, SIGNAL(toggled(bool)),
-            TextureCache::instance(), SLOT(setMipmap(bool)));
+            TextureCache::instance().data(), SLOT(setMipmap(bool)));
     settingsLayout->addWidget(mm, 4, 1, 1, 2);
     settingsLayout->addWidget(new QLabel(tr("2D texture magnification:")), 5, 1);
     magCombo = new QComboBox;

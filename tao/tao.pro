@@ -75,6 +75,7 @@ HEADERS +=     activity.h \
     drawing.h \
     error_message_dialog.h \
     examples_menu.h \
+    file_monitor.h \
     font.h \
     font_file_manager.h \
     frame.h \
@@ -156,6 +157,7 @@ SOURCES +=     activity.cpp \
     drawing.cpp \
     error_message_dialog.cpp \
     examples_menu.cpp \
+    file_monitor.cpp \
     font.cpp \
     font_file_manager.cpp \
     frame.cpp \

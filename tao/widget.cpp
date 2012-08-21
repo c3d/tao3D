@@ -167,7 +167,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true), clearCol(255, 255, 255, 255),
+      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
@@ -315,6 +315,12 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
+
+    // Be notified when source files change
+    connect(&srcFileMonitor, SIGNAL(changed(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
+    connect(&srcFileMonitor, SIGNAL(deleted(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
 }
 
 
@@ -354,7 +360,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), clearCol(o.clearCol),
+      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
@@ -555,7 +561,7 @@ void Widget::runPurgeAction(XL::Action &purge)
     xlProgram->tree->Do(purge);
     // Do it also on imported files
     import_set iset;
-    (void)ImportedFilesChanged(iset, false);
+    ScanImportedFiles(iset, false);
     {
         import_set::iterator it;
         for (it = iset.begin(); it != iset.end(); it++)
@@ -649,12 +655,7 @@ void Widget::dawdle()
 
 #ifndef CFG_NORELOAD
     // Check if it's time to reload
-    longlong syncDelay = longlong(nextSync - tick);
-    if (syncDelay < 0)
-    {
-        refreshProgram();
-        nextSync = tick + Main::MAIN->options.sync_interval * 1000;
-    }
+    refreshProgram();
 #endif
 }
 
@@ -1002,7 +1003,7 @@ static QDateTime fromSecsSinceEpoch(double when)
 }
 
 
-void Widget::refreshOn(QEvent::Type type, double nextRefresh)
+void Widget::refreshOn(int type, double nextRefresh)
 // ----------------------------------------------------------------------------
 //   Current layout (if any) should be updated on specified event
 // ----------------------------------------------------------------------------
@@ -1031,14 +1032,14 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 }
 
 
-bool Widget::refreshOn(int event_type, double next_refresh)
+bool Widget::refreshOnAPI(int event_type, double next_refresh)
 // ----------------------------------------------------------------------------
 //   Module interface to refreshOn
 // ----------------------------------------------------------------------------
 {
     if (next_refresh == -1.0)
         next_refresh = DBL_MAX;
-    Tao()->refreshOn((QEvent::Type)event_type, next_refresh);
+    Tao()->refreshOn(event_type, next_refresh);
     return true;
 }
 
@@ -3474,7 +3475,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
-    refreshProgram();
+    refreshProgram(); // REVISIT not needed?
     inError = false;
 }
 
@@ -3484,10 +3485,25 @@ int Widget::loadFile(text name, bool updateContext)
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
-    TaoSave saveCurrent(current, this);
-    return XL::MAIN->LoadFile(name, updateContext);
-}
+    // Stop monitoring source files of previous document (if any)
+    srcFileMonitor.removeAllPaths();
+    toReload.clear();
 
+    TaoSave saveCurrent(current, this);
+    int ret = XL::MAIN->LoadFile(name, updateContext);
+
+    // Monitor all source files of the new document
+    using namespace XL;
+    source_files &files = MAIN->files;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        srcFileMonitor.addPath(+sf.name);
+    }
+
+    return ret;
+}
 
 void Widget::loadContextFiles(XL::source_names &files)
 // ----------------------------------------------------------------------------
@@ -3584,104 +3600,95 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
+    if (toReload.isEmpty())
+        return;
+
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
     if (!prog || xlProgram->readOnly)
         return;
 
-    // Loop on imported files
-    import_set iset;
-    if (ImportedFilesChanged(iset, false))
+    bool needBigHammer = false;
+    bool needRefresh   = false;
+    foreach (QString path, toReload)
     {
-        import_set::iterator it;
-        bool needBigHammer = false;
-        bool needRefresh   = false;
-        for (it = iset.begin(); it != iset.end(); it++)
+        text fname = +path;
+        IFTRACE(filesync)
+            std::cerr << "Must reload " << fname << "\n";
+
+        Tree *replacement = NULL;
+        if (repo)
         {
-            XL::SourceFile &sf = **it;
-            text fname = sf.name;
-            time_t modified = QFileInfo(+fname).lastModified().toTime_t();
-
-            if (modified > sf.modified)
-            {
-                IFTRACE(filesync)
-                    std::cerr << "File " << fname << " changed ("
-                              << modified << " > " << sf.modified
-                              << " delta " << modified - sf.modified << ")\n";
-
-                Tree *replacement = NULL;
-                if (repo)
-                {
-                    replacement = repo->read(fname);
-                }
-                else
-                {
-                    XL::Syntax syntax(XL::MAIN->syntax);
-                    XL::Positions &positions = XL::MAIN->positions;
-                    XL::Errors errors;
-                    XL::Parser parser(fname.c_str(), syntax, positions, errors);
-                    replacement = parser.Parse();
-                }
-
-                // Make sure we reload only once (bug #533)
-                sf.modified = modified;
-
-                if (!replacement)
-                {
-                    // Uh oh, file went away?
-                    needBigHammer = true;
-                }
-                else
-                {
-                    // Make sure we normalize the replacement
-                    Renormalize renorm(this);
-                    replacement = replacement->Do(renorm);
-
-                    // Check if we can simply change some parameters in file
-                    ApplyChanges changes(replacement);
-                    if (!sf.tree->Do(changes))
-                        needBigHammer = true;
-                    else if (fname == xlProgram->name)
-                        updateProgramSource();
-
-                    needRefresh = true;
-
-                    IFTRACE(filesync)
-                    {
-                        if (needBigHammer)
-                            std::cerr << "Need to reload everything.\n";
-                        else
-                            std::cerr << "Surgical replacement worked\n";
-                    }
-
-                } // Replacement checked
-
-            } // If file modified
-        } // For all files
-
-        // If we were not successful with simple changes, reload everything...
-        if (needBigHammer)
+            replacement = repo->read(fname);
+        }
+        else
         {
-            TaoSave saveCurrent(current, this);
-            purgeTaoInfo();
-            for (it = iset.begin(); it != iset.end(); it++)
+            XL::Syntax syntax(XL::MAIN->syntax);
+            XL::Positions &positions = XL::MAIN->positions;
+            XL::Errors errors;
+            XL::Parser parser(fname.c_str(), syntax, positions, errors);
+            replacement = parser.Parse();
+        }
+
+        if (!replacement)
+        {
+            // Uh oh, file went away?
+            needBigHammer = true;
+            break;
+        }
+        else
+        {
+            // Make sure we normalize the replacement
+            Renormalize renorm(this);
+            replacement = replacement->Do(renorm);
+
+            // Check if we can simply change some parameters in file
+            Q_ASSERT(XL::MAIN->files.count(fname));
+            XL::SourceFile &sf = XL::MAIN->files[fname];
+            ApplyChanges changes(replacement);
+            if (!sf.tree->Do(changes))
             {
-                XL::SourceFile &sf = **it;
-                XL::MAIN->LoadFile(sf.name);
+                needBigHammer = true;
+                break;
             }
-            updateProgramSource();
-            inError = false;
+            else if (fname == xlProgram->name)
+            {
+                updateProgramSource();
+            }
+
             needRefresh = true;
-        }
-        if (needRefresh)
-        {
-            // If a file was modified, we need to refresh the screen
-            TaoSave saveCurrent(current, this);
-            refreshNow();
-        }
-        if (!inError)
-            taoWindow()->clearErrors();
+
+            IFTRACE(filesync)
+            {
+                if (needBigHammer)
+                    std::cerr << "Need to reload everything.\n";
+                else
+                    std::cerr << "Surgical replacement worked\n";
+            }
+        } // Replacement checked
+    } // foreach file
+
+    // If we were not successful with simple changes, reload everything...
+    if (needBigHammer)
+    {
+        TaoSave saveCurrent(current, this);
+        purgeTaoInfo();
+        foreach (QString path, toReload)
+            XL::MAIN->LoadFile(+path);
+        updateProgramSource();
+        inError = false;
+        needRefresh = true;
     }
+    if (needRefresh)
+    {
+        // If a file was modified, we need to refresh the screen
+        TaoSave saveCurrent(current, this);
+        refreshNow();
+    }
+    if (!inError)
+        taoWindow()->clearErrors();
+
+    toReload.clear();
 }
 
 
@@ -3737,7 +3744,7 @@ void Widget::finishChanges()
     if (xlProgram->tree)
     {
         import_set done;
-        ImportedFilesChanged(done, true);
+        ScanImportedFiles(done, true);
 
         import_set::iterator f;
         for (f = done.begin(); f != done.end(); f++)
@@ -5776,7 +5783,7 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 //    Refresh current layout on event
 // ----------------------------------------------------------------------------
 {
-    refreshOn((QEvent::Type)eventType);
+    refreshOn(eventType);
     return XL::xl_true;
 }
 
@@ -6928,6 +6935,8 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
 {
     uint texId = 0;
 
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     if (img != "")
     {
         ADJUST_CONTEXT_FOR_INTERPRETER(context);
@@ -7051,6 +7060,8 @@ Integer* Widget::image(Context *context,
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
@@ -7126,6 +7137,8 @@ Infix_p Widget::imageSize(Context *context,
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     GLuint w = 1, h = 1;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
@@ -10661,17 +10674,17 @@ bool Widget::blink(double on, double off, double after)
     double runtime = Application::runTime();
     if (runtime <= after)
     {
-        refreshOn((int)QEvent::Timer, after - runtime);
+        refreshOnAPI((int)QEvent::Timer, after - runtime);
         return true;
     }
     double time = Widget::currentTimeAPI();
     double mod = fmod(time, on + off);
     if (mod <= on)
     {
-        refreshOn((int)QEvent::Timer, time + on - mod);
+        refreshOnAPI((int)QEvent::Timer, time + on - mod);
         return true;
     }
-    refreshOn((int)QEvent::Timer, time + on + off - mod);
+    refreshOnAPI((int)QEvent::Timer, time + on + off - mod);
     return false;
 }
 

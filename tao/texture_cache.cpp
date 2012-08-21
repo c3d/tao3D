@@ -25,7 +25,6 @@
 #include "tao_utf8.h"
 #include "preferences_pages.h"
 #include "license.h"
-#include "widget.h" // For postEventAPI()
 
 namespace Tao {
 
@@ -121,13 +120,11 @@ TextureCache::TextureCache()
       compress(PerformancesPage::texture2DCompress()),
       minFilt(PerformancesPage::texture2DMinFilter()),
       magFilt(PerformancesPage::texture2DMagFilter()),
-      network(NULL), texChangedEvent(QEvent::registerEventType())
+      network(NULL)
                            
 {
     statTimer.setSingleShot(true);
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
-    IFTRACE2(texturecache, layoutevents)
-        debug() << "ID of 'refresh' user event: " << texChangedEvent << "\n";
 }
 
 
@@ -795,7 +792,6 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         reload();
         reply->deleteLater();
         networkReply = NULL;
-        Widget::postEventAPI(cache.textureChangedEvent());
     }
 }
 
@@ -826,10 +822,7 @@ void CachedTexture::onFileCreated(const QString &path,
     {
         this->canonicalPath = canonicalPath;
         if (!inLoad)
-        {
             reload();
-            Widget::postEventAPI(cache.textureChangedEvent());
-        }
     }
 }
 
@@ -845,7 +838,6 @@ void CachedTexture::onFileChanged(const QString &path,
         // Canonical path may have changed if path is a prefixed path
         this->canonicalPath = canonicalPath;
         reload();
-        Widget::postEventAPI(cache.textureChangedEvent());
     }
 }
 
@@ -859,7 +851,6 @@ void CachedTexture::onFileDeleted(const QString &path)
     {
         this->canonicalPath = "";
         reload();
-        Widget::postEventAPI(cache.textureChangedEvent());
     }
 }
 

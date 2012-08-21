@@ -146,17 +146,24 @@ void FileMonitor::onDeleted(const QString &path, const QString canonicalPath)
 }
 
 
+QString FileMonitor::id()
+// ----------------------------------------------------------------------------
+//   Programmer-readable identifier
+// ----------------------------------------------------------------------------
+{
+    QString ret(name);
+    if (name.isEmpty())
+        ret.sprintf("%p",this);
+    return ret;
+}
+
+
 std::ostream & FileMonitor::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "[FileMonitor ";
-    if (name.isEmpty())
-        std::cerr << (void*)this;
-    else
-        std::cerr << +name;
-    std::cerr << "] ";
+    std::cerr << "[FileMonitor " << +id() << "] ";
     return std::cerr;
 }
 
@@ -246,7 +253,7 @@ void FileMonitorThread::addMonitor(FileMonitor *monitor)
     monitors.append(monitor);
 
     IFTRACE(filemon)
-        debug() << "FileMonitor " << (void*)monitor << " added (count="
+        debug() << "FileMonitor '" << +monitor->id() << "' added (count="
                 << monitors.count() << ")\n";
 }
 
@@ -262,7 +269,7 @@ void FileMonitorThread::removeMonitor(FileMonitor *monitor)
     Q_ASSERT(!monitors.contains(monitor));
 
     IFTRACE(filemon)
-        debug() << "FileMonitor " << (void*)monitor << " removed (count="
+        debug() << "FileMonitor '" << +monitor->id() << "' removed (count="
                 << monitors.count() << ")\n";
 }
 

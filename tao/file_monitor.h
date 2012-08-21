@@ -85,6 +85,7 @@ protected:
 
 protected:
     std::ostream&  debug();
+    QString        id();
     void           onCreated(const QString &path, const QString canonicalPath);
     void           onChanged(const QString &path, const QString canonicalPath);
     void           onDeleted(const QString &path, const QString canonicalPath);

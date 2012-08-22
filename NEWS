@@ -2,7 +2,10 @@ Change log for Tao Presentations
 
 1.13
 
+#2428: Avoid WARNING: Tree was not compiled
+#2427: Writeln doesn't evaluate expressions
 #2424 Add command-line option: --glinfo
+#2422 Protect against assignments to 'true'
 #2420 Linux: push_button visible on the top left of the window
 #2419 on_click does not react to right click
 #2418 push_buttons are repeatedly 'click' when button is selected

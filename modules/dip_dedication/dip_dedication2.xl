@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  dip_dedication2.xl                                                 Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //       DIP_dedication module definition
 //
 //       DIP protocol that deals with dedication data
 //
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
 // ****************************************************************************
 //  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2012 Jerome Forissier <jerome@taodyne.com>
@@ -30,11 +30,11 @@ data DEDICATION_TEXT
 data DEDICATION_EID
 
 
-dip_dedication_start FeatureType:text, Fuuid:text ->
+dip_dedication_begin FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
-//   Start a dedication feature, given a feature UUID
+//   Begin a dedication feature, given a feature UUID
 // ----------------------------------------------------------------------------
-    dip_start_feature_page FeatureType, Fuuid, "DIP_dedication 1.0"
+    dip_begin_feature_page FeatureType, Fuuid, "DIP_dedication 1.0"
 
 
 dip_dedication_end FeatureType:text, Fuuid:text ->
@@ -57,7 +57,7 @@ dip_dedication  FeatureType:text, Fuuid:text ->
 // ----------------------------------------------------------------------------
     DEDICATION_COUNT := 0
     dip_get_csv FeatureType, Fuuid, "dip_dedication_default_callback"
-    
+
 
 dip_dedication_default_callback ForName:text, FromName:text, DedicationText:text, DedicationEID:text ->
 // ----------------------------------------------------------------------------
@@ -73,4 +73,4 @@ dip_dedication_display_all ->
     dip_dedication_display with 0 .. DEDICATION_COUNT
 
 dip_dedication_display Row:integer ->
-    writeln FOR_NAME[Row]  & " " &  FROM_NAME[Row] & " " & DEDICATION_TEXT[Row] & " " &  DEDICATION_EID[Row]
+    writeln (text Row) & " - " &FOR_NAME[Row]  & " " &  FROM_NAME[Row] & " " & DEDICATION_TEXT[Row] & " " &  DEDICATION_EID[Row]

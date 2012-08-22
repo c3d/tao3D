@@ -94,7 +94,7 @@ Application::Application(int & argc, char ** argv)
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), peer(NULL), textureCache(TextureCache::instance())
+      moduleManager(NULL), peer(NULL), textureCache(NULL)
 {
 #if defined(Q_OS_WIN32)
     installDDEWidget();
@@ -196,6 +196,11 @@ void Application::deferredInit()
                    +builtins.canonicalFilePath());
 
     loadLicenses();
+
+    // Texture cache may only be instantiated after setOrganizationName
+    // and setOrganizationDomain because it reads default values from
+    // the user's preferences
+    textureCache = TextureCache::instance();
 
     // Adjust file polling frequency
     FileMonitorThread::pollInterval = xlr->options.sync_interval;

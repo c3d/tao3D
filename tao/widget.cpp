@@ -10157,6 +10157,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
     if (currentGridLayout)
     {
         currentGridLayout->addWidget(surface->widget, y, x);
+        surface->widget->setVisible(true);
         return XL::xl_true;
     }
     layout->Add (new FillColor(1.0, 1.0, 1.0, 1.0));

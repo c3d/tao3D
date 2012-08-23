@@ -101,10 +101,10 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     CachedTexture *cached = NULL;
     if (texture.type == GL_TEXTURE_2D)
     {
-        cached = TextureCache::instance()->bind(texture.id);
+        QSharedPointer<TextureCache> cache = TextureCache::instance();
+        cached = cache->bind(texture.id);
         if (cached)
         {
-            TextureCache *cache = TextureCache::instance();
             // Do not call glTexParameteri directly for min filter, because we
             // need to deal with the case where minFilt would need mipmapping
             // but texture has no mipmap

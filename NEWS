@@ -1,5 +1,44 @@
 Change log for Tao Presentations
 
+1.13
+
+#2428: Avoid WARNING: Tree was not compiled
+#2427: Writeln doesn't evaluate expressions
+#2424 Add command-line option: --glinfo
+#2422 Protect against assignments to 'true'
+#2420 Linux: push_button visible on the top left of the window
+#2419 on_click does not react to right click
+#2418 push_buttons are repeatedly 'click' when button is selected
+#2414 .xl / .ddd source files accessed too often
+#2412 MacOSX: missing libxlr.dylib in module SDK
+#2409 Lots of unneeded calls to glUseProgram(0) when drawing text
+#2408 VLCAudioVideo: first frame of movie may be garbage when PBOs are used
+#2407 No antialiasing on Linux + AMD Catalyst
+#2406 Add support for network URLs on pictures
+#2404 Linux: do not use GLEW
+#2402 Linux: binary modules should not export their private symbols
+#2400 Implement text parsing syntax based on regular expressions (RegExp module)
+#2399 Some URLs are not localized properly
+#2391 Tao help application: 'About' dialog shows incorrect version
+#2387 Animations freeze for a short time every second when file is on network drive
+#2385 Cylinders with lighting look backwards
+#2384 Really bogus display of spheres and cylinders
+#2381 Depth mask and depth test values are not restored when leaving locally
+#2380 enable_depth_mask and disable_depth_mask change the depth test, not the mask
+#2379 Off-line rendering sometimes gets stuck on the same picture
+#2375 Format menu not disabled after document is closed
+#2371 Add GL driver info to crash dump
+#2370 ObjectLoader: crash on Ubuntu 12.04 x86_64 (Gallium)
+#2367 Change evaluation model: show Taodyne logo when edition is Discovery or an unlicensed module is used
+#2366 Publish a single build for Discovery, Creativity, Impress
+#2364 Linux: crash in PointCloud module
+#2360 Add -fontpath option
+#2357 LensFlare: Linux: crash on LensFlare::enableDephTest
+#2354 MacOSX: build with macosx_version_min 10.6
+#2351 VLCAudioVideo: optimize image transfers using PBOs
+#2298 button_group action not executed
+#1196 Module SDK: add script to create new module
+
 1.12 (26-Jul-2012)
 
 #2341 After Render to Frames, display is left with bogus screen contents

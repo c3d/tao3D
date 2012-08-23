@@ -25,6 +25,8 @@
 #include "tao_utf8.h"
 #include "preferences_pages.h"
 #include "license.h"
+#include "application.h"
+#include "widget.h"
 
 namespace Tao {
 
@@ -34,7 +36,7 @@ namespace Tao {
 // 
 // ============================================================================
 
-TextureCache * TextureCache::textureCache = NULL;
+QWeakPointer<TextureCache> TextureCache::textureCache;
 
 
 static text bytesToText(qint64 size)
@@ -61,7 +63,7 @@ static text bytesToText(qint64 size)
 #define BOOL_SETTER(fn, attr)                                               \
 XL::Name_p TextureCache::fn(bool enable)                                    \
 {                                                                           \
-    TextureCache * tc = TextureCache::instance();                           \
+    QSharedPointer<TextureCache> tc = TextureCache::instance();             \
     bool &attr = tc->attr, prev = attr;                                     \
                                                                             \
     if (attr != enable)                                                     \
@@ -84,7 +86,7 @@ BOOL_SETTER(textureCompress, compress)
 #define SIZE_SETTER(fn, attr)                                               \
 XL::Integer_p TextureCache::fn(qint64 val)                                  \
 {                                                                           \
-    TextureCache * tc = TextureCache::instance();                           \
+    QSharedPointer<TextureCache> tc = TextureCache::instance();             \
     qint64 &attr = tc->attr, prev = attr;                                   \
                                                                             \
     if (attr != val)                                                        \
@@ -120,11 +122,34 @@ TextureCache::TextureCache()
       compress(PerformancesPage::texture2DCompress()),
       minFilt(PerformancesPage::texture2DMinFilter()),
       magFilt(PerformancesPage::texture2DMagFilter()),
-      network(NULL)
+      network(NULL), texChangedEvent(QEvent::registerEventType()),
+      fileMonitor("tex")
                            
 {
     statTimer.setSingleShot(true);
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
+    IFTRACE2(texturecache, layoutevents)
+        debug() << "ID of 'refresh' user event: " << texChangedEvent << "\n";
+}
+
+
+QSharedPointer<TextureCache> TextureCache::instance()
+// ----------------------------------------------------------------------------
+//    Return a pointer to the instance of the texture cache.
+// ----------------------------------------------------------------------------
+{
+    QSharedPointer<TextureCache> ptr;
+    if (!textureCache)
+    {
+        ptr = QSharedPointer<TextureCache>(new TextureCache);
+        textureCache = ptr.toWeakRef();
+    }
+    else
+    {
+        ptr = textureCache.toStrongRef();
+        Q_ASSERT(ptr);
+    }
+    return ptr;
 }
 
 
@@ -173,11 +198,26 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
 //   Load texture file. docPath is used if img is relative.
 // ----------------------------------------------------------------------------
 {
-    TextureName name(img, docPath);
+    QString name(img);
+    if (!name.contains("://") && QDir::isRelativePath(name) &&
+        QRegExp("^[a-z]+:").indexIn(name) == -1)
+    {
+        name = docPath + "/" + img;
+        if (!QFileInfo(name).exists())
+        {
+             // Backward compatibility
+            QString qualified = "texture:" + img;
+            QFileInfo info(qualified);
+            if (info.exists())
+                name = info.canonicalFilePath();
+        }
+    }
+    // name is either a URL, full path or a prefixed path ("image:file.jpg").
+    // It cannot be a relative path.
     CachedTexture * cached = fromName.value(name);
     if (!cached)
     {
-        cached = new CachedTexture(*this, img, docPath, mipmap, compress);
+        cached = new CachedTexture(*this, name, mipmap, compress);
         GLuint id = cached->id;
         fromId[id] = fromName[name] = cached;
         if (memSize > maxMemSize)
@@ -324,7 +364,7 @@ void TextureCache::clear()
     {
         CachedTexture * tex = fromId.take(id);
         Q_ASSERT(tex);
-        fromName.remove(TextureName(tex->path, tex->docPath));
+        fromName.remove(tex->path);
         unlink(tex, memLRU);
         unlink(tex, GL_LRU);
         delete tex;
@@ -434,23 +474,29 @@ std::ostream & TextureCache::debug()
 // ============================================================================
 
 CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
-                             const QString &docPath,
                              bool mipmap, bool compress, bool cacheCompressed)
 // ----------------------------------------------------------------------------
 //   Allocate GL texture ID to image
 // ----------------------------------------------------------------------------
-    : path(path), docPath(docPath), width(0), height(0),  mipmap(mipmap),
+    : path(path), width(0), height(0),  mipmap(mipmap),
       compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
       memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed),
-      networked(path.contains("://")), networkReply(NULL)
+      networked(path.contains("://")), networkReply(NULL), inLoad(false)
 {
     glGenTextures(1, &id);
     if (networked)
     {
-        Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
-        QUrl url(path);
-        QNetworkRequest req(url);
-        networkReply = cache.network.get(req);
+        connect(&cache.network, SIGNAL(finished(QNetworkReply*)),
+                this, SLOT(checkReply(QNetworkReply*)));
+    }
+    else
+    {
+        connect(&cache.fileMonitor, SIGNAL(created(QString,QString)),
+                this, SLOT(onFileCreated(QString,QString)));
+        connect(&cache.fileMonitor, SIGNAL(changed(QString,QString)),
+                this, SLOT(onFileChanged(QString,QString)));
+        connect(&cache.fileMonitor, SIGNAL(deleted(QString,QString)),
+                this, SLOT(onFileDeleted(QString)));
     }
 }
 
@@ -464,6 +510,8 @@ CachedTexture::~CachedTexture()
     glDeleteTextures(1, &id);
     if (networkReply)
         networkReply->deleteLater();
+    if (path != "")
+        cache.fileMonitor.removePath(path);
 }
 
 
@@ -478,54 +526,68 @@ void CachedTexture::load()
     mipmap = cache.mipmap;
     compress = cache.compress;
 
-
-    QString p(findPath());
+    int size = 0;
+    bool inProgress = false;
     if (networked)
     {
+        if (networkReply == NULL)
+        {
+            Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
+            QUrl url(path);
+            QNetworkRequest req(url);
+            networkReply = cache.network.get(req);
+            inProgress = true;
+        }
         if (networkReply->isFinished() &&
             networkReply->error() == QNetworkReply::NoError)
             image.loadFromData(networkReply->readAll());
     }
-    else if (p != "")
+    else
     {
-        image.load(p);
+        if (canonicalPath == "")
+        {
+            // If file exists, fileMonitor will emit created() synchronously,
+            // which will set canonicalPath
+            inLoad = true; // Prevent onFileCreated from calling reload
+            cache.fileMonitor.addPath(path);
+            inLoad = false;
+        }
+        if (canonicalPath != "")
+            image.load(canonicalPath);
     }
     if (image.isNull())
     {
         if (!networked)
-        {
-            p = QString(":/images/default_image.svg");
-            image.load(p);
-        }
-        canonicalPath = QString();
+            image.load(":/images/default_image.svg");
         isDefaultTexture = true;
     }
     else
     {
-        canonicalPath = p;
-        if (!networked)
-        {
-            fileLastModified = QFileInfo(p).lastModified();
-            fileLastChecked.start();
-        }
         isDefaultTexture = false;
     }
-
     if (!image.isNull())
     {
         width = image.width();
         height = image.height();
+        size = image.byteCount();
     }
-    int size = image.byteCount();
 
     IFTRACE2(texturecache, fileload)
     {
-        if (isDefaultTexture)
-            debug() << "Failed to load: '" << +path << "'\n";
+        if (networked)
+        {
+            if (inProgress)
+                debug() << "Load in progress: '" << +path << "'\n";
+        }
         else
-            debug() << "File->Mem  +" << bytesToText(size)
-                    << " (" << width << "x" << height << " pixels, "
-                    << "'" << +path << "' ['" << +canonicalPath << "'])\n";
+        {
+            if (isDefaultTexture)
+                debug() << "Failed to load: '" << +path << "'\n";
+            else
+                debug() << "File->Mem  +" << bytesToText(size)
+                        << " (" << width << "x" << height << " pixels, "
+                        << "'" << +path << "' ['" << +canonicalPath << "'])\n";
+        }
     }
 
     cache.memSize += size;
@@ -566,6 +628,9 @@ void CachedTexture::transfer()
 {
 #define ADJUST_FOR_MIPMAP_OVERHEAD(sz) \
         do { if (mipmap) { sz *= 1.33; } } while(0)
+
+    if (networked && !loaded())
+        return;
 
     Q_ASSERT(loaded());
     Q_ASSERT(!transferred());
@@ -726,112 +791,99 @@ GLuint CachedTexture::bind()
 //   Bind texture
 // ----------------------------------------------------------------------------
 {
+    if (networked && !transferred())
+        return 0;
+
     Q_ASSERT(id);
     Q_ASSERT(transferred());
-
-    checkFile();
-
-    if (!isDefaultTexture || !networked)
-        glBindTexture(GL_TEXTURE_2D, id);
+    glBindTexture(GL_TEXTURE_2D, id);
     return id;
 }
 
 
-QString CachedTexture::findPath()
+void CachedTexture::checkReply(QNetworkReply *reply)
 // ----------------------------------------------------------------------------
-//   Resolve path to texture (returns canonical path, empty if file not found)
+//   Check if network reply is complete, if so then load image
 // ----------------------------------------------------------------------------
 {
-    if (networked)
-        return path;
+    Q_ASSERT(reply == networkReply);
 
-    QFileInfo info(QDir(docPath), path);
-    if (info.exists())
-        return info.canonicalFilePath();
-    QFileInfo qualified(QDir(docPath), "texture:" + path);
-    if (qualified.exists())
-        return qualified.canonicalFilePath();
-    return "";
+    if (networked &&
+        image.isNull() &&
+        reply->error() == QNetworkReply::NoError)
+    {
+        IFTRACE(texturecache)
+            debug() << "Received: '" << +path << "'\n";
+        reload();
+        reply->deleteLater();
+        networkReply = NULL;
+        // A simple update is not enough here: the texture id has not yet been
+        // returned, so a XL refresh is needed
+        Widget::postEventAPI(cache.textureChangedEvent());
+    }
 }
 
 
-void CachedTexture::checkFile()
+void CachedTexture::reload()
 // ----------------------------------------------------------------------------
-//   Check if file has been modified, deleted, or created - then reload it
+//   Reload texture e.g., when file was changed
 // ----------------------------------------------------------------------------
 {
-    // If networked, we check if the reply is completed
-    if (networked)
+    // FIXME: check cache limits
+
+    IFTRACE(texturecache)
+        debug() << "Reloading\n";
+    purge();
+    load();
+    transfer();
+}
+
+
+void CachedTexture::onFileCreated(const QString &path,
+                                  const QString &canonicalPath)
+// ----------------------------------------------------------------------------
+//   Called by file monitor when a registered path is an existing file
+// ----------------------------------------------------------------------------
+{
+    // Also called when a file is deleted, then re-created
+    if (path == this->path)
     {
-        if (image.isNull() &&
-            networkReply->isFinished() &&
-            networkReply->error() == QNetworkReply::NoError)
+        this->canonicalPath = canonicalPath;
+        if (!inLoad)
         {
-            purge();
-            load();
-            transfer();
-        }
-        return;
-    }
-
-    // Don't check too frequently
-    if (fileLastChecked.elapsed() < 1000 /* ms */)
-        return;
-
-    fileLastChecked.restart();
-
-    bool reload = false;
-    if (canonicalPath == "")
-    {
-        QString newPath = findPath();
-        if (newPath != "")
-        {
-            IFTRACE(texturecache)
-                debug() << "File found: '" << +newPath << "'\n";
-            reload = true;
+            reload();
+            TaoApp->windowWidget()->update();
         }
     }
-    else
-    {
-        QFileInfo info(QDir(docPath), canonicalPath);
-        if (info.exists())
-        {
-            QString newPath = findPath();
-            if (newPath != canonicalPath)
-            {
-                IFTRACE(texturecache)
-                    debug() << "Other file found: '" << +canonicalPath
-                            << "' -> '" << +newPath << "'\n";
-                reload = true;
-            }
-            else
-            {
-                QDateTime modified = info.lastModified();
-                if (modified.msecsTo(fileLastModified) < 0)
-                {
-                    IFTRACE(texturecache)
-                        debug() << "File was modified: '" << +canonicalPath
-                                << "'\n";
-                    reload = true;
-                }
-            }
-        }
-        else
-        {
-            IFTRACE(texturecache)
-                debug() << "File was deleted: '" << +canonicalPath
-                        << "'\n";
-            reload = true;
-        }
-    }
+}
 
-    if (reload)
+
+void CachedTexture::onFileChanged(const QString &path,
+                                  const QString &canonicalPath)
+// ----------------------------------------------------------------------------
+//   Called by file monitor when a file is changed
+// ----------------------------------------------------------------------------
+{
+    if (path == this->path)
     {
-        IFTRACE(texturecache)
-            debug() << "Reloading\n";
-        purge();
-        load();
-        transfer();
+        // Canonical path may have changed if path is a prefixed path
+        this->canonicalPath = canonicalPath;
+        reload();
+        TaoApp->windowWidget()->update();
+    }
+}
+
+
+void CachedTexture::onFileDeleted(const QString &path)
+// ----------------------------------------------------------------------------
+//   Called by file monitor when the file is deleted
+// ----------------------------------------------------------------------------
+{
+    if (path == this->path)
+    {
+        this->canonicalPath = "";
+        reload();
+        TaoApp->windowWidget()->update();
     }
 }
 

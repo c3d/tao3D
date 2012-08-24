@@ -201,6 +201,7 @@ void Application::deferredInit()
     // and setOrganizationDomain because it reads default values from
     // the user's preferences
     textureCache = TextureCache::instance();
+    textureCache->setSaveCompressed(xlr->options.tcache_savecomp);
 
     // Adjust file polling frequency
     FileMonitorThread::pollInterval = xlr->options.sync_interval;

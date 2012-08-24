@@ -27,6 +27,7 @@
 #include "license.h"
 #include "application.h"
 #include "widget.h"
+#include <QtEndian>
 
 namespace Tao {
 
@@ -123,13 +124,32 @@ TextureCache::TextureCache()
       minFilt(PerformancesPage::texture2DMinFilter()),
       magFilt(PerformancesPage::texture2DMagFilter()),
       network(NULL), texChangedEvent(QEvent::registerEventType()),
-      fileMonitor("tex")
+      fileMonitor("tex"), saveCompressed(false)
                            
 {
     statTimer.setSingleShot(true);
     connect(&statTimer, SIGNAL(timeout()), this, SLOT(doPrintStatistics()));
     IFTRACE2(texturecache, layoutevents)
         debug() << "ID of 'refresh' user event: " << texChangedEvent << "\n";
+
+    {
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        GLint *fmt, n = 0;
+        if (QGLContext::currentContext()->isValid())
+        {
+            glGetIntegerv(GL_NUM_COMPRESSED_TEXTURE_FORMATS, &n);
+            fmt = (GLint*)malloc(n * sizeof(GLint));
+            glGetIntegerv(GL_COMPRESSED_TEXTURE_FORMATS, fmt);
+            for (int i = 0; i < n; ++i)
+                cmpFormats.insert(fmt[i]);
+            free(fmt);
+        }
+        IFTRACE(texturecache)
+                debug() << "GL implementation supports " << n
+                        << " compressed texture formats\n";
+    }
 }
 
 
@@ -474,13 +494,13 @@ std::ostream & TextureCache::debug()
 // ============================================================================
 
 CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
-                             bool mipmap, bool compress, bool cacheCompressed)
+                             bool mipmap, bool compress)
 // ----------------------------------------------------------------------------
 //   Allocate GL texture ID to image
 // ----------------------------------------------------------------------------
     : path(path), width(0), height(0),  mipmap(mipmap),
       compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
-      memLRU(this), GLmemLRU(this), cacheCompressed(cacheCompressed),
+      memLRU(this), GLmemLRU(this), saveCompressed(cache.saveCompressed),
       networked(path.contains("://")), networkReply(NULL), inLoad(false)
 {
     glGenTextures(1, &id);
@@ -553,7 +573,7 @@ void CachedTexture::load()
             inLoad = false;
         }
         if (canonicalPath != "")
-            image.load(canonicalPath);
+            image.load(canonicalPath, (compress && !saveCompressed));
     }
     if (image.isNull())
     {
@@ -582,11 +602,18 @@ void CachedTexture::load()
         else
         {
             if (isDefaultTexture)
+            {
                 debug() << "Failed to load: '" << +path << "'\n";
+            }
             else
+            {
+                text cpath = +canonicalPath;
+                    if (image.compressed)
+                    cpath = +Image::toCompressedPath(canonicalPath);
                 debug() << "File->Mem  +" << bytesToText(size)
                         << " (" << width << "x" << height << " pixels, "
-                        << "'" << +path << "' ['" << +canonicalPath << "'])\n";
+                        << "'" << +path << "' ['" << cpath << "'])\n";
+            }
         }
     }
 
@@ -685,21 +712,31 @@ void CachedTexture::transfer()
                                          GL_TEXTURE_COMPRESSED_IMAGE_SIZE,
                                          &cmpsz);
 
-            if (cacheCompressed)
+            if (cmp && cmpsz)
             {
-                if (cmp && cmpsz)
+                // Cache compressed data for next time
+                glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
+                                         GL_TEXTURE_INTERNAL_FORMAT,
+                                         &image.fmt);
+                glGetCompressedTexImage(GL_TEXTURE_2D, 0,
+                                        image.allocateCompressed(cmpsz));
+                image.w = width;
+                image.h = height;
+            }
+            else
+            {
+                // We will not try to compress this one again
+                didNotCompress = true;
+            }
+
+            if (!networked && saveCompressed && image.compressed)
+            {
+                QString cmpPath = Image::toCompressedPath(canonicalPath);
+                if (image.saveCompressed(cmpPath))
                 {
-                    // Cache compressed data for next time
-                    glGetTexLevelParameteriv(GL_TEXTURE_2D, 0,
-                                             GL_TEXTURE_INTERNAL_FORMAT,
-                                             &image.fmt);
-                    glGetCompressedTexImage(GL_TEXTURE_2D, 0,
-                                            image.allocateCompressed(cmpsz));
-                }
-                else
-                {
-                    // We will not try to compress this one again
-                    didNotCompress = true;
+                    // No IFTRACE() here, to always print to console when
+                    // -savect command-line option was given
+                    debug() << "Saved: " << +cmpPath << "\n";
                 }
             }
 
@@ -895,6 +932,203 @@ std::ostream & CachedTexture::debug()
 {
     std::cerr << "[CachedTexture " << id << "] ";
     return std::cerr;
+}
+
+
+
+// ============================================================================
+//
+//    Image class
+//
+// ============================================================================
+
+
+
+bool Image::isNull()
+// ----------------------------------------------------------------------------
+//   Is this image non-empty?
+// ----------------------------------------------------------------------------
+{
+    // We never keep both compressed and uncompressed versions of the
+    // same image
+    Q_ASSERT(!(!raw.isNull() && compressed));
+
+    return (raw.isNull() && !compressed);
+}
+
+
+void Image::clear()
+// ----------------------------------------------------------------------------
+//   Delete image data
+// ----------------------------------------------------------------------------
+{
+    if (compressed)
+        free(compressed);
+    compressed = 0;
+    w = h = sz = 0;
+    raw = QImage();
+}
+
+
+int Image::width()
+// ----------------------------------------------------------------------------
+//   The image width in pixels
+// ----------------------------------------------------------------------------
+{
+    return compressed ? w : raw.width();
+}
+
+
+int Image::height()
+// ----------------------------------------------------------------------------
+//   The image height in pixels
+// ----------------------------------------------------------------------------
+{
+    return compressed ? h : raw.height();
+}
+
+
+int Image::byteCount()
+// ----------------------------------------------------------------------------
+//   The size in bytes of the image
+// ----------------------------------------------------------------------------
+{
+    if (compressed)
+    {
+        Q_ASSERT(sz);
+        return sz;
+    }
+    return raw.byteCount();
+}
+
+
+void Image::load(const QString &path, bool trycomp)
+// ----------------------------------------------------------------------------
+//   Load compressed or uncompressed image from file
+// ----------------------------------------------------------------------------
+{
+    if (compressed)
+        clear();
+
+    if (!trycomp || !loadCompressed(path))
+        raw.load(path);
+}
+
+
+void Image::loadFromData(const QByteArray &data)
+// ----------------------------------------------------------------------------
+//   Load uncompressed image from byte array
+// ----------------------------------------------------------------------------
+{
+    if (compressed)
+        clear();
+    raw.loadFromData(data);
+}
+
+
+void * Image::allocateCompressed(int len)
+// ----------------------------------------------------------------------------
+//   Reserve space for len bytes in compressed image then return data pointer
+// ----------------------------------------------------------------------------
+{
+    // Used when converting uncompressed to compressed.
+    Q_ASSERT(!compressed);
+    raw = QImage();
+    return (compressed = malloc(sz = len));
+}
+
+
+QString Image::toCompressedPath(const QString &path)
+// ----------------------------------------------------------------------------
+//   The path for the compressed variant of a texture file
+// ----------------------------------------------------------------------------
+{
+    return path + ".compressed";
+}
+
+
+quint64 Image::CompressedFileHeader::theSignature()
+// ----------------------------------------------------------------------------
+//   Signature to avoid loading invalid compressed texture files
+// ----------------------------------------------------------------------------
+{
+#define MAKE_QUINT64(a, b, c, d, e, f, g, h)                                  \
+    ((quint64)a<<56) | ((quint64)b<<48) | ((quint64)c<<40) | ((quint64)d<<32) \
+  | ((quint64)e<<24) | ((quint64)f<<16) | ((quint64)g<< 8) | ((quint64)h)
+
+    return MAKE_QUINT64('T', 'A', 'O', 'C', 'M', 'P', 'T', 'X');
+
+#undef MAKE_QUINT64
+}
+
+bool Image::loadCompressed(const QString &path)
+// ----------------------------------------------------------------------------
+//   Load pre-compressed file if it exists and is more recent than uncompressed
+// ----------------------------------------------------------------------------
+{
+    Q_ASSERT(!compressed);
+
+    QFileInfo uncmp(path), cmp(toCompressedPath(path));
+    if (!cmp.exists() || !uncmp.exists())
+        return false;
+    if (cmp.lastModified() < uncmp.lastModified())
+        return false;
+    QFile cmpfile(cmp.filePath());
+    if (!cmpfile.open(QIODevice::ReadOnly))
+        return false;
+
+    QByteArray ba = cmpfile.readAll();
+    CompressedFileHeader *hdr = (CompressedFileHeader *)ba.constData();
+
+    int len = ba.size() - sizeof(CompressedFileHeader);
+    if (len < 0)
+        return false;
+    if (hdr->signature != CompressedFileHeader::theSignature())
+        return false;
+    fmt = qFromBigEndian(hdr->fmt);
+    if (!TextureCache::instance()->supported(fmt))
+    {
+        fmt = 0;
+        return false;
+    }
+
+    w = qFromBigEndian(hdr->w);
+    h = qFromBigEndian(hdr->h);
+    memcpy(allocateCompressed(len), &hdr->data, len);
+
+    return true;
+}
+
+
+bool Image::saveCompressed(const QString &compressedPath)
+// ----------------------------------------------------------------------------
+//   Save (cache) compressed texture to specified path
+// ----------------------------------------------------------------------------
+{
+    Q_ASSERT(compressed);
+    Q_ASSERT(sz);
+
+    bool ok = false;
+    QFile cmpfile(compressedPath);
+    if (cmpfile.open(QIODevice::WriteOnly))
+    {
+        CompressedFileHeader hdr;
+        hdr.signature = hdr.theSignature();
+        hdr.fmt = qToBigEndian((quint32)fmt);
+        hdr.w = qToBigEndian((quint32)w);
+        hdr.h = qToBigEndian((quint32)h);
+
+        if (cmpfile.write((const char*)&hdr, sizeof(hdr)) &&
+            cmpfile.write((const char*)compressed, sz) == sz)
+        {
+            ok = true;
+        }
+        else
+        {
+            cmpfile.remove();
+        }
+    }
+    return ok;
 }
 
 }

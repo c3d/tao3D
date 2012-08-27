@@ -26,6 +26,7 @@
 #include "drawing.h"
 #include "tao_gl.h"
 #include "coords3d.h"
+#include "activity.h"
 #include <vector>
 
 TAO_BEGIN
@@ -91,15 +92,16 @@ struct PlaceholderRectangle : Rectangle
 };
 
 
-struct ClickThroughRectangle : Rectangle
+struct ClickThroughRectangle : Rectangle, Activity
 // ----------------------------------------------------------------------------
-//    A rectangle that cannot be clicked into
+//   Pass clicks through to the inner object
 // ----------------------------------------------------------------------------
 {
-    ClickThroughRectangle(const Box &b, WidgetSurface *s)
-        : Rectangle(b), surface(s) {}
+    ClickThroughRectangle(const Box &b, WidgetSurface *s, Widget *taoWidget);
     virtual void        DrawSelection(Layout *where);
+    virtual Activity *  Click(uint, uint, int, int);
     WidgetSurface *surface;
+    uint layoutId;
 };
 
 
@@ -265,9 +267,9 @@ struct FixedSizePoint : Shape2
 
 
 // ============================================================================
-// 
+//
 //   Entering shapes in the symbols table
-// 
+//
 // ============================================================================
 
 extern void EnterShapes();

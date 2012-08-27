@@ -1,18 +1,18 @@
 // ****************************************************************************
 //  activity.cpp                                                    Tao project
 // ****************************************************************************
-// 
+//
 //   File Description:
-// 
+//
 //     An interactive activity tracked by the Tao system
-// 
-// 
-// 
-// 
-// 
-// 
-// 
-// 
+//
+//
+//
+//
+//
+//
+//
+//
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -27,13 +27,16 @@
 
 TAO_BEGIN
 
-Activity::Activity(text n, Widget *widget)
+Activity::Activity(text n, Widget *widget, uint rank)
 // ----------------------------------------------------------------------------
 //   Create an activity and link it in the given state
 // ----------------------------------------------------------------------------
-    : next(widget->activities), name(n), widget(widget)
+    : name(n), widget(widget), rank(rank)
 {
-    widget->activities = this;
+    if ( rank > 2)
+        rank = 1;
+    next = widget->activities[rank];
+    widget->activities[rank] = this;
 }
 
 
@@ -43,14 +46,14 @@ Activity::~Activity()
 // ----------------------------------------------------------------------------
 {
     Activity *prev = NULL;
-    for (Activity *a = widget->activities; a; a = a->next)
+    for (Activity *a = widget->activities[rank]; a; a = a->next)
     {
         if (a == this)
         {
             if (prev)
                 prev->next = next;
             else
-                widget->activities = next;
+                widget->activities[rank] = next;
             break;
         }
         prev = a;

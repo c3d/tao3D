@@ -1,15 +1,17 @@
 Change log for Tao Presentations
 
-1.13
+1.13 (24-Aug-2012)
 
-#2428: Avoid WARNING: Tree was not compiled
-#2427: Writeln doesn't evaluate expressions
+#2437 Texture cache: save and load compressed textures. Add -savect option.
+#2428 Avoid WARNING: Tree was not compiled
+#2427 Writeln doesn't evaluate expressions
 #2424 Add command-line option: --glinfo
 #2422 Protect against assignments to 'true'
 #2420 Linux: push_button visible on the top left of the window
 #2419 on_click does not react to right click
 #2418 push_buttons are repeatedly 'click' when button is selected
 #2414 .xl / .ddd source files accessed too often
+#2413 Header files from the module SDK can't be used by customers because of a "Taodyne confidential" or GPL header
 #2412 MacOSX: missing libxlr.dylib in module SDK
 #2409 Lots of unneeded calls to glUseProgram(0) when drawing text
 #2408 VLCAudioVideo: first frame of movie may be garbage when PBOs are used

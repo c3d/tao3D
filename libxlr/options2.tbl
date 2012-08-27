@@ -67,3 +67,8 @@ OPTION(-one-instance, "Run in client/server mode: first instance is the server, 
 OPTION(fontpath, "Load fonts from the specified directory. "
                  "This option may appear multiple times to provide "
                  "several paths.", STRING) /* Parsed in Application class */
+
+OPTVAR(tcache_savecomp, bool, false)
+OPTION(savect, "Save compressed textures to disk so that the document loads "
+               "faster the next time it is open (if texture compression is "
+               "enabled in the preferences)", tcache_savecomp = true)

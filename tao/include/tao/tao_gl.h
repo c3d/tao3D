@@ -15,8 +15,9 @@
 //
 //
 // ****************************************************************************
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+// This file may be used in accordance with the terms and conditions contained
+// in the Tao Presentations license agreement, or alternatively, in a signed
+// license agreement between you and Taodyne SAS.
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************

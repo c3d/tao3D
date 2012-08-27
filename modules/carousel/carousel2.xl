@@ -24,7 +24,7 @@
 
 import Animate
 
-license_check -> check_impress_or_license "Carousel 1.002"
+license_check -> check_impress_or_license "Carousel 1.003"
 
 
 

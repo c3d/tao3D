@@ -1,4 +1,5 @@
 #ifndef TAO_GL_H
+#define TAO_GL_H
 // ****************************************************************************
 //  tao_gl.h                                                        Tao project
 // ****************************************************************************
@@ -31,7 +32,11 @@
 #ifdef CONFIG_MINGW
 #  include <tao/GL/glew.h>
 #else
-#  define glewInit()
+#  define GLEW_OK 0
+#  define GLEW_VERSION 0
+#  define glewGetString(V) "GLEW: not used"
+#  define glewGetErrorString(err) "GLEW: not used"
+static inline int glewInit() { return GLEW_OK; }
 #endif
 
 #include <QGLFormat>

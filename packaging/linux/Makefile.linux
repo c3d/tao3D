@@ -12,7 +12,10 @@ include Makefile.config
 ifdef TAO_EDITION
 EDSTR=$(TAO_EDITION)_
 endif
-TAO=Tao_Presentations_$(EDSTR)$(shell ../../tao/updaterev.sh -n)
+ifdef PACKAGE_APPEND
+APPENDSTR=$(PACKAGE_APPEND)_
+endif
+TAO=Tao_Presentations_$(EDSTR)$(APPENDSTR)$(shell ../../tao/updaterev.sh -n)
 
 OS=$(shell lsb_release -is)
 ifeq ($(OS),)

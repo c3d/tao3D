@@ -1,0 +1,73 @@
+// ****************************************************************************
+//  dip_voting2.xl                                                 Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//       DipVoting module definition
+//
+//       DIP protocol that deals with voting interaction data
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+//  (C) 2012 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2012 Jerome Forissier <jerome@taodyne.com>
+//  (C) 2012 Catherine Burvelle <catherine@taodyne.com>
+// Copyright 2012 Taodyne SAS
+// ****************************************************************************
+
+import DIP 1.0
+
+ROW_COUNT -> 0
+
+data VOTE_VALUES
+data ITEM_TYPES
+data ITEM_UUIDS
+
+dip_voting_begin FeatureType:text, Fuuid:text ->
+// ----------------------------------------------------------------------------
+//   Begin a voting feature, given a feature UUID
+// ----------------------------------------------------------------------------
+    dip_begin_feature_page FeatureType, Fuuid, "DIP_voting 1.0"
+
+
+dip_voting_end FeatureType:text, Fuuid:text ->
+// ----------------------------------------------------------------------------
+//   End a voting feature, given a session UUID
+// ----------------------------------------------------------------------------
+    dip_end_feature_page FeatureType, Fuuid
+
+
+dip_voting FeatureType:text, Fuuid:text, FunctionName:text ->
+// ----------------------------------------------------------------------------
+//   Apply function "functionName" to all voting items
+// ----------------------------------------------------------------------------
+    dip_get_csv FeatureType, Fuuid, FunctionName
+
+
+dip_voting  FeatureType:text, Fuuid:text ->
+// ----------------------------------------------------------------------------
+//  Register all voting items in vote_values, item_types and item_uuids tables
+// ----------------------------------------------------------------------------
+    ROW_COUNT := 0
+    dip_get_csv FeatureType, Fuuid, "dip_voting_default_callback"
+
+
+dip_voting_default_callback VoteValue:integer, ItemType:text, ItemUuid:text ->
+// ----------------------------------------------------------------------------
+//  Store an item in vote_values, item_types and item_uuids tables
+// ----------------------------------------------------------------------------
+    VOTE_VALUES[ROW_COUNT] := VoteValue
+    ITEM_TYPES[ROW_COUNT]  := ItemType
+    ITEM_UUIDS[ROW_COUNT]  := ItemUuid
+    ROW_COUNT := ROW_COUNT + 1
+
+dip_voting_display_all ->
+    dip_voting_display with 0 .. ROW_COUNT
+
+dip_voting_display Row:integer ->
+    writeln (text Row) & " - " & (text VOTE_VALUES[Row]) & " " & VOTE_TYPES[Row] & " " & VOTE_UUIDS[Row]

@@ -76,7 +76,7 @@
 #include "raster_text.h"
 #include "dir.h"
 #include "display_driver.h"
-#include "licence.h"
+#include "license.h"
 #include "gc_thread.h"
 #include "info_trash_can.h"
 #include "tao_info.h"
@@ -145,12 +145,13 @@ static inline QGLFormat TaoGLFormat()
 // ----------------------------------------------------------------------------
 //   This was made necessary by Bug #251
 {
+    // Note: check #2407 if you intend to add QGL::AccumBuffers here
+    // (it is sometimes incompatible with QGL::SampleBuffers)
     QGL::FormatOptions options =
         (QGL::DoubleBuffer      |
          QGL::DepthBuffer       |
          QGL::StencilBuffer     |
-         QGL::AlphaChannel      |
-         QGL::AccumBuffer);
+         QGL::AlphaChannel);
     if (TaoApp->hasGLMultisample)
         options |= QGL::SampleBuffers;
     QGLFormat format(options);
@@ -166,7 +167,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 // ----------------------------------------------------------------------------
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
-      runOnNextDraw(true), clearCol(255, 255, 255, 255),
+      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
       space(NULL), layout(NULL), frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""),
@@ -274,7 +275,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Prepare activity to process mouse events even when no click is made
     // (but for performance reasons, mouse tracking is enabled only when program
     // execution asks for MouseMove events)
-    mouseFocusTracker = new MouseFocusTracker("Focus tracking", this);
+    mouseFocusTracker = new MouseFocusTracker(this);
 
     // Find which page overscaling to use
     while (printOverscaling < 8 &&
@@ -314,6 +315,12 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
+
+    // Be notified when source files change
+    connect(&srcFileMonitor, SIGNAL(changed(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
+    connect(&srcFileMonitor, SIGNAL(deleted(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
 }
 
 
@@ -353,7 +360,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), clearCol(o.clearCol),
+      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
@@ -468,7 +475,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
             this,           SLOT(userMenu(QAction*)));
 
     // Prepare new mouse tracking activity
-    mouseFocusTracker = new MouseFocusTracker("Focus tracking", this);
+    mouseFocusTracker = new MouseFocusTracker(this);
 
     std::map<text, text>::iterator i;
     for (i = o.xlTranslations.begin(); i != o.xlTranslations.end(); i++)
@@ -554,7 +561,7 @@ void Widget::runPurgeAction(XL::Action &purge)
     xlProgram->tree->Do(purge);
     // Do it also on imported files
     import_set iset;
-    (void)ImportedFilesChanged(iset, false);
+    ScanImportedFiles(iset, false);
     {
         import_set::iterator it;
         for (it = iset.begin(); it != iset.end(); it++)
@@ -647,14 +654,8 @@ void Widget::dawdle()
 #endif
 
 #ifndef CFG_NORELOAD
-    // REVISIT: redundant with Window::checkFiles()?
     // Check if it's time to reload
-    longlong syncDelay = longlong(nextSync - tick);
-    if (syncDelay < 0)
-    {
-        refreshProgram();
-        syncDelay = tick + Main::MAIN->options.sync_interval * 1000;
-    }
+    refreshProgram();
 #endif
 }
 
@@ -667,15 +668,11 @@ void Widget::setupPage()
     w_event = NULL;
     pageW = (21.0 / 2.54) * logicalDpiX(); // REVISIT
     pageH = (29.7 / 2.54) * logicalDpiY();
-    IFTRACE(pages)
-        std::cerr << "setupPage: found=" << pageFound
-                  << " id=" << pageId << "\n";
     pageId = 0;
     pageFound = 0;
     pageTree = NULL;
     lastPageName = "";
     newPageNames.clear();
-    Layout::polygonOffset = 0;
 }
 
 
@@ -705,6 +702,7 @@ void Widget::drawScene()
     }
 
     id = idDepth = 0;
+    space->ClearPolygonOffset();
     space->ClearAttributes();
     if (blanked)
     {
@@ -747,6 +745,7 @@ void Widget::drawSelection()
     {
         id = idDepth = 0;
         selectionTrees.clear();
+        space->ClearPolygonOffset();
         space->ClearAttributes();
         glDisable(GL_DEPTH_TEST);
         space->DrawSelection(NULL);
@@ -762,11 +761,43 @@ void Widget::drawActivities()
 {
     SpaceLayout selectionSpace(this);
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
+
+    // Force "standard" view for drawing the activities
     setupGL();
     glDepthFunc(GL_ALWAYS);
+
     for (Activity *a = activities; a; a = a->Display()) ;
-    selectionSpace.Draw(NULL); // CHECKTHIS: is this needed?
-                               // Isn't everything drawn by a->Display()?
+
+    // Once we have recorded all the shapes in the selection space,
+    // perform actual rendering
+    selectionSpace.Draw(NULL);
+
+    // Check if something is unlicensed somewhere, if so, show Taodyne ad
+    if (Licenses::UnlicensedCount() > 0)
+    {
+        GLStateKeeper save;
+        SpaceLayout licenseOverlaySpace(this);
+        XL::Save<Layout *> saveLayout2(layout, &licenseOverlaySpace);
+
+        setupGL();
+        glDepthFunc(GL_ALWAYS);
+        glMatrixMode(GL_PROJECTION);
+        glLoadIdentity();
+        GLdouble w = width(), h = height();
+        gluOrtho2D(-w/2, w/2, -h/2, h/2);
+        glMatrixMode(GL_MODELVIEW);
+        glLoadIdentity();
+
+        static XL::Tree_p adCode = XL::xl_parse_text(
+#include "taodyne_ad.h"
+            );
+        if (!adCode->Symbols())
+            adCode->SetSymbols(xlProgram->symbols);
+        xlProgram->context->Evaluate(adCode);
+
+        licenseOverlaySpace.Draw(NULL);
+    }
+
     glDepthFunc(GL_LEQUAL);
 
     // Show FPS as text overlay
@@ -807,15 +838,6 @@ void Widget::draw()
 //    Redraw the widget
 // ----------------------------------------------------------------------------
 {
-#if defined (CFG_EVALUATION_WATERMARK_TIME)
-    if (! showingEvaluationWatermark &&
-          Application::runTime() > CFG_EVALUATION_WATERMARK_TIME)
-    {
-        setWatermarkText(+tr("Evaluation"), 400, 200);
-        showingEvaluationWatermark = true;
-    }
-#endif
-
     // The viewport used for mouse projection is (potentially) set by the
     // display function, clear it for current frame
     memset(mouseTrackingViewport, 0, sizeof(mouseTrackingViewport));
@@ -833,10 +855,6 @@ void Widget::draw()
 
     XL::Save<bool> drawing(inDraw, true);
     TaoSave saveCurrent(current, this);
-
-    // Setup the initial drawing environment
-    setupPage();
-
 
     // Clean text selection
     TextSelect *sel = textSelection();
@@ -985,7 +1003,7 @@ static QDateTime fromSecsSinceEpoch(double when)
 }
 
 
-void Widget::refreshOn(QEvent::Type type, double nextRefresh)
+void Widget::refreshOn(int type, double nextRefresh)
 // ----------------------------------------------------------------------------
 //   Current layout (if any) should be updated on specified event
 // ----------------------------------------------------------------------------
@@ -1014,14 +1032,14 @@ void Widget::refreshOn(QEvent::Type type, double nextRefresh)
 }
 
 
-bool Widget::refreshOn(int event_type, double next_refresh)
+bool Widget::refreshOnAPI(int event_type, double next_refresh)
 // ----------------------------------------------------------------------------
 //   Module interface to refreshOn
 // ----------------------------------------------------------------------------
 {
     if (next_refresh == -1.0)
         next_refresh = DBL_MAX;
-    Tao()->refreshOn((QEvent::Type)event_type, next_refresh);
+    Tao()->refreshOn(event_type, next_refresh);
     return true;
 }
 
@@ -1067,6 +1085,7 @@ void Widget::runProgramOnce()
 //   (and only twice to avoid infinite loops). For example, if the page
 //   title is translated, it may not match on the next draw. See #2060.
 {
+    setupPage();
     setCurrentTime();
 
     // Don't run anything if we detected errors running previously
@@ -1247,7 +1266,6 @@ void Widget::print(QPrinter *prt)
         // Evaluate twice time so that we correctly setup page info
         for (uint i = 0; i < 2; i++)
         {
-            setupPage();
             frozenTime = pagePrintTime;
             runProgram();
         }
@@ -1342,6 +1360,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
     XL::Save<double> setPageTime(pageStartTime, start_time);
     XL::Save<double> setFrozenTime(frozenTime, start_time);
     XL::Save<double> saveStartTime(startTime, start_time);
+    XL::Save<page_list> savePageNames(pageNames, pageNames);
 
     GLAllStateKeeper saveGL;
     XL::Save<double> saveScaling(scaling, scaling);
@@ -1385,8 +1404,6 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
         }
 
         // Set time and run program
-        XL::Save<page_list> savePageNames(pageNames, pageNames);
-        setupPage();
         currentTime = t;
 
         if (gotoPageName != "")
@@ -1418,7 +1435,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
 
         // Draw the layout in the frame context
         id = idDepth = 0;
-        Layout::polygonOffset = 0;
+        space->ClearPolygonOffset();
         frame.begin();
         displayDriver->display();
         frame.end();
@@ -1494,6 +1511,7 @@ void Widget::updateSelection()
 {
     id = idDepth = 0;
     selectionTrees.clear();
+    space->ClearPolygonOffset();
     space->ClearAttributes();
     space->DrawSelection(NULL);
 }
@@ -2155,8 +2173,6 @@ void Widget::resizeGL(int width, int height)
     TaoSave saveCurrent(current, this);
     QEvent r(QEvent::Resize);
     refreshNow(&r);
-    glClearAccum(0.0, 0.0, 0.0, 1.0);
-    glClear(GL_ACCUM_BUFFER_BIT);
 }
 
 
@@ -2375,13 +2391,6 @@ QFont &Widget::currentFont()
 }
 
 
-Context *Widget::context()
-// ----------------------------------------------------------------------------
-//   Return the symbols for the top-level program
-// ----------------------------------------------------------------------------
-{
-    return xlProgram->context;
-}
 
 
 
@@ -2399,8 +2408,11 @@ bool Widget::forwardEvent(QEvent *event)
 {
     refreshNow(event);
     if (QObject *focus = focusWidget)
+    {
+        IFTRACE(widgets)
+            std::cerr << "forwardEvent::Event type " << event->type() << std::endl;
         return focus->event(event);
-
+    }
     return false;
 }
 
@@ -2431,7 +2443,9 @@ bool Widget::forwardEvent(QMouseEvent *event)
                     << " focusWidget name " << +(focus->objectName())
                     << std::endl;
         }
-        return focus->event(&local);
+        bool res = focus->event(&local);
+        event->setAccepted(local.isAccepted());
+        return res;
     }
 
     return false;
@@ -2848,13 +2862,11 @@ void Widget::mousePressEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Create a selection if left click and nothing going on right now
-    if (button == Qt::LeftButton)
-    {
-        if (selectionRectangleEnabled)
-            new Selection(this);
-        else if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+    if (button == Qt::LeftButton && selectionRectangleEnabled)
+        new Selection(this);
+    else if ( ! (event->modifiers() & Qt::ShiftModifier) )
+        if ( uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
             shapeAction("click", id, x, y);
-    }
 
     // Send the click to all activities
     for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
@@ -3266,8 +3278,7 @@ void Widget::timerEvent(QTimerEvent *event)
         }
     }
 #endif
-
-    forwardEvent(event);
+    refreshNow(event);
 }
 
 
@@ -3468,7 +3479,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
-    refreshProgram();
+    refreshProgram(); // REVISIT not needed?
     inError = false;
 }
 
@@ -3478,10 +3489,25 @@ int Widget::loadFile(text name, bool updateContext)
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
-    TaoSave saveCurrent(current, this);
-    return XL::MAIN->LoadFile(name, updateContext);
-}
+    // Stop monitoring source files of previous document (if any)
+    srcFileMonitor.removeAllPaths();
+    toReload.clear();
 
+    TaoSave saveCurrent(current, this);
+    int ret = XL::MAIN->LoadFile(name, updateContext);
+
+    // Monitor all source files of the new document
+    using namespace XL;
+    source_files &files = MAIN->files;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        srcFileMonitor.addPath(+sf.name);
+    }
+
+    return ret;
+}
 
 void Widget::loadContextFiles(XL::source_names &files)
 // ----------------------------------------------------------------------------
@@ -3578,104 +3604,95 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
+    if (toReload.isEmpty())
+        return;
+
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
     if (!prog || xlProgram->readOnly)
         return;
 
-    // Loop on imported files
-    import_set iset;
-    if (ImportedFilesChanged(iset, false))
+    bool needBigHammer = false;
+    bool needRefresh   = false;
+    foreach (QString path, toReload)
     {
-        import_set::iterator it;
-        bool needBigHammer = false;
-        bool needRefresh   = false;
-        for (it = iset.begin(); it != iset.end(); it++)
+        text fname = +path;
+        IFTRACE(filesync)
+            std::cerr << "Must reload " << fname << "\n";
+
+        Tree *replacement = NULL;
+        if (repo)
         {
-            XL::SourceFile &sf = **it;
-            text fname = sf.name;
-            time_t modified = QFileInfo(+fname).lastModified().toTime_t();
-
-            if (modified > sf.modified)
-            {
-                IFTRACE(filesync)
-                    std::cerr << "File " << fname << " changed ("
-                              << modified << " > " << sf.modified
-                              << " delta " << modified - sf.modified << ")\n";
-
-                Tree *replacement = NULL;
-                if (repo)
-                {
-                    replacement = repo->read(fname);
-                }
-                else
-                {
-                    XL::Syntax syntax(XL::MAIN->syntax);
-                    XL::Positions &positions = XL::MAIN->positions;
-                    XL::Errors errors;
-                    XL::Parser parser(fname.c_str(), syntax, positions, errors);
-                    replacement = parser.Parse();
-                }
-
-                // Make sure we reload only once (bug #533)
-                sf.modified = modified;
-
-                if (!replacement)
-                {
-                    // Uh oh, file went away?
-                    needBigHammer = true;
-                }
-                else
-                {
-                    // Make sure we normalize the replacement
-                    Renormalize renorm(this);
-                    replacement = replacement->Do(renorm);
-
-                    // Check if we can simply change some parameters in file
-                    ApplyChanges changes(replacement);
-                    if (!sf.tree->Do(changes))
-                        needBigHammer = true;
-                    else if (fname == xlProgram->name)
-                        updateProgramSource();
-
-                    needRefresh = true;
-
-                    IFTRACE(filesync)
-                    {
-                        if (needBigHammer)
-                            std::cerr << "Need to reload everything.\n";
-                        else
-                            std::cerr << "Surgical replacement worked\n";
-                    }
-
-                } // Replacement checked
-
-            } // If file modified
-        } // For all files
-
-        // If we were not successful with simple changes, reload everything...
-        if (needBigHammer)
+            replacement = repo->read(fname);
+        }
+        else
         {
-            TaoSave saveCurrent(current, this);
-            purgeTaoInfo();
-            for (it = iset.begin(); it != iset.end(); it++)
+            XL::Syntax syntax(XL::MAIN->syntax);
+            XL::Positions &positions = XL::MAIN->positions;
+            XL::Errors errors;
+            XL::Parser parser(fname.c_str(), syntax, positions, errors);
+            replacement = parser.Parse();
+        }
+
+        if (!replacement)
+        {
+            // Uh oh, file went away?
+            needBigHammer = true;
+            break;
+        }
+        else
+        {
+            // Make sure we normalize the replacement
+            Renormalize renorm(this);
+            replacement = replacement->Do(renorm);
+
+            // Check if we can simply change some parameters in file
+            Q_ASSERT(XL::MAIN->files.count(fname));
+            XL::SourceFile &sf = XL::MAIN->files[fname];
+            ApplyChanges changes(replacement);
+            if (!sf.tree->Do(changes))
             {
-                XL::SourceFile &sf = **it;
-                XL::MAIN->LoadFile(sf.name);
+                needBigHammer = true;
+                break;
             }
-            updateProgramSource();
-            inError = false;
+            else if (fname == xlProgram->name)
+            {
+                updateProgramSource();
+            }
+
             needRefresh = true;
-        }
-        if (needRefresh)
-        {
-            // If a file was modified, we need to refresh the screen
-            TaoSave saveCurrent(current, this);
-            refreshNow();
-        }
-        if (!inError)
-            taoWindow()->clearErrors();
+
+            IFTRACE(filesync)
+            {
+                if (needBigHammer)
+                    std::cerr << "Need to reload everything.\n";
+                else
+                    std::cerr << "Surgical replacement worked\n";
+            }
+        } // Replacement checked
+    } // foreach file
+
+    // If we were not successful with simple changes, reload everything...
+    if (needBigHammer)
+    {
+        TaoSave saveCurrent(current, this);
+        purgeTaoInfo();
+        foreach (QString path, toReload)
+            XL::MAIN->LoadFile(+path);
+        updateProgramSource();
+        inError = false;
+        needRefresh = true;
     }
+    if (needRefresh)
+    {
+        // If a file was modified, we need to refresh the screen
+        TaoSave saveCurrent(current, this);
+        refreshNow();
+    }
+    if (!inError)
+        taoWindow()->clearErrors();
+
+    toReload.clear();
 }
 
 
@@ -3731,7 +3748,7 @@ void Widget::finishChanges()
     if (xlProgram->tree)
     {
         import_set done;
-        ImportedFilesChanged(done, true);
+        ScanImportedFiles(done, true);
 
         import_set::iterator f;
         for (f = done.begin(); f != done.end(); f++)
@@ -4157,6 +4174,7 @@ bool Widget::isReadOnly()
 {
     return taoWindow()->isReadOnly;
 }
+
 
 
 // ============================================================================
@@ -4790,8 +4808,12 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
 // ----------------------------------------------------------------------------
 {
     IFTRACE(pages)
-        std::cerr << "Displaying page '" << name
-                  << "' target '" << pageName << "'\n";
+        std::cerr << "Displaying page "
+                  << "#" << pageShown
+                  << " T#" << pageId
+                  << " /" << pageTotal
+                  << " target '" << pageName
+                  << "' '" << name << "'\n";
 
     // We start with first page if we had no page set
     if (pageName == "")
@@ -5420,10 +5442,9 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 
     // This primitive really belongs to the StereoDecoder module, but it's
     // not trivial to move it into the module (due to the StereoLayout class).
-    // Unlicenced behavior shows only left eye
-    if (!Licences::CheckImpressOrLicense("StereoDecoder 1.0") &&
-        !blink(1, 1, 300))
-        vpts = 1;
+    static bool licensed = Licenses::CheckImpressOrLicense("StereoDecoder 1.0");
+    if (!licensed)
+        vpts = viewpoints;
 
     Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
@@ -5766,7 +5787,7 @@ Tree_p Widget::refreshOn(Tree_p self, int eventType)
 //    Refresh current layout on event
 // ----------------------------------------------------------------------------
 {
-    refreshOn((QEvent::Type)eventType);
+    refreshOn(eventType);
     return XL::xl_true;
 }
 
@@ -6918,6 +6939,8 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
 {
     uint texId = 0;
 
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     if (img != "")
     {
         ADJUST_CONTEXT_FOR_INTERPRETER(context);
@@ -7041,6 +7064,8 @@ Integer* Widget::image(Context *context,
 //----------------------------------------------------------------------------
 //  If w or h is 0 then the image width or height is used and assigned to it.
 {
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
@@ -7116,6 +7141,8 @@ Infix_p Widget::imageSize(Context *context,
 //  Return the width and height of an image
 //----------------------------------------------------------------------------
 {
+    refreshOn(TextureCache::instance()->textureChangedEvent());
+
     GLuint w = 1, h = 1;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
@@ -9105,12 +9132,7 @@ Text_p Widget::taoVersion(Tree_p self)
 {
     static text v = "";
     if (v == "")
-    {
-        QString ver = GITREV;
-        if (!Licences::Has(TAO_LICENCE_STR))
-            ver += tr(" (UNLICENSED)");
-        v = +ver;
-    }
+        v = GITREV;
     return new XL::Text(v);
 }
 
@@ -9120,17 +9142,7 @@ Text_p Widget::taoEdition(Tree_p self)
 //    Return the edition string
 // ----------------------------------------------------------------------------
 {
-#ifdef TAO_EDITION
-    static text edition = "";
-    if (edition == "")
-    {
-        edition = TAO_EDITION;
-    }
-    return new XL::Text(edition);
-#else
-    return new XL::Text("");
-#endif
-
+    return new XL::Text(+Application::editionStr());
 }
 
 
@@ -9925,9 +9937,6 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check("WEB"))
-        return NULL;
-
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -10161,9 +10170,10 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
     if (currentGridLayout)
     {
         currentGridLayout->addWidget(surface->widget, y, x);
+        surface->widget->setVisible(true);
         return XL::xl_true;
     }
-
+    layout->Add (new FillColor(1.0, 1.0, 1.0, 1.0));
     layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
@@ -10582,7 +10592,7 @@ Tree_p Widget::setButtonGroupAction(Tree_p self, Tree_p action)
 //   Set the action to be executed by the current buttonGroup if any.
 // ----------------------------------------------------------------------------
 {
-    if (currentGroup && currentGroup->action)
+    if (currentGroup)
     {
         currentGroup->action = action;
     }
@@ -10669,17 +10679,17 @@ bool Widget::blink(double on, double off, double after)
     double runtime = Application::runTime();
     if (runtime <= after)
     {
-        refreshOn((int)QEvent::Timer, after - runtime);
+        refreshOnAPI((int)QEvent::Timer, after - runtime);
         return true;
     }
     double time = Widget::currentTimeAPI();
     double mod = fmod(time, on + off);
     if (mod <= on)
     {
-        refreshOn((int)QEvent::Timer, time + on - mod);
+        refreshOnAPI((int)QEvent::Timer, time + on - mod);
         return true;
     }
-    refreshOn((int)QEvent::Timer, time + on + off - mod);
+    refreshOnAPI((int)QEvent::Timer, time + on + off - mod);
     return false;
 }
 
@@ -10699,7 +10709,7 @@ Name_p Widget::hasLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::Has' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return Licences::Has(feature->value) ? XL::xl_true : XL::xl_false;
+    return Licenses::Has(feature->value) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -10709,7 +10719,7 @@ Name_p Widget::checkLicense(Tree_p self, Text_p feature, Name_p critical)
 // ----------------------------------------------------------------------------
 {
     bool crit = (critical == XL::xl_true) ? true : false;
-    return Licences::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
+    return Licenses::Check(feature->value, crit) ? XL::xl_true : XL::xl_false;
 }
 
 
@@ -10718,7 +10728,7 @@ Name_p Widget::checkImpressOrLicense(Tree_p self, Text_p feature)
 //   Export 'Licenses::CheckImpressOrLicense' as a primitive
 // ----------------------------------------------------------------------------
 {
-    return Licences::CheckImpressOrLicense(feature->value) ? XL::xl_true
+    return Licenses::CheckImpressOrLicense(feature->value) ? XL::xl_true
                                                            : XL::xl_false;
 }
 
@@ -11108,9 +11118,6 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -11235,9 +11242,6 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     bool isContextMenu = false;
 
     // Build the full name of the menu
@@ -11370,9 +11374,6 @@ Tree_p  Widget::menuBar(Tree_p self)
 // Set currentMenuBar to the default menuBar.
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     currentMenuBar = taoWindow()->menuBar();
     currentToolBar = NULL;
     currentMenu = NULL;
@@ -11388,9 +11389,6 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     QString fullname = +name;
     Window *win = taoWindow();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
@@ -11474,9 +11472,6 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
-    if (!Licences::Check(GUI_FEATURE))
-        return XL::xl_false;
-
     QString fullname = QString("SEPARATOR_%1").arg(order);
 
     if (QAction *tmp = taoWindow()->findChild<QAction*>(fullname))

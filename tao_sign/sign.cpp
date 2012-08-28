@@ -20,10 +20,10 @@
 //  (C) 2011 Taodyne SAS
 // ****************************************************************************
 
-#define KEYGEN
-#include "licence.h"
-#include "licence.cpp"
+#include "license.h"
 #include "version.h"
+#include "main.h"
+#include "flight_recorder.h"
 #include <iostream>
 
 XL_DEFINE_TRACES
@@ -41,7 +41,7 @@ int main(int argc, char *argv[])
     XL::FlightRecorder::Initialize();
     XL::MAIN = new XL::Main(argc, argv);
     for (int arg = 1; arg < argc; arg++)
-        Tao::Licences::AddLicenceFile(argv[arg]);
+        Tao::Licenses::AddLicenseFile(argv[arg]);
 }
 
 void usage(const char *progname)

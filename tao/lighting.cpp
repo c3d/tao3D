@@ -196,7 +196,7 @@ void ShaderProgram::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
 
-    if (!where->globalProgramId && !where->InIdentify())
+    if (!where->InIdentify())
     {
 	program->bind();
 	where->programId = program->programId();

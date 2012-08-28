@@ -24,14 +24,9 @@
 
 import Animate
 
-license_ok ->
-    if check_impress_or_license "Carousel 1.002" then
-        true
-    else
-        if blink (1.0, 1.0, 300.0) then
-           true
-        else
-           false
+license_check -> check_impress_or_license "Carousel 1.003"
+
+
 
 // ============================================================================
 //
@@ -79,11 +74,11 @@ carousel n:integer, w:integer, d:integer ->
 // ----------------------------------------------------------------------------
 //    Display the carousel
 // ----------------------------------------------------------------------------
-    if license_ok then
-        carousel_width := w
-        carousel_depth := d
-        carousel_count := n
-        carousel_display
+    license_check
+    carousel_width := w
+    carousel_depth := d
+    carousel_count := n
+    carousel_display
 
 
 carousel_hand ->

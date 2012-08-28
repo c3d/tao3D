@@ -1,12 +1,12 @@
-#ifndef LICENCE_H
-#define LICENCE_H
+#ifndef LICENSE_H
+#define LICENSE_H
 // ****************************************************************************
-//  licence.h                                                       Tao project
+//  license.h                                                       Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Licence check for Tao Presentation
+//     License check for Tao Presentation
 //
 //     Sources for information:
 //     - http://www.sentientfood.com/display_story.php?articleid=3
@@ -25,9 +25,8 @@
 #include "base.h"
 #ifndef KEYGEN
 #include "version.h"
-#if TAO_VERSION_IS_IMPRESS
+#include "application.h"
 #include <set>
-#endif
 #endif
 
 #include <vector>
@@ -39,33 +38,33 @@
 namespace Tao
 {
 
-struct Licences : public QObject
+struct Licenses : public QObject
 // ----------------------------------------------------------------------------
-//   Class checking the available licence for a given module ID or function
+//   Class checking the available license for a given module ID or function
 // ----------------------------------------------------------------------------
 {
     Q_OBJECT
 
 public:
-    static void AddLicenceFile(kstring lfile)
+    static void AddLicenseFile(kstring lfile)
     {
-        return LM().addLicenceFile(lfile);
+        return LM().addLicenseFile(lfile);
     }
 
-    static void AddLicenceFiles(const QFileInfoList &files)
+    static void AddLicenseFiles(const QFileInfoList &files)
     {
-        return LM().addLicenceFiles(files);
+        return LM().addLicenseFiles(files);
     }
 
 #ifndef KEYGEN
     static bool Has(text feature)
     {
-        return LM().licenceRemainingDays(feature) > 0;
+        return LM().licenseRemainingDays(feature) > 0;
     }
 
     static int RemainingDays(text feature)
     {
-        return LM().licenceRemainingDays(feature);
+        return LM().licenseRemainingDays(feature);
     }
 
     static void Warn(text feature, int days, bool critical);
@@ -80,27 +79,30 @@ public:
 
     static bool CheckImpressOrLicense(text feature)
     {
-#if TAO_EDITION_IS_IMPRESS
-        IFTRACE(lic)
+        if (Application::isImpress())
         {
-            // Cache request for less verbose logging
-            static std::set<text> checked;
-            if (checked.count(feature) == 0)
+            IFTRACE(lic)
             {
-                debug() << "'" << feature << "' not checked "
-                           "(authorized because build is Impress)\n";
-                checked.insert(feature);
+                // Cache request for less verbose logging
+                static std::set<text> checked;
+                if (checked.count(feature) == 0)
+                {
+                    debug() << "'" << feature << "' not checked "
+                               "(authorized because edition is Impress)\n";
+                    checked.insert(feature);
+                }
             }
+            return true;
         }
-        return true;
-#else
-        return Check(feature, false);
-#endif
+        else
+        {
+            return Check(feature, false);
+        }
     }
 
     static text hostID();
 
-#endif
+#endif // KEYGEN
 
     static text Name()
     {
@@ -112,22 +114,32 @@ public:
         return LM().company;
     }
 
+    static uint UnlicensedCount()
+    {
+        return LM().unlicensedCount;
+    }
+    static float UnlicensedRatio()
+    {
+        return (float) LM().unlicensedCount / LM().licenses.size();
+    }
+
 private:
-    struct Licence
+    struct License
     {
         QRegExp         features;
         QDate           expiry;
     };
     friend
-    std::ostream& operator << (std::ostream &o, const Licences::Licence &lic);
-    std::vector<Licence>licences;
+    std::ostream& operator << (std::ostream &o, const Licenses::License &lic);
+    std::vector<License>licenses;
     text                name;
     text                company;
     text                address;
     text                email;
-    struct LicenceFile
+    uint                unlicensedCount;
+    struct LicenseFile
     {
-        std::vector<Licence>licences;
+        std::vector<License>licenses;
         text                name;
         text                company;
         text                address;
@@ -136,22 +148,22 @@ private:
     };
 
 private:
-    Licences();
-    ~Licences();
-    static Licences &LM();
+    Licenses();
+    ~Licenses();
+    static Licenses &LM();
 
-    void addLicenceFile(kstring licfname);
-    void addLicenceFiles(const QFileInfoList &files);
-    int  licenceRemainingDays(text feature);
-    void licenceError(kstring file, QString reason);
-    text toText(LicenceFile &lf);
+    void addLicenseFile(kstring licfname);
+    void addLicenseFiles(const QFileInfoList &files);
+    int  licenseRemainingDays(text feature);
+    void licenseError(kstring file, QString reason);
+    text toText(LicenseFile &lf);
 #ifdef KEYGEN
-    text sign(LicenceFile &lf);
+    text sign(LicenseFile &lf);
 #endif
-    bool verify(LicenceFile &lf, text signature);
+    bool verify(LicenseFile &lf, text signature);
     static std::ostream & debug();
 };
 
 }
 
-#endif // LICENCE_H
+#endif // LICENSE_H

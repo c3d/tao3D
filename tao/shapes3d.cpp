@@ -44,7 +44,17 @@ void Shape3::DrawSelection(Layout *layout)
     }
 }
 
-    
+
+bool Shape3::setFillColor(Layout *where)
+// ----------------------------------------------------------------------------
+//    Set the fill color and texture according to the layout attributes
+// ----------------------------------------------------------------------------
+{
+    where->ClearPolygonOffset();
+    return Shape::setFillColor(where);
+}
+
+
 Box3 Cube::Bounds(Layout *where)
 // ----------------------------------------------------------------------------
 //   Return the bounding box for a 3D shape
@@ -173,58 +183,55 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Apply textures
     setTexture(where);
 
-    scale v = 1.0;
-    if(! where->programId && culling)
+    scale v = where->visibility * where->fillColor.alpha;
+    bool drawBackFaces = where->programId || !culling || v != 1.0;
+
+    // Optimize drawing of convex
+    // shapes in case of no shaders thanks to
+    // backface culling (doesn't need to draw back faces)
+    glEnable(GL_CULL_FACE);
+    if (drawBackFaces)
     {
-        // Optimize drawing of convex
-        // shapes in case of no shaders thanks to
-        // backface culling (doesn't need to draw back faces)
-        v = where->visibility * where->fillColor.alpha;
-        glEnable(GL_CULL_FACE);
-        if(v != 1.0)
-        {
-            // Use painter algorithm to apply correctly
-            // transparency on shapes
-            // This was made necessary by Bug #1403.
-            glCullFace(GL_FRONT);
-            // Read Only mode of depth buffer
+        // Use painter algorithm to apply correctly
+        // transparency on shapes
+        // This was made necessary by Bug #1403.
+        glCullFace(GL_FRONT);
+
+        // Read Only mode of depth buffer
+        if (v != 1.0)
             glDepthMask(false);
 
-            if (setFillColor(where))
-                glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
-
-            glCullFace(GL_BACK);
-        }
+        if (setFillColor(where))
+            glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
+        if (setLineColor(where))
+            glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
     }
 
+    // Draw the stuff in the front
+    glCullFace(GL_BACK);
+    glDepthMask(true);
     if (setFillColor(where))
         glDrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
         glDrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
-
-
+    
+    glDisable(GL_CULL_FACE);
     glDisableClientState(GL_VERTEX_ARRAY);
 
     // Disable texture coordinates
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
+    for (it = where->fillTextures.begin(); it!=where->fillTextures.end(); it++)
+        if (((*it).second).id)
             disableTexCoord((*it).first);
 
     // Disable normals
-    if(where->currentLights || where->programId)
+    if (where->currentLights || where->programId)
         glDisableClientState(GL_NORMAL_ARRAY);
-
-    // Disable cullface
-    if(! where->programId && culling)
-    {
-        glDisable(GL_CULL_FACE);
-        if(v != 1.0)
-            glDepthMask(true);
-    }
 
     glPopAttrib();
     glPopMatrix();
 }
+
+
 
 // ============================================================================
 //
@@ -249,7 +256,8 @@ SphereMesh::SphereMesh(uint slices, uint stacks)
         float sinIncrPhi =  sin(incr_phi);
         float cosIncrPhi =  cos(incr_phi);
 
-        for (uint i = 0; i <= slices; i++) {
+        for (uint i = 0; i <= slices; i++)
+        {
             GLfloat theta  = 2 * M_PI * i / slices;
             // Compute teta components (add an offset to be adaptated to the
             // old version)
@@ -259,8 +267,9 @@ SphereMesh::SphereMesh(uint slices, uint stacks)
             // First vertex
             textures.push_back(Point(1 - (double) i / slices,
                                      1 - (double) (j+1) / stacks));
-            normals.push_back(Point3(cosTheta * sinIncrPhi, cosIncrPhi,
-                                     sinTheta * sinIncrPhi));
+            normals.push_back(Vector3(cosTheta * sinIncrPhi,
+                                      cosIncrPhi,
+                                      sinTheta * sinIncrPhi).Normalize());
             vertices.push_back(Point3(radius * cosTheta * sinIncrPhi,
                                       radius * cosIncrPhi,
                                       radius * sinTheta * sinIncrPhi));
@@ -268,8 +277,9 @@ SphereMesh::SphereMesh(uint slices, uint stacks)
             // Second vertex
             textures.push_back(Point(1 - (double) i / slices,
                                      1 - (double) j / stacks));
-            normals.push_back(Point3(cosTheta * sinPhi, cosPhi,
-                                     sinTheta * sinPhi));
+            normals.push_back(Vector3(cosTheta * sinPhi,
+                                      cosPhi,
+                                      sinTheta * sinPhi).Normalize());
             vertices.push_back(Point3(radius * cosTheta * sinPhi,
                                       radius * cosPhi,
                                       radius * sinTheta * sinPhi));
@@ -308,6 +318,8 @@ void Sphere::Draw(Layout *where)
     MeshBased::Draw(mesh, where);
 }
 
+
+
 // ============================================================================
 //
 //    Torus shape
@@ -333,24 +345,33 @@ TorusMesh::TorusMesh(uint slices, uint stacks, double ratio)
         float sinIncrPhi =  sin(incr_phi);
         float cosIncrPhi =  cos(incr_phi);
 
-        for (uint i = 0; i <= slices; i++) {
+        for (uint i = 0; i <= slices; i++)
+        {
             GLfloat theta  = 2 * M_PI * i / slices;
             // Compute teta components
             float sinTheta = sin(theta);
             float cosTheta = cos(theta);
+            float radius1 = majRadius + minRadius * cosIncrPhi;
+            float radius2 = majRadius + minRadius * cosPhi;
 
             // First vertex
-            textures.push_back(Vector((double) i / slices, (double) (j+1) / stacks));
-            normals.push_back(Vector3( cosTheta * cosIncrPhi, sinTheta * cosIncrPhi, sinIncrPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosIncrPhi) * cosTheta,
-                                       (majRadius + minRadius * cosIncrPhi) * sinTheta,
+            textures.push_back(Vector((double) i / slices,
+                                      (double) (j+1) / stacks));
+            normals.push_back(Vector3( cosTheta * cosIncrPhi,
+                                       sinTheta * cosIncrPhi,
+                                       sinIncrPhi).Normalize());
+            vertices.push_back(Vector3(radius1 * cosTheta,
+                                       radius1 * sinTheta,
                                        (thickness * sinIncrPhi)));
 
             // Second vertex
-            textures.push_back(Vector((double) i / slices, (double) j / stacks));
-            normals.push_back(Vector3(cosTheta * cosPhi, sinTheta * cosPhi, sinPhi));
-            vertices.push_back(Vector3((majRadius + minRadius * cosPhi) * cosTheta,
-                                       (majRadius + minRadius * cosPhi) * sinTheta,
+            textures.push_back(Vector((double) i / slices,
+                                      (double) j / stacks));
+            normals.push_back(Vector3(cosTheta * cosPhi,
+                                      sinTheta * cosPhi,
+                                      sinPhi).Normalize());
+            vertices.push_back(Vector3(radius2 * cosTheta,
+                                       radius2 * sinTheta,
                                        (thickness * sinPhi)));
         }
     }
@@ -387,6 +408,8 @@ void Torus::Draw(Layout *where)
     MeshBased::Draw(mesh, where);
 }
 
+
+
 // ============================================================================
 //
 //    Cone shape
@@ -404,11 +427,13 @@ ConeMesh::ConeMesh(double ratio)
         double sa = sin(a);
 
         double s = a / (2 * M_PI);
-        textures.push_back(Point(s, 0));
-        vertices.push_back(Point3(ca, sa, -0.5));
-
         textures.push_back(Point(s, 1));
+        // normals.push_back(Vector3(ca, sa, 0));
         vertices.push_back(Point3(ca * ratio, sa * ratio, 0.5));
+
+        textures.push_back(Point(s, 0));
+        // normals.push_back(Vector3(ca, sa, 0));
+        vertices.push_back(Point3(ca, sa, -0.5));
     }
 
     // Compute normal of each vertex according to those calculate for

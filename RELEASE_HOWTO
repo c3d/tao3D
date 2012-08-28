@@ -14,7 +14,7 @@ Once:
   checks for licenses: grep for hasLicense, checkLicense, checkImpressOrLicense,
   check_license, check_impress_or_license).
 - Configure for full build (no part of the code #idef'ed out):
-  $ ./configure --with-eula
+  $ ./configure --with-eula internal
 - Make sure Qt translations are up-to-date
   $ cd tao
   $ make lupdate
@@ -36,7 +36,7 @@ On all platforms:
 
 - Create a temporary tag (visible on splash screen), for instance:
   $ git tag 1.0-beta5
-- Build Tao and make packages (all editions).
+- Build Tao and make packages:
   $ ./build_all.sh
 - If some modules that are not packaged with Tao have been modified since the
   last build (currently: Alioscopy, 2D-plus-Depth and Tridelity display modules),
@@ -56,7 +56,7 @@ Once:
 
 2) PUBLISHING
 
-- Upload Discovery files to http://ge.tt/ (login is contact@taodyne.com).
+- Upload Tao packages to http://ge.tt/ (login is contact@taodyne.com).
   Take note of the ID of each file,
     * Each file is assigned a URL like http://ge.tt/9Jf9pEH that opens a web
       page where the file can be downloaded (there is also a direct link
@@ -69,11 +69,10 @@ Once:
   ...for instance: http://www/taodyne.com/dl/g/9Jf9pEH
     * There is a rewrite rule in /var/www/.htaccess that redirects
       to http://ge.tt.
-- Upload ALL Tao packages to www.taodyne.com:
-    scp Tao* www-data@www.taodyne.com:shop/downloads
 - Update the download URLs in the PrestaShop product pages (under
   modules/Other modules/Multidéclinaison téléchargeable, Configure, top right
-  icon).
+  icon). There is a single package for Discovery, Creativity and Impress, so
+  you use the same URL for all editions.
 - Update the product version in the product pages for Discovery, Creativity,
   Impress.
 - Update the info file for the "Check for update" feature:

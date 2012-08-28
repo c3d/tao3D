@@ -144,6 +144,7 @@ function set_vars() {
     help_text "For example: a display module that exports some functions."
     WITH_AUTO_LOAD=n ; ask_yes_no WITH_AUTO_LOAD "Auto-load module on application startup?"
     WITH_IMPORT_NAME=y
+    SHORT_NAME=$IMPORT_NAME
   fi
   NAME="$SHORT_NAME module" ; ask_not_empty NAME "Module name (example: Lens Flare effect)"
   DESCRIPTION="$SHORT_NAME module" ; ask_not_empty DESCRIPTION "Description"

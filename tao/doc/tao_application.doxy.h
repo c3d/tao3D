@@ -111,11 +111,10 @@ boolean show_statistics(flag:boolean);
  * Réinitialise les paramètres d'affichage.
  * Les primitives concernées sont :
  * @~
- *  - @ref camera_position
- *  - @ref camera_target
- *  - @ref camera_up_vector
- *  - @ref camera_scaling
- *  - @ref zoom
+ * - @ref camera_position
+ * - @ref camera_target
+ * - @ref camera_up_vector
+ * - @ref zoom
  */
 reset_view();
 

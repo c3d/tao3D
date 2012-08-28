@@ -1,0 +1,89 @@
+// ****************************************************************************
+//  regexp.tbl                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Definition of the interface between XLR and native code for
+//     the "RegExp" module.
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 2011 Christophe de Dinechin
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
+
+PREFIX(RegExpMatch,  boolean, "regexp_match",
+       PARM(InputValue, text, )
+       PARM(Pattern, text, ),
+       return regexpMatch(context, self, InputValue, Pattern),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return true of a text matches a regexp"))
+
+INFIX(RegExpMatchInfix,  boolean, text, "matches", text,
+       return regexpMatch(context, self, l, r),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return true of a text matches a regexp"))
+
+PREFIX(RegExpSearch,  integer, "regexp_search",
+       PARM(InputValue, text, )
+       PARM(Pattern, text, ),
+       return regexpSearch(context, self, InputValue, Pattern),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return position of a regexp in a text, or -1"))
+
+PREFIX(RegExpParse,  tree, "regexp_parse",
+       PARM(InputValue, text, )
+       PARM(Code, tree, ),
+       return regexpParse(context, self, InputValue, &Code, REGEXP_FIRST),
+       GROUP(module.RegExp)
+       SYNOPSIS("Analyze text using regular expressions"))
+PREFIX(RegExpParseLast,  tree, "regexp_parse_last",
+       PARM(InputValue, text, )
+       PARM(Code, tree, ),
+       return regexpParse(context, self, InputValue, &Code, REGEXP_LAST),
+       GROUP(module.RegExp)
+       SYNOPSIS("Analyze text using regular expressions"))
+PREFIX(RegExpParseList,  tree, "regexp_parse_all",
+       PARM(InputValue, text, )
+       PARM(Code, tree, ),
+       return regexpParse(context, self, InputValue, &Code, REGEXP_LIST),
+       GROUP(module.RegExp)
+       SYNOPSIS("Analyze text using regular expressions"))
+PREFIX(RegExpParseText,  tree, "regexp_parse_text",
+       PARM(InputValue, text, )
+       PARM(Code, tree, ),
+       return regexpParse(context, self, InputValue, &Code, REGEXP_TEXT),
+       GROUP(module.RegExp)
+       SYNOPSIS("Analyze text using regular expressions"))
+
+PREFIX(RegExpAt,  tree, "regexp_captured",
+       PARM(Index, integer, ),
+       return regexpAt(context, self, Index),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return the nth capture."))
+
+PREFIX(RegExpPosition,  tree, "regexp_position",
+       PARM(Index, integer, ),
+       return regexpPos(context, self, Index),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return the nth position."))
+
+PREFIX(RegExpMatchedLength,  tree, "regexp_matched_length", ,
+       return regexpMatchedLength(context, self),
+       GROUP(module.RegExp)
+       SYNOPSIS("Return the matched length."))
+
+PREFIX(RegExpEscape,  text, "regexp_escape",
+       PARM(Value, text, ),
+       return regexpEscape(context, self, Value),
+       GROUP(module.RegExp)
+       SYNOPSIS("Escape a text for use in regexps."))
+

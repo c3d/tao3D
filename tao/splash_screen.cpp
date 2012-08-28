@@ -22,7 +22,7 @@
 // ****************************************************************************
 
 #include "version.h"
-#include "licence.h"
+#include "license.h"
 #include "splash_screen.h"
 #include "tao_utf8.h"
 
@@ -40,26 +40,20 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
 //    Splash screen constructor: load the Tao bitmap and show program version
 // ----------------------------------------------------------------------------
 {
-    // Read licence info
+    // Read license info
     QString s;
-    if (Licences::Has(TAO_LICENCE_STR))
+    if (!Application::isDiscovery())
     {
-        QString name = +Licences::Name();
-        QString company = +Licences::Company();
+        QString name = +Licenses::Name();
+        QString company = +Licenses::Company();
         if (name != "" || company != "")
         {
             s = QString("<font color=\"" TEXT_COLOR "\">%1</font>")
                 .arg(QString("<b>%1</b><br>%2<br>%3")
                      .arg(tr("This product is licensed to:"))
                      .arg(name).arg(company));
-            licencedTo.setHtml(s);
+            licensedTo.setHtml(s);
         }
-    }
-    else
-    {
-        s = QString("<font color=\"" TEXT_COLOR "\">%2</font>")
-            .arg(tr("UNLICENSED"));
-        licencedTo.setHtml(s);
     }
 
     setMask(QPixmap(":/images/splash.png").mask());
@@ -67,10 +61,9 @@ SplashScreen::SplashScreen(Qt::WindowFlags flags)
     const char * fmt = "<html><head><style type=text/css>"
             "body {color:\"" TEXT_COLOR "\"}"
             "</style></head><body>%1</body></html>";
-#ifdef TAO_EDITION
-    edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition").arg(TAO_EDITION)), this);
+    edition = new QLabel(trUtf8(fmt).arg(tr("%1 Edition")
+                                         .arg(Application::editionStr())), this);
     edition->move(25, 280);
-#endif
     version = new QLabel(trUtf8(fmt).arg(tr("Version %1").arg(GITREV)), this);
     version->move(25, 300);
 
@@ -162,12 +155,12 @@ void SplashScreen::drawContents(QPainter *painter)
     QRect clip;
 
     int x = 270, y = 220, w = 500, h = 225;
-    if (!licencedTo.isEmpty())
+    if (!licensedTo.isEmpty())
     {
         clip.setRect(0, 0, w, h);
         painter->save();
         painter->translate(x, y);
-        licencedTo.drawContents(painter, clip);
+        licensedTo.drawContents(painter, clip);
         painter->restore();
     }
 

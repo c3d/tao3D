@@ -52,7 +52,7 @@
 #include "render_to_file_dialog.h"
 #include "module_manager.h"
 #include "assistant.h"
-#include "licence.h"
+#include "license.h"
 #include "license_dialog.h"
 #include "normalize.h"
 #include "examples_menu.h"
@@ -182,12 +182,6 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
     // Create the main widget to display Tao stuff
     XL::SourceFile &sf = xlRuntime->files[+sourceFile];
     taoWidget->xlProgram = &sf;
-
-#ifndef CFG_NORELOAD
-    // Fire a timer to check if files changed
-    fileCheckTimer.start(500);
-    connect(&fileCheckTimer, SIGNAL(timeout()), this, SLOT(checkFiles()));
-#endif
 
     // Adapt to screen resolution changes
     connect(QApplication::desktop(), SIGNAL(resized(int)),
@@ -337,24 +331,6 @@ void Window::closeEvent(QCloseEvent *event)
     else
     {
         event->ignore();
-    }
-}
-
-
-void Window::checkFiles()
-// ----------------------------------------------------------------------------
-//   Check if any of the open files associated with the widget changed
-// ----------------------------------------------------------------------------
-{
-    if (taoWidget)
-    {
-        XL::SourceFile *prog = taoWidget->xlProgram;
-        if (!isUntitled && !isReadOnly && prog->tree)
-        {
-            import_set done;
-            if (ImportedFilesChanged(done, false))
-                loadFile(+prog->name);
-        }
     }
 }
 
@@ -1507,7 +1483,7 @@ void Window::tutorialsPage()
 //    Open the tutorials page on the web
 // ----------------------------------------------------------------------------
 {
-    QString url("http://taodyne.com/taopresentations/1.0/tutorials/");
+    QString url(tr("http://taodyne.com/taopresentations/1.0/tutorials/"));
     QDesktopServices::openUrl(url);
  }
 
@@ -1904,33 +1880,27 @@ void Window::createMenus()
     updateRecentFileActions();
 
 #ifndef CFG_NOEDIT
-    if (Licences::Check(GUI_FEATURE))
-    {
-        editMenu = menuBar()->addMenu(tr("&Edit"));
-        editMenu->setObjectName(EDIT_MENU_NAME);
-        editMenu->addAction(undoAction);
-        editMenu->addAction(redoAction);
-        editMenu->addSeparator();
-        editMenu->addAction(cutAct);
-        editMenu->addAction(copyAct);
-        editMenu->addAction(pasteAct);
-    }
+    editMenu = menuBar()->addMenu(tr("&Edit"));
+    editMenu->setObjectName(EDIT_MENU_NAME);
+    editMenu->addAction(undoAction);
+    editMenu->addAction(redoAction);
+    editMenu->addSeparator();
+    editMenu->addAction(cutAct);
+    editMenu->addAction(copyAct);
+    editMenu->addAction(pasteAct);
 #endif
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if (Licences::Check(GUI_FEATURE))
-    {
-        shareMenu = menuBar()->addMenu(tr("&Share"));
-        shareMenu->setObjectName(SHARE_MENU_NAME);
-        shareMenu->addAction(cloneAct);
-        shareMenu->addAction(fetchAct);
-        shareMenu->addAction(setPullUrlAct);
-        shareMenu->addAction(pushAct);
-        shareMenu->addAction(mergeAct);
-        shareMenu->addAction(checkoutAct);
-        shareMenu->addAction(selectiveUndoAct);
-        shareMenu->addAction(diffAct);
-    }
+    shareMenu = menuBar()->addMenu(tr("&Share"));
+    shareMenu->setObjectName(SHARE_MENU_NAME);
+    shareMenu->addAction(cloneAct);
+    shareMenu->addAction(fetchAct);
+    shareMenu->addAction(setPullUrlAct);
+    shareMenu->addAction(pushAct);
+    shareMenu->addAction(mergeAct);
+    shareMenu->addAction(checkoutAct);
+    shareMenu->addAction(selectiveUndoAct);
+    shareMenu->addAction(diffAct);
 #endif
 
     viewMenu = menuBar()->addMenu(tr("&View"));
@@ -2000,17 +1970,14 @@ void Window::createToolBars()
         view->addAction(fileToolBar->toggleViewAction());
 
 #ifndef CFG_NOEDIT
-    if (Licences::Check(GUI_FEATURE))
-    {
-        editToolBar = addToolBar(tr("Edit"));
-        editToolBar->setObjectName("editToolBar");
-        editToolBar->addAction(cutAct);
-        editToolBar->addAction(copyAct);
-        editToolBar->addAction(pasteAct);
-        editToolBar->hide();
-        if (view)
-            view->addAction(editToolBar->toggleViewAction());
-    }
+    editToolBar = addToolBar(tr("Edit"));
+    editToolBar->setObjectName("editToolBar");
+    editToolBar->addAction(cutAct);
+    editToolBar->addAction(copyAct);
+    editToolBar->addAction(pasteAct);
+    editToolBar->hide();
+    if (view)
+        view->addAction(editToolBar->toggleViewAction());
 #endif
 
     viewToolBar = addToolBar(tr("View"));
@@ -2024,23 +1991,20 @@ void Window::createToolBars()
         view->addAction(viewToolBar->toggleViewAction());
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
-    if (Licences::Check(GUI_FEATURE))
-    {
-        gitToolBar = new GitToolBar(tr("Git Tools"), this);
-        gitToolBar->setObjectName("gitToolbar");
-        connect(this, SIGNAL(projectChanged(Repository*)),
-                gitToolBar, SLOT(setRepository(Repository*)));
-        connect(this, SIGNAL(projectChanged(Repository*)),
-                this, SLOT(checkDetachedHead()));
-        connect(gitToolBar, SIGNAL(checkedOut(QString)),
-                this, SLOT(reloadCurrentFile()));
-        connect(this, SIGNAL(projectUrlChanged(QString)),
-                gitToolBar, SLOT(showProjectUrl(QString)));
-        addToolBar(gitToolBar);
-        gitToolBar->hide();
-        if (view)
-            view->addAction(gitToolBar->toggleViewAction());
-    }
+    gitToolBar = new GitToolBar(tr("Git Tools"), this);
+    gitToolBar->setObjectName("gitToolbar");
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            gitToolBar, SLOT(setRepository(Repository*)));
+    connect(this, SIGNAL(projectChanged(Repository*)),
+            this, SLOT(checkDetachedHead()));
+    connect(gitToolBar, SIGNAL(checkedOut(QString)),
+            this, SLOT(reloadCurrentFile()));
+    connect(this, SIGNAL(projectUrlChanged(QString)),
+            gitToolBar, SLOT(showProjectUrl(QString)));
+    addToolBar(gitToolBar);
+    gitToolBar->hide();
+    if (view)
+        view->addAction(gitToolBar->toggleViewAction());
 #endif
 }
 

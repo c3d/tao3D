@@ -2,7 +2,8 @@
 #
 # Performs two things:
 # 1. Installs license template(s) into the module installation folder
-# 2. (Taodyne private build only) If LICENSE_VALIDITY is defined,
+# 2. (Taodyne private build only) If LICENSE_VALIDITY and SIGN_MODULE_LICENSES
+#    are both defined (LICENSE_VALIDITY is a duration in days),
 #    create a temporary license file, sign it and install it into
 #    the Tao Presentations install folder.
 #
@@ -14,15 +15,22 @@ isEmpty(MODINSTPATH):error(Please include modules.pri before licenses.pri)
 
 !isEmpty(LICENSE_FILES) {
 
-  # Install all license templates into the module installation directory
-  license_files.path  = $$MODINSTPATH
-  license_files.files = $$LICENSE_FILES
-  INSTALLS += license_files
+  # In Taodyne build environment, enable license checking in modules
+  exists(../tao_sign/expires.pri):DEFINES += USE_LICENSE
 
-  # Tao Presentations full build only (Taodyne)
-  # Generate and sign temporary licenses, and install them into the Tao
-  # licenses folder
-  exists(../tao_sign/expires.pri) {  # Tao full build
+  isEmpty(SIGN_MODULE_LICENSES) {
+
+    # Install all license templates into the module installation directory
+    license_files.path  = $$MODINSTPATH
+    license_files.files = $$LICENSE_FILES
+    INSTALLS += license_files
+
+  } else {
+
+    # Tao Presentations full build only (Taodyne)
+    # Generate and sign temporary licenses, and install them into the Tao
+    # licenses folder
+    !exists(../tao_sign/expires.pri):error(Must be in Taodyne internal build environment to sign licenses)
 
     # Enable license checking in modules
     DEFINES += USE_LICENSE

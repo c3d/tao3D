@@ -1,0 +1,18 @@
+// DIP_null module definition
+//
+// Module for DIP interaction that does not use data. 
+//
+// Copyright 2012 Taodyne SAS
+
+module_description
+    id "904A1EB8-C72A-4088-A461-5CA077E94688" 
+    name "DIP no data protocol"
+    description "Module for DIP interaction that does not use data."
+    import_name "DIP_null"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Protocol DIP sans donnée."
+    description "Module pour interaction sans donnée avec le DIP."

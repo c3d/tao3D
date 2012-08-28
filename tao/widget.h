@@ -43,6 +43,7 @@
 #include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
+#include "file_monitor.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -155,6 +156,7 @@ public slots:
                              QString dir, double fps = 25.0, int page = -1,
                              QString displayName = "");
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
+    void        addToReloadList(const QString &path) { toReload.append(path); }
 
 
 signals:
@@ -182,7 +184,6 @@ public:
     void        updateSelection();
     uint        showGlErrors();
     QFont &     currentFont();
-    Context *   context();
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();
@@ -889,6 +890,8 @@ private:
     bool                  inError;
     bool                  mustUpdateDialogs;
     bool                  runOnNextDraw;
+    FileMonitor           srcFileMonitor;
+    QStringList           toReload;
 
     // Rendering
     QGradient*            gradient;
@@ -1023,10 +1026,10 @@ private:
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
-    void                  refreshOn(QEvent::Type type,
+    void                  refreshOn(int type,
                                     double nextRefresh = DBL_MAX);
 public:
-    static bool           refreshOn(int event_type, double next_refresh);
+    static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,

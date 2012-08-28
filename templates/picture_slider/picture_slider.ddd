@@ -69,17 +69,13 @@ pictures_number := 6
 enable_selection_rectangle false
 
 // Automatic movement
-auto -> false
+auto -> 0
 
 // Control keys
 key "Right" -> slider_next // Move forward
 key "Left" -> slider_previous // Move backward
 key "Space" -> // Enable or disable automatic movement
-    if auto then
-        auto := false
-    else
-        auto := true
-    // Refresh
+    auto := 1 - auto
     time
 
 // General scaling to adapt document to various displays
@@ -202,7 +198,7 @@ automatic_slider ->
 // -------------------------------------------------
 //    Enable or disable automatic slider
 // -------------------------------------------------
-    if auto then
+    if auto = 1 then
         slider_auto_move page_time * 0.3
         text_box 0, -500, 800, 500,
             align_center

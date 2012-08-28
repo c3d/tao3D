@@ -127,7 +127,7 @@ frame_pixel_count(alphaMin:real);
  * @~french
  * Crée deux textures (couleur et profondeur) à partir de code.
  *
- * Exécute le code de @ref body, et crée deux textures : la première contient
+ * Exécute le code de @p body, et crée deux textures : la première contient
  * l'information de couleur, la seconde est une carte de profondeur
  * (<em>depth map</em>). La texture de couleur est active après l'exécution de
  * la primitive, son identifiant est également renvoyé. Le paramètre @p d

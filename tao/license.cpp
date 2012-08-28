@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  licence.cpp                                                     Tao project
+//  license.cpp                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Licence check for Tao Presentation
+//     License check for Tao Presentation
 //
 //
 //
@@ -19,7 +19,7 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-#include "licence.h"
+#include "license.h"
 #include "scanner.h"
 #include "main.h"
 #include "flight_recorder.h"
@@ -59,55 +59,55 @@ namespace Tao
 {
 
 
-Licences &Licences::LM()
+Licenses &Licenses::LM()
 // ----------------------------------------------------------------------------
-//   Return a singleton for the Licences class
+//   Return a singleton for the Licenses class
 // ----------------------------------------------------------------------------
 {
-    static Licences lm;
+    static Licenses lm;
     return lm;
 }
 
 
-Licences::Licences()
+Licenses::Licenses()
 // ----------------------------------------------------------------------------
-//   Initialize the licence manager by loading the licence file
+//   Initialize the license manager by loading the license file
 // ----------------------------------------------------------------------------
-    : licences()
+    : licenses(), unlicensedCount(0)
 {}
 
 
-Licences::~Licences()
+Licenses::~Licenses()
 // ----------------------------------------------------------------------------
 //   Destructor declared to be private
 // ----------------------------------------------------------------------------
 {}
 
 
-void Licences::addLicenceFile(kstring licfname)
+void Licenses::addLicenseFile(kstring licfname)
 // ----------------------------------------------------------------------------
-//   Add a licence file and the licences in it
+//   Add a license file and the licenses in it
 // ----------------------------------------------------------------------------
-//   The format of the licence file is something like:
+//   The format of the license file is something like:
 //
 //      name "Christophe de Dinechin"
 //      address "777, Home Sweet Home Street, CA99701 Birds les Plages"
 //      features "foo|bar|zoo.*|gloo[a-z]+"
 //      expires 5 dec 1968
 {
-    RECORD(ALWAYS, "Adding licence file", licfname);
+    RECORD(ALWAYS, "Adding license file", licfname);
     IFTRACE(lic)
         debug() << "Loading license file" << licfname << "\n";
 
-    // Licences we want to add here
-    LicenceFile additional;
+    // Licenses we want to add here
+    LicenseFile additional;
 
     // Now analyze what we got from the input text
     XL::Syntax syntax;
     XL::Positions positions;
     XL::Errors errors;
     XL::Scanner scanner(licfname, syntax, positions, errors);
-    Licence licence;
+    License license;
     bool had_features = false, had_signature = false;
     int day = 0, month = 0, year = 0;
     enum
@@ -134,9 +134,9 @@ void Licences::addLicenceFile(kstring licfname)
             break;              // Keep compiler happy
 
         case START:
-            licence = Licence();
+            license = License();
             had_features = false;
-            licence.expiry = QDate();
+            license.expiry = QDate();
             state = TAG;
             // Fall through on purpose
 
@@ -166,10 +166,10 @@ void Licences::addLicenceFile(kstring licfname)
                 else if (item == "hostid")
                     state = HOSTID;
                 else
-                    licenceError(licfname, tr("Invalid tag: %1").arg(+item));
+                    licenseError(licfname, tr("Invalid tag: %1").arg(+item));
                 break;
             default:
-                licenceError(licfname, tr("Invalid token"));
+                licenseError(licfname, tr("Invalid token"));
                 break;
             } // switch(token for TAG state)
             break;
@@ -183,25 +183,25 @@ void Licences::addLicenceFile(kstring licfname)
                 {
                     IFTRACE(lic)
                     {
-                        for (int i = 0; i < additional.licences.size(); ++i)
-                            debug() << "  Adding " << additional.licences[i]
+                        for (int i = 0; i < additional.licenses.size(); ++i)
+                            debug() << "  Adding " << additional.licenses[i]
                                     << "\n";
                     }
-                    licences.insert(licences.end(),
-                                    additional.licences.begin(),
-                                    additional.licences.end());
+                    licenses.insert(licenses.end(),
+                                    additional.licenses.begin(),
+                                    additional.licenses.end());
                     state = TAG;
                 }
                 else
                 {
-                    licenceError(licfname, tr("Signature verification failed"));
+                    licenseError(licfname, tr("Signature verification failed"));
                     state = ERR;
                 }
-                additional.licences.clear();
+                additional.licenses.clear();
             }
             else
             {
-                licenceError(licfname, tr("Invalid signature"));
+                licenseError(licfname, tr("Invalid signature"));
                 state = ERR;
             }
             had_signature = true;
@@ -218,11 +218,11 @@ void Licences::addLicenceFile(kstring licfname)
                 if (PREF == "")                                         \
                     PREF = item;                                        \
                 else if (item != "" && item != PREF)                    \
-                    licenceError(licfname, tr("Inconsistent %1").arg(#PREF)); \
+                    licenseError(licfname, tr("Inconsistent %1").arg(#PREF)); \
             }                                                           \
             else                                                        \
             {                                                           \
-                licenceError(licfname, tr("Invalid %1").arg(#PVAR));    \
+                licenseError(licfname, tr("Invalid %1").arg(#PVAR));    \
                 state = ERR;                                            \
             }                                                           \
             break;
@@ -241,7 +241,7 @@ void Licences::addLicenceFile(kstring licfname)
                 /* Check validity of host ID  */
                 if (item != "" && item != hostID())
                 {
-                    licenceError(licfname, tr("Invalid %1").arg("hostid"));
+                    licenseError(licfname, tr("Invalid %1").arg("hostid"));
                     state = ERR;
                 }
 #endif
@@ -258,12 +258,12 @@ void Licences::addLicenceFile(kstring licfname)
             {
                 item = scanner.TextValue();
                 state = TAG;
-                licence.features = QRegExp(+item);
+                license.features = QRegExp(+item);
                 had_features = true;
             }
             else
             {
-                licenceError(licfname, tr("Invalid features pattern"));
+                licenseError(licfname, tr("Invalid features pattern"));
                 state = ERR;
             }
             break;
@@ -275,13 +275,13 @@ void Licences::addLicenceFile(kstring licfname)
                 state = EXPIRY_MONTH;
                 if (day < 1 || day > 31)
                 {
-                    licenceError(licfname, tr("Invalid day"));
+                    licenseError(licfname, tr("Invalid day"));
                     state = ERR;
                 }
             }
             else
              {
-                licenceError(licfname, tr("Invalid expiry day"));
+                licenseError(licfname, tr("Invalid expiry day"));
                 state = ERR;
             }
             break;
@@ -313,7 +313,7 @@ void Licences::addLicenceFile(kstring licfname)
                     }
                     if (state != EXPIRY_YEAR)
                     {
-                        licenceError(licfname, tr("Invalid month name"));
+                        licenseError(licfname, tr("Invalid month name"));
                         state = ERR;
                     }
                 }
@@ -324,7 +324,7 @@ void Licences::addLicenceFile(kstring licfname)
                 state = EXPIRY_YEAR;
                 if (month < 1 || month > 12)
                 {
-                    licenceError(licfname, tr("Invalid expiry month"));
+                    licenseError(licfname, tr("Invalid expiry month"));
                     state = ERR;
                 }
             }
@@ -341,32 +341,32 @@ void Licences::addLicenceFile(kstring licfname)
                 year = scanner.IntegerValue();
                 if (year < 2011 || year > 2099)
                 {
-                    licenceError(licfname, tr("Invalid year"));
+                    licenseError(licfname, tr("Invalid year"));
                     state = ERR;
                 }
-                licence.expiry = QDate(year, month, day);
+                license.expiry = QDate(year, month, day);
                 state = TAG;
             }
             else
             {
-                licenceError(licfname, tr("Invalid expiry year"));
+                licenseError(licfname, tr("Invalid expiry year"));
                 state = ERR;
             }
             break;
 
         } // switch(state)
 
-        // Check if we have a complete licence, if so enter it
+        // Check if we have a complete license, if so enter it
         if (had_features)
         {
-            additional.licences.push_back(licence);
+            additional.licenses.push_back(license);
             state = START;
         }
     } // while (state != DONE)
 
 
 #ifdef KEYGEN
-    if (additional.licences.size())
+    if (additional.licenses.size())
     {
         text signature = sign(additional);
         FILE *file = fopen(licfname, "a");
@@ -375,14 +375,14 @@ void Licences::addLicenceFile(kstring licfname)
     }
 #else
     if (!had_signature && state != ERR)
-        licenceError(licfname, tr("Missing digital signature"));
+        licenseError(licfname, tr("Missing digital signature"));
 #endif // KEYGEN
 }
 
 
-void Licences::addLicenceFiles(const QFileInfoList &files)
+void Licenses::addLicenseFiles(const QFileInfoList &files)
 // ----------------------------------------------------------------------------
-//   Add several licence files
+//   Add several license files
 // ----------------------------------------------------------------------------
 {
     foreach (QFileInfo file, files)
@@ -390,14 +390,14 @@ void Licences::addLicenceFiles(const QFileInfoList &files)
         text path = +file.canonicalFilePath();
         IFTRACE(fileload)
             std::cerr << "Loading license file: " << path << "\n";
-        Licences::AddLicenceFile(path.c_str());
+        Licenses::AddLicenseFile(path.c_str());
     }
 }
 
 
-text Licences::toText(LicenceFile &lf)
+text Licenses::toText(LicenseFile &lf)
 // ----------------------------------------------------------------------------
-//    Create a stream for the licence contents
+//    Create a stream for the license contents
 // ----------------------------------------------------------------------------
 {
     std::ostringstream os;
@@ -412,10 +412,10 @@ text Licences::toText(LicenceFile &lf)
         os << "hostid \"" << lf.hostid << "\"\n";
 
     // Loop on all data blocks
-    uint i, max = lf.licences.size();
+    uint i, max = lf.licenses.size();
     for (i = 0; i < max; i++)
     {
-        Licence &l = lf.licences[i];
+        License &l = lf.licenses[i];
         if (l.expiry.isValid())
         {
             os << "expires "
@@ -431,12 +431,12 @@ text Licences::toText(LicenceFile &lf)
 
 #ifdef KEYGEN
 
-text Licences::sign(LicenceFile &lf)
+text Licenses::sign(LicenseFile &lf)
 // ----------------------------------------------------------------------------
 //    Sign input data with private key
 // ----------------------------------------------------------------------------
 {
-    // Create a string for the licence contents
+    // Create a string for the license contents
     text lic = toText(lf);
 
     // Sign data
@@ -468,7 +468,7 @@ text Licences::sign(LicenceFile &lf)
 #endif
 
 
-bool Licences::verify(LicenceFile &licences, text signature)
+bool Licenses::verify(LicenseFile &licenses, text signature)
 // ----------------------------------------------------------------------------
 //    Verify if signature is valid for input data, using public key
 // ----------------------------------------------------------------------------
@@ -506,8 +506,8 @@ bool Licences::verify(LicenceFile &licences, text signature)
         sig[i] = dig1*16 + dig2;
     }
 
-    // Create a string for the licence contents
-    text lic = toText(licences);
+    // Create a string for the license contents
+    text lic = toText(licenses);
 
     // Load public key
     byte key[] = TAO_DSA_PUBLIC_KEY;
@@ -527,7 +527,7 @@ bool Licences::verify(LicenceFile &licences, text signature)
 
 struct CheckStatus
 // ----------------------------------------------------------------------------
-//   Information about the last licence check for a feature
+//   Information about the last license check for a feature
 // ----------------------------------------------------------------------------
 {
     CheckStatus() {}
@@ -538,9 +538,10 @@ struct CheckStatus
     int   remaining;
 };
 
-int Licences::licenceRemainingDays(text feature)
+
+int Licenses::licenseRemainingDays(text feature)
 // ----------------------------------------------------------------------------
-//   Check if any of the licences grants us the given feature
+//   Check if any of the licenses grants us the given feature
 // ----------------------------------------------------------------------------
 {
     QDate today = QDate::currentDate();
@@ -556,16 +557,16 @@ int Licences::licenceRemainingDays(text feature)
             return st.remaining;
     }
 
-    // Loop over all licences
-    std::vector<Licence>::iterator l;
-    for (l = licences.begin(); l != licences.end(); l++)
+    // Loop over all licenses
+    std::vector<License>::iterator l;
+    for (l = licenses.begin(); l != licenses.end(); l++)
     {
-        Licence &licence = *l;
-        if (licence.features.exactMatch(qfun))
+        License &license = *l;
+        if (license.features.exactMatch(qfun))
         {
-            if (licence.expiry.isValid())
+            if (license.expiry.isValid())
             {
-                result = today.daysTo(licence.expiry);
+                result = today.daysTo(license.expiry);
                 IFTRACE(lic)
                 {
                     if (result >= 0)
@@ -584,16 +585,17 @@ int Licences::licenceRemainingDays(text feature)
             }
             if (result >= 0)
             {
-                result = result + 1; // If licence expires today, it's still OK
+                result = result + 1; // If license expires today, it's still OK
                 break;
             }
         }
     }
     if (result <= 0)
     {
-        // No licence matches, or they all expired.
+        // No license matches, or they all expired.
         IFTRACE(lic)
-                debug() << "'" << feature << "' not licensed\n";
+            debug() << "'" << feature << "' not licensed\n";
+        unlicensedCount++;
     }
 
     // Cache result
@@ -604,25 +606,25 @@ int Licences::licenceRemainingDays(text feature)
 }
 
 
-void Licences::licenceError(kstring file, QString reason)
+void Licenses::licenseError(kstring file, QString reason)
 // ----------------------------------------------------------------------------
-//   We had a problem with the licences - Quick exit
+//   We had a problem with the licenses - Quick exit
 // ----------------------------------------------------------------------------
 {
-    RECORD(ALWAYS, "Licence error", (+reason).c_str(), 0, file, 0);
-    licences.clear();
+    RECORD(ALWAYS, "License error", (+reason).c_str(), 0, file, 0);
+    licenses.clear();
 
 #ifdef KEYGEN
-    std::cerr << "Error reading licence file " << file
+    std::cerr << "Error reading license file " << file
               << ": " << +reason << "\n";
 #else
     QString message;
     message  = tr("<h3>License Error</h3>");
-    message += tr("<p>There is a problem with licence file:</p>"
+    message += tr("<p>There is a problem with license file:</p>"
                   "<center>'%1'</center>"
                   "<p>The following error was detected: %2.</p>"
                   "<p>The program will now terminate. "
-                  "You need to remove the offending licence file "
+                  "You need to remove the offending license file "
                   "before trying to run the application again.</p>")
                   .arg(file).arg(reason);
     message += tr("<p>Please contact "
@@ -638,9 +640,9 @@ void Licences::licenceError(kstring file, QString reason)
 
 
 #ifndef KEYGEN
-void Licences::Warn(text feature, int days, bool critical)
+void Licenses::Warn(text feature, int days, bool critical)
 // ----------------------------------------------------------------------------
-//   Remind user that the feature is not licenced or about to expire
+//   Remind user that the feature is not licensed or about to expire
 // ----------------------------------------------------------------------------
 {
     // Warn only once per feature
@@ -702,7 +704,7 @@ void Licences::Warn(text feature, int days, bool critical)
 }
 
 
-text Licences::hostID()
+text Licenses::hostID()
 // ----------------------------------------------------------------------------
 //   Return unique host identifier
 // ----------------------------------------------------------------------------
@@ -789,17 +791,17 @@ again:
 #endif // KEYGEN
 
 
-std::ostream & Licences::debug()
+std::ostream & Licenses::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
 // ----------------------------------------------------------------------------
 {
-    std::cerr << "[Licences] ";
+    std::cerr << "[Licenses] ";
     return std::cerr;
 }
 
 
-std::ostream& operator << (std::ostream &o, const Licences::Licence &lic)
+std::ostream& operator << (std::ostream &o, const Licenses::License &lic)
 // ----------------------------------------------------------------------------
 //   Dump license feature and expiry date
 // ----------------------------------------------------------------------------

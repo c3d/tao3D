@@ -40,7 +40,7 @@
 #include "display_driver.h"
 #include "gc_thread.h"
 #include "text_drawing.h"
-#include "licence.h"
+#include "license.h"
 #include "version.h"
 #include "preferences_pages.h"
 #include "update_application.h"
@@ -91,10 +91,10 @@ Application::Application(int & argc, char ** argv)
     : QApplication(argc, argv), hasGLMultisample(false),
       hasFBOMultisample(false), hasGLStereoBuffers(false),
       maxTextureCoords(0), maxTextureUnits(0),
-      updateApp(NULL), readyToLoad(false),
+      updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), peer(NULL)
+      moduleManager(NULL), peer(NULL), textureCache(NULL)
 {
 #if defined(Q_OS_WIN32)
     installDDEWidget();
@@ -144,12 +144,27 @@ void Application::deferredInit()
     {
 
 #ifdef TAO_EDITION
-#define EDSTR TAO_EDITION
+#define EDSTR TAO_EDITION " "
 #else
-#define EDSTR "(internal)"
+#define EDSTR
 #endif
-        std::cout << "Tao Presentations " EDSTR " " GITREV " (" GITSHA1 ")\n";
+        std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
+
+        ::exit(0);
+    }
+    if (cmdLineArguments.contains("--glinfo"))
+    {
+        {
+            QGLWidget gl;
+            gl.makeCurrent();
+
+            std::cout << "OpenGL vendor:     " << glGetString(GL_VENDOR)
+                      << "\nOpenGL renderer:   " << glGetString(GL_RENDERER)
+                      << "\nOpenGL version:    " << glGetString(GL_VERSION)
+                      << "\nOpenGL extensions: " << glGetString(GL_EXTENSIONS)
+                      << "\n";
+        }
         ::exit(0);
     }
 
@@ -182,6 +197,15 @@ void Application::deferredInit()
 
     loadLicenses();
 
+    // Texture cache may only be instantiated after setOrganizationName
+    // and setOrganizationDomain because it reads default values from
+    // the user's preferences
+    textureCache = TextureCache::instance();
+    textureCache->setSaveCompressed(xlr->options.tcache_savecomp);
+
+    // Adjust file polling frequency
+    FileMonitorThread::pollInterval = xlr->options.sync_interval;
+
     // Create and start garbage collection thread
     gcThread = new GCThread;
     if (xlr->options.threaded_gc)
@@ -207,12 +231,28 @@ void Application::deferredInit()
     // Create main window
     win = new Window (xlr, contextFiles);
 
-    // Check main application licence
-    if (!Licences::Check(TAO_LICENCE_STR, true))
+#ifdef TAO_EDITION
+    // Internal or custom build
+    QString lic = QString("Tao Presentations %1 %2").arg(TAO_EDITION)
+                                                    .arg(GITREV);
+    if (!Licenses::Check(+lic, true))
     {
         exit(15);
         return;
     }
+    edition = Application::Other;
+#else
+    // No edition name defined at compile time, this is a
+    // Discovery/Creativity/Impress build - do a runtime license check
+    QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
+    QString creat = QString("Tao Presentations Creativity %1").arg(GITREV);
+    if (Licenses::Has(+impress))
+        edition = Application::Impress;
+    else if (Licenses::Has(+creat))
+        edition = Application::Creativity;
+    else
+        edition = Application::Discovery;
+#endif
 
 #if defined (CFG_WITH_EULA)
     // Show End-User License Agreement if not previously accepted for this
@@ -372,11 +412,10 @@ bool Application::loadLicenses()
          << QDir(Application::appLicenseFolderPath());
     foreach (QDir dir, dirs)
     {
-        QFileInfoList licences = dir.entryInfoList(QStringList("*.taokey"),
+        QFileInfoList licenses = dir.entryInfoList(QStringList("*.taokey"),
                                                    QDir::Files);
-        Licences::AddLicenceFiles(licences);
+        Licenses::AddLicenseFiles(licenses);
     }
-
     return true;
 }
 
@@ -412,16 +451,50 @@ bool Application::installTranslators()
 }
 
 
+static text getGLText(GLenum name)
+// ----------------------------------------------------------------------------
+//   Helper function. Return a GL string value as a QString.
+// ----------------------------------------------------------------------------
+{
+    return +QString::fromLocal8Bit((const char*)glGetString(name));
+}
+
 bool Application::checkGL()
 // ----------------------------------------------------------------------------
 //   Check if GL implementation can be used
 // ----------------------------------------------------------------------------
 {
+    {
+        // We need a valid GL context to read the information strings
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        if (QGLContext::currentContext()->isValid())
+        {
+            TaoApp->GLVendor   = getGLText(GL_VENDOR);
+            TaoApp->GLRenderer = getGLText(GL_RENDERER);
+            TaoApp->GLVersionAvailable = getGLText(GL_VERSION);
+            TaoApp->GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+
+            // Get number of maximum texture units and coords in fragment shaders
+            // (texture units are limited to 4 otherwise)
+            glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*)&maxTextureUnits);
+        }
+        else
+        {
+            TaoApp->GLVendor = TaoApp->GLRenderer = TaoApp->GLVersionAvailable
+                    = TaoApp->GLExtensionsAvailable = "?";
+        }
+    }
+
     // Basic sanity tests to check if we can actually run
     if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
-        QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL 2.0."));
+        QString msg = tr("This system (%1, %2, %3) doesn't support "
+                         "OpenGL 2.0.").arg(+GLVendor).arg(+GLRenderer)
+                                       .arg(+GLVersionAvailable);
+        QMessageBox::warning(NULL, tr("OpenGL support"), msg);
         return false;
     }
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
@@ -435,11 +508,7 @@ bool Application::checkGL()
     useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
-        QGLWidget gl;
-        gl.makeCurrent();
-
         // Ask graphic card constructor to OpenGL
-        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
         // Search in vendors list
@@ -458,24 +527,6 @@ bool Application::checkGL()
         case 1: vendorID = NVIDIA; break;
         case 2: vendorID = INTEL; break;
         }
-
-        const GLubyte *str;
-        // Get OpenGL supported version
-        str = glGetString(GL_VERSION);
-        GLVersionAvailable = (const char*) str;
-
-        // Get OpenGL supported extentions
-        str = glGetString(GL_EXTENSIONS);
-        GLExtensionsAvailable = (const char*) str;
-
-        // Get OpenGL renderer (GPU)
-        str = glGetString(GL_RENDERER);
-        GLRenderer = (const char*) str;
-
-        // Get number of maximum texture units and coords in fragment shaders
-        // (texture units are limited to 4 otherwise)
-        glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
     {
@@ -578,35 +629,35 @@ void Application::cleanup()
     if (moduleManager)
         moduleManager->saveConfig();
 
-#if TAO_EDITION_IS_DISCOVERY
-
-    // Gentle reminder that Tao is not free
-
-    QString title = tr("Tao Presentations");
-    QString text = tr("<h3>Reminder</h3>");
-    QString info;
-    info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
-    QMessageBox box;
-    box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
-    box.button(QMessageBox::Ok)->setText(tr("Buy now"));
-    box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
-    box.setDefaultButton(QMessageBox::Cancel);
-    box.setWindowTitle(title);
-    box.setText(text);
-    box.setInformativeText(info);
-    // Icon from:
-    // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
-    // Author: Ivan M. (www.visual-blast.com)
-    // License: free for commercial use, do not redistribute
-    QPixmap pm(":/images/shopping_cart.png");
-    box.setIconPixmap(pm);
-
-    if (box.exec() == QMessageBox::Ok)
+    if (isDiscovery())
     {
-        QUrl url("http://www.taodyne.com/taopresentations/buynow");
-        QDesktopServices::openUrl(url);
+        // Gentle reminder that Tao is not free
+
+        QString title = tr("Tao Presentations");
+        QString text = tr("<h3>Reminder</h3>");
+        QString info;
+        info = tr("<p>This is an evaluation copy of Tao Presentations.</p>");
+        QMessageBox box;
+        box.setStandardButtons(QMessageBox::Ok | QMessageBox::Cancel);
+        box.button(QMessageBox::Ok)->setText(tr("Buy now"));
+        box.button(QMessageBox::Cancel)->setText(tr("Buy later"));
+        box.setDefaultButton(QMessageBox::Cancel);
+        box.setWindowTitle(title);
+        box.setText(text);
+        box.setInformativeText(info);
+        // Icon from:
+        // http://www.iconfinder.com/icondetails/61809/64/buy_cart_ecommerce_shopping_webshop_icon
+        // Author: Ivan M. (www.visual-blast.com)
+        // License: free for commercial use, do not redistribute
+        QPixmap pm(":/images/shopping_cart.png");
+        box.setIconPixmap(pm);
+
+        if (box.exec() == QMessageBox::Ok)
+        {
+            QUrl url(tr("http://taodyne.com/taopresentations/buynow"));
+            QDesktopServices::openUrl(url);
+        }
     }
-#endif
 }
 
 
@@ -836,8 +887,8 @@ bool Application::checkOfflineRendering()
         return false;
     }
 
-    std::cout << "Starting offline rendering: page=" << page << " x=" << x
-              << " y=" << y << " start=" << start << " end=" << end
+    std::cout << "Starting offline rendering: page=" << page << " width=" << x
+              << " height=" << y << " start=" << start << " end=" << end
               << " fps=" << fps << " folder=\"" << +folder << "\""
               << " displaymode=\"" << +disp << "\"\n";
 
@@ -1013,7 +1064,7 @@ QString Application::defaultTaoFontsFolderPath()
 
 QString Application::appLicenseFolderPath()
 // ----------------------------------------------------------------------------
-//    Licences packaged with the application
+//    Licenses packaged with the application
 // ----------------------------------------------------------------------------
 {
     return QDir::toNativeSeparators(applicationDirPath()+"/licenses");
@@ -1022,7 +1073,7 @@ QString Application::appLicenseFolderPath()
 
 QString Application::userLicenseFolderPath()
 // ----------------------------------------------------------------------------
-//    User licences (persist even when Tao is uninstalled/upgraded)
+//    User licenses (persist even when Tao is uninstalled/upgraded)
 // ----------------------------------------------------------------------------
 {
     // Create folder if it does not exist

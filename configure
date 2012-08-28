@@ -54,12 +54,8 @@ usage() {
   echo "              ** Creativity is the intermediate version. No 'Buy' reminder, and no"
   echo "                 watermark unless an unlicensed module is used."
   echo "              ** Impress allows many modules to work without explicit license."
-  echo "  youactive   Configure for Tao Presentations YouActive. Same as Creativity, but"
-  echo "              includes additional modules used in the YouActive solution (DIP)."
-  echo "              - All default modules (except autostereoscopic displays), as well as"
-  echo "                YouActive-specific modules are built and packaged, with no license."
-  echo "              - Application license template is packaged (not signed):"
-  echo "                'Tao Presentations YouActive <version>.*'"
+  echo "  youactive   Configure for Tao Presentations YouActive. Same as the regular (\"unified\")"
+  echo "              build, but includes additional modules used in the YouActive solution (DIP)."
   echo "  internal    Configure for an internal build with most features enabled (including"
   echo "              the less stable ones, not shipped with official Tao editions)".
   echo "              - All default modules are built and packaged, with 120-day licenses."
@@ -145,8 +141,8 @@ while [ $# -ne 0 ] ; do
       shift ; done=1
       ;;
     youactive)
-      EDITION="YouActive"
       FLAGS="$FLAGS modules+=+DIP modules+=+dip_dedication modules+=+dip_mouse modules+=+dip_null modules+=+dip_voting"
+      FLAGS="$FLAGS PACKAGE_APPEND=YouActive"
       shift ; done=1
       ;;
     internal)

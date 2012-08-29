@@ -37,9 +37,7 @@ equals(HAS_DOXYGEN, 1) {
   !macx:!win32:TAO_ICON_FOR_QHCP = ../tao/tao.png
   QMAKE_SUBSTITUTES = Doxyfile.in \
                       DoxyfileWebdoc.in \
-                      TaoPresentations.qhcp.in \
-                      about_help.html.in \
-                      about_help_fr.html.in
+                      TaoPresentations.qhcp.in
   QMAKE_DISTCLEAN += $$replace(QMAKE_SUBSTITUTES, .in, )
 
   include (../modules/module_list.pri)

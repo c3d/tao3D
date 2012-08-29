@@ -188,7 +188,6 @@ private slots:
     void onlineDoc();
     void tutorialsPage();
     void documentWasModified();
-    void checkFiles();
     void displayModeTriggered(bool on);
 #ifdef CFG_TIMED_FULLSCREEN
     void leaveFullScreen();
@@ -230,7 +229,7 @@ private:
 private:
     XL::Main *        xlRuntime;
     QSharedPointer<Repository> repo;
-    QList<int>        appFontIds;
+    QList<int>        docFontIds;
     // currentProjectFolder : Used if repo is not used.
     QString          currentProjectFolder;
     QTextEdit        *errorMessages;

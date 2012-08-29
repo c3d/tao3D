@@ -62,7 +62,7 @@ protected:
     QLabel *     label;
     QLabel *     edition, * version;
     bool         mbPressed, urlClicked;
-    QTextDocument licencedTo;
+    QTextDocument licensedTo;
 
 signals:
     void dismissed();

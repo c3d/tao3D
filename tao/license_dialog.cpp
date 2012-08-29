@@ -22,7 +22,7 @@
 #include "license_dialog.h"
 
 #include "application.h"
-#include "licence.h"
+#include "license.h"
 #include "tao_utf8.h"
 
 #include <QPixmap>
@@ -117,7 +117,7 @@ void LicenseDialog::init()
                 "<h3>Your host identifier:</h3>"
                 "<center>%3</center>"
                 ).arg(prefix).arg(Application::userLicenseFolderPath())
-                 .arg(+Licences::hostID());
+                 .arg(+Licenses::hostID());
 
     setWindowTitle(title);
     setText(caption);

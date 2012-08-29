@@ -112,9 +112,9 @@ send_to_back();
  * @~english
  * Set the polygon offset factors.
  * @param f0 factor base
- * @param f1, factor increment
- * @param u0, unit base
- * @param u1, unit increment
+ * @param f1 factor increment
+ * @param u0 unit base
+ * @param u1 unit increment
  * @return [integer] The current polygon offset.
  *
  * @~french

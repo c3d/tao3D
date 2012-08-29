@@ -372,9 +372,9 @@ public:
     };
 
 public:
-    enum VendorID vendorID;
-    GLuint        maxTextureCoords, maxTextureUnits;
-    text          vendor, renderer, version, extensionsAvailable;
+    static enum VendorID vendorID;
+    static GLuint maxTextureCoords, maxTextureUnits;
+    static text   vendor, renderer, version, extensionsAvailable;
     TexturesState currentTextures;
     TextureState *currentUnit;
 

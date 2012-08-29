@@ -447,8 +447,12 @@ AbstractButtonSurface::AbstractButtonSurface(Tree *t,
     button->setObjectName(name);
     connect(button, SIGNAL(toggled(bool)),
             this,   SLOT(toggled(bool)));
+    connect(button, SIGNAL(pressed()), this, SLOT(repaint())); // Bug #2420-1
 
-    widget->setVisible(true);
+    // Bug #2420
+    // Widget MUST NOT be shown. It will be rendered in an image and then
+    // transformed in a texture (WidgetSurface::bind procedure)
+    widget->setVisible(false);
 }
 
 

@@ -11,7 +11,7 @@
 //
 //
 // ****************************************************************************
-// Copyright Taodyne SAS, 2011
+// Copyright Taodyne SAS, 2011-2012
 // Contributors:
 //   Catherine Burvelle <cathy@taodyne.com>
 //   Christophe de Dinechin <christophe@taodyne.com>
@@ -70,6 +70,12 @@ MouseY0 -> 0.0
 
 key "Return" -> movie_only ""
 
+// Video quality
+FMT -> "&fmt=5"  // Low bitrate
+//FMT -> ""      // Best quality
+
+// Avoid creating too many threads (1 per video)
+vlc_init "--ffmpeg-threads", "1"
 
 // ============================================================================
 //
@@ -77,36 +83,26 @@ key "Return" -> movie_only ""
 //
 // ============================================================================
 
+page "This page intentionally left blank",
+    clear_color 0, 0, 0, 1
+    text_box 0, 0, 800, 600,
+        color "white"
+        align 0.5
+        vertical_align 0.5
+        font "Arial", 40
+        text page_label
+        line_break
+        text "Press the 'down' key to get started"
+    movie_only ""
 
 page "YouCube Scrat!",
-// -------------------------------------------------
-//    Cube with videos from Ice Age
-// -------------------------------------------------
-    Scrat -> "http://youtube.com/watch?v=bKpPTq3-Qic"
-    Scrat2 -> "http://www.youtube.com/watch?v=RbsGWNXZ51I"
-    Scrat3 -> "http://www.youtube.com/watch?v=n0ykM1ALggE"
-    IceAge2 -> "http://www.youtube.com/watch?v=s0ITs4W3yjA"
-    IceAge3 -> "http://www.youtube.com/watch?v=dfjcECDxuy4"
-    IceAge4 -> "http://www.youtube.com/watch?v=A3FDoz7KWk8"
-    video_cube Scrat, Scrat2, Scrat3, IceAge2, IceAge3, IceAge4
-
-page "YouCube Descendeurs",
-// -------------------------------------------------
-//    Cube with Ski videos
-// -------------------------------------------------
-    Descente1 -> "http://www.youtube.com/watch?v=dHe_SNT-6BA"
-    Descente2 -> "http://www.youtube.com/watch?v=yu2kexdW3a8"
-    Descente3 -> "http://www.youtube.com/watch?v=PyD8NBwgbgQ"
-    Descente4 -> "http://www.youtube.com/watch?v=v83azZAa7Nw"
-    Descente5 -> "http://www.youtube.com/watch?v=gcs393efYmk"
-    Descente6 -> "http://www.youtube.com/watch?v=6jjigXExUP0"
-    video_cube Descente1, Descente2, Descente3, Descente4, Descente5, Descente6
-
-page "Stop",
-// -------------------------------------------------
-//    Page to stop all videos
-// -------------------------------------------------
-    movie_only ""
+    Scrat2 -> "http://www.youtube.com/watch?v=RbsGWNXZ51I" & FMT
+    Scrat3 -> "http://www.youtube.com/watch?v=n0ykM1ALggE" & FMT
+    IceAge2 -> "http://www.youtube.com/watch?v=s0ITs4W3yjA" & FMT
+    IceAge3 -> "http://www.youtube.com/watch?v=dfjcECDxuy4" & FMT
+    IceAge4_1 -> "http://www.youtube.com/watch?v=TzzGPfVx32M" & FMT
+    IceAge4_2 -> "http://www.youtube.com/watch?v=s-lEMsml6IE" & FMT
+    video_cube Scrat2, Scrat3, IceAge2, IceAge3, IceAge4_1, IceAge4_2
 
 
 // ============================================================================
@@ -122,23 +118,19 @@ play V:text, AX:real, AY:real, Pass:integer, Size:real, Depth:real ->
     dcos A:real -> cos (A * pi/180)
     volume A:real -> 0.5 + 0.5 * dcos A
 
-    // We do this to draw back pictures before front pictures
-    if dcos(AngleX+AX) * dcos(AngleY+AY) * Pass > 0 then
-        locally
-            rotatey AY
-            rotatex AX
-            translatez Depth
-            locally
-                color "lightblue", 0.2
-                line_color "darkgrey", 0.2
-                line_width 3
-                rectangle 0, 0, Size, Size
+    locally
+        rotatey AY
+        rotatex AX
+        translatez Depth
+        // We do this to draw the translucent rectangles after the pictures
+        if Pass < 0 then
             locally
                 color "white"
                 if movie_time V > 0 and not movie_playing V then
                     movie_drop V
                 movie_texture V 
                 movie_set_volume V, volume (AngleX+AX) * volume(AngleY+AY)
+                translatez 1  // Avoid z-fighting
                 rectangle 0, 0, Size, Size * texture_height / (texture_width+1)
             text_box 0, 0, Size, Size,
                 align_center
@@ -150,6 +142,14 @@ play V:text, AX:real, AY:real, Pass:integer, Size:real, Depth:real ->
                 text "Time=" & text movie_time V
                 text (if movie_playing V then " playing" else " not playing")
                 text (if movie_done V then " done" else " not done")
+        else
+            locally
+                disable_depth_mask
+                color "lightblue", 0.2
+                line_color "darkgrey", 0.2
+                line_width 3
+                rectangle 0, 0, Size, Size
+                enable_depth_mask
 
 video_cube V1:text, V2:text, V3:text, V4:text, V5:text, V6:text -> 
     enable_selection_rectangle false
@@ -171,7 +171,7 @@ video_cube V1:text, V2:text, V3:text, V4:text, V5:text, V6:text ->
     locally 
         translate 300 * sin (0.05 * time) , 200 * cos (0.03317 * time) , -8000 
         color "white", 0.3 
-        image 0, 0, 3, 3, "Clouds3.png" 
+        image 0, 0, 8, 8, "Clouds.png"
 
     locally
         translatez 1000

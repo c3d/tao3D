@@ -64,7 +64,7 @@
  * -# @ref colorchooser "Sélection de couleur"
  *
  * Les propriétés spécifiques de chaque dialogue sont précisées par des
- * primitives additionnelles. Par exemple, @ref filter pour préciser le filtre
+ * primitives additionnelles. Par exemple, @p filter pour préciser le filtre
  * d'un dialogue de sélection de fichier.
  *
  * Les valeurs sont renvoyées par le dialogue en remplaçant un mot-clé dans

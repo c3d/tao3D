@@ -50,6 +50,13 @@ find_doxygenlayout() {
     done
 }
 
+# Filter some Doxygen warnings we can't fix easily.
+filter_doxy_warnings() {
+  # This one is caused by the syntax we use to mimic XL types, such as in:
+  #   foo (W:real, H:real);
+  grep -v "is not found in the argument list"
+}
+
 if [ -e "$DOXYFILE" ] ; then
     LANGUAGES=`echo $DOXYLANG | tr , ' '`
     for lang in $LANGUAGES ; do
@@ -70,7 +77,7 @@ if [ -e "$DOXYFILE" ] ; then
             # Doxygen should not run qhelpgenerator yet
             echo QHG_LOCATION= >> Doxyfile.tmp
         fi
-        doo doxygen Doxyfile.tmp
+        { doo doxygen Doxyfile.tmp "# NB: stderr filtered to remove some messages" 2>&1 1>&3 | filter_doxy_warnings 1>&2; } 3>&1
         rm -f Doxyfile.tmp
         if [ -e $htmlout/index.qhp -a "$QHP_ADDFILES" != "" -a "$qhelpgenerator" != "" ] ; then
           toadd=""

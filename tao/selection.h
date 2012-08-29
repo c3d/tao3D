@@ -54,7 +54,7 @@ struct MouseFocusTracker : Identify
 //   Track which object gets the focus based on mouse movements
 // ----------------------------------------------------------------------------
 {
-    MouseFocusTracker(text t, Widget *w);
+    MouseFocusTracker(Widget *w);
     virtual Activity *  MouseMove(int x, int y, bool active);
     virtual Activity *  Click(uint button, uint count, int x, int y);
     uint previous;

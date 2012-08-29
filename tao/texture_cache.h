@@ -25,10 +25,16 @@
 #include "tao.h"
 #include "tao_gl.h"
 #include "tao_tree.h"
-#include <QMap>
+#include "file_monitor.h"
 #include <QDateTime>
-#include <QTime>
+#include <QFile>
+#include <QFileInfo>
+#include <QMap>
 #include <QTimer>
+#include <QtNetwork>
+#include <QSet>
+#include <QSharedPointer>
+#include <QWeakPointer>
 #include <iostream>
 
 const qint64 CACHE_KB = 1024LL;
@@ -44,83 +50,61 @@ namespace Tao {
 
 struct Image
 // ----------------------------------------------------------------------------
-//    Hold an image, loaded from disk or read back compressed from GL
+//    Hold an image, loaded from disk/network or read back compressed from GL
 // ----------------------------------------------------------------------------
 {
     Image() : w(0), h(0), compressed(0), sz(0), fmt(0) {}
     ~Image() { clear(); }
 
-    bool isNull()
+    bool      isNull();
+    void      clear();
+    int       byteCount();
+    int       width();
+    int       height();
+
+    void      load(const QString &path, bool trycomp = false);
+    void      loadFromData(const QByteArray &data);
+    void *    allocateCompressed(int len);
+
+    static
+    QString   toCompressedPath(const QString &path);
+    bool      loadCompressed(const QString &path);
+    bool      saveCompressed(const QString &compressedPath);
+
+    struct CompressedFileHeader
+    // ------------------------------------------------------------------------
+    //    Private header used when saving a compressed texture to disk
+    // ------------------------------------------------------------------------
     {
-        // We never keep both compressed and uncompressed versions of the
-        // same image
-        Q_ASSERT(!(!raw.isNull() && compressed));
+        quint64 signature;
+        quint32 fmt;
+        quint32 w;
+        quint32 h;
+        char    data[0];
 
-        return (raw.isNull() && !compressed);
+        static quint64 theSignature();
     }
+    __attribute__((packed));
 
-    void clear()
-    {
-        if (compressed)
-            free(compressed);
-        compressed = 0;
-        w = h = sz = 0;
-        raw = QImage();
-    }
-
-    int byteCount()
-    {
-        if (compressed)
-        {
-            Q_ASSERT(sz);
-            return sz;
-        }
-        return raw.byteCount();
-    }
-
-    // Load uncompressed image from file
-    void load(const QString &path)
-    {
-        if (compressed)
-        {
-            Q_ASSERT(sz);
-            free(compressed);
-            compressed = 0;
-            sz = 0;
-        }
-        raw.load(path);
-    }
-
-    // Used when converting uncompressed to compressed.
-    // Reserve space for len bytes in compressed image then return
-    // data pointer.
-    void * allocateCompressed(int len)
-    {
-        Q_ASSERT(!compressed);
-        raw = QImage();
-        return (compressed = malloc(sz = len));
-    }
-
-    int  width()   { if (compressed) return w; else return raw.width();  }
-    int  height()  { if (compressed) return h; else return raw.height(); }
-
-    int w, h;
+    int     w, h;
 
     QImage  raw;
 
-    void * compressed;
-    int    sz;
-    GLint  fmt;
+    void *  compressed;
+    int     sz;
+    GLint   fmt;
 };
 
 
 class TextureCache;
 
-class CachedTexture
+class CachedTexture : public QObject
 // ----------------------------------------------------------------------------
 //    2D texture managed by TextureCache
 // ----------------------------------------------------------------------------
 {
+    Q_OBJECT
+
     friend class TextureCache;
 
     struct Links
@@ -132,8 +116,7 @@ class CachedTexture
 
 public:
     CachedTexture(TextureCache &cache, const QString &path,
-                  const QString &docPath, bool mipmap,
-                  bool compress, bool cacheCompressed = true);
+                  bool mipmap, bool compress);
     ~CachedTexture();
 
     void            load();
@@ -148,19 +131,28 @@ public:
 
     bool            loaded()
     {
-        if (cacheCompressed)
-            return (image.compressed || !image.raw.isNull());
-        return (!image.raw.isNull());
+        return (image.compressed || !image.raw.isNull());
     }
     bool            transferred() { return (GLsize != 0); }
 
+    void            reload();
+
+public slots:
+    void            onFileCreated(const QString &path,
+                                  const QString &canonicalPath);
+    void            onFileChanged(const QString &path,
+                                  const QString &canonicalPath);
+    void            onFileDeleted(const QString &path);
+
+private slots:
+    void            checkReply(QNetworkReply *reply);
+
 private:
     std::ostream &  debug();
-    QString         findPath();
-    void            checkFile();
+    void            savedCompressedTexture();
 
 public:
-    QString         path, docPath, canonicalPath;
+    QString         path, canonicalPath;
     GLuint          id;
     int             width, height;
     bool            mipmap, compress;
@@ -172,11 +164,15 @@ private:
     Links           memLRU, GLmemLRU;
 
     Image           image;
-    bool            cacheCompressed;
+    bool            saveCompressed;
+    bool            networked;
+    QNetworkReply  *networkReply;
 
-    QDateTime       fileLastModified;
-    QTime           fileLastChecked;
+    bool            inLoad;
 };
+
+
+
 
 
 class TextureCache : public QObject
@@ -189,12 +185,7 @@ class TextureCache : public QObject
     friend class CachedTexture;
 
 public:
-    static TextureCache * instance()
-    {
-        if (!textureCache)
-            textureCache = new TextureCache;
-        return textureCache;
-    }
+    static QSharedPointer<TextureCache> instance();
 
 public:
     // Primitives
@@ -219,6 +210,10 @@ public:
     qint64          maxMem()    { return maxMemSize; }
     qint64          maxGLMem()  { return maxGLSize; }
 
+    int             textureChangedEvent() { return texChangedEvent; }
+
+    bool            supported(GLuint fmt) { return cmpFormats.contains(fmt); }
+
 public slots:
     void            clear();
     void            purge();
@@ -226,6 +221,10 @@ public slots:
     void            setMaxGLSize(qint64 bytes)  { maxGLSize  = bytes; }
     void            setMipmap(bool enable)      { mipmap = enable; purge(); }
     void            setCompression(bool enable) { compress = enable; purge(); }
+    void            setSaveCompressed(bool enable) { saveCompressed = enable;
+                                                     if (saveCompressed)
+                                                         compress = true;
+                                                     purge(); }
     void            setMinFilter(GLenum filter) { minFilt = filter; }
     void            setMagFilter(GLenum filter) { magFilt = filter; }
 
@@ -251,9 +250,7 @@ private slots:
     void            doPrintStatistics();
 
 private:
-    typedef QPair<QString, QString> TextureName; // (file path, doc path)
-
-    QMap <TextureName, CachedTexture *> fromName;
+    QMap <QString, CachedTexture *>  fromName;
     QMap <GLuint, CachedTexture *>   fromId;
     LRU                              memLRU, GL_LRU;
     qint64                           memSize, GLSize, maxMemSize, maxGLSize;
@@ -265,8 +262,19 @@ private:
     // Min/mag filters to use
     GLenum                           minFilt, magFilt;
 
+    // Network access manager for all texture network accesses
+    QNetworkAccessManager            network;
+    int                              texChangedEvent;
+
+    // Enables reloading files as they change
+    FileMonitor                      fileMonitor;
+
+    // Caching compressed textures to disk
+    bool                             saveCompressed;
+    QSet<GLuint>                     cmpFormats;
+
 private:
-    static TextureCache * textureCache;
+    static QWeakPointer<TextureCache> textureCache;
 };
 
 

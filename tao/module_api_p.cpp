@@ -26,7 +26,7 @@
 #include "widget.h"
 #include "display_driver.h"
 #include "frame.h"
-#include "licence.h"
+#include "license.h"
 #include "info_trash_can.h"
 #include "application.h"
 #include "window.h"
@@ -40,7 +40,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 // ------------------------------------------------------------------------
 {
     scheduleRender   = ModuleRenderer::ScheduleRender;
-    refreshOn        = Widget::refreshOn;
+    refreshOn        = Widget::refreshOnAPI;
     postEvent        = Widget::postEventAPI;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
@@ -106,9 +106,9 @@ ModuleApiPrivate::ModuleApiPrivate()
     frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
 
     // License checking
-    hasLicense = Licences::Has;
-    checkLicense = Licences::Check;
-    checkImpressOrLicense = Licences::CheckImpressOrLicense;
+    hasLicense = Licenses::Has;
+    checkLicense = Licenses::Check;
+    checkImpressOrLicense = Licenses::CheckImpressOrLicense;
     blink      = Widget::blink;
 
     // Current document info

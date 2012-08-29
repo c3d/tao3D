@@ -33,6 +33,15 @@
 
 TAO_BEGIN
 
+enum OpenGLState::VendorID OpenGLState::vendorID = OpenGLState::UNKNOWN;
+GLuint OpenGLState::maxTextureCoords = 0;
+GLuint OpenGLState::maxTextureUnits = 0;
+text   OpenGLState::vendor = "?";
+text   OpenGLState::renderer = "?";
+text   OpenGLState::version = "?";
+text   OpenGLState::extensionsAvailable = "?";
+
+
 text OpenGLState::vendorsList[LAST_VENDOR] =
 // ----------------------------------------------------------------------------
 //   List of vendors (we use that for some optimizations)
@@ -119,7 +128,6 @@ OpenGLState::OpenGLState()
     : GraphicState(),
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
-      maxTextureCoords(0), maxTextureUnits(0),
       currentUnit(NULL), matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0), listBase(0), pointSize(1),
       color(1,1,1,1), clearColor(0,0,0,1),
@@ -142,7 +150,7 @@ OpenGLState::OpenGLState()
       save(NULL)
 {
     // Ask graphic card constructor to OpenGL
-    vendor = text ( (const char*)glGetString ( GL_VENDOR ) );
+    vendor = text ((const char*) glGetString (GL_VENDOR));
 
     // Search in vendors list
     vendorID = UNKNOWN;
@@ -1557,10 +1565,11 @@ void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
 }
 
 
-void OpenGLState::GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei *length,
+void OpenGLState::GetActiveUniform(uint prg, uint id,
+                                   uint bufSize, GLsizei *length,
                                    GLsizei* size, GLenum *type, char* name)
 // ----------------------------------------------------------------------------
-//   Returns information about an active uniform variable for the specified shader
+//   Returns information about an active uniform variable
 // ----------------------------------------------------------------------------
 {
     // Not need to be optimised

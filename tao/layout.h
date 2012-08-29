@@ -50,14 +50,14 @@ struct LayoutState
                         LayoutState(const LayoutState &o);
 
 public:
-    typedef std::set<QEvent::Type>              qevent_ids;
+    typedef std::set<int>                       qevent_ids;
     typedef std::map<uint,TextureState>         tex_list;
 
 
 public:
     void                ClearAttributes(bool all = false);
     static text         ToText(qevent_ids & ids);
-    static text         ToText(QEvent::Type type);
+    static text         ToText(int type);
     void                InheritState(LayoutState *other);
     void                toDebugString(std::ostream &out) const;
 
@@ -100,6 +100,7 @@ public:
     bool                hasBlending     : 1;
     bool                hasTransform    : 1;
     bool                hasMaterial     : 1;
+    bool                hasDepthAttr    : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
 
@@ -136,6 +137,7 @@ public:
     virtual void        Clear();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
+    virtual void        ClearPolygonOffset();
     virtual uint        Selected();
     virtual uint        ChildrenSelected();
 
@@ -146,8 +148,8 @@ public:
     bool                RefreshChildren(QEvent *e, double now, QString debug);
     bool                NeedRefresh(QEvent *e, double when);
     void                RefreshOn(Layout *);
-    void                RefreshOn(QEvent::Type type, double when = DBL_MAX);
-    void                NoRefreshOn(QEvent::Type type);
+    void                RefreshOn(int type, double when = DBL_MAX);
+    void                NoRefreshOn(int type);
     qevent_ids          RefreshEvents();
     double              NextRefresh();
 
@@ -176,6 +178,8 @@ public:
             bits |= GL_LIGHTING_BIT;
         if (hasBlending)
             bits |= GL_COLOR_BUFFER_BIT;
+        if (hasDepthAttr)
+            bits |= GL_DEPTH_BUFFER_BIT;
         return bits;
     }
 
@@ -197,7 +201,6 @@ public:
     static int          polygonOffset;
     static scale        factorBase, factorIncrement;
     static scale        unitBase, unitIncrement;
-    static uint         globalProgramId;
     static bool         inIdentify;
 };
 

@@ -35,7 +35,6 @@ scale Layout::factorBase      = 0;
 scale Layout::factorIncrement = -0.001; // Experimental value
 scale Layout::unitBase        = 0;
 scale Layout::unitIncrement   = -1;
-uint  Layout::globalProgramId = 0;
 bool  Layout::inIdentify      = false;
 
 
@@ -61,7 +60,7 @@ LayoutState::LayoutState()
       hasTextureMatrix(false), printing(false),
       hasPixelBlur(false), hasMatrix(false), has3D(false),
       hasAttributes(false), hasLighting(false), hasBlending(false),
-      hasTransform(false), hasMaterial(false),
+      hasTransform(false), hasMaterial(false), hasDepthAttr(false),
       isSelection(false), groupDrag(false)
 {}
 
@@ -97,7 +96,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasAttributes(o.hasAttributes), 
         hasLighting(false),
         hasBlending(false),
-        hasTransform(o.hasTransform), hasMaterial(false),
+        hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
         isSelection(o.isSelection), groupDrag(false)
 {}
 
@@ -115,12 +114,13 @@ void LayoutState::ClearAttributes(bool all)
         zero.hasTextureMatrix = hasTextureMatrix;
         zero.hasAttributes = hasAttributes;
         zero.hasLighting = hasLighting;
+        zero.hasDepthAttr = hasDepthAttr;
     }
     *this = zero;
 }
 
 
-text LayoutState::ToText(QEvent::Type type)
+text LayoutState::ToText(int type)
 // ----------------------------------------------------------------------------
 //   Helper function to display an event type in human-readable form
 // ----------------------------------------------------------------------------
@@ -366,6 +366,16 @@ void Layout::PolygonOffset()
 }
 
 
+void Layout::ClearPolygonOffset()
+// ----------------------------------------------------------------------------
+//   Clear the polygon offset, e.g. for 3D shapes
+// ----------------------------------------------------------------------------
+{
+    polygonOffset = 0;
+    glPolygonOffset (factorBase, unitBase);
+}
+
+
 uint Layout::ChildrenSelected()
 // ----------------------------------------------------------------------------
 //   The sum of chilren selections
@@ -580,7 +590,7 @@ void Layout::RefreshOn(Layout *layout)
 }
 
 
-void Layout::RefreshOn(QEvent::Type type, double when)
+void Layout::RefreshOn(int type, double when)
 // ----------------------------------------------------------------------------
 //   Ask for refresh on specified event (and time if event is QEvent::Timer)
 // ----------------------------------------------------------------------------
@@ -594,7 +604,7 @@ void Layout::RefreshOn(QEvent::Type type, double when)
 }
 
 
-void Layout::NoRefreshOn(QEvent::Type type)
+void Layout::NoRefreshOn(int type)
 // ----------------------------------------------------------------------------
 //   Layout should NOT be updated on specified event
 // ----------------------------------------------------------------------------

@@ -41,6 +41,7 @@
 #include "version.h"
 #include "decryption.h"
 #include "normalize.h"
+#include "opengl_state.h"
 
 #include <QApplication>
 #include <QGLWidget>
@@ -297,6 +298,7 @@ void signal_handler(int sigid)
 // ----------------------------------------------------------------------------
 {
     using namespace std;
+    using namespace Tao;
     static char buffer[512];
     int two = fileno(stderr);
 
@@ -305,10 +307,16 @@ void signal_handler(int sigid)
                            "RECEIVED SIGNAL %d FROM %p\n"
                            "DUMP IN %s\n"
                            "TAO VERSION: " GITREV " (" GITSHA1 ")\n"
+                           "GL VENDOR:   %s\n"
+                           "GL RENDERER: %s\n"
+                           "GL VERSION:  %s\n"
                            "\n\n"
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
-                           sig_handler_log);
+                           sig_handler_log,
+                           OpenGLState::vendor.c_str(),
+                           OpenGLState::renderer.c_str(),
+                           OpenGLState::version.c_str());
     Write(two, buffer, size);
 
     // Prevent recursion in the signal handler

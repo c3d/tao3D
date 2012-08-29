@@ -89,6 +89,11 @@ void FileMonitor::addPath(const QString &path)
         files[path] = mf;
         thread->addPath(path);
     }
+    else
+    {
+        IFTRACE(filemon)
+            debug() << "Path '" << +path << "' already monitored\n";
+    }
 }
 
 

@@ -29,6 +29,7 @@
 #include "parser.h"
 #include "runtime.h"
 #include "repository.h"
+#include "widget.h"
 #include <QSettings>
 #include <QHash>
 #include <QMessageBox>
@@ -55,6 +56,43 @@ ModuleManager * ModuleManager::moduleManager()
 }
 
 
+static QStringList allPaths(XL::source_files &files)
+// ----------------------------------------------------------------------------
+//   Get all source file paths as a QStringList
+// ----------------------------------------------------------------------------
+{
+    QStringList ret;
+    using namespace XL;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        ret << +sf.name;
+    }
+    return ret;
+}
+
+
+static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
+                             bool execute)
+// ----------------------------------------------------------------------------
+//   Call XLR to import a file, update monitored paths
+// ----------------------------------------------------------------------------
+{
+    QStringList before = allPaths(XL::MAIN->files);
+    XL::Tree_p ret = XL::xl_import(context, self, name, execute);
+    if (!execute)
+    {
+        QStringList after = allPaths(XL::MAIN->files);
+        if (after.size() > before.size())
+            foreach (QString path, after)
+                if (!before.contains(path))
+                    Widget::Tao()->fileMonitor().addPath(path);
+    }
+    return ret;
+}
+
+
 XL::Tree_p ModuleManager::import(XL::Context_p context,
                                  XL::Tree_p self,
                                  XL::Tree_p what,
@@ -66,8 +104,9 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
     // import "filename"
     XL::Text *file = what->AsText();
     if (file)
-        return XL::xl_import(context, self, file->value, execute);
-
+    {
+        return doXLImport(context, self, file->value, execute);
+    }
     // Other import syntax: explicit module import
     ModuleManager *mmgr = moduleManager();
     if (mmgr)
@@ -155,7 +194,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                         }
                     }
 
-                    XL::xl_import(context, self, +xlPath, execute);
+                    doXLImport(context, self, +xlPath, execute);
                     moduleById(m.id)->loaded = true;
                     break;
                 }

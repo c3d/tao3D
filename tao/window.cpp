@@ -2209,6 +2209,10 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     taoWidget->reset();
 
+    // Stop monitoring source files of previous document (if any)
+    taoWidget->srcFileMonitor.removeAllPaths();
+    taoWidget->toReload.clear();
+
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -2220,6 +2224,17 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 #ifndef CFG_NOSRCEDIT
     srcEdit->setXLNames(taoWidget->listNames());
 #endif
+
+    // Update list of monitored files
+    // Adds main file + files added by updateContext + their global imports
+    using namespace XL;
+    source_files &files = MAIN->files;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        taoWidget->srcFileMonitor.addPath(+sf.name);
+    }
 
     QApplication::restoreOverrideCursor();
 

@@ -335,6 +335,8 @@ public:
 
     void        purgeTaoInfo();
 
+    FileMonitor & fileMonitor() { return srcFileMonitor; }
+
 public:
     static Widget *Tao()                { assert(current); return current; }
     Context *   formulasContext()       { return formulas; }

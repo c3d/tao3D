@@ -3489,24 +3489,8 @@ int Widget::loadFile(text name, bool updateContext)
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
-    // Stop monitoring source files of previous document (if any)
-    srcFileMonitor.removeAllPaths();
-    toReload.clear();
-
     TaoSave saveCurrent(current, this);
-    int ret = XL::MAIN->LoadFile(name, updateContext);
-
-    // Monitor all source files of the new document
-    using namespace XL;
-    source_files &files = MAIN->files;
-    source_files::iterator it;
-    for (it = files.begin(); it != files.end(); it++)
-    {
-        SourceFile &sf = (*it).second;
-        srcFileMonitor.addPath(+sf.name);
-    }
-
-    return ret;
+    return XL::MAIN->LoadFile(name, updateContext);
 }
 
 void Widget::loadContextFiles(XL::source_names &files)

@@ -608,7 +608,7 @@ void CachedTexture::load()
             else
             {
                 text cpath = +canonicalPath;
-                    if (image.compressed)
+                if (image.compressed)
                     cpath = +Image::toCompressedPath(canonicalPath);
                 debug() << "File->Mem  +" << bytesToText(size)
                         << " (" << width << "x" << height << " pixels, "
@@ -843,7 +843,9 @@ void CachedTexture::checkReply(QNetworkReply *reply)
 //   Check if network reply is complete, if so then load image
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(reply == networkReply);
+    // Check if this is for me
+    if (reply != networkReply)
+        return;
 
     if (networked &&
         image.isNull() &&

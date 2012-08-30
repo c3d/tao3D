@@ -85,10 +85,10 @@ BOOL_SETTER(textureCompress, compress)
 //   Primitives to change cache size limits
 // ----------------------------------------------------------------------------
 #define SIZE_SETTER(fn, attr)                                               \
-XL::Integer_p TextureCache::fn(qint64 val)                                  \
+XL::Integer_p TextureCache::fn(quint64 val)                                 \
 {                                                                           \
     QSharedPointer<TextureCache> tc = TextureCache::instance();             \
-    qint64 &attr = tc->attr, prev = attr;                                   \
+    quint64 &attr = tc->attr, prev = attr;                                  \
                                                                             \
     if (attr != val)                                                        \
     {                                                                       \

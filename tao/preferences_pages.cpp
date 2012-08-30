@@ -804,7 +804,7 @@ void PerformancesPage::texture2DMagFilterChanged(int index)
 }
 
 
-void PerformancesPage::setTextureCacheMaxMem(qint64 bytes)
+void PerformancesPage::setTextureCacheMaxMem(quint64 bytes)
 // ----------------------------------------------------------------------------
 //   Save setting, update texture cache value
 // ----------------------------------------------------------------------------
@@ -824,12 +824,12 @@ void PerformancesPage::textureCacheMaxMemChanged(int index)
 //   Set texture cache max memory from combo box index
 // ----------------------------------------------------------------------------
 {
-    quint64 bytes = cacheMemCombo->itemData(index).toLongLong();
+    quint64 bytes = cacheMemCombo->itemData(index).toULongLong();
     setTextureCacheMaxMem(bytes);
 }
 
 
-void PerformancesPage::setTextureCacheMaxGLMem(qint64 bytes)
+void PerformancesPage::setTextureCacheMaxGLMem(quint64 bytes)
 // ----------------------------------------------------------------------------
 //   Save setting, update texture cache value
 // ----------------------------------------------------------------------------
@@ -849,7 +849,7 @@ void PerformancesPage::textureCacheMaxGLMemChanged(int index)
 //   Set texture cache max GL memory from combo box index
 // ----------------------------------------------------------------------------
 {
-    quint64 bytes = cacheGLMemCombo->itemData(index).toLongLong();
+    quint64 bytes = cacheGLMemCombo->itemData(index).toULongLong();
     setTextureCacheMaxGLMem(bytes);
 }
 
@@ -932,30 +932,30 @@ int PerformancesPage::texture2DMagFilter()
 }
 
 
-qint64 PerformancesPage::textureCacheMaxMem()
+quint64 PerformancesPage::textureCacheMaxMem()
 // ----------------------------------------------------------------------------
 //   Read setting for texture cache memory size
 // ----------------------------------------------------------------------------
 {
-    qint64 dflt = textureCacheMaxMemDefault();
+    quint64 dflt = textureCacheMaxMemDefault();
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    qint64 ret = settings.value("TextureCacheMaxMem",
-                                QVariant(dflt)).toLongLong();
+    quint64 ret = settings.value("TextureCacheMaxMem",
+                                QVariant(dflt)).toULongLong();
     return ret;
 }
 
 
-qint64 PerformancesPage::textureCacheMaxGLMem()
+quint64 PerformancesPage::textureCacheMaxGLMem()
 // ----------------------------------------------------------------------------
 //   Read setting for texture cache GL memory size
 // ----------------------------------------------------------------------------
 {
-    qint64 dflt = textureCacheMaxGLMemDefault();
+    quint64 dflt = textureCacheMaxGLMemDefault();
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    qint64 ret = settings.value("TextureCacheMaxGLMem",
-                                QVariant(dflt)).toLongLong();
+    quint64 ret = settings.value("TextureCacheMaxGLMem",
+                                QVariant(dflt)).toULongLong();
     return ret;
 }
 
@@ -1014,7 +1014,7 @@ int PerformancesPage::texture2DMagFilterDefault()
 }
 
 
-qint64 PerformancesPage::textureCacheMaxMemDefault()
+quint64 PerformancesPage::textureCacheMaxMemDefault()
 // ----------------------------------------------------------------------------
 //   Default value for the max memory size of the texture cache
 // ----------------------------------------------------------------------------
@@ -1023,7 +1023,7 @@ qint64 PerformancesPage::textureCacheMaxMemDefault()
 }
 
 
-qint64 PerformancesPage::textureCacheMaxGLMemDefault()
+quint64 PerformancesPage::textureCacheMaxGLMemDefault()
 // ----------------------------------------------------------------------------
 //   Default value for the max GL memory size of the texture cache
 // ----------------------------------------------------------------------------

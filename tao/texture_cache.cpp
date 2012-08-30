@@ -40,7 +40,7 @@ namespace Tao {
 QWeakPointer<TextureCache> TextureCache::textureCache;
 
 
-static text bytesToText(qint64 size)
+static text bytesToText(quint64 size)
 // ----------------------------------------------------------------------------
 //   Convert size in bytes into a human readable string
 // ----------------------------------------------------------------------------
@@ -186,7 +186,7 @@ void TextureCache::doPrintStatistics()
                 << "\n";
 
 #ifndef QT_NO_DEBUG
-    qint64 checkMemSize = 0, checkGLSize = 0;
+    quint64 checkMemSize = 0, checkGLSize = 0;
     QList<GLuint> ids = fromId.keys();
     foreach (GLuint id, ids)
     {
@@ -346,8 +346,6 @@ void TextureCache::purgeMem()
         CachedTexture * tex = memLRU.last->tex;
         unlink(tex, memLRU);
         tex->unload();
-
-        Q_ASSERT(memSize >= 0);
     }
 }
 
@@ -365,8 +363,6 @@ void TextureCache::purgeGLMem()
         CachedTexture * tex = GL_LRU.last->tex;
         unlink(tex, GL_LRU);
         tex->purgeGL();
-
-        Q_ASSERT(GLSize >= 0);
     }
 }
 

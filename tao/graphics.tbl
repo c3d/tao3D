@@ -577,6 +577,13 @@ PREFIX(ToggleLogStatistics, boolean, "toggle_log_statistics", ,
        SYNOPSIS("Toggle logging of performance statistics")
        DESCRIPTION("Toggle logging of performance statistics to stdout.")
        RETURNS(boolean, "The previous state."))
+PREFIX(FrameCount, integer, "frame_count", ,
+       RTAO(frameCount(self)),
+       GROUP(gui)
+       SYNOPSIS("The current value of the frame counter")
+       DESCRIPTION("Returns the number of frames that have been displayed "
+                   "so far for the current document.")
+       RETURNS(integer, "The number of frames."))
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetViewAndRefresh(self)),
        GROUP(gui)

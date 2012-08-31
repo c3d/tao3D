@@ -439,6 +439,7 @@ public:
     Name_p      toggleShowStatistics(Tree_p self);
     Name_p      logStatistics(Tree_p self, bool ss);
     Name_p      toggleLogStatistics(Tree_p self);
+    Integer_p   frameCount(Tree_p self);
     Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -987,6 +988,7 @@ private:
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
     Statistics            stats;
+    longlong              frameCounter;
     ulonglong             nextSave, nextSync;
 #ifndef CFG_NOGIT
     ulonglong             nextCommit, nextPull;

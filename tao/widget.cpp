@@ -204,7 +204,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 #endif
       dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
-      currentTime(DBL_MAX), stats(),
+      currentTime(DBL_MAX), stats(), frameCounter(0),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
       nextCommit(nextSave),
@@ -416,6 +416,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pageStartTime(o.pageStartTime), frozenTime(o.frozenTime),
       startTime(o.startTime),
       currentTime(o.currentTime), stats(o.stats.isEnabled()),
+      frameCounter(o.frameCounter),
       nextSave(o.nextSave), nextSync(o.nextSync),
 #ifndef CFG_NOGIT
       nextCommit(o.nextCommit),
@@ -880,6 +881,7 @@ void Widget::draw()
     displayDriver->display();
     stats.end(Statistics::DRAW);
     stats.end(Statistics::FRAME);
+    frameCounter++;
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -6016,6 +6018,15 @@ Name_p Widget::toggleLogStatistics(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return logStatistics(self, !stats.isEnabled(Statistics::TO_CONSOLE));
+}
+
+
+Integer_p Widget::frameCount(Tree_p self)
+// ----------------------------------------------------------------------------
+//   The number of frames displayed so far for the current document
+// ----------------------------------------------------------------------------
+{
+    return new Integer(frameCounter);
 }
 
 

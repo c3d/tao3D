@@ -1118,6 +1118,12 @@ PREFIX(DirName,  tree,  "dir_name",
        GROUP(misc)
        SYNOPSIS("Returns the path of the specified filename.")
        RETURNS(tree, ""))
+PREFIX(OpenUrl, boolean,  "open_url",
+       PARM(u, text, "URL"),
+       RTAO(openUrl(self, u)),
+       GROUP(misc)
+       SYNOPSIS("Opens the given URL with the appropriate application.")
+       RETURNS(boolean, ""))
 
 
 

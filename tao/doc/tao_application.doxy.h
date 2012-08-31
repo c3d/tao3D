@@ -236,4 +236,36 @@ page "p2",
  */
 integer frame_count();
 
+/**
+ * @~english
+ * Opens the specified URL with an external application.
+ * For example:
+ * @~french
+ * Ouvre l'URL avec une application externe.
+ * Par exemple:
+ * @~
+ * @code
+enable_selection_rectangle false
+Clicked -> 0.0
+page "URL",
+    active_widget
+        if page_time < Clicked + 0.1 then
+            color "gray"
+        else
+            color "darkblue"
+        rounded_rectangle 0, 0, 300, 100, 20
+        URL -> "http://google.com"
+        text_box 0, 0, 300, 100,
+            vertical_align_center
+            align_center
+            color "white"
+            font "Arial", 30
+            text URL
+        on_click
+            open_url URL
+            Clicked := page_time
+ * @endcode
+ */
+boolean open_url(url:text);
+
 /** @} */

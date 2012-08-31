@@ -12208,6 +12208,15 @@ Text_p Widget::dirName(Tree_p, text filename)
 }
 
 
+Name_p Widget::openUrl(Tree_p, text url)
+// ----------------------------------------------------------------------------
+// Open url using an external application
+// ----------------------------------------------------------------------------
+{
+    return QDesktopServices::openUrl(+url) ? XL::xl_true : XL::xl_false;
+}
+
+
 // ============================================================================
 //
 //   Documentation generation

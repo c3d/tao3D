@@ -822,6 +822,7 @@ public:
     Name_p      readOnly();
     Text_p      baseName(Tree_p, text filename);
     Text_p      dirName(Tree_p, text filename);
+    Name_p      openUrl(Tree_p, text url);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);

@@ -37,12 +37,12 @@
 #include <QWeakPointer>
 #include <iostream>
 
-const qint64 CACHE_KB = 1024LL;
-const qint64 CACHE_MB = 1024LL * CACHE_KB;
-const qint64 CACHE_GB = 1024LL * CACHE_MB;
+const quint64 CACHE_KB = 1024LL;
+const quint64 CACHE_MB = 1024LL * CACHE_KB;
+const quint64 CACHE_GB = 1024LL * CACHE_MB;
 
 // Large size shown as "Unlimited" at the UI level
-const qint64 CACHE_UNLIMITED = 999LL * CACHE_GB;
+const quint64 CACHE_UNLIMITED = 999LL * CACHE_GB;
 
 
 namespace Tao {
@@ -192,8 +192,8 @@ public:
     static XL::Name_p    textureMipmap(bool enable);
     static XL::Name_p    textureCompress(bool enable);
 
-    static XL::Integer_p textureCacheMemSize(qint64 bytes);
-    static XL::Integer_p textureCacheGLSize(qint64 bytes);
+    static XL::Integer_p textureCacheMemSize(quint64 bytes);
+    static XL::Integer_p textureCacheGLSize(quint64 bytes);
 
 public:
     TextureCache();
@@ -207,8 +207,8 @@ public:
 
     GLenum          minFilter() { return minFilt; }
     GLenum          magFilter() { return magFilt; }
-    qint64          maxMem()    { return maxMemSize; }
-    qint64          maxGLMem()  { return maxGLSize; }
+    quint64         maxMem()    { return maxMemSize; }
+    quint64         maxGLMem()  { return maxGLSize; }
 
     int             textureChangedEvent() { return texChangedEvent; }
 
@@ -217,8 +217,8 @@ public:
 public slots:
     void            clear();
     void            purge();
-    void            setMaxMemSize(qint64 bytes) { maxMemSize = bytes; }
-    void            setMaxGLSize(qint64 bytes)  { maxGLSize  = bytes; }
+    void            setMaxMemSize(quint64 bytes){ maxMemSize = bytes; }
+    void            setMaxGLSize(quint64 bytes) { maxGLSize  = bytes; }
     void            setMipmap(bool enable)      { mipmap = enable; purge(); }
     void            setCompression(bool enable) { compress = enable; purge(); }
     void            setSaveCompressed(bool enable) { saveCompressed = enable;
@@ -253,7 +253,7 @@ private:
     QMap <QString, CachedTexture *>  fromName;
     QMap <GLuint, CachedTexture *>   fromId;
     LRU                              memLRU, GL_LRU;
-    qint64                           memSize, GLSize, maxMemSize, maxGLSize;
+    quint64                          memSize, GLSize, maxMemSize, maxGLSize;
     float                            purgeRatio;
     QTimer                           statTimer;
 

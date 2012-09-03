@@ -338,7 +338,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             if (!entry.interior)
                 entry.interior = glGenLists(1);
             glNewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), texUnits, GL_POLYGON, GLU_TESS_WINDING_ODD);
+            path.Draw(Vector3(0,0,0), texUnits,
+                      GL_POLYGON, GLU_TESS_WINDING_ODD);
             glEndList();
         }
 

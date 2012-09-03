@@ -2,6 +2,7 @@ Change log for Tao Presentations
 
 1.14 (03-Sep-2012)
 
+#2466 Can't update Tao Presentation 1.13 from application menu
 #2465 Add unicode_char primitives
 #2464 Add Newsfeed example
 #2463 PointCloud: crash when reducing the number of points in a random cloud

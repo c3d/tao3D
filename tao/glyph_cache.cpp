@@ -72,16 +72,18 @@ PerFontGlyphCache::~PerFontGlyphCache()
         GlyphEntry &e = (*ci).second;
         if (e.interior)
             glDeleteLists(e.interior, 1);
-        if (e.outline)
-            glDeleteLists(e.outline, 1);
+        GlyphEntry::OutlineMap::iterator it;
+        for (it = e.outlines.begin(); it != e.outlines.end(); it++)
+            glDeleteLists((*it).second, 1);
     }
     for (TextMap::iterator ti = texts.begin(); ti != texts.end(); ti++)
     {
         GlyphEntry &e = (*ti).second;
         if (e.interior)
             glDeleteLists(e.interior, 1);
-        if (e.outline)
-            glDeleteLists(e.outline, 1);
+        GlyphEntry::OutlineMap::iterator it;
+        for (it = e.outlines.begin(); it != e.outlines.end(); it++)
+            glDeleteLists((*it).second, 1);
     }
 }
 
@@ -293,9 +295,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
                             Point(rect.x1+aam + bounds.width(), rect.y2-aam));
         entry.advance = fm.width(qc) / fs;
-        entry.lineWidth = 0;
         entry.interior = 0;
-        entry.outline = 0;
+        entry.outlines.clear();
         entry.scalingFactor = fs;
 
         // Store the new entry
@@ -320,7 +321,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
 
     // Check if we want OpenGL display lists
     if ((interior && !entry.interior) ||
-        (lineWidth > 0 && (!entry.outline || lineWidth != entry.lineWidth)))
+        (lineWidth > 0 && (!entry.outlines.count(lineWidth))))
     {
         // Reset font to original size
         QFont scaled(font);
@@ -342,11 +343,10 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             glEndList();
         }
 
-        if (!entry.outline || entry.lineWidth != lineWidth)
+        if (lineWidth && !entry.outlines.count(lineWidth))
         {
-            if (!entry.outline)
-                entry.outline = glGenLists(1);
-            entry.lineWidth = lineWidth;
+            uint outline = glGenLists(1);
+            entry.outlines[lineWidth] = outline;
 
             // Render outline in a GL list
             QPainterPathStroker stroker;
@@ -357,7 +357,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             QPainterPath stroke = stroker.createStroke(qtPath);
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
-            glNewList(entry.outline, GL_COMPILE);
+            glNewList(outline, GL_COMPILE);
             strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
                             GLU_TESS_WINDING_POSITIVE);
             glEndList();
@@ -422,9 +422,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
                             Point(rect.x1+aam + bounds.width(), rect.y2-aam));
         entry.advance = fm.width(qs) / fs;
-        entry.lineWidth = 0;
         entry.interior = 0;
-        entry.outline = 0;
+        entry.outlines.clear();
         entry.scalingFactor = fs;
 
         // Store the new entry
@@ -449,7 +448,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
 
     // Check if we want OpenGL display lists
     if ((interior && !entry.interior) ||
-        (lineWidth > 0 && (!entry.outline || lineWidth != entry.lineWidth)))
+        (lineWidth > 0 && (!entry.outlines.count(lineWidth))))
     {
         // Reset font to original size
         QFont scaled(font);
@@ -472,11 +471,10 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             glEndList();
         }
 
-        if (!entry.outline || entry.lineWidth != lineWidth)
+        if (lineWidth && !entry.outlines.count(lineWidth))
         {
-            if (!entry.outline)
-                entry.outline = glGenLists(1);
-            entry.lineWidth = lineWidth;
+            uint outline = glGenLists(1);
+            entry.outlines[lineWidth] = outline;
 
             // Render outline in a GL list
             QPainterPathStroker stroker;
@@ -487,7 +485,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             QPainterPath stroke = stroker.createStroke(qtPath);
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
-            glNewList(entry.outline, GL_COMPILE);
+            glNewList(outline, GL_COMPILE);
             strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
                             GLU_TESS_WINDING_POSITIVE);
             glEndList();

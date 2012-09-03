@@ -279,8 +279,8 @@ void TextUnit::DrawDirect(Layout *where)
                 if (setFillColor(where))
                     glCallList(glyph.interior);
             }
-            if (setLineColor(where))
-                glCallList(glyph.outline);
+            if (setLineColor(where) && lw)
+                glCallList(glyph.outlines[lw]);
 
             x += glyph.advance + spread;
         }

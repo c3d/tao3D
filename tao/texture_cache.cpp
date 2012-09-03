@@ -548,7 +548,7 @@ void CachedTexture::load()
     {
         if (networkReply == NULL)
         {
-            Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
+            Licenses::CheckImpressOrLicense("NetworkAccess 1.002");
             QUrl url(path);
             QNetworkRequest req(url);
             networkReply = cache.network.get(req);

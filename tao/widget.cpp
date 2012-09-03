@@ -9189,6 +9189,38 @@ Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
 }
 
 
+Text_p Widget::unicodeChar(Tree_p self, int code)
+// ----------------------------------------------------------------------------
+//    Return the character with the specified Unicode code point
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(+QString(QChar(code)));
+}
+
+
+Text_p Widget::unicodeCharText(Tree_p self, text code)
+// ----------------------------------------------------------------------------
+//    Return the character with the specified Unicode code point
+// ----------------------------------------------------------------------------
+{
+    // Example: unicodeChar("65") == unicodeChar("x41") == "A"
+
+    bool ok = false;
+    int icode = 0;
+    QString qcode(+code);
+
+    if (qcode.startsWith('x'))
+        icode = qcode.mid(1).toInt(&ok, 16);
+    else
+        icode = qcode.toInt(&ok);
+
+    if (ok)
+        return unicodeChar(self, icode);
+    else
+        return new XL::Text("");
+}
+
+
 // ============================================================================
 //
 //   Tables

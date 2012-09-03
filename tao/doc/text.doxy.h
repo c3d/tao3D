@@ -1188,5 +1188,37 @@ margins(left:real, right:real);
 vertical_margins(top:real, bottom:real);
 
 /**
+ * @~english
+ * Returns the character with the specified Unicode code point.
+ * @~french
+ * Renvoie le caractère qui possède le code Unicode spécifié.
+ */
+unicode_char(code:integer);
+
+/**
+ * @~english
+ * Returns the character with the specified Unicode code point.
+ * @p code may be expressed either in base 10 or in base 16
+ * (hexadecimal). For hexadecimal, prepend a lowercase
+ * <tt>x</tt> to the string.
+ * If @p code cannot be parsed as a valid integer value, the primitive
+ * returns an empty string.
+ * For example:
+ * @~french
+ * Renvoie le caractère qui possède le code Unicode spécifié.
+ * @p code est un entier exprimé indifféremment en base 10 ou
+ * en base 16 (hexadécimal). Pour ce dernier cas, faites précéder
+ * la valeur d'un <tt>x</tt> minuscule.
+ * Si @p code n'est pas un entier valide, une chaîne vide est retournée.
+ * Par exemple:
+ * @~
+ * @code
+uc X -> unicode_char X
+text uc 169 & " Ta" & uc "x6f" & "dy" & uc "x6E" & "e"
+ * @endcode
+ */
+unicode_char(code:text);
+
+/**
  * @}
  */

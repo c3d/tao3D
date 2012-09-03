@@ -367,18 +367,6 @@ void PlaceholderRectangle::Draw(GraphicPath &path)
 }
 
 
-ClickThroughRectangle::ClickThroughRectangle(const Box &b, WidgetSurface *s,
-                                             Widget *taoWidget)
-// ----------------------------------------------------------------------------
-//   Pass clicks through to the widget
-// ----------------------------------------------------------------------------
-    : Rectangle(b), Activity("Click through rectangle", taoWidget, 2),
-      surface(s)
-{
-    layoutId = taoWidget->layout->id;
-}
-
-
 void ClickThroughRectangle::DrawSelection (Layout *layout)
 // ----------------------------------------------------------------------------
 //   Pass clicks through to the widget
@@ -386,24 +374,13 @@ void ClickThroughRectangle::DrawSelection (Layout *layout)
 {
     Widget *widget = layout->Display();
     Point center = bounds.Center();
-    if (surface->requestFocus(layout->id, center.x, center.y))
+    if (surface->requestFocus(layout, center.x, center.y))
     {
         Box3 bounds = Bounds(layout);
         XL::Save<Point3> zeroOffset(layout->offset, Point3(0,0,0));
         widget->drawSelection(layout, bounds,
                               "widget_selection", layout->id);
     }
-}
-
-Activity *  ClickThroughRectangle::Click(uint , uint , int /*x*/, int /*y*/ )
-// ----------------------------------------------------------------------------
-//   Get the focus when hit
-// ----------------------------------------------------------------------------
-{
-    Point center = bounds.Center();
-    surface->requestFocus(layoutId, center.x, center.y);
-
-    return Activity::next;
 }
 
 
@@ -1099,9 +1076,9 @@ TAO_END
 
 
 // ****************************************************************************
-//
+// 
 //    Code generation from shapes.tbl
-//
+// 
 // ****************************************************************************
 
 #include "graphics.h"

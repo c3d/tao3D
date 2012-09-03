@@ -38,11 +38,11 @@ TAO_BEGIN
 //
 // ============================================================================
 
-Identify::Identify(text t, Widget *w, uint rk)
+Identify::Identify(text t, Widget *w)
 // ----------------------------------------------------------------------------
 //   Initialize the activity
 // ----------------------------------------------------------------------------
-    : Activity(t, w, rk)
+    : Activity(t, w)
 {}
 
 
@@ -229,7 +229,7 @@ MouseFocusTracker::MouseFocusTracker(Widget *w)
 // ----------------------------------------------------------------------------
 //   Initialize the activity
 // ----------------------------------------------------------------------------
-    : Identify("Focus tracking", w, 0), previous(0)
+    : Identify("Focus tracking", w), previous(0)
 {}
 
 
@@ -242,8 +242,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
         return next;
 
     IFTRACE(widgets)
-            std::cerr << "MouseFocusTracker::MouseMove "
-                      << x << ", " << y << std::endl;
+            std::cerr << "MouseFocusTracker::MouseMove " << x << ", " << y << std::endl;
 
     uint current = ObjectAtPoint(x, widget->height() - y);
 
@@ -269,7 +268,7 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
 
 
 Activity *MouseFocusTracker::Click(uint /*button*/,
-                                   uint count,
+                                   uint /*count*/,
                                    int x, int y)
 // ----------------------------------------------------------------------------
 //   Track focus when mouse click
@@ -277,9 +276,7 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
 {
     uint current = ObjectAtPoint(x, widget->height() - y);
     IFTRACE(widgets)
-        std::cerr << "MouseFocusTracker::Click Focus Current " << current
-                  << " -- Previous was " << previous
-                  << " -- Count is " << count << std::endl;
+        std::cerr << "MouseFocusTracker::Click Focus " << current << std::endl;
     if (current != previous)
     {
         if (previous > 0)
@@ -295,8 +292,6 @@ Activity *MouseFocusTracker::Click(uint /*button*/,
         }
         widget->updateGL();
     }
-    if (count > 0 && !(widget->keyboardModifiers & Qt::ShiftModifier))
-        widget->shapeAction("click", current, x, y);
 
     previous = current;
     return next;
@@ -368,6 +363,7 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
     // The next to be returned even if this is deleted. BUG#1009
     Activity * the_next = next;
 
+    int oy = y;
     y = widget->height() - y;
 
     if (button & Qt::LeftButton)
@@ -461,6 +457,10 @@ Activity *Selection::Click(uint button, uint count, int x, int y)
             {
                 // Select given object
                 widget->select(selected, savedSelection[selected] + count);
+                if (!shiftModifier && !handleId)
+                {
+                    widget->shapeAction("click", selected, x, oy);
+                }
             }
         }
         widget->handleId = handleId;

@@ -34,7 +34,7 @@ struct Activity
 //  Encapsulate a temporary UI activity, e.g. selection
 // ----------------------------------------------------------------------------
 {
-    Activity(text name, Widget *s, uint rank = 1);
+    Activity(text name, Widget *s);
     virtual ~Activity();
 
     // Callbacks, return true if this activity 'handled' the event
@@ -48,8 +48,6 @@ public:
     Activity *          next;
     text                name;
     Widget *            widget;
-    // Activity chain
-    uint                rank;
 };
 
 TAO_END

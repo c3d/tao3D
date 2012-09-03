@@ -54,7 +54,7 @@ public:
     operator            data_t() { return this; }
     void                resize(uint width, uint height);
     virtual GLuint      bind();
-    virtual bool        requestFocus(uint layoutId, coord x, coord y);
+    virtual bool        requestFocus(Layout *l, coord x, coord y);
     int                 width()         { return widget->width(); }
     int                 height()        { return widget->height(); }
     Tree               *evaluate(Tree * t);

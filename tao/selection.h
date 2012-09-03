@@ -33,7 +33,7 @@ struct Identify : Activity
 //   Identify the object under the mouse
 // ----------------------------------------------------------------------------
 {
-    Identify(text t, Widget *w, uint rk = 1);
+    Identify(text t, Widget *w);
 
 public:
     typedef std::vector<uint> id_list;

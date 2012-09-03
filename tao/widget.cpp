@@ -184,6 +184,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
+      activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
       hadSelection(false), selectionChanged(false),
@@ -233,9 +234,6 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     memset(focusViewport, 0, sizeof focusViewport);
     memset(mouseTrackingViewport, 0, sizeof mouseTrackingViewport);
 
-    activities[0] = NULL;
-    activities[1] = NULL;
-    activities[2] = NULL;
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -388,6 +386,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
+      activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
       selection(o.selection), selectionTrees(o.selectionTrees),
@@ -452,10 +451,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     memcpy(focusViewport, o.focusViewport, sizeof(focusViewport));
     memcpy(mouseTrackingViewport, o.mouseTrackingViewport,
            sizeof(mouseTrackingViewport));
-
-    activities[0] = NULL;
-    activities[1] = NULL;
-    activities[2] = NULL;
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -620,8 +615,7 @@ void Widget::dawdle()
         return;
 
     // Run all activities, which will get them a chance to update refresh
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = a->Idle()) ;
+    for (Activity *a = activities; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repo = repository();
@@ -774,8 +768,7 @@ void Widget::drawActivities()
     setupGL();
     glDepthFunc(GL_ALWAYS);
 
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = a->Display()) ;
+    for (Activity *a = activities; a; a = a->Display()) ;
 
     // Once we have recorded all the shapes in the selection space,
     // perform actual rendering
@@ -2456,17 +2449,10 @@ bool Widget::forwardEvent(QMouseEvent *event)
             std::cerr << "forwardEvent::Event type " << event->type()
                     << " Event->x=" << nx <<" Event->y=" << ny
                     << " focusWidget name " << +(focus->objectName())
-                    << " of classe " << focus->metaObject()->className()
                     << std::endl;
         }
         bool res = focus->event(&local);
         event->setAccepted(local.isAccepted());
-        IFTRACE(widgets)
-        {
-            std::cerr << "<-forwardEvent::Event " << +(focus->objectName())
-                    << std::endl;
-        }
-
         return res;
     }
 
@@ -2824,13 +2810,12 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // Check if one of the activities handled the key
     bool handled = false;
     Activity *next;
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = next)
-        {
-            Activity * n = a->next;
-            next = a->Key(key);
-            handled |= next != n;
-        }
+    for (Activity *a = activities; a; a = next)
+    {
+        Activity * n = a->next;
+        next = a->Key(key);
+        handled |= next != n;
+    }
 
     // If the key was not handled by any activity, forward to document
     if (!handled && xlProgram)
@@ -2867,8 +2852,7 @@ void Widget::mousePressEvent(QMouseEvent *event)
 #ifdef CFG_TIMED_FULLSCREEN
     emit userActivity();
 #endif
-    IFTRACE(widgets)
-            std::cerr << "->Widget::mousePressEvent\n";
+
     if (cursor().shape() == Qt::OpenHandCursor)
         return startPanning(event);
 
@@ -2889,18 +2873,17 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton && selectionRectangleEnabled)
         new Selection(this);
+    else if ( ! (event->modifiers() & Qt::ShiftModifier) )
+        if ( uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+            shapeAction("click", id, x, y);
 
     // Send the click to all activities
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = a->Click(button, 1, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
 
     // Check if some widget is selected and wants that event
     if (forwardEvent(event))
-    {
-        IFTRACE(widgets)
-                std::cerr << "<-Widget::mousePressEvent\n";
         return;
-    }
+
     // Otherwise create our local contextual menu
     if (button ==  Qt::RightButton)
     {
@@ -2927,8 +2910,6 @@ void Widget::mousePressEvent(QMouseEvent *event)
         if (contextMenu)
             contextMenu->exec(event->globalPos());
     }
-    IFTRACE(widgets)
-            std::cerr << "<-Widget::mousePressEvent\n";
 }
 
 
@@ -2954,8 +2935,7 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Check if there is an activity that deals with it
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = a->Click(button, 0, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
 
     // Pass the event down the event chain
     forwardEvent(event);
@@ -2999,8 +2979,7 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     lastMouseButtons = buttons;
 
     // Check if there is an activity that deals with it
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = a->MouseMove(x, y, active)) ;
+    for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
 
     // Pass the event down the event chain
     forwardEvent(event);
@@ -3021,7 +3000,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     int     x           = event->x();
     int     y           = event->y();
     if (selectionRectangleEnabled)
-        if (button == Qt::LeftButton && (!activities[1] || !activities[1]->next))
+        if (button == Qt::LeftButton && (!activities || !activities->next))
             new Selection(this);
 
     // Save location
@@ -3030,8 +3009,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     lastMouseButtons = button;
 
     // Send the click to all activities
-    for (uint rk = 0; rk < 3; rk++)
-        for (Activity *a = activities[rk]; a; a = a->Click(button, 2, x, y)) ;
+    for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
 
     forwardEvent(event);
 }
@@ -4454,12 +4432,12 @@ void Widget::saveSelectionColorAndFont(Layout *where)
 }
 
 
-bool Widget::focused(uint layoutId)
+bool Widget::focused(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return layoutId == focusId;
+    return layout->id == focusId;
 }
 
 
@@ -8531,8 +8509,7 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     Tree * result = textEditTexture(context, self, w, h, prog);
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
-                                          this));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return result;
@@ -9035,7 +9012,7 @@ Name_p Widget::textEditKey(Tree_p self, text key)
 //   Send a key to the text editing activities
 // ----------------------------------------------------------------------------
 {
-    for (Activity *a = activities[1]; a; a = a->next)
+    for (Activity *a = activities; a; a = a->next)
     {
         if (TextSelect *tsel = dynamic_cast<TextSelect *> (a))
         {
@@ -9964,8 +9941,7 @@ Tree_p Widget::urlPaint(Tree_p self,
         return XL::xl_false;
 
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
-                                          this));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -10015,8 +9991,7 @@ Tree_p Widget::lineEdit(Tree_p self,
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
-                                          this));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -10216,8 +10191,7 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
         return XL::xl_true;
     }
     layout->Add (new FillColor(1.0, 1.0, 1.0, 1.0));
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
-                                          this));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -10655,8 +10629,7 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
-                                          this));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -10904,7 +10877,7 @@ Tree_p Widget::chooser(Context *context, Tree_p self, text caption)
 //   Note: the current implementation doesn't prevent hierarchical choosers.
 //   It's by design, I see only good reasons to disallow such hierarchies...
 {
-    Chooser *chooser = dynamic_cast<Chooser *> (activities[1]);
+    Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser)
         if (chooser->name == caption)
             return XL::xl_false;
@@ -10919,7 +10892,7 @@ Tree_p Widget::chooserChoice(Tree_p self, text caption, Tree_p command)
 //   Create a chooser item and associate a command
 // ----------------------------------------------------------------------------
 {
-    if (Chooser *chooser = dynamic_cast<Chooser *> (activities[1]))
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         chooser->AddItem(caption, command);
         return XL::xl_true;
@@ -10935,7 +10908,7 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 {
     if (!xlProgram) return XL::xl_false;
 
-    if (Chooser *chooser = dynamic_cast<Chooser *> (activities[1]))
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         chooser->AddCommands(xlProgram->context, prefix, label);
         return XL::xl_true;
@@ -10950,7 +10923,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 //   Add a list of pages to the chooser
 // ----------------------------------------------------------------------------
 {
-    if (Chooser *chooser = dynamic_cast<Chooser *> (activities[1]))
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         uint pnum = 1;
 
@@ -10981,7 +10954,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
 {
 #ifndef CFG_NOGIT
     Repository *repo = repository();
-    Chooser *chooser = dynamic_cast<Chooser *> (activities[1]);
+    Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
     {
         QStringList branches = repo->branches();
@@ -11010,7 +10983,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
 {
 #ifndef CFG_NOGIT
     Repository *repo = repository();
-    Chooser *chooser = dynamic_cast<Chooser *> (activities[1]);
+    Chooser *chooser = dynamic_cast<Chooser *> (activities);
     if (chooser && repo)
     {
         QList<Repository::Commit> commits = repo->history(+branch);

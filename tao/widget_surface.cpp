@@ -154,14 +154,14 @@ GLuint WidgetSurface::bind ()
 }
 
 
-bool WidgetSurface::requestFocus(uint layoutId, coord x, coord y)
+bool WidgetSurface::requestFocus(Layout *layout, coord x, coord y)
 // ----------------------------------------------------------------------------
 //    If the widget is selected, request focus
 // ----------------------------------------------------------------------------
 {
     // Request focus for this widget
     Widget *parent = (Widget *) widget->parent();
-    if (parent && parent->focused(layoutId))
+    if (parent && parent->focused(layout))
         return parent->requestFocus(widget, x, y);
     return false;
 }
@@ -175,8 +175,13 @@ void WidgetSurface::repaint()
     dirty = true;
 
     if (widget)
+    {
         if (Widget *parent = dynamic_cast<Widget *>(widget->parent()))
+        {
+            //parent->updateGL();
             parent->refreshNow();
+        }
+    }
 }
 
 

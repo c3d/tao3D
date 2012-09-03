@@ -1151,7 +1151,7 @@ void WidgetManipulator::DrawSelection(Layout *layout)
     Manipulator::DrawSelection(layout);
     if (selected)
     {
-        if (surface->requestFocus(layout, x, y))
+        if (surface->requestFocus(layout->id, x, y))
         {
             Box3 bounds = Bounds(layout);
             XL::Save<Point3> zeroOffset(layout->offset, Point3(0,0,0));
@@ -1703,9 +1703,9 @@ TAO_END
 
 
 // ****************************************************************************
-// 
+//
 //    Code generation from manipulators.tbl
-// 
+//
 // ****************************************************************************
 
 #include "graphics.h"

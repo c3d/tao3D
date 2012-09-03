@@ -184,7 +184,6 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
-      activities(NULL),
       id(0), focusId(0), maxId(0), idDepth(0), maxIdDepth(0), handleId(0),
       selection(), selectionTrees(), selectNextTime(), actionMap(),
       hadSelection(false), selectionChanged(false),
@@ -234,6 +233,9 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     memset(focusViewport, 0, sizeof focusViewport);
     memset(mouseTrackingViewport, 0, sizeof mouseTrackingViewport);
 
+    activities[0] = NULL;
+    activities[1] = NULL;
+    activities[2] = NULL;
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
 
@@ -386,7 +388,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
-      activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
       selection(o.selection), selectionTrees(o.selectionTrees),
@@ -451,6 +452,10 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     memcpy(focusViewport, o.focusViewport, sizeof(focusViewport));
     memcpy(mouseTrackingViewport, o.mouseTrackingViewport,
            sizeof(mouseTrackingViewport));
+
+    activities[0] = NULL;
+    activities[1] = NULL;
+    activities[2] = NULL;
 
     // Make sure we don't fill background with crap
     setAutoFillBackground(false);
@@ -559,6 +564,7 @@ void Widget::runPurgeAction(XL::Action &purge)
 {
     if (!xlProgram || !xlProgram->tree)
         return;
+
     xlProgram->tree->Do(purge);
     // Do it also on imported files
     import_set iset;
@@ -614,7 +620,8 @@ void Widget::dawdle()
         return;
 
     // Run all activities, which will get them a chance to update refresh
-    for (Activity *a = activities; a; a = a->Idle()) ;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->Idle()) ;
 
     // We will only auto-save and commit if we have a valid repository
     Repository *repo = repository();
@@ -767,7 +774,8 @@ void Widget::drawActivities()
     setupGL();
     glDepthFunc(GL_ALWAYS);
 
-    for (Activity *a = activities; a; a = a->Display()) ;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->Display()) ;
 
     // Once we have recorded all the shapes in the selection space,
     // perform actual rendering
@@ -792,10 +800,12 @@ void Widget::drawActivities()
         static XL::Tree_p adCode = XL::xl_parse_text(
 #include "taodyne_ad.h"
             );
-        if (!adCode->Symbols())
-            adCode->SetSymbols(xlProgram->symbols);
-        xlProgram->context->Evaluate(adCode);
-
+        if (xlProgram)
+        {
+            if (!adCode->Symbols())
+                adCode->SetSymbols(xlProgram->symbols);
+            xlProgram->context->Evaluate(adCode);
+        }
         licenseOverlaySpace.Draw(NULL);
     }
 
@@ -1114,8 +1124,9 @@ void Widget::runProgramOnce()
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(taoWindow()->contextFileNames);
-    if (Tree *prog = xlProgram->tree)
-        xlProgram->context->Evaluate(prog);
+    if (xlProgram)
+        if (Tree *prog = xlProgram->tree)
+            xlProgram->context->Evaluate(prog);
 
     stats.end(Statistics::EXEC);
 
@@ -1773,7 +1784,7 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------
 {
-    if (!markChange("Selection sent to back"))
+    if (!xlProgram || !markChange("Selection sent to back"))
         return XL::xl_false;    // Source code was edited
 
     XL::Symbols *symbols = xlProgram->tree->Symbols();
@@ -1829,7 +1840,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChange("Selection brought forward"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection brought forward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -1877,7 +1888,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChange("Selection sent backward"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection sent backward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -2049,6 +2060,7 @@ void Widget::zoomIn()
 //    Call zoom_in builtin
 // ----------------------------------------------------------------------------
 {
+    if (! xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_in"))(xlProgram);
     do
@@ -2064,6 +2076,7 @@ void Widget::zoomOut()
 //    Call zoom_out builtin
 // ----------------------------------------------------------------------------
 {
+    if (! xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_out"))(xlProgram);
     do
@@ -2094,7 +2107,7 @@ void Widget::userMenu(QAction *p_action)
 //   User menu slot activation
 // ----------------------------------------------------------------------------
 {
-    if (!p_action)
+    if (!p_action || !xlProgram)
         return;
 
     IFTRACE(menus)
@@ -2443,10 +2456,17 @@ bool Widget::forwardEvent(QMouseEvent *event)
             std::cerr << "forwardEvent::Event type " << event->type()
                     << " Event->x=" << nx <<" Event->y=" << ny
                     << " focusWidget name " << +(focus->objectName())
+                    << " of classe " << focus->metaObject()->className()
                     << std::endl;
         }
         bool res = focus->event(&local);
         event->setAccepted(local.isAccepted());
+        IFTRACE(widgets)
+        {
+            std::cerr << "<-forwardEvent::Event " << +(focus->objectName())
+                    << std::endl;
+        }
+
         return res;
     }
 
@@ -2804,15 +2824,16 @@ void Widget::keyPressEvent(QKeyEvent *event)
     // Check if one of the activities handled the key
     bool handled = false;
     Activity *next;
-    for (Activity *a = activities; a; a = next)
-    {
-        Activity * n = a->next;
-        next = a->Key(key);
-        handled |= next != n;
-    }
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = next)
+        {
+            Activity * n = a->next;
+            next = a->Key(key);
+            handled |= next != n;
+        }
 
     // If the key was not handled by any activity, forward to document
-    if (!handled)
+    if (!handled && xlProgram)
         (XL::XLCall ("key"), key) (xlProgram);
     updateGL();
 }
@@ -2832,6 +2853,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
         return;
 
     // Now call "key" in the current context with the ~ prefix
+    if (!xlProgram) return;
     text name = "~" + keyName(event);
     (XL::XLCall ("key"), name) (xlProgram);
 }
@@ -2845,7 +2867,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
 #ifdef CFG_TIMED_FULLSCREEN
     emit userActivity();
 #endif
-
+    IFTRACE(widgets)
+            std::cerr << "->Widget::mousePressEvent\n";
     if (cursor().shape() == Qt::OpenHandCursor)
         return startPanning(event);
 
@@ -2866,17 +2889,18 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton && selectionRectangleEnabled)
         new Selection(this);
-    else if ( ! (event->modifiers() & Qt::ShiftModifier) )
-        if ( uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
-            shapeAction("click", id, x, y);
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, 1, x, y)) ;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->Click(button, 1, x, y)) ;
 
     // Check if some widget is selected and wants that event
     if (forwardEvent(event))
+    {
+        IFTRACE(widgets)
+                std::cerr << "<-Widget::mousePressEvent\n";
         return;
-
+    }
     // Otherwise create our local contextual menu
     if (button ==  Qt::RightButton)
     {
@@ -2903,6 +2927,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
         if (contextMenu)
             contextMenu->exec(event->globalPos());
     }
+    IFTRACE(widgets)
+            std::cerr << "<-Widget::mousePressEvent\n";
 }
 
 
@@ -2928,7 +2954,8 @@ void Widget::mouseReleaseEvent(QMouseEvent *event)
     lastMouseButtons = event->buttons();
 
     // Check if there is an activity that deals with it
-    for (Activity *a = activities; a; a = a->Click(button, 0, x, y)) ;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->Click(button, 0, x, y)) ;
 
     // Pass the event down the event chain
     forwardEvent(event);
@@ -2972,7 +2999,8 @@ void Widget::mouseMoveEvent(QMouseEvent *event)
     lastMouseButtons = buttons;
 
     // Check if there is an activity that deals with it
-    for (Activity *a = activities; a; a = a->MouseMove(x, y, active)) ;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->MouseMove(x, y, active)) ;
 
     // Pass the event down the event chain
     forwardEvent(event);
@@ -2993,7 +3021,7 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     int     x           = event->x();
     int     y           = event->y();
     if (selectionRectangleEnabled)
-        if (button == Qt::LeftButton && (!activities || !activities->next))
+        if (button == Qt::LeftButton && (!activities[1] || !activities[1]->next))
             new Selection(this);
 
     // Save location
@@ -3002,7 +3030,8 @@ void Widget::mouseDoubleClickEvent(QMouseEvent *event)
     lastMouseButtons = button;
 
     // Send the click to all activities
-    for (Activity *a = activities; a; a = a->Click(button, 2, x, y)) ;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->Click(button, 2, x, y)) ;
 
     forwardEvent(event);
 }
@@ -3027,6 +3056,7 @@ void Widget::wheelEvent(QWheelEvent *event)
         return;
 
     // Propagate the wheel event
+    if (!xlProgram) return;
     int d = event->delta();
     Qt::Orientation orientation = event->orientation();
     longlong dx = orientation == Qt::Horizontal ? d : 0;
@@ -3472,12 +3502,11 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    if (sourceChanged())
+    if (xlProgram != NULL && sourceChanged())
         return;
     space->Clear();
     dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
-
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
@@ -3491,6 +3520,7 @@ int Widget::loadFile(text name, bool updateContext)
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
+    purgeTaoInfo();
     TaoSave saveCurrent(current, this);
     return XL::MAIN->LoadFile(name, updateContext);
 }
@@ -3502,6 +3532,8 @@ void Widget::loadContextFiles(XL::source_names &files)
 {
     TaoSave saveCurrent(current, this);
     XL::MAIN->LoadContextFiles(files);
+    // xlProgram content is destroyed by LoadContextFiles // CaB
+    xlProgram = NULL;
 }
 
 
@@ -3560,6 +3592,8 @@ QStringList Widget::listNames()
 //   Return list of names in current program
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram)
+        return QStringList();
     QStringList names;
     XL::Context_p context = xlProgram->context;
     XL::rewrite_list rlist;
@@ -3590,14 +3624,13 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
-    if (toReload.isEmpty())
+    if (toReload.isEmpty() || !xlProgram)
         return;
 
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
     if (!prog || xlProgram->readOnly)
         return;
-
     bool needBigHammer = false;
     bool needRefresh   = false;
     foreach (QString path, toReload)
@@ -3641,22 +3674,23 @@ void Widget::refreshProgram()
                 needBigHammer = true;
                 break;
             }
-            else if (fname == xlProgram->name)
+            else if (xlProgram && (fname == xlProgram->name))
             {
                 updateProgramSource();
             }
 
             needRefresh = true;
 
-            IFTRACE(filesync)
-            {
-                if (needBigHammer)
-                    std::cerr << "Need to reload everything.\n";
-                else
-                    std::cerr << "Surgical replacement worked\n";
-            }
         } // Replacement checked
     } // foreach file
+
+    IFTRACE(filesync)
+    {
+        if (needBigHammer)
+            std::cerr << "Need to reload everything.\n";
+        else
+            std::cerr << "Surgical replacement worked\n";
+    }
 
     // If we were not successful with simple changes, reload everything...
     if (needBigHammer)
@@ -3731,7 +3765,7 @@ void Widget::finishChanges()
 
     bool changed = false;
 
-    if (xlProgram->tree)
+    if (xlProgram && xlProgram->tree)
     {
         import_set done;
         ScanImportedFiles(done, true);
@@ -4129,6 +4163,8 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return false;
+
     // Get the trees
     XL::TreeList treeArgs;
     if (!get(shape, name, treeArgs, topName))
@@ -4418,12 +4454,12 @@ void Widget::saveSelectionColorAndFont(Layout *where)
 }
 
 
-bool Widget::focused(Layout *layout)
+bool Widget::focused(uint layoutId)
 // ----------------------------------------------------------------------------
 //   Test if the current shape is selected
 // ----------------------------------------------------------------------------
 {
-    return layout->id == focusId;
+    return layoutId == focusId;
 }
 
 
@@ -4672,6 +4708,8 @@ void Widget::drawSelection(Layout *where,
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return ;
+
     Box3 bounds(bnds);
     bounds.Normalize();
 
@@ -4705,6 +4743,8 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return ;
+
     SpaceLayout selectionSpace(this);
 
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
@@ -4735,6 +4775,8 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 //   Draw the given call in a selection context
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return ;
+
     // Symbols where we will find the selection code
     SpaceLayout selectionSpace(this);
 
@@ -8489,7 +8531,8 @@ Tree_p  Widget::textEdit(Context *context, Tree_p self,
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     Tree * result = textEditTexture(context, self, w, h, prog);
     TextEditSurface *surface = prog->GetInfo<TextEditSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
+                                          this));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return result;
@@ -8992,7 +9035,7 @@ Name_p Widget::textEditKey(Tree_p self, text key)
 //   Send a key to the text editing activities
 // ----------------------------------------------------------------------------
 {
-    for (Activity *a = activities; a; a = a->next)
+    for (Activity *a = activities[1]; a; a = a->next)
     {
         if (TextSelect *tsel = dynamic_cast<TextSelect *> (a))
         {
@@ -9007,6 +9050,8 @@ Name_p Widget::textEditKey(Tree_p self, text key)
         gotoPage(self, pageLinks[key]);
         return XL::xl_true;
     }
+
+    if (!xlProgram) return XL::xl_false;
 
     // PageUp/PageDown do the same as Up/Down by default (even when Up/Down
     // have been redefined)
@@ -9598,7 +9643,7 @@ Integer* Widget::thumbnail(Context *context,
 // ----------------------------------------------------------------------------
 {
     // Prohibit recursion on thumbnails
-    if (page == pageName)
+    if (page == pageName || !xlProgram)
         return 0;
 
     double w = width() * s;
@@ -9919,7 +9964,8 @@ Tree_p Widget::urlPaint(Tree_p self,
         return XL::xl_false;
 
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
+                                          this));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -9969,7 +10015,8 @@ Tree_p Widget::lineEdit(Tree_p self,
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     lineEditTexture(self, w, h, txt);
     LineEditSurface *surface = txt->GetInfo<LineEditSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
+                                          this));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
@@ -10169,7 +10216,8 @@ Tree_p Widget::abstractButton(Tree_p self, Text_p name,
         return XL::xl_true;
     }
     layout->Add (new FillColor(1.0, 1.0, 1.0, 1.0));
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
+                                          this));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -10607,7 +10655,8 @@ Tree_p Widget::groupBox(Context *context, Tree_p self,
     groupBoxTexture(self, w, h, lbl);
 
     GroupBoxSurface *surface = self->GetInfo<GroupBoxSurface>();
-    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface));
+    layout->Add(new ClickThroughRectangle(Box(x-w/2, y-h/2, w, h), surface,
+                                          this));
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
 
@@ -10855,10 +10904,11 @@ Tree_p Widget::chooser(Context *context, Tree_p self, text caption)
 //   Note: the current implementation doesn't prevent hierarchical choosers.
 //   It's by design, I see only good reasons to disallow such hierarchies...
 {
-    Chooser *chooser = dynamic_cast<Chooser *> (activities);
+    Chooser *chooser = dynamic_cast<Chooser *> (activities[1]);
     if (chooser)
         if (chooser->name == caption)
             return XL::xl_false;
+    if (!xlProgram) return XL::xl_false;
     chooser = new Chooser(xlProgram, caption, this);
     return XL::xl_true;
 }
@@ -10869,7 +10919,7 @@ Tree_p Widget::chooserChoice(Tree_p self, text caption, Tree_p command)
 //   Create a chooser item and associate a command
 // ----------------------------------------------------------------------------
 {
-    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities[1]))
     {
         chooser->AddItem(caption, command);
         return XL::xl_true;
@@ -10883,7 +10933,9 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 //   Add all commands in the current symbol table that have the given prefix
 // ----------------------------------------------------------------------------
 {
-    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
+    if (!xlProgram) return XL::xl_false;
+
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities[1]))
     {
         chooser->AddCommands(xlProgram->context, prefix, label);
         return XL::xl_true;
@@ -10898,7 +10950,7 @@ Tree_p Widget::chooserPages(Tree_p self, Name_p prefix, text label)
 //   Add a list of pages to the chooser
 // ----------------------------------------------------------------------------
 {
-    if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
+    if (Chooser *chooser = dynamic_cast<Chooser *> (activities[1]))
     {
         uint pnum = 1;
 
@@ -10929,7 +10981,7 @@ Tree_p Widget::chooserBranches(Tree_p self, Name_p prefix, text label)
 {
 #ifndef CFG_NOGIT
     Repository *repo = repository();
-    Chooser *chooser = dynamic_cast<Chooser *> (activities);
+    Chooser *chooser = dynamic_cast<Chooser *> (activities[1]);
     if (chooser && repo)
     {
         QStringList branches = repo->branches();
@@ -10958,7 +11010,7 @@ Tree_p Widget::chooserCommits(Tree_p self, text branch, Name_p prefix,
 {
 #ifndef CFG_NOGIT
     Repository *repo = repository();
-    Chooser *chooser = dynamic_cast<Chooser *> (activities);
+    Chooser *chooser = dynamic_cast<Chooser *> (activities[1]);
     if (chooser && repo)
     {
         QList<Repository::Commit> commits = repo->history(+branch);
@@ -11047,10 +11099,13 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
         // Stop refreshing
         current->inError = true;
 #ifndef CFG_NOSRCEDIT
-        // Load source as plain text
-        QString fname = +(current->xlProgram->name);
-        Window *window = Tao()->taoWindow();
-        window->loadFileIntoSourceFileView(fname);
+        if (current->xlProgram)
+        {
+            // Load source as plain text
+            QString fname = +(current->xlProgram->name);
+            Window *window = Tao()->taoWindow();
+            window->loadFileIntoSourceFileView(fname);
+        }
 #endif
     }
     return formulaRuntimeError(self, msg, arg);
@@ -11543,7 +11598,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 {
     // Check if blocked because the source code window was edited
-    if (!markChange(msg))
+    if (!xlProgram || !markChange(msg))
         return XL::xl_false;
 
     if (isReadOnly())
@@ -11647,7 +11702,7 @@ void Widget::deleteSelection()
 // ----------------------------------------------------------------------------
 {
     // Check if the source was modified, if so, do not update the tree
-    if (!markChange("Deleted selection"))
+    if (!xlProgram || !markChange("Deleted selection"))
         return;
 
     XL::Tree *what = xlProgram->tree;
@@ -11702,7 +11757,7 @@ Name_p Widget::setAttribute(Tree_p self,
         refresh();
         return XL::xl_true;
     }
-    else
+    else if (xlProgram)
     {
         if (Tree_p program = xlProgram->tree)
         {
@@ -11803,7 +11858,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there's no selection or if source window changed
-    if (!hasSelection() || !markChange("Selection grouped"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection grouped"))
         return XL::xl_false;
 
     Tree_p selected = copySelection();
@@ -11845,7 +11900,7 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent,
 {
     Infix * inf = parent->AsInfix();
     Block * block = group->right->AsBlock();
-    if (!block)
+    if (!block || !xlProgram)
         return false;
 
     // If the program is made only with this group
@@ -11920,7 +11975,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there is no selection or if source window changed
-    if (!hasSelection() || !markChange("Selection ungrouped"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection ungrouped"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();

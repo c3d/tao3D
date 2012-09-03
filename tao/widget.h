@@ -289,7 +289,7 @@ public:
 
     void        saveSelectionColorAndFont(Layout *where);
 
-    bool        focused(Layout *);
+    bool        focused(uint layoutId);
     void        deleteFocus(QWidget *widget);
     bool        requestFocus(QWidget *widget, coord x, coord y);
     void        recordProjection(GLdouble *projection,
@@ -870,6 +870,7 @@ private:
     friend class DisplayDriver;
     friend class GCThread;
     friend class WidgetSurface;
+    friend class ClickThroughRectangle;
 
     typedef XL::Save<QEvent *>               EventSave;
     typedef XL::Save<Widget *>               TaoSave;
@@ -942,7 +943,8 @@ private:
 #endif
 
     // Selection
-    Activity *            activities;
+    Activity *            activities[3];
+
     GLuint                id, focusId, maxId, idDepth, maxIdDepth, handleId;
     selection_map         selection;
     tree_set              selectionTrees, selectNextTime;
@@ -1074,9 +1076,10 @@ inline ActivityClass *Widget::active()
 //   Return an activity of the given type
 // ----------------------------------------------------------------------------
 {
-    for (Activity *a = activities; a; a = a->next)
-        if (ActivityClass *result = dynamic_cast<ActivityClass *> (a))
-            return result;
+    for (uint rk = 0; rk < 3; rk++)
+        for (Activity *a = activities[rk]; a; a = a->next)
+            if (ActivityClass *result = dynamic_cast<ActivityClass *> (a))
+                return result;
     return NULL;
 }
 

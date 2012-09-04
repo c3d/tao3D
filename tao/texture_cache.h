@@ -119,7 +119,7 @@ public:
                   bool mipmap, bool compress);
     ~CachedTexture();
 
-    void            load();
+    bool            load();
     void            unload();
 
     void            transfer();
@@ -236,6 +236,7 @@ private:
         CachedTexture::Links * first, * last;
     };
 
+    void            reload(CachedTexture * tex);
     void            insert(CachedTexture * tex, LRU &lru);
     void            relink(CachedTexture * tex, LRU &lru);
     void            unlink(CachedTexture * tex, LRU &lru);

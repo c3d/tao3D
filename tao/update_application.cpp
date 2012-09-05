@@ -99,10 +99,11 @@ UpdateApplication::UpdateApplication()
     //   Author: Everaldo Coelho
     //   License: LGPL
 
-    // Author:
 #ifdef TAO_EDITION
    // Get current edition
    edition = TAO_EDITION;
+#else
+   edition = "unified";
 #endif
 
 #if defined(Q_OS_MACX)
@@ -183,7 +184,7 @@ QString UpdateApplication::appName()
 // ----------------------------------------------------------------------------
 {
     QString ed;
-    if (!edition.isEmpty())
+    if (!edition.isEmpty() && edition != "unified")
         ed = " " + edition;
     return QString("Tao Presentations%1").arg(ed);
 }

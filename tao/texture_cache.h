@@ -37,12 +37,12 @@
 #include <QWeakPointer>
 #include <iostream>
 
-const qint64 CACHE_KB = 1024LL;
-const qint64 CACHE_MB = 1024LL * CACHE_KB;
-const qint64 CACHE_GB = 1024LL * CACHE_MB;
+const quint64 CACHE_KB = 1024LL;
+const quint64 CACHE_MB = 1024LL * CACHE_KB;
+const quint64 CACHE_GB = 1024LL * CACHE_MB;
 
 // Large size shown as "Unlimited" at the UI level
-const qint64 CACHE_UNLIMITED = 999LL * CACHE_GB;
+const quint64 CACHE_UNLIMITED = 999LL * CACHE_GB;
 
 
 namespace Tao {
@@ -119,7 +119,7 @@ public:
                   bool mipmap, bool compress);
     ~CachedTexture();
 
-    void            load();
+    bool            load();
     void            unload();
 
     void            transfer();
@@ -236,6 +236,7 @@ private:
         CachedTexture::Links * first, * last;
     };
 
+    void            reload(CachedTexture * tex);
     void            insert(CachedTexture * tex, LRU &lru);
     void            relink(CachedTexture * tex, LRU &lru);
     void            unlink(CachedTexture * tex, LRU &lru);

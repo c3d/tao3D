@@ -439,6 +439,7 @@ public:
     Name_p      toggleShowStatistics(Tree_p self);
     Name_p      logStatistics(Tree_p self, bool ss);
     Name_p      toggleLogStatistics(Tree_p self);
+    Integer_p   frameCount(Tree_p self);
     Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -649,6 +650,8 @@ public:
     Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
+    Text_p      unicodeChar(Tree_p self, int code);
+    Text_p      unicodeCharText(Tree_p self, text code);
 
     // Tables
     Tree_p      newTable(Context *context, Tree_p self,
@@ -821,6 +824,7 @@ public:
     Name_p      readOnly();
     Text_p      baseName(Tree_p, text filename);
     Text_p      dirName(Tree_p, text filename);
+    Name_p      openUrl(Tree_p, text url);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
@@ -987,6 +991,7 @@ private:
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
     Statistics            stats;
+    longlong              frameCounter;
     ulonglong             nextSave, nextSync;
 #ifndef CFG_NOGIT
     ulonglong             nextCommit, nextPull;

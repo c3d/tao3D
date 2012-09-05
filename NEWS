@@ -1,5 +1,23 @@
 Change log for Tao Presentations
 
+1.14 (03-Sep-2012)
+
+#2466 Can't update Tao Presentation 1.13 from application menu
+#2465 Add unicode_char primitives
+#2464 Add Newsfeed example
+#2463 PointCloud: crash when reducing the number of points in a random cloud
+#2462 NetworkAccess: error message: "QCoreApplication::postEvent: Unexpected null receiver"
+#2461 Add open_url primitive
+#2460 Add frame_count primitive
+#2459 Text rendering performance drops significantly when several line widths are used
+#2457 NetworkAccess: Assume UTF-8 encoding
+#2456 Multiple URL-based textures load incorrectly
+#2455 PointCloud: cloud primitive not documented
+#2454 Tao crashes at startup trying to purge the texture cache when it's empty.
+#2446 Imported file is not reloaded if not imported from the global scope
+#2444 Linux, MacOSX: tao_gl.h defines glewInit() incorrectly
+#2443 Texture files load increasingly slowly
+
 1.13 (24-Aug-2012)
 
 #2437 Texture cache: save and load compressed textures. Add -savect option.

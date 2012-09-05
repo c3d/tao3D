@@ -1,4 +1,3 @@
-
 // ****************************************************************************
 //  Welcome.ddd                                                     Tao project
 // ****************************************************************************
@@ -147,7 +146,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     picA N:integer -> 10 * sin (picT N)
     picS N:integer -> 80% + 30% * sin (153.27 * picN N)
     picN N:integer -> N - integer ptime
-    picT N:integer -> N + ptime mod 1
+    picT N:integer -> N + ptime mod 1 - 1
 
     pimg N:integer -> (picN N mod 15) + 1
     pname N:integer -> "picto_" & text (pimg N) & ".png"

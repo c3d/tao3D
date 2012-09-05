@@ -1,7 +1,9 @@
 Change log for Tao Presentations
 
-1.14 (03-Sep-2012)
+1.14 (05-Sep-2012)
 
+#2469 Materials demo shows Taodyne watermark although Impress license is available
+#2467 Crash in texture cache after using URL textures
 #2466 Can't update Tao Presentation 1.13 from application menu
 #2465 Add unicode_char primitives
 #2464 Add Newsfeed example

@@ -387,6 +387,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
+      screenShotPath(o.screenShotPath),
+      screenShotWithAlpha(o.screenShotWithAlpha),
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -2203,6 +2205,11 @@ void Widget::paintGL()
     {
         draw();
         showGlErrors();
+        if (screenShotPath != "")
+        {
+            grabFrameBuffer(screenShotWithAlpha).save(screenShotPath);
+            screenShotPath = "";
+        }
     }
 }
 
@@ -12297,6 +12304,22 @@ Name_p Widget::openUrl(Tree_p, text url)
     return QDesktopServices::openUrl(+url) ? XL::xl_true : XL::xl_false;
 }
 
+
+Name_p Widget::screenShot(Tree_p, text filename, bool withAlpha)
+// ----------------------------------------------------------------------------
+// Save current state of current drawing buffer into a file
+// ----------------------------------------------------------------------------
+{
+    QString path(+filename);
+    if (!QDir::isAbsolutePath(path))
+    {
+        QString dir(+currentDocumentFolder());
+        path = QFileInfo(dir, path).absoluteFilePath();
+    }
+    screenShotPath = path;
+    screenShotWithAlpha = withAlpha;
+    return XL::xl_true;
+}
 
 // ============================================================================
 //

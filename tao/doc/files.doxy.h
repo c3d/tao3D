@@ -238,5 +238,64 @@ tree load_data(filename:text, prefix:text, fs:text, rs:text);
 
 
 /**
+ * @~english
+ * Saves a screen capture to a file.
+ * Captures the contents of the graphical window, without the borders,
+ * and saves it into the file specified by @p fileName. If the file path is
+ * not absolute, it is relative to the document directory (where the main
+ * <tt>.ddd</tt> file is located). If the destination directory does not
+ * exist, the file is not created. @n
+ * The file format is derived from the
+ * extension (such as <tt>.png</tt> or <tt>.jpg</tt>). @n
+ * The graphical area is captured once the drawing is complete, and only one
+ * capture may be active at any given time. Therefore, the following example
+ * will create file <tt>capture2.png</tt> with one circle and one rectangle:
+ * @code
+rectangle -150, 0, 200, 100
+screenshot "capture1.png"  // Ignored
+circle 100, 0, 50
+screenshot "capture2.png"
+ * @endcode
+ * The capture saves the exact content of the application's drawing area,
+ * so if a 3D display mode is active (such as anaglyph, interleaved or side
+ * by side), the resulting snapshot will be encoded for this mode. @n
+ * If @p withAlpha is @c false, the file will not contain any transparency
+ * information.
+ * @~french
+ * Enregistre une capture d'écran dans un fichier.
+ * Capture le contenu de la fenêtre graphique, sans les bordures, et
+ * l'enregistre dans le fichier @p fileName. Si le chemin n'est pas absolu,
+ * il est relatif au répertoire du document principal (<tt>.ddd</tt>). Si le
+ * répertoire de destination n'existe pas, le fichier n'est pas créé. @n
+ * Le format du fichier est déduit de l'extension (par exemple, <tt>.png</tt>
+ * ou <tt>.jpg</tt>). @n
+ * La zone graphique est capturé après que la phase de dessin est terminée, et
+ * une seule capture peut être active pour une trame. Ainsi, l'exemple suivant
+ * crée un seul fichier, <tt>capture2.png</tt>, qui contient un rectangle et
+ * un cercle.
+ * @code
+rectangle -150, 0, 200, 100
+screenshot "capture1.png"  // Ignoré
+circle 100, 0, 50
+screenshot "capture2.png"
+ * @endcode
+ * Lorsque @p withAlpha est @c false, le fichier ne comporte pas d'information
+ * de transparence.
+ */
+boolean screenshot(fileName:text, withAlpha:boolean);
+
+
+/**
+ * @~english
+ * Saves a screen capture to a file.
+ * Same <tt>screenshot fileName, false</tt>.
+ * @~french
+ * Enregistre une capture d'écran dans un fichier.
+ * Équivalent à: <tt>screenshot fileName, false</tt>.
+ */
+boolean screenshot(fileName:text);
+
+
+/**
  * @}
  */

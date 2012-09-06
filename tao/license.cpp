@@ -595,7 +595,6 @@ int Licenses::licenseRemainingDays(text feature)
         // No license matches, or they all expired.
         IFTRACE(lic)
             debug() << "'" << feature << "' not licensed\n";
-        unlicensedCount++;
     }
 
     // Cache result

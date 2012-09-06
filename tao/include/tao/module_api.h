@@ -49,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   25
-#define TAO_MODULE_API_AGE       6
+#define TAO_MODULE_API_CURRENT   26
+#define TAO_MODULE_API_AGE       7
 
 // ========================================================================
 //
@@ -449,6 +449,16 @@ struct ModuleApi
     // allocated by the Tao texture cache. This function uses the values
     // currently defined in the application settings.
     void (*textureCacheSetMinMagFilters)(uint id);
+
+
+    // ------------------------------------------------------------------------
+    //   Licence checking (continued)
+    // ------------------------------------------------------------------------
+
+    // If the current build of Tao is Impress, return true. If not Impress:
+    // return true if a valid license is found for the requested feature name,
+    // false otherwise.
+    bool (*hasImpressOrLicense)(std::string featureName);
 };
 
 }

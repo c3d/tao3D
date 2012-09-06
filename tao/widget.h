@@ -650,6 +650,8 @@ public:
     Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
+    Text_p      unicodeChar(Tree_p self, int code);
+    Text_p      unicodeCharText(Tree_p self, text code);
 
     // Tables
     Tree_p      newTable(Context *context, Tree_p self,

@@ -1025,6 +1025,8 @@ void TextUnit::PerformInsertOperation(Layout * /* l */,
 //   Insert replacement_tree of textSelection at the current cursor location.
 // ----------------------------------------------------------------------------
 {
+    if (! widget->xlProgram) return;
+
     TextSelect *sel = widget->textSelection();
     if (sel->replacement_tree &&
         widget->markChange("Clipboard content pasted"))

@@ -203,6 +203,7 @@ Window::~Window()
 {
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
+    delete printer;
 }
 
 
@@ -699,33 +700,33 @@ bool Window::saveFonts()
         QFileInfoList contents = fontDir.entryInfoList();
         foreach (QFileInfo f, contents)
         {
-            if (f.isFile())
+            if (!f.isFile())
+                continue;
+            QString path = f.absoluteFilePath();
+            QString name = f.fileName();
+            bool found = false;
+            foreach (QString s, files)
             {
-                QString path = f.absoluteFilePath();
-                QString name = f.fileName();
-                bool found = false;
-                foreach (QString s, files)
+                if (s.endsWith(name))
                 {
-                    if (s.endsWith(name))
-                    {
-                        found = true;
-                        break;
-                    }
+                    found = true;
+                    break;
                 }
-                if (!found)
-                {
-                    IFTRACE(fonts)
-                        std::cerr << "Removing  '" << +path << "'\n";
-                    if (repo)
-                    {
-                        QString relPath = QString("fonts/%1").arg(name);
-                        repo->remove(+relPath);
-                    }
-                    else
-                    {
-                        QDir().remove(path);
-                    }
-                }
+            }
+
+            if (found)
+                continue;
+
+            IFTRACE(fonts)
+                    std::cerr << "Removing  '" << +path << "'\n";
+            if (repo)
+            {
+                QString relPath = QString("fonts/%1").arg(name);
+                repo->remove(+relPath);
+            }
+            else
+            {
+                QDir().remove(path);
             }
         }
     }
@@ -817,14 +818,15 @@ bool Window::saveFile(const QString &fileName)
         }
         else
 #endif
-        if (Tree *prog = taoWidget->xlProgram->tree)
-        {
-            std::ostringstream renderOut;
-            renderOut << prog;
-            out << +renderOut.str();
-            if (dirChanged)
-                needReload = true;
-        }
+        if (taoWidget->xlProgram)
+            if (Tree *prog = taoWidget->xlProgram->tree)
+            {
+                std::ostringstream renderOut;
+                renderOut << prog;
+                out << +renderOut.str();
+                if (dirChanged)
+                    needReload = true;
+            }
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -1930,7 +1932,7 @@ void Window::createMenus()
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
-    ExamplesMenu * examplesMenu = new ExamplesMenu;
+    ExamplesMenu * examplesMenu = new ExamplesMenu(helpMenu);
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
     foreach (Template t, templates)

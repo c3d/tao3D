@@ -46,6 +46,18 @@ FileMonitor::FileMonitor(QString name)
 }
 
 
+FileMonitor::FileMonitor(const FileMonitor &o)
+// ----------------------------------------------------------------------------
+//    Copy constructor
+// ----------------------------------------------------------------------------
+    : QObject(), thread(o.thread), name(o.name)
+{
+    foreach (MonitoredFile file, o.files)
+        addPath(file.path);
+    thread->addMonitor(this);
+}
+
+
 FileMonitor::~FileMonitor()
 // ----------------------------------------------------------------------------
 //    Destructor

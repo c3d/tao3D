@@ -360,7 +360,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(o.clearCol),
+      runOnNextDraw(true), srcFileMonitor(o.srcFileMonitor),
+      clearCol(o.clearCol),
       space(NULL), layout(NULL), frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
@@ -518,6 +519,12 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Garbage collection is run by the GCThread object, either in the main
     // thread or in its own thread
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
+
+    // Be notified when source files change
+    connect(&srcFileMonitor, SIGNAL(changed(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
+    connect(&srcFileMonitor, SIGNAL(deleted(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
 
     runProgram();
 }

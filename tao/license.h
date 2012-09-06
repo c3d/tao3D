@@ -74,6 +74,8 @@ public:
         int days = RemainingDays(feature);
         if (days <= 7)
             Warn(feature, days, critical);
+        if (days <= 0)
+            LM().unlicensedCount++;
         return days > 0;
     }
 

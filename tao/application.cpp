@@ -691,6 +691,15 @@ void Application::processCommandLineFile()
     if (toOpen.isEmpty())
         toOpen = win->welcomePath();
     Q_ASSERT(!toOpen.isEmpty());
+
+    // This code makes size() and geometry() valid for the main window
+    // its Tao widget, respectively, so that these dimensions may be used
+    // during win->open() (primitives window_width/window_height/window_size)
+    win->setAttribute(Qt::WA_DontShowOnScreen);
+    win->show();
+    win->hide();
+    win->setAttribute(Qt::WA_DontShowOnScreen, false);
+
     int st = win->open(toOpen);
     win->markChanged(false);
     if (st == 0)

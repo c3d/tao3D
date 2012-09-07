@@ -3682,8 +3682,14 @@ void Widget::refreshProgram()
     {
         TaoSave saveCurrent(current, this);
         purgeTaoInfo();
-        foreach (QString path, toReload)
-            XL::MAIN->LoadFile(+path);
+        import_set iset;
+        import_set::iterator it;
+        ScanImportedFiles(iset, false);
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            XL::MAIN->LoadFile(sf.name);
+        }
         updateProgramSource();
         inError = false;
         needRefresh = true;

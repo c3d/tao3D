@@ -1011,7 +1011,6 @@ private:
     double                cameraToScreen;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
-    int                   eye, eyesNumber;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

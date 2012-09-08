@@ -83,11 +83,11 @@ public:
     static void         setProjectionMatrix(int w, int h,
                                             int i = 1, int numCameras = 1);
     static void         setModelViewMatrix (int i = 1, int numCameras = 1);
-    static void         setStereoPlanes(int planes);
     static void         doMouseTracking(bool on);
     static void         setMouseTrackingViewport(int x, int y, int w, int h);
 
 protected:
+    static void           setStereoPlanes(int planes);
     static std::ostream & debug();
 
 protected:

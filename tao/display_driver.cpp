@@ -602,7 +602,7 @@ int DisplayDriver::getCurrentEye()
 //   Current eye
 // ----------------------------------------------------------------------------
 {
-    return Widget::Tao()->eye;
+    return Widget::Tao()->stereoPlane + 1;
 }
 
 int DisplayDriver::getEyesNumber()
@@ -610,7 +610,7 @@ int DisplayDriver::getEyesNumber()
 //   Number of eyes
 // ----------------------------------------------------------------------------
 {
-    return Widget::Tao()->eyesNumber;
+    return Widget::Tao()->stereoPlanes;
 }
 
 void DisplayDriver::setStereoPlanes(int planes)
@@ -671,6 +671,7 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
 {
     // Record which stereo plane we are on for stereo
     Widget::Tao()->stereoPlane = i-1;
+    Q_ASSERT(Widget::Tao()->stereoPlanes == numCameras);
 
     // Read camera position
     Point3 cameraPosition;
@@ -688,10 +689,6 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     toTarget *= toScreen;
     Point3 target = cameraPosition + toTarget;
     Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
-
-    // Update current eye and eyes number
-    Widget::Tao()->eye = i;
-    Widget::Tao()->eyesNumber = numCameras;
 
     gluLookAt(cameraPosition.x + shift.x,
               cameraPosition.y + shift.y,

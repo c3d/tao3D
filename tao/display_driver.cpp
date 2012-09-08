@@ -641,13 +641,14 @@ void DisplayDriver::setMouseTrackingViewport(int x, int y, int w, int h)
 }
 
 
-void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
+void DisplayDriver::setProjectionMatrix(int w, int h, int i, int)
 // ----------------------------------------------------------------------------
 //   Set frustum for the given camera
 // ----------------------------------------------------------------------------
 {
     // Record which stereo plane we are on for stereo
     Widget::Tao()->stereoPlane = i-1;
+    int numCameras = Widget::Tao()->stereoPlanes;
 
     // Read camera distance to screen
     double toScreen;
@@ -664,14 +665,14 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 }
 
 
-void DisplayDriver::setModelViewMatrix(int i, int numCameras)
+void DisplayDriver::setModelViewMatrix(int i, int)
 // ----------------------------------------------------------------------------
 //   Set modelview matrix for the given camera
 // ----------------------------------------------------------------------------
 {
     // Record which stereo plane we are on for stereo
     Widget::Tao()->stereoPlane = i-1;
-    Q_ASSERT(Widget::Tao()->stereoPlanes == numCameras);
+    int numCameras = Widget::Tao()->stereoPlanes;
 
     // Read camera position
     Point3 cameraPosition;

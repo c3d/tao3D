@@ -2569,6 +2569,13 @@ void Window::updateContext(QString docPath)
 
     if (tao.exists())
         contextFileNames.push_back(+tao.canonicalFilePath());
+    // Files given through the command line preload option (-p)
+    QString preload = +XL::MAIN->options.preload_files;
+    foreach (QString file, preload.split(":", QString::SkipEmptyParts))
+    {
+        QFileInfo info(QDir(TaoApp->startDir), file);
+        contextFileNames.push_back(+info.absoluteFilePath());
+    }
     if (user.exists())
         contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())

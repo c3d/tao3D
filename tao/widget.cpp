@@ -5474,6 +5474,15 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 }
 
 
+Integer_p Widget::stereoViewpoints()
+// ----------------------------------------------------------------------------
+//   The number of viewpoints for the current display
+// ----------------------------------------------------------------------------
+{
+    return new XL::Integer(Tao()->stereoPlanes);
+}
+
+
 Tree_p Widget::resetTransform(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Reset transform to original projection state

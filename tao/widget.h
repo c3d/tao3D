@@ -380,6 +380,7 @@ public:
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
     Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
     Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
+    Integer_p   stereoViewpoints();
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);

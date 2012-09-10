@@ -354,6 +354,10 @@ PREFIX(StereoViewpoints,  tree,  "stereo_viewpoints",
        SYNOPSIS("Make a local context")
        DESCRIPTION("Evaluate the child tree while preserving the current state")
        RETURNS(tree, "The result of the child execution."))
+PREFIX(GetStereoViewpoints,  integer,  "stereo_viewpoints", ,
+       RTAO(stereoViewpoints()),
+       GROUP(code)
+       SYNOPSIS("Return the number of viewpoints for the current display"))
 
 
 

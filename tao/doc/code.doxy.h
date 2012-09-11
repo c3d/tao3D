@@ -410,45 +410,66 @@ boolean offline_rendering ();
 
 /**
  * @~english
- * Disables the OpenGL depth test for polygons.
- * @returns The previous state of depth testing
+ * Disables the OpenGL depth test.
+ * Equivalent to the OpenGL call: <tt>glDisable(GL_DEPTH_TEST)</tt>
+ * The state of the depth test is automatically restored when leaving the
+ * current layout.
+ * @returns The previous state of the depth test.
  * @~french
  * Désactive le test de profondeur OpenGL.
+ * Équivalent à l'appel OpenGL : <tt>glDisable(GL_DEPTH_TEST)</tt>
+ * L'état précédent du test de profondeur est automatiquement rétabli lors
+ * de la sortie du layout.
  * @returns L'état précédent du test de profondeur.
  */
 disable_depth_test ();
 
 /**
  * @~english
- * Enables the OpenGL depth test for polygons.
- * @returns The previous state of depth testing
+ * Enables the OpenGL depth test.
+ * Equivalent to the OpenGL call: <tt>glEnable(GL_DEPTH_TEST)</tt>
+ * The state of the depth test is automatically restored when leaving the
+ * current layout. Depth test is enabled by default.
+ * @returns The previous state of the depth test.
  * @~french
  * Active le test de profondeur OpenGL.
+ * Équivalent à l'appel OpenGL : <tt>glEnable(GL_DEPTH_TEST)</tt>
+ * L'état précédent du test de profondeur est automatiquement rétabli lors
+ * de la sortie du layout. Le test de profondeur est actif par défaut.
  * @returns L'état précédent du test de profondeur.
  */
 enable_depth_test ();
 
 /**
  * @~english
- * Disables the OpenGL depth mask.
+ * Disables writing into the depth buffer.
+ * Equivalent to the OpenGL call: <tt>glDepthMask(GL_FALSE)</tt>.
+ * The state of the depth mask is automatically restored when leaving the
+ * current layout.
  * @returns The previous state of the depth mask.
- * @note Depth mask state is not restored automatically.
  * @~french
- * Désactive le masque de profondeur OpenGL.
+ * Active l'écriture dans le buffer de profondeur.
+ * Équivalent à l'appel OpenGL : <tt>glDepthMask(GL_FALSE)</tt>.
+ * L'état précédent du masque de profondeur est automatiquement rétabli lors
+ * de la sortie du layout.
  * @returns L'état précédent du masque de profondeur.
- * @note L'état du masque de profondeur n'est pas restauré automatiquement.
  */
 disable_depth_mask ();
 
 /**
  * @~english
- * Enables the OpenGL depth mask.
+ * Enables writing into the depth buffer.
+ * Equivalent to the OpenGL call: <tt>glDepthMask(GL_TRUE)</tt>.
+ * The state of the depth mask is automatically restored when leaving the
+ * current layout. Writing into the depth buffer is enabled by default.
  * @returns The previous state of the depth mask.
- * @note Depth mask state is not restored automatically.
  * @~french
- * Active le masque de profondeur OpenGL.
+ * Active l'écriture dans le buffer de profondeur.
+ * Équivalent à l'appel OpenGL : <tt>glDepthMask(GL_TRUE)</tt>.
+ * L'état précédent du masque de profondeur est automatiquement rétabli lors
+ * de la sortie du layout. L'écriture dans le buffer de profondeur est actif
+ * par défaut.
  * @returns L'état précédent du masque de profondeur.
- * @note L'état du masque de profondeur n'est pas restauré automatiquement.
  */
 enable_depth_mask ();
 

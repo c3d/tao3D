@@ -193,6 +193,7 @@ public:
     // Primitives
     static XL::Name_p    textureMipmap(bool enable);
     static XL::Name_p    textureCompress(bool enable);
+    static XL::Name_p    textureSaveCompressed(bool enable);
 
     static XL::Integer_p textureCacheMemSize(quint64 bytes);
     static XL::Integer_p textureCacheGLSize(quint64 bytes);

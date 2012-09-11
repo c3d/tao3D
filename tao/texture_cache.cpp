@@ -79,6 +79,7 @@ XL::Name_p TextureCache::fn(bool enable)                                    \
 
 BOOL_SETTER(textureMipmap, mipmap)
 BOOL_SETTER(textureCompress, compress)
+BOOL_SETTER(textureSaveCompressed, saveCompressed)
 
 
 // ----------------------------------------------------------------------------

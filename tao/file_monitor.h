@@ -50,6 +50,7 @@ class FileMonitor : public QObject
 
 public:
     FileMonitor(QString name = QString());
+    FileMonitor(const FileMonitor &o);
     virtual ~FileMonitor();
 
     void           removeAllPaths();

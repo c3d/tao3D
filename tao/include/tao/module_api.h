@@ -248,11 +248,16 @@ struct ModuleApi
     // autostereoscopic setups.
     //
     // w and h are the width and height in pixels of the frustum
-    // plane at the target point. numCameras is the total number of cameras,
+    // plane at the target point. The total number of cameras is defined by the
+    // display module. It is queried by Tao Presentations immediately after the
+    // use() callback of the module is called--see registerDisplayFunction()
+    // above. The module must implement the getopt() callback and respond to
+    // the getopt() call with name = "PointsOfView".
     // i is the camera number for which the view is to be rendered (i must be
-    // between 1 and numCameras).
-    void (*setProjectionMatrix)(int w, int h, int i, int numCameras);
-    void (*setModelViewMatrix)(int i, int numCameras);
+    // between 1 and the number of cameras).
+    // The unused parameter may be set to any value.
+    void (*setProjectionMatrix)(int w, int h, int i, int unused);
+    void (*setModelViewMatrix)(int i, int unused);
 
     // Draw the current page.
     void (*drawScene)();

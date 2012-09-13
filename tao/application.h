@@ -178,11 +178,11 @@ public:
     bool               readyToLoad;
     QString            pendingOpen;
     TaoEdition         edition;
+    QString            startDir;
 
 private:
     QStringList  pathList;
     QStringList  urlList;
-    QString      startDir;
     QPointer<SplashScreen>
                  splash;
     Window *     win;

@@ -354,6 +354,10 @@ PREFIX(StereoViewpoints,  tree,  "stereo_viewpoints",
        SYNOPSIS("Make a local context")
        DESCRIPTION("Evaluate the child tree while preserving the current state")
        RETURNS(tree, "The result of the child execution."))
+PREFIX(GetStereoViewpoints,  integer,  "stereo_viewpoints", ,
+       RTAO(stereoViewpoints()),
+       GROUP(code)
+       SYNOPSIS("Return the number of viewpoints for the current display"))
 
 
 
@@ -1163,10 +1167,11 @@ PREFIX(TextureMipmap, boolean, "texture_mipmap",
 PREFIX(TextureCompress, boolean, "texture_compress",
        PARM(enable, boolean, "Enable or disable"),
        return Tao::TextureCache::textureCompress(enable),
-       SYNOPSIS("Enable or disable texture compression for textures")
-       DESCRIPTION("Controls whether compression is performed when a texture "
-                   "file is loaded. Changing this setting does not cause "
-                   "existing textures to be re-created."))
+       SYNOPSIS("Enable or disable use of compressed textures"))
+PREFIX(TextureSaveCompressed, boolean, "texture_save_compressed",
+       PARM(enable, boolean, "Enable or disable"),
+       return Tao::TextureCache::textureSaveCompressed(enable),
+       SYNOPSIS("Enable or disable creation of compressed texture files"))
 PREFIX(TextureCacheMemSize, integer, "texture_cache_mem_size",
        PARM(bytes, integer, "The size of the texture cache in main memory"),
        return Tao::TextureCache::textureCacheMemSize(bytes),

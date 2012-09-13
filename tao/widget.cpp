@@ -212,7 +212,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
+      dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
@@ -431,7 +431,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       cameraToScreen(o.cameraToScreen),
       cameraPosition(o.cameraPosition),
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
-      eye(o.eye), eyesNumber(o.eyesNumber),
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
       savedCursorShape(o.savedCursorShape),
@@ -3682,8 +3681,14 @@ void Widget::refreshProgram()
     {
         TaoSave saveCurrent(current, this);
         purgeTaoInfo();
-        foreach (QString path, toReload)
-            XL::MAIN->LoadFile(+path);
+        import_set iset;
+        import_set::iterator it;
+        ScanImportedFiles(iset, false);
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            XL::MAIN->LoadFile(sf.name);
+        }
         updateProgramSource();
         inError = false;
         needRefresh = true;
@@ -5466,6 +5471,15 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
     return result;
+}
+
+
+Integer_p Widget::stereoViewpoints()
+// ----------------------------------------------------------------------------
+//   The number of viewpoints for the current display
+// ----------------------------------------------------------------------------
+{
+    return new XL::Integer(Tao()->stereoPlanes);
 }
 
 

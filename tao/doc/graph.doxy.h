@@ -1152,10 +1152,45 @@ texture_mipmap(enable:boolean);
 /**
  * @~english
  * Enables or disables compression of new textures.
+ * Controls whether textures are to be used in their
+ * compressed form (lower quality but reduced GL memory usage and possibly
+ * higher performance). Changing this setting does not cause
+ * existing textures to be re-created. @n
+ * When texture compression is enabled, compressed texture files
+ * are loaded preferably over ther uncompressed version to speedup the
+ * loading phase. See @ref texture_save_compressed.
  * @~french
  * Active ou désactive la compression des nouvelles textures.
+ * Permet de contrôler si les textures sont utilisées sous forme compressée
+ * (qualité moindre, mais utilisation de mémoire plus faible et
+ * possiblement meilleures performances). Les textures déjà chargées ne
+ * sont pas affectées pas un changement de ce paramètre. @n
+ * Lorsque la compression est activée, le programme charge de préférence
+ * une version pré-compressée de la texture si elle existe. Cf.
+ * @ref texture_save_compressed.
  */
 texture_compress(enable:boolean);
+
+/**
+ * @~english
+ * Enables or disables creation of compressed texture files.
+ * When set to true, any texture loaded from disk and used in compressed
+ * form (see  @ref texture_compress) will be cached to disk.
+ * The file name is the original texture file with the <tt>.compressed</tt>
+ * suffix appended. Changing this setting does not cause
+ * existing textures to be re-created.
+ *
+ * @~french
+ * Active ou désactive la création de fichiers de texture compressés.
+ * Lorsque ce mode est activé, toute nouvelle texture chargée depuis un
+ * fichier et utilisée sous forme compressée (cf. @ref texture_compress)
+ * sera mise en cache sur disque.
+ * Le nom du fichier compressé est celui de la texture originale, avec
+ * l'extension supplémentaire <tt>.compressed</tt>.
+ * Les textures déjà chargées ne sont pas affectées pas un changement de
+ * ce paramètre.
+ */
+texture_save_compressed(enable:boolean);
 
 /**
  * @~english

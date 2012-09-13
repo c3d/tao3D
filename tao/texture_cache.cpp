@@ -79,6 +79,7 @@ XL::Name_p TextureCache::fn(bool enable)                                    \
 
 BOOL_SETTER(textureMipmap, mipmap)
 BOOL_SETTER(textureCompress, compress)
+BOOL_SETTER(textureSaveCompressed, saveCompressed)
 
 
 // ----------------------------------------------------------------------------
@@ -608,7 +609,7 @@ bool CachedTexture::load()
             inLoad = false;
         }
         if (canonicalPath != "")
-            image.load(canonicalPath, (compress && !saveCompressed));
+            image.load(canonicalPath, compress);
     }
     if (image.isNull())
     {
@@ -777,7 +778,8 @@ void CachedTexture::transfer()
                 didNotCompress = true;
             }
 
-            if (!networked && saveCompressed && image.compressed)
+            if (!networked && saveCompressed && image.compressed &&
+                !image.loadedFromCompressedFile)
             {
                 QString cmpPath = Image::toCompressedPath(canonicalPath);
                 if (image.saveCompressed(cmpPath))
@@ -1013,6 +1015,7 @@ void Image::clear()
     compressed = 0;
     w = h = sz = 0;
     raw = QImage();
+    loadedFromCompressedFile = false;
 }
 
 
@@ -1142,6 +1145,7 @@ bool Image::loadCompressed(const QString &path)
     h = qFromBigEndian(hdr->h);
     memcpy(allocateCompressed(len), &hdr->data, len);
 
+    loadedFromCompressedFile =  true;
     return true;
 }
 

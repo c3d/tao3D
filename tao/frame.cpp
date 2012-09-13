@@ -93,10 +93,8 @@ void FrameInfo::resize(uint w, uint h)
     QGLFramebufferObjectFormat format;
     format.setInternalTextureFormat(this->format);
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-#if !defined(Q_OS_LINUX)
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
-        // Setting this on Linux crashes in the first framebuffer object ctor
         QGLFramebufferObjectFormat mformat(format);
         mformat.setSamples(4);
         render_fbo = new QGLFramebufferObject(w, h, mformat);
@@ -125,7 +123,6 @@ void FrameInfo::resize(uint w, uint h)
         }
     }
     else
-#endif // CONFIG_LINUX
     {
         render_fbo = new QGLFramebufferObject(w, h, format);
         texture_fbo = render_fbo;

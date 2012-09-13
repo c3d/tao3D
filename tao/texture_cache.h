@@ -53,7 +53,8 @@ struct Image
 //    Hold an image, loaded from disk/network or read back compressed from GL
 // ----------------------------------------------------------------------------
 {
-    Image() : w(0), h(0), compressed(0), sz(0), fmt(0) {}
+    Image() : w(0), h(0), compressed(0), sz(0), fmt(0),
+              loadedFromCompressedFile(false) {}
     ~Image() { clear(); }
 
     bool      isNull();
@@ -93,6 +94,7 @@ struct Image
     void *  compressed;
     int     sz;
     GLint   fmt;
+    bool    loadedFromCompressedFile;
 };
 
 
@@ -191,6 +193,7 @@ public:
     // Primitives
     static XL::Name_p    textureMipmap(bool enable);
     static XL::Name_p    textureCompress(bool enable);
+    static XL::Name_p    textureSaveCompressed(bool enable);
 
     static XL::Integer_p textureCacheMemSize(quint64 bytes);
     static XL::Integer_p textureCacheGLSize(quint64 bytes);

@@ -1784,6 +1784,17 @@ ellipse (x:real, y:real, w:real, h:real);
 
 /**
  * @~english
+ * Draws a circle.
+ * Same as <tt>ellipse x, y, r, 2*r</tt>.
+ *
+ * @~french
+ * Affiche un cercle.
+ * Équivalent à <tt>ellipse x, y, r, 2*r</tt>.
+ */
+circle (x:real, y:real, r:real);
+
+/**
+ * @~english
  * Draws an elliptic sector.
  *
  * Elliptic sector centered around (@p x, @p y) that occupies the given

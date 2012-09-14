@@ -52,6 +52,7 @@ win32 {
 QMAKE_CLEAN += tao_sign.sh
 QMAKE_POST_LINK = $$MAYBE_STRIP_CMD echo \"$$SIGN_CMD\" > tao_sign.sh && chmod +x tao_sign.sh  # Does not really belong to post-link, but it works
 
+include(../make_install_kludge.pri)
 
 # REVISIT Move into tao.pro
 # "make install" will generate and copy a temporary licence (licence.taokey)

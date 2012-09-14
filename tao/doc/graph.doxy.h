@@ -216,13 +216,13 @@ anchor (t:tree);
  * @~english
  * Selects the line width for shape outlines.
  *
- * @c line_width @c "default" reset the line width to the default value.
+ * @c line_width @c "default" resets the line width to the default value (4).
  * @p lw is the width in pixels.
  *
  * @~french
  * Définit la largeur du trait pour le tracé des formes.
  *
- * @c line_width @c "default" reprend la valeur par défaut.
+ * @c line_width @c "default" reprend la valeur par défaut (4).
  * @p lw est la largeur en pixels.
  */
 line_width (lw:real);
@@ -548,6 +548,7 @@ no_line_color ();
  *       - line_color "font"
  *       - line_color "line"
  *
+ * The default color is transparent black, so that no line is drawn by default.
  * @note @c color @c "font" and @c line_color @c "font" are not the same color,
  * but relevent colors for the line of a glyph and the fill of a glyph.
  *
@@ -571,6 +572,8 @@ no_line_color ();
  *
  * Les modules peuvent également définir des couleurs.
  *
+ * La couleur par défaut est le noir transparent, de sorte qu'aucune contour
+ * n'est tracé par défaut.
  * @note @c color @c "font" et @c line_color @c "font" ne sont pas la même
  * couleur.
  *
@@ -2006,7 +2009,7 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *
  * This primitives draws a regular polygon with @p p vertex.
  * @image html polygon.png
- * Shortcuts has been defined for polygon from 3 to 20 vertexes.
+ * Shortcuts have been defined for polygon from 3 to 20 vertices.
  *
  * @~french
  * Affiche un polygone régulier.
@@ -2015,6 +2018,8 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  * @image html polygon.png
  * Des raccourcis existent pour les polygones de 3 à 20 sommets :
  * @~
+ * -# N/A
+ * -# N/A
  * -# equilateral_triangle
  * -# tetragon
  * -# pentagon

@@ -1929,7 +1929,7 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
  * @~english
- * Draws a star.
+ * Draws a star polygon.
  *
  * This primitive draws a regular star polygon centered at (@p x, @p y).
  * The star is obtained by placing @p p vertices regularly spaced on a
@@ -1937,7 +1937,7 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
  * connected together.
  *
  * @~french
- * Affiche une étoile.
+ * Affiche un polygone étoilé.
  *
  * Cette primitive définit une étoile régulière centrée en (@p x, @p y).
  * L'étoile est obtenue en plaçant @p p sommets régulièrement espacés sur un
@@ -2015,48 +2015,45 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  * @image html polygon.png
  * Des raccourcis existent pour les polygones de 3 à 20 sommets :
  * @~
- *  -# -
- *  -# -
- *  -# equilateral_triangle
- *  -# tetragon
- *  -# pentagon
- *  -# hexagon
- *  -# heptagon
- *  -# octagon
- *  -# nonagon
- *  -# decagon
- *  -# hendecagon
- *  -# dodecagon
- *  -# tridecagon
- *  -# tetradecagon
- *  -# pentadecagon
- *  -# hexadecagon
- *  -# heptadecagon
- *  -# octadecagon
- *  -# enneadecagon
- *  -# icosagon
+ * -# equilateral_triangle
+ * -# tetragon
+ * -# pentagon
+ * -# hexagon
+ * -# heptagon
+ * -# octagon
+ * -# nonagon
+ * -# decagon
+ * -# hendecagon
+ * -# dodecagon
+ * -# tridecagon
+ * -# tetradecagon
+ * -# pentadecagon
+ * -# hexadecagon
+ * -# heptadecagon
+ * -# octadecagon
+ * -# enneadecagon
+ * -# icosagon
  */
 polygon (x:real, y:real, w:real, h:real, p:integer);
 
 /**
- * @copydoc star_polygon
- * @image html polygram.png
  * @~english
+ * Synonym for @ref star_polygon.
  * Shortcuts has been defined for polygram from 5 to 10 vertexes.
  *
  * @~french 
+ * Synonyme de @ref star_polygon.
  * Des raccourcis existent pour des polygrams de 5 à 10 sommets.
  *
  * @~
- *  - pentagram       p = 5, q = 2
- *  - hexagram        p = 6, q = 2
- *  - star_of_david   p = 6, q = 2
- *  - heptagram       p = 7, q = 2
- *  - star_of_lakshmi p = 8, q = 2
- *  - octagram        p = 8, q = 3
- *  - nonagram        p = 9, q = 3
- *  - decagram        p =10, q = 3
-
+ * - pentagram       p = 5, q = 2
+ * - hexagram        p = 6, q = 2
+ * - star_of_david   p = 6, q = 2
+ * - heptagram       p = 7, q = 2
+ * - star_of_lakshmi p = 8, q = 2
+ * - octagram        p = 8, q = 3
+ * - nonagram        p = 9, q = 3
+ * - decagram        p =10, q = 3
  */
 polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
 

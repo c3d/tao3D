@@ -40,6 +40,17 @@
  * @include multitexturing.ddd
  * @image html multitexturing.png "Multitexturing demo: multitexturing.ddd"
  *
+ * @par Image sources
+ *
+ * There are several primitives to display images: @ref image, @ref image_px, @ref texture.
+ * All of them accept several forms to designate the source of the image:
+ * - An absolute or relative file path (relative to the directory from where the
+ * document was opened)
+ * - A qualified path (such as <tt>image:file.jpg</tt>)
+ * - A URL, such as <tt>http://www.taodyne.com/shop/img/logo.jpg</tt>.
+ * Only HTTP (<tt>http://</tt>) and HTTPS (<tt>https://</tt>) URLs are
+ * supported.
+ *
  * @par Texture cache
  *
  * 2D texture created by @ref texture, @ref image or @ref image_px are
@@ -58,6 +69,13 @@
  * which can be configured from the preference page, or with the primitives:
  * @ref texture_cache_mem_size, @ref texture_cache_gl_size,
  * @ref texture_compress, and @ref texture_mipmap.
+ *
+ * When a file is changed on disk, it is reloaded automatically. If a file is
+ * deleted or renamed, the texture is replaced by a placeholder. If a
+ * non-existent texture file is created, the texture is also updated.
+ *
+ * Textures loaded from URLs are currently not monitored for change. They are
+ * downloaded once when they are first needed, then are never reloaded.
  *
  * @~french
  * @defgroup graph_env Environnement graphique (couleur des lignes, du remplissage, textures)
@@ -81,6 +99,18 @@
  * @include multitexturing.ddd
  * @image html multitexturing.png "Démonstration : multitexturing.ddd"
  *
+ * @par Sources d'images
+ *
+ * Plusieurs primitives permettent d'afficher des images: @ref image, @ref image_px,
+ * @ref texture. Toutes acceptent plusieurs formes pour désigner la source de
+ * l'image:
+ * - Un chemin absolu ou relatif (au répertoire depuis lequel le document a
+ * été ouvert)
+ * - Un chemin qualifié (tel que <tt>image:fichier.jpg</tt>)
+ * - Une URL, telle que <tt>http://www.taodyne.com/shop/img/logo.jpg</tt>.
+ * Seules les URLs de type HTTP (<tt>http://</tt>) et HTTPS (<tt>https://</tt>)
+ * sont supportées.
+ *
  * @par Cache de textures
  *
  * Les textures bi-dimensionnelles créées par @ref texture, @ref image ou
@@ -101,6 +131,15 @@
  * la page de préférences, ou grâce aux primitives
  * @ref texture_cache_mem_size, @ref texture_cache_gl_size,
  * @ref texture_compress, et @ref texture_mipmap.
+ *
+ * Lorsqu'un fichier d'image est modifié sur le disque, il est rechargé
+ * automatiquement. S'il est effacé, la texture est remplacée par une image
+ * par défaut (une mire colorée). Si un fichier non existent est créé,
+ * la texture est également mise à jour.
+ *
+ * Les textures chargés depuis une URL ne sont actuellement pas rechargées
+ * automatiquement. Aucun délai de validité n'est associé à une telle image,
+ * et Tao Presentations ne vérifie pas si l'image change au cours du temps.
  *
  * @~
  * @{
@@ -1113,10 +1152,45 @@ texture_mipmap(enable:boolean);
 /**
  * @~english
  * Enables or disables compression of new textures.
+ * Controls whether textures are to be used in their
+ * compressed form (lower quality but reduced GL memory usage and possibly
+ * higher performance). Changing this setting does not cause
+ * existing textures to be re-created. @n
+ * When texture compression is enabled, compressed texture files
+ * are loaded preferably over ther uncompressed version to speedup the
+ * loading phase. See @ref texture_save_compressed.
  * @~french
  * Active ou désactive la compression des nouvelles textures.
+ * Permet de contrôler si les textures sont utilisées sous forme compressée
+ * (qualité moindre, mais utilisation de mémoire plus faible et
+ * possiblement meilleures performances). Les textures déjà chargées ne
+ * sont pas affectées pas un changement de ce paramètre. @n
+ * Lorsque la compression est activée, le programme charge de préférence
+ * une version pré-compressée de la texture si elle existe. Cf.
+ * @ref texture_save_compressed.
  */
 texture_compress(enable:boolean);
+
+/**
+ * @~english
+ * Enables or disables creation of compressed texture files.
+ * When set to true, any texture loaded from disk and used in compressed
+ * form (see  @ref texture_compress) will be cached to disk.
+ * The file name is the original texture file with the <tt>.compressed</tt>
+ * suffix appended. Changing this setting does not cause
+ * existing textures to be re-created.
+ *
+ * @~french
+ * Active ou désactive la création de fichiers de texture compressés.
+ * Lorsque ce mode est activé, toute nouvelle texture chargée depuis un
+ * fichier et utilisée sous forme compressée (cf. @ref texture_compress)
+ * sera mise en cache sur disque.
+ * Le nom du fichier compressé est celui de la texture originale, avec
+ * l'extension supplémentaire <tt>.compressed</tt>.
+ * Les textures déjà chargées ne sont pas affectées pas un changement de
+ * ce paramètre.
+ */
+texture_save_compressed(enable:boolean);
 
 /**
  * @~english

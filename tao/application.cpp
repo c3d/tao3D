@@ -94,7 +94,7 @@ Application::Application(int & argc, char ** argv)
       updateApp(NULL), readyToLoad(false), edition(Unknown),
       startDir(QDir::currentPath()),
       splash(NULL), xlr(NULL), screenSaverBlocked(false),
-      moduleManager(NULL), peer(NULL)
+      moduleManager(NULL), peer(NULL), textureCache(NULL)
 {
 #if defined(Q_OS_WIN32)
     installDDEWidget();
@@ -150,6 +150,21 @@ void Application::deferredInit()
 #endif
         std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
+
+        ::exit(0);
+    }
+    if (cmdLineArguments.contains("--glinfo"))
+    {
+        {
+            QGLWidget gl;
+            gl.makeCurrent();
+
+            std::cout << "OpenGL vendor:     " << glGetString(GL_VENDOR)
+                      << "\nOpenGL renderer:   " << glGetString(GL_RENDERER)
+                      << "\nOpenGL version:    " << glGetString(GL_VERSION)
+                      << "\nOpenGL extensions: " << glGetString(GL_EXTENSIONS)
+                      << "\n";
+        }
         ::exit(0);
     }
 
@@ -181,6 +196,15 @@ void Application::deferredInit()
                    +builtins.canonicalFilePath());
 
     loadLicenses();
+
+    // Texture cache may only be instantiated after setOrganizationName
+    // and setOrganizationDomain because it reads default values from
+    // the user's preferences
+    textureCache = TextureCache::instance();
+    textureCache->setSaveCompressed(xlr->options.tcache_savecomp);
+
+    // Adjust file polling frequency
+    FileMonitorThread::pollInterval = xlr->options.sync_interval;
 
     // Create and start garbage collection thread
     gcThread = new GCThread;
@@ -427,16 +451,50 @@ bool Application::installTranslators()
 }
 
 
+static text getGLText(GLenum name)
+// ----------------------------------------------------------------------------
+//   Helper function. Return a GL string value as a QString.
+// ----------------------------------------------------------------------------
+{
+    return +QString::fromLocal8Bit((const char*)glGetString(name));
+}
+
 bool Application::checkGL()
 // ----------------------------------------------------------------------------
 //   Check if GL implementation can be used
 // ----------------------------------------------------------------------------
 {
+    {
+        // We need a valid GL context to read the information strings
+        QGLWidget gl;
+        gl.makeCurrent();
+
+        if (QGLContext::currentContext()->isValid())
+        {
+            TaoApp->GLVendor   = getGLText(GL_VENDOR);
+            TaoApp->GLRenderer = getGLText(GL_RENDERER);
+            TaoApp->GLVersionAvailable = getGLText(GL_VERSION);
+            TaoApp->GLExtensionsAvailable = getGLText(GL_EXTENSIONS);
+
+            // Get number of maximum texture units and coords in fragment shaders
+            // (texture units are limited to 4 otherwise)
+            glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
+            glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*)&maxTextureUnits);
+        }
+        else
+        {
+            TaoApp->GLVendor = TaoApp->GLRenderer = TaoApp->GLVersionAvailable
+                    = TaoApp->GLExtensionsAvailable = "?";
+        }
+    }
+
     // Basic sanity tests to check if we can actually run
     if (QGLFormat::openGLVersionFlags () < QGLFormat::OpenGL_Version_2_0)
     {
-        QMessageBox::warning(NULL, tr("OpenGL support"),
-                             tr("This system doesn't support OpenGL 2.0."));
+        QString msg = tr("This system (%1, %2, %3) doesn't support "
+                         "OpenGL 2.0.").arg(+GLVendor).arg(+GLRenderer)
+                                       .arg(+GLVersionAvailable);
+        QMessageBox::warning(NULL, tr("OpenGL support"), msg);
         return false;
     }
     if (!QGLFramebufferObject::hasOpenGLFramebufferObjects())
@@ -450,11 +508,7 @@ bool Application::checkGL()
     useShaderLighting = PerformancesPage::perPixelLighting();
 
     {
-        QGLWidget gl;
-        gl.makeCurrent();
-
         // Ask graphic card constructor to OpenGL
-        GLVendor = text ( (const char*)glGetString ( GL_VENDOR ) );
         int vendorNum = 0;
 
         // Search in vendors list
@@ -473,24 +527,6 @@ bool Application::checkGL()
         case 1: vendorID = NVIDIA; break;
         case 2: vendorID = INTEL; break;
         }
-
-        const GLubyte *str;
-        // Get OpenGL supported version
-        str = glGetString(GL_VERSION);
-        GLVersionAvailable = (const char*) str;
-
-        // Get OpenGL supported extentions
-        str = glGetString(GL_EXTENSIONS);
-        GLExtensionsAvailable = (const char*) str;
-
-        // Get OpenGL renderer (GPU)
-        str = glGetString(GL_RENDERER);
-        GLRenderer = (const char*) str;
-
-        // Get number of maximum texture units and coords in fragment shaders
-        // (texture units are limited to 4 otherwise)
-        glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
-        glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
     }
 
     {
@@ -655,6 +691,15 @@ void Application::processCommandLineFile()
     if (toOpen.isEmpty())
         toOpen = win->welcomePath();
     Q_ASSERT(!toOpen.isEmpty());
+
+    // This code makes size() and geometry() valid for the main window
+    // its Tao widget, respectively, so that these dimensions may be used
+    // during win->open() (primitives window_width/window_height/window_size)
+    win->setAttribute(Qt::WA_DontShowOnScreen);
+    win->show();
+    win->hide();
+    win->setAttribute(Qt::WA_DontShowOnScreen, false);
+
     int st = win->open(toOpen);
     win->markChanged(false);
     if (st == 0)

@@ -41,11 +41,53 @@ on (n:text, t:tree);
  * Associates code with click.
  * Associates the specified code to the click.
  * It is equivalent to <tt> on "click", t</tt>.
+ * Here is an example:
+ * @code
+enable_selection_rectangle false
+Clicked -> 0.0
+active_widget
+    locally
+        if (time < Clicked + 0.1) then
+            color "blue"
+        else
+            color "darkblue"
+        rounded_rectangle 0, 0, 150, 60, 20
+        text_box 0, 0, 150, 60,
+            vertical_align_center
+            align_center
+            font "Arial", 28
+            color "white"
+            text "Click me!"
+    on_click
+        writeln "Click!"
+        Clicked := time
+ * @endcode
  *
  * @~french
  * Associe du code au clic de souris.
  * Associe le code @p t au clic de souris.
  * Équivalent à <tt> on "click", t</tt>.
+ * Voici un exemple :
+ * @code
+enable_selection_rectangle false
+Cliqué -> 0.0
+active_widget
+    locally
+        if (time < Cliqué + 0.1) then
+            color "blue"
+        else
+            color "darkblue"
+        rounded_rectangle 0, 0, 160, 60, 20
+        text_box 0, 0, 160, 60,
+            vertical_align_center
+            align_center
+            font "Arial", 24
+            color "white"
+            text "Cliquez-moi !"
+    on_click
+        writeln "Clic!"
+        Cliqué := time
+ * @endcode
  */
 on_click (t:tree);
 

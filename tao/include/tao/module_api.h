@@ -15,8 +15,9 @@
 //
 //
 // ****************************************************************************
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+// This file may be used in accordance with the terms and conditions contained
+// in the Tao Presentations license agreement, or alternatively, in a signed
+// license agreement between you and Taodyne SAS.
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Jerome Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
@@ -48,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   25
-#define TAO_MODULE_API_AGE       6
+#define TAO_MODULE_API_CURRENT   26
+#define TAO_MODULE_API_AGE       7
 
 // ========================================================================
 //
@@ -247,11 +248,16 @@ struct ModuleApi
     // autostereoscopic setups.
     //
     // w and h are the width and height in pixels of the frustum
-    // plane at the target point. numCameras is the total number of cameras,
+    // plane at the target point. The total number of cameras is defined by the
+    // display module. It is queried by Tao Presentations immediately after the
+    // use() callback of the module is called--see registerDisplayFunction()
+    // above. The module must implement the getopt() callback and respond to
+    // the getopt() call with name = "PointsOfView".
     // i is the camera number for which the view is to be rendered (i must be
-    // between 1 and numCameras).
-    void (*setProjectionMatrix)(int w, int h, int i, int numCameras);
-    void (*setModelViewMatrix)(int i, int numCameras);
+    // between 1 and the number of cameras).
+    // The unused parameter may be set to any value.
+    void (*setProjectionMatrix)(int w, int h, int i, int unused);
+    void (*setModelViewMatrix)(int i, int unused);
 
     // Draw the current page.
     void (*drawScene)();
@@ -448,6 +454,16 @@ struct ModuleApi
     // allocated by the Tao texture cache. This function uses the values
     // currently defined in the application settings.
     void (*textureCacheSetMinMagFilters)(uint id);
+
+
+    // ------------------------------------------------------------------------
+    //   Licence checking (continued)
+    // ------------------------------------------------------------------------
+
+    // If the current build of Tao is Impress, return true. If not Impress:
+    // return true if a valid license is found for the requested feature name,
+    // false otherwise.
+    bool (*hasImpressOrLicense)(std::string featureName);
 };
 
 }

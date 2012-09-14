@@ -22,10 +22,6 @@
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
-PREFIX(Crash, tree, "crash", ,
-       *((int *) 0) = 0;
-       return NULL, )
-
 // ============================================================================
 //
 // Getting attributes
@@ -358,6 +354,10 @@ PREFIX(StereoViewpoints,  tree,  "stereo_viewpoints",
        SYNOPSIS("Make a local context")
        DESCRIPTION("Evaluate the child tree while preserving the current state")
        RETURNS(tree, "The result of the child execution."))
+PREFIX(GetStereoViewpoints,  integer,  "stereo_viewpoints", ,
+       RTAO(stereoViewpoints()),
+       GROUP(code)
+       SYNOPSIS("Return the number of viewpoints for the current display"))
 
 
 
@@ -577,6 +577,13 @@ PREFIX(ToggleLogStatistics, boolean, "toggle_log_statistics", ,
        SYNOPSIS("Toggle logging of performance statistics")
        DESCRIPTION("Toggle logging of performance statistics to stdout.")
        RETURNS(boolean, "The previous state."))
+PREFIX(FrameCount, integer, "frame_count", ,
+       RTAO(frameCount(self)),
+       GROUP(gui)
+       SYNOPSIS("The current value of the frame counter")
+       DESCRIPTION("Returns the number of frames that have been displayed "
+                   "so far for the current document.")
+       RETURNS(integer, "The number of frames."))
 PREFIX(ResetView, boolean, "reset_view", ,
        RTAO(resetViewAndRefresh(self)),
        GROUP(gui)
@@ -1111,6 +1118,12 @@ PREFIX(DirName,  tree,  "dir_name",
        GROUP(misc)
        SYNOPSIS("Returns the path of the specified filename.")
        RETURNS(tree, ""))
+PREFIX(OpenUrl, boolean,  "open_url",
+       PARM(u, text, "URL"),
+       RTAO(openUrl(self, u)),
+       GROUP(misc)
+       SYNOPSIS("Opens the given URL with the appropriate application.")
+       RETURNS(boolean, ""))
 
 
 
@@ -1154,10 +1167,11 @@ PREFIX(TextureMipmap, boolean, "texture_mipmap",
 PREFIX(TextureCompress, boolean, "texture_compress",
        PARM(enable, boolean, "Enable or disable"),
        return Tao::TextureCache::textureCompress(enable),
-       SYNOPSIS("Enable or disable texture compression for textures")
-       DESCRIPTION("Controls whether compression is performed when a texture "
-                   "file is loaded. Changing this setting does not cause "
-                   "existing textures to be re-created."))
+       SYNOPSIS("Enable or disable use of compressed textures"))
+PREFIX(TextureSaveCompressed, boolean, "texture_save_compressed",
+       PARM(enable, boolean, "Enable or disable"),
+       return Tao::TextureCache::textureSaveCompressed(enable),
+       SYNOPSIS("Enable or disable creation of compressed texture files"))
 PREFIX(TextureCacheMemSize, integer, "texture_cache_mem_size",
        PARM(bytes, integer, "The size of the texture cache in main memory"),
        return Tao::TextureCache::textureCacheMemSize(bytes),

@@ -43,6 +43,7 @@
 #include "page_layout.h"
 #include "tao_gl.h"
 #include "statistics.h"
+#include "file_monitor.h"
 
 #include <QApplication>
 #include <QDesktopWidget>
@@ -155,6 +156,7 @@ public slots:
                              QString dir, double fps = 25.0, int page = -1,
                              QString displayName = "");
     void        cancelRenderFrames(int s = 1) { renderFramesCanceled = s; }
+    void        addToReloadList(const QString &path) { toReload.append(path); }
 
 
 signals:
@@ -182,7 +184,6 @@ public:
     void        updateSelection();
     uint        showGlErrors();
     QFont &     currentFont();
-    Context *   context();
     QPrinter *  currentPrinter() { return printer; }
     double      printerScaling() { return printer ? printOverscaling : 1; }
     double      scalingFactorFromCamera();
@@ -334,6 +335,8 @@ public:
 
     void        purgeTaoInfo();
 
+    FileMonitor & fileMonitor() { return srcFileMonitor; }
+
 public:
     static Widget *Tao()                { assert(current); return current; }
     Context *   formulasContext()       { return formulas; }
@@ -377,6 +380,7 @@ public:
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
     Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
     Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
+    Integer_p   stereoViewpoints();
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);
@@ -436,6 +440,7 @@ public:
     Name_p      toggleShowStatistics(Tree_p self);
     Name_p      logStatistics(Tree_p self, bool ss);
     Name_p      toggleLogStatistics(Tree_p self);
+    Integer_p   frameCount(Tree_p self);
     Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -646,6 +651,8 @@ public:
     Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
+    Text_p      unicodeChar(Tree_p self, int code);
+    Text_p      unicodeCharText(Tree_p self, text code);
 
     // Tables
     Tree_p      newTable(Context *context, Tree_p self,
@@ -818,6 +825,7 @@ public:
     Name_p      readOnly();
     Text_p      baseName(Tree_p, text filename);
     Text_p      dirName(Tree_p, text filename);
+    Name_p      openUrl(Tree_p, text url);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
@@ -889,6 +897,8 @@ private:
     bool                  inError;
     bool                  mustUpdateDialogs;
     bool                  runOnNextDraw;
+    FileMonitor           srcFileMonitor;
+    QStringList           toReload;
 
     // Rendering
     QGradient*            gradient;
@@ -982,6 +992,7 @@ private:
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
     Statistics            stats;
+    longlong              frameCounter;
     ulonglong             nextSave, nextSync;
 #ifndef CFG_NOGIT
     ulonglong             nextCommit, nextPull;
@@ -1001,7 +1012,6 @@ private:
     double                cameraToScreen;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
-    int                   eye, eyesNumber;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;
@@ -1023,10 +1033,10 @@ private:
     Tree_p      updateParentWithGroupInPlaceOfChild(Tree *parent, Tree *child, Tree_p sel);
     bool    updateParentWithChildrenInPlaceOfGroup(Tree *parent, Prefix *group);
 
-    void                  refreshOn(QEvent::Type type,
+    void                  refreshOn(int type,
                                     double nextRefresh = DBL_MAX);
 public:
-    static bool           refreshOn(int event_type, double next_refresh);
+    static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();
     static void           makeGLContextCurrent();
     static bool           addControlBox(Real *x, Real *y, Real *z,

@@ -82,10 +82,17 @@ int main(int argc, char **argv)
 
     // Initialize and run the Tao application
     int ret = 0;
+
+    try
     {
         Tao::Application tao(argc, argv);
         ret = tao.exec();
         // Note: keep this inside a block so that ~Application gets called!
+    }
+    catch(...)
+    {
+        RECORD(ALWAYS, "Exception caught at top level");
+        signal_handler(99);
     }
 
     RECORD(ALWAYS, "Cleaning up");

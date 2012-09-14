@@ -106,7 +106,9 @@ void GroupInfo::bClicked(QAbstractButton *button)
     // The tree to be evaluated needs its own symbol table before evaluation
     ClickTreeClone replacer(+button->objectName());
     XL::Tree *  toBeEvaluated = action;
+    XL::Symbols * sym = action->Symbols();
     toBeEvaluated = toBeEvaluated->Do(replacer);
+    toBeEvaluated->SetSymbols(sym);
 
     // Evaluate the input tree
     XL::MAIN->context->Evaluate(toBeEvaluated);

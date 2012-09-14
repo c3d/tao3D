@@ -66,7 +66,10 @@ endef
 ifdef TAO_EDITION
 EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
 endif
-DMG=Tao Presentations $(EDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
+ifdef PACKAGE_APPEND
+APPENDSTR=$(PACKAGE_APPEND) # ends with one space - do not remove this comment!
+endif
+DMG=Tao Presentations $(EDSTR)$(APPENDSTR)$(shell ../../tao/updaterev.sh -n).$(ARCH).dmg
 
 kit: .dmg_ts
 
@@ -106,7 +109,7 @@ clean.cp_template:
 
 ########
 
-.cp_sdk_ts:
+.cp_sdk_ts: .tao_install_ts
 ifndef NO_SDK
 	mkdir -p "build_root/Tao Presentations.app/Contents/MacOS"
 	$(MAKE) -C ../.. -f Makefile.sdk

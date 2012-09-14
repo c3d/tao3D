@@ -427,11 +427,11 @@ ConeMesh::ConeMesh(double ratio)
         double sa = sin(a);
 
         double s = a / (2 * M_PI);
-        textures.push_back(Point(s, 0));
+        textures.push_back(Point(s, 1));
         // normals.push_back(Vector3(ca, sa, 0));
         vertices.push_back(Point3(ca * ratio, sa * ratio, 0.5));
 
-        textures.push_back(Point(s, 1));
+        textures.push_back(Point(s, 0));
         // normals.push_back(Vector3(ca, sa, 0));
         vertices.push_back(Point3(ca, sa, -0.5));
     }

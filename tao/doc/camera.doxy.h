@@ -314,5 +314,13 @@ polygon_offset 0, -0.001, 0, -1
 old_camera_settings();
 
 /**
+ * @~english
+ * Return the number of points of view for the current display mode
+ * @~french
+ * Renvoie le nombre de points de vue pour le mode d'affichage courant
+ */
+integer stereo_viewpoints();
+
+/**
  * @}
  */

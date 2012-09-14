@@ -1,4 +1,3 @@
-
 // ****************************************************************************
 //  Welcome.ddd                                                     Tao project
 // ****************************************************************************
@@ -15,7 +14,7 @@
 //
 //
 // ****************************************************************************
-//  (C) 2010-2011 Taodyne SAS
+//  (C) 2010-2012 Taodyne SAS
 // ****************************************************************************
 
 import Animate
@@ -101,7 +100,7 @@ page "Welcome",
         line_width 0
         text "Version " & tao_version
         line_break
-        text "© Copyright 2010-2011 Taodyne SAS"
+        text "© Copyright 2010-2012 Taodyne SAS"
 
 welcome_help T:text ->
 // ----------------------------------------------------------------------------
@@ -139,7 +138,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     ptime -> 0.0
     pcount -> 15
     pshown -> 35
-    pdisplayed -> 35
+    pdisplayed -> 37
     pup -> 3600
     picX N:integer -> 450 * picT N / pshown * sin (177.312 * picN N)
     picY N:integer -> 600 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2
@@ -147,7 +146,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     picA N:integer -> 10 * sin (picT N)
     picS N:integer -> 80% + 30% * sin (153.27 * picN N)
     picN N:integer -> N - integer ptime
-    picT N:integer -> N + ptime mod 1
+    picT N:integer -> N + ptime mod 1 - 1
 
     pimg N:integer -> (picN N mod 15) + 1
     pname N:integer -> "picto_" & text (pimg N) & ".png"

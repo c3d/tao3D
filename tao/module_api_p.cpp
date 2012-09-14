@@ -40,7 +40,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 // ------------------------------------------------------------------------
 {
     scheduleRender   = ModuleRenderer::ScheduleRender;
-    refreshOn        = Widget::refreshOn;
+    refreshOn        = Widget::refreshOnAPI;
     postEvent        = Widget::postEventAPI;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
@@ -109,6 +109,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     hasLicense = Licenses::Has;
     checkLicense = Licenses::Check;
     checkImpressOrLicense = Licenses::CheckImpressOrLicense;
+    hasImpressOrLicense = Licenses::HasImpressOrLicense;
     blink      = Widget::blink;
 
     // Current document info

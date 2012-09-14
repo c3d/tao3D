@@ -37,7 +37,7 @@ OPTION(print_resolution, "Set printer resolution in DPI",
        printResolution = INTEGER(72, 3600))
 
 OPTVAR(rendering_options, text, "-")
-OPTION(render, "Offline rendering: -render pagenum,x,y,start,end,fps,folder[,displaymode]. "
+OPTION(render, "Offline rendering: -render pagenum,width,height,start-time,end-time,fps,folder[,displaymode]. "
                "Render frames and exit. Single document only. Set 'displaymode' to 'help' "
                "for a list of all available modes.",
        rendering_options = STRING)
@@ -58,6 +58,8 @@ OPTION(-reset-eula, "Show End-User License Agreement on next run", ;)
 #endif
 
 OPTION(-version, "Print program version and exit", ;)
+OPTION(-glinfo, "Print information about the OpenGL implementation detected by the program, "
+                "and exit. Includes: vendor, renderer, version and supported extensions.", ;)
 
 OPTION(-one-instance, "Run in client/server mode: first instance is the server, "
                       "subsequent instances send any file path to the server and exit", ;)
@@ -65,3 +67,13 @@ OPTION(-one-instance, "Run in client/server mode: first instance is the server, 
 OPTION(fontpath, "Load fonts from the specified directory. "
                  "This option may appear multiple times to provide "
                  "several paths.", STRING) /* Parsed in Application class */
+
+OPTVAR(tcache_savecomp, bool, false)
+OPTION(savect, "Save compressed textures to disk so that the document loads "
+               "faster the next time it is open (if texture compression is "
+               "enabled in the preferences)", tcache_savecomp = true)
+
+OPTVAR(preload_files, text, "")
+OPTION(p, "Preload file before document. Files are loaded after builtins.xl and tao.xl "
+       "but before user.xl and theme.xl",
+       preload_files += STRING; preload_files += ":")

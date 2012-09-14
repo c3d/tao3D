@@ -211,8 +211,7 @@ inline void MarkAsConstant(Tree* tree)
 
 
 typedef std::set<XL::SourceFile *> import_set;
-bool ImportedFilesChanged(import_set &done,
-                          bool markChanged);
+void ScanImportedFiles(import_set &done,  bool markChanged);
 
 
 TAO_END

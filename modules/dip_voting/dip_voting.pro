@@ -20,3 +20,6 @@ QMAKE_DISTCLEAN = doc/Doxyfile
 DOXYFILE = doc/Doxyfile
 DOXYLANG = en,fr
 include(../modules_doc.pri)
+
+HEADERS += \
+    doc/dip_voting.doxy.h

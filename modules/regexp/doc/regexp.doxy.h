@@ -56,15 +56,15 @@ regexp_match(text input, text pattern);
 /**
  * @~english
  * Returns true if a given input matches a regular expression. This
- * form is infix, i.e. you write @code input matches pattern @encode.
+ * form is infix, i.e. you write: @code input matches pattern @endcode
  * 
  * @param input The text to search
  * @param pattern The regular expression to search for in @ref input
  *
  * @~french
  * Vérifie si un texte contient une certaine expression
- * régulière. Cette forme est infixe, c'est à dire qu'on écrit
- * @code input matches pattern @code.
+ * régulière. Cette forme est infixe, c'est à dire qu'on écrit :
+ * @code input matches pattern @endcode
  *
  * @param input Le texte d'entrée à explorer
  * @param pattern L'expression régulière à rerchercher dans @ref input.
@@ -95,7 +95,7 @@ regexp_match(text input, text pattern);
  * Parse the given input using a number of regular expressions.
  *
  * The @a code parameter must be a block containing a sequence of
- * @code regexp -> code @endcode declarations, optionally by code that
+ * <tt>regexp -> code</tt> declarations, optionally by code that
  * is used when no regexp matches.
 
  * The input is matched against all the given regular expressions. The
@@ -117,8 +117,8 @@ regexp_match(text input, text pattern);
  *
  * By default, regular expressions are "greedy". You can prefix a
  * regular expression with a unary minus to make it ungreedy. This is
- * useful for example when parsing text like
- * @code "A <b>bold</b> text in <b>two places</b>" @endcode.
+ * useful for example when parsing text like:
+ * @code "A <b>bold</b> text in <b>two places</b>" @endcode
  *
  * For example, you can get the "bold" text as follows:
  * @code
@@ -137,7 +137,7 @@ regexp_match(text input, text pattern);
  *
  * Le paramètres @a code doit être un bloc contenant une séquence de
  * déclarations de la forme
- * @code regexp -> code @endcode, éventuellement suivie par du code
+ * <tt>regexp -> code</tt>, éventuellement suivie par du code
  * qui sera utilisé quand aucune des expressions régulières ne convient.
  *
  * Le texte donné en entrée est comparé à chacune des expressions
@@ -148,7 +148,7 @@ regexp_match(text input, text pattern);
  *
  * Par exemple, pour tracer un cercle si un texte contient "circle" ou
  * "cercle", et tracer un rectangle si le texte contient "rect" ou
- * "rectangle", et tracer une image, vous pouvez utiliser le code suivant.
+ * "rectangle", et tracer une image, vous pouvez utiliser le code suivant :
  *
  * @code
  * pattern_match InputText,
@@ -161,9 +161,9 @@ regexp_match(text input, text pattern);
  * dire qu'elles essaient de capturer le maximum de texte. On peut
  * préfixer une expression régulière par le signe moins pour capturer
  * le plus petit texte. C'est utile par exemple pour analyser un texte
- * comme * @code "Un texte <b>gras</b> à <b>deux endroits</b>" @endcode.
+ * comme: @code "Un texte <b>gras</b> à <b>deux endroits</b>" @endcode
  *
- * Par exemple, on peut obtenir le texte "gras", on peut utiliser:
+ * Par exemple, on peut obtenir le texte "gras", on peut utiliser :
  * @code
  * pattern_match InputText,
  *     - "<b>.*</b>"    -> draw_bold_text regexp_captured 1
@@ -210,7 +210,7 @@ regexp_parse(text input, tree code);
  *
  * Par exemple, pour dessiner un cercle pour chaque occurence de
  * "cercle" ou "circle" dans un texte, et retourner le nombre
- * d'éléments tracés, vous pouvez utiliser:
+ * d'éléments tracés, vous pouvez utiliser :
  *
  * @code
  * count := 0
@@ -256,7 +256,7 @@ regexp_parse_last(text input, tree code);
  * une liste avec chacune des valeurs retournées.
  *
  * Par exemple, si on veut faire une liste contenant "Voyelle" pour
- * chaque voyelle, et "Consonne" pour chaque consonne, on peut utiliser:
+ * chaque voyelle, et "Consonne" pour chaque consonne, on peut utiliser :
  *
  * @code
  * regexp_parse_all InputText,
@@ -304,7 +304,7 @@ regexp_parse_all(text input, tree code);
  * assemblant toutes les valeurs retournées en un seul texte.
  *
  * Par exemple, pour extraire le texte d'un fichier HTML ou XML, vous
- * pouvez utiliser le code suivant:
+ * pouvez utiliser le code suivant :
  *
  * @code
  * regexp_parse_text InputText,

@@ -22,11 +22,11 @@
 
 import DIP 1.0
 
-dip_null_start T:text, F:text ->
+dip_null_begin T:text, F:text ->
 // ----------------------------------------------------------------------------
-//   Start a null protocol, given a feature UUID
+//   Begin a null protocol, given a feature UUID
 // ----------------------------------------------------------------------------
-     dip_start_feature_page T, F ,"DIP_null 1.0"
+     dip_begin_feature_page T, F ,"DIP_null 1.0"
 
 dip_null_end  T:text, F:text ->
 // ----------------------------------------------------------------------------

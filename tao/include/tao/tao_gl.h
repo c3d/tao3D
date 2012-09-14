@@ -1,4 +1,5 @@
 #ifndef TAO_GL_H
+#define TAO_GL_H
 // ****************************************************************************
 //  tao_gl.h                                                        Tao project
 // ****************************************************************************
@@ -15,8 +16,9 @@
 //
 //
 // ****************************************************************************
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+// This file may be used in accordance with the terms and conditions contained
+// in the Tao Presentations license agreement, or alternatively, in a signed
+// license agreement between you and Taodyne SAS.
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
@@ -30,7 +32,11 @@
 #ifdef CONFIG_MINGW
 #  include <tao/GL/glew.h>
 #else
-#  define glewInit()
+#  define GLEW_OK 0
+#  define GLEW_VERSION 0
+#  define glewGetString(V) "GLEW: not used"
+#  define glewGetErrorString(err) "GLEW: not used"
+static inline int glewInit() { return GLEW_OK; }
 #endif
 
 #include <QGLFormat>

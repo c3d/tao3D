@@ -3509,6 +3509,7 @@ int Widget::loadFile(text name, bool updateContext)
     return XL::MAIN->LoadFile(name, updateContext);
 }
 
+
 void Widget::loadContextFiles(XL::source_names &files)
 // ----------------------------------------------------------------------------
 //   Load context files in current context
@@ -3691,6 +3692,8 @@ void Widget::refreshProgram()
         }
         updateProgramSource();
         inError = false;
+        XL::MAIN->errors->Clear();
+        taoWindow()->clearErrors();
         needRefresh = true;
     }
     if (needRefresh)

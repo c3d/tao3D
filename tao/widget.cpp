@@ -935,7 +935,7 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inDraw)
+    if (inDraw || inError)
         return false;
 
     if (gotoPageName != "")

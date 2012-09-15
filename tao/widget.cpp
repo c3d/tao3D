@@ -980,6 +980,8 @@ bool Widget::refreshNow(QEvent *event)
         TaoSave saveCurrent(current, this);
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
+        if (changed)
+            checkErrors(false);
         stats.end(Statistics::EXEC);
     }
 
@@ -1130,28 +1132,7 @@ void Widget::runProgramOnce()
     stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
-    if (XL::MAIN->HadErrors())
-    {
-        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
-        std::vector<XL::Error>::iterator ei;
-        Window *window = taoWindow();
-        XL::MAIN->errors->Clear();
-        window->clearErrors();
-        for (ei = errors.begin(); ei != errors.end(); ei++)
-        {
-            text pos = (*ei).Position();
-            text err = (*ei).Message();
-            text message = pos + ": " + err;
-            window->addError(+message);
-            text hint = +errorHint(+err);
-            if (hint != "")
-            {
-                text message = pos + ": " + hint;
-                window->addError(+message);
-            }
-        }
-        inError = true;
-    }
+    checkErrors(true);
 
     // Clean the end of the old menu list.
     for  (; order < orderedMenuElements.count(); order++)
@@ -11172,6 +11153,37 @@ void Widget::clearErrors()
     inError = false;
     XL::MAIN->errors->Clear();
     taoWindow()->clearErrors();
+}
+
+
+void Widget::checkErrors(bool clear)
+// ----------------------------------------------------------------------------
+//   Check if there were errors during evaluation, and display them if any
+// ----------------------------------------------------------------------------
+{
+    if (XL::MAIN->HadErrors())
+    {
+        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
+        std::vector<XL::Error>::iterator ei;
+        Window *window = taoWindow();
+        XL::MAIN->errors->Clear();
+        if (clear)
+            window->clearErrors();
+        for (ei = errors.begin(); ei != errors.end(); ei++)
+        {
+            text pos = (*ei).Position();
+            text err = (*ei).Message();
+            text message = pos + ": " + err;
+            window->addError(+message);
+            text hint = +errorHint(+err);
+            if (hint != "")
+            {
+                text message = pos + ": " + hint;
+                window->addError(+message);
+            }
+        }
+        inError = true;
+    }
 }
 
 

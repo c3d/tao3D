@@ -3495,7 +3495,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
     refreshProgram(); // REVISIT not needed?
-    inError = false;
+    clearErrors();
 }
 
 
@@ -3551,7 +3551,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
     // Now update the window
     updateProgramSource();
     refreshNow();
-    inError = false;
+    clearErrors();
 }
 
 
@@ -3691,9 +3691,7 @@ void Widget::refreshProgram()
             XL::MAIN->LoadFile(sf.name);
         }
         updateProgramSource();
-        inError = false;
-        XL::MAIN->errors->Clear();
-        taoWindow()->clearErrors();
+        clearErrors();
         needRefresh = true;
     }
     if (needRefresh)
@@ -11163,6 +11161,17 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     Tree_p result = (Tree *) err;
     result->SetSymbols(self->Symbols());
     return result;
+}
+
+
+void Widget::clearErrors()
+// ----------------------------------------------------------------------------
+//   Clear all errors, e.g. because we reloaded a document
+// ----------------------------------------------------------------------------
+{
+    inError = false;
+    XL::MAIN->errors->Clear();
+    taoWindow()->clearErrors();
 }
 
 

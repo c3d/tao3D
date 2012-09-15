@@ -1024,6 +1024,7 @@ void Widget::refreshOn(int type, double nextRefresh)
     if (!layout)
         return;
 
+    inError = false;
     if (type == QEvent::Timer)
     {
         double currentTime = CurrentTime();

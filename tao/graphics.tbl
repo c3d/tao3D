@@ -309,6 +309,12 @@ PREFIX(HasDisplayModeText,  boolean,  "has_display_mode",
        SYNOPSIS("Check if a display mode is available")
        DESCRIPTION("Check if a specific display mode is available and can be used")
        RETURNS(boolean, "True if the mode is available, false otherwise.") )
+PREFIX(ScreenShot,  boolean,  "screenshot",
+       PARM(name, text, "The name of the file to save to")
+       PARM(with_alpha, boolean, "True to save the alpha channel"),
+       RTAO(screenShot(self, name, with_alpha)),
+       GROUP(misc)
+       SYNOPSIS("Save a snapshot of the draw area into a file."))
 
 
 

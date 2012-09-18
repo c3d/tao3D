@@ -216,13 +216,13 @@ anchor (t:tree);
  * @~english
  * Selects the line width for shape outlines.
  *
- * @c line_width @c "default" reset the line width to the default value.
+ * @c line_width @c "default" resets the line width to the default value (4).
  * @p lw is the width in pixels.
  *
  * @~french
  * Définit la largeur du trait pour le tracé des formes.
  *
- * @c line_width @c "default" reprend la valeur par défaut.
+ * @c line_width @c "default" reprend la valeur par défaut (4).
  * @p lw est la largeur en pixels.
  */
 line_width (lw:real);
@@ -548,6 +548,7 @@ no_line_color ();
  *       - line_color "font"
  *       - line_color "line"
  *
+ * The default color is transparent black, so that no line is drawn by default.
  * @note @c color @c "font" and @c line_color @c "font" are not the same color,
  * but relevent colors for the line of a glyph and the fill of a glyph.
  *
@@ -571,6 +572,8 @@ no_line_color ();
  *
  * Les modules peuvent également définir des couleurs.
  *
+ * La couleur par défaut est le noir transparent, de sorte qu'aucune contour
+ * n'est tracé par défaut.
  * @note @c color @c "font" et @c line_color @c "font" ne sont pas la même
  * couleur.
  *
@@ -1784,6 +1787,17 @@ ellipse (x:real, y:real, w:real, h:real);
 
 /**
  * @~english
+ * Draws a circle.
+ * Same as <tt>ellipse x, y, r, 2*r</tt>.
+ *
+ * @~french
+ * Affiche un cercle.
+ * Équivalent à <tt>ellipse x, y, r, 2*r</tt>.
+ */
+circle (x:real, y:real, r:real);
+
+/**
+ * @~english
  * Draws an elliptic sector.
  *
  * Elliptic sector centered around (@p x, @p y) that occupies the given
@@ -1918,7 +1932,7 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
  * @~english
- * Draws a star.
+ * Draws a star polygon.
  *
  * This primitive draws a regular star polygon centered at (@p x, @p y).
  * The star is obtained by placing @p p vertices regularly spaced on a
@@ -1926,7 +1940,7 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
  * connected together.
  *
  * @~french
- * Affiche une étoile.
+ * Affiche un polygone étoilé.
  *
  * Cette primitive définit une étoile régulière centrée en (@p x, @p y).
  * L'étoile est obtenue en plaçant @p p sommets régulièrement espacés sur un
@@ -1995,7 +2009,7 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *
  * This primitives draws a regular polygon with @p p vertex.
  * @image html polygon.png
- * Shortcuts has been defined for polygon from 3 to 20 vertexes.
+ * Shortcuts have been defined for polygon from 3 to 20 vertices.
  *
  * @~french
  * Affiche un polygone régulier.
@@ -2004,48 +2018,47 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  * @image html polygon.png
  * Des raccourcis existent pour les polygones de 3 à 20 sommets :
  * @~
- *  -# -
- *  -# -
- *  -# equilateral_triangle
- *  -# tetragon
- *  -# pentagon
- *  -# hexagon
- *  -# heptagon
- *  -# octagon
- *  -# nonagon
- *  -# decagon
- *  -# hendecagon
- *  -# dodecagon
- *  -# tridecagon
- *  -# tetradecagon
- *  -# pentadecagon
- *  -# hexadecagon
- *  -# heptadecagon
- *  -# octadecagon
- *  -# enneadecagon
- *  -# icosagon
+ * -# N/A
+ * -# N/A
+ * -# equilateral_triangle
+ * -# tetragon
+ * -# pentagon
+ * -# hexagon
+ * -# heptagon
+ * -# octagon
+ * -# nonagon
+ * -# decagon
+ * -# hendecagon
+ * -# dodecagon
+ * -# tridecagon
+ * -# tetradecagon
+ * -# pentadecagon
+ * -# hexadecagon
+ * -# heptadecagon
+ * -# octadecagon
+ * -# enneadecagon
+ * -# icosagon
  */
 polygon (x:real, y:real, w:real, h:real, p:integer);
 
 /**
- * @copydoc star_polygon
- * @image html polygram.png
  * @~english
+ * Synonym for @ref star_polygon.
  * Shortcuts has been defined for polygram from 5 to 10 vertexes.
  *
  * @~french 
+ * Synonyme de @ref star_polygon.
  * Des raccourcis existent pour des polygrams de 5 à 10 sommets.
  *
  * @~
- *  - pentagram       p = 5, q = 2
- *  - hexagram        p = 6, q = 2
- *  - star_of_david   p = 6, q = 2
- *  - heptagram       p = 7, q = 2
- *  - star_of_lakshmi p = 8, q = 2
- *  - octagram        p = 8, q = 3
- *  - nonagram        p = 9, q = 3
- *  - decagram        p =10, q = 3
-
+ * - pentagram       p = 5, q = 2
+ * - hexagram        p = 6, q = 2
+ * - star_of_david   p = 6, q = 2
+ * - heptagram       p = 7, q = 2
+ * - star_of_lakshmi p = 8, q = 2
+ * - octagram        p = 8, q = 3
+ * - nonagram        p = 9, q = 3
+ * - decagram        p =10, q = 3
  */
 polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
 

@@ -251,7 +251,7 @@ integer lights_mask();
  * @~english
  * Sets the color and intensity of the ambient emission of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightfv(id, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glLightfv(id, GL_AMBIENT, {r, g, b, a})</tt>.
  *
  * The default color is black for all lights.
  *
@@ -259,7 +259,7 @@ integer lights_mask();
  * Définit la couleur et l'intensité de la composante ambiante de la lumière
  * courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightfv(id, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glLightfv(id, GL_AMBIENT, {r, g, b, a})</tt>.
  *
  * La couleur par défaut est noir pour toutes les lumières.
  */
@@ -270,7 +270,7 @@ light_ambient(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the color and intensity of the diffuse emission of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightfv(id, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glLightfv(id, GL_DIFFUSE, {r, g, b, a})</tt>.
  *
  * The default color is white for light 0 and black for the others.
  *
@@ -278,7 +278,7 @@ light_ambient(r:real, g:real, b:real, a:real);
  * Définit la couleur et l'intensité de la composante diffuse de la lumière
  * courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightfv(id, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glLightfv(id, GL_DIFFUSE, {r, g, b, a})</tt>.
  *
  * La couleur par défaut est le blanc pour la lumière numéro 0 et le noir pour
  * toutes les autres.
@@ -290,7 +290,7 @@ light_diffuse(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the color and intensity of the specular emission of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightfv(id, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glLightfv(id, GL_SPECULAR, {r, g, b, a})</tt>.
  *
  * The default color is white for light 0 and black for the others.
  *
@@ -298,7 +298,7 @@ light_diffuse(r:real, g:real, b:real, a:real);
  * Définit la couleur et l'intensité de la composante spéculaire de la lumière
  * courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightfv(id, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glLightfv(id, GL_SPECULAR, {r, g, b, a})</tt>.
  *
  * La couleur par défaut est le blanc pour la lumière numéro 0 et le noir pour
  * toutes les autres.
@@ -310,12 +310,12 @@ light_specular(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the position of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightfv(id, GL_POSITION, {x, y, z, 0})</tt>
+ * <tt>glLightfv(id, GL_POSITION, {x, y, z, 0})</tt>.
  *
  * @~french
  * Définit la position de la lumière courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightfv(id, GL_POSITION, {x, y, z, 0})</tt>
+ * <tt>glLightfv(id, GL_POSITION, {x, y, z, 0})</tt>.
  *
  * @~
  * @see light_position(x:real, y:real, z:real);
@@ -327,7 +327,7 @@ light_position(x:real, y:real, z:real);
  * @~english
  * Sets the position of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightfv(id, GL_POSITION, {x, y, z, w})</tt>
+ * <tt>glLightfv(id, GL_POSITION, {x, y, z, w})</tt>.
  *
  * If @p w is 0.0, the light is treated as a directional source.
  * Diffuse and specular lighting calculations take the light's direction,
@@ -345,7 +345,7 @@ light_position(x:real, y:real, z:real);
  * @~french
  * Définit la position de la lumière courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightfv(id, GL_POSITION, {x, y, z, w})</tt>
+ * <tt>glLightfv(id, GL_POSITION, {x, y, z, w})</tt>.
  *
  * Si @p w est égal à 0.0 (la valeur par défaut), la lumière est
  * considérée comme une source
@@ -368,12 +368,12 @@ light_position(x:real, y:real, z:real, w:real);
  * @~english
  * Sets the spot direction of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightfv(id, GL_SPOT_DIRECTION, {x, y, z})</tt>
+ * <tt>glLightfv(id, GL_SPOT_DIRECTION, {x, y, z})</tt>.
  *
  * @~french
  * Définit la direction du spot de la lumière courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightfv(id, GL_SPOT_DIRECTION, {x, y, z})</tt>
+ * <tt>glLightfv(id, GL_SPOT_DIRECTION, {x, y, z})</tt>.
  */
 light_spot_direction(x:real, y:real, z:real);
 
@@ -382,12 +382,12 @@ light_spot_direction(x:real, y:real, z:real);
  * @~english
  * Sets the spot exponent of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightf(id, GL_SPOT_EXPONENT, x)</tt>
+ * <tt>glLightf(id, GL_SPOT_EXPONENT, x)</tt>.
  *
  * @~french
  * Définit l'exposant de spot de la lumière courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightf(id, GL_SPOT_EXPONENT, x)</tt>
+ * <tt>glLightf(id, GL_SPOT_EXPONENT, x)</tt>.
  */
 light_spot_exponent(x:real);
 
@@ -395,12 +395,12 @@ light_spot_exponent(x:real);
  * @~english
  * Sets the spot cutoff of the current light.
  * Equivalent to the OpenGL call:
- * <tt>glLightf(id, GL_SPOT_CUTOFF, x)</tt>
+ * <tt>glLightf(id, GL_SPOT_CUTOFF, x)</tt>.
  *
  * @~french
  * Définit l'angle limite du spot de la lumière courante.
  * Équivalent à l'appel OpenGL :
- * <tt>glLightf(id, GL_SPOT_CUTOFF, x)</tt>
+ * <tt>glLightf(id, GL_SPOT_CUTOFF, x)</tt>.
  */
 light_spot_cutoff(x:real);
 
@@ -426,12 +426,15 @@ light_attenuation(c:real, l:real, q:real);
  * @~english
  * Sets the ambient parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, {r, g, b, a})</tt>.
  *
  * @~french
  * Définit la composante couleur ambiante du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_AMBIENT, {r, g, b, a})</tt>.
+ *
+ * @~
+ * @see material_front_ambient, material_back_ambient
  */
 material_ambient(r:real, g:real, b:real, a:real);
 
@@ -440,12 +443,15 @@ material_ambient(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the diffuse parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, {r, g, b, a})</tt>.
  *
  * @~french
  * Définit la composante couleur diffuse du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_DIFFUSE, {r, g, b, a})</tt>.
+ *
+ * @~
+ * @see material_front_diffuse, material_back_diffuse
  */
 material_diffuse(r:real, g:real, b:real, a:real);
 
@@ -454,12 +460,15 @@ material_diffuse(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the specular parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, {r, g, b, a})</tt>.
  *
  * @~french
  * Définit la composante couleur spéculaire du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_SPECULAR, {r, g, b, a})</tt>.
+ *
+ * @~
+ * @see material_front_specular, material_back_specular
  */
 material_specular(r:real, g:real, b:real, a:real);
 
@@ -468,12 +477,15 @@ material_specular(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the emission parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, {r, g, b, a})</tt>.
  *
  * @~french
  * Définit la composante couleur d'émission du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT_AND_BACK, GL_EMISSION, {r, g, b, a})</tt>.
+ *
+ * @~
+ * @see material_front_emission, material_back_emission
  */
 material_emission(r:real, g:real, b:real, a:real);
 
@@ -482,12 +494,15 @@ material_emission(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the shininess parameter of the current material (two faces).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>
+ * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>.
  *
  * @~french
  * Définit la brillance du matériau (deux faces).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>
+ * <tt>glMaterialf(GL_FRONT_AND_BACK, GL_SHININESS, x)</tt>.
+ *
+ * @~
+ * @see material_front_shininess, material_back_shininess
  */
 material_shininess(x:real);
 
@@ -496,12 +511,19 @@ material_shininess(x:real);
  * @~english
  * Sets the ambient parameter of the current material (front face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_AMBIENT, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0.2, 0.2, 0.2, 1.0)</tt>.
  *
  * @~french
  * Définit la composante couleur ambiante du matériau (face avant).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_AMBIENT, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0.2, 0.2, 0.2, 1.0)</tt>.
+ *
+ * @~
+ * @see material_back_ambient, material_ambient
  */
 material_front_ambient(r:real, g:real, b:real, a:real);
 
@@ -510,12 +532,19 @@ material_front_ambient(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the diffuse parameter of the current material (front face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_DIFFUSE, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0.8, 0.8, 0.8, 1.0)</tt>.
  *
  * @~french
  * Définit la composante couleur diffuse du matériau (face avant).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_DIFFUSE, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0.8, 0.8, 0.8, 1.0)</tt>.
+ *
+ * @~
+ * @see material_back_diffuse, material_diffuse
  */
 material_front_diffuse(r:real, g:real, b:real, a:real);
 
@@ -524,12 +553,19 @@ material_front_diffuse(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the specular parameter of the current material (front face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_SPECULAR, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0, 0, 0, 1)</tt>.
  *
  * @~french
  * Définit la composante couleur spéculaire du matériau (face avant).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_SPECULAR, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0, 0, 0, 1)</tt>.
+ *
+ * @~
+ * @see material_back_specular, material_specular
  */
 material_front_specular(r:real, g:real, b:real, a:real);
 
@@ -538,12 +574,19 @@ material_front_specular(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the emission parameter of the current material (front face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_FRONT, GL_EMISSION, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_EMISSION, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0, 0, 0, 1)</tt>.
  *
  * @~french
  * Définit la composante couleur d'émission du matériau (face avant).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_FRONT, GL_EMISSION, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_FRONT, GL_EMISSION, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0, 0, 0, 1)</tt>.
+ *
+ * @~
+ * @see material_back_emission, material_emission
  */
 material_front_emission(r:real, g:real, b:real, a:real);
 
@@ -552,12 +595,19 @@ material_front_emission(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the shininess parameter of the current material (front face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialf(GL_FRONT, GL_SHININESS, x)</tt>
+ * <tt>glMaterialf(GL_FRONT, GL_SHININESS, x)</tt>.
+ * @n
+ * The default value is <tt>0</tt>.
  *
  * @~french
  * Définit la brillance du matériau (face avant).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialf(GL_FRONT, GL_SHININESS, x)</tt>
+ * <tt>glMaterialf(GL_FRONT, GL_SHININESS, x)</tt>.
+ * @n
+ * La valeur par défaut est <tt>0</tt>.
+ *
+ * @~
+ * @see material_back_shininess, material_shininess
  */
 material_front_shininess(x:real);
 
@@ -566,12 +616,19 @@ material_front_shininess(x:real);
  * @~english
  * Sets the ambient parameter of the current material (back face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_BACK, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_AMBIENT, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0.2, 0.2, 0.2, 1.0)</tt>.
  *
  * @~french
  * Définit la composante couleur ambiante du matériau (face arrière).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_BACK, GL_AMBIENT, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_AMBIENT, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0.2, 0.2, 0.2, 1.0)</tt>.
+ *
+ * @~
+ * @see material_front_ambient, material_ambient
  */
 material_back_ambient(r:real, g:real, b:real, a:real);
 
@@ -580,12 +637,19 @@ material_back_ambient(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the diffuse parameter of the current material (back face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_BACK, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_DIFFUSE, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0.8, 0.8, 0.8, 1.0)</tt>.
  *
  * @~french
  * Définit la composante couleur diffuse du matériau (face arrière).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_BACK, GL_DIFFUSE, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_DIFFUSE, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0.8, 0.8, 0.8, 1.0)</tt>.
+ *
+ * @~
+ * @see material_front_diffuse, material_diffuse
  */
 material_back_diffuse(r:real, g:real, b:real, a:real);
 
@@ -594,12 +658,19 @@ material_back_diffuse(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the specular parameter of the current material (back face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_BACK, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_SPECULAR, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0, 0, 0, 1)</tt>.
  *
  * @~french
  * Définit la composante couleur spéculaire du matériau (face arrière).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_BACK, GL_SPECULAR, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_SPECULAR, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0, 0, 0, 1)</tt>.
+ *
+ * @~
+ * @see material_front_specular, material_specular
  */
 material_back_specular(r:real, g:real, b:real, a:real);
 
@@ -608,12 +679,19 @@ material_back_specular(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the emission parameter of the current material (back face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialfv(GL_BACK, GL_EMISSION, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_EMISSION, {r, g, b, a})</tt>.
+ * @n
+ * The default value is <tt>(0, 0, 0, 1)</tt>.
  *
  * @~french
  * Définit la composante couleur d'émission du matériau (face arrière).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialfv(GL_BACK, GL_EMISSION, {r, g, b, a})</tt>
+ * <tt>glMaterialfv(GL_BACK, GL_EMISSION, {r, g, b, a})</tt>.
+ * @n
+ * La valeur par défaut est <tt>(0, 0, 0, 1)</tt>.
+ *
+ * @~
+ * @see material_front_emission, material_emission
  */
 material_back_emission(r:real, g:real, b:real, a:real);
 
@@ -622,12 +700,19 @@ material_back_emission(r:real, g:real, b:real, a:real);
  * @~english
  * Sets the shininess parameter of the current material (back face).
  * Equivalent to the OpenGL call:
- * <tt>glMaterialf(GL_BACK, GL_SHININESS, x)</tt>
+ * <tt>glMaterialf(GL_BACK, GL_SHININESS, x)</tt>.
+ * @n
+ * The default value is <tt>0</tt>.
  *
  * @~french
  * Définit la brillance du matériau (face arrière).
  * Équivalent à l'appel OpenGL :
- * <tt>glMaterialf(GL_BACK, GL_SHININESS, x)</tt>
+ * <tt>glMaterialf(GL_BACK, GL_SHININESS, x)</tt>.
+ * @n
+ * La valeur par défaut est <tt>0</tt>.
+ *
+ * @~
+ * @see material_front_shininess, material_shininess
  */
 material_back_shininess(x:real);
 

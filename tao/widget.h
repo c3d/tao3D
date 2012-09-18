@@ -828,6 +828,7 @@ public:
     Text_p      baseName(Tree_p, text filename);
     Text_p      dirName(Tree_p, text filename);
     Name_p      openUrl(Tree_p, text url);
+    Name_p      screenShot(Tree_p, text filename, bool withAlpha);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
@@ -945,6 +946,8 @@ private:
 #else
     bool                  frameBufferReady() { return true; }
 #endif
+    QString               screenShotPath;
+    bool                  screenShotWithAlpha;
 
     // Selection
     Activity *            activities;

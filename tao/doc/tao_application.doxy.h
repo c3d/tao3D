@@ -70,26 +70,6 @@ boolean enable_animations(animations:boolean);
 
 /**
  * @~english
- * Controls slide-show mode.
- *
- * Activate or deactivate slide-show mode, depending on 
- * the value of the flag. When activated, the document is
- * displayed full-screen, the cursor hides automatically
- * and the screensaver is deactivated.
- * @returns [boolean] The previous value of the slide-show mode.
- *
- * @~french
- * Active ou désactive le mode présentation.
- * En mode présentation, le document est affiché en plein écran, le pointeur
- * de souris disparaît automatiquement après deux secondes d'inactivité, et
- * l'économiseur d'écran est désactivé.
- * @returns [boolean] La valeur précédente du mode présentation.
- */
-boolean slide_show(show:boolean);
-
-
-/**
- * @~english
  * Controls the display of rendering statistics.
  *
  * Shows or hides fps statistics.

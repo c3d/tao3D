@@ -92,7 +92,7 @@ int main(int argc, char **argv)
     catch(...)
     {
         RECORD(ALWAYS, "Exception caught at top level");
-        signal_handler(99);
+        std::cerr << "Exception caught, exiting\n";
     }
 
     RECORD(ALWAYS, "Cleaning up");

@@ -81,14 +81,6 @@ GeneralPage::GeneralPage(QWidget *parent)
             this, SLOT(setCheckForUpdate(bool)));
     grid->addWidget(cfu, 2, 1);
 
-//    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
-//    noStereo = new QCheckBox;
-//    grid->addWidget(noStereo, 2, 2);
-//    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
-//    noStereo->setChecked(disable);
-//    connect(noStereo, SIGNAL(toggled(bool)),
-//            this,     SLOT(disableStereoBuffers(bool)));
-
     group->setLayout(grid);
 
     message = new QLabel;

@@ -156,6 +156,7 @@ bool DDEWidget::ddeTerminate(MSG* message, long* result)
     // WM_DDE_TERMINATE message.
     ::PostMessageW((HWND)message->wParam, WM_DDE_TERMINATE, (WPARAM)winId(),
                    message->lParam);
+    *result = 0;
     return true;
 }
 

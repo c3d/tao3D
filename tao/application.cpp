@@ -349,7 +349,7 @@ void Application::deferredInit()
         checkModules();
 
     // Check for update now if wanted
-    if(GeneralPage::checkForUpdate())
+    if(GeneralPage::checkForUpdateOnStartup())
         updateApp->check();
 
     // Record application start time (licensing)

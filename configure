@@ -32,6 +32,8 @@ usage() {
   echo "  --disable-doc   Do not build documentation."
   echo "  --with-eula     Enable the End-User License Agreement dialog (REQUIRED for"
   echo "                  official builds)"
+  echo "  --with-cfu      Check for update on application startup (unless overriden"
+  echo "                  in preferences)"
   echo ""
   echo "Edition Name:"
   echo ""
@@ -124,6 +126,10 @@ while [ $# -ne 0 ] ; do
       ;;
     --with-eula)
       FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
+      shift
+      ;;
+    --with-cfu)
+      FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
       shift
       ;;
     discovery)

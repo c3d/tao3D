@@ -350,7 +350,12 @@ void Application::deferredInit()
 
     // Check for update now if wanted
     if(GeneralPage::checkForUpdateOnStartup())
-        updateApp->check();
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        QDateTime last = updateApp->lastChecked();
+        if (!last.isValid() || last.secsTo(now) > 24*60*60)
+            updateApp->check();
+    }
 
     // Record application start time (licensing)
     startTime = Widget::trueCurrentTime();

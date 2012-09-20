@@ -1,245 +1,357 @@
+// ****************************************************************************
+//  taotester.cpp						    Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The test tools
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// This software is property of Taodyne SAS - Confidential
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+//  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2010 Taodyne SAS
+// ****************************************************************************
+
 #include "taotester.h"
+#include "utf8.h"
+#include "widgettests.h"
 #include "runtime.h"
 
-#include <QDir>
-using namespace XL;
+#include "../tao_synchro/tao_control_event.h"
+#include "../tao_synchro/event_capture.h"
 
+
+#include <QFileInfo>
+using namespace XL;
 
 XL_DEFINE_TRACES
 
-taoTester *taoTester::testWrap = NULL;
+// ============================================================================
+//
+//   Test recorder functions
+//
+// ============================================================================
 
 
-taoTester::taoTester() : current(NULL)
+TestRecorder * recorder()
 {
+    return (TestRecorder * )synchroBasic::base->tao_event_handler;
 }
 
-// ============================================================================
-//
-//   Tests functions
-//
-// ============================================================================
 
-
-Tree_p taoTester::startRecTest(Tree_p )
+Tree_p startRecTest(Tree_p )
 // ----------------------------------------------------------------------------
 //   Start recording a sequence of events
 // ----------------------------------------------------------------------------
 {
-    currentTest()->startRecord();
+    if (synchroBasic::base)
+    {
+        synchroBasic::base->stop();
+        delete synchroBasic::base;
+    }
+    EventCapture *currentCapture = new EventCapture(new TestRecorder());
+    synchroBasic::base = currentCapture;
+    currentCapture->startCapture();
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::stop(Tree_p )
-// ----------------------------------------------------------------------------
-//   Stop recording events
-// ----------------------------------------------------------------------------
-{
-    currentTest()->stop();
-    return XL::xl_true;
-}
-
-
-Tree_p taoTester::playTest(Tree_p )
-// ----------------------------------------------------------------------------
-//   Replay the test
-// ----------------------------------------------------------------------------
-{
-    bool res = currentTest()->startPlay();
-    currentTest()->printResult();
-    return  res ? XL::xl_true : XL::xl_false;
-}
-
-
-Tree_p taoTester::resetTest(Tree_p)
- // ----------------------------------------------------------------------------
- //   Reset current test
- // ----------------------------------------------------------------------------
-{
-    currentTest()->stop();
-    currentTest()->reset();
-    return XL::xl_true;
-}
-
-
-Tree_p taoTester::saveTest(Tree_p)
-// ----------------------------------------------------------------------------
-//   Save the named test
-// ----------------------------------------------------------------------------
-{
-    currentTest()->save();
-    return XL::xl_true;
-}
-
-
-Tree_p taoTester::testCheck(Tree_p)
+Tree_p testCheck(Tree_p)
 // ----------------------------------------------------------------------------
 //  Insert a check point in the current registering test event list.
 // ----------------------------------------------------------------------------
 {
-    currentTest()->checkNow();
+    if (!synchroBasic::base) return XL::xl_false;
+
+    recorder()->checkNow();
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testDef(Context *context,
-                          Tree_p , Text_p name, Integer_p fId, Text_p desc,
-                          Tree_p body, Real_p thr, Integer_p width, Integer_p height)
+Tree_p saveTest(Tree_p)
+// ----------------------------------------------------------------------------
+//   Save the named test
+// ----------------------------------------------------------------------------
+{
+    if (!synchroBasic::base) return XL::xl_false;
+
+    recorder()->save();
+    return XL::xl_true;
+}
+
+
+// ============================================================================
+//
+//   Test recorder and player common functions
+//
+// ============================================================================
+
+
+Tree_p stop(Tree_p )
+// ----------------------------------------------------------------------------
+//   Stop recording events
+// ----------------------------------------------------------------------------
+{
+    if (!synchroBasic::base) return XL::xl_false;
+
+    synchroBasic::base->stop();
+    return XL::xl_true;
+}
+
+
+// ============================================================================
+//
+//   Test player functions
+//
+// ============================================================================
+
+TestPlayer * player()
+{
+    if (!synchroBasic::base)
+        synchroBasic::base = new EventClient( new TestPlayer() );
+
+    return (TestPlayer * )synchroBasic::base->tao_event_handler;
+}
+
+
+Tree_p playTest(Tree_p, bool makeRef )
+// ----------------------------------------------------------------------------
+//   Replay the test in make ref or make check
+// ----------------------------------------------------------------------------
+{
+    player()->makeRef = makeRef;
+    EventClient *currentClient = (EventClient *)synchroBasic::base;
+    currentClient->startClient();
+    return XL::xl_true;
+}
+
+
+Tree_p resetTest(Tree_p)
+ // ----------------------------------------------------------------------------
+ //   Reset current test
+ // ----------------------------------------------------------------------------
+{
+    if (!synchroBasic::base) return XL::xl_false;
+    synchroBasic::base->stop();
+    if (WidgetTests *t =
+            dynamic_cast<WidgetTests *>(synchroBasic::base->tao_event_handler))
+        t->reset();
+    return XL::xl_true;
+}
+
+
+// ============================================================================
+//
+//   Loading functions
+//
+// ============================================================================
+
+
+Tree_p testDef(Context *context,
+               Tree_p, Text_p name, Integer_p fId, Text_p desc,
+               Tree_p body, Integer_p width, Integer_p height)
 // ----------------------------------------------------------------------------
 //   Define a new test
 // ----------------------------------------------------------------------------
 {
-    QStringList dirList = QDir::searchPaths("image");
-    text dir = +dirList.at(1) + '/' + name->value;
-    currentTest()->reset(name->value, fId->value, desc->value, dir,
-                         thr->value, width->value, height->value);
-    return xl_evaluate(context, body);
+    player()->reset(name->value, fId->value, desc->value,
+                    width->value, height->value);
+    Tree * result = xl_evaluate(context, body);
+    player()->state = ready;
+    return result;
 }
 
 
-Tree_p taoTester::testAddKeyPress(Tree_p , Integer_p key,
-                                  Integer_p modifiers, Integer_p delay )
+Tree_p testAddKeyPress(Tree_p, Integer_p key,
+                       Integer_p modifiers, Integer_p delay )
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addKeyPress((Qt::Key)key->value,
-                            (Qt::KeyboardModifiers)modifiers->value,
-                            delay->value);
+    QKeyEvent ke(QEvent::KeyPress,
+                 (Qt::Key)key->value,
+                 (Qt::KeyboardModifiers)modifiers->value);
+
+    player()->add( new TaoKeyEvent(ke, delay->value) );
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddKeyRelease(Tree_p , Integer_p key,
-                                    Integer_p modifiers, Integer_p delay )
+Tree_p testAddKeyRelease(Tree_p, Integer_p key,
+                         Integer_p modifiers, Integer_p delay )
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addKeyRelease((Qt::Key)key->value,
-                              (Qt::KeyboardModifiers)modifiers->value,
-                              delay->value);
+    QKeyEvent ke(QEvent::KeyRelease,
+                 (Qt::Key)key->value,
+                 (Qt::KeyboardModifiers)modifiers->value);
+
+    player()->add( new TaoKeyEvent(ke, delay->value) );
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddMousePress(Tree_p , Integer_p button, Integer_p modifiers,
-                                    Integer_p x, Integer_p y, Integer_p delay)
+Tree_p testAddMousePress(Tree_p, Integer_p button, Integer_p buttons,
+                         Integer_p modifiers,
+                         Integer_p x, Integer_p y, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addMousePress((Qt::MouseButton)button->value,
-                              (Qt::KeyboardModifiers)modifiers->value,
-                              QPoint(x->value, y->value),
-                              delay->value);
+    QMouseEvent me(QEvent::MouseButtonPress,
+                   QPoint(x->value, y->value),
+                   (Qt::MouseButton)button->value,
+                   (Qt::MouseButtons)buttons->value,
+                   (Qt::KeyboardModifiers)modifiers->value);
+
+    player()->add( new TaoMouseEvent(me, delay->value) );
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddMouseRelease(Tree_p , Integer_p button,
-                                      Integer_p modifiers,
-                                      Integer_p x, Integer_p y, Integer_p delay)
+Tree_p testAddMouseRelease(Tree_p, Integer_p button,
+                           Integer_p buttons, Integer_p modifiers,
+                           Integer_p x, Integer_p y, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addMouseRelease((Qt::MouseButton)button->value,
-                                (Qt::KeyboardModifiers)modifiers->value,
-                                QPoint(x->value, y->value),
-                                delay->value);
+    QMouseEvent me(QEvent::MouseButtonRelease,
+                   QPoint(x->value, y->value),
+                   (Qt::MouseButton)button->value,
+                   (Qt::MouseButtons)buttons->value,
+                   (Qt::KeyboardModifiers)modifiers->value);
+
+    player()->add( new TaoMouseEvent(me, delay->value) );
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddMouseDClick(Tree_p , Integer_p button, Integer_p modifiers,
-                                     Integer_p x, Integer_p y, Integer_p delay)
+Tree_p testAddMouseDClick(Tree_p, Integer_p button,
+                          Integer_p buttons, Integer_p modifiers,
+                          Integer_p x, Integer_p y, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addMouseDClick((Qt::MouseButton)button->value,
-                               (Qt::KeyboardModifiers)modifiers->value,
-                               QPoint(x->value, y->value),
-                               delay->value);
+    QMouseEvent me(QEvent::MouseButtonDblClick,
+                   QPoint(x->value, y->value),
+                   (Qt::MouseButton)button->value,
+                   (Qt::MouseButtons)buttons->value,
+                   (Qt::KeyboardModifiers)modifiers->value);
+
+    player()->add( new TaoMouseEvent(me, delay->value) );
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddMouseMove(Tree_p , Integer_p button, Integer_p modifiers,
-                                   Integer_p x, Integer_p y,
-                                   Integer_p delay)
+Tree_p testAddMouseMove(Tree_p, Integer_p buttons,
+                        Integer_p modifiers,
+                        Integer_p x, Integer_p y,
+                        Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addMouseMove((Qt::MouseButton)button->value,
-                             (Qt::KeyboardModifiers)modifiers->value,
-                             QPoint(x->value, y->value),
-                             delay->value);
+    QMouseEvent me(QEvent::MouseMove,
+                   QPoint(x->value, y->value),
+                   Qt::NoButton,
+                   (Qt::MouseButtons)buttons->value,
+                   (Qt::KeyboardModifiers)modifiers->value);
+
+    player()->add( new TaoMouseEvent(me, delay->value) );
+
    return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddAction(Tree_p , Text_p name, Integer_p delay)
+Tree_p testAddAction(Tree_p , Text_p name, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a key press event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addAction(+name->value, delay->value);
+    player()->add(new TaoActionEvent(+name->value, delay->value));
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddCheck(Tree_p , Integer_p num, Integer_p delay)
+Tree_p testAddCheck(Tree_p , Integer_p num, Integer_p delay, double thr)
 // ----------------------------------------------------------------------------
 //  Add a check view event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addCheck(num->value, delay->value);
+    player()->add( new TaoCheckEvent(num->value, delay->value, thr));
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddFont(Tree_p , Text_p name, Text_p ftname, Integer_p delay)
+Tree_p testAddFont(Tree_p, Text_p name, Text_p ftname, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a font change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addFont(+name->value, +ftname->value, delay->value);
+    player()->add(new TaoFontActionEvent(+name->value, +ftname->value,
+                                         delay->value));
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddColor(Tree_p , Text_p name, Text_p colname, Integer_p delay)
+Tree_p testAddColor(Tree_p, Text_p name, Text_p colname,
+                    Real_p alpha, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a color change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addColor(+name->value, +colname->value, delay->value);
+    player()->add(new TaoColorActionEvent(+name->value, +colname->value,
+                                          alpha->value, delay->value));
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddFile(Tree_p , Text_p name, Text_p filename, Integer_p delay)
+Tree_p testAddFile(Tree_p, Text_p name, Text_p filename, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a font change event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addFile(+name->value, +filename->value, delay->value);
+    player()->add(new TaoFileActionEvent(+name->value, +filename->value,
+                                         delay->value));
     return XL::xl_true;
 }
 
 
-Tree_p taoTester::testAddCloseDialog(Tree_p , Text_p diagname,
-                                     Integer_p result, Integer_p delay)
+Tree_p testAddCloseDialog(Tree_p, Text_p diagname,
+                          Integer_p result, Integer_p delay)
 // ----------------------------------------------------------------------------
 //  Add a close dialog box event to the current test
 // ----------------------------------------------------------------------------
 {
-    currentTest()->addDialogClose(+diagname->value, result->value, delay->value);
+    player()->add(new TaoDialogActionEvent(+diagname->value, result->value,
+                                                delay->value));
     return XL::xl_true;
 }
 
+
+extern "C"
+{
+
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
+// ----------------------------------------------------------------------------
+//   On module initialization, register display function
+// ----------------------------------------------------------------------------
+{
+    XL_INIT_TRACES();
+    synchroBasic::tao = api;
+    return 0;
+}
+
+} // extern "C"
 

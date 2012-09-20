@@ -339,6 +339,7 @@ public:
 
 public:
     static Widget *Tao()                { assert(current); return current; }
+    static Widget *findTaoWidget();
     Context *   formulasContext()       { return formulas; }
     static int  screenNumber() { return qApp->desktop()->screenNumber(Tao()); }
 

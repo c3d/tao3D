@@ -1,0 +1,15 @@
+fontTextured_test -> test_definition "fontTextured", 0,  <<>>, 1920, 1135, 
+  test_add_check 0, 1523, 0
+  test_add_mouse_move 0, 0, 0, 643, 13, 91
+  test_add_key_press 16777237, 536870912, 719 // 
+  test_add_key_release 16777237, 536870912, 386 // 
+
+start_test -> 
+  fontTextured_test
+  display_mode "taotester"
+  test_replay
+
+start_ref -> 
+  fontTextured_test
+  display_mode "taotester"
+  make_ref

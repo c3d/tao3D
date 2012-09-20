@@ -55,6 +55,7 @@
         dip_dedication \
         DIP \
         hello_world     \
+        tao_synchro  \
         taoTester    \
         database
 } else {

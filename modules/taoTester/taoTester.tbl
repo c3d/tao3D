@@ -23,7 +23,7 @@
 
 #include "taotester.h"
 
-#define RTEST(x)  return taoTester::tester()->x;
+#define RTEST(x)  return x;
 
 PREFIX(TestStartRec,  tree,  "test_start_record", , RTEST(startRecTest(self)),
        GROUP(test)
@@ -33,7 +33,11 @@ PREFIX(TestStop,  tree,  "test_stop", , RTEST(stop(self)),
        GROUP(test)
        SYNOPSIS("Stop the recording or the playing of tests.")
        DESCRIPTION("Stop the recording or the playing of tests."))
-PREFIX(TestReplay,  tree,  "test_replay", , RTEST(playTest(self)),
+PREFIX(TestReplay,  tree,  "test_replay", , RTEST(playTest(self, false)),
+       GROUP(test)
+       SYNOPSIS("Replay test ")
+       DESCRIPTION("Replay the current test events. "))
+PREFIX(TestMakeRef,  tree,  "make_ref", , RTEST(playTest(self, true)),
        GROUP(test)
        SYNOPSIS("Replay test ")
        DESCRIPTION("Replay the current test events. "))
@@ -43,9 +47,8 @@ PREFIX(TestDef,  tree,  "test_definition",
        PARM(description, text, "The description of this particular test.")
        PARM(width, integer, "Width of the window.")
        PARM(height, integer, "Height of the window.")
-       PARM(threshold, real, "The authorized error threshold for image comparison.")
        PARM(testbody, code, "The sequence of actions that makes the test."),
-       RTEST(testDef(context, self, testname, feature, description, testbody, threshold, width, height)),
+       RTEST(testDef(context, self, testname, feature, description, testbody, width, height)),
        GROUP(test)
        SYNOPSIS("Define the current test")
        DESCRIPTION("Test to activate rectangle action. "))
@@ -66,43 +69,48 @@ PREFIX(TestAddKeyRelease,  tree,  "test_add_key_release",
        GROUP(test)
        SYNOPSIS("Add a key release event ")
        DESCRIPTION("Add a key release event to the current test."))
+
 PREFIX(TestAddMousePress,  tree,  "test_add_mouse_press",
-       PARM(button, integer, )
-       PARM(modifiers, integer, )
+       PARM(button, integer, "The button that trigger this event")
+       PARM(buttons, integer, "All buttons state when this event was triggered")
+       PARM(modifiers, integer, "Modifiers state when this event was triggered")
        PARM(x, integer, )
        PARM(y, integer, )
        PARM(delay, integer, ),
-       RTEST(testAddMousePress(self, button, modifiers, x, y, delay)),
+       RTEST(testAddMousePress(self, button, buttons, modifiers, x, y, delay)),
        GROUP(test)
        SYNOPSIS("Add a mouse button press event ")
        DESCRIPTION("Add a mouse button press event to the current test."))
 PREFIX(TestAddMouseRelease,  tree,  "test_add_mouse_release",
        PARM(button, integer, )
+       PARM(buttons, integer, )
        PARM(modifiers, integer, )
        PARM(x, integer, )
        PARM(y, integer, )
        PARM(delay, integer, ),
-       RTEST(testAddMouseRelease(self, button, modifiers, x, y, delay)),
+       RTEST(testAddMouseRelease(self, button, buttons, modifiers, x, y, delay)),
        GROUP(test)
        SYNOPSIS("Add a mouse button release event ")
        DESCRIPTION("Add a mouse button release event to the current test."))
 PREFIX(TestAddMouseDClick,  tree,  "test_add_mouse_dclick",
        PARM(button, integer, )
+       PARM(buttons, integer, )
        PARM(modifiers, integer, )
        PARM(x, integer, )
        PARM(y, integer, )
        PARM(delay, integer, ),
-       RTEST(testAddMouseDClick(self, button, modifiers, x, y, delay)),
+       RTEST(testAddMouseDClick(self, button, buttons, modifiers, x, y, delay)),
        GROUP(test)
        SYNOPSIS("Add a mouse button double click event ")
        DESCRIPTION("Add a mouse button double click event to the current test."))
 PREFIX(TestAddMouseMove,  tree,  "test_add_mouse_move",
        PARM(button, integer, )
+       PARM(buttons, integer, )
        PARM(modifiers, integer, )
        PARM(x, integer, )
        PARM(y, integer, )
        PARM(delay, integer, ),
-       RTEST(testAddMouseMove(self, button, modifiers, x, y, delay)),
+       RTEST(testAddMouseMove(self, buttons, modifiers, x, y, delay)),
        GROUP(test)
        SYNOPSIS("Add a mouse move event ")
        DESCRIPTION("Add a mouse move event to the current test."))
@@ -131,8 +139,16 @@ PREFIX(TestCheck,  tree,  "test_check", , RTEST(testCheck(self)),
 
 PREFIX(TestAddCheck,  tree,  "test_add_check",
        PARM(num, integer, )
+       PARM(delay, integer, )
+       PARM(threshold, real, "The authorized error threshold for image comparison."),
+       RTEST(testAddCheck(self, num, delay, threshold)),
+       GROUP(test)
+       SYNOPSIS("Check the view")
+       DESCRIPTION("Check"))
+PREFIX(TestAddCheck1,  tree,  "test_add_check",
+       PARM(num, integer, )
        PARM(delay, integer, ),
-       RTEST(testAddCheck(self, num, delay)),
+       RTEST(testAddCheck(self, num, delay, 0.0)),
        GROUP(test)
        SYNOPSIS("Check the view")
        DESCRIPTION("Check"))
@@ -158,8 +174,9 @@ PREFIX(TestAddFile,  tree,  "test_add_file",
 PREFIX(TestAddColor,  tree,  "test_add_color",
        PARM(diagname, text, )
        PARM(colname, text, )
+       PARM(alpha, real, )
        PARM(delay, integer, ),
-       RTEST(testAddColor(self, diagname, colname, delay)),
+       RTEST(testAddColor(self, diagname, colname, alpha, delay)),
        GROUP(test)
        SYNOPSIS("Check the view[TODO]")
        DESCRIPTION("Check"))

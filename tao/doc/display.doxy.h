@@ -207,5 +207,122 @@ real eye_distance();
 eye_distance(e:real);
 
 /**
+ * @~english
+ * Enter or leave presentation mode.
+ * When @p on is @c true:
+ * - the current document occupies the whole screen area (see @ref full_screen),
+ * - the screen saver is disabled,
+ * - the mouse pointer hides automatically after a couple of seconds, and becomes
+ * visible again if the mouse is moved (see @ref auto_hide_cursor).
+ *
+ * When @p on is @c false, the document is shown in the default windowed
+ * mode. When leaving the presentation mode, the previous
+ * dimensions and position of the window are restored, the screen saver is not
+ * disabled anymore, and the mouse pointer does no longer hide automatically.
+ * @returns @c true if the document was in presentation mode before the call,
+ * @c false otherwise.
+ *
+ * @~french
+ * Active ou désactive le mode présentation.
+ * Si @p on vaut @c true :
+ * - le document courant est affiché en mode « plein écran » (cf.
+ * @ref full_screen)
+ * - l'économiseur d'écran est désactivé,
+ * - le pointeur de la souris disparaît automatiquement après quelques secondes
+ * de non-utilisation (il s'affiche de nouveau si l'on bouge la souris).
+ *
+ * Si @p on vaut @c false, le document s'affiche en mode fenêtré. Les dimensions
+ * ainsi que la position de la fenêtre principale reprennent leur valeurs
+ * précédentes, l'économiseur d'écran n'est plus désactivé et le pointeur de
+ * la souris s'affiche normalement.
+ * @returns @c true si le mode présentation était actif avant l'appel, @c false
+ * sinon.
+ *
+ * @~
+ * @see toggle_slide_show, full_screen, toggle_full_screen, auto_hide_cursor,
+ * toggle_auto_hide_cursor
+ */
+boolean slide_show(on:boolean);
+
+/**
+ * @~english
+ * Switch between windowed and slideshow modes.
+ * @returns @c true if the previous state was presentation mode,
+ * @c false otherwise.
+ *
+ * @~french
+ * Passe du mode fenêtré au mode présentation et réciproquement.
+ * @returns @c true si le mode présentation était actif avant l'appel, @c false
+ * sinon.
+ * @~
+ * @see slide_show, full_screen, toggle_full_screen
+ */
+boolean toggle_slide_show();
+
+/**
+ * @~english
+ * Enter or leave full screen mode.
+ * When @p on is @c true, the application uses the whole screen to display the
+ * current document. The screen to which the display is maximized is the one
+ * where the window was previously located. When @p on is @c false, the normal
+ * windowed mode is activated. When leaving the full screen mode, the previous
+ * dimensions and position of the window are restored.
+ * @returns @c true if the previous state was full screen, @c false otherwise.
+ * @~french
+ * Active ou désactive le mode plein écran.
+ * Lorsque @p on vaut @c true, la zone d'affichage couvre entièrement la surface
+ * de l'écran sur lequel se trouvait précédemment la fenêtre principale de
+ * l'application. Lorsque @p on vaut @c false, le document s'affiche dans
+ * une fenêtre. Lors de la sortie du mode plein écran, la fenêtre retrouve
+ * ses dimensions et sa position précédentes.
+ * @returns @c true si le mode plein écran était actif avant l'appel, @c false
+ * sinon.
+ * @~
+ * @see toggle_full_screen, slide_show, toggle_slide_show
+ */
+boolean full_screen(on:boolean);
+
+/**
+ * @~english
+ * Switch between windowed and full screen modes.
+ * @returns @c true if the previous state was full screen, @c false otherwise.
+ * @~french
+ * Passe du mode fenêtré au mode plein écran et réciproquement.
+ * @returns @c true si le mode plein écran était actif avant l'appel, @c false
+ * sinon.
+ * @~
+ * @see full_screen, slide_show, toggle_slide_show
+ */
+boolean toggle_full_screen();
+
+/**
+ * @~english
+ * Enables or disables mouse pointer hiding.
+ * @returns the state of the setting before the call.
+ * @~french
+ * Active ou désactive la disparition automatique du pointeur de souris.
+ * Lorsque ce paramètre est activé, le pointeur de souris disparaît après
+ * deux secondes d'inactivité. Il suffit de déplacer à nouveau la souris
+ * pour que le pointeur réapparaisse.
+ * @returns l'état avant l'appel.
+ * @~
+ * @see toggle_auto_hide_cursor, slide_show, toggle_slide_show
+ */
+boolean auto_hide_cursor(on:boolean);
+
+/**
+ * @~english
+ * Switch mouse pointer between auto-hide and normal modes.
+ * When this setting
+ * @returns the state of the setting before the call.
+ * @~french
+ * Change le mode d'affichage du pointeur de souris.
+ * @returns l'état avant l'appel.
+ * @~
+ * @see auto_hide_cursor, slide_show, toggle_slide_show
+ */
+boolean toggle_auto_hide_cursor();
+
+/**
  * @}
  */

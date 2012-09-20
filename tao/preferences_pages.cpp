@@ -76,18 +76,10 @@ GeneralPage::GeneralPage(QWidget *parent)
 
     // Menu for automatic check for update
     QCheckBox *cfu = new QCheckBox(tr("Check for update at the launch of the application"));
-    cfu->setChecked(checkForUpdate());
+    cfu->setChecked(checkForUpdateOnStartup());
     connect(cfu, SIGNAL(toggled(bool)),
-            this, SLOT(setCheckForUpdate(bool)));
+            this, SLOT(setCheckForUpdateOnStartup(bool)));
     grid->addWidget(cfu, 2, 1);
-
-//    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
-//    noStereo = new QCheckBox;
-//    grid->addWidget(noStereo, 2, 2);
-//    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
-//    noStereo->setChecked(disable);
-//    connect(noStereo, SIGNAL(toggled(bool)),
-//            this,     SLOT(disableStereoBuffers(bool)));
 
     group->setLayout(grid);
 
@@ -138,27 +130,39 @@ void GeneralPage::setLanguage(int index)
 }
 
 
-void GeneralPage::setCheckForUpdate(bool on)
+void GeneralPage::setCheckForUpdateOnStartup(bool on)
 // ----------------------------------------------------------------------------
 //   Save setting about check for update
 // ----------------------------------------------------------------------------
 {
    QSettings settings;
-   if (!on)
+   if (on == checkForUpdateOnStartupDefault())
        settings.remove("CheckForUpdate");
    else
        settings.setValue("CheckForUpdate", QVariant(on));
 }
 
 
-bool GeneralPage::checkForUpdate()
+bool GeneralPage::checkForUpdateOnStartup()
 // ----------------------------------------------------------------------------
 //   Read setting about check for update
 // ----------------------------------------------------------------------------
 {
-    QSettings settings;
-    bool cfu = settings.value("CheckForUpdate").toBool();
-    return cfu;
+    bool dflt = checkForUpdateOnStartupDefault();
+    return QSettings().value("CheckForUpdate", QVariant(dflt)).toBool();
+}
+
+
+bool GeneralPage::checkForUpdateOnStartupDefault()
+// ----------------------------------------------------------------------------
+//   Default value for "check for update on startup"
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_WITH_CFU
+    return true;
+#else
+    return false;
+#endif
 }
 
 

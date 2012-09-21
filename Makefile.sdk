@@ -48,8 +48,10 @@ NEWMODULE_FILES = \
 FILES_COMMON = \
 	doxygen.pri \
 	doxygen.sh \
+	fix_qt_refs_app.in \
 	main.pri \
 	main_defs.pri \
+	sdk.pro \
 	translations.pri \
 	tools \
 	tools/preprocessor.pl \
@@ -114,6 +116,7 @@ sdk:
 		fi ; \
 	done ; \
 	mv $(SDK_ROOT)/modules/README_SDK $(SDK_ROOT)/README ; \
+	mv $(SDK_ROOT)/sdk.pro.txt $(SDK_ROOT)/sdk.pro ; \
 	tao/updaterev.sh -n > $(SDK_ROOT)/VERSION ; \
 	$(OTHER_COMMANDS_$(BUILDENV))
 

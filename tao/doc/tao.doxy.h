@@ -968,7 +968,7 @@ import "xl:mes_définitions.xl"
  */
 /**
  * @~english
- * @page credits Credits
+ * @page credits Credits/Licenses
  *
  * Tao Presentations uses the following components:
  *
@@ -985,9 +985,14 @@ import "xl:mes_définitions.xl"
  *   the Qt Solutions component by Nokia. These portions are subject to the
  *   following licensing terms:
  * @verbinclude "QtSolutionsLicense.txt"
- *
+ *   - <b>Qt Assistant</b>: The Tao Presentations Help application is derived
+ *   from the Qt Assistant of the Qt Toolkit by Nokia. This
+ *   application is covered by the GNU General Public License version 3.0.
+ *   The source code is published as a Gitorious project:
+ *   <a href="http://gitorious.org/taodyne-open-source/tao_help_viewer">
+ *   http://gitorious.org/taodyne-open-source/tao_help_viewer</a>.
  * @~french
- * @page credits Remerciements
+ * @page credits Remerciements/Licences
  *
  * Tao Presentations utilise les composants suivants :
  *
@@ -1004,6 +1009,12 @@ import "xl:mes_définitions.xl"
  *   composant Qt Solutions de Nokia. Ces portions sont soumises à la license
  *   suivante :
  * @verbinclude "QtSolutionsLicense.txt"
+ *   - <b>Qt Assistant</b>: L'application d'aide de Tao Presentations est
+ *   dérivée de <em>Qt Assistant</em> qui fait partie du <em>Qt Toolkit</em>
+ *   de Nokia. Cette application est soumise à la <em>GNU General Public
+ *   License<em> version 3.0. Le code source est publié sous le projet Gitorious :
+ *   <a href="http://gitorious.org/taodyne-open-source/tao_help_viewer">
+ *   http://gitorious.org/taodyne-open-source/tao_help_viewer</a>.
  */
 
 /**

@@ -203,6 +203,7 @@ Window::~Window()
 {
     FontFileManager::UnloadFonts(docFontIds);
     taoWidget->purgeTaoInfo();
+    delete printer;
 }
 
 
@@ -699,33 +700,33 @@ bool Window::saveFonts()
         QFileInfoList contents = fontDir.entryInfoList();
         foreach (QFileInfo f, contents)
         {
-            if (f.isFile())
+            if (!f.isFile())
+                continue;
+            QString path = f.absoluteFilePath();
+            QString name = f.fileName();
+            bool found = false;
+            foreach (QString s, files)
             {
-                QString path = f.absoluteFilePath();
-                QString name = f.fileName();
-                bool found = false;
-                foreach (QString s, files)
+                if (s.endsWith(name))
                 {
-                    if (s.endsWith(name))
-                    {
-                        found = true;
-                        break;
-                    }
+                    found = true;
+                    break;
                 }
-                if (!found)
-                {
-                    IFTRACE(fonts)
-                        std::cerr << "Removing  '" << +path << "'\n";
-                    if (repo)
-                    {
-                        QString relPath = QString("fonts/%1").arg(name);
-                        repo->remove(+relPath);
-                    }
-                    else
-                    {
-                        QDir().remove(path);
-                    }
-                }
+            }
+
+            if (found)
+                continue;
+
+            IFTRACE(fonts)
+                    std::cerr << "Removing  '" << +path << "'\n";
+            if (repo)
+            {
+                QString relPath = QString("fonts/%1").arg(name);
+                repo->remove(+relPath);
+            }
+            else
+            {
+                QDir().remove(path);
             }
         }
     }
@@ -817,14 +818,15 @@ bool Window::saveFile(const QString &fileName)
         }
         else
 #endif
-        if (Tree *prog = taoWidget->xlProgram->tree)
-        {
-            std::ostringstream renderOut;
-            renderOut << prog;
-            out << +renderOut.str();
-            if (dirChanged)
-                needReload = true;
-        }
+        if (taoWidget->xlProgram)
+            if (Tree *prog = taoWidget->xlProgram->tree)
+            {
+                std::ostringstream renderOut;
+                renderOut << prog;
+                out << +renderOut.str();
+                if (dirChanged)
+                    needReload = true;
+            }
         QApplication::restoreOverrideCursor();
     } while (0); // Flush
 
@@ -1930,7 +1932,7 @@ void Window::createMenus()
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
-    ExamplesMenu * examplesMenu = new ExamplesMenu;
+    ExamplesMenu * examplesMenu = new ExamplesMenu(helpMenu);
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
     foreach (Template t, templates)
@@ -2209,6 +2211,10 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     taoWidget->reset();
 
+    // Stop monitoring source files of previous document (if any)
+    taoWidget->srcFileMonitor.removeAllPaths();
+    taoWidget->toReload.clear();
+
     // FIXME: the whole search path stuff is broken when multiple documents
     // are open. There is no way to make "xl:" have a different meaning in
     // two Window instances. And yet it's what we need!
@@ -2220,6 +2226,17 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 #ifndef CFG_NOSRCEDIT
     srcEdit->setXLNames(taoWidget->listNames());
 #endif
+
+    // Update list of monitored files
+    // Adds main file + files added by updateContext + their global imports
+    using namespace XL;
+    source_files &files = MAIN->files;
+    source_files::iterator it;
+    for (it = files.begin(); it != files.end(); it++)
+    {
+        SourceFile &sf = (*it).second;
+        taoWidget->srcFileMonitor.addPath(+sf.name);
+    }
 
     QApplication::restoreOverrideCursor();
 
@@ -2256,7 +2273,6 @@ bool Window::loadFile(const QString &fileName, bool openProj)
         taoWidget->resetTimes();
         taoWidget->resetViewAndRefresh();
         taoWidget->refreshNow();
-        taoWidget->refresh(0);
         taoWidget->startRefreshTimer();
         QApplication::restoreOverrideCursor();
         showMessage(tr("File loaded"), 2000);
@@ -2553,6 +2569,13 @@ void Window::updateContext(QString docPath)
 
     if (tao.exists())
         contextFileNames.push_back(+tao.canonicalFilePath());
+    // Files given through the command line preload option (-p)
+    QString preload = +XL::MAIN->options.preload_files;
+    foreach (QString file, preload.split(":", QString::SkipEmptyParts))
+    {
+        QFileInfo info(QDir(TaoApp->startDir), file);
+        contextFileNames.push_back(+info.absoluteFilePath());
+    }
     if (user.exists())
         contextFileNames.push_back(+user.canonicalFilePath());
     if (theme.exists())

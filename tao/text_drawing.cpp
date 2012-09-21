@@ -283,8 +283,8 @@ void TextUnit::DrawDirect(Layout *where)
                 if (setFillColor(where))
                     GL.CallList(glyph.interior);
             }
-            if (setLineColor(where))
-                GL.CallList(glyph.outline);
+            if (setLineColor(where) && lw)
+                GL.CallList(glyph.outlines[lw]);
 
             x += glyph.advance + spread;
         }
@@ -1032,6 +1032,8 @@ void TextUnit::PerformInsertOperation(Layout * /* l */,
 //   Insert replacement_tree of textSelection at the current cursor location.
 // ----------------------------------------------------------------------------
 {
+    if (! widget->xlProgram) return;
+
     TextSelect *sel = widget->textSelection();
     if (sel->replacement_tree &&
         widget->markChange("Clipboard content pasted"))

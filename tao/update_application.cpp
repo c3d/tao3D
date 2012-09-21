@@ -99,10 +99,11 @@ UpdateApplication::UpdateApplication()
     //   Author: Everaldo Coelho
     //   License: LGPL
 
-    // Author:
 #ifdef TAO_EDITION
    // Get current edition
    edition = TAO_EDITION;
+#else
+   edition = "unified";
 #endif
 
 #if defined(Q_OS_MACX)
@@ -183,7 +184,7 @@ QString UpdateApplication::appName()
 // ----------------------------------------------------------------------------
 {
     QString ed;
-    if (!edition.isEmpty())
+    if (!edition.isEmpty() && edition != "unified")
         ed = " " + edition;
     return QString("Tao Presentations%1").arg(ed);
 }
@@ -262,6 +263,24 @@ void UpdateApplication::check(bool show)
     request.setUrl(url);
     reply = manager->get(request);
     connectSignals(reply);
+}
+
+
+QDateTime UpdateApplication::lastChecked()
+// ----------------------------------------------------------------------------
+//    The date and time when the last check for update returned
+// ----------------------------------------------------------------------------
+{
+    return QSettings().value("LastCheckForUpdate").toDateTime();
+}
+
+
+void UpdateApplication::setLastChecked(QDateTime when)
+// ----------------------------------------------------------------------------
+//    Record date and time of last successful check for update
+// ----------------------------------------------------------------------------
+{
+    QSettings().setValue("LastCheckForUpdate", QVariant(when));
 }
 
 
@@ -552,6 +571,8 @@ void UpdateApplication::downloadFinished()
         file->remove();
         delete file;
         file = NULL;
+
+        setLastChecked(QDateTime::currentDateTime());
 
         // Propose to update if current version is older than the remote one
         updateAvailable = (version < remoteVersion) && !url.isEmpty();

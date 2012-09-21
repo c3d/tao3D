@@ -206,7 +206,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 #endif
       dfltRefresh(0.0), idleTimer(this),
       pageStartTime(DBL_MAX), frozenTime(DBL_MAX), startTime(DBL_MAX),
-      currentTime(DBL_MAX), stats(),
+      currentTime(DBL_MAX), stats(), frameCounter(0),
       nextSave(now()), nextSync(nextSave),
 #ifndef CFG_NOGIT
       nextCommit(nextSave),
@@ -214,7 +214,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 #endif
       pagePrintTime(0.0), printOverscaling(1), printer(NULL),
       currentFileDialog(NULL),
-      eye(1), eyesNumber(1), dragging(false), bAutoHideCursor(false),
+      dragging(false), bAutoHideCursor(false),
       savedCursorShape(Qt::ArrowCursor), mouseCursorHidden(false),
       renderFramesCanceled(0), inOfflineRendering(false), inDraw(false),
       editCursor(NULL),
@@ -366,8 +366,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     : QGLWidget(format, o.parentWidget()),
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
-      runOnNextDraw(true), srcFileMonitor("XL"), clearCol(o.clearCol),
-      space(NULL), layout(NULL), graphicState(NULL),
+      runOnNextDraw(true), srcFileMonitor(o.srcFileMonitor),
+      clearCol(o.clearCol), space(NULL), layout(NULL), graphicState(NULL),
       frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
@@ -393,6 +393,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 #ifdef Q_OS_MACX
       bFrameBufferReady(false),
 #endif
+      screenShotPath(o.screenShotPath),
+      screenShotWithAlpha(o.screenShotWithAlpha),
       activities(NULL),
       id(o.id), focusId(o.focusId), maxId(o.maxId),
       idDepth(o.idDepth), maxIdDepth(o.maxIdDepth), handleId(o.handleId),
@@ -423,6 +425,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       pageStartTime(o.pageStartTime), frozenTime(o.frozenTime),
       startTime(o.startTime),
       currentTime(o.currentTime), stats(o.stats.isEnabled()),
+      frameCounter(o.frameCounter),
       nextSave(o.nextSave), nextSync(o.nextSync),
 #ifndef CFG_NOGIT
       nextCommit(o.nextCommit),
@@ -436,7 +439,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       cameraToScreen(o.cameraToScreen),
       cameraPosition(o.cameraPosition),
       cameraTarget(o.cameraTarget), cameraUpVector(o.cameraUpVector),
-      eye(o.eye), eyesNumber(o.eyesNumber),
       panX(o.panX), panY(o.panY),
       dragging(o.dragging), bAutoHideCursor(o.bAutoHideCursor),
       savedCursorShape(o.savedCursorShape),
@@ -529,6 +531,12 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // thread or in its own thread
     connect(this, SIGNAL(runGC()), TaoApp->gcThread, SLOT(collect()));
 
+    // Be notified when source files change
+    connect(&srcFileMonitor, SIGNAL(changed(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
+    connect(&srcFileMonitor, SIGNAL(deleted(QString,QString)),
+            this, SLOT(addToReloadList(QString)));
+
     runProgram();
 }
 
@@ -570,6 +578,7 @@ void Widget::runPurgeAction(XL::Action &purge)
 {
     if (!xlProgram || !xlProgram->tree)
         return;
+
     xlProgram->tree->Do(purge);
     // Do it also on imported files
     import_set iset;
@@ -803,10 +812,12 @@ void Widget::drawActivities()
         static XL::Tree_p adCode = XL::xl_parse_text(
 #include "taodyne_ad.h"
             );
-        if (!adCode->Symbols())
-            adCode->SetSymbols(xlProgram->symbols);
-        xlProgram->context->Evaluate(adCode);
-
+        if (xlProgram)
+        {
+            if (!adCode->Symbols())
+                adCode->SetSymbols(xlProgram->symbols);
+            xlProgram->context->Evaluate(adCode);
+        }
         licenseOverlaySpace.Draw(NULL);
     }
 
@@ -892,6 +903,7 @@ void Widget::draw()
     displayDriver->display();
     stats.end(Statistics::DRAW);
     stats.end(Statistics::FRAME);
+    frameCounter++;
 
     // Remember number of elements drawn for GL selection buffer capacity
     if (maxId < id + 100 || maxId > 2 * (id + 100))
@@ -936,7 +948,7 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inDraw)
+    if (inDraw || inError)
         return false;
 
     if (gotoPageName != "")
@@ -981,6 +993,8 @@ bool Widget::refreshNow(QEvent *event)
         TaoSave saveCurrent(current, this);
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
+        if (changed)
+            checkErrors(false);
         stats.end(Statistics::EXEC);
     }
 
@@ -1023,6 +1037,7 @@ void Widget::refreshOn(int type, double nextRefresh)
     if (!layout)
         return;
 
+    inError = false;
     if (type == QEvent::Timer)
     {
         double currentTime = CurrentTime();
@@ -1124,34 +1139,14 @@ void Widget::runProgramOnce()
 
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(taoWindow()->contextFileNames);
-    if (Tree *prog = xlProgram->tree)
-        xlProgram->context->Evaluate(prog);
+    if (xlProgram)
+        if (Tree *prog = xlProgram->tree)
+            xlProgram->context->Evaluate(prog);
 
     stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
-    if (XL::MAIN->HadErrors())
-    {
-        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
-        std::vector<XL::Error>::iterator ei;
-        Window *window = taoWindow();
-        XL::MAIN->errors->Clear();
-        window->clearErrors();
-        for (ei = errors.begin(); ei != errors.end(); ei++)
-        {
-            text pos = (*ei).Position();
-            text err = (*ei).Message();
-            text message = pos + ": " + err;
-            window->addError(+message);
-            text hint = +errorHint(+err);
-            if (hint != "")
-            {
-                text message = pos + ": " + hint;
-                window->addError(+message);
-            }
-        }
-        inError = true;
-    }
+    checkErrors(true);
 
     // Clean the end of the old menu list.
     for  (; order < orderedMenuElements.count(); order++)
@@ -1783,7 +1778,7 @@ Name_p Widget::sendToBack(Tree_p /*self*/)
 //   Send the selected shape to back
 // ----------------------------------------------------------------------------
 {
-    if (!markChange("Selection sent to back"))
+    if (!xlProgram || !markChange("Selection sent to back"))
         return XL::xl_false;    // Source code was edited
 
     XL::Symbols *symbols = xlProgram->tree->Symbols();
@@ -1839,7 +1834,7 @@ Name_p Widget::bringForward(Tree_p /*self*/)
 //   Swap the selected shape and the one in front of it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChange("Selection brought forward"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection brought forward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -1887,7 +1882,7 @@ Name_p Widget::sendBackward(Tree_p /*self*/)
 //   Swap the selected shape and the one just behind it
 // ----------------------------------------------------------------------------
 {
-    if (!hasSelection() || !markChange("Selection sent backward"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection sent backward"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -2059,6 +2054,7 @@ void Widget::zoomIn()
 //    Call zoom_in builtin
 // ----------------------------------------------------------------------------
 {
+    if (! xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_in"))(xlProgram);
     do
@@ -2074,6 +2070,7 @@ void Widget::zoomOut()
 //    Call zoom_out builtin
 // ----------------------------------------------------------------------------
 {
+    if (! xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_out"))(xlProgram);
     do
@@ -2104,7 +2101,7 @@ void Widget::userMenu(QAction *p_action)
 //   User menu slot activation
 // ----------------------------------------------------------------------------
 {
-    if (!p_action)
+    if (!p_action || !xlProgram)
         return;
 
     IFTRACE(menus)
@@ -2201,6 +2198,11 @@ void Widget::paintGL()
     {
         draw();
         showGlErrors();
+        if (screenShotPath != "")
+        {
+            grabFrameBuffer(screenShotWithAlpha).save(screenShotPath);
+            screenShotPath = "";
+        }
     }
 }
 
@@ -2825,7 +2827,7 @@ void Widget::keyPressEvent(QKeyEvent *event)
     }
 
     // If the key was not handled by any activity, forward to document
-    if (!handled)
+    if (!handled && xlProgram)
         (XL::XLCall ("key"), key) (xlProgram);
     updateGL();
 }
@@ -2845,6 +2847,7 @@ void Widget::keyReleaseEvent(QKeyEvent *event)
         return;
 
     // Now call "key" in the current context with the ~ prefix
+    if (!xlProgram) return;
     text name = "~" + keyName(event);
     (XL::XLCall ("key"), name) (xlProgram);
 }
@@ -3040,6 +3043,7 @@ void Widget::wheelEvent(QWheelEvent *event)
         return;
 
     // Propagate the wheel event
+    if (!xlProgram) return;
     int d = event->delta();
     Qt::Orientation orientation = event->orientation();
     longlong dx = orientation == Qt::Horizontal ? d : 0;
@@ -3485,17 +3489,16 @@ void Widget::updateProgram(XL::SourceFile *source)
 //   Change the XL program, clean up stuff along the way
 // ----------------------------------------------------------------------------
 {
-    if (sourceChanged())
+    if (xlProgram != NULL && sourceChanged())
         return;
     space->Clear();
     dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
-
     xlProgram = source;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
     refreshProgram(); // REVISIT not needed?
-    inError = false;
+    clearErrors();
 }
 
 
@@ -3504,25 +3507,11 @@ int Widget::loadFile(text name, bool updateContext)
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
-    // Stop monitoring source files of previous document (if any)
-    srcFileMonitor.removeAllPaths();
-    toReload.clear();
-
+    purgeTaoInfo();
     TaoSave saveCurrent(current, this);
-    int ret = XL::MAIN->LoadFile(name, updateContext);
-
-    // Monitor all source files of the new document
-    using namespace XL;
-    source_files &files = MAIN->files;
-    source_files::iterator it;
-    for (it = files.begin(); it != files.end(); it++)
-    {
-        SourceFile &sf = (*it).second;
-        srcFileMonitor.addPath(+sf.name);
-    }
-
-    return ret;
+    return XL::MAIN->LoadFile(name, updateContext);
 }
+
 
 void Widget::loadContextFiles(XL::source_names &files)
 // ----------------------------------------------------------------------------
@@ -3531,6 +3520,8 @@ void Widget::loadContextFiles(XL::source_names &files)
 {
     TaoSave saveCurrent(current, this);
     XL::MAIN->LoadContextFiles(files);
+    // xlProgram content is destroyed by LoadContextFiles // CaB
+    xlProgram = NULL;
 }
 
 
@@ -3563,7 +3554,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
     // Now update the window
     updateProgramSource();
     refreshNow();
-    inError = false;
+    clearErrors();
 }
 
 
@@ -3589,6 +3580,8 @@ QStringList Widget::listNames()
 //   Return list of names in current program
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram)
+        return QStringList();
     QStringList names;
     XL::Context_p context = xlProgram->context;
     XL::rewrite_list rlist;
@@ -3619,14 +3612,13 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
-    if (toReload.isEmpty())
+    if (toReload.isEmpty() || !xlProgram)
         return;
 
     Repository *repo = repository();
     Tree *prog = xlProgram->tree;
     if (!prog || xlProgram->readOnly)
         return;
-
     bool needBigHammer = false;
     bool needRefresh   = false;
     foreach (QString path, toReload)
@@ -3670,32 +3662,39 @@ void Widget::refreshProgram()
                 needBigHammer = true;
                 break;
             }
-            else if (fname == xlProgram->name)
+            else if (xlProgram && (fname == xlProgram->name))
             {
                 updateProgramSource();
             }
 
             needRefresh = true;
 
-            IFTRACE(filesync)
-            {
-                if (needBigHammer)
-                    std::cerr << "Need to reload everything.\n";
-                else
-                    std::cerr << "Surgical replacement worked\n";
-            }
         } // Replacement checked
     } // foreach file
+
+    IFTRACE(filesync)
+    {
+        if (needBigHammer)
+            std::cerr << "Need to reload everything.\n";
+        else
+            std::cerr << "Surgical replacement worked\n";
+    }
 
     // If we were not successful with simple changes, reload everything...
     if (needBigHammer)
     {
         TaoSave saveCurrent(current, this);
         purgeTaoInfo();
-        foreach (QString path, toReload)
-            XL::MAIN->LoadFile(+path);
+        import_set iset;
+        import_set::iterator it;
+        ScanImportedFiles(iset, false);
+        for (it = iset.begin(); it != iset.end(); it++)
+        {
+            XL::SourceFile &sf = **it;
+            XL::MAIN->LoadFile(sf.name);
+        }
         updateProgramSource();
-        inError = false;
+        clearErrors();
         needRefresh = true;
     }
     if (needRefresh)
@@ -3760,7 +3759,7 @@ void Widget::finishChanges()
 
     bool changed = false;
 
-    if (xlProgram->tree)
+    if (xlProgram && xlProgram->tree)
     {
         import_set done;
         ScanImportedFiles(done, true);
@@ -4158,6 +4157,8 @@ bool Widget::get(Tree *shape, text name, attribute_args &args, text topName)
 //   Get the arguments, decomposing args in a comma-separated list
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return false;
+
     // Get the trees
     XL::TreeList treeArgs;
     if (!get(shape, name, treeArgs, topName))
@@ -4703,6 +4704,8 @@ void Widget::drawSelection(Layout *where,
 //    Draw a 2D or 3D selection with the given coordinates
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return ;
+
     Box3 bounds(bnds);
     bounds.Normalize();
 
@@ -4736,6 +4739,8 @@ void Widget::drawHandle(Layout *, const Point3 &p, text handleName, uint id)
 //    Draw the handle of a 2D or 3D selection
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return ;
+
     SpaceLayout selectionSpace(this);
 
     XL::Save<Layout *> saveLayout(layout, &selectionSpace);
@@ -4766,6 +4771,8 @@ void Widget::drawCall(Layout *where, XL::XLCall &call, uint id)
 //   Draw the given call in a selection context
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return ;
+
     // Symbols where we will find the selection code
     SpaceLayout selectionSpace(this);
 
@@ -5473,6 +5480,15 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
 }
 
 
+Integer_p Widget::stereoViewpoints()
+// ----------------------------------------------------------------------------
+//   The number of viewpoints for the current display
+// ----------------------------------------------------------------------------
+{
+    return new XL::Integer(Tao()->stereoPlanes);
+}
+
+
 Tree_p Widget::resetTransform(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Reset transform to original projection state
@@ -6049,6 +6065,15 @@ Name_p Widget::toggleLogStatistics(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     return logStatistics(self, !stats.isEnabled(Statistics::TO_CONSOLE));
+}
+
+
+Integer_p Widget::frameCount(Tree_p self)
+// ----------------------------------------------------------------------------
+//   The number of frames displayed so far for the current document
+// ----------------------------------------------------------------------------
+{
+    return new Integer(frameCounter);
 }
 
 
@@ -9031,6 +9056,8 @@ Name_p Widget::textEditKey(Tree_p self, text key)
         return XL::xl_true;
     }
 
+    if (!xlProgram) return XL::xl_false;
+
     // PageUp/PageDown do the same as Up/Down by default (even when Up/Down
     // have been redefined)
     if (key == "PageUp")
@@ -9187,6 +9214,38 @@ Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
     bool old = TextUnit::cacheEnabled;
     TextUnit::cacheEnabled = enable;
     return old ? XL::xl_true : XL::xl_false;
+}
+
+
+Text_p Widget::unicodeChar(Tree_p self, int code)
+// ----------------------------------------------------------------------------
+//    Return the character with the specified Unicode code point
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(+QString(QChar(code)));
+}
+
+
+Text_p Widget::unicodeCharText(Tree_p self, text code)
+// ----------------------------------------------------------------------------
+//    Return the character with the specified Unicode code point
+// ----------------------------------------------------------------------------
+{
+    // Example: unicodeChar("65") == unicodeChar("x41") == "A"
+
+    bool ok = false;
+    int icode = 0;
+    QString qcode(+code);
+
+    if (qcode.startsWith('x'))
+        icode = qcode.mid(1).toInt(&ok, 16);
+    else
+        icode = qcode.toInt(&ok);
+
+    if (ok)
+        return unicodeChar(self, icode);
+    else
+        return new XL::Text("");
 }
 
 
@@ -9621,7 +9680,7 @@ Integer* Widget::thumbnail(Context *context,
 // ----------------------------------------------------------------------------
 {
     // Prohibit recursion on thumbnails
-    if (page == pageName)
+    if (page == pageName || !xlProgram)
         return 0;
 
     double w = width() * s;
@@ -10883,6 +10942,7 @@ Tree_p Widget::chooser(Context *context, Tree_p self, text caption)
     if (chooser)
         if (chooser->name == caption)
             return XL::xl_false;
+    if (!xlProgram) return XL::xl_false;
     chooser = new Chooser(xlProgram, caption, this);
     return XL::xl_true;
 }
@@ -10907,6 +10967,8 @@ Tree_p Widget::chooserCommands(Tree_p self, text prefix, text label)
 //   Add all commands in the current symbol table that have the given prefix
 // ----------------------------------------------------------------------------
 {
+    if (!xlProgram) return XL::xl_false;
+
     if (Chooser *chooser = dynamic_cast<Chooser *> (activities))
     {
         chooser->AddCommands(xlProgram->context, prefix, label);
@@ -11071,10 +11133,13 @@ Tree_p Widget::runtimeError(Tree_p self, text msg, Tree_p arg)
         // Stop refreshing
         current->inError = true;
 #ifndef CFG_NOSRCEDIT
-        // Load source as plain text
-        QString fname = +(current->xlProgram->name);
-        Window *window = Tao()->taoWindow();
-        window->loadFileIntoSourceFileView(fname);
+        if (current->xlProgram)
+        {
+            // Load source as plain text
+            QString fname = +(current->xlProgram->name);
+            Window *window = Tao()->taoWindow();
+            window->loadFileIntoSourceFileView(fname);
+        }
 #endif
     }
     return formulaRuntimeError(self, msg, arg);
@@ -11103,6 +11168,48 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     Tree_p result = (Tree *) err;
     result->SetSymbols(self->Symbols());
     return result;
+}
+
+
+void Widget::clearErrors()
+// ----------------------------------------------------------------------------
+//   Clear all errors, e.g. because we reloaded a document
+// ----------------------------------------------------------------------------
+{
+    inError = false;
+    XL::MAIN->errors->Clear();
+    taoWindow()->clearErrors();
+}
+
+
+void Widget::checkErrors(bool clear)
+// ----------------------------------------------------------------------------
+//   Check if there were errors during evaluation, and display them if any
+// ----------------------------------------------------------------------------
+{
+    if (XL::MAIN->HadErrors())
+    {
+        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
+        std::vector<XL::Error>::iterator ei;
+        Window *window = taoWindow();
+        XL::MAIN->errors->Clear();
+        if (clear)
+            window->clearErrors();
+        for (ei = errors.begin(); ei != errors.end(); ei++)
+        {
+            text pos = (*ei).Position();
+            text err = (*ei).Message();
+            text message = pos + ": " + err;
+            window->addError(+message);
+            text hint = +errorHint(+err);
+            if (hint != "")
+            {
+                text message = pos + ": " + hint;
+                window->addError(+message);
+            }
+        }
+        inError = true;
+    }
 }
 
 
@@ -11567,7 +11674,7 @@ Name_p Widget::insert(Tree_p self, Tree_p toInsert, text msg)
 // ----------------------------------------------------------------------------
 {
     // Check if blocked because the source code window was edited
-    if (!markChange(msg))
+    if (!xlProgram || !markChange(msg))
         return XL::xl_false;
 
     if (isReadOnly())
@@ -11671,7 +11778,7 @@ void Widget::deleteSelection()
 // ----------------------------------------------------------------------------
 {
     // Check if the source was modified, if so, do not update the tree
-    if (!markChange("Deleted selection"))
+    if (!xlProgram || !markChange("Deleted selection"))
         return;
 
     XL::Tree *what = xlProgram->tree;
@@ -11726,7 +11833,7 @@ Name_p Widget::setAttribute(Tree_p self,
         refresh();
         return XL::xl_true;
     }
-    else
+    else if (xlProgram)
     {
         if (Tree_p program = xlProgram->tree)
         {
@@ -11827,7 +11934,7 @@ Name_p Widget::groupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there's no selection or if source window changed
-    if (!hasSelection() || !markChange("Selection grouped"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection grouped"))
         return XL::xl_false;
 
     Tree_p selected = copySelection();
@@ -11869,7 +11976,7 @@ bool Widget::updateParentWithChildrenInPlaceOfGroup(Tree *parent,
 {
     Infix * inf = parent->AsInfix();
     Block * block = group->right->AsBlock();
-    if (!block)
+    if (!block || !xlProgram)
         return false;
 
     // If the program is made only with this group
@@ -11944,7 +12051,7 @@ Name_p Widget::ungroupSelection(Tree_p /*self*/)
 // ----------------------------------------------------------------------------
 {
     // Check if there is no selection or if source window changed
-    if (!hasSelection() || !markChange("Selection ungrouped"))
+    if (!xlProgram || !hasSelection() || !markChange("Selection ungrouped"))
         return XL::xl_false;
 
     std::set<Tree_p >::iterator sel = selectionTrees.begin();
@@ -12233,6 +12340,31 @@ Text_p Widget::dirName(Tree_p, text filename)
     return new Text(+info.path());
 }
 
+
+Name_p Widget::openUrl(Tree_p, text url)
+// ----------------------------------------------------------------------------
+// Open url using an external application
+// ----------------------------------------------------------------------------
+{
+    return QDesktopServices::openUrl(+url) ? XL::xl_true : XL::xl_false;
+}
+
+
+Name_p Widget::screenShot(Tree_p, text filename, bool withAlpha)
+// ----------------------------------------------------------------------------
+// Save current state of current drawing buffer into a file
+// ----------------------------------------------------------------------------
+{
+    QString path(+filename);
+    if (!QDir::isAbsolutePath(path))
+    {
+        QString dir(+currentDocumentFolder());
+        path = QFileInfo(dir, path).absoluteFilePath();
+    }
+    screenShotPath = path;
+    screenShotWithAlpha = withAlpha;
+    return XL::xl_true;
+}
 
 // ============================================================================
 //

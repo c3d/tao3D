@@ -287,4 +287,23 @@ PREFIX(EnableGlyphCache,  boolean,  "enable_glyph_cache",
        SYNOPSIS("Enable or disable bitmap glyph cache")
        DESCRIPTION("Enable or disable the bitmap glyph cache. Enabled by default. When enabled, drawing text is faster, but typically lower quality especially when fullscreen antialiasing is available.")
        RETURNS(boolean, "True if previous state was on."))
+PREFIX(UnicodeChar, text, "unicode_char",
+       PARM(c, integer, "Unicode point code"),
+       RTAO(unicodeChar(self, c)),
+       GROUP(text)
+       SYNOPSIS("Return the character with the specified Unicode code point")
+       DESCRIPTION("Returns a text string that contains the UTF-8 encoding of "
+                   "the specified Unicode character. The returned string is "
+                   "empty if the code is unassigned.")
+       RETURNS(text, "The specified character, or an empty string."))
+PREFIX(UnicodeCharText, text, "unicode_char",
+       PARM(c, text, "Unicode point code. Format is decimal, or 'x' + hexadecimal. "
+                     "Examples: \"x41\", \"65\"."),
+       RTAO(unicodeCharText(self, c)),
+       GROUP(text)
+       SYNOPSIS("Return the character with the specified Unicode code point")
+       DESCRIPTION("Returns a text string that contains the UTF-8 encoding of "
+                   "the specified Unicode character. The returned string is "
+                   "empty if the code is unassigned.")
+       RETURNS(text, "The specified character, or an empty string."))
 

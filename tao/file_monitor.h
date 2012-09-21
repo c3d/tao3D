@@ -50,6 +50,7 @@ class FileMonitor : public QObject
 
 public:
     FileMonitor(QString name = QString());
+    FileMonitor(const FileMonitor &o);
     virtual ~FileMonitor();
 
     void           removeAllPaths();
@@ -144,6 +145,8 @@ protected:
 
 protected:
     std::ostream&  debug();
+    void           mergePending();
+    void           addPathNoLock(const QString &path);
 
 protected slots:
     void           checkFiles();
@@ -153,6 +156,9 @@ protected:
     QMap<QString, FileInfo>  files;
     QList<FileMonitor *>     monitors;
     bool                     dontPollReadOnlyFiles;
+
+    QMutex                   pendingMutex;
+    QStringList              pending;
 
 private:
     static QWeakPointer<FileMonitorThread> inst;

@@ -13,6 +13,7 @@
 
 include(main_defs.pri)
 
+CONFIG             += rtti exceptions
 DEFINES            += DEBUG
 # Make assert() a no-op in release mode
 CONFIG(release, debug|release):DEFINES *= NDEBUG

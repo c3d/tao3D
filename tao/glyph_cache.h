@@ -49,12 +49,14 @@ struct PerFontGlyphCache
 public:
     struct GlyphEntry
     {
+        typedef std::map<scale, uint> OutlineMap;
+
         Box             bounds;
         Box             texture;
         coord           advance;
-        scale           lineWidth;
         scale           scalingFactor;
-        uint            interior, outline;
+        uint            interior;
+        OutlineMap      outlines;
     };
 
 public:
@@ -116,7 +118,8 @@ protected:
     // Two fonts with slightly differing size are considered equivalent
     struct Key
     {
-        Key(const QFont &font,const uint64 texUnits): font(font), texUnits(texUnits) {}
+        Key(const QFont &font,const uint64 texUnits):
+            font(font), texUnits(texUnits) {}
         QFont font;
         uint64 texUnits;
 
@@ -158,7 +161,8 @@ protected:
                 return stretch;
             if (int family = order(f1.family(), f2.family()))
                 return family;
-            if (int capitalization = order(f1.capitalization(), f2.capitalization()))
+            if (int capitalization = order(f1.capitalization(),
+                                           f2.capitalization()))
                 return capitalization;
             if (int line = order(f1.overline(), f2.overline()))
                 return line;
@@ -178,12 +182,14 @@ protected:
 
         bool operator==(const Key &o) const
         {
-            return ((compare(font, o.font) == 0) && (compare(texUnits, o.texUnits) == 0));
+            return ((compare(font, o.font) == 0) &&
+                    (compare(texUnits, o.texUnits) == 0));
         }
         bool operator<(const Key &o) const
         {
-            return ((compare(font, o.font) < 0) || ((compare(font, o.font) == 0) &&
-                                                    (compare(texUnits, o.texUnits) < 0)));
+            return ((compare(font, o.font) < 0) ||
+                    ((compare(font, o.font) == 0) &&
+                     (compare(texUnits, o.texUnits) < 0)));
         }
     };
 

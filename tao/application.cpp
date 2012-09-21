@@ -347,8 +347,13 @@ void Application::deferredInit()
         checkModules();
 
     // Check for update now if wanted
-    if(GeneralPage::checkForUpdate())
-        updateApp->check();
+    if(GeneralPage::checkForUpdateOnStartup())
+    {
+        QDateTime now = QDateTime::currentDateTime();
+        QDateTime last = updateApp->lastChecked();
+        if (!last.isValid() || last.secsTo(now) > 24*60*60)
+            updateApp->check();
+    }
 
     // Record application start time (licensing)
     startTime = Widget::trueCurrentTime();
@@ -662,6 +667,15 @@ void Application::processCommandLineFile()
     if (toOpen.isEmpty())
         toOpen = win->welcomePath();
     Q_ASSERT(!toOpen.isEmpty());
+
+    // This code makes size() and geometry() valid for the main window
+    // its Tao widget, respectively, so that these dimensions may be used
+    // during win->open() (primitives window_width/window_height/window_size)
+    win->setAttribute(Qt::WA_DontShowOnScreen);
+    win->show();
+    win->hide();
+    win->setAttribute(Qt::WA_DontShowOnScreen, false);
+
     int st = win->open(toOpen);
     win->markChanged(false);
     if (st == 0)

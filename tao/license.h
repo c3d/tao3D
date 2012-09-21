@@ -74,6 +74,8 @@ public:
         int days = RemainingDays(feature);
         if (days <= 7)
             Warn(feature, days, critical);
+        if (days <= 0)
+            LM().unlicensedCount++;
         return days > 0;
     }
 
@@ -81,22 +83,25 @@ public:
     {
         if (Application::isImpress())
         {
-            IFTRACE(lic)
-            {
-                // Cache request for less verbose logging
-                static std::set<text> checked;
-                if (checked.count(feature) == 0)
-                {
-                    debug() << "'" << feature << "' not checked "
-                               "(authorized because edition is Impress)\n";
-                    checked.insert(feature);
-                }
-            }
+            debugTraceNotChecked(feature);
             return true;
         }
         else
         {
             return Check(feature, false);
+        }
+    }
+
+    static bool HasImpressOrLicense(text feature)
+    {
+        if (Application::isImpress())
+        {
+            debugTraceNotChecked(feature);
+            return true;
+        }
+        else
+        {
+            return Has(feature);
         }
     }
 
@@ -162,6 +167,23 @@ private:
 #endif
     bool verify(LicenseFile &lf, text signature);
     static std::ostream & debug();
+
+#ifndef KEYGEN
+    static void debugTraceNotChecked(text feature)
+    {
+        IFTRACE(lic)
+        {
+            // Cache request for less verbose logging
+            static std::set<text> checked;
+            if (checked.count(feature) == 0)
+            {
+                debug() << "'" << feature << "' not checked "
+                           "(authorized because edition is Impress)\n";
+                checked.insert(feature);
+            }
+        }
+    }
+#endif
 };
 
 }

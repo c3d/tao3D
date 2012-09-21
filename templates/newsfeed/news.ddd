@@ -1,0 +1,119 @@
+import RegExp
+import NetworkAccess
+import PointCloud
+import Animate
+
+
+feed "US News", "http://news.google.com/news?ned=us&charset=utf8&output=rss"
+feed "Actualités françaises", "http://news.google.com/news?ned=fr&charset=utf8&output=rss"
+feed "World", "http://news.google.com/news?ned=us&topic=w&output=rss"
+feed "India", "http://news.google.com/news?ned=in&topic=n&output=rss"
+feed "United Kingdom", "http://news.google.com/news?ned=uk&topic=n&output=rss"
+feed "Business", "http://news.google.com/news?ned=us&topic=b&output=rss"
+feed "Technology", "http://news.google.com/news?pz=1&cf=all&ned=us&hl=en&topic=tc&output=rss"
+feed "Health", "http://news.google.com/news?ned=us&topic=m&output=rss"
+feed "Sports", "http://news.google.com/news?ned=us&topic=s&output=rss"
+feed "Entertainment", "http://news.google.com/news?ned=us&topic=e&output=rss"
+feed "Science", "http://news.google.com/news?pz=1&cf=all&ned=us&hl=en&topic=snc&output=rss"
+feed "Lemurs", "http://news.google.com/news?q=lemurs&output=rss"
+feed "Stereoscopy", "http://news.google.com/news?q=stereoscopy&output=rss"
+feed "3D", "http://news.google.com/news?q=3D&output=rss"
+feed "Apple", "http://news.google.com/news?q=apple&output=rss"
+feed "Slashdot", "http://rss.slashdot.org/Slashdot/slashdot"
+feed "Slashdot Games", "http://rss.slashdot.org/Slashdot/slashdotGames"
+feed "Twitter taodyne", "http://api.twitter.com/1/statuses/user_timeline.rss?screen_name=taodyne"
+feed "Twitter #startup", "http://search.twitter.com/search.rss?q=%23startup"
+
+feed Title:text, URL:text ->
+    page Title,
+        clear_color 0, 0, 0, 1
+        scale_to_fit
+        locally
+            translate -600, 350, 300
+            rotatey 40
+            color "yellow"
+            text_box 0, 0, 600, 200,
+                align 0.5
+                vertical_align 0.5
+                font "Ubuntu", 65
+                text Title
+        locally
+            cloud_random "Stars", 3000
+            color "white"
+            translate 0, 0, -5000
+            scale 5000, 5000, 3000
+            rotatey 0.1 * time
+            translate -0.5, -0.5, -0.5
+            cloud "Stars"
+        locally
+            translate -800, 150, -500
+            rotatey -20
+            rotatez 20
+            font "Arial", 24
+            process_feed get_url_text URL
+        locally
+            translate -1100, 0, -2000
+            color "white"
+            texture "http://www.motionstudios.de/images/dwm/Bild4.jpg"
+            light 0
+            light_position 1000, 1000, 1000
+            rotatey 5 * time
+            if texture_width <> 0 then
+                sphere 900
+
+scale_to_fit ->
+    S -> max(window_width/1920, window_height/1200)
+    scale S, S, S
+
+PicIndex -> 0
+process_feed T:text ->
+    // Refresh every second until we get news feed, then every minute
+    if T = "" then refresh 1 else refresh 60
+
+    PicIndex := 0
+    regexp_parse_all T,
+        -"<title>Top Stories.*</title>" -> false
+        -"<item.*<title>(.*)</title>" ->
+            move_to 0, 0, 0
+            rotatez -3
+            move_to 300, 0, 0
+            translatey -35
+            color "white"
+            text translate_html regexp_captured 1
+        -"<copyright>(.*)</copyright>" ->
+            color "lightblue"
+            move_to 400, 0, 0
+            text translate_html regexp_captured 1
+        -"<pubDate>.*([0-9]+:[0-9]+:[0-9]+.*)</pubDate>" ->
+            color "lightgreen", 0.3
+            text "  "
+            text translate_html regexp_captured 1
+        -"<category>(.*)</category>" ->
+            color "lightgray", 0.3
+            text " --- "
+            color "red"
+            text translate_html regexp_captured 1
+        - "img src=&quot;(.*.jpg)&quot;" ->
+            color "white"
+            // move_to 1500, 0, 0
+            draw_picture "http:" & regexp_captured 1, PicIndex + 0
+            PicIndex := PicIndex + 7
+
+draw_picture Path:text, Index:integer ->
+    locally
+        translate 70, 0, -50
+        rotatey Index * time
+        rotatex -90 * sin (0.1 * time - Index) ^ 142
+        texture Path
+        anchor
+            cube 0, 0, 0, 100, 100, 100
+
+translate_html T:text ->
+    regexp_parse_text T,
+        "[^&]+"                     -> regexp_captured 0
+        "&quot;"                    -> """"
+        "&apos;"                    -> "'"
+        "&amp;copy;"                -> unicode_char "xa9"
+        "&amp;amp;"                 -> "&"
+        "&#(x[a-fA-F0-9]+|[0-9]+);" -> unicode_char regexp_captured 1
+        "&(.*);"                    -> "&" & regexp_captured 1 & ";"

@@ -216,13 +216,13 @@ anchor (t:tree);
  * @~english
  * Selects the line width for shape outlines.
  *
- * @c line_width @c "default" reset the line width to the default value.
+ * @c line_width @c "default" resets the line width to the default value (4).
  * @p lw is the width in pixels.
  *
  * @~french
  * Définit la largeur du trait pour le tracé des formes.
  *
- * @c line_width @c "default" reprend la valeur par défaut.
+ * @c line_width @c "default" reprend la valeur par défaut (4).
  * @p lw est la largeur en pixels.
  */
 line_width (lw:real);
@@ -548,6 +548,7 @@ no_line_color ();
  *       - line_color "font"
  *       - line_color "line"
  *
+ * The default color is transparent black, so that no line is drawn by default.
  * @note @c color @c "font" and @c line_color @c "font" are not the same color,
  * but relevent colors for the line of a glyph and the fill of a glyph.
  *
@@ -571,6 +572,8 @@ no_line_color ();
  *
  * Les modules peuvent également définir des couleurs.
  *
+ * La couleur par défaut est le noir transparent, de sorte qu'aucune contour
+ * n'est tracé par défaut.
  * @note @c color @c "font" et @c line_color @c "font" ne sont pas la même
  * couleur.
  *
@@ -1152,10 +1155,45 @@ texture_mipmap(enable:boolean);
 /**
  * @~english
  * Enables or disables compression of new textures.
+ * Controls whether textures are to be used in their
+ * compressed form (lower quality but reduced GL memory usage and possibly
+ * higher performance). Changing this setting does not cause
+ * existing textures to be re-created. @n
+ * When texture compression is enabled, compressed texture files
+ * are loaded preferably over ther uncompressed version to speedup the
+ * loading phase. See @ref texture_save_compressed.
  * @~french
  * Active ou désactive la compression des nouvelles textures.
+ * Permet de contrôler si les textures sont utilisées sous forme compressée
+ * (qualité moindre, mais utilisation de mémoire plus faible et
+ * possiblement meilleures performances). Les textures déjà chargées ne
+ * sont pas affectées pas un changement de ce paramètre. @n
+ * Lorsque la compression est activée, le programme charge de préférence
+ * une version pré-compressée de la texture si elle existe. Cf.
+ * @ref texture_save_compressed.
  */
 texture_compress(enable:boolean);
+
+/**
+ * @~english
+ * Enables or disables creation of compressed texture files.
+ * When set to true, any texture loaded from disk and used in compressed
+ * form (see  @ref texture_compress) will be cached to disk.
+ * The file name is the original texture file with the <tt>.compressed</tt>
+ * suffix appended. Changing this setting does not cause
+ * existing textures to be re-created.
+ *
+ * @~french
+ * Active ou désactive la création de fichiers de texture compressés.
+ * Lorsque ce mode est activé, toute nouvelle texture chargée depuis un
+ * fichier et utilisée sous forme compressée (cf. @ref texture_compress)
+ * sera mise en cache sur disque.
+ * Le nom du fichier compressé est celui de la texture originale, avec
+ * l'extension supplémentaire <tt>.compressed</tt>.
+ * Les textures déjà chargées ne sont pas affectées pas un changement de
+ * ce paramètre.
+ */
+texture_save_compressed(enable:boolean);
 
 /**
  * @~english
@@ -1749,6 +1787,17 @@ ellipse (x:real, y:real, w:real, h:real);
 
 /**
  * @~english
+ * Draws a circle.
+ * Same as <tt>ellipse x, y, r, 2*r</tt>.
+ *
+ * @~french
+ * Affiche un cercle.
+ * Équivalent à <tt>ellipse x, y, r, 2*r</tt>.
+ */
+circle (x:real, y:real, r:real);
+
+/**
+ * @~english
  * Draws an elliptic sector.
  *
  * Elliptic sector centered around (@p x, @p y) that occupies the given
@@ -1883,7 +1932,7 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
 
 /**
  * @~english
- * Draws a star.
+ * Draws a star polygon.
  *
  * This primitive draws a regular star polygon centered at (@p x, @p y).
  * The star is obtained by placing @p p vertices regularly spaced on a
@@ -1891,7 +1940,7 @@ star (x:real, y:real, w:real, h:real, p:integer, r:real);
  * connected together.
  *
  * @~french
- * Affiche une étoile.
+ * Affiche un polygone étoilé.
  *
  * Cette primitive définit une étoile régulière centrée en (@p x, @p y).
  * L'étoile est obtenue en plaçant @p p sommets régulièrement espacés sur un
@@ -1960,7 +2009,7 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  *
  * This primitives draws a regular polygon with @p p vertex.
  * @image html polygon.png
- * Shortcuts has been defined for polygon from 3 to 20 vertexes.
+ * Shortcuts have been defined for polygon from 3 to 20 vertices.
  *
  * @~french
  * Affiche un polygone régulier.
@@ -1969,48 +2018,47 @@ callout (x:real, y:real, w:real, h:real, r:real, ax:real, ay:real, tw:real);
  * @image html polygon.png
  * Des raccourcis existent pour les polygones de 3 à 20 sommets :
  * @~
- *  -# -
- *  -# -
- *  -# equilateral_triangle
- *  -# tetragon
- *  -# pentagon
- *  -# hexagon
- *  -# heptagon
- *  -# octagon
- *  -# nonagon
- *  -# decagon
- *  -# hendecagon
- *  -# dodecagon
- *  -# tridecagon
- *  -# tetradecagon
- *  -# pentadecagon
- *  -# hexadecagon
- *  -# heptadecagon
- *  -# octadecagon
- *  -# enneadecagon
- *  -# icosagon
+ * -# N/A
+ * -# N/A
+ * -# equilateral_triangle
+ * -# tetragon
+ * -# pentagon
+ * -# hexagon
+ * -# heptagon
+ * -# octagon
+ * -# nonagon
+ * -# decagon
+ * -# hendecagon
+ * -# dodecagon
+ * -# tridecagon
+ * -# tetradecagon
+ * -# pentadecagon
+ * -# hexadecagon
+ * -# heptadecagon
+ * -# octadecagon
+ * -# enneadecagon
+ * -# icosagon
  */
 polygon (x:real, y:real, w:real, h:real, p:integer);
 
 /**
- * @copydoc star_polygon
- * @image html polygram.png
  * @~english
+ * Synonym for @ref star_polygon.
  * Shortcuts has been defined for polygram from 5 to 10 vertexes.
  *
  * @~french 
+ * Synonyme de @ref star_polygon.
  * Des raccourcis existent pour des polygrams de 5 à 10 sommets.
  *
  * @~
- *  - pentagram       p = 5, q = 2
- *  - hexagram        p = 6, q = 2
- *  - star_of_david   p = 6, q = 2
- *  - heptagram       p = 7, q = 2
- *  - star_of_lakshmi p = 8, q = 2
- *  - octagram        p = 8, q = 3
- *  - nonagram        p = 9, q = 3
- *  - decagram        p =10, q = 3
-
+ * - pentagram       p = 5, q = 2
+ * - hexagram        p = 6, q = 2
+ * - star_of_david   p = 6, q = 2
+ * - heptagram       p = 7, q = 2
+ * - star_of_lakshmi p = 8, q = 2
+ * - octagram        p = 8, q = 3
+ * - nonagram        p = 9, q = 3
+ * - decagram        p =10, q = 3
  */
 polygram (x:real, y:real, w:real, h:real, p:integer, q:integer);
 

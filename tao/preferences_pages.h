@@ -49,14 +49,17 @@ class GeneralPage : public QWidget
 public:
     GeneralPage(QWidget *parent = 0);
 
-    static bool  checkForUpdate();
+    static bool  checkForUpdateOnStartup();
+
+protected:
+    static bool  checkForUpdateOnStartupDefault();
 
 private:
     QStringList  installedLanguages();
 
 private slots:
     void         setLanguage(int index);
-    void         setCheckForUpdate(bool on);
+    void         setCheckForUpdateOnStartup(bool on);
 
 private:
     QComboBox *  combo;
@@ -143,8 +146,8 @@ public:
     static bool    texture2DMipmap();
     static int     texture2DMinFilter();
     static int     texture2DMagFilter();
-    static qint64  textureCacheMaxMem();
-    static qint64  textureCacheMaxGLMem();
+    static quint64 textureCacheMaxMem();
+    static quint64 textureCacheMaxGLMem();
 
 protected slots:
     void           setPerPixelLighting(bool on);
@@ -155,9 +158,9 @@ protected slots:
     void           texture2DMinFilterChanged(int index);
     void           setTexture2DMagFilter(int value);
     void           texture2DMagFilterChanged(int index);
-    void           setTextureCacheMaxMem(qint64 bytes);
+    void           setTextureCacheMaxMem(quint64 bytes);
     void           textureCacheMaxMemChanged(int index);
-    void           setTextureCacheMaxGLMem(qint64 bytes);
+    void           setTextureCacheMaxGLMem(quint64 bytes);
     void           textureCacheMaxGLMemChanged(int index);
 
 protected:
@@ -167,8 +170,8 @@ protected:
     static bool    texture2DCompressDefault();
     static int     texture2DMinFilterDefault();
     static int     texture2DMagFilterDefault();
-    static qint64  textureCacheMaxMemDefault();
-    static qint64  textureCacheMaxGLMemDefault();
+    static quint64 textureCacheMaxMemDefault();
+    static quint64 textureCacheMaxGLMemDefault();
 
 protected:
     QRadioButton * lightFixed;

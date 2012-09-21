@@ -32,6 +32,10 @@ usage() {
   echo "  --disable-doc   Do not build documentation."
   echo "  --with-eula     Enable the End-User License Agreement dialog (REQUIRED for"
   echo "                  official builds)"
+  echo "  --with-cfu      Check for update on application startup (unless overriden"
+  echo "                  in preferences)"
+  echo "  --with-ccache   Use compiler cache. Appends the following qmake flags:"
+  echo "                  QMAKE_CC='ccache gcc' QMAKE_CXX='ccache g++'"
   echo ""
   echo "Edition Name:"
   echo ""
@@ -49,19 +53,13 @@ usage() {
   echo "              If edition name is 'creativity' or 'impress',"
   echo "              a 2-month license is generated for this edition (useful for testing)."
   echo "              ** Discovery is an evaluation/demo version."
-  echo "                - It shows a watermark after 10 minutes."
+  echo "                - It shows a watermark (Taodyne logo in the corner)."
   echo "                - It shows a 'Buy' reminder on exit."
-  echo "                - Many modules require a license and will thus show a warning and stop"
-  echo "                  working normally after 5 minutes."
-  echo "              ** Creativity is the intermediate version. No watermark, no 'Buy' reminder"
-  echo "                 but modules are still limited."
+  echo "              ** Creativity is the intermediate version. No 'Buy' reminder, and no"
+  echo "                 watermark unless an unlicensed module is used."
   echo "              ** Impress allows many modules to work without explicit license."
-  echo "  youactive   Configure for Tao Presentations YouActive. Same as Creativity, but"
-  echo "              includes additional modules used in the YouActive solution (DIP)."
-  echo "              - All default modules (except autostereoscopic displays), as well as"
-  echo "                YouActive-specific modules are built and packaged, with no license."
-  echo "              - Application license template is packaged (not signed):"
-  echo "                'Tao Presentations YouActive <version>.*'"
+  echo "  youactive   Configure for Tao Presentations YouActive. Same as the regular (\"unified\")"
+  echo "              build, but includes additional modules used in the YouActive solution (DIP)."
   echo "  internal    Configure for an internal build with most features enabled (including"
   echo "              the less stable ones, not shipped with official Tao editions)".
   echo "              - All default modules are built and packaged, with 120-day licenses."
@@ -132,6 +130,15 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
       shift
       ;;
+    --with-cfu)
+      FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
+      shift
+      ;;
+    --with-ccache)
+      CCACHE_CC="QMAKE_CC='ccache gcc'"
+      CCACHE_CXX="QMAKE_CXX='ccache g++'"
+      shift
+      ;;
     discovery)
       EDITION="Discovery"
       shift ; done=1
@@ -147,8 +154,8 @@ while [ $# -ne 0 ] ; do
       shift ; done=1
       ;;
     youactive)
-      EDITION="YouActive"
       FLAGS="$FLAGS modules+=+DIP modules+=+dip_dedication modules+=+dip_mouse modules+=+dip_null modules+=+dip_voting"
+      FLAGS="$FLAGS PACKAGE_APPEND=YouActive"
       shift ; done=1
       ;;
     internal)
@@ -211,5 +218,5 @@ osflags() {
 
 
 
-echo Running: qmake -r `osflags` $FLAGS "$@"
-qmake -r `osflags` $FLAGS "$@"
+echo Running: qmake -r `osflags` $FLAGS "$CCACHE_FLAGS" "$CCACHE_CC" "$CCACHE_CXX" "$@"
+qmake -r `osflags` $FLAGS "$CCACHE_CC" "$CCACHE_CXX" "$@"

@@ -107,7 +107,10 @@ void PerPixelLighting::Draw(Layout *where)
 	{
 	    // If there is no other shaders, then deactivate it
 	    if(where->perPixelLighting == where->programId)
+            {
 		where->programId = 0;
+                glUseProgram(0);
+            }
 
 	    where->perPixelLighting = 0;
 	}

@@ -46,6 +46,18 @@ FileMonitor::FileMonitor(QString name)
 }
 
 
+FileMonitor::FileMonitor(const FileMonitor &o)
+// ----------------------------------------------------------------------------
+//    Copy constructor
+// ----------------------------------------------------------------------------
+    : QObject(), thread(o.thread), name(o.name)
+{
+    foreach (MonitoredFile file, o.files)
+        addPath(file.path);
+    thread->addMonitor(this);
+}
+
+
 FileMonitor::~FileMonitor()
 // ----------------------------------------------------------------------------
 //    Destructor
@@ -88,6 +100,11 @@ void FileMonitor::addPath(const QString &path)
         }
         files[path] = mf;
         thread->addPath(path);
+    }
+    else
+    {
+        IFTRACE(filemon)
+            debug() << "Path '" << +path << "' already monitored\n";
     }
 }
 
@@ -214,10 +231,29 @@ FileMonitorThread::~FileMonitorThread()
 
 void FileMonitorThread::addPath(const QString &path)
 // ----------------------------------------------------------------------------
-//    Add path or increment use count
+//    Add path or increment use count, don't block on main mutex
 // ----------------------------------------------------------------------------
 {
-    QMutexLocker locker(&mutex);
+    if (mutex.tryLock())
+    {
+        addPathNoLock(path);
+        mutex.unlock();
+    }
+    else
+    {
+        // Path will be added to the main list when the next fileCheck()
+        // completes
+        QMutexLocker locker(&pendingMutex);
+        pending.append(path);
+    }
+}
+
+
+void FileMonitorThread::addPathNoLock(const QString &path)
+// ----------------------------------------------------------------------------
+//    Add path or increment use count. Assumes mutex is already locked.
+// ----------------------------------------------------------------------------
+{
     if (files.contains(path))
     {
         FileInfo &file = files[path];
@@ -304,12 +340,35 @@ std::ostream & FileMonitorThread::debug()
 }
 
 
+void FileMonitorThread::mergePending()
+// ----------------------------------------------------------------------------
+//   Add files from the pending list to the main list (if any)
+// ----------------------------------------------------------------------------
+{
+    // 'mutex' MUST be locked when calling this method.
+
+    QMutexLocker locker(&pendingMutex);
+    if (pending.isEmpty())
+        return;
+
+    IFTRACE(filemon)
+         debug() << "Moving " << pending.size() << " paths from 'pending'\n";
+    foreach (QString path, pending)
+        addPathNoLock(path);
+    pending.clear();
+}
+
+
 void FileMonitorThread::checkFiles()
 // ----------------------------------------------------------------------------
 //   Check all files for changes
 // ----------------------------------------------------------------------------
 {
     QMutexLocker locker(&mutex);
+
+    QTime time;
+    IFTRACE(filemon)
+        time.start();
 
     foreach (QString path, files.keys())
     {
@@ -411,6 +470,14 @@ void FileMonitorThread::checkFiles()
         }
     }
 
+    IFTRACE(filemon)
+    {
+        int ms = time.elapsed();
+        debug() << files.size() << " paths checked in " << ms << "ms\n";
+        time.start();
+    }
+
+    mergePending();
     QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));
 }
 

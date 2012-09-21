@@ -603,7 +603,7 @@ int DisplayDriver::getCurrentEye()
 //   Current eye
 // ----------------------------------------------------------------------------
 {
-    return Widget::Tao()->eye;
+    return Widget::Tao()->stereoPlane + 1;
 }
 
 int DisplayDriver::getEyesNumber()
@@ -611,7 +611,7 @@ int DisplayDriver::getEyesNumber()
 //   Number of eyes
 // ----------------------------------------------------------------------------
 {
-    return Widget::Tao()->eyesNumber;
+    return Widget::Tao()->stereoPlanes;
 }
 
 void DisplayDriver::setStereoPlanes(int planes)
@@ -642,13 +642,14 @@ void DisplayDriver::setMouseTrackingViewport(int x, int y, int w, int h)
 }
 
 
-void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
+void DisplayDriver::setProjectionMatrix(int w, int h, int i, int)
 // ----------------------------------------------------------------------------
 //   Set frustum for the given camera
 // ----------------------------------------------------------------------------
 {
     // Record which stereo plane we are on for stereo
     Widget::Tao()->stereoPlane = i-1;
+    int numCameras = Widget::Tao()->stereoPlanes;
 
     // Read camera distance to screen
     double toScreen;
@@ -666,13 +667,14 @@ void DisplayDriver::setProjectionMatrix(int w, int h, int i, int numCameras)
 }
 
 
-void DisplayDriver::setModelViewMatrix(int i, int numCameras)
+void DisplayDriver::setModelViewMatrix(int i, int)
 // ----------------------------------------------------------------------------
 //   Set modelview matrix for the given camera
 // ----------------------------------------------------------------------------
 {
     // Record which stereo plane we are on for stereo
     Widget::Tao()->stereoPlane = i-1;
+    int numCameras = Widget::Tao()->stereoPlanes;
 
     // Read camera position
     Point3 cameraPosition;
@@ -691,11 +693,13 @@ void DisplayDriver::setModelViewMatrix(int i, int numCameras)
     Point3 target = cameraPosition + toTarget;
     Vector3 shift = toTarget.Cross(cameraUpVector).Normalize() * shiftLength;
 
-    // Update current eye and eyes number
-    Widget::Tao()->eye = i;
-    Widget::Tao()->eyesNumber = numCameras;
-
-    GL.LookAt(cameraPosition + shift, target + shift, cameraUpVector);
+    GL.LookAt(cameraPosition.x + shift.x,
+              cameraPosition.y + shift.y,
+              cameraPosition.z + shift.z,
+              target.x + shift.x,
+              target.y + shift.y,
+              target.z + shift.z,
+              cameraUpVector.x, cameraUpVector.y, cameraUpVector.z);
 }
 
 

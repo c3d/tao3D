@@ -93,10 +93,8 @@ void FrameInfo::resize(uint w, uint h)
     QGLFramebufferObjectFormat format;
     format.setInternalTextureFormat(this->format);
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-#if !defined(Q_OS_LINUX)
     if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
     {
-        // Setting this on Linux crashes in the first framebuffer object ctor
         QGLFramebufferObjectFormat mformat(format);
         mformat.setSamples(4);
         render_fbo = new QGLFramebufferObject(w, h, mformat);
@@ -125,7 +123,6 @@ void FrameInfo::resize(uint w, uint h)
         }
     }
     else
-#endif // CONFIG_LINUX
     {
         render_fbo = new QGLFramebufferObject(w, h, format);
         texture_fbo = render_fbo;
@@ -200,16 +197,7 @@ void FrameInfo::end()
     glShowErrors();
 
     // Blit the result in the texture if necessary
-    if (render_fbo != texture_fbo)
-    {
-        GLenum buffers = GL_COLOR_BUFFER_BIT;
-        if (depth_tex)
-            buffers |= GL_DEPTH_BUFFER_BIT;
-        QRect rect(0, 0, render_fbo->width(), render_fbo->height());
-        QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
-                                              render_fbo, rect,
-                                              buffers);
-    }
+    blit();
     if (depth_tex)
         copyToDepthTexture();
     glShowErrors();
@@ -244,6 +232,24 @@ void FrameInfo::clear()
 }
 
 
+void FrameInfo::blit()
+// ----------------------------------------------------------------------------
+//   Blit from multisampled FBO to non-multisampled FBO
+// ----------------------------------------------------------------------------
+{
+    if (render_fbo != texture_fbo)
+    {
+        GLenum buffers = GL_COLOR_BUFFER_BIT;
+        if (depth_tex)
+            buffers |= GL_DEPTH_BUFFER_BIT;
+        QRect rect(0, 0, render_fbo->width(), render_fbo->height());
+        QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
+                                              render_fbo, rect,
+                                              buffers);
+    }
+}
+
+
 GLuint FrameInfo::texture()
 // ----------------------------------------------------------------------------
 //   Return the GL texture associated to the off-screen buffer
@@ -263,6 +269,7 @@ GLuint FrameInfo::depthTexture()
     if (!depth_tex)
     {
         resizeDepthTexture(w, h);
+        blit();
         copyToDepthTexture();
     }
     return depth_tex;

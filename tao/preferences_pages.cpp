@@ -77,18 +77,10 @@ GeneralPage::GeneralPage(QWidget *parent)
 
     // Menu for automatic check for update
     QCheckBox *cfu = new QCheckBox(tr("Check for update at the launch of the application"));
-    cfu->setChecked(checkForUpdate());
+    cfu->setChecked(checkForUpdateOnStartup());
     connect(cfu, SIGNAL(toggled(bool)),
-            this, SLOT(setCheckForUpdate(bool)));
+            this, SLOT(setCheckForUpdateOnStartup(bool)));
     grid->addWidget(cfu, 2, 1);
-
-//    grid->addWidget(new QLabel(tr("Disable stereoscopy (3D)")), 2, 1);
-//    noStereo = new QCheckBox;
-//    grid->addWidget(noStereo, 2, 2);
-//    bool disable = QSettings().value("DisableStereoscopy", false).toBool();
-//    noStereo->setChecked(disable);
-//    connect(noStereo, SIGNAL(toggled(bool)),
-//            this,     SLOT(disableStereoBuffers(bool)));
 
     group->setLayout(grid);
 
@@ -139,27 +131,39 @@ void GeneralPage::setLanguage(int index)
 }
 
 
-void GeneralPage::setCheckForUpdate(bool on)
+void GeneralPage::setCheckForUpdateOnStartup(bool on)
 // ----------------------------------------------------------------------------
 //   Save setting about check for update
 // ----------------------------------------------------------------------------
 {
    QSettings settings;
-   if (!on)
+   if (on == checkForUpdateOnStartupDefault())
        settings.remove("CheckForUpdate");
    else
        settings.setValue("CheckForUpdate", QVariant(on));
 }
 
 
-bool GeneralPage::checkForUpdate()
+bool GeneralPage::checkForUpdateOnStartup()
 // ----------------------------------------------------------------------------
 //   Read setting about check for update
 // ----------------------------------------------------------------------------
 {
-    QSettings settings;
-    bool cfu = settings.value("CheckForUpdate").toBool();
-    return cfu;
+    bool dflt = checkForUpdateOnStartupDefault();
+    return QSettings().value("CheckForUpdate", QVariant(dflt)).toBool();
+}
+
+
+bool GeneralPage::checkForUpdateOnStartupDefault()
+// ----------------------------------------------------------------------------
+//   Default value for "check for update on startup"
+// ----------------------------------------------------------------------------
+{
+#ifdef CFG_WITH_CFU
+    return true;
+#else
+    return false;
+#endif
 }
 
 
@@ -805,7 +809,7 @@ void PerformancesPage::texture2DMagFilterChanged(int index)
 }
 
 
-void PerformancesPage::setTextureCacheMaxMem(qint64 bytes)
+void PerformancesPage::setTextureCacheMaxMem(quint64 bytes)
 // ----------------------------------------------------------------------------
 //   Save setting, update texture cache value
 // ----------------------------------------------------------------------------
@@ -825,12 +829,12 @@ void PerformancesPage::textureCacheMaxMemChanged(int index)
 //   Set texture cache max memory from combo box index
 // ----------------------------------------------------------------------------
 {
-    quint64 bytes = cacheMemCombo->itemData(index).toLongLong();
+    quint64 bytes = cacheMemCombo->itemData(index).toULongLong();
     setTextureCacheMaxMem(bytes);
 }
 
 
-void PerformancesPage::setTextureCacheMaxGLMem(qint64 bytes)
+void PerformancesPage::setTextureCacheMaxGLMem(quint64 bytes)
 // ----------------------------------------------------------------------------
 //   Save setting, update texture cache value
 // ----------------------------------------------------------------------------
@@ -850,7 +854,7 @@ void PerformancesPage::textureCacheMaxGLMemChanged(int index)
 //   Set texture cache max GL memory from combo box index
 // ----------------------------------------------------------------------------
 {
-    quint64 bytes = cacheGLMemCombo->itemData(index).toLongLong();
+    quint64 bytes = cacheGLMemCombo->itemData(index).toULongLong();
     setTextureCacheMaxGLMem(bytes);
 }
 
@@ -933,30 +937,30 @@ int PerformancesPage::texture2DMagFilter()
 }
 
 
-qint64 PerformancesPage::textureCacheMaxMem()
+quint64 PerformancesPage::textureCacheMaxMem()
 // ----------------------------------------------------------------------------
 //   Read setting for texture cache memory size
 // ----------------------------------------------------------------------------
 {
-    qint64 dflt = textureCacheMaxMemDefault();
+    quint64 dflt = textureCacheMaxMemDefault();
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    qint64 ret = settings.value("TextureCacheMaxMem",
-                                QVariant(dflt)).toLongLong();
+    quint64 ret = settings.value("TextureCacheMaxMem",
+                                QVariant(dflt)).toULongLong();
     return ret;
 }
 
 
-qint64 PerformancesPage::textureCacheMaxGLMem()
+quint64 PerformancesPage::textureCacheMaxGLMem()
 // ----------------------------------------------------------------------------
 //   Read setting for texture cache GL memory size
 // ----------------------------------------------------------------------------
 {
-    qint64 dflt = textureCacheMaxGLMemDefault();
+    quint64 dflt = textureCacheMaxGLMemDefault();
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    qint64 ret = settings.value("TextureCacheMaxGLMem",
-                                QVariant(dflt)).toLongLong();
+    quint64 ret = settings.value("TextureCacheMaxGLMem",
+                                QVariant(dflt)).toULongLong();
     return ret;
 }
 
@@ -1015,7 +1019,7 @@ int PerformancesPage::texture2DMagFilterDefault()
 }
 
 
-qint64 PerformancesPage::textureCacheMaxMemDefault()
+quint64 PerformancesPage::textureCacheMaxMemDefault()
 // ----------------------------------------------------------------------------
 //   Default value for the max memory size of the texture cache
 // ----------------------------------------------------------------------------
@@ -1024,7 +1028,7 @@ qint64 PerformancesPage::textureCacheMaxMemDefault()
 }
 
 
-qint64 PerformancesPage::textureCacheMaxGLMemDefault()
+quint64 PerformancesPage::textureCacheMaxGLMemDefault()
 // ----------------------------------------------------------------------------
 //   Default value for the max GL memory size of the texture cache
 // ----------------------------------------------------------------------------

@@ -41,7 +41,7 @@ namespace Tao {
 QWeakPointer<TextureCache> TextureCache::textureCache;
 
 
-static text bytesToText(qint64 size)
+static text bytesToText(quint64 size)
 // ----------------------------------------------------------------------------
 //   Convert size in bytes into a human readable string
 // ----------------------------------------------------------------------------
@@ -80,16 +80,17 @@ XL::Name_p TextureCache::fn(bool enable)                                    \
 
 BOOL_SETTER(textureMipmap, mipmap)
 BOOL_SETTER(textureCompress, compress)
+BOOL_SETTER(textureSaveCompressed, saveCompressed)
 
 
 // ----------------------------------------------------------------------------
 //   Primitives to change cache size limits
 // ----------------------------------------------------------------------------
 #define SIZE_SETTER(fn, attr)                                               \
-XL::Integer_p TextureCache::fn(qint64 val)                                  \
+XL::Integer_p TextureCache::fn(quint64 val)                                 \
 {                                                                           \
     QSharedPointer<TextureCache> tc = TextureCache::instance();             \
-    qint64 &attr = tc->attr, prev = attr;                                   \
+    quint64 &attr = tc->attr, prev = attr;                                  \
                                                                             \
     if (attr != val)                                                        \
     {                                                                       \
@@ -187,7 +188,7 @@ void TextureCache::doPrintStatistics()
                 << "\n";
 
 #ifndef QT_NO_DEBUG
-    qint64 checkMemSize = 0, checkGLSize = 0;
+    quint64 checkMemSize = 0, checkGLSize = 0;
     QList<GLuint> ids = fromId.keys();
     foreach (GLuint id, ids)
     {
@@ -243,14 +244,16 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
         fromId[id] = fromName[name] = cached;
         if (memSize > maxMemSize)
             purgeMem();
-        cached->load();
-        insert(cached, memLRU);
-        if (GLSize < maxGLSize)
+        if (cached->load())
         {
-            cached->transfer();
-            insert(cached, GL_LRU);
+            insert(cached, memLRU);
+            if (GLSize < maxGLSize)
+            {
+                cached->transfer();
+                insert(cached, GL_LRU);
+            }
+            printStatistics();
         }
-        printStatistics();
     }
 
     return cached;
@@ -272,7 +275,11 @@ CachedTexture * TextureCache::bind(GLuint id)
         {
             if (memSize > maxMemSize)
                 purgeMem();
-            cached->load();
+            if (!cached->load())
+            {
+                // Texture download is still in progress
+                return cached;
+            }
             insert(cached, memLRU);
         }
         else
@@ -295,6 +302,28 @@ CachedTexture * TextureCache::bind(GLuint id)
     relink(cached, GL_LRU);
     cached->bind();
     return cached;
+}
+
+
+void TextureCache::reload(CachedTexture *tex)
+// ----------------------------------------------------------------------------
+//   Reload from file or network
+// ----------------------------------------------------------------------------
+{
+    tex->purge();
+    if (memSize > maxMemSize)
+        purgeMem();
+    if (tex->load())
+    {
+        insert(tex, memLRU);
+        printStatistics();
+
+        if (GLSize > maxGLSize)
+            purgeGLMem();
+
+        tex->transfer();
+        insert(tex, GL_LRU);
+    }
 }
 
 
@@ -337,18 +366,11 @@ void TextureCache::purgeMem()
 {
     while (memSize > (maxMemSize * purgeRatio))
     {
-        if (!memLRU.last)
-        {
-            IFTRACE(texturecache)
-                debug() << "Nothing left to purge!\n";
-            break;
-        }
+        Q_ASSERT(memLRU.last);
 
         CachedTexture * tex = memLRU.last->tex;
         unlink(tex, memLRU);
         tex->unload();
-
-        Q_ASSERT(memSize >= 0);
     }
 }
 
@@ -366,8 +388,6 @@ void TextureCache::purgeGLMem()
         CachedTexture * tex = GL_LRU.last->tex;
         unlink(tex, GL_LRU);
         tex->purgeGL();
-
-        Q_ASSERT(GLSize >= 0);
     }
 }
 
@@ -392,6 +412,12 @@ void TextureCache::clear()
     }
     Q_ASSERT(fromId.isEmpty());
     Q_ASSERT(fromName.isEmpty());
+    Q_ASSERT(memSize == 0);
+    Q_ASSERT(GLSize == 0);
+    Q_ASSERT(memLRU.first == NULL);
+    Q_ASSERT(memLRU.last == NULL);
+    Q_ASSERT(GL_LRU.first == NULL);
+    Q_ASSERT(GL_LRU.last == NULL);
 }
 
 
@@ -432,10 +458,19 @@ void TextureCache::insert(CachedTexture *tex, LRU &lru)
 {
     CachedTexture::Links *t = texLinksForLRU(tex, lru);
 
+#ifndef QT_NO_DEBUG
+    for (CachedTexture::Links *cur = lru.first; cur; cur = cur->next)
+        Q_ASSERT(tex != cur->tex);
+#endif
+
     if (lru.first) lru.first->prev = t;
     t->next = lru.first;
     lru.first = t;
     if (!lru.last) lru.last = lru.first;
+
+    Q_ASSERT(lru.first);
+    Q_ASSERT(lru.last);
+    Q_ASSERT(lru.last->next == NULL);
 }
 
 
@@ -458,6 +493,7 @@ void TextureCache::relink(CachedTexture *tex, LRU &lru)
     }
     Q_ASSERT(lru.first);
     Q_ASSERT(lru.last);
+    Q_ASSERT(lru.last->next == NULL);
 }
 
 
@@ -536,9 +572,9 @@ CachedTexture::~CachedTexture()
 }
 
 
-void CachedTexture::load()
+bool CachedTexture::load()
 // ----------------------------------------------------------------------------
-//   Load file into memory and update cached size
+//   Load file into memory and update cached size. Return true if loaded.
 // ----------------------------------------------------------------------------
 {
     Q_ASSERT(!loaded());
@@ -553,7 +589,7 @@ void CachedTexture::load()
     {
         if (networkReply == NULL)
         {
-            Licenses::CheckImpressOrLicense("NetworkAccess 1.0");
+            Licenses::CheckImpressOrLicense("NetworkAccess 1.003");
             QUrl url(path);
             QNetworkRequest req(url);
             networkReply = cache.network.get(req);
@@ -574,7 +610,7 @@ void CachedTexture::load()
             inLoad = false;
         }
         if (canonicalPath != "")
-            image.load(canonicalPath, (compress && !saveCompressed));
+            image.load(canonicalPath, compress);
     }
     if (image.isNull())
     {
@@ -599,6 +635,10 @@ void CachedTexture::load()
         {
             if (inProgress)
                 debug() << "Load in progress: '" << +path << "'\n";
+            else if (loaded())
+                debug() << "Net->Mem +" << bytesToText(size)
+                        << " (" << width << "x" << height << " pixels, "
+                        << "'" << +path << "')\n";
         }
         else
         {
@@ -609,9 +649,9 @@ void CachedTexture::load()
             else
             {
                 text cpath = +canonicalPath;
-                    if (image.compressed)
+                if (image.compressed)
                     cpath = +Image::toCompressedPath(canonicalPath);
-                debug() << "File->Mem  +" << bytesToText(size)
+                debug() << "File->Mem +" << bytesToText(size)
                         << " (" << width << "x" << height << " pixels, "
                         << "'" << +path << "' ['" << cpath << "'])\n";
             }
@@ -619,6 +659,7 @@ void CachedTexture::load()
     }
 
     cache.memSize += size;
+    return (size != 0);
 }
 
 
@@ -627,6 +668,8 @@ void CachedTexture::unload()
 //   Remove image data from memory and update cached size
 // ----------------------------------------------------------------------------
 {
+    Q_ASSERT(loaded());
+
     int purged = image.byteCount();
     image.clear();
 
@@ -643,9 +686,15 @@ void CachedTexture::purge()
 // ----------------------------------------------------------------------------
 {
     if (loaded())
+    {
+        cache.unlink(this, cache.memLRU);
         unload();
+    }
     if (transferred())
+    {
+        cache.unlink(this, cache.GL_LRU);
         purgeGL();
+    }
 }
 
 
@@ -730,7 +779,8 @@ void CachedTexture::transfer()
                 didNotCompress = true;
             }
 
-            if (!networked && saveCompressed && image.compressed)
+            if (!networked && saveCompressed && image.compressed &&
+                !image.loadedFromCompressedFile)
             {
                 QString cmpPath = Image::toCompressedPath(canonicalPath);
                 if (image.saveCompressed(cmpPath))
@@ -846,7 +896,9 @@ void CachedTexture::checkReply(QNetworkReply *reply)
 //   Check if network reply is complete, if so then load image
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(reply == networkReply);
+    // Check if this is for me
+    if (reply != networkReply)
+        return;
 
     if (networked &&
         image.isNull() &&
@@ -869,13 +921,9 @@ void CachedTexture::reload()
 //   Reload texture e.g., when file was changed
 // ----------------------------------------------------------------------------
 {
-    // FIXME: check cache limits
-
     IFTRACE(texturecache)
         debug() << "Reloading\n";
-    purge();
-    load();
-    transfer();
+    cache.reload(this);
 }
 
 
@@ -970,6 +1018,7 @@ void Image::clear()
     compressed = 0;
     w = h = sz = 0;
     raw = QImage();
+    loadedFromCompressedFile = false;
 }
 
 
@@ -1099,6 +1148,7 @@ bool Image::loadCompressed(const QString &path)
     h = qFromBigEndian(hdr->h);
     memcpy(allocateCompressed(len), &hdr->data, len);
 
+    loadedFromCompressedFile =  true;
     return true;
 }
 

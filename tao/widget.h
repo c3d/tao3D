@@ -336,6 +336,8 @@ public:
 
     void        purgeTaoInfo();
 
+    FileMonitor & fileMonitor() { return srcFileMonitor; }
+
 public:
     static Widget *Tao()                { assert(current); return current; }
     Context *   formulasContext()       { return formulas; }
@@ -379,6 +381,7 @@ public:
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
     Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
     Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
+    Integer_p   stereoViewpoints();
 
     // Transforms
     Tree_p      resetTransform(Tree_p self);
@@ -438,6 +441,7 @@ public:
     Name_p      toggleShowStatistics(Tree_p self);
     Name_p      logStatistics(Tree_p self, bool ss);
     Name_p      toggleLogStatistics(Tree_p self);
+    Integer_p   frameCount(Tree_p self);
     Name_p      resetViewAndRefresh(Tree_p self);
     Name_p      panView(Tree_p self, coord dx, coord dy);
     Real_p      currentZoom(Tree_p self);
@@ -648,6 +652,8 @@ public:
     Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
+    Text_p      unicodeChar(Tree_p self, int code);
+    Text_p      unicodeCharText(Tree_p self, text code);
 
     // Tables
     Tree_p      newTable(Context *context, Tree_p self,
@@ -777,6 +783,8 @@ public:
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
+    void        clearErrors();
+    void        checkErrors(bool clear);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
     Tree_p      menuItemEnable(Tree_p self, text name, bool enable);
@@ -820,6 +828,8 @@ public:
     Name_p      readOnly();
     Text_p      baseName(Tree_p, text filename);
     Text_p      dirName(Tree_p, text filename);
+    Name_p      openUrl(Tree_p, text url);
+    Name_p      screenShot(Tree_p, text filename, bool withAlpha);
 
     // License checks
     Name_p      hasLicense(Tree_p self, Text_p feature);
@@ -938,6 +948,8 @@ private:
 #else
     bool                  frameBufferReady() { return true; }
 #endif
+    QString               screenShotPath;
+    bool                  screenShotWithAlpha;
 
     // Selection
     Activity *            activities;
@@ -987,6 +999,7 @@ private:
     QTimer                idleTimer;
     double                pageStartTime, frozenTime, startTime, currentTime;
     Statistics            stats;
+    longlong              frameCounter;
     ulonglong             nextSave, nextSync;
 #ifndef CFG_NOGIT
     ulonglong             nextCommit, nextPull;
@@ -1006,7 +1019,6 @@ private:
     double                cameraToScreen;
     Point3                cameraPosition, cameraTarget;
     Vector3               cameraUpVector;
-    int                   eye, eyesNumber;
     int                   panX, panY;
     bool                  dragging;
     bool                  bAutoHideCursor;

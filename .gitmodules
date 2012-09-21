@@ -6,4 +6,4 @@
 	url = git://gitorious.org/tao-presentation-modules/vlc_audio_video.git 
 [submodule "help_viewer"]
 	path = help_viewer
-	url = nano.taodyne.com:~/Work/tao_help_viewer.git
+	url = git://gitorious.org/taodyne-open-source/tao_help_viewer.git

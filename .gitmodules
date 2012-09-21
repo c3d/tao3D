@@ -4,3 +4,6 @@
 [submodule "modules/vlc_audio_video"]
 	path = modules/vlc_audio_video
 	url = git://gitorious.org/tao-presentation-modules/vlc_audio_video.git 
+[submodule "help_viewer"]
+	path = help_viewer
+	url = nano.taodyne.com:~/Work/tao_help_viewer.git

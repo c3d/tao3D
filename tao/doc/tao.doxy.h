@@ -1012,7 +1012,7 @@ import "xl:mes_définitions.xl"
  *   - <b>Qt Assistant</b>: L'application d'aide de Tao Presentations est
  *   dérivée de <em>Qt Assistant</em> qui fait partie du <em>Qt Toolkit</em>
  *   de Nokia. Cette application est soumise à la <em>GNU General Public
- *   License<em> version 3.0. Le code source est publié sous le projet Gitorious :
+ *   License</em> version 3.0. Le code source est publié sous le projet Gitorious :
  *   <a href="http://gitorious.org/taodyne-open-source/tao_help_viewer">
  *   http://gitorious.org/taodyne-open-source/tao_help_viewer</a>.
  */

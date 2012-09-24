@@ -1,0 +1,45 @@
+shapes_test -> test_definition "shapes", 0,  <<Testing all kind of 2D and 3D shapes
+Testing rotation and translation
+Testing images>>, 1920, 1135, 
+  test_add_check 0, 2014, 0
+  test_add_key_press 16777237, 536870912, 1147 // 
+  test_add_key_release 16777237, 536870912, 508 // 
+  test_add_check 1, 1714, 0
+  test_add_mouse_move 0, 0, 0, 647, 8, 90
+  test_add_key_press 16777237, 536870912, 770 // 
+  test_add_key_release 16777237, 536870912, 81 // 
+  test_add_mouse_move 0, 0, 0, 647, 2, 81
+  test_add_check 2, 2089, 0
+  test_add_mouse_move 0, 0, 0, 649, 9, 95
+  test_add_key_press 16777237, 536870912, 600 // 
+  test_add_key_release 16777237, 536870912, 87 // 
+  test_add_mouse_move 0, 0, 0, 649, 1, 144
+  test_add_check 3, 1541, 0
+  test_add_mouse_move 0, 0, 0, 650, 13, 75
+  test_add_key_press 16777237, 536870912, 489 // 
+  test_add_key_release 16777237, 536870912, 95 // 
+  test_add_mouse_move 0, 0, 0, 650, 0, 116
+  test_add_check 4, 1615, 0
+  test_add_mouse_move 0, 0, 0, 649, 8, 84
+  test_add_key_press 16777237, 536870912, 746 // 
+  test_add_key_release 16777237, 536870912, 95 // 
+  test_add_mouse_move 0, 0, 0, 649, 0, 108
+  test_add_check 5, 1623, 0
+  test_add_mouse_move 0, 0, 0, 651, 5, 110
+  test_add_key_press 16777237, 536870912, 488 // 
+  test_add_key_release 16777237, 536870912, 103 // 
+  test_add_mouse_move 0, 0, 0, 651, 0, 133
+  test_add_check 6, 1558, 0
+  test_add_mouse_move 0, 0, 0, 650, 13, 225
+  test_add_key_press 16777237, 536870912, 396 // 
+  test_add_key_release 16777237, 536870912, 88 // 
+
+start_test -> 
+  shapes_test
+  display_mode "taotester"
+  test_replay
+
+start_ref -> 
+  shapes_test
+  display_mode "taotester"
+  make_ref

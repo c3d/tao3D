@@ -1,0 +1,747 @@
+import TaoTester 1.0
+import RemoteControl 1.0
+toolbar_test
+import "shapes_test.xl"
+
+line_color "tao_orange" -> line_color "#DD3311" 
+line_color "tao_yellow" -> line_color "#EEAA11" 
+line_color "tao_blue"   -> line_color "#229988"
+line_color "tao_green"  -> line_color "#88BB00"
+
+color "tao_yellow" -> color "#EEAA11" 
+color "tao_orange" -> color "#DD3311" 
+color "tao_yellow_light" -> color "#EEAA11", 0.2 
+color "tao_blue"   -> color "#229988"
+color "tao_green"  -> color "#88BB00"
+
+delta -> 10 
+
+axes2D -> 
+    line_width 2 
+    line_color "tao_yellow" 
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to -150, 0 
+        line_to 150, 0 
+
+    locally 
+        translatex 150 
+        text "X" 
+
+    path 
+        endpoints_style NONE, ARROWHEAD 
+        move_to 0, -150 
+        line_to 0, 150 
+
+    locally 
+        translatey 150 
+        text "Y" 
+
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    locally 
+        translate 10, 15, 0 
+        text "(x, y)" 
+
+
+axes3D -> 
+    line_width 2 
+    line_color "tao_orange" 
+    path 
+        endpoints_style NONE, ARROWHEAD
+        move_to -200, 0, 0
+        line_to 200, 0, 0
+
+    locally
+        translatex 200 
+        text "X"
+
+    path 
+        endpoints_style NONE, ARROWHEAD
+        move_to 0, -200, 0 
+        line_to 0, 200, 0 
+
+    locally
+        translatey 200 
+        text "Y"
+
+    path
+        endpoints_style NONE, ARROWHEAD
+        move_to 0,0,-200
+        line_to 0,0, 200
+    
+    locally
+        translatez 200
+        text "Z"
+
+    color "black" 
+    line_color "black" 
+    point 0, 0, 1, 5 
+    line_width 1 
+    locally
+        translate 10, 15, 0
+        text "(x, y, z)" 
+
+
+width_and_height X, Y, W, H -> 
+    // Width 
+    line_arrow X - W / 2, Y - H / 2 - delta, ARROWHEAD, X + W / 2, Y - H / 2 - delta, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate X + W / 2 - 30, Y - H / 2 - delta - 15, 0 
+        text "Width" 
+    // Height
+    line_arrow X - W / 2 - delta, Y + H / 2, ARROWHEAD, X - W / 2 - delta, Y - H / 2, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate X - W / 2 - delta - 45, Y + H / 2 - 15, 0 
+        text "Height" 
+
+bisector_and_radius X, Y, W, H, R -> 
+    // Bisector for corner radius localization
+    line_color "tao_yellow" 
+    line X + W / 2 - 30, Y + H / 2 - 30, X + W / 2 + 30, Y + H / 2 + 30 
+    locally 
+        line_color "font" 
+        color "tao_yellow" 
+        translate X + W / 2 + 30, Y + H / 2, 0 
+        text "bisector" 
+    // Corner radius
+    line_color "black" 
+    line_arrow X + W / 2 - R, Y + H / 2 - R, ARROWHEAD, X + W / 2 - R, Y + H / 2, ARROWHEAD 
+    locally 
+        line_color "font" 
+        color "font" 
+        translate X + W / 2 - R - 10, Y + H / 2 + delta, 0 
+        text "radius" 
+
+
+test_rectangle-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    rectangle 0, 0, 100, 200 
+    axes2D 
+    width_and_height 0, 0, 100, 200 
+
+test_rounded_rectangle-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    rect_x -> 0 
+    rect_y -> 0 
+    rect_w -> 100 
+    rect_h -> 200 
+    rect_r -> 25 
+    rounded_rectangle rect_x, rect_y, rect_w, rect_h, rect_r 
+    axes2D 
+    line_color "black" 
+    width_and_height rect_x, rect_y, rect_w, rect_h 
+    bisector_and_radius rect_x, rect_y, rect_w, rect_h, rect_r 
+
+test_elliptical_rectangle-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    ell_rect_x -> 0 
+    ell_rect_y -> 0 
+    ell_rect_w -> 100 
+    ell_rect_h -> 200 
+    ell_rect_r -> 50% 
+    elliptical_rectangle ell_rect_x, ell_rect_y, ell_rect_w, ell_rect_h, ell_rect_r 
+    axes2D 
+    line_color "black" 
+    width_and_height ell_rect_x, ell_rect_y, ell_rect_w, ell_rect_h 
+
+test_ellipse-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    ellipse_x -> 0 
+    ellipse_y -> 0 
+    ellipse_w -> 100 
+    ellipse_h -> 200 
+    ellipse ellipse_x, ellipse_y, ellipse_w, ellipse_h 
+    axes2D 
+    line_color "black" 
+    width_and_height ellipse_x, ellipse_y, ellipse_w, ellipse_h 
+
+test_ellipse_arc-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    ellipsea_x -> 0 
+    ellipsea_y -> 0 
+    ellipsea_w -> 200 
+    ellipsea_h -> 290 
+    ellipsea_start -> 20 
+    ellipsea_sweep -> 135 
+    ellipse_arc ellipsea_x, ellipsea_y, ellipsea_w, ellipsea_h, ellipsea_start, ellipsea_sweep 
+    axes2D 
+    line_color "black" 
+    width_and_height ellipsea_x, ellipsea_y, ellipsea_w, ellipsea_h 
+
+    // Start angle
+    color "transparent" 
+    path 
+        move_to 61, 0 
+        endpoints_style BAR, ARROWHEAD 
+        quad_to 68, 17, 57, 30 
+
+    locally 
+        line_color "font" 
+        color "font" 
+        translate 70, 17, 0 
+        text "start angle" 
+
+    // Sweep angle
+    path 
+        move_to 68, 38 
+        endpoints_style BAR, ARROWHEAD 
+        quad_to 4, 105, -57, 41 
+
+    locally 
+        line_color "font" 
+        color "font" 
+        translate -80, 73, 0 
+        text "sweep angle" 
+
+test_isocel_triangle-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    tri_x -> 0 
+    tri_y -> 0 
+    tri_w -> 150 
+    tri_h -> 200 
+    triangle tri_x, tri_y, tri_w, tri_h 
+    axes2D 
+    line_color "black" 
+    width_and_height tri_x, tri_y, tri_w, tri_h 
+
+test_right_triangle-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    rtri_x -> 0 
+    rtri_y -> 0 
+    rtri_w -> 150 
+    rtri_h -> 200 
+    right_triangle rtri_x, rtri_y, rtri_w, rtri_h 
+    axes2D 
+    line_color "black" 
+    width_and_height rtri_x, rtri_y, rtri_w, rtri_h 
+
+test_arrow-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    arrow_x -> 0 
+    arrow_y -> 0 
+    arrow_w -> 250 
+    arrow_h -> 200 
+    arrow_head -> 60 
+    arrow_body -> 50% 
+    arrow arrow_x, arrow_y, arrow_w, arrow_h, arrow_head, arrow_body 
+    axes2D 
+    line_color "black" 
+    width_and_height arrow_x, arrow_y, arrow_w, arrow_h 
+
+    line_arrow arrow_x + arrow_w / 2, 0, ARROWHEAD, arrow_x + arrow_w / 2 - arrow_head, 0, ARROWHEAD 
+    line_color "tao_yellow" 
+    line arrow_x + arrow_w / 2 - arrow_head, -140, arrow_x + arrow_w / 2 - arrow_head, 140 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate 80, 8, 0 
+        text "head" 
+
+    line_color "black" 
+    line_arrow -100, arrow_x - (arrow_h * arrow_body) / 2, ARROWHEAD, -100, arrow_x + (arrow_h * arrow_body) / 2, ARROWHEAD 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate -80, -50, 0 
+        rotatez 90 
+        text "bodyRatio * Height" 
+
+test_double_arrow-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    darrow_x -> 0 
+    darrow_y -> 0 
+    darrow_w -> 250 
+    darrow_h -> 200 
+    darrow_head -> 60 
+    darrow_body -> 50% 
+    double_arrow darrow_x, darrow_y, darrow_w, darrow_h, darrow_head, darrow_body 
+    axes2D 
+    line_color "black" 
+    width_and_height darrow_x, darrow_y, darrow_w, darrow_h 
+
+    line_arrow darrow_x + darrow_w / 2, 0, ARROWHEAD, darrow_x + darrow_w / 2 - darrow_head, 0, ARROWHEAD 
+    line_color "tao_yellow" 
+    line darrow_x + darrow_w / 2 - darrow_head, -140, darrow_x + darrow_w / 2 - darrow_head, 140 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate 80, 8, 0 
+        text "head" 
+
+    line_color "black" 
+    line_arrow -100, darrow_x - (darrow_h * darrow_body) / 2, ARROWHEAD, -100, darrow_x + (darrow_h * darrow_body) / 2, ARROWHEAD 
+    locally 
+        line_color "transparent" 
+        color "black" 
+        translate -80, -50, 0 
+        rotatez 90 
+        text "bodyRatio * Height" 
+
+test_star-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    star_x -> 0 
+    star_y -> 0 
+    star_w -> 250 
+    star_h -> 200 
+    star_vertex -> 8 
+    star_ratio -> 50% 
+    star star_x, star_y, star_w, star_h, star_vertex, star_ratio 
+    axes2D 
+    line_color "black" 
+    width_and_height star_x, star_y, star_w, star_h 
+    line_arrow 0, 0, ARROWHEAD, -23, -45, ARROWHEAD 
+    locally 
+        rotatez 58 
+        line_color "transparent" 
+        color "black" 
+        translate -45, 0, 0 
+        text "r * " 
+        color "tao_yellow" 
+        text "L" 
+    line_color "tao_yellow" 
+    line_width 1.5 
+
+    shape 
+        line_arrow 0, 0, ARROWHEAD, -89, 71, ARROWHEAD 
+    locally 
+        line_color "transparent" 
+        color "tao_yellow" 
+        rotatez -42 
+        translate -60, 0, 0 
+        text "L" 
+
+
+test_star_polygon-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    starp_x -> 0 
+    starp_y -> 0 
+    starp_w -> 250 
+    starp_h -> 200 
+    starp_vertex -> 16 
+    starp_skip -> 6 
+    star_polygon starp_x, starp_y, starp_w, starp_h, starp_vertex, starp_skip 
+    axes2D 
+    line_color "black" 
+    width_and_height starp_x, starp_y, starp_w, starp_h 
+    line_color "tao_yellow" 
+    color "transparent" 
+    line 0, 100, 89, -73 
+    color "black" 
+    point 48, 90, 1, 5 
+    point 87, 68, 1, 5 
+    point 112, 37, 1, 5 
+    point 125, 0, 1, 5 
+    point 113, -37, 1, 5 
+    point 88, -70, 1, 5 
+
+test_speech_balloon-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    balloon_x -> 0 
+    balloon_y -> 0 
+    balloon_w -> 200 
+    balloon_h -> 100 
+    balloon_r -> 25 
+    balloon_ax -> 35 
+    balloon_ay -> -130 
+    speech_balloon balloon_x, balloon_y, balloon_w, balloon_h, balloon_r, balloon_ax, balloon_ay 
+    axes2D 
+    line_color "black" 
+    width_and_height balloon_x, balloon_y, balloon_w, balloon_h 
+    bisector_and_radius balloon_x, balloon_y, balloon_w, balloon_h, balloon_r 
+    point balloon_ax, balloon_ay, 0, 5 
+    locally 
+        color "font" 
+        line_color "font" 
+        translate balloon_ax + delta, balloon_ay - delta, 0 
+        text "(ax, ay)" 
+
+test_callout-> 
+    color "tao_orange" 
+    //line_color "tao_orange"
+    callout_x -> 0 
+    callout_y -> 0 
+    callout_w -> 200 
+    callout_h -> 100 
+    callout_r -> 25 
+    callout_ax -> -55 
+    callout_ay -> 130 
+    callout_tw -> 25 
+    callout callout_x, callout_y, callout_w, callout_h, callout_r, callout_ax, callout_ay, callout_tw 
+    axes2D 
+    line_color "black" 
+    width_and_height callout_x, callout_y, callout_w, callout_h 
+    bisector_and_radius callout_x, callout_y, callout_w, callout_h, callout_r 
+    point callout_ax, callout_ay, 0, 5 
+    locally 
+        color "font" 
+        line_color "font" 
+        translate callout_ax + delta, callout_ay, 0 
+        text "(ax, ay)" 
+
+    // tip width
+    line_arrow callout_x + callout_ax - callout_tw / 2, callout_y + callout_h / 2, ARROWHEAD, callout_x + callout_ax + callout_tw / 2, callout_y + callout_h / 2, ARROWHEAD 
+
+    locally 
+        color "font" 
+        line_color "font" 
+        translate callout_x + callout_ax - callout_tw / 2, callout_y + callout_h / 2 - 15, 0 
+        text "tip width" 
+
+test_image->
+    color "white"
+    image 0, 0, 100%, 100%, "tortue.jpg"
+    axes2D
+
+test_image_px->
+    color "white"
+    image_px 0, 0, 200, 200, "tortue.jpg"
+    axes2D
+    line_color "black" 
+    width_and_height 0, 0, 200, 200
+
+test_polygon->
+    color "tao_orange" 
+    poly_x -> 0 
+    poly_y -> 0 
+    poly_w -> 200 
+    poly_h -> 200 
+    poly nb, dx, dy ->
+        locally
+            translate dx, dy, 0
+            polygon poly_x, poly_y, poly_w, poly_h, nb
+            axes2D 
+            line_color "black" 
+            width_and_height poly_x, poly_y, poly_w, poly_h
+    poly  5, -350,  175
+    poly  6,    0,  175
+    poly  7,  350,  175
+    poly 10, -350, -175
+    poly 12,    0, -175
+    poly 15,  350, -175
+
+test_polygram->
+    color "tao_orange" 
+    polyg_x -> 0 
+    polyg_y -> 0 
+    polyg_w -> 200
+    polyg_h -> 200 
+    polyg nb, i, dx, dy ->
+        locally
+            translate dx, dy, 0
+            polygram polyg_x, polyg_y, polyg_w, polyg_h, nb, i
+            axes2D 
+            line_color "black" 
+            width_and_height polyg_x, polyg_y, polyg_w, polyg_h
+    polyg  5, 2, -350,  175
+    polyg  6, 2,    0,  175
+    polyg  7, 2,  350,  175
+    polyg 10, 3, -350, -175
+    polyg 12, 4,    0, -175
+    polyg 15, 4,  350, -175
+
+test_endpoints_style -> 
+    line_width 5
+    line_color "tao_orange"
+    path
+        endpoints_style NONE, NONE
+        move_to 0, 200
+        line_to 350, 200
+
+    path
+        endpoints_style ARROWHEAD, ARROWHEAD
+        move_to 0, 150
+        line_to 150, 150
+
+    path
+        endpoints_style POINTER, POINTER
+        move_to 0, 100
+        line_to 150, 100
+    
+    path
+        endpoints_style DIAMOND, DIAMOND
+        move_to 0, 50
+        line_to 150, 50
+
+    path
+        endpoints_style CIRCLE, CIRCLE
+        move_to 0, 0
+        line_to 150, 0
+
+    path
+        endpoints_style SQUARE, SQUARE
+        move_to 0, -50
+        line_to 150, -50
+
+    path
+        endpoints_style BAR, BAR
+        move_to 200, 150
+        line_to 350, 150
+
+    path
+        endpoints_style CUP, CUP
+        move_to 200, 100
+        line_to 350, 100
+    
+    path
+        endpoints_style FLETCHING, FLETCHING
+        move_to 200, 50
+        line_to 350, 50
+
+    path
+        endpoints_style HOLLOW_CIRCLE, HOLLOW_CIRCLE
+        move_to 200, 0
+        line_to 350, 0
+
+    path
+        endpoints_style HOLLOW_SQUARE, HOLLOW_SQUARE
+        move_to 200, -50
+        line_to 350, -50
+
+
+test_quad -> 
+    line_width 5
+    line_color "tao_yellow"
+    color "transparent"
+    shape
+        path
+            move_to -100, 0
+            quad_to 0, 100, 0, 100, 50, 0
+ 
+test_cubic -> 
+    line_width 5
+    line_color "tao_yellow"
+    color "transparent"
+    shape
+        path
+            move_to -150, 0
+            cubic_to -50, 200, 0, 50, -200, 0, 150, 50, 0
+
+
+test_spere ->
+    locally
+        rotatex -45
+        rotatey 25
+        axes3D
+        color "tao_yellow_light"
+        line_color "tao_orange"
+        sphere 0, 0, 0, 250, 250, 250, 40, 40
+
+test_cone ->
+    locally
+        rotatex -45
+        rotatey 25
+        axes3D
+        color "tao_yellow_light"
+        line_color "tao_orange"
+        cone 0, 0, 0, 250, 200, 200
+ 
+test_truncated_cone ->
+    locally
+        rotatex -45
+        rotatey 25
+        axes3D
+        color "tao_yellow_light"
+        line_color "tao_orange"
+        truncated_cone 0, 0, 0, 250, 200, 200, 50%
+ 
+test_cylinder ->
+    locally
+        rotatex -45
+        rotatey 25
+        axes3D
+        color "tao_yellow_light"
+        line_color "tao_orange"
+        cylinder 0, 0, 0, 150, 150, 200
+ 
+test_cube ->
+    locally
+        rotatex -45
+        rotatey 25
+        axes3D
+        color "tao_yellow_light"
+        line_color "tao_orange"
+        cube 0, 0, 0, 250, 150, 150
+
+
+font_size 14 
+line_width 1 
+slide_width -> 1920
+slide_height -> 1085
+nb_h -> 3
+nb_w -> 5
+
+
+page "2D",
+    rc_hook
+    translate (-slide_width / (nb_w/2) ) + (slide_width / (nb_w*2) ), (nb_h-1)*((slide_height / nb_h) - (slide_height / (nb_h * 2))), 0.0
+    test_rectangle 
+    translatex  slide_width / nb_w
+    test_rounded_rectangle
+    translatex  slide_width / nb_w
+    test_elliptical_rectangle
+    translatex  slide_width / nb_w
+    test_ellipse
+    translatex  slide_width / nb_w
+    test_ellipse_arc
+    translate  -(nb_w-1) * (slide_width / nb_w), (-slide_height / nb_h), 0.0
+    test_isocel_triangle
+    translatex  slide_width / nb_w
+    test_right_triangle
+    translatex  slide_width / nb_w
+    test_arrow
+    translatex  slide_width / nb_w
+    test_double_arrow
+    translatex  slide_width / nb_w
+    test_star
+    translate  -3.5 * (slide_width / nb_w), (-slide_height / nb_h), 0.0
+    test_star_polygon
+    translatex  slide_width / 3
+    test_speech_balloon
+    translatex  slide_width / 3
+    test_callout 
+
+page "polygons",
+    test_polygon
+
+page "polygrams",
+    test_polygram
+
+page "endpoints",
+    translatex (-slide_width / 2 ) + (slide_width / 6 )
+    test_endpoints_style
+    translate slide_width / 2, slide_height / 2 - slide_height / 4, 0.0
+    test_quad
+    translatey -slide_height / 2
+    test_cubic
+
+page "images",
+    translatex (-slide_width/2 + slide_width / 4 )
+    test_image
+    translatex slide_width/2
+    test_image_px
+
+page "3D",
+    translate ( -slide_width / 3 ), (slide_height / 2) - (slide_height / 4), 0.0
+    test_spere
+    translatex  slide_width / 3
+    test_cone
+    translatex  slide_width / 3
+    test_truncated_cone
+    translate  -2 * (slide_width / 3), (-slide_height / 2), 0.0
+    test_cylinder
+    translatex  slide_width / 2
+    test_cube
+
+my_rectangle -> 
+    rectangle 0, 0, 200, 100
+
+
+page "transformations",
+  translatey 150
+  locally
+    translatex -300
+    axes2D
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        translate -150, 150, 0
+        line_color "tao_blue"
+        color "transparent"
+        my_rectangle
+        rotatez 45
+        line_color "transparent"
+        color "tao_orange"
+        my_rectangle
+    
+    locally
+        translate -150, 150, 0
+        line_color "tao_green"
+        line_width 2 
+        ellipse_arc 0,0,200,200, 0, 45
+    locally
+        line_color "tao_blue"
+        line_width 2 
+        line_arrow 0,0, NONE, -150,150, ARROWHEAD
+
+    line_color "font"
+    color "tao_blue"
+    path
+        move_to -75, 75
+        text "1- translation"
+    
+    color "tao_green"
+    path
+        move_to -60, 210
+        text "2- rotation"
+    
+  locally
+    translatex 300
+    axes2D
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        rotatez 45
+        line_color "tao_green"
+        color "transparent"
+        my_rectangle
+        translate -150, 150, 0
+        color "tao_orange"
+        line_color "transparent"
+        my_rectangle
+    
+    locally
+        line_color "tao_green"
+        line_width 2 
+        ellipse_arc 0,0,200,200, 0, 45
+    locally
+        rotatez 45
+        line_color "tao_blue"
+        line_width 2 
+        line_arrow 0,0, NONE, -150,150, ARROWHEAD
+    
+    line_color "font"
+    color "tao_green"
+    path
+        move_to 75, 75
+        text "1- rotation"
+    
+    color "tao_blue"
+    path
+        move_to -200, -20
+        text "2- translation"
+
+  locally
+    translatey -350
+    line_width 1
+    line_color "tao_orange"
+    color "transparent"
+    my_rectangle
+
+    locally
+        scale 0.5, 0.5, 1
+        color "tao_orange"
+        my_rectangle
+    axes2D

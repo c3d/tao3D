@@ -104,6 +104,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     releaseFrameBufferObject       = FrameInfo::releaseFrameBufferObject;
     frameBufferObjectToTexture     = FrameInfo::frameBufferObjectToTexture;
     frameBufferAttachmentToTexture = FrameInfo::frameBufferAttachmentToTexture;
+    imageFromFrameBufferObject   = FrameInfo::imageFromFrameBufferObject;
 
     // License checking
     hasLicense = Licenses::Has;

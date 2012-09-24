@@ -1,7 +1,9 @@
-
+import TaoTester
+import RemoteControl 1.0
 import LoremIpsum 1.0 
 
-//toolbar_test
+import "fontRendering_test.xl"
+toolbar_test
 lorem_ipsum_box x, y, t, col, colbg -> 
     color colbg 
     line_color 0.505303, 0.873304, 0.678096, 1.0 
@@ -24,8 +26,8 @@ lorem_ipsum_big_box x, y, t, col, colbg ->
         line_break 
         text lorem_ipsum 50 
 
-//page "testSmallFont",  
-page "fontRendering", 
+page "testSmallFont",  
+    rc_hook
     font "default" 
     shape 
         lorem_ipsum_box -620, 400, "default", "font", "white" 

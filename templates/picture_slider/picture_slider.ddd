@@ -121,7 +121,7 @@ picture N:integer ->
     a := slider_fade_x 5.0
     locally
         color "white", a
-        image_px 0, 0, 1000, 480, "picture" & text N & ".png"
+        image_px 0, 0, 1000, 480, "picture" & text N & ".jpg"
     pagination N
 
 
@@ -156,7 +156,7 @@ background ->
     locally
         color "white"
         translatez -200
-        image_px 0, 0, window_width * 2, window_height * 2, "slider/background.png"
+        image_px 0, 0, window_width * 2, window_height * 2, "slider/background.jpg"
 
 
 background_slider ->

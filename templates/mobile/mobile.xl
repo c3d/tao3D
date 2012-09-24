@@ -115,7 +115,7 @@ mobile_bullet Time:real, Body ->
             light_position 200, 200, 400
             rotatey (3+Time) * page_time
             texture_wrap true, true
-            texture "earth.bmp"
+            texture "earth.jpg"
             sphere 0, 0, 0, 40
         Body
 

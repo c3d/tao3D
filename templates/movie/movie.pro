@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/movie
-files.files = template.ini movie.ddd movie.png
+files.files = template.ini movie.ddd movie.jpg
 
 images.path = $$APPINST/templates/movie/images
 images.files = images/*

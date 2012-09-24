@@ -95,7 +95,7 @@ earth R ->
 //    Draw earth
 // -------------------------------------------------
     locally
-        texture "earth.bmp"
+        texture "earth.jpg"
         rotatey 5 * page_time + 250
         sphere 0, 0, 0, R
 

@@ -9,12 +9,9 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/photo_viewer
-files.files = template.ini photo_viewer.ddd photo_viewer.png
-
-images.path = $$APPINST/templates/photo_viewer/images
-images.files = images/*
+files.files = template.ini photo_viewer.ddd photo_viewer.jpg
 
 photos.path = $$APPINST/templates/photo_viewer/photos
 photos.files = photos/*
 
-INSTALLS += files images photos
+INSTALLS += files photos

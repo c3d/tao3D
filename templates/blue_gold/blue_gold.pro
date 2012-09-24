@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/blue_gold
-files.files = template.ini blue_gold.ddd blue_gold.png theme.xl
+files.files = template.ini blue_gold.ddd blue_gold.jpg theme.xl
 
 images.path = $$APPINST/templates/blue_gold/images
 images.files = images/*

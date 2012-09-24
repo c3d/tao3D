@@ -29,12 +29,21 @@ HEADERS += \
     widgettests.h \
     taotester.h \
     save_test_dialog.h \
-    traces.tbl
+    traces.tbl \
+    test_display.h \
+    ../tao_synchro/event_handler.h \
+    ../tao_synchro/tao_control_event.h \
+    ../tao_synchro/event_capture.h \
+    tao_test_events.h
 
 SOURCES += \
     widgettests.cpp \
     taotester.cpp \
-    save_test_dialog.cpp
+    save_test_dialog.cpp \
+    test_display.cpp \
+    ../tao_synchro/tao_control_event.cpp \
+    ../tao_synchro/event_capture.cpp \
+    tao_test_events.cpp
 
 FORMS += \
     save_test_dialog.ui

@@ -1,0 +1,131 @@
+
+import TaoTester 1.0 
+import RemoteControl 1.0 
+toolbar_test 
+
+import "graphs_test.xl" 
+
+
+page "shaders",
+    rc_hook
+    multitex_shader ->
+        shader_program
+            vertex_shader <<
+                void main()
+                {
+                    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+                    // Get texture coordinates
+                    gl_TexCoord[1] = gl_TextureMatrix[1] * gl_MultiTexCoord1;
+                    gl_TexCoord[2] = gl_TextureMatrix[2] * gl_MultiTexCoord2;
+                }
+            >>
+            fragment_shader <<
+                uniform sampler2D wall, spot;
+                void main()
+                {
+                    vec4 texel1 = texture2D(wall, gl_TexCoord[1].st);
+                    vec4 texel2 = texture2D(spot, gl_TexCoord[2].st);
+                    // Modulate textures
+                    gl_FragColor = texel1 * texel2;
+                }
+            >>
+        // Specify each texture unit to fragment shader
+        shader_set wall := 1
+        shader_set spot := 2
+
+    draw_scene ->
+        color "white"
+        // Activate first unit
+        texture_unit 1
+        texture "multi1.jpg"
+        // Activate second unit
+        texture_unit 2
+        texture "multi2.jpg"
+        multitex_shader
+        rectangle 0, 0, 200, 200
+
+    draw_scene
+
+page "clearColor",
+    clear_color 1, 1, 1, 1
+    color "black"
+    rectangle -500, 0, 600, 400
+    color "white"
+    frame_texture 600, 200,
+        // Essayez de mettre la ligne suivante en commentaire
+        //clear_color 0, 0, 0, 0
+        text_box 0, 0, 600, 200,
+            color "blue"
+            font "Times", 96
+            align_center
+            vertical_align_center
+            text "Bonjour"
+            color 1, 0, 0, 75%
+            circle 200, 0, 50
+    rectangle -500, 100, 600, 200
+    frame_texture 600, 200,
+        // Essayez de mettre la ligne suivante en commentaire
+        clear_color 0, 0, 0, 0
+        text_box 0, 0, 600, 200,
+            color "blue"
+            font "Times", 96
+            align_center
+            vertical_align_center
+            text "Bonjour"
+            color 1, 0, 0, 75%
+            circle 200, 0, 50
+    rectangle -500, -100, 600, 200
+
+    conical_grad ->
+        color "white"
+        conical_gradient 350, 350, 30, 700, 700,
+            gradient_color 0, 0.0, 0.0, 1.0, 1.0
+            gradient_color 0.5, 0.0, 1.0, 0.0, 1.0
+            gradient_color 1, 1.0, 0.0, 0.0, 1.0
+        rectangle 500, 400, 250, 250
+    conical_grad
+
+    linear_grad ->
+        color "white"
+        linear_gradient 0, 0, 700, 700, 700, 700,
+            gradient_color 0, 0.0, 0.0, 1.0, 1.0
+            gradient_color 0.5, 0.0, 1.0, 0.0, 1.0
+            gradient_color 1, 1.0, 0.0, 0.0, 1.0
+        rectangle 500, 0, 250, 250
+    linear_grad
+
+    radial_grad -> 
+        color "white" 
+        radial_gradient 350, 350, 350, 700, 700, 
+            gradient_color 0, 0.0, 0.0, 1.0, 1.0 
+            gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
+            gradient_color 1, 1.0, 0.0, 0.0, 1.0 
+        rectangle 500, -400, 250, 250     
+    radial_grad
+
+page "eclairage",
+    // lighting.ddd
+    clear_color 0, 0, 0, 0
+    create_light Id, X, Y, Z, Dr, Dg, Db ->
+        light Id
+        light_ambient 0, 0, 0, 1
+        light_diffuse Dr, Dg, Db, 1
+        light_position X, Y, Z
+    red_light X, Y, Z -> create_light 0, X, Y, Z, 1, 0, 0
+    green_light X, Y, Z -> create_light 1, X, Y, Z, 0, 1, 0
+    blue_light X, Y, Z -> create_light 2, X, Y, Z, 0, 0, 1
+    white_sphere R ->
+        // Note: material_ambient is visible due to the default
+        // OpenGL global ambient light (0.2, 0.2, 0.2, 1.0)
+        material_ambient 0.3, 0.3, 0.3, 1
+        material_diffuse 1.0, 1.0, 1.0, 1.0
+        slices -> 50
+        sphere 0, 0, 0, R, R, R, slices, slices
+    draw_light_scene ->
+        d -> window_height
+        t -> 5 // page_time
+        red_light d * sin t, d * cos t, d
+        green_light d * sin ( -t + 120) , d * cos ( -t + 120) , d
+        blue_light 0, d * sin t, d * cos t
+        white_sphere d * 60%
+    draw_light_scene

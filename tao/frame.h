@@ -91,6 +91,8 @@ struct FrameInfo : XL::Info, InfoTrashCan
     static unsigned int       frameBufferObjectToTexture(ModuleApi::fbo * obj);
     static unsigned int       frameBufferAttachmentToTexture(ModuleApi::fbo *,
                                                              int attachment);
+    static void *             imageFromFrameBufferObject(ModuleApi::fbo * obj);
+
 protected:
     void        resizeDepthTexture(uint w, uint h);
     void        copyToDepthTexture();
@@ -131,9 +133,9 @@ struct FramePainter : QPainter
 
 
 // ============================================================================
-// 
+//
 //   Entering shapes in the symbols table
-// 
+//
 // ============================================================================
 
 extern void EnterFrames();

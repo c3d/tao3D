@@ -24,7 +24,7 @@
 #include "gl_keepers.h"
 #include "widget.h"
 #include "application.h"
-
+#include "tao_utf8.h"
 
 TAO_BEGIN
 
@@ -396,6 +396,16 @@ unsigned int FrameInfo::frameBufferAttachmentToTexture(ModuleApi::fbo * obj,
 }
 
 
+void * FrameInfo::imageFromFrameBufferObject(ModuleApi::fbo * obj)
+// ----------------------------------------------------------------------------
+//   Return FBO as an Image
+// ----------------------------------------------------------------------------
+{
+    QImage *img = new QImage(((FrameInfo *)obj)->toImage());
+    return (void *)img;
+}
+
+
 
 // ============================================================================
 //
@@ -445,9 +455,9 @@ TAO_END
 
 
 // ****************************************************************************
-// 
+//
 //    Code generation from frame.tbl
-// 
+//
 // ****************************************************************************
 
 #include "graphics.h"

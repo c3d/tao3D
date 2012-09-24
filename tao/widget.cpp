@@ -124,12 +124,13 @@ namespace Tao {
 static Point3 defaultCameraPosition(0, 0, 3000);
 
 
-
-static inline Widget * findTaoWidget()
+ Widget * Widget::findTaoWidget()
 // ----------------------------------------------------------------------------
 //   Find the Widget on the main Window. Use when Tao() is not set.
 // ----------------------------------------------------------------------------
 {
+    if (current) return current;
+
     foreach (QWidget *widget, QApplication::topLevelWidgets())
     {
         Window * window = dynamic_cast<Window *>(widget);
@@ -1066,7 +1067,7 @@ bool Widget::refreshOnAPI(int event_type, double next_refresh)
 {
     if (next_refresh == -1.0)
         next_refresh = DBL_MAX;
-    Tao()->refreshOn(event_type, next_refresh);
+    findTaoWidget()->refreshOn(event_type, next_refresh);
     return true;
 }
 
@@ -1076,7 +1077,7 @@ double Widget::currentTimeAPI()
 //   Module interface to currentTime()
 // ----------------------------------------------------------------------------
 {
-    return Tao()->CurrentTime();
+    return findTaoWidget()->CurrentTime();
 }
 
 
@@ -1607,7 +1608,7 @@ void Widget::copy()
     {
         //If no selection copy the Image
         QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setImage(grabFrameBuffer(true));
+        clipboard->setImage(grabFrameBuffer(false));
 
         return;
     }
@@ -5894,8 +5895,7 @@ void Widget::postEventAPI(int eventType)
 //    Export postEvent to the module API
 // ----------------------------------------------------------------------------
 {
-    Widget * w = current ? current : findTaoWidget();
-    w->postEvent(eventType);
+    findTaoWidget()->postEvent(eventType);
 }
 
 
@@ -10743,7 +10743,7 @@ text Widget::currentDocumentFolder()
 //   Return native path to current document folder
 // ----------------------------------------------------------------------------
 {
-    Window *window = Tao()->taoWindow();
+    Window *window = findTaoWidget()->taoWindow();
     return +QDir::toNativeSeparators(window->currentProjectFolderPath());
 }
 

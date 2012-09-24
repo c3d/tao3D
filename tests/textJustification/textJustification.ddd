@@ -1,5 +1,10 @@
-
 import LoremIpsum 1.0 
+
+import TaoTester 1.0
+import RemoteControl 1.0
+toolbar_test
+import "textJustification_test.xl"
+
 
 lorem_ipsum_box x, y -> 
     color "white" 
@@ -35,9 +40,9 @@ lorem_ipsum_quad_box x, y ->
     text_box flowName, x, y, 475, 78 
     text_box flowName, x, y - 80, 475, 78 
 
-//goto_page "textJustification" -> goto_page "align_top"
-//page "align_top", do 
-page "textJustification",
+
+page "align_top",
+    rc_hook
     vertical_align_top 
 
     align_left 

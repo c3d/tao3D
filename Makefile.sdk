@@ -51,7 +51,7 @@ FILES_COMMON = \
 	fix_qt_refs_app.in \
 	main.pri \
 	main_defs.pri \
-	sdk.pro \
+	sdk.pro.txt \
 	translations.pri \
 	tools \
 	tools/preprocessor.pl \

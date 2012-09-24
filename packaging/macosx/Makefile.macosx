@@ -50,7 +50,7 @@
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
-GIT_VERSION=1.7.8.4
+GIT_VERSION=1.7.12.1
 
 ########
 
@@ -60,7 +60,7 @@ include Makefile.config
 GIT_DESTDIR=$(shell pwd)/git_build/install
 GIT_DEST=$(shell pwd)/build_root/Tao Presentations.app/Contents/MacOS/git
 define git-makeparms
-NO_DARWIN_PORTS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
+NO_DARWIN_PORTS=1 NO_GETTEXT=1 NO_INSTALL_HARDLINKS=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
 
 ifdef TAO_EDITION

@@ -339,6 +339,7 @@ public:
 
 public:
     static Widget *Tao()                { assert(current); return current; }
+    static Widget *findTaoWidget();
     Context *   formulasContext()       { return formulas; }
     static int  screenNumber() { return qApp->desktop()->screenNumber(Tao()); }
 
@@ -782,6 +783,8 @@ public:
 
     static Tree_p runtimeError(Tree_p self, text msg, Tree_p src);
     static Tree_p formulaRuntimeError(Tree_p self, text msg, Tree_p src);
+    void        clearErrors();
+    void        checkErrors(bool clear);
     Tree_p      menuItem(Tree_p self, text name, text lbl, text iconFileName,
                          bool isCheckable, Text_p isChecked, Tree_p t);
     Tree_p      menuItemEnable(Tree_p self, text name, bool enable);

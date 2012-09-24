@@ -27,4 +27,4 @@
 
 TRACE(builtins)
 TRACE(tester)
-
+TRACE(displaymode)

@@ -1,0 +1,22 @@
+graphs_test -> test_definition "graphs", 0,  <<testing lightning, gradient color, clear_color effect, shaders>>, 1920, 1135, 
+  test_add_check 0, 2078, 0
+  test_add_mouse_move 0, 0, 0, 656, 6, 73
+  test_add_key_press 16777237, 536870912, 842 // 
+  test_add_key_release 16777237, 536870912, 367 // 
+  test_add_mouse_move 0, 0, 0, 654, 2, 87
+  test_add_check 1, 1532, 0
+  test_add_mouse_move 0, 0, 0, 645, 8, 105
+  test_add_key_press 16777237, 536870912, 319 // 
+  test_add_key_release 16777237, 536870912, 136 // 
+  test_add_mouse_move 0, 0, 0, 645, 5, 77
+  test_add_check 2, 1581, 0.07
+
+start_test -> 
+  graphs_test
+  display_mode "taotester"
+  test_replay
+
+start_ref -> 
+  graphs_test
+  display_mode "taotester"
+  make_ref

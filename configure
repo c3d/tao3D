@@ -32,6 +32,10 @@ usage() {
   echo "  --disable-doc   Do not build documentation."
   echo "  --with-eula     Enable the End-User License Agreement dialog (REQUIRED for"
   echo "                  official builds)"
+  echo "  --with-cfu      Check for update on application startup (unless overriden"
+  echo "                  in preferences)"
+  echo "  --with-ccache   Use compiler cache. Appends the following qmake flags:"
+  echo "                  QMAKE_CC='ccache gcc' QMAKE_CXX='ccache g++'"
   echo ""
   echo "Edition Name:"
   echo ""
@@ -126,6 +130,14 @@ while [ $# -ne 0 ] ; do
       FLAGS="$FLAGS DEFINES+=CFG_WITH_EULA"
       shift
       ;;
+    --with-cfu)
+      FLAGS="$FLAGS DEFINES+=CFG_WITH_CFU"
+      shift
+      ;;
+    --with-ccache)
+      with_ccache=1
+      shift
+      ;;
     discovery)
       EDITION="Discovery"
       shift ; done=1
@@ -205,5 +217,9 @@ osflags() {
 
 
 
-echo Running: qmake -r `osflags` $FLAGS "$@"
-qmake -r `osflags` $FLAGS "$@"
+echo Running: qmake -r `osflags` $FLAGS "$CCACHE_FLAGS" "$CCACHE_CC" "$CCACHE_CXX" "$@"
+if [ "$with_ccache" ] ; then
+  qmake -r `osflags` $FLAGS QMAKE_CXX='ccache g++' QMAKE_CC='ccache gcc' "$@"
+else
+  qmake -r `osflags` $FLAGS "$@"
+fi

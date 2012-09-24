@@ -327,6 +327,9 @@ contains(DEFINES, CFG_WITH_EULA) {
     HEADERS += eula_dialog.h
     SOURCES += eula_dialog.cpp
 }
+contains(DEFINES, CFG_WITH_CFU) {
+    !build_pass:message("Check for update on startup is enabled by default")
+}
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
 NOWARN_SOURCES += decryption.cpp license.cpp
@@ -473,6 +476,6 @@ qttranslations.path = $$APPINST
 qttranslations.files = $$[QT_INSTALL_TRANSLATIONS]/qt_fr.qm $$[QT_INSTALL_TRANSLATIONS]/qt_help_fr.qm
 INSTALLS += qttranslations
 
-shaders.path = $$APPINST$
+shaders.path = $$APPINST
 shaders.files = lighting.vs lighting.fs
 INSTALLS += shaders

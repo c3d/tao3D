@@ -1,0 +1,7 @@
+# Main project file for the Tao Presentations SDK
+
+include(main.pri)
+TEMPLATE = subdirs
+SUBDIRS = modules
+exists(help_viewer):SUBDIRS += help_viewer
+QMAKE_SUBSTITUTES = fix_qt_refs_app.in

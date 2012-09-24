@@ -2,14 +2,14 @@
  * @~english
  * @taomoduledescription{RegExp, Regular Expressions}
  *
- * Analyze text using regular expressions
+ * Analyze text using regular expressions.
  *
  * This module makes it easy to analyze chunks of text using regular
- * expressions (RE). It contains simple RE matching @see regexp_match,
- * RE search @see regexp_search, as well as more complicated forms of
- * RE-based parsing @see regexp_parse. The module supports RE capture,
+ * expressions (RE). It contains simple RE matching @ref regexp_match,
+ * RE search @ref regexp_search, as well as more complicated forms of
+ * RE-based parsing @ref regexp_parse. The module supports RE capture,
  * i.e. the ability to extract information based on matches,
- * @see regexp_captured.
+ * @ref regexp_captured.
  *
  * The regular expression language being used is the Qt Regexp2
  * variant, documented here: http://qt-project.org/doc/qt-4.8/qregexp.html
@@ -19,18 +19,24 @@
  * @~french
  * @taomoduledescription{RegExp, Analyse de texte basée sur des expressions régulières}
  *
- * Analyse de texte basée sur des expressions régulières 
+ * Analyse de texte basée sur des expressions régulières.
  *
  * Ce module permet d'analyser des fragments de texte en utilisant des
  * expressions régulières (ER). Il permet de vérifier si un texte
- * correspond à une ER @see regexp_search, la recherche d'une ER dans
- * un texte @see regexp_search, mais aussi des analyses plus complexes
- * utilisant des ER @see regexp_parse. Le module permet la capture
- * d'éléments dans une ER, @see regexp_captured.
+ * correspond à une ER @ref regexp_match, la recherche d'une ER dans
+ * un texte @ref regexp_search, mais aussi des analyses plus complexes
+ * utilisant des ER @ref regexp_parse. Le module permet la capture
+ * d'éléments dans une ER, @ref regexp_captured.
  *
  * Le langage d'expressions régulières utilisé est la variante Regexp2
  * de Qt, documentée ici: http://qt-project.org/doc/qt-4.8/qregexp.html
  *
+ * @~
+ * @code import RegExp @endcode
+ * @see regexp_match
+ * @see regexp_search
+ * @see regexp_parse
+ * @see regexp_captured
  * @endtaomoduledescription{RegExp}
  *
  * @~
@@ -48,6 +54,7 @@
  * Vérifie si un texte contient une certaine expression régulière.
  * @param input Le texte d'entrée à explorer
  * @param pattern L'expression régulière à rerchercher dans @ref input.
+ * @return true si le modèle @a pattern a été trouvé dans le texte @a input.
  *
  */
 
@@ -84,11 +91,11 @@ matches(text input, text pattern);
  * Retourne la position, démarrant à 0, de l'expression régulière dans
  * le texte donné, ou bien -1 si l'expression régulière n'est pas trouvée.
  * @param input Le texte d'entrée à explorer
- * @param pattern L'expression régulière à rerchercher dans @ref input.
+ * @param pattern L'expression régulière à rechercher dans @ref input.
  *
  */
 
-regexp_match(text input, text pattern);
+regexp_search(text input, text pattern);
 
 /**
  * @~english
@@ -148,7 +155,7 @@ regexp_match(text input, text pattern);
  *
  * Par exemple, pour tracer un cercle si un texte contient "circle" ou
  * "cercle", et tracer un rectangle si le texte contient "rect" ou
- * "rectangle", et tracer une image, vous pouvez utiliser le code suivant :
+ * "rectangle", et, sinon, tracer une image, vous pouvez utiliser le code suivant :
  *
  * @code
  * pattern_match InputText,
@@ -161,7 +168,7 @@ regexp_match(text input, text pattern);
  * dire qu'elles essaient de capturer le maximum de texte. On peut
  * préfixer une expression régulière par le signe moins pour capturer
  * le plus petit texte. C'est utile par exemple pour analyser un texte
- * comme: @code "Un texte <b>gras</b> à <b>deux endroits</b>" @endcode
+ * comme : @code "Un texte <b>gras</b> à <b>deux endroits</b>" @endcode
  *
  * Par exemple, on peut obtenir le texte "gras", on peut utiliser :
  * @code
@@ -237,20 +244,26 @@ regexp_parse_last(text input, tree code);
  * occurence of a vowel, and "Consonent" for every consonent, you can use:
  *
  * @code
- * regexp_parse_all InputText,
- *     "[aeiouy]" -> "Vowel"
- *     "[a-z]     -> "Consonent"
- *     "."        -> "Other"
+ * InputText -> "Hello World"
+ * letters ->
+ *     regexp_parse_all InputText,
+ *         "[aeiouy]" -> "Vowel "
+ *         "[a-z]"     -> "Consonent "
+ *         "."        -> "Other "
+ * writeln letters
  * @endcode
- *
+ * The output will be:
+ * @code
+ * Other Vowel Consonent Consonent Vowel Other Other Vowel Consonent Consonent Consonent nil
+ * @endcode
  * @param input The text to search
  * @param code  The block of code describing the patterns
  *
  * @return A list containing all values returned by the executed codes
  *
  * @~french
- * Crée une liste à partir des valeurs retournées pour toutes les
- * expressions régulières trouvées
+ * Crée une liste à partir des valeurs retournées par l'évaluation de chacune des
+ * expressions régulières qui ont correspondues.
  *
  * Cette fonction est similaire à @ref regexp_parse, mais elle crée
  * une liste avec chacune des valeurs retournées.
@@ -259,12 +272,18 @@ regexp_parse_last(text input, tree code);
  * chaque voyelle, et "Consonne" pour chaque consonne, on peut utiliser :
  *
  * @code
- * regexp_parse_all InputText,
- *     "[aeiouy]" -> "Voyelle"
- *     "[a-z]     -> "Consonne"
- *     "."        -> "Autre"
+ * InputText -> "Hello World"
+ * letters ->
+ *     regexp_parse_all InputText,
+ *         "[aeiouy]" -> "Voyelle"
+ *         "[a-z]"    -> "Consonne"
+ *         "."        -> "Autre"
+ * writeln letters
  * @endcode
- *
+ * La sortie va donner :
+ * @code
+ * Autre Voyelle Consonne Consonne Voyelle Autre Autre Voyelle Consonne Consonne Consonne nil
+ * @endcode
  * @param input Le texte à analyser
  * @param code  Le bloc de code décrivant les actions et expressions régulières
  * 

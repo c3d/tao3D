@@ -16,10 +16,10 @@ module_description "fr",
 toolbar_test ->
 {
 menu "toolbar:test", "test"
-menu_item "toolbar:test > start", "start", { test_start_record }
+menu_item "toolbar:test > start", "start", { test_start_record;   display_mode "taotester"
+ }
 menu_item "toolbar:test > check", "check", { test_check }
 menu_item "toolbar:test > stop", "stop", { test_stop }
-menu_item "toolbar:test > play", "play", { test_replay }
 menu_item "toolbar:test > save", "save", { test_save }
 menu_item "toolbar:test > reset", "reset", { test_reset }
 }

@@ -1,0 +1,280 @@
+import TaoTester
+import RemoteControl
+toolbar_test
+import "Serie1_test.xl"
+
+import ObjectLoader
+page "object",
+    rc_hook
+    clear_color 1,1,1,1
+    the_light X, Y, Z ->
+        light 0
+        light_ambient 0.4, 0.4, 0.4, 1.0
+        light_diffuse 0.4, 0.4, 0.4, 1.0
+        light_specular 0.8, 0.8, 0.8, 1.0
+        light_attenuation 1.0, 0.0, 0.0
+        light_position X, Y, Z
+
+    rotating_obj F ->
+        locally
+            rotatey -60
+            rotatez -30
+            object 0, 0, 0, 400, 400, 400, F
+
+    the_light 300, 300, 300
+    rotating_obj "./obj/mushroom.obj"
+
+
+import DigitalClock 1.0
+import TaoVisuals
+page "taodyne",
+    clear_color 1,1,1,1
+    scale 3,3,3
+    tv_language := "en"
+    tv_tagline := "geeks"
+    tv_taodyne_logo 0, 80, 200, 100
+    tv_language := "fr"
+    tv_tagline := "dev"
+    tv_taodyne_logo 0, -80, 200, 100
+
+    locally
+        dc_time := 72845
+        translate -200, 100, 0
+        digital_clock 0, 0, 40
+
+
+import LensFlare
+page "lens flare",
+    // Black background
+    clear_color 0.0, 0.0, 0.0, 1.0
+    // Same as built-in form:
+    sun_flare 0, 0, -500, -100, -100, 500
+
+// slides.ddd
+import Slides 1.0
+new_title_slide T:text ->
+    title_slide "Title slide (" & T & ")",
+        text "Theme:"
+        paragraph_break
+        text T
+        paragraph_break
+        text ""
+        paragraph_break
+        * "The quick brown fox"
+        - "Jumps over"
+        - "The lazy dog"
+
+new_slide T:text ->
+    slide "Regular slide (" & T & ")",
+        text "Here is a nice story :"
+        * "The quick brown fox"
+        - "Jumps over"
+        + "The lazy dog"
+
+new_title_only_slide T:text ->
+    title_only_slide "Title only (" & T & ")",
+        nil
+
+do_test T:text ->
+    theme T
+    new_title_slide T
+    new_slide T
+    new_title_only_slide T
+
+do_test "WhiteOnGray"
+do_test "Rounded"
+do_test "Keyboard"
+
+
+
+import Filters 1.0
+
+page "filters",
+    filtering ->
+        color "white"
+        texture "noImage"
+        rectangle -400, 0, 500, 500
+        //Detect outlines
+        laplacian 1
+        //Add some blur
+        gaussian 5
+        rectangle 400, 0, 500, 500
+
+    legend ->
+        locally
+            color "red"
+            arrow 0, 0, 200, 175, 75, 55%
+            locally
+                color "black"
+                text_box 25, -75, 200, 200,
+                    font_size 35
+                    bold
+                    text "Filtering"
+
+    S -> window_width/1500
+    scale S, S, 1.0
+    legend
+    filtering
+
+
+import Shading
+
+page "shading",
+    // Classic rendering
+    ww -> window_width / 3
+    locally
+        translatex -500
+        locally
+            color "yellow"
+            sphere mouse_x, mouse_y, 100, 20
+        light 0
+        light_position mouse_x, mouse_y, 100
+        color 0.7, 0.7, 1.0, 1.0
+        rotatex 140
+        torus 0, 0, 0, ww, ww, ww, 50, 50, 0.25
+
+    locally
+        // Cel shading
+        locally
+            color "yellow"
+            sphere mouse_x, mouse_y, 100, 20
+        light 0
+        light_position mouse_x, mouse_y, 100
+        cel_color 0.7, 0.7, 1.0
+        cel_shading
+        rotatex 140
+        torus 0, 0, 0, ww, ww, ww, 50, 50, 0.25
+
+    locally
+        translatex 500
+        locally
+            color "yellow"
+            sphere mouse_x, mouse_y, 100, 20
+        light 0
+        light_position mouse_x, mouse_y, 100
+        cool_color 0.7, 0.7, 1.0
+        cool_diffuse 0.045
+        warm_color 0.5, 0.1, 0.1
+        warm_diffuse 0.45
+        surface_color 0, 0, 0
+        gooch_shading
+        rotatex 140
+        torus 0, 0, 0, ww, ww, ww, 50, 50, 0.25
+
+
+
+
+import Mapping
+page "mapping",
+
+    clear_color 1, 1, 1, 1
+    // Define texture maps
+    COLOR_MAP -> "noImage"
+    DISPLACEMENT_MAP -> "noImage"
+    font "Arial"
+    font_size 16
+    displaced_plane ->
+        locally
+            rotatey -20
+            rotatex -65
+            rotatez 45
+            // Set texture maps
+            texture_unit 0
+            texture COLOR_MAP
+            texture_unit 1
+            texture DISPLACEMENT_MAP
+            // Apply displacement mapping
+            displacement_mapping 200
+            // Define subdivided plane
+            plane -50, 0, 500, 500, 200, 200
+
+
+    // Legend to the color map
+    legend_color ->
+        locally
+            texture COLOR_MAP
+            rectangle 460, 390, 200, 200
+            text_box 460, 250, 200, 50,
+                color "black"
+                font "Droid Sans", 24
+                align_center
+                vertical_align_center
+                text "Color map"
+
+    // Legend to the displacement map
+    legend_height ->
+        locally
+            texture DISPLACEMENT_MAP
+            rectangle 460, 90, 200, 200
+            text_box 460, -60, 200, 50,
+                color "black"
+                font "Droid Sans", 24
+                align_center
+                vertical_align_center
+                text "Displacement map"
+
+    draw_map_scene ->
+        color "white"
+        translate -100, -150, 0
+        displaced_plane
+        // Set legends
+        legend_color
+        legend_height
+        S -> min (window_width / 1000, window_height / 700)
+        scale S, S, 1.0
+
+    draw_map_scene
+
+
+import Flares
+page "flares",
+    clear_color 1, 1, 1, 1
+    Nb -> 6
+    SF -> window_height * 30%
+    RF -> window_height * 35%
+    Speed -> 0.5
+    animated_star 0, M:integer -> nil
+    animated_star N:integer, M:integer ->
+        locally
+            flares 400, 2.0
+            Sx -> RF * cos(2 * pi * (real N/M) + Speed)
+            Sy -> RF * sin(2 * pi * (real N/M) + Speed)
+            star Sx, Sy, SF, SF, 5, 0.4
+        animated_star N-1, M
+    animated_star N:integer -> animated_star N, N
+    animated_star Nb
+
+
+import RevolvingTexts
+
+// Keyboard shortcuts for navigation
+page "Revolving texts",
+    key "Right" -> skip 1
+    key "Left" -> skip -1
+    key "Return" -> skip_to 0
+    clear_color 0, 0, 0, 0
+
+    translatey 50
+    scale 1.5, 1.5, 1.5
+    revolving_font "Forte", 16
+    revolving_color 227.7, 0.0, 1.0
+    highlighting_color 52, 0.9, 1.0
+    revolving_text 1, "Tao Presentations : Freedom to create and animate"
+    revolving_text 2, "Innovation in Presentations"
+    revolving_text 3, "Show, Explain, Impress"
+    revolving_text 4, "See the power of 3D presentations with Tao Discovery"
+    revolving_text 5, "Unleash your imagination with Tao Creativity"
+    revolving_text 6, "Use any stereoscopic display with Tao Impress"
+    revolving_text 7, "Add useful functionalities with proposed modules"
+
+
+import RegExp
+import LoremIpsum
+
+page "regexp",
+    clear_color 1, 1, 1, 1   
+    text_box 0,0, 900, 900,
+      regexp_parse_all lorem_ipsum 500,
+        "[aeiouy]" -> color "red"; text regexp_captured 0
+        "[a-z]" ->  color "green"; text regexp_captured 0
+        "." -> color "blue"; text regexp_captured 0

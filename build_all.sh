@@ -54,6 +54,6 @@ echo Log file: $LOG >&2
 exec 4>&2
 { time {
   doo make distclean
-  doo ./configure --with-eula && doo "make -j3 kit $MAKEFLAGS" && cp_kit
+  doo ./configure --with-eula --with-cfu && doo "make -j3 kit $MAKEFLAGS" && cp_kit
 } >$LOG 2>&1; }
 exec 4>&-

@@ -82,10 +82,17 @@ int main(int argc, char **argv)
 
     // Initialize and run the Tao application
     int ret = 0;
+
+    try
     {
         Tao::Application tao(argc, argv);
         ret = tao.exec();
         // Note: keep this inside a block so that ~Application gets called!
+    }
+    catch(...)
+    {
+        RECORD(ALWAYS, "Exception caught at top level");
+        std::cerr << "Exception caught, exiting\n";
     }
 
     RECORD(ALWAYS, "Cleaning up");
@@ -124,16 +131,6 @@ static LONG WINAPI TaoUnhandledExceptionFilter(LPEXCEPTION_POINTERS ep)
     if (TopLevelExceptionFilter)
         return (*TopLevelExceptionFilter)(ep);
     return EXCEPTION_CONTINUE_SEARCH;
-}
-
-
-static BOOL WINAPI TaoConsoleCtrlHandler(DWORD dwCtrlType)
-// ----------------------------------------------------------------------------
-//   Call signal handler on Control-C
-// ----------------------------------------------------------------------------
-{
-    signal_handler(SIGINT);
-    return FALSE; // Kill me, please, I'm running on Windows!
 }
 
 
@@ -307,7 +304,6 @@ void install_first_exception_handler(void)
     // Windows-specific ugliness
     PrimaryExceptionFilter =
         SetUnhandledExceptionFilter(TaoPrimaryExceptionFilter);
-    SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 }
 
 
@@ -332,10 +328,9 @@ void install_signal_handler(sig_t handler)
 {
     // Insert signal handlers
 #ifdef CONFIG_MINGW
-    static int sigids[] = { SIGINT, SIGILL, SIGABRT,
-                            SIGFPE, SIGSEGV, SIGTERM };
+    static int sigids[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM };
 #else
-    static int sigids[] = { SIGHUP, SIGINT, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
+    static int sigids[] = { SIGHUP, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
                             SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE, SIGTERM,
                             SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF };
 #endif
@@ -384,7 +379,6 @@ void install_signal_handler(sig_t handler)
     // Windows-specific ugliness
     TopLevelExceptionFilter =
         SetUnhandledExceptionFilter(TaoUnhandledExceptionFilter);
-    SetConsoleCtrlHandler(TaoConsoleCtrlHandler, TRUE);
 #endif // CONFIG_MINGW
     }
 }

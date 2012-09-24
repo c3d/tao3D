@@ -123,12 +123,13 @@ namespace Tao {
 static Point3 defaultCameraPosition(0, 0, 3000);
 
 
-
-static inline Widget * findTaoWidget()
+ Widget * Widget::findTaoWidget()
 // ----------------------------------------------------------------------------
 //   Find the Widget on the main Window. Use when Tao() is not set.
 // ----------------------------------------------------------------------------
 {
+    if (current) return current;
+
     foreach (QWidget *widget, QApplication::topLevelWidgets())
     {
         Window * window = dynamic_cast<Window *>(widget);
@@ -937,7 +938,7 @@ bool Widget::refreshNow(QEvent *event)
 //    Redraw the widget due to event or run program entirely
 // ----------------------------------------------------------------------------
 {
-    if (inDraw)
+    if (inDraw || inError)
         return false;
 
     if (gotoPageName != "")
@@ -982,6 +983,8 @@ bool Widget::refreshNow(QEvent *event)
         TaoSave saveCurrent(current, this);
         stats.begin(Statistics::EXEC);
         changed = space->Refresh(event, now);
+        if (changed)
+            checkErrors(false);
         stats.end(Statistics::EXEC);
     }
 
@@ -1024,6 +1027,7 @@ void Widget::refreshOn(int type, double nextRefresh)
     if (!layout)
         return;
 
+    inError = false;
     if (type == QEvent::Timer)
     {
         double currentTime = CurrentTime();
@@ -1052,7 +1056,7 @@ bool Widget::refreshOnAPI(int event_type, double next_refresh)
 {
     if (next_refresh == -1.0)
         next_refresh = DBL_MAX;
-    Tao()->refreshOn(event_type, next_refresh);
+    findTaoWidget()->refreshOn(event_type, next_refresh);
     return true;
 }
 
@@ -1062,7 +1066,7 @@ double Widget::currentTimeAPI()
 //   Module interface to currentTime()
 // ----------------------------------------------------------------------------
 {
-    return Tao()->CurrentTime();
+    return findTaoWidget()->CurrentTime();
 }
 
 
@@ -1132,28 +1136,7 @@ void Widget::runProgramOnce()
     stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
-    if (XL::MAIN->HadErrors())
-    {
-        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
-        std::vector<XL::Error>::iterator ei;
-        Window *window = taoWindow();
-        XL::MAIN->errors->Clear();
-        window->clearErrors();
-        for (ei = errors.begin(); ei != errors.end(); ei++)
-        {
-            text pos = (*ei).Position();
-            text err = (*ei).Message();
-            text message = pos + ": " + err;
-            window->addError(+message);
-            text hint = +errorHint(+err);
-            if (hint != "")
-            {
-                text message = pos + ": " + hint;
-                window->addError(+message);
-            }
-        }
-        inError = true;
-    }
+    checkErrors(true);
 
     // Clean the end of the old menu list.
     for  (; order < orderedMenuElements.count(); order++)
@@ -1614,7 +1597,7 @@ void Widget::copy()
     {
         //If no selection copy the Image
         QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setImage(grabFrameBuffer(true));
+        clipboard->setImage(grabFrameBuffer(false));
 
         return;
     }
@@ -3502,7 +3485,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
     refreshProgram(); // REVISIT not needed?
-    inError = false;
+    clearErrors();
 }
 
 
@@ -3515,6 +3498,7 @@ int Widget::loadFile(text name, bool updateContext)
     TaoSave saveCurrent(current, this);
     return XL::MAIN->LoadFile(name, updateContext);
 }
+
 
 void Widget::loadContextFiles(XL::source_names &files)
 // ----------------------------------------------------------------------------
@@ -3557,7 +3541,7 @@ void Widget::reloadProgram(XL::Tree *newProg)
     // Now update the window
     updateProgramSource();
     refreshNow();
-    inError = false;
+    clearErrors();
 }
 
 
@@ -3697,7 +3681,7 @@ void Widget::refreshProgram()
             XL::MAIN->LoadFile(sf.name);
         }
         updateProgramSource();
-        inError = false;
+        clearErrors();
         needRefresh = true;
     }
     if (needRefresh)
@@ -5895,8 +5879,7 @@ void Widget::postEventAPI(int eventType)
 //    Export postEvent to the module API
 // ----------------------------------------------------------------------------
 {
-    Widget * w = current ? current : findTaoWidget();
-    w->postEvent(eventType);
+    findTaoWidget()->postEvent(eventType);
 }
 
 
@@ -10743,7 +10726,7 @@ text Widget::currentDocumentFolder()
 //   Return native path to current document folder
 // ----------------------------------------------------------------------------
 {
-    Window *window = Tao()->taoWindow();
+    Window *window = findTaoWidget()->taoWindow();
     return +QDir::toNativeSeparators(window->currentProjectFolderPath());
 }
 
@@ -11167,6 +11150,48 @@ Tree_p Widget::formulaRuntimeError(Tree_p self, text msg, Tree_p arg)
     Tree_p result = (Tree *) err;
     result->SetSymbols(self->Symbols());
     return result;
+}
+
+
+void Widget::clearErrors()
+// ----------------------------------------------------------------------------
+//   Clear all errors, e.g. because we reloaded a document
+// ----------------------------------------------------------------------------
+{
+    inError = false;
+    XL::MAIN->errors->Clear();
+    taoWindow()->clearErrors();
+}
+
+
+void Widget::checkErrors(bool clear)
+// ----------------------------------------------------------------------------
+//   Check if there were errors during evaluation, and display them if any
+// ----------------------------------------------------------------------------
+{
+    if (XL::MAIN->HadErrors())
+    {
+        std::vector<XL::Error> errors = XL::MAIN->errors->errors;
+        std::vector<XL::Error>::iterator ei;
+        Window *window = taoWindow();
+        XL::MAIN->errors->Clear();
+        if (clear)
+            window->clearErrors();
+        for (ei = errors.begin(); ei != errors.end(); ei++)
+        {
+            text pos = (*ei).Position();
+            text err = (*ei).Message();
+            text message = pos + ": " + err;
+            window->addError(+message);
+            text hint = +errorHint(+err);
+            if (hint != "")
+            {
+                text message = pos + ": " + hint;
+                window->addError(+message);
+            }
+        }
+        inError = true;
+    }
 }
 
 

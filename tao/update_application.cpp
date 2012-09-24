@@ -266,6 +266,24 @@ void UpdateApplication::check(bool show)
 }
 
 
+QDateTime UpdateApplication::lastChecked()
+// ----------------------------------------------------------------------------
+//    The date and time when the last check for update returned
+// ----------------------------------------------------------------------------
+{
+    return QSettings().value("LastCheckForUpdate").toDateTime();
+}
+
+
+void UpdateApplication::setLastChecked(QDateTime when)
+// ----------------------------------------------------------------------------
+//    Record date and time of last successful check for update
+// ----------------------------------------------------------------------------
+{
+    QSettings().setValue("LastCheckForUpdate", QVariant(when));
+}
+
+
 void UpdateApplication::startDownload()
 // ----------------------------------------------------------------------------
 //    Start downloading the URL of the Tao file
@@ -553,6 +571,8 @@ void UpdateApplication::downloadFinished()
         file->remove();
         delete file;
         file = NULL;
+
+        setLastChecked(QDateTime::currentDateTime());
 
         // Propose to update if current version is older than the remote one
         updateAvailable = (version < remoteVersion) && !url.isEmpty();

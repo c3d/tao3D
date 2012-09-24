@@ -775,7 +775,7 @@ gradient_color (pos:real, r:real, g:real, b:real, a:real);
 @code
 linear_grad -> 
     color "white" 
-    linear_gradient 0, 0, 250, 250, 700, 700,
+    linear_gradient 0, 0, 700, 700, 700, 700,
         gradient_color 0, 0.0, 0.0, 1.0, 1.0 
         gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
         gradient_color 1, 1.0, 0.0, 0.0, 1.0
@@ -821,7 +821,7 @@ linear_gradient (start_x:real, start_y:real, end_x:real, end_y:real, w:real, h:r
 @code
 radial_grad -> 
     color "white" 
-    radial_gradient 250, 250, 250, 700, 700, 
+    radial_gradient 350, 350, 350, 700, 700, 
         gradient_color 0, 0.0, 0.0, 1.0, 1.0 
         gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
         gradient_color 1, 1.0, 0.0, 0.0, 1.0 
@@ -867,7 +867,7 @@ radial_gradient (cx:real, cy:real, r:real, w:real, h:real, body:tree);
 @code
 conical_grad -> 
     color "white" 
-    conical_gradient 250, 250, 30, 700, 700, 
+    conical_gradient 350, 350, 30, 700, 700, 
         gradient_color 0, 0.0, 0.0, 1.0, 1.0 
         gradient_color 0.5, 0.0, 1.0, 0.0, 1.0 
         gradient_color 1, 1.0, 0.0, 0.0, 1.0

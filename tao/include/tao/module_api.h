@@ -49,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   26
-#define TAO_MODULE_API_AGE       7
+#define TAO_MODULE_API_CURRENT   27
+#define TAO_MODULE_API_AGE       8
 
 // ========================================================================
 //
@@ -191,7 +191,7 @@ struct ModuleApi
     //   API for display modules
     // ------------------------------------------------------------------------
 
-    // In the following protoypes, obj is the value returned by the
+    // In the following prototypes, obj is the value returned by the
     // display_use_fn function.
     typedef void   (*display_fn)(void *obj);
     typedef void * (*display_use_fn)();
@@ -206,7 +206,7 @@ struct ModuleApi
     // Returns true on success, false on error (e.g., name already used)
     //   - fn is called for each frame to be displayed
     //   - use is called once when fn is about to be used.
-    //     Return (void *)(~0L) to indicated an error.
+    //     Return (void *)(~0L) to indicate an error.
     //   - unuse is called when Tao stops using fn
     //   - setopt is called when Tao needs to set a display option
     //   - getopt is called when Tao needs to get a display option
@@ -419,7 +419,7 @@ struct ModuleApi
     //    object). If widget is the current one, the default Tao widget becomes
     //    visible again.
     void (*removeWidget)(void * widget);
-    //    Make a Qwidget the active one in the main Tao window. widget must
+    //    Make a Qwidget the active one in the main Tao window. Widget must
     //    be a pointer previously passed to addWidget, or NULL to
     //    revert to the default display.
     void (*setCurrentWidget)(void * widget);
@@ -438,6 +438,11 @@ struct ModuleApi
     // Please allocate eventType with QEvent::registerEventType() to avoid
     // conflicts with other modules or the main application.
     void (*postEvent)(int eventType);
+
+
+    // Return the content of the FBO as a QImage.
+    //   Module gains the QImage's ownership.
+    void *  (*imageFromFrameBufferObject)(ModuleApi::fbo * obj);
 
 
     // ------------------------------------------------------------------------

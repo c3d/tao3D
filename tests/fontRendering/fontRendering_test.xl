@@ -1,0 +1,23 @@
+fontRendering_test -> test_definition "fontRendering", 0,  <<>>, 1920, 1135, 
+  test_add_check 0, 2084, 0
+  test_add_key_press 16777237, 536870912, 1450 // 
+  test_add_key_release 16777237, 536870912, 532 // 
+  test_add_check 1, 1690, 0
+  test_add_mouse_move 0, 0, 0, 641, 7, 117
+  test_add_key_press 16777237, 536870912, 410 // 
+  test_add_key_release 16777237, 536870912, 284 // 
+  test_add_mouse_move 0, 0, 0, 641, 2, 317
+  test_add_check 2, 1728, 0
+  test_add_mouse_move 0, 0, 0, 640, 10, 96
+  test_add_key_press 16777237, 536870912, 439 // 
+  test_add_key_release 16777237, 536870912, 135 // 
+
+start_test -> 
+  fontRendering_test
+  display_mode "taotester"
+  test_replay
+
+start_ref -> 
+  fontRendering_test
+  display_mode "taotester"
+  make_ref

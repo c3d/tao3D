@@ -23,6 +23,7 @@
 #include "repository.h"
 #include "process.h"
 #include "tao.h"
+#include <QDateTime>
 #include <QObject>
 #include <QString>
 #include <QProgressDialog>
@@ -50,7 +51,8 @@ public:
     UpdateApplication();
     ~UpdateApplication();
 
-    void     check(bool show = false);
+    void      check(bool show = false);
+    QDateTime lastChecked();
 
 private:
     void     startDownload();
@@ -63,6 +65,7 @@ private:
     QString  appName();
     QString  remoteVer();
     void     connectSignals(QNetworkReply *reply);
+    void     setLastChecked(QDateTime when);
 
 public slots:
     void     cancel();

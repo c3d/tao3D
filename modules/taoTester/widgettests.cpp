@@ -19,613 +19,539 @@
 //  (C) 2010 Catherine Burvelle <cathy@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
+
+#include "tao/module_api.h"
+
 #include "widgettests.h"
+#include "tao_test_events.h"
+#include "../tao_synchro/event_capture.h"
+#include "save_test_dialog.h"
+#include "test_display.h"
 
 #include <QFileInfo>
 #include <QDir>
-#include <QStatusBar>
-#include <QTestEvent>
 #include <QTextStream>
-//#include "qtestevent.h"
+#include <QStatusBar>
+#include <QCoreApplication>
+#include <QProcess>
 
-#include "save_test_dialog.h"
+#define INDENT1 "  "
+#define INDENT2 "    "
 
-#include "taotester.h"
 
-WidgetTests::WidgetTests(QGLWidget *glw, text name, text description) :
+WidgetTests::WidgetTests() :
 // ----------------------------------------------------------------------------
 //   Creates a new test.
 // ----------------------------------------------------------------------------
-    widget(glw), name(+name), description(+description),
-    featureId(0), folder("./"), threshold(0.0), win(NULL), logfile(NULL),
-    state(stopped), playingList(NULL)
+    name(""), description(""), featureId(0), logfile(NULL),
+    state(stopped), shotImage(NULL)
 {
-    QStringList dirList = QDir::searchPaths("image");
-    folder = dirList.at(1) + '/' + this->name;
+    IFTRACE(displaymode)
+        test_display::debug() << "Initializing\n";
 
-    if ( ! glw )
-        foreach (QWidget *w, QApplication::topLevelWidgets())
-            if ((win = dynamic_cast<QMainWindow*>(w)) != NULL)
-                if ((widget = dynamic_cast<QGLWidget *>(win->centralWidget()) ) != NULL)
-                    break;
+    synchroBasic::tao->registerDisplayFunction("taotester",
+                                 test_display::display,
+                                 test_display::use,
+                                 test_display::unuse,
+                                 NULL,
+                                 NULL);
+    state = loading;
+    IFTRACE(displaymode)
+        test_display::debug() << "Done\n";
+
 }
 
 
-text WidgetTests::toString()
+void WidgetTests::reset(text newName, int feature, text desc, int width, int height)
 // ----------------------------------------------------------------------------
-//   Return the test as a tao command
+//   Reset the test
 // ----------------------------------------------------------------------------
 {
-    QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
-                              " <<%3>>, %6, %7, %5, do \n%4\n")
-            .arg(name).arg(featureId)
-            .arg(description).arg(taoCmd.isEmpty() ? "    nil" : taoCmd)
-            .arg(threshold).arg(winSize.width()).arg(winSize.height());
-    return +testDoc;
+    state = loading;
 
+    testList.clear();
+    nbCheckPoint = 0;
+    name = +newName;
+    featureId = feature;
+    synchroBasic::base->winSize.setWidth(width);
+    synchroBasic::base->winSize.setHeight(height);
+    synchroBasic::base->win->statusBar()->showMessage("Loading test " + name);
+
+    description = +desc;
+
+    IFTRACE (tester)
+            std::cerr << "WidgetTests::reset name="<< +name
+                      << ", desc="<< +description <<std::endl;
 }
 
-void WidgetTests::startRecord()
+
+QString WidgetTests::getDir(bool refDir)
+// ----------------------------------------------------------------------------
+//   Return the directory to load or save data
+// ----------------------------------------------------------------------------
+{
+    QString dir = +synchroBasic::tao->currentDocumentFolder();
+    QStringList environment = QProcess::systemEnvironment();
+    QStringList var = environment.filter(refDir?"TAO_REF_DIR=":"TAO_OUT_DIR=");
+    if ( ! var.size() )
+    {
+        if ( refDir)
+            return dir;
+
+        QString runDir = QString("run-%1")
+                .arg(QDateTime::currentDateTime()
+                     .toString("yyyy-MM-dd_hh.mm.ss"));
+        QDir(dir).mkdir(runDir);
+        dir.append("/").append(runDir);
+
+        return dir;
+    }
+
+    QString loc = var.first().remove(refDir ? "TAO_REF_DIR=" : "TAO_OUT_DIR=");
+    if (!loc.startsWith("/"))
+        dir = QDir::cleanPath(dir.append("/").append(loc));
+    else
+        dir = QDir::cleanPath(loc);
+
+    QDir::current().mkpath(dir);
+
+    return dir;
+}
+
+// ============================================================================
+//
+//              TEST RECORDER
+//
+// ============================================================================
+
+
+bool TestRecorder::beforeStart()
+// ----------------------------------------------------------------------------
+//   Start recording a sequence of events
+// ----------------------------------------------------------------------------
+{
+    // clear lists
+    testList.clear();
+    nbCheckPoint = 0;
+
+    return true;
+}
+
+
+bool TestRecorder::afterStart()
 // ----------------------------------------------------------------------------
 //   Start recording a sequence of events
 // ----------------------------------------------------------------------------
 {
     state = recording;
-    // clear lists
-    testList.clear();
-    checkPointList.clear();
-    win->statusBar()->showMessage("Start recording new test.");
-    winSize = win->size();
-
-    //photo
-    before = widget->grabFrameBuffer(true);
-    //connection
-    foreach (QAction* act,  widget->parent()->findChildren<QAction*>())
-    {
-        if (act->objectName().startsWith("toolbar:test"))
-            continue;
-         connect(act, SIGNAL(triggered(bool)), this, SLOT(recordAction(bool)));
-    }
-    widget->installEventFilter(this);
-    startTime.start();
+    return true;
 }
 
 
-void WidgetTests::stopRecord()
+bool TestRecorder::beforeStop()
 // ----------------------------------------------------------------------------
 //   Stop recording events
 // ----------------------------------------------------------------------------
 {
-    //photo
-    after = widget->grabFrameBuffer(true);
+    return true;
+}
 
-    //connection
-    foreach (QAction* act,  widget->parent()->findChildren<QAction*>())
-    {
-        disconnect(act, SIGNAL(triggered(bool)),
-                   this, SLOT(recordAction(bool)));
-    }
-    widget->removeEventFilter(this);
-    win->statusBar()->showMessage("End recording.");
+
+bool TestRecorder::afterStop()
+// ----------------------------------------------------------------------------
+//   Stop recording events
+// ----------------------------------------------------------------------------
+{
     state = stopped;
+    return true;
 }
 
 
-void WidgetTests::recordAction(bool )
-// ----------------------------------------------------------------------------
-//   Records actions.
-// ----------------------------------------------------------------------------
-{
-    QAction* act = dynamic_cast<QAction*>(QObject::sender());
-    if ( ! act) return;
-
-    QString actName = act->objectName();
-    if (actName.isEmpty()) return;
-
-    int time = startTime.restart();
-
-    QKeySequence shortcut = act->shortcut();
-    addAction(actName, time);
-
-    QString cmd = QString("    test_add_action \"%1\", %2 // %3 \n")
-                  .arg(actName).arg(time).arg(shortcut.toString());
-    taoCmd.append(cmd);
-}
+ void TestRecorder::add(TaoControlEvent *evt)
+ // ----------------------------------------------------------------------------
+ //   Add an event to the list
+ // ----------------------------------------------------------------------------
+ // Got the ownership of the evt memory. To be deleted at save or clear time.
+ {
+     testList.append(evt);
+ }
 
 
-void WidgetTests::recordColor(QColor color)
-// ----------------------------------------------------------------------------
-//   Record the color change event.
-// ----------------------------------------------------------------------------
-{
-    TestColorActionEvent * evt =
-            new TestColorActionEvent(QObject::sender()->objectName(),
-                                     color.name(), startTime.restart());
-    testList.append(evt);
-    taoCmd.append(evt->toTaoCmd());
-}
-
-
-void WidgetTests::recordFont(QFont font)
-// ----------------------------------------------------------------------------
-//   Record the font change event.
-// ----------------------------------------------------------------------------
-{
-    TestFontActionEvent * evt =
-            new TestFontActionEvent(QObject::sender()->objectName(),
-                                    font.toString(), startTime.restart());
-    testList.append(evt);
-    taoCmd.append(evt->toTaoCmd());
-}
-
-void WidgetTests::recordFile(QString file)
-// ----------------------------------------------------------------------------
-//   Record the font change event.
-// ----------------------------------------------------------------------------
-{
-    if (file.isEmpty()) return;
-
-    TestFileActionEvent * evt =
-            new TestFileActionEvent(QObject::sender()->objectName(),
-                                    file, startTime.restart());
-    testList.append(evt);
-    taoCmd.append(evt->toTaoCmd());
-}
-
-
-void WidgetTests::finishedDialog(int result)
-// ----------------------------------------------------------------------------
-//   Record the result of the dialog box (and close event).
-// ----------------------------------------------------------------------------
-{
-    QObject *sender = QObject::sender();
-    if (sender)
-    {
-        QDialog * dialog = dynamic_cast<QDialog*>(sender);
-        if (dialog)
-        {
-            disconnect(dialog, 0, this, 0);
-        }
-        TestDialogActionEvent* evt =
-                new TestDialogActionEvent(sender->objectName(),
-                                          result, startTime.restart());
-        testList.append(evt);
-        taoCmd.append(evt->toTaoCmd());
-    }
-}
-
-
-void WidgetTests::checkNow()
+void TestRecorder::checkNow()
 // ----------------------------------------------------------------------------
 //   Records a check point and the view.
 // ----------------------------------------------------------------------------
 {
-    TestCheckEvent *check = new TestCheckEvent(checkPointList.size(),
-                                               startTime.restart());
-    testList.append(check);
-    taoCmd.append(check->toTaoCmd());
-    QImage shot = widget->grabFrameBuffer(true);
-    checkPointList.append(shot);
+//    QImage shot = synchroBasic::base->widget->grabFrameBuffer(false);
+
+    TaoCheckEvent *check =
+            new TaoCheckEvent(nbCheckPoint++,
+                              ((EventCapture*)synchroBasic::base)->startTime.
+                              restart());
+    shotImage = &(check->playedImage);
+
+    // Refresh the screen
+    synchroBasic::tao->refreshOn(QEvent::Timer, -1.0);
+    synchroBasic::tao->refreshOn(QEvent::MouseMove, -1.0);
+
+    add(check);
 }
 
 
-bool WidgetTests::eventFilter(QObject */*obj*/, QEvent *evt)
-// ----------------------------------------------------------------------------
-//   Records all the events on widget
-// ----------------------------------------------------------------------------
-{
-    switch(evt->type())
-    {
-    case QEvent::KeyPress:
-        {
-            QKeyEvent *e = (QKeyEvent*)evt;
-            int delay = startTime.restart();
-            addKeyPress((Qt::Key)e->key(), e->modifiers(), delay);
-            QString cmd = QString("    test_add_key_press %1, %2, %3 // %4\n")
-                          .arg(e->key()).arg(e->modifiers()).arg(delay).arg(e->text());
-            taoCmd.append(cmd);
-            break;
-        }
-    case QEvent::KeyRelease:
-        {
-            QKeyEvent *e = (QKeyEvent*)evt;
-            int delay = startTime.restart();
-            addKeyRelease((Qt::Key)e->key(), e->modifiers(), delay);
-            QString cmd = QString("    test_add_key_release %1, %2, %3 // %4\n")
-                          .arg(e->key()).arg(e->modifiers()).arg(delay).arg(e->text());
-            taoCmd.append(cmd);
-            break;
-        }
-    case QEvent::MouseButtonPress:
-        {
-            QMouseEvent *e = (QMouseEvent *)evt;
-            int delay = startTime.restart();
-            addMousePress(e->button(), e->modifiers(), e->pos(), delay);
-            QString cmd = QString("    test_add_mouse_press %1, %2, %3, %4, %5\n")
-                          .arg(e->button()).arg(e->modifiers())
-                          .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(cmd);
-        }
-    case QEvent::MouseMove:
-        {
-            QMouseEvent *e = (QMouseEvent *)evt;
-            int delay = startTime.restart();
-            addMouseMove(e->buttons(), e->modifiers(), e->pos(), delay);
-            QString cmd = QString("    test_add_mouse_move %1, %2, %3, %4, %5\n")
-                          .arg(e->buttons()).arg(e->modifiers())
-                          .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(cmd);
-            break;
-        }
-    case QEvent::MouseButtonRelease:
-        {
-            QMouseEvent *e = (QMouseEvent *)evt;
-            int delay = startTime.restart();
-            addMouseRelease(e->button(), e->modifiers(), e->pos(), delay);
-            QString cmd = QString("    test_add_mouse_release %1, %2, %3, %4, %5\n")
-                          .arg(e->button()).arg(e->modifiers())
-                          .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(cmd);
-            break;
-        }
-    case QEvent::MouseButtonDblClick:
-        {
-            QMouseEvent *e = (QMouseEvent *)evt;
-            int delay = startTime.restart();
-            addMouseDClick(e->button(), e->modifiers(), e->pos(), delay);
-            QString cmd = QString("    test_add_mouse_dclick %1, %2, %3, %4, %5\n")
-                          .arg(e->button()).arg(e->modifiers())
-                          .arg(e->pos().x()).arg(e->pos().y()).arg(delay);
-            taoCmd.append(cmd);
-            break;
-        }
-    case QEvent::ChildPolished:
-        {
-            QChildEvent *e = (QChildEvent*)evt;
-            QString childName = e->child()->objectName();
-            std::cerr<< "Object polished " << +childName << std::endl; // CaB
-            if ( childName.contains("colorDialog"))
-            {
-                QColorDialog *diag = (QColorDialog*)e->child();
-                connect(diag, SIGNAL(currentColorChanged(QColor)),
-                        this, SLOT(recordColor(QColor)));
-                connect(diag, SIGNAL(finished(int)),
-                        this, SLOT(finishedDialog(int)));
-            }
-            else if (childName.contains("fontDialog"))
-            {
-                QFontDialog *diag = (QFontDialog*)e->child();
-                connect(diag, SIGNAL(currentFontChanged(QFont)),
-                        this, SLOT(recordFont(QFont)));
-                connect(diag, SIGNAL(finished(int)),
-                        this, SLOT(finishedDialog(int)));
-            }
-            else if (childName.contains("fileDialog") ||
-                     childName.contains("QFileDialog"))
-            {
-                QFileDialog *diag = (QFileDialog*)e->child();
-                connect(diag, SIGNAL(fileSelected(QString)),
-                        this, SLOT(recordFile(QString)));
-//                connect(diag, SIGNAL(finished(int)),
-//                        this, SLOT(finishedDialog(int)));
-            }
-        }
-    default:
-        break;
-    }
-
-    return false;
-
-}
-
-bool WidgetTests::startPlay()
-// ----------------------------------------------------------------------------
-//   Replay the test
-// ----------------------------------------------------------------------------
-{
-    state = playing;
-    win->resize(winSize);
-    win->statusBar()->showMessage("Playing Test " + name);
-    nbChkPtKO = 0;
-    logOpen();
-    QCoreApplication::processEvents();
-    QTest::qWait(1000);
-
-    if (! before.isNull())
-    {
-        // snap shot the widget
-        playedBefore = widget->grabFrameBuffer(true);
-
-        // save the image
-        QString playedBeforeName =
-                QString(folder).append(name).append("_playedBefore.png");
-        playedBefore.save(playedBeforeName, "PNG");
-
-        // Compute the diff between reference and played image
-        QString diffBeforeName = QString(folder).append(name).append("_diffBefore.png");
-        double diffVal = diff(before, playedBefore, diffBeforeName);
-
-        if (diffVal > threshold)
-            nbChkPtKO++;
-
-        log(BEFORE, diffVal <= threshold, diffVal);
-    }
-
-    // Copy the list as the original one can be modified by a reload during simulate
-    QTestEventList tempoList = QTestEventList(testList);
-    playingList = &tempoList;
-    tempoList.simulate(widget);
-    playingList = NULL;
-
-    QCoreApplication::processEvents();
-
-    if ( ! after.isNull() )
-    {
-        if (tempoList.isEmpty())
-            QTest::qWait(800);
-        // snap shot the widget
-        playedAfter = widget->grabFrameBuffer(true);
-
-        // save the image
-        QString playedAfterName =
-                QString(folder).append(name).append("_playedAfter.png");
-        playedAfter.save(playedAfterName, "PNG");
-
-        // Compute the diff between reference and played image
-        QString diffAfterName = QString(folder).append(name).append("_diffAfter.png");
-        double diffVal = diff(after, playedAfter, diffAfterName);
-
-        if (diffVal > threshold)
-            nbChkPtKO++;
-
-        log(AFTER, diffVal <= threshold, diffVal);
-    }
-
-    win->statusBar()->showMessage("Test " + name +
-                                  (nbChkPtKO > 0 ? " failed" : " is successful"));
-    logClose(nbChkPtKO <= 0);
-    QTest::qWait(1000);
-
-    return nbChkPtKO > 0;
-}
-
-void WidgetTests::stopPlay()
-{
-    std::cerr << "\n\n STOP demande \n\n";
-    if (playingList)
-    {
-        playingList->clear();
-        state = stopped;
-    }
-}
-
-void WidgetTests::stop()
-{
-    switch (state) {
-        case playing : stopPlay(); return;
-        case recording : stopRecord(); return;
-        default : return;
-    }
-}
-
-void WidgetTests::save()
+void TestRecorder::save()
 // ----------------------------------------------------------------------------
 //   Save the named test
 // ----------------------------------------------------------------------------
 {
-    Save_test_dialog dialog(widget, name, folder, featureId, description);
-    if (dialog.exec() == QDialog::Rejected)
+    QString folder = getDir(true);
+    Save_test_dialog dialog(synchroBasic::base->widget, name, folder,
+                            featureId, description);
+    if (dialog.exec() == QDialog::Rejected || dialog.name.isEmpty())
         return;
 
     name = dialog.name;
     description = dialog.desc;
     featureId = dialog.fid;
     folder = QFileInfo(dialog.loc).canonicalFilePath();
-    if (!folder.endsWith("/")) folder.append("/");
 
-    // Store Images
-    if (!before.isNull())
-    {
-        QString beforeName = QString(folder).append(name).append("_before.png");
-        before.save(beforeName, "PNG");
-    }
-    if (!after.isNull())
-    {
-        QString afterName = QString(folder).append(name).append("_after.png");
-        after.save(afterName, "PNG");
-    }
     // Store test commands
     // If no action an empty list is written
-    QString testName = QString(folder).append(name).append("_test.ddd");
+    QString testName = QString("%1/%2_test.xl").arg(folder).arg(name);
     QFile testFile(testName);
     testFile.open(QIODevice::WriteOnly | QIODevice::Text);
-    testFile.write(toString().c_str());
+    testFile.write(toTaoCmd().c_str());
     testFile.flush();
     testFile.close();
-
-    // Store check point images
-    for (int i = 0; i < checkPointList.size(); i++)
-    {
-        QImage shot = checkPointList[i];
-        QString chkPt=QString("%1%2_%3.png").arg(folder).arg(name).arg(i);
-        shot.save(chkPt, "PNG");
-    }
 }
 
 
-void WidgetTests::reset(text newName, int feature, text desc, text dir, double thr,
-                        int width, int height)
+text TestRecorder::toTaoCmd()
 // ----------------------------------------------------------------------------
-//   Reset the test
+//   Return the test as a tao command
 // ----------------------------------------------------------------------------
 {
-    testList.clear();
-    taoCmd.clear();
-    checkPointList.clear();
-    nbChkPtKO = 0;
-    name = +newName;
-    featureId = feature;
-    threshold = thr;
-    winSize.setWidth(width);
-    winSize.setHeight(height);
-    win->statusBar()->showMessage("Loading test " + name);
-
-    description = +desc;
-    folder = +dir;
-    if (!folder.endsWith("/")) folder.append("/");
-
-    if (name.isEmpty())
-    {
-        before = QImage();
-        after = QImage();
-    }
+    QString folder = getDir(true);
+    QString testDoc = QString("%1_test -> test_definition \"%1\", %2, "
+                              " <<%3>>, %4, %5, \n")
+            .arg(name).arg(featureId)
+            .arg(description)
+            .arg(synchroBasic::base->winSize.width())
+            .arg(synchroBasic::base->winSize.height());
+    if (testList.isEmpty())
+        testDoc.append(INDENT1).append("nil\n");
     else
     {
-        before = QImage(QString("image:").append(name).append('/').append(name).append("_before.png"));
-        after = QImage(QString("image:").append(name).append('/').append(name).append("_after.png"));
+        TaoMouseEvent *lastMouseEvent = NULL;
+        foreach (TaoControlEvent *evt, testList)
+        {
+            // Merge mouseMoveEvents to only one event with latest (x,y)
+            // and sum of delay values
+            if (evt->getType() == QEvent::MouseMove )
+            {
+                TaoMouseEvent * mouse = static_cast<TaoMouseEvent*>(evt);
+                TaoMouseEvent *newMouseEvent = mouse->merge(lastMouseEvent);
+                if (lastMouseEvent)
+                    delete lastMouseEvent;
+                lastMouseEvent = newMouseEvent;
+                continue;
+            }
+            if (lastMouseEvent)
+            {
+                testDoc.append(INDENT1).append(lastMouseEvent->toTaoCmd())
+                        .append("\n");
+                lastMouseEvent = NULL;
+            }
+
+            testDoc.append(INDENT1).append(evt->toTaoCmd()).append("\n");
+            if (evt->getType() == CHECK_EVENT_TYPE)
+            {
+                TaoCheckEvent *cp = static_cast<TaoCheckEvent*>(evt);
+                if (! cp->playedImage || cp->playedImage->isNull())
+                {
+                    delete evt;
+                    continue;
+                }
+                QString cpName= QString("%1/%2_%3.png")
+                        .arg(folder).arg(name).arg(cp->number);
+                cp->playedImage->save(cpName);
+            }
+            delete evt;
+        }
+        testList.clear();
     }
+
+    testDoc.append("\nstart_test -> \n")
+            .append(INDENT1).append(name).append("_test\n")
+            .append(INDENT1).append("display_mode \"taotester\"\n")
+            .append(INDENT1).append("test_replay\n");
+
+    testDoc.append("\nstart_ref -> \n")
+            .append(INDENT1).append(name).append("_test\n")
+            .append(INDENT1).append("display_mode \"taotester\"\n")
+            .append(INDENT1).append("make_ref\n");
+
+    return +testDoc;
 }
 
-void WidgetTests::printResult()
+
+// ============================================================================
+//
+//            TEST PLAYER
+//
+// ============================================================================
+
+
+TestPlayer::TestPlayer():
 // ----------------------------------------------------------------------------
-//   Print the result of this test on stderr
+//   Creates a new test to be played
+// ----------------------------------------------------------------------------
+    makeRef(false)
+{
+    timer.setSingleShot(true);
+    connect(&timer, SIGNAL(timeout()), this, SLOT(play_and_next()));
+}
+
+
+void TestPlayer::reset(text newName, int feature, text desc, int width, int height)
+// ----------------------------------------------------------------------------
+//   Set test information
 // ----------------------------------------------------------------------------
 {
-    std::cerr << +name << ", " << featureId << ", "
-            << (nbChkPtKO == 0 ? "PASSED" : "FAILED")
-            << ", " << +description << std::endl;
+    WidgetTests::reset(newName, feature, desc, width, height);
+    state = loading;
 }
 
 
-void WidgetTests::addKeyPress(Qt::Key qtKey,
-                              Qt::KeyboardModifiers modifiers,
-                              int msecs)
+void TestPlayer::add(TaoControlEvent *evt)
 // ----------------------------------------------------------------------------
-// Add a key press event to the list of action
+//   Add an event to the list
+// ----------------------------------------------------------------------------
+// Got the ownership of the evt memory. To be deleted at save or clear time.
+{
+    testList.append(evt);
+}
+
+
+bool TestPlayer::beforeStart()
+// ----------------------------------------------------------------------------
+//   Get ready to start the test
 // ----------------------------------------------------------------------------
 {
-    testList.addKeyPress(qtKey, modifiers, msecs);
+    // Feed the save_test_dialog
+
+    state = playing;
+    return true;
 }
 
 
-void WidgetTests::addKeyRelease(Qt::Key qtKey,
-                                Qt::KeyboardModifiers modifiers,
-                                int msecs)
+bool TestPlayer::afterStart()
 // ----------------------------------------------------------------------------
-// Add a key release event to the list of action
+//   Start the test
 // ----------------------------------------------------------------------------
 {
-    testList.addKeyRelease(qtKey, modifiers, msecs);
+    if (testList.isEmpty())
+        return false;
+    cpList.clear();
+    playingList.clear();
+    playingList.append(testList);
+    testList.clear();
+    if (playingList.size())
+        timer.start(playingList.first()->getDelay());
+    return true;
 }
 
 
-void WidgetTests::addMousePress(Qt::MouseButton button,
-                                Qt::KeyboardModifiers modifiers,
-                                QPoint pos, int delay )
+void TestPlayer::play_and_next()
 // ----------------------------------------------------------------------------
-// Add a mouse press event to the list of action
+//   Play the current event and restart the timer for the next one
 // ----------------------------------------------------------------------------
 {
-    testList.addMousePress(button, modifiers, pos, delay);
+    TaoControlEvent * evt = playingList.first();
+    IFTRACE(tester)
+            std::cerr << "TestPlayer::play_and_next playing now "
+                      << +evt->toTaoCmd() << std::endl;
+    // getType is not usable after the simulate
+    // [TODO] change control events to cleanly handle type
+    quint32 evtType = evt->getType();
+
+    // Simulate this event
+    evt->simulateNow(synchroBasic::base->widget);
+    // Refresh the screen
+    synchroBasic::tao->refreshOn(QEvent::Timer, -1.0);
+
+    // Keep checkPoint events for result computation
+    if (evtType == CHECK_EVENT_TYPE)
+        cpList.append(static_cast<TaoCheckEvent*>(evt));
+    else
+        delete evt;
+
+    // Remove this event from the list
+    playingList.removeFirst();
+    if (playingList.isEmpty())
+    {
+        // Do not call base->stop directly otherwise the refresh won't take place
+        disconnect(&timer, SIGNAL(timeout()), this, SLOT(play_and_next()));
+        connect(&timer, SIGNAL(timeout()), this, SLOT(stop()));
+        timer.start(500);
+        //synchroBasic::base->stop();
+        return;
+    }
+
+    // Prepare next event
+    evt = playingList.first();
+    timer.start(evt->getDelay());
 }
 
 
-void WidgetTests::addMouseRelease(Qt::MouseButton button,
-                                  Qt::KeyboardModifiers modifiers,
-                                  QPoint pos, int delay )
+void TestPlayer::stop()
 // ----------------------------------------------------------------------------
-// Add a mouse release event to the list of action
+//   Stop the test
 // ----------------------------------------------------------------------------
 {
-    testList.addMouseRelease(button, modifiers, pos, delay);
-
+    synchroBasic::base->stop();
 }
 
 
-void WidgetTests::addMouseMove(Qt::MouseButtons buttons,
-                               Qt::KeyboardModifiers modifiers,
-                               QPoint pos, int delay)
+bool TestPlayer::beforeStop()
 // ----------------------------------------------------------------------------
-// Add a mouse move event to the list of action
+//   Prepare to stop the test
 // ----------------------------------------------------------------------------
 {
-    testList.append(new TestMouseMoveEvent(buttons, modifiers, pos, delay));
+    synchroBasic::tao->refreshOn(QEvent::Timer, -1.0);
+    return true;
 }
 
 
-void WidgetTests::addMouseDClick(Qt::MouseButton button,
-                                 Qt::KeyboardModifiers modifiers,
-                                 QPoint pos, int delay)
+bool TestPlayer::afterStop()
 // ----------------------------------------------------------------------------
-// Add a mouse double click event to the list of action
+//   Stop the test
 // ----------------------------------------------------------------------------
 {
-    testList.addMouseDClick(button, modifiers, pos, delay);
+    state = stopped;
+    timer.stop();
+    foreach(TaoControlEvent * evt, playingList)
+        delete evt;
+    playingList.clear();
+    bool hasError = false;
+    if (makeRef)
+        hasError = saveRef();
+    else
+        hasError = computeResult();
+
+    QCoreApplication::exit(hasError);
+    return hasError; // On sait jamais...
 }
 
 
-void WidgetTests::addAction(QString actName, int delay)
+bool TestPlayer::saveRef()
 // ----------------------------------------------------------------------------
-// Add an action to be replayed.
+//   Save the played test as a reference
 // ----------------------------------------------------------------------------
 {
-    testList.append(new TestActionEvent(actName, delay));
+    QString folder = getDir(true);
+    uint nbChkPtKO = 0;
+    // Compute each checkpoint
+    foreach (TaoCheckEvent* cp, cpList)
+    {
+        if (! cp->playedImage || cp->playedImage->isNull())
+        {
+            std::cerr<< "WARNING: Check point " << cp->number << " has no image.\n";
+            delete cp;
+            nbChkPtKO++;
+            continue;
+        }
+        QString filename = QString("%1/%2_%3.png").arg(folder)
+                               .arg(name).arg(cp->number);
+        cp->playedImage->save(filename);
+        delete cp;
+    }
+    cpList.clear();
+
+    return nbChkPtKO > 0;
 }
 
 
-void WidgetTests::addCheck( int num, int delay)
+bool TestPlayer::computeResult()
 // ----------------------------------------------------------------------------
-// Add a mouse move event to the list of action
+//   Compute and log the test's result
 // ----------------------------------------------------------------------------
 {
-    testList.append(new TestCheckEvent(num, delay));
+    QString runFolder = getDir(false);
+    QString refFolder = getDir(true);
+    uint nbChkPtKO = 0;
+    logOpen();
+
+    std::cerr << "BEGIN TEST " << +name << " id " << featureId << std::endl
+              << +description << std::endl;
+
+    // Compute each checkpoint
+    foreach (TaoCheckEvent* cp, cpList)
+    {
+        QString imageName = QString("%1/%2_%3.png").
+                arg(refFolder).arg(name).arg(cp->number);
+        QImage refImage(imageName);
+        if (refImage.isNull())
+        {
+            std::cerr << "WARNING Reference image "
+                      << +imageName << " not found\n";
+            delete cp;
+            continue;
+        }
+        QString diffFilename = QString("%1/%2_diff_%3.png").arg(runFolder)
+                               .arg(name).arg(cp->number);
+        if (!cp->playedImage)
+            cp->playedImage = new QImage;
+        double resDiff = diff(refImage, *cp->playedImage, diffFilename,
+                              cp->threshold);
+
+        // Log an error on stderr
+        std::cerr << "\t Intermediate check " << cp->number ;
+
+        bool inError = resDiff > cp->threshold;
+        if (inError)
+        {
+            // Save the image
+            QString cpName = QString("%1/%2_played_%3.jpg")
+                    .arg(runFolder).arg(name).arg(cp->number);
+            cp->playedImage->save(cpName);
+
+            // log an error
+            std::cerr<< " fails. Diff is " << resDiff << "%\n";
+
+            // increment the count of error
+            nbChkPtKO++;
+        }
+        else
+            std::cerr<< " succeeds. Diff is " << resDiff << "%\n";
+        log(cp->number, !inError, resDiff);
+
+        delete cp;
+    }
+    cpList.clear();
+
+    std::cerr << "END TEST " << +name << " id " << featureId
+              << (nbChkPtKO > 0 ? " FAILED\n" : " SUCCEDED\n");
+
+    logClose(nbChkPtKO <= 0);
+    return nbChkPtKO > 0;
 }
 
 
-void WidgetTests::addColor(QString diagName, QString colName, int delay)
-// ----------------------------------------------------------------------------
-// Add an action to be replayed.
-// ----------------------------------------------------------------------------
-{
-    testList.append(new TestColorActionEvent(diagName, colName, delay));
-}
-
-
-void WidgetTests::addFont(QString diagName, QString ftName, int delay)
-// ----------------------------------------------------------------------------
-// Add an action to be replayed.
-// ----------------------------------------------------------------------------
-{
-    testList.append(new TestFontActionEvent(diagName, ftName, delay));
-}
-
-
-void WidgetTests::addFile(QString diagName, QString fileName, int delay)
-// ----------------------------------------------------------------------------
-// Add an action to be replayed.
-// ----------------------------------------------------------------------------
-{
-    testList.append(new TestFileActionEvent(diagName, fileName, delay));
-}
-
-
-void WidgetTests::addDialogClose(QString objName, int result,  int delay)
-// ----------------------------------------------------------------------------
-// Add an action to be replayed.
-// ----------------------------------------------------------------------------
-{
-    testList.append(new TestDialogActionEvent(objName, result, delay));
-}
-
-double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
+double TestPlayer::diff(QImage &ref, QImage &played, QString filename, double threshold,
                          bool forceSave)
 // ----------------------------------------------------------------------------
-// Generate an mage with just the different pixel in red.
+// Generate an image with just the different pixel in red.
 // ----------------------------------------------------------------------------
 {
+    if (played.isNull())
+    {
+        log("Played image is null.");
+        return 100.0;
+    }
     if (ref.size() != played.size())
     {
-       QString msg = QString("Image size differs: reference is (%1 x %2) and played is (%3 x %4).").
+        QString msg = QString("Image size differs: reference is (%1 x %2) and"
+                              " played is (%3 x %4).").
                arg(ref.size().width()).
                arg(ref.size().height()).
                arg(played.size().width()).
@@ -633,21 +559,25 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
         log(msg);
         return 100.0;
     }
+//    if (ref.format() != played.format())
+//        played = played.convertToFormat(ref.format());
 
     int nbDiff = 0;
     QImage imgDiff(ref.size(), ref.format());
 
-    for (int line =0; line < ref.height(); line++)
+    for (int line = 0; line < ref.height(); line++)
     {
-        for (int col=0; col < ref.width(); col++)
+        for (int col = 0; col < ref.width(); col++)
         {
-            if (ref.pixel(col, line) != played.pixel(col,line))
+            QRgb r = ref.pixel(col, line);
+            QRgb p = played.pixel(col, line);
+            if (r != p)
             {
-                imgDiff.setPixel(col, line, QColor(Qt::red).rgba());
+                imgDiff.setPixel(col, line, (r&p) | (~(r|p)));
                 nbDiff++;
             }
             else
-                imgDiff.setPixel(col, line, QColor(Qt::transparent).rgba());
+                imgDiff.setPixel(col, line, QColor(Qt::white).rgba());
         }
     }
 
@@ -655,197 +585,66 @@ double WidgetTests::diff(QImage &ref, QImage &played, QString filename,
 
     if (!filename.isEmpty() && (res > threshold || forceSave))
         imgDiff.save(filename, "PNG");
-
+    IFTRACE(tester)
+            std::cerr << "diff for " << +filename << " with res="
+                      << res << std::endl;
     return res;
 }
 
-#define INDENT1 "  "
-#define INDENT2 "    "
 
 // ============================================================================
 //
-//   Log facilities
+//   Test player Log facilities
 //
 // ============================================================================
-void WidgetTests::logOpen()
+
+
+void TestPlayer::logOpen()
+// ----------------------------------------------------------------------------
+// Open the log file
+// ----------------------------------------------------------------------------
 {
-    logfile  = new QFile(folder+"../results.ddd");
+    QString folder = getDir(false);
+    logfile  = new QFile(folder+"/results.xl");
     logfile->open(QIODevice::WriteOnly | QIODevice::Append | QIODevice::Text);
 
     QTextStream resFile(logfile);
-    resFile << INDENT1 << "result \"" << name << "\", <<" << description << ">>, "
-            << featureId << ", " << threshold << ", {";
+    resFile << INDENT1 << "result \"" << name << "\", <<"
+            << description << ">>, "
+            << featureId << ", {";
 }
-void WidgetTests::logClose(bool result)
+
+
+void TestPlayer::logClose(bool result)
+// ----------------------------------------------------------------------------
+// Close the log file
+// ----------------------------------------------------------------------------
 {
     QTextStream resFile(logfile);
     resFile << "}, " << (result ? "true" : "false") << "\n\n";
     resFile.flush();
     logfile->close();
+    delete logfile;
 }
-void WidgetTests::log(int No, bool isOK, double Tx)
+
+
+void TestPlayer::log(int No, bool isOK, double Tx)
+// ----------------------------------------------------------------------------
+// log the result of a check point
+// ----------------------------------------------------------------------------
 {
     QTextStream resFile(logfile);
     resFile << "\n" << INDENT2 << "check " << No << ", "
             << (isOK ? "true": "false") << ", " << Tx;
 }
-void WidgetTests::log(QString msg)
+
+
+void TestPlayer::log(QString msg)
+// ----------------------------------------------------------------------------
+//  log a message for next check point result
+// ----------------------------------------------------------------------------
 {
     QTextStream resFile(logfile);
     resFile << "\n" << INDENT2 << "paragraph_break\n"<<
-            INDENT2 << "text <<Next check reports: "<< msg << ">>";
-}
-
-// ============================================================================
-//
-//   Event Tests Classes
-//
-// ============================================================================
-
-
-void TestCheckEvent::simulate(QWidget *w)
-// ----------------------------------------------------------------------------
-//  Perform a check againts the reference view.
-// ----------------------------------------------------------------------------
-{
-    QGLWidget * widget = (QGLWidget *)w;
-    QString testName = taoTester::tester()->currentTest()->name;
-    QFileInfo refFile(QString("image:%1/%1_%2.png").arg(testName).arg(number));
-    QImage ref(refFile.canonicalFilePath());
-    QImage shot = widget->grabFrameBuffer(true);
-
-    shot.save(QString("%1/%2_played_%3.png")
-              .arg(refFile.canonicalPath()).arg(testName).arg(number), "PNG");
-
-    QString diffFilename = QString("%1/%2_diff_%3.png").arg(refFile.canonicalPath())
-                           .arg(testName).arg(number);
-    double resDiff = taoTester::tester()->currentTest()->diff(ref, shot, diffFilename);
-
-    std::cerr << +testName <<  "\t Intermediate check " << number ;
-    bool inError = resDiff > taoTester::tester()->currentTest()->threshold;
-    if (inError)
-    {
-        std::cerr<< " fails. Diff is " << resDiff << "%\n";
-        taoTester::tester()->currentTest()->nbChkPtKO++;
-    }
-    else
-        std::cerr<< " succeeds. Diff is " << resDiff << "%\n";
-    taoTester::tester()->currentTest()->log(number, !inError, resDiff);
-}
-
-
-QString TestCheckEvent::toTaoCmd()
-// ----------------------------------------------------------------------------
-//  Return a command line for Tao.
-// ----------------------------------------------------------------------------
-{
-    QString cmd = QString("    test_add_check %1, %2\n").arg(number).arg(delay);
-    return cmd;
-}
-
-
-void TestColorActionEvent::simulate(QWidget *w)
-// ----------------------------------------------------------------------------
-//   Set the current color of the QColorDialog box.
-// ----------------------------------------------------------------------------
-{
-    QColorDialog* diag = w->findChild<QColorDialog*>(objName);
-    QColor col(colorName);
-    if (diag &&col.isValid())
-    {
-        QTest::qWait(delay);
-        diag->setCurrentColor(col);
-    }
-}
-
-
-QString TestColorActionEvent::toTaoCmd()
-// ----------------------------------------------------------------------------
-//  Return a command line for Tao.
-// ----------------------------------------------------------------------------
-{
-    QString cmd = QString("    test_add_color \"%1\", \"%2\", %3\n")
-                  .arg(objName).arg(colorName).arg(delay);
-    return cmd;
-}
-
-
-void TestFontActionEvent::simulate(QWidget *w)
-// ----------------------------------------------------------------------------
-//  Set the current font of the QFontDialog box.
-// ----------------------------------------------------------------------------
-{
-    QFontDialog* diag = w->findChild<QFontDialog*>(objName);
-    QFont ft;
-    ft.fromString(fontName);
-    if (diag )
-    {
-        QTest::qWait(delay);
-        diag->setCurrentFont(ft);
-    }
-}
-
-
-QString TestFontActionEvent::toTaoCmd()
-// ----------------------------------------------------------------------------
-//  Return a command line for Tao.
-// ----------------------------------------------------------------------------
-{
-    QString cmd = QString("    test_add_font \"%1\", \"%2\", %3\n")
-                  .arg(objName).arg(fontName).arg(delay);
-    return cmd;
-}
-
-
-void TestFileActionEvent::simulate(QWidget *w)
-// ----------------------------------------------------------------------------
-//  Set the current font of the QFontDialog box.
-// ----------------------------------------------------------------------------
-{
-    QFileDialog* diag = w->findChild<QFileDialog*>(objName);
-    if (diag )
-    {
-        QTest::qWait(delay);
-        diag->setVisible(false);
-        diag->selectFile(fileName);
-        QDialog *d = (QDialog *) diag;
-        d->accept();
-    }
-}
-
-
-QString TestFileActionEvent::toTaoCmd()
-// ----------------------------------------------------------------------------
-//  Return a command line for Tao.
-// ----------------------------------------------------------------------------
-{
-    QString cmd = QString("    test_add_file \"%1\", \"%2\", %3\n")
-                  .arg(objName).arg(fileName).arg(delay);
-    return cmd;
-}
-
-
-void TestDialogActionEvent::simulate(QWidget *w)
-// ----------------------------------------------------------------------------
-//  Set the result of the dialog (Accepted or Rejected) and close it.
-// ----------------------------------------------------------------------------
-{
-    QDialog* diag = w->findChild<QDialog*>(objName);
-
-    if (diag)
-    {
-        QTest::qWait(delay);
-        diag->done(result);
-    }
-
-}
-
-QString TestDialogActionEvent::toTaoCmd()
-// ----------------------------------------------------------------------------
-//  Return a command line for Tao.
-// ----------------------------------------------------------------------------
-{
-    QString cmd = QString("    test_dialog_action \"%1\", \"%2\", %3\n")
-                  .arg(objName).arg(result).arg(delay);
-    return cmd;
+            INDENT2 << "text <<Following check reports: "<< msg << ">>";
 }

@@ -1,0 +1,24 @@
+#!/usr/bin/expect
+# rc.expect
+
+# Do not print out naything
+log_user 0
+
+# Make reference or execute test
+set MODE [lindex $argv 0]
+
+# Loop for each test until the process is killed
+for {} 1 {} {
+    spawn telnet localhost 6560
+    expect  {
+        "ready"           { sleep 1;
+                            if {[string match "REF" $MODE]} {
+                                send "xl! start_ref \r"
+                            } else {
+                                send "xl! start_test \r"
+                            }
+                            sleep 1; close; sleep 10; continue
+                           }
+        "refused"         { close; sleep 5; continue}
+    }
+}

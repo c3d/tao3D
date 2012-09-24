@@ -49,14 +49,17 @@ class GeneralPage : public QWidget
 public:
     GeneralPage(QWidget *parent = 0);
 
-    static bool  checkForUpdate();
+    static bool  checkForUpdateOnStartup();
+
+protected:
+    static bool  checkForUpdateOnStartupDefault();
 
 private:
     QStringList  installedLanguages();
 
 private slots:
     void         setLanguage(int index);
-    void         setCheckForUpdate(bool on);
+    void         setCheckForUpdateOnStartup(bool on);
 
 private:
     QComboBox *  combo;

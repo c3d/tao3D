@@ -136,6 +136,7 @@ HEADERS +=     activity.h \
     opengl_save.h \
     include/tao/coords.h \
     include/tao/coords3d.h \
+    include/tao/coords4d.h \
     include/tao/color.h \
     include/tao/matrix.h \
     include/tao/module_api.h \

@@ -362,6 +362,9 @@ void Application::deferredInit()
 
     // We're ready to go
     processCommandLineFile();
+
+    if (isDiscovery())
+        Licenses::IncrementUnlicensedCount();
 }
 
 

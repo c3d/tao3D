@@ -127,6 +127,10 @@ public:
     {
         return (float) LM().unlicensedCount / LM().licenses.size();
     }
+    static void IncrementUnlicensedCount()
+    {
+        LM().unlicensedCount++;
+    }
 
 private:
     struct License

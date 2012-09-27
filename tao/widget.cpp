@@ -123,20 +123,13 @@ namespace Tao {
 static Point3 defaultCameraPosition(0, 0, 3000);
 
 
- Widget * Widget::findTaoWidget()
+Widget * Widget::findTaoWidget()
 // ----------------------------------------------------------------------------
 //   Find the Widget on the main Window. Use when Tao() is not set.
 // ----------------------------------------------------------------------------
 {
     if (current) return current;
-
-    foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {
-        Window * window = dynamic_cast<Window *>(widget);
-        if (window)
-            return window->taoWidget;
-    }
-    return NULL;
+    return TaoApp->window()->taoWidget;
 }
 
 

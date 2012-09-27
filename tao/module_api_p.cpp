@@ -42,6 +42,7 @@ ModuleApiPrivate::ModuleApiPrivate()
     scheduleRender   = ModuleRenderer::ScheduleRender;
     refreshOn        = Widget::refreshOnAPI;
     postEvent        = Widget::postEventAPI;
+    postEventOnce    = Widget::postEventOnceAPI;
     currentTime      = Widget::currentTimeAPI;
     addToLayout      = ModuleRenderer::AddToLayout;
     AddToLayout2     = ModuleRenderer::AddToLayout2;

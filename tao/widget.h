@@ -412,7 +412,7 @@ public:
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
-    Tree_p      postEvent(int eventType);
+    Tree_p      postEvent(int eventType, bool once = false);
     Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);
     Integer_p   minutes(Tree_p self, double t);
@@ -1029,6 +1029,7 @@ private:
     int                   offlineRenderingWidth;
     int                   offlineRenderingHeight;
     std::map<text, QFileDialog::DialogLabel> toDialogLabel;
+    std::set<int>         pendingEvents;
 
 private:
     Window *              taoWindow();
@@ -1059,6 +1060,7 @@ public:
     static void           drawWatermarkAPI();
     static double         trueCurrentTime();
     static void           postEventAPI(int eventType);
+    static bool           postEventOnceAPI(int eventType);
 
 private:
     void                  processProgramEvents();

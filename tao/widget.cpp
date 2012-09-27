@@ -436,6 +436,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       offlineRenderingWidth(o.offlineRenderingWidth),
       offlineRenderingHeight(o.offlineRenderingHeight),
       toDialogLabel(o.toDialogLabel),
+      pendingEvents(), // Nothing transferred from o's event queue
       inDraw(o.inDraw), changeReason(o.changeReason),
       editCursor(o.editCursor),
       isInvalid(false)
@@ -3074,6 +3075,9 @@ bool Widget::event(QEvent *event)
     // event
     if (type >= QEvent::User)
     {
+        // Unblock postEventOnceAPI for this event type
+        pendingEvents.erase(type);
+
         refreshNow(event);
         return true;
     }
@@ -5852,13 +5856,20 @@ double Widget::optimalDefaultRefresh()
 }
 
 
-Tree_p Widget::postEvent(int eventType)
+Tree_p Widget::postEvent(int eventType, bool once)
 // ----------------------------------------------------------------------------
 //    Post user event to this widget
 // ----------------------------------------------------------------------------
 {
     if (eventType < QEvent::User || eventType > QEvent::MaxUser)
         return XL::xl_false;
+    if (once)
+    {
+        if (pendingEvents.count(eventType))
+            return XL::xl_false;
+        else
+            pendingEvents.insert(eventType);
+    }
     QEvent::Type type = (QEvent::Type) eventType;
     IFTRACE(layoutevents)
         std::cerr << "  Post event " << LayoutState::ToText(type) << "\n";
@@ -5873,6 +5884,16 @@ void Widget::postEventAPI(int eventType)
 // ----------------------------------------------------------------------------
 {
     findTaoWidget()->postEvent(eventType);
+}
+
+
+bool Widget::postEventOnceAPI(int eventType)
+// ----------------------------------------------------------------------------
+//    Export postEvent to the module API. Return true if event was accepted.
+// ----------------------------------------------------------------------------
+{
+    Tree_p posted = findTaoWidget()->postEvent(eventType, true);
+    return (posted == XL::xl_true);
 }
 
 

@@ -45,9 +45,13 @@ enum StateBits
 {
 #define GS(type, name)          STATE_BIT_##name,
 #include "opengl_state.tbl"
+    STATE_BIT_LAST,
+
 #define GS(type, name)          STATE_##name = 1ULL << STATE_BIT_##name,
 #include "opengl_state.tbl"
 };
+
+XL_CASSERT(STATE_BIT_LAST <= 64);
 
 
 struct ViewportState

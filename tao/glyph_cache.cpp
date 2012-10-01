@@ -530,8 +530,8 @@ void GlyphCache::GenerateTexture()
 // ----------------------------------------------------------------------------
 {
     QImage texImg = QGLWidget::convertToGLFormat(image).mirrored(false, true);
-    glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
-    glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA,
+    GL.BindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
+    GL.TexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texImg.bits());
 

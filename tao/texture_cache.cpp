@@ -333,7 +333,7 @@ void TextureCache::setMinMagFilters(GLuint id)
 // ----------------------------------------------------------------------------
 {
     setMinFilter(id, minFilter());
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
 }
 
 
@@ -355,7 +355,7 @@ void TextureCache::setMinFilter(GLuint id, GLenum filter)
         // was not loaded with mipmapping enabled
         filter = GL_LINEAR;
     }
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
 
 
@@ -540,7 +540,7 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
       memLRU(this), GLmemLRU(this), saveCompressed(cache.saveCompressed),
       networked(path.contains("://")), networkReply(NULL), inLoad(false)
 {
-    glGenTextures(1, &id);
+    GL.GenTextures(1, &id);
     if (networked)
     {
         connect(&cache.network, SIGNAL(finished(QNetworkReply*)),
@@ -564,7 +564,10 @@ CachedTexture::~CachedTexture()
 // ----------------------------------------------------------------------------
 {
     purge();
-    glDeleteTextures(1, &id);
+
+    if(Tao::GraphicState::State())
+        GL.DeleteTextures(1, &id);
+
     if (networkReply)
         networkReply->deleteLater();
     if (path != "")
@@ -862,9 +865,12 @@ void CachedTexture::purgeGL()
 {
     Q_ASSERT(id);
 
-    GL.BindTexture(GL_TEXTURE_2D, id);
-    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 0,
-                  GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    if(Tao::GraphicState::State())
+    {
+        GL.BindTexture(GL_TEXTURE_2D, id);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 0,
+                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    }
 
     int purged = GLsize;
     GLsize = 0;

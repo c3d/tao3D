@@ -65,7 +65,7 @@ FrameInfo::~FrameInfo()
             delete tv;
     }
     if (depth_tex)
-        glDeleteTextures(1, &depth_tex);
+        GL.DeleteTextures(1, &depth_tex);
 }
 
 
@@ -152,16 +152,16 @@ void FrameInfo::resizeDepthTexture(uint w, uint h)
 
     // Delete current depth texture
     if (depth_tex)
-        glDeleteTextures(1, &depth_tex);
+        GL.DeleteTextures(1, &depth_tex);
 
     // Create the depth texture
-    glGenTextures(1, &depth_tex);
-    glBindTexture(GL_TEXTURE_2D, depth_tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
+    GL.GenTextures(1, &depth_tex);
+    GL.BindTexture(GL_TEXTURE_2D, depth_tex);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
                  GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     glShowErrors();
@@ -211,9 +211,9 @@ GLuint FrameInfo::bind()
 {
     checkGLContext();
     GLuint texId = texture_fbo->texture();
-    glBindTexture(GL_TEXTURE_2D, texId);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.BindTexture(GL_TEXTURE_2D, texId);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
         GL.Enable(GL_MULTISAMPLE);

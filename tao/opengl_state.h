@@ -416,6 +416,8 @@ struct OpenGLState : GraphicState
 
     // Textures
     virtual void ActiveTexture(GLenum id);
+    virtual void GenTextures(uint n, GLuint *  textures);
+    virtual void DeleteTextures(uint n, GLuint *  textures);
     virtual void BindTexture(GLenum type, GLuint id);
     virtual void TexParameteri(GLenum type, GLenum pname, GLint param);
     virtual void TexEnvi(GLenum type, GLenum pname, GLint param);

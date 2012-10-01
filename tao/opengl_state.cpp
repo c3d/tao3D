@@ -1656,6 +1656,26 @@ TextureState &OpenGLState::ActiveTexture()
 }
 
 
+void OpenGLState::GenTextures(uint n, GLuint *  textures)
+// ----------------------------------------------------------------------------
+//   Generate texture names
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    return glGenTextures(n, textures);
+}
+
+
+void OpenGLState::DeleteTextures(uint n, GLuint *  textures)
+// ----------------------------------------------------------------------------
+//   Delete named textures
+// ----------------------------------------------------------------------------
+{
+    // Not need to be optimised
+    glDeleteTextures(n, textures);
+}
+
+
 void OpenGLState::BindTexture(GLenum type, GLuint texture)
 // ----------------------------------------------------------------------------
 //   Bind a texture on the current texture unit

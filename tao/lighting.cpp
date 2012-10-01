@@ -173,7 +173,7 @@ void Light::Draw(Layout *where)
 //   Send the corresponding GL attribute
 // ----------------------------------------------------------------------------
 {
-    glLightfv(where->lightId, function, &args[0]);
+    GL.Light(where->lightId, function, &args[0]);
 }
 
 

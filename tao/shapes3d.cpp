@@ -113,6 +113,7 @@ void Cube::Draw(Layout *where)
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
+        GL.Sync(STATE_lights);
         GL.EnableClientState(GL_NORMAL_ARRAY);
         GL.NormalPointer(GL_FLOAT, 0, normals);
     }
@@ -170,6 +171,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
+        GL.Sync(STATE_lights);
         GL.Enable(GL_NORMALIZE);
         GL.EnableClientState(GL_NORMAL_ARRAY);
         GL.NormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);

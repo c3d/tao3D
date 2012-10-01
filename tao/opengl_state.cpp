@@ -337,26 +337,6 @@ void OpenGLState::Sync(ulonglong which)
     SYNC(clearColor,
          Tao::Color &c = clearColor;
          glClearColor(c.red,c.green,c.blue,c.alpha));
-    SYNC(frontAmbient,
-         glMaterialfv(GL_FRONT, GL_AMBIENT, frontAmbient.Data()));
-    SYNC(frontDiffuse,
-         glMaterialfv(GL_FRONT, GL_DIFFUSE, frontDiffuse.Data()));
-    SYNC(frontSpecular,
-         glMaterialfv(GL_FRONT, GL_SPECULAR, frontSpecular.Data()));
-    SYNC(frontEmission,
-         glMaterialfv(GL_FRONT, GL_EMISSION, frontEmission.Data()));
-    SYNC(frontShininess,
-         glMaterialf(GL_FRONT, GL_SHININESS, frontShininess));
-    SYNC(backAmbient,
-         glMaterialfv(GL_BACK, GL_AMBIENT, backAmbient.Data()));
-    SYNC(backDiffuse,
-         glMaterialfv(GL_BACK, GL_DIFFUSE, backDiffuse.Data()));
-    SYNC(backSpecular,
-         glMaterialfv(GL_BACK, GL_SPECULAR, backSpecular.Data()));
-    SYNC(backEmission,
-         glMaterialfv(GL_BACK, GL_EMISSION, backEmission.Data()));
-    SYNC(backShininess,
-         glMaterialf(GL_BACK, GL_SHININESS, backShininess));
     SYNC(shadeMode,
          glShadeModel(shadeMode));
     SYNC(lineWidth,
@@ -399,6 +379,29 @@ void OpenGLState::Sync(ulonglong which)
          else                                   \
              glDisableClientState(name));
 #include "opengl_state.tbl"
+
+    SYNC(lights,
+         currentLights.Sync(lights));
+    SYNC(frontAmbient,
+         glMaterialfv(GL_FRONT, GL_AMBIENT, frontAmbient.Data()));
+    SYNC(frontDiffuse,
+         glMaterialfv(GL_FRONT, GL_DIFFUSE, frontDiffuse.Data()));
+    SYNC(frontSpecular,
+         glMaterialfv(GL_FRONT, GL_SPECULAR, frontSpecular.Data()));
+    SYNC(frontEmission,
+         glMaterialfv(GL_FRONT, GL_EMISSION, frontEmission.Data()));
+    SYNC(frontShininess,
+         glMaterialf(GL_FRONT, GL_SHININESS, frontShininess));
+    SYNC(backAmbient,
+         glMaterialfv(GL_BACK, GL_AMBIENT, backAmbient.Data()));
+    SYNC(backDiffuse,
+         glMaterialfv(GL_BACK, GL_DIFFUSE, backDiffuse.Data()));
+    SYNC(backSpecular,
+         glMaterialfv(GL_BACK, GL_SPECULAR, backSpecular.Data()));
+    SYNC(backEmission,
+         glMaterialfv(GL_BACK, GL_EMISSION, backEmission.Data()));
+    SYNC(backShininess,
+         glMaterialf(GL_BACK, GL_SHININESS, backShininess));
 
 #undef SYNC
 }
@@ -1390,6 +1393,18 @@ void OpenGLState::Enable(GLenum cap)
         ts.active = true;
         break;
     }
+    case GL_LIGHT0:
+    case GL_LIGHT1:
+    case GL_LIGHT2:
+    case GL_LIGHT3:
+    case GL_LIGHT4:
+    case GL_LIGHT5:
+    case GL_LIGHT6:
+    case GL_LIGHT7:
+    {
+        EnableLight(cap);
+        break;
+    }
 
     default:
         // Other enable/disable operations are not cached
@@ -1419,6 +1434,19 @@ void OpenGLState::Disable(GLenum cap)
         ts.active = false;
         break;
     }
+    case GL_LIGHT0:
+    case GL_LIGHT1:
+    case GL_LIGHT2:
+    case GL_LIGHT3:
+    case GL_LIGHT4:
+    case GL_LIGHT5:
+    case GL_LIGHT6:
+    case GL_LIGHT7:
+    {
+        DisableLight(cap);
+        break;
+    }
+
 
     default:
         // Other enable/disable operations are not cached
@@ -1614,6 +1642,20 @@ void OpenGLState::ActiveTexture(GLenum active)
 }
 
 
+TextureState &OpenGLState::ActiveTexture()
+// ----------------------------------------------------------------------------
+//    Return the current active texture
+// ----------------------------------------------------------------------------
+{
+    if (activeTexture >= textures.textures.size())
+        textures.textures.resize(activeTexture + 1);
+    textures.dirty |= 1ULL << activeTexture;
+    SAVE(textures);
+    textures_isDirty = true;
+    return textures.textures[activeTexture];
+}
+
+
 void OpenGLState::BindTexture(GLenum type, GLuint texture)
 // ----------------------------------------------------------------------------
 //   Bind a texture on the current texture unit
@@ -1701,18 +1743,280 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
                            width, height, border, imgSize, data);
 }
 
+// ============================================================================
+//
+//                       Lighting management functions.
+//
+// ============================================================================
 
-TextureState &OpenGLState::ActiveTexture()
+void OpenGLState::EnableLight(GLenum light)
+{
+    uint id = light - GL_LIGHT0;
+    if (id >= 0 && id < MAX_LIGHTS)
+    {
+        if (id >= lights.lights.size())
+        {
+            lights.lights.resize(id + 1);
+            (lights.lights[id]) = LightState(id);
+        }
+
+        lights.dirty |= 1ULL << id;
+        SAVE(lights);
+        lights_isDirty = true;
+        (lights.lights[id]).active = true;
+    }
+}
+
+
+void OpenGLState::DisableLight(GLenum light)
+{
+    uint id = light - GL_LIGHT0;
+    if (id >= 0 && id < MAX_LIGHTS)
+    {
+        if (id >= lights.lights.size())
+        {
+            lights.lights.resize(id + 1);
+            (lights.lights[id]) = LightState(id);
+        }
+
+        lights.dirty |= 1ULL << id;
+        SAVE(lights);
+        lights_isDirty = true;
+        (lights.lights[id]).active = false;
+    }
+}
+
+
+void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
+{
+    // IMPORTANT : Not use current light,
+    // but light specified as argument.
+
+    uint id = light - GL_LIGHT0;
+    LightState &ls = lights.lights[id];
+    lights.dirty |= 1ULL << id;
+    SAVE(lights);
+    lights_isDirty = true;
+    switch(pname)
+    {
+    case GL_AMBIENT:
+    {
+        Tao::Color ambient(params[0], params[1], params[2], params[3]);
+        ls.ambient = ambient;
+        break;
+    }
+    case GL_DIFFUSE:
+    {
+        Tao::Color diffuse(params[0], params[1], params[2], params[3]);
+        ls.diffuse = diffuse;
+        break;
+    }
+    case GL_SPECULAR:
+    {
+        Tao::Color specular(params[0], params[1], params[2], params[3]);
+        ls.specular = specular;
+        break;
+    }
+    case GL_POSITION:
+    {
+        ls.position = Vector4(params[0], params[1], params[2], params[3]);
+        break;
+    }
+    case GL_SPOT_DIRECTION:
+    {
+        ls.spotDirection = Vector3(params[0], params[1], params[2]);
+        break;
+    }
+    case GL_SPOT_EXPONENT:
+        ls.spotExponent = (*params);
+        break;
+    case GL_SPOT_CUTOFF:
+        ls.spotCutoff = (*params);
+        break;
+    case GL_CONSTANT_ATTENUATION:
+        ls.constantAttenuation = (*params);
+        break;
+    case GL_LINEAR_ATTENUATION:
+        ls.linearAttenuation = (*params);
+        break;
+    case GL_QUADRATIC_ATTENUATION:
+        ls.quadricAttenuation = (*params);
+        break;
+    default:
+        glLightfv(light, pname, params);
+    }
+}
+
+// ============================================================================
+//
+//    LightState class
+//
+// ============================================================================
+
+LightState::LightState(uint id)
+    : id(id),
+      position(0, 0, 1, 0), spotDirection(0, 0, -1),
+      spotExponent(0), spotCutoff(180),
+      constantAttenuation(1.0), linearAttenuation(0),
+      quadricAttenuation(0), active(false)
+{
+    // Setup initial colors
+    // Note: According to OpenGL, diffuse and
+    // specular color is white for light 0
+    // and black for others.
+    ambient = Tao::Color(0, 0, 0, 1);
+    if(! id)
+        diffuse = specular = Tao::Color(1, 1, 1, 1);
+    else
+        diffuse = specular = Tao::Color(0, 0, 0, 1);
+
+    // Setup initial position
+    position = Vector4(0, 0, 1, 0);
+
+    // Setup initial spot direction
+    spotDirection = Vector3(0, 0, -1);
+}
+
+
+void LightState::Sync(const LightState &ls, bool force)
 // ----------------------------------------------------------------------------
-//    Return the current active texture
+//   Sync a light state with a new value
 // ----------------------------------------------------------------------------
 {
-    if (activeTexture >= textures.textures.size())
-        textures.textures.resize(activeTexture + 1);
-    textures.dirty |= 1ULL << activeTexture;
-    SAVE(textures);
-    textures_isDirty = true;
-    return textures.textures[activeTexture];
+    bool traceErrors = XLTRACE(glerrors);
+
+#define SYNC_LIGHT(name, Code)                          \
+            do                                          \
+            {                                           \
+                if (force || name != ls.name)           \
+                {                                       \
+                    name = ls.name;                     \
+                    Code;                               \
+                    if (traceErrors)                    \
+                        OpenGLState::ShowErrors(#name); \
+                }                                       \
+            } while(0)
+
+    if (force || id != ls.id)
+        id = ls.id;
+
+    GLenum light    = GL_LIGHT0 + id;
+    GLfloat pos[4]  = {ls.position.x, ls.position.y, ls.position.z, ls.position.w};
+    GLfloat spot[3] = {ls.spotDirection.x, ls.spotDirection.y, ls.spotDirection.z};
+
+    SYNC_LIGHT(active,
+        if (active) glEnable(light); else glDisable(light));
+
+    SYNC_LIGHT(ambient,
+        glLightfv(light, GL_AMBIENT, ambient.Data()));
+    SYNC_LIGHT(diffuse,
+        glLightfv(light, GL_DIFFUSE, diffuse.Data()));
+    SYNC_LIGHT(specular,
+        glLightfv(light, GL_SPECULAR, specular.Data()));
+    SYNC_LIGHT(position,
+        glLightfv(light, GL_POSITION, pos));
+    SYNC_LIGHT(spotDirection,
+            glLightfv(light, GL_SPOT_DIRECTION, spot));
+    SYNC_LIGHT(spotExponent,
+        glLightfv(light, GL_SPOT_EXPONENT, &spotExponent));
+    SYNC_LIGHT(spotCutoff,
+        glLightfv(light, GL_SPOT_CUTOFF, &spotCutoff));
+    SYNC_LIGHT(constantAttenuation,
+        glLightfv(light, GL_CONSTANT_ATTENUATION, &constantAttenuation));
+    SYNC_LIGHT(linearAttenuation,
+        glLightfv(light, GL_LINEAR_ATTENUATION, &linearAttenuation));
+    SYNC_LIGHT(quadricAttenuation,
+        glLightfv(light, GL_QUADRATIC_ATTENUATION, &quadricAttenuation));
+
+#undef SYNC_LIGHT
+}
+
+
+LightsState &LightsState::operator=(const LightsState &o)
+// ----------------------------------------------------------------------------
+//    Copy a lighting state
+// ----------------------------------------------------------------------------
+{
+    uint max = lights.size();
+    uint omax = o.lights.size();
+    ulonglong d = 0;
+
+    // Compare all the light states we write to mark changed ones as dirty
+    uint lmax = max < omax ? max : omax;
+    for (uint l = 0; l < lmax; l++)
+    {
+        if (lights[l] != o.lights[l])
+            d |= 1ULL << l;
+        lights[l] = o.lights[l];
+    }
+
+    // Check if number of lights changed
+    if (omax < max)
+    {
+        // Number of lights diminished, truncate my lights to match
+        lights.resize(omax);
+    }
+    else if (omax > max)
+    {
+        // Number of lights increased, append new lights and mark dirty
+        for (uint l = max; l < omax; l++)
+        {
+            const LightState &ls = o.lights[l];
+            lights.push_back(ls);
+            d |= 1ULL << l;
+        }
+    }
+
+    dirty = d;
+    return *this;
+}
+
+void LightsState::Sync(LightsState &nl)
+// ----------------------------------------------------------------------------
+//   Sync with new light states
+// ----------------------------------------------------------------------------
+{
+    uint max = lights.size();
+    uint nmax = nl.lights.size();
+    ulonglong dirty = nl.dirty;
+
+    // Quick bail out if nothing to do
+    if (dirty == 0 && max == nmax)
+        return;
+
+    // Synchronize all lights that are common between the two states
+    uint lmax = max < nmax ? max : nmax;
+    for (uint l = 0; l < lmax; l++)
+    {
+        if (dirty & (1ULL<<l))
+        {
+            LightState &ls = lights[l];
+            LightState &nls = nl.lights[l];
+            ls.Sync(nls);
+        }
+    }
+
+    // Check if number of lights changed
+    if (nmax < max)
+    {
+        // Number of lights decreased, deactivate extra lights
+        for (uint l = nmax; l < max; l++)
+            glDisable(GL_LIGHT0 + l);
+        lights.resize(nmax);
+    }
+    else if (nmax > max)
+    {
+        // Number of lights increased, activate extra lights
+        for (uint l = max; l < nmax; l++)
+        {
+            LightState &nls = nl.lights[l];
+            lights.push_back(nls);
+            LightState &ls = lights.back();
+            ls.Sync(nls, true);
+        }
+    }
+
+    nl.dirty = 0;
 }
 
 

@@ -23,6 +23,7 @@
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
 
+#include "coords4d.h"
 #include "coords3d.h"
 #include "color.h"
 #include "matrix.h"
@@ -181,6 +182,74 @@ public:
 };
 
 
+struct LightState
+// ----------------------------------------------------------------------------
+//   The state of a single light
+// ----------------------------------------------------------------------------
+{
+    LightState(uint id = 0);
+    bool operator ==(const LightState &o)
+    {
+        return (id == o.id &&
+                ambient == o.ambient &&
+                diffuse == o.diffuse &&
+                specular == o.specular  &&
+                position == o.position &&
+                spotDirection == o.spotDirection &&
+                spotCutoff == o.spotCutoff &&
+                spotExponent == o.spotExponent &&
+                constantAttenuation == o.constantAttenuation &&
+                linearAttenuation == o.linearAttenuation &&
+                quadricAttenuation == o.quadricAttenuation &&
+                active == o.active);
+    }
+    bool operator!=(const LightState &o) { return !operator==(o); }
+    void Sync(const LightState &newState, bool force = false);
+
+public:
+    GLuint      id;
+    Tao::Color  ambient;
+    Tao::Color  diffuse;
+    Tao::Color  specular;
+    Vector4     position;
+    Vector3     spotDirection;
+    GLfloat     spotExponent;
+    GLfloat     spotCutoff;
+    GLfloat     constantAttenuation;
+    GLfloat     linearAttenuation;
+    GLfloat     quadricAttenuation;
+    bool        active : 1;
+};
+
+
+
+#define MAX_LIGHTS 8
+struct LightsState
+// ----------------------------------------------------------------------------
+//    The state of all lights
+// ----------------------------------------------------------------------------
+{
+    LightsState(): dirty(~0ULL), lights() {}
+    bool operator==(const LightsState &o)
+    {
+        uint max = lights.size();
+        if (max != o.lights.size())
+            return false;
+        for (uint i = 0; i < max; i++)
+            if (lights[i] != o.lights[i])
+                return false;
+        return true;
+    }
+    bool operator!=(const LightsState &o) { return !operator==(o); }
+    LightsState &operator=(const LightsState &o);
+    void Sync(LightsState &nl);
+
+public:
+    ulonglong dirty;
+    std::vector<LightState>   lights;
+};
+
+
 
 // ============================================================================
 //
@@ -199,6 +268,8 @@ struct OpenGLState : GraphicState
     virtual GraphicSave *       Save();
     virtual void                Restore(GraphicSave *saved);
     virtual void                Sync(ulonglong which = ~0ULL);
+
+    std::ostream & debug();
 
     // Return attributes of state
     virtual uint   MaxTextureCoords()       { return maxTextureCoords; }
@@ -358,7 +429,10 @@ struct OpenGLState : GraphicState
                                       GLint border, GLsizei imgSize,
                                       const GLvoid *data);
 
-    std::ostream & debug();
+    // Lighting
+    virtual void EnableLight(GLenum light);
+    virtual void DisableLight(GLenum light);
+    virtual void Light(GLenum light, GLenum pname, const float* params);
 
 public:
 #define GS(type, name)                          \
@@ -381,6 +455,7 @@ public:
     static text   vendor, renderer, version, extensionsAvailable;
     TexturesState currentTextures;
     TextureState *currentUnit;
+    LightsState   currentLights;
 
 #define GS(type, name)                          \
     type name;

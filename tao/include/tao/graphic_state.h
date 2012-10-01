@@ -212,6 +212,10 @@ struct GraphicState
                                       GLint border, GLsizei imgSize,
                                       const GLvoid *data) = 0;
 
+    // Lighting
+    virtual void Light(GLenum light, GLenum pname, const float* params) = 0;
+
+
 protected:
     static GraphicState *       current;
 };

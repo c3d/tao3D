@@ -199,6 +199,8 @@ struct GraphicState
 
     // Textures
     virtual void ActiveTexture(GLenum id) = 0;
+    virtual void GenTextures(uint n, GLuint *  textures) = 0;
+    virtual void DeleteTextures(uint n, GLuint *  textures) = 0;
     virtual void BindTexture(GLenum type, GLuint id) = 0;
     virtual void TexParameteri(GLenum type, GLenum pname, GLint param) = 0;
     virtual void TexEnvi(GLenum type, GLenum pname, GLint param) = 0;
@@ -211,6 +213,10 @@ struct GraphicState
                                       GLsizei width, GLsizei height,
                                       GLint border, GLsizei imgSize,
                                       const GLvoid *data) = 0;
+
+    // Lighting
+    virtual void Light(GLenum light, GLenum pname, const float* params) = 0;
+
 
 protected:
     static GraphicState *       current;

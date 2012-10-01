@@ -26,6 +26,7 @@
 #endif
 
 GS(TexturesState,       textures)
+GS(LightsState,         lights)
 GS(Matrix4,             mvMatrix)
 GS(Matrix4,             projMatrix)
 GS(Matrix4,             colorMatrix)

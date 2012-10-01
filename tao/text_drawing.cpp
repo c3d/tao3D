@@ -177,13 +177,13 @@ void TextUnit::DrawCached(Layout *where)
     if (count && setFillColor(where))
     {
         // Bind the glyph texture
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, glyphs.Texture());
+        GL.BindTexture(GL_TEXTURE_RECTANGLE_ARB, glyphs.Texture());
         GLenum blur = GL_LINEAR;
         if (!where->hasPixelBlur &&
             font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
             blur = GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
+        GL.TexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
+        GL.TexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
         GL.Enable(GL_TEXTURE_RECTANGLE_ARB);
         if (TaoApp->hasGLMultisample)
             GL.Enable(GL_MULTISAMPLE);

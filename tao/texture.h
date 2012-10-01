@@ -79,11 +79,11 @@ struct TextureIdInfo : XL::Info, InfoTrashCan
 {
     TextureIdInfo(): textureId(0)
     {
-        glGenTextures(1, &textureId);
+        GL.GenTextures(1, &textureId);
     }
     ~TextureIdInfo()
     {
-        glDeleteTextures(1, &textureId);
+        GL.DeleteTextures(1, &textureId);
     }
     virtual void Delete()
     {
@@ -91,7 +91,7 @@ struct TextureIdInfo : XL::Info, InfoTrashCan
     }
     GLuint bind()
     {
-        glBindTexture(GL_TEXTURE_2D, textureId);
+        GL.BindTexture(GL_TEXTURE_2D, textureId);
         return textureId;
     }
 

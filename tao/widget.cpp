@@ -361,7 +361,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
       runOnNextDraw(true), srcFileMonitor(o.srcFileMonitor),
-      clearCol(o.clearCol), space(NULL), layout(NULL), graphicState(NULL),
+      clearCol(o.clearCol), space(NULL), layout(NULL), graphicState(new OpenGLState()),
       frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
@@ -460,14 +460,11 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Make this the current context for OpenGL
     makeCurrent();
+    graphicState->MakeCurrent();
 
     // Create new layout to draw into
     space = new SpaceLayout(this);
     layout = space;
-
-    // Initialize graphic state
-    graphicState = new OpenGLState();
-    graphicState->MakeCurrent();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
@@ -506,7 +503,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     AnimatedTextureInfo::textures.clear();
     TextureCache::instance()->clear();
     if (o.watermark)
-        glDeleteTextures(1, &o.watermark);
+        GL.DeleteTextures(1, &o.watermark);
 
     o.glyphCache.Clear();
     o.updateStereoIdentPatterns(0);
@@ -544,7 +541,6 @@ Widget::~Widget()
     xlProgram = NULL;           // Mark widget as invalid
     current = NULL;
     delete space;
-    delete graphicState;
     delete path;
     delete mouseFocusTracker;
     // REVISIT: delete activities?
@@ -563,6 +559,8 @@ Widget::~Widget()
     updateStereoIdentPatterns(0);
     // NB: if you're about to call glDeleteTextures here, think twice.
     // Or make sure you set the correct GL context. See #1686.
+
+    delete graphicState;
 }
 
 
@@ -6185,9 +6183,9 @@ Widget::StereoIdentTexture Widget::newStereoIdentTexture(int i)
     // Generate the GL texture
     QImage texture = QGLWidget::convertToGLFormat(image);
     GLuint tex;
-    glGenTextures(1, &tex);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+    GL.GenTextures(1, &tex);
+    GL.BindTexture(GL_TEXTURE_2D, tex);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  w, h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texture.bits());
 
@@ -8436,8 +8434,8 @@ Integer* Widget::picturePacker(Tree_p self,
 
         // Convert the resulting image into a texture
         QImage texImg = QGLWidget::convertToGLFormat(imagePacker.composite);
-        glBindTexture(GL_TEXTURE_2D, tinfo->textureId);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+        GL.BindTexture(GL_TEXTURE_2D, tinfo->textureId);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      texImg.width(), texImg.height(), 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texImg.bits());
     }
@@ -10848,9 +10846,9 @@ void Widget::setWatermarkText(text t, int w, int h)
     // Generate the GL texture
     QImage texture = QGLWidget::convertToGLFormat(image);
     if (!watermark)
-        glGenTextures(1, &watermark);
-    glBindTexture(GL_TEXTURE_2D, watermark);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+        GL.GenTextures(1, &watermark);
+    GL.BindTexture(GL_TEXTURE_2D, watermark);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  w, h, 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texture.bits());
 
@@ -10895,11 +10893,11 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
 {
     GL.Disable(GL_DEPTH_TEST);
     GL.DepthMask(GL_FALSE);
-    glBindTexture(GL_TEXTURE_2D, tex);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    GL.BindTexture(GL_TEXTURE_2D, tex);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
     GL.Enable(GL_TEXTURE_2D);
     GL.MatrixMode(GL_PROJECTION);
     GL.LoadIdentity();
@@ -10915,13 +10913,13 @@ void Widget::drawFullScreenTexture(int texw, int texh, GLuint tex,
         x1 += 0.5; x2 += 0.5; y1 += 0.5; y2 += 0.5;
     }
     GL.Begin(GL_QUADS);
-    glTexCoord2f(x1, y1);
+    GL.TexCoord(x1, y1);
     GL.Vertex  (-1, -1);
-    glTexCoord2f(x2, y1);
+    GL.TexCoord(x2, y1);
     GL.Vertex   ( 1, -1);
-    glTexCoord2f(x2, y2);
+    GL.TexCoord(x2, y2);
     GL.Vertex   ( 1,  1);
-    glTexCoord2f(x1, y2);
+    GL.TexCoord(x1, y2);
     GL.Vertex   (-1,  1);
     GL.End();
     GL.Enable(GL_DEPTH_TEST);

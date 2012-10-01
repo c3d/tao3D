@@ -145,25 +145,25 @@ void LightId::Draw(Layout *where)
     where->lightId = GL_LIGHT0 + id;
     if (enable)
     {
-	where->currentLights |= 1 << id;
+        where->currentLights |= 1 << id;
         GL.Enable(where->lightId);
         GL.Enable(GL_LIGHTING);
         GL.Enable(GL_COLOR_MATERIAL);
-	glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
-	glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
+        glColorMaterial(GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE);
+        glLightModeli(GL_LIGHT_MODEL_TWO_SIDE, GL_TRUE);
 
-	if(TaoApp->useShaderLighting)
-	    perPixelLighting->Draw(where);
+        if(TaoApp->useShaderLighting)
+            perPixelLighting->Draw(where);
     }
     else
     {
-	where->currentLights ^= 1 << id;
+        where->currentLights ^= 1 << id;
         GL.Disable(where->lightId);
-	if(! where->currentLights)
-	{
+        if(! where->currentLights)
+        {
             GL.Disable(GL_LIGHTING);
             GL.Disable(GL_COLOR_MATERIAL);
-	}
+        }
     }
 }
 
@@ -173,7 +173,7 @@ void Light::Draw(Layout *where)
 //   Send the corresponding GL attribute
 // ----------------------------------------------------------------------------
 {
-    glLightfv(where->lightId, function, &args[0]);
+    GL.Light(where->lightId, function, &args[0]);
 }
 
 

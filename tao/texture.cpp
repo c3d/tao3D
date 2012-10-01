@@ -66,8 +66,8 @@ static inline ImageTextureInfo::Texture computeDefaultTexture()
         result.height = texture.height();
 
         // Generate the GL texture
-        glBindTexture(GL_TEXTURE_2D, result.id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+        GL.BindTexture(GL_TEXTURE_2D, result.id);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      result.width, result.height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
     }
@@ -137,7 +137,7 @@ AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
         {
             texture_map::iterator first = textures.begin();
             if ((*first).second.id != defaultTexture().id)
-                glDeleteTextures(1, &(*first).second.id);
+                GL.DeleteTextures(1, &(*first).second.id);
             textures.erase(first);
         }
 
@@ -151,7 +151,7 @@ AnimatedTextureInfo::Texture AnimatedTextureInfo::load(text file)
         movie.start();
 
         // Allocate texture ID
-        glGenTextures(1, &texinfo.id);
+        GL.GenTextures(1, &texinfo.id);
 
         // Remember the texture for next time
         textures[file] = texinfo;
@@ -181,15 +181,15 @@ GLuint AnimatedTextureInfo::bind(text file)
 
         // Generate the GL texture
         Q_ASSERT(texinfo.id);
-        glBindTexture(GL_TEXTURE_2D, texinfo.id);
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
+        GL.BindTexture(GL_TEXTURE_2D, texinfo.id);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                      texinfo.width, texinfo.height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
     }
 
-    glBindTexture(GL_TEXTURE_2D, texinfo.id);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.BindTexture(GL_TEXTURE_2D, texinfo.id);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
         GL.Enable(GL_MULTISAMPLE);

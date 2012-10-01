@@ -119,7 +119,7 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
     }
     if (!cached)
     {
-        glBindTexture(texture.type, texture.id);
+        GL.BindTexture(texture.type, texture.id);
         GLint min, mag;
         if (hasPixelBlur)
             min = mag = GL_LINEAR;

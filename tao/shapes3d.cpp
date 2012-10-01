@@ -113,6 +113,7 @@ void Cube::Draw(Layout *where)
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
+        GL.Sync(STATE_lights);
         GL.EnableClientState(GL_NORMAL_ARRAY);
         GL.NormalPointer(GL_FLOAT, 0, normals);
     }
@@ -162,9 +163,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     Point3 p = bounds.Center() + where->Offset();
 
     GLAllStateKeeper save;
-    GL.Translate(p.x, p.y, p.z);
-    GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
-    GL.LoadMatrix();
+
     // Set Vertices
     GL.EnableClientState(GL_VERTEX_ARRAY);
     GL.VertexPointer(3, GL_DOUBLE, 0, &mesh->vertices[0].x);
@@ -172,6 +171,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Set normals only if we have lights or shaders
     if(where->currentLights || where->programId)
     {
+        GL.Sync(STATE_lights);
         GL.Enable(GL_NORMALIZE);
         GL.EnableClientState(GL_NORMAL_ARRAY);
         GL.NormalPointer(GL_DOUBLE, 0, &mesh->normals[0].x);
@@ -183,16 +183,19 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         if(((*it).second).id)
             enableTexCoord((*it).first, &mesh->textures[0].x);
 
+    GL.Translate(p.x, p.y, p.z);
+    GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
+    GL.LoadMatrix();
+
     // Apply textures
     setTexture(where);
 
     scale v = where->visibility * where->fillColor.alpha;
     bool drawBackFaces = where->programId || !culling || v != 1.0;
-
     // Optimize drawing of convex
     // shapes in case of no shaders thanks to
     // backface culling (doesn't need to draw back faces)
-    glEnable(GL_CULL_FACE);
+    GL.Enable(GL_CULL_FACE);
     if (drawBackFaces)
     {
         // Use painter algorithm to apply correctly
@@ -213,12 +216,13 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     // Draw the stuff in the front
     GL.CullFace(GL_BACK);
     GL.DepthMask(true);
+
     if (setFillColor(where))
         GL.DrawArrays(GL_QUAD_STRIP, 0, mesh->textures.size());
     if (setLineColor(where))
         GL.DrawArrays(GL_LINE_LOOP, 0, mesh->textures.size());
 
-    GL.DisableClientState(GL_VERTEX_ARRAY);
+    GL.Disable(GL_CULL_FACE);
 
     // Disable texture coordinates
     for (it = where->fillTextures.begin(); it!=where->fillTextures.end(); it++)
@@ -231,6 +235,8 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
         GL.Disable(GL_NORMALIZE);
         GL.DisableClientState(GL_NORMAL_ARRAY);
     }
+
+    GL.DisableClientState(GL_VERTEX_ARRAY);
 }
 
 

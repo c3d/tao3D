@@ -1771,9 +1771,9 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
 
 void OpenGLState::EnableLight(GLenum light)
 {
-    uint id = light - GL_LIGHT0;
-    if (id >= 0 && id < MAX_LIGHTS)
+    if (light >= GL_LIGHT0 && light < GL_LIGHT0 + MAX_LIGHTS)
     {
+        uint id = light - GL_LIGHT0;
         if (id >= lights.lights.size())
         {
             lights.lights.resize(id + 1);
@@ -1790,9 +1790,9 @@ void OpenGLState::EnableLight(GLenum light)
 
 void OpenGLState::DisableLight(GLenum light)
 {
-    uint id = light - GL_LIGHT0;
-    if (id >= 0 && id < MAX_LIGHTS)
+    if (light >= GL_LIGHT0 && light < GL_LIGHT0 + MAX_LIGHTS)
     {
+        uint id = light - GL_LIGHT0;
         if (id >= lights.lights.size())
         {
             lights.lights.resize(id + 1);

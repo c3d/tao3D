@@ -38,6 +38,8 @@ void GCThread::collect()
 {
     Widget *w = (Widget *)sender();
 
+    IFTRACE(memory)
+        debug() << "GC collect started\n";
     QTime t;
     t.start();
     w->stats.begin(Statistics::GC);

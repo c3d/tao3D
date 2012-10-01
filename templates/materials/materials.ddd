@@ -70,12 +70,12 @@ refresh_on TimerEvent
 * Define cube map textures.
 * Images from http://www.codemonsters.de/home/content.php?show=cubemaps
 */
-RIGHT  -> "brightday2_negative_x.png"
-LEFT   -> "brightday2_positive_x.png"
-TOP    -> "brightday2_positive_y.png"
-BOTTOM -> "brightday2_negative_y.png"
-FRONT  -> "brightday2_positive_z.png"
-BACK   -> "brightday2_negative_z.png"
+RIGHT  -> "brightday2_negative_x.jpg"
+LEFT   -> "brightday2_positive_x.jpg"
+TOP    -> "brightday2_positive_y.jpg"
+BOTTOM -> "brightday2_negative_y.jpg"
+FRONT  -> "brightday2_positive_z.jpg"
+BACK   -> "brightday2_negative_z.jpg"
 
 
 // ============================================================================

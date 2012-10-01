@@ -1,10 +1,16 @@
+import TaoTester
+import RemoteControl 1.0
+import LoremIpsum
 
-page "fontTextured", do 
+import "fontTextured_test.xl"
+toolbar_test
+
+page "fontTextured",
+    rc_hook
     color "white" 
     texture "tao_icon.png" 
     font "Arial", 100, weight 100% 
-    shape 
-        text_box 0, 0, 1557, 1032, do 
-            text <<hello World, The weather is sunny.
-            >> 
-            text lorem_ipsum 50
+    text_box 0, 0, 1557, 1032,
+        text <<hello World, The weather is sunny.
+        >> 
+        text lorem_ipsum 50

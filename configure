@@ -135,8 +135,7 @@ while [ $# -ne 0 ] ; do
       shift
       ;;
     --with-ccache)
-      CCACHE_CC="QMAKE_CC='ccache gcc'"
-      CCACHE_CXX="QMAKE_CXX='ccache g++'"
+      with_ccache=1
       shift
       ;;
     discovery)
@@ -219,4 +218,8 @@ osflags() {
 
 
 echo Running: qmake -r `osflags` $FLAGS "$CCACHE_FLAGS" "$CCACHE_CC" "$CCACHE_CXX" "$@"
-qmake -r `osflags` $FLAGS "$CCACHE_CC" "$CCACHE_CXX" "$@"
+if [ "$with_ccache" ] ; then
+  qmake -r `osflags` $FLAGS QMAKE_CXX='ccache g++' QMAKE_CC='ccache gcc' "$@"
+else
+  qmake -r `osflags` $FLAGS "$@"
+fi

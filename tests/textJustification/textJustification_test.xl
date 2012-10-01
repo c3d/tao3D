@@ -1,0 +1,35 @@
+textJustification_test -> test_definition "textJustification", 0,  <<>>, 1920, 1135, 
+  test_add_check 0, 1796, 0
+  test_add_key_press 16777237, 536870912, 1033 // 
+  test_add_key_release 16777237, 536870912, 487 // 
+  test_add_check 1, 1632, 0
+  test_add_mouse_move 0, 0, 0, 641, 6, 239
+  test_add_key_press 16777237, 536870912, 423 // 
+  test_add_key_release 16777237, 536870912, 123 // 
+  test_add_mouse_move 0, 0, 0, 641, 1, 145
+  test_add_check 2, 1838, 0
+  test_add_mouse_move 0, 0, 0, 645, 9, 243
+  test_add_key_press 16777237, 536870912, 435 // 
+  test_add_key_release 16777237, 536870912, 128 // 
+  test_add_mouse_move 0, 0, 0, 644, 2, 301
+  test_add_check 3, 1581, 0
+  test_add_mouse_move 0, 0, 0, 651, 12, 781
+  test_add_key_press 16777237, 536870912, 239 // 
+  test_add_key_release 16777237, 536870912, 440 // 
+  test_add_mouse_move 0, 0, 0, 648, 1, 507
+  test_add_check 4, 1738, 0
+  test_add_mouse_move 0, 0, 0, 660, 7, 783
+  test_add_key_press 16777237, 536870912, 238 // 
+  test_add_key_release 16777237, 536870912, 444 // 
+  test_add_mouse_move 0, 0, 0, 658, 3, 219
+  test_add_check 5, 1602, 0
+
+start_test -> 
+  textJustification_test
+  display_mode "taotester"
+  test_replay
+
+start_ref -> 
+  textJustification_test
+  display_mode "taotester"
+  make_ref

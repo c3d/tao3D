@@ -33,7 +33,7 @@ using namespace Tao;
 QRegExp regexpCurrent;
 
 
-Name *regexpMatch(Context *, Tree *, text input, text pattern)
+Name_p regexpMatch(Context *, Tree *, text input, text pattern)
 // ----------------------------------------------------------------------------
 //    Return true if the input matches the pattern
 // ----------------------------------------------------------------------------
@@ -44,7 +44,7 @@ Name *regexpMatch(Context *, Tree *, text input, text pattern)
 }
 
 
-Integer *regexpSearch(Context *, Tree *self, text input, text pattern)
+Integer_p regexpSearch(Context *, Tree *self, text input, text pattern)
 // ----------------------------------------------------------------------------
 //    Return the position of input in the pattern
 // ----------------------------------------------------------------------------
@@ -55,7 +55,7 @@ Integer *regexpSearch(Context *, Tree *self, text input, text pattern)
 }
 
 
-Tree *regexpParse(Context *context,
+Tree_p regexpParse(Context *context,
                   Tree *self,
                   text input,
                   Tree *code,
@@ -125,15 +125,16 @@ Tree *regexpParse(Context *context,
 
     // Then find the best pattern
     bool running = true;
-    Tree *result = xl_nil;
+    Tree_p result = xl_nil;
     text resultText = "";
     int offset = 0;
     QString in = +input;
+    TreeList list;
 
     while (running)
     {
         uint max = patterns.size();
-        Tree *found = xl_nil;
+        Tree_p found = xl_nil;
         uint best = ~0U;
         int bestPosition = input.length();
         bool keepRunning = mode != REGEXP_FIRST;
@@ -188,7 +189,7 @@ Tree *regexpParse(Context *context,
         }
         else if (mode == REGEXP_LIST && result != xl_nil)
         {
-            result = new Infix(",", result, found, self->Position());
+            list.push_back(found);
         }
         else
         {
@@ -200,12 +201,14 @@ Tree *regexpParse(Context *context,
 
     if (mode == REGEXP_TEXT)
         result = new Text(resultText, "\"", "\"", self->Position());
+    else if (mode == REGEXP_LIST)
+        result = (XL::Infix*)xl_list_to_tree(list, ",");
 
     return result;
 }
 
 
-Text *regexpAt(Context *, Tree *self, uint index)
+Text_p regexpAt(Context *, Tree *self, uint index)
 // ----------------------------------------------------------------------------
 //   Return the captured item n
 // ----------------------------------------------------------------------------
@@ -215,7 +218,7 @@ Text *regexpAt(Context *, Tree *self, uint index)
 }
 
 
-Integer *regexpPos(Context *, Tree *self, uint index)
+Integer_p regexpPos(Context *, Tree *self, uint index)
 // ----------------------------------------------------------------------------
 //   Return position at given index
 // ----------------------------------------------------------------------------
@@ -225,18 +228,18 @@ Integer *regexpPos(Context *, Tree *self, uint index)
 }
 
 
-Integer *regexpMatchedLength(Context *, Tree *self)
+Integer_p regexpMatchedLength(Context *, Tree *self)
 // ----------------------------------------------------------------------------
 //   Return total matched length
 // ----------------------------------------------------------------------------
 {
     int length = regexpCurrent.matchedLength();
     return new Integer(length, self->Position());
-   
+
 }
 
 
-Text *regexpEscape(Context *, Tree *self, text toEscape)
+Text_p regexpEscape(Context *, Tree *self, text toEscape)
 // ----------------------------------------------------------------------------
 //   Return input text, escaped so that it works in a regexp
 // ----------------------------------------------------------------------------

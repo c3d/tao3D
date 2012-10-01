@@ -82,6 +82,12 @@ DestinationFolderDialog::DestinationFolderDialog(QString defaultPath,
     resize(550, 200);
 
     updateNameAndLocation(defaultPath);
+
+    if (knownLocations.size() == 1)
+    {
+        combo->setCurrentIndex(1);
+        comboBoxIndexChanged(1);
+    }
 }
 
 

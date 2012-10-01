@@ -124,19 +124,13 @@ namespace Tao {
 static Point3 defaultCameraPosition(0, 0, 3000);
 
 
-
-static inline Widget * findTaoWidget()
+Widget * Widget::findTaoWidget()
 // ----------------------------------------------------------------------------
 //   Find the Widget on the main Window. Use when Tao() is not set.
 // ----------------------------------------------------------------------------
 {
-    foreach (QWidget *widget, QApplication::topLevelWidgets())
-    {
-        Window * window = dynamic_cast<Window *>(widget);
-        if (window)
-            return window->taoWidget;
-    }
-    return NULL;
+    if (current) return current;
+    return TaoApp->window()->taoWidget;
 }
 
 
@@ -448,6 +442,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       offlineRenderingWidth(o.offlineRenderingWidth),
       offlineRenderingHeight(o.offlineRenderingHeight),
       toDialogLabel(o.toDialogLabel),
+      pendingEvents(), // Nothing transferred from o's event queue
       inDraw(o.inDraw), changeReason(o.changeReason),
       editCursor(o.editCursor),
       isInvalid(false)
@@ -1066,7 +1061,7 @@ bool Widget::refreshOnAPI(int event_type, double next_refresh)
 {
     if (next_refresh == -1.0)
         next_refresh = DBL_MAX;
-    Tao()->refreshOn(event_type, next_refresh);
+    findTaoWidget()->refreshOn(event_type, next_refresh);
     return true;
 }
 
@@ -1076,7 +1071,7 @@ double Widget::currentTimeAPI()
 //   Module interface to currentTime()
 // ----------------------------------------------------------------------------
 {
-    return Tao()->CurrentTime();
+    return findTaoWidget()->CurrentTime();
 }
 
 
@@ -1607,7 +1602,7 @@ void Widget::copy()
     {
         //If no selection copy the Image
         QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setImage(grabFrameBuffer(true));
+        clipboard->setImage(grabFrameBuffer(false));
 
         return;
     }
@@ -3094,6 +3089,9 @@ bool Widget::event(QEvent *event)
     // event
     if (type >= QEvent::User)
     {
+        // Unblock postEventOnceAPI for this event type
+        pendingEvents.erase(type);
+
         refreshNow(event);
         return true;
     }
@@ -5874,13 +5872,20 @@ double Widget::optimalDefaultRefresh()
 }
 
 
-Tree_p Widget::postEvent(int eventType)
+Tree_p Widget::postEvent(int eventType, bool once)
 // ----------------------------------------------------------------------------
 //    Post user event to this widget
 // ----------------------------------------------------------------------------
 {
     if (eventType < QEvent::User || eventType > QEvent::MaxUser)
         return XL::xl_false;
+    if (once)
+    {
+        if (pendingEvents.count(eventType))
+            return XL::xl_false;
+        else
+            pendingEvents.insert(eventType);
+    }
     QEvent::Type type = (QEvent::Type) eventType;
     IFTRACE(layoutevents)
         std::cerr << "  Post event " << LayoutState::ToText(type) << "\n";
@@ -5894,8 +5899,17 @@ void Widget::postEventAPI(int eventType)
 //    Export postEvent to the module API
 // ----------------------------------------------------------------------------
 {
-    Widget * w = current ? current : findTaoWidget();
-    w->postEvent(eventType);
+    findTaoWidget()->postEvent(eventType);
+}
+
+
+bool Widget::postEventOnceAPI(int eventType)
+// ----------------------------------------------------------------------------
+//    Export postEvent to the module API. Return true if event was accepted.
+// ----------------------------------------------------------------------------
+{
+    Tree_p posted = findTaoWidget()->postEvent(eventType, true);
+    return (posted == XL::xl_true);
 }
 
 
@@ -10743,7 +10757,7 @@ text Widget::currentDocumentFolder()
 //   Return native path to current document folder
 // ----------------------------------------------------------------------------
 {
-    Window *window = Tao()->taoWindow();
+    Window *window = findTaoWidget()->taoWindow();
     return +QDir::toNativeSeparators(window->currentProjectFolderPath());
 }
 

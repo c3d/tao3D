@@ -30,7 +30,6 @@
 #include "save.h"
 #include "tree-clone.h"
 #include "coords3d.h"
-#include "graphic_state.h"
 #include "matrix.h"
 #include "opcodes.h"
 #include "drawing.h"
@@ -86,6 +85,7 @@ struct WidgetSurface;
 struct CoordinatesInfo;
 struct MouseFocusTracker;
 struct DisplayDriver;
+struct OpenGLState;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -910,7 +910,7 @@ private:
     QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
-    GraphicState *        graphicState;
+    OpenGLState *         graphicState;
     FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;

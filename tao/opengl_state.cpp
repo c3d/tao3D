@@ -27,6 +27,7 @@
 #include "application.h"
 #include "texture_cache.h"
 #include "tao_main.h"
+#include "module_manager.h"
 #include <cassert>
 #include <ostream>
 
@@ -55,7 +56,7 @@ text OpenGLState::vendorsList[LAST_VENDOR] =
 
 
 // FIXME: Is there a better place for this than here?
-GraphicState *GraphicState::current = NULL;
+OpenGLState *OpenGLState::current = NULL;
 
 
 // Test if we need to save a state
@@ -195,6 +196,16 @@ OpenGLState::OpenGLState()
 }
 
 
+void OpenGLState::MakeCurrent()
+// ----------------------------------------------------------------------------
+//   Make this object the current OpenGLState
+// ----------------------------------------------------------------------------
+{
+    current = this;
+    ModuleManager::moduleManager()->updateGraphicStatePointers(current);
+}
+
+
 std::ostream & OpenGLState::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
@@ -271,9 +282,18 @@ uint OpenGLState::ShowErrors(kstring msg)
 }
 
 
-void OpenGLState::Sync(ulonglong which)
+void OpenGLState::Sync()
 // ----------------------------------------------------------------------------
 //    Synchronize all pending changes and send them to the card
+// ----------------------------------------------------------------------------
+{
+    Sync(~0ULL);
+}
+
+
+void OpenGLState::Sync(ulonglong which)
+// ----------------------------------------------------------------------------
+//    Synchronize pending changes and send them to the card
 // ----------------------------------------------------------------------------
 {
     bool needSync =

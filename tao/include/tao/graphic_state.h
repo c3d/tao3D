@@ -1,12 +1,12 @@
-#ifndef GRAPHIC_STATE_API_H
-#define GRAPHIC_STATE_API_H
+#ifndef GRAPHIC_STATE_H
+#define GRAPHIC_STATE_H
 // ****************************************************************************
-//  graphic_state_api.h                                             Tao project
+//  graphic_state.h                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//    Graphic state onterface for native modules
+//    Graphic state interface for native modules
 //
 //
 //
@@ -15,8 +15,9 @@
 //
 //
 // ****************************************************************************
-// This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
+// This file may be used in accordance with the terms and conditions contained
+// in the Tao Presentations license agreement, or alternatively, in a signed
+// license agreement between you and Taodyne SAS.
 //  (C) 2012 Baptiste Soulisse <soulisse.baptiste@taodyne.com>
 //  (C) 2012 Taodyne SAS
 // ****************************************************************************
@@ -24,12 +25,8 @@
 #include "coords3d.h"
 #include "matrix.h"
 #include "tao_gl.h"
-#include <stack>
 
 TAO_BEGIN
-
-//  Shortcut to the current state
-#define GL  (*Tao::GraphicState::State())
 
 
 struct GraphicSave
@@ -47,17 +44,15 @@ struct GraphicState
 //   Interface to manage graphic states
 // ----------------------------------------------------------------------------
 {
-    GraphicState() {}
-    virtual ~GraphicState()             { if (current == this) current = NULL; }
-
-    // Return the current graphic state (one per widget)
-    static GraphicState *State()        { return current; }
-    void   MakeCurrent()                { current = this; }
+    GraphicState()              {}
+    virtual ~GraphicState()     {}
 
     // Saving and restoring state
     virtual GraphicSave *       Save() = 0;
     virtual void                Restore(GraphicSave *saved) = 0;
-    virtual void                Sync(ulonglong which = ~0ULL) = 0;
+
+    // Apply pending state changes
+    virtual void                Sync() = 0;
 
     // Return attributes of state
     virtual uint   MaxTextureCoords() = 0;
@@ -216,12 +211,8 @@ struct GraphicState
 
     // Lighting
     virtual void Light(GLenum light, GLenum pname, const float* params) = 0;
-
-
-protected:
-    static GraphicState *       current;
 };
 
 TAO_END
 
-#endif // GRAPHIC_STATE_API_H
+#endif // GRAPHIC_STATE_H

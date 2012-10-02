@@ -263,11 +263,19 @@ struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 {
     OpenGLState();
+    virtual ~OpenGLState()  { if (current == this) current = NULL; }
+
+    // Return the current graphic state (one per widget)
+    static OpenGLState *State()        { return current; }
+    void   MakeCurrent();
+    void   Sync(ulonglong which);
 
     // Saving and restoring state
     virtual GraphicSave *       Save();
     virtual void                Restore(GraphicSave *saved);
-    virtual void                Sync(ulonglong which = ~0ULL);
+
+    // Apply pending state changes
+    virtual void                Sync();
 
     std::ostream & debug();
 
@@ -482,7 +490,13 @@ private:
     {
         return ActiveTexture().matrix;
     }
+
+
+    static OpenGLState *       current;
 };
+
+// Shortcut to the current state
+#define GL  (*Tao::OpenGLState::State())
 
 TAO_END
 

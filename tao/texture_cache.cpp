@@ -23,7 +23,7 @@
 #include "texture_cache.h"
 #include "base.h"
 #include "tao_utf8.h"
-#include "graphic_state.h"
+#include "opengl_state.h"
 #include "preferences_pages.h"
 #include "license.h"
 #include "application.h"
@@ -565,7 +565,7 @@ CachedTexture::~CachedTexture()
 {
     purge();
 
-    if(Tao::GraphicState::State())
+    if(Tao::OpenGLState::State())
         GL.DeleteTextures(1, &id);
 
     if (networkReply)
@@ -865,7 +865,7 @@ void CachedTexture::purgeGL()
 {
     Q_ASSERT(id);
 
-    if(Tao::GraphicState::State())
+    if(Tao::OpenGLState::State())
     {
         GL.BindTexture(GL_TEXTURE_2D, id);
         GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 0,

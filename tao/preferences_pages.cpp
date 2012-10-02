@@ -27,7 +27,7 @@
 #include "application.h"
 #include "module_info_dialog.h"
 #include "tao_gl.h"
-#include "graphic_state.h"
+#include "opengl_state.h"
 #include "texture_cache.h"
 
 

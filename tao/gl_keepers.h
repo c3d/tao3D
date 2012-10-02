@@ -61,7 +61,7 @@ struct GLStateKeeper : OpenGLSave
 // ----------------------------------------------------------------------------
 {
     GLStateKeeper(GLbitfield bits = GL_ALL_ATTRIB_BITS, bool save = true):
-        OpenGLSave(save ? ~0U : ~(STATE_mvMatrix | STATE_projMatrix))
+        OpenGLSave(save ? OpenGLSave_All : ~(STATE_mvMatrix | STATE_projMatrix))
     { (void) bits; }
 };
 
@@ -75,8 +75,8 @@ struct GLAllStateKeeper : OpenGLSave
                      bool saveModel = true,
                      bool saveProjection = true,
                      uint64 saveTextureMatrix = ~0UL)
-        : OpenGLSave((saveModel         ? ~0U : ~STATE_mvMatrix) &
-                     (saveProjection    ? ~0U : ~STATE_projMatrix))
+        : OpenGLSave((saveModel         ? OpenGLSave_All : ~STATE_mvMatrix) &
+                     (saveProjection    ? OpenGLSave_All : ~STATE_projMatrix))
     { (void) bits; (void) saveTextureMatrix; }
 };
 

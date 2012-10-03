@@ -29,9 +29,11 @@ struct OpenGLSave : GraphicSave
 //   Demand-based saving of the state held in a GraphicState
 // ----------------------------------------------------------------------------
 {
+#define OpenGLSave_All ~0ULL
+
 public:
     OpenGLSave(OpenGLState *gs = NULL);
-    OpenGLSave(ulonglong which = ~0U, OpenGLState *gs = NULL);
+    OpenGLSave(ulonglong which = OpenGLSave_All, OpenGLState *gs = NULL);
     ~OpenGLSave();
 
 public:

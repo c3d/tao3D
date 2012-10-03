@@ -22,6 +22,7 @@
 
 #include "raster_text.h"
 #include "gl_keepers.h"
+#include "opengl_state.h"
 #include <stdarg.h>
 #include <iostream>
 

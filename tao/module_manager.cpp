@@ -1026,6 +1026,15 @@ bool ModuleManager::loadNative(Context * /*context*/,
             {
                 // enter_symbols is called later, when module is imported
 
+                m_p->graphicStatePtr =
+                        (GraphicState **) lib->resolve("graphic_state");
+                if (m_p->graphicStatePtr)
+                {
+                    IFTRACE(modules)
+                        debug() << "    Setting graphic_state pointer\n";
+                    *m_p->graphicStatePtr = OpenGLState::State();
+                }
+
                 module_init_fn mi =
                         (module_init_fn) lib->resolve("module_init");
                 if ((mi != NULL))
@@ -1378,6 +1387,26 @@ void ModuleManager::unloadImported()
                             << st << ")\n";
                 continue;
             }
+        }
+    }
+}
+
+
+void ModuleManager::updateGraphicStatePointers(GraphicState *newState)
+// ----------------------------------------------------------------------------
+//   Update all modules that have a pointer to the current GraphicState
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(modules)
+        debug() << "GraphicState changed, updating modules\n";
+
+    foreach (ModuleInfoPrivate m, modules)
+    {
+        if (m.graphicStatePtr)
+        {
+            IFTRACE(modules)
+                debug() << "  " << +m.libPath() << "\n";
+            *m.graphicStatePtr = newState;
         }
     }
 }

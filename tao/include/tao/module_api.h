@@ -49,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   28
-#define TAO_MODULE_API_AGE       9
+#define TAO_MODULE_API_CURRENT   29
+#define TAO_MODULE_API_AGE       10
 
 // ========================================================================
 //
@@ -502,6 +502,8 @@ namespace Tao
     typedef int (*delete_symbols_fn)(XL::Context *);
     typedef int (*module_exit_fn)   ();
     typedef int (*module_preferences_fn) ();
+
+    struct GraphicState;
 }
 
 extern "C"
@@ -563,6 +565,31 @@ extern "C"
     // [Optional]
     DLL_PUBLIC
     int show_preferences();
+
+    // GraphicState pointer
+    //
+    // If this symbol is defined in the module, Tao will store a pointer
+    // to a valid GraphicState object before module_init is called.
+    // The main goal of GraphicState is to prevent redundant OpenGL state
+    // changes for improved performance.
+    //
+    // To use this pointer, add the following to your .cpp file:
+    //  #include <tao/module_api.h>
+    //  #include <tao/graphic_state.h>
+    //  extern "C" DLL_PUBLIC Tao::GraphicState * graphic_state = NULL;
+    //  #define GL (*graphic_state)
+    //  /* Then use e.g., GL.Viewport(); instead of glViewport(); etc. */
+    //
+    // Do not copy the graphic_state pointer because it may be changed
+    // by Tao.
+    //
+    // You may use the native OpenGL API in your module provided that the
+    // GL state is properly restored when returning from a callback.
+    // Alternatively, you may use the GraphicState interface.
+    // Display modules must always use the GraphicState functions (when
+    // available) to modify the GL state before drawing.
+    extern DLL_PUBLIC
+    Tao::GraphicState * graphic_state;
 }
 
 #endif // TAO_MODULE_API_H

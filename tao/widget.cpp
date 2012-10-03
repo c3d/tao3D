@@ -2299,9 +2299,6 @@ void Widget::setupGL()
 //   Setup default GL parameters
 // ----------------------------------------------------------------------------
 {
-    // Make sure we are in the correct widget's graphic state
-    graphicState->MakeCurrent();
-
     // Setup other
     GL.Enable(GL_BLEND);
     if (inOfflineRendering)

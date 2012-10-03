@@ -1402,7 +1402,7 @@ void OpenGLState::Enable(GLenum cap)
     case GL_LIGHT6:
     case GL_LIGHT7:
     {
-        EnableLight(cap);
+        SetLight(cap, true);
         break;
     }
 
@@ -1443,7 +1443,7 @@ void OpenGLState::Disable(GLenum cap)
     case GL_LIGHT6:
     case GL_LIGHT7:
     {
-        DisableLight(cap);
+        SetLight(cap, false);
         break;
     }
 
@@ -1769,7 +1769,10 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
 //
 // ============================================================================
 
-void OpenGLState::EnableLight(GLenum light)
+void OpenGLState::SetLight(GLenum light, bool active)
+// ----------------------------------------------------------------------------
+//   Enable or disable a light
+// ----------------------------------------------------------------------------
 {
     if (light >= GL_LIGHT0 && light < GL_LIGHT0 + MAX_LIGHTS)
     {
@@ -1783,40 +1786,23 @@ void OpenGLState::EnableLight(GLenum light)
         lights.dirty |= 1ULL << id;
         SAVE(lights);
         lights_isDirty = true;
-        (lights.lights[id]).active = true;
-    }
-}
-
-
-void OpenGLState::DisableLight(GLenum light)
-{
-    if (light >= GL_LIGHT0 && light < GL_LIGHT0 + MAX_LIGHTS)
-    {
-        uint id = light - GL_LIGHT0;
-        if (id >= lights.lights.size())
-        {
-            lights.lights.resize(id + 1);
-            (lights.lights[id]) = LightState(id);
-        }
-
-        lights.dirty |= 1ULL << id;
-        SAVE(lights);
-        lights_isDirty = true;
-        (lights.lights[id]).active = false;
+        (lights.lights[id]).active = active;
     }
 }
 
 
 void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
+// ----------------------------------------------------------------------------
+//   Initialize a light state
+// ----------------------------------------------------------------------------
 {
-    // IMPORTANT : Not use current light,
-    // but light specified as argument.
-
+    // Save current light and set it as dirty
     uint id = light - GL_LIGHT0;
     LightState &ls = lights.lights[id];
     lights.dirty |= 1ULL << id;
     SAVE(lights);
     lights_isDirty = true;
+
     switch(pname)
     {
     case GL_AMBIENT:
@@ -1874,6 +1860,9 @@ void OpenGLState::Light(GLenum light, GLenum pname, const float* params)
 // ============================================================================
 
 LightState::LightState(uint id)
+// ----------------------------------------------------------------------------
+//   Initialize a light state
+// ----------------------------------------------------------------------------
     : id(id),
       position(0, 0, 1, 0), spotDirection(0, 0, -1),
       spotExponent(0), spotCutoff(180),
@@ -1924,9 +1913,9 @@ void LightState::Sync(const LightState &ls, bool force)
     GLfloat pos[4]  = {ls.position.x, ls.position.y, ls.position.z, ls.position.w};
     GLfloat spot[3] = {ls.spotDirection.x, ls.spotDirection.y, ls.spotDirection.z};
 
+    // Synchronise lighting parameters
     SYNC_LIGHT(active,
         if (active) glEnable(light); else glDisable(light));
-
     SYNC_LIGHT(ambient,
         glLightfv(light, GL_AMBIENT, ambient.Data()));
     SYNC_LIGHT(diffuse,

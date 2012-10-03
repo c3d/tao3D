@@ -301,7 +301,8 @@ void Window::addError(QString txt)
     QTextCursor cursor = errorMessages->textCursor();
     cursor.movePosition(QTextCursor::End);
     cursor.insertText(txt + "\n");
-    errorDock->show();
+    if (!isFullScreen())
+        errorDock->show();
     // Before trying to show the error in the status bar, see #970
 }
 

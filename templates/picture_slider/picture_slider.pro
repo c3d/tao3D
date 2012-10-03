@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/picture_slider
-files.files = template.ini picture_slider.ddd picture_slider.png
+files.files = template.ini picture_slider.ddd picture_slider.jpg
 
 images.path = $$APPINST/templates/picture_slider/images
 images.files = images/*

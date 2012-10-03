@@ -49,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   27
-#define TAO_MODULE_API_AGE       8
+#define TAO_MODULE_API_CURRENT   28
+#define TAO_MODULE_API_AGE       9
 
 // ========================================================================
 //
@@ -469,6 +469,16 @@ struct ModuleApi
     // return true if a valid license is found for the requested feature name,
     // false otherwise.
     bool (*hasImpressOrLicense)(std::string featureName);
+
+
+
+    // Post a user event to the graphical widget, only if there is no pending
+    // event with the same eventType. Return true if the event was accepted,
+    // false otherwise.
+    // See also postEvent(), refreshOn().
+    // Do not use both postEvent() and postEventOnce() for the same value of
+    // eventType.
+    bool (*postEventOnce)(int eventType);
 };
 
 }

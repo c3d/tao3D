@@ -9,7 +9,7 @@ TEMPLATE = subdirs
 include(../templates.pri)
 
 files.path  = $$APPINST/templates/lens_flare
-files.files = template.ini lens_flare.ddd lens_flare.png
+files.files = template.ini lens_flare.ddd lens_flare.jpg
 
 images.path = $$APPINST/templates/lens_flare/images
 images.files = images/*

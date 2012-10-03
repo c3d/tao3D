@@ -24,7 +24,7 @@ isEmpty(MODINSTPATH) {
         LOCALAPPDATA=$$system(bash -c \"cd $LOCALAPPDATA ; pwd\") # convert Win path to Mingw path
         MODINSTROOT = "$${LOCALAPPDATA}/Tao Presentations/modules"
       }
-      macx:MODINSTROOT = $$(HOME)"/Library/Application Support/Tao Presentations/modules"
+      macx:MODINSTROOT = $$(HOME)"/Library/Application Support/Taodyne/Tao Presentations/modules"
       linux*:MODINSTROOT = $$(HOME)"/.local/share/data/Taodyne/Tao Presentations/modules"
       isEmpty(MODINSTROOT):error(MODINSTROOT not defined)
     } else {

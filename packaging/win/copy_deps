@@ -68,4 +68,62 @@ cd $THISDIR
 mkdir -p build_root/git
 cd build_root/git
 ../../bin/7z -y x -bd ../../3rdparty/$GITKIT
+
+# The git-*.exe commands are supposed to be links to git.exe. With PortableGit they're copies.
+# That's a lot of wasted disk space. Since they are for backward compatibility only, we can
+# safely get rid of them.
+doo rm -f libexec/git-core/git-*.exe
+# Many other files are not used. Remove the biggest if we're pretty sure they're not needed by git.exe
+cat <<_EOF_ | { IFS=$(echo -en "\n\b") ; while read f ; do echo rm -rf ./$f ; rm -rf ./$f ; done }
+cmd
+doc
+git-cheetah
+Git Bash.vbs
+git-bash.bat
+git-cmd.bat
+README.portable
+ReleaseNotes.rtf
+bin/wish.exe
+bin/wish85.exe
+bin/pdfinfo.exe
+bin/pdftotext.exe
+bin/libpoppler-7.dll
+bin/flex.exe
+bin/bison.exe
+bin/tclsh.exe
+bin/tclsh85.exe
+bin/tcl85.dll
+bin/tclpip85.dll
+bin/tk85.dll
+bin/wish.exe
+bin/wish85.exe
+bin/openssl.exe
+bin/tar.exe
+bin/sed.exe
+bin/rxvt.exe
+bin/libW11.dll
+bin/bash.exe
+bin/sh.exe
+bin/gpgv.exe
+bin/m4.exe
+bin/unzip.exe
+bin/gawk.exe
+share/antiword
+share/bison
+share/git-gui
+share/gitk
+share/gitweb
+share/vim
+lib/tcl85.lib
+lib/tclConfig.sh
+lib/tclstub85.lib
+lib/tk85.lib
+lib/tkConfig.sh
+lib/tkstub85.lib
+lib/tcl8
+lib/tcl8.5
+lib/tk8.5
+lib/reg1.2
+lib/dde1.3
+_EOF_
 )

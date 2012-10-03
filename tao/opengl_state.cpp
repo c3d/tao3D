@@ -2045,7 +2045,7 @@ TextureState::TextureState()
     magFilt(TextureCache::instance()->magFilter()),
     matrix(),
     active(false),
-    wrapS(false), wrapT(false), wrapR(false),
+    wrapS(true), wrapT(true), wrapR(true),
     mipmap(false)
 {}
 

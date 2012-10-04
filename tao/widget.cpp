@@ -9564,6 +9564,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -9634,6 +9638,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         withDepth->value = depthTexId;
     }
 
+    glPopAttrib();
+
     return new Integer(texId, self->Position());
 }
 
@@ -9688,6 +9694,10 @@ Integer* Widget::thumbnail(Context *context,
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------
 {
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     // Prohibit recursion on thumbnails
     if (page == pageName || !xlProgram)
         return 0;
@@ -9764,6 +9774,8 @@ Integer* Widget::thumbnail(Context *context,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
+    glPopAttrib();
+
     return new Integer(texId, self->Position());
 }
 
@@ -9775,6 +9787,10 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a linear gradient
 // ----------------------------------------------------------------------------
 {
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -9837,6 +9853,8 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
+    glPopAttrib();
+
     return new Integer(texId, self->Position());
 }
 
@@ -9849,6 +9867,10 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a radial gradient
 // ----------------------------------------------------------------------------
 {
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -9911,6 +9933,8 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
+    glPopAttrib();
+
     return new Integer(texId, self->Position());
 }
 
@@ -9923,6 +9947,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a conical gradient
 // ----------------------------------------------------------------------------
 {
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -9984,6 +10012,8 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+
+    glPopAttrib();
 
     return new Integer(texId, self->Position());
 }

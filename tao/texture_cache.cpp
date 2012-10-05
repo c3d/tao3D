@@ -333,7 +333,7 @@ void TextureCache::setMinMagFilters(GLuint id)
 // ----------------------------------------------------------------------------
 {
     setMinFilter(id, minFilter());
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, magFilter());
 }
 
 
@@ -355,7 +355,7 @@ void TextureCache::setMinFilter(GLuint id, GLenum filter)
         // was not loaded with mipmapping enabled
         filter = GL_LINEAR;
     }
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
 
 
@@ -731,11 +731,11 @@ void CachedTexture::transfer()
 
             GL.BindTexture(GL_TEXTURE_2D, id);
             if (mipmap)
-                GL.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
             GL.CompressedTexImage2D(GL_TEXTURE_2D, 0, image.fmt, width, height,
                                     0, image.byteCount(), image.compressed);
             if (mipmap)
-                GL.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
             copiedSize = GLsize = image.byteCount();
             copiedCompressed = true;
             ADJUST_FOR_MIPMAP_OVERHEAD(GLsize);
@@ -749,12 +749,12 @@ void CachedTexture::transfer()
             GLenum internalFmt = hasAlpha?GL_COMPRESSED_RGBA:GL_COMPRESSED_RGB;
             GL.BindTexture(GL_TEXTURE_2D, id);
             if (mipmap)
-                GL.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
             GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                           width, height, 0, GL_RGBA,
                           GL_UNSIGNED_BYTE, texture.bits());
             if (mipmap)
-                GL.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+                GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
             copiedSize = width * height * 4;
 
             GLint cmp = GL_FALSE, cmpsz = copiedSize;
@@ -812,12 +812,12 @@ void CachedTexture::transfer()
         // Generate the GL texture
         GL.BindTexture(GL_TEXTURE_2D, id);
         if (mipmap)
-            GL.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+            GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
         GL.TexImage2D(GL_TEXTURE_2D, 0, internalFmt,
                      width, height, 0, GL_RGBA,
                      GL_UNSIGNED_BYTE, texture.bits());
         if (mipmap)
-            GL.TexParameteri(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+            GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
 
         Q_ASSERT(GLsize == 0);
         GLsize = width * height * bytesPerPixel;

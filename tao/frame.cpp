@@ -128,6 +128,23 @@ void FrameInfo::resize(uint w, uint h)
         texture_fbo = render_fbo;
     }
 
+    // The value of the min and mag filters of the underlying texture
+    // are forced to GL_NEAREST by Qt, which are not the GL defaults.
+    // => We must synchronize our cache or some later GL.TexParameter calls
+    // may be ignored.
+    GLint min, mag;
+    GLuint tex = texture_fbo->texture();
+    glBindTexture(GL_TEXTURE_2D, tex);
+    // Query the actual values to be safe
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &min);
+    glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, &mag);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    GL.BindTexture(GL_TEXTURE_2D, tex);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, min);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mag);
+    GL.Sync(STATE_textures);
+    GL.BindTexture(GL_TEXTURE_2D, 0);
+
     // depth_tex is optional, resize if we have one
     if (depth_tex)
         resizeDepthTexture(w, h);
@@ -157,12 +174,12 @@ void FrameInfo::resizeDepthTexture(uint w, uint h)
     // Create the depth texture
     GL.GenTextures(1, &depth_tex);
     GL.BindTexture(GL_TEXTURE_2D, depth_tex);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
-                 GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+                  GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 
     glShowErrors();
 }
@@ -178,6 +195,8 @@ void FrameInfo::begin(bool clearContents)
     int ok = render_fbo->bind();
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
     glShowErrors();
+    // Synchronize cached state
+    GL.SetCached_bufferMode(GL_COLOR_ATTACHMENT0);
 
     GL.Disable(GL_TEXTURE_2D);
     GL.Disable(GL_STENCIL_TEST);
@@ -195,6 +214,10 @@ void FrameInfo::end()
     int ok = render_fbo->release();
     if (!ok) std::cerr << "FrameInfo::end(): unexpected result\n";
     glShowErrors();
+    // Synchronize cached state
+    GLint buf;
+    glGetIntegerv(GL_DRAW_BUFFER, &buf);
+    GL.SetCached_bufferMode(buf);
 
     // Blit the result in the texture if necessary
     blit();
@@ -212,8 +235,8 @@ GLuint FrameInfo::bind()
     checkGLContext();
     GLuint texId = texture_fbo->texture();
     GL.BindTexture(GL_TEXTURE_2D, texId);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
         GL.Enable(GL_MULTISAMPLE);
@@ -354,6 +377,7 @@ void FrameInfo::bindFrameBufferObject(ModuleApi::fbo * obj)
 // ----------------------------------------------------------------------------
 {
     ((FrameInfo *)obj)->begin();
+    GL.Sync();
 }
 
 
@@ -363,6 +387,7 @@ void FrameInfo::releaseFrameBufferObject(ModuleApi::fbo * obj)
 // ----------------------------------------------------------------------------
 {
     ((FrameInfo *)obj)->end();
+    GL.Sync();
 }
 
 
@@ -371,7 +396,9 @@ unsigned int FrameInfo::frameBufferObjectToTexture(ModuleApi::fbo * obj)
 //   Make framebuffer available as a texture
 // ----------------------------------------------------------------------------
 {
-    return ((FrameInfo *)obj)->bind();
+    unsigned int tex = ((FrameInfo *)obj)->bind();
+    GL.Sync();
+    return tex;
 }
 
 

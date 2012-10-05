@@ -284,7 +284,7 @@ void ShaderValue::Draw(Layout *where)
 #ifdef GL_SAMPLER_2D_RECT
             case GL_SAMPLER_2D_RECT:
 #endif
-                GL.Uniform1i(id, values[0]);
+                GL.Uniform(id, values[0]);
                 break;
             case GL_FLOAT_VEC2:
                 GL.Uniform2fv(id, (int) (values.size() / 2), &values[0]);

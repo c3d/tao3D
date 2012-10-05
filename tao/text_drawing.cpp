@@ -182,8 +182,8 @@ void TextUnit::DrawCached(Layout *where)
         if (!where->hasPixelBlur &&
             font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
             blur = GL_NEAREST;
-        GL.TexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
-        GL.TexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
+        GL.TexParameter(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
+        GL.TexParameter(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
         GL.Enable(GL_TEXTURE_RECTANGLE_ARB);
         if (TaoApp->hasGLMultisample)
             GL.Enable(GL_MULTISAMPLE);

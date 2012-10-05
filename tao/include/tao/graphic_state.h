@@ -60,11 +60,12 @@ struct GraphicState
     virtual text   Vendor() = 0;
     virtual text   Renderer() = 0;
     virtual text   Version() = 0;
-    virtual uint   VendorID() = 0;
-    virtual bool   IsATIOpenGL() = 0;
     virtual coord* ModelViewMatrix() = 0;
     virtual coord* ProjectionMatrix() = 0;
     virtual int*   Viewport() = 0;
+    virtual void   Get(GLenum pname, GLboolean * params) = 0;
+    virtual void   Get(GLenum pname, GLfloat * params) = 0;
+    virtual void   Get(GLenum pname, GLint * params) = 0;
 
     // Matrix management
     virtual void   MatrixMode(GLenum mode) = 0;
@@ -128,6 +129,8 @@ struct GraphicState
     virtual void Bitmap(uint  width,  uint  height, coord  xorig,
                         coord  yorig,  coord  xmove, coord  ymove,
                         const uchar *  bitmap) = 0;
+    virtual void DrawPixels(GLsizei width, GLsizei height, GLenum format,
+                            GLenum type, const GLvoid *data) = 0;
 
     // Attributes management
     virtual void Viewport(int x, int y, int w, int h) = 0;
@@ -158,6 +161,14 @@ struct GraphicState
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref) = 0;
 
+    // Stencil
+    virtual void ClearStencil(GLint s) = 0;
+    virtual void StencilFunc(GLenum func, GLint ref, GLuint mask) = 0;
+    virtual void StencilOp(GLenum sfail, GLenum dpfail, GLenum dppass) = 0;
+
+    // Clipping plane
+    virtual void ClipPlane(GLenum plane, const GLdouble *equation) = 0;
+
     // Selection
     virtual int  RenderMode(GLenum mode) = 0;
     virtual void SelectBuffer(int size, uint* buffer) = 0;
@@ -179,11 +190,22 @@ struct GraphicState
     virtual void VertexAttrib4fv(uint id, const float *v) = 0;
 
     virtual int  GetUniformLocation(uint program, const char* name) = 0;
-    virtual void Uniform1i(uint id, int v) = 0;
+    virtual void Uniform(uint id, float v) = 0;
+    virtual void Uniform(uint id, float v0, float v1) = 0;
+    virtual void Uniform(uint id, float v0, float v1, float v2) = 0;
+    virtual void Uniform(uint id, float v0, float v1, float v2, float v3) = 0;
+    virtual void Uniform(uint id, int v) = 0;
+    virtual void Uniform(uint id, int v0, int v1) = 0;
+    virtual void Uniform(uint id, int v0, int v1, int v2) = 0;
+    virtual void Uniform(uint id, int v0, int v1, int v2, int v3) = 0;
     virtual void Uniform1fv(uint id, GLsizei size, const float* v) = 0;
     virtual void Uniform2fv(uint id, GLsizei size, const float* v) = 0;
     virtual void Uniform3fv(uint id, GLsizei size, const float* v) = 0;
     virtual void Uniform4fv(uint id, GLsizei size, const float* v) = 0;
+    virtual void Uniform1iv(uint id, GLsizei size, const int* v) = 0;
+    virtual void Uniform2iv(uint id, GLsizei size, const int* v) = 0;
+    virtual void Uniform3iv(uint id, GLsizei size, const int* v) = 0;
+    virtual void Uniform4iv(uint id, GLsizei size, const int* v) = 0;
     virtual void UniformMatrix2fv(uint id, GLsizei size,
                                   bool transp, const float* m) = 0;
     virtual void UniformMatrix3fv(uint id, GLsizei size,
@@ -197,8 +219,8 @@ struct GraphicState
     virtual void GenTextures(uint n, GLuint *  textures) = 0;
     virtual void DeleteTextures(uint n, GLuint *  textures) = 0;
     virtual void BindTexture(GLenum type, GLuint id) = 0;
-    virtual void TexParameteri(GLenum type, GLenum pname, GLint param) = 0;
-    virtual void TexEnvi(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexParameter(GLenum type, GLenum pname, GLint param) = 0;
+    virtual void TexEnv(GLenum type, GLenum pname, GLint param) = 0;
     virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
                             GLsizei width, GLsizei height, GLint border,
                             GLenum format, GLenum type,

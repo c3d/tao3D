@@ -109,11 +109,11 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
         cached = cache->bind(texture.id);
         if (cached)
         {
-            // Do not call glTexParameteri directly for min filter, because we
+            // Do not call GL.TexParameter directly for min filter, because we
             // need to deal with the case where minFilt would need mipmapping
             // but texture has no mipmap
             cache->setMinFilter(texture.id, texture.minFilt);
-            GL.TexParameteri(texture.type, GL_TEXTURE_MAG_FILTER,
+            GL.TexParameter(texture.type, GL_TEXTURE_MAG_FILTER,
                              texture.magFilt);
         }
     }
@@ -125,18 +125,18 @@ void Shape::bindTexture(TextureState& texture, bool hasPixelBlur)
             min = mag = GL_LINEAR;
         else
             min = mag = GL_NEAREST;
-        GL.TexParameteri(texture.type, GL_TEXTURE_MAG_FILTER, mag);
-        GL.TexParameteri(texture.type, GL_TEXTURE_MIN_FILTER, min);
+        GL.TexParameter(texture.type, GL_TEXTURE_MAG_FILTER, mag);
+        GL.TexParameter(texture.type, GL_TEXTURE_MIN_FILTER, min);
     }
-    GL.TexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
+    GL.TexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, texture.mode);
 
     // Wrap if texture 2D
     if(texture.type == GL_TEXTURE_2D)
     {
         GLuint wrapS = texture.wrapS ? GL_REPEAT : GL_CLAMP_TO_EDGE;
         GLuint wrapT = texture.wrapT ? GL_REPEAT : GL_CLAMP_TO_EDGE;
-        GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
-        GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
+        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, wrapS);
+        GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, wrapT);
     }
 
     if (TaoApp->hasGLMultisample)

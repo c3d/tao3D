@@ -269,6 +269,8 @@ struct OpenGLState : GraphicState
     static OpenGLState *State()        { return current; }
     void   MakeCurrent();
     void   Sync(ulonglong which);
+    uint   VendorID()               { return vendorID; }
+    bool   IsATIOpenGL()            { return vendorID == ATI; }
 
     // Saving and restoring state
     virtual GraphicSave *       Save();
@@ -285,11 +287,12 @@ struct OpenGLState : GraphicState
     virtual text   Vendor()                 { return vendor; }
     virtual text   Renderer()               { return renderer; }
     virtual text   Version()                { return version; }
-    virtual uint   VendorID()               { return vendorID; }
-    virtual bool   IsATIOpenGL()            { return vendorID == ATI; }
     virtual coord* ModelViewMatrix()        { return mvMatrix.Data(false); }
     virtual coord* ProjectionMatrix()       { return projMatrix.Data(false); }
     virtual int*   Viewport()               { return (int *) &viewport.x; }
+    virtual void   Get(GLenum pname, GLboolean * params);
+    virtual void   Get(GLenum pname, GLfloat * params);
+    virtual void   Get(GLenum pname, GLint * params);
 
     // Matrix management
     virtual void   MatrixMode(GLenum mode);
@@ -358,6 +361,8 @@ struct OpenGLState : GraphicState
     virtual void Bitmap(uint  width,  uint  height, coord  xorig,
                         coord  yorig,  coord  xmove, coord  ymove,
                         const uchar *  bitmap);
+    virtual void DrawPixels(GLsizei width, GLsizei height, GLenum format,
+                            GLenum type, const GLvoid *data);
 
 
     // Attributes management
@@ -389,6 +394,19 @@ struct OpenGLState : GraphicState
     // Alpha
     virtual void AlphaFunc(GLenum func, float ref);
 
+    // Stencil
+    virtual void ClearStencil(GLint s)     { glClearStencil(s); }
+    virtual void StencilFunc(GLenum func,
+                             GLint ref,
+                             GLuint mask)  { glStencilFunc(func, ref, mask); }
+    virtual void StencilOp(GLenum sfail,
+                           GLenum dpfail,
+                           GLenum dppass)  { glStencilOp(sfail, dpfail, dppass); }
+
+    // Clipping plane
+    virtual void ClipPlane(GLenum plane,
+                           const GLdouble *equation) { glClipPlane(plane, equation); }
+
     // Selection
     virtual int  RenderMode(GLenum mode);
     virtual void SelectBuffer(int size, uint* buffer);
@@ -403,32 +421,45 @@ struct OpenGLState : GraphicState
     virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
                                   GLsizei* size, GLenum* type, char *name);
 
+#define SYNC Sync(STATE_shaderProgram)
     virtual int  GetAttribLocation(uint program, const char* name);
-    virtual void VertexAttrib1fv(uint id, const float *v)      { glVertexAttrib1fv(id, v); }
-    virtual void VertexAttrib2fv(uint id, const float *v)      { glVertexAttrib2fv(id, v); }
-    virtual void VertexAttrib3fv(uint id, const float *v)      { glVertexAttrib3fv(id, v); }
-    virtual void VertexAttrib4fv(uint id, const float *v)      { glVertexAttrib4fv(id, v); }
+    virtual void VertexAttrib1fv(uint id, const float *v)      { SYNC; glVertexAttrib1fv(id, v); }
+    virtual void VertexAttrib2fv(uint id, const float *v)      { SYNC; glVertexAttrib2fv(id, v); }
+    virtual void VertexAttrib3fv(uint id, const float *v)      { SYNC; glVertexAttrib3fv(id, v); }
+    virtual void VertexAttrib4fv(uint id, const float *v)      { SYNC; glVertexAttrib4fv(id, v); }
 
     virtual int  GetUniformLocation(uint program, const char* name);
-    virtual void Uniform1i(uint id, int v)                     { glUniform1i(id, v); }
-    virtual void Uniform1fv(uint id, GLsizei size, const float* v) { glUniform1fv(id, size, v); }
-    virtual void Uniform2fv(uint id, GLsizei size, const float* v) { glUniform2fv(id, size, v); }
-    virtual void Uniform3fv(uint id, GLsizei size, const float* v) { glUniform3fv(id, size, v); }
-    virtual void Uniform4fv(uint id, GLsizei size, const float* v) { glUniform4fv(id, size, v); }
+    virtual void Uniform(uint id, float v)                                { SYNC; glUniform1f(id, v); }
+    virtual void Uniform(uint id, float v0, float v1)                     { SYNC; glUniform2f(id, v0, v1); }
+    virtual void Uniform(uint id, float v0, float v1, float v2)           { SYNC; glUniform3f(id, v0, v1, v2); }
+    virtual void Uniform(uint id, float v0, float v1, float v2, float v3) { SYNC; glUniform4f(id, v0, v1, v2, v3); }
+    virtual void Uniform(uint id, int v)                                  { SYNC; glUniform1i(id, v); }
+    virtual void Uniform(uint id, int v0, int v1)                         { SYNC; glUniform2i(id, v0, v1); }
+    virtual void Uniform(uint id, int v0, int v1, int v2)                 { SYNC; glUniform3i(id, v0, v1, v2); }
+    virtual void Uniform(uint id, int v0, int v1, int v2, int v3)         { SYNC; glUniform4i(id, v0, v1, v2, v3); }
+    virtual void Uniform1fv(uint id, GLsizei size, const float* v) { SYNC; glUniform1fv(id, size, v); }
+    virtual void Uniform2fv(uint id, GLsizei size, const float* v) { SYNC; glUniform2fv(id, size, v); }
+    virtual void Uniform3fv(uint id, GLsizei size, const float* v) { SYNC; glUniform3fv(id, size, v); }
+    virtual void Uniform4fv(uint id, GLsizei size, const float* v) { SYNC; glUniform4fv(id, size, v); }
+    virtual void Uniform1iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform1iv(id, size, v); }
+    virtual void Uniform2iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform2iv(id, size, v); }
+    virtual void Uniform3iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform3iv(id, size, v); }
+    virtual void Uniform4iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform4iv(id, size, v); }
     virtual void UniformMatrix2fv(uint id, GLsizei size,
-                                  bool transp, const float* m) { glUniformMatrix2fv(id, size, transp, m); }
+                                  bool transp, const float* m) { SYNC; glUniformMatrix2fv(id, size, transp, m); }
     virtual void UniformMatrix3fv(uint id, GLsizei size,
-                                  bool transp, const float* m) { glUniformMatrix3fv(id, size, transp, m); }
+                                  bool transp, const float* m) { SYNC; glUniformMatrix3fv(id, size, transp, m); }
     virtual void UniformMatrix4fv(uint id, GLsizei size,
-                                  bool transp, const float* m) { glUniformMatrix4fv(id, size, transp, m); }
+                                  bool transp, const float* m) { SYNC; glUniformMatrix4fv(id, size, transp, m); }
+#undef SYNC
 
     // Textures
     virtual void ActiveTexture(GLenum id);
     virtual void GenTextures(uint n, GLuint *  textures);
     virtual void DeleteTextures(uint n, GLuint *  textures);
     virtual void BindTexture(GLenum type, GLuint id);
-    virtual void TexParameteri(GLenum type, GLenum pname, GLint param);
-    virtual void TexEnvi(GLenum type, GLenum pname, GLint param);
+    virtual void TexParameter(GLenum type, GLenum pname, GLint param);
+    virtual void TexEnv(GLenum type, GLenum pname, GLint param);
     virtual void TexImage2D(GLenum target, GLint level, GLint internalformat,
                             GLsizei width, GLsizei height, GLint border,
                             GLenum format, GLenum type,
@@ -442,6 +473,15 @@ struct OpenGLState : GraphicState
     // Lighting
     void SetLight(GLenum light, bool active);
     virtual void Light(GLenum light, GLenum pname, const float* params);
+
+public:
+#define GS(type, name)                          \
+    inline void SetCached_##name(type name)     \
+    {                                           \
+        this->name = name;                      \
+        name##_isDirty = false;                 \
+    }
+#include "opengl_state.tbl"
 
 public:
 #define GS(type, name)                          \

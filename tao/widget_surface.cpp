@@ -145,8 +145,8 @@ GLuint WidgetSurface::bind ()
 
     // Bind the texture that we got
     GL.BindTexture(GL_TEXTURE_2D, textureId);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    GL.TexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     GL.Enable(GL_TEXTURE_2D);
     if (TaoApp->hasGLMultisample)
         GL.Enable(GL_MULTISAMPLE);

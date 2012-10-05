@@ -183,9 +183,9 @@ OpenGLState::OpenGLState()
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
 
-    // As we don't known if GL context is single or double buffered,
-    // we initialize bufferMode to 0
-    bufferMode = 0;
+    // We never use single buffered contexts, so the OpenGL default is
+    // always GL_BACK
+    bufferMode = GL_BACK;
 
     if (maxTextureUnits > MAX_TEXTURE_UNITS)
         maxTextureUnits = MAX_TEXTURE_UNITS;
@@ -424,6 +424,44 @@ void OpenGLState::Sync(ulonglong which)
          glMaterialf(GL_BACK, GL_SHININESS, backShininess));
 
 #undef SYNC
+}
+
+
+
+// ============================================================================
+//
+//                        State query functions
+//
+// ============================================================================
+
+void OpenGLState::Get(GLenum pname, GLboolean * params)
+// ----------------------------------------------------------------------------
+//    Return the value or values of a selected parameter
+// ----------------------------------------------------------------------------
+{
+    // REVISIT read known states from cache
+    Sync();
+    glGetBooleanv(pname, params);
+}
+
+void OpenGLState::Get(GLenum pname, GLfloat * params)
+// ----------------------------------------------------------------------------
+//    Return the value or values of a selected parameter
+// ----------------------------------------------------------------------------
+{
+    // REVISIT read known states from cache
+    Sync();
+    glGetFloatv(pname, params);
+}
+
+void OpenGLState::Get(GLenum pname, GLint * params)
+// ----------------------------------------------------------------------------
+//    Return the value or values of a selected parameter
+// ----------------------------------------------------------------------------
+{
+    // REVISIT read known states from cache
+    Sync();
+    glGetIntegerv(pname, params);
 }
 
 
@@ -917,7 +955,7 @@ void OpenGLState::Begin(GLenum mode)
 //    Delimit the vertices of a primitive or a group of like primitives
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync();
     glBegin(mode);
 }
 
@@ -927,7 +965,6 @@ void OpenGLState::End()
 //    Delimit the vertices of a primitive or a group of like primitives
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glEnd();
 }
 
@@ -937,7 +974,6 @@ void OpenGLState::Vertex(coord x, coord y, coord z, coord w)
 //    Specify a vertex within Begin/End
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glVertex4d(x, y, z, w);
 }
 
@@ -947,7 +983,6 @@ void OpenGLState::Vertex3v(const coord *array)
 //    Specify a set of vertices
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glVertex3dv(array);
 }
 
@@ -957,7 +992,6 @@ void OpenGLState::Normal(coord nx, coord ny, coord nz)
 //    Specify a normal within Begin/End
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glNormal3d(nx, ny, nz);
 }
 
@@ -967,7 +1001,6 @@ void OpenGLState::TexCoord(coord s, coord t)
 //    Specify a texture coordinate within Begin/End
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glTexCoord2d(s, t);
 }
 
@@ -977,7 +1010,6 @@ void OpenGLState::MultiTexCoord3v(GLenum target, const coord *array)
 //    Specify the coordinate of a texture unit
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glMultiTexCoord3dv(target, array);
 }
 
@@ -1031,7 +1063,7 @@ void OpenGLState::DrawArrays(GLenum mode, int first, int count)
 //    Render primitives from array data
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync();
     glDrawArrays(mode, first, count);
 }
 
@@ -1042,7 +1074,6 @@ void OpenGLState::VertexPointer(int size, GLenum type,
 //    Define an array of vertex data
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glVertexPointer(size, type, stride, pointer);
 }
 
@@ -1052,7 +1083,6 @@ void OpenGLState::NormalPointer(GLenum type, int stride, const void* pointer)
 //    Define an array of normal data
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glNormalPointer(type, stride, pointer);
 }
 
@@ -1063,7 +1093,6 @@ void OpenGLState::TexCoordPointer(int size, GLenum type,
 //    Define an array of texture coordinates
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glTexCoordPointer(size, type, stride, pointer);
 }
 
@@ -1074,7 +1103,6 @@ void OpenGLState::ColorPointer(int size, GLenum type,
 //    Define an array of color data
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glColorPointer(size, type, stride, pointer);
 }
 
@@ -1084,7 +1112,8 @@ void OpenGLState::NewList(uint list, GLenum mode)
 //    Create a display list
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    // Avoid storing operations flushed from the cache into the new list
+    Sync();
     glNewList(list, mode);
 }
 
@@ -1094,7 +1123,6 @@ void OpenGLState::EndList()
 //    Replace a display list
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glEndList();
 }
 
@@ -1104,7 +1132,6 @@ uint OpenGLState::GenLists(uint range)
 //    Generate a contiguous set of empty display lists
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     return glGenLists(range);
 }
 
@@ -1114,7 +1141,6 @@ void OpenGLState::DeleteLists(uint list, uint range)
 //    Delete a contiguous group of display lists
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glDeleteLists(list, range);
 }
 
@@ -1124,7 +1150,7 @@ void OpenGLState::CallList(uint list)
 //    Execute a display list
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync();
     glCallList(list);
 }
 
@@ -1134,7 +1160,7 @@ void OpenGLState::CallLists(uint size, GLenum type, const void *pointer)
 //    Execute a list of display lists
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync();
     glCallLists(size, type, pointer);
 }
 
@@ -1155,10 +1181,19 @@ void OpenGLState::Bitmap(uint  width,  uint  height, coord  xorig,
 //    Draw a bitmap
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glBitmap(width, height, xorig, yorig, xmove, ymove, bitmap);
 }
 
+
+void OpenGLState::DrawPixels(GLsizei width, GLsizei height, GLenum format,
+                             GLenum type, const GLvoid *data)
+// ----------------------------------------------------------------------------
+//   Write a block of pixels to the frame buffer
+// ----------------------------------------------------------------------------
+{
+    Sync();
+    glDrawPixels(width, height, format, type, data);
+}
 
 
 // ============================================================================
@@ -1186,6 +1221,7 @@ void OpenGLState::RasterPos(coord x, coord y, coord z, coord w)
     // Not optimised because depending of too much
     // settings (modelview and proj matrices, viewport, etc.) and
     // not often used in Tao.
+    Sync();
     glRasterPos4d(x, y, z, w);
 }
 
@@ -1200,6 +1236,7 @@ void OpenGLState::WindowPos(coord x, coord y, coord z, coord w)
     // Not optimised because depending of too much
     // settings (modelview and proj matrices, viewport, etc.) and
     // not often used in Tao.
+    Sync();
     glWindowPos3d(x, y, z);
 }
 
@@ -1209,7 +1246,6 @@ void OpenGLState::PixelStorei(GLenum pname,  int param)
 //    Set pixel storage modes
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glPixelStorei(pname, param);
 }
 
@@ -1542,7 +1578,6 @@ void OpenGLState::SelectBuffer(int size, uint* buffer)
 //   Establish a buffer for selection mode values
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glSelectBuffer(size, buffer);
 }
 
@@ -1608,7 +1643,7 @@ void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
 //   Returns a parameter from a program object
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync(STATE_shaderProgram);
     glGetProgramiv(prg, pname, params);
 }
 
@@ -1620,7 +1655,7 @@ void OpenGLState::GetActiveUniform(uint prg, uint id,
 //   Returns information about an active uniform variable
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync(STATE_shaderProgram);
     glGetActiveUniform(prg, id, bufSize, length, size, type, name);
 }
 
@@ -1630,7 +1665,7 @@ int OpenGLState::GetAttribLocation(uint program, const char* name)
 //   Returns the location of an attribute variable
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync(STATE_shaderProgram);
     return glGetAttribLocation(program, name);
 }
 
@@ -1640,7 +1675,7 @@ int OpenGLState::GetUniformLocation(uint program, const char* name)
 //   Returns the location of a uniform variable
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
+    Sync(STATE_shaderProgram);
     return glGetUniformLocation(program, name);
 }
 
@@ -1681,8 +1716,7 @@ void OpenGLState::GenTextures(uint n, GLuint *  textures)
 //   Generate texture names
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
-    return glGenTextures(n, textures);
+    glGenTextures(n, textures);
 }
 
 
@@ -1691,7 +1725,6 @@ void OpenGLState::DeleteTextures(uint n, GLuint *  textures)
 //   Delete named textures
 // ----------------------------------------------------------------------------
 {
-    // Not need to be optimised
     glDeleteTextures(n, textures);
 }
 
@@ -1707,7 +1740,7 @@ void OpenGLState::BindTexture(GLenum type, GLuint texture)
 }
 
 
-void OpenGLState::TexParameteri(GLenum type, GLenum pname, GLint param)
+void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
 // ----------------------------------------------------------------------------
 //   Change parameters for a texture
 // ----------------------------------------------------------------------------
@@ -1738,7 +1771,7 @@ void OpenGLState::TexParameteri(GLenum type, GLenum pname, GLint param)
 }
 
 
-void OpenGLState::TexEnvi(GLenum type, GLenum pname, GLint param)
+void OpenGLState::TexEnv(GLenum type, GLenum pname, GLint param)
 // ----------------------------------------------------------------------------
 //   Change environment for a texture
 // ----------------------------------------------------------------------------
@@ -2061,8 +2094,8 @@ TextureState::TextureState()
 // ----------------------------------------------------------------------------
   : type(GL_TEXTURE_2D), mode(GL_MODULATE),
     unit(0), id(0), width(0), height(0),
-    minFilt(TextureCache::instance()->minFilter()),
-    magFilt(TextureCache::instance()->magFilter()),
+    minFilt(GL_NEAREST_MIPMAP_LINEAR),
+    magFilt(GL_LINEAR),
     matrix(),
     active(false),
     wrapS(true), wrapT(true), wrapR(true),

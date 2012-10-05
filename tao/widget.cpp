@@ -9822,6 +9822,7 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
@@ -9902,6 +9903,7 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QRadialGradient(center_x, center_y, radius);
@@ -9982,6 +9984,7 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QConicalGradient(center_x, center_y, angle);
@@ -10014,7 +10017,6 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     layout->hasAttributes = true;
 
     glPopAttrib();
-
     return new Integer(texId, self->Position());
 }
 

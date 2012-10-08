@@ -116,7 +116,7 @@ page "Mobile",
         mobile_nobullet 6,
             color "white"
             image 850,0,0.5,0.5, "maldives.jpg"
-        mobile_bullet 6, text "Les îles Maldives" en "Maldive ilands"
+        mobile_bullet 6, text "Les îles Maldives" en "Maldive islands"
         mobile_nobullet 7,
             color "white"
             image 400,100,0.5,0.5, "madrid.jpg"

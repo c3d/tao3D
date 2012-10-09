@@ -255,8 +255,7 @@ public:
     void        printStatistics();
     void        logStatistics();
     bool        hasAnimations(void)     { return animated; }
-    void        resetTimes()            { pageStartTime = startTime
-                                          = frozenTime = CurrentTime(); }
+    void        resetTimes();
 
     // Selection
     GLuint      shapeId()               { return ++id; }
@@ -345,7 +344,7 @@ public:
 
     // XLR entry points
 
-    // Getting attributes
+    // Page definition and attributes
     Text_p      page(Context *context, text name, Tree_p body);
     Text_p      pageLink(Tree_p self, text key, text name);
     Real_p      pageSetPrintTime(Tree_p self, double t);
@@ -356,6 +355,17 @@ public:
     Text_p      pageNameAtIndex(Tree_p self, uint index);
     Real_p      pageWidth(Tree_p self);
     Real_p      pageHeight(Tree_p self);
+
+    // Transitions
+    Tree_p      transition(Context *, Tree_p self, double dur, Tree_p body);
+    Real_p      transitionTime(Tree_p self);
+    Real_p      transitionDuration(Tree_p self);
+    Real_p      transitionRatio(Tree_p self);
+    Tree_p      transitionCurrentPage(Context *, Tree_p self);
+    Tree_p      transitionNextPage(Context *, Tree_p self);
+    Tree_p      runTransition(Context *);
+
+    // Frame definition and transitions
     Real_p      frameWidth(Tree_p self);
     Real_p      frameHeight(Tree_p self);
     Real_p      frameDepth(Tree_p self);
@@ -915,11 +925,13 @@ private:
     scale                 pageW, pageH, blurFactor;
     text                  currentFlowName;
     flow_map              flows;
-    text                  pageName, lastPageName, gotoPageName;
+    text                  pageName, lastPageName;
+    text                  gotoPageName, transitionPageName;
     page_map              pageLinks;
     page_list             pageNames, newPageNames;
     uint                  pageId, pageFound, pageShown, pageTotal, pageToPrint;
-    Tree_p                pageTree;
+    Tree_p                pageTree, transitionTree;
+    double                transitionStartTime, transitionDurationValue;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
     QGLShaderProgram *    currentShaderProgram;
@@ -1042,6 +1054,8 @@ private:
 
     void                  refreshOn(int type,
                                     double nextRefresh = DBL_MAX);
+    void                  commitPageChange(bool afterTransition);
+
 public:
     static bool           refreshOnAPI(int event_type, double next_refresh);
     static double         currentTimeAPI();

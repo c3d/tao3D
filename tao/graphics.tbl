@@ -68,6 +68,34 @@ PREFIX(GotoPage,  text,  "goto_page",
        SYNOPSIS("Directly go to the given page.")
        DESCRIPTION("Directly go to the given page.")
        RETURNS(text, "The name of the previously shown page."))
+
+PREFIX(Transition, tree, "transition",
+       PARM(duration, real, "Duration of the transition")
+       PARM(body, code, "Code evaluating the transition"),
+       RTAO(transition(context, self, duration, body)),
+       GROUP(page)
+       SYNOPSIS("Implement a transition when exiting from current page"))
+PREFIX(TransitionTime, real, "transition_time", ,
+       RTAO(transitionTime(self)),
+       GROUP(page)
+       SYNOPSIS("Return the time since we began current transition"))
+PREFIX(TransitionDuration, real, "transition_duration", ,
+       RTAO(transitionDuration(self)),
+       GROUP(page)
+       SYNOPSIS("Return the duration of current transition"))
+PREFIX(TransitionRatio, real, "transition_ratio", ,
+       RTAO(transitionRatio(self)),
+       GROUP(page)
+       SYNOPSIS("Return the ratio of execution for current transition"))
+PREFIX(TransitionCurrentPage, tree, "transition_current_page",,
+       RTAO(transitionCurrentPage(context, self)),
+       GROUP(page)
+       SYNOPSIS("Evaluate the current page in a transition"))
+PREFIX(TransitionNextPage, tree, "transition_next_page",,
+       RTAO(transitionNextPage(context, self)),
+       GROUP(page)
+       SYNOPSIS("Evaluate the next page in a transition"))
+
 PREFIX(PageLabel,    text,      "page_label", , RTAO(pageLabel(self)),
        GROUP(page)
        SYNOPSIS("The current page name.")

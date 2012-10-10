@@ -23,7 +23,7 @@
 TAO_BEGIN
 
 // Declare all the stacks we use
-#define GS(type, name)          std::vector<type> OpenGLSave::name##_stack;
+#define GS(type, name)          OpenGLChanges<type> OpenGLSave::name##_changes;
 #include "opengl_state.tbl"
 
 TAO_END

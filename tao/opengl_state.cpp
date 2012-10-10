@@ -129,7 +129,7 @@ OpenGLState::OpenGLState()
     : GraphicState(),
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
-      currentUnit(NULL), matrixMode(GL_MODELVIEW),
+      matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0), listBase(0), pointSize(1),
       color(1,1,1,1), clearColor(0,0,0,1),
       frontAmbient(0,0,0,0), frontDiffuse(0,0,0,0),
@@ -189,10 +189,6 @@ OpenGLState::OpenGLState()
 
     if (maxTextureUnits > MAX_TEXTURE_UNITS)
         maxTextureUnits = MAX_TEXTURE_UNITS;
-
-    // Initialize texture unit 0
-    textures.textures.push_back(TextureState());
-    currentUnit = &textures.textures[0];
 }
 
 
@@ -303,6 +299,10 @@ void OpenGLState::Sync(ulonglong which)
     if (!needSync)
         return;
 
+    // Some texture-related Sync() methods depend on a clean state
+    if (which & STATE_textureUnits)
+        which |= STATE_activeTexture;
+
     bool traceErrors = XLTRACE(glerrors);
 #define SYNC(name, Code)                                \
     do                                                  \
@@ -316,10 +316,18 @@ void OpenGLState::Sync(ulonglong which)
         }                                               \
     } while(0)
 
-    GLenum mmode = matrixMode;
+    // Current texture unit, then texture bindings
+    // ORDER MATTERS
+    SYNC(activeTexture,
+         glActiveTexture(activeTexture));
+    SYNC(textureUnits,
+         currentTextureUnits.Sync(textureUnits));
+    // REVISIT
     SYNC(textures,
          currentTextures.Sync(textures);
          matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
+
+    GLenum mmode = matrixMode;
     SYNC(mvMatrix,
          if (matrixMode_isDirty || mmode != GL_MODELVIEW)
          {
@@ -1444,9 +1452,8 @@ void OpenGLState::Enable(GLenum cap)
     case GL_TEXTURE_2D:
     case GL_TEXTURE_3D:
     {
-        TextureState &ts = ActiveTexture();
-        ts.type = cap;
-        ts.active = true;
+        TextureUnitState &st = ActiveTextureUnit();
+        st.Set(cap, true);
         break;
     }
     case GL_LIGHT0:
@@ -1485,9 +1492,8 @@ void OpenGLState::Disable(GLenum cap)
     case GL_TEXTURE_2D:
     case GL_TEXTURE_3D:
     {
-        TextureState &ts = ActiveTexture();
-        ts.type = cap;
-        ts.active = false;
+        TextureUnitState &st = ActiveTextureUnit();
+        st.Set(cap, true);
         break;
     }
     case GL_LIGHT0:
@@ -1697,17 +1703,27 @@ void OpenGLState::ActiveTexture(GLenum active)
 }
 
 
+TextureUnitState &OpenGLState::ActiveTextureUnit()
+// ----------------------------------------------------------------------------
+//    Return the state of the active texture unit
+// ----------------------------------------------------------------------------
+{
+    if (activeTexture >= textureUnits.units.size())
+        textureUnits.units.resize(activeTexture + 1);
+    return textureUnits.units[activeTexture];
+}
+
+
 TextureState &OpenGLState::ActiveTexture()
 // ----------------------------------------------------------------------------
 //    Return the current active texture
 // ----------------------------------------------------------------------------
 {
-    if (activeTexture >= textures.textures.size())
-        textures.textures.resize(activeTexture + 1);
-    textures.dirty |= 1ULL << activeTexture;
-    SAVE(textures);
     textures_isDirty = true;
-    return textures.textures[activeTexture];
+    GLuint bound = ActiveTextureUnit().texture;
+    TextureState &st = textures.textures[bound];
+    // TODO: mark that 'st' is dirty, somewhere
+    return st;
 }
 
 
@@ -1734,6 +1750,7 @@ void OpenGLState::BindTexture(GLenum type, GLuint texture)
 //   Bind a texture on the current texture unit
 // ----------------------------------------------------------------------------
 {
+    textureUnits.dirty |= 1ULL << activeTexture;
     TextureState &ts = ActiveTexture();
     ts.type = type;
     ts.id = texture;
@@ -2096,17 +2113,83 @@ void LightsState::Sync(LightsState &nl)
 
 
 // ============================================================================
+//
+//    TextureUnitsState class
+//
+// ============================================================================
+
+void TextureUnitsState::Sync(TextureUnitsState &ns)
+// ----------------------------------------------------------------------------
+//   Sync with a new texture unit state
+// ----------------------------------------------------------------------------
+{
+    uint max = units.size();
+    uint nmax = ns.units.size();
+    ulonglong dirty = ns.dirty;
+
+    if (nmax > max)
+        units.resize(nmax);
+
+    bool changed = false;
+    for (uint u = 0; u < nmax; u++)
+    {
+        if (dirty & (1ULL<<u))
+        {
+            // REVISIT: move to TextureUnitState::Sync(TextureUnitState &ns)?
+
+            TextureUnitState &oldu = units[u];
+            TextureUnitState &newu = ns.units[u];
+
+            GLint id = newu.texture;
+            TextureState & ts = GL.textures.textures[id];
+            Q_ASSERT(id = ts.id);
+
+            glActiveTexture(GL_TEXTURE0 + u);
+
+            if (oldu.texture != newu.texture)
+                glBindTexture(ts.type , newu.texture);
+
+#define SYNC_CAP(cap, state)                    \
+            if (oldu.state != newu.state)       \
+            {                                   \
+                if (newu.state)                 \
+                    glEnable(cap);              \
+                else                            \
+                    glDisable(cap);             \
+            }
+            SYNC_CAP(GL_TEXTURE_1D, tex1D);
+            SYNC_CAP(GL_TEXTURE_2D, tex2D);
+            SYNC_CAP(GL_TEXTURE_3D, tex3D);
+#undef SYNC_CAP
+
+            units[u] = newu;
+            changed = true;
+        }
+    }
+
+    ns.dirty = 0;
+    if (changed)
+    {
+        // Must not return with an active texture unit that is different from
+        // the one that was already synchronized in OpenGLState::Sync()
+        glActiveTexture(GL.activeTexture);
+    }
+}
+
+
+
+// ============================================================================
 // 
 //    TextureState class
 // 
 // ============================================================================
 
-TextureState::TextureState()
+TextureState::TextureState(GLuint id)
 // ----------------------------------------------------------------------------
 //   Initialize a texture state
 // ----------------------------------------------------------------------------
   : type(GL_TEXTURE_2D), mode(GL_MODULATE),
-    unit(0), id(0), width(0), height(0),
+    unit(0), id(id), width(0), height(0),
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     matrix(),
@@ -2116,13 +2199,13 @@ TextureState::TextureState()
 {}
 
 
-void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
+bool TextureState::Sync(const TextureState &ts)
 // ----------------------------------------------------------------------------
 //   Sync a texture state with a new value
 // ----------------------------------------------------------------------------
 {
-    if (force || *this != ts)
-        glActiveTexture(GL_TEXTURE0 + unit);
+    bool force = (id == 0);
+
     bool traceErrors = XLTRACE(glerrors);
 
 #define SYNC_TEXTURE(name, Code)                \
@@ -2137,8 +2220,10 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
         }                                       \
     } while(0)
 
+    bool changed = false;
     if (force || type != ts.type || id != ts.id)
     {
+        changed = true;
         glBindTexture(ts.type, ts.id);
         type = ts.type;
         id = ts.id;
@@ -2166,100 +2251,54 @@ void TextureState::Sync(GLuint unit, const TextureState &ts, bool force)
                                  wrapR ? GL_REPEAT : GL_CLAMP_TO_EDGE));
 
 #undef SYNC_TEXTURE
+
+    return changed;
 }
 
 
-TexturesState &TexturesState::operator=(const TexturesState &o)
+TexturesState &TexturesState::operator=(const TexturesState &/*o*/)
 // ----------------------------------------------------------------------------
-//    Copy a texture state
+//    TODO
 // ----------------------------------------------------------------------------
 {
-    uint max = textures.size();
-    uint omax = o.textures.size();
-    ulonglong d = 0;
-
-    // Compare all the texture states we write to mark changed ones as dirty
-    uint tmax = max < omax ? max : omax;
-    for (uint t = 0; t < tmax; t++)
-    {
-        if (textures[t] != o.textures[t])
-            d |= 1ULL << t;
-        textures[t] = o.textures[t];
-    }
-
-    // Check if number of textures changed
-    if (omax < max)
-    {
-        // Number of textures diminished, truncate my textures to match
-        textures.resize(omax);
-    }
-    else if (omax > max)
-    {
-        // Number of textures increased, append new textures and mark dirty
-        for (uint t = max; t < omax; t++)
-        {
-            const TextureState &ts = o.textures[t];
-            textures.push_back(ts);
-            d |= 1ULL << t;
-        }
-    }
-
-    dirty = d;
     return *this;
 }
 
 
 void TexturesState::Sync(TexturesState &nt)
 // ----------------------------------------------------------------------------
-//   Sync with a new texture state
+//   Sync with a new texture state. nt contains only the changed textures.
 // ----------------------------------------------------------------------------
 {
-    uint max = textures.size();
-    uint nmax = nt.textures.size();
-    ulonglong dirty = nt.dirty;
-
     // Quick bail out if nothing to do
-    if (dirty == 0 && max == nmax)
+    if (nt.textures.empty())
         return;
-
-    // Synchronize all textures that are common between the two states
-    uint tmax = max < nmax ? max : nmax;
-    for (uint t = 0; t < tmax; t++)
+    bool changed = false;
+    TexturesState::texture_map::iterator it;
+    for (it = nt.textures.begin(); it != nt.textures.end(); it++)
     {
-        if (dirty & (1ULL<<t))
+        TextureState &n = (*it).second;
+        if (n.id != 0)
         {
-            TextureState &ts = textures[t];
-            TextureState &nts = nt.textures[t];
-            ts.Sync(t, nts);
+            TextureState &old = textures[n.id];
+            changed |= old.Sync(n);
+        }
+        else
+        {
+            // Texture was deleted
+            Q_ASSERT(textures.count(n.id));
+            textures.erase(n.id);
+            glDeleteTextures(1, &n.id);
         }
     }
+    nt.textures.clear();
 
-    // Check if number of textures changed
-    if (nmax < max)
+    if (changed)
     {
-        // Number of textures decreased, deactivate extra textures
-        for (uint t = nmax; t < max; t++)
-        {
-            TextureState &ts = textures[t];
-            glActiveTexture(GL_TEXTURE0 + t);
-            glBindTexture(ts.type, 0);
-            glDisable(ts.type);
-        }
-        textures.resize(nmax);
+        // Restore
+        TextureState &as = GL.ActiveTexture();
+        glBindTexture(as.type, as.id);
     }
-    else if (nmax > max)
-    {
-        // Number of textures increased, activate extra textures
-        for (uint t = max; t < nmax; t++)
-        {
-            TextureState &nts = nt.textures[t];
-            textures.push_back(nts);
-            TextureState &ts = textures.back();
-            ts.Sync(t, nts, true);
-        }
-    }
-
-    nt.dirty = 0;
 }
 
 TAO_END

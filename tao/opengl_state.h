@@ -127,7 +127,7 @@ struct TextureState
 //   The state of a single texture (single texture unit)
 // ----------------------------------------------------------------------------
 {
-    TextureState();
+    TextureState(GLuint id = 0);
     bool operator ==(const TextureState &o)
     {
         return (type == o.type && mode == o.mode && id == o.id &&
@@ -139,7 +139,7 @@ struct TextureState
                 mipmap == o.mipmap);
     }
     bool operator!=(const TextureState &o) { return !operator==(o); }
-    void Sync(GLuint unit, const TextureState &newState, bool force = false);
+    bool Sync(const TextureState &newState);
 
 public:
     GLenum      type, mode;
@@ -155,30 +155,84 @@ public:
 };
 
 
-#define MAX_TEXTURE_UNITS 64
-struct TexturesState
+struct TextureUnitState
 // ----------------------------------------------------------------------------
-//    The state of all textures on all texture units
+//    The state of a simgle texture unit
 // ----------------------------------------------------------------------------
 {
-    TexturesState(): dirty(~0ULL), textures() {}
-    bool operator==(const TexturesState &o)
+    TextureUnitState(): tex1D(false), tex2D(false), tex3D(false) {}
+
+    void Set(GLenum cap, bool enabled)
     {
-        uint max = textures.size();
-        if (max != o.textures.size())
+        switch (cap)
+        {
+        case GL_TEXTURE_1D:   tex1D = enabled; break;
+        case GL_TEXTURE_2D:   tex2D = enabled; break;
+        case GL_TEXTURE_3D:   tex3D = enabled; break;
+        default:              Q_ASSERT(!"Invalid enum");
+        }
+    }
+
+    bool operator==(const TextureUnitState &o)
+    {
+        return texture == o.texture &&
+               tex1D   == o.tex1D   &&
+               tex2D   == o.tex1D   &&
+               tex3D   == o.tex1D;
+    }
+    bool operator!=(const TextureUnitState &o) { return !operator==(o); }
+
+    GLuint texture;
+    bool   tex1D : 1;
+    bool   tex2D : 1;
+    bool   tex3D : 1;
+};
+
+
+#define MAX_TEXTURE_UNITS 64
+struct TextureUnitsState
+// ----------------------------------------------------------------------------
+//    Texture bindings for all texture units
+// ----------------------------------------------------------------------------
+{
+    TextureUnitsState(): dirty(~0ULL), units() {}
+    bool operator==(const TextureUnitsState &o)
+    {
+        uint max = units.size();
+        if (max != o.units.size())
             return false;
         for (uint i = 0; i < max; i++)
-            if (textures[i] != o.textures[i])
+            if (units[i] != o.units[i])
                 return false;
         return true;
     }
-    bool operator!=(const TexturesState &o) { return !operator==(o); }
+    bool operator!=(const TextureUnitsState &o) { return !operator==(o); }
+
+    void Sync(TextureUnitsState &ns);
+
+public:
+    ulonglong                       dirty;
+    std::vector<TextureUnitState>   units;
+};
+
+
+struct TexturesState
+// ----------------------------------------------------------------------------
+//    The state of all textures
+// ----------------------------------------------------------------------------
+{
+    TexturesState(): textures() { textures[0] = TextureState(); }
+//    bool operator==(const TexturesState &o)
+//    {
+//        // TODO
+//    }
+//    bool operator!=(const TexturesState &o) { return !operator==(o); }
     TexturesState &operator=(const TexturesState &o);
     void Sync(TexturesState &newState);
 
 public:
-    ulonglong dirty;
-    std::vector<TextureState>   textures;
+    typedef std::map<GLuint, TextureState> texture_map;
+    texture_map textures;
 };
 
 
@@ -504,7 +558,7 @@ public:
     static GLuint maxTextureCoords, maxTextureUnits;
     static text   vendor, renderer, version, extensionsAvailable;
     TexturesState currentTextures;
-    TextureState *currentUnit;
+    TextureUnitsState currentTextureUnits;
     LightsState   currentLights;
 
 #define GS(type, name)                          \
@@ -519,13 +573,16 @@ public:
     static text          vendorsList[LAST_VENDOR];
     static uint ShowErrors(kstring msg = NULL);
 
+public:
+    TextureUnitState &ActiveTextureUnit();
+    // Return the current texture state
+    TextureState &ActiveTexture();
+
 private:
     // Structure used to push/pop state
     friend class OpenGLSave;
     OpenGLSave *save;
-
-    // Return the current texture state and texture matrix
-    TextureState &ActiveTexture();
+    // Return the current texture matrix
     Matrix4&    TextureMatrix()
     {
         return ActiveTexture().matrix;

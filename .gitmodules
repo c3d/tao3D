@@ -7,3 +7,6 @@
 [submodule "help_viewer"]
 	path = help_viewer
 	url = git://gitorious.org/taodyne-open-source/tao_help_viewer.git
+[submodule "modules/chroma_key"]
+	path = modules/chroma_key
+	url = git://gitorious.org/tao-presentation-modules/chroma_key.git

@@ -2356,11 +2356,8 @@ void Widget::setupGL()
 {
     // Setup other
     GL.Enable(GL_BLEND);
-    if (inOfflineRendering)
-        GL.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                             GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    else
-        GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    GL.BlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                         GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     GL.DepthFunc(GL_LEQUAL);
     GL.Enable(GL_DEPTH_TEST);
     GL.Enable(GL_LINE_SMOOTH);

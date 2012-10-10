@@ -2348,11 +2348,8 @@ void Widget::setupGL()
 {
     // Setup other
     glEnable(GL_BLEND);
-    if (inOfflineRendering)
-        glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
-                            GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
-    else
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glBlendFuncSeparate(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA,
+                        GL_ONE, GL_ONE_MINUS_SRC_ALPHA);
     glDepthFunc(GL_LEQUAL);
     glEnable(GL_DEPTH_TEST);
     glEnable(GL_LINE_SMOOTH);

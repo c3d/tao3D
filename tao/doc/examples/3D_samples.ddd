@@ -32,13 +32,13 @@ axes ->
         translatez 200
         text "Z"
 
-    color "black" 
-    line_color "black" 
-    point 0, 0, 1, 5 
-    line_width 1 
+    color "black"
+    line_color "black"
+    point 0, 0, 1, 5
+    line_width 1
     locally
         translate 10, 15, 0
-        text "(x, y, z)" 
+        text "(x, y, z)"
 
 
 line_width 1
@@ -50,6 +50,14 @@ page "spere",
     color "tao_yellow"
     line_color "tao_orange"
     sphere 0, 0, 0, 250, 250, 250, 40, 40
+
+page "torus",
+    rotatex 25
+    rotatey -25
+    axes
+    color "tao_yellow"
+    line_color "tao_orange"
+    torus 0, 0, 0, 250, 250, 250, 40, 40, 0.5
 
 page "cone",
     rotatex -45

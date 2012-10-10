@@ -2181,7 +2181,9 @@ sphere (d:real);
  * tranches verticales. Plus ces paramètres ont une valeur élevée et plus le
  * tore apparait lisse (mais plus il demande du temps pour s'afficher).
  * Le petit diamètre du tore est un rapport @p r de son grand diamètre.
+ * @~
  * @p r est compris entre 0.0 et 1.0.
+ * @image html torus.png
  */
 torus (x:real, y:real, z:real, w:real, h:real, d:real, slices:integer, stacks:integer, r:real);
 

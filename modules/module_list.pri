@@ -46,7 +46,8 @@
        network_access \
        water_surface \
        remote_control \
-       regexp
+       regexp \
+       chroma_key
 
     OTHER_MODULES =     \
         dip_voting \

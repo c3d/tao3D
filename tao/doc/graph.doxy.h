@@ -1255,26 +1255,26 @@ texture_transform (body:tree);
  * @~english
  * Texture wrapping.
  * Controls the wrapping of the texture along @c S and @c T axis.
- * When @param s is @c true, @c GL_TEXTURE_WRAP_S is set to @c GL_REPEAT@,
- * otherwise @c GL_CLAMP_TO_EDGE is used. The same goes for @param t which
+ * When @p s is @c true, @c GL_TEXTURE_WRAP_S is set to @c GL_REPEAT,
+ * otherwise @c GL_CLAMP_TO_EDGE is used. The same goes for @p t which
  * controls @c GL_TEXTURE_WRAP_T.
- * @param s is the pre-transformation horizontal axis (like X).
- * @param t is the pre-transformation vertical axis (like Y).
+ * @param s true to activate GL_TEXTURE_WRAP_S.
+ * @param t true to activate GL_TEXTURE_WRAP_T.
  *
  * Default values are false, false.
- * @see OpenGL documentation about GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T
+ * @see OpenGL documentation about @c GL_TEXTURE_WRAP_S and @c GL_TEXTURE_WRAP_T.
  *
  * @~french
  * Continuité des textures.
  * Contrôle la continuité de la texture courante le long des axes @c S et @c T.
- * Lorsque @param s vaut @c true, @c GL_TEXTURE_WRAP_S vaut @c GL_REPEAT,
- * sinon il vaut @c GL_CLAMP_TO_EDGE. De la même manière, @param t permet de
+ * Lorsque @p s vaut @c true, @c GL_TEXTURE_WRAP_S vaut @c GL_REPEAT,
+ * sinon il vaut @c GL_CLAMP_TO_EDGE. De la même manière,  t permet de
  * changer la valeur de @c GL_TEXTURE_WRAP_T.
  * @param s true pour activer GL_TEXTURE_WRAP_S.
  * @param t true pour activer GL_TEXTURE_WRAP_T.
  *
  * Par défaut, la répétition est désactivée (false, false).
- * @see La documentation OpenGL sur GL_TEXTURE_WRAP_S and GL_TEXTURE_WRAP_T.
+ * @see La documentation OpenGL sur @c GL_TEXTURE_WRAP_S and @c GL_TEXTURE_WRAP_T.
  */
 texture_wrap (s:boolean, t:boolean);
 

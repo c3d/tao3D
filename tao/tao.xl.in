@@ -480,6 +480,13 @@ control_point_handle_inner_color ->
     color 100%, 0%, 0%, 90%
     line_color 0%,0%,0%,0%
 
+curve_point_handle_outer_color ->
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+curve_point_handle_inner_color ->
+    color 0%, 100%, 0%, 70%
+    line_color 0%,0%,0%,0%
+
 draw_selection x,y,z,w,h,d ->
     selection_color
     cube x-w/2, y-h/2, z-d/2, w, h, d
@@ -561,6 +568,12 @@ draw_control_point_handle x, y, z ->
     control_point_handle_outer_color
     point x, y, z, 12
     control_point_handle_inner_color
+    point x, y, z, 8
+
+draw_curve_point_handle x, y, z ->
+    curve_point_handle_outer_color
+    point x, y, z, 12
+    curve_point_handle_inner_color
     point x, y, z, 8
 
 draw_group_adjust_shape_handle x, y, z -> 0

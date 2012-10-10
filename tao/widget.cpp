@@ -8039,7 +8039,7 @@ Tree_p Widget::moveTo(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (path)
     {
         path->moveTo(Point3(x,y,z));
-        path->AddControl(self, x, y, z);
+        path->AddControl(self, true, x, y, z);
     }
     else
     {
@@ -8057,7 +8057,7 @@ Tree_p Widget::lineTo(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Point3(x,y,z));
-    path->AddControl(self, x, y, z);
+    path->AddControl(self, true, x, y, z);
     return XL::xl_true;
 }
 
@@ -8072,8 +8072,8 @@ Tree_p Widget::curveTo(Tree_p self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
-    path->AddControl(self, x, y, z);
-    path->AddControl(self, cx, cy, cz);
+    path->AddControl(self, true, x, y, z);
+    path->AddControl(self, false, cx, cy, cz);
     return XL::xl_true;
 }
 
@@ -8089,9 +8089,9 @@ Tree_p Widget::curveTo(Tree_p self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
-    path->AddControl(self, x, y, z);
-    path->AddControl(self, c1x, c1y, c1z);
-    path->AddControl(self, c2x, c2y, c2z);
+    path->AddControl(self, true, x, y, z);
+    path->AddControl(self, false, c1x, c1y, c1z);
+    path->AddControl(self, false, c2x, c2y, c2z);
     return XL::xl_true;
 }
 
@@ -8104,7 +8104,7 @@ Tree_p Widget::moveToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (path)
     {
         path->moveTo(Vector3(x,y,z));
-        path->AddControl(self, x, y, z);
+        path->AddControl(self, true, x, y, z);
     }
     else
     {
@@ -8122,7 +8122,7 @@ Tree_p Widget::lineToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Vector3(x,y,z));
-    path->AddControl(self, x, y, z);
+    path->AddControl(self, true, x, y, z);
     return XL::xl_true;
 }
 

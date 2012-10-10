@@ -1816,6 +1816,8 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
                            width, height, border, imgSize, data);
 }
 
+
+
 // ============================================================================
 //
 //                       Lighting management functions.

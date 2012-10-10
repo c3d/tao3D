@@ -166,9 +166,11 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       space(NULL), layout(NULL), graphicState(NULL),
       frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
-      currentFlowName(""), pageName(""),
+      currentFlowName(""), pageName(""), lastPageName(""),
+      gotoPageName(""), transitionPageName(""),
       pageId(0), pageFound(0), pageShown(1), pageTotal(1),
-      pageTree(NULL),
+      pageTree(NULL), transitionTree(NULL),
+      transitionStartTime(0.0), transitionDurationValue(0.0),
       currentShape(NULL), currentGridLayout(NULL),
       currentShaderProgram(NULL), currentGroup(NULL),
       fontFileMgr(NULL),
@@ -364,13 +366,16 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       clearCol(o.clearCol), space(NULL), layout(NULL), graphicState(new OpenGLState()),
       frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
-      currentFlowName(o.currentFlowName),flows(o.flows), pageName(o.pageName),
-      lastPageName(o.lastPageName), gotoPageName(o.gotoPageName),
+      currentFlowName(o.currentFlowName), flows(o.flows),
+      pageName(o.pageName), lastPageName(o.lastPageName),
+      gotoPageName(o.gotoPageName), transitionPageName(o.transitionPageName),
       pageLinks(o.pageLinks), pageNames(o.pageNames),
       newPageNames(o.newPageNames),
       pageId(o.pageId), pageFound(o.pageFound), pageShown(o.pageFound),
       pageTotal(o.pageTotal), pageToPrint(o.pageToPrint),
-      pageTree(o.pageTree),
+      pageTree(o.pageTree), transitionTree(o.transitionTree),
+      transitionStartTime(o.transitionStartTime),
+      transitionDurationValue(o.transitionDurationValue),
       currentShape(o.currentShape), currentGridLayout(o.currentGridLayout),
       currentShaderProgram(NULL),
       currentGroup(o.currentGroup),
@@ -936,6 +941,43 @@ bool Widget::refreshNow()
 }
 
 
+void Widget::resetTimes()
+// ----------------------------------------------------------------------------
+//   Reset times to current time for all times
+// ----------------------------------------------------------------------------
+{
+    frozenTime = CurrentTime();
+
+    pageStartTime = frozenTime;
+    startTime = frozenTime;
+}
+
+
+void Widget::commitPageChange(bool afterTransition)
+// ----------------------------------------------------------------------------
+//   Commit a page change, e.g. as a result of 'goto_page' or transition end
+// ----------------------------------------------------------------------------
+{
+    pageName = gotoPageName;
+    resetTimes();
+    for (uint p = 0; p < pageNames.size(); p++)
+        if (pageNames[p] == gotoPageName)
+            pageShown = p + 1;
+    gotoPageName = "";
+
+    if (afterTransition)
+    {
+        pageStartTime = transitionStartTime;
+        transitionStartTime = 0;
+        transitionDurationValue = 0;
+        transitionTree = NULL;
+    }
+
+    IFTRACE(pages)
+        std::cerr << "New page number is " << pageShown << "\n";
+}
+
+
 bool Widget::refreshNow(QEvent *event)
 // ----------------------------------------------------------------------------
 //    Redraw the widget due to event or run program entirely
@@ -944,25 +986,42 @@ bool Widget::refreshNow(QEvent *event)
     if (inDraw || inError)
         return false;
 
-    if (gotoPageName != "")
+    // Update times
+    setCurrentTime();
+    bool changed = false;
+    double now = CurrentTime();
+
+    // Check if we are replaying a transition, if so finish it
+    if (transitionStartTime > 0)
+    {
+        if (frozenTime - transitionStartTime > transitionDurationValue)
+        {
+            commitPageChange(true);
+            event = NULL;
+        }
+    }
+
+    // Check if we need to change pages.
+    else if (gotoPageName != "")
     {
         IFTRACE(pages)
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
-        pageName = gotoPageName;
-        resetTimes();
-        for (uint p = 0; p < pageNames.size(); p++)
-            if (pageNames[p] == gotoPageName)
-                pageShown = p + 1;
-        gotoPageName = "";
-        IFTRACE(pages)
-            std::cerr << "New page number is " << pageShown << "\n";
+        
+        if (transitionTree == NULL)
+        {
+            commitPageChange(false);
+        }
+        else
+        {
+            // Activate transition start time when changing page
+            transitionStartTime = now;
+            transitionPageName = pageName;
+        }
         event = NULL; // Force full refresh
     }
 
-    setCurrentTime();
-    bool changed = false;
-    double now = CurrentTime();
+    // Redraw full scene if required
     if (!event || space->NeedRefresh(event, now))
     {
         IFTRACE(layoutevents)
@@ -1133,9 +1192,13 @@ void Widget::runProgramOnce()
     // Evaluate the program
     XL::MAIN->EvaluateContextFiles(taoWindow()->contextFileNames);
     if (xlProgram)
-        if (Tree *prog = xlProgram->tree)
+    {
+        if (transitionTree && transitionStartTime > 0)
+            runTransition(xlProgram->context);
+        else if (Tree *prog = xlProgram->tree)
             xlProgram->context->Evaluate(prog);
 
+    }
     stats.end(Statistics::EXEC);
 
     // If we have evaluation errors, show them (bug #498)
@@ -1412,15 +1475,7 @@ void Widget::renderFrames(int w, int h, double start_time, double end_time,
                 std::cerr << "(renderFrames) "
                           << "Goto page request: '" << gotoPageName
                           << "' from '" << pageName << "'\n";
-            pageName = gotoPageName;
-            resetTimes();
-            for (uint p = 0; p < pageNames.size(); p++)
-                if (pageNames[p] == gotoPageName)
-                    pageShown = p + 1;
-            gotoPageName = "";
-            IFTRACE(pages)
-                std::cerr << "(renderFrames) "
-                          << "New page number is " << pageShown << "\n";
+            commitPageChange(false);
         }
 
         if (currentFrame == 1)
@@ -1600,7 +1655,7 @@ void Widget::copy()
     {
         //If no selection copy the Image
         QClipboard *clipboard = QApplication::clipboard();
-        clipboard->setImage(grabFrameBuffer(false));
+        clipboard->setImage(grabFrameBuffer(true));
 
         return;
     }
@@ -3488,6 +3543,7 @@ void Widget::updateProgram(XL::SourceFile *source)
     dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
     xlProgram = source;
+    transitionTree = NULL;
     setObjectName(QString("Widget:").append(+xlProgram->name));
     normalizeProgram();
     refreshProgram(); // REVISIT not needed?
@@ -4893,6 +4949,9 @@ XL::Text_p Widget::gotoPage(Tree_p self, text page)
 //   Directly go to the given page
 // ----------------------------------------------------------------------------
 {
+    if (transitionStartTime > 0)
+        commitPageChange(true);
+
     text old = pageName;
     lastMouseButtons = 0;
     selection.clear();
@@ -4962,6 +5021,150 @@ XL::Real_p Widget::pageHeight(Tree_p self)
     return new Real(pageH);
 }
 
+
+
+// ============================================================================
+// 
+//    Transitions
+// 
+// ============================================================================
+
+Tree_p Widget::transition(Context *, Tree_p self, double dur, Tree_p body)
+// ----------------------------------------------------------------------------
+//    Define a transition
+// ----------------------------------------------------------------------------
+{
+    if (transitionTree)
+        // Already running in a transition
+        return XL::xl_false;
+
+    transitionDurationValue = dur;
+    transitionTree = body;
+    return XL::xl_true;
+}
+
+
+Real_p Widget::transitionTime(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the transition time
+// ----------------------------------------------------------------------------
+{
+    double ttime = 0.0;
+    if (transitionStartTime > 0)
+    {
+        refreshOn(QEvent::Timer);
+        if (animated)
+            frozenTime = CurrentTime();
+        ttime = frozenTime - transitionStartTime;
+    }
+    return new XL::Real(ttime, self->Position());
+}
+
+
+Real_p Widget::transitionDuration(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the transition duration
+// ----------------------------------------------------------------------------
+{
+    return new XL::Real(transitionDurationValue, self->Position());
+}
+
+
+Real_p Widget::transitionRatio(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the transition ratio
+// ----------------------------------------------------------------------------
+{
+    double ratio = 0.0;
+    if (transitionStartTime > 0 && transitionDurationValue > 0.0)
+    {
+        refreshOn(QEvent::Timer);
+        if (animated)
+            frozenTime = CurrentTime();
+        ratio = (frozenTime - transitionStartTime) / transitionDurationValue;
+    }
+    return new XL::Real(ratio, self->Position());
+}
+
+
+Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
+// ----------------------------------------------------------------------------
+//   Evaluate the current page during a transition
+// ----------------------------------------------------------------------------
+{
+    if (xlProgram)
+    {
+        XL::Save<text> saveLastPage(lastPageName, pageName);
+        XL::Save<text> savePageName(pageName, transitionPageName);
+
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == pageName)
+                pageShown = p + 1;
+
+        return context->Evaluate(xlProgram->tree);
+    }
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
+// ----------------------------------------------------------------------------
+//   Evaluate the next page during a transition
+// ----------------------------------------------------------------------------
+{
+    if (xlProgram)
+    {
+        XL::Save<text> saveLastPage(lastPageName, pageName);
+        XL::Save<text> savePageName(pageName, gotoPageName);
+        XL::Save<page_map> saveLinks(pageLinks, pageLinks);
+        XL::Save<page_list> saveList(pageNames, pageNames);
+        XL::Save<page_list> saveNewList(newPageNames, newPageNames);
+        XL::Save<uint> savePageId(pageId, 0);
+        XL::Save<uint> savePageFound(pageFound, 0);
+        XL::Save<uint> savePageShown(pageShown, pageShown);
+        XL::Save<uint> savePageTotal(pageTotal, pageTotal);
+        XL::Save<Tree_p> savePageTree(pageTree, pageTree);
+        XL::Save<double> savePageTime(pageStartTime, transitionStartTime);
+
+        for (uint p = 0; p < pageNames.size(); p++)
+            if (pageNames[p] == pageName)
+                pageShown = p + 1;
+
+        return context->Evaluate(xlProgram->tree);
+    }
+    return XL::xl_false;
+}
+
+
+Tree_p Widget::runTransition(Context *context)
+// ----------------------------------------------------------------------------
+//   Evaluate the transition code until we are done
+// ----------------------------------------------------------------------------
+{
+    Tree_p result;
+    IFTRACE(pages)
+        std::cerr << "Transition duration " << transitionDurationValue
+                  << " remaining " << frozenTime - transitionStartTime
+                  << "\n";
+    if (frozenTime - transitionStartTime > transitionDurationValue)
+    {
+        commitPageChange(true);
+        result = context->Evaluate(xlProgram->tree);
+    }
+    else
+    {
+        result = context->Evaluate(transitionTree);
+    }
+    return result;
+}
+
+
+
+// ============================================================================
+// 
+//    Frames
+// 
+// ============================================================================
 
 XL::Real_p Widget::frameWidth(Tree_p self)
 // ----------------------------------------------------------------------------

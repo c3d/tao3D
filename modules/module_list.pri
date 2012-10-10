@@ -57,7 +57,7 @@
         DIP \
         hello_world     \
         tao_synchro  \
-        taoTester    \
+        tao_tester   \
         database
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

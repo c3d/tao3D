@@ -78,7 +78,7 @@ page "Welcome",
             adjust 0.5
             image 0, 0, 150% , 150% , "MacBookPro.png"
             locally
-                welcome_flow 40, 18, page_time
+                welcome_flow 40, 20, page_time
             color "white"
             translatez 500
             image 0, -1500, 100% , 100% , "Taodyne_Logo.svg"

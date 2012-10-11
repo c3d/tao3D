@@ -161,7 +161,7 @@ public slots:
 
 signals:
     // Signals
-    void        copyAvailable(bool yes = true);
+    void        copyAvailableAndNotReadOnly(bool yes);
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
     void        runGC();

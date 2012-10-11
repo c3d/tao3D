@@ -1605,7 +1605,7 @@ void Widget::checkCopyAvailable()
     bool sel = hasSelection();
     if (hadSelection != sel)
     {
-        emit copyAvailable(sel && !isReadOnly());
+        emit copyAvailableAndNotReadOnly(sel && !isReadOnly());
         hadSelection = sel;
     }
 }
@@ -11494,7 +11494,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
         // Enabled action only if we need
         // (do not need if document is read only or noting is selected)
         p_action->setEnabled(hasSelection() && !isReadOnly());
-        connect(this, SIGNAL(copyAvailable(bool)),
+        connect(this, SIGNAL(copyAvailableAndNotReadOnly(bool)),
                 p_action, SLOT(setEnabled(bool)));
     }
 

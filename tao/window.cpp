@@ -1796,7 +1796,7 @@ void Window::createActions()
     connect(srcEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
 #endif
-    connect(taoWidget, SIGNAL(copyAvailable(bool)),
+    connect(taoWidget, SIGNAL(copyAvailableAndNotReadOnly(bool)),
             cutAct, SLOT(setEnabled(bool)));
 
     undoAction = undoStack->createUndoAction(this, tr("&Undo"));

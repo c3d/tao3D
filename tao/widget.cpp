@@ -1606,6 +1606,7 @@ void Widget::checkCopyAvailable()
     if (hadSelection != sel)
     {
         emit copyAvailableAndNotReadOnly(sel && !isReadOnly());
+        emit copyAvailable(sel);
         hadSelection = sel;
     }
 }

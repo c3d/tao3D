@@ -402,6 +402,8 @@ schläfli x, y, w, h, {p:integer,q:integer} -> polygram x, y, w, h, p, q
 
 screenshot T:text -> screenshot T, false
 
+status T:text -> status T, 0.0
+
 selection_color ->
     color 70%, 80%, 90%, 40%
     line_color 80%, 30%, 30%, 80%

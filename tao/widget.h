@@ -691,7 +691,7 @@ public:
     Integer_p   tableColumns(Tree_p self);
 
     // Frames and widgets
-    Tree_p      status(Tree_p self, text t);
+    Tree_p      status(Tree_p self, text t, float timeout);
     Integer*    framePaint(Context *context, Tree_p self,
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);

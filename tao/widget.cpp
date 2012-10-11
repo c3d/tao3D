@@ -9717,12 +9717,12 @@ Integer_p Widget::tableColumns(Tree_p self)
 //
 // ============================================================================
 
-Tree_p Widget::status(Tree_p self, text caption)
+Tree_p Widget::status(Tree_p self, text caption, float timeout)
 // ----------------------------------------------------------------------------
 //   Set the status line of the window
 // ----------------------------------------------------------------------------
 {
-    taoWindow()->statusBar()->showMessage(+caption);
+    taoWindow()->statusBar()->showMessage(+caption, timeout*1000);
     return XL::xl_true;
 }
 

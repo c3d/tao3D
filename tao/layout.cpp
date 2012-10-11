@@ -168,7 +168,7 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
     : Drawing(), LayoutState(), id(0), charId(0),
       items(), display(widget), idx(-1),
-      refreshEvents(), nextRefresh(DBL_MAX)
+      refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
 {}
 
 
@@ -178,7 +178,7 @@ Layout::Layout(const Layout &o)
 // ----------------------------------------------------------------------------
     : Drawing(o), LayoutState(o), id(0), charId(0),
       items(), display(o.display), idx(-1),
-      refreshEvents(), nextRefresh(DBL_MAX)
+      refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(o.lastRefresh)
 {}
 
 
@@ -212,7 +212,7 @@ Layout *Layout::AddChild(uint childId,
 
 void Layout::Clear()
 // ----------------------------------------------------------------------------
-//   Reset the layout to the initial setup
+//   Reset the layout (mostly) to the initial setup
 // ----------------------------------------------------------------------------
 {
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
@@ -224,6 +224,7 @@ void Layout::Clear()
 
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
+    // lastRefresh is NOT reset on purpose
 }
 
 
@@ -481,6 +482,9 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
             else
                 std::cerr << "Unexpected NULL ctx/body in non-root layout\n";
         }
+
+        // Record date of last evaluation
+        lastRefresh = now;
 
         changed = true;
     }

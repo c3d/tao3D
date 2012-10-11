@@ -146,6 +146,24 @@ refresh (interval:real);
 
 /**
  * @~english
+ * The time when the current layout was last executed (refreshed).
+ *
+ * Returns zero if the current layout is being executed for the first time
+ * after the document is loaded. Otherwise, the returned value is a time in
+ * seconds that may be compared with the value returned by @ref time.
+ *
+ * @~french
+ * La date à laquelle le layout courant a été exécuté pour la dernière fois.
+ *
+ * Renvoie zéro si le layout courant est exécuté pour la première fois depuis
+ * le chargement du document. En cas contraire, la valeur retournée est une
+ * date en secondes qui peut être comparée à la valeur de @ref time.
+ */
+real last_refresh();
+
+
+/**
+ * @~english
  * Request refresh of the current layout on a specific event.
  *
  * The current layout (that is, the enclosing @ref locally or @ref shape) will

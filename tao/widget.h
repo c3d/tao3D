@@ -423,6 +423,7 @@ public:
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
+    Real_p      lastRefresh(Tree_p self);
     Tree_p      postEvent(int eventType, bool once = false);
     Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);

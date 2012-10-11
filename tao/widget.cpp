@@ -751,10 +751,10 @@ void Widget::drawSelection()
 //   Draw selection items for all objects (selection boxes, manipulators)
 // ----------------------------------------------------------------------------
 {
+    id = idDepth = 0;
+    selectionTrees.clear();
     if (selection.size())
     {
-        id = idDepth = 0;
-        selectionTrees.clear();
         space->ClearPolygonOffset();
         space->ClearAttributes();
         glDisable(GL_DEPTH_TEST);

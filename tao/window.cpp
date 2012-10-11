@@ -1064,6 +1064,26 @@ void Window::checkClipboard()
     pasteAct->setEnabled(enable);
 }
 
+
+void Window::updateCopyMenuName(bool hasSelection)
+// ----------------------------------------------------------------------------
+//    Change name of the copy menu depending on whether something is selected
+// ----------------------------------------------------------------------------
+{
+    if (hasSelection)
+    {
+        copyAct->setText(tr("&Copy"));
+        copyAct->setStatusTip(tr("Copy the current selection to the "
+                                 "clipboard"));
+    }
+    else
+    {
+        copyAct->setText(tr("&Copy (take screenshot)"));
+        copyAct->setStatusTip(tr("Store a copy of the main window "
+                                 "in the clipboard as an image"));
+    }
+}
+
 #endif // CFG_NOEDIT
 
 #ifndef CFG_NOGIT
@@ -1656,11 +1676,12 @@ void Window::createActions()
 
     copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
     copyAct->setShortcuts(QKeySequence::Copy);
-    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
-                             "clipboard"));
     copyAct->setIconVisibleInMenu(false);
     copyAct->setObjectName("copy");
+    updateCopyMenuName(false);
     connect(copyAct, SIGNAL(triggered()), this, SLOT(copy()));
+    connect(taoWidget, SIGNAL(copyAvailable(bool)),
+            this, SLOT(updateCopyMenuName(bool)));
 
     pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
     pasteAct->setShortcuts(QKeySequence::Paste);
@@ -1796,7 +1817,7 @@ void Window::createActions()
     connect(srcEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
 #endif
-    connect(taoWidget, SIGNAL(copyAvailable(bool)),
+    connect(taoWidget, SIGNAL(copyAvailableAndNotReadOnly(bool)),
             cutAct, SLOT(setEnabled(bool)));
 
     undoAction = undoStack->createUndoAction(this, tr("&Undo"));

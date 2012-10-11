@@ -155,6 +155,7 @@ private slots:
     void paste();
     void onFocusWidgetChanged(QWidget *old, QWidget *now);
     void checkClipboard();
+    void updateCopyMenuName(bool hasSelection);
 #endif
 #ifndef CFG_NOGIT
     void setPullUrl();

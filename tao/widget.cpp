@@ -751,10 +751,10 @@ void Widget::drawSelection()
 //   Draw selection items for all objects (selection boxes, manipulators)
 // ----------------------------------------------------------------------------
 {
+    id = idDepth = 0;
+    selectionTrees.clear();
     if (selection.size())
     {
-        id = idDepth = 0;
-        selectionTrees.clear();
         space->ClearPolygonOffset();
         space->ClearAttributes();
         glDisable(GL_DEPTH_TEST);
@@ -1605,7 +1605,8 @@ void Widget::checkCopyAvailable()
     bool sel = hasSelection();
     if (hadSelection != sel)
     {
-        emit copyAvailable(sel && !isReadOnly());
+        emit copyAvailableAndNotReadOnly(sel && !isReadOnly());
+        emit copyAvailable(sel);
         hadSelection = sel;
     }
 }
@@ -11494,7 +11495,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
         // Enabled action only if we need
         // (do not need if document is read only or noting is selected)
         p_action->setEnabled(hasSelection() && !isReadOnly());
-        connect(this, SIGNAL(copyAvailable(bool)),
+        connect(this, SIGNAL(copyAvailableAndNotReadOnly(bool)),
                 p_action, SLOT(setEnabled(bool)));
     }
 

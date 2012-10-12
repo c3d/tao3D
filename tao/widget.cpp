@@ -6048,12 +6048,16 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
 }
 
 
-Real_p Widget::lastRefresh(Tree_p self)
+Real_p Widget::refreshTime(Tree_p self)
 // ----------------------------------------------------------------------------
-//    Return time of last execution of the current layout
+//    Return time since last execution of the current layout, or 0
 // ----------------------------------------------------------------------------
 {
-    return new XL::Real(layout->lastRefresh);
+    double refresh = CurrentTime() - layout->lastRefresh;
+    Q_ASSERT(refresh > 0);
+    if (layout->lastRefresh == 0)
+        refresh = 0;
+    return new XL::Real(refresh);
 }
 
 

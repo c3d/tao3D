@@ -493,11 +493,11 @@ PREFIX(DefaultRefreshGet, tree, "default_refresh",
        DESCRIPTION("Get the document refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
-PREFIX(LastRefresh, real, "last_refresh",
+PREFIX(LastRefresh, real, "refresh_time",
        ,
-       RTAO(lastRefresh(self)),
+       RTAO(refreshTime(self)),
        GROUP(time:events)
-       SYNOPSIS("Return the time when the current layout was last refreshed"))
+       SYNOPSIS("Return the time since the current layout was refreshed, or 0"))
 PREFIX(PostEvent, tree, "post_event",
        PARM(event_type, integer, "Identifier of the user event to post"),
        RTAO(postEvent(event_type)),

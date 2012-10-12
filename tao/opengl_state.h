@@ -122,77 +122,62 @@ struct AlphaFunctionState
 };
 
 
-struct TextureState
-// ----------------------------------------------------------------------------
-//   The state of a single texture (single texture unit)
-// ----------------------------------------------------------------------------
-{
-    TextureState(GLuint id = 0);
-    bool operator ==(const TextureState &o)
-    {
-        return (type == o.type && mode == o.mode && id == o.id &&
-                /* ignore unit, width and height on purpose */
-                minFilt == o.minFilt && magFilt == o.magFilt &&
-                matrix == o.matrix &&
-                active == o.active &&
-                wrapS == o.wrapS && wrapT == o.wrapT && wrapR == o.wrapR &&
-                mipmap == o.mipmap);
-    }
-    bool operator!=(const TextureState &o) { return !operator==(o); }
-    bool Sync(const TextureState &newState);
 
-public:
-    GLenum      type, mode;
-    GLuint      unit, id;
-    GLuint      width, height;
-    GLenum      minFilt, magFilt;
-    Matrix4     matrix;
-    bool        active : 1;
-    bool        wrapS  : 1;
-    bool        wrapT  : 1;
-    bool        wrapR  : 1;
-    bool        mipmap : 1;
-};
-
+// ============================================================================
+// 
+//   Texture units
+// 
+// ============================================================================
 
 struct TextureUnitState
 // ----------------------------------------------------------------------------
-//    The state of a simgle texture unit
+//    The state of a single texture unit
 // ----------------------------------------------------------------------------
 {
-    TextureUnitState(): tex1D(false), tex2D(false), tex3D(false) {}
+    TextureUnitState()
+        : texture(0), mode(GL_MODULATE), matrix(),
+          tex1D(false), tex2D(false), tex3D(false), texCube(false) {}
 
     void Set(GLenum cap, bool enabled)
     {
         switch (cap)
         {
-        case GL_TEXTURE_1D:   tex1D = enabled; break;
-        case GL_TEXTURE_2D:   tex2D = enabled; break;
-        case GL_TEXTURE_3D:   tex3D = enabled; break;
-        default:              Q_ASSERT(!"Invalid enum");
+        case GL_TEXTURE_1D:             tex1D = enabled; break;
+        case GL_TEXTURE_2D:             tex2D = enabled; break;
+        case GL_TEXTURE_3D:             tex3D = enabled; break;
+        case GL_TEXTURE_CUBE_MAP:       texCube = enabled; break;
+        default:                        Q_ASSERT(!"Invalid enum");
         }
     }
 
     bool operator==(const TextureUnitState &o)
     {
         return texture == o.texture &&
+               mode == o.mode       &&
                tex1D   == o.tex1D   &&
-               tex2D   == o.tex1D   &&
-               tex3D   == o.tex1D;
+               tex2D   == o.tex2D   &&
+               tex3D   == o.tex3D   &&
+               texCube == o.texCube &&
+               matrix  == o.matrix;
     }
     bool operator!=(const TextureUnitState &o) { return !operator==(o); }
+    void Sync(uint unit, TextureUnitState &ns, bool force);
 
-    GLuint texture;
-    bool   tex1D : 1;
-    bool   tex2D : 1;
-    bool   tex3D : 1;
+    GLuint      texture;
+    GLenum      mode;
+    Matrix4     matrix;
+    bool        tex1D   : 1;
+    bool        tex2D   : 1;
+    bool        tex3D   : 1;
+    bool        texCube : 1;
 };
 
 
 #define MAX_TEXTURE_UNITS 64
+
 struct TextureUnitsState
 // ----------------------------------------------------------------------------
-//    Texture bindings for all texture units
+//    The state of all texture units
 // ----------------------------------------------------------------------------
 {
     TextureUnitsState(): dirty(~0ULL), units() {}
@@ -208,7 +193,7 @@ struct TextureUnitsState
     }
     bool operator!=(const TextureUnitsState &o) { return !operator==(o); }
 
-    void Sync(TextureUnitsState &ns);
+    bool Sync(TextureUnitsState &ns, uint active);
 
 public:
     ulonglong                       dirty;
@@ -216,25 +201,76 @@ public:
 };
 
 
+
+// ============================================================================
+// 
+//   Textures
+// 
+// ============================================================================
+
+struct TextureState
+// ----------------------------------------------------------------------------
+//   The state of a single texture
+// ----------------------------------------------------------------------------
+{
+    TextureState(GLuint id = 0);
+    bool operator ==(const TextureState &o)
+    {
+        return (type == o.type && id == o.id &&
+                /* ignore unit, width and height on purpose */
+                minFilt == o.minFilt && magFilt == o.magFilt &&
+                active == o.active &&
+                wrapS == o.wrapS && wrapT == o.wrapT && wrapR == o.wrapR &&
+                mipmap == o.mipmap);
+    }
+    bool operator!=(const TextureState &o) { return !operator==(o); }
+    bool Sync(TextureState &newState);
+
+public:
+    GLenum      type;
+    GLuint      id;
+    GLuint      width, height;
+    GLenum      minFilt, magFilt;
+    bool        active : 1;
+    bool        wrapS  : 1;
+    bool        wrapT  : 1;
+    bool        wrapR  : 1;
+    bool        mipmap : 1;
+
+    // REVISIT: The following are here temporarily (for Layout use).
+    // They really belong to TextureUnit, which is done for the OpenGLState.
+    // That is the reason they are ignored in operator==
+    GLuint      unit;
+    GLenum      mode;
+};
+
+
 struct TexturesState
 // ----------------------------------------------------------------------------
 //    The state of all textures
 // ----------------------------------------------------------------------------
+//    This is also used in OpenGLSave to record the previous state of the
+//    textures that have been changed.
 {
     TexturesState(): textures() { textures[0] = TextureState(); }
-//    bool operator==(const TexturesState &o)
-//    {
-//        // TODO
-//    }
-//    bool operator!=(const TexturesState &o) { return !operator==(o); }
-    TexturesState &operator=(const TexturesState &o);
-    void Sync(TexturesState &newState);
+    void Sync(TexturesState &newState, TextureUnitState &at);
 
 public:
     typedef std::map<GLuint, TextureState> texture_map;
+    typedef std::set<GLuint> texture_set;
+
+public:
     texture_map textures;
+    texture_set dirty;
 };
 
+
+
+// ============================================================================
+// 
+//    Light state
+// 
+// ============================================================================
 
 struct LightState
 // ----------------------------------------------------------------------------
@@ -554,12 +590,12 @@ public:
     };
 
 public:
-    static enum VendorID vendorID;
-    static GLuint maxTextureCoords, maxTextureUnits;
-    static text   vendor, renderer, version, extensionsAvailable;
-    TexturesState currentTextures;
-    TextureUnitsState currentTextureUnits;
-    LightsState   currentLights;
+    static enum VendorID        vendorID;
+    static GLuint               maxTextureCoords, maxTextureUnits;
+    static text                 vendor, renderer, version, extensionsAvailable;
+    TexturesState               currentTextures;
+    TextureUnitsState           currentTextureUnits;
+    LightsState                 currentLights;
 
 #define GS(type, name)                          \
     type name;
@@ -574,22 +610,23 @@ public:
     static uint ShowErrors(kstring msg = NULL);
 
 public:
-    TextureUnitState &ActiveTextureUnit();
     // Return the current texture state
-    TextureState &ActiveTexture();
+    TextureState &      ActiveTexture();
+    TextureUnitState &  ActiveTextureUnit();
 
 private:
     // Structure used to push/pop state
     friend class OpenGLSave;
     OpenGLSave *save;
+
     // Return the current texture matrix
-    Matrix4&    TextureMatrix()
+    Matrix4 &           TextureMatrix()
     {
-        return ActiveTexture().matrix;
+        return ActiveTextureUnit().matrix;
     }
 
 
-    static OpenGLState *       current;
+    static OpenGLState *        current;
 };
 
 // Shortcut to the current state

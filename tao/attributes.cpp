@@ -151,7 +151,7 @@ void TextureUnit::Draw(Layout *where)
 }
 
 void TextureWrap::Draw(Layout *where)
-// ------------------------------------------------------------- ---------------
+// ----------------------------------------------------------------------------
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
@@ -159,6 +159,7 @@ void TextureWrap::Draw(Layout *where)
     where->fillTextures[glUnit].wrapS = s;
     where->fillTextures[glUnit].wrapT = t;
 }
+
 
 void TextureMode::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
@@ -168,6 +169,7 @@ void TextureMode::Draw(Layout *where)
     uint glUnit = where->currentTexture.unit;
     where->fillTextures[glUnit].mode = mode;
 }
+
 
 void TextureMinFilter::Draw(Layout *where)
 // ----------------------------------------------------------------------------

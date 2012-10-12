@@ -24,6 +24,12 @@
 
 TAO_BEGIN
 
+// ============================================================================
+//
+//    Class recording individual changes in the OpenGL state
+//
+// ============================================================================
+
 template <class State>
 struct OpenGLChanges
 // ----------------------------------------------------------------------------
@@ -67,6 +73,66 @@ public:
     }
 };
 
+
+template<>
+struct OpenGLChanges<TexturesState>
+// ----------------------------------------------------------------------------
+//    For texture states, we only record textures that changed
+// ----------------------------------------------------------------------------
+{
+    // By default, we record a change as a state
+    typedef TextureState                change_type;
+
+    // By default, we record changes with a vector containing old values
+    typedef std::vector<TexturesState>  changes_type;
+    changes_type                        changes;
+
+public:
+    // Record a texture change
+    inline bool save(const change_type &tex, bool alreadySaved)
+    {
+        if (!alreadySaved)
+        {
+            // First time we save a texture on this stack level:
+            // create save area
+            TexturesState empty;
+            changes.push_back(empty);
+        }
+
+        // Already have a valid state on the top of the stack, update it
+        // but only if we didn't already save that texture at this level
+        TexturesState &ts = changes.back();
+        if (ts.textures.count(tex.id) == 0)
+            ts.textures[tex.id] = tex;
+
+        return true;
+    }
+
+    // Restore a texture change
+    inline bool restore(TexturesState &state)
+    {
+        TexturesState &saved = changes.back();
+        TexturesState::texture_map &texs = saved.textures;
+        TexturesState::texture_map::iterator it;
+        for (it = texs.begin(); it != texs.end(); it++)
+        {
+            GLuint id = (*it).first;
+            TextureState &tex = (*it).second;
+            state.textures[id] = tex;
+            state.dirty.insert(id);
+        }
+        changes.pop_back();
+        return true;
+    }
+};
+
+
+
+// ============================================================================
+//
+//   Class recording and restoring the OpenGL state
+//
+// ============================================================================
 
 struct OpenGLSave : GraphicSave
 // ----------------------------------------------------------------------------
@@ -156,7 +222,7 @@ inline OpenGLSave::~OpenGLSave()
         gs->name##_isDirty = name##_changes.restore(tmp);       \
         gs->name = tmp;                                         \
     }
-#define GFLAG(name)             GBITFIELD(glflag_##name) 
+#define GFLAG(name)             GBITFIELD(glflag_##name)
 #define GCLIENTSTATE(name)      GBITFIELD(glclientstate_##name)
 #include "opengl_state.tbl"
 #undef GBITFIELD

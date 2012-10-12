@@ -322,7 +322,7 @@ void OpenGLState::Sync(ulonglong which)
          currentTextures.Sync(textures, ActiveTextureUnit());
          matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
     SYNC(activeTexture,
-         glActiveTexture(activeTexture));
+         glActiveTexture(GL_TEXTURE0 + activeTexture));
 
     GLenum mmode = matrixMode;
     SYNC(mvMatrix,
@@ -1765,6 +1765,7 @@ void OpenGLState::BindTexture(GLenum type, GLuint texture)
     // Bind the texture to the current texture unit
     TextureUnitState &tunit = ActiveTextureUnit();
     tunit.texture = texture;
+    tunit.target = type;
 
     // Mark texture as dirty and push changes on the save stack
     TextureState &ts = textures.textures[texture];
@@ -1785,7 +1786,7 @@ void OpenGLState::TexParameter(GLenum type, GLenum pname, GLint param)
 // ----------------------------------------------------------------------------
 {
     TextureState &ts = ActiveTexture();
-    ts.type = type;
+    Q_ASSERT (ts.type == type);
     switch(pname)
     {
     case GL_TEXTURE_MIN_FILTER:
@@ -2143,26 +2144,24 @@ void LightsState::Sync(LightsState &nl)
 //
 // ============================================================================
 
-void TextureUnitState::Sync(uint unit, TextureUnitState &ns, bool force)
+void TextureUnitState::Sync(TextureUnitState &ns, bool force)
 // ----------------------------------------------------------------------------
 //   Sync the state of a given texture unit to the new state
 // ----------------------------------------------------------------------------
 {
-    glActiveTexture(GL_TEXTURE0 + unit);
-
     // Check if the mode changed
     if (force || mode != ns.mode)
     {
-        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
         mode = ns.mode;
+        glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
     }
 
     // Check if the matrix changed
     if (force || matrix != ns.matrix)
     {
         glMatrixMode(GL_TEXTURE);
-        glLoadMatrixd(matrix.Data(false));
         matrix = ns.matrix;
+        glLoadMatrixd(matrix.Data(false));
     }
     
 #define SYNC_CAP(cap, state)                    \
@@ -2181,16 +2180,11 @@ void TextureUnitState::Sync(uint unit, TextureUnitState &ns, bool force)
 #undef SYNC_CAP
 
     // Check if there was a change in the texture bound to the unit
-    if (texture != ns.texture)
+    if (texture != ns.texture || target != ns.target)
     {
-        GLuint tex = texture = ns.texture;
-        GLuint tgt = (  texCube ? GL_TEXTURE_CUBE_MAP
-                      : tex3D   ? GL_TEXTURE_3D
-                      : tex2D   ? GL_TEXTURE_2D
-                      : tex1D   ? GL_TEXTURE_1D
-                      : GL_FALSE);
-        Q_ASSERT (tgt != GL_FALSE);
-        glBindTexture(tgt, tex);
+        texture = ns.texture;
+        target = ns.target;
+        glBindTexture(target, texture);
     }
 }
 
@@ -2217,8 +2211,12 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
         {
             TextureUnitState &us = units[u];
             TextureUnitState &nus = ns.units[u];
-            us.Sync(u, nus, false);
-            lastUnit = u;
+            if (lastUnit != u)
+            {
+                glActiveTexture(GL_TEXTURE0 + u);
+                lastUnit = u;
+            }
+            us.Sync(nus, false);
         }
     }
 
@@ -2229,12 +2227,15 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
         for (uint u = nmax; u < max; u++)
         {
             TextureUnitState &oldtu = units[u];
-            glActiveTexture(GL_TEXTURE0 + u);
+            if (lastUnit != u)
+            {
+                glActiveTexture(GL_TEXTURE0 + u);
+                lastUnit = u;
+            }
             if (oldtu.tex1D)   glDisable(GL_TEXTURE_1D);
             if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
             if (oldtu.tex3D)   glDisable(GL_TEXTURE_3D);
             if (oldtu.texCube) glDisable(GL_TEXTURE_CUBE_MAP);
-            lastUnit = u;
         }
         units.resize(nmax);
     }
@@ -2243,11 +2244,18 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
         // Number of texture units increased, activate new ones
         for (uint u = max; u < nmax; u++)
         {
+            // Initialize with a default unit state
+            units.push_back(TextureUnitState());
+
+            // Sync that state now
             TextureUnitState &nus = ns.units[u];
-            units.push_back(nus);
             TextureUnitState &us = units.back();
-            us.Sync(u, nus, true);
-            lastUnit = u;
+            if (lastUnit != u)
+            {
+                glActiveTexture(GL_TEXTURE0 + u);
+                lastUnit = u;
+            }
+            us.Sync(nus, true);
         }
     }
 
@@ -2281,7 +2289,7 @@ TextureState::TextureState(GLuint id)
 {}
 
 
-bool TextureState::Sync(TextureState &ts)
+void TextureState::Sync(TextureState &ts)
 // ----------------------------------------------------------------------------
 //   Sync a texture state with a new value
 // ----------------------------------------------------------------------------
@@ -2302,14 +2310,8 @@ bool TextureState::Sync(TextureState &ts)
         }                                       \
     } while(0)
 
-    bool changed = false;
-    if (force || type != ts.type || id != ts.id)
-    {
-        changed = true;
-        glBindTexture(ts.type, ts.id);
-        type = ts.type;
-        id = ts.id;
-    }
+    type = ts.type;
+    id = ts.id;
 
     SYNC_TEXTURE(active,
                  if (active) glEnable(type); else glDisable(type));
@@ -2328,8 +2330,6 @@ bool TextureState::Sync(TextureState &ts)
                                  wrapR ? GL_REPEAT : GL_CLAMP_TO_EDGE));
 
 #undef SYNC_TEXTURE
-
-    return changed;
 }
 
 
@@ -2346,29 +2346,24 @@ void TexturesState::Sync(TexturesState &nt, TextureUnitState &at)
     for (it = ndirty.begin(); it != ndirty.end(); it++)
     {
         GLuint id = *it;
-        TextureState &nts = nt.textures[id];
-        TextureState &ts = textures[id];
-        if (tex != id)
+        if (id)
         {
-            glBindTexture(nts.type, id);
-            tex = id;
+            TextureState &nts = nt.textures[id];
+            TextureState &ts = textures[id];
+            if (tex != id)
+            {
+                glBindTexture(nts.type, id);
+                tex = id;
+            }
+            ts.Sync(nts);
         }
-        ts.Sync(nts);
     }
     nt.dirty.clear();
     dirty.clear();
 
     // Restore originally bound texture
     if (tex != at.texture)
-    {
-        GLuint tgt = (  at.texCube ? GL_TEXTURE_CUBE_MAP
-                      : at.tex3D   ? GL_TEXTURE_3D
-                      : at.tex2D   ? GL_TEXTURE_2D
-                      : at.tex1D   ? GL_TEXTURE_1D
-                      : GL_FALSE);
-        Q_ASSERT (tgt != GL_FALSE);
-        glBindTexture(tgt, at.texture);
-    }
+        glBindTexture(at.target, at.texture);
 }
 
 TAO_END

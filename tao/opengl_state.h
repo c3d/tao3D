@@ -135,7 +135,7 @@ struct TextureUnitState
 // ----------------------------------------------------------------------------
 {
     TextureUnitState()
-        : texture(0), mode(GL_MODULATE), matrix(),
+        : texture(0), target(GL_TEXTURE_2D), mode(GL_MODULATE), matrix(),
           tex1D(false), tex2D(false), tex3D(false), texCube(false) {}
 
     void Set(GLenum cap, bool enabled)
@@ -153,6 +153,7 @@ struct TextureUnitState
     bool operator==(const TextureUnitState &o)
     {
         return texture == o.texture &&
+               target == o.target   &&
                mode == o.mode       &&
                tex1D   == o.tex1D   &&
                tex2D   == o.tex2D   &&
@@ -161,10 +162,10 @@ struct TextureUnitState
                matrix  == o.matrix;
     }
     bool operator!=(const TextureUnitState &o) { return !operator==(o); }
-    void Sync(uint unit, TextureUnitState &ns, bool force);
+    void Sync(TextureUnitState &ns, bool force);
 
     GLuint      texture;
-    GLenum      mode;
+    GLenum      target, mode;
     Matrix4     matrix;
     bool        tex1D   : 1;
     bool        tex2D   : 1;
@@ -224,7 +225,7 @@ struct TextureState
                 mipmap == o.mipmap);
     }
     bool operator!=(const TextureState &o) { return !operator==(o); }
-    bool Sync(TextureState &newState);
+    void Sync(TextureState &newState);
 
 public:
     GLenum      type;

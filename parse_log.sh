@@ -51,7 +51,6 @@ while [ "$1" ] ; do
 done
 
 SPACE=" "
-[ "$HTML" ] && SPACE="&nbsp;"
 NL="\n"
 [ "$HTML" ] && NL="<br>"
 

@@ -398,9 +398,11 @@ nonagram x, y, w, h                   -> polygram x, y, w, h, constant 9, consta
 decagram x, y, w, h                   -> polygram x, y, w, h, constant 10, constant 3
 
 schläfli x, y, w, h, {p:integer}           -> polygon x, y, w, h, p
-schläfli x, y, w, h, {p:integer/q:integer} -> polygram x, y, w, h, p, q
+schläfli x, y, w, h, {p:integer,q:integer} -> polygram x, y, w, h, p, q
 
 screenshot T:text -> screenshot T, false
+
+status T:text -> status T, 0.0
 
 selection_color ->
     color 70%, 80%, 90%, 40%

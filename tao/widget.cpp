@@ -1185,10 +1185,15 @@ void Widget::runProgramOnce()
     if (xlProgram)
     {
         if (transitionTree && transitionStartTime > 0)
+        {
             runTransition(xlProgram->context);
+            layout->lastRefresh = CurrentTime();
+        }
         else if (Tree *prog = xlProgram->tree)
+        {
             xlProgram->context->Evaluate(prog);
-
+            layout->lastRefresh = CurrentTime();
+        }
     }
     stats.end(Statistics::EXEC);
 
@@ -5569,6 +5574,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
     Layout *childLayout = layout->AddChild(shapeId(), child, context);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5594,6 +5600,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
     context->ClosureValue(child, &childContext);
     XL::Save<bool> setSaveArgs(childContext->keepSource, true);
     Tree_p result = currentContext->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5614,6 +5621,7 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5635,6 +5643,7 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5659,6 +5668,7 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     childLayout = layout->AddChild(shapeId(), child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -6035,6 +6045,19 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     if (delay >= 0.0)
         dfltRefresh = delay;
     return new XL::Real(prev);
+}
+
+
+Real_p Widget::refreshTime(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return time since last execution of the current layout, or 0
+// ----------------------------------------------------------------------------
+{
+    double refresh = CurrentTime() - layout->lastRefresh;
+    Q_ASSERT(refresh > 0);
+    if (layout->lastRefresh == 0)
+        refresh = 0;
+    return new XL::Real(refresh);
 }
 
 
@@ -8873,6 +8896,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     XL::Save<Layout *> save(layout, flow);
 
     Tree_p result = currentContext->Evaluate(prog);
+    layout->lastRefresh = CurrentTime();
     flow->resetIterator();
     // Protection agains recursive call of textFlow with same flowname.
     currentFlowName = computedFlowName;
@@ -8897,6 +8921,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
     {
         XL::Save<Layout *> saveLayout(layout, childLayout);
         result = context->Evaluate(child);
+        layout->lastRefresh = CurrentTime();
     }
     childLayout->Revert()->Draw(flow);
     layout->Add(childLayout->Revert());
@@ -9556,6 +9581,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
 
     XL::Save<Layout *> save(layout, tbox);
     Tree_p result = context->Evaluate(body);
+    layout->lastRefresh = CurrentTime();
     table->NextCell();
     return result;
 }
@@ -9717,12 +9743,12 @@ Integer_p Widget::tableColumns(Tree_p self)
 //
 // ============================================================================
 
-Tree_p Widget::status(Tree_p self, text caption)
+Tree_p Widget::status(Tree_p self, text caption, float timeout)
 // ----------------------------------------------------------------------------
 //   Set the status line of the window
 // ----------------------------------------------------------------------------
 {
-    taoWindow()->statusBar()->showMessage(+caption);
+    taoWindow()->statusBar()->showMessage(+caption, timeout*1000);
     return XL::xl_true;
 }
 
@@ -12067,6 +12093,7 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
     }
 
     Tree_p result = context->Evaluate(shapes);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 

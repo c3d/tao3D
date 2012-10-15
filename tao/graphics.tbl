@@ -493,6 +493,11 @@ PREFIX(DefaultRefreshGet, tree, "default_refresh",
        DESCRIPTION("Get the document refresh interval for code blocks that "
                    "depend on time due to the use of the time or "
                    "page_time primitive."))
+PREFIX(LastRefresh, real, "refresh_time",
+       ,
+       RTAO(refreshTime(self)),
+       GROUP(time:events)
+       SYNOPSIS("Return the time since the current layout was refreshed, or 0"))
 PREFIX(PostEvent, tree, "post_event",
        PARM(event_type, integer, "Identifier of the user event to post"),
        RTAO(postEvent(event_type)),
@@ -813,8 +818,9 @@ PREFIX(EnableVSync,  boolean,  "enable_vsync",
 // ============================================================================
 
 PREFIX(Caption,  tree,  "status",
-       PARM(t, text, "The text for the status line."),
-       RTAO(status(self, t)),
+       PARM(t, text, "The text for the status line.")
+       PARM(tm, real, "Display duration in seconds."),
+       RTAO(status(self, t, tm)),
        GROUP(gui)
        SYNOPSIS("Set the status line of the window")
        DESCRIPTION("Set the content of the status line of the window"))

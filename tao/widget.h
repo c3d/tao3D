@@ -423,6 +423,7 @@ public:
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
+    Real_p      refreshTime(Tree_p self);
     Tree_p      postEvent(int eventType, bool once = false);
     Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);
@@ -691,7 +692,7 @@ public:
     Integer_p   tableColumns(Tree_p self);
 
     // Frames and widgets
-    Tree_p      status(Tree_p self, text t);
+    Tree_p      status(Tree_p self, text t, float timeout);
     Integer*    framePaint(Context *context, Tree_p self,
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);

@@ -30,6 +30,21 @@ status(t:text);
 
 /**
  * @~english
+ * Set the message in the status bar.
+ * Show text @p t until next message or for @p d seconds. If no other
+ * message is displayed after @p d seconds, the message is cleared.
+ *
+ * @~french
+ * Affiche un message dans la barre d'état.
+ * Le message persiste jusqu'au prochain appel, ou jusqu'à ce que Tao
+ * Presentations affiche un autre message, ou pendant @p d secondes
+ * au maximum. Si aucun autre message n'est affiché après @p d secondes,
+ * le texte s'efface automatiquement.
+ */
+status(t:text, d:real);
+
+/**
+ * @~english
  * Controls source code panel.
  * @p src true show the panel, @p src false hide it.
  *

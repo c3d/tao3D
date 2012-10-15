@@ -10,3 +10,6 @@
 [submodule "modules/chroma_key"]
 	path = modules/chroma_key
 	url = git://gitorious.org/tao-presentation-modules/chroma_key.git
+[submodule "chroma_key"]
+	path = chroma_key
+	url = ./modules/chroma_key

@@ -396,7 +396,8 @@ OTHER_FILES +=  \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
-    welcome/welcome.ddd
+    welcome/welcome.ddd \
+    opengl_state.tbl
 
 FORMS += error_message_dialog.ui \
     inspectordialog.ui \

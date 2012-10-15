@@ -562,8 +562,7 @@ struct OpenGLState : GraphicState
                                       const GLvoid *data);
 
     // Lighting
-    virtual void EnableLight(GLenum light);
-    virtual void DisableLight(GLenum light);
+    void SetLight(GLenum light, bool active);
     virtual void Light(GLenum light, GLenum pname, const float* params);
 
 public:

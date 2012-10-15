@@ -9764,6 +9764,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 //   Make a texture out of the current text layout
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -9796,6 +9804,13 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         // Clear the background and setup initial state
         frame.resize(w,h);
         setup(w, h);
+
+        // Need to synchronize GL states
+        // Because we have made a setupGL
+        // just above
+        GL.Sync();
+
+        // Evaluate the program
         result = context->Evaluate(prog);
 
         // Draw the layout in the frame context
@@ -9833,6 +9848,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         uint depthTexId = frame.depthTexture();
         withDepth->value = depthTexId;
     }
+
+    glPopAttrib();
 
     return new Integer(texId, self->Position());
 }
@@ -9888,6 +9905,14 @@ Integer* Widget::thumbnail(Context *context,
 //   Generate a texture with a page thumbnail of the given page
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     // Prohibit recursion on thumbnails
     if (page == pageName || !xlProgram)
         return 0;
@@ -9934,6 +9959,11 @@ Integer* Widget::thumbnail(Context *context,
         if (Tree_p prog = xlProgram->tree)
             context->Evaluate(prog);
 
+        // Need to synchronize GL states
+        // Because we have made a setupGL
+        // just above
+        GL.Sync();
+
         // Draw the layout in the frame context
         stats.end(Statistics::EXEC);
         stats.begin(Statistics::DRAW);
@@ -9964,6 +9994,8 @@ Integer* Widget::thumbnail(Context *context,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
+    glPopAttrib();
+
     return new Integer(texId, self->Position());
 }
 
@@ -9975,6 +10007,14 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a linear gradient
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly some GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -10006,9 +10046,15 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QLinearGradient(start_x, start_y, end_x, end_y);
+
+        // Need to synchronize GL states
+        // Because we have made a setupGL
+        // just above
+        GL.Sync();
 
         // Evaluate the program
         result = context->Evaluate(prog);
@@ -10036,6 +10082,8 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+
+    glPopAttrib();
 
     return new Integer(texId, self->Position());
 }
@@ -10049,6 +10097,14 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a radial gradient
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -10080,9 +10136,15 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QRadialGradient(center_x, center_y, radius);
+
+        // Need to synchronize GL states
+        // Because we have made a setupGL
+        // just above
+        GL.Sync();
 
         // Evaluate the program
         result = context->Evaluate(prog);
@@ -10110,6 +10172,8 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+
+    glPopAttrib();
 
     return new Integer(texId, self->Position());
 }
@@ -10123,6 +10187,14 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 //   Generate a texture to draw a conical gradient
 // ----------------------------------------------------------------------------
 {
+    // Need to synchronize GL states
+    // just before glPushAttrib.
+    GL.Sync();
+
+    // We need to use original glPushAttrib/glPopAttrib
+    // as QT fbo functions modify implicitly GL states.
+    glPushAttrib(GL_ALL_ATTRIB_BITS);
+
     Tree_p result = XL::xl_false;
     if (w < 16) w = 16;
     if (h < 16) h = 16;
@@ -10154,9 +10226,15 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
 
         // Define a painter to draw in current frame
         FramePainter painter(&frame);
+        painter.setRenderHint(QPainter::Antialiasing, true);
 
         // Define our gradient type
         gradient = new QConicalGradient(center_x, center_y, angle);
+
+        // Need to synchronize GL states
+        // Because we have made a setupGL
+        // just above
+        GL.Sync();
 
         // Evaluate the program
         result = context->Evaluate(prog);
@@ -10185,6 +10263,7 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
+    glPopAttrib();
     return new Integer(texId, self->Position());
 }
 

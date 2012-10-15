@@ -136,7 +136,7 @@ UpdateApplication::UpdateApplication()
 
    // Get current version of Tao
    QString ver = GITREV;
-   QRegExp rxp("([^-]*)");
+   QRegExp rxp("([0-9\\.]+)");
    rxp.indexIn(ver);
    version = rxp.cap(1).toDouble();
 

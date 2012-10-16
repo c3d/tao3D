@@ -68,7 +68,7 @@ void GitToolBar::init(QWidget *parent)
             this,                SIGNAL(taskDescriptionSet(QString)));
 
     branchSelection = new QToolButton;
-    branchSelection->setStatusTip(tr("Show/hide the branch selection tool"));
+    branchSelection->setToolTip(tr("Show/hide the branch selection tool"));
     branchSelection->setIcon(QIcon(":/images/branch_tool.png"));
     branchSelection->setText(tr("Branch"));
     branchSelection->setCheckable(true);
@@ -84,7 +84,7 @@ void GitToolBar::init(QWidget *parent)
             this,                SIGNAL(documentChanged()));
 
     historyPlayback = new QToolButton;
-    historyPlayback->setStatusTip(tr("Show/hide the history playback tool"));
+    historyPlayback->setToolTip(tr("Show/hide the history playback tool"));
     historyPlayback->setIcon(QIcon(":/images/playback_tool.png"));
     historyPlayback->setText(tr("Playback"));
     historyPlayback->setCheckable(true);

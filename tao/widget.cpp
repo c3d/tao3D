@@ -3743,6 +3743,10 @@ void Widget::refreshProgram()
     if (needRefresh)
     {
         // If a file was modified, we need to refresh the screen
+
+        transitionStartTime = 0;
+        transitionDurationValue = 0;
+        transitionTree = NULL;
         TaoSave saveCurrent(current, this);
         refreshNow();
     }

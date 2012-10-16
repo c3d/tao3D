@@ -5048,6 +5048,8 @@ Real_p Widget::transitionTime(Tree_p self)
         if (animated)
             frozenTime = CurrentTime();
         ttime = frozenTime - transitionStartTime;
+        if (ttime > transitionDurationValue)
+            ttime = transitionDurationValue;
     }
     return new XL::Real(ttime, self->Position());
 }
@@ -5074,6 +5076,8 @@ Real_p Widget::transitionRatio(Tree_p self)
         if (animated)
             frozenTime = CurrentTime();
         ratio = (frozenTime - transitionStartTime) / transitionDurationValue;
+        if (ratio > 1.0)
+            ratio = 1.0;
     }
     return new XL::Real(ratio, self->Position());
 }

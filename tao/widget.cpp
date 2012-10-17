@@ -5103,6 +5103,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
             if (pageNames[p] == pageName)
                 pageShown = p + 1;
 
+        clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -5132,6 +5133,7 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
             if (pageNames[p] == pageName)
                 pageShown = p + 1;
 
+        clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;

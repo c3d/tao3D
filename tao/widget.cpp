@@ -1174,6 +1174,8 @@ void Widget::runProgramOnce()
     id = idDepth = 0;
     selectionRectangleEnabled = true;
 
+    clearCol.setRgb(255, 255, 255, 255);
+
     stats.begin(Statistics::EXEC);
 
     // Run the XL program associated with this widget

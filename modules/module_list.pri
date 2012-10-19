@@ -47,7 +47,8 @@
        water_surface \
        remote_control \
        regexp \
-       chroma_key
+       chroma_key \
+       transitions
 
     OTHER_MODULES =     \
         dip_voting \

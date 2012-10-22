@@ -19,6 +19,9 @@ MODINSTDIR = @@MODULE_DIR@@
 include(../modules.pri)
 
 OTHER_FILES = @@MODULE_DIR@@.xl
+#ifdef WITH_DOC
+OTHER_FILES += doc/@@MODULE_DIR@@.doxy.h doc/Doxyfile.in
+#endif
 #ifdef WITH_CRYPT
 OTHER_FILES += @@MODULE_DIR@@2.xl
 

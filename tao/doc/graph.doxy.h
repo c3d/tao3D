@@ -452,22 +452,51 @@ no_color ();
 /**
  * @~english
  * Specifies the clear values for the color buffers.
- * When this primitive is called in the root layout (that is, outside of
- * any @ref locally block or similar), it sets the clear color for the
- * main drawing area.
+ * This primitive affects the default fill color of the main window, or of the
+ * current rendering target (@ref frame, @ref frame_texture, @ref canvas).
+ * - When this primitive is called outside a @ref frame, @ref frame_texture
+ * or @ref canvas block, it sets the clear color for the main drawing area.
  * This color is used to fill the drawing area (screen or window) before
  * anything is drawn. As such it can be considered the background color.
- *
- * When the primitive is called inside a @ref frame or @ref frame_texture
+ * The clear color is used only when Tao Presentations reaches the drawing
+ * phase. Therefore, the last @ref clear_color that has been executed during
+ * the evaluation phase "wins". For instance:
+ * @code
+clear_color 0, 0, 0, 1         // Black
+color "blue"
+rectangle 0, 0, 200, 100
+clear_color 0.6, 0.6, 0.6, 1   // Gray
+ * @endcode
+ * In the above example, the rectangle is drawn on a gray background, not
+ * on a black one because the value <tt>0, 0, 0, 1</tt> (black) has
+ * been replaced with <tt>0.6, 0.6, 0.6, 1</tt> (gray). @n
+ * Here is another example:
+ * @code
+page "White background",
+    color "blue"
+    rectangle 0, 0, 200, 100
+page "Black background",
+    clear_color 0, 0, 0, 1     // Black
+    color "red"
+    rectangle 0, 0, 200, 100
+ * @endcode
+ * The first page has a white backround (the default), because the
+ * <tt>clear_color</tt> line is not executed when page 1 is shown.
+ * The second page has a black background because the last @ref clear_color
+ * instruction executed before drawing is
+ * <tt>clear_color 0, 0, 0, 1</tt>, which replaces the default white
+ * with black.
+ * - When the primitive is called inside a @ref frame, @ref frame_texture
+ * or @ref canvas
  * block, it sets the clear color of the local drawing buffer, which can
- * have subtle effects on the rendering. The default
+ * have subtle effects on the rendering when the buffer is later blended
+ * with the main draw buffer. The default
  * clear color of a @ref frame_texture is transparent white,
  * RGBA (1, 1, 1, 0).
  * In some cases you may want to change this color. For instance, look
  * at the border of the characters in the following example, with and
  * without the @ref clear_color line in the @ref frame_texture block.
  * @code
-clear_color 1, 1, 1, 1
 color "black"
 rectangle 0, 0, 600, 200
 color "white"
@@ -487,23 +516,52 @@ rectangle 0, 0, 600, 200
  *
  * @~french
  * Définit la couleur d'effacement (clear color).
- * Cette primitive définit la couleur qui est utilisée pour remplir la zone
- * de dessin avant d'afficher quoique ce soit. Par conséquent, on peut
- * considérer qu'il s'agit de la couleur de fond.
- * Quand cette primitive est appelée dans le @a layout principal
- * (c'est-à-dire en dehors de tout bloc @ref locally ou similaire), elle
+ * Cette primitive définit la couleur de remplissage de la fenêtre principale
+ * ou de la cible de rendu en cours (@ref frame, @ref frame_texture,
+ * @ref canvas).
+ * - Lorsqu'elle est appelée en-dehors de tout bloc @ref frame,
+ * @ref frame_texture ou @ref canvas, elle
  * définit la couleur de fond pour la zone de dessin principale.
- *
- * Quand elle est appelée dans un bloc @ref frame ou
+ * Cette couleur est utilisée pour remplir l'écran avant tout tracé (la couleur
+ * de fond).
+ * Cette couleur n'est utilisée que lorsque Tao Presentations atteint la phase
+ * d'affichage. Par conséquent, le dernier appel à @ref clear_color qui a été
+ * exécuté "gagne". Par exemple :
+ * @code
+clear_color 0, 0, 0, 1         // Noir
+color "blue"
+rectangle 0, 0, 200, 100
+clear_color 0.6, 0.6, 0.6, 1   // Gris
+ * @endcode
+ * Ici le rectangle est affiché sur un fond gris, pas noir, car la valeur
+ * <tt>0, 0, 0, 1</tt> (noir) a été remplacée par
+ * <tt>0.6, 0.6, 0.6, 1</tt> (gris) durant l'exécution et avant l'affichage.@n
+ * Voici un autre exemple:
+ * @code
+page "White background",
+    color "blue"
+    rectangle 0, 0, 200, 100
+page "Black background",
+    clear_color 0, 0, 0, 1     // Noir
+    color "red"
+    rectangle 0, 0, 200, 100
+ * @endcode
+ * La première page a un fond blanc (le défaut), car la ligne
+ * <tt>clear_color</tt> n'est pas exécutée lorsqu'on affiche la page 1.
+ * La deuxième page est sur fond noir car le dernier appel à @ref clear_color
+ * exécuté avant l'affichage est
+ * <tt>clear_color 0, 0, 0, 1</tt>, qui remplace le fond blanc par défaut par
+ * du noir.
+ * - Quand elle est appelée dans un bloc @ref frame ou
  * @ref frame_texture, elle définit la couleur d'effacement de la zone de
  * dessin locale (une texture), ce qui peut avoir des effets subtils sur
- * le rendu. La couleur d'effacement par défaut dans @ref frame ou
- * @ref frame_texture est le blanc transparent, RGBA (1, 1, 1, 0).
+ * le rendu lorsque la texture est ensuite mélangée avec l'affichage principal.
+ * La couleur d'effacement par défaut dans @ref frame,
+ * @ref frame_texture ou @ref canvas est le blanc transparent, RGBA (1, 1, 1, 0).
  * Dans certains cas il peut être utile de changer cette couleur. Par
  * exemple, observez le contour des caractères dans l'exemple suivant,
  * avec et sans la ligne @ref clear_color dans le bloc @ref frame_texture.
  * @code
-clear_color 1, 1, 1, 1
 color "black"
 rectangle 0, 0, 600, 200
 color "white"

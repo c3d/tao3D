@@ -8957,6 +8957,17 @@ Tree_p Widget::textUnit(Tree_p self, Text_p contents)
 }
 
 
+Box3 Widget::textSize(Tree_p self, Text_p content)
+// ----------------------------------------------------------------------------
+//   Return the dimensions of a given text
+// ----------------------------------------------------------------------------
+{
+    TextUnit u(content);
+    Box3 bbox(u.Bounds(layout));
+    return bbox;
+}
+
+
 Tree_p Widget::textFormula(Tree_p self, Tree_p value)
 // ----------------------------------------------------------------------------
 //   Insert a block of text corresponding to the given formula

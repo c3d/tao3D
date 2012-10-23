@@ -79,17 +79,12 @@ theme_color "blue2"    -> "#8FB4CB"
 theme_color "blue3"    -> "#7AA9C1"
 theme_color "blue4"    -> "#1D456B"
 
-background_picture -> "image:seyes.jpg"
-
 
 theme_background "default" ->
 // ----------------------------------------------------------------------------
 //    Default background is solid white
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
-    background -6000,
-        color "white"
-        image 0, 0, 200%, 160%, background_picture
 
 
 theme_title_background "default" ->
@@ -182,11 +177,28 @@ theme_left_column "default", Body ->
 
 theme_right_column "default", Body ->
 // ----------------------------------------------------------------------------
-//    Default left column
+//    Default right column
 // ----------------------------------------------------------------------------
     box 450, -100, 700, 900, "right_column",
         font "TeX Gyre Adventor", "Arial", 80, bold
         Body
+
+
+theme_left_column_picture "default", Body ->
+// ----------------------------------------------------------------------------
+//    Default left column picture
+// ----------------------------------------------------------------------------
+    theme_box "default", -450, -100, 700, 900, "left_column_picture"
+    do Body
+
+
+theme_right_column_picture "default", Body ->
+// ----------------------------------------------------------------------------
+//    Default right column picture
+// ----------------------------------------------------------------------------
+    theme_box "default", 450, -100, 700, 900, "right_column_picture"
+    do Body
+
 
 
 theme_box "default", X:real, Y:real, W:real, H:real, "subtitle" -> false
@@ -392,6 +404,24 @@ right_column Body ->
 // ----------------------------------------------------------------------------
     contents 0,
         theme_right_column theme, Body
+
+
+
+left_column_picture Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the left side of the picture
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_left_column_picture theme, Body
+
+
+right_column_picture Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the right side of the picture
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_right_column_picture theme, Body
+
 
 
 box X:real, Y:real, W:real, H:real, Kind:text, Body ->

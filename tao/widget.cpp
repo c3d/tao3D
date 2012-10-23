@@ -2075,7 +2075,7 @@ void Widget::resetView()
     zNear = 1500.0;
     zFar  = 1e6;
     zoom  = 1.0;
-    eyeDistance    = 100.0;
+    eyeDistance    = 20.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
@@ -8954,6 +8954,17 @@ Tree_p Widget::textUnit(Tree_p self, Text_p contents)
         layout->Add(new TextUnit(contents));
 
     return XL::xl_true;
+}
+
+
+Box3 Widget::textSize(Tree_p self, Text_p content)
+// ----------------------------------------------------------------------------
+//   Return the dimensions of a given text
+// ----------------------------------------------------------------------------
+{
+    TextUnit u(content);
+    Box3 bbox(u.Bounds(layout));
+    return bbox;
 }
 
 

@@ -92,6 +92,20 @@ theme_background "default" ->
         image 0, 0, 200%, 160%, background_picture
 
 
+theme_title_background "default" ->
+// ----------------------------------------------------------------------------
+//    Default title background is the same
+// ----------------------------------------------------------------------------
+    theme_background "default"
+
+
+theme_section_background "default" ->
+// ----------------------------------------------------------------------------
+//    Default section background is the same
+// ----------------------------------------------------------------------------
+    theme_background "default"
+
+
 theme_main_title "default", Body ->
 // ----------------------------------------------------------------------------
 //    Default main title (centered on the slide)
@@ -101,6 +115,18 @@ theme_main_title "default", Body ->
         color theme_color "lightblue"
         align 0.5
         vertical_align 0.5
+        Body
+
+
+theme_section_title "default", Body ->
+// ----------------------------------------------------------------------------
+//    Default section title (centered on the slide)
+// ----------------------------------------------------------------------------
+    box 0, 0, 1600, 500, "main_title",
+        font "TeX Gyre Adventor", "Arial", 50, bold
+        color theme_color "lightblue"
+        align 0.5
+        vertical_align 0.2
         Body
 
 
@@ -118,13 +144,13 @@ theme_title "default", Body ->
 
 theme_subtitle "default", Body ->
 // ----------------------------------------------------------------------------
-//    Default title is at the top
+//    Default subtitle is at the top (below title)
 // ----------------------------------------------------------------------------
-    box 0, -100, 1600, 150, "subtitle",
-        font "TeX Gyre Adventor", "Arial", 80, bold
+    box 0, 300, 1600, 150, "subtitle",
+        font "TeX Gyre Adventor", "Arial", 30, bold
         color theme_color "lightblue"
         align 0.5
-        vertical_align 0.5
+        vertical_align 0.4
         Body
 
 
@@ -217,6 +243,7 @@ blank_slide T:text, Body ->
 //   Create an empty slide
 // ----------------------------------------------------------------------------
     page T,
+        color "white"
         theme_background theme
         Body
 
@@ -225,12 +252,28 @@ title_slide T:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide for main title
 // ----------------------------------------------------------------------------
-    blank_slide T,
+    page T,
+        color "white"
+        theme_title_background theme
         Body
         main_title
             text page_label
 
 title_slide T:text -> title_slide T, false
+
+
+section_slide T:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create a slide for section
+// ----------------------------------------------------------------------------
+    page T,
+        color "white"
+        theme_section_background theme
+        Body
+        section_title
+            text page_label
+
+section_slide T:text -> section_slide T, false
 
 
 toptitle_slide T:text, Body ->
@@ -250,7 +293,7 @@ picture_slide T:text, Body ->
     toptitle_slide T,
         picture
             translatey -150
-            Body
+            do Body
 
 
 slide T:text, Body ->
@@ -258,9 +301,7 @@ slide T:text, Body ->
 //   Create a traditional slide with bullet points
 // ----------------------------------------------------------------------------
     toptitle_slide T,
-        story
-            translatey -150
-            Body
+        story Body
 
 
 // ============================================================================
@@ -295,6 +336,14 @@ main_title Body ->
 // ----------------------------------------------------------------------------
     contents 0,
         theme_main_title theme, Body
+
+
+section_title Body ->
+// ----------------------------------------------------------------------------
+//   Draw a section title
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_section_title theme, Body
 
 
 title Body ->

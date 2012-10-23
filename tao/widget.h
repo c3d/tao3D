@@ -320,6 +320,8 @@ public:
     Layout *    drawTree(Layout *where, Context *context, Tree_p code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     bool        mouseTracking() { return doMouseTracking; }
+    bool        inMouseMove()   { return w_event &&
+                                  w_event->type() == QEvent::MouseMove; }
 
     template<class Activity>
     Activity *  active();
@@ -941,11 +943,11 @@ private:
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;
+    std::vector<StereoIdentTexture>
+                          stereoIdentPatterns;
     bool                  drawAllPages;
     bool                  animated;
     bool                  blanked;
-    std::vector<StereoIdentTexture>
-                          stereoIdentPatterns;
     bool                  stereoIdent;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;

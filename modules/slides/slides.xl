@@ -243,6 +243,7 @@ blank_slide T:text, Body ->
 //   Create an empty slide
 // ----------------------------------------------------------------------------
     page T,
+        color "white"
         theme_background theme
         Body
 
@@ -252,6 +253,7 @@ title_slide T:text, Body ->
 //   Create a slide for main title
 // ----------------------------------------------------------------------------
     page T,
+        color "white"
         theme_title_background theme
         Body
         main_title
@@ -265,6 +267,7 @@ section_slide T:text, Body ->
 //   Create a slide for section
 // ----------------------------------------------------------------------------
     page T,
+        color "white"
         theme_section_background theme
         Body
         section_title

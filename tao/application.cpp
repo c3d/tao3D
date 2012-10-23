@@ -1389,7 +1389,7 @@ bool Application::event(QEvent *e)
         break;
     }
 
-    return QCoreApplication::event(e);
+    return QApplication::event(e);
 }
 
 

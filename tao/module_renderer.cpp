@@ -271,14 +271,19 @@ void ModuleRenderer::Identify(Layout *where)
 //   Identify object under cursor
 // ----------------------------------------------------------------------------
 {
-    XL::Save<bool> inIdentify(where->inIdentify, true);
-    glUseProgram(0); // Necessary for #1464
-    currentLayout = where;
-
-    if(identify)
-        identify(arg);
-    else
-        callback(arg);
+    // Don't even try to call module call back if in mouse move, see #2563
+    Widget *widget = where->Display();
+    if (!widget->inMouseMove())
+    {
+        XL::Save<bool> inIdentify(where->inIdentify, true);
+        glUseProgram(0); // Necessary for #1464
+        currentLayout = where;
+        
+        if(identify)
+            identify(arg);
+        else
+            callback(arg);
+    }
 }
 
 }

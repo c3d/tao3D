@@ -1174,6 +1174,8 @@ void Widget::runProgramOnce()
     id = idDepth = 0;
     selectionRectangleEnabled = true;
 
+    clearCol.setRgb(255, 255, 255, 255);
+
     stats.begin(Statistics::EXEC);
 
     // Run the XL program associated with this widget
@@ -2073,7 +2075,7 @@ void Widget::resetView()
     zNear = 1500.0;
     zFar  = 1e6;
     zoom  = 1.0;
-    eyeDistance    = 100.0;
+    eyeDistance    = 20.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
@@ -3743,6 +3745,10 @@ void Widget::refreshProgram()
     if (needRefresh)
     {
         // If a file was modified, we need to refresh the screen
+
+        transitionStartTime = 0;
+        transitionDurationValue = 0;
+        transitionTree = NULL;
         TaoSave saveCurrent(current, this);
         refreshNow();
     }
@@ -5048,6 +5054,8 @@ Real_p Widget::transitionTime(Tree_p self)
         if (animated)
             frozenTime = CurrentTime();
         ttime = frozenTime - transitionStartTime;
+        if (ttime > transitionDurationValue)
+            ttime = transitionDurationValue;
     }
     return new XL::Real(ttime, self->Position());
 }
@@ -5074,6 +5082,8 @@ Real_p Widget::transitionRatio(Tree_p self)
         if (animated)
             frozenTime = CurrentTime();
         ratio = (frozenTime - transitionStartTime) / transitionDurationValue;
+        if (ratio > 1.0)
+            ratio = 1.0;
     }
     return new XL::Real(ratio, self->Position());
 }
@@ -5093,6 +5103,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
             if (pageNames[p] == pageName)
                 pageShown = p + 1;
 
+        clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -5122,6 +5133,7 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
             if (pageNames[p] == pageName)
                 pageShown = p + 1;
 
+        clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -8942,6 +8954,17 @@ Tree_p Widget::textUnit(Tree_p self, Text_p contents)
         layout->Add(new TextUnit(contents));
 
     return XL::xl_true;
+}
+
+
+Box3 Widget::textSize(Tree_p self, Text_p content)
+// ----------------------------------------------------------------------------
+//   Return the dimensions of a given text
+// ----------------------------------------------------------------------------
+{
+    TextUnit u(content);
+    Box3 bbox(u.Bounds(layout));
+    return bbox;
 }
 
 

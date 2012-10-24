@@ -163,8 +163,8 @@ theme "default"
 @endcode
  *
  * @~french
- * Choisit un nouveau thème pour les dispositives à   suivre.
- * @p Theme correspond au nom du nouveau thème à   appliquer.
+ * Choisit un nouveau thème pour les dispositives à  suivre.
+ * @p Theme correspond au nom du nouveau thème à  appliquer.
  * Par exemple, le code suivant ré-applique le thème par défaut.
 @code
 theme "default"
@@ -586,11 +586,11 @@ left_column
  * @~french
  * Définit une colonne à  gauche de la diapositive où placer des puces de textes.
  * Cette colonne sera affichée suivant le thème courant appliqué (par défault,
- * quelque part à  gauche de la diapositive).
+ * quelque part à gauche de la diapositive).
  *
  * Par exemple :
 @code
-// Affiche plusieurs puces de textes à  gauche
+// Affiche plusieurs puces de textes à gauche
 left_column
     *"Puce de premier niveau"
     *"Puce de premier niveau"
@@ -615,7 +615,7 @@ right_column
     -"Second-level bullet"
 @endcode
  * @~french
- * Définit une colonne à  droite de la diapositive où placer des puces de textes.
+ * Définit une colonne à droite de la diapositive où placer des puces de textes.
  * Cette colonne sera affichée suivant le thème courant appliqué (par défaut,
  * quelque part à  droite de la diapositive).
  *
@@ -709,7 +709,7 @@ right_column_picture(Body:code);
  * @~french
  * Définit une boite pour un type d'élément.
  * Cette boite sera affichée suivant le thème courant appliqué (par défaut,
- * quelque part à  droite de la diapositive).
+ * quelque part à droite de la diapositive).
  *
  * @p X Abscisse de la boite
  * @p Y Ordonnée de la boite
@@ -825,6 +825,100 @@ story
  */
 ＋(T:text);
 
+
+/**
+ * @~english
+ * Display a first-level text without bullet point.
+ * @note This is really a normal asterisk character (*). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+// Create a story with first-level text
+story
+    !*"First-level bullet"
+    !*"First-level bullet"
+@endcode
+ *
+ * @~french
+ * Affiche un texte de premier niveau sans puce.
+ * @note Il s'agit d'une astérisque normale (*). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+// Affiche des textes de premier niveau sans puces
+story
+    !*"Texte de premier niveau"
+    !*"Texte de premier niveau"
+@endcode
+ */
+!＊(T:text);
+
+/**
+ * @~english
+ * Display a second-level text without bullet point.
+ * @note that this is really a normal minus character (-). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+// Create a story with second-level bullet
+story
+    !*"First-level text"
+    !-"Second-level text"
+    !-"Second-level text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte de deuxième niveau sans puce.
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+// Affiche des textes de second niveau sans puces
+story
+    !*"Texte de premier niveau"
+    !-"Texte de second niveau"
+    !-"Texte de second niveau"
+@endcode
+ */
+!‐(T:text);
+
+/**
+ * @~english
+ * Display a third-level text without bullet point.
+ * @note that this is really a normal plus character (+). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ **
+ * For instance:
+@code
+// Create a story with third-level text
+story
+    !*"First-level text"
+    !-"Second-level text"
+    !-"Third-level text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte de troisième niveau sans puce.
+ * @note Il s'agit d'un caractère plus normal (+). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+// Affiche des textes de troisième niveau sans puces
+story
+    !*"Texte de premier niveau"
+    !-"Texte de second niveau"
+    !+"Texte de troisième niveau"
+@endcode
+ */
+!＋(T:text);
 
 /**
  * @~english

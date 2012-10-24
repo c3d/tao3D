@@ -47,7 +47,6 @@ slide_width  -> 1920
 slide_height -> 1280
 
 
-theme -> "default"
 theme T:text ->
 // ----------------------------------------------------------------------------
 //   Select a theme name
@@ -61,176 +60,8 @@ theme T:text ->
 //
 // ============================================================================
 
-// A few colors we selected for the theme (these are from the Taodyne palette)
-theme_color "red"       -> "#AA0022"
-theme_color "orange"    -> "#DD3311"
-theme_color "yellow"    -> "#EEAA11"
-theme_color "green"     -> "#88BB00"
-theme_color "ocean"     -> "#229988"
-theme_color "sky"       -> "#3399FF"
-theme_color "navy"      -> "#003366"
-theme_color "purple"    -> "#CC0099"
-theme_color "grey"      -> "#555"
-theme_color "lightblue" -> "#3399FF"
-theme_color "darkblue"  -> "#003366"
-theme_color "darkgreen" -> "#006633"
-theme_color "blue1"    -> "#D0EAF0"
-theme_color "blue2"    -> "#8FB4CB"
-theme_color "blue3"    -> "#7AA9C1"
-theme_color "blue4"    -> "#1D456B"
-
-background_picture -> "image:seyes.jpg"
-
-
-theme_background "default" ->
-// ----------------------------------------------------------------------------
-//    Default background is solid white
-// ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
-    background -6000,
-        color "white"
-        image 0, 0, 200%, 160%, background_picture
-
-
-theme_title_background "default" ->
-// ----------------------------------------------------------------------------
-//    Default title background is the same
-// ----------------------------------------------------------------------------
-    theme_background "default"
-
-
-theme_section_background "default" ->
-// ----------------------------------------------------------------------------
-//    Default section background is the same
-// ----------------------------------------------------------------------------
-    theme_background "default"
-
-
-theme_main_title "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default main title (centered on the slide)
-// ----------------------------------------------------------------------------
-    box 0, 0, 1600, 500, "main_title",
-        font "TeX Gyre Adventor", "Arial", 150, bold
-        color theme_color "lightblue"
-        align 0.5
-        vertical_align 0.5
-        Body
-
-
-theme_section_title "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default section title (centered on the slide)
-// ----------------------------------------------------------------------------
-    box 0, 0, 1600, 500, "main_title",
-        font "TeX Gyre Adventor", "Arial", 50, bold
-        color theme_color "lightblue"
-        align 0.5
-        vertical_align 0.2
-        Body
-
-
-theme_title "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default title is at the top
-// ----------------------------------------------------------------------------
-    box 0, 500, 1600, 150, "title",
-        font "TeX Gyre Adventor", "Arial", 80, bold
-        color theme_color "lightblue"
-        align 0.5
-        vertical_align 0.5
-        Body
-
-
-theme_subtitle "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default subtitle is at the top (below title)
-// ----------------------------------------------------------------------------
-    box 0, 300, 1600, 150, "subtitle",
-        font "TeX Gyre Adventor", "Arial", 30, bold
-        color theme_color "lightblue"
-        align 0.5
-        vertical_align 0.4
-        Body
-
-
-theme_picture "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default picture box
-// ----------------------------------------------------------------------------
-    theme_box "default", 0, -150, 1600, 800, "picture"
-    do Body
-
-
-theme_story "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default story box
-// ----------------------------------------------------------------------------
-    box 0, -150, 1600, 800, "story",
-        font "TeX Gyre Adventor", "Arial", 80, bold
-        Body
-
-
-theme_left_column "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default left column
-// ----------------------------------------------------------------------------
-    box -450, -100, 700, 900, "left_column",
-        font "TeX Gyre Adventor", "Arial", 80, bold
-        Body
-
-
-theme_right_column "default", Body ->
-// ----------------------------------------------------------------------------
-//    Default left column
-// ----------------------------------------------------------------------------
-    box 450, -100, 700, 900, "right_column",
-        font "TeX Gyre Adventor", "Arial", 80, bold
-        Body
-
-
-theme_box "default", X:real, Y:real, W:real, H:real, "subtitle" -> false
-theme_box "default", X:real, Y:real, W:real, H:real, Kind:text ->
-// ----------------------------------------------------------------------------
-//    Default style of title box
-// ----------------------------------------------------------------------------
-    locally
-        color "black", 0.5
-        line_width 5
-        line_color theme_color "orange"
-        rounded_rectangle X, Y, W+5, H+5, 20
-
-
-theme_bullet_size "default", 1 -> 62
-theme_bullet_size "default", 2 -> 52
-theme_bullet_size "default", Level:integer -> 42
-
-
-theme_bullet_color "default", Level:integer ->
-// ----------------------------------------------------------------------------
-//    Default bullet fill color
-// ----------------------------------------------------------------------------
-    color "blue"
-
-
-theme_bullet_style "default", Level:integer ->
-// ----------------------------------------------------------------------------
-//   Define style of a bullet point
-// ----------------------------------------------------------------------------
-    plain
-    paragraph_space 30, 30
-    font_size theme_bullet_size ("default", Level)
-    color "blue"
-
-
-theme_bullet_picture "default", Level:integer ->
-// ----------------------------------------------------------------------------
-//    Draw a bullet
-// ----------------------------------------------------------------------------
-    theme_bullet_color "default", Level
-    draw S:real -> circle -50% * S, 30% * S, 12% * S
-    draw theme_bullet_size ("default", Level)
-
+theme -> "default"
+import "default.xl"
 
 // ============================================================================
 //
@@ -392,6 +223,24 @@ right_column Body ->
 // ----------------------------------------------------------------------------
     contents 0,
         theme_right_column theme, Body
+
+
+
+left_column_picture Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the left side of the picture
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_left_column_picture theme, Body
+
+
+right_column_picture Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the right side of the picture
+// ----------------------------------------------------------------------------
+    contents 0,
+        theme_right_column_picture theme, Body
+
 
 
 box X:real, Y:real, W:real, H:real, Kind:text, Body ->

@@ -71,24 +71,24 @@ theme_color "blue4"    -> "#1D456B"
 theme_color "brown" -> "#7E3830"
 
 
-theme_background "default" ->
+theme_background "Default" ->
 // ----------------------------------------------------------------------------
 //    Default background is solid white
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     locally
         color theme_color "brown"
-        rectangle 0, 360, slide_width, 3
+        rectangle 0, 380, slide_width, 3
 
 
-theme_title_background "default" ->
+theme_title_background "Default" ->
 // ----------------------------------------------------------------------------
 //    Default title background is the same
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
 
 
-theme_section_background "default" ->
+theme_section_background "Default" ->
 // ----------------------------------------------------------------------------
 //    Default section background is the same
 // ----------------------------------------------------------------------------
@@ -98,7 +98,7 @@ theme_section_background "default" ->
 
 
 
-theme_main_title "default", Body ->
+theme_main_title "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default main title (centered on the slide)
 // ----------------------------------------------------------------------------
@@ -110,7 +110,7 @@ theme_main_title "default", Body ->
         Body
 
 
-theme_section_title "default", Body ->
+theme_section_title "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default section title (centered on the slide)
 // ----------------------------------------------------------------------------
@@ -122,11 +122,11 @@ theme_section_title "default", Body ->
         Body
 
 
-theme_title "default", Body ->
+theme_title "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default title is at the top
 // ----------------------------------------------------------------------------
-    box 0, 500, 2000, 200, "title",
+    box 0, 500, 2000, 250, "title",
         font "TeX Gyre Adventor", "Arial", 80, bold
         color theme_color "brown"
         align 0.5
@@ -134,7 +134,7 @@ theme_title "default", Body ->
         Body
 
 
-theme_subtitle "default", Body ->
+theme_subtitle "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default subtitle is below main title
 // ----------------------------------------------------------------------------
@@ -146,15 +146,15 @@ theme_subtitle "default", Body ->
         Body
 
 
-theme_picture "default", Body ->
+theme_picture "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box
 // ----------------------------------------------------------------------------
-    theme_box "default", 0, -150, 1700, 900, "picture"
+    theme_box "Default", 0, -150, 1700, 900, "picture"
     do Body
 
 
-theme_story "default", Body ->
+theme_story "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default story box
 // ----------------------------------------------------------------------------
@@ -165,7 +165,7 @@ theme_story "default", Body ->
         Body
 
 
-theme_left_column "default", Body ->
+theme_left_column "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
@@ -176,7 +176,7 @@ theme_left_column "default", Body ->
         Body
 
 
-theme_right_column "default", Body ->
+theme_right_column "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
@@ -187,66 +187,66 @@ theme_right_column "default", Body ->
         Body
 
 
-theme_left_column_picture "default", Body ->
+theme_left_column_picture "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default left column picture
 // ----------------------------------------------------------------------------
     translate -500, -150, 0
-    theme_box "default", 0, 0, 900, 900, "left_column_picture"
+    theme_box "Default", 0, 0, 900, 900, "left_column_picture"
     do Body
 
 
-theme_right_column_picture "default", Body ->
+theme_right_column_picture "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default right column picture
 // ----------------------------------------------------------------------------
     translate 500, -150, 0
-    theme_box "default", 0, 0, 900, 900, "right_column_picture"
+    theme_box "Default", 0, 0, 900, 900, "right_column_picture"
     do Body
 
 
-theme_box "default", X:real, Y:real, W:real, H:real, Kind:text -> false
+theme_box "Default", X:real, Y:real, W:real, H:real, Kind:text -> false
 // ----------------------------------------------------------------------------
 //    Default style of a box
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_size "default", 1 -> 62
-theme_bullet_size "default", 2 -> 52
-theme_bullet_size "default", Level:integer -> 42
+theme_bullet_size "Default", 1 -> 62
+theme_bullet_size "Default", 2 -> 52
+theme_bullet_size "Default", Level:integer -> 42
 // ----------------------------------------------------------------------------
 //    Default size of a bullet
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_color "default", 1 ->
+theme_bullet_color "Default", 1 ->
 // ----------------------------------------------------------------------------
 //    Default bullet fill color for first level
 // ----------------------------------------------------------------------------
     color theme_color "brown"
 
 
-theme_bullet_color "default", Level:integer ->
+theme_bullet_color "Default", Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default bullet fill color for all levels
 // ----------------------------------------------------------------------------
     color theme_color "red"
 
 
-theme_bullet_style "default", Level:integer ->
+theme_bullet_style "Default", Level:integer ->
 // ----------------------------------------------------------------------------
 //   Default style of a bullet point
 // ----------------------------------------------------------------------------
     plain
     paragraph_space 30, 30
-    font_size theme_bullet_size ("default", Level)
+    font_size theme_bullet_size ("Default", Level)
     color "black"
 
 
-theme_bullet_picture "default", Level:integer ->
+theme_bullet_picture "Default", Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default style of a bullet
 // ----------------------------------------------------------------------------
-    theme_bullet_color "default", Level
+    theme_bullet_color "Default", Level
     draw S:real -> circle -50% * S, 30% * S, 12% * S
-    draw theme_bullet_size ("default", Level)
+    draw theme_bullet_size ("Default", Level)

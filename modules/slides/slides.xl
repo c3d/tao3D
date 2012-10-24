@@ -30,6 +30,16 @@ syntax
 // for the current document
 add_search_path "image:", module_dir & "/images"
 
+// ============================================================================
+//
+//    Default theme
+//
+// ============================================================================
+
+theme -> "Default"
+theme "default" -> theme "Default" // Case sensitive...
+
+import "default.xl"
 
 // ============================================================================
 //
@@ -44,7 +54,14 @@ add_search_path "image:", module_dir & "/images"
 // follows "scale_contents".
 // Here, we use the size of our background picture
 slide_width  -> 1920
-slide_height -> 1280
+slide_height -> 1080
+
+set_slide_size Width:real, Height:real ->
+// ----------------------------------------------------------------------------
+//   Change the dimension of a slide
+// ----------------------------------------------------------------------------
+    slide_width := Width
+    slide_height := Height
 
 
 theme T:text ->
@@ -52,16 +69,6 @@ theme T:text ->
 //   Select a theme name
 // ----------------------------------------------------------------------------
     theme := T
-
-
-// ============================================================================
-//
-//    Default theme
-//
-// ============================================================================
-
-theme -> "default"
-import "default.xl"
 
 // ============================================================================
 //

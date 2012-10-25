@@ -76,9 +76,9 @@ theme_background "Default" ->
 //    Default background is solid white
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
-    locally
+    background -300,
         color theme_color "brown"
-        rectangle 0, 380, slide_width, 3
+        rectangle 0, 380, slide_width * 1.02, 3
 
 
 theme_title_background "Default" ->
@@ -92,9 +92,9 @@ theme_section_background "Default" ->
 // ----------------------------------------------------------------------------
 //    Default section background is the same
 // ----------------------------------------------------------------------------
-    locally
+    background -300,
         color theme_color "brown"
-        rectangle 0, -150, slide_width, 3
+        rectangle 0, -150, slide_width * 1.02, 3
 
 
 

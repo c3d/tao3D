@@ -1021,11 +1021,11 @@ void TextFlow::Clear()
 //
 // ============================================================================
 
-AnchorLayout::AnchorLayout(Widget *widget)
+AnchorLayout::AnchorLayout(Widget *widget, bool abs)
 // ----------------------------------------------------------------------------
 //   Create an anchor layout
 // ----------------------------------------------------------------------------
-    : Layout(widget)
+    : Layout(widget), absolute(abs)
 {}
 
 
@@ -1056,7 +1056,8 @@ void AnchorLayout::Draw(Layout *where)
         return;
     }
 
-    Vector3 &o = where->offset;
+    Vector3 zero(0,0,0);
+    Vector3 &o = absolute ? zero : where->offset;
     IFTRACE(justify)
         std::cerr << "AnchorLayout:" << this << ":Draw(Layout *" << where
                   << ") translate to " << o <<std::endl;

@@ -1,0 +1,78 @@
+// slides.ddd
+import Transitions
+import Slides
+
+
+// Apply default theme (not useful)
+theme "Default"
+
+
+title_slide "This is the main title",
+// ----------------------------------------------------------------------------
+//   Create a simple slide with a main title
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    subtitle text "This is the subtitle"
+
+
+section_slide "This is the section title",
+// ----------------------------------------------------------------------------
+//   Create a simple slide with section title
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    main_title text "This is the main title" // Add the main title on the slide
+
+
+slide "This is the title of slide 1",
+// ----------------------------------------------------------------------------
+//   Create a simple slide with bullet points
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    *"First-level bullet"
+    -"Second-level bullet"
+    *"First-level bullet"
+    -"Second-level bullet"
+    +"Third-level bullet"
+    *"First-level bullet"
+    -"Second-level bullet"
+    +"Third-level bullet"
+
+
+picture_slide "This is title of slide 2",
+// ----------------------------------------------------------------------------
+//   Create a simple slide for picture
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    // Get image from internet
+    image 0, 0, 100%, 100%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
+
+
+toptitle_slide "This is title of slide 3",
+// ----------------------------------------------------------------------------
+//   Create a simple slide with left and right columns
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    left_column
+        *"First-level bullet"
+        -"Second-level bullet"
+        -"Second-level bullet"
+        *"First-level bullet"
+        -"Second-level bullet"
+    right_column
+        *"First-level bullet"
+        -"Second-level bullet"
+        -"Second-level bullet"
+        *"First-level bullet"
+        -"Second-level bullet"
+
+
+toptitle_slide "This is title of slide 4",
+// ----------------------------------------------------------------------------
+//   Create a simple slide with left and right columns
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    left_column_picture
+        image 0, 0, 80%, 80%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
+    right_column_picture
+        image 0, 0, 80%, 80%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
+

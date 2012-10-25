@@ -1,0 +1,252 @@
+// ****************************************************************************
+//  default.xl                                                     Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Define a default theme for slides.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+
+// A few colors we selected for the theme (these are from the Taodyne palette)
+theme_color "red"       -> "#AA0022"
+theme_color "orange"    -> "#DD3311"
+theme_color "yellow"    -> "#EEAA11"
+theme_color "green"     -> "#88BB00"
+theme_color "ocean"     -> "#229988"
+theme_color "sky"       -> "#3399FF"
+theme_color "navy"      -> "#003366"
+theme_color "purple"    -> "#CC0099"
+theme_color "grey"      -> "#555"
+theme_color "lightblue" -> "#3399FF"
+theme_color "darkblue"  -> "#003366"
+theme_color "darkgreen" -> "#006633"
+theme_color "blue1"    -> "#D0EAF0"
+theme_color "blue2"    -> "#8FB4CB"
+theme_color "blue3"    -> "#7AA9C1"
+theme_color "blue4"    -> "#1D456B"
+theme_color "brown" -> "#7E3830"
+
+
+theme_background "Default" ->
+// ----------------------------------------------------------------------------
+//    Default background is solid white
+// ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
+    background -300,
+        color theme_color "brown"
+        rectangle 0, 380, slide_width * 1.02, 3
+
+
+theme_title_background "Default" ->
+// ----------------------------------------------------------------------------
+//    Default title background is the same
+// ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
+
+
+theme_section_background "Default" ->
+// ----------------------------------------------------------------------------
+//    Default section background is the same
+// ----------------------------------------------------------------------------
+    background -300,
+        color theme_color "brown"
+        rectangle 0, -150, slide_width * 1.02, 3
+
+
+
+theme_main_title "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default main title (centered on the slide)
+// ----------------------------------------------------------------------------
+    box 0, 0, 1800, 350, "main_title",
+        font "TeX Gyre Adventor", "Arial", 150, bold
+        color theme_color "brown"
+        align 0.5
+        vertical_align 0.5
+        Body
+
+
+theme_section_title "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default section title (centered on the slide)
+// ----------------------------------------------------------------------------
+    box 0, -500, 1800, 500, "main_title",
+        font "TeX Gyre Adventor", "Arial", 50, bold
+        color theme_color "red"
+        align 0.5
+        vertical_align 0.0
+        Body
+
+
+theme_title "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default title is at the top
+// ----------------------------------------------------------------------------
+    box 0, 500, 2000, 250, "title",
+        font "TeX Gyre Adventor", "Arial", 80, bold
+        color theme_color "brown"
+        align 0.5
+        vertical_align 0.5
+        Body
+
+
+theme_subtitle "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default subtitle is below main title
+// ----------------------------------------------------------------------------
+    box 0, -500, 1800, 500, "subtitle",
+        font "TeX Gyre Adventor", "Arial", 70, bold
+        color theme_color "navy"
+        align 0.5
+        vertical_align 0.0
+        Body
+
+
+theme_picture "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box
+// ----------------------------------------------------------------------------
+    theme_box "Default", 0, -150, 1700, 900, "picture"
+    do Body
+
+
+theme_story "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default story box
+// ----------------------------------------------------------------------------
+    box 0, -150, 1700, 900, "story",
+        font "TeX Gyre Adventor", "Arial", 80, bold
+        align 0.0
+        vertical_align 0.5
+        Body
+
+
+theme_left_column "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default left column
+// ----------------------------------------------------------------------------
+    box -500, -150, 900, 900, "left_column",
+        font "TeX Gyre Adventor", "Arial", 80, bold
+        align 0.0
+        vertical_align 0.5
+        Body
+
+
+theme_right_column "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default right column
+// ----------------------------------------------------------------------------
+    box 500, -150, 900, 900, "right_column",
+        font "TeX Gyre Adventor", "Arial", 80, bold
+        align 0.0
+        vertical_align 0.5
+        Body
+
+
+theme_left_column_picture "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default left column picture
+// ----------------------------------------------------------------------------
+    translate -500, -150, 0
+    theme_box "Default", 0, 0, 900, 900, "left_column_picture"
+    do Body
+
+
+theme_right_column_picture "Default", Body ->
+// ----------------------------------------------------------------------------
+//    Default right column picture
+// ----------------------------------------------------------------------------
+    translate 500, -150, 0
+    theme_box "Default", 0, 0, 900, 900, "right_column_picture"
+    do Body
+
+
+theme_box "Default", X:real, Y:real, W:real, H:real, Kind:text -> false
+// ----------------------------------------------------------------------------
+//    Default style of a box
+// ----------------------------------------------------------------------------
+
+
+theme_bullet_size "Default", 1 -> 62
+theme_bullet_size "Default", 2 -> 52
+theme_bullet_size "Default", Level:integer -> 42
+// ----------------------------------------------------------------------------
+//    Default size of a bullet
+// ----------------------------------------------------------------------------
+
+
+theme_bullet_color "Default", 1 ->
+// ----------------------------------------------------------------------------
+//    Default bullet fill color for first level
+// ----------------------------------------------------------------------------
+    color theme_color "brown"
+
+
+theme_bullet_color "Default", Level:integer ->
+// ----------------------------------------------------------------------------
+//    Default bullet fill color for all levels
+// ----------------------------------------------------------------------------
+    color theme_color "red"
+
+
+theme_bullet_style "Default", Level:integer ->
+// ----------------------------------------------------------------------------
+//   Default style of a bullet point
+// ----------------------------------------------------------------------------
+    plain
+    paragraph_space 30, 30
+    font_size theme_bullet_size ("Default", Level)
+    color "black"
+
+
+theme_bullet_picture "Default", Level:integer ->
+// ----------------------------------------------------------------------------
+//    Default style of a bullet
+// ----------------------------------------------------------------------------
+    theme_bullet_color "Default", Level
+    draw S:real -> circle -50% * S, 30% * S, 12% * S
+    draw theme_bullet_size ("Default", Level)

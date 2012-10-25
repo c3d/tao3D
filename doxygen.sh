@@ -57,6 +57,51 @@ filter_doxy_warnings() {
   grep -v "is not found in the argument list"
 }
 
+# For portability
+_mktemp() {
+  case $(uname) in
+    MINGW*)
+      if [ "$1" = "-d" ] ; then
+        isdir = 1
+      fi
+      dst=$(echo $1 | sed 's/\.X\+/.'$$'/')
+      [ -e $dst ] && dst=$dst-
+      if [ "$isdir" ] ; then
+        mkdir -p $dst
+      else
+        touch $dst
+      fi
+      echo $dst
+      ;;
+    *)
+      mktemp $@
+      ;;
+  esac
+}
+
+# Find value of variable $1 in Doxyfile file $2
+# Also process include files (@INCLUDE =)
+find_variable_value() {
+  varname=$1
+  filename=$2
+  OUT=`_mktemp /tmp/doxygen_sh_out.XXX`
+  cat $filename | while read line ; do
+    case $line in
+      @INCLUDE*)
+        includefile=`echo $line | grep '^@INCLUDE' | sed 's/@INCLUDE *= *//'`
+        find_variable_value $varname $includefile
+        ;;
+      $varname*)
+        echo $line | grep "^$varname" | sed 's/'$varname' *= *//' | tr -d '"'
+        ;;
+      *)
+        ;;
+    esac
+  done | tail -1 >$OUT
+  cat $OUT
+  rm $OUT
+}
+
 if [ -e "$DOXYFILE" ] ; then
     LANGUAGES=`echo $DOXYLANG | tr , ' '`
     for lang in $LANGUAGES ; do
@@ -72,8 +117,13 @@ if [ -e "$DOXYFILE" ] ; then
         ) > Doxyfile.tmp
         doo mkdir -p $htmlout
         if [ "$QHP_ADDFILES" != "" ] ; then
-            qhelpgenerator=`cat Doxyfile.tmp | grep '^QHG_LOCATION' | sed 's/QHG_LOCATION *= *//'`
-            qchfile=`cat Doxyfile.tmp | grep '^QCH_FILE' | sed 's/QCH_FILE *= *//'`
+            qhelpgenerator=`find_variable_value QHG_LOCATION Doxyfile.tmp`
+            qchfile=`find_variable_value QCH_FILE Doxyfile.tmp`
+            if [ -z "$qchfile" ] ; then
+              projectname=`find_variable_value PROJECT_NAME Doxyfile.tmp`
+              projectnumber=`find_variable_value PROJECT_NUMBER Doxyfile.tmp`
+              qchfile="../qch/$projectname-$projectnumber.qch"
+            fi
             # Doxygen should not run qhelpgenerator yet
             echo QHG_LOCATION= >> Doxyfile.tmp
         fi
@@ -89,7 +139,7 @@ if [ -e "$DOXYFILE" ] ; then
             cd $htmlout
             cat index.qhp | sed "s@<files>@<files>$toadd@" > index2.qhp
             mv index2.qhp index.qhp
-            doo $qhelpgenerator index.qhp -o $qchfile
+            doo $qhelpgenerator index.qhp -o "$qchfile"
           )
         fi
     done

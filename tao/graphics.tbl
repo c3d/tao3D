@@ -380,7 +380,7 @@ PREFIX(Anchor,   tree,  "anchor",
        SYNOPSIS("")
        DESCRIPTION("Anchor a set of shapes to the current position")
        RETURNS(tree, "The result of the child execution."))
-PREFIX(AnchorAbs,   tree,  "anchor_abs",
+PREFIX(Floating,   tree,  "floating",
        PARM(t, code, "The code that represent the shapes to be anchored."),
        RTAO(anchor(context, self, t, true)),
        GROUP(graph)

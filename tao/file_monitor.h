@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "tao.h"
+#include "module_api.h"
 #include <QDateTime>
 #include <QFileInfo>
 #include <QMap>
@@ -162,6 +163,45 @@ protected:
 
 private:
     static QWeakPointer<FileMonitorThread> inst;
+};
+
+
+class FileMonitorApi : public QObject
+// ----------------------------------------------------------------------------
+//    File monitor wrapper for module API
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    FileMonitorApi(ModuleApi::file_info_callback created,
+                   ModuleApi::file_info_callback changed,
+                   ModuleApi::file_info_callback deleted,
+                   void * userData,
+                   std::string name = "");
+    virtual ~FileMonitorApi();
+
+public:
+    // Functions exported by ModuleApi
+    static void *newFileMonitor(ModuleApi::file_info_callback created,
+                                ModuleApi::file_info_callback changed,
+                                ModuleApi::file_info_callback deleted,
+                                void * userData,
+                                std::string name);
+    static void fileMonitorAddPath(void *fileMonitor, std::string path);
+    static void fileMonitorRemovePath(void *fileMonitor, std::string path);
+    static void fileMonitorRemoveAllPaths(void *fileMonitor);
+    static void deleteFileMonitor(void *fileMonitor);
+
+private slots:
+    void  onCreated(const QString &path, const QString canonicalPath);
+    void  onChanged(const QString &path, const QString canonicalPath);
+    void  onDeleted(const QString &path, const QString canonicalPath);
+
+private:
+    ModuleApi::file_info_callback    created, changed, deleted;
+    void                           * userData;
+    FileMonitor                    * mon;
 };
 
 }

@@ -49,8 +49,8 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   28
-#define TAO_MODULE_API_AGE       9
+#define TAO_MODULE_API_CURRENT   29
+#define TAO_MODULE_API_AGE       10
 
 // ========================================================================
 //
@@ -479,6 +479,36 @@ struct ModuleApi
     // Do not use both postEvent() and postEventOnce() for the same value of
     // eventType.
     bool (*postEventOnce)(int eventType);
+
+
+    // ------------------------------------------------------------------------
+    //   Path monitoring
+    // ------------------------------------------------------------------------
+
+    typedef void (*file_info_callback)(std::string path,
+                                       std::string canonicalPath,
+                                       void * userData);
+    // A file monitor object is created by newFileMonitor(). It contains a list
+    // of monitored paths, and three callbacks: created, changed, deleted.
+    // Whenever a file is created, modified or deleted, the corresponding
+    // callback is invoked. If the file already exists when the monitor is
+    // created, the 'created' callback is called immediately.
+    // created, changed and/or deleted may be NULL.
+    // userData is passed as is to the callbacks. name is for debug
+    // purposes (-tfilemon) and may be empty.
+    void *(*newFileMonitor)(file_info_callback created,
+                            file_info_callback changed,
+                            file_info_callback deleted,
+                            void * userData,
+                            std::string name);
+    // Monitor a path
+    void (*fileMonitorAddPath)(void *fileMonitor, std::string path);
+    // Stop monitoring a path
+    void (*fileMonitorRemovePath)(void *fileMonitor, std::string path);
+    // Stop monitoring all paths
+    void (*fileMonitorRemoveAllPaths)(void *fileMonitor);
+    // Delete a file monitor object
+    void (*deleteFileMonitor)(void *fileMonitor);
 };
 
 }

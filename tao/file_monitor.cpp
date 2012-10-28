@@ -481,4 +481,126 @@ void FileMonitorThread::checkFiles()
     QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));
 }
 
+
+
+// ============================================================================
+//
+//    Functions exported by the module API
+//
+// ============================================================================
+
+FileMonitorApi::FileMonitorApi(ModuleApi::file_info_callback created,
+                               ModuleApi::file_info_callback changed,
+                               ModuleApi::file_info_callback deleted,
+                               void * userData,
+                               std::string name)
+// ----------------------------------------------------------------------------
+//   Constructor
+// ----------------------------------------------------------------------------
+    : created(created), changed(changed), deleted(deleted), userData(userData),
+      mon(new FileMonitor(+name))
+{
+    connect(mon,  SIGNAL(created(QString,QString)),
+            this, SLOT(onCreated(QString,QString)));
+    connect(mon,  SIGNAL(changed(QString,QString)),
+            this, SLOT(onChanged(QString,QString)));
+    connect(mon,  SIGNAL(deleted(QString,QString)),
+            this, SLOT(onDeleted(QString,QString)));
+}
+
+
+FileMonitorApi::~FileMonitorApi()
+// ----------------------------------------------------------------------------
+//   Destructor
+// ----------------------------------------------------------------------------
+{
+    delete mon;
+}
+
+
+void *FileMonitorApi::newFileMonitor(ModuleApi::file_info_callback created,
+                                     ModuleApi::file_info_callback changed,
+                                     ModuleApi::file_info_callback deleted,
+                                     void *userData,
+                                     std::string name)
+// ----------------------------------------------------------------------------
+//   Create file monitor object, register callbacks
+// ----------------------------------------------------------------------------
+{
+    return new FileMonitorApi(created, changed, deleted, userData, name);
+}
+
+
+void FileMonitorApi::fileMonitorAddPath(void *fileMonitor, std::string path)
+// ----------------------------------------------------------------------------
+//   Monitor path
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    api->mon->addPath(+path);
+}
+
+
+void FileMonitorApi::fileMonitorRemovePath(void *fileMonitor, std::string path)
+// ----------------------------------------------------------------------------
+//   Stop monitoring path
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    api->mon->removePath(+path);
+}
+
+
+void FileMonitorApi::fileMonitorRemoveAllPaths(void *fileMonitor)
+// ----------------------------------------------------------------------------
+//   Stop monitoring all previously registered paths
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    api->mon->removeAllPaths();
+}
+
+
+void FileMonitorApi::deleteFileMonitor(void *fileMonitor)
+// ----------------------------------------------------------------------------
+//   Delete monitor
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    delete api;
+}
+
+
+void FileMonitorApi::onCreated(const QString &path,
+                               const QString canonicalPath)
+// ----------------------------------------------------------------------------
+//   Forward 'created' signal to callback
+// ----------------------------------------------------------------------------
+{
+    if (created)
+        created(+path, +canonicalPath, userData);
+}
+
+
+void FileMonitorApi::onChanged(const QString &path,
+                               const QString canonicalPath)
+// ----------------------------------------------------------------------------
+//   Forward 'changed' signal to callback
+// ----------------------------------------------------------------------------
+{
+    if (changed)
+        changed(+path, +canonicalPath, userData);
+}
+
+
+void FileMonitorApi::onDeleted(const QString &path,
+                               const QString canonicalPath)
+// ----------------------------------------------------------------------------
+//   Forward 'deleted' signal to callback
+// ----------------------------------------------------------------------------
+{
+    if (deleted)
+        deleted(+path, +canonicalPath, userData);
+}
+
 }

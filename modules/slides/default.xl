@@ -64,38 +64,53 @@ theme_color "grey"      -> "#555"
 theme_color "lightblue" -> "#3399FF"
 theme_color "darkblue"  -> "#003366"
 theme_color "darkgreen" -> "#006633"
-theme_color "blue1"    -> "#D0EAF0"
-theme_color "blue2"    -> "#8FB4CB"
-theme_color "blue3"    -> "#7AA9C1"
-theme_color "blue4"    -> "#1D456B"
-theme_color "brown" -> "#7E3830"
+theme_color "blue1"     -> "#D0EAF0"
+theme_color "blue2"     -> "#8FB4CB"
+theme_color "blue3"     -> "#7AA9C1"
+theme_color "blue4"     -> "#1D456B"
+theme_color "brown"     -> "#7E3830"
+
+
+// Colors that we will use as primary, secondary, text and borders
+theme_item_color "text"      -> color "black"
+theme_item_color "main"      -> color theme_color "red"
+theme_item_color "primary"   -> color theme_color "brown"
+theme_item_color "secondary" -> color theme_color "red"
+theme_item_color "highlight" -> color theme_color "navy"
+theme_item_color "border"    -> color theme_color "brown", 0.3
 
 
 theme_background "Default" ->
 // ----------------------------------------------------------------------------
-//    Default background is solid white
+//    Default background is solid white with a vertical bar on the left
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        color theme_color "brown"
-        rectangle 0, 380, slide_width * 1.02, 3
+        theme_item_color "border"
+        rectangle -slide_width * 0.5, 0, slide_width * 0.1, slide_height * 1.1
 
 
 theme_title_background "Default" ->
 // ----------------------------------------------------------------------------
-//    Default title background is the same
+//    Default title background has rectangles at top and bottom
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
+    background -300,
+        theme_item_color "border"
+        rectangle 0, 0, slide_width * 1.1, slide_height * 0.9
+        rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
+        rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
 theme_section_background "Default" ->
 // ----------------------------------------------------------------------------
 //    Default section background is the same
 // ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
     background -300,
-        color theme_color "brown"
-        rectangle 0, -150, slide_width * 1.02, 3
-
+        theme_item_color "border"
+        rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
+        rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
 theme_main_title "Default", Body ->
@@ -104,7 +119,7 @@ theme_main_title "Default", Body ->
 // ----------------------------------------------------------------------------
     box 0, 0, 1800, 350, "main_title",
         font "TeX Gyre Adventor", "Arial", 150, bold
-        color theme_color "brown"
+        theme_item_color "main"
         align 0.5
         vertical_align 0.5
         Body
@@ -116,7 +131,7 @@ theme_section_title "Default", Body ->
 // ----------------------------------------------------------------------------
     box 0, -500, 1800, 500, "main_title",
         font "TeX Gyre Adventor", "Arial", 50, bold
-        color theme_color "red"
+        theme_item_color "secondary"
         align 0.5
         vertical_align 0.0
         Body
@@ -126,9 +141,12 @@ theme_title "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default title is at the top
 // ----------------------------------------------------------------------------
-    box 0, 500, 2000, 250, "title",
+    locally
+        theme_item_color "secondary"
+        rectangle 0, 400, 1e6, 5
+    box 0, 500, 1800, 250, "title",
         font "TeX Gyre Adventor", "Arial", 80, bold
-        color theme_color "brown"
+        theme_item_color "primary"
         align 0.5
         vertical_align 0.5
         Body
@@ -140,7 +158,7 @@ theme_subtitle "Default", Body ->
 // ----------------------------------------------------------------------------
     box 0, -500, 1800, 500, "subtitle",
         font "TeX Gyre Adventor", "Arial", 70, bold
-        color theme_color "navy"
+        theme_item_color "highlight"
         align 0.5
         vertical_align 0.0
         Body
@@ -151,7 +169,7 @@ theme_picture "Default", Body ->
 //    Default picture box
 // ----------------------------------------------------------------------------
     theme_box "Default", 0, -150, 1700, 900, "picture"
-    do Body
+    Body
 
 
 theme_story "Default", Body ->
@@ -169,7 +187,7 @@ theme_left_column "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
-    box -500, -150, 900, 900, "left_column",
+    box -500, -150, 800, 900, "left_column",
         font "TeX Gyre Adventor", "Arial", 80, bold
         align 0.0
         vertical_align 0.5
@@ -180,7 +198,7 @@ theme_right_column "Default", Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
-    box 500, -150, 900, 900, "right_column",
+    box 500, -150, 800, 900, "right_column",
         font "TeX Gyre Adventor", "Arial", 80, bold
         align 0.0
         vertical_align 0.5
@@ -193,7 +211,7 @@ theme_left_column_picture "Default", Body ->
 // ----------------------------------------------------------------------------
     translate -500, -150, 0
     theme_box "Default", 0, 0, 900, 900, "left_column_picture"
-    do Body
+    Body
 
 
 theme_right_column_picture "Default", Body ->
@@ -202,7 +220,7 @@ theme_right_column_picture "Default", Body ->
 // ----------------------------------------------------------------------------
     translate 500, -150, 0
     theme_box "Default", 0, 0, 900, 900, "right_column_picture"
-    do Body
+    Body
 
 
 theme_box "Default", X:real, Y:real, W:real, H:real, Kind:text -> false
@@ -223,14 +241,14 @@ theme_bullet_color "Default", 1 ->
 // ----------------------------------------------------------------------------
 //    Default bullet fill color for first level
 // ----------------------------------------------------------------------------
-    color theme_color "brown"
+    theme_item_color "primary"
 
 
 theme_bullet_color "Default", Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default bullet fill color for all levels
 // ----------------------------------------------------------------------------
-    color theme_color "red"
+    theme_item_color "secondary"
 
 
 theme_bullet_style "Default", Level:integer ->
@@ -240,7 +258,7 @@ theme_bullet_style "Default", Level:integer ->
     plain
     paragraph_space 30, 30
     font_size theme_bullet_size ("Default", Level)
-    color "black"
+    theme_item_color "text"
 
 
 theme_bullet_picture "Default", Level:integer ->

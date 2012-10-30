@@ -387,7 +387,7 @@ void Licenses::addLicenseFiles(const QFileInfoList &files)
 {
     foreach (QFileInfo file, files)
     {
-        text path = +file.canonicalFilePath();
+        text path = +file.absoluteFilePath();
         IFTRACE(fileload)
             std::cerr << "Loading license file: " << path << "\n";
         Licenses::AddLicenseFile(path.c_str());

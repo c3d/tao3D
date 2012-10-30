@@ -107,8 +107,8 @@ bool Repository::write(text fileName, XL::Tree *tree)
         XL::Renderer renderer(output);
         QFileInfo stylesheet(+styleSheet());
         QFileInfo syntax("system:xl.syntax");
-        QString sspath(stylesheet.canonicalFilePath());
-        QString sypath(syntax.canonicalFilePath());
+        QString sspath(stylesheet.absoluteFilePath());
+        QString sypath(syntax.absoluteFilePath());
         IFTRACE(paths)
                 std::cerr << "Loading git stylesheet '" << +sspath
                 << "' with syntax '" << +sypath << "'\n";

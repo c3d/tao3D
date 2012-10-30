@@ -486,7 +486,7 @@ struct ModuleApi
     // ------------------------------------------------------------------------
 
     typedef void (*file_info_callback)(std::string path,
-                                       std::string canonicalPath,
+                                       std::string absolutePath,
                                        void * userData);
     // A file monitor object is created by newFileMonitor(). It contains a list
     // of monitored paths, and three callbacks: created, changed, deleted.

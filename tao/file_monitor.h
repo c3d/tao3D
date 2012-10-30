@@ -60,9 +60,9 @@ public slots:
     void           removePath(const QString &path);
 
 signals:
-    void           created(const QString &path, const QString canonicalPath);
-    void           changed(const QString &path, const QString canonicalPath);
-    void           deleted(const QString &path, const QString canonicalPath);
+    void           created(const QString &path, const QString absolutePath);
+    void           changed(const QString &path, const QString absolutePath);
+    void           deleted(const QString &path, const QString absolutePath);
 
 
 protected:
@@ -80,16 +80,16 @@ protected:
 
         QString              path;
         QDateTime            cachedModified;
-        QString              cachedCanonicalPath;
+        QString              cachedAbsolutePath;
         NotificationKind     lastNotification;
     };
 
 protected:
     std::ostream&  debug();
     QString        id();
-    void           onCreated(const QString &path, const QString canonicalPath);
-    void           onChanged(const QString &path, const QString canonicalPath);
-    void           onDeleted(const QString &path, const QString canonicalPath);
+    void           onCreated(const QString &path, const QString absolutePath);
+    void           onChanged(const QString &path, const QString absolutePath);
+    void           onDeleted(const QString &path, const QString absolutePath);
 
 protected:
     QMap<QString, MonitoredFile>      files;
@@ -119,16 +119,16 @@ public:
     void           removeMonitor(FileMonitor *monitor);
 
 signals:
-    void           created(const QString &path, const QString canonicalPath);
-    void           changed(const QString &path, const QString canonicalPath);
-    void           deleted(const QString &path, const QString canonicalPath);
+    void           created(const QString &path, const QString absolutePath);
+    void           changed(const QString &path, const QString absolutePath);
+    void           deleted(const QString &path, const QString absolutePath);
 
 protected:
     FileMonitorThread();
 public:
     virtual ~FileMonitorThread();
 
-protected:
+public:
 
     class FileInfo : public QFileInfo
     {
@@ -137,6 +137,9 @@ protected:
             : QFileInfo(path), refs(1), ignore(false) {}
         FileInfo()
             : refs(1), ignore(false) {}
+
+    public:
+        QDateTime  lastModified() const;
 
     public:
         int   refs;

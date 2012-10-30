@@ -230,7 +230,7 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
             QString qualified = "texture:" + img;
             QFileInfo info(qualified);
             if (info.exists())
-                name = info.canonicalFilePath();
+                name = info.absoluteFilePath();
         }
     }
     // name is either a URL, full path or a prefixed path ("image:file.jpg").

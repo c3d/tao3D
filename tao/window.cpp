@@ -401,7 +401,7 @@ void Window::closeDocument()
 //   Replace current document with welcome screen or close welcome window.
 // ----------------------------------------------------------------------------
 {
-    loadFile(QFileInfo("system:welcome/welcome.ddd").canonicalFilePath(),
+    loadFile(QFileInfo("system:welcome/welcome.ddd").absoluteFilePath(),
              false);
 }
 
@@ -524,7 +524,7 @@ QString Window::welcomePath()
 // ----------------------------------------------------------------------------
 {
     QFileInfo tutorial("system:welcome/welcome.ddd");
-    return tutorial.canonicalFilePath();
+    return tutorial.absoluteFilePath();
 }
 
 
@@ -2137,7 +2137,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 
-    QString docPath = QFileInfo(fileName).canonicalPath();
+    QString docPath = QFileInfo(fileName).absolutePath();
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::no_repo && openProj &&
         !openProject(docPath,
@@ -2326,8 +2326,8 @@ bool Window::updateProgram(const QString &fileName)
 {
     bool hadError = false;
     QFileInfo fileInfo(fileName);
-    QString canonicalFilePath = fileInfo.canonicalFilePath();
-    text fn = +canonicalFilePath;
+    QString absoluteFilePath = fileInfo.absoluteFilePath();
+    text fn = +absoluteFilePath;
     XL::SourceFile *sf = NULL;
 
     if (!isUntitled)
@@ -2534,7 +2534,7 @@ void Window::updateContext(QString docPath)
     contextFileNames.clear();
 
     if (tao.exists())
-        contextFileNames.push_back(+tao.canonicalFilePath());
+        contextFileNames.push_back(+tao.absoluteFilePath());
     // Files given through the command line preload option (-p)
     QString preload = +XL::MAIN->options.preload_files;
     foreach (QString file, preload.split(":", QString::SkipEmptyParts))
@@ -2543,9 +2543,9 @@ void Window::updateContext(QString docPath)
         contextFileNames.push_back(+info.absoluteFilePath());
     }
     if (user.exists())
-        contextFileNames.push_back(+user.canonicalFilePath());
+        contextFileNames.push_back(+user.absoluteFilePath());
     if (theme.exists())
-        contextFileNames.push_back(+theme.canonicalFilePath());
+        contextFileNames.push_back(+theme.absoluteFilePath());
 
     // Load XL files of modules that have no import_name
     QStringList mods = ModuleManager::moduleManager()->anonymousXL();
@@ -2810,7 +2810,7 @@ bool Window::isTutorial(const QString &filePath)
 // ----------------------------------------------------------------------------
 {
     static QFileInfo tutorial("system:welcome/welcome.ddd");
-    static QString tutoPath = tutorial.canonicalFilePath();
+    static QString tutoPath = tutorial.absoluteFilePath();
     return (filePath == tutoPath);
 }
 
@@ -2870,11 +2870,11 @@ Window *Window::findWindow(const QString &fileName)
 //   Find a window given its file name
 // ----------------------------------------------------------------------------
 {
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    QString absoluteFilePath = QFileInfo(fileName).absoluteFilePath();
     foreach (QWidget *widget, qApp->topLevelWidgets())
     {
         Window *mainWin = qobject_cast<Window *>(widget);
-        if (mainWin && mainWin->curFile == canonicalFilePath)
+        if (mainWin && mainWin->curFile == absoluteFilePath)
             return mainWin;
     }
     return NULL;

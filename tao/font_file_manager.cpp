@@ -190,7 +190,7 @@ QList<int> FontFileManager::LoadFonts(const QDir &dir)
     int count = 0;
     IFTRACE(fonts)
     {
-        std::cerr << "Looking for fonts in '" << +dir.canonicalPath() << "'\n";
+        std::cerr << "Looking for fonts in '" << +dir.absolutePath() << "'\n";
         time.start();
     }
     foreach (QFileInfo f, contents)

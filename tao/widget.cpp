@@ -9372,7 +9372,7 @@ Text_p Widget::loadText(Tree_p self, text file)
         {
             text &value = pf->loaded->value;
 
-            QFile file(fileInfo.canonicalFilePath());
+            QFile file(fileInfo.absoluteFilePath());
             file.open(QIODevice::ReadOnly);
             QTextStream textStream(&file);
             QString data = textStream.readAll();
@@ -10854,14 +10854,14 @@ void Widget::fileChosen(const QString & filename)
     // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
     QString relFilePath = QDir((taoWindow())->currentProjectFolderPath()).
-                          relativeFilePath(file.canonicalFilePath());
+                          relativeFilePath(file.absoluteFilePath());
     if (relFilePath.contains(".."))
     {
         QDir::home().
-                relativeFilePath(file.canonicalFilePath());
+                relativeFilePath(file.absoluteFilePath());
         if (relFilePath.contains(".."))
         {
-            relFilePath = file.canonicalFilePath();
+            relFilePath = file.absoluteFilePath();
         } else {
             relFilePath.prepend("~/");
         }
@@ -10869,8 +10869,8 @@ void Widget::fileChosen(const QString & filename)
     NameToTextReplacement map;
 
     map["file_name"] = +file.fileName();
-    map["file_directory"] = +file.canonicalPath();
-    map["file_path"] = +file.canonicalFilePath();
+    map["file_directory"] = +file.absolutePath();
+    map["file_path"] = +file.absoluteFilePath();
     map["rel_file_path"] = +relFilePath;
 
     XL::Tree_p toBeEvaluated = map.Replace(fileAction);

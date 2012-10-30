@@ -486,13 +486,16 @@ text Main::SearchFile(text file)
 {
     QFileInfo fileInfo1(+file);
     if (fileInfo1.exists())
-        return +fileInfo1.canonicalFilePath();
+        return +fileInfo1.absoluteFilePath();
 
     text header = "xl:";
     header += file;
 
     QFileInfo fileInfo2(header.c_str());
-    return +fileInfo2.canonicalFilePath();
+    if (fileInfo2.exists())
+       return +fileInfo2.absoluteFilePath();
+
+    return "";
 }
 
 

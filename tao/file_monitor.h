@@ -23,6 +23,7 @@
 // ****************************************************************************
 
 #include "tao.h"
+#include "module_api.h"
 #include <QDateTime>
 #include <QFileInfo>
 #include <QMap>
@@ -60,9 +61,9 @@ public slots:
     void           removePath(const QString &path);
 
 signals:
-    void           created(const QString &path, const QString canonicalPath);
-    void           changed(const QString &path, const QString canonicalPath);
-    void           deleted(const QString &path, const QString canonicalPath);
+    void           created(const QString &path, const QString absolutePath);
+    void           changed(const QString &path, const QString absolutePath);
+    void           deleted(const QString &path, const QString absolutePath);
 
 
 protected:
@@ -80,16 +81,16 @@ protected:
 
         QString              path;
         QDateTime            cachedModified;
-        QString              cachedCanonicalPath;
+        QString              cachedAbsolutePath;
         NotificationKind     lastNotification;
     };
 
 protected:
     std::ostream&  debug();
     QString        id();
-    void           onCreated(const QString &path, const QString canonicalPath);
-    void           onChanged(const QString &path, const QString canonicalPath);
-    void           onDeleted(const QString &path, const QString canonicalPath);
+    void           onCreated(const QString &path, const QString absolutePath);
+    void           onChanged(const QString &path, const QString absolutePath);
+    void           onDeleted(const QString &path, const QString absolutePath);
 
 protected:
     QMap<QString, MonitoredFile>      files;
@@ -119,16 +120,16 @@ public:
     void           removeMonitor(FileMonitor *monitor);
 
 signals:
-    void           created(const QString &path, const QString canonicalPath);
-    void           changed(const QString &path, const QString canonicalPath);
-    void           deleted(const QString &path, const QString canonicalPath);
+    void           created(const QString &path, const QString absolutePath);
+    void           changed(const QString &path, const QString absolutePath);
+    void           deleted(const QString &path, const QString absolutePath);
 
 protected:
     FileMonitorThread();
 public:
     virtual ~FileMonitorThread();
 
-protected:
+public:
 
     class FileInfo : public QFileInfo
     {
@@ -137,6 +138,9 @@ protected:
             : QFileInfo(path), refs(1), ignore(false) {}
         FileInfo()
             : refs(1), ignore(false) {}
+
+    public:
+        QDateTime  lastModified() const;
 
     public:
         int   refs;
@@ -162,6 +166,45 @@ protected:
 
 private:
     static QWeakPointer<FileMonitorThread> inst;
+};
+
+
+class FileMonitorApi : public QObject
+// ----------------------------------------------------------------------------
+//    File monitor wrapper for module API
+// ----------------------------------------------------------------------------
+{
+    Q_OBJECT
+
+public:
+    FileMonitorApi(ModuleApi::file_info_callback created,
+                   ModuleApi::file_info_callback changed,
+                   ModuleApi::file_info_callback deleted,
+                   void * userData,
+                   std::string name = "");
+    virtual ~FileMonitorApi();
+
+public:
+    // Functions exported by ModuleApi
+    static void *newFileMonitor(ModuleApi::file_info_callback created,
+                                ModuleApi::file_info_callback changed,
+                                ModuleApi::file_info_callback deleted,
+                                void * userData,
+                                std::string name);
+    static void fileMonitorAddPath(void *fileMonitor, std::string path);
+    static void fileMonitorRemovePath(void *fileMonitor, std::string path);
+    static void fileMonitorRemoveAllPaths(void *fileMonitor);
+    static void deleteFileMonitor(void *fileMonitor);
+
+private slots:
+    void  onCreated(const QString &path, const QString absolutePath);
+    void  onChanged(const QString &path, const QString absoluteFilePath);
+    void  onDeleted(const QString &path, const QString absoluteFilePath);
+
+private:
+    ModuleApi::file_info_callback    created, changed, deleted;
+    void                           * userData;
+    FileMonitor                    * mon;
 };
 
 }

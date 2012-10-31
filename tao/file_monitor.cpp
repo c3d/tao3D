@@ -610,14 +610,11 @@ QDateTime FileMonitorThread::FileInfo::lastModified() const
 //   Return last modified date of file, or of symlink if path is a symlink
 // ----------------------------------------------------------------------------
 {
-#ifdef Q_OS_WIN
+#ifndef Q_OS_WIN
     // On Windows, there are no symbolic links. There are .lnk files but the
     // Qt doc seems to imply that the lastModified() date is the date of the
     // .lnk file (which, if true, would achieve what we're trying to do here
-    // for MacOSX and Linux)
-    return QFileInfo::lastModified();
-#endif
-
+    // for MacOSX and Linux). And there's no lstat anyways...
     if (isSymLink())
     {
         QByteArray ba = absoluteFilePath().toUtf8();
@@ -627,6 +624,8 @@ QDateTime FileMonitorThread::FileInfo::lastModified() const
             return QDateTime::fromTime_t(st.st_mtime);
         }
     }
+#endif
+
     return QFileInfo::lastModified();
 }
 

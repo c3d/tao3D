@@ -9796,7 +9796,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                              double w, double h, Tree_p prog,
+                              double w, double h, Tree_p prog, text name,
                               Integer_p withDepth, bool canvas)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
@@ -9806,15 +9806,34 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
-    // Get or build the current frame if we don't have one
-    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
-    if (!multiframe)
+
+    FrameInfo *pFrame;
+    if(name != "")
     {
-        multiframe = new MultiFrameInfo<uint>();
-        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+        // Get or build the current frame if we don't have one
+        MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
+        if (!multiframe)
+        {
+            multiframe = new MultiFrameInfo<text>();
+            self->SetInfo< MultiFrameInfo<text> > (multiframe);
+        }
+
+        pFrame = &multiframe->frame(name);
     }
-    uint id = shapeId();
-    FrameInfo *pFrame = &multiframe->frame(id);
+    else
+    {
+        // Get or build the current frame if we don't have one
+        MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+        if (!multiframe)
+        {
+            multiframe = new MultiFrameInfo<uint>();
+            self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+        }
+
+        uint id = shapeId();
+        pFrame = &multiframe->frame(id);
+    }
+
     FrameInfo &frame = *pFrame;
 
     Layout *parent = layout;

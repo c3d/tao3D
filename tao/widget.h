@@ -700,7 +700,7 @@ public:
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog,
+                             double w, double h, Tree_p prog, text name = "",
                              Integer_p depth=NULL, bool canvas=false);
     Integer *   framePixelCount(Tree_p self, float alphaMin);
     Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);

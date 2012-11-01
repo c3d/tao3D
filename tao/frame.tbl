@@ -40,12 +40,22 @@ PREFIX(FrameTexture,  integer,  "frame_texture",
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
        RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(FrameTexture2,  integer,  "frame_texture",
+       PARM(n,text, "name")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the frame"),
+       RTAO(frameTexture(context, self, w, h, p, n)),
+       GROUP(widget)
+       SYNOPSIS("A texture with content")
+       DESCRIPTION("Make a named texture out of the described content")
+       RETURNS(tree, "The result of 'prog' evaluation"))
 PREFIX(FrameDepthTexture,  integer,  "frame_texture_with_depth",
        PARM(w,real, "width")
        PARM(h,real, "height")
        PARM(d, integer, "[out] ID of the depth texture")
        PARM(p, code, "The program that represent the content of the frame"),
-       RTAO(frameTexture(context, self, w, h, p, d)),
+       RTAO(frameTexture(context, self, w, h, p, "", d)),
        GROUP(widget)
        SYNOPSIS("Request depth texture for a frame_texture")
        DESCRIPTION("Ensure that a frame_texture generates a depth texture")
@@ -54,7 +64,7 @@ PREFIX(Canvas,  integer,  "canvas",
        PARM(w,real, "width")
        PARM(h,real, "height")
        PARM(p, code, "The program that represent the content of the canvas"),
-       RTAO(frameTexture(context, self, w, h, p, NULL, true)),
+       RTAO(frameTexture(context, self, w, h, p, "", NULL, true)),
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
@@ -64,7 +74,7 @@ PREFIX(CanvasWithDepth,  integer,  "canvas_with_depth",
        PARM(h,real, "height")
        PARM(d, integer, "[out] ID of the depth texture")
        PARM(p, code, "The program that represent the content of the canvas"),
-       RTAO(frameTexture(context, self, w, h, p, d, true)),
+       RTAO(frameTexture(context, self, w, h, p, "", d, true)),
        GROUP(widget)
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")

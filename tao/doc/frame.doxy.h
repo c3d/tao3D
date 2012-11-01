@@ -61,7 +61,7 @@ integer window_width ();
  * Crée un cadre.
  * Crée un cadre qui contient les éléments graphique de @p body. Ce cadre n'a
  * pas de bordure. Une texture de taille (@p w, @p h) est créée par
- * @ref frame_texture, puis la texture est affichée sur un rectangle à la
+ * @ref frame_texture, puis la texture est affichée sur un rectangle
  * centré en (@p x, @p y).
  */
 frame( x:real, y:real, w:real, h:real, body:tree);
@@ -72,12 +72,39 @@ frame( x:real, y:real, w:real, h:real, body:tree);
  * Make a dynamic texture described by the supplied content. The
  * texture is cleared each time.
  *
+ * @return Return the texture id.
+ *
  * @~french
  * Crée une texture dynamique.
  * Crée une texture dynamique décrite par le code fourni. La texture
- * est effacée à chaque fois.
+ * est effacée à  chaque fois.
+ *
+ * @return Retourne l'identifiant de la texture.
  */
-frame_texture( w:real, h:real, body:tree);
+integer frame_texture( w:real, h:real, body:tree);
+
+
+/**
+ * @~english
+ * Create a dynamic texture with a specific name.
+ * Make a dynamic texture with the size (@p w, @p h) and named @p name.
+ * The code @p body is then executed and drawn in this one.
+ * This function assures that the texture ID is the same for a given @p name,
+ * no matter the objects drawn before.
+ *
+ * @return Return the texture ID.
+ *
+ * @~french
+ * Crée une texture dynamique avec un nom particulier.
+ * Crée une texture dynamique de la taille spécifié et appelée @p name.
+ * Le code @p body est alors executé et affiché dans cette texture.
+ * Cette fonction garantit que l'identifiant de la texture retournée est le même
+ * pour une valeur de @p name donnée, quelque soit les objets tracés avant.
+ *
+ * @return Retourne l'identifiant de la texture.
+ */
+integer frame_texture( name:text, w:real, h:real, body:tree);
+
 
 /**
  * @~english
@@ -86,13 +113,17 @@ frame_texture( w:real, h:real, body:tree);
  * be used to create the texture incrementally. The texture is
  * cleared if the canvas is resized.
  *
+ * @return Return the texture id.
+ *
  * @~french
  * Crée une texture dynamique.
  * Crée une texture dynamique décrite par le code fourni, persistante
  * au cours du temps. La texture est effacée lorsque le canevas est
  * redimensionné.
+ *
+ * @return Retourne l'identifiant de la texture.
  */
-canvas( w:real, h:real, body:tree);
+integer canvas( w:real, h:real, body:tree);
 
 
 /**
@@ -158,7 +189,7 @@ rectangle ww/4, 0, ww/2, wh/2
  *
  * @image html "frame_texture_with_depth.png"
  */
-frame_texture_with_depth( w:real, h:real, d:integer, body:tree);
+integer frame_texture_with_depth( w:real, h:real, d:integer, body:tree);
 
 
 /**

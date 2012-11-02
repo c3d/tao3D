@@ -31,6 +31,7 @@
 #include "application.h"
 #include "window.h"
 #include "texture_cache.h"
+#include "file_monitor.h"
 
 TAO_BEGIN
 
@@ -126,6 +127,13 @@ ModuleApiPrivate::ModuleApiPrivate()
     // Texture cache
     textureCacheBind = TextureCacheAPI::bind;
     textureCacheSetMinMagFilters = TextureCacheAPI::setMinMagFilters;
+
+    // File monitor
+    newFileMonitor = FileMonitorApi::newFileMonitor;
+    fileMonitorAddPath = FileMonitorApi::fileMonitorAddPath;
+    fileMonitorRemovePath = FileMonitorApi::fileMonitorRemovePath;
+    fileMonitorRemoveAllPaths = FileMonitorApi::fileMonitorRemoveAllPaths;
+    deleteFileMonitor = FileMonitorApi::deleteFileMonitor;
 }
 
 TAO_END

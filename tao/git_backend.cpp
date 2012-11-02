@@ -233,18 +233,18 @@ QString GitRepository::resolveExePath(QString cmd)
 
 QString GitRepository::checkExe(QString cmd)
 // ----------------------------------------------------------------------------
-//    If cmd is executable, return canonical (and native) path to cmd
+//    If cmd is executable, return absolute (and native) path to cmd
 // ----------------------------------------------------------------------------
 {
     IFTRACE(process)
         std::cerr << "Testing " << +cmd << "\n";
     QString path;
-    path = QFileInfo(cmd).canonicalFilePath();
+    path = QFileInfo(cmd).absoluteFilePath();
     if (QFileInfo(path).isExecutable())
     {
         path = QDir::toNativeSeparators(path);
         IFTRACE(process)
-            std::cerr << "Executable found, canonical path: " << +path << "\n";
+            std::cerr << "Executable found, absolute path: " << +path << "\n";
         return path;
     }
     else

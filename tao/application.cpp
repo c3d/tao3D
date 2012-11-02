@@ -191,9 +191,9 @@ void Application::deferredInit()
     foreach (QString arg, arguments())
         args.append(strdup(arg.toUtf8().constData()));
     xlr = new Main(args.size(), args.data(), "xl_tao",
-                   +syntax.canonicalFilePath(),
-                   +stylesheet.canonicalFilePath(),
-                   +builtins.canonicalFilePath());
+                   +syntax.absoluteFilePath(),
+                   +stylesheet.absoluteFilePath(),
+                   +builtins.absoluteFilePath());
 
     loadLicenses();
 
@@ -683,9 +683,9 @@ void Application::processCommandLineFile()
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
     if (user.exists())
-        contextFiles.push_back(+user.canonicalFilePath());
+        contextFiles.push_back(+user.absoluteFilePath());
     if (theme.exists())
-        contextFiles.push_back(+theme.canonicalFilePath());
+        contextFiles.push_back(+theme.absoluteFilePath());
 
     if (splash)
         win->splashScreen = splash;
@@ -1034,7 +1034,7 @@ QString Application::defaultUserDocumentsFolderPath()
         QFileInfo info = list[i];
         if (info.fileName().endsWith("documents", Qt::CaseInsensitive))
         {
-            return QDir::toNativeSeparators(info.canonicalFilePath());
+            return QDir::toNativeSeparators(info.absoluteFilePath());
         }
     }
     // Last default would be home itself
@@ -1132,7 +1132,7 @@ QString Application::defaultUserImagesFolderPath()
         QFileInfo info = list[i];
         if (info.fileName().endsWith("pictures", Qt::CaseInsensitive) )
         {
-            return QDir::toNativeSeparators(info.canonicalFilePath());
+            return QDir::toNativeSeparators(info.absoluteFilePath());
         }
     }
     // Last default would be home itself

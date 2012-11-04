@@ -1,6 +1,25 @@
-// Slides module definition
-//
-// Copyright 2010-2011 Taodyne
+// ****************************************************************************
+//  slides.xl                                                      Tao project 
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Slide module definition
+// 
+//     This provides the various features you need to build slides easily
+//     using a simple wiki-like language
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is property of Taodyne SAS
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2011 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
 
 module_description
     id "70C61E75-4CE2-4020-9E76-797763482B56"
@@ -17,6 +36,8 @@ module_description "fr",
     description "Commandes pour créer facilement des présentations " &
                 "avec des diapositives traditionnelles."
 
+
+// We use prefix operators as markup for bullets, add a syntax for it
 syntax
     PREFIX     370     ** *** ****
     PREFIX     370     ++ +++ ++++
@@ -30,14 +51,22 @@ add_search_path "image:", module_dir & "/images"
 
 // ============================================================================
 //
-//    Default theme
+//    Theme selection
 //
 // ============================================================================
 
-theme -> "Default"
-theme "default" -> theme "Default" // Case sensitive...
+theme -> "default"
+theme T:text ->
+// ----------------------------------------------------------------------------
+//   Select a theme name
+// ----------------------------------------------------------------------------
+    theme := T
 
+
+// Define the "Default" theme
 import "default.xl"
+
+
 
 // ============================================================================
 //
@@ -62,11 +91,6 @@ set_slide_size Width:real, Height:real ->
     slide_height := Height
 
 
-theme T:text ->
-// ----------------------------------------------------------------------------
-//   Select a theme name
-// ----------------------------------------------------------------------------
-    theme := T
 
 // ============================================================================
 //

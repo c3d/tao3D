@@ -41,11 +41,42 @@ module_description "fr",
 syntax
     PREFIX     370     ** *** ****
     PREFIX     370     ++ +++ ++++
+    INFIX      500     en fr de it es
 
 
 // Adding this module's images/ directory to the image: search path
 // for the current document
 add_search_path "image:", module_dir & "/images"
+
+
+
+// ============================================================================
+// 
+//    Language management
+// 
+// ============================================================================
+
+lang -> "en"
+lang L:text ->
+// ----------------------------------------------------------------------------
+//   Select a language for the slides
+// ----------------------------------------------------------------------------
+    lang := L
+
+
+// Select one language among many
+Other:text en En:text -> if lang = "en" then En else Other
+Other:text fr Fr:text -> if lang = "fr" then Fr else Other
+Other:text de De:text -> if lang = "de" then De else Other
+Other:text it It:text -> if lang = "it" then It else Other
+Other:text es Es:text -> if lang = "es" then Es else Other
+
+// Select language-dependent content
+english Body -> if lang = "en" then Body 
+french  Body -> if lang = "fr" then Body 
+german  Body -> if lang = "de" then Body
+italian Body -> if lang = "it" then Body
+spanish Body -> if lang = "es" then Body
 
 
 
@@ -70,7 +101,7 @@ import "default.xl"
 
 // ============================================================================
 //
-//   Theme control variables
+//   Slide size
 //
 // ============================================================================
 
@@ -93,75 +124,97 @@ set_slide_size Width:real, Height:real ->
 
 
 // ============================================================================
+// 
+//   Slide kinds
+// 
+// ============================================================================
+
+slide_kind -> ""
+slide_kind Theme:text, Kind:text, Title:text, Body ->
+// ----------------------------------------------------------------------------
+//    Draw a slide with a given kind
+// ----------------------------------------------------------------------------
+   page Title,
+       theme_background Theme, Kind
+       locally
+           slide_kind := Kind
+           Body
+
+
+// ============================================================================
 //
 //   Slide formats
 //
 // ============================================================================
 
-blank_slide T:text, Body ->
+blank_slide Theme:text, Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create an empty slide
 // ----------------------------------------------------------------------------
-    page T,
-        color "white"
-        theme_background theme
-        Body
+    slide_kind theme, "blank", Title, Body
 
 
-title_slide T:text, Body ->
+main_title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
-//   Create a slide for main title
+//   Create a slide showing the main title of the slide show
 // ----------------------------------------------------------------------------
-    page T,
-        color "white"
-        theme_title_background theme
-        Body
-        main_title
-            text page_label
-
-title_slide T:text -> title_slide T, false
+    slide_kind theme, "main", Title, Body
 
 
-section_slide T:text, Body ->
+main_title_slide Title:text ->
 // ----------------------------------------------------------------------------
-//   Create a slide for section
+//   Create a main title slide showing the name of the slide
 // ----------------------------------------------------------------------------
-    page T,
-        color "white"
-        theme_section_background theme
-        Body
-        section_title
-            text page_label
-
-section_slide T:text -> section_slide T, false
+    main_title_slide Title,
+        title
+            text Title
 
 
-toptitle_slide T:text, Body ->
+section_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create a section slide (transition between sections)
+// ----------------------------------------------------------------------------
+    slide_kind theme, "section", Title, Body
+
+
+section_slide Title:text ->
+// ----------------------------------------------------------------------------
+//   Create a section slide showing the section title
+// ----------------------------------------------------------------------------
+    section_slide Title,
+        title
+            text Title
+
+
+title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide with just a title at the top
 // ----------------------------------------------------------------------------
-    blank_slide T,
+    slide_kind theme, "title", Title,
         Body
         title
-            text page_label
+            text Title
 
 
-picture_slide T:text, Body ->
+picture_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide for pictures, photos, animations
 // ----------------------------------------------------------------------------
-    toptitle_slide T,
-        picture
-            translatey -150
-            do Body
+    slide_kind theme, "picture", Title,
+        picture Body
+        title
+            text Title
 
 
-slide T:text, Body ->
+slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a traditional slide with bullet points
 // ----------------------------------------------------------------------------
-    toptitle_slide T,
+    slide_kind theme, "slide", Title,
         story Body
+        title
+            text Title
+
 
 
 // ============================================================================
@@ -190,98 +243,67 @@ contents Depth:real, Body ->
         Body
 
 
-main_title Body ->
-// ----------------------------------------------------------------------------
-//   Draw a main title
-// ----------------------------------------------------------------------------
-    contents 0,
-        theme_main_title theme, Body
-
-
-section_title Body ->
-// ----------------------------------------------------------------------------
-//   Draw a section title
-// ----------------------------------------------------------------------------
-    contents 0,
-        theme_section_title theme, Body
-
-
 title Body ->
 // ----------------------------------------------------------------------------
-//   Draw a title
+//   Draw a title in a regular slide
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_title theme, Body
+    theme_title theme, slide_kind, Body
 
 
 subtitle Body ->
 // ----------------------------------------------------------------------------
-//   Draw a subtitle
+//   Draw a subtitle in a regular slide
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_subtitle theme, Body
+    theme_subtitle theme, slide_kind, Body
 
 
 picture Body ->
 // ----------------------------------------------------------------------------
 //   Box for picture, photos, animations
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_picture theme, Body
+    theme_picture theme, slide_kind, Body
 
 
 story Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the story, i.e. a rectangle somewhere in the middle
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_story theme, Body
+    theme_story theme, slide_kind, Body
 
 
 left_column Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the story
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_left_column theme, Body
+    theme_left_column theme, slide_kind, Body
 
 
 right_column Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the story
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_right_column theme, Body
-
+    theme_right_column theme, slide_kind, Body
 
 
 left_column_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the picture
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_left_column_picture theme, Body
+    theme_left_column_picture theme, slide_kind, Body
 
 
 right_column_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the picture
 // ----------------------------------------------------------------------------
-    contents 0,
-        theme_right_column_picture theme, Body
+    theme_right_column_picture theme, slide_kind, Body
 
 
-
-box X:real, Y:real, W:real, H:real, Kind:text, Body ->
+box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    locally
-        locally
-            theme_box theme, X, Y, W, H, Kind
-        translatez 1 // Use to avoid depth problem
-        text_box X, Y, W, H,
-            do Body
+    theme_box theme, slide_kind, X, Y, W, H, Body
 
 
 *T:text -> bullet 1, T
@@ -336,11 +358,11 @@ bullet Level, Text ->
 // ----------------------------------------------------------------------------
 //   Draw a bullet point with a given text
 // ----------------------------------------------------------------------------
-    margins Level * theme_bullet_size(theme, Level), 0
+    margins Level * theme_bullet_size(theme, slide_kind, Level), 0
     paragraph_break
     anchor
-        theme_bullet_picture theme, Level
-    theme_bullet_style theme, Level
+        theme_bullet_picture theme, slide_kind, Level
+    theme_bullet_style theme, slide_kind, Level
     text Text
 
 
@@ -348,9 +370,9 @@ no_bullet Level, Text ->
 // ----------------------------------------------------------------------------
 //   Draw a given text without bullet point
 // ----------------------------------------------------------------------------
-    margins (Level - 50% - 12% ) * theme_bullet_size(theme, Level), 0
+    margins (Level - 62%) * theme_bullet_size(theme, slide_kind, Level), 0
     paragraph_break
-    theme_bullet_style theme, Level
+    theme_bullet_style theme, slide_kind, Level
     text Text
 
 
@@ -388,7 +410,3 @@ ztrans_background Z:real ->
     Z0 -> camera_position at 3
     translatez Z/background_scale
     scale3 (Z0-Z)/Z0
-
-
-
-

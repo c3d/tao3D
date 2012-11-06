@@ -27,22 +27,39 @@
 // ============================================================================
 
 PREFIX(TextBox,  tree,  "text_box",
-       PARM(t, text, "Flow name to be displayed in this box")
        PARM(x, real, "x-coordinate")
        PARM(y, real, "y-coordinate")
        PARM(w, real, "width")
-       PARM(h, real, "height"),
-       RTAO(textBox(self, t, x, y, w, h)),
+       PARM(h, real, "height")
+       PARM(body, code, "body to evaluate"),
+       RTAO(textBox(context, self, x, y, w, h, body)),
        GROUP(text:graph)
        SYNOPSIS("Create a new page layout")
        DESCRIPTION("Create a new page layout and render text in it.")
        RETURNS(tree, "t evaluation result"))
-PREFIX(TextOverflow,  tree,  "text_flow",
-       PARM(n, text, "The name of the current flow")
+PREFIX(TextFlowDefine,  tree,  "text_flow",
+       PARM(n, text, "The name of the flow to define")
        PARM(t, code, "Flow description"),
        RTAO(textFlow(context, self, n, t)),
        GROUP(text:graph)
-       SYNOPSIS("Overflow text box")
+       SYNOPSIS("Text flow description")
+       DESCRIPTION("Text flow description"))
+PREFIX(TextFlowReplay,  tree,  "text_flow",
+       PARM(n, text, "The name of the flow to replay"),
+       RTAO(textFlow(context, self, n)),
+       GROUP(text:graph)
+       SYNOPSIS("Text flow playback")
+       DESCRIPTION("Text flow description"))
+PREFIX(TextFlowName,  tree,  "text_flow", ,
+       RTAO(textFlow(context, self)),
+       GROUP(text:graph)
+       SYNOPSIS("Text flow playback")
+       DESCRIPTION("Text flow description"))
+PREFIX(TextOverflow,  tree,  "text_flow_exists",
+       PARM(n, text, "The name of the flow to check"),
+       RTAO(textFlowExists(context, self, n)),
+       GROUP(text:graph)
+       SYNOPSIS("Text flow playback")
        DESCRIPTION("Text flow description"))
 PREFIX(TextSpan,  tree, "text_span",
        PARM(t, code, "The text to insert"),
@@ -236,23 +253,23 @@ PREFIX(VMargins,  tree,  "vertical_margins",
        GROUP(text:spread)
        SYNOPSIS("Set the vertical margin for text")
        DESCRIPTION("Set the minimum space allowed around the page. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur gauche (ou droite) est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas on peut ecrire dans la marge ?]"))
-PREFIX(LineBreak,  tree,  "line_break", , RTAO(drawingBreak(self, Tao::Drawing::LineBreak)),
+PREFIX(LineBreak,  tree,  "line_break", , RTAO(drawingBreak(self, Tao::LineBreak)),
        GROUP(text:spread)
        SYNOPSIS("Insert a line break")
        DESCRIPTION("Insert a line break in the current text."))
-PREFIX(SentenceBreak,  tree,  "sentence_break", , RTAO(drawingBreak(self, Tao::Drawing::SentenceBreak)),
+PREFIX(SentenceBreak,  tree,  "sentence_break", , RTAO(drawingBreak(self, Tao::SentenceBreak)),
        GROUP(text:spread)
        SYNOPSIS("Insert a sentence break")
        DESCRIPTION("Insert a sentence break in the text."))
-PREFIX(ParaBreak,  tree,  "paragraph_break", , RTAO(drawingBreak(self, Tao::Drawing::ParaBreak)),
+PREFIX(ParaBreak,  tree,  "paragraph_break", , RTAO(drawingBreak(self, Tao::ParaBreak)),
        GROUP(text:spread)
        SYNOPSIS("Insert a paragraph break")
        DESCRIPTION("Insert a paragraph break"))
-PREFIX(ColumnBreak,  tree,  "column_break", , RTAO(drawingBreak(self, Tao::Drawing::ColumnBreak)),
+PREFIX(ColumnBreak,  tree,  "column_break", , RTAO(drawingBreak(self, Tao::ColumnBreak)),
        GROUP(text:spread)
        SYNOPSIS("Insert a column break")
        DESCRIPTION("Insert a column break[TODO]"))
-PREFIX(PageBreak,  tree,  "page_break", , RTAO(drawingBreak(self, Tao::Drawing::PageBreak)),
+PREFIX(PageBreak,  tree,  "page_break", , RTAO(drawingBreak(self, Tao::PageBreak)),
        GROUP(text:spread)
        SYNOPSIS("Insert a page break")
        DESCRIPTION("Insert a page break. [TODO]"))

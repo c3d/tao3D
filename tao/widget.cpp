@@ -2101,7 +2101,7 @@ void Widget::zoomIn()
 //    Call zoom_in builtin
 // ----------------------------------------------------------------------------
 {
-    if (! xlProgram) return;
+    if (!xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_in"))(xlProgram);
     do
@@ -2117,7 +2117,7 @@ void Widget::zoomOut()
 //    Call zoom_out builtin
 // ----------------------------------------------------------------------------
 {
-    if (! xlProgram) return;
+    if (!xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_out"))(xlProgram);
     do
@@ -2373,7 +2373,7 @@ void Widget::setupGL()
     // Disable all texture units
     for(int i = TaoApp->maxTextureUnits - 1; i > 0 ; i--)
     {
-        if(layout->textureUnits & (1 << i))
+        if (layout->textureUnits & (1 << i))
         {
             glActiveTexture(GL_TEXTURE0 + i);
             glBindTexture(GL_TEXTURE_2D, 0);
@@ -2923,8 +2923,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton && selectionRectangleEnabled)
         new Selection(this);
-    else if ( ! (event->modifiers() & Qt::ShiftModifier) )
-        if ( uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+    else if ((event->modifiers() & Qt::ShiftModifier) == 0)
+        if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
             shapeAction("click", id, x, y);
 
     // Send the click to all activities
@@ -3462,7 +3462,7 @@ void Widget::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event);
     bool oldFs = hasAnimations();
-    if (! oldFs)
+    if (!oldFs)
         taoWindow()->toggleAnimations();
 }
 
@@ -5746,7 +5746,7 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    if(! layout->hasTransform)
+    if (!layout->hasTransform)
     {
         layout->model.Rotate(ra, rx, ry, rz);
     }
@@ -5789,7 +5789,7 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    if(! layout->hasTransform)
+    if (!layout->hasTransform)
     {
         // Update the current model translation
         layout->model.Translate(tx, ty, tz);
@@ -5832,7 +5832,7 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    if(! layout->hasTransform)
+    if (!layout->hasTransform)
     {
         // Update the current model scaling
         layout->model.Scale(sx, sy, sz);
@@ -7156,7 +7156,7 @@ Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
-    if(! gradient)
+    if (!gradient)
     {
         Ooops("No gradient defined $1", self);
         return 0;
@@ -7174,7 +7174,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > TaoApp->maxTextureUnits)
+    if (texUnit > TaoApp->maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7193,7 +7193,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if((! glIsTexture(texId)) && (texId != 0))
+    if ((!glIsTexture(texId)) && (texId != 0))
     {
         Ooops("Invalid texture id $1", self);
         return 0;
@@ -7563,7 +7563,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     uint texUnit = layout->currentTexture.unit;
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= TaoApp->maxTextureCoords)
+    if (texUnit >= TaoApp->maxTextureCoords)
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
@@ -7635,14 +7635,14 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(unit > TaoApp->maxTextureUnits)
+    if (unit > TaoApp->maxTextureUnits)
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
     }
 
     uint hasTexture = layout->textureUnits & (1 << unit);
-    if(hasTexture)
+    if (hasTexture)
         return XL::xl_true;
 
     return XL::xl_false;
@@ -7702,7 +7702,7 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    if(enable)
+    if (enable)
         layout->currentLights |= 1 << id;
     else
         layout->currentLights ^= 1 << id;
@@ -7854,7 +7854,7 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
     QDir::setCurrent(taoWindow()->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
-    if(! ok)
+    if (!ok)
     {
         Ooops("Unable to open file in $1", self);
         return XL::xl_false;
@@ -8016,7 +8016,7 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
     }
 
     uint maxVertices = currentShaderProgram->maxGeometryOutputVertices();
-    if(outputCount < maxVertices)
+    if (outputCount < maxVertices)
         currentShaderProgram->setGeometryOutputVertexCount(outputCount);
     else
         currentShaderProgram->setGeometryOutputVertexCount(maxVertices);
@@ -8826,7 +8826,8 @@ void Widget::updateCursor(Text_p t)
 //   Update the cursor with the current layout info and text.
 // ----------------------------------------------------------------------------
 {
-    if (! editCursor) return;
+    if (!editCursor)
+        return;
 
     QTextBlockFormat copyBF = editCursor->blockFormat();
     QTextCharFormat copyCF = editCursor->charFormat();
@@ -8841,79 +8842,95 @@ void Widget::updateCursor(Text_p t)
         editCursor->insertText(+t->value);
 }
 
-Tree_p  Widget::textBox(Tree_p self, text flowName,
-                        Real_p x, Real_p y, Real_p w, Real_p h)
+
+Tree_p  Widget::textBox(Context *context, Tree_p self,
+                        Real_p x, Real_p y, Real_p w, Real_p h,
+                        Tree_p body)
 // ----------------------------------------------------------------------------
-//   Create a new page layout and render text in it
+//   Create a new text box and render the given flow into it
 // ----------------------------------------------------------------------------
 {
-    if (flows.count(flowName) == 0)
-        return XL::xl_false;
-
-    TextFlow *flow = flows[flowName];
-    this->currentFlowName = flowName;
-    PageLayout *tbox = new PageLayout(this, flow);
-    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box(x - w/2, y-h/2, w, h);
+    tbox->id = shapeId();
+    tbox->body = body;
+    tbox->ctx = context;
     layout->Add(tbox);
+    layout->lastRefresh = CurrentTime();
 
     if (currentShape)
     {
-        flow->textBoxIds.insert(layout->id);
         tbox->selectId = layout->id;
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
     }
 
-    return XL::xl_true;
+    XL::Save<Layout *> save(layout, tbox);
+    Tree_p result = context->Evaluate(body);
+    return result;
 }
 
 
 Tree_p Widget::textFlow(Context *context, Tree_p self,
                         Text_p flowName, Tree_p prog)
 // ----------------------------------------------------------------------------
-//   Overflow text box for the rest of the current text flow
+//   Define the contents of a text flow, or add to an existing one
 // ----------------------------------------------------------------------------
 {
-    // Creation du PageJustifier
-    // Enregistrement du flow
-    // Evaluation du prog
-    Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
 
-    text computedFlowName = flowName;
-    if (flows.count(computedFlowName))
-    {
-        QString toto = +computedFlowName;
-        QRegExp reg("_(\\d+)$");
-        uint i = 0;
-        int id = 0;
-        if ((id = toto.indexOf(reg)) != -1)
-        {
-            i = reg.cap(1).toInt();
-            if (i>flows.size())
-                i = flows.size();
-            toto.truncate(id);
-        }
-        while (flows.count(computedFlowName) != 0)
-            computedFlowName = +QString("%1_%2").arg(toto).arg(++i);
-        flowName->value = computedFlowName;
-    }
-    currentFlowName = computedFlowName;
-    TextFlow *flow = new TextFlow(layout, computedFlowName);
+    currentFlowName = flowName;
+    TextFlow *existing = flows[currentFlowName];
+    Layout *parent = existing ? existing : layout;
+
+    TextFlow *flow = new TextFlow(parent, currentFlowName);
     flow->id = shapeId();
     flow->body = prog;
     flow->ctx = context;
-    flows[computedFlowName] = flow;
+    if (!existing)
+        flows[currentFlowName] = flow;
 
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
+    Tree_p result = context->Evaluate(prog);
+    flow->lastRefresh = CurrentTime();
 
-    Tree_p result = currentContext->Evaluate(prog);
-    layout->lastRefresh = CurrentTime();
-    flow->resetIterator();
-    // Protection agains recursive call of textFlow with same flowname.
-    currentFlowName = computedFlowName;
-    flowName->value = computedFlowName;
     return result;
+}
+
+
+Tree_p Widget::textFlow(Context *context, Tree_p self, Text_p name)
+// ----------------------------------------------------------------------------
+//   Replay the reminder of an existing text flow in the current layout
+// ----------------------------------------------------------------------------
+{
+    if (flows.count(name) == 0)
+        return XL::xl_false;
+
+    TextFlow *flow = flows[name];
+    TextFlowReplay *replay = new TextFlowReplay(flow);
+    layout->Add(replay);
+    return XL::xl_true;
+}
+
+
+Text_p Widget::textFlow(Context *context, Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the name of the current text flow
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(currentFlowName, "\"", "\"", self->Position());
+}
+
+
+Name_p Widget:: textFlowExists(Context *context, Tree_p self, Text_p name)
+// ----------------------------------------------------------------------------
+//   Return true if the given text flow has been created
+// ----------------------------------------------------------------------------
+{
+    if (flows.count(name->value))
+        return XL::xl_true;
+    return XL::xl_false;
 }
 
 
@@ -8922,21 +8939,20 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current text format state
 // ----------------------------------------------------------------------------
 {
+    if (flows.count(currentFlowName) == 0)
+        return XL::xl_false;
+
     // To be preserved:
     // Font, color, line_color, texture, alignement, linewidth, rotation, scale
-    TextFlow *flow = flows[currentFlowName];
-    BlockLayout *childLayout = new BlockLayout(flow);
+    TextSpan *childLayout = new TextSpan(layout);
     childLayout->body = child;
     childLayout->ctx = context;
     layout->Add(childLayout);
-    Tree_p result;
-    {
-        XL::Save<Layout *> saveLayout(layout, childLayout);
-        result = context->Evaluate(child);
-        layout->lastRefresh = CurrentTime();
-    }
-    childLayout->Revert()->Draw(flow);
-    layout->Add(childLayout->Revert());
+
+    XL::Save<Layout *> saveLayout(layout, childLayout);
+    Tree_p result = context->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
+
     return result;
 }
 
@@ -9260,7 +9276,7 @@ Tree_p Widget::verticalMargins(Tree_p self, coord top, coord bottom)
 }
 
 
-Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
+Tree_p Widget::drawingBreak(Tree_p self, BreakOrder order)
 // ----------------------------------------------------------------------------
 //   Change the spacing along the given axis
 // ----------------------------------------------------------------------------
@@ -9568,20 +9584,17 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
 {
     if (!table)
         return Ooops("Table cell '$1' outside of any table", self);
-    if (!body->Symbols())
-        body->SetSymbols(self->Symbols());
 
     // Define a new text layout
-    text cellName = "defaultTableCell";
-    int i = flows.size();
-    while (flows.count(cellName) != 0)
-        cellName = +QString("defaultTableCell_%1").arg(++i);
-    XL::Text * cell = new XL::Text(cellName);
-    Tree_p result = textFlow(context, self,cell , body);
-    TextFlow *flow = flows[cellName];
-    PageLayout *tbox = new PageLayout(this, flow);
-    tbox->space = Box3(0, 0, 0, w, h, 0);
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box(0, 0, w, h);
     table->Add(tbox);
+
+    tbox->body = body;
+    tbox->ctx = context;
+
+    XL::Save<Layout *> save(layout, tbox);
+    Tree_p result = context->Evaluate(body);
 
     table->NextCell();
     return result;
@@ -9808,7 +9821,7 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 
 
     FrameInfo *pFrame;
-    if(name != "")
+    if (name != "")
     {
         // Get or build the current frame if we don't have one
         MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
@@ -10263,7 +10276,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    if (! urlTexture(self, w, h, url, progress))
+    if (!urlTexture(self, w, h, url, progress))
         return XL::xl_false;
 
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
@@ -10855,7 +10868,7 @@ void Widget::fileChosen(const QString & filename)
 //   Slot called by the filechooser widget when a file is selected
 // ----------------------------------------------------------------------------
 {
-    if(!currentFileDialog)
+    if (!currentFileDialog)
         return;
 
     XL::Tree_p fileAction =

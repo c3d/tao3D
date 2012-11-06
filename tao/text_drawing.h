@@ -32,37 +32,25 @@
 
 TAO_BEGIN
 
-struct TextUnit : Shape
+struct TextSplit : Shape
 // ----------------------------------------------------------------------------
-//    A contiguous run of glyphs
+//    A contiguous run of glyphs that where split at a word/sentence boundary
 // ----------------------------------------------------------------------------
 {
-    TextUnit(Text *source, uint start = 0, uint end = ~0)
-        : Shape(), source(source), start(start), end(end) {
-        IFTRACE(justify)
-        {
-            std::cerr << "<->TextUnit::TextUnit[" << this << "]";
-            toDebugString(std::cerr);
-        }
-    }
-    virtual ~TextUnit()
-    {
-        source = NULL;
-        IFTRACE(justify)
-            std::cerr << "<->TextUnit::~TextUnit[" << this << "]\n";
-    }
+    TextSplit(Text *source, uint start = 0, uint end = ~0);
+    virtual ~TextSplit();
 
     virtual void        Draw(Layout *where);
     virtual void        DrawCached(Layout *where);
     virtual void        Identify(Layout *where);
     virtual Box3        Bounds(Layout *where);
     virtual Box3        Space(Layout *where);
-    virtual TextUnit *  Break(BreakOrder &order, uint &sz);
+    virtual bool        Paginate(PageLayout *);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
 
-    void                toDebugString(std::ostream &out);
-    void                toText(std::ostream &out);
+    friend std::ostream &operator <<(std::ostream &, TextSplit &);
+
 protected:
     void                DrawDirect(Layout *where);
     void                DrawSelection(Layout *where);
@@ -78,6 +66,24 @@ public:
 };
 
 
+struct TextUnit : TextSplit
+// ----------------------------------------------------------------------------
+//    A contiguous run of glyphs which may contain spaces & separators
+// ----------------------------------------------------------------------------
+{
+    TextUnit(Text *source, uint start = 0, uint end = ~0);
+    virtual ~TextUnit();
+    virtual bool        Paginate(PageLayout *);
+
+protected:
+    void                ClearSplits();
+
+public:
+    typedef std::vector<TextSplit *> TextSplits;
+    TextSplits          splits;
+};
+
+
 struct TextFormulaEditInfo : XL::Info
 // ----------------------------------------------------------------------------
 //    Record the text format for a text formula while editing it
@@ -89,13 +95,13 @@ struct TextFormulaEditInfo : XL::Info
 };
 
 
-struct TextFormula : TextUnit
+struct TextFormula : TextSplit
 // ----------------------------------------------------------------------------
 //   Like a text span, but for an evaluated value
 // ----------------------------------------------------------------------------
 {
     TextFormula(XL::Prefix *self, Widget *wid, uint start = 0, uint end = ~0)
-        : TextUnit(NULL, start, end), self(self), widget(wid)
+        : TextSplit(NULL, start, end), self(self), widget(wid)
     {
         source = Format(self);
     }

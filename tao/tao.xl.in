@@ -277,12 +277,6 @@ copy_texture ->
         texture ID
         rectangle 0, 0, W, H
 
-// Text Layout
-text_box x:real, y, w, h, body:tree ->
-    flow_name->"defaultTextBox"
-    text_flow flow_name, body
-    text_box flow_name, x, y, w, h
-
 para_span b:tree ->
     text_span
         paragraph_break

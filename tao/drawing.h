@@ -25,11 +25,14 @@
 #include "coords3d.h"
 #include "tao.h"
 #include "tao_tree.h"
+#include <vector>
 
 
 TAO_BEGIN
 struct TextureState;
 struct Layout;
+struct PageLayout;
+
 
 struct Drawing
 // ----------------------------------------------------------------------------
@@ -40,6 +43,8 @@ struct Drawing
 //   Space() returns the untransformed space desired around object
 //   For instance, for text, Space() considers font line height, not Bounds()
 {
+    typedef std::vector<Drawing *>      Drawings;
+
                         Drawing();
                         Drawing(const Drawing &);
     virtual             ~Drawing();
@@ -52,18 +57,23 @@ struct Drawing
     virtual Box3        Space(Layout *);
     virtual Tree *      Source();
 
-    enum BreakOrder
-    {
-        NoBreak,
-        CharBreak, WordBreak, SentenceBreak, LineBreak, ParaBreak,
-        ColumnBreak, PageBreak,
-        AnyBreak
-    };
-    virtual Drawing *   Break(BreakOrder &order, uint &size);
+    virtual bool        Paginate(PageLayout *page);
     virtual scale       TrailingSpaceSize(Layout *);
     virtual bool        IsAttribute();
 
     static uint count;
+};
+
+
+enum BreakOrder
+// ----------------------------------------------------------------------------
+//   An enumeration indicating where we can break lines
+// ----------------------------------------------------------------------------
+{
+    NoBreak,
+    CharBreak, WordBreak, SentenceBreak, LineBreak, ParaBreak,
+    ColumnBreak, PageBreak,
+    AnyBreak
 };
 
 TAO_END

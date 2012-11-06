@@ -32,6 +32,7 @@ TAO_BEGIN
 
 struct Layout;
 
+
 struct Justification
 // ----------------------------------------------------------------------------
 //   Describes how elements are supposed to be justified
@@ -103,59 +104,69 @@ struct Justifier
 //    is broken up (e.g. by LineBreak), both elements are tracked in either
 //    items or places.
 {
-    typedef std::list<Item>           Items;
-    typedef typename Items::iterator  ItemsIterator;
-
-public:
-    Justifier(Items *flow, ItemsIterator *start):
-            items(flow), item_start(start), places(),
-            numItems(0), order(Drawing::NoBreak) {}
-    Justifier(const Justifier &j):
-            items(j.items), item_start(j.item_start),
-            places(), numItems(0), order(Drawing::NoBreak) {}
+    Justifier(): places(), data(NULL), interspace(0) {}
     ~Justifier() { Clear(); }
 
-    // Position items in the layout
-    bool        Adjust(coord start, coord end, Justification &j, Layout *l);
-    bool        CutUp(coord &start, coord end, Justification &j, Layout *l);
-    bool        Placing(coord pos, coord end, Justification &j, Layout *l);
+    // Build the layout
+    void        BeginLayout(coord start, coord end, Justification &j);
+    bool        AddItem(Item item, uint count = 1, bool solid = true,
+                        scale size = 0, coord offset = 0, scale lastSpace = 0,
+                        bool hard = false);
+    void        EndLayout();
 
-    // Build and clear the layout
+    // Adding items to the layout
+    bool        Empty()                 { return places.size() == 0; }
+    Item        Current()               { return places.back().item; }
+    void        PopItem()               { places.pop_back(); }
+    bool        HasRoom()               { return data->hasRoom; }
+    bool        HadRoom()               { return interspace < 0.0; /* UGLY */ }
+
+    // Clear the layout
     void        Clear();
+    void        PurgeItems() {}         // Specialize to delete 'places' items
 
-    // Properties of the items in the layout
-    Item        Break(Item item, uint &size,
-                      bool &hadBreak, bool &hadSep, bool &done);
-    scale       Size(Item item, Layout *);
-    scale       SpaceSize(Item item, Layout *);
-    coord       ItemOffset(Item item, Layout *);
-    void        InsertNext(Item next);
+    // Debug
     void        Dump(text msg);
 
+public:
     // Structure recording an item after we placed it
     struct Place
     {
-        Place(Item item, uint itemCount = 0,
-              scale size = 0, coord pos = 0, bool solid=true)
-            : size(size), position(pos),
-              item(item), itemCount(itemCount),
+        Place(Item item, uint itemCount = 0, bool solid=true,
+              scale size = 0, coord pos = 0)
+            : item(item), size(size), position(pos),
+              itemCount(itemCount),
               solid(solid)
         {}
+        Item    item;
         scale   size;
         coord   position;
-        Item    item;
-        uint    itemCount;
-        bool    solid;
+        uint    itemCount       : 31;
+        bool    solid           : 1;
     };
     typedef std::vector<Place>          Places;
     typedef typename Places::iterator   PlacesIterator;
 
+    // Structure used during only during layout
+    struct LayoutData
+    {
+        LayoutData(coord start, coord end, Justification &j);
+        Justification  &justify;
+        coord           start, end, pos;
+        coord           lastSpace;
+        coord           lastOversize;
+        uint            numItems;
+        uint            numBreaks;
+        uint            numSolids;
+        int             sign;
+        bool            hasRoom;
+        bool            hardBreak;
+    };
+
 public:
-    Items         * items;  // List of items to be placed.
-    ItemsIterator * item_start;// Iterator on items to be placed (e.g. broken)
-    Places         places;   // Items placed on the layout
-    uint           numItems;
-    Drawing::BreakOrder order;
+    Places                      places;      // Items placed on the layout
+    LayoutData *                data;
+    scale                       interspace;
 };
 
 TAO_END

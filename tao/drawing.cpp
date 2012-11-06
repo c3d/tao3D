@@ -127,14 +127,12 @@ Tree *Drawing::Source()
 }
 
 
-Drawing *Drawing::Break(BreakOrder &order, uint &size)
+bool Drawing::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
-//    Break a shape at the next line boundary, if any
+//   Perform pagination: default is to insert the current drawing
 // ----------------------------------------------------------------------------
 {
-    order = NoBreak;
-    size = 1;
-    return NULL;
+    return page->PaginateItem(this);
 }
 
 

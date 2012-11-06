@@ -26,6 +26,7 @@
 #include "drawing.h"
 #include "color.h"
 #include "tao_gl.h"
+#include "page_layout.h"
 #include <QFont>
 
 TAO_BEGIN
@@ -50,7 +51,7 @@ struct DrawingBreak : Attribute
 // ----------------------------------------------------------------------------
 {
     DrawingBreak(BreakOrder order): order(order) {}
-    virtual Drawing *   Break(BreakOrder &order, uint &sz);
+    virtual bool        Paginate(PageLayout *page);
     virtual void        DrawSelection(Layout *l);
     BreakOrder order;
 };

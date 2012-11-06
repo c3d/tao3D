@@ -38,104 +38,148 @@ TAO_BEGIN
 // ============================================================================
 
 template<class Item>
+Justifier<Item>::LayoutData::LayoutData(coord start, coord end,
+                                        Justification &j)
+// ----------------------------------------------------------------------------
+//   Build the layout data with correct default values
+// ----------------------------------------------------------------------------
+    : justify(j),
+      start(start),
+      end(end),
+      pos(start),
+      lastSpace(0),
+      lastOversize(0),
+      numBreaks(0),
+      numSolids(0),
+      sign(start <= end ? 1 : -1),
+      hasRoom(true),
+      hardBreak(false)
+{ }
+
+
+template<class Item>
 void Justifier<Item>::Clear()
 // ----------------------------------------------------------------------------
 //   Delete the elements we have moved in places
 // ----------------------------------------------------------------------------
 {
-    // Delete placed items
+    PurgeItems();
     places.clear();
+    delete data;
+    data = NULL;
 }
 
 
 template<class Item>
-bool Justifier<Item>::Adjust(coord start, coord end,
-                             Justification &justify, Layout *layout)
+void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 // ----------------------------------------------------------------------------
-//    Place elements until we reach the target size
+//   Create data for the given 
 // ----------------------------------------------------------------------------
 {
-    coord pos           = start;
-    scale lastSpace     = 0;
-    scale lastOversize  = 0;
-    bool  hasRoom       = true;
-    bool  hadBreak      = false;
-    bool  hadSeparator  = false;
-    bool  done          = false; // e.g. line break in a line
-    uint  numBreaks     = 0;
-    uint  numSolids     = 0;
-    uint  itemCount     = 0;
-    int   sign          = start <= end ? 1 : -1;
-    bool  firstElement  = true;
+    delete data;
+    data = new LayoutData(start, end, j);
+};
 
-    numItems = 0;
 
-    // Place items until there's none left or we are beyond the max position
-    for (/*item_start*/;
-                       hasRoom && !done && (*item_start) != items->end();
-                       (*item_start)++)
+template<class Item>
+bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
+                              scale size, coord offset, scale lspace,
+                              bool hardBreak)
+// ----------------------------------------------------------------------------
+//   Place item and returns true if it fits, otherwise return false
+// ----------------------------------------------------------------------------
+{
+    // Quick exit if we are already full
+    if (!data->hasRoom)
+        return false;
+
+    // Shortcuts for elements of data
+    Justification &justify      = data->justify;
+    coord         &pos          = data->pos;
+    coord         &start        = data->start;
+    coord         &end          = data->end;
+    coord         &lastSpace    = data->lastSpace;
+    coord         &lastOversize = data->lastOversize;
+    uint          &numItems     = data->numItems;
+    uint          &numBreaks    = data->numBreaks;
+    uint          &numSolids    = data->numSolids;
+    int           &sign         = data->sign;
+    bool          &hasRoom      = data->hasRoom;
+
+    // Record interspace for the next line
+    scale ispace = interspace;
+    if (ispace < justify.before)
+        ispace = justify.before;
+
+    // Test the size of what remains
+    scale spacing = justify.spacing;
+    coord originalSize = size;
+    size *= spacing;
+    if (size < originalSize + ispace)
+        size = originalSize + ispace;
+    if (sign * pos + size > sign * end &&
+        sign * pos > sign * start)
     {
-
-        // Get item and break it down into individual unbreakable units
-        Item  item = *(*item_start);
-        // Cut item at the first break point
-        itemCount = 0;
-        Item next = Break(item, itemCount, hadBreak, hadSeparator, done);
-        InsertNext(next);
-
-        // Test the size of what remains
-        scale size = Size(item, layout);
-        scale spacing = justify.spacing;
-        coord originalSize = size;
-        size *= spacing;
-        if (hadSeparator)
-        {
-            coord additional = justify.before;
-            if (!firstElement && additional < justify.after)
-                additional = justify.after;
-            if ( firstElement ) firstElement = false;
-            size += additional;
-        }
-
-        if (sign * pos + size > sign * end &&
-            sign * pos > sign * start)
-        {
-            // No more place for the current on the line
-            hasRoom = false;
-            // Breaking here will prevent the (*item_start)++ to occur.
-            // The current item in the flow will be the next to work on.
-            break;
-        }
-
-        // It fits, place it
-        hadBreak |= next != NULL;
-        coord offset = ItemOffset(item, layout);
-
-        IFTRACE(justify)
-                std::cerr << "Justifier<Item>::Adjust Will create Place with "
-                          << pos << " + " << sign << " * " << offset
-                          << " = " << pos + sign*offset << std::endl;
-
-        places.push_back(Place(item, itemCount,
-                               size, pos+sign*offset,
-                               !hadBreak));
-        pos += sign * size;
-        lastOversize = size - originalSize;
-
-        if (size > 0)
-        {
-            if (hadBreak)
-                numBreaks++;
-            else
-                numSolids++;
-            numItems += itemCount;
-            firstElement = false;
-        }
+        // No more place on the current line
+        hasRoom = false;
+        return false;
     }
-    if (places.size() > 0)
-        lastSpace = SpaceSize(places[places.size()-1].item, layout);
 
-    // End of break start of placement.
+    IFTRACE(justify)
+        std::cerr << "Justifier::Adjust: Place at "
+                  << pos << (sign == 1 ? " + " : "-") << offset
+                  << " = " << pos + sign*offset << std::endl;
+
+    coord offPos = pos + sign * offset;
+    places.push_back(Place(item, count, solid, size, offPos));
+    pos += sign * size;
+    lastOversize = size - originalSize;
+
+    // If this was a hard break, we no longer have room
+    if (hardBreak)
+    {
+        hasRoom = false;
+        data->hardBreak = true;
+    }
+
+    // Count solids, breaks and individual items (e.g. glyphs)
+    if (size > 0)
+    {
+        if (solid)
+            numSolids++;
+        else
+            numBreaks++;
+        numItems += count;
+
+        // Record size of last space and interspace
+        lastSpace = lspace;
+        interspace = justify.after;
+    }
+
+    // We were successful inserting that item
+    return true;
+}
+
+
+template<class Item>
+void Justifier<Item>::EndLayout()
+// ----------------------------------------------------------------------------
+//   Final positioning of items after we processed all of them
+// ----------------------------------------------------------------------------
+{
+    // Shortcuts for elements of data
+    Justification &justify      = data->justify;
+    coord         &pos          = data->pos;
+    coord         &end          = data->end;
+    coord         &lastSpace    = data->lastSpace;
+    coord         &lastOversize = data->lastOversize;
+    uint          &numItems     = data->numItems;
+    uint          &numBreaks    = data->numBreaks;
+    uint          &numSolids    = data->numSolids;
+    int           &sign         = data->sign;
+    bool          &hasRoom      = data->hasRoom;
+    bool          &hardBreak    = data->hardBreak;
+
     // Extra space that we can use for justification
     scale atEnd = sign * (lastSpace + lastOversize);
     scale extra = end - pos + atEnd;
@@ -143,8 +187,8 @@ bool Justifier<Item>::Adjust(coord start, coord end,
     // Amount of justification
     scale just = extra * justify.amount;
 
-    // If we have placed all the items, don't justify
-    if (hasRoom)
+    // If we placed all the items or we had a hard break, partial justify
+    if (hasRoom || hardBreak)
         just = extra * justify.partial;
 
     // If there is no place where we can justify, center instead
@@ -188,28 +232,13 @@ bool Justifier<Item>::Adjust(coord start, coord end,
                 offset += atBreak + atSolid * place.itemCount;
         }
     }
-    // Return true if we placed all the items
-    return hasRoom;
-}
 
+    // UGLY: Preserve value of hasRoom for HadRoom
+    interspace = data->hasRoom ? -1.0 : 0.0;
 
-template <class Item>
-void  Justifier<Item>::InsertNext(Item next)
-// ----------------------------------------------------------------------------
-//   Insert in next position but without moving the current iterator
-// ----------------------------------------------------------------------------
-{
-    if (!next) return;
-
-    ItemsIterator it = (*item_start);
-
-    if ( items->size() == 0 || it == items->end())
-        items->push_back(next);
-    else
-    {
-        it++;
-        items->insert(it, next);
-    }
+    // We no longer need the transient data
+    delete data;
+    data = NULL;
 }
 
 

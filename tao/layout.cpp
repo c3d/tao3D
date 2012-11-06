@@ -346,6 +346,18 @@ Box3 Layout::Space(Layout *layout)
 }
 
 
+bool  Layout::Paginate(PageLayout *page)
+// ----------------------------------------------------------------------------
+//   Paginate all the items in the given page
+// ----------------------------------------------------------------------------
+{
+    bool ok = true;
+    for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
+        ok = (*i)->Paginate(page);
+    return ok;
+}
+
+
 void Layout::Add(Drawing *d)
 // ----------------------------------------------------------------------------
 //   Add a drawing to the items, return true if item fits in layout

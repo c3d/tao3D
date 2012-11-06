@@ -331,13 +331,14 @@ public:
     Tree *      shapeAction(text n, GLuint id, int x, int y);
 
     // Text flows and text management
-    TextFlow *  pageLayoutFlow(text name) { return flows[name]; }
-    GlyphCache &glyphs()    { return glyphCache; }
+    TextFlow *  pageLayoutFlow(text f)  { return flows[f]; }
+    void        eraseFlow(text f)       { flows.erase(f);}
+    GlyphCache &glyphs()                { return glyphCache; }
     QStringList fontFiles();
 
     void        purgeTaoInfo();
 
-    FileMonitor & fileMonitor() { return srcFileMonitor; }
+    FileMonitor & fileMonitor()         { return srcFileMonitor; }
 
 public:
     static Widget *Tao()                { assert(current); return current; }
@@ -631,9 +632,13 @@ public:
                      double ratio);
 
     // Text and font
-    Tree_p      textBox(Tree_p self, text flowName,
-                        Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      textBox(Context *context, Tree_p self,
+                        Real_p x, Real_p y, Real_p w, Real_p h,
+                        Tree_p body);
     Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
+    Tree_p      textFlow(Context *context, Tree_p self, Text_p name);
+    Text_p      textFlow(Context *context, Tree_p self);
+    Name_p      textFlowExists(Context *context, Tree_p self, Text_p name);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Box3        textSize(Tree_p self, Text_p content);
@@ -658,7 +663,7 @@ public:
     Tree_p      minimumSpace(Tree_p self, coord before, coord after, uint ax);
     Tree_p      horizontalMargins(Tree_p self, coord left, coord right);
     Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
-    Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
+    Tree_p      drawingBreak(Tree_p self, BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
     Text_p      loadText(Tree_p self, text file);
@@ -879,7 +884,7 @@ private:
     friend class MouseFocusTracker;
     friend class Drag;
     friend class TextSelect;
-    friend class TextUnit;
+    friend class TextSplit;
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;
@@ -1070,7 +1075,6 @@ public:
     static bool           isGLExtensionAvailable(text name);
     static text           currentDocumentFolder();
     static bool           blink(double on, double off, double after);
-    void eraseFlow(text flowName){ flows.erase(flowName);}
     void                  setWatermarkText(text t, int w, int h);
     static void           setWatermarkTextAPI(text t, int w, int h);
     void                  drawFullScreenTexture(int texw, int texh, GLuint tex,

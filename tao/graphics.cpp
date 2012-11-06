@@ -15,7 +15,7 @@
 //
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriÃ©tÃ© de Taodyne SAS - Confidentiel
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS

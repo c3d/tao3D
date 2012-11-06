@@ -30,6 +30,9 @@
 
 TAO_BEGIN
 
+struct TextFlow;
+struct TextSelect;
+
 struct LayoutLine : Drawing
 // ----------------------------------------------------------------------------
 //   A single line of text in a layout
@@ -41,94 +44,72 @@ struct LayoutLine : Drawing
     typedef Layout::Drawings            Drawings;
 
 public:
-                        LayoutLine(coord left, coord right, TextFlow *flow);
+                        LayoutLine(coord left, coord right, Justification &j);
                         LayoutLine(const LayoutLine &o);
                         ~LayoutLine();
 
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
-    virtual void        RefreshLayouts(Layout::Layouts &layouts);
 
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
-    virtual LayoutLine *Break(BreakOrder &order, uint &sz);
+    virtual bool        Paginate(PageLayout *);
 
-    void                Compute(Layout *where);
-    LayoutLine *        Remaining();
+    void                PerformLayout();
 
 public:
+    Box                 bounds;
     LineJustifier       line;
-    coord               left, right, perSolid;
-    TextFlow          * flow;
-    Drawings::iterator  flowRewindPoint;
 };
 
 
-typedef Justifier<LayoutLine *>     PageJustifier;
 struct PageLayout : Layout
 // ----------------------------------------------------------------------------
 //   A 2D layout specialized for placing text and 2D shapes on pages
 // ----------------------------------------------------------------------------
 {
-    typedef std::list<LayoutLine *>   Items;
+    typedef Justifier<LayoutLine *>     PageJustifier;
 
 public:
-                        PageLayout(Widget *widget, TextFlow* flow);
+                        PageLayout(Widget *widget);
                         PageLayout(const PageLayout &o);
                         ~PageLayout();
 
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
-    virtual void        RefreshLayouts(Layouts &layouts);
-
-    virtual void        Add(Drawing *child);
-    virtual void        AddLine(LayoutLine *child);
-    virtual void        Clear();
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
+    virtual bool        Paginate(PageLayout *page);
+
+    virtual void        Add(Drawing *child);
+    virtual void        Clear();
     virtual PageLayout *NewChild()      { return new PageLayout(*this); }
-    virtual PageLayout *Remaining();
 
     virtual void        Compute(Layout *where);
 
+    bool                PaginateItem(Drawing *d,
+                                     BreakOrder order = NoBreak,
+                                     uint count = 1);
+    void                DrawPlaceholder(Layout *where);
+    void                DrawSelectionBox(Layout *where,
+                                         TextSelect *sel,
+                                         Drawing *child,
+                                         coord savedY);
+
 public:
     // Space requested for the layout
-    Box3                space;
-    TextFlow *          flow;
-    Items               lines;
-    Items::iterator     current;
+    Box                 space, bounds;
     PageJustifier       page;
-    Drawings::iterator  lastFlowPoint;
+    TextFlow *          currentFlow;
     uint                selectId; // Selection Id of its englobing layout.
-};
-
-
-struct RevertLayoutState : LayoutState, Attribute
-// ----------------------------------------------------------------------------
-//   Restore a previously saved layout state in the enclosing layout
-// ----------------------------------------------------------------------------
-{
-    RevertLayoutState(LayoutState &o) : LayoutState(o){}
-    virtual void  Draw(Layout *where)
-    {
-        IFTRACE(justify)
-            std::cerr << "->RevertLayoutState::Draw ["<< this
-                      << "] not used offset " << offset
-                      << " inherited offset " << where->Offset() << " \n";
-        offset = where->Offset();
-        where->InheritState(this);
-        IFTRACE(justify)
-            std::cerr << "<-RevertLayoutState::Draw ["<< this
-                      << "]\n";
-    }
 };
 
 
 struct TextFlow : Layout
 // ----------------------------------------------------------------------------
-//    Draw what remains in a page layout
+//    Record drawings that can later be displayed in a page 
 // ----------------------------------------------------------------------------
 {
     TextFlow(Layout *l, text flowName);
@@ -139,76 +120,63 @@ public:
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
     virtual void        Clear();
-    void                addBox(PageLayout *b) { boxes.insert(b); }
-    void                removeBox(PageLayout *b) { boxes.erase(b); }
+    virtual bool        Paginate(PageLayout *page);
 
-    Drawings::iterator * getCurrentIterator() { return &currentIterator;}
-    Drawing            * getCurrentElement();
-    Drawings::iterator   end()   { return items.end();}
-    Drawings           * getItems(){ return &items;}
-    void                 resetIterator();
-    bool                 atEnd();
-    void insertAfterCurrent(Drawing *d);
-    void rewindFlow(Drawings::iterator rewindPoint)
-    {
-        IFTRACE(justify)
-            std::cerr << "TextFlow::rewindFlow "<< this << std::endl;
-        currentIterator = rewindPoint;
-    }
+    void                Transfer(LayoutLine *line);
 
 public:
-    typedef std::set<PageLayout*> page_layouts;
-    text                  flowName;
-    std::set<uint>        textBoxIds; // Set of layoutID for selection
-    page_layouts          boxes;      // Set of boxes displaying this text flow
-    PageLayout *          currentTextBox; // The currently used pageLayout
+    text                flowName;
+    std::set<uint>      textBoxIds;           // Set of layoutID for selection
 
 private:
-    Drawings::iterator  currentIterator;
+    uint                current;
+    Drawings            reject;
 };
 
 
-struct BlockLayout : Layout
+struct TextFlowReplay : Drawing
+// ----------------------------------------------------------------------------
+//   Redraw a given text layout
+// ----------------------------------------------------------------------------
+{
+    TextFlowReplay(TextFlow *flow) : flow(flow) {}
+
+public:
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *l);
+    virtual bool        Paginate(PageLayout *page);
+
+public:
+    TextFlow *          flow;
+};
+
+
+struct TextSpan : Layout
 // ----------------------------------------------------------------------------
 //   A 2D layout specialized for isolate text modifications
 // ----------------------------------------------------------------------------
 {
-    BlockLayout(TextFlow *flow):Layout(*flow), flow(flow),
-        revert(new RevertLayoutState((*flow)))
+    TextSpan(Layout *layout): Layout(*layout), state(*layout)
     {
         IFTRACE(justify)
-        {
-            std::cerr << "<->BlockLayout::BlockLayout ["<< this
-                      << "] from flow -- revert =" << revert <<"\n ";
-            revert->toDebugString(std::cerr);
-        }
-
+            std::cerr << "<->TextSpan::TextSpan ["<< this
+                      << "] from layout " << layout << "\n";
     }
-    BlockLayout( BlockLayout &o):Layout(o), flow(o.flow),
-        revert(new RevertLayoutState(*(o.flow)))
+    TextSpan(const TextSpan &o): Layout(o), state(o.state)
     {
         IFTRACE(justify)
-            std::cerr << "<->BlockLayout::BlockLayout ["<< this
-                      << "] from BlockLayout " << &o
-                      << " revert=" << revert << std::endl;
+            std::cerr << "<->TextSpan::TextSpan ["<< this
+                      << "] from TextSpan " << &o << "\n";
     }
-    ~BlockLayout()
-    {
-    }
-    virtual void         Add(Drawing *child) { flow->Add(child);}
-    virtual Box3         Space(Layout *) { return Box3(); }
-    virtual Box3         Bounds(Layout *) { return Box3(); }
+    ~TextSpan() {}
 
-    RevertLayoutState *  Revert()
-    {
-        IFTRACE(justify)
-            std::cerr << "<->BlockLayout::Revert [" << this <<"] revert = "
-                      << revert << "\n ";
-        return revert;
-    }
-
-    TextFlow          *flow;
-    RevertLayoutState *revert;
+    virtual void        Draw(Layout *where);
+    virtual void        DrawSelection(Layout *);
+    virtual void        Identify(Layout *l);
+    virtual bool        Paginate(PageLayout *page);
+public:
+    LayoutState         state;
 };
 
 
@@ -224,6 +192,7 @@ struct AnchorLayout : Layout
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
+    virtual bool        Paginate(PageLayout *page);
 
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
@@ -232,26 +201,7 @@ struct AnchorLayout : Layout
 
 
 // Specializations for Justifier computations
-typedef Drawing *       line_t;
-template<> line_t       Justifier<line_t>::Break(line_t,
-                                                 uint &size,
-                                                 bool &hadBreak,
-                                                 bool &hadSeps,
-                                                 bool &done);
-template<> scale        Justifier<line_t>::Size(line_t, Layout *);
-template<> scale        Justifier<line_t>::SpaceSize(line_t, Layout *);
-template<> coord        Justifier<line_t>::ItemOffset(line_t, Layout *);
-
-typedef LayoutLine *    page_t;
-template<> page_t       Justifier<page_t>::Break(page_t,
-                                                 uint &size,
-                                                 bool &hadBreak,
-                                                 bool &hadSeps,
-                                                 bool &done);
-template<> scale        Justifier<page_t>::Size(page_t, Layout *);
-template<> scale        Justifier<page_t>::SpaceSize(page_t, Layout *);
-template<> coord        Justifier<page_t>::ItemOffset(page_t, Layout *);
-
+template<> void         Justifier<LayoutLine *>::PurgeItems();
 TAO_END
 
 #endif // PAGE_LAYOUT_H

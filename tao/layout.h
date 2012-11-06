@@ -148,7 +148,6 @@ struct Layout : Drawing, LayoutState
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::list<Drawing *>        Drawings;
     typedef std::vector<Layout *>       Layouts;
 
 public:
@@ -162,6 +161,7 @@ public:
     virtual void        Identify(Layout *);
     virtual Box3        Bounds(Layout *);
     virtual Box3        Space(Layout *);
+    virtual bool        Paginate(PageLayout *page);
 
     // Layout interface
     virtual void        Add (Drawing *d);

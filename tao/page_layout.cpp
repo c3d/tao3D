@@ -899,12 +899,36 @@ bool TextSpan::Paginate(PageLayout *page)
 //   Paginate, then restore the state as it was initially
 // ----------------------------------------------------------------------------
 {
-    state.InheritState(page);
-    Vector3 offset = page->offset;
-    bool ok = Layout::Paginate(page);
-    page->InheritState(&state);
-    page->offset = offset;
+    delete restore;
+
+    Save *save = new Save;
+    restore = new Restore(save);
+
+    bool ok = (page->PaginateItem(save) &&
+               Layout::Paginate(page) &&
+               page->PaginateItem(restore));
+
     return ok;
+}
+
+
+void TextSpan::Save::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save the attributes state
+// ----------------------------------------------------------------------------
+{
+    InheritState(where);
+}
+
+
+void TextSpan::Restore::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Restore the attributes state
+// ----------------------------------------------------------------------------
+{
+    Vector3 offset = where->offset;
+    where->InheritState(saved);
+    where->offset = offset;
 }
 
 

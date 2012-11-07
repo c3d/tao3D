@@ -157,26 +157,42 @@ struct TextSpan : Layout
 //   A 2D layout specialized for isolate text modifications
 // ----------------------------------------------------------------------------
 {
-    TextSpan(Layout *layout): Layout(*layout), state(*layout)
+    TextSpan(Layout *layout): Layout(*layout), state(*layout), restore(NULL)
     {
         IFTRACE(justify)
             std::cerr << "<->TextSpan::TextSpan ["<< this
                       << "] from layout " << layout << "\n";
     }
-    TextSpan(const TextSpan &o): Layout(o), state(o.state)
+    TextSpan(const TextSpan &o): Layout(o), state(o.state), restore(NULL)
     {
         IFTRACE(justify)
             std::cerr << "<->TextSpan::TextSpan ["<< this
                       << "] from TextSpan " << &o << "\n";
     }
-    ~TextSpan() {}
+    ~TextSpan()         { delete restore;}
 
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
     virtual bool        Paginate(PageLayout *page);
+
+public:
+    struct Save : Attribute, LayoutState
+    {
+        Save() {}
+        virtual void        Draw(Layout *where);
+    };
+    struct Restore : Attribute
+    {
+        Restore(Save *save) : saved(save)       {}
+        ~Restore()                              { delete saved; }
+        virtual void        Draw(Layout *where);
+        Save *saved;
+    };
+
 public:
     LayoutState         state;
+    Restore *           restore;
 };
 
 

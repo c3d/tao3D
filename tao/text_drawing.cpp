@@ -522,7 +522,7 @@ void TextSplit::Identify(Layout *where)
     // A number of cases where we can't select text
     if (canSel)
     {
-        if (!where->id || IsMarkedConstant(ttree))
+        if (!(where->id & Widget::SELECTION_MASK) || IsMarkedConstant(ttree))
             canSel = false;
         else if (TextFlow *flow = dynamic_cast<TextFlow *> (where))
             if (sel && sel->textBoxId &&

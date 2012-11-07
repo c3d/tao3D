@@ -123,6 +123,43 @@ theme_background "default", Kind:text ->
 
 // ============================================================================
 // 
+//    Layout for the various kind of pages
+// 
+// ============================================================================
+
+theme_layout "default", "main" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 0, 1800, 400, "title"
+    flow 0, -400, 1800, 300, "subtitle"
+
+
+theme_layout "default", "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 0, 1800, 400, "title"
+    flow 0, -400, 1800, 300, "subtitle"
+
+
+theme_layout "default", Kind:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 470, 1800, 250, "title"
+
+    flow 0, -150, 1800, 900, "story"
+    flow 0, -150, 1800, 900, "picture"
+    flow -475, -150, 850, 900, "left"
+    flow  475, -150, 850, 900, "right"
+    flow -475, -150, 850, 900, "leftpic"
+    flow  475, -150, 850, 900, "rightpic"
+
+
+
+// ============================================================================
+// 
 //    Style for the various components
 // 
 // ============================================================================
@@ -148,11 +185,11 @@ theme_title "default", "main", Body ->
 // ----------------------------------------------------------------------------
 //    Default main title (centered on the slide)
 // ----------------------------------------------------------------------------
-    box 0, 150, 1800, 300,
+    text_flow "title",
         font "TeX Gyre Adventor", "Arial", 150, bold
         theme_item_color "main"
         align 0.5
-        vertical_align 1
+        vertical_align 0.5
         Body
 
 
@@ -160,11 +197,11 @@ theme_subtitle "default", "main", Body ->
 // ----------------------------------------------------------------------------
 //    Default main title (centered on the slide)
 // ----------------------------------------------------------------------------
-    box 0, -180, 1800, 300,
+    text_flow "subtitle",
         font "TeX Gyre Adventor", "Arial", 90, bold
         theme_item_color "main"
         align 0.5
-        vertical_align 0
+        paragraph_break
         Body
 
 
@@ -172,11 +209,11 @@ theme_title "default", "section", Body ->
 // ----------------------------------------------------------------------------
 //    Default section title (centered on the slide)
 // ----------------------------------------------------------------------------
-    box 0, 100, 1800, 400,
+    text_flow "title",
         font "TeX Gyre Adventor", "Arial", 120, bold
         theme_item_color "primary"
         align 0.5
-        vertical_align 0.9
+        vertical_align 0.5
         Body
 
 
@@ -184,11 +221,11 @@ theme_subtitle "default", "section", Body ->
 // ----------------------------------------------------------------------------
 //    Default section title (centered on the slide)
 // ----------------------------------------------------------------------------
-    box 0, -300, 1800, 300,
+    text_flow "subtitle",
         font "TeX Gyre Adventor", "Arial", 85, bold
         theme_item_color "secondary"
         align 0.5
-        vertical_align 0.0
+        paragraph_break
         Body
 
 
@@ -196,11 +233,11 @@ theme_title "default", Kind:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default title is at the top
 // ----------------------------------------------------------------------------
-    box 0, 470, 1800, 250,
+    text_flow "title",
         font "TeX Gyre Adventor", "Arial", 80, bold
         theme_item_color "primary"
         align 0.5
-        vertical_align 0.2
+        vertical_align 0.5
         Body
 
 
@@ -208,30 +245,12 @@ theme_subtitle "default", Kind:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default subtitle is below main title
 // ----------------------------------------------------------------------------
-    box 0, 470, 1800, 250,
+    text_flow "title",
         font "TeX Gyre Adventor", "Arial", 60, bold
         theme_item_color "highlight"
         align 0.5
-        vertical_align 0.8
+        paragraph_break
         Body
-
-
-
-// ============================================================================
-// 
-//   Text boxes
-// 
-// ============================================================================
-
-theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw a default text box
-// ----------------------------------------------------------------------------
-    contents -10,
-        theme_item_color "box"
-        rectangle X, Y, W + 10, H + 10
-    contents 0,
-        text_box X, Y, W, H, Body
 
 
 
@@ -255,27 +274,24 @@ theme_story "default", Kind:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default story box
 // ----------------------------------------------------------------------------
-    box 0, -150, 1800, 900,
-        theme_style "default", Kind
-        Body
+    theme_style "default", Kind
+    text_flow "story", Body
 
 
 theme_left_column "default", Kind:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
-    box -475, -150, 850, 900,
-        theme_style "default", Kind
-        Body
+    theme_style "default", Kind
+    text_flow "left", Body
 
 
 theme_right_column "default", Kind:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
-    box 475, -150, 850, 900,
-        theme_style "default", Kind
-        Body
+    theme_style "default", Kind
+    text_flow "right", Body
 
 
 theme_left_column_picture "default", Kind:text, Body ->
@@ -294,6 +310,36 @@ theme_right_column_picture "default", Kind:text, Body ->
     contents 0,
         translate 475, -150, 0
         Body
+
+
+
+// ============================================================================
+// 
+//   Text boxes
+// 
+// ============================================================================
+
+theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_item_color "box"
+        rectangle X, Y, W + 10, H + 10
+    contents 0,
+        text_box X, Y, W, H, Body
+
+
+theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box containing a flow
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_item_color "box"
+        rectangle X, Y, W + 10, H + 10
+    contents 0,
+        Body
+        text_box Flow, X, Y, W, H
 
 
 

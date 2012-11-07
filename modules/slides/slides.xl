@@ -139,6 +139,8 @@ slide_kind Theme:text, Kind:text, Title:text, Body ->
        locally
            slide_kind := Kind
            Body
+       theme_layout Theme, Kind
+
 
 
 // ============================================================================
@@ -191,9 +193,9 @@ title_slide Title:text, Body ->
 //   Create a slide with just a title at the top
 // ----------------------------------------------------------------------------
     slide_kind theme, "title", Title,
-        Body
         title
             text Title
+        Body
 
 
 picture_slide Title:text, Body ->
@@ -201,9 +203,9 @@ picture_slide Title:text, Body ->
 //   Create a slide for pictures, photos, animations
 // ----------------------------------------------------------------------------
     slide_kind theme, "picture", Title,
-        picture Body
         title
             text Title
+        picture Body
 
 
 slide Title:text, Body ->
@@ -211,9 +213,9 @@ slide Title:text, Body ->
 //   Create a traditional slide with bullet points
 // ----------------------------------------------------------------------------
     slide_kind theme, "slide", Title,
-        story Body
         title
             text Title
+        story Body
 
 
 
@@ -223,30 +225,13 @@ slide Title:text, Body ->
 //
 // ============================================================================
 
-background Depth:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw something in the background. Backgrounds always fill the screen.
-// ----------------------------------------------------------------------------
-    locally
-        scale_background
-        ztrans_background Depth
-        Body
-
-
-contents Depth:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw contents, i.e. always fit in the screen
-// ----------------------------------------------------------------------------
-    locally
-        scale_contents
-        ztrans_contents Depth
-        Body
-
+data slide_flow
 
 title Body ->
 // ----------------------------------------------------------------------------
 //   Draw a title in a regular slide
 // ----------------------------------------------------------------------------
+    slide_flow["title"] := true
     theme_title theme, slide_kind, Body
 
 
@@ -254,6 +239,7 @@ subtitle Body ->
 // ----------------------------------------------------------------------------
 //   Draw a subtitle in a regular slide
 // ----------------------------------------------------------------------------
+    slide_flow["subtitle"] := true
     theme_subtitle theme, slide_kind, Body
 
 
@@ -261,6 +247,7 @@ picture Body ->
 // ----------------------------------------------------------------------------
 //   Box for picture, photos, animations
 // ----------------------------------------------------------------------------
+    slide_flow["picture"] := true
     theme_picture theme, slide_kind, Body
 
 
@@ -268,6 +255,7 @@ story Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the story, i.e. a rectangle somewhere in the middle
 // ----------------------------------------------------------------------------
+    slide_flow["story"] := true
     theme_story theme, slide_kind, Body
 
 
@@ -275,6 +263,7 @@ left_column Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the story
 // ----------------------------------------------------------------------------
+    slide_flow["left"] := true
     theme_left_column theme, slide_kind, Body
 
 
@@ -282,6 +271,7 @@ right_column Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the story
 // ----------------------------------------------------------------------------
+    slide_flow["right"] := true
     theme_right_column theme, slide_kind, Body
 
 
@@ -289,6 +279,7 @@ left_column_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the picture
 // ----------------------------------------------------------------------------
+    slide_flow["leftpic"] := true
     theme_left_column_picture theme, slide_kind, Body
 
 
@@ -296,8 +287,17 @@ right_column_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the picture
 // ----------------------------------------------------------------------------
+    slide_flow["rightpic"] := true
     theme_right_column_picture theme, slide_kind, Body
 
+
+
+
+// ============================================================================
+// 
+//   Text boxes and text flows
+// 
+// ============================================================================
 
 box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
@@ -305,6 +305,22 @@ box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
     theme_box theme, slide_kind, X, Y, W, H, Body
 
+
+flow X:real, Y:real, W:real, H:real, Flow:text ->
+// ----------------------------------------------------------------------------
+//   Draw a given flow in the box
+// ----------------------------------------------------------------------------
+    if slide_flow[Flow] then
+        theme_flow theme, slide_kind, X, Y, W, H, Flow
+        slide_flow[Flow] := false
+
+
+
+// ============================================================================
+// 
+//    Bulletts
+// 
+// ============================================================================
 
 *T:text -> bullet 1, T
 // ----------------------------------------------------------------------------
@@ -382,6 +398,26 @@ no_bullet Level, Text ->
 //    Smart rescaling of the contents
 //
 // ============================================================================
+
+background Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw something in the background. Backgrounds always fill the screen.
+// ----------------------------------------------------------------------------
+    locally
+        scale_background
+        ztrans_background Depth
+        Body
+
+
+contents Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw contents, i.e. always fit in the screen
+// ----------------------------------------------------------------------------
+    locally
+        scale_contents
+        ztrans_contents Depth
+        Body
+
 
 // Two ways to scale contents when resizing the window :
 // For background pictures, we'd rather not see some white around them,

@@ -93,9 +93,8 @@ public:
                                      BreakOrder order = NoBreak,
                                      uint count = 1);
     bool                PaginateLastLine(bool hardBreak);
-    void                DrawPlaceholder(Layout *where);
-    void                DrawSelectionBox(Layout *where,
-                                         TextSelect *sel,
+    void                DrawPlaceholder();
+    void                DrawSelectionBox(TextSelect *sel,
                                          Drawing *child,
                                          coord savedY);
 

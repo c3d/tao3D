@@ -249,7 +249,7 @@ void PageLayout::Draw(Layout *where)
 
     // Inherit state from our parent layout if there is one and compute layout
     if (page.places.size() == 0 && !page.HadRoom())
-        return DrawPlaceholder(where);
+        return DrawPlaceholder();
 
     // Display all items
     GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
@@ -266,8 +266,8 @@ void PageLayout::Draw(Layout *where)
                       << " -- new y = " << where->offset.y + place.position
                       << "\n";
 
-        XL::Save<coord> saveY(where->offset.y, where->offset.y+place.position);
-        child->Draw(where);
+        XL::Save<coord> saveY(offset.y, offset.y+place.position);
+        child->Draw(this);
     }
     PopLayout(this);
 
@@ -321,18 +321,18 @@ void PageLayout::DrawSelection(Layout *where)
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
 
-        XL::Save<coord> saveY(where->offset.y, where->offset.y+place.position);
+        XL::Save<coord> saveY(offset.y, offset.y+place.position);
         if (sel)
-            DrawSelectionBox(where, sel, child, saveY.saved);
+            DrawSelectionBox(sel, child, saveY.saved);
         else
             // No text selection, just draw children directly
-            child->DrawSelection(where);
+            child->DrawSelection(this);
     }
     PopLayout(this);
 
     // Save color and font as necessary for color selectors
-    if (widget->selected(where))
-        widget->saveSelectionColorAndFont(where);
+    if (widget->selected(this))
+        widget->saveSelectionColorAndFont(this);
 }
 
 
@@ -353,8 +353,8 @@ void PageLayout::Identify(Layout *where)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        XL::Save<coord> saveY(where->offset.y, where->offset.y+place.position);
-        child->Identify(where);
+        XL::Save<coord> saveY(offset.y, offset.y+place.position);
+        child->Identify(this);
     }
     PopLayout(this);
 
@@ -376,7 +376,7 @@ void PageLayout::Identify(Layout *where)
 }
 
 
-void PageLayout::DrawPlaceholder(Layout *where)
+void PageLayout::DrawPlaceholder()
 // ----------------------------------------------------------------------------
 //   Draw a striked rectangle to indicate that the page layout is too small
 // ----------------------------------------------------------------------------
@@ -391,46 +391,42 @@ void PageLayout::DrawPlaceholder(Layout *where)
     path.lineTo(Point3(space.Right(), space.Bottom(), 0));
 
     // Draw line width, colors and path
-    LineWidth(3)                        .Draw(where);
-    LineColor(0.8, 0.8, 0.8, 0.7)       .Draw(where);
-    FillColor(0.2, 0.2, 0.2, 0.1)       .Draw(where);
-    path                                .Draw(where);
+    LineWidth(3)                        .Draw(this);
+    LineColor(0.8, 0.8, 0.8, 0.7)       .Draw(this);
+    FillColor(0.2, 0.2, 0.2, 0.1)       .Draw(this);
+    path                                .Draw(this);
 }
 
 
-void PageLayout::DrawSelectionBox(Layout *where, TextSelect *sel,
-                                  Drawing *child, coord savedY)
+void PageLayout::DrawSelectionBox(TextSelect *sel,Drawing *child,coord savedY)
 // ----------------------------------------------------------------------------
 //   Draw the selection box for a given text box
 // ----------------------------------------------------------------------------
 {
-    Widget *widget = where->Display();
+    Widget *widget = Display();
 
     // Text selection: Draw the selection box
     sel->processLineBreak();
     GLuint lineStart = widget->selectionCurrentId();
-    child->DrawSelection(where);
-    where->offset.y = savedY;
+    child->DrawSelection(this);
+    offset.y = savedY;
     GLuint lineEnd = widget->selectionCurrentId();
 
     if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
     {
-        if (PageLayout *pl = dynamic_cast<PageLayout *> (where))
+        if (sel->point != sel->mark)
         {
-            if (sel->point != sel->mark)
-            {
-                coord y = sel->selBox.Bottom();
-                if (sel->start()<=lineStart && sel->end()>=lineStart)
-                    sel->selBox |= Point3(pl->space.Left(), y, 0);
-                if (sel->end() >= lineEnd && sel->start() <= lineEnd)
-                    sel->selBox |= Point3(pl->space.Right(), y, 0);
-            }
+            coord y = sel->selBox.Bottom();
+            if (sel->start()<=lineStart && sel->end()>=lineStart)
+                sel->selBox |= Point3(space.Left(), y, 0);
+            if (sel->end() >= lineEnd && sel->start() <= lineEnd)
+                sel->selBox |= Point3(space.Right(), y, 0);
         }
         
         glBlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = sel->textMode ? "text_selection" : "text_highlight";
-        XL::Save<Point3> zeroOffset(where->offset, Point3());
-        widget->drawSelection(where, sel->selBox, mode, 0);
+        XL::Save<Point3> zeroOffset(offset, Point3());
+        widget->drawSelection(this, sel->selBox, mode, 0);
         sel->selBox.Empty();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }
@@ -439,8 +435,8 @@ void PageLayout::DrawSelectionBox(Layout *where, TextSelect *sel,
     {
         glBlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = "formula_highlight";
-        XL::Save<Point3> zeroOffset(where->offset, Point3());
-        widget->drawSelection(where, sel->formulaBox, mode, 0);
+        XL::Save<Point3> zeroOffset(offset, Point3());
+        widget->drawSelection(this, sel->formulaBox, mode, 0);
         sel->formulaBox.Empty();
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     }

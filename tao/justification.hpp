@@ -1,4 +1,5 @@
 #ifndef JUSTIFICATION_HPP
+#define JUSTIFICATION_HPP
 // ****************************************************************************
 //  justification.hpp                                               Tao project
 // ****************************************************************************
@@ -76,6 +77,9 @@ void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 //   Create data for the given 
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "Justifier[" << this << "]::BeginLayout "
+                  << start << " - " << end << "\n";
     delete data;
     data = new LayoutData(start, end, j);
 };
@@ -92,6 +96,13 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     // Quick exit if we are already full
     if (!data->hasRoom)
         return false;
+
+    IFTRACE(justify)
+        std::cerr << "Justifier[" << this << "]::AddItem "
+                  << item << " * " << count 
+                  << (solid ? " solid " : " break ")
+                  << size << " + " << offset << " "
+                  << (hardBreak ? "hard-break\n" : "\n");
 
     // Shortcuts for elements of data
     Justification &justify      = data->justify;
@@ -126,7 +137,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     }
 
     IFTRACE(justify)
-        std::cerr << "Justifier::Adjust: Place at "
+        std::cerr << "Justifier[" << this << "]: Place at "
                   << pos << (sign == 1 ? " + " : "-") << offset
                   << " = " << pos + sign*offset << std::endl;
 
@@ -167,6 +178,9 @@ void Justifier<Item>::EndLayout()
 //   Final positioning of items after we processed all of them
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "Justifier[" << this << "]::EndLayout\n";
+
     // Shortcuts for elements of data
     Justification &justify      = data->justify;
     coord         &pos          = data->pos;

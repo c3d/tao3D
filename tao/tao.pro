@@ -88,7 +88,6 @@ HEADERS +=     activity.h \
     init_cleanup.h \
     inspectordialog.h \
     justification.h \
-    justification.hpp \
     layout.h \
     license.h \
     license_dialog.h \

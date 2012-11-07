@@ -23,7 +23,8 @@
 #include "page_layout.h"
 #include "attributes.h"
 #include "text_drawing.h"
-#include "justification.hpp"
+#define JUSTIFICATION_H_IMPLEMENTATION
+#include "justification.h"
 #include "gl_keepers.h"
 #include "window.h"
 #include "path3d.h"
@@ -542,10 +543,7 @@ void PageLayout::Compute(Layout *where)
 
     // We are done with the pagination
     if (!page.Empty())
-    {
-        LayoutLine *lastLine = page.Current();
-        lastLine->PerformLayout();
-    }
+        PaginateLastLine(false);
     page.EndLayout();
 
     IFTRACE(justify)
@@ -568,7 +566,10 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
     {
         line = page.Current();
         if (!line->line.HasRoom())
+        {
+            line->PerformLayout();
             line = NULL;
+        }
     }
     if (!line)
     {
@@ -576,18 +577,19 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         bool lineFits = page.AddItem(line);
         if (!lineFits)
         {
-            // Transfer items in the line that didn't fit to the current flow
-            if (currentFlow)
-                currentFlow->Transfer(line);
+            // No need to transfer: the just-created line is empty
             delete line;
             return false;
         }
     }
 
     // Compute the size of the item
-    Box3 space = drawing->Space(this);
-    coord offset = -space.Left();
-    scale size = fabs(space.Width());
+    XL::Save<Vector3> zeroOffset(this->offset, Vector3(0,0,0));
+    Box3 drawSpace = drawing->Space(this);
+    if (drawSpace.Width() < 0 || drawSpace.Height() < 0)
+        drawSpace |= Point3(0,0,0);     // Eliminate empty boxes
+    coord offset = -drawSpace.Left();
+    scale size = fabs(drawSpace.Width());
     scale spc = drawing->TrailingSpaceSize(this);
 
     // Try to add item to layout line
@@ -597,40 +599,74 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
     bool fits = lj.AddItem(drawing, count, solid, size, offset, spc, hardBreak);
 
     // Adjust layout line
-    Box &lineBounds = line->bounds;
     if (fits)
     {
         // If drawing fits, adjust the dimensions of the line accordingly
-        if (lineBounds.lower.y > space.lower.y)
-            lineBounds.lower.y = space.lower.y;
-        if (lineBounds.upper.y > space.upper.y)
-            lineBounds.upper.y = space.upper.y;
+        Box &lineBounds = line->bounds;
+        if (lineBounds.lower.y > drawSpace.lower.y)
+            lineBounds.lower.y = drawSpace.lower.y;
+        if (lineBounds.upper.y < drawSpace.upper.y)
+            lineBounds.upper.y = drawSpace.upper.y;
     }
     else
     {
         // If drawing doesn't fit, try to fit the last line vertically
-        page.PopItem();
-        scale lsize = fabs(lineBounds.Height());
-        coord loffset = lineBounds.Top();
-        bool lhardBreak = order >= ColumnBreak;
-        bool lfits = page.AddItem(line, 1, true, lsize, loffset, 0, lhardBreak);
-        if (lfits)
+        if (!PaginateLastLine(order >= ColumnBreak))
+            return false;
+
+        // Create a new layout line
+        line = new LayoutLine(space.Left(), space.Right(), alongX);
+        bool lineFits = page.AddItem(line); 
+        if (!lineFits)
         {
-            line->PerformLayout();
-        }
-        else
-        {
-            if (currentFlow)
-                currentFlow->Transfer(line);
+            // No need to transfer: the just-created line is empty
             delete line;
+            return false;
         }
 
-        // In all cases, indicate that we were unable to fit the character
-        return false;
+        Justifier<Drawing *> &lj = line->line;
+        bool fits = lj.AddItem(drawing,count,solid,size,offset,spc,hardBreak);
+        if (fits)
+        {
+            Box &lineBounds = line->bounds;
+            if (lineBounds.lower.y > drawSpace.lower.y)
+                lineBounds.lower.y = drawSpace.lower.y;
+            if (lineBounds.upper.y < drawSpace.upper.y)
+                lineBounds.upper.y = drawSpace.upper.y;
+        }
+        return fits;
     }
 
     // Happy campers - Everything fits
     return true;
+}
+
+
+bool PageLayout::PaginateLastLine(bool hardBreak)
+// ----------------------------------------------------------------------------
+//   Paginate the last line that was created
+// ----------------------------------------------------------------------------
+{
+    assert (!page.Empty());
+
+    LayoutLine *line = page.Current();
+    page.PopItem();
+
+    Box &lineBounds = line->bounds;
+    scale lsize = fabs(lineBounds.Height());
+    coord loffset = lineBounds.Top();
+    bool lfits = page.AddItem(line, 1, true, lsize, loffset, 0, hardBreak);
+    if (lfits)
+    {
+        line->PerformLayout();
+    }
+    else
+    {
+        if (currentFlow)
+            currentFlow->Transfer(line);
+        delete line;
+    }
+    return lfits;
 }
 
 

@@ -743,7 +743,8 @@ Box3 TextSplit::Space(Layout *where)
     GlyphCache::GlyphEntry  glyph;
     IFTRACE(justify)
         std::cerr << "->TextSplit::Space(Layout *" << where<< ") offset "
-                  << where->Offset() << " for " << *this << "\n";
+                  << where->Offset() << " for\n"
+                  << *this << "\n";
 
     // Loop over all characters in the text span
     uint i, max = str.length();
@@ -877,7 +878,7 @@ scale TextSplit::TrailingSpaceSize(Layout *where)
         result = 0;
     IFTRACE(justify)
         std::cerr << "<->TextSplit::TrailingSpaceSize[" << this << "] font "
-                  << +where->font.toString() <<" returns " << result<< " for "
+                  << +where->font.toString() <<" returns " << result<< " for\n"
                   << *this << "\n";
 
    return result;
@@ -1081,7 +1082,8 @@ std::ostream &operator<<(std::ostream &out, TextSplit &ts)
 // ----------------------------------------------------------------------------
 {
     text tval = ts.source->value;
-    uint start = ts.start, end = ts.end;
+    uint start = ts.start;
+    uint end = ts.end;
 
     out << "TextSplit \"" << tval << "\"" << std::endl;
     if (end == (uint) ~0)
@@ -1089,7 +1091,7 @@ std::ostream &operator<<(std::ostream &out, TextSplit &ts)
     if (end == 0)
         return out;
     out << "           ";
-    for (uint i = 0; i< start; i++)
+    for (uint i = 0; i < start; i++)
     {
         if (XL::Utf8Code(tval, i) == '\n')
             out <<"\n";
@@ -1097,7 +1099,7 @@ std::ostream &operator<<(std::ostream &out, TextSplit &ts)
             out << " ";
     }
     out << "^";
-    for (uint i = start+1; i< end-1 ; i++)
+    for (uint i = start+1; i < end-1 ; i++)
     {
         if (XL::Utf8Code(tval, i) == '\n')
             out <<"\n";
@@ -1149,6 +1151,7 @@ bool TextUnit::Paginate(PageLayout *page)
     uint i, max = str.length();
     bool ok = true;
     uint size = 0;
+    uint last = start;
     for (i = start; ok && i < max && i < end; i = XL::Utf8Next(str, i))
     {
         QChar c = QChar(XL::Utf8Code(str, i));
@@ -1169,10 +1172,11 @@ bool TextUnit::Paginate(PageLayout *page)
         {
             // Create a text split with the part on the left including break
             uint next = XL::Utf8Next(str, i);
-            TextSplit *split = new TextSplit(source, i, next);
+            TextSplit *split = new TextSplit(source, last, next);
             splits.push_back(split);
             ok = page->PaginateItem(split, charOrder, size);
             size = 0;
+            last = next;
         }
     }
 
@@ -1180,7 +1184,7 @@ bool TextUnit::Paginate(PageLayout *page)
     if (ok && size)
     {
         // Create a text split with the part on the right
-        TextSplit *split = new TextSplit(source, i, end);
+        TextSplit *split = new TextSplit(source, last, end);
         splits.push_back(split);
         ok = page->PaginateItem(split, NoBreak, size);
     }

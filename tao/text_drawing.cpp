@@ -831,6 +831,7 @@ bool TextSplit::Paginate(PageLayout *page)
             charOrder = SentenceBreak;
     }
 
+    page->SetLastSplit(this);
     return page->PaginateItem(this, charOrder, size);
 }
 
@@ -1152,7 +1153,15 @@ bool TextUnit::Paginate(PageLayout *page)
     bool ok = true;
     uint size = 0;
     uint last = start;
-    for (i = start; ok && i < max && i < end; i = XL::Utf8Next(str, i))
+    uint first = start;
+
+    // Case where we replayed a line from a text flow : we played text splits
+    // that we would otherwise emit here (resulting in duplicated text)
+    if (TextSplit *lastSplit = page->LastSplit())
+        if (lastSplit->source == source && lastSplit->end > first)
+            first = last = lastSplit->end;
+
+    for (i = first; ok && i < max && i < end; i = XL::Utf8Next(str, i))
     {
         QChar c = QChar(XL::Utf8Code(str, i));
         BreakOrder charOrder = CharBreak;

@@ -31,7 +31,9 @@
 TAO_BEGIN
 
 struct TextFlow;
+struct TextSplit;
 struct TextSelect;
+
 
 struct LayoutLine : Drawing
 // ----------------------------------------------------------------------------
@@ -97,6 +99,8 @@ public:
     void                DrawSelectionBox(TextSelect *sel,
                                          Drawing *child,
                                          coord savedY);
+    void                SetLastSplit(TextSplit *);
+    TextSplit *         LastSplit();
 
 public:
     // Space requested for the layout
@@ -123,6 +127,8 @@ public:
     virtual bool        Paginate(PageLayout *page);
 
     void                Transfer(LayoutLine *line);
+    TextSplit *         LastSplit()                     { return lastSplit; }
+    void                SetLastSplit(TextSplit *split)  { lastSplit = split; }
 
 public:
     text                flowName;
@@ -131,6 +137,7 @@ public:
 private:
     uint                current;
     Drawings            reject;
+    TextSplit *         lastSplit;
 };
 
 

@@ -422,7 +422,7 @@ void PageLayout::DrawSelectionBox(TextSelect *sel,Drawing *child,coord savedY)
             if (sel->end() >= lineEnd && sel->start() <= lineEnd)
                 sel->selBox |= Point3(space.Right(), y, 0);
         }
-        
+
         glBlendFunc(GL_DST_COLOR, GL_ZERO);
         text mode = sel->textMode ? "text_selection" : "text_highlight";
         XL::Save<Point3> zeroOffset(offset, Point3());
@@ -538,7 +538,7 @@ void PageLayout::Compute(Layout *where)
     }
 
     // We are done with the pagination
-    if (!page.Empty())
+    if (ok && !page.Empty())
         PaginateLastLine(false);
     page.EndLayout();
 
@@ -612,7 +612,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
 
         // Create a new layout line
         line = new LayoutLine(space.Left(), space.Right(), alongX);
-        bool lineFits = page.AddItem(line); 
+        bool lineFits = page.AddItem(line);
         if (!lineFits)
         {
             // No need to transfer: the just-created line is empty
@@ -666,6 +666,27 @@ bool PageLayout::PaginateLastLine(bool hardBreak)
 }
 
 
+void PageLayout::SetLastSplit(TextSplit *split)
+// ----------------------------------------------------------------------------
+//   Record last text split if we have an active flow
+// ----------------------------------------------------------------------------
+{
+    if (currentFlow)
+        currentFlow->SetLastSplit(split);
+}
+
+
+TextSplit *PageLayout::LastSplit()
+// ----------------------------------------------------------------------------
+//   Return the last item placed in the last line, if any
+// ----------------------------------------------------------------------------
+{
+    if (currentFlow)
+        return currentFlow->LastSplit();
+    return NULL;
+}
+
+
 
 // ============================================================================
 //
@@ -678,7 +699,7 @@ TextFlow::TextFlow(Layout *layout, text flowName)
 //   Create a text flow recording items in the given layout
 // ----------------------------------------------------------------------------
     : Layout(*layout), flowName(flowName),
-      textBoxIds(), current(0)
+      textBoxIds(), current(0), reject(), lastSplit(NULL)
 {
     IFTRACE(justify)
         std::cerr << "TextFlow::TextFlow[" << this
@@ -704,6 +725,7 @@ void TextFlow::Draw(Layout *)
     // When we draw the text flow, reset drawing at the beginning
     charId = 0;
     current = 0;
+    lastSplit = NULL;
 }
 
 
@@ -714,6 +736,7 @@ void TextFlow::DrawSelection(Layout *)
 {
     charId = 0;
     current = 0;
+    lastSplit = NULL;
 }
 
 
@@ -724,6 +747,7 @@ void TextFlow::Identify(Layout *)
 {
     charId = 0;
     current = 0;
+    lastSplit = NULL;
 }
 
 
@@ -734,7 +758,9 @@ void TextFlow::Clear()
 {
     charId = 0;
     current = 0;
+    lastSplit = NULL;
     textBoxIds.clear();
+    reject.clear();
     Layout::Clear();
 }
 
@@ -750,12 +776,16 @@ bool TextFlow::Paginate(PageLayout *page)
     bool ok = true;
 
     // First try to playback items that were rejected before
-    for (Drawings::iterator d = reject.begin(); ok && d != reject.end(); d++)
+    Drawings::iterator d, good = reject.begin();
+    for (d = good; ok && d != reject.end(); d++)
     {
         Drawing *child = *d;
         ok = child->Paginate(page);
+        if (ok)
+            good = d;
     }
-                                  
+    reject.erase(reject.begin(), good);
+
     uint max = items.size();
     while (ok && current < max)
     {
@@ -782,9 +812,9 @@ void TextFlow::Transfer(LayoutLine *line)
 
 
 // ============================================================================
-// 
+//
 //    TextFlowReplay : Replay a given text flow in current layout
-// 
+//
 // ============================================================================
 
 void TextFlowReplay::Draw(Layout *where)
@@ -850,9 +880,9 @@ bool TextFlowReplay::Paginate(PageLayout *page)
 
 
 // ============================================================================
-// 
+//
 //    Text Span: Save and restore text states
-// 
+//
 // ============================================================================
 
 void TextSpan::Draw(Layout *where)
@@ -899,10 +929,16 @@ bool TextSpan::Paginate(PageLayout *page)
 //   Paginate, then restore the state as it was initially
 // ----------------------------------------------------------------------------
 {
-    delete restore;
-
-    Save *save = new Save;
-    restore = new Restore(save);
+    Save *save;
+    if (restore)
+    {
+        save = restore->saved;
+    }
+    else
+    {
+        save = new Save;
+        restore = new Restore(save);
+    }
 
     bool ok = (page->PaginateItem(save) &&
                Layout::Paginate(page) &&

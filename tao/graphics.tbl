@@ -1164,7 +1164,11 @@ PREFIX(OpenUrl, boolean,  "open_url",
        GROUP(misc)
        SYNOPSIS("Opens the given URL with the appropriate application.")
        RETURNS(boolean, ""))
-
+PREFIX(DocumentDir, text,  "document_dir",,
+       return new Text(Tao::Widget::currentDocumentFolder()),
+       GROUP(misc)
+       SYNOPSIS("Return the document folder.")
+       RETURNS(text, ""))
 
 
 // ============================================================================

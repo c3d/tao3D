@@ -10,7 +10,7 @@
  * @addtogroup TaoFiles Manipulations de fichiers
  * @ingroup TaoBuiltins
  *
- * Fonctions liées �  la manipulation de fichiers : lister les fichiers présents
+ * Fonctions liées à la manipulation de fichiers : lister les fichiers présents
  * sur l'ordinateur, charger des données depuis un fichier.
  *
  * @~
@@ -78,7 +78,7 @@ print_path with files "/media/NAME/*.jpg"
  * @p patterns est une ou plusieurs chaînes de texte séparées par des virgules,
  * des point-virgules ou sur plusieurs lignes.
  * Chaque chaîne est interprétée comme un "glob pattern". Le slash (@c /)
- * sert �  séparer les répertoires et sous-répertoires.
+ * sert à séparer les répertoires et sous-répertoires.
  * Seuls les fichiers normaux sont pris en compte. Les répertoires et les liens
  * symboliques qui correspondent au modèle ne seront pas retenus par la
  * primitive. Les chemins renvoyés sont toujours absolus.
@@ -94,7 +94,7 @@ print_path with files "/media/NAME/*.jpg"
  * <tt>images/10b.JPG</tt>, mais pas <tt>images/a.jpg</tt>.
  *
  * Si @p pattern ne commence pas par un slash ou une lettre de lecteur
- * Windows (c'est-� -dire, si ce n'est pas
+ * Windows (c'est-à-dire, si ce n'est pas
  * un chemin absolu), alors les fichiers seront recherchés relativement au
  * répertoire du fichier courant.
  *
@@ -127,7 +127,7 @@ tree files(patterns:tree);
  * Loads text from a file.
  * Returns a text string that is the contents of the file.
  * @~french
- * Charge du texte �  partir d'un fichier.
+ * Charge du texte à  partir d'un fichier.
  * Renvoie le contenu du fichier sous forme de chaîne de caractère.
  */
 text load_text(path:text);
@@ -138,8 +138,8 @@ text load_text(path:text);
  * Check if a file really exists.
  * Allow to check if the file @p filename exists or not.
  * @~french
- * V�rifie si un fichier existe ou non.
- * Permet de v�rifier si le fichier @p filename existe ou non.
+ * Vérifie si un fichier existe ou non.
+ * Permet de vérifier si le fichier @p filename existe ou non.
  */
 bool file_exists(filename:text);
 
@@ -226,7 +226,7 @@ tree load_csv(filename:text, prefix:text);
  * TAB character.
  * @~french
  * Lit des données depuis un fichier au format TSV.
- * Similaire �  @ref load_csv mais le séparateur de champs est la
+ * Similaire à @ref load_csv mais le séparateur de champs est la
  * tabulation.
  */
 tree load_tsv(filename:text, prefix:text);
@@ -302,10 +302,20 @@ boolean screenshot(fileName:text, withAlpha:boolean);
  * Same <tt>screenshot fileName, false</tt>.
  * @~french
  * Enregistre une capture d'écran dans un fichier.
- * Équivalent � : <tt>screenshot fileName, false</tt>.
+ * Équivalent à : <tt>screenshot fileName, false</tt>.
  */
 boolean screenshot(fileName:text);
 
+
+/**
+ * @~english
+ * Get the main document folder.
+ * @return main document folder.
+ * @~french
+ * Récupère le chemin vers le dossier du document principal.
+ * @return chemin vers le dossier du document principal.
+ */
+text document_dir();
 
 /**
  * @}

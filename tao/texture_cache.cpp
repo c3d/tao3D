@@ -365,6 +365,7 @@ void TextureCache::purgeMem()
 {
     while (memSize > (maxMemSize * purgeRatio))
     {
+        printStatistics();
         Q_ASSERT(memLRU.last);
 
         CachedTexture * tex = memLRU.last->tex;
@@ -861,8 +862,12 @@ void CachedTexture::purgeGL()
 {
     Q_ASSERT(id);
 
+    // Resize the texture as a 1x1 pixel. Resizing at 0x0 triggers a bug in
+    // the Nvidia driver on MacOS Mountain Lion (#2622)
+    static uint32 zero = 0;
     glBindTexture(GL_TEXTURE_2D, id);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, &zero);
 
     int purged = GLsize;
     GLsize = 0;

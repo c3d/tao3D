@@ -418,6 +418,15 @@ bool Application::loadLicenses()
     QList<QDir> dirs;
     dirs << QDir(Application::userLicenseFolderPath())
          << QDir(Application::appLicenseFolderPath());
+
+    // Add paths given on the command line
+    QString paths = +XL::MAIN->options.license_dirs;
+    foreach (QString path, paths.split(":", QString::SkipEmptyParts))
+    {
+        QFileInfo info(QDir(TaoApp->startDir), path);
+        dirs << QDir(info.absoluteFilePath());
+    }
+
     foreach (QDir dir, dirs)
     {
         QFileInfoList licenses = dir.entryInfoList(QStringList("*.taokey"),

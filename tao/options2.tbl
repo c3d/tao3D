@@ -77,3 +77,8 @@ OPTVAR(preload_files, text, "")
 OPTION(p, "Preload file before document. Files are loaded after builtins.xl and tao.xl "
        "but before user.xl and theme.xl",
        preload_files += STRING; preload_files += ":")
+
+OPTVAR(license_dirs, text, "")
+OPTION(licpath, "Look for license files in the specified directory, in addition to the "
+       "installation and user directories. This option may be used multiple times.",
+       license_dirs += STRING; license_dirs += ":")

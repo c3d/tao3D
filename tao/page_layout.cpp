@@ -62,7 +62,7 @@ LayoutLine::LayoutLine(coord left, coord right, Justification &j)
 // ----------------------------------------------------------------------------
 //   Create a new line of drawing elements
 // ----------------------------------------------------------------------------
-    : bounds(Point(left, 0), Point(right, 0)), line()
+    : bounds(Point(left, 0), Point(right, 0)), line(), perSolid(0), perBreak(0)
 {
     IFTRACE(justify)
         std::cerr << "##### "<< left <<" ##### new LayoutLine L-R " << this
@@ -88,6 +88,10 @@ void LayoutLine::Draw(Layout *where)
     IFTRACE(justify)
         std::cerr << "->LayoutLine:" << this
                   << ":Draw(Layout * " << where << ")\n";
+
+    // Copy the perSolid we computed to the layout we draw in
+    where->alongX.perSolid = perSolid;
+    where->alongX.perBreak = perBreak;
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -116,6 +120,10 @@ void LayoutLine::DrawSelection(Layout *where)
 {
     assert(!line.data && "LayoutLine::DrawSelection called before layout");
 
+    // Copy the perSolid we computed to the layout we draw in
+    where->alongX.perSolid = perSolid;
+    where->alongX.perBreak = perBreak;
+
     // Display all items
     LineJustifier::Places &places = line.places;
     LineJustifier::PlacesIterator p;
@@ -135,6 +143,10 @@ void LayoutLine::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 {
     assert(!line.data && "LayoutLine::Identify called before layout");
+
+    // Copy the perSolid we computed to the layout we draw in
+    where->alongX.perSolid = perSolid;
+    where->alongX.perBreak = perBreak;
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -185,7 +197,7 @@ void LayoutLine::PerformLayout()
 // ----------------------------------------------------------------------------
 {
     if (line.data)
-        line.EndLayout();
+        line.EndLayout(&perSolid, &perBreak);
 }
 
 
@@ -540,7 +552,7 @@ void PageLayout::Compute(Layout *where)
     // We are done with the pagination
     if (ok && !page.Empty())
         PaginateLastLine(false);
-    page.EndLayout();
+    page.EndLayout(&alongY.perSolid, &alongY.perBreak);
 
     IFTRACE(justify)
         page.Dump("<-PageLayout::Compute");

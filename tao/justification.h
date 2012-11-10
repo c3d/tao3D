@@ -112,7 +112,7 @@ struct Justifier
     bool        AddItem(Item item, uint count = 1, bool solid = true,
                         scale size = 0, coord offset = 0, scale lastSpace = 0,
                         bool hard = false);
-    void        EndLayout();
+    void        EndLayout(float *perSolid, float *perBreak);
 
     // Adding items to the layout
     bool        Empty()                 { return places.size() == 0; }
@@ -321,7 +321,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
 
 
 template<class Item>
-void Justifier<Item>::EndLayout()
+void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
 // ----------------------------------------------------------------------------
 //   Final positioning of items after we processed all of them
 // ----------------------------------------------------------------------------
@@ -372,8 +372,8 @@ void Justifier<Item>::EndLayout()
     coord atBreak = forBreaks / (numBreaks > 1 ? numBreaks - 1 : 1);
 
     // Store that for use in the text_drawing routines
-    justify.perSolid = atSolid;
-    justify.perBreak = atBreak;
+    *perSolid = atSolid;
+    *perBreak = atBreak;
 
     // Now perform the adjustment on individual positions
     PlacesIterator p;

@@ -63,6 +63,7 @@ public:
 public:
     Box                 bounds;
     LineJustifier       line;
+    float               perSolid, perBreak;
 };
 
 

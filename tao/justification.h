@@ -299,6 +299,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     {
         hasRoom = false;
         data->hardBreak = true;
+        return false;
     }
 
     // Count solids, breaks and individual items (e.g. glyphs)

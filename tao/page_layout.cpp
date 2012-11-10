@@ -633,7 +633,8 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         }
 
         Justifier<Drawing *> &lj = line->line;
-        bool fits = lj.AddItem(drawing,count,solid,size,offset,spc,hardBreak);
+        bool fits = hardBreak ||
+            lj.AddItem(drawing,count,solid,size,offset,spc,hardBreak);
         if (fits)
         {
             Box &lineBounds = line->bounds;

@@ -111,7 +111,7 @@ affiche with files "images/*.jpg", "images/*.png"
 affiche with files
     "images/*.jpg"
     "images/*.png"
-// Accéder �  une clé USB ou un disque externe :
+// Accéder à une clé USB ou un disque externe :
 //   (Windows)
 affiche with files "E:/images/*.jpg"
 //   (MacOSX)

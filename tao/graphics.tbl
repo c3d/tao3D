@@ -380,6 +380,13 @@ PREFIX(Anchor,   tree,  "anchor",
        SYNOPSIS("")
        DESCRIPTION("Anchor a set of shapes to the current position")
        RETURNS(tree, "The result of the child execution."))
+PREFIX(Floating,   tree,  "floating",
+       PARM(t, code, "The code that represent the shapes to be anchored."),
+       RTAO(anchor(context, self, t, true)),
+       GROUP(graph)
+       SYNOPSIS("")
+       DESCRIPTION("Anchor a set of shapes to (0,0,0) position")
+       RETURNS(tree, "The result of the child execution."))
 PREFIX(StereoViewpoints,  tree,  "stereo_viewpoints",
        PARM(e, integer, "The bit mask for viewpoints")
        PARM(t, code, "The code to execute in a local context"),

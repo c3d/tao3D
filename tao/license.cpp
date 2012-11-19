@@ -97,7 +97,7 @@ void Licenses::addLicenseFile(kstring licfname)
 {
     RECORD(ALWAYS, "Adding license file", licfname);
     IFTRACE(lic)
-        debug() << "Loading license file" << licfname << "\n";
+        debug() << "Loading license file " << licfname << "\n";
 
     // Licenses we want to add here
     LicenseFile additional;

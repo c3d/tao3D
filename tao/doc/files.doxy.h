@@ -111,7 +111,7 @@ affiche with files "images/*.jpg", "images/*.png"
 affiche with files
     "images/*.jpg"
     "images/*.png"
-// Accéder �  une clé USB ou un disque externe :
+// Accéder à une clé USB ou un disque externe :
 //   (Windows)
 affiche with files "E:/images/*.jpg"
 //   (MacOSX)
@@ -188,6 +188,43 @@ writeln Total
 process_line A:real, B:real, C:real -> Total := Total + A + B + C
 process_line AnythingElse -> false
  * @endcode
+ * You may enclose the values in double quotes, in which case:
+ * - Integer or real values are interpreted as text
+ * - The field separator character looses its special meaning
+ *
+ * Should a double quote character appear in the quoted text, simply
+ * double it. Leading spaces are trimmed from non-quoted strings, not
+ * from quoted strings. Trailing space is not trimmed.
+ * Let's consider the following CSV file:
+@verbatim
+Lorem;ipsum
+Lorem; ipsum
+"Lorem ipsum";"dolor sit amet"
+Lorem ipsum;dolor sit amet
+Lorem ipsum ; dolor sit amet
+"Lorem ";" ipsum ; dolor sit amet"
+ "Lorem";  "ipsum"
+"""Lorem""";" ipsum"
+"1";"2"
+@endverbatim
+ * If we open it with this:
+ * @code
+load_csv "test.csv", "foo"
+foo A:text, B:text -> writeln "|", A, "|", B, "|"
+foo Others -> nil
+ * @endcode
+ * ...we obtain:
+@verbatim
+|Lorem|ipsum|
+|Lorem|ipsum|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum |dolor sit amet|
+|Lorem | ipsum ; dolor sit amet|
+|Lorem|ipsum|
+|"Lorem"| ipsum|
+|1|2|
+@endverbatim
  * @~french
  * Lit des données depuis un fichier au format CSV.
  * Le séparateur de champs est le point-virgule (@c ;) ou la virgule
@@ -215,6 +252,44 @@ writeln Total
 traitement_ligne A:real, B:real, C:real -> Total := Total + A + B + C
 traitement_ligne Autre -> false
  * @endcode
+ * Vous pouvez mettre les valeurs entre guillemets, auquel cas :
+ * - Les valeurs entières ou réelles sont interprétées comme du texte
+ * - Le caractère séparateur de champ perd sa signification
+ *
+ * Pour faire apparaître un guillement dans du texte, il suffit de le doubler.
+ * Les blancs avant le texte sont supprimmés si la chaîne n'est pas entre guillemets.
+ * Ils sont conservés si les guillements sont utilisés. Les blancs suivant le texte
+ * sont toujours conservés.
+ * Voici un exemple:
+@verbatim
+Lorem;ipsum
+Lorem; ipsum
+"Lorem ipsum";"dolor sit amet"
+Lorem ipsum;dolor sit amet
+Lorem ipsum ; dolor sit amet
+"Lorem ";" ipsum ; dolor sit amet"
+ "Lorem";  "ipsum"
+"""Lorem""";" ipsum"
+"1";"2"
+@endverbatim
+ * Si nous ouvrons ce CSV avec le code suivant :
+ * @code
+load_csv "test.csv", "foo"
+foo A:text, B:text -> writeln "|", A, "|", B, "|"
+foo Others -> nil
+ * @endcode
+ * ...nous obtenons:
+@verbatim
+|Lorem|ipsum|
+|Lorem|ipsum|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum |dolor sit amet|
+|Lorem | ipsum ; dolor sit amet|
+|Lorem|ipsum|
+|"Lorem"| ipsum|
+|1|2|
+@endverbatim
  */
 tree load_csv(filename:text, prefix:text);
 

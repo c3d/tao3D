@@ -998,7 +998,7 @@ bool Widget::refreshNow(QEvent *event)
         IFTRACE(pages)
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
-        
+
         if (transitionTree == NULL)
         {
             commitPageChange(false);
@@ -5022,9 +5022,9 @@ XL::Real_p Widget::pageHeight(Tree_p self)
 
 
 // ============================================================================
-// 
+//
 //    Transitions
-// 
+//
 // ============================================================================
 
 Tree_p Widget::transition(Context *, Tree_p self, double dur, Tree_p body)
@@ -5165,9 +5165,9 @@ Tree_p Widget::runTransition(Context *context)
 
 
 // ============================================================================
-// 
+//
 //    Frames
-// 
+//
 // ============================================================================
 
 XL::Real_p Widget::frameWidth(Tree_p self)
@@ -5638,12 +5638,12 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
 }
 
 
-Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
 // ----------------------------------------------------------------------------
 //   Anchor a set of shapes to the current position
 // ----------------------------------------------------------------------------
 {
-    AnchorLayout *anchor = new AnchorLayout(this);
+    AnchorLayout *anchor = new AnchorLayout(this, abs);
     layout->AddChild(shapeId(), child, context, anchor);
     IFTRACE(layoutevents)
         std::cerr << "Anchor " << anchor

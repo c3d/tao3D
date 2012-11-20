@@ -9329,7 +9329,7 @@ struct LoadTextInfo : Info
 };
 
 
-Text_p Widget::loadText(Tree_p self, text file)
+Text_p Widget::loadText(Tree_p self, text file, text encoding)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
 // ----------------------------------------------------------------------------
@@ -9375,6 +9375,8 @@ Text_p Widget::loadText(Tree_p self, text file)
             QFile file(fileInfo.absoluteFilePath());
             file.open(QIODevice::ReadOnly);
             QTextStream textStream(&file);
+            textStream.setAutoDetectUnicode(true);
+            textStream.setCodec(encoding.c_str());
             QString data = textStream.readAll();
             value = +data;
         }

@@ -104,26 +104,26 @@ struct Justifier
 //    is broken up (e.g. by LineBreak), both elements are tracked in either
 //    items or places.
 {
-    Justifier(): places(), data(NULL), interspace(0) {}
+    Justifier(): places(), data(NULL), interspace(-1) {}
     ~Justifier() { Clear(); }
 
     // Build the layout
     void        BeginLayout(coord start, coord end, Justification &j);
     bool        AddItem(Item item, uint count = 1, bool solid = true,
                         scale size = 0, coord offset = 0, scale lastSpace = 0,
-                        bool hard = false);
+                        bool hardBreak = false, bool hasInterspace = false);
     void        EndLayout(float *perSolid, float *perBreak);
 
     // Adding items to the layout
     bool        Empty()                 { return places.size() == 0; }
     Item        Current()               { return places.back().item; }
-    void        PopItem()               { places.pop_back(); }
     bool        HasRoom()               { return data->hasRoom; }
     bool        HadRoom()               { return interspace < 0.0; /* UGLY */ }
 
     // Clear the layout
     void        Clear();
     void        PurgeItems() {}         // Specialize to delete 'places' items
+    void        PopItem();
 
     // Debug
     void        Dump(text msg);
@@ -159,8 +159,8 @@ public:
         uint            numBreaks;
         uint            numSolids;
         int             sign;
-        bool            hasRoom;
         bool            hardBreak;
+        bool            hasRoom;
     };
 
 public:
@@ -201,8 +201,8 @@ Justifier<Item>::LayoutData::LayoutData(coord start, coord end,
       numBreaks(0),
       numSolids(0),
       sign(start <= end ? 1 : -1),
-      hasRoom(true),
-      hardBreak(false)
+      hardBreak(false),
+      hasRoom(true)
 { }
 
 
@@ -216,6 +216,18 @@ void Justifier<Item>::Clear()
     places.clear();
     delete data;
     data = NULL;
+}
+
+
+template<class Item>
+void Justifier<Item>::PopItem()
+// ----------------------------------------------------------------------------
+//    Pop items from the current list
+// ----------------------------------------------------------------------------
+{
+    places.pop_back();
+    if (!places.size())
+        interspace = -1;
 }
 
 
@@ -236,7 +248,7 @@ void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 template<class Item>
 bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
                               scale size, coord offset, scale lspace,
-                              bool hardBreak)
+                              bool hardBreak, bool hasInterspace)
 // ----------------------------------------------------------------------------
 //   Place item and returns true if it fits, otherwise return false
 // ----------------------------------------------------------------------------
@@ -266,9 +278,16 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     bool          &hasRoom      = data->hasRoom;
 
     // Record interspace for the next line
-    scale ispace = interspace;
-    if (ispace < justify.before)
-        ispace = justify.before;
+    scale ispace = 0;
+    if (size > 0)
+    {
+        ispace = interspace;
+        if (ispace < 0 || !hasInterspace)
+            ispace = 0;
+        else if (ispace < justify.after)
+            ispace = justify.after;
+        interspace = 0;
+    }
 
     // Test the size of what remains
     scale spacing = justify.spacing;
@@ -298,7 +317,9 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     if (hardBreak)
     {
         hasRoom = false;
-        data->hardBreak = true;
+        data->hardBreak = hardBreak;
+        if (hasInterspace && size > 0)
+            interspace = justify.after;
         return false;
     }
 
@@ -311,9 +332,8 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
             numBreaks++;
         numItems += count;
 
-        // Record size of last space and interspace
+        // Record size of last space
         lastSpace = lspace;
-        interspace = justify.after;
     }
 
     // We were successful inserting that item
@@ -340,8 +360,9 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     uint          &numBreaks    = data->numBreaks;
     uint          &numSolids    = data->numSolids;
     int           &sign         = data->sign;
-    bool          &hasRoom      = data->hasRoom;
     bool          &hardBreak    = data->hardBreak;
+    bool          &hasRoom      = data->hasRoom;
+
 
     // Extra space that we can use for justification
     scale atEnd = sign * (lastSpace + lastOversize);

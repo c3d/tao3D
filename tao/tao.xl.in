@@ -277,6 +277,10 @@ copy_texture ->
         texture ID
         rectangle 0, 0, W, H
 
+text_box F:text, X:real, Y:real, W:real, H:real ->
+    text_box X, Y, W, H,
+        text_flow F
+
 para_span b:tree ->
     text_span
         paragraph_break

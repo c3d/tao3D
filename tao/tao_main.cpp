@@ -69,6 +69,23 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
+    // Process --version before graphic initialization so that this option may
+    // be used without a valid X11 display on Linux
+    for (int i = 1; i < argc; i++)
+    {
+        if (!strcmp(argv[i], "--version"))
+        {
+#ifdef TAO_EDITION
+#define EDSTR TAO_EDITION " "
+#else
+#define EDSTR
+#endif
+            std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
+#undef EDSTR
+            exit(0);
+        }
+    }
+
     XL::FlightRecorder::Initialize();
     RECORD(ALWAYS, "Tao Starting");
     install_signal_handler(signal_handler);

@@ -126,6 +126,7 @@ void Application::deferredInit()
     QDir::setCurrent(applicationDirPath());
 
     // Check command-line options that cause an immediate exit
+    // Note: --version is tested earlier, in main()
 
     QStringList cmdLineArguments = arguments();
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
@@ -140,19 +141,6 @@ void Application::deferredInit()
         ::exit(0);
     }
 #endif
-    if (cmdLineArguments.contains("--version"))
-    {
-
-#ifdef TAO_EDITION
-#define EDSTR TAO_EDITION " "
-#else
-#define EDSTR
-#endif
-        std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
-#undef EDSTR
-
-        ::exit(0);
-    }
     if (cmdLineArguments.contains("--glinfo"))
     {
         {

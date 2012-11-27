@@ -125,10 +125,12 @@ tree files(patterns:tree);
 /**
  * @~english
  * Loads text from a file.
- * Returns a text string that is the contents of the file.
+ * Returns a text string that is the contents of the file. The file
+ * encoding is assumed to be UTF-8.
  * @~french
- * Charge du texte à  partir d'un fichier.
- * Renvoie le contenu du fichier sous forme de chaîne de caractère.
+ * Charge du texte à partir d'un fichier.
+ * Renvoie le contenu du fichier sous forme de chaîne de caractère. Le
+ * fichier texte doit être encodé en UTF-8.
  */
 text load_text(path:text);
 
@@ -142,6 +144,21 @@ text load_text(path:text);
  * Permet de vérifier si le fichier @p filename existe ou non.
  */
 bool file_exists(filename:text);
+
+/**
+ * @~english
+ * Loads text from a file.
+ * Returns a text string that is the contents of the file. The file
+ * encoding is specified by @p encoding, e.g. UTF-8 or Windows-1250.
+ * @see For supported encodings, see http://doc.qt.digia.com/qt/qtextcodec.html
+ * @~french
+ * Charge du texte à partir d'un fichier.
+ * Renvoie le contenu du fichier sous forme de chaîne de caractère. Le
+ * système d'encodage du fichier texte est spécifié par @p encoding,
+ * par exemple UTF-8 ou Windows-1250.
+ * @see Pour les systèmes de codage supporés, voir http://doc.qt.digia.com/qt/qtextcodec.html
+ */
+text load_text(path:text, encoding:text);
 
 /**
  * @~english

@@ -661,7 +661,7 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
-    Text_p      loadText(Tree_p self, text file);
+    Text_p      loadText(Tree_p self, text file, text encoding);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
     Text_p      taoEdition(Tree_p self);

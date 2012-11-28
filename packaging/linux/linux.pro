@@ -13,7 +13,16 @@
 
 TEMPLATE = subdirs
 
-kit.commands   = $(MAKE) -f Makefile.linux kit
+DEB_HOST_ARCH=$$system(dpkg-architecture -qDEB_HOST_ARCH)
+!build_pass {
+  isEmpty(DEB_HOST_ARCH) {
+    warning("dpkg-architecture not found, .deb file will not be built (try: sudo apt-get install dpkg-dev)")
+    KIT = tar
+  } else {
+    KIT = deb tar
+  }
+}
+kit.commands   = $(MAKE) -f Makefile.linux $$KIT
 prepare.commands = $(MAKE) -f Makefile.linux prepare
 tar.commands   = $(MAKE) -f Makefile.linux tar
 clean.commands = $(MAKE) -f Makefile.linux clean
@@ -26,5 +35,4 @@ include (../../version.pri)
 # Minimal version of Qt packages (Ubuntu packaging, see control.in)
 # Note: Use show_deps.sh to maintain the list of dependencies
 QTVER="4:4.7.4"
-DEB_HOST_ARCH=$$system(dpkg-architecture -qDEB_HOST_ARCH)
 QMAKE_SUBSTITUTES = Makefile.config.in control.in

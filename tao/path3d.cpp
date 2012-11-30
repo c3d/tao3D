@@ -1136,12 +1136,14 @@ void GraphicPath::clear()
 }
 
 
-void GraphicPath::AddControl(XL::Tree *self, Real *x, Real *y, Real *z)
+void GraphicPath::AddControl(XL::Tree *self, bool onCurve,
+                             Real *x, Real *y, Real *z)
 // ----------------------------------------------------------------------------
 //   Add a control point to a path
 // ----------------------------------------------------------------------------
 {
-    controls.push_back(new ControlPoint(self, x, y, z, controls.size() + 1));
+    controls.push_back(new ControlPoint(self, onCurve,
+                                        x, y, z, controls.size() + 1));
 }
 
 

@@ -124,6 +124,7 @@ void Application::deferredInit()
     QDir::setCurrent(applicationDirPath());
 
     // Check command-line options that cause an immediate exit
+    // Note: --version is tested earlier, in main()
 
     QStringList cmdLineArguments = arguments();
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
@@ -138,19 +139,6 @@ void Application::deferredInit()
         ::exit(0);
     }
 #endif
-    if (cmdLineArguments.contains("--version"))
-    {
-
-#ifdef TAO_EDITION
-#define EDSTR TAO_EDITION " "
-#else
-#define EDSTR
-#endif
-        std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
-#undef EDSTR
-
-        ::exit(0);
-    }
     if (cmdLineArguments.contains("--glinfo"))
     {
         {
@@ -189,9 +177,9 @@ void Application::deferredInit()
     foreach (QString arg, arguments())
         args.append(strdup(arg.toUtf8().constData()));
     xlr = new Main(args.size(), args.data(), "xl_tao",
-                   +syntax.canonicalFilePath(),
-                   +stylesheet.canonicalFilePath(),
-                   +builtins.canonicalFilePath());
+                   +syntax.absoluteFilePath(),
+                   +stylesheet.absoluteFilePath(),
+                   +builtins.absoluteFilePath());
 
     loadLicenses();
 
@@ -416,6 +404,15 @@ bool Application::loadLicenses()
     QList<QDir> dirs;
     dirs << QDir(Application::userLicenseFolderPath())
          << QDir(Application::appLicenseFolderPath());
+
+    // Add paths given on the command line
+    QString paths = +XL::MAIN->options.license_dirs;
+    foreach (QString path, paths.split(":", QString::SkipEmptyParts))
+    {
+        QFileInfo info(QDir(TaoApp->startDir), path);
+        dirs << QDir(info.absoluteFilePath());
+    }
+
     foreach (QDir dir, dirs)
     {
         QFileInfoList licenses = dir.entryInfoList(QStringList("*.taokey"),
@@ -654,9 +651,9 @@ void Application::processCommandLineFile()
     QFileInfo user      ("xl:user.xl");
     QFileInfo theme     ("xl:theme.xl");
     if (user.exists())
-        contextFiles.push_back(+user.canonicalFilePath());
+        contextFiles.push_back(+user.absoluteFilePath());
     if (theme.exists())
-        contextFiles.push_back(+theme.canonicalFilePath());
+        contextFiles.push_back(+theme.absoluteFilePath());
 
     if (splash)
         win->splashScreen = splash;
@@ -1005,7 +1002,7 @@ QString Application::defaultUserDocumentsFolderPath()
         QFileInfo info = list[i];
         if (info.fileName().endsWith("documents", Qt::CaseInsensitive))
         {
-            return QDir::toNativeSeparators(info.canonicalFilePath());
+            return QDir::toNativeSeparators(info.absoluteFilePath());
         }
     }
     // Last default would be home itself
@@ -1103,7 +1100,7 @@ QString Application::defaultUserImagesFolderPath()
         QFileInfo info = list[i];
         if (info.fileName().endsWith("pictures", Qt::CaseInsensitive) )
         {
-            return QDir::toNativeSeparators(info.canonicalFilePath());
+            return QDir::toNativeSeparators(info.absoluteFilePath());
         }
     }
     // Last default would be home itself
@@ -1360,7 +1357,7 @@ bool Application::event(QEvent *e)
         break;
     }
 
-    return QCoreApplication::event(e);
+    return QApplication::event(e);
 }
 
 

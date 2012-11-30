@@ -79,8 +79,8 @@ Tree *ResourceMgt::DoPrefix(Prefix *what)
         return TreeClone::DoPrefix(what);
     }
 
-    if (movedFiles.count(+(info.canonicalFilePath())))
-        arg->value = movedFiles[+(info.canonicalFilePath())];
+    if (movedFiles.count(+(info.absoluteFilePath())))
+        arg->value = movedFiles[+(info.absoluteFilePath())];
     else
     {
         arg->value = integrateFile(info, +(cmdFileList[n->value].second));
@@ -190,22 +190,22 @@ text ResourceMgt::integrateFile(QFileInfo info, QString prefix)
 
     IFTRACE(resources)
     {
-        std::cerr << "Copying "<< +(info.canonicalFilePath()) <<
+        std::cerr << "Copying "<< +(info.absoluteFilePath()) <<
                 " into " << +(newName.filePath()) << std::endl;
     }
-    QFile::copy(info.canonicalFilePath(), newName.filePath());
+    QFile::copy(info.absoluteFilePath(), newName.filePath());
 
     text relName = +(prefix + ':' + newName.fileName());
-    movedFiles[+(info.canonicalFilePath())] = relName;
+    movedFiles[+(info.absoluteFilePath())] = relName;
     newName.refresh();
-    usedFile.insert(+(projdir.relativeFilePath(newName.canonicalFilePath())));
+    usedFile.insert(+(projdir.relativeFilePath(newName.absoluteFilePath())));
     IFTRACE(resources)
     {
         std::cerr << " usedFile.insert("<<
-                +(projdir.relativeFilePath(newName.canonicalFilePath()))
+                +(projdir.relativeFilePath(newName.absoluteFilePath()))
                 <<")"<< std::endl;
-        std::cerr << "newName.canonicalFilePath() "
-                << +(newName.canonicalFilePath()) << std::endl;
+        std::cerr << "newName.absoluteFilePath() "
+                << +(newName.absoluteFilePath()) << std::endl;
     }
 
 #ifndef CFG_NOGIT

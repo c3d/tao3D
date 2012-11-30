@@ -401,7 +401,7 @@ void Window::closeDocument()
 //   Replace current document with welcome screen or close welcome window.
 // ----------------------------------------------------------------------------
 {
-    loadFile(QFileInfo("system:welcome/welcome.ddd").canonicalFilePath(),
+    loadFile(QFileInfo("system:welcome/welcome.ddd").absoluteFilePath(),
              false);
 }
 
@@ -524,7 +524,7 @@ QString Window::welcomePath()
 // ----------------------------------------------------------------------------
 {
     QFileInfo tutorial("system:welcome/welcome.ddd");
-    return tutorial.canonicalFilePath();
+    return tutorial.absoluteFilePath();
 }
 
 
@@ -1064,6 +1064,18 @@ void Window::checkClipboard()
     pasteAct->setEnabled(enable);
 }
 
+
+void Window::updateCopyMenuName(bool hasSelection)
+// ----------------------------------------------------------------------------
+//    Change name of the copy menu depending on whether something is selected
+// ----------------------------------------------------------------------------
+{
+    if (hasSelection)
+        copyAct->setText(tr("&Copy"));
+    else
+        copyAct->setText(tr("&Copy (take screenshot)"));
+}
+
 #endif // CFG_NOEDIT
 
 #ifndef CFG_NOGIT
@@ -1542,7 +1554,6 @@ void Window::createActions()
     newDocAct = new Action(QIcon(":/images/new.png"),
                             tr("New from &Template Chooser..."), this);
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
-    newDocAct->setStatusTip(tr("Create a new document from a template"));
     newDocAct->setIconVisibleInMenu(false);
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
@@ -1550,7 +1561,6 @@ void Window::createActions()
 #if 0 // Workaround for bug #928
     newAct = new Action(QIcon(":/images/new.png"), tr("&New"), this);
     newAct->setShortcuts(QKeySequence::New);
-    newAct->setStatusTip(tr("Open a blank document window"));
     newAct->setIconVisibleInMenu(false);
     newAct->setObjectName("newFile");
     connect(newAct, SIGNAL(triggered()), this, SLOT(newFile()));
@@ -1559,14 +1569,12 @@ void Window::createActions()
     openAct = new Action(QIcon(":/images/open.png"), tr("&Open..."),
                           this);
     openAct->setShortcuts(QKeySequence::Open);
-    openAct->setStatusTip(tr("Open an existing file"));
     openAct->setIconVisibleInMenu(false);
     openAct->setObjectName("open");
     connect(openAct, SIGNAL(triggered()), this, SLOT(open()));
 
 #ifndef CFG_NONETWORK
     openUriAct = new QAction(tr("Open Net&work..."), this);
-    openUriAct->setStatusTip(tr("Download and open a remote document (URI)"));
     openUriAct->setObjectName("openURI");
     connect(openUriAct, SIGNAL(triggered()), this, SLOT(openUri()));
 #endif
@@ -1574,42 +1582,35 @@ void Window::createActions()
 #ifndef CFG_NOEDIT
     saveAct = new Action(QIcon(":/images/save.png"), tr("&Save"), this);
     saveAct->setShortcuts(QKeySequence::Save);
-    saveAct->setStatusTip(tr("Save the document to disk"));
     saveAct->setIconVisibleInMenu(false);
     saveAct->setObjectName("save");
     connect(saveAct, SIGNAL(triggered()), this, SLOT(save()));
 
 #if 0
     consolidateAct = new QAction(tr("Consolidate"), this);
-    consolidateAct->setStatusTip(tr("Make the document self contained"));
     consolidateAct->setObjectName("consolidate");
     connect(consolidateAct, SIGNAL(triggered()), this, SLOT(consolidate()));
 #endif
 
     saveAsAct = new Action(tr("Save &As..."), this);
     saveAsAct->setShortcuts(QKeySequence::SaveAs);
-    saveAsAct->setStatusTip(tr("Save the document under a new name"));
     saveAsAct->setObjectName("saveAs");
     connect(saveAsAct, SIGNAL(triggered()), this, SLOT(saveAs()));
 
     saveFontsAct = new QAction(tr("Save fonts"), this);
-    saveFontsAct->setStatusTip(tr("Save the fonts used in the document"));
     saveFontsAct->setObjectName("saveFonts");
     connect(saveFontsAct, SIGNAL(triggered()), this, SLOT(saveFonts()));
 #endif
 
     renderToFileAct = new QAction(tr("&Render to files..."), this);
-    renderToFileAct->setStatusTip(tr("Save frames to disk, e.g., to make a video"));
     renderToFileAct->setObjectName("renderToFile");
     connect(renderToFileAct, SIGNAL(triggered()), this, SLOT(renderToFile()));
 
     printAct = new Action(tr("&Print..."), this);
-    printAct->setStatusTip(tr("Print the document"));
     printAct->setShortcut(QKeySequence(Qt::CTRL + Qt::Key_P));
     connect(printAct, SIGNAL(triggered()), this, SLOT(print()));
 
     pageSetupAct = new QAction(tr("Page setup..."), this);
-    pageSetupAct->setStatusTip(tr("Setup page parameters for this document"));
     connect(pageSetupAct, SIGNAL(triggered()), this, SLOT(pageSetup()));
 
     printer = new QPrinter;
@@ -1630,7 +1631,6 @@ void Window::createActions()
 
     closeAct = new Action(tr("&Close"), this);
     closeAct->setShortcut(tr("Ctrl+W"));
-    closeAct->setStatusTip(tr("Close the document"));
     closeAct->setObjectName("close");
     connect(closeAct, SIGNAL(triggered()), this, SLOT(closeDocument()));
 
@@ -1640,7 +1640,6 @@ void Window::createActions()
     exitAct = new Action(tr("&Quit"), this);
 #endif
     exitAct->setShortcuts(QKeySequence::Quit);
-    exitAct->setStatusTip(tr("Exit the application"));
     exitAct->setObjectName("exit");
     exitAct->setMenuRole(QAction::QuitRole);
     connect(exitAct, SIGNAL(triggered()), qApp, SLOT(closeAllWindows()));
@@ -1648,24 +1647,21 @@ void Window::createActions()
 #ifndef CFG_NOEDIT
     cutAct = new QAction(QIcon(":/images/cut.png"), tr("Cu&t"), this);
     cutAct->setShortcuts(QKeySequence::Cut);
-    cutAct->setStatusTip(tr("Cut the current selection's contents to the "
-                            "clipboard"));
     cutAct->setIconVisibleInMenu(false);
     cutAct->setObjectName("cut");
     connect(cutAct, SIGNAL(triggered()), this, SLOT(cut()));
 
     copyAct = new QAction(QIcon(":/images/copy.png"), tr("&Copy"), this);
     copyAct->setShortcuts(QKeySequence::Copy);
-    copyAct->setStatusTip(tr("Copy the current selection's contents to the "
-                             "clipboard"));
     copyAct->setIconVisibleInMenu(false);
     copyAct->setObjectName("copy");
+    updateCopyMenuName(false);
     connect(copyAct, SIGNAL(triggered()), this, SLOT(copy()));
+    connect(taoWidget, SIGNAL(copyAvailable(bool)),
+            this, SLOT(updateCopyMenuName(bool)));
 
     pasteAct = new QAction(QIcon(":/images/paste.png"), tr("&Paste"), this);
     pasteAct->setShortcuts(QKeySequence::Paste);
-    pasteAct->setStatusTip(tr("Paste the clipboard's contents into the current "
-                              "selection"));
     pasteAct->setIconVisibleInMenu(false);
     pasteAct->setObjectName("paste");
     connect(pasteAct, SIGNAL(triggered()), this, SLOT(paste()));
@@ -1673,107 +1669,82 @@ void Window::createActions()
 
 #if !defined(CFG_NOGIT) && !defined(CFG_NOEDIT)
     setPullUrlAct = new QAction(tr("Synchronize..."), this);
-    setPullUrlAct->setStatusTip(tr("Set the remote address to \"pull\" from "
-                                   "when synchronizing the current "
-                                   "document with a remote one"));
     setPullUrlAct->setEnabled(false);
     setPullUrlAct->setObjectName("pullURL");
     connect(setPullUrlAct, SIGNAL(triggered()), this, SLOT(setPullUrl()));
 
     pushAct = new QAction(tr("Push..."), this);
-    pushAct->setStatusTip(tr("Push the current project to "
-                                "a specific path or URL"));
     pushAct->setEnabled(false);
     pushAct->setObjectName("pushURL");
     connect(pushAct, SIGNAL(triggered()), this, SLOT(push()));
 
     fetchAct = new QAction(tr("Fetch..."), this);
-    fetchAct->setStatusTip(tr("Fetch data from a remote Tao project "
-                              "(path or URL)"));
     fetchAct->setEnabled(false);
     fetchAct->setObjectName("fetchURL");
     connect(fetchAct, SIGNAL(triggered()), this, SLOT(fetch()));
 
     cloneAct = new QAction(tr("Clone..."), this);
-    cloneAct->setStatusTip(tr("Clone (download) a Tao project "
-                              "and make a local copy"));
     cloneAct->setObjectName("clone");
     connect(cloneAct, SIGNAL(triggered()), this, SLOT(clone()));
 
     mergeAct = new QAction(tr("Merge..."), this);
-    mergeAct->setStatusTip(tr("Apply the changes made in one branch into "
-                              "another branch"));
     mergeAct->setEnabled(false);
     mergeAct->setObjectName("merge");
     connect(mergeAct, SIGNAL(triggered()), this, SLOT(merge()));
 
     checkoutAct = new QAction(tr("Checkout..."), this);
-    checkoutAct->setStatusTip(tr("Checkout a previous version of the document "
-                                 "into a temporary branch"));
     checkoutAct->setEnabled(false);
     checkoutAct->setObjectName("checkout");
     connect(checkoutAct, SIGNAL(triggered()), this, SLOT(checkout()));
 
     selectiveUndoAct = new QAction(tr("Selective undo..."), this);
-    selectiveUndoAct->setStatusTip(tr("Pick a previous change, revert it and "
-                                      "apply it to the current document"));
     selectiveUndoAct->setEnabled(false);
     selectiveUndoAct->setObjectName("selectiveUndo");
     connect(selectiveUndoAct, SIGNAL(triggered()),
             this, SLOT(selectiveUndo()));
 
     diffAct = new QAction(tr("Diff..."), this);
-    diffAct->setStatusTip(tr("View the source code difference between two "
-                             "document versions"));
     diffAct->setEnabled(false);
     diffAct->setObjectName("diff");
     connect(diffAct, SIGNAL(triggered()), this, SLOT(diff()));
 #endif
 
     aboutAct = new QAction(tr("&About"), this);
-    aboutAct->setStatusTip(tr("Show the application's About box"));
     aboutAct->setObjectName("about");
     aboutAct->setMenuRole(QAction::AboutRole);
     connect(aboutAct, SIGNAL(triggered()), this, SLOT(about()));
 
     updateAct = new QAction(tr("&Check for update"), this);
-    updateAct->setStatusTip(tr("Update the application"));
     updateAct->setObjectName("check for update");
     updateAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(updateAct, SIGNAL(triggered()), this, SLOT(update()));
 
     preferencesAct = new QAction(tr("&Preferences"), this);
-    preferencesAct->setStatusTip(tr("Set application preferences"));
     preferencesAct->setObjectName("preferences");
     preferencesAct->setMenuRole(QAction::PreferencesRole);
     connect(preferencesAct, SIGNAL(triggered()), this, SLOT(preferences()));
 
     licensesAct = new QAction(tr("&Licenses..."), this);
-    licensesAct->setStatusTip(tr("View or add license files"));
     licensesAct->setObjectName("licenses");
     licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
 
     onlineDocAct = new QAction(tr("&Documentation"), this);
-    onlineDocAct->setStatusTip(tr("Open the documentation"));
     onlineDocAct->setObjectName("onlineDoc");
     connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
 
     tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
-    tutorialsPageAct->setStatusTip(tr("Open the tutorials page on the web"));
     tutorialsPageAct->setObjectName("tutorialsPage");
     connect(tutorialsPageAct, SIGNAL(triggered()), this,SLOT(tutorialsPage()));
 
 #ifndef CFG_NOFULLSCREEN
     slideShowAct = new QAction(tr("Full Screen"), this);
-    slideShowAct->setStatusTip(tr("Toggle full screen mode"));
     slideShowAct->setCheckable(true);
     slideShowAct->setObjectName("slideShow");
     connect(slideShowAct, SIGNAL(triggered()), this, SLOT(toggleSlideShow()));
 #endif
 
     viewAnimationsAct = new QAction(tr("Animations"), this);
-    viewAnimationsAct->setStatusTip(tr("Switch animations on or off"));
     viewAnimationsAct->setCheckable(true);
     viewAnimationsAct->setChecked(taoWidget->hasAnimations());
     viewAnimationsAct->setObjectName("viewAnimations");
@@ -1781,8 +1752,6 @@ void Window::createActions()
             this, SLOT(toggleAnimations()));
 
     stereoIdentAct = new QAction(tr("Stereoscopic identification"), this);
-    stereoIdentAct->setStatusTip(tr("Switch the stereoscopic identification "
-                                    "pattern on or off"));
     stereoIdentAct->setCheckable(true);
     stereoIdentAct->setChecked(taoWidget->stereoIdentEnabled());
     stereoIdentAct->setObjectName("stereoIdentify");
@@ -1796,7 +1765,7 @@ void Window::createActions()
     connect(srcEdit, SIGNAL(copyAvailable(bool)),
             cutAct, SLOT(setEnabled(bool)));
 #endif
-    connect(taoWidget, SIGNAL(copyAvailable(bool)),
+    connect(taoWidget, SIGNAL(copyAvailableAndNotReadOnly(bool)),
             cutAct, SLOT(setEnabled(bool)));
 
     undoAction = undoStack->createUndoAction(this, tr("&Undo"));
@@ -1810,7 +1779,6 @@ void Window::createActions()
     // /Developer/Documentation/Qt/html/images/cursor-openhand.png
     handCursorAct = new QAction(QIcon(":/images/cursor-openhand.png"),
                                     tr("Hand cursor"), this);
-    handCursorAct->setStatusTip(tr("Select hand cursor to pan around screen"));
     handCursorAct->setCheckable(true);
     handCursorAct->setObjectName("handCursor");
     connect(handCursorAct, SIGNAL(toggled(bool)), taoWidget,
@@ -1820,7 +1788,6 @@ void Window::createActions()
     // Author: Jonas Rask. Free for commercial use.
     zoomInAct = new QAction(QIcon(":/images/zoom_in.png"),
                             tr("Zoom in"), this);
-    zoomInAct->setStatusTip(tr("Zoom in"));
     zoomInAct->setObjectName("zoomIn");
     connect(zoomInAct, SIGNAL(triggered()), taoWidget,
             SLOT(zoomIn()));
@@ -1829,7 +1796,6 @@ void Window::createActions()
     // Author: Jonas Rask. Free for commercial use.
     zoomOutAct = new QAction(QIcon(":/images/zoom_out.png"),
                              tr("Zoom out"), this);
-    zoomOutAct->setStatusTip(tr("Zoom out"));
     zoomOutAct->setObjectName("zoomOut");
     connect(zoomOutAct, SIGNAL(triggered()), taoWidget,
             SLOT(zoomOut()));
@@ -1837,7 +1803,6 @@ void Window::createActions()
     // /opt/local/share/icons/gnome/32x32/actions/view-restore.png
     resetViewAct = new QAction(QIcon(":/images/view-restore.png"),
                                     tr("Restore default view"), this);
-    resetViewAct->setStatusTip(tr("Restore default view (zoom and position)"));
     resetViewAct->setObjectName("resetView");
     connect(resetViewAct, SIGNAL(triggered()), taoWidget,
             SLOT(resetView()));
@@ -2172,7 +2137,7 @@ bool Window::loadFile(const QString &fileName, bool openProj)
 
     QString msg = QString(tr("Loading %1 [%2]...")).arg(fileName);
 
-    QString docPath = QFileInfo(fileName).canonicalPath();
+    QString docPath = QFileInfo(fileName).absolutePath();
 #ifndef CFG_NOGIT
     if (!RepositoryFactory::no_repo && openProj &&
         !openProject(docPath,
@@ -2361,8 +2326,8 @@ bool Window::updateProgram(const QString &fileName)
 {
     bool hadError = false;
     QFileInfo fileInfo(fileName);
-    QString canonicalFilePath = fileInfo.canonicalFilePath();
-    text fn = +canonicalFilePath;
+    QString absoluteFilePath = fileInfo.absoluteFilePath();
+    text fn = +absoluteFilePath;
     XL::SourceFile *sf = NULL;
 
     if (!isUntitled)
@@ -2569,7 +2534,7 @@ void Window::updateContext(QString docPath)
     contextFileNames.clear();
 
     if (tao.exists())
-        contextFileNames.push_back(+tao.canonicalFilePath());
+        contextFileNames.push_back(+tao.absoluteFilePath());
     // Files given through the command line preload option (-p)
     QString preload = +XL::MAIN->options.preload_files;
     foreach (QString file, preload.split(":", QString::SkipEmptyParts))
@@ -2578,9 +2543,9 @@ void Window::updateContext(QString docPath)
         contextFileNames.push_back(+info.absoluteFilePath());
     }
     if (user.exists())
-        contextFileNames.push_back(+user.canonicalFilePath());
+        contextFileNames.push_back(+user.absoluteFilePath());
     if (theme.exists())
-        contextFileNames.push_back(+theme.canonicalFilePath());
+        contextFileNames.push_back(+theme.absoluteFilePath());
 
     // Load XL files of modules that have no import_name
     QStringList mods = ModuleManager::moduleManager()->anonymousXL();
@@ -2845,7 +2810,7 @@ bool Window::isTutorial(const QString &filePath)
 // ----------------------------------------------------------------------------
 {
     static QFileInfo tutorial("system:welcome/welcome.ddd");
-    static QString tutoPath = tutorial.canonicalFilePath();
+    static QString tutoPath = tutorial.absoluteFilePath();
     return (filePath == tutoPath);
 }
 
@@ -2905,11 +2870,11 @@ Window *Window::findWindow(const QString &fileName)
 //   Find a window given its file name
 // ----------------------------------------------------------------------------
 {
-    QString canonicalFilePath = QFileInfo(fileName).canonicalFilePath();
+    QString absoluteFilePath = QFileInfo(fileName).absoluteFilePath();
     foreach (QWidget *widget, qApp->topLevelWidgets())
     {
         Window *mainWin = qobject_cast<Window *>(widget);
-        if (mainWin && mainWin->curFile == canonicalFilePath)
+        if (mainWin && mainWin->curFile == absoluteFilePath)
             return mainWin;
     }
     return NULL;

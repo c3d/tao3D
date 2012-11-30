@@ -125,12 +125,40 @@ tree files(patterns:tree);
 /**
  * @~english
  * Loads text from a file.
- * Returns a text string that is the contents of the file.
+ * Returns a text string that is the contents of the file. The file
+ * encoding is assumed to be UTF-8.
  * @~french
  * Charge du texte à partir d'un fichier.
- * Renvoie le contenu du fichier sous forme de chaîne de caractère.
+ * Renvoie le contenu du fichier sous forme de chaîne de caractère. Le
+ * fichier texte doit être encodé en UTF-8.
  */
 text load_text(path:text);
+
+
+/**
+ * @~english
+ * Check if a file really exists.
+ * Allow to check if the file @p filename exists or not.
+ * @~french
+ * Vérifie si un fichier existe ou non.
+ * Permet de vérifier si le fichier @p filename existe ou non.
+ */
+bool file_exists(filename:text);
+
+/**
+ * @~english
+ * Loads text from a file.
+ * Returns a text string that is the contents of the file. The file
+ * encoding is specified by @p encoding, e.g. UTF-8 or Windows-1250.
+ * @see For supported encodings, see http://doc.qt.digia.com/qt/qtextcodec.html
+ * @~french
+ * Charge du texte à partir d'un fichier.
+ * Renvoie le contenu du fichier sous forme de chaîne de caractère. Le
+ * système d'encodage du fichier texte est spécifié par @p encoding,
+ * par exemple UTF-8 ou Windows-1250.
+ * @see Pour les systèmes de codage supporés, voir http://doc.qt.digia.com/qt/qtextcodec.html
+ */
+text load_text(path:text, encoding:text);
 
 /**
  * @~english
@@ -177,6 +205,43 @@ writeln Total
 process_line A:real, B:real, C:real -> Total := Total + A + B + C
 process_line AnythingElse -> false
  * @endcode
+ * You may enclose the values in double quotes, in which case:
+ * - Integer or real values are interpreted as text
+ * - The field separator character looses its special meaning
+ *
+ * Should a double quote character appear in the quoted text, simply
+ * double it. Leading spaces are trimmed from non-quoted strings, not
+ * from quoted strings. Trailing space is not trimmed.
+ * Let's consider the following CSV file:
+@verbatim
+Lorem;ipsum
+Lorem; ipsum
+"Lorem ipsum";"dolor sit amet"
+Lorem ipsum;dolor sit amet
+Lorem ipsum ; dolor sit amet
+"Lorem ";" ipsum ; dolor sit amet"
+ "Lorem";  "ipsum"
+"""Lorem""";" ipsum"
+"1";"2"
+@endverbatim
+ * If we open it with this:
+ * @code
+load_csv "test.csv", "foo"
+foo A:text, B:text -> writeln "|", A, "|", B, "|"
+foo Others -> nil
+ * @endcode
+ * ...we obtain:
+@verbatim
+|Lorem|ipsum|
+|Lorem|ipsum|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum |dolor sit amet|
+|Lorem | ipsum ; dolor sit amet|
+|Lorem|ipsum|
+|"Lorem"| ipsum|
+|1|2|
+@endverbatim
  * @~french
  * Lit des données depuis un fichier au format CSV.
  * Le séparateur de champs est le point-virgule (@c ;) ou la virgule
@@ -204,6 +269,44 @@ writeln Total
 traitement_ligne A:real, B:real, C:real -> Total := Total + A + B + C
 traitement_ligne Autre -> false
  * @endcode
+ * Vous pouvez mettre les valeurs entre guillemets, auquel cas :
+ * - Les valeurs entières ou réelles sont interprétées comme du texte
+ * - Le caractère séparateur de champ perd sa signification
+ *
+ * Pour faire apparaître un guillement dans du texte, il suffit de le doubler.
+ * Les blancs avant le texte sont supprimmés si la chaîne n'est pas entre guillemets.
+ * Ils sont conservés si les guillements sont utilisés. Les blancs suivant le texte
+ * sont toujours conservés.
+ * Voici un exemple:
+@verbatim
+Lorem;ipsum
+Lorem; ipsum
+"Lorem ipsum";"dolor sit amet"
+Lorem ipsum;dolor sit amet
+Lorem ipsum ; dolor sit amet
+"Lorem ";" ipsum ; dolor sit amet"
+ "Lorem";  "ipsum"
+"""Lorem""";" ipsum"
+"1";"2"
+@endverbatim
+ * Si nous ouvrons ce CSV avec le code suivant :
+ * @code
+load_csv "test.csv", "foo"
+foo A:text, B:text -> writeln "|", A, "|", B, "|"
+foo Others -> nil
+ * @endcode
+ * ...nous obtenons:
+@verbatim
+|Lorem|ipsum|
+|Lorem|ipsum|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum|dolor sit amet|
+|Lorem ipsum |dolor sit amet|
+|Lorem | ipsum ; dolor sit amet|
+|Lorem|ipsum|
+|"Lorem"| ipsum|
+|1|2|
+@endverbatim
  */
 tree load_csv(filename:text, prefix:text);
 
@@ -291,10 +394,20 @@ boolean screenshot(fileName:text, withAlpha:boolean);
  * Same <tt>screenshot fileName, false</tt>.
  * @~french
  * Enregistre une capture d'écran dans un fichier.
- * Équivalent à: <tt>screenshot fileName, false</tt>.
+ * Équivalent à : <tt>screenshot fileName, false</tt>.
  */
 boolean screenshot(fileName:text);
 
+
+/**
+ * @~english
+ * Get the main document folder.
+ * @return main document folder.
+ * @~french
+ * Récupère le chemin vers le dossier du document principal.
+ * @return chemin vers le dossier du document principal.
+ */
+text document_dir();
 
 /**
  * @}

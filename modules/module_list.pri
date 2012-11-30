@@ -47,7 +47,8 @@
        water_surface \
        remote_control \
        regexp \
-       chroma_key
+       chroma_key \
+       transitions
 
     OTHER_MODULES =     \
         dip_voting \
@@ -58,7 +59,9 @@
         hello_world     \
         tao_synchro  \
         tao_tester   \
-        database
+        database \
+        news_feed
+
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories
     LSOUT=$$system(ls)

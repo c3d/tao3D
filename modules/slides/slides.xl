@@ -1,565 +1,144 @@
-// Slides module definition
-//
-// Copyright 2010-2011 Taodyne
+// ****************************************************************************
+//  slides.xl                                                      Tao project 
+// ****************************************************************************
+// 
+//   File Description:
+// 
+//     Slide module definition
+// 
+//     This provides the various features you need to build slides easily
+//     using a simple wiki-like language
+// 
+// 
+// 
+// 
+// 
+// ****************************************************************************
+// This document is property of Taodyne SAS
+//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
+//  (C) 2011 Jérôme Forissier <jerome@taodyne.com>
+//  (C) 2011 Catherine Burvelle <cathy@taodyne.com>
+//  (C) 2011 Taodyne SAS
+// ****************************************************************************
 
 module_description
     id "70C61E75-4CE2-4020-9E76-797763482B56"
     name "Slides"
-    description "Commands and themes for slides: " &
-                "definitions that can be used to write presentations. " &
-                "Several graphical themes are defined, and can be further " &
-                "customized (colors, background, layout)."
+    description "Commands to create easily presentations " &
+                "with some classic slides."
     import_name "Slides"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.002
+    version 1.010
 
 module_description "fr",
-    name "Thèmes de présentations"
-    description "Commandes et thèmes pour créer des présentations " &
-                "traditionnelles. " &
-                "Plusieurs thèmes graphiques sont fournis, et peuvent " &
-                "être personnalisés (couleurs, image de fond, mise en page)."
+    name "Diapositives"
+    description "Commandes pour créer facilement des présentations " &
+                "avec des diapositives traditionnelles."
 
+
+// We use prefix operators as markup for bullets, add a syntax for it
 syntax
-    PREFIX     370     !*
-    PREFIX     370     !-
-    PREFIX     370     !+
+    PREFIX     370     ** *** ****
+    PREFIX     370     ++ +++ ++++
+    INFIX      500     en fr de it es
+
 
 // Adding this module's images/ directory to the image: search path
 // for the current document
 add_search_path "image:", module_dir & "/images"
 
+
+
 // ============================================================================
-//
-//    Themes
-//
+// 
+//    Language management
+// 
 // ============================================================================
 
-// WhiteOnBlack
-
-background        "WhiteOnBlack"                -> clear_color 0, 0, 0, 1
-bullet_color      "WhiteOnBlack", Level:integer -> color "white"
-bullet_line_color "WhiteOnBlack", Level:integer -> line_color "white"
-title_color       "WhiteOnBlack"                -> color "white"
-story_color       "WhiteOnBlack", Level:integer -> color "white"
-bullet_text_color "WhiteOnBlack"                -> color "white"
-
-
-// WhiteOnGray
-
-background        "WhiteOnGray"                -> clear_color 0.5, 0.5, 0.5, 1
-bullet_color      "WhiteOnGray", Level:integer -> color "white"
-bullet_line_color "WhiteOnGray", Level:integer -> line_color "white"
-title_color       "WhiteOnGray"                -> color "white"
-story_color       "WhiteOnGray", Level:integer -> color "white"
-bullet_text_color "WhiteOnGray"                -> color "white"
-
-// WhiteOnPicture
-
-background        "WhiteOnPicture"                -> show_picture_background
-bullet_color      "WhiteOnPicture", Level:integer -> color "white"
-bullet_line_color "WhiteOnPicture", Level:integer -> line_color "white"
-title_color       "WhiteOnPicture"                -> color "white"
-story_color       "WhiteOnPicture", Level:integer -> color "white"
-bullet_text_color "WhiteOnPicture"                -> color "white"
-
-
-// BlackOnPicture
-
-background        "BlackOnPicture"                -> show_picture_background
-bullet_color      "BlackOnPicture", Level:integer -> color "black"
-bullet_line_color "BlackOnPicture", Level:integer -> line_color "black"
-title_color       "BlackOnPicture"                -> color "black"
-story_color       "BlackOnPicture", Level:integer -> color "black"
-bullet_text_color "BlackOnPicture"                -> color "black"
-
-
-// Rounded
-
-title_font_weight "Rounded" -> plain
-
-title_bg_rect "Rounded" ->
-    rx -> title_bg_rect_x "Rounded"
-    ry -> title_bg_rect_y "Rounded"
-    rw -> title_bg_rect_w "Rounded"
-    rh -> title_bg_rect_h "Rounded"
-    locally
-        line_width 1
-        color 0, 0, 0, 0
-        line_color "black"
-        rounded_rectangle rx, ry, rw, rh, 10
-
-story_bg_rect "Rounded" ->
-    rx -> story_bg_rect_x "Rounded"
-    ry -> story_bg_rect_y "Rounded"
-    rw -> story_bg_rect_w "Rounded"
-    rh -> story_bg_rect_h "Rounded"
-    locally
-        line_width 1
-        color 0, 0, 0, 0
-        line_color "black"
-        rounded_rectangle rx, ry, rw, rh, 10
-
-title_story_bg_rect "Rounded" ->
-    rx -> title_story_bg_rect_x "Rounded"
-    ry -> title_story_bg_rect_y "Rounded"
-    rw -> title_story_bg_rect_w "Rounded"
-    rh -> title_story_bg_rect_h "Rounded"
-    locally
-        line_width 1
-        color 0, 0, 0, 0
-        line_color "black"
-        rounded_rectangle rx, ry, rw, rh, 10
-
-
-// Keyboard
-
-background "Keyboard" -> show_picture_background
-
-title_bg_rect "Keyboard" ->
-    rx -> title_bg_rect_x "Rounded"
-    ry -> title_bg_rect_y "Rounded"
-    rw -> title_bg_rect_w "Rounded"
-    rh -> title_bg_rect_h "Rounded"
-    locally
-        line_width 0
-        color 1.0, 1.0, 1.0, 0.5
-        line_color "black"
-        rounded_rectangle rx, ry, rw, rh, 10
-
-story_bg_rect "Keyboard" ->
-    rx -> story_bg_rect_x "Rounded"
-    ry -> story_bg_rect_y "Rounded"
-    rw -> story_bg_rect_w "Rounded"
-    rh -> story_bg_rect_h "Rounded"
-    locally
-        line_width 0
-        color 1.0, 1.0, 1.0, 0.5
-        line_color "black"
-        rounded_rectangle rx, ry, rw, rh, 10
-
-title_story_bg_rect "Keyboard" ->
-    rx -> title_story_bg_rect_x "Rounded"
-    ry -> title_story_bg_rect_y "Rounded"
-    rw -> title_story_bg_rect_w "Rounded"
-    rh -> title_story_bg_rect_h "Rounded"
-    locally
-        line_width 0
-        color 1.0, 1.0, 1.0, 0.5
-        line_color "black"
-        rounded_rectangle rx, ry, rw, rh, 10
-
-keyboard_theme_gray -> "#303030"
-bullet_color      "Keyboard", Level:integer -> color keyboard_theme_gray
-bullet_line_color "Keyboard", Level:integer -> line_color keyboard_theme_gray
-title_color       "Keyboard"                -> color keyboard_theme_gray
-story_color       "Keyboard", Level:integer -> color keyboard_theme_gray
-bullet_text_color "Keyboard"                -> color keyboard_theme_gray
-
-title_font_size "Keyboard" -> font_size 72
-theme_background_picture "Keyboard" -> "image:keyboard.jpg"
-
-
-// Seyes
-
-background "Seyes" -> show_picture_background
-
-title_font_family       "Seyes" -> font "Dancing Script"
-story_font_family       "Seyes" -> font "Dancing Script"
-bullet_text_font_family "Seyes", Level:integer -> font "Dancing Script"
-
-seyes_theme_purple  -> "#261060"  // Inc color
-seyes_theme_magenta -> "#DC029D"  // Left margin color
-seyes_theme_blue    -> "#4D87B3"  // Paper line color
-bullet_color      "Seyes", Level:integer -> color seyes_theme_blue
-bullet_line_color "Seyes", Level:integer -> line_color seyes_theme_blue
-title_color       "Seyes"                -> color seyes_theme_purple
-story_color       "Seyes", Level:integer -> color seyes_theme_purple
-bullet_text_color "Seyes"                -> color seyes_theme_purple
-
-story_bg_rect_w "Seyes" -> (22.0/28.0) * slide_width
-
-story_bg_rect_x "Seyes" -> ( 2.0/28.0) * slide_width
-
-title_bg_rect_h "Seyes" -> ( 3.1/21.0) * slide_height
-
-title_bg_rect "Seyes" ->
+lang -> "en"
+lang L:text ->
 // ----------------------------------------------------------------------------
-//   Underline the title
+//   Select a language for the slides
 // ----------------------------------------------------------------------------
-    rx -> title_bg_rect_x "Seyes"
-    ry -> title_bg_rect_y "Seyes"
-    Lw -> title_bg_rect_w "Seyes"
-    lw -> 0.8 * Lw
-    rh -> 1.1 * title_bg_rect_h "Seyes"
-    locally
-        line_color seyes_theme_purple
-        line_width 5
-        path
-            move_to rx-lw/2, ry-rh/2, 0
-            line_to rx+lw/2, ry-rh/2, 0
-        line_width 1
-        path
-            move_to rx-Lw/2, ry-rh/2-5, 0
-            line_to rx+Lw/2, ry-rh/2-5, 0
-
-theme_background_picture "Seyes" -> "image:seyes.jpg"
+    lang := L
 
 
-bullet_picture "Seyes", Level:integer ->
-// ----------------------------------------------------------------------------
-//    Draw a bullet for seyes style
-// ----------------------------------------------------------------------------
-    bullet_color ("Seyes", Level)
-    bullet_line_color ("Seyes", Level)
-    draw S:real -> pentagram -50% * S, 30% * S, 25% * S, 25% * S
-    draw bullet_size ("Seyes", Level)
+// Select one language among many
+Other:text en En:text -> if lang = "en" then En else Other
+Other:text fr Fr:text -> if lang = "fr" then Fr else Other
+Other:text de De:text -> if lang = "de" then De else Other
+Other:text it It:text -> if lang = "it" then It else Other
+Other:text es Es:text -> if lang = "es" then Es else Other
+
+// Select language-dependent content
+english Body -> if lang = "en" then Body 
+french  Body -> if lang = "fr" then Body 
+german  Body -> if lang = "de" then Body
+italian Body -> if lang = "it" then Body
+spanish Body -> if lang = "es" then Body
+
 
 
 // ============================================================================
 //
-//   Theme control variables
+//    Theme selection
 //
 // ============================================================================
 
-theme -> ""
-background_picture -> "image:seyes.jpg"
-slide_width -> 1024.0
-slide_height -> 768.0
-current_zscale -> 1.0
-
-
-// ============================================================================
-//
-//    Slide structure, default theme
-//
-// ============================================================================
-
-title_color Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default color for titles
-// ----------------------------------------------------------------------------
-    color "black"
-
-
-title_font_size Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default font size for titles
-// ----------------------------------------------------------------------------
-    font_size 80
-
-
-title_font_weight Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default font weight for titles
-// ----------------------------------------------------------------------------
-    bold
-
-
-title_font_family Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default font family for titles
-// ----------------------------------------------------------------------------
-    font "Ubuntu"
-
-
-title_text_style Theme:text ->
-// ----------------------------------------------------------------------------
-//   Set text style (font, color, alignment) for titles
-// ----------------------------------------------------------------------------
-    plain
-    title_font_size Theme
-    title_font_weight Theme
-    title_font_family Theme
-    title_color Theme
-    align 0.5
-    vertical_align 0.5
-
-
-title_story_text_style Theme:text ->
-// ----------------------------------------------------------------------------
-//   Set text style (font, color, alignment) for title slide
-// ----------------------------------------------------------------------------
-    title_text_style Theme
-
-
-story_color Theme:text, Level:integer ->
-// ----------------------------------------------------------------------------
-//   Default color for story text
-// ----------------------------------------------------------------------------
-    color "black"
-
-
-story_font_size Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default font size for story text
-// ----------------------------------------------------------------------------
-    font_size 56
-
-
-story_font_weight Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default font weight for story text
-// ----------------------------------------------------------------------------
-    nil
-
-
-story_font_family Theme:text ->
-// ----------------------------------------------------------------------------
-//   Default font family for story text
-// ----------------------------------------------------------------------------
-    font "Ubuntu"
-
-story_text_style Theme:text ->
-// ----------------------------------------------------------------------------
-//    Style (font, size and color) for story text
-// ----------------------------------------------------------------------------
-    plain
-    story_font_size Theme
-    story_font_weight Theme
-    story_font_family Theme
-    story_color Theme, 0
-    align 0.0
-    vertical_align 0.3
-
-
-title_bg_rect_w Theme:text ->
-// ----------------------------------------------------------------------------
-//    Width of the title background rectangle
-// ----------------------------------------------------------------------------
-    (26.0/28.0) * slide_width
-
-
-title_bg_rect_h Theme:text ->
-// ----------------------------------------------------------------------------
-//    Height of the title background rectangle
-// ----------------------------------------------------------------------------
-    (2.9/21.0) * slide_height
-
-
-title_bg_rect_x Theme:text ->
-// ----------------------------------------------------------------------------
-//    x coordinate of the center of the title background rectangle
-// ----------------------------------------------------------------------------
-    0.0
-
-
-title_bg_rect_y Theme:text ->
-// ----------------------------------------------------------------------------
-//    y coordinate of the center of the title background rectangle
-// ----------------------------------------------------------------------------
-    (0.5 - 1.0/21.0) * slide_height - 0.5 * title_bg_rect_h Theme
-
-
-story_bg_rect_w Theme:text ->
-// ----------------------------------------------------------------------------
-//    Width of the story background rectangle
-// ----------------------------------------------------------------------------
-    (26.0/28.0) * slide_width
-
-
-story_bg_rect_h Theme:text ->
-// ----------------------------------------------------------------------------
-//    Height of the story background rectangle
-// ----------------------------------------------------------------------------
-    (12.7/21.0) * slide_height
-
-
-story_bg_rect_x Theme:text ->
-// ----------------------------------------------------------------------------
-//    x coordinate of the center of the story background rectangle
-// ----------------------------------------------------------------------------
-    0.0
-
-
-story_bg_rect_y Theme:text ->
-// ----------------------------------------------------------------------------
-//    y coordinate of the center of the story background rectangle
-// ----------------------------------------------------------------------------
-    (-0.5 + 1.7/21.0) * slide_height + 0.5 * story_bg_rect_h Theme
-
-
-title_story_bg_rect_x Theme:text ->
-// ----------------------------------------------------------------------------
-//    y coordinate of the center of the title story background rectangle
-// ----------------------------------------------------------------------------
-    0.0
-
-
-title_story_bg_rect_y Theme:text ->
-// ----------------------------------------------------------------------------
-//    x coordinate of the center of the title story background rectangle
-// ----------------------------------------------------------------------------
-    0.0
-
-
-title_story_bg_rect_w Theme:text ->
-// ----------------------------------------------------------------------------
-//    Width of the title story background rectangle
-// ----------------------------------------------------------------------------
-    story_bg_rect_w theme
-
-
-title_story_bg_rect_h Theme:text ->
-// ----------------------------------------------------------------------------
-//    Height of the title story background rectangle
-// ----------------------------------------------------------------------------
-    0.8 * slide_height
-
-
-title_bg_rect Theme:text ->
-// ----------------------------------------------------------------------------
-//   No background frame for title, by default
-// ----------------------------------------------------------------------------
-    nil
-
-
-title_layout Theme:text, Body ->
-// ----------------------------------------------------------------------------
-//   Default implementation of title layout TODO
-// ----------------------------------------------------------------------------
-    rx -> title_bg_rect_x theme
-    ry -> title_bg_rect_y theme
-    rw -> 0.9 * title_bg_rect_w theme
-    rh -> 0.9 * title_bg_rect_h theme
-    title_bg_rect theme
-    text_box rx, ry, rw, rh, Body
-
-
-story_bg_rect Theme:text ->
-// ----------------------------------------------------------------------------
-//   No background frame for story, by default
-// ----------------------------------------------------------------------------
-    nil
-
-
-story_layout Theme:text, Body ->
-// ----------------------------------------------------------------------------
-//   Default implementation of story layout
-// ----------------------------------------------------------------------------
-    // FIXME 'theme' OK, 'Theme' NOK
-    rx -> story_bg_rect_x theme
-    ry -> story_bg_rect_y theme
-    rw -> 0.9 * story_bg_rect_w theme
-    rh -> 0.9 * story_bg_rect_h theme
-    story_bg_rect theme
-    text_box rx, ry, rw, rh, Body
-
-
-title_story_bg_rect Theme:text ->
-// ----------------------------------------------------------------------------
-//   No background frame for story of title slide, by default
-// ----------------------------------------------------------------------------
-    nil
-
-
-title_story_layout Theme:text, Body ->
-// ----------------------------------------------------------------------------
-//   Default implementation of story layout for a title slide
-// ----------------------------------------------------------------------------
-    rx -> title_story_bg_rect_x theme
-    ry -> title_story_bg_rect_y theme
-    rw -> 0.9 * title_story_bg_rect_w theme
-    rh -> 0.9 * title_story_bg_rect_h theme
-    title_story_bg_rect theme
-    text_box rx, ry, rw, rh, Body
-
-
-title Theme, Title ->
-// ----------------------------------------------------------------------------
-//   Default implementation of title
-// ----------------------------------------------------------------------------
-    title_layout Theme,
-        title_text_style Theme
-        text Title
-
-
-story Theme, Body ->
-// ----------------------------------------------------------------------------
-//   Default implementation of a story
-// ----------------------------------------------------------------------------
-    story_layout Theme,
-        story_text_style Theme
-        Body
-
-
-title_story Theme, Body ->
-// ----------------------------------------------------------------------------
-//   Default implementation of a story for a title slide
-// ----------------------------------------------------------------------------
-    title_story_layout Theme,
-        title_story_text_style Theme
-        Body
-
-
+theme -> "default"
 theme T:text ->
 // ----------------------------------------------------------------------------
 //   Select a theme name
 // ----------------------------------------------------------------------------
-    if theme_background_picture T <> "" then
-        set_picture_background theme_background_picture T
     theme := T
 
 
-theme_init Theme:text ->
-// ----------------------------------------------------------------------------
-//   Initialization of the theme. The default is to scale to fit
-// ----------------------------------------------------------------------------
-    current_zscale := 1.0
-    fit_contents_in_window
+// Define the "Default" theme
+import "default.xl"
 
 
 
-background Theme:text ->
-// ----------------------------------------------------------------------------
-//    Default background is solid white
-// ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
+// ============================================================================
+//
+//   Slide size
+//
+// ============================================================================
 
+// Logical dimensions for the slide. You can put anything you want here,
+// but the aspect ratio should match that of the background picture and be
+// close to the aspect ratio of the screens you are going to use.
+// This will be used to define the logical coordinates of anything that
+// follows "scale_contents".
+// Here, we use the size of our background picture
+slide_width  -> 1920
+slide_height -> 1080
 
 set_slide_size Width:real, Height:real ->
 // ----------------------------------------------------------------------------
-//   Set the dimensions of the slide
+//   Change the dimension of a slide
 // ----------------------------------------------------------------------------
     slide_width := Width
     slide_height := Height
 
 
-scale_contents S:real ->
-// ----------------------------------------------------------------------------
-//   Scale contents with same size along x, y and z
-// ----------------------------------------------------------------------------
-    scale S, S, S
-    current_zscale := current_zscale * S
 
+// ============================================================================
+// 
+//   Slide kinds
+// 
+// ============================================================================
 
-fit_contents_in_window ->
+slide_kind -> ""
+slide_kind Theme:text, Kind:text, Title:text, Body ->
 // ----------------------------------------------------------------------------
-//   Scaling the display to fit
+//    Draw a slide with a given kind
 // ----------------------------------------------------------------------------
-    if window_width / window_height > slide_width / slide_height then
-        scale_contents window_height / slide_height
-    else
-        scale_contents window_width / slide_width
-
-
-zoom_contents_for_window ->
-// ----------------------------------------------------------------------------
-//   Additional scaling to make sure nothing shows outside of the window
-// ----------------------------------------------------------------------------
-    if window_width / window_height > slide_width / slide_height then
-        scale_contents 1.1 * window_width / window_height * slide_height / slide_width
-    else
-        scale_contents 1.1 * window_height / window_width * slide_width / slide_height
-
-
-stretch_contents_to_window ->
-// ----------------------------------------------------------------------------
-//  Additional scaling to strech the contents to the window
-// ----------------------------------------------------------------------------
-    scale window_width / slide_width, window_height / slide_height, 1.0
-
+   page Title,
+       theme_background Theme, Kind
+       locally
+           slide_kind := Kind
+           Body
 
 
 // ============================================================================
@@ -568,232 +147,266 @@ stretch_contents_to_window ->
 //
 // ============================================================================
 
-base_slide P:text, Body ->
+blank_slide Theme:text, Title:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a "blank" slide (only the background). P is the page name.
+//   Create an empty slide
 // ----------------------------------------------------------------------------
-    page P,
-        theme_init theme
-        background theme
+    slide_kind theme, "blank", Title, Body
+
+
+main_title_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create a slide showing the main title of the slide show
+// ----------------------------------------------------------------------------
+    slide_kind theme, "main", Title, Body
+
+
+main_title_slide Title:text ->
+// ----------------------------------------------------------------------------
+//   Create a main title slide showing the name of the slide
+// ----------------------------------------------------------------------------
+    main_title_slide Title,
+        title
+            text Title
+
+
+section_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create a section slide (transition between sections)
+// ----------------------------------------------------------------------------
+    slide_kind theme, "section", Title, Body
+
+
+section_slide Title:text ->
+// ----------------------------------------------------------------------------
+//   Create a section slide showing the section title
+// ----------------------------------------------------------------------------
+    section_slide Title,
+        title
+            text Title
+
+
+title_slide Title:text, Body ->
+// ----------------------------------------------------------------------------
+//   Create a slide with just a title at the top
+// ----------------------------------------------------------------------------
+    slide_kind theme, "title", Title,
         Body
+        title
+            text Title
 
 
-picture_slide P:text, Body ->
+picture_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a slide for pictures, photos, animations
+//   Create a slide for pictures, photos, animations
 // ----------------------------------------------------------------------------
-    page P,
-        theme_init theme
-        background theme
-        locally Body
-        title theme, P
+    slide_kind theme, "picture", Title,
+        picture Body
+        title
+            text Title
 
 
-named_slide P:text, T:text, Body ->
+slide Title:text, Body ->
 // ----------------------------------------------------------------------------
-//    Create a slide with page name, title and content
+//   Create a traditional slide with bullet points
 // ----------------------------------------------------------------------------
-    base_slide P,
-        story theme, Body
-        title theme, T
+    slide_kind theme, "slide", Title,
+        story Body
+        title
+            text Title
 
 
-slide T:text, Body ->
+
+// ============================================================================
+//
+//    Slide structure
+//
+// ============================================================================
+
+background Depth:real, Body ->
 // ----------------------------------------------------------------------------
-//    Create a slide with title and content. Page name is same as title.
-// ----------------------------------------------------------------------------
-    named_slide T, T, Body
-
-
-title_slide P:text, Body ->
-// ----------------------------------------------------------------------------
-//    Create a title slide (one unique text area) with page name and text
-// ----------------------------------------------------------------------------
-    base_slide P,
-        title_story theme, Body
-
-
-title_only_slide P:text, T:text, Body ->
-// ----------------------------------------------------------------------------
-//    Create a slide with page name and title only
-// ----------------------------------------------------------------------------
-    base_slide P,
-        title theme, T
-        Body
-
-
-title_only_slide T:text, Body ->
-// ----------------------------------------------------------------------------
-//    Create a slide with title only. Page name is same as title.
-// ----------------------------------------------------------------------------
-    title_only_slide T, T, Body
-
-
-
-background_z Theme:text -> 30000.0
-// ----------------------------------------------------------------------------
-//   Default Z for the background picture
-// ----------------------------------------------------------------------------
-
-
-background_picture_size -> image_size background_picture
-// ----------------------------------------------------------------------------
-//   Return the size of the selected background picture
-// ----------------------------------------------------------------------------
-
-
-set_picture_background File:text->
-// ----------------------------------------------------------------------------
-//   Select the background picture
-// ----------------------------------------------------------------------------
-   background_picture := File
-
-
-theme_background_picture Theme:text -> ""
-// ----------------------------------------------------------------------------
-//   Default background picture for a theme is none
-// ----------------------------------------------------------------------------
-
-
-enlarge_background_object Z:real ->
-// ----------------------------------------------------------------------------
-//   Position in a background Z position, enlarge to compensate
-// ----------------------------------------------------------------------------
-    cam_z -> camera_position at 3
-    bg_zscale ZZ:real -> 1.0 - ZZ / cam_z
-    translatez Z / current_zscale
-    scale_contents bg_zscale Z
-
-
-show_picture_background ->
-// ----------------------------------------------------------------------------
-//   Show a picture background
+//   Draw something in the background. Backgrounds always fill the screen.
 // ----------------------------------------------------------------------------
     locally
-        enlarge_background_object (-background_z theme)
-        color "white"
-        zoom_contents_for_window
-        image_px 0.0, 0.0, slide_width, slide_height, background_picture
+        scale_background
+        ztrans_background Depth
+        Body
 
 
-bullet_text_color Theme:text, Level:integer ->
+contents Depth:real, Body ->
 // ----------------------------------------------------------------------------
-//    Set text color for bullet text
+//   Draw contents, i.e. always fit in the screen
 // ----------------------------------------------------------------------------
-    story_color theme, Level
+    locally
+        scale_contents
+        ztrans_contents Depth
+        Body
 
 
-bullet_text_font_size Theme:text, Level:integer ->
+title Body ->
 // ----------------------------------------------------------------------------
-//    Set font size for bullet text
+//   Draw a title in a regular slide
 // ----------------------------------------------------------------------------
-    font_size bullet_size (Theme, Level)
+    theme_title theme, slide_kind, Body
 
 
-bullet_text_font_family Theme:text, Level:integer ->
+subtitle Body ->
 // ----------------------------------------------------------------------------
-//    Set font family for bullet text
+//   Draw a subtitle in a regular slide
 // ----------------------------------------------------------------------------
-    font "Ubuntu"
+    theme_subtitle theme, slide_kind, Body
 
 
-bullet_text_style S:text, Level:integer ->
+picture Body ->
 // ----------------------------------------------------------------------------
-//    Style (font, size and color) for bullet text
+//   Box for picture, photos, animations
 // ----------------------------------------------------------------------------
-    plain
-    bullet_text_font_family (theme, Level)
-    bullet_text_font_size (theme, Level)
-    bullet_text_color theme, Level
+    theme_picture theme, slide_kind, Body
 
 
-bullet_color Theme:text, Level:integer ->
+story Body ->
 // ----------------------------------------------------------------------------
-//    Default bullet fill color
+//   Draw something as the story, i.e. a rectangle somewhere in the middle
 // ----------------------------------------------------------------------------
-    color "black"
+    theme_story theme, slide_kind, Body
 
 
-bullet_line_color Theme:text, Level:integer ->
+left_column Body ->
 // ----------------------------------------------------------------------------
-//    Default bullet line color
+//   Draw something as the left side of the story
 // ----------------------------------------------------------------------------
-    line_color "black"
+    theme_left_column theme, slide_kind, Body
 
 
-bullet_picture Theme:text, Level:integer ->
+right_column Body ->
 // ----------------------------------------------------------------------------
-//    Draw a bullet
+//   Draw something as the right side of the story
 // ----------------------------------------------------------------------------
-    bullet_color (Theme, Level)
-    bullet_line_color (Theme, Level)
-    draw S:real -> circle -50% * S, 30% * S, 12% * S
-    draw bullet_size (theme, Level)
+    theme_right_column theme, slide_kind, Body
 
 
-bullet_size Theme:text, 0 -> 52
-bullet_size Theme:text, 1 -> 42
-bullet_size Theme:text, Level:integer -> 36
-
-
-bullet Theme, Level, Text ->
+left_column_picture Body ->
 // ----------------------------------------------------------------------------
-//   Draw a bullet point with a given text
+//   Draw something as the left side of the picture
 // ----------------------------------------------------------------------------
-    margins Level * bullet_size(Theme, Level), 0
-    paragraph_break
-    anchor
-        bullet_picture Theme, Level
-    bullet_text_style Theme, Level
-    text Text
+    theme_left_column_picture theme, slide_kind, Body
 
 
-*T:text -> bullet theme, 1, T
+right_column_picture Body ->
+// ----------------------------------------------------------------------------
+//   Draw something as the right side of the picture
+// ----------------------------------------------------------------------------
+    theme_right_column_picture theme, slide_kind, Body
+
+
+box X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a box for an element kind
+// ----------------------------------------------------------------------------
+    theme_box theme, slide_kind, X, Y, W, H, Body
+
+
+*T:text -> bullet 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level bullet
 // ----------------------------------------------------------------------------
 
 
--T:text -> bullet theme, 2, T
+**T:text -> bullet 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level bullet
 // ----------------------------------------------------------------------------
 
 
-+T:text -> bullet theme, 3, T
+***T:text -> bullet 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level bullet
 // ----------------------------------------------------------------------------
 
 
-no_bullet Theme, Level, Text ->
+****T:text -> bullet 4, T
 // ----------------------------------------------------------------------------
-//   Draw a bullet point with a given text
+//   Display a fourth-level bullet
 // ----------------------------------------------------------------------------
-    margins (Level - 50% - 12% ) * bullet_size(Theme, Level), 0
-    paragraph_break
-    bullet_text_style Theme, Level
-    text Text
 
 
-!*T:text -> no_bullet theme, 1, T
++T:text -> no_bullet 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-!-T:text -> no_bullet theme, 2, T
+++T:text -> no_bullet 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-!+T:text -> no_bullet theme, 3, T
++++T:text -> no_bullet 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
-reset_style ->
-    margins 0,0
-    story_text_style theme
+
+++++T:text -> no_bullet 4, T
+// ----------------------------------------------------------------------------
+//   Display a third-level text without bullet
+// ----------------------------------------------------------------------------
+
+
+bullet Level, Text ->
+// ----------------------------------------------------------------------------
+//   Draw a bullet point with a given text
+// ----------------------------------------------------------------------------
+    margins Level * theme_bullet_size(theme, slide_kind, Level), 0
     paragraph_break
+    anchor
+        theme_bullet_picture theme, slide_kind, Level
+    theme_bullet_style theme, slide_kind, Level
+    text Text
+
+
+no_bullet Level, Text ->
+// ----------------------------------------------------------------------------
+//   Draw a given text without bullet point
+// ----------------------------------------------------------------------------
+    margins (Level - 62%) * theme_bullet_size(theme, slide_kind, Level), 0
+    paragraph_break
+    theme_bullet_style theme, slide_kind, Level
+    text Text
+
+
+
+// ============================================================================
+//
+//    Smart rescaling of the contents
+//
+// ============================================================================
+
+// Two ways to scale contents when resizing the window :
+// For background pictures, we'd rather not see some white around them,
+// so we scale to crop the picture, using the ma function.
+// For contents, on the other hand, we want to keep everything visible, so
+// we scale to fit the contents, using the min function.
+background_scale -> max(window_width/slide_width, window_height/slide_height)
+contents_scale   -> min(window_width/slide_width, window_height/slide_height)
+scale_background -> scale3 background_scale
+scale_contents   -> scale3 contents_scale
+scale3 S:real    -> scale S, S, S
+
+ztrans_contents Z:real ->
+// ----------------------------------------------------------------------------
+//   Translate a content in Z without a change in apparent dimensions
+// ----------------------------------------------------------------------------
+    Z0 -> camera_position at 3
+    translatez Z/contents_scale
+    scale3 (Z0-Z)/Z0
+
+
+ztrans_background Z:real ->
+// ----------------------------------------------------------------------------
+//    Translate a backgtround in Z without a change in apparent dimensions
+// ----------------------------------------------------------------------------
+    Z0 -> camera_position at 3
+    translatez Z/background_scale
+    scale3 (Z0-Z)/Z0

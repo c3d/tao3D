@@ -760,10 +760,10 @@ void Widget::drawSelection()
 //   Draw selection items for all objects (selection boxes, manipulators)
 // ----------------------------------------------------------------------------
 {
+    id = idDepth = 0;
+    selectionTrees.clear();
     if (selection.size())
     {
-        id = idDepth = 0;
-        selectionTrees.clear();
         space->ClearPolygonOffset();
         space->ClearAttributes();
         GL.Disable(GL_DEPTH_TEST);
@@ -1007,7 +1007,7 @@ bool Widget::refreshNow(QEvent *event)
         IFTRACE(pages)
             std::cerr << "Goto page request: '" << gotoPageName
                       << "' from '" << pageName << "'\n";
-        
+
         if (transitionTree == NULL)
         {
             commitPageChange(false);
@@ -1183,6 +1183,8 @@ void Widget::runProgramOnce()
     id = idDepth = 0;
     selectionRectangleEnabled = true;
 
+    clearCol.setRgb(255, 255, 255, 255);
+
     stats.begin(Statistics::EXEC);
 
     // Run the XL program associated with this widget
@@ -1194,10 +1196,15 @@ void Widget::runProgramOnce()
     if (xlProgram)
     {
         if (transitionTree && transitionStartTime > 0)
+        {
             runTransition(xlProgram->context);
+            layout->lastRefresh = CurrentTime();
+        }
         else if (Tree *prog = xlProgram->tree)
+        {
             xlProgram->context->Evaluate(prog);
-
+            layout->lastRefresh = CurrentTime();
+        }
     }
     stats.end(Statistics::EXEC);
 
@@ -1614,7 +1621,8 @@ void Widget::checkCopyAvailable()
     bool sel = hasSelection();
     if (hadSelection != sel)
     {
-        emit copyAvailable(sel && !isReadOnly());
+        emit copyAvailableAndNotReadOnly(sel && !isReadOnly());
+        emit copyAvailable(sel);
         hadSelection = sel;
     }
 }
@@ -2076,7 +2084,7 @@ void Widget::resetView()
     zNear = 1500.0;
     zFar  = 1e6;
     zoom  = 1.0;
-    eyeDistance    = 100.0;
+    eyeDistance    = 20.0;
     cameraPosition = defaultCameraPosition;
     cameraTarget   = Point3(0.0, 0.0, 0.0);
     cameraUpVector = Vector3(0, 1, 0);
@@ -3746,6 +3754,10 @@ void Widget::refreshProgram()
     if (needRefresh)
     {
         // If a file was modified, we need to refresh the screen
+
+        transitionStartTime = 0;
+        transitionDurationValue = 0;
+        transitionTree = NULL;
         TaoSave saveCurrent(current, this);
         refreshNow();
     }
@@ -5021,9 +5033,9 @@ XL::Real_p Widget::pageHeight(Tree_p self)
 
 
 // ============================================================================
-// 
+//
 //    Transitions
-// 
+//
 // ============================================================================
 
 Tree_p Widget::transition(Context *, Tree_p self, double dur, Tree_p body)
@@ -5053,6 +5065,8 @@ Real_p Widget::transitionTime(Tree_p self)
         if (animated)
             frozenTime = CurrentTime();
         ttime = frozenTime - transitionStartTime;
+        if (ttime > transitionDurationValue)
+            ttime = transitionDurationValue;
     }
     return new XL::Real(ttime, self->Position());
 }
@@ -5079,6 +5093,8 @@ Real_p Widget::transitionRatio(Tree_p self)
         if (animated)
             frozenTime = CurrentTime();
         ratio = (frozenTime - transitionStartTime) / transitionDurationValue;
+        if (ratio > 1.0)
+            ratio = 1.0;
     }
     return new XL::Real(ratio, self->Position());
 }
@@ -5098,6 +5114,7 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
             if (pageNames[p] == pageName)
                 pageShown = p + 1;
 
+        clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -5127,6 +5144,7 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
             if (pageNames[p] == pageName)
                 pageShown = p + 1;
 
+        clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
     }
     return XL::xl_false;
@@ -5158,9 +5176,9 @@ Tree_p Widget::runTransition(Context *context)
 
 
 // ============================================================================
-// 
+//
 //    Frames
-// 
+//
 // ============================================================================
 
 XL::Real_p Widget::frameWidth(Tree_p self)
@@ -5579,6 +5597,7 @@ Tree_p Widget::locally(Context *context, Tree_p self, Tree_p child)
     Layout *childLayout = layout->AddChild(shapeId(), child, context);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5604,6 +5623,7 @@ Tree_p Widget::shape(Context *context, Tree_p self, Tree_p child)
     context->ClosureValue(child, &childContext);
     XL::Save<bool> setSaveArgs(childContext->keepSource, true);
     Tree_p result = currentContext->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5624,16 +5644,17 @@ Tree_p Widget::activeWidget(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
 
-Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
+Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child, bool abs)
 // ----------------------------------------------------------------------------
 //   Anchor a set of shapes to the current position
 // ----------------------------------------------------------------------------
 {
-    AnchorLayout *anchor = new AnchorLayout(this);
+    AnchorLayout *anchor = new AnchorLayout(this, abs);
     layout->AddChild(shapeId(), child, context, anchor);
     IFTRACE(layoutevents)
         std::cerr << "Anchor " << anchor
@@ -5645,6 +5666,7 @@ Tree_p Widget::anchor(Context *context, Tree_p self, Tree_p child)
         selectNextTime.erase(self);
     }
     Tree_p result = context->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -5669,6 +5691,7 @@ Tree_p Widget::stereoViewpoints(Context *context, Tree_p self,
     childLayout = layout->AddChild(shapeId(), child, context, childLayout);
     XL::Save<Layout *> save(layout, childLayout);
     Tree_p result = currentContext->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
@@ -6045,6 +6068,19 @@ Tree_p Widget::defaultRefresh(Tree_p self, double delay)
     if (delay >= 0.0)
         dfltRefresh = delay;
     return new XL::Real(prev);
+}
+
+
+Real_p Widget::refreshTime(Tree_p self)
+// ----------------------------------------------------------------------------
+//    Return time since last execution of the current layout, or 0
+// ----------------------------------------------------------------------------
+{
+    double refresh = CurrentTime() - layout->lastRefresh;
+    Q_ASSERT(refresh > 0);
+    if (layout->lastRefresh == 0)
+        refresh = 0;
+    return new XL::Real(refresh);
 }
 
 
@@ -8048,7 +8084,7 @@ Tree_p Widget::moveTo(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (path)
     {
         path->moveTo(Point3(x,y,z));
-        path->AddControl(self, x, y, z);
+        path->AddControl(self, true, x, y, z);
     }
     else
     {
@@ -8066,7 +8102,7 @@ Tree_p Widget::lineTo(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Point3(x,y,z));
-    path->AddControl(self, x, y, z);
+    path->AddControl(self, true, x, y, z);
     return XL::xl_true;
 }
 
@@ -8081,8 +8117,8 @@ Tree_p Widget::curveTo(Tree_p self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(cx, cy, cz), Point3(x,y,z));
-    path->AddControl(self, x, y, z);
-    path->AddControl(self, cx, cy, cz);
+    path->AddControl(self, true, x, y, z);
+    path->AddControl(self, false, cx, cy, cz);
     return XL::xl_true;
 }
 
@@ -8098,9 +8134,9 @@ Tree_p Widget::curveTo(Tree_p self,
     if (!path)
         return Ooops("No path for '$1'", self);
     path->curveTo(Point3(c1x, c1y, c1z), Point3(c2x, c2y, c2z), Point3(x,y,z));
-    path->AddControl(self, x, y, z);
-    path->AddControl(self, c1x, c1y, c1z);
-    path->AddControl(self, c2x, c2y, c2z);
+    path->AddControl(self, true, x, y, z);
+    path->AddControl(self, false, c1x, c1y, c1z);
+    path->AddControl(self, false, c2x, c2y, c2z);
     return XL::xl_true;
 }
 
@@ -8113,7 +8149,7 @@ Tree_p Widget::moveToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (path)
     {
         path->moveTo(Vector3(x,y,z));
-        path->AddControl(self, x, y, z);
+        path->AddControl(self, true, x, y, z);
     }
     else
     {
@@ -8131,7 +8167,7 @@ Tree_p Widget::lineToRel(Tree_p self, Real_p x, Real_p y, Real_p z)
     if (!path)
         return Ooops("No path for '$1'", self);
     path->lineTo(Vector3(x,y,z));
-    path->AddControl(self, x, y, z);
+    path->AddControl(self, true, x, y, z);
     return XL::xl_true;
 }
 
@@ -8884,6 +8920,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     XL::Save<Layout *> save(layout, flow);
 
     Tree_p result = currentContext->Evaluate(prog);
+    layout->lastRefresh = CurrentTime();
     flow->resetIterator();
     // Protection agains recursive call of textFlow with same flowname.
     currentFlowName = computedFlowName;
@@ -8908,6 +8945,7 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
     {
         XL::Save<Layout *> saveLayout(layout, childLayout);
         result = context->Evaluate(child);
+        layout->lastRefresh = CurrentTime();
     }
     childLayout->Revert()->Draw(flow);
     layout->Add(childLayout->Revert());
@@ -8928,6 +8966,17 @@ Tree_p Widget::textUnit(Tree_p self, Text_p contents)
         layout->Add(new TextUnit(contents));
 
     return XL::xl_true;
+}
+
+
+Box3 Widget::textSize(Tree_p self, Text_p content)
+// ----------------------------------------------------------------------------
+//   Return the dimensions of a given text
+// ----------------------------------------------------------------------------
+{
+    TextUnit u(content);
+    Box3 bbox(u.Bounds(layout));
+    return bbox;
 }
 
 
@@ -9292,7 +9341,7 @@ struct LoadTextInfo : Info
 };
 
 
-Text_p Widget::loadText(Tree_p self, text file)
+Text_p Widget::loadText(Tree_p self, text file, text encoding)
 // ----------------------------------------------------------------------------
 //    Load a text file from disk
 // ----------------------------------------------------------------------------
@@ -9335,9 +9384,11 @@ Text_p Widget::loadText(Tree_p self, text file)
         {
             text &value = pf->loaded->value;
 
-            QFile file(fileInfo.canonicalFilePath());
+            QFile file(fileInfo.absoluteFilePath());
             file.open(QIODevice::ReadOnly);
             QTextStream textStream(&file);
+            textStream.setAutoDetectUnicode(true);
+            textStream.setCodec(encoding.c_str());
             QString data = textStream.readAll();
             value = +data;
         }
@@ -9567,6 +9618,7 @@ Tree_p Widget::tableCell(Context *context, Tree_p self, Tree_p body)
 
     XL::Save<Layout *> save(layout, tbox);
     Tree_p result = context->Evaluate(body);
+    layout->lastRefresh = CurrentTime();
     table->NextCell();
     return result;
 }
@@ -9728,12 +9780,12 @@ Integer_p Widget::tableColumns(Tree_p self)
 //
 // ============================================================================
 
-Tree_p Widget::status(Tree_p self, text caption)
+Tree_p Widget::status(Tree_p self, text caption, float timeout)
 // ----------------------------------------------------------------------------
 //   Set the status line of the window
 // ----------------------------------------------------------------------------
 {
-    taoWindow()->statusBar()->showMessage(+caption);
+    taoWindow()->statusBar()->showMessage(+caption, timeout*1000);
     return XL::xl_true;
 }
 
@@ -9758,7 +9810,7 @@ Integer* Widget::framePaint(Context *context, Tree_p self,
 
 
 Integer* Widget::frameTexture(Context *context, Tree_p self,
-                              double w, double h, Tree_p prog,
+                              double w, double h, Tree_p prog, text name,
                               Integer_p withDepth, bool canvas)
 // ----------------------------------------------------------------------------
 //   Make a texture out of the current text layout
@@ -9776,15 +9828,34 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
-    // Get or build the current frame if we don't have one
-    MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
-    if (!multiframe)
+
+    FrameInfo *pFrame;
+    if(name != "")
     {
-        multiframe = new MultiFrameInfo<uint>();
-        self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+        // Get or build the current frame if we don't have one
+        MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
+        if (!multiframe)
+        {
+            multiframe = new MultiFrameInfo<text>();
+            self->SetInfo< MultiFrameInfo<text> > (multiframe);
+        }
+
+        pFrame = &multiframe->frame(name);
     }
-    uint id = shapeId();
-    FrameInfo *pFrame = &multiframe->frame(id);
+    else
+    {
+        // Get or build the current frame if we don't have one
+        MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
+        if (!multiframe)
+        {
+            multiframe = new MultiFrameInfo<uint>();
+            self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+        }
+
+        uint id = shapeId();
+        pFrame = &multiframe->frame(id);
+    }
+
     FrameInfo &frame = *pFrame;
 
     Layout *parent = layout;
@@ -10895,14 +10966,14 @@ void Widget::fileChosen(const QString & filename)
     // We override names 'filename', 'filepath', 'filepathname', 'relfilepath'
     QFileInfo file(filename);
     QString relFilePath = QDir((taoWindow())->currentProjectFolderPath()).
-                          relativeFilePath(file.canonicalFilePath());
+                          relativeFilePath(file.absoluteFilePath());
     if (relFilePath.contains(".."))
     {
         QDir::home().
-                relativeFilePath(file.canonicalFilePath());
+                relativeFilePath(file.absoluteFilePath());
         if (relFilePath.contains(".."))
         {
-            relFilePath = file.canonicalFilePath();
+            relFilePath = file.absoluteFilePath();
         } else {
             relFilePath.prepend("~/");
         }
@@ -10910,8 +10981,8 @@ void Widget::fileChosen(const QString & filename)
     NameToTextReplacement map;
 
     map["file_name"] = +file.fileName();
-    map["file_directory"] = +file.canonicalPath();
-    map["file_path"] = +file.canonicalFilePath();
+    map["file_directory"] = +file.absolutePath();
+    map["file_path"] = +file.absoluteFilePath();
     map["rel_file_path"] = +relFilePath;
 
     XL::Tree_p toBeEvaluated = map.Replace(fileAction);
@@ -11586,7 +11657,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
         // Enabled action only if we need
         // (do not need if document is read only or noting is selected)
         p_action->setEnabled(hasSelection() && !isReadOnly());
-        connect(this, SIGNAL(copyAvailable(bool)),
+        connect(this, SIGNAL(copyAvailableAndNotReadOnly(bool)),
                 p_action, SLOT(setEnabled(bool)));
     }
 
@@ -12158,6 +12229,7 @@ Tree_p Widget::group(Context *context, Tree_p self, Tree_p shapes)
     }
 
     Tree_p result = context->Evaluate(shapes);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 

@@ -97,7 +97,7 @@ void Licenses::addLicenseFile(kstring licfname)
 {
     RECORD(ALWAYS, "Adding license file", licfname);
     IFTRACE(lic)
-        debug() << "Loading license file" << licfname << "\n";
+        debug() << "Loading license file " << licfname << "\n";
 
     // Licenses we want to add here
     LicenseFile additional;
@@ -387,7 +387,7 @@ void Licenses::addLicenseFiles(const QFileInfoList &files)
 {
     foreach (QFileInfo file, files)
     {
-        text path = +file.canonicalFilePath();
+        text path = +file.absoluteFilePath();
         IFTRACE(fileload)
             std::cerr << "Loading license file: " << path << "\n";
         Licenses::AddLicenseFile(path.c_str());

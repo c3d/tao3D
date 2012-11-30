@@ -223,15 +223,30 @@ screen_mouse_y ();
  * @~english
  * Mouse wheel handling callback.
  * Called when the mouse wheel is moved.
- * By default, a mouse wheel event with control key down zooms in or out.
- * With control key up, it moves the viewpoint.
+ * @p y is the distance the wheel is rotated vertically, in eighths of a
+ * degree. A positive value indicates that the wheel was rotated forward
+ * (away from the user), while a negative value indicates that the wheel
+ * was rotated backwards (towards the user).
+ * @p y is the distance the wheel is rotated horizontally, in eighth of a
+ * degree.@n
+ * Most mice have a wheel that rotates in the vertical direction and
+ * therefore @p x is usually zero. They often work in steps of 15 degrees,
+ * so that @p x or @ y are usually 120 or -120. Some mice may have a
+ * finer resolution, and give smaller values.
  *
  * @~french
  * Traite un événement roue de souris.
  * Cette forme est exécutée lorsque la roue de la souris est déplacée.
- * Par défaut, la roue de la souris permet de zoomer lorsque la touche
- * contrôle est simultanément enfoncée, et permet de déplacer le point de vue
- * dans le cas contraire.
+ * @p y est la distance parcourue par la roue verticalement, en huitièmes
+ * de degrés. Une valeur positive indique que la roue a tourné en avant
+ * (en s'éloignant de l'utilisateur), alors qu'une valeur négative indique
+ * que la roue a tourné en arrière (vers l'utilisateur).
+ * @p y est la distance parcourue par la roue horizontalement, en huitièmes
+ * de degrés.@n
+ * La plupart des souris ont une roue verticale, et donc @p x est en général
+ * nul. Elles fonctionnent en général par pas de 15 degrés, de sorte que
+ * la valeur de @p x ou @p y est souvent 120 ou -120. Mais certaines souris
+ * peuvent utiliser des valeurs plus fines.
  */
 wheel_event (x, y);
 

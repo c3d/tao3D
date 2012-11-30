@@ -99,14 +99,14 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen xlconv crypt help_viewer
+           packaging libcryptopp keygen crypt help_viewer
 
 win32:SUBDIRS += detach
 
 tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp tao
 keygen.depends = libcryptopp tao
-modules.depends = tao tao_sign xlconv crypt
+modules.depends = tao tao_sign crypt
 tests.depends = tao
 templates.depends = tao
 xlconv.depends = libxlr

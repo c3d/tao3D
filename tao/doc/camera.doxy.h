@@ -43,23 +43,23 @@
  *  - le point visé (cf. @ref camera_target). Avec le point où est placée la
  *    caméra, le point visé définit la direction de visée.
  *  - le <em>up vector</em> de la caméra (cf. @ref camera_up_vector). Ce
- *    vecteur définit quelle est la direction vers le haut par rapport à la
+ *    vecteur définit quelle est la direction vers le haut par rapport à  la
  *    caméra (la direction de bas en haut de la vue). Par défaut, le
  *    <em>up vector</em> est aligné le long de l'axe @p y.
- *  - la distance à l'écran (cf. @ref camera_to_screen). Les éléments situés
- *    sur l'écran ont une dimension en pixels égale à leur dimension en unités
- *    Tao dans le document. De plus, à cette distance de la caméra, il n'y a
+ *  - la distance à  l'écran (cf. @ref camera_to_screen). Les éléments situés
+ *    sur l'écran ont une dimension en pixels égale à  leur dimension en unités
+ *    Tao dans le document. De plus, à  cette distance de la caméra, il n'y a
  *    pas de parallaxe stéréoscopique.
  * @note Lorsqu'un mode d'affichage 3D stéréoscopique est activé, la position
  * de la caméra et le point visé sont automatiquement ajustés et décalés de
  * la valeur de l'espace inter-oculaire. Tao Presentation implémente une
  * méthode de projection qui est appelée <em>asymmetric frustum parallel
- * axis</em> (projection à axes parallèles et cône de vision asymétrique).
- * Cette méthode permet la création de contenu 3D agréable à regarder, et qui
+ * axis</em> (projection à  axes parallèles et cône de vision asymétrique).
+ * Cette méthode permet la création de contenu 3D agréable à  regarder, et qui
  * minimise la fatigue occulaire.
  * Les caméras (qui représentent les yeux du spectateur) sont positionnées sur
  * une ligne droite, non sur un arc de cercle, et sont espacées d'une distance
- * égale à @ref eye_distance. Le milieu du segment constitué par les caméras
+ * égale à  @ref eye_distance. Le milieu du segment constitué par les caméras
  * est @ref camera_position. Les caméras sont globalement dirigées vers le
  * point @ref camera_target, mais elles sont parallèles : il n'y a pas de
  * rotation vers l'intérieur (point de convergence).
@@ -73,11 +73,11 @@
 /**
  * @~english
  * Returns the current camera position.
- * The default position is (0, 0, 6000).
+ * The default position is (0, 0, 3000).
  * To read one component you may write:
  * @~french
  * Renvoie la position actuelle de la caméra.
- * La position par défaut est (0, 0, 6000).
+ * La position par défaut est (0, 0, 3000).
  * Pour lire seulement une composante vous pouvez écrire :
  * @~
  * @code
@@ -126,7 +126,7 @@ camera_target(x:real, y:real, z:real);
  * The default value is (0, 1, 0), so that the y axis appears vertical.
  * @return 3 real values, separated by commas.
  * @~french
- * Renvoie la direction verticale par rapport à la caméra.
+ * Renvoie la direction verticale par rapport à  la caméra.
  * La valeur par défaut est (0, 1, 0), de sorte que la verticale est le long
  * de l'axe y.
  * @return 3 valeurs réelles, séparées par l'opérateur virgule.
@@ -137,7 +137,7 @@ infix camera_up_vector();
  * @~english
  * Sets the camera "up" direction.
  * @~french
- * Définit la direction verticale par rapport à la caméra.
+ * Définit la direction verticale par rapport à  la caméra.
  */
 camera_up_vector(x:real, y:real, z:real);
 
@@ -155,7 +155,7 @@ camera_up_vector(x:real, y:real, z:real);
  * @~french
  * Renvoie la distance entre la caméra et l'écran.
  * La valeur par défaut est 3000.
- * Changer cette distance revient à modifier la "distance focale" de la caméra.
+ * Changer cette distance revient à  modifier la "distance focale" de la caméra.
  * Par exemple, l'augmenter rend les objets plus gros et modifie également la
  * perspective.
  * Les objets plus proches que cette distance de la caméra semblent sortir de
@@ -181,7 +181,7 @@ camera_to_screen(real z);
  * @~french
  * Renvoie le facteur de zoom actuel.
  * La valeur par défaut est 1.0, ou 100%. La distance focale de la caméra est
- * telle qu'un pixel à l'origine correspond à un pixel à l'écran.
+ * telle qu'un pixel à  l'origine correspond à  un pixel à  l'écran.
  */
 real zoom();
 
@@ -254,13 +254,13 @@ z_far();
  * @~french
  * Convertit des coordonnées écran en coordonnées 3D.
  * Transforme une position sur l'écran (@p x, @p y) en coordonnées
- * dans l'espace 3D (@p wx, @p wy, @p wz). La profondeur à l'endroit
+ * dans l'espace 3D (@p wx, @p wy, @p wz). La profondeur à  l'endroit
  * spécifié est donnée par la valeur du <em>depth buffer</em> OpenGL.
  * Les paramètres  @p wx, @p wy et @p wz sont modifiés.
  * Pour obtenir seulement la profondeur, utilisez la fonction
  * @ref depth_at.
  *
- * @return un nombre réel correspondant à la position en Z
+ * @return un nombre réel correspondant à  la position en Z
  */
 real world_coordinates(x:real, y:real, wx:real, wy:real, wz:real);
 

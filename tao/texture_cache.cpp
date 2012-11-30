@@ -231,7 +231,7 @@ CachedTexture * TextureCache::load(const QString &img, const QString &docPath)
             QString qualified = "texture:" + img;
             QFileInfo info(qualified);
             if (info.exists())
-                name = info.canonicalFilePath();
+                name = info.absoluteFilePath();
         }
     }
     // name is either a URL, full path or a prefixed path ("image:file.jpg").
@@ -366,6 +366,7 @@ void TextureCache::purgeMem()
 {
     while (memSize > (maxMemSize * purgeRatio))
     {
+        printStatistics();
         Q_ASSERT(memLRU.last);
 
         CachedTexture * tex = memLRU.last->tex;
@@ -867,17 +868,20 @@ void CachedTexture::purgeGL()
 
     if(Tao::OpenGLState::State())
     {
+        // Resize the texture as a 1x1 pixel. Resizing at 0x0 triggers a bug in
+        // the Nvidia driver on MacOS Mountain Lion (#2622)
+        static uint32 zero = 0;
         GL.BindTexture(GL_TEXTURE_2D, id);
-        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 0, 0, 0,
-                      GL_RGBA, GL_UNSIGNED_BYTE, 0);
+        GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, 1, 1, 0, GL_RGBA,
+                      GL_UNSIGNED_BYTE, &zero);
+
+        int purged = GLsize;
+        GLsize = 0;
+        
+        IFTRACE(texturecache)
+            debug() << "GL -" << bytesToText(purged) << "\n";
+        cache.GLSize -= purged;
     }
-
-    int purged = GLsize;
-    GLsize = 0;
-
-    IFTRACE(texturecache)
-        debug() << "GL -" << bytesToText(purged) << "\n";
-    cache.GLSize -= purged;
 }
 
 

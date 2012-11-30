@@ -313,11 +313,12 @@ void Manipulator::rotate(Widget *widget, Tree *shape, kPoint3 center,
 //
 // ============================================================================
 
-ControlPoint::ControlPoint(Tree *self, Real *x, Real *y, Real *z, uint id)
+ControlPoint::ControlPoint(Tree *self, bool onCurve,
+                           Real *x, Real *y, Real *z, uint id)
 // ----------------------------------------------------------------------------
 //   Record where we want to draw
 // ----------------------------------------------------------------------------
-    : Manipulator(self), x(x), y(y), z(z), id(id + 4)
+    : Manipulator(self), x(x), y(y), z(z), id(id + 4), onCurve(onCurve)
 {}
 
 
@@ -362,8 +363,9 @@ bool ControlPoint::DrawHandles(Layout *layout)
 {
     if (!IsMarkedConstant(x) || !IsMarkedConstant(y) || !IsMarkedConstant(z))
     {
-        if (DrawHandle(layout, Point3(x, y, z), id, "control_point_handle") ||
-            layout->groupDrag)
+        if (layout->groupDrag ||
+            DrawHandle(layout, Point3(x, y, z), id,
+                       onCurve?"curve_point_handle":"control_point_handle"))
         {
             Widget *widget = layout->Display();
             Drag *drag = widget->drag();

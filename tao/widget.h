@@ -162,7 +162,8 @@ public slots:
 
 signals:
     // Signals
-    void        copyAvailable(bool yes = true);
+    void        copyAvailableAndNotReadOnly(bool yes);
+    void        copyAvailable(bool hasSelection);
     void        renderFramesProgress(int percent);
     void        renderFramesDone();
     void        runGC();
@@ -320,6 +321,8 @@ public:
     Layout *    drawTree(Layout *where, Context *context, Tree_p code);
     void        drawCall(Layout *, XL::XLCall &call, uint id=0);
     bool        mouseTracking() { return doMouseTracking; }
+    bool        inMouseMove()   { return w_event &&
+                                  w_event->type() == QEvent::MouseMove; }
 
     template<class Activity>
     Activity *  active();
@@ -390,7 +393,7 @@ public:
     Tree_p      locally(Context *context, Tree_p self, Tree_p t);
     Tree_p      shape(Context *context, Tree_p self, Tree_p t);
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
-    Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
+    Tree_p      anchor(Context *context, Tree_p self, Tree_p t, bool abs = false);
     Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
     Integer_p   stereoViewpoints();
 
@@ -423,6 +426,7 @@ public:
     Tree_p      refreshOn(Tree_p self, int eventType);
     Tree_p      noRefreshOn(Tree_p self, int eventType);
     Tree_p      defaultRefresh(Tree_p self, double delay);
+    Real_p      refreshTime(Tree_p self);
     Tree_p      postEvent(int eventType, bool once = false);
     Integer_p   registerUserEvent(text name);
     Integer_p   seconds(Tree_p self, double t);
@@ -633,6 +637,7 @@ public:
     Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
+    Box3        textSize(Tree_p self, Text_p content);
     Tree_p      textFormula(Tree_p self, Tree_p value);
     Tree_p      textValue(Context *, Tree_p self, Tree_p value);
     Tree_p      font(Context *context, Tree_p self,Tree_p dscr,Tree_p d2=NULL);
@@ -657,7 +662,7 @@ public:
     Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
-    Text_p      loadText(Tree_p self, text file);
+    Text_p      loadText(Tree_p self, text file, text encoding);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
     Text_p      taoEdition(Tree_p self);
@@ -691,12 +696,12 @@ public:
     Integer_p   tableColumns(Tree_p self);
 
     // Frames and widgets
-    Tree_p      status(Tree_p self, text t);
+    Tree_p      status(Tree_p self, text t, float timeout);
     Integer*    framePaint(Context *context, Tree_p self,
                            Real_p x, Real_p y, Real_p w, Real_p h,
                            Tree_p prog);
     Integer*    frameTexture(Context *context, Tree_p self,
-                             double w, double h, Tree_p prog,
+                             double w, double h, Tree_p prog, text name = "",
                              Integer_p depth=NULL, bool canvas=false);
     Integer *   framePixelCount(Tree_p self, float alphaMin);
     Tree*       drawingCache(Context *context, Tree_p self, Tree_p prog);
@@ -940,11 +945,11 @@ private:
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;
+    std::vector<StereoIdentTexture>
+                          stereoIdentPatterns;
     bool                  drawAllPages;
     bool                  animated;
     bool                  blanked;
-    std::vector<StereoIdentTexture>
-                          stereoIdentPatterns;
     bool                  stereoIdent;
     bool                  selectionRectangleEnabled;
     bool                  doMouseTracking;

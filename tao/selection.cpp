@@ -221,7 +221,7 @@ int Identify::ObjectsInRectangle(const Box &rectangle, id_list &list)
 
 // ============================================================================
 //
-//    MouseFocusTracker : Find item under cursor, give it focus if it's a widget
+//    MouseFocusTracker: Find item under cursor, give focus to widgets
 //
 // ============================================================================
 
@@ -242,7 +242,8 @@ Activity *MouseFocusTracker::MouseMove(int x, int y, bool active)
         return next;
 
     IFTRACE(widgets)
-            std::cerr << "MouseFocusTracker::MouseMove " << x << ", " << y << std::endl;
+        std::cerr << "MouseFocusTracker::MouseMove " << x << ", " << y
+                  << std::endl;
 
     uint current = ObjectAtPoint(x, widget->height() - y);
 

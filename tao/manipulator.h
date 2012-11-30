@@ -69,7 +69,8 @@ struct ControlPoint : Manipulator
 //    A control point in an object like a path
 // ----------------------------------------------------------------------------
 {
-    ControlPoint(Tree * self, Real * x, Real * y, Real * z, uint id);
+    ControlPoint(Tree * self, bool onCurve,
+                 Real *x, Real *y, Real *z, uint id);
     virtual bool        DrawHandles(Layout *layout);
     virtual void        Draw(Layout *layout);
     virtual void        DrawSelection(Layout *layout);
@@ -77,6 +78,7 @@ struct ControlPoint : Manipulator
 
     Real_p              x, y, z;
     uint                id;
+    bool                onCurve;
 };
 
 

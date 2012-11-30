@@ -1,13 +1,5 @@
 #!/bin/sh
 
-# Register Tao application to desktop manager
-# This makes Tao Presentation visible in Ubuntu's "Dash Home"
-# Also allows to open tao:// and taos:// URIs with xdg-open
-update-desktop-database -q
-# Combined with the previous command, allows to open .ddd
-# documents by double-clicking them or with xdg-open file.ddd
-update-mime-database
-
 # Firefox needs this to be able to open tao:// and taos://
 gconftool-2 --type=string --set /desktop/gnome/url-handlers/tao/command "/opt/Taodyne/TaoPresentations/Tao\ Presentations --one-instance %s" || /bin/true
 gconftool-2 --type=bool --set /desktop/gnome/url-handlers/tao/need-terminal false || /bin/true

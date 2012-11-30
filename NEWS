@@ -1,5 +1,51 @@
 Change log for Tao Presentations
 
+1.15 (12-Oct-2012)
+
+#2562 status primitive lacks a duration parameter
+#2560 Change caption of Copy menu dynamically: Copy/Copy (take screenshot)
+#2559 Edit>Copy won't take a snapshot once a shape has been selected
+#2558 SlideShow3D defines comma operator, wrecks havoc in other modules
+#2555 Screenshot made with menu Edit/Copy have incorrect transparency
+#2554 When editing a path, all control points are the same color
+#2549 Add refresh_time primitive
+#2547 Add a 'transition' primitive to describe transitions between pages
+#2545 Add ChromaKey module
+#2535 Errors should not bring Tao in the front when in full screen
+#2530 MacOSX: module SDK contains a wrong installation path
+#2526 RemoteControl: unlicensed module rejects new connections after 30 s instead of 5 min
+#2520 MacOSX, Linux: RemoteControl module does not accept input on IPv6
+#2518 RemoteControl: rc_hook quickly overloads Tao when lots of commands are received
+#2517 Open Network... should suggest existing folder if only one exists
+#2512 Publish source code for the Tao Help viewer
+#2511 Display2DPlusDepth: first picture shows corrupt depth area
+#2505 Enabling per-pixel lighting breaks textures
+#2501 Changing pages doesn't cause re-evaluation when in error
+#2499 Errors during layout refresh are not reported until next redraw
+#2498 Reloading after errors no longer restarts animations correctly
+#2493 Add text_replace primitive
+#2489 Add screenshot primitive
+#2488 Releasing a huge list crashes Tao
+#2486 Add texture_save_compressed primitive
+#2485 Fix documentation of disable_depth_mask and enable_depth_mask
+#2484 RegExp: Doxygen code visible in documentation
+#2482 Update welcome screen
+#2480 Linux: enable frame_texture multisampling
+#2479 MacOSX: occasional crash of Tao at exit with __cxa_rethrow in stack trace
+#2478 Add preload (-p) command line option
+#2477 Add new stereo_viewpoints primitive
+#2476 Unable to reload theme.xl after structure modification
+#2475 Document is executed several times on load
+#2474 MacOSX: window_size initially resizes window incorrectly
+#2473 Source files no longer monitored after switching to quad-buffer stereoscopy
+#2472 Some display modules display a watermark although Impress license is available
+#2471 Add env primitive (value of an environment variable)
+#2470 PointCloud: missing file parameter in the documentation for cloud_load_data
+#2356 Documentation: add missing picture and use case for torus
+#2343 Enable automatic check for update on application startup by default
+#2169 Reduce package size
+#871  Partial execution not triggered correctly
+
 1.14 (05-Sep-2012)
 
 #2469 Materials demo shows Taodyne watermark although Impress license is available

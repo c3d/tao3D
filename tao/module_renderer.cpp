@@ -275,17 +275,22 @@ void ModuleRenderer::Identify(Layout *where)
 //   Identify object under cursor
 // ----------------------------------------------------------------------------
 {
-    // Load matrix before identify
-    GL.LoadMatrix();
-
-    XL::Save<bool> inIdentify(where->inIdentify, true);
-    GL.UseProgram(0); // Necessary for #1464
-    currentLayout = where;
-
-    if(identify)
-        identify(arg);
-    else
-        callback(arg);
+    // Don't even try to call module call back if in mouse move, see #2563
+    Widget *widget = where->Display();
+    if (!widget->inMouseMove())
+    {
+        // Load matrix before identify
+        GL.LoadMatrix();
+        
+        XL::Save<bool> inIdentify(where->inIdentify, true);
+        GL.UseProgram(0); // Necessary for #1464
+        currentLayout = where;
+        
+        if(identify)
+            identify(arg);
+        else
+            callback(arg);
+    }
 }
 
 }

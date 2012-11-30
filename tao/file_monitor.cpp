@@ -26,6 +26,7 @@
 #include <QDir>
 #include <QMutexLocker>
 #include <QTimer>
+#include <sys/stat.h>
 
 
 
@@ -90,13 +91,13 @@ void FileMonitor::addPath(const QString &path)
             debug() << "Adding: '" << +path << "'\n";
 
         MonitoredFile mf(path);
-        QFileInfo file(path);
+        FileMonitorThread::FileInfo file(path);
         if (file.exists())
         {
             mf.lastNotification = Created;
-            mf.cachedCanonicalPath =  file.canonicalFilePath();
+            mf.cachedAbsolutePath =  file.absoluteFilePath();
             mf.cachedModified = file.lastModified();
-            emit created(path, mf.cachedCanonicalPath);
+            emit created(path, mf.cachedAbsolutePath);
         }
         files[path] = mf;
         thread->addPath(path);
@@ -136,30 +137,30 @@ void FileMonitor::removeAllPaths()
 }
 
 
-void FileMonitor::onCreated(const QString &path, const QString canonicalPath)
+void FileMonitor::onCreated(const QString &path, const QString absolutePath)
 // ----------------------------------------------------------------------------
 //   Called from the monitoring thread when a file is created.
 // ----------------------------------------------------------------------------
 {
-    emit created(path, canonicalPath);
+    emit created(path, absolutePath);
 }
 
 
-void FileMonitor::onChanged(const QString &path, const QString canonicalPath)
+void FileMonitor::onChanged(const QString &path, const QString absolutePath)
 // ----------------------------------------------------------------------------
-//   Called from the monitoring thread when file/canonical path changes.
+//   Called from the monitoring thread when file/absolute path changes.
 // ----------------------------------------------------------------------------
 {
-    emit changed(path, canonicalPath);
+    emit changed(path, absolutePath);
 }
 
 
-void FileMonitor::onDeleted(const QString &path, const QString canonicalPath)
+void FileMonitor::onDeleted(const QString &path, const QString absolutePath)
 // ----------------------------------------------------------------------------
 //   Called from the monitoring thread when a file is deleted or renamed.
 // ----------------------------------------------------------------------------
 {
-    emit deleted(path, canonicalPath);
+    emit deleted(path, absolutePath);
 }
 
 
@@ -393,7 +394,7 @@ void FileMonitorThread::checkFiles()
             {
                 IFTRACE(filemon)
                     debug() << "Read-only file: '" << +path << "' ('"
-                            << +file.canonicalFilePath() << "')\n";
+                            << +file.absoluteFilePath() << "')\n";
                 file.ignore = true;
                 continue;
             }
@@ -405,41 +406,41 @@ void FileMonitorThread::checkFiles()
 
                 FileMonitor::MonitoredFile &mf = monitor->files[path];
                 QDateTime lastModified;
-                QString canonicalPath;
+                QString absolutePath;
                 switch (mf.lastNotification)
                 {
                 case FileMonitor::None:
                 case FileMonitor::Deleted:
                     IFTRACE(filemon)
                             debug() << "Created: '" << +path << "' ('"
-                                    << +file.canonicalFilePath() << "')\n";
+                                    << +file.absoluteFilePath() << "')\n";
                     mf.cachedModified = file.lastModified();
-                    mf.cachedCanonicalPath = file.canonicalFilePath();
+                    mf.cachedAbsolutePath = file.absoluteFilePath();
                     mf.lastNotification = FileMonitor::Created;
-                    monitor->onCreated(path, file.canonicalFilePath());
+                    monitor->onCreated(path, file.absoluteFilePath());
                     break;
                 case FileMonitor::Created:
                 case FileMonitor::Changed:
                     lastModified = file.lastModified();
-                    canonicalPath = file.canonicalFilePath();
+                    absolutePath = file.absoluteFilePath();
                     if ((mf.cachedModified.isValid() &&
                          lastModified > mf.cachedModified)
-                        || canonicalPath != mf.cachedCanonicalPath)
+                        || absolutePath != mf.cachedAbsolutePath)
                     {
                         IFTRACE(filemon)
                         {
                             const QString fmt("dd MMM yyyy hh:mm:ss.zzz");
                             debug() << "Changed: '" << +path << "' ('"
-                                    << +mf.cachedCanonicalPath << "' "
+                                    << +mf.cachedAbsolutePath << "' "
                                     << +mf.cachedModified.toString(Qt::ISODate)
                                     << " -> '"
-                                    << +canonicalPath << "' "
+                                    << +absolutePath << "' "
                                     << +lastModified.toString(Qt::ISODate) << ")\n";
                         }
                         mf.cachedModified = lastModified;
-                        mf.cachedCanonicalPath = canonicalPath;
+                        mf.cachedAbsolutePath = absolutePath;
                         mf.lastNotification = FileMonitor::Changed;
-                        monitor->onChanged(path, file.canonicalFilePath());
+                        monitor->onChanged(path, file.absoluteFilePath());
                     }
                     break;
                 default:
@@ -460,11 +461,11 @@ void FileMonitorThread::checkFiles()
                 {
                     IFTRACE(filemon)
                         debug() << "Deleted: '" << +path << "' ('"
-                                << +mf.cachedCanonicalPath << "')\n";
+                                << +mf.cachedAbsolutePath << "')\n";
                     mf.cachedModified = QDateTime();
-                    mf.cachedCanonicalPath = QString();
+                    mf.cachedAbsolutePath = QString();
                     mf.lastNotification = FileMonitor::Deleted;
-                    monitor->onDeleted(path, file.canonicalFilePath());
+                    monitor->onDeleted(path, file.absoluteFilePath());
                 }
             } // for each monitor
         }
@@ -479,6 +480,153 @@ void FileMonitorThread::checkFiles()
 
     mergePending();
     QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));
+}
+
+
+
+// ============================================================================
+//
+//    Functions exported by the module API
+//
+// ============================================================================
+
+FileMonitorApi::FileMonitorApi(ModuleApi::file_info_callback created,
+                               ModuleApi::file_info_callback changed,
+                               ModuleApi::file_info_callback deleted,
+                               void * userData,
+                               std::string name)
+// ----------------------------------------------------------------------------
+//   Constructor
+// ----------------------------------------------------------------------------
+    : created(created), changed(changed), deleted(deleted), userData(userData),
+      mon(new FileMonitor(+name))
+{
+    connect(mon,  SIGNAL(created(QString,QString)),
+            this, SLOT(onCreated(QString,QString)));
+    connect(mon,  SIGNAL(changed(QString,QString)),
+            this, SLOT(onChanged(QString,QString)));
+    connect(mon,  SIGNAL(deleted(QString,QString)),
+            this, SLOT(onDeleted(QString,QString)));
+}
+
+
+FileMonitorApi::~FileMonitorApi()
+// ----------------------------------------------------------------------------
+//   Destructor
+// ----------------------------------------------------------------------------
+{
+    delete mon;
+}
+
+
+void *FileMonitorApi::newFileMonitor(ModuleApi::file_info_callback created,
+                                     ModuleApi::file_info_callback changed,
+                                     ModuleApi::file_info_callback deleted,
+                                     void *userData,
+                                     std::string name)
+// ----------------------------------------------------------------------------
+//   Create file monitor object, register callbacks
+// ----------------------------------------------------------------------------
+{
+    return new FileMonitorApi(created, changed, deleted, userData, name);
+}
+
+
+void FileMonitorApi::fileMonitorAddPath(void *fileMonitor, std::string path)
+// ----------------------------------------------------------------------------
+//   Monitor path
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    api->mon->addPath(+path);
+}
+
+
+void FileMonitorApi::fileMonitorRemovePath(void *fileMonitor, std::string path)
+// ----------------------------------------------------------------------------
+//   Stop monitoring path
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    api->mon->removePath(+path);
+}
+
+
+void FileMonitorApi::fileMonitorRemoveAllPaths(void *fileMonitor)
+// ----------------------------------------------------------------------------
+//   Stop monitoring all previously registered paths
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    api->mon->removeAllPaths();
+}
+
+
+void FileMonitorApi::deleteFileMonitor(void *fileMonitor)
+// ----------------------------------------------------------------------------
+//   Delete monitor
+// ----------------------------------------------------------------------------
+{
+    FileMonitorApi *api = (FileMonitorApi *)fileMonitor;
+    delete api;
+}
+
+
+void FileMonitorApi::onCreated(const QString &path,
+                               const QString absolutePath)
+// ----------------------------------------------------------------------------
+//   Forward 'created' signal to callback
+// ----------------------------------------------------------------------------
+{
+    if (created)
+        created(+path, +absolutePath, userData);
+}
+
+
+void FileMonitorApi::onChanged(const QString &path,
+                               const QString absolutePath)
+// ----------------------------------------------------------------------------
+//   Forward 'changed' signal to callback
+// ----------------------------------------------------------------------------
+{
+    if (changed)
+        changed(+path, +absolutePath, userData);
+}
+
+
+void FileMonitorApi::onDeleted(const QString &path,
+                               const QString absolutePath)
+// ----------------------------------------------------------------------------
+//   Forward 'deleted' signal to callback
+// ----------------------------------------------------------------------------
+{
+    if (deleted)
+        deleted(+path, +absolutePath, userData);
+}
+
+
+QDateTime FileMonitorThread::FileInfo::lastModified() const
+// ----------------------------------------------------------------------------
+//   Return last modified date of file, or of symlink if path is a symlink
+// ----------------------------------------------------------------------------
+{
+#ifndef Q_OS_WIN
+    // On Windows, there are no symbolic links. There are .lnk files but the
+    // Qt doc seems to imply that the lastModified() date is the date of the
+    // .lnk file (which, if true, would achieve what we're trying to do here
+    // for MacOSX and Linux). And there's no lstat anyways...
+    if (isSymLink())
+    {
+        QByteArray ba = absoluteFilePath().toUtf8();
+        struct stat st;
+        if (lstat(ba.constData(), &st) == 0)
+        {
+            return QDateTime::fromTime_t(st.st_mtime);
+        }
+    }
+#endif
+
+    return QFileInfo::lastModified();
 }
 
 }

@@ -248,4 +248,216 @@ page_label ();
  */
 page_number ();
 
+/**
+ * @~english
+ * Defines a transition period between pages.
+ * This primitive executes some code during a given duration when changing
+ * page. It may be used to implement transition effects. @n
+ * @p Duration is the total duration of the transition in seconds.
+ * @p Body is the code that will be executed during the transition. Some
+ * specific primitives may be used in this code:
+ * - @ref transition_current_page and @ref transition_next_page are the
+ * contents of the current and the target page, respectively;
+ * - @ref transition_time is the elapsed time from the start of the transition,
+ * in seconds;
+ * - @ref transition_duration is the total duration of the transition in
+ * seconds (equal to the value of the @p Duration parameter)
+ * - @ref transition_ratio indicates the amount of progress, between 0.0 and
+ * 1.0.
+ *
+ * The target page starts as soon as the transition begins, that is: the
+ * value returned by @ref page_time in the target page is 0.0 when the
+ * transition begins, and @p Duration when it completes. Naturally it keeps
+ * increasing as the target page is still being displayed. @n
+ * The target page is not necessarily the next one in the sense of page order.
+ * It may be any page when the page selection menu is used or when the
+ * @ref goto_page primitive is used. @n
+ * Here is an example that implements a simple dissolve effect, applied to
+ * all pages:
+ *
+ * @~french
+ * Définit une période de transition entre pages.
+ * Cette primitive permet d'exécuter un code spécifique pendant une
+ * certaine durée lorsqu'on quitte la page en cours. Elle permet de réaliser
+ * simplement des effets de transition. @n
+ * @p Duration indique la durée totale de la transition en secondes.
+ * @p Body est un bloc de code qui sera exécuté pendant la transition.
+ * Certaines primitives spécifique peuvent être utilisées dans ce contexte :
+ * - @ref transition_current_page et @ref transition_next_page désignent
+ * respectivement le contenu de la page actuellement affichée et de la page
+ * qui va la remplacer;
+ * - @ref transition_time est le temps écoulé depuis le début de la
+ * transition;
+ * - @ref transition_duration est la durée totale de la transition (égale
+ * à la valeur du paramère @p Duration);
+ * - @ref transition_ratio indique la progression de la transition,
+ * entre 0.0 et 1.0.
+ *
+ * La page suivante commence dès le début de la transition, c'est-à-dire
+ * que la valeur de @ref page_time dans cette page vaut 0.0 au début de
+ * la transition, et vaut @p Duration à la fin de celle-ci. Naturellement,
+ * elle continue à augmenter tant que la nouvelle page reste affichée. @n
+ * La page suivante au sens de la transition n'est pas nécessairement celle
+ * qui suit dans l'ordre des page ; c'est celle qui sera affichée après
+ * la page en cours. Ce peut donc être n'importe quelle page si on
+ * utilise le menu de navigation ou la primitive @ref goto_page. @n
+ * Voici un exemple qui réalise un simple fondu-enchaîné pour toutes
+ * les pages (la page courante disparait progressivement pendant que la
+ * nouvelle apparaît) :
+ *
+ * @~
+ * @code
+transition 0.4,
+    locally
+        show 1 - transition_ratio
+        transition_current_page
+    locally
+        show transition_ratio
+        transition_next_page
+
+page "Rectangle",
+    color "blue"
+    rectangle 0, 0, 200, 100
+
+page "Circle",
+    color "red"
+    circle 0, 0, 100
+
+page "Star",
+    color "green"
+    rotatez 5*page_time
+    star 0, 0, 200, 200, 5, 0.4
+ * @endcode
+ *
+ * @~french
+ * Lorsque @ref transition est utilisée en dehors de toute page, elle
+ * s'applique à toutes les pages. Pour définir des transitions différentes
+ * pour chaque page, il suffit d'appeler @ref transition à l'intérieur de
+ * @ref page. Par exemple :
+ *
+ * @~english
+ * When @ref transition is used outside of any page, it applies to all the
+ * pages. In order to define specific transitions for each page, you need to
+ * call @ref transition inside the page code, as follows:
+ *
+ * @~
+ * @code
+transition_dissolve ->
+    transition 0.4,
+        locally
+            show 1 - transition_ratio
+            transition_current_page
+        locally
+            show transition_ratio
+            transition_next_page
+
+transition_zoom ->
+    transition 0.4,
+        if transition_ratio < 0.5 then
+            S := 1 - 2 * transition_ratio
+            scale S, S, S
+            transition_current_page
+        else
+            S := 2*(transition_ratio - 0.5)
+            scale S, S, S
+            transition_next_page
+
+page "Rectangle",
+    transition_dissolve
+    color "blue"
+    rectangle 0, 0, 200, 100
+
+page "Circle",
+    color "red"
+    circle 0, 0, 100
+
+page "Star",
+    transition_zoom
+    color "green"
+    rotatez 5*page_time
+    star 0, 0, 200, 200, 5, 0.4
+ * @endcode
+ *
+ * @~french
+ * Dans l'exemple ci-dessus, on a une transition en fondu-enchaîné lorsqu'on
+ * quitte la première page (le rectangle) et un effet de zoom en quittant la
+ * dernière page (l'étoile). La deuxième page (le cercle) ne contient pas
+ * d'appel à @ref transition, il n'y a donc aucun effet particulier lorsqu'on
+ * quitte cette page (la suivante est affichée immédiatement).
+ * @~english
+ * In the above example, a "dissolve" transition is applied when leaving
+ * the first page. The third page triggers a "zoom" transition on exit.
+ * The second page, however, executes no transition because it does not call
+ * @ref transition. Therefore the next page is shown immediately.
+ */
+transition (Duration:real, Body:code);
+
+/**
+ * @~english
+ * Returns the elapsed time since the beginning of a transition.
+ * When executed in a @ref transition block, it returns the elapsed time
+ * since the beginning of a transition in seconds. Otherwise it returns 0.
+ * @~french
+ * Renvoie le temps écoulé depuis le début d'une transition.
+ * Lorsque cette primitive est exécutée dans un bloc @ref transition, elle
+ * renvoie le temps écoulé depuis le début de la transition, en secondes.
+ * En cas contraire elle renvoie 0.
+ */
+real transition_time();
+
+/**
+ * @~english
+ * Returns the percentage of completion of a transition.
+ * When executed in a @ref transition block, it returns
+ * (@ref transition_time / @ref transition_duration). Otherwise it
+ * returns 0.
+ * @~french
+ * Renvoie le pourcentage de complétion d'une transition.
+ * Lorsque cette primitive est exécutée dans un bloc @ref transition, elle
+ * renvoie (@ref transition_time / @ref transition_duration). En cas
+ * contraire elle renvoie 0.
+ */
+real transition_ratio();
+
+/**
+ * @~english
+ * Returns the total duration of a transition.
+ * When executed in a @ref transition block, it returns the value of the
+ * @p Duration parameter.
+ * @~french
+ * Renvoie la duréee totale d'une transition.
+ * Lorsque cette primitive est exécutée dans un bloc @ref transition, elle
+ * renvoie la valeur du parametre @p Duration. En cas contraire elle renvoie
+ * 0.
+ */
+real transition_duration();
+
+/**
+ * @~english
+ * The contents of the current page during a transition.
+ * When executed in a @ref transition block, it evaluates to the contents of
+ * the current page. Otherwise, it evaluates to @c false.
+ * @~french
+ * Le contenu de la page courante lors d'une transition.
+ * Lorsque cette primitive est exécutée dans un bloc @ref transition, elle
+ * représente le contenu de la page en cours. En cas contraire elle équivaut
+ * à @c false.
+ */
+tree transition_current_page();
+
+
+/**
+ * @~english
+ * The contents of the target page during a transition.
+ * When executed in a @ref transition block, it evaluates to the contents of
+ * the page that will replace the current one. Otherwise, it evaluates to
+ * @c false.
+ * @~french
+ * Le contenu de la page cible lors d'une transition.
+ * Lorsque cette primitive est exécutée dans un bloc @ref transition, elle
+ * représente le contenu de la page qui remplacera la page en cours.
+ * En cas contraire elle équivaut à @c false.
+ */
+tree transition_next_page();
+
 /** @} */

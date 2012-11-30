@@ -398,9 +398,11 @@ nonagram x, y, w, h                   -> polygram x, y, w, h, constant 9, consta
 decagram x, y, w, h                   -> polygram x, y, w, h, constant 10, constant 3
 
 schläfli x, y, w, h, {p:integer}           -> polygon x, y, w, h, p
-schläfli x, y, w, h, {p:integer/q:integer} -> polygram x, y, w, h, p, q
+schläfli x, y, w, h, {p:integer,q:integer} -> polygram x, y, w, h, p, q
 
 screenshot T:text -> screenshot T, false
+
+status T:text -> status T, 0.0
 
 selection_color ->
     color 70%, 80%, 90%, 40%
@@ -478,6 +480,13 @@ control_point_handle_outer_color ->
     line_color 0%,0%,0%,0%
 control_point_handle_inner_color ->
     color 100%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+
+curve_point_handle_outer_color ->
+    color  0%, 0%, 0%, 90%
+    line_color 0%,0%,0%,0%
+curve_point_handle_inner_color ->
+    color 0%, 100%, 0%, 70%
     line_color 0%,0%,0%,0%
 
 draw_selection x,y,z,w,h,d ->
@@ -561,6 +570,12 @@ draw_control_point_handle x, y, z ->
     control_point_handle_outer_color
     point x, y, z, 12
     control_point_handle_inner_color
+    point x, y, z, 8
+
+draw_curve_point_handle x, y, z ->
+    curve_point_handle_outer_color
+    point x, y, z, 12
+    curve_point_handle_inner_color
     point x, y, z, 8
 
 draw_group_adjust_shape_handle x, y, z -> 0

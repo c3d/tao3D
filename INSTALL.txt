@@ -158,6 +158,8 @@ too.
      $ sudo make install
  - Install Doxygen:
    $ sudo apt-get install doxygen
+ - To build a Debian package (.deb) you need:
+     $ sudo apt-get install dpkg-dev
  - Configure and build Tao as follows:
    $ export PATH=/usr/local/bin:/usr/local/Trolltech/Qt-4.7.4/bin:$PATH
    $ ./configure

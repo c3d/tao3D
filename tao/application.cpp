@@ -126,6 +126,7 @@ void Application::deferredInit()
     QDir::setCurrent(applicationDirPath());
 
     // Check command-line options that cause an immediate exit
+    // Note: --version is tested earlier, in main()
 
     QStringList cmdLineArguments = arguments();
     if (cmdLineArguments.contains("--internal-use-only-clean-environment"))
@@ -140,19 +141,6 @@ void Application::deferredInit()
         ::exit(0);
     }
 #endif
-    if (cmdLineArguments.contains("--version"))
-    {
-
-#ifdef TAO_EDITION
-#define EDSTR TAO_EDITION " "
-#else
-#define EDSTR
-#endif
-        std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
-#undef EDSTR
-
-        ::exit(0);
-    }
     if (cmdLineArguments.contains("--glinfo"))
     {
         {
@@ -418,6 +406,15 @@ bool Application::loadLicenses()
     QList<QDir> dirs;
     dirs << QDir(Application::userLicenseFolderPath())
          << QDir(Application::appLicenseFolderPath());
+
+    // Add paths given on the command line
+    QString paths = +XL::MAIN->options.license_dirs;
+    foreach (QString path, paths.split(":", QString::SkipEmptyParts))
+    {
+        QFileInfo info(QDir(TaoApp->startDir), path);
+        dirs << QDir(info.absoluteFilePath());
+    }
+
     foreach (QDir dir, dirs)
     {
         QFileInfoList licenses = dir.entryInfoList(QStringList("*.taokey"),

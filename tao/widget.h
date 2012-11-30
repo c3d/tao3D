@@ -393,7 +393,7 @@ public:
     Tree_p      locally(Context *context, Tree_p self, Tree_p t);
     Tree_p      shape(Context *context, Tree_p self, Tree_p t);
     Tree_p      activeWidget(Context *context, Tree_p self, Tree_p t);
-    Tree_p      anchor(Context *context, Tree_p self, Tree_p t);
+    Tree_p      anchor(Context *context, Tree_p self, Tree_p t, bool abs = false);
     Tree_p      stereoViewpoints(Context *ctx,Tree_p self,Integer_p e,Tree_p t);
     Integer_p   stereoViewpoints();
 
@@ -666,7 +666,7 @@ public:
     Tree_p      drawingBreak(Tree_p self, BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
-    Text_p      loadText(Tree_p self, text file);
+    Text_p      loadText(Tree_p self, text file, text encoding);
     Text_p      taoLanguage(Tree_p self);
     Text_p      taoVersion(Tree_p self);
     Text_p      taoEdition(Tree_p self);

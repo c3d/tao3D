@@ -209,7 +209,7 @@ struct AnchorLayout : Layout
 //   A special layout used to anchor items at a given position
 // ----------------------------------------------------------------------------
 {
-                        AnchorLayout(Widget *widget);
+                        AnchorLayout(Widget *widget, bool abs = false);
                         AnchorLayout(const AnchorLayout &o);
                         ~AnchorLayout();
 
@@ -221,6 +221,7 @@ struct AnchorLayout : Layout
     virtual Box3        Bounds(Layout *layout);
     virtual Box3        Space(Layout *layout);
     virtual AnchorLayout *NewChild()      { return new AnchorLayout(*this); }
+                        bool absolute;
 };
 
 

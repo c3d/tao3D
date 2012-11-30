@@ -1,4 +1,2 @@
 #!/bin/sh
-update-desktop-database -q
-update-mime-database
 gtk-update-icon-cache -q -t -f /usr/share/icons/hicolor

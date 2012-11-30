@@ -737,7 +737,7 @@ void PerformancesPage::setTexture2DCompress(bool on)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (on == texture2DMinFilterDefault())
+    if (on == texture2DCompressDefault())
         settings.remove("Texture2DCompress");
     else
         settings.setValue("Texture2DCompress", QVariant(on));
@@ -751,7 +751,7 @@ void PerformancesPage::setTexture2DMipmap(bool on)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (on == texture2DMinFilterDefault())
+    if (on == texture2DMipmapDefault())
         settings.remove("Texture2DMipmap");
     else
         settings.setValue("Texture2DMipmap", QVariant(on));
@@ -840,7 +840,7 @@ void PerformancesPage::setTextureCacheMaxGLMem(quint64 bytes)
 {
     QSettings settings;
     settings.beginGroup(PERFORMANCES_GROUP);
-    if (bytes == textureCacheMaxMemDefault())
+    if (bytes == textureCacheMaxGLMemDefault())
         settings.remove("TextureCacheMaxGLMem");
     else
         settings.setValue("TextureCacheMaxGLMem", QVariant(bytes));

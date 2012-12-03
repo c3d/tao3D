@@ -551,7 +551,7 @@ void PageLayout::Compute(Layout *where)
 
     // We are done with the pagination
     if (ok && !page.Empty())
-        PaginateLastLine(false, false);
+        PaginateLastLine(false);
     page.EndLayout(&alongY.perSolid, &alongY.perBreak);
 
     IFTRACE(justify)
@@ -604,9 +604,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
     Justifier<Drawing *> &lj = line->line;
     bool solid = order < WordBreak;
     bool hardBreak = order >= LineBreak;
-    bool hasInterspace = order >= SentenceBreak;
-    bool fits = lj.AddItem(drawing, count, solid, size, offset,
-                           spc, hardBreak, hasInterspace);
+    bool fits = lj.AddItem(drawing, count, solid, size, offset, spc, hardBreak);
 
     // Adjust layout line
     if (fits)
@@ -621,7 +619,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
     else
     {
         // If drawing doesn't fit, try to fit the last line vertically
-        if (!PaginateLastLine(order >= ColumnBreak, order >= ParaBreak))
+        if (!PaginateLastLine(order >= ColumnBreak))
             return false;
 
         // Create a new layout line
@@ -636,8 +634,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
 
         Justifier<Drawing *> &lj = line->line;
         bool fits = hardBreak ||
-            lj.AddItem(drawing, count, solid, size, offset, spc,
-                       hardBreak, hasInterspace);
+            lj.AddItem(drawing, count, solid, size, offset, spc, hardBreak);
         if (fits)
         {
             Box &lineBounds = line->bounds;
@@ -654,7 +651,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
 }
 
 
-bool PageLayout::PaginateLastLine(bool hardBreak, bool hasInterspace)
+bool PageLayout::PaginateLastLine(bool hardBreak)
 // ----------------------------------------------------------------------------
 //   Paginate the last line that was created
 // ----------------------------------------------------------------------------
@@ -667,8 +664,7 @@ bool PageLayout::PaginateLastLine(bool hardBreak, bool hasInterspace)
     Box &lineBounds = line->bounds;
     scale lsize = fabs(lineBounds.Height());
     coord loffset = lineBounds.Top();
-    bool lfits = page.AddItem(line, 1, true, lsize, loffset, 0,
-                              hardBreak, hasInterspace);
+    bool lfits = page.AddItem(line, 1, true, lsize, loffset, 0, hardBreak);
     if (lfits)
     {
         line->PerformLayout();

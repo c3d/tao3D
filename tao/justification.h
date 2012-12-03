@@ -111,7 +111,7 @@ struct Justifier
     void        BeginLayout(coord start, coord end, Justification &j);
     bool        AddItem(Item item, uint count = 1, bool solid = true,
                         scale size = 0, coord offset = 0, scale lastSpace = 0,
-                        bool hardBreak = false, bool hasInterspace = false);
+                        bool hardBreak = false);
     void        EndLayout(float *perSolid, float *perBreak);
 
     // Adding items to the layout
@@ -227,7 +227,7 @@ void Justifier<Item>::PopItem()
 {
     places.pop_back();
     if (!places.size())
-        interspace = -1;
+        interspace = data ? data->justify.before : -1;
 }
 
 
@@ -248,7 +248,7 @@ void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 template<class Item>
 bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
                               scale size, coord offset, scale lspace,
-                              bool hardBreak, bool hasInterspace)
+                              bool hardBreak)
 // ----------------------------------------------------------------------------
 //   Place item and returns true if it fits, otherwise return false
 // ----------------------------------------------------------------------------
@@ -282,11 +282,9 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     if (size > 0)
     {
         ispace = interspace;
-        if (ispace < 0 || !hasInterspace)
-            ispace = 0;
-        else if (ispace < justify.after)
+        if (ispace < justify.after)
             ispace = justify.after;
-        interspace = 0;
+        interspace = justify.before;
     }
 
     // Test the size of what remains
@@ -295,7 +293,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     size *= spacing;
     if (size < originalSize + ispace)
         size = originalSize + ispace;
-    if (sign * pos + size > sign * end &&
+    if (sign * pos + originalSize > sign * end &&
         sign * pos > sign * start)
     {
         // No more place on the current line
@@ -318,8 +316,6 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     {
         hasRoom = false;
         data->hardBreak = hardBreak;
-        if (hasInterspace && size > 0)
-            interspace = justify.after;
         return false;
     }
 
@@ -404,9 +400,9 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
         Place &place = *p;
         place.position += offset;
         IFTRACE(justify)
-                std::cerr << "Justifier<Item>::Adjust Place.position change by "
-                          << offset << " to "
-                          << place.position << std::endl;
+            std::cerr << "Justifier<Item>::Adjust Place.position change by "
+                      << offset << " to "
+                      << place.position << std::endl;
 
         if (place.size > 0)
         {

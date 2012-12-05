@@ -94,8 +94,10 @@ theme T:text ->
     theme := T
 
 
-// Define the "Default" theme
+// Define the "Default", "Keyboard" and "Seyes" themes
 import "default.xl"
+import "keyboard.xl"
+import "seyes.xl"
 
 
 

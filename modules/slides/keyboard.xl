@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  default.xl                                                     Tao project
+//  Keyboard.xl                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Define a default theme for slides.
+//     Define a Keyboard theme for slides.
 //
 //
 //
@@ -52,33 +52,33 @@
 
 
 // A few colors we selected for the theme (these are from the Taodyne palette)
-theme_color "default:red"       -> "#AA0022"
-theme_color "default:orange"    -> "#DD3311"
-theme_color "default:yellow"    -> "#EEAA11"
-theme_color "default:green"     -> "#88BB00"
-theme_color "default:ocean"     -> "#229988"
-theme_color "default:sky"       -> "#3399FF"
-theme_color "default:navy"      -> "#003366"
-theme_color "default:purple"    -> "#CC0099"
-theme_color "default:grey"      -> "#555"
-theme_color "default:lightblue" -> "#3399FF"
-theme_color "default:darkblue"  -> "#003366"
-theme_color "default:darkgreen" -> "#006633"
-theme_color "default:blue1"     -> "#D0EAF0"
-theme_color "default:blue2"     -> "#8FB4CB"
-theme_color "default:blue3"     -> "#7AA9C1"
-theme_color "default:blue4"     -> "#1D456B"
-theme_color "default:brown"     -> "#7E3830"
+theme_color "Keyboard:red"       -> "#AA0022"
+theme_color "Keyboard:orange"    -> "#DD3311"
+theme_color "Keyboard:yellow"    -> "#EEAA11"
+theme_color "Keyboard:green"     -> "#88BB00"
+theme_color "Keyboard:ocean"     -> "#229988"
+theme_color "Keyboard:sky"       -> "#3399FF"
+theme_color "Keyboard:navy"      -> "#003366"
+theme_color "Keyboard:purple"    -> "#CC0099"
+theme_color "Keyboard:grey"      -> "#555"
+theme_color "Keyboard:lightblue" -> "#3399FF"
+theme_color "Keyboard:darkblue"  -> "#003366"
+theme_color "Keyboard:darkgreen" -> "#006633"
+theme_color "Keyboard:blue1"     -> "#D0EAF0"
+theme_color "Keyboard:blue2"     -> "#8FB4CB"
+theme_color "Keyboard:blue3"     -> "#7AA9C1"
+theme_color "Keyboard:blue4"     -> "#1D456B"
+theme_color "Keyboard:brown"     -> "#7E3830"
 
 
 // Colors that we will use as primary, secondary, text and borders
-theme_item_color "default:text"      -> color "default:black"
-theme_item_color "default:main"      -> color theme_color "default:red"
-theme_item_color "default:primary"   -> color theme_color "default:brown"
-theme_item_color "default:secondary" -> color theme_color "default:red"
-theme_item_color "default:highlight" -> color theme_color "default:navy"
-theme_item_color "default:border"    -> color theme_color "default:brown", 0.3
-theme_item_color "default:box"       -> color "default:transparent"; line_color theme_color "default:navy", 0.6; line_width 2
+theme_item_color "Keyboard:text"      -> color "Keyboard:black"
+theme_item_color "Keyboard:main"      -> color theme_color "Keyboard:red"
+theme_item_color "Keyboard:primary"   -> color theme_color "Keyboard:brown"
+theme_item_color "Keyboard:secondary" -> color theme_color "Keyboard:red"
+theme_item_color "Keyboard:highlight" -> color theme_color "Keyboard:navy"
+theme_item_color "Keyboard:border"    -> color theme_color "Keyboard:brown", 0.3
+theme_item_color "Keyboard:box"       -> color "Keyboard:transparent"; line_color theme_color "Keyboard:navy", 0.6; line_width 2
 
 
 // ============================================================================
@@ -87,36 +87,36 @@ theme_item_color "default:box"       -> color "default:transparent"; line_color 
 // 
 // ============================================================================
 
-theme_background "default", "main" ->
+theme_background "Keyboard", "main" ->
 // ----------------------------------------------------------------------------
-//    Default title background has rectangles at top and bottom
+//    Keyboard title background has rectangles at top and bottom
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_item_color "default:border"
+        theme_item_color "Keyboard:border"
         rectangle 0, 0, slide_width * 1.1, slide_height * 0.9
         rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "default", "section" ->
+theme_background "Keyboard", "section" ->
 // ----------------------------------------------------------------------------
-//    Default section background is the same
+//    Keyboard section background is the same
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_item_color "default:border"
+        theme_item_color "Keyboard:border"
         rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "default", Kind:text ->
+theme_background "Keyboard", Kind:text ->
 // ----------------------------------------------------------------------------
-//    Default background is solid white with a vertical bar on the left
+//    Keyboard background is solid white with a vertical bar on the left
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_item_color "default:border"
+        theme_item_color "Keyboard:border"
         rectangle -slide_width * 0.5, 0, slide_width * 0.1, slide_height * 1.1
 
 
@@ -127,7 +127,7 @@ theme_background "default", Kind:text ->
 // 
 // ============================================================================
 
-theme_layout "default", "main" ->
+theme_layout "Keyboard", "main" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -135,7 +135,7 @@ theme_layout "default", "main" ->
     flow 0, -400, 1800, 300, "subtitle"
 
 
-theme_layout "default", "section" ->
+theme_layout "Keyboard", "section" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ theme_layout "default", "section" ->
     flow 0, -400, 1800, 300, "subtitle"
 
 
-theme_layout "default", Kind:text ->
+theme_layout "Keyboard", Kind:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -164,7 +164,7 @@ theme_layout "default", Kind:text ->
 // 
 // ============================================================================
 
-theme_style "default", Kind:text ->
+theme_style "Keyboard", Kind:text ->
 // ----------------------------------------------------------------------------
 //   Select the style for a given box
 // ----------------------------------------------------------------------------
@@ -181,73 +181,73 @@ theme_style "default", Kind:text ->
 // 
 // ============================================================================
 
-theme_title "default", "main", Body ->
+theme_title "Keyboard", "main", Body ->
 // ----------------------------------------------------------------------------
-//    Default main title (centered on the slide)
+//    Keyboard main title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 150, bold
-        theme_item_color "default:main"
+        theme_item_color "Keyboard:main"
         align 0.5
         vertical_align 0.5
         Body
 
 
-theme_subtitle "default", "main", Body ->
+theme_subtitle "Keyboard", "main", Body ->
 // ----------------------------------------------------------------------------
-//    Default main title (centered on the slide)
+//    Keyboard main title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "subtitle",
         font "TeX Gyre Adventor", "Arial", 90, bold
-        theme_item_color "default:main"
+        theme_item_color "Keyboard:main"
         align 0.5
         paragraph_break
         Body
 
 
-theme_title "default", "section", Body ->
+theme_title "Keyboard", "section", Body ->
 // ----------------------------------------------------------------------------
-//    Default section title (centered on the slide)
+//    Keyboard section title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 120, bold
-        theme_item_color "default:primary"
+        theme_item_color "Keyboard:primary"
         align 0.5
         vertical_align 0.5
         Body
 
 
-theme_subtitle "default", "section", Body ->
+theme_subtitle "Keyboard", "section", Body ->
 // ----------------------------------------------------------------------------
-//    Default section title (centered on the slide)
+//    Keyboard section title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "subtitle",
         font "TeX Gyre Adventor", "Arial", 85, bold
-        theme_item_color "default:secondary"
+        theme_item_color "Keyboard:secondary"
         align 0.5
         paragraph_break
         Body
 
 
-theme_title "default", Kind:text, Body ->
+theme_title "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default title is at the top
+//    Keyboard title is at the top
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 80, bold
-        theme_item_color "default:primary"
+        theme_item_color "Keyboard:primary"
         align 0.5
         vertical_align 0.5
         Body
 
 
-theme_subtitle "default", Kind:text, Body ->
+theme_subtitle "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default subtitle is below main title
+//    Keyboard subtitle is below main title
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 60, bold
-        theme_item_color "default:highlight"
+        theme_item_color "Keyboard:highlight"
         align 0.5
         paragraph_break
         Body
@@ -260,52 +260,52 @@ theme_subtitle "default", Kind:text, Body ->
 // 
 // ============================================================================
 
-theme_picture "default", Kind:text, Body ->
+theme_picture "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default picture box
+//    Keyboard picture box
 // ----------------------------------------------------------------------------
     contents 0,
         translatey -150
-        color "default:white"
+        color "Keyboard:white"
         Body
 
 
-theme_story "default", Kind:text, Body ->
+theme_story "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default story box
+//    Keyboard story box
 // ----------------------------------------------------------------------------
-    theme_style "default", Kind
+    theme_style "Keyboard", Kind
     text_flow "story", Body
 
 
-theme_left_column "default", Kind:text, Body ->
+theme_left_column "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default left column
+//    Keyboard left column
 // ----------------------------------------------------------------------------
-    theme_style "default", Kind
+    theme_style "Keyboard", Kind
     text_flow "left", Body
 
 
-theme_right_column "default", Kind:text, Body ->
+theme_right_column "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default right column
+//    Keyboard right column
 // ----------------------------------------------------------------------------
-    theme_style "default", Kind
+    theme_style "Keyboard", Kind
     text_flow "right", Body
 
 
-theme_left_column_picture "default", Kind:text, Body ->
+theme_left_column_picture "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default left column picture
+//    Keyboard left column picture
 // ----------------------------------------------------------------------------
     contents 0,
         translate -475, -150, 0
         Body
 
 
-theme_right_column_picture "default", Kind:text, Body ->
+theme_right_column_picture "Keyboard", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default right column picture
+//    Keyboard right column picture
 // ----------------------------------------------------------------------------
     contents 0,
         translate 475, -150, 0
@@ -321,10 +321,10 @@ theme_right_column_picture "default", Kind:text, Body ->
 
 theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
-//   Draw a default text box
+//   Draw a Keyboard text box
 // ----------------------------------------------------------------------------
     contents -10,
-        theme_item_color "default:box"
+        theme_item_color "Keyboard:box"
         rectangle X, Y, W + 10, H + 10
     contents 0,
         text_box X, Y, W, H, Body
@@ -332,10 +332,10 @@ theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
 
 theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
 // ----------------------------------------------------------------------------
-//   Draw a default text box containing a flow
+//   Draw a Keyboard text box containing a flow
 // ----------------------------------------------------------------------------
     contents -10,
-        theme_item_color "default:box"
+        theme_item_color "Keyboard:box"
         rectangle X, Y, W + 10, H + 10
     contents 0,
         Body
@@ -349,42 +349,42 @@ theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
 // 
 // ============================================================================
 
-theme_bullet_size "default", Kind:text, 1 -> 62
-theme_bullet_size "default", Kind:text, 2 -> 52
-theme_bullet_size "default", Kind:text, Level:integer -> 42
+theme_bullet_size "Keyboard", Kind:text, 1 -> 62
+theme_bullet_size "Keyboard", Kind:text, 2 -> 52
+theme_bullet_size "Keyboard", Kind:text, Level:integer -> 42
 // ----------------------------------------------------------------------------
-//    Default size of a bullet
+//    Keyboard size of a bullet
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_color "default:default", Kind:text, 1 ->
+theme_bullet_color "Keyboard:default", Kind:text, 1 ->
 // ----------------------------------------------------------------------------
-//    Default bullet fill color for first level
+//    Keyboard bullet fill color for first level
 // ----------------------------------------------------------------------------
-    theme_item_color "default:primary"
+    theme_item_color "Keyboard:primary"
 
 
-theme_bullet_color "default:default", Kind:text, Level:integer ->
+theme_bullet_color "Keyboard:default", Kind:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//    Default bullet fill color for all levels
+//    Keyboard bullet fill color for all levels
 // ----------------------------------------------------------------------------
-    theme_item_color "default:secondary"
+    theme_item_color "Keyboard:secondary"
 
 
-theme_bullet_style "default", Kind:text, Level:integer ->
+theme_bullet_style "Keyboard", Kind:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//   Default style of a bullet point
+//   Keyboard style of a bullet point
 // ----------------------------------------------------------------------------
     plain
     paragraph_space 30, 30
     font_size theme_bullet_size (theme, Kind, Level)
-    theme_item_color "default:text"
+    theme_item_color "Keyboard:text"
 
 
-theme_bullet_picture "default", Kind:text, Level:integer ->
+theme_bullet_picture "Keyboard", Kind:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//    Default style of a bullet
+//    Keyboard style of a bullet
 // ----------------------------------------------------------------------------
-    theme_bullet_color "default:default", Kind, Level
+    theme_bullet_color "Keyboard:default", Kind, Level
     theme_bullet_draw S:real -> circle -50% * S, 30% * S, 12% * S
     theme_bullet_draw theme_bullet_size (theme, Kind, Level)

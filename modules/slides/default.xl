@@ -127,6 +127,9 @@ theme_background "default", Master:text ->
 // 
 // ============================================================================
 
+theme_slide_width  "default" -> 1920
+theme_slide_height "default" -> 1080
+
 theme_layout "default", "main" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
@@ -347,6 +350,51 @@ theme_flow "default", Master:text, X:real, Y:real, W:real, H:real, Flow ->
 //    Bullet formatting
 // 
 // ============================================================================
+
+theme_bullet "default", Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a bullet
+// ----------------------------------------------------------------------------
+    margins Level * theme_bullet_size(theme, slide_master, Level), 0
+    paragraph_break
+    anchor
+        theme_bullet_picture theme, slide_master, Level
+    theme_bullet_style theme, slide_master, Level
+    text Text
+
+
+theme_item "default", Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a text item (without bullet)
+// ----------------------------------------------------------------------------
+    margins (Level - 62%) * theme_bullet_size(theme, slide_master, Level), 0
+    paragraph_break
+    theme_bullet_style theme, slide_master, Level
+    text Text
+
+
+theme_numbered_item "default", Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a text item (without bullet)
+// ----------------------------------------------------------------------------
+    margins (Level - 62%) * theme_bullet_size(theme, slide_master, Level), 0
+    paragraph_break
+    theme_bullet_style theme, slide_master, Level
+    text text theme_number Level & ". "
+    theme_number_increment theme_number Level
+    theme_number_reset theme_number (Level + 1)
+    text Text
+
+
+theme_number_increment N:integer -> N := N + 1
+theme_number_reset N:integer -> N := 1
+
+theme_number 1 -> 1
+theme_number 2 -> 1
+theme_number 3 -> 1
+theme_number 4 -> 1
+theme_number N:integer -> 1
+
 
 theme_bullet_size "default", Master:text, 1 -> 62
 theme_bullet_size "default", Master:text, 2 -> 52

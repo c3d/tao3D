@@ -41,6 +41,7 @@ module_description "fr",
 syntax
     PREFIX     370     ** *** ****
     PREFIX     370     ++ +++ ++++
+    PREFIX     370     -- --- ----
     INFIX      500     en fr de it es
 
 
@@ -113,8 +114,8 @@ import "seyes.xl"
 // This will be used to define the logical coordinates of anything that
 // follows "scale_contents".
 // Here, we use the size of our background picture
-slide_width  -> 1920
-slide_height -> 1080
+slide_width  -> theme_slide_width theme
+slide_height -> theme_slide_height theme
 
 set_slide_size Width:real, Height:real ->
 // ----------------------------------------------------------------------------
@@ -131,17 +132,17 @@ set_slide_size Width:real, Height:real ->
 // 
 // ============================================================================
 
-slide_kind -> ""
-slide_kind Theme:text, Kind:text, Title:text, Body ->
+slide_master -> ""
+slide_master Theme:text, Master:text, Title:text, Body ->
 // ----------------------------------------------------------------------------
-//    Draw a slide with a given kind
+//    Draw a slide with a given master style
 // ----------------------------------------------------------------------------
    page Title,
-       theme_background Theme, Kind
+       theme_background Theme, Master
        locally
-           slide_kind := Kind
+           slide_master := Master
            Body
-       theme_layout Theme, Kind
+       theme_layout Theme, Master
 
 
 
@@ -155,14 +156,14 @@ blank_slide Theme:text, Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create an empty slide
 // ----------------------------------------------------------------------------
-    slide_kind theme, "blank", Title, Body
+    slide_master theme, "blank", Title, Body
 
 
 main_title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide showing the main title of the slide show
 // ----------------------------------------------------------------------------
-    slide_kind theme, "main", Title, Body
+    slide_master theme, "main", Title, Body
 
 
 main_title_slide Title:text ->
@@ -178,7 +179,7 @@ section_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a section slide (transition between sections)
 // ----------------------------------------------------------------------------
-    slide_kind theme, "section", Title, Body
+    slide_master theme, "section", Title, Body
 
 
 section_slide Title:text ->
@@ -194,7 +195,7 @@ title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide with just a title at the top
 // ----------------------------------------------------------------------------
-    slide_kind theme, "title", Title,
+    slide_master theme, "title", Title,
         title
             text Title
         Body
@@ -204,7 +205,7 @@ picture_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide for pictures, photos, animations
 // ----------------------------------------------------------------------------
-    slide_kind theme, "picture", Title,
+    slide_master theme, "picture", Title,
         title
             text Title
         picture Body
@@ -214,7 +215,7 @@ slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a traditional slide with bullet points
 // ----------------------------------------------------------------------------
-    slide_kind theme, "slide", Title,
+    slide_master theme, "slide", Title,
         title
             text Title
         story Body
@@ -234,7 +235,7 @@ title Body ->
 //   Draw a title in a regular slide
 // ----------------------------------------------------------------------------
     slide_flow["title"] := true
-    theme_title theme, slide_kind, Body
+    theme_title theme, slide_master, Body
 
 
 subtitle Body ->
@@ -242,7 +243,7 @@ subtitle Body ->
 //   Draw a subtitle in a regular slide
 // ----------------------------------------------------------------------------
     slide_flow["subtitle"] := true
-    theme_subtitle theme, slide_kind, Body
+    theme_subtitle theme, slide_master, Body
 
 
 picture Body ->
@@ -250,7 +251,7 @@ picture Body ->
 //   Box for picture, photos, animations
 // ----------------------------------------------------------------------------
     slide_flow["picture"] := true
-    theme_picture theme, slide_kind, Body
+    theme_picture theme, slide_master, Body
 
 
 story Body ->
@@ -258,7 +259,7 @@ story Body ->
 //   Draw something as the story, i.e. a rectangle somewhere in the middle
 // ----------------------------------------------------------------------------
     slide_flow["story"] := true
-    theme_story theme, slide_kind, Body
+    theme_story theme, slide_master, Body
 
 
 left_column Body ->
@@ -266,7 +267,7 @@ left_column Body ->
 //   Draw something as the left side of the story
 // ----------------------------------------------------------------------------
     slide_flow["left"] := true
-    theme_left_column theme, slide_kind, Body
+    theme_left_column theme, slide_master, Body
 
 
 right_column Body ->
@@ -274,7 +275,7 @@ right_column Body ->
 //   Draw something as the right side of the story
 // ----------------------------------------------------------------------------
     slide_flow["right"] := true
-    theme_right_column theme, slide_kind, Body
+    theme_right_column theme, slide_master, Body
 
 
 left_column_picture Body ->
@@ -282,7 +283,7 @@ left_column_picture Body ->
 //   Draw something as the left side of the picture
 // ----------------------------------------------------------------------------
     slide_flow["leftpic"] := true
-    theme_left_column_picture theme, slide_kind, Body
+    theme_left_column_picture theme, slide_master, Body
 
 
 right_column_picture Body ->
@@ -290,7 +291,7 @@ right_column_picture Body ->
 //   Draw something as the right side of the picture
 // ----------------------------------------------------------------------------
     slide_flow["rightpic"] := true
-    theme_right_column_picture theme, slide_kind, Body
+    theme_right_column_picture theme, slide_master, Body
 
 
 
@@ -305,7 +306,7 @@ box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_box theme, slide_kind, X, Y, W, H, Body
+    theme_box theme, slide_master, X, Y, W, H, Body
 
 
 flow X:real, Y:real, W:real, H:real, Flow:text ->
@@ -313,7 +314,7 @@ flow X:real, Y:real, W:real, H:real, Flow:text ->
 //   Draw a given flow in the box
 // ----------------------------------------------------------------------------
     if slide_flow[Flow] then
-        theme_flow theme, slide_kind, X, Y, W, H, Flow
+        theme_flow theme, slide_master, X, Y, W, H, Flow
         slide_flow[Flow] := false
 
 
@@ -348,50 +349,73 @@ flow X:real, Y:real, W:real, H:real, Flow:text ->
 // ----------------------------------------------------------------------------
 
 
-+T:text -> no_bullet 1, T
++T:text -> text_item 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-++T:text -> no_bullet 2, T
+++T:text -> text_item 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-+++T:text -> no_bullet 3, T
++++T:text -> text_item 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-++++T:text -> no_bullet 4, T
+++++T:text -> text_item 4, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-bullet Level, Text ->
+-T:text -> numbered_item 1, T
+// ----------------------------------------------------------------------------
+//   Display a first-level numbered text
+// ----------------------------------------------------------------------------
+
+
+--T:text -> numbered_item 2, T
+// ----------------------------------------------------------------------------
+//   Display a second-level numbered text
+// ----------------------------------------------------------------------------
+
+
+---T:text -> numbered_item 3, T
+// ----------------------------------------------------------------------------
+//   Display a third-level numbered text
+// ----------------------------------------------------------------------------
+
+
+----T:text -> numbered_item 4, T
+// ----------------------------------------------------------------------------
+//   Display a third-level numbered text
+// ----------------------------------------------------------------------------
+
+
+bullet Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a bullet point with a given text
 // ----------------------------------------------------------------------------
-    margins Level * theme_bullet_size(theme, slide_kind, Level), 0
-    paragraph_break
-    anchor
-        theme_bullet_picture theme, slide_kind, Level
-    theme_bullet_style theme, slide_kind, Level
-    text Text
+    theme_bullet theme, slide_master, Level, Text
 
 
-no_bullet Level, Text ->
+text_item Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a given text without bullet point
 // ----------------------------------------------------------------------------
-    margins (Level - 62%) * theme_bullet_size(theme, slide_kind, Level), 0
-    paragraph_break
-    theme_bullet_style theme, slide_kind, Level
-    text Text
+    theme_item theme, slide_master, Level, Text
+
+
+numbered_item Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Draw a given text without bullet point
+// ----------------------------------------------------------------------------
+    theme_numbered_item theme, slide_master, Level, Text
 
 
 

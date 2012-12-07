@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  Seyes.xl                                                     Tao project
+//  seyes.xl                                                     Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Define a Seyes theme for slides.
+//     Define a seyes theme for slides.
 //
 //
 //
@@ -50,35 +50,37 @@
 // knowledge of the CeCILL license and that you accept its terms.
 // ****************************************************************************
 
+// Aliases for this theme
+theme "Seyes" -> theme "seyes"
 
 // A few colors we selected for the theme (these are from the Taodyne palette)
-theme_color "Seyes:red"       -> "#AA0022"
-theme_color "Seyes:orange"    -> "#DD3311"
-theme_color "Seyes:yellow"    -> "#EEAA11"
-theme_color "Seyes:green"     -> "#88BB00"
-theme_color "Seyes:ocean"     -> "#229988"
-theme_color "Seyes:sky"       -> "#3399FF"
-theme_color "Seyes:navy"      -> "#003366"
-theme_color "Seyes:purple"    -> "#CC0099"
-theme_color "Seyes:grey"      -> "#555"
-theme_color "Seyes:lightblue" -> "#3399FF"
-theme_color "Seyes:darkblue"  -> "#003366"
-theme_color "Seyes:darkgreen" -> "#006633"
-theme_color "Seyes:blue1"     -> "#D0EAF0"
-theme_color "Seyes:blue2"     -> "#8FB4CB"
-theme_color "Seyes:blue3"     -> "#7AA9C1"
-theme_color "Seyes:blue4"     -> "#1D456B"
-theme_color "Seyes:brown"     -> "#7E3830"
+theme_color "seyes:red"       -> "#AA0022"
+theme_color "seyes:orange"    -> "#DD3311"
+theme_color "seyes:yellow"    -> "#EEAA11"
+theme_color "seyes:green"     -> "#88BB00"
+theme_color "seyes:ocean"     -> "#229988"
+theme_color "seyes:sky"       -> "#3399FF"
+theme_color "seyes:navy"      -> "#003366"
+theme_color "seyes:purple"    -> "#CC0099"
+theme_color "seyes:grey"      -> "#555"
+theme_color "seyes:lightblue" -> "#3399FF"
+theme_color "seyes:darkblue"  -> "#003366"
+theme_color "seyes:darkgreen" -> "#006633"
+theme_color "seyes:blue1"     -> "#D0EAF0"
+theme_color "seyes:blue2"     -> "#8FB4CB"
+theme_color "seyes:blue3"     -> "#7AA9C1"
+theme_color "seyes:blue4"     -> "#1D456B"
+theme_color "seyes:brown"     -> "#7E3830"
 
 
 // Colors that we will use as primary, secondary, text and borders
-theme_item_color "Seyes:text"      -> color "Seyes:black"
-theme_item_color "Seyes:main"      -> color theme_color "Seyes:red"
-theme_item_color "Seyes:primary"   -> color theme_color "Seyes:brown"
-theme_item_color "Seyes:secondary" -> color theme_color "Seyes:red"
-theme_item_color "Seyes:highlight" -> color theme_color "Seyes:navy"
-theme_item_color "Seyes:border"    -> color theme_color "Seyes:brown", 0.3
-theme_item_color "Seyes:box"       -> color "Seyes:transparent"; line_color theme_color "Seyes:navy", 0.6; line_width 2
+theme_item_color "seyes:text"      -> color "seyes:black"
+theme_item_color "seyes:main"      -> color theme_color "seyes:red"
+theme_item_color "seyes:primary"   -> color theme_color "seyes:brown"
+theme_item_color "seyes:secondary" -> color theme_color "seyes:red"
+theme_item_color "seyes:highlight" -> color theme_color "seyes:navy"
+theme_item_color "seyes:border"    -> color theme_color "seyes:brown", 0.3
+theme_item_color "seyes:box"       -> color "transparent"; line_color theme_color "seyes:navy", 0.6; line_width 2
 
 
 // ============================================================================
@@ -87,36 +89,36 @@ theme_item_color "Seyes:box"       -> color "Seyes:transparent"; line_color them
 // 
 // ============================================================================
 
-theme_background "Seyes", "main" ->
+theme_background "seyes", "main" ->
 // ----------------------------------------------------------------------------
-//    Seyes title background has rectangles at top and bottom
+//    seyes title background has rectangles at top and bottom
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_item_color "Seyes:border"
+        theme_item_color "seyes:border"
         rectangle 0, 0, slide_width * 1.1, slide_height * 0.9
         rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "Seyes", "section" ->
+theme_background "seyes", "section" ->
 // ----------------------------------------------------------------------------
-//    Seyes section background is the same
+//    seyes section background is the same
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_item_color "Seyes:border"
+        theme_item_color "seyes:border"
         rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "Seyes", Kind:text ->
+theme_background "seyes", Kind:text ->
 // ----------------------------------------------------------------------------
-//    Seyes background is solid white with a vertical bar on the left
+//    seyes background is solid white with a vertical bar on the left
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_item_color "Seyes:border"
+        theme_item_color "seyes:border"
         rectangle -slide_width * 0.5, 0, slide_width * 0.1, slide_height * 1.1
 
 
@@ -127,7 +129,10 @@ theme_background "Seyes", Kind:text ->
 // 
 // ============================================================================
 
-theme_layout "Seyes", "main" ->
+theme_slide_width  "seyes" -> 1920
+theme_slide_height "seyes" -> 1080
+
+theme_layout "seyes", "main" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -135,7 +140,7 @@ theme_layout "Seyes", "main" ->
     flow 0, -400, 1800, 300, "subtitle"
 
 
-theme_layout "Seyes", "section" ->
+theme_layout "seyes", "section" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -143,7 +148,7 @@ theme_layout "Seyes", "section" ->
     flow 0, -400, 1800, 300, "subtitle"
 
 
-theme_layout "Seyes", Kind:text ->
+theme_layout "seyes", Kind:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -164,7 +169,7 @@ theme_layout "Seyes", Kind:text ->
 // 
 // ============================================================================
 
-theme_style "Seyes", Kind:text ->
+theme_style "seyes", Kind:text ->
 // ----------------------------------------------------------------------------
 //   Select the style for a given box
 // ----------------------------------------------------------------------------
@@ -181,73 +186,73 @@ theme_style "Seyes", Kind:text ->
 // 
 // ============================================================================
 
-theme_title "Seyes", "main", Body ->
+theme_title "seyes", "main", Body ->
 // ----------------------------------------------------------------------------
-//    Seyes main title (centered on the slide)
+//    seyes main title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 150, bold
-        theme_item_color "Seyes:main"
+        theme_item_color "seyes:main"
         align 0.5
         vertical_align 0.5
         Body
 
 
-theme_subtitle "Seyes", "main", Body ->
+theme_subtitle "seyes", "main", Body ->
 // ----------------------------------------------------------------------------
-//    Seyes main title (centered on the slide)
+//    seyes main title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "subtitle",
         font "TeX Gyre Adventor", "Arial", 90, bold
-        theme_item_color "Seyes:main"
+        theme_item_color "seyes:main"
         align 0.5
         paragraph_break
         Body
 
 
-theme_title "Seyes", "section", Body ->
+theme_title "seyes", "section", Body ->
 // ----------------------------------------------------------------------------
-//    Seyes section title (centered on the slide)
+//    seyes section title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 120, bold
-        theme_item_color "Seyes:primary"
+        theme_item_color "seyes:primary"
         align 0.5
         vertical_align 0.5
         Body
 
 
-theme_subtitle "Seyes", "section", Body ->
+theme_subtitle "seyes", "section", Body ->
 // ----------------------------------------------------------------------------
-//    Seyes section title (centered on the slide)
+//    seyes section title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "subtitle",
         font "TeX Gyre Adventor", "Arial", 85, bold
-        theme_item_color "Seyes:secondary"
+        theme_item_color "seyes:secondary"
         align 0.5
         paragraph_break
         Body
 
 
-theme_title "Seyes", Kind:text, Body ->
+theme_title "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes title is at the top
+//    seyes title is at the top
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 80, bold
-        theme_item_color "Seyes:primary"
+        theme_item_color "seyes:primary"
         align 0.5
         vertical_align 0.5
         Body
 
 
-theme_subtitle "Seyes", Kind:text, Body ->
+theme_subtitle "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes subtitle is below main title
+//    seyes subtitle is below main title
 // ----------------------------------------------------------------------------
     text_flow "title",
         font "TeX Gyre Adventor", "Arial", 60, bold
-        theme_item_color "Seyes:highlight"
+        theme_item_color "seyes:highlight"
         align 0.5
         paragraph_break
         Body
@@ -260,52 +265,52 @@ theme_subtitle "Seyes", Kind:text, Body ->
 // 
 // ============================================================================
 
-theme_picture "Seyes", Kind:text, Body ->
+theme_picture "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes picture box
+//    seyes picture box
 // ----------------------------------------------------------------------------
     contents 0,
         translatey -150
-        color "Seyes:white"
+        color "seyes:white"
         Body
 
 
-theme_story "Seyes", Kind:text, Body ->
+theme_story "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes story box
+//    seyes story box
 // ----------------------------------------------------------------------------
-    theme_style "Seyes", Kind
+    theme_style "seyes", Kind
     text_flow "story", Body
 
 
-theme_left_column "Seyes", Kind:text, Body ->
+theme_left_column "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes left column
+//    seyes left column
 // ----------------------------------------------------------------------------
-    theme_style "Seyes", Kind
+    theme_style "seyes", Kind
     text_flow "left", Body
 
 
-theme_right_column "Seyes", Kind:text, Body ->
+theme_right_column "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes right column
+//    seyes right column
 // ----------------------------------------------------------------------------
-    theme_style "Seyes", Kind
+    theme_style "seyes", Kind
     text_flow "right", Body
 
 
-theme_left_column_picture "Seyes", Kind:text, Body ->
+theme_left_column_picture "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes left column picture
+//    seyes left column picture
 // ----------------------------------------------------------------------------
     contents 0,
         translate -475, -150, 0
         Body
 
 
-theme_right_column_picture "Seyes", Kind:text, Body ->
+theme_right_column_picture "seyes", Kind:text, Body ->
 // ----------------------------------------------------------------------------
-//    Seyes right column picture
+//    seyes right column picture
 // ----------------------------------------------------------------------------
     contents 0,
         translate 475, -150, 0
@@ -319,23 +324,23 @@ theme_right_column_picture "Seyes", Kind:text, Body ->
 // 
 // ============================================================================
 
-theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
+theme_box "seyes", Kind:text, X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
-//   Draw a Seyes text box
+//   Draw a seyes text box
 // ----------------------------------------------------------------------------
     contents -10,
-        theme_item_color "Seyes:box"
+        theme_item_color "seyes:box"
         rectangle X, Y, W + 10, H + 10
     contents 0,
         text_box X, Y, W, H, Body
 
 
-theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
+theme_flow "seyes", Kind:text, X:real, Y:real, W:real, H:real, Flow ->
 // ----------------------------------------------------------------------------
-//   Draw a Seyes text box containing a flow
+//   Draw a seyes text box containing a flow
 // ----------------------------------------------------------------------------
     contents -10,
-        theme_item_color "Seyes:box"
+        theme_item_color "seyes:box"
         rectangle X, Y, W + 10, H + 10
     contents 0,
         Body
@@ -349,42 +354,77 @@ theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
 // 
 // ============================================================================
 
-theme_bullet_size "Seyes", Kind:text, 1 -> 62
-theme_bullet_size "Seyes", Kind:text, 2 -> 52
-theme_bullet_size "Seyes", Kind:text, Level:integer -> 42
+theme_bullet "seyes", Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
-//    Seyes size of a bullet
+//   Seyes formatting for a bullet
+// ----------------------------------------------------------------------------
+    margins Level * theme_bullet_size(theme, slide_master, Level), 0
+    paragraph_break
+    anchor
+        theme_bullet_picture theme, slide_master, Level
+    theme_bullet_style theme, slide_master, Level
+    text Text
+
+
+theme_item "seyes", Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Seyes formatting for a text item (without bullet)
+// ----------------------------------------------------------------------------
+    margins (Level - 62%) * theme_bullet_size(theme, slide_master, Level), 0
+    paragraph_break
+    theme_bullet_style theme, slide_master, Level
+    text Text
+
+
+theme_numbered_item "seyes", Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Seyes formatting for a text item (without bullet)
+// ----------------------------------------------------------------------------
+    margins (Level - 62%) * theme_bullet_size(theme, slide_master, Level), 0
+    paragraph_break
+    theme_bullet_style theme, slide_master, Level
+    text text theme_number Level & ". "
+    theme_number_increment theme_number Level
+    theme_number_reset theme_number (Level + 1)
+    text Text
+
+
+theme_bullet_size "seyes", Kind:text, 1 -> 62
+theme_bullet_size "seyes", Kind:text, 2 -> 52
+theme_bullet_size "seyes", Kind:text, Level:integer -> 42
+// ----------------------------------------------------------------------------
+//    seyes size of a bullet
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_color "Seyes:default", Kind:text, 1 ->
+theme_bullet_color "seyes:default", Kind:text, 1 ->
 // ----------------------------------------------------------------------------
-//    Seyes bullet fill color for first level
+//    seyes bullet fill color for first level
 // ----------------------------------------------------------------------------
-    theme_item_color "Seyes:primary"
+    theme_item_color "seyes:primary"
 
 
-theme_bullet_color "Seyes:default", Kind:text, Level:integer ->
+theme_bullet_color "seyes:default", Kind:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//    Seyes bullet fill color for all levels
+//    seyes bullet fill color for all levels
 // ----------------------------------------------------------------------------
-    theme_item_color "Seyes:secondary"
+    theme_item_color "seyes:secondary"
 
 
-theme_bullet_style "Seyes", Kind:text, Level:integer ->
+theme_bullet_style "seyes", Kind:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//   Seyes style of a bullet point
+//   seyes style of a bullet point
 // ----------------------------------------------------------------------------
     plain
     paragraph_space 30, 30
     font_size theme_bullet_size (theme, Kind, Level)
-    theme_item_color "Seyes:text"
+    theme_item_color "seyes:text"
 
 
-theme_bullet_picture "Seyes", Kind:text, Level:integer ->
+theme_bullet_picture "seyes", Kind:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//    Seyes style of a bullet
+//    seyes style of a bullet
 // ----------------------------------------------------------------------------
-    theme_bullet_color "Seyes:default", Kind, Level
+    theme_bullet_color "seyes:default", Kind, Level
     theme_bullet_draw S:real -> circle -50% * S, 30% * S, 12% * S
     theme_bullet_draw theme_bullet_size (theme, Kind, Level)

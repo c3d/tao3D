@@ -78,7 +78,7 @@ theme_item_color "default:primary"   -> color theme_color "default:brown"
 theme_item_color "default:secondary" -> color theme_color "default:red"
 theme_item_color "default:highlight" -> color theme_color "default:navy"
 theme_item_color "default:border"    -> color theme_color "default:brown", 0.3
-theme_item_color "default:box"       -> color "default:transparent"; line_color theme_color "default:navy", 0.6; line_width 2
+theme_item_color "default:box"       -> color "transparent"; line_color theme_color "default:navy", 0.6; line_width 2
 
 
 // ============================================================================
@@ -110,7 +110,7 @@ theme_background "default", "section" ->
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "default", Kind:text ->
+theme_background "default", Master:text ->
 // ----------------------------------------------------------------------------
 //    Default background is solid white with a vertical bar on the left
 // ----------------------------------------------------------------------------
@@ -143,7 +143,7 @@ theme_layout "default", "section" ->
     flow 0, -400, 1800, 300, "subtitle"
 
 
-theme_layout "default", Kind:text ->
+theme_layout "default", Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -164,7 +164,7 @@ theme_layout "default", Kind:text ->
 // 
 // ============================================================================
 
-theme_style "default", Kind:text ->
+theme_style "default", Master:text ->
 // ----------------------------------------------------------------------------
 //   Select the style for a given box
 // ----------------------------------------------------------------------------
@@ -229,7 +229,7 @@ theme_subtitle "default", "section", Body ->
         Body
 
 
-theme_title "default", Kind:text, Body ->
+theme_title "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default title is at the top
 // ----------------------------------------------------------------------------
@@ -241,7 +241,7 @@ theme_title "default", Kind:text, Body ->
         Body
 
 
-theme_subtitle "default", Kind:text, Body ->
+theme_subtitle "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default subtitle is below main title
 // ----------------------------------------------------------------------------
@@ -260,7 +260,7 @@ theme_subtitle "default", Kind:text, Body ->
 // 
 // ============================================================================
 
-theme_picture "default", Kind:text, Body ->
+theme_picture "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box
 // ----------------------------------------------------------------------------
@@ -270,31 +270,31 @@ theme_picture "default", Kind:text, Body ->
         Body
 
 
-theme_story "default", Kind:text, Body ->
+theme_story "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default story box
 // ----------------------------------------------------------------------------
-    theme_style "default", Kind
+    theme_style "default", Master
     text_flow "story", Body
 
 
-theme_left_column "default", Kind:text, Body ->
+theme_left_column "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
-    theme_style "default", Kind
+    theme_style "default", Master
     text_flow "left", Body
 
 
-theme_right_column "default", Kind:text, Body ->
+theme_right_column "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
-    theme_style "default", Kind
+    theme_style "default", Master
     text_flow "right", Body
 
 
-theme_left_column_picture "default", Kind:text, Body ->
+theme_left_column_picture "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column picture
 // ----------------------------------------------------------------------------
@@ -303,7 +303,7 @@ theme_left_column_picture "default", Kind:text, Body ->
         Body
 
 
-theme_right_column_picture "default", Kind:text, Body ->
+theme_right_column_picture "default", Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column picture
 // ----------------------------------------------------------------------------
@@ -319,7 +319,7 @@ theme_right_column_picture "default", Kind:text, Body ->
 // 
 // ============================================================================
 
-theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
+theme_box "default", Master:text, X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box
 // ----------------------------------------------------------------------------
@@ -330,7 +330,7 @@ theme_box Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Body ->
         text_box X, Y, W, H, Body
 
 
-theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
+theme_flow "default", Master:text, X:real, Y:real, W:real, H:real, Flow ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box containing a flow
 // ----------------------------------------------------------------------------
@@ -338,7 +338,6 @@ theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
         theme_item_color "default:box"
         rectangle X, Y, W + 10, H + 10
     contents 0,
-        Body
         text_box Flow, X, Y, W, H
 
 
@@ -349,42 +348,42 @@ theme_flow Theme:text, Kind:text, X:real, Y:real, W:real, H:real, Flow ->
 // 
 // ============================================================================
 
-theme_bullet_size "default", Kind:text, 1 -> 62
-theme_bullet_size "default", Kind:text, 2 -> 52
-theme_bullet_size "default", Kind:text, Level:integer -> 42
+theme_bullet_size "default", Master:text, 1 -> 62
+theme_bullet_size "default", Master:text, 2 -> 52
+theme_bullet_size "default", Master:text, Level:integer -> 42
 // ----------------------------------------------------------------------------
 //    Default size of a bullet
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_color "default:default", Kind:text, 1 ->
+theme_bullet_color "default:default", Master:text, 1 ->
 // ----------------------------------------------------------------------------
 //    Default bullet fill color for first level
 // ----------------------------------------------------------------------------
     theme_item_color "default:primary"
 
 
-theme_bullet_color "default:default", Kind:text, Level:integer ->
+theme_bullet_color "default:default", Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default bullet fill color for all levels
 // ----------------------------------------------------------------------------
     theme_item_color "default:secondary"
 
 
-theme_bullet_style "default", Kind:text, Level:integer ->
+theme_bullet_style "default", Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //   Default style of a bullet point
 // ----------------------------------------------------------------------------
     plain
     paragraph_space 30, 30
-    font_size theme_bullet_size (theme, Kind, Level)
+    font_size theme_bullet_size (theme, Master, Level)
     theme_item_color "default:text"
 
 
-theme_bullet_picture "default", Kind:text, Level:integer ->
+theme_bullet_picture "default", Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default style of a bullet
 // ----------------------------------------------------------------------------
-    theme_bullet_color "default:default", Kind, Level
+    theme_bullet_color "default:default", Master, Level
     theme_bullet_draw S:real -> circle -50% * S, 30% * S, 12% * S
-    theme_bullet_draw theme_bullet_size (theme, Kind, Level)
+    theme_bullet_draw theme_bullet_size (theme, Master, Level)

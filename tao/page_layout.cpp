@@ -581,7 +581,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
     }
     if (!line)
     {
-        line = new LayoutLine(space.Left(), space.Right(), alongX);
+        line = new LayoutLine(space.Left()+left, space.Right()-right, alongX);
         bool lineFits = page.AddItem(line);
         if (!lineFits)
         {
@@ -623,7 +623,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
             return false;
 
         // Create a new layout line
-        line = new LayoutLine(space.Left(), space.Right(), alongX);
+        line = new LayoutLine(space.Left()+left, space.Right()-right, alongX);
         bool lineFits = page.AddItem(line);
         if (!lineFits)
         {

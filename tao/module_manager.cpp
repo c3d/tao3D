@@ -30,6 +30,7 @@
 #include "runtime.h"
 #include "repository.h"
 #include "widget.h"
+#include "runtime.h"
 #include <QSettings>
 #include <QHash>
 #include <QMessageBox>
@@ -74,14 +75,14 @@ static QStringList allPaths(XL::source_files &files)
 
 
 static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
-                             bool execute)
+                             XL::phase_t phase)
 // ----------------------------------------------------------------------------
 //   Call XLR to import a file, update monitored paths
 // ----------------------------------------------------------------------------
 {
     QStringList before = allPaths(XL::MAIN->files);
-    XL::Tree_p ret = XL::xl_import(context, self, name, execute);
-    if (!execute)
+    XL::Tree_p ret = XL::xl_import(context, self, name, phase);
+    if (phase == XL::DECLARATION_PHASE)
     {
         QStringList after = allPaths(XL::MAIN->files);
         if (after.size() > before.size())
@@ -96,7 +97,7 @@ static XL::Tree_p doXLImport(XL::Context *context, XL::Tree *self, text name,
 XL::Tree_p ModuleManager::import(XL::Context_p context,
                                  XL::Tree_p self,
                                  XL::Tree_p what,
-                                 bool execute)
+                                 XL::phase_t phase)
 // ----------------------------------------------------------------------------
 //   The import primitive
 // ----------------------------------------------------------------------------
@@ -105,12 +106,12 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
     XL::Text *file = what->AsText();
     if (file)
     {
-        return doXLImport(context, self, file->value, execute);
+        return doXLImport(context, self, file->value, phase);
     }
     // Other import syntax: explicit module import
     ModuleManager *mmgr = moduleManager();
     if (mmgr)
-        return mmgr->importModule(context, self, what, execute);
+        return mmgr->importModule(context, self, what, phase);
 
     return XL::xl_false;
 }
@@ -119,7 +120,7 @@ XL::Tree_p ModuleManager::import(XL::Context_p context,
 XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                                        XL::Tree_p self,
                                        XL::Tree_p what,
-                                       bool execute)
+                                       XL::phase_t phase)
 // ----------------------------------------------------------------------------
 //   The primitive to import a module, for example:   import ModuleName "1.10"
 // ----------------------------------------------------------------------------
@@ -172,7 +173,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     found = true;
                     QString xlPath = m.xlPath();
 
-                    if (!execute)
+                    if (phase == XL::DECLARATION_PHASE)
                     {
                         IFTRACE(modules)
                             debug() << "  Importing module " << m_n
@@ -180,7 +181,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                                     << m_v <<  "): " << +xlPath << "\n";
                         if (m.native)
                         {
-                            // execute == false when file is [re]loaded
+                            // phase==DECLARATION_PHASE when file is [re]loaded
                             // => we won't call enter_symbols at each execution
                             enter_symbols_fn es =
                                 (enter_symbols_fn)
@@ -194,7 +195,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                         }
                     }
 
-                    doXLImport(context, self, +xlPath, execute);
+                    doXLImport(context, self, +xlPath, phase);
                     moduleById(m.id)->loaded = true;
                     break;
                 }
@@ -1025,7 +1026,6 @@ bool ModuleManager::loadNative(Context * /*context*/,
             if (ok)
             {
                 // enter_symbols is called later, when module is imported
-
                 module_init_fn mi =
                         (module_init_fn) lib->resolve("module_init");
                 if ((mi != NULL))

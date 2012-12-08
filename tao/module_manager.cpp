@@ -158,7 +158,7 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     if (!m.enabled)
                         continue;
                     enabled_found = true;
-                    if (m.hasNative)
+                    if (m.hasNative && phase != XL::PARSING_PHASE)
                     {
                         if (!m.native && !m.inError)
                         {
@@ -196,7 +196,8 @@ XL::Tree_p ModuleManager::importModule(XL::Context_p context,
                     }
 
                     doXLImport(context, self, +xlPath, phase);
-                    moduleById(m.id)->loaded = true;
+                    if (phase != XL::PARSING_PHASE)
+                        moduleById(m.id)->loaded = true;
                     break;
                 }
             }
@@ -1365,7 +1366,7 @@ void ModuleManager::unloadImported()
                 debug() << "  Library: " << +m.native->fileName() << "\n";
             QLibrary * lib = m.native;
             module_exit_fn me =
-                    (module_exit_fn) lib->resolve("module_exit");
+                (module_exit_fn) lib->resolve("module_exit");
             if (me == NULL)
                 continue;
             IFTRACE(modules)

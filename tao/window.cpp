@@ -401,8 +401,7 @@ void Window::closeDocument()
 //   Replace current document with welcome screen or close welcome window.
 // ----------------------------------------------------------------------------
 {
-    loadFile(QFileInfo("system:welcome/welcome.ddd").absoluteFilePath(),
-             false);
+    loadFile(QFileInfo("system:welcome/welcome.ddd").absoluteFilePath(),false);
 }
 
 

@@ -553,8 +553,11 @@ Tree *Main::Normalize(Tree *input)
 //   Normalize the input tree
 // ----------------------------------------------------------------------------
 {
-    Renormalize renorm(Widget::Tao());
-    input = input->Do(renorm);
+    if (Widget *widget = Widget::TaoExists())
+    {
+        Renormalize renorm(widget);
+        input = input->Do(renorm);
+    }
     return input;
 }
 

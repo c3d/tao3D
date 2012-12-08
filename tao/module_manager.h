@@ -271,6 +271,7 @@ Native and XL functions of a module are called by Tao in the following order:
 #include "tao/module_info.h"
 #include "module_api_p.h"
 #include "tree.h"
+#include "runtime.h"
 #include "context.h"
 #include <QObject>
 #include <QString>
@@ -299,7 +300,7 @@ public:
     static XL::Tree_p      import(XL::Context_p context,
                                   XL::Tree_p self,
                                   XL::Tree_p what,
-                                  bool execute);
+                                  XL::phase_t phase);
 
     struct ModuleInfoPrivate : ModuleInfo
     // ------------------------------------------------------------------------
@@ -531,7 +532,7 @@ private:
     XL::Tree_p          importModule(XL::Context_p context,
                                      XL::Tree_p self,
                                      XL::Tree_p what,
-                                     bool execute);
+                                     XL::phase_t phase);
 private:
     QString                     u, s;
     QMap<QString, ModuleInfoPrivate>   modules;

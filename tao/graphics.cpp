@@ -44,7 +44,7 @@ using namespace XL;
 #include "graphics.tbl"
 
 
-Tree *xl_process_module_import(Symbols *symbols, Tree *source, bool execute)
+Tree *xl_process_module_import(Symbols *symbols, Tree *source, phase_t phase)
 // ----------------------------------------------------------------------------
 //   Standard connector for 'load' statements
 // ----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ Tree *xl_process_module_import(Symbols *symbols, Tree *source, bool execute)
     {
         source->SetSymbols(symbols);
         return Tao::ModuleManager::import(MAIN->context, source,
-                                          pfx->right, execute);
+                                          pfx->right, phase);
     }
     return NULL;
 }

@@ -1188,7 +1188,7 @@ PREFIX(DocumentDir, text,  "document_dir",,
 // Not a problem because implementation takes care of the above syntax
 PREFIX(ImportModule, tree, "import",
        PARM(m, tree, "Module file name"),
-       return Tao::ModuleManager::import(context, self, m, true),
+       return Tao::ModuleManager::import(context, self, m, XL::EXECUTION_PHASE),
        GROUP(modules)
        SYNOPSIS("Import a module from a file"))
 PREFIX(Blink, boolean,  "blink",

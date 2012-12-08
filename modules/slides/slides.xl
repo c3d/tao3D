@@ -95,10 +95,10 @@ theme T:text ->
     theme := T
 
 
-// Define the "Default", "Keyboard" and "Seyes" themes
-import "default.xl"
+// Define the default themes
 import "keyboard.xl"
 import "seyes.xl"
+import "default.xl"
 
 
 
@@ -349,49 +349,49 @@ flow X:real, Y:real, W:real, H:real, Flow:text ->
 // ----------------------------------------------------------------------------
 
 
-+T:text -> text_item 1, T
+-T:text -> text_item 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-++T:text -> text_item 2, T
+--T:text -> text_item 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-+++T:text -> text_item 3, T
+---T:text -> text_item 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-++++T:text -> text_item 4, T
+----T:text -> text_item 4, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
--T:text -> numbered_item 1, T
++T:text -> numbered_item 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level numbered text
 // ----------------------------------------------------------------------------
 
 
---T:text -> numbered_item 2, T
+++T:text -> numbered_item 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level numbered text
 // ----------------------------------------------------------------------------
 
 
----T:text -> numbered_item 3, T
++++T:text -> numbered_item 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level numbered text
 // ----------------------------------------------------------------------------
 
 
-----T:text -> numbered_item 4, T
+++++T:text -> numbered_item 4, T
 // ----------------------------------------------------------------------------
 //   Display a third-level numbered text
 // ----------------------------------------------------------------------------

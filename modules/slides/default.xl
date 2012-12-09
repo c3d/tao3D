@@ -428,7 +428,7 @@ theme_box Theme:text, Master:text, X:real, Y:real, W:real, H:real, Body ->
         text_box X, Y, W, H, Body
 
 
-theme_flow Theme:text, Master:text, X:real, Y:real, W:real, H:real, Flow ->
+theme_flow Theme:text, Master:text, X:real, Y:real, W:real, H:real, Flow:text ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box containing a flow
 // ----------------------------------------------------------------------------
@@ -460,8 +460,8 @@ theme_item Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a text item (without bullet)
 // ----------------------------------------------------------------------------
-    paragraph_break
     theme_bullet_style Theme, Master, Level
+    paragraph_break
     text Text
 
 
@@ -469,12 +469,23 @@ theme_numbered_item Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a text item (without bullet)
 // ----------------------------------------------------------------------------
-    paragraph_break
     theme_bullet_style Theme, Master, Level
+    paragraph_break
     text text theme_number Level & ". "
     theme_number_increment theme_number Level
     theme_number_reset theme_number (Level + 1)
     text Text
+
+
+theme_reset Theme:text ->
+// ----------------------------------------------------------------------------
+//    Reset theme numbers
+// ----------------------------------------------------------------------------
+    theme_number_reset theme_number 1
+    theme_number_reset theme_number 2
+    theme_number_reset theme_number 3
+    theme_number_reset theme_number 4
+    theme_number_reset theme_number 5
 
 
 theme_number_increment N:integer -> N := N + 1

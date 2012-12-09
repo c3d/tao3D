@@ -141,6 +141,7 @@ slide_master Theme:text, Master:text, Title:text, Body ->
        theme_background Theme, Master
        locally
            slide_master := Master
+           theme_reset theme
            Body
        theme_layout Theme, Master
 

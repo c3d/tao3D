@@ -53,3 +53,14 @@
 // Aliases for this theme name
 theme "Keyboard" -> theme "keyboard"
 
+
+theme_background "keyboard", Master:text ->
+// ----------------------------------------------------------------------------
+//    Default title background has rectangles at top and bottom
+// ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
+    background -300,
+        theme_style Theme, "picture"
+        image 0, 0, 1, 1, "Keyboard.jpg"
+
+

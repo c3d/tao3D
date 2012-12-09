@@ -282,7 +282,6 @@ void Application::deferredInit()
     updateApp = new UpdateApplication;
 
     // Initialize the graphics just below contents of basics.tbl
-    xlr->CreateScope();
     Initialize();
     xlr->CreateScope();
 

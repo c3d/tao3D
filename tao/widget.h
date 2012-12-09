@@ -225,7 +225,7 @@ public:
     bool        sourceChanged();
     void        normalizeProgram();
     void        updateProgram(SourceFile *sf);
-    int         loadFile(text file, bool updateContext = false);
+    int         loadFile(text file);
     void        loadContextFiles(XL::source_names &files);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();

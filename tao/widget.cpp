@@ -3547,14 +3547,14 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
-int Widget::loadFile(text name, bool updateContext)
+int Widget::loadFile(text name)
 // ----------------------------------------------------------------------------
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
     purgeTaoInfo();
     TaoSave saveCurrent(current, this);
-    return XL::MAIN->LoadFile(name, updateContext);
+    return XL::MAIN->LoadFile(name);
 }
 
 

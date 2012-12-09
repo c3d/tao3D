@@ -2336,7 +2336,7 @@ bool Window::updateProgram(const QString &fileName)
         resetTaoMenus();
         if (!sf->tree)
         {
-            if (taoWidget->loadFile(fn, true))
+            if (taoWidget->loadFile(fn))
                 hadError = true;
         }
 
@@ -2346,7 +2346,7 @@ bool Window::updateProgram(const QString &fileName)
     }
     else
     {
-        if (taoWidget->loadFile(fn, true))
+        if (taoWidget->loadFile(fn))
             return true;
         sf = &xlRuntime->files[fn];
     }

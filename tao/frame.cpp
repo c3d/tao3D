@@ -136,7 +136,9 @@ void FrameInfo::resize(uint w, uint h)
     glShowErrors();
 
     // Clear the contents of the newly created frame buffer
-    render_fbo->bind();
+    int ok = render_fbo->bind();
+    if (!ok) std::cerr << "FrameInfo::resize(): unexpected result\n";
+
     clear();
     render_fbo->release();
 }

@@ -1267,8 +1267,7 @@ text_box 0, 0, 800, 600,
     text "World"
  * @endcode
  */
-floating(body:code);
-
+floating(Body:code);
 
 /**
  * @}

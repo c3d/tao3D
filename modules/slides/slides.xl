@@ -314,9 +314,11 @@ flow X:real, Y:real, W:real, H:real, Flow:text ->
 // ----------------------------------------------------------------------------
 //   Draw a given flow in the box
 // ----------------------------------------------------------------------------
-    if slide_flow[Flow] then
+    flow_name -> ""
+    flow_name := Flow
+    if slide_flow[flow_name] then
         theme_flow theme, slide_master, X, Y, W, H, Flow
-        slide_flow[Flow] := false
+        slide_flow[flow_name] := false
 
 
 
@@ -417,6 +419,9 @@ numbered_item Level:integer, Text:text ->
 //   Draw a given text without bullet point
 // ----------------------------------------------------------------------------
     theme_numbered_item theme, slide_master, Level, Text
+
+
+data item_number
 
 
 

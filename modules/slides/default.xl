@@ -50,6 +50,9 @@
 // knowledge of the CeCILL license and that you accept its terms.
 // ****************************************************************************
 
+// This file is designed to be overriden by themes, etc.
+override_priority -1
+
 // ============================================================================
 // 
 //    Color palette
@@ -57,21 +60,21 @@
 // ============================================================================
 
 // A few colors we selected for the theme (these are from the Taodyne palette)
-theme_color "default", "red"       -> "#AA0022"
-theme_color "default", "orange"    -> "#DD3311"
-theme_color "default", "yellow"    -> "#EEAA11"
-theme_color "default", "green"     -> "#88BB00"
-theme_color "default", "ocean"     -> "#229988"
-theme_color "default", "sky"       -> "#3399FF"
-theme_color "default", "navy"      -> "#003366"
-theme_color "default", "purple"    -> "#CC0099"
-theme_color "default", "grey"      -> "#555"
-theme_color "default", "black"     -> "black"
-theme_color "default", "lightblue" -> "#3399FF"
-theme_color "default", "darkblue"  -> "#003366"
-theme_color "default", "darkgreen" -> "#006633"
-theme_color "default", "brown"     -> "#7E3830"
-theme_color "default", Color:text  -> Color
+theme_color Theme:text, "red"       -> "#AA0022"
+theme_color Theme:text, "orange"    -> "#DD3311"
+theme_color Theme:text, "yellow"    -> "#EEAA11"
+theme_color Theme:text, "green"     -> "#88BB00"
+theme_color Theme:text, "ocean"     -> "#229988"
+theme_color Theme:text, "sky"       -> "#3399FF"
+theme_color Theme:text, "navy"      -> "#003366"
+theme_color Theme:text, "purple"    -> "#CC0099"
+theme_color Theme:text, "grey"      -> "#555"
+theme_color Theme:text, "black"     -> "black"
+theme_color Theme:text, "lightblue" -> "#3399FF"
+theme_color Theme:text, "darkblue"  -> "#003366"
+theme_color Theme:text, "darkgreen" -> "#006633"
+theme_color Theme:text, "brown"     -> "#7E3830"
+theme_color Theme:text, Color:text  -> Color
 
 
 
@@ -81,125 +84,125 @@ theme_color "default", Color:text  -> Color
 // 
 // ============================================================================
 
-theme_style "default", "title" ->
+theme_style Theme:text, "title" ->
 // ----------------------------------------------------------------------------
 //    Style for title in normal slides
 // ----------------------------------------------------------------------------
     font "TeX Gyre Adventor", "Arial", 80, bold
-    color theme_color (theme, "brown")
+    color theme_color (Theme, "brown")
     align 0.5
     vertical_align 0.5
 
 
-theme_style "default", "subtitle" ->
+theme_style Theme:text, "subtitle" ->
 // ----------------------------------------------------------------------------
 //    Style for section subtitle
 // ----------------------------------------------------------------------------
     font "TeX Gyre Adventor", "Arial", 60, bold
-    color theme_color (theme, "navy")
+    color theme_color (Theme, "navy")
     align 0.5
     vertical_align 0.5
 
 
-theme_style "default", "story" ->
+theme_style Theme:text, "story" ->
 // ----------------------------------------------------------------------------
 //    Style for story text
 // ----------------------------------------------------------------------------
     font "TeX Gyre Adventor", "Arial", 50
-    color theme_color (theme, "black")
+    color theme_color (Theme, "black")
     paragraph_space 30, 30
     align 0
     vertical_align 0.3
 
 
-theme_style "default", "main:title" ->
+theme_style Theme:text, "main:title" ->
 // ----------------------------------------------------------------------------
 //   Style for main title
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "red")
+    color theme_color (Theme, "red")
     font "TeX Gyre Adventor", "Arial", 150, bold
     align 0.5
     vertical_align 0.5
 
 
-theme_style "default", "main:subtitle" ->
+theme_style Theme:text, "main:subtitle" ->
 // ----------------------------------------------------------------------------
 //   Style for main subtitle
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "brown")
+    color theme_color (Theme, "brown")
     font "TeX Gyre Adventor", "Arial", 90, bold
     align 0.5
     vertical_align 0.5
 
 
-theme_style "default", "section:title" ->
+theme_style Theme:text, "section:title" ->
 // ----------------------------------------------------------------------------
 //    Style for section title
 // ----------------------------------------------------------------------------
     font "TeX Gyre Adventor", "Arial", 120, bold
-    color theme_color (theme, "red")
+    color theme_color (Theme, "red")
     align 0.5
     vertical_align 0.5
 
 
-theme_style "default", "section:subtitle" ->
+theme_style Theme:text, "section:subtitle" ->
 // ----------------------------------------------------------------------------
 //    Style for section subtitle
 // ----------------------------------------------------------------------------
     font "TeX Gyre Adventor", "Arial", 85, bold
-    color theme_color (theme, "brown")
+    color theme_color (Theme, "brown")
     align 0.5
     vertical_align 0.5
 
 
-theme_style "default", "picture" ->
+theme_style Theme:text, "picture" ->
 // ----------------------------------------------------------------------------
 //   Style for pictures
 // ----------------------------------------------------------------------------
     color "white"
 
 
-theme_style "default", "border" ->
+theme_style Theme:text, "border" ->
 // ----------------------------------------------------------------------------
 //   Border color for title pages
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "brown"), 0.3
+    color theme_color (Theme, "brown"), 0.3
 
 
-theme_style "default", "bullet:1" ->
+theme_style Theme:text, "bullet:1" ->
 // ----------------------------------------------------------------------------
 //   Bullet color
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "red")
+    color theme_color (Theme, "red")
 
 
-theme_style "default", "bullet:2" ->
+theme_style Theme:text, "bullet:2" ->
 // ----------------------------------------------------------------------------
 //   Bullet color
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "navy")
+    color theme_color (Theme, "navy")
 
 
-theme_style "default", "bullet:3" ->
+theme_style Theme:text, "bullet:3" ->
 // ----------------------------------------------------------------------------
 //   Bullet color
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "brown")
+    color theme_color (Theme, "brown")
 
 
-theme_style "default", "bullet" ->
+theme_style Theme:text, "bullet" ->
 // ----------------------------------------------------------------------------
 //   Bullet color
 // ----------------------------------------------------------------------------
-    color theme_color (theme, "orange")
+    color theme_color (Theme, "orange")
 
 
-theme_style "default", "box" ->
+theme_style Theme:text, "box" ->
 // ----------------------------------------------------------------------------
 //   Style for text boxes
 // ----------------------------------------------------------------------------
     color "transparent"
-    line_color theme_color (theme, "navy"), 0.6
+    line_color theme_color (Theme, "navy"), 0.6
     line_width 2
 
 
@@ -210,36 +213,36 @@ theme_style "default", "box" ->
 // 
 // ============================================================================
 
-theme_background "default", "main" ->
+theme_background Theme:text, "main" ->
 // ----------------------------------------------------------------------------
 //    Default title background has rectangles at top and bottom
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_style theme, "border"
+        theme_style Theme, "border"
         rectangle 0, 0, slide_width * 1.1, slide_height * 0.9
         rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "default", "section" ->
+theme_background Theme:text, "section" ->
 // ----------------------------------------------------------------------------
 //    Default section background is the same
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_style theme, "border"
+        theme_style Theme, "border"
         rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
         rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
 
 
-theme_background "default", Master:text ->
+theme_background Theme:text, Master:text ->
 // ----------------------------------------------------------------------------
 //    Default background is solid white with a vertical bar on the left
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -300,
-        theme_style theme, "border"
+        theme_style Theme, "border"
         rectangle -slide_width * 0.5, 0, slide_width * 0.1, slide_height * 1.1
 
 
@@ -250,10 +253,10 @@ theme_background "default", Master:text ->
 // 
 // ============================================================================
 
-theme_slide_width  "default" -> 1920
-theme_slide_height "default" -> 1080
+theme_slide_width  Theme:text -> 1920
+theme_slide_height Theme:text -> 1080
 
-theme_layout "default", "main" ->
+theme_layout Theme:text, "main" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -261,7 +264,7 @@ theme_layout "default", "main" ->
     flow 0, -300, 1800, 200, "subtitle"
 
 
-theme_layout "default", "section" ->
+theme_layout Theme:text, "section" ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -269,7 +272,7 @@ theme_layout "default", "section" ->
     flow 0, -300, 1800, 200, "subtitle"
 
 
-theme_layout "default", Master:text ->
+theme_layout Theme:text, Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
@@ -288,34 +291,34 @@ theme_layout "default", Master:text ->
 // 
 // ============================================================================
 
-theme_title "default", "main", Body ->
+theme_title Theme:text, "main", Body ->
 // ----------------------------------------------------------------------------
 //    Default main title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "title",
-        theme_style theme, "main:title"
+        theme_style Theme, "main:title"
         Body
 
 
-theme_subtitle "default", "main", Body ->
+theme_subtitle Theme:text, "main", Body ->
 // ----------------------------------------------------------------------------
 //    Default main title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "subtitle",
-        theme_style theme, "main:subtitle"
+        theme_style Theme, "main:subtitle"
         Body
 
 
-theme_title "default", "section", Body ->
+theme_title Theme:text, "section", Body ->
 // ----------------------------------------------------------------------------
 //    Default section title (centered on the slide)
 // ----------------------------------------------------------------------------
     text_flow "title",
-        theme_style theme, "section:title"
+        theme_style Theme, "section:title"
         Body
 
 
-theme_subtitle "default", "section", Body ->
+theme_subtitle Theme:text, "section", Body ->
 // ----------------------------------------------------------------------------
 //    Default section title (centered on the slide)
 // ----------------------------------------------------------------------------
@@ -324,7 +327,7 @@ theme_subtitle "default", "section", Body ->
         Body
 
 
-theme_title "default", Master:text, Body ->
+theme_title Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default title is at the top
 // ----------------------------------------------------------------------------
@@ -333,12 +336,12 @@ theme_title "default", Master:text, Body ->
         Body
 
 
-theme_subtitle "default", Master:text, Body ->
+theme_subtitle Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default subtitle is below main title
 // ----------------------------------------------------------------------------
     text_flow "title",
-        theme_style theme, "subtitle"
+        theme_style Theme, "subtitle"
         Body
 
 
@@ -349,57 +352,57 @@ theme_subtitle "default", Master:text, Body ->
 // 
 // ============================================================================
 
-theme_story "default", Master:text, Body ->
+theme_story Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default story box
 // ----------------------------------------------------------------------------
-    theme_style theme, "story"
+    theme_style Theme, "story"
     text_flow "story", Body
 
 
-theme_left_column "default", Master:text, Body ->
+theme_left_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
-    theme_style theme, "story"
+    theme_style Theme, "story"
     text_flow "left", Body
 
 
-theme_right_column "default", Master:text, Body ->
+theme_right_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
-    theme_style theme, "story"
+    theme_style Theme, "story"
     text_flow "right", Body
 
 
-theme_picture "default", Master:text, Body ->
+theme_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default picture box
 // ----------------------------------------------------------------------------
     contents 0,
         translatey -90
-        theme_style theme, "picture"
+        theme_style Theme, "picture"
         Body
 
 
-theme_left_column_picture "default", Master:text, Body ->
+theme_left_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column picture
 // ----------------------------------------------------------------------------
     contents 0,
         translate -475, -90, 0
-        theme_style theme, "picture"
+        theme_style Theme, "picture"
         Body
 
 
-theme_right_column_picture "default", Master:text, Body ->
+theme_right_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column picture
 // ----------------------------------------------------------------------------
     contents 0,
         translate 475, -90, 0
-        theme_style theme, "picture"
+        theme_style Theme, "picture"
         Body
 
 
@@ -410,29 +413,29 @@ theme_right_column_picture "default", Master:text, Body ->
 // 
 // ============================================================================
 
-theme_bbox "default", Mast:text, X:real, Y:real, W:real, H:real ->
+theme_bbox Theme:text, Mast:text, X:real, Y:real, W:real, H:real ->
 // ----------------------------------------------------------------------------
 //   Draw the background box for text and flows
 // ----------------------------------------------------------------------------
     contents -10,
-        theme_style theme, "box"
+        theme_style Theme, "box"
         rectangle X, Y, W + 10, H + 10
 
 
-theme_box "default", Master:text, X:real, Y:real, W:real, H:real, Body ->
+theme_box Theme:text, Master:text, X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box
 // ----------------------------------------------------------------------------
-    theme_bbox theme, Master, X, Y, W, H
+    theme_bbox Theme, Master, X, Y, W, H
     contents 0,
         text_box X, Y, W, H, Body
 
 
-theme_flow "default", Master:text, X:real, Y:real, W:real, H:real, Flow:text ->
+theme_flow Theme:text, Master:text, X:real, Y:real, W:real, H:real, Flow:text ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box containing a flow
 // ----------------------------------------------------------------------------
-    theme_bbox theme, Master, X, Y, W, H
+    theme_bbox Theme, Master, X, Y, W, H
     contents 0,
         text_box Flow, X, Y, W, H
 
@@ -444,32 +447,32 @@ theme_flow "default", Master:text, X:real, Y:real, W:real, H:real, Flow:text ->
 // 
 // ============================================================================
 
-theme_bullet "default", Master:text, Level:integer, Text:text ->
+theme_bullet Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a bullet
 // ----------------------------------------------------------------------------
-    theme_bullet_style theme, Master, Level
+    theme_bullet_style Theme, Master, Level
     paragraph_break
     anchor
-        theme_bullet_color theme, Master, Level
-        theme_bullet_picture theme, Master, Level
+        theme_bullet_color Theme, Master, Level
+        theme_bullet_picture Theme, Master, Level
     text Text
 
 
-theme_item "default", Master:text, Level:integer, Text:text ->
+theme_item Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a text item (without bullet)
 // ----------------------------------------------------------------------------
-    theme_bullet_style theme, Master, Level
+    theme_bullet_style Theme, Master, Level
     paragraph_break
     text Text
 
 
-theme_numbered_item "default", Master:text, Level:integer, Text:text ->
+theme_numbered_item Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a numbered text item
 // ----------------------------------------------------------------------------
-    theme_bullet_style theme, Master, Level
+    theme_bullet_style Theme, Master, Level
     paragraph_break
     default_item_level := Level
     text text default_item_number[default_item_level] & ". "
@@ -478,7 +481,7 @@ theme_numbered_item "default", Master:text, Level:integer, Text:text ->
     default_item_number[default_item_level+1] := 1
 
 
-theme_reset "default" ->
+theme_reset Theme:text ->
 // ----------------------------------------------------------------------------
 //    Reset theme numbers
 // ----------------------------------------------------------------------------
@@ -492,36 +495,36 @@ default_item_level -> 1
 data default_item_number
 
 
-theme_bullet_size "default", Master:text, 1 -> 62
-theme_bullet_size "default", Master:text, 2 -> 52
-theme_bullet_size "default", Master:text, Level:integer -> 42
+theme_bullet_size Theme:text, Master:text, 1 -> 62
+theme_bullet_size Theme:text, Master:text, 2 -> 52
+theme_bullet_size Theme:text, Master:text, Level:integer -> 42
 // ----------------------------------------------------------------------------
 //    Default size of a bullet
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_color "default", Master:text, 1 -> theme_style theme, "bullet:1"
-theme_bullet_color "default", Master:text, 2 -> theme_style theme, "bullet:2"
-theme_bullet_color "default", Master:text, 3 -> theme_style theme, "bullet:3"
-theme_bullet_color "default", Master:text, N -> theme_style theme, "bullet"
+theme_bullet_color Theme:text, Master:text, 1 -> theme_style Theme, "bullet:1"
+theme_bullet_color Theme:text, Master:text, 2 -> theme_style Theme, "bullet:2"
+theme_bullet_color Theme:text, Master:text, 3 -> theme_style Theme, "bullet:3"
+theme_bullet_color Theme:text, Master:text, N -> theme_style Theme, "bullet"
 // ----------------------------------------------------------------------------
 //    Default bullet fill colors
 // ----------------------------------------------------------------------------
 
 
-theme_bullet_style "default", Master:text, Level:integer ->
+theme_bullet_style Theme:text, Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //   Default style of a bullet point
 // ----------------------------------------------------------------------------
     plain
-    theme_style theme, "story"
-    margins Level * theme_bullet_size(theme, Master, Level), 0
-    font_size theme_bullet_size (theme, Master, Level)
+    theme_style Theme, "story"
+    margins Level * theme_bullet_size(Theme, Master, Level), 0
+    font_size theme_bullet_size (Theme, Master, Level)
 
 
-theme_bullet_picture "default", Master:text, Level:integer ->
+theme_bullet_picture Theme:text, Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default style of a bullet
 // ----------------------------------------------------------------------------
     theme_bullet_circle S:real -> circle -50% * S, 30% * S, 12% * S
-    theme_bullet_circle theme_bullet_size (theme, Master, Level)
+    theme_bullet_circle theme_bullet_size (Theme, Master, Level)

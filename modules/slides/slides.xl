@@ -96,9 +96,9 @@ theme T:text ->
 
 
 // Define the default themes
+import "default.xl"
 import "keyboard.xl"
 import "seyes.xl"
-import "default.xl"
 
 
 

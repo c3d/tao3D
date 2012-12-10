@@ -992,8 +992,8 @@ private:
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
     QToolBar             *currentToolBar;
-    QVector<MenuInfo*>    orderedMenuElements;
-    int                   order;
+    QVector<MenuInfo*>    menuItems;
+    int                   menuCount;
     Tree_p                colorAction, fontAction;
     text                  colorName;
     std::map<text,Color>  selectionColor;

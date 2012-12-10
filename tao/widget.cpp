@@ -186,7 +186,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       hadSelection(false), selectionChanged(false),
       w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
-      orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
+      menuItems(QVector<MenuInfo*>(10, NULL)), menuCount(0),
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
@@ -398,7 +398,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       keyboardModifiers(o.keyboardModifiers),
       currentMenu(o.currentMenu), currentMenuBar(o.currentMenuBar),
       currentToolBar(o.currentToolBar),
-      orderedMenuElements(o.orderedMenuElements), order(o.order),
+      menuItems(o.menuItems), menuCount(o.menuCount),
       colorAction(o.colorAction), fontAction(o.fontAction),
       colorName(o.colorName), selectionColor(o.selectionColor),
       originalColor(o.originalColor),
@@ -1202,18 +1202,21 @@ void Widget::runProgramOnce()
     // If we have evaluation errors, show them (bug #498)
     checkErrors(true);
 
-    // Clean the end of the old menu list.
-    for  (; order < orderedMenuElements.count(); order++)
+    // Clean the end of the old menu list, unless in a transition.
+    if (menuCount >= 0)
     {
-        delete orderedMenuElements[order];
-        orderedMenuElements[order] = NULL;
+        for  (; menuCount < menuItems.count(); menuCount++)
+        {
+            delete menuItems[menuCount];
+            menuItems[menuCount] = NULL;
+        }
+        
+        // Reset the menuCount value.
+        menuCount          = 0;
+        currentMenu    = NULL;
+        currentToolBar = NULL;
+        currentMenuBar = taoWindow()->menuBar();
     }
-
-    // Reset the order value.
-    order          = 0;
-    currentMenu    = NULL;
-    currentToolBar = NULL;
-    currentMenuBar = taoWindow()->menuBar();
 
     // Check pending events
     processProgramEvents();
@@ -5157,6 +5160,7 @@ Tree_p Widget::runTransition(Context *context)
     }
     else
     {
+        menuCount = -1;
         result = context->Evaluate(transitionTree);
     }
     return result;
@@ -11514,7 +11518,7 @@ void Widget::checkErrors(bool clear)
 //   modified at each execution. At each loop, for each element (menu,
 //   menu_item, toolbar,...) there name is looked for as a main window children,
 //   if found, the order is checked against the registered value in
-//   orderedMenuElements. If the order is OK, the label, etc are updated; if not
+//   menuItems. If the order is OK, the label, etc are updated; if not
 //   or not found at all a new element is created and registered.
 // ============================================================================
 
@@ -11524,6 +11528,9 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
+    // Do not update menus during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -11532,9 +11539,9 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     if (QAction* act = taoWindow()->findChild<QAction*>(fullName))
     {
         // MenuItem found, update label, icon, checkmark if the order is OK.
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullName)
+        if (menuCount < menuItems.size() &&
+            menuItems[menuCount] != NULL &&
+            menuItems[menuCount]->fullname == fullName)
         {
             act->setText(+lbl);
             if (iconFileName != "")
@@ -11543,7 +11550,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
                 act->setIcon(QIcon());
             act->setChecked(strcasecmp(isChecked->value.c_str(), "true") == 0);
 
-            order++;
+            menuCount++;
             return XL::xl_true;
         }
 
@@ -11557,7 +11564,8 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     IFTRACE(menus)
     {
         std::cerr << "menuItem CREATION with name "
-                  << fullName.toStdString() << " and order " << order << "\n";
+                  << fullName.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
 
@@ -11592,18 +11600,18 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     p_action->setChecked(strcasecmp(isChecked->value.c_str(), "true") == 0);
     p_action->setObjectName(fullName);
 
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
-    if (orderedMenuElements[order])
+    if (menuItems[menuCount])
     {
-        QAction*before = orderedMenuElements[order]->p_action;
+        QAction*before = menuItems[menuCount]->p_action;
         if (currentMenu)
             currentMenu->insertAction(before, p_action);
         else
             currentToolBar->insertAction(before, p_action);
 
-        delete orderedMenuElements[order];
+        delete menuItems[menuCount];
     }
     else
     {
@@ -11613,9 +11621,8 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
             currentToolBar->addAction(p_action);
     }
 
-    orderedMenuElements[order] = new MenuInfo(fullName,
-                                              p_action);
-    order++;
+    menuItems[menuCount] = new MenuInfo(fullName, p_action);
+    menuCount++;
 
     return XL::xl_true;
 }
@@ -11627,6 +11634,10 @@ Tree_p  Widget::menuItemEnable(Tree_p self, text name, bool enable)
 //  Enable or disable a menu item
 // ----------------------------------------------------------------------------
 {
+    // Do not update menus during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -11648,6 +11659,10 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
+    // Do not update menus during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
     bool isContextMenu = false;
 
     // Build the full name of the menu
@@ -11658,7 +11673,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         isContextMenu = true;
     }
 
-    // If the menu is registered, no need to recreate it if the order is exact.
+    // If the menu is registered, no need to recreate it if same order as before
     // This is used at reload time.
     if (QMenu *tmp = taoWindow()->findChild<QMenu*>(fullname))
     {
@@ -11669,9 +11684,9 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
             return XL::xl_true;
         }
 
-        if (order < orderedMenuElements.size())
+        if (menuCount < menuItems.size())
         {
-            if (MenuInfo *menuInfo = orderedMenuElements[order])
+            if (MenuInfo *menuInfo = menuItems[menuCount])
             {
                 if (menuInfo->fullname == fullname)
                 {
@@ -11690,7 +11705,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
                             currentMenu->setIcon(QIcon());
                         menuInfo->icon = iconFileName;
                     }
-                    order++;
+                    menuCount++;
                     return XL::xl_true;
                 }
             }
@@ -11724,15 +11739,15 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
     if (iconFileName != "")
         currentMenu->setIcon(QIcon(+iconFileName));
 
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
     if (par)
     {
         QAction *before = NULL;
-        if (orderedMenuElements[order])
+        if (menuItems[menuCount])
         {
-            before = orderedMenuElements[order]->p_action;
+            before = menuItems[menuCount]->p_action;
         }
         else
         {
@@ -11754,22 +11769,22 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
             button->setPopupMode(QToolButton::InstantPopup);
     }
 
-    if (orderedMenuElements[order])
-        delete orderedMenuElements[order];
+    if (menuItems[menuCount])
+        delete menuItems[menuCount];
 
-    orderedMenuElements[order] = new MenuInfo(fullname,
-                                              currentMenu->menuAction());
-    orderedMenuElements[order]->title = lbl;
-    orderedMenuElements[order]->icon = iconFileName;
+    menuItems[menuCount] = new MenuInfo(fullname, currentMenu->menuAction());
+    menuItems[menuCount]->title = lbl;
+    menuItems[menuCount]->icon = iconFileName;
 
     IFTRACE(menus)
     {
         std::cerr << "menu CREATION with name "
-                  << fullname.toStdString() << " and order " << order << "\n";
+                  << fullname.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
 
-    order++;
+    menuCount++;
 
     return XL::xl_true;
 }
@@ -11795,17 +11810,21 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
+    // Do not update toolbars during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
     QString fullname = +name;
     Window *win = taoWindow();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
     {
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (menuCount < menuItems.size() &&
+            menuItems[menuCount] != NULL &&
+            menuItems[menuCount]->fullname == fullname)
         {
             // Set the currentMenu and update the label and icon.
             currentToolBar = tmp;
-            order++;
+            menuCount++;
             currentMenuBar = NULL;
             currentMenu = NULL;
             return XL::xl_true;
@@ -11853,19 +11872,20 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
     IFTRACE(menus)
     {
         std::cerr << "toolbar CREATION with name "
-                  << fullname.toStdString() << " and order " << order << "\n";
+                  << fullname.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
 
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
-    if (orderedMenuElements[order])
-        delete orderedMenuElements[order];
+    if (menuItems[menuCount])
+        delete menuItems[menuCount];
 
-    orderedMenuElements[order] = new MenuInfo(fullname, currentToolBar);
+    menuItems[menuCount] = new MenuInfo(fullname, currentToolBar);
 
-    order++;
+    menuCount++;
     currentMenuBar = NULL;
     currentMenu = NULL;
 
@@ -11878,22 +11898,19 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
-    QString fullname = QString("SEPARATOR_%1").arg(order);
+    // Do not update toolbars during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
+    QString fullname = QString("SEPARATOR_%1").arg(menuCount);
 
     if (QAction *tmp = taoWindow()->findChild<QAction*>(fullname))
     {
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (menuCount < menuItems.size() &&
+            menuItems[menuCount] != NULL &&
+            menuItems[menuCount]->fullname == fullname)
         {
-//            IFTRACE(menus)
-//            {
-//                std::cerr << "separator found with name "
-//                          << fullname.toStdString() << " and order "
-//                          << order << "\n";
-//                std::cerr.flush();
-//            }
-            order++;
+            menuCount++;
             return XL::xl_true;
         }
 
@@ -11915,28 +11932,29 @@ Tree_p  Widget::separator(Tree_p self)
     IFTRACE(menus)
     {
         std::cerr << "separator CREATION with name "
-                  << fullname.toStdString() << " and order " << order << "\n";
+                  << fullname.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
-    if (orderedMenuElements[order])
+    if (menuItems[menuCount])
     {
         if (par)
         {
-            QAction *before = orderedMenuElements[order]->p_action;
+            QAction *before = menuItems[menuCount]->p_action;
             par->insertAction(before, act);
         }
-        delete orderedMenuElements[order];
+        delete menuItems[menuCount];
     }
     else
     {
         if (par)
             par->addAction(act);
     }
-    orderedMenuElements[order] = new MenuInfo(fullname, act);
-    order++;
+    menuItems[menuCount] = new MenuInfo(fullname, act);
+    menuCount++;
     return XL::xl_true;
 }
 

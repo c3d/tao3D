@@ -1219,6 +1219,57 @@ text uc 169 & " Ta" & uc "x6f" & "dy" & uc "x6E" & "e"
  */
 unicode_char(code:text);
 
+
+/**
+ * @~english
+ * Positions graphics relative to the current text position.
+ * The graphics described by @p Body are drawn relative to the current
+ * text position, i.e. the graphic moves with the text.
+ * For example, the following draws a red dot immediately before "World":
+ * @~french
+ * Positionne un graphique par rapport à la position actuelle du texte.
+ * Le graphique décrit par @p Body est positionné par rapport à la
+ * position actuelle du texte, c'est à dire que le graphique se
+ * déplace avec le texte.
+ * Par exemple, pour dessiner un point rouge juste sous "World" :
+ * @~
+ * @code
+text_box 0, 0, 800, 600,
+    text "Hello" & text page_time
+    anchor
+        color "red"
+        circle 0, -10, 5
+    text "World"
+ * @endcode
+ */
+anchor(Body:code);
+
+
+/**
+ * @~english
+ * Positions graphics relative to the current text box
+ * The graphics described by @p Body are drawn relative to the current
+ * text box, i.e. the graphic does not move with the text.
+ * For example, the following draws a rectangle covering the text box:
+ * @~french
+ * Positionne un graphique par rapport à la position actuelle de la boîte de texte.
+ * Le graphique décrit par @p Body est positionné par rapport à la boîte de texte,
+ * et non par rapport à la position actuelle du texte, c'est à dire que le graphique
+ * ne se déplace pas avec le texte.
+ * Par exemple, le code suivant dessine un rectangle couvrant la boîte de texte :
+ * @~
+ * @code
+text_box 0, 0, 800, 600,
+    text "Hello" & text page_time
+    floating
+        color "red", 0.3
+        rectangle 0, 0, 800, 600
+    text "World"
+ * @endcode
+ */
+floating(Body:code);
+
+
 /**
  * @}
  */

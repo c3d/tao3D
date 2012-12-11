@@ -17,6 +17,9 @@
 // Copyright Taodyne SAS, 2012
 // Contributors:
 //   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
 //
 // <contact@taodyne.com>
 //
@@ -62,140 +65,33 @@ theme "Keyboard" -> theme "keyboard"
 
 // A few colors we selected for the theme (these are from the Taodyne palette)
 theme_color "keyboard", "darkgrey"  -> "#333"
+theme_color "keyboard", "grey"      -> "#555"
+theme_color "keyboard", "black"     -> "black"
+theme_color "keyboard", "red"       -> "#B46"
+theme_color "keyboard", "orange"    -> "#C54"
+theme_color "keyboard", "navy"      -> "#456"
+
+theme_color "keyboard", Master:text, "story" -> color "#333"
+theme_color "keyboard", Master:text, "title" -> color "#555"
+theme_color "keyboard", Master:text, "subtitle" -> color "#777"
+
+theme_font "keyboard", Master:text, "story" -> font "Ubuntu", "Arial"
+theme_boxstyle "keyboard",Master:text,Style:text-> color "white", 0.5
+
+
+theme_box "keyboard",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        rounded_rectangle X, Y, W + 10, H + 10, 20
 
 
 
 // ============================================================================
 // 
-//    Styles for the various elements
-// 
-// ============================================================================
-
-theme_style "keyboard", "title" ->
-// ----------------------------------------------------------------------------
-//    Style for title in normal slides
-// ----------------------------------------------------------------------------
-    font "Ubuntu", "Arial", 80, bold
-    color theme_color (theme, "darkgrey")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style "keyboard", "subtitle" ->
-// ----------------------------------------------------------------------------
-//    Style for section subtitle
-// ----------------------------------------------------------------------------
-    font "Ubuntu", "Arial", 60, bold
-    color theme_color (theme, "grey")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style "keyboard", "story" ->
-// ----------------------------------------------------------------------------
-//    Style for story text
-// ----------------------------------------------------------------------------
-    font "Ubuntu", "Arial", 50
-    color theme_color (theme, "black")
-    paragraph_space 30, 30
-    align 0
-    vertical_align 0.3
-
-
-theme_style "keyboard", "main:title" ->
-// ----------------------------------------------------------------------------
-//   Style for main title
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "red")
-    font "Ubuntu", "Arial", 120, bold
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style "keyboard", "main:subtitle" ->
-// ----------------------------------------------------------------------------
-//   Style for main subtitle
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "navy")
-    font "Ubuntu", "Arial", 90, bold
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style "keyboard", "section:title" ->
-// ----------------------------------------------------------------------------
-//    Style for section title
-// ----------------------------------------------------------------------------
-    font "Ubuntu", "Arial", 120, bold
-    color theme_color (theme, "red")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style "keyboard", "section:subtitle" ->
-// ----------------------------------------------------------------------------
-//    Style for section subtitle
-// ----------------------------------------------------------------------------
-    font "Ubuntu", "Arial", 85, bold
-    color theme_color (theme, "orange")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style "keyboard", "picture" ->
-// ----------------------------------------------------------------------------
-//   Style for pictures
-// ----------------------------------------------------------------------------
-    color "white"
-
-
-theme_style "keyboard", "border" ->
-// ----------------------------------------------------------------------------
-//   Border color for title pages
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "grey"), 0.3
-
-
-theme_style "keyboard", "bullet:1" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "darkgrey")
-
-
-theme_style "keyboard", "bullet:2" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "darkgrey")
-
-
-theme_style "keyboard", "bullet:3" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "darkgrey")
-
-
-theme_style "keyboard", "bullet" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (theme, "darkgrey")
-
-
-theme_style "keyboard", "box" ->
-// ----------------------------------------------------------------------------
-//   Style for text boxes
-// ----------------------------------------------------------------------------
-    color "white", 0.5
-    line_color "transparent"
-
-
-
-// ============================================================================
-// 
-//    Background pictures
+//    Background picture
 // 
 // ============================================================================
 
@@ -205,7 +101,7 @@ theme_background "keyboard", Master:text ->
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -500,
-        theme_style theme, "picture"
+        theme_style theme, Master, "picture"
         image 0, 0, 1.1, 1.1, "image:keyboard.jpg"
 
 
@@ -216,7 +112,7 @@ theme_background "keyboard", Master:text ->
 // 
 // ============================================================================
 
-theme_bbox "keyboard", Mast:text, X:real, Y:real, W:real, H:real ->
+theme_bbox "keyboard", Master:text, X:real, Y:real, W:real, H:real ->
 // ----------------------------------------------------------------------------
 //   Draw the background box for text and flows
 // ----------------------------------------------------------------------------

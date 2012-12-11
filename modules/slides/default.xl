@@ -51,30 +51,51 @@
 // ****************************************************************************
 
 // This file is designed to be overriden by themes, etc.
-override_priority -1
+override_priority -2
+
+
 
 // ============================================================================
 // 
-//    Color palette
+//    Easily configurable parameters
 // 
 // ============================================================================
 
-// A few colors we selected for the theme (these are from the Taodyne palette)
-theme_color Theme:text, "red"       -> "#AA0022"
-theme_color Theme:text, "orange"    -> "#DD3311"
-theme_color Theme:text, "yellow"    -> "#EEAA11"
-theme_color Theme:text, "green"     -> "#88BB00"
-theme_color Theme:text, "ocean"     -> "#229988"
-theme_color Theme:text, "sky"       -> "#3399FF"
-theme_color Theme:text, "navy"      -> "#003366"
-theme_color Theme:text, "purple"    -> "#CC0099"
-theme_color Theme:text, "grey"      -> "#555"
-theme_color Theme:text, "black"     -> "black"
-theme_color Theme:text, "lightblue" -> "#3399FF"
-theme_color Theme:text, "darkblue"  -> "#003366"
-theme_color Theme:text, "darkgreen" -> "#006633"
-theme_color Theme:text, "brown"     -> "#7E3830"
-theme_color Theme:text, Color:text  -> Color
+theme_background Theme:text,Master:text         -> clear_color 1, 1, 1, 1
+
+theme_color Theme:text,Master:text,"picture"    -> color "white"
+theme_color Theme:text,Master:text,"story"      -> color "black"
+theme_color Theme:text,Master:text,"story",N    -> theme_color Theme,Master,"story"
+theme_color Theme:text,Master:text,Style:text   -> theme_color Theme,Master,"story"
+theme_color Theme:text,Master:text,Style:text,N -> theme_color Theme,Master,"story",N
+
+theme_font Theme:text,Master:text,"story"       -> font "Ubuntu", "TeX Gyre Adventor", "Arial"
+theme_font Theme:text,Master:text,Style:text    -> theme_font Theme,Master,"story"
+theme_font Theme:text,Master:text,"story",N     -> theme_font Theme,Master,"story"
+theme_font Theme:text,Master:text,Style:text,N  -> theme_font Theme,Master,"story",N
+
+theme_size Theme:text,Master:text,"story"       -> 52
+theme_size Theme:text,Master:text,"title"       -> 90
+theme_size Theme:text,Master:text,"subtitle"    -> 70
+theme_size Theme:text,Master:text,"story",1     -> 52
+theme_size Theme:text,Master:text,"story",2     -> 48
+theme_size Theme:text,Master:text,"story",3     -> 44
+theme_size Theme:text,Master:text,"story",4     -> 40
+theme_size Theme:text,Master:text,Style:text    -> theme_size Theme,Master, "story"
+theme_size Theme:text,Master:text,Style:text,N  -> theme_size Theme,Master,"story",N
+
+theme_align Theme:text,Master:text,"story"      -> align 0.0; vertical_align 0.3
+theme_align Theme:text,Master:text,"title"      -> align 0.5; vertical_align 0.5
+theme_align Theme:text,Master:text,"subtitle"   -> theme_align Theme,Master,"title"
+theme_align Theme:text,Master:text,Style:text   -> theme_align Theme,Master, "story"
+theme_align Theme:text,Master:text,"story",N    -> margins 20+10*N, 0
+theme_align Theme:text,Master:text,Style:text,N -> theme_align Theme,Master,"story",N
+
+theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1
+
+
+theme_slide_width  Theme:text -> 1920
+theme_slide_height Theme:text -> 1080
 
 
 
@@ -84,204 +105,24 @@ theme_color Theme:text, Color:text  -> Color
 // 
 // ============================================================================
 
-theme_style Theme:text, "title" ->
+theme_style Theme:text, Master:text, Style:text ->
 // ----------------------------------------------------------------------------
 //    Style for title in normal slides
 // ----------------------------------------------------------------------------
-    font "TeX Gyre Adventor", "Arial", 80, bold
-    color theme_color (Theme, "brown")
-    align 0.5
-    vertical_align 0.5
+    theme_font Theme, Master, Style
+    font_size theme_size(Theme, Master, Style)
+    theme_color Theme, Master, Style
+    theme_align Theme, Master, Style
 
 
-theme_style Theme:text, "subtitle" ->
+theme_style Theme:text, Master:text, Style:text, Level:integer ->
 // ----------------------------------------------------------------------------
-//    Style for section subtitle
+//    Style for title in normal slides
 // ----------------------------------------------------------------------------
-    font "TeX Gyre Adventor", "Arial", 60, bold
-    color theme_color (Theme, "navy")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style Theme:text, "story" ->
-// ----------------------------------------------------------------------------
-//    Style for story text
-// ----------------------------------------------------------------------------
-    font "TeX Gyre Adventor", "Arial", 50
-    color theme_color (Theme, "black")
-    paragraph_space 30, 30
-    align 0
-    vertical_align 0.3
-
-
-theme_style Theme:text, "main:title" ->
-// ----------------------------------------------------------------------------
-//   Style for main title
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "red")
-    font "TeX Gyre Adventor", "Arial", 150, bold
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style Theme:text, "main:subtitle" ->
-// ----------------------------------------------------------------------------
-//   Style for main subtitle
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "brown")
-    font "TeX Gyre Adventor", "Arial", 90, bold
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style Theme:text, "section:title" ->
-// ----------------------------------------------------------------------------
-//    Style for section title
-// ----------------------------------------------------------------------------
-    font "TeX Gyre Adventor", "Arial", 120, bold
-    color theme_color (Theme, "red")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style Theme:text, "section:subtitle" ->
-// ----------------------------------------------------------------------------
-//    Style for section subtitle
-// ----------------------------------------------------------------------------
-    font "TeX Gyre Adventor", "Arial", 85, bold
-    color theme_color (Theme, "brown")
-    align 0.5
-    vertical_align 0.5
-
-
-theme_style Theme:text, "picture" ->
-// ----------------------------------------------------------------------------
-//   Style for pictures
-// ----------------------------------------------------------------------------
-    color "white"
-
-
-theme_style Theme:text, "border" ->
-// ----------------------------------------------------------------------------
-//   Border color for title pages
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "brown"), 0.3
-
-
-theme_style Theme:text, "bullet:1" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "red")
-
-
-theme_style Theme:text, "bullet:2" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "navy")
-
-
-theme_style Theme:text, "bullet:3" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "brown")
-
-
-theme_style Theme:text, "bullet" ->
-// ----------------------------------------------------------------------------
-//   Bullet color
-// ----------------------------------------------------------------------------
-    color theme_color (Theme, "orange")
-
-
-theme_style Theme:text, "box" ->
-// ----------------------------------------------------------------------------
-//   Style for text boxes
-// ----------------------------------------------------------------------------
-    color "transparent"
-    line_color theme_color (Theme, "navy"), 0.6
-    line_width 2
-
-
-
-// ============================================================================
-// 
-//    Background pictures
-// 
-// ============================================================================
-
-theme_background Theme:text, "main" ->
-// ----------------------------------------------------------------------------
-//    Default title background has rectangles at top and bottom
-// ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
-    background -300,
-        theme_style Theme, "border"
-        rectangle 0, 0, slide_width * 1.1, slide_height * 0.9
-        rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
-        rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
-
-
-theme_background Theme:text, "section" ->
-// ----------------------------------------------------------------------------
-//    Default section background is the same
-// ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
-    background -300,
-        theme_style Theme, "border"
-        rectangle 0, slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
-        rectangle 0, -slide_height * 0.5, slide_width * 1.1, slide_height * 0.2
-
-
-theme_background Theme:text, Master:text ->
-// ----------------------------------------------------------------------------
-//    Default background is solid white with a vertical bar on the left
-// ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
-    background -300,
-        theme_style Theme, "border"
-        rectangle -slide_width * 0.5, 0, slide_width * 0.1, slide_height * 1.1
-
-
-
-// ============================================================================
-// 
-//    Layout for the various kind of pages
-// 
-// ============================================================================
-
-theme_slide_width  Theme:text -> 1920
-theme_slide_height Theme:text -> 1080
-
-theme_layout Theme:text, "main" ->
-// ----------------------------------------------------------------------------
-//    Centered flows
-// ----------------------------------------------------------------------------
-    flow 0, 0, 1800, 300, "title"
-    flow 0, -300, 1800, 200, "subtitle"
-
-
-theme_layout Theme:text, "section" ->
-// ----------------------------------------------------------------------------
-//    Centered flows
-// ----------------------------------------------------------------------------
-    flow 0, 0, 1800, 300, "title"
-    flow 0, -300, 1800, 200, "subtitle"
-
-
-theme_layout Theme:text, Master:text ->
-// ----------------------------------------------------------------------------
-//    Centered flows
-// ----------------------------------------------------------------------------
-    flow 0, 450, 1800, 140, "title"
-
-    flow 0, -90, 1800, 850, "story"
-    flow 0, -90, 1800, 850, "picture"
-    flow -475, -90, 850, 850, "left"
-    flow  475, -90, 850, 850, "right"
+    theme_font Theme, Master, Style, Level
+    font_size theme_size(Theme, Master, Style, Level)
+    theme_color Theme, Master, Style, Level
+    theme_align Theme, Master, Style, Level
 
 
 
@@ -291,57 +132,21 @@ theme_layout Theme:text, Master:text ->
 // 
 // ============================================================================
 
-theme_title Theme:text, "main", Body ->
-// ----------------------------------------------------------------------------
-//    Default main title (centered on the slide)
-// ----------------------------------------------------------------------------
-    text_flow "title",
-        theme_style Theme, "main:title"
-        Body
-
-
-theme_subtitle Theme:text, "main", Body ->
-// ----------------------------------------------------------------------------
-//    Default main title (centered on the slide)
-// ----------------------------------------------------------------------------
-    text_flow "subtitle",
-        theme_style Theme, "main:subtitle"
-        Body
-
-
-theme_title Theme:text, "section", Body ->
-// ----------------------------------------------------------------------------
-//    Default section title (centered on the slide)
-// ----------------------------------------------------------------------------
-    text_flow "title",
-        theme_style Theme, "section:title"
-        Body
-
-
-theme_subtitle Theme:text, "section", Body ->
-// ----------------------------------------------------------------------------
-//    Default section title (centered on the slide)
-// ----------------------------------------------------------------------------
-    text_flow "subtitle",
-        theme_style theme, "section:subtitle"
-        Body
-
-
 theme_title Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default title is at the top
+//    Default implementation for title
 // ----------------------------------------------------------------------------
     text_flow "title",
-        theme_style theme, "title"
+        theme_style Theme, Master, "title"
         Body
 
 
 theme_subtitle Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default subtitle is below main title
+//    Default main title (centered on the slide)
 // ----------------------------------------------------------------------------
-    text_flow "title",
-        theme_style Theme, "subtitle"
+    text_flow "subtitle",
+        theme_style Theme, Master, "subtitle"
         Body
 
 
@@ -356,7 +161,7 @@ theme_story Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default story box
 // ----------------------------------------------------------------------------
-    theme_style Theme, "story"
+    theme_style Theme, Master, "story"
     text_flow "story", Body
 
 
@@ -364,7 +169,7 @@ theme_left_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
-    theme_style Theme, "story"
+    theme_style Theme, Master, "left"
     text_flow "left", Body
 
 
@@ -372,38 +177,71 @@ theme_right_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
-    theme_style Theme, "story"
+    theme_style Theme, Master, "right"
     text_flow "right", Body
 
 
 theme_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default picture box
+//    Default picture box (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     contents 0,
-        translatey -90
-        theme_style Theme, "picture"
+        translatey -120
+        theme_color Theme, Master, "picture"
         Body
 
 
 theme_left_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default left column picture
+//    Default left column picture (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     contents 0,
-        translate -475, -90, 0
-        theme_style Theme, "picture"
+        translate -475, -120, 0
+        theme_color Theme, Master, "picture"
         Body
 
 
 theme_right_column_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
-//    Default right column picture
+//    Default right column picture (keep consistent with layout below)
 // ----------------------------------------------------------------------------
     contents 0,
-        translate 475, -90, 0
-        theme_style Theme, "picture"
+        translate 475, -120, 0
+        theme_color Theme, Master, "picture"
         Body
+
+
+
+// ============================================================================
+// 
+//    Layout for the various kind of pages
+// 
+// ============================================================================
+
+theme_layout Theme:text, "main" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 50, 1800, 400, "title"
+    flow 0, -300, 1800, 200, "subtitle"
+
+
+theme_layout Theme:text, "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 50, 1800, 250, "title"
+    flow 0, -300, 1800, 150, "subtitle"
+
+
+theme_layout Theme:text, Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flows 0, 400, 1800, 220, "title", "subtitle"
+    flow 0, -120, 1800, 750, "story"
+    flow -475, -120, 850, 750, "left"
+    flow  475, -120, 850, 750, "right"
 
 
 
@@ -413,31 +251,22 @@ theme_right_column_picture Theme:text, Master:text, Body ->
 // 
 // ============================================================================
 
-theme_bbox Theme:text, Mast:text, X:real, Y:real, W:real, H:real ->
+theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------
 //   Draw the background box for text and flows
 // ----------------------------------------------------------------------------
     contents -10,
-        theme_style Theme, "box"
+        theme_boxstyle Theme, Master, Style
         rectangle X, Y, W + 10, H + 10
 
 
-theme_box Theme:text, Master:text, X:real, Y:real, W:real, H:real, Body ->
+theme_text Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
 // ----------------------------------------------------------------------------
 //   Draw a default text box
 // ----------------------------------------------------------------------------
-    theme_bbox Theme, Master, X, Y, W, H
+    theme_box Theme, Master, Style, X, Y, W, H
     contents 0,
         text_box X, Y, W, H, Body
-
-
-theme_flow Theme:text, Master:text, X:real, Y:real, W:real, H:real, Flow:text ->
-// ----------------------------------------------------------------------------
-//   Draw a default text box containing a flow
-// ----------------------------------------------------------------------------
-    theme_bbox Theme, Master, X, Y, W, H
-    contents 0,
-        text_box Flow, X, Y, W, H
 
 
 
@@ -447,24 +276,24 @@ theme_flow Theme:text, Master:text, X:real, Y:real, W:real, H:real, Flow:text ->
 // 
 // ============================================================================
 
-theme_bullet Theme:text, Master:text, Level:integer, Text:text ->
-// ----------------------------------------------------------------------------
-//   Default formatting for a bullet
-// ----------------------------------------------------------------------------
-    theme_bullet_style Theme, Master, Level
-    paragraph_break
-    anchor
-        theme_bullet_color Theme, Master, Level
-        theme_bullet_picture Theme, Master, Level
-    text Text
-
-
 theme_item Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a text item (without bullet)
 // ----------------------------------------------------------------------------
-    theme_bullet_style Theme, Master, Level
+    theme_style Theme, Master, "story", Level
     paragraph_break
+    text Text
+
+
+theme_bullet Theme:text, Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a bullet
+// ----------------------------------------------------------------------------
+    theme_style Theme, Master, "story", Level
+    paragraph_break
+    anchor
+        theme_style Theme, Master, "bullet"
+        theme_bullet_picture Theme, Master, Level
     text Text
 
 
@@ -472,10 +301,11 @@ theme_numbered_item Theme:text, Master:text, Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Default formatting for a numbered text item
 // ----------------------------------------------------------------------------
-    theme_bullet_style Theme, Master, Level
+    theme_style Theme, Master, "number", Level
     paragraph_break
     default_item_level := Level
     text text default_item_number[default_item_level] & ". "
+    theme_style Theme, Master, "story", Level
     text Text
     default_item_number[default_item_level] := 1 + default_item_number[default_item_level]
     default_item_number[default_item_level+1] := 1
@@ -495,36 +325,9 @@ default_item_level -> 1
 data default_item_number
 
 
-theme_bullet_size Theme:text, Master:text, 1 -> 62
-theme_bullet_size Theme:text, Master:text, 2 -> 52
-theme_bullet_size Theme:text, Master:text, Level:integer -> 42
-// ----------------------------------------------------------------------------
-//    Default size of a bullet
-// ----------------------------------------------------------------------------
-
-
-theme_bullet_color Theme:text, Master:text, 1 -> theme_style Theme, "bullet:1"
-theme_bullet_color Theme:text, Master:text, 2 -> theme_style Theme, "bullet:2"
-theme_bullet_color Theme:text, Master:text, 3 -> theme_style Theme, "bullet:3"
-theme_bullet_color Theme:text, Master:text, N -> theme_style Theme, "bullet"
-// ----------------------------------------------------------------------------
-//    Default bullet fill colors
-// ----------------------------------------------------------------------------
-
-
-theme_bullet_style Theme:text, Master:text, Level:integer ->
-// ----------------------------------------------------------------------------
-//   Default style of a bullet point
-// ----------------------------------------------------------------------------
-    plain
-    theme_style Theme, "story"
-    margins Level * theme_bullet_size(Theme, Master, Level), 0
-    font_size theme_bullet_size (Theme, Master, Level)
-
-
 theme_bullet_picture Theme:text, Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
 //    Default style of a bullet
 // ----------------------------------------------------------------------------
     theme_bullet_circle S:real -> circle -50% * S, 30% * S, 12% * S
-    theme_bullet_circle theme_bullet_size (Theme, Master, Level)
+    theme_bullet_circle theme_size (Theme, Master, "bullet", Level)

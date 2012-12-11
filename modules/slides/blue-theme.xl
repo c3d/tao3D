@@ -1,10 +1,10 @@
 // ****************************************************************************
-//  seyes-theme.xl                                                Tao project
+//  blue-theme.xl                                                Tao project
 // ****************************************************************************
 //
 //   File Description:
 //
-//     Define a seyes theme for slides.
+//     Define a blue theme with graphics from Claire
 //
 //
 //
@@ -20,6 +20,7 @@
 //   Christophe de Dinechin <christophe@taodyne.com>
 //   Jérôme Forissier <jerome@taodyne.com>
 //   Catherine Burvelle <cathy@taodyne.com>
+//   Claire Hyvrier <claire.hyvrier@taodyne.com>
 //
 // <contact@taodyne.com>
 //
@@ -53,93 +54,110 @@
 // knowledge of the CeCILL license and that you accept its terms.
 // ****************************************************************************
 
-// Aliases for this theme
-theme "Seyes" -> theme "seyes"
+theme_slide_width  "BlueClaire" -> 1024
+theme_slide_height "BlueClaire" -> 768
+
 
 // ============================================================================
 // 
-//    Color palette
+//    Colors
 // 
 // ============================================================================
 
-// A few colors we selected for the theme (these are from the Taodyne palette)
-theme_color "seyes", Master:text, "darkgrey"  -> "#333"
-theme_color "seyes", Master:text, "grey"      -> "#555"
-theme_color "seyes", Master:text, "red"       -> "#B46"
-theme_color "seyes", Master:text, "orange"    -> "#C54"
-theme_color "seyes", Master:text, "navy"      -> "#456"
-theme_color "seyes", Master:text, "magenta"   -> "#B27"
+theme_color      "BlueClaire","main","title"            -> color "#960000"
+theme_color      "BlueClaire","main","subtitle"         -> color "#264580"
+theme_color      "BlueClaire","section","title"         -> color "#5685c0"
+theme_color      "BlueClaire","section","subtitle"      -> color "#264580"
+theme_color      "BlueClaire",Master:text,"title"       -> color "#960000"
+theme_color      "BlueClaire",Master:text,"subtitle"    -> color "#264580"
+theme_color      "BlueClaire",Master:text,"story"       -> color "black"
+theme_font       "BlueClaire",Master:text,"story"       -> font "TeX Gyre Adventor", "Ubuntu", "Arial"
+theme_boxstyle   "BlueClaire",Master:text,"title"       -> color "transparent"
+theme_boxstyle   "BlueClaire",Master:text,Style:text    -> color "transparent"
 
-theme_color "seyes", Master:text, "story" -> color "#261060"
-theme_color "seyes", Master:text, "title" -> color "#036"
-theme_color "seyes", Master:text, "subtitle" -> color "#4D87B3"
+theme_size "BlueClaire",Master:text,"story"             -> 32
+theme_size "BlueClaire",Master:text,"title"             -> 48
+theme_size "BlueClaire",Master:text,"subtitle"          -> 32
+theme_size "BlueClaire",Master:text,"story",1           -> 32
+theme_size "BlueClaire",Master:text,"story",2           -> 28
+theme_size "BlueClaire",Master:text,"story",3           -> 24
+theme_size "BlueClaire",Master:text,"story",4           -> 22
 
-theme_font "seyes", Master:text, "story" -> font "Dancing Script", "Arial"
-theme_boxstyle "seyes",Master:text,Style:text-> color "white", 0.5
 
+// ============================================================================
+// 
+//    Background pictures
+// 
+// ============================================================================
 
-theme_background "seyes", Master:text ->
+theme_background "BlueClaire", "main" ->
 // ----------------------------------------------------------------------------
-//    Keyboard title background has rectangles at top and bottom
+//   Background for main title slides
 // ----------------------------------------------------------------------------
-    clear_color 1, 1, 1, 1
-    background -500,
+    clear_color 0.35, 0.52, 0.74, 1
+    contents -500,
         color "white"
-        image 0, 0, 2.1, 2.1, "image:seyes.jpg"
+        image 0, 0, 1.1, 1.1, "image:blue-main.png"
 
 
-
-
-// ============================================================================
-// 
-//   Text boxes
-// 
-// ============================================================================
-
-theme_box "seyes", Master:text, Style:text, X:real, Y:real, W:real, H:real ->
+theme_background "BlueClaire", "section" ->
 // ----------------------------------------------------------------------------
-//   Draw the background box for text and flows
+//   Background for section slides
 // ----------------------------------------------------------------------------
-    if Y > 0 then
-        contents -10,
-            color theme_color(theme, Master, "magenta")
-            rectangle X, Y - H*0.4, W * 0.8, 5
+    clear_color 0.35, 0.52, 0.74, 1
+    contents -500,
+        color "white"
+        image 0, 0, 1.1, 1.1, "image:blue-section.png"
 
+
+theme_background "BlueClaire", Master:text ->
+// ----------------------------------------------------------------------------
+//   Background for other slides (story, etc)
+// ----------------------------------------------------------------------------
+    clear_color 0.35, 0.52, 0.74, 1
+    contents -500,
+        color "white"
+        image 0, 0, 1.1, 1.1, "image:blue-story.png"
 
 
 
 // ============================================================================
 // 
-//    Layout for the various kind of pages
+//    Slide layout
 // 
 // ============================================================================
 
-theme_slide_width  "seyes" -> 1920
-theme_slide_height "seyes" -> 1080
+theme_layout "BlueClaire", "main" ->
+// ----------------------------------------------------------------------------
+//    Flows for main title
+// ----------------------------------------------------------------------------
+    flows -200, -20, 600, 280, "title", "subtitle"
 
-theme_layout "seyes", "main" ->
+
+theme_layout "BlueClaire", "section" ->
+// ----------------------------------------------------------------------------
+//    Flows for section title
+// ----------------------------------------------------------------------------
+    flows 0, 50, 700, 250, "title", "subtitle"
+
+
+theme_layout "BlueClaire", Master:text ->
 // ----------------------------------------------------------------------------
 //    Centered flows
 // ----------------------------------------------------------------------------
-    flow 100, 50, 1700, 400, "title"
-    flow 100, -300, 1700, 200, "subtitle"
+    flows 80, 300, 850, 120, "title", "subtitle"
+    flow 80, -80, 850, 580, "story"
+    flow -140, -80, 400, 580, "left"
+    flow  300, -80, 400, 580, "right"
 
 
-theme_layout "seyes", "section" ->
+theme_picture Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
-//    Centered flows
+//    Default picture box (keep consistent with layout below)
 // ----------------------------------------------------------------------------
-    flow 100, 50, 1700, 250, "title"
-    flow 100, -300, 1700, 150, "subtitle"
+    contents 0,
+        translate 80, -80, 0
+        theme_color Theme, Master, "picture"
+        Body
 
 
-theme_layout "seyes", Master:text ->
-// ----------------------------------------------------------------------------
-//    Centered flows
-// ----------------------------------------------------------------------------
-    flows 100, 400, 1700, 220, "title", "subtitle"
-
-    flow 100, -120, 1700, 750, "story"
-    flow 100, -120, 1700, 750, "picture"
-    flow -330, -120, 840, 750, "left"
-    flow  530, -120, 840, 750, "right"

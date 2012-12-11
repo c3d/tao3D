@@ -101,7 +101,7 @@ theme_background "keyboard", Master:text ->
 // ----------------------------------------------------------------------------
     clear_color 1, 1, 1, 1
     background -500,
-        theme_style theme, Master, "picture"
+        color "white"
         image 0, 0, 1.1, 1.1, "image:keyboard.jpg"
 
 

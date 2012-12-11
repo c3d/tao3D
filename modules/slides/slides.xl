@@ -130,9 +130,10 @@ theme T:text ->
 
 
 // Define the default themes
-import "default.xl"
-import "keyboard.xl"
-import "seyes.xl"
+import "default-theme.xl"
+import "keyboard-theme.xl"
+import "seyes-theme.xl"
+import "basic-theme.xl"
 
 
 

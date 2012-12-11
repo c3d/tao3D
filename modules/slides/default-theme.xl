@@ -1,5 +1,5 @@
 // ****************************************************************************
-//  default.xl                                                     Tao project
+//  default-theme.xl                                              Tao project
 // ****************************************************************************
 //
 //   File Description:
@@ -17,6 +17,9 @@
 // Copyright Taodyne SAS, 2012
 // Contributors:
 //   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
 //
 // <contact@taodyne.com>
 //

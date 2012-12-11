@@ -17,7 +17,7 @@ MODINSTDIR = slides
 
 include(../modules.pri)
 
-OTHER_FILES = slides.xl default.xl keyboard.xl seyes.xl module.doxy.h
+OTHER_FILES = slides.xl default-theme.xl keyboard-theme.xl seyes-theme.xl basic-theme.xl module.doxy.h
 
 PICTURES = \
     images/keyboard.jpg \
@@ -28,7 +28,7 @@ pics.path  = $$MODINSTPATH/images
 pics.files = $$PICTURES
 
 default.path = $$MODINSTPATH
-default.files = default.xl keyboard.xl seyes.xl
+default.files = default-theme.xl keyboard-theme.xl seyes-theme.xl basic-theme.xl
 
 # icon from http://www.iconfinder.com/icondetails/15430/32/keynote_presentation_stand_icon
 INSTALLS    += thismod_icon pics default 

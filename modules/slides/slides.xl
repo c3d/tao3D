@@ -138,6 +138,7 @@ import "blue-theme.xl"
 import "brown-theme.xl"
 import "triangles-theme.xl"
 import "rectangles-theme.xl"
+import "lucky-theme.xl"
 
 
 
@@ -192,11 +193,11 @@ slide_master Theme:text, Master:text, Title:text, Body ->
 //
 // ============================================================================
 
-blank_slide Theme:text, Title:text, Body ->
+base_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create an empty slide
 // ----------------------------------------------------------------------------
-    slide_master theme, "blank", Title, Body
+    slide_master theme, "slide", Title, Body
 
 
 main_title_slide Title:text, Body ->

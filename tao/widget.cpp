@@ -12460,6 +12460,28 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
     if (name->value == "git")
         return XL::xl_false;
 #endif
+
+    if (name->value == "mac")
+#ifdef CONFIG_MACOSX
+        return XL::xl_true;
+#else
+        return XL::xl_false;
+#endif
+
+    if (name->value == "linux")
+#ifdef CONFIG_LINUX
+        return XL::xl_true;
+#else
+        return XL::xl_false;
+#endif
+
+    if (name->value == "windows")
+#ifdef CONFIG_MINGW
+        return XL::xl_true;
+#else
+        return XL::xl_false;
+#endif
+
     return XL::xl_true;
 }
 

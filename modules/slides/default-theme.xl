@@ -164,24 +164,27 @@ theme_story Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default story box
 // ----------------------------------------------------------------------------
-    theme_style Theme, Master, "story"
-    text_flow "story", Body
+    text_flow "story",
+        theme_style Theme, Master, "story"
+        Body
 
 
 theme_left_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default left column
 // ----------------------------------------------------------------------------
-    theme_style Theme, Master, "left"
-    text_flow "left", Body
+    text_flow "left",
+        theme_style Theme, Master, "left"
+        Body
 
 
 theme_right_column Theme:text, Master:text, Body ->
 // ----------------------------------------------------------------------------
 //    Default right column
 // ----------------------------------------------------------------------------
-    theme_style Theme, Master, "right"
-    text_flow "right", Body
+    text_flow "right",
+        theme_style Theme, Master, "right"
+        Body
 
 
 theme_picture Theme:text, Master:text, Body ->

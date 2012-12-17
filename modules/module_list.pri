@@ -48,7 +48,8 @@
        remote_control \
        regexp \
        chroma_key \
-       transitions
+       transitions \
+       snowfall
 
     OTHER_MODULES =     \
         dip_voting \

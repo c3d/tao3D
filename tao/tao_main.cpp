@@ -69,6 +69,11 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
+#ifdef CONFIG_MINGW
+    // Do our best to send stdout/stderr output somewhere
+    win_redirect_io();
+#endif
+
     // Process --version before graphic initialization so that this option may
     // be used without a valid X11 display on Linux
     for (int i = 1; i < argc; i++)
@@ -92,10 +97,6 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(tao);
 
-#ifdef CONFIG_MINGW
-    // Do our best to send stdout/stderr output somewhere
-    win_redirect_io();
-#endif
 
     // Initialize and run the Tao application
     int ret = 0;

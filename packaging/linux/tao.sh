@@ -3,4 +3,4 @@
 
 SCRIPT=$(readlink -f "$0")
 TAODIR=$(dirname "$SCRIPT")
-LD_LIBRARY_PATH=${TAODIR}${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH} ${TAODIR}/Tao\ Presentations "$@"
+LD_LIBRARY_PATH=${TAODIR}${LD_LIBRARY_PATH+:$LD_LIBRARY_PATH} exec ${TAODIR}/Tao\ Presentations "$@"

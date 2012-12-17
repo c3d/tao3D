@@ -78,7 +78,6 @@ theme_background "Triangles",Master:text        ->
             time
 
 
-
 triangle_background N:integer ->
 // ----------------------------------------------------------------------------
 //   Draw one triangle
@@ -94,34 +93,8 @@ triangle_background N:integer ->
 
 theme_color "Triangles",Master:text,"picture"   -> color "white"
 theme_color "Triangles",Master:text,"story"     -> color "black"
-theme_color "Triangles",Master:text,"story",N   -> theme_color theme,Master,"story"
-theme_color "Triangles",Master:text,Style:text  -> theme_color theme,Master,"story"
-theme_color "Triangles",Master:text,Style:text,N-> theme_color theme,Master,"story",N
-
 theme_font "Triangles",Master:text,"story"      -> font "Kranky", "Times"
-theme_font "Triangles",Master:text,Style:text   -> theme_font theme,Master,"story"
-theme_font "Triangles",Master:text,"story",N    -> theme_font theme,Master,"story"
-theme_font "Triangles",Master:text,Style:text,N -> theme_font theme,Master,"story",N
-
-theme_size "Triangles",Master:text,"story"      -> 52
-theme_size "Triangles",Master:text,"title"      -> 90
-theme_size "Triangles",Master:text,"subtitle"   -> 70
-theme_size "Triangles",Master:text,"story",1    -> 52
-theme_size "Triangles",Master:text,"story",2    -> 48
-theme_size "Triangles",Master:text,"story",3    -> 44
-theme_size "Triangles",Master:text,"story",4    -> 40
-theme_size "Triangles",Master:text,Style:text   -> theme_size theme,Master, "story"
-theme_size "Triangles",Master:text,Style:text,N -> theme_size theme,Master,"story",N
-
-theme_align "Triangles",Master:text,"story"     -> align 0.0; vertical_align 0.3
-theme_align "Triangles",Master:text,"title"     -> align 0.5; vertical_align 0.5
-theme_align "Triangles",Master:text,"subtitle"  -> theme_align theme,Master,"title"
-theme_align "Triangles",Master:text,Style:text  -> theme_align theme,Master, "story"
-theme_align "Triangles",Master:text,"story",N   -> margins 20+10*N, 0
-theme_align "Triangles",Master:text,Style:text,N-> theme_align theme,Master,"story",N
-
 theme_boxstyle "Triangles",Master:text,Style:text-> color "#39A", 0.1
-
 
 theme_box "Triangles",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
 // ----------------------------------------------------------------------------

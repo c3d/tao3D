@@ -91,32 +91,8 @@ rectangle_background N:integer ->
 
 theme_color "Rectangles",Master:text,"picture"   -> color "white"
 theme_color "Rectangles",Master:text,"story"     -> color "white"
-theme_color "Rectangles",Master:text,"story",N   -> theme_color theme,Master,"story"
-theme_color "Rectangles",Master:text,Style:text  -> theme_color theme,Master,"story"
-theme_color "Rectangles",Master:text,Style:text,N-> theme_color theme,Master,"story",N
 
 theme_font "Rectangles",Master:text,"story"      -> font "Mountains of Christmas", "Times"
-theme_font "Rectangles",Master:text,Style:text   -> theme_font theme,Master,"story"
-theme_font "Rectangles",Master:text,"story",N    -> theme_font theme,Master,"story"
-theme_font "Rectangles",Master:text,Style:text,N -> theme_font theme,Master,"story",N
-
-theme_size "Rectangles",Master:text,"story"      -> 52
-theme_size "Rectangles",Master:text,"title"      -> 90
-theme_size "Rectangles",Master:text,"subtitle"   -> 70
-theme_size "Rectangles",Master:text,"story",1    -> 52
-theme_size "Rectangles",Master:text,"story",2    -> 48
-theme_size "Rectangles",Master:text,"story",3    -> 44
-theme_size "Rectangles",Master:text,"story",4    -> 40
-theme_size "Rectangles",Master:text,Style:text   -> theme_size theme,Master, "story"
-theme_size "Rectangles",Master:text,Style:text,N -> theme_size theme,Master,"story",N
-
-theme_align "Rectangles",Master:text,"story"     -> align 0.0; vertical_align 0.3
-theme_align "Rectangles",Master:text,"title"     -> align 0.5; vertical_align 0.5
-theme_align "Rectangles",Master:text,"subtitle"  -> theme_align theme,Master,"title"
-theme_align "Rectangles",Master:text,Style:text  -> theme_align theme,Master, "story"
-theme_align "Rectangles",Master:text,"story",N   -> margins 20+10*N, 0
-theme_align "Rectangles",Master:text,Style:text,N-> theme_align theme,Master,"story",N
-
 theme_boxstyle "Rectangles",Master:text,Style:text-> color "black", 0.6
 
 

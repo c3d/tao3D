@@ -136,6 +136,8 @@ import "seyes-theme.xl"
 import "basic-theme.xl"
 import "blue-theme.xl"
 import "brown-theme.xl"
+import "triangles-theme.xl"
+import "rectangles-theme.xl"
 
 
 

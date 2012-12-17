@@ -1,0 +1,142 @@
+// ****************************************************************************
+//  triangles-theme.xl                                             Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Define a default theme for slides.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+
+// ============================================================================
+// 
+//    Easily configurable parameters
+// 
+// ============================================================================
+
+triangles_current -> 0.0
+triangles_target -> 0.0
+
+theme_background "Triangles",Master:text        ->
+// ----------------------------------------------------------------------------
+//   Draw the triangles in the background
+// ----------------------------------------------------------------------------
+    clear_color 1,1,1,1
+    background -750,
+        triangles_target := hours*60+minutes + 111 * page_number
+        if abs(triangles_current - triangles_target) > 1000 then
+            triangles_current := triangles_target
+        triangles_current := 0.9 * triangles_current + 0.1 * triangles_target
+        triangle_background with 1..10
+        if abs(triangles_current - triangles_target) > 0.2 then
+            time
+
+
+
+triangle_background N:integer ->
+// ----------------------------------------------------------------------------
+//   Draw one triangle
+// ----------------------------------------------------------------------------
+    color_hsv 30 * N + triangles_current, 0.3, 1.0, 0.4
+    path
+        sw R:real,S:real -> 2 * slide_width * sin (R*triangles_current+S)
+        sh R:real,S:real -> 2 * slide_height * cos (R*triangles_current+S)
+        line_to sw(121e-5,1.2*N), sh(133e-5,1.1*N)
+        line_to sw(232e-5,0.7*N), sh(151e-5,2.3*N)
+        line_to sw(143e-5,4.7*N), sh(177e-5,1.03*N)
+
+
+theme_color "Triangles",Master:text,"picture"   -> color "white"
+theme_color "Triangles",Master:text,"story"     -> color "black"
+theme_color "Triangles",Master:text,"story",N   -> theme_color theme,Master,"story"
+theme_color "Triangles",Master:text,Style:text  -> theme_color theme,Master,"story"
+theme_color "Triangles",Master:text,Style:text,N-> theme_color theme,Master,"story",N
+
+theme_font "Triangles",Master:text,"story"      -> font "Kranky", "Times"
+theme_font "Triangles",Master:text,Style:text   -> theme_font theme,Master,"story"
+theme_font "Triangles",Master:text,"story",N    -> theme_font theme,Master,"story"
+theme_font "Triangles",Master:text,Style:text,N -> theme_font theme,Master,"story",N
+
+theme_size "Triangles",Master:text,"story"      -> 52
+theme_size "Triangles",Master:text,"title"      -> 90
+theme_size "Triangles",Master:text,"subtitle"   -> 70
+theme_size "Triangles",Master:text,"story",1    -> 52
+theme_size "Triangles",Master:text,"story",2    -> 48
+theme_size "Triangles",Master:text,"story",3    -> 44
+theme_size "Triangles",Master:text,"story",4    -> 40
+theme_size "Triangles",Master:text,Style:text   -> theme_size theme,Master, "story"
+theme_size "Triangles",Master:text,Style:text,N -> theme_size theme,Master,"story",N
+
+theme_align "Triangles",Master:text,"story"     -> align 0.0; vertical_align 0.3
+theme_align "Triangles",Master:text,"title"     -> align 0.5; vertical_align 0.5
+theme_align "Triangles",Master:text,"subtitle"  -> theme_align theme,Master,"title"
+theme_align "Triangles",Master:text,Style:text  -> theme_align theme,Master, "story"
+theme_align "Triangles",Master:text,"story",N   -> margins 20+10*N, 0
+theme_align "Triangles",Master:text,Style:text,N-> theme_align theme,Master,"story",N
+
+theme_boxstyle "Triangles",Master:text,Style:text-> color "#39A", 0.1
+
+
+theme_box "Triangles",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        path
+            sx X:real,W:real,S:real -> X + W * (0.5 + 0.01 * sin(S * triangles_current + page_number))
+            sy X:real,W:real,S:real -> X + W * (0.5 + 0.05 * cos(S * triangles_current + page_number))
+            line_to sx(X,-W,222e-5), sy(Y,-H,235e-5)
+            line_to sx(X, W,432e-5), sy(Y,-H,229e-5)
+            line_to sx(X, W,217e-5), sy(Y, H,418e-5)
+            line_to sx(X,-W,611e-5), sy(Y, H,910e-5)
+            line_to sx(X,-W,222e-5), sy(Y,-H,235e-5)
+
+theme_slide_width  "Triangles"                  -> 1920
+theme_slide_height "Triangles"                  -> 1080

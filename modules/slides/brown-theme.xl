@@ -109,7 +109,7 @@ theme_background "BrownClaire", "main" ->
 //   Background for main title slides
 // ----------------------------------------------------------------------------
     clear_color 0.70,0.45,0.40,1
-    contents -500,
+    contents -900,
         color "white"
         image 0, 0, 1.1, 1.1, "image:brown-main.png"
 
@@ -119,7 +119,7 @@ theme_background "BrownClaire", "section" ->
 //   Background for section slides
 // ----------------------------------------------------------------------------
     clear_color 0.70,0.45,0.40,1
-    contents -500,
+    contents -900,
         color "white"
         image 0, 0, 1.1, 1.1, "image:brown-section.png"
 
@@ -129,7 +129,7 @@ theme_background "BrownClaire", Master:text ->
 //   Background for other slides (story, etc)
 // ----------------------------------------------------------------------------
     clear_color 0.70,0.45,0.40,1
-    contents -500,
+    contents -900,
         color "white"
         image 0, 0, 1.1, 1.1, "image:brown-story.png"
 

@@ -95,7 +95,7 @@ theme_background "BlueClaire", "main" ->
 //   Background for main title slides
 // ----------------------------------------------------------------------------
     clear_color 0.35, 0.52, 0.74, 1
-    contents -500,
+    contents -900,
         color "white"
         image 0, 0, 1.1, 1.1, "image:blue-main.png"
 
@@ -105,7 +105,7 @@ theme_background "BlueClaire", "section" ->
 //   Background for section slides
 // ----------------------------------------------------------------------------
     clear_color 0.35, 0.52, 0.74, 1
-    contents -500,
+    contents -900,
         color "white"
         image 0, 0, 1.1, 1.1, "image:blue-section.png"
 
@@ -115,7 +115,7 @@ theme_background "BlueClaire", Master:text ->
 //   Background for other slides (story, etc)
 // ----------------------------------------------------------------------------
     clear_color 0.35, 0.52, 0.74, 1
-    contents -500,
+    contents -900,
         color "white"
         image 0, 0, 1.1, 1.1, "image:blue-story.png"
 

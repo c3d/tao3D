@@ -319,7 +319,7 @@ right_column Body ->
     theme_right_column theme, slide_master, Body
 
 
-left_column_picture Body ->
+left_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the picture
 // ----------------------------------------------------------------------------
@@ -327,7 +327,7 @@ left_column_picture Body ->
     theme_left_column_picture theme, slide_master, Body
 
 
-right_column_picture Body ->
+right_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the picture
 // ----------------------------------------------------------------------------

@@ -303,6 +303,9 @@ void Window::addError(QString txt)
     cursor.insertText(txt + "\n");
     if (!isFullScreen())
         errorDock->show();
+    else
+        std::cerr << +txt << std::endl;
+
     // Before trying to show the error in the status bar, see #970
 }
 

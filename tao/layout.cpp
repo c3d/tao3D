@@ -248,7 +248,7 @@ void Layout::Draw(Layout *where)
     }
     PopLayout(this);
 
-    if(where)
+    if (where)
        where->previousTextures = previousTextures;
 }
 
@@ -272,7 +272,7 @@ void Layout::DrawSelection(Layout *where)
     }
     PopLayout(this);
 
-    if(where)
+    if (where)
        where->previousTextures = previousTextures;
 }
 
@@ -300,7 +300,7 @@ void Layout::Identify(Layout *where)
     }
     PopLayout(this);
 
-    if(where)
+    if (where)
        where->previousTextures = previousTextures;
 }
 
@@ -659,6 +659,7 @@ void Layout::Inherit(Layout *where)
     offset = where->Offset();
     LayoutState::InheritState(where);
 }
+
 
 void LayoutState::InheritState(LayoutState *where)
 // ----------------------------------------------------------------------------

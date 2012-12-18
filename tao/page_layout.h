@@ -96,6 +96,7 @@ public:
                                      BreakOrder order = NoBreak,
                                      uint count = 1);
     bool                PaginateLastLine(bool hardBreak);
+    void                Repaginate();
     void                DrawPlaceholder();
     void                DrawSelectionBox(TextSelect *sel,
                                          Drawing *child,
@@ -132,8 +133,10 @@ public:
     void                SetLastSplit(TextSplit *split)  { lastSplit = split; }
 
 public:
+    typedef std::set<PageLayout *> flow_pages;
     text                flowName;
     std::set<uint>      textBoxIds;           // Set of layoutID for selection
+    flow_pages          pages;                // Pages where this flow was seen
 
 private:
     uint                current;

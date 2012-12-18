@@ -102,6 +102,7 @@ void LayoutLine::Draw(Layout *where)
         Drawing *child = place.item;
         IFTRACE(justify)
             std::cerr << "--LayoutLine::Draw child is "
+                      << child << ":"
                       << demangle(typeid(*child).name()) << std::endl;
 
         XL::Save<coord> saveX(where->offset.x, where->offset.x+place.position);
@@ -585,7 +586,8 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         bool lineFits = page.AddItem(line);
         if (!lineFits)
         {
-            // No need to transfer: the just-created line is empty
+            // No need to transfer: the just-created line is empty,
+            // and since hardBreak is false it has not been added to places.
             delete line;
             return false;
         }
@@ -676,6 +678,15 @@ bool PageLayout::PaginateLastLine(bool hardBreak)
         delete line;
     }
     return lfits;
+}
+
+
+void PageLayout::Repaginate()
+// ----------------------------------------------------------------------------
+//   Cause repagination on next draw (e.g. a text flow changed)
+// ----------------------------------------------------------------------------
+{
+    page.Clear();
 }
 
 
@@ -772,6 +783,12 @@ void TextFlow::Clear()
     charId = 0;
     current = 0;
     lastSplit = NULL;
+
+    // Clear all the page layouts that depend on the current flow
+    for (flow_pages::iterator p = pages.begin(); p != pages.end(); p++)
+        (*p)->Repaginate();
+
+    pages.clear();
     textBoxIds.clear();
     reject.clear();
     Layout::Clear();
@@ -785,6 +802,7 @@ bool TextFlow::Paginate(PageLayout *page)
 //   This scenario happens if you put a text box definition inside a text flow
 {
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
+    pages.insert(page);
 
     bool ok = true;
 
@@ -820,6 +838,7 @@ void TextFlow::Transfer(LayoutLine *line)
     DJ::Places &places = line->line.places;
     for(DJ::PlacesIterator p = places.begin(); p != places.end(); p++)
         reject.push_back((*p).item);
+    places.clear();
 }
 
 

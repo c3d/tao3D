@@ -107,7 +107,7 @@ public:
     Color               lineColor;
     Color               fillColor;
 
-    // Textures paramters
+    // Textures parameters
     TextureState        currentTexture;
     uint64              textureUnits; //Current used texture units
     tex_list            previousTextures;

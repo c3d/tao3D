@@ -1155,6 +1155,9 @@ bool TextUnit::Paginate(PageLayout *page)
     uint last = start;
     uint first = start;
 
+    // Remove all text splits we generated during previous pagination
+    ClearSplits();
+
     // Case where we replayed a line from a text flow : we played text splits
     // that we would otherwise emit here (resulting in duplicated text)
     if (TextSplit *lastSplit = page->LastSplit())

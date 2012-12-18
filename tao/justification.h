@@ -177,6 +177,9 @@ TAO_END
 
 
 #ifdef JUSTIFICATION_H_IMPLEMENTATION
+
+#include "demangle.h"
+
 TAO_BEGIN
 
 // ============================================================================
@@ -259,7 +262,8 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
 
     IFTRACE(justify)
         std::cerr << "Justifier[" << this << "]::AddItem "
-                  << item << " * " << count 
+                  << item << ":" << demangle(typeid(*item).name())
+                  << " * " << count 
                   << (solid ? " solid " : " break ")
                   << size << " + " << offset << " "
                   << (hardBreak ? "hard-break\n" : "\n");

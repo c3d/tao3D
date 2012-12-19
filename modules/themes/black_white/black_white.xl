@@ -29,8 +29,8 @@ override_priority -1
 // 
 // ============================================================================
 
-theme_picture "BlackOnPicture",Master:text,PageNumber:integer -> "http://images.nationalgeographic.com/wpf/media-live/photos/000/617/cache/boat-rapids-sakamoto_61722_990x742.jpg"
-theme_picture "WhiteOnPicture",Master:text,PageNumber:integer -> "http://images.nationalgeographic.com/wpf/media-live/photos/000/617/cache/artists-dordogne-courtellemont_61721_990x742.jpg"
+theme_background_picture "BlackOnPicture",Master:text,PageNumber:integer -> "http://images.nationalgeographic.com/wpf/media-live/photos/000/617/cache/boat-rapids-sakamoto_61722_990x742.jpg"
+theme_background_picture "WhiteOnPicture",Master:text,PageNumber:integer -> "http://images.nationalgeographic.com/wpf/media-live/photos/000/617/cache/artists-dordogne-courtellemont_61721_990x742.jpg"
 
 
 // ============================================================================
@@ -102,7 +102,7 @@ theme_background "BlackOnPicture",Master:text ->
     clear_color 1,1,1,1
     background -500,
         theme_color theme, Master, "picture"
-        image 0, 0, 2.1, 2.1, theme_picture (theme, Master, page_number)
+        image 0, 0, 2.1, 2.1, theme_background_picture (theme, Master, page_number)
 
 theme_color      "BlackOnPicture",Master:text,"story"     -> color "black"
 theme_font       "BlackOnPicture",Master:text,"story"     -> font "TeX Gyre Adventor", "Ubuntu", "Arial"
@@ -124,7 +124,7 @@ theme_background "WhiteOnPicture",Master:text ->
     clear_color 0,0,0,1
     background -500,
         theme_color theme, Master, "picture"
-        image 0, 0, 2.1, 2.1, theme_picture (theme, Master, page_number)
+        image 0, 0, 2.1, 2.1, theme_background_picture (theme, Master, page_number)
 
 theme_color      "WhiteOnPicture",Master:text,"story"     -> color "white"
 theme_font       "WhiteOnPicture",Master:text,"story"     -> font "TeX Gyre Adventor", "Ubuntu", "Arial"

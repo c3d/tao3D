@@ -18,6 +18,8 @@ module_description "fr",
     name "Thème Lucky Stars"
     description "Un thème en 3D simple sur fond de terre et d'étoiles"
 
+add_search_path "LuckyStars:", module_dir
+
 
 
 // ============================================================================
@@ -48,10 +50,10 @@ theme_background "LuckyStars", Master:text ->
             rotatey lucky_stars_current
             rotatex 23
             color "white"
-            texture "image:earth.bmp"
+            texture "LuckyStars:earth.bmp"
             sphere 1600
             rotatey 0.3 * lucky_stars_current
-            texture "image:clouds.png"
+            texture "LuckyStars:clouds.png"
             sphere 1630
 
         rotatey lucky_stars_current

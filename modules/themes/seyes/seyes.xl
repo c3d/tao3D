@@ -56,7 +56,7 @@ theme_background "seyes", Master:text ->
     clear_color 1, 1, 1, 1
     background -500,
         color "white"
-        image 0, 0, 2.1, 2.1, "image:seyes.jpg"
+        image 0, 0, 2.1, 2.1, "Seyes:seyes.jpg"
 
 
 

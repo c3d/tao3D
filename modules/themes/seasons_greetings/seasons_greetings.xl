@@ -66,7 +66,7 @@ theme_box "SeasonsGreetings",Master:text,Style:text, X:real,Y:real,W:real,H:real
                 translate X + W/2*sin(I+W), Y+H/2*cos(I+W), 0
                 rotatez 90 * sin(11.8*I+X)
                 scale3 0.2+0.1*sin(32.2*I+Y)
-                image 0, 0, 1, 1, "Snowfall:SnowFlake.png"
+                image 0, 0, 1, 1, "Snowfall:snowflake.png"
 
 
 theme_bullet_picture "SeasonsGreetings", Master:text, Level:integer ->
@@ -75,5 +75,5 @@ theme_bullet_picture "SeasonsGreetings", Master:text, Level:integer ->
 // ----------------------------------------------------------------------------
     seasons_greetings_bullet S:real ->
         color "white"
-        image_px -30, 15, S*0.8, S*0.8, "Snowfall:Snowflake.png"
+        image_px -30, 15, S*0.8, S*0.8, "Snowfall:snowflake.png"
     seasons_greetings_bullet theme_size(theme, Master, "bullet", Level)

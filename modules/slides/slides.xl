@@ -170,12 +170,16 @@ slide_master Theme:text, Master:text, Title:text, Body ->
 //    Draw a slide with a given master style
 // ----------------------------------------------------------------------------
    page Title,
+       old_theme -> ""
+       old_theme := Theme
        theme_background Theme, Master
        locally
            slide_master := Master
            theme_reset theme
            Body
        theme_layout Theme, Master
+       // User changed theme from within slide : refresh whole slide
+       if theme <> old_theme then refresh 0
 
 
 

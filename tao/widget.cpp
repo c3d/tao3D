@@ -8911,8 +8911,7 @@ Tree_p Widget::textFlow(Context *context, Tree_p self, Text_p name)
     if (flows.count(name) == 0)
         return XL::xl_false;
 
-    TextFlow *flow = flows[name];
-    TextFlowReplay *replay = new TextFlowReplay(flow);
+    TextFlowReplay *replay = new TextFlowReplay(name);
     layout->Add(replay);
     return XL::xl_true;
 }

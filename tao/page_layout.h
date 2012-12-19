@@ -150,7 +150,7 @@ struct TextFlowReplay : Drawing
 //   Redraw a given text layout
 // ----------------------------------------------------------------------------
 {
-    TextFlowReplay(TextFlow *flow) : flow(flow) {}
+    TextFlowReplay(text flowName) : flowName(flowName) {}
 
 public:
     virtual void        Draw(Layout *where);
@@ -159,7 +159,7 @@ public:
     virtual bool        Paginate(PageLayout *page);
 
 public:
-    TextFlow *          flow;
+    text                flowName;
 };
 
 

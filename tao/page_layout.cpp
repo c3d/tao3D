@@ -854,14 +854,18 @@ void TextFlowReplay::Draw(Layout *where)
 //   Draw the given text flow
 // ----------------------------------------------------------------------------
 {
-    if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+    Widget *display = where->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
     {
-        XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
-        flow->Layout::Draw(where);
-    }
-    else
-    {
-        flow->Layout::Draw(where);
+        if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+        {
+            XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+            flow->Layout::Draw(where);
+        }
+        else
+        {
+            flow->Layout::Draw(where);
+        }
     }
 }
 
@@ -871,14 +875,18 @@ void TextFlowReplay::DrawSelection(Layout *where)
 //   Draw the selection for the given text flow
 // ----------------------------------------------------------------------------
 {
-    if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+    Widget *display = where->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
     {
-        XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
-        flow->Layout::DrawSelection(where);
-    }
-    else
-    {
-        flow->Layout::DrawSelection(where);
+        if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+        {
+            XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+            flow->Layout::DrawSelection(where);
+        }
+        else
+        {
+            flow->Layout::DrawSelection(where);
+        }
     }
 }
 
@@ -888,14 +896,18 @@ void TextFlowReplay::Identify(Layout *where)
 //   Identify the selection for a given text flow
 // ----------------------------------------------------------------------------
 {
-    if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+     Widget *display = where->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
     {
-        XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
-        flow->Layout::Identify(where);
-    }
-    else
-    {
-        flow->Layout::Identify(where);
+        if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+        {
+            XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+            flow->Layout::Identify(where);
+        }
+        else
+        {
+            flow->Layout::Identify(where);
+        }
     }
 }
 
@@ -905,8 +917,13 @@ bool TextFlowReplay::Paginate(PageLayout *page)
 //   Paginate the original text flow
 // ----------------------------------------------------------------------------
 {
-    XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
-    return flow->Paginate(page);
+    Widget *display = page->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
+    {
+        XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+        return flow->Paginate(page);
+    }
+    return true;
 }
 
 

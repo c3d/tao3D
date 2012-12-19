@@ -1,58 +1,34 @@
 // ****************************************************************************
-//  blue-theme.xl                                                Tao project
+//    BlueClaire - A simple blue theme 
+//    Copyright 2012 Taodyne SAS - See licence at end of file
 // ****************************************************************************
-//
-//   File Description:
-//
-//     Define a blue theme with graphics from Claire
-//
-//
-//
-//
-//
-//
-//
-//
-// ****************************************************************************
-// Copyright Taodyne SAS, 2012
-// Contributors:
-//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
-//   Christophe de Dinechin <christophe@taodyne.com>
-//   Jérôme Forissier <jerome@taodyne.com>
-//   Catherine Burvelle <cathy@taodyne.com>
-//   Claire Hyvrier <claire.hyvrier@taodyne.com>
-//
-// <contact@taodyne.com>
-//
-// This software is a computer program whose purpose is to serve as a
-// document template for the Tao Presentations application.
-//
-// This software is governed by the CeCILL license under French law and
-// abiding by the rules of distribution of free software.  You can  use,
-// modify and/ or redistribute the software under the terms of the CeCILL
-// license as circulated by CEA, CNRS and INRIA at the following URL
-// "http://www.cecill.info".
-//
-// As a counterpart to the access to the source code and  rights to copy,
-// modify and redistribute granted by the license, users are provided only
-// with a limited warranty  and the software's author,  the holder of the
-// economic rights,  and the successive licensors  have only  limited
-// liability.
-//
-// In this respect, the user's attention is drawn to the risks associated
-// with loading,  using,  modifying and/or developing or reproducing the
-// software by the user in light of its specific status of free software,
-// that may mean  that it is complicated to manipulate,  and  that  also
-// therefore means  that it is reserved for developers  and  experienced
-// professionals having in-depth computer knowledge. Users are therefore
-// encouraged to load and test the software's suitability as regards their
-// requirements in conditions enabling the security of their systems and/or
-// data to be ensured and,  more generally, to use and operate it in the
-// same conditions as regards security.
-//
-// The fact that you are presently reading this means that you have had
-// knowledge of the CeCILL license and that you accept its terms.
-// ****************************************************************************
+
+import Slides
+
+module_description
+    id "C3FE1E13-F4EB-4E65-96D9-73C8FBBFC90D" 
+    name "BlueClaire theme"
+    description "A simple blue theme"
+    import_name "BlueClaireTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Theme BleuClaire"
+    description "Un thème bleu simple"
+
+// Adding this module's images/ directory to the BlueClaire: search path
+// for the current document
+add_search_path "BlueClaire:", module_dir
+
+
+
+// ============================================================================
+// 
+//   Theme size
+// 
+// ============================================================================
 
 theme_slide_width  "BlueClaire" -> 1024
 theme_slide_height "BlueClaire" -> 768
@@ -97,7 +73,7 @@ theme_background "BlueClaire", "main" ->
     clear_color 0.35, 0.52, 0.74, 1
     contents -900,
         color "white"
-        image 0, 0, 1.1, 1.1, "image:blue-main.png"
+        image 0, 0, 1.1, 1.1, "BlueClaire:blue-main.png"
 
 
 theme_background "BlueClaire", "section" ->
@@ -107,7 +83,7 @@ theme_background "BlueClaire", "section" ->
     clear_color 0.35, 0.52, 0.74, 1
     contents -900,
         color "white"
-        image 0, 0, 1.1, 1.1, "image:blue-section.png"
+        image 0, 0, 1.1, 1.1, "BlueClaire:blue-section.png"
 
 
 theme_background "BlueClaire", Master:text ->
@@ -117,7 +93,7 @@ theme_background "BlueClaire", Master:text ->
     clear_color 0.35, 0.52, 0.74, 1
     contents -900,
         color "white"
-        image 0, 0, 1.1, 1.1, "image:blue-story.png"
+        image 0, 0, 1.1, 1.1, "BlueClaire:blue-story.png"
 
 
 
@@ -161,3 +137,43 @@ theme_picture Theme:text, Master:text, Body ->
         Body
 
 
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//   Claire Hyvrier <claire.hyvrier@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

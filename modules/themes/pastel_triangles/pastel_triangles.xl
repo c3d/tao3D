@@ -1,0 +1,124 @@
+// ****************************************************************************
+//   Pastel Triangles - Slowly moving pastel triangles in the background 
+//   Copyright 2012 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+import Slides
+
+module_description
+    id "1F58ECFC-7A28-4043-A62F-F73A1FE63767" 
+    name "Pastel Triangles theme"
+    description "A theme with slowly moving pastel triangles in the background"
+    import_name "PastelTrianglesTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Thème Triangles Pastel"
+    description "Un thème avec des triangles pastels se déplaçant lentement sur le fond"
+
+
+// ============================================================================
+// 
+//    Theme definition
+// 
+// ============================================================================
+
+theme_slide_width  "PastelTriangles" -> 1920
+theme_slide_height "PastelTriangles" -> 1080
+
+
+theme_background "PastelTriangles",Master:text ->
+// ----------------------------------------------------------------------------
+//   Draw the triangles in the background
+// ----------------------------------------------------------------------------
+    clear_color 1,1,1,1
+    background -750,
+        pastel_triangles_target := hours*60+minutes + 111 * page_number
+        if abs(pastel_triangles_current - pastel_triangles_target) > 1000 then
+            pastel_triangles_current := pastel_triangles_target
+        pastel_triangles_current := 0.9 * pastel_triangles_current + 0.1 * pastel_triangles_target
+        triangle_background with 1..10
+        if abs(pastel_triangles_current - pastel_triangles_target) > 0.2 then
+            time
+
+
+triangle_background N:integer ->
+// ----------------------------------------------------------------------------
+//   Draw one triangle
+// ----------------------------------------------------------------------------
+    color_hsv 30 * N + pastel_triangles_current, 0.3, 1.0, 0.4
+    path
+        sw R:real,S:real -> 2 * slide_width * sin (R*pastel_triangles_current+S)
+        sh R:real,S:real -> 2 * slide_height * cos (R*pastel_triangles_current+S)
+        line_to sw(121e-5,1.2*N), sh(133e-5,1.1*N)
+        line_to sw(232e-5,0.7*N), sh(151e-5,2.3*N)
+        line_to sw(143e-5,4.7*N), sh(177e-5,1.03*N)
+
+
+theme_color "PastelTriangles",Master:text,"picture"   -> color "white"
+theme_color "PastelTriangles",Master:text,"story"     -> color "black"
+theme_font "PastelTriangles",Master:text,"story"      -> font "Kranky", "Times"
+theme_boxstyle "PastelTriangles",Master:text,Style:text-> color "#39A", 0.1
+
+theme_box "PastelTriangles",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        path
+            sx X:real,W:real,S:real -> X + W * (0.5 + 0.01 * sin(S * pastel_triangles_current + page_number))
+            sy X:real,W:real,S:real -> X + W * (0.5 + 0.05 * cos(S * pastel_triangles_current + page_number))
+            line_to sx(X,-W,222e-5), sy(Y,-H,235e-5)
+            line_to sx(X, W,432e-5), sy(Y,-H,229e-5)
+            line_to sx(X, W,217e-5), sy(Y, H,418e-5)
+            line_to sx(X,-W,611e-5), sy(Y, H,910e-5)
+            line_to sx(X,-W,222e-5), sy(Y,-H,235e-5)
+
+
+pastel_triangles_current -> 0.0
+pastel_triangles_target -> 0.0
+
+
+
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

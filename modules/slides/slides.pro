@@ -17,17 +17,9 @@ MODINSTDIR = slides
 
 include(../modules.pri)
 
-OTHER_FILES = slides.xl default-theme.xl keyboard-theme.xl seyes-theme.xl basic-theme.xl blue-theme.xl brown-theme.xl triangles-theme.xl rectangles-theme.xl lucky-theme.xl module.doxy.h
+OTHER_FILES = slides.xl default-theme.xl module.doxy.h
 
 PICTURES = \
-    images/keyboard.jpg \
-    images/seyes.jpg \
-    images/blue-main.png \
-    images/blue-section.png \
-    images/blue-story.png \
-    images/brown-main.png \
-    images/brown-section.png \
-    images/brown-story.png \
     images/earth.bmp \
     images/clouds.png \
     $$NULL
@@ -36,7 +28,7 @@ pics.path  = $$MODINSTPATH/images
 pics.files = $$PICTURES
 
 default.path = $$MODINSTPATH
-default.files = default-theme.xl keyboard-theme.xl seyes-theme.xl basic-theme.xl blue-theme.xl brown-theme.xl triangles-theme.xl rectangles-theme.xl lucky-theme.xl 
+default.files = default-theme.xl
 
 # icon from http://www.iconfinder.com/icondetails/15430/32/keynote_presentation_stand_icon
 INSTALLS    += thismod_icon pics default 

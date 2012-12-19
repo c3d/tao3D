@@ -37,6 +37,15 @@
        shaders/sparks  \
        shaders/glow  \
        shaders/depth_of_field \
+       themes/blue_claire \
+       themes/autumn_on_earth \
+       themes/keyboard \
+       themes/seyes \
+       themes/black_white \
+       themes/pastel_triangles \
+       themes/bright_rectangles \
+       themes/lucky_stars \
+       themes/seasons_greetings \
        slideshow_3d \
        vlc_audio_video \
        stereo_decoder \

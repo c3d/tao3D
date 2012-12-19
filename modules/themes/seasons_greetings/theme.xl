@@ -1,0 +1,18 @@
+import Slides
+import Snowfall
+
+theme_background "Winter",Master:text             ->
+    clear_color 1,1,1,1
+    background -500,
+        theme_color theme, Master, "picture"
+        image 0, 0, 1.0, 1.0, "background.png"
+        snowfall 1.1, 4.0, 5000
+
+
+theme_color      "Winter",Master:text,"story"     -> color "white"
+theme_font       "Winter",Master:text,"story"     -> font "Dancing Script"
+theme_boxstyle   "Winter",Master:text,Style:text  -> color "white",0.2; line_color "black", 0.15
+theme_align      "Winter",Master:text,"story", N  -> margins 75+50*N, 0
+
+theme_slide_width  "Winter"                  -> 1920
+theme_slide_height "Winter"                  -> 1080

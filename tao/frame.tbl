@@ -69,6 +69,16 @@ PREFIX(Canvas,  integer,  "canvas",
        SYNOPSIS("A texture with content")
        DESCRIPTION("Make a texture out of the described content")
        RETURNS(tree, "The result of 'prog' evaluation"))
+PREFIX(Canvas2,  integer,  "canvas",
+       PARM(n,text, "name")
+       PARM(w,real, "width")
+       PARM(h,real, "height")
+       PARM(p, code, "The program that represent the content of the canvas"),
+       RTAO(frameTexture(context, self, w, h, p, n, NULL, true)),
+       GROUP(widget)
+       SYNOPSIS("A texture with content")
+       DESCRIPTION("Make a texture out of the described content")
+       RETURNS(tree, "The result of 'prog' evaluation"))
 PREFIX(CanvasWithDepth,  integer,  "canvas_with_depth",
        PARM(w,real, "width")
        PARM(h,real, "height")

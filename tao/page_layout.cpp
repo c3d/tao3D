@@ -681,15 +681,6 @@ bool PageLayout::PaginateLastLine(bool hardBreak)
 }
 
 
-void PageLayout::Repaginate()
-// ----------------------------------------------------------------------------
-//   Cause repagination on next draw (e.g. a text flow changed)
-// ----------------------------------------------------------------------------
-{
-    page.Clear();
-}
-
-
 void PageLayout::SetLastSplit(TextSplit *split)
 // ----------------------------------------------------------------------------
 //   Record last text split if we have an active flow
@@ -783,12 +774,6 @@ void TextFlow::Clear()
     charId = 0;
     current = 0;
     lastSplit = NULL;
-
-    // Clear all the page layouts that depend on the current flow
-    for (flow_pages::iterator p = pages.begin(); p != pages.end(); p++)
-        (*p)->Repaginate();
-
-    pages.clear();
     textBoxIds.clear();
     reject.clear();
     Layout::Clear();
@@ -802,7 +787,7 @@ bool TextFlow::Paginate(PageLayout *page)
 //   This scenario happens if you put a text box definition inside a text flow
 {
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
-    pages.insert(page);
+    page->RefreshOn(this);
 
     bool ok = true;
 

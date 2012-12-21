@@ -576,7 +576,8 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         line = page.Current();
         if (!line->line.HasRoom())
         {
-            line->PerformLayout();
+            if (!PaginateLastLine(false))
+                return false;
             line = NULL;
         }
     }
@@ -609,7 +610,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
     bool fits = lj.AddItem(drawing, count, solid, size, offset, spc, hardBreak);
 
     // Adjust layout line
-    if (fits)
+    if (fits || (hardBreak && count <= 1))
     {
         // If drawing fits, adjust the dimensions of the line accordingly
         Box &lineBounds = line->bounds;
@@ -618,7 +619,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         if (lineBounds.upper.y < drawSpace.upper.y)
             lineBounds.upper.y = drawSpace.upper.y;
     }
-    else
+    if (!fits)
     {
         // If drawing doesn't fit, try to fit the last line vertically
         if (!PaginateLastLine(order >= ColumnBreak))
@@ -635,8 +636,9 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         }
 
         Justifier<Drawing *> &lj = line->line;
-        bool fits = hardBreak ||
-            lj.AddItem(drawing, count, solid, size, offset, spc, hardBreak);
+        bool fits = 
+            lj.AddItem(drawing, count, solid, size, offset, spc, hardBreak)
+            || hardBreak;
         if (fits)
         {
             Box &lineBounds = line->bounds;

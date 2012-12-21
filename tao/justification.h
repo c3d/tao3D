@@ -320,7 +320,10 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     {
         hasRoom = false;
         data->hardBreak = hardBreak;
-        return false;
+        if (size <= 0)
+            return false;
+        else if (!solid)
+            numBreaks--;
     }
 
     // Count solids, breaks and individual items (e.g. glyphs)
@@ -387,6 +390,8 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     // Allocate extra space between characters
     scale spread = justify.spread;
     coord forSolids = just * spread;
+    if ((hasRoom || hardBreak) && numBreaks <= 1)
+        forSolids = just;
     coord atSolid   = forSolids / (numItems > 2 ? numItems - 2 : 1);
 
     // Allocate extra space between breaks

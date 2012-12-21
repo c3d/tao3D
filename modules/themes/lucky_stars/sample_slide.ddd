@@ -1,0 +1,56 @@
+theme "LuckyStars"
+import VLCAudioVideo
+import MovieCredits
+import Animate
+
+
+main_title_slide "Main title",
+    title
+        text "Main title"
+    subtitle
+        text "Main subtitle"
+
+
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    mc_size 1200, 2000
+
+    translatey -100
+    mc_star_wars_crawl 55,
+        title T:text -> align 0.5; text T
+        line T:text -> paragraph_break; align 0, 1; text T
+
+        title "A NEW HOPE FOR PRESENTATIONS"
+        line "The world of presentations is in chaos. The ancient power of bullet points is gone. Kids born with iPads in their hands don't believe in this old religion anymore."
+        line "But a glimmer of hope remains. Hidden in a remote place called Taodyne, three computer gurus versed in ancient computer science found a new way to jolt your audience."
+        line "The fight has just begun, a fight for the freedom to put some creativity back in presentations. To win this battle, Taodyne needs your help..."
+
+    movie_only ""
+
+
+picture_slide "YouTube Video slide",
+    left_picture
+        translate 0, 100, -4000 + 4100 * fade_in(page_time, 50)
+        rotatey 35
+        scale3 fade_in(page_time, 50)
+        movie 0, 0, 3.5, 3.5, "http://www.youtube.com/watch?v=oALxLNOhI6I"
+    right_column
+        - "We wish you a Merry Christmas"
+        - "and a Happy New Year 2013"

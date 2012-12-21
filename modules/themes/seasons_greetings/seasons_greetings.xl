@@ -33,15 +33,16 @@ theme_background "SeasonsGreetings",Master:text ->
             gradient_color 0, 1,1,1,1
             gradient_color 0.4, 0.7,0.7,0.7,1
             gradient_color 1, 0.35, 0.35, 0.35, 1
-        color_hsv 137 * (page_number - 1), 1, 1, 0.7
+        color_hsv 175 * (page_number - 1), 1, 1, 0.7
         rectangle slide_width, slide_height
     background -800,
         theme_color theme, Master, "picture"
         image 0, 0, 1.0, 1.0, "SeasonsGreetings:background-transp.png"
     background -500,
         snowfall 1.1, 4.0, 5000
-    background -400,
-        snowpack
+    if not is_available mac then
+        background -400,
+            snowpack
 
 theme_color "SeasonsGreetings",Master:text,"story"     -> color "white"
 theme_font "SeasonsGreetings",Master:text,"story"     -> font "Dancing Script"

@@ -55,6 +55,7 @@
 
 import Animate
 import Slides
+import KeyboardTheme
 
 
 // ============================================================================
@@ -218,9 +219,9 @@ draw_mandelbrot ->
 
         // Draw the rounded rectangle displaying the set
         // We make it an "active_widget" so that it reacts to clicks
-        translate -0.25 * sz, -0.07 * sz, 0
+        translate -0.35 * sz, -0.05 * sz, 0
         active_widget
-            rounded_rectangle 0, 0, 0.75 * sz, 0.75 * sz, 20
+            rounded_rectangle 0, 0, 0.80 * sz, 0.80 * sz, 20
 
             on_click
                 // When we click on the rectangle, adjust center position
@@ -264,18 +265,18 @@ draw_info ->
 // ----------------------------------------------------------------------------
     locally
         color "white", 60%
-        rounded_rectangle 0.40 * sz, -0.07 * sz, 0.45 * sz, 0.75 * sz, 20
-        text_box 0.40 * sz, -0.07 * sz, 0.40 * sz, 0.70 * sz,
+        rounded_rectangle 0.50 * sz, -0.05 * sz, 0.45 * sz, 0.75 * sz, 20
+        text_box 0.50 * sz, -0.05 * sz, 0.40 * sz, 0.70 * sz,
             vertical_align 0.2
             align 0.5
 
-            bullet_text_style theme, 1
+            theme_style theme, slide_master, "story", 1
             info_text tao_language
             line_break
             italic
             text "z' = z² + C"
 
-        text_box 0.40 * sz, -0.07 * sz, 0.40 * sz, 0.70 * sz,
+        text_box 0.50 * sz, -0.07 * sz, 0.40 * sz, 0.70 * sz,
             vertical_align 0.9
             font "Arial", 24, italic
             color "black", 40%

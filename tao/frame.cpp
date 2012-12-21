@@ -230,7 +230,7 @@ void FrameInfo::clear()
 {
     glClearColor(clearColor.red, clearColor.green, clearColor.blue,
                  clearColor.alpha);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 }
 
 

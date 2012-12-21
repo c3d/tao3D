@@ -27,6 +27,7 @@
 #include "tao_tree.h"
 #include "tao_utf8.h"
 #include <sstream>
+#include "demangle.h"
 
 TAO_BEGIN
 
@@ -166,7 +167,9 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), id(0), charId(0),
+    : Drawing(),
+      LayoutState(widget->layout ? *widget->layout : LayoutState()),
+      id(0), charId(0),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
 {}
@@ -238,6 +241,7 @@ void Layout::Draw(Layout *where)
     GLAllStateKeeper glSave(glSaveBits(),
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
+
 
     // Display all items
     PushLayout(this);

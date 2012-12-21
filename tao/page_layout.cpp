@@ -557,6 +557,9 @@ void PageLayout::Compute(Layout *where)
 
     IFTRACE(justify)
         page.Dump("<-PageLayout::Compute");
+
+    // Restore state as it was at the beginning of the layout
+    Inherit(where);
 }
 
 

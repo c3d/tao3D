@@ -25,6 +25,7 @@ INFIX
         320     * / mod rem
         381     ^
         480     .
+        500     en fr de it es
         600     :
 
 PREFIX

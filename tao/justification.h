@@ -157,7 +157,6 @@ public:
         coord           lastOversize;
         uint            numItems;
         uint            numBreaks;
-        uint            numSolids;
         int             sign;
         bool            hardBreak;
         bool            hasRoom;
@@ -202,7 +201,6 @@ Justifier<Item>::LayoutData::LayoutData(coord start, coord end,
       lastOversize(0),
       numItems(0),
       numBreaks(0),
-      numSolids(0),
       sign(start <= end ? 1 : -1),
       hardBreak(false),
       hasRoom(true)
@@ -277,7 +275,6 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     coord         &lastOversize = data->lastOversize;
     uint          &numItems     = data->numItems;
     uint          &numBreaks    = data->numBreaks;
-    uint          &numSolids    = data->numSolids;
     int           &sign         = data->sign;
     bool          &hasRoom      = data->hasRoom;
 
@@ -329,9 +326,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     // Count solids, breaks and individual items (e.g. glyphs)
     if (size > 0)
     {
-        if (solid)
-            numSolids++;
-        else
+        if (!solid)
             numBreaks++;
         numItems += count;
 
@@ -361,7 +356,6 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     coord         &lastOversize = data->lastOversize;
     uint          &numItems     = data->numItems;
     uint          &numBreaks    = data->numBreaks;
-    uint          &numSolids    = data->numSolids;
     int           &sign         = data->sign;
     bool          &hardBreak    = data->hardBreak;
     bool          &hasRoom      = data->hasRoom;
@@ -378,9 +372,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     if (hasRoom || hardBreak)
         just = extra * justify.partial;
 
-    // If there is no place where we can justify, center instead
-    if (numSolids <= 1 && numBreaks <= 1)
-        just = 0;
+    // Count last space as a break only if had a non-zero size
     if (lastSpace == 0)
         numBreaks++;
 

@@ -91,7 +91,7 @@ theme_align Theme:text,Master:text,"story"      -> align 0.0; vertical_align 0.3
 theme_align Theme:text,Master:text,"title"      -> align 0.5; vertical_align 0.5
 theme_align Theme:text,Master:text,"subtitle"   -> theme_align Theme,Master,"title"
 theme_align Theme:text,Master:text,Style:text   -> theme_align Theme,Master, "story"
-theme_align Theme:text,Master:text,"story",N    -> margins 20+10*N, 0
+theme_align Theme:text,Master:text,"story",N    -> margins 40+10*N, 0
 theme_align Theme:text,Master:text,Style:text,N -> theme_align Theme,Master,"story",N
 
 theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1

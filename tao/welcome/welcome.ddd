@@ -146,7 +146,7 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     pup -> 3600 
     picX N:integer -> 450 * picT N / pshown * sin (177.312 * picN N) 
     picY N:integer -> 600 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2 
-    picZ N:integer -> 30000 * picT N / pshown 
+    picZ N:integer -> 35000 * picT N / pshown 
     picA N:integer -> 10 * sin (picT N) 
     picS N:integer -> 80% + 30% * sin (153.27 * picN N)
     picN N:integer -> N - integer ptime 

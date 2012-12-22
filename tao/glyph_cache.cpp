@@ -260,11 +260,11 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         QFontMetricsF fm(scaled);
         QChar qc(code);
         QRectF bounds = fm.boundingRect(qc);
-        IFTRACE(fonts)
+        if (bounds.width() == 0 || bounds.height() == 0 ||
+            fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
+            fabs(bounds.y()) > 10 * scaled.pointSizeF())
         {
-            if (bounds.width() == 0 || bounds.height() == 0 ||
-                fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
-                fabs(bounds.y()) > 10 * scaled.pointSizeF())
+            IFTRACE(fonts)
             {
                 QString exactMatchText;
                 if (!scaled.exactMatch())
@@ -278,10 +278,16 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
                         .arg(bounds.x()).arg(bounds.y());
                 std::cerr << +msg << "\n";
             }
+            // #1161 Workaround font metric bug in TeX Gyre Adventor
+            // 'Mountains of Christmas' has the same problem at least
+            // on MacOSX 10.6.8
+            // All issues have always been with the space character up to now,
+            // but handle other characters just in case
+            if (qc == ' ')
+                bounds = fm.boundingRect(QChar('l'));
+            else
+                bounds = fm.boundingRect(QChar('m'));
         }
-        // #1161 Workaround font metric bug in TeX Gyre Adventor
-        if (qc == ' ' && font.family() == "TeX Gyre Adventor")
-            bounds = fm.boundingRect(QChar('l'));
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());
 

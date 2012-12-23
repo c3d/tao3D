@@ -996,10 +996,10 @@ void TextSplit::PerformInsertOperation(Layout * /* l */,
 
         // Text to insert
         XL::Prefix * insertedTextSpan =
-                new XL::Prefix(new XL::Name("text_span"),
-                               new XL::Block(sel->replacement_tree->AsInfix(),
-                                             XL::Block::indent,
-                                             XL::Block::unindent));
+            new XL::Prefix(new XL::Name("text_span"),
+                           new XL::Block(sel->replacement_tree->AsInfix(),
+                                         XL::Block::indent,
+                                         XL::Block::unindent));
         list.push_back(insertedTextSpan);
 
         // End of previous text

@@ -8942,9 +8942,6 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 //   Evaluate the child tree while preserving the current text format state
 // ----------------------------------------------------------------------------
 {
-    if (flows.count(currentFlowName) == 0)
-        return XL::xl_false;
-
     // To be preserved:
     // Font, color, line_color, texture, alignement, linewidth, rotation, scale
     TextSpan *childLayout = new TextSpan(layout);

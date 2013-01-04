@@ -44,13 +44,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
     typedef std::map<const QGLContext *, QGLFramebufferObject *> fbo_map;
     typedef std::map<const QGLContext *, GLuint> tex_map;
 
-// On MacOSX, GL_RGBA8 is not supported
-#if defined(Q_OS_MACX)
-    FrameInfo(uint width = 512, uint height = 512, uint format = GL_RGBA);
-#else
-    FrameInfo(uint width = 512, uint height = 512, uint format = GL_RGBA8);
-#endif
-
+    FrameInfo(uint width = 512, uint height = 512, uint format = defaultFormat);
     FrameInfo(const FrameInfo &other);
     ~FrameInfo();
     virtual void Delete() { trash.push_back(this); }
@@ -58,6 +52,7 @@ struct FrameInfo : XL::Info, InfoTrashCan
     void        resize(uint width, uint height);
     void        setFormat(uint format);
 
+    void        clear();
     void        begin(bool clearContents = true);
     void        end();
     GLuint      bind();
@@ -66,20 +61,17 @@ struct FrameInfo : XL::Info, InfoTrashCan
     void        checkGLContext();
     QImage      toImage();
 
-    uint    w, h;
-    uint    format; // Internal texture format
-    double  refreshTime;
-    fbo_map render_fbos;
-    fbo_map texture_fbos;
-    tex_map depth_textures;
-    Color   clearColor;
+    uint                  w, h;
+    uint                  format; // Internal texture format
+    GLuint                depthTextureID;
+    QGLContext           *context;
+    QGLFramebufferObject *renderFBO;
+    QGLFramebufferObject *textureFBO;
+    double                refreshTime;
+    Color                 clearColor;
 
-#define render_fbo  render_fbos[QGLContext::currentContext()]
-#define texture_fbo texture_fbos[QGLContext::currentContext()]
-#define depth_tex   depth_textures[QGLContext::currentContext()]
 
     // Static methods exported by the module interface. See module_api.h.
-
     static ModuleApi::fbo *   newFrameBufferObject(uint w, uint h);
     static ModuleApi::fbo *   newFrameBufferObjectWithFormat(uint w, uint h,
                                                              uint format);
@@ -96,8 +88,16 @@ struct FrameInfo : XL::Info, InfoTrashCan
 protected:
     void        resizeDepthTexture(uint w, uint h);
     void        copyToDepthTexture();
-    void        clear();
     void        blit();
+    void        purge();
+
+private:
+// On MacOSX, GL_RGBA8 is not supported
+#if defined(Q_OS_MACX)
+    enum { defaultFormat = GL_RGBA };
+#else
+    enum { defaultFormat = GL_RGBA8 };
+#endif
 };
 
 

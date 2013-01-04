@@ -102,7 +102,6 @@ public:
         Vertices        vertices;
         DynamicVertices allocated;
         uint64          textureUnits;
-        GLenum          mode;
     };
 
 public:

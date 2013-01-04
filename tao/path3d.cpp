@@ -78,18 +78,8 @@ static void CALLBACK tessBegin(GLenum mode, PolygonData *poly)
 //   Callback for beginning of rendering
 // ----------------------------------------------------------------------------
 {
-    poly->mode = mode;
-    poly->vertices.clear();
-}
-
-
-static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
-// ----------------------------------------------------------------------------
-//   Emit a vertex during tesselation
-// ----------------------------------------------------------------------------
-{
-    poly->vertices.push_back(*vertex);
-    poly->vertices.back().normal.z = 1;
+    (void) poly;
+    glBegin(mode);
 }
 
 
@@ -98,45 +88,24 @@ static void CALLBACK tessEnd(PolygonData *poly)
 //   Callback for end of rendering
 // ----------------------------------------------------------------------------
 {
-    Vertices &data = poly->vertices;
-    uint size = data.size();
+    (void) poly;
+    glEnd();
+}
 
-    if (size)
+
+static void CALLBACK tessVertex(VertexData *vertex, PolygonData *poly)
+// ----------------------------------------------------------------------------
+//   Emit a vertex during tesselation
+// ----------------------------------------------------------------------------
+{
+    (void) poly;
+    for(uint i = 0; i < TaoApp->maxTextureCoords; i++)
     {
-        double *vdata = &data[0].vertex.x;
-        double *tdata = &data[0].texture.x;
-        double *ndata = &data[0].normal.x;
-
-        glVertexPointer(3,GL_DOUBLE,sizeof(VertexData), vdata);
-        glNormalPointer(GL_DOUBLE, sizeof(VertexData), ndata);
-        glEnableClientState(GL_VERTEX_ARRAY);
-        glEnableClientState(GL_NORMAL_ARRAY);
-    
-        //Active texture coordinates for all used units
-        for (uint i = 0; i < TaoApp->maxTextureCoords ; i++)
-        {
-            if (poly->textureUnits & (1 << i))
-            {
-                glClientActiveTexture( GL_TEXTURE0 + i );
-                glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                glTexCoordPointer(3, GL_DOUBLE, sizeof(VertexData), tdata);
-            }
-        }
-
-        glDrawArrays(poly->mode, 0, size);
-
-        glDisableClientState(GL_VERTEX_ARRAY);
-        glDisableClientState(GL_NORMAL_ARRAY);
-        for (uint i = 0; i < TaoApp->maxTextureCoords ; i++)
-        {
-            if (poly->textureUnits & (1 << i))
-            {
-                glClientActiveTexture( GL_TEXTURE0 + i );
-                glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-            }
-        }
+        //Active texture coordinates only for used units
+        if (poly->textureUnits & (1 << i))
+            glMultiTexCoord3dv(GL_TEXTURE0 + i, &vertex->texture.x);
     }
-    poly->vertices.clear();
+    glVertex3dv(&vertex->vertex.x);
 }
 
 

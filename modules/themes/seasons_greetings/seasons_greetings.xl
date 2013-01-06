@@ -40,9 +40,8 @@ theme_background "SeasonsGreetings",Master:text ->
         image 0, 0, 1.0, 1.0, "SeasonsGreetings:background-transp.png"
     background -500,
         snowfall 1.1, 4.0, 5000
-    if not is_available mac then
-        background -400,
-            snowpack
+    background -400,
+        snowpack
 
 theme_color "SeasonsGreetings",Master:text,"story"     -> color "white"
 theme_font "SeasonsGreetings",Master:text,"story"     -> font "Dancing Script"

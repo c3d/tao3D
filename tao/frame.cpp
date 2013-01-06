@@ -35,7 +35,11 @@ FrameInfo::FrameInfo(uint w, uint h, GLenum f)
     : w(w), h(h), format(f), depthTextureID(0),
       context(NULL), renderFBO(NULL), textureFBO(NULL),
       refreshTime(-1), clearColor(1, 1, 1, 0)
-{}
+{
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Constructor " << this
+                  << " size "<< w << "x" << h << "\n";
+}
 
 
 FrameInfo::FrameInfo(const FrameInfo &o)
@@ -45,7 +49,12 @@ FrameInfo::FrameInfo(const FrameInfo &o)
     : XL::Info(o), w(o.w), h(o.h), format(o.format), depthTextureID(0),
       context(NULL), renderFBO(NULL), textureFBO(NULL),
       refreshTime(o.refreshTime), clearColor(o.clearColor)
-{}
+{
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Copy " << this
+                  << " from " << &o
+                  << " size "<< w << "x" << h << "\n";
+}
 
 
 FrameInfo::~FrameInfo()
@@ -53,6 +62,9 @@ FrameInfo::~FrameInfo()
 //   Delete the frame buffer objects and GL tiles
 // ----------------------------------------------------------------------------
 {
+    
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Destructor " << this << "\n";
     purge();
 }
 
@@ -71,7 +83,15 @@ void FrameInfo::resize(uint w, uint h)
     
     // Delete anything we might have
     purge();
-    
+
+    // If the size is too big, we shouldn't use multisampling, it crashes
+    // on MacOSX
+    const int SAMPLES = 4;
+    bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
+    if (w >= TaoApp->maxTextureSize / SAMPLES ||
+        h >= TaoApp->maxTextureSize / SAMPLES)
+        canMultiSample = false;
+
     // Select whether we draw directly in texture or blit to it
     // If we can blit and suceed in creating a multisample buffer,
     // we first draw in a multisample buffer
@@ -79,15 +99,14 @@ void FrameInfo::resize(uint w, uint h)
     QGLFramebufferObjectFormat format;
     format.setInternalTextureFormat(this->format);
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-    if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
+    if (canMultiSample)
     {
-        const int SAMPLES = 4;
         QGLFramebufferObjectFormat mformat(format);
         mformat.setSamples(SAMPLES);
         renderFBO = new QGLFramebufferObject(w, h, mformat);
         QGLFramebufferObjectFormat actualFormat = renderFBO->format();
         int samples = actualFormat.samples();
-        if (samples == SAMPLES)
+        if (samples > 1)
         {
             // REVISIT: we pass format to have a depth buffer attachment.
             // This is required only when we want to later use depthTexture().
@@ -122,12 +141,14 @@ void FrameInfo::resize(uint w, uint h)
     // Store what context we created things in
     this->w = w; this->h = h;
     this->context = (QGLContext *) QGLContext::currentContext();
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Resized " << w << "x" << h
+                  << " in " << context << "\n";
+    glFinish();
     
     // Clear the contents of the newly created frame buffer
-    int ok = renderFBO->bind();
-    if (!ok) std::cerr << "FrameInfo::resize(): unexpected result\n";
-    clear();
-    renderFBO->release();
+    begin(true);
+    end();
 }
 
 
@@ -172,6 +193,8 @@ void FrameInfo::begin(bool clearContents)
 
     if (clearContents)
         clear();
+    else if (renderFBO != textureFBO)
+        backBlit();
 }
 
 
@@ -236,13 +259,32 @@ void FrameInfo::blit()
         : GL_COLOR_BUFFER_BIT;
     uint width = renderFBO->width();
     uint height = renderFBO->height();
+    QRect rect(0, 0, width, height);
+    QGLFramebufferObject::blitFramebuffer(textureFBO, rect,
+                                          renderFBO, rect,
+                                          buffers);
+}
 
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, renderFBO->handle());
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, textureFBO->handle());
-    glBlitFramebuffer(0, 0, width, height,
-                      0, 0, width, height,
-                      buffers, GL_NEAREST);
-    glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+void FrameInfo::backBlit()
+// ----------------------------------------------------------------------------
+//   Blit from multisampled FBO to non-multisampled FBO
+// ----------------------------------------------------------------------------
+{
+    assert (QGLContext::currentContext() == context ||
+            !"FrameInfo::backBlit invoked with invalid GL context");
+    assert (textureFBO != renderFBO ||
+            !"FrameInfo::backBlit invoked without any need for it.");
+
+    GLenum buffers = depthTextureID
+        ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT
+        : GL_COLOR_BUFFER_BIT;
+    uint width = renderFBO->width();
+    uint height = renderFBO->height();
+    QRect rect(0, 0, width, height);
+    QGLFramebufferObject::blitFramebuffer(renderFBO, rect,
+                                          textureFBO, rect,
+                                          buffers);
 }
 
 
@@ -262,6 +304,8 @@ void FrameInfo::purge()
         if (depthTextureID)
             glDeleteTextures(1, &depthTextureID);
 
+        IFTRACE(fbo)
+            std::cerr << "[FrameInfo] Purged " << context << "\n";
         renderFBO = textureFBO = NULL;
         depthTextureID = 0;
         context = NULL;
@@ -303,6 +347,10 @@ void FrameInfo::checkGLContext()
 {
     if (context != QGLContext::currentContext())
     {
+        IFTRACE(fbo)
+            std::cerr << "[FrameInfo] Changing context from " << context
+                      << " to " << QGLContext::currentContext()
+                      << "\n";
         purge();
         resize(w, h);
     }

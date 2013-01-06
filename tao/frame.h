@@ -89,6 +89,7 @@ protected:
     void        resizeDepthTexture(uint w, uint h);
     void        copyToDepthTexture();
     void        blit();
+    void        backBlit();
     void        purge();
 
 private:

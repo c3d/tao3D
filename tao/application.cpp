@@ -485,6 +485,7 @@ bool Application::checkGL()
             // (texture units are limited to 4 otherwise)
             glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
             glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*)&maxTextureUnits);
+            glGetIntegerv(GL_MAX_TEXTURE_SIZE,(GLint*)&maxTextureSize);
         }
         else
         {

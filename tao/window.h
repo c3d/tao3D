@@ -128,6 +128,7 @@ public slots:
     void renderToFile();
     void adjustToScreenResolution(int screen);
     void updateDisplayModeCheckMark(QString mode);
+    void closeDocument();
 
 signals:
 #ifndef CFG_NOGIT
@@ -142,7 +143,6 @@ protected:
 private slots:
     void newDocument();
     void newFile();
-    void closeDocument();
     void openRecentFile();
     void clearRecentFileList();
 #ifndef CFG_NOEDIT

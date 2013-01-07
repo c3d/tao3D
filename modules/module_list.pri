@@ -46,6 +46,7 @@
        themes/bright_rectangles \
        themes/lucky_stars \
        themes/seasons_greetings \
+       themes/water \
        slideshow_3d \
        vlc_audio_video \
        stereo_decoder \

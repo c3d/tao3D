@@ -260,8 +260,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         QFontMetricsF fm(scaled);
         QChar qc(code);
         QRectF bounds = fm.boundingRect(qc);
-        if (bounds.width() == 0 || bounds.height() == 0 ||
-            fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
+        if (fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
             fabs(bounds.y()) > 10 * scaled.pointSizeF())
         {
             IFTRACE(fonts)
@@ -283,10 +282,22 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             // on MacOSX 10.6.8
             // All issues have always been with the space character up to now,
             // but handle other characters just in case
+            QChar repl;
             if (qc == ' ')
-                bounds = fm.boundingRect(QChar('l'));
+                repl = QChar('l');
             else
-                bounds = fm.boundingRect(QChar('m'));
+                repl = QChar('m');
+            bounds = fm.boundingRect(repl);
+            IFTRACE(fonts)
+            {
+                QString msg;
+                msg = QString("Using metrics of character '%1' instead:\n"
+                              "  width %2 height %3 x %4 y %7")
+                        .arg(repl)
+                        .arg(bounds.width()).arg(bounds.height())
+                        .arg(bounds.x()).arg(bounds.y());
+                std::cerr << +msg << "\n";
+            }
         }
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());

@@ -609,7 +609,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 
 
 void GraphicPath::Draw(const Vector3 &offset,
-                       const uint64 texUnits,
+                       uint64 texUnits,
                        GLenum mode, GLenum tesselation)
 // ----------------------------------------------------------------------------
 //   Draw the graphic path using curves with the given mode and tesselation

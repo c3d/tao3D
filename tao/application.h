@@ -168,6 +168,7 @@ public:
     Vendor             vendorID;
     uint               maxTextureCoords;
     uint               maxTextureUnits;
+    uint               maxTextureSize;
     text               GLVendor;
     text               GLRenderer;
     text               GLVersionAvailable;

@@ -9818,9 +9818,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 // ----------------------------------------------------------------------------
 {
     Tree_p result = XL::xl_false;
-    if (w < 16) w = 16;
-    if (h < 16) h = 16;
-
+    if (w < 1) w = 1;
+    if (h < 1) h = 1;
+    if (w > TaoApp->maxTextureSize) w = TaoApp->maxTextureSize;
+    if (h > TaoApp->maxTextureSize) h = TaoApp->maxTextureSize;
 
     FrameInfo *pFrame;
     if (name != "")

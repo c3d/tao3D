@@ -169,7 +169,7 @@ panel "Phoenix canariensis", 4 ->
         line_color "black", 0.8
         color "#DDD", 0.15
         line_width 1
-        rounded_rectangle -40, 0, 580, 560, 20
+        rounded_rectangle -20, 0, 620, 560, 20
     title text trn "Other species"
     story_box
         subtitle text "P. dactylifera"

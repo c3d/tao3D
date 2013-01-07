@@ -1,0 +1,88 @@
+// ****************************************************************************
+//   Seasons Greetings - A theme specially designed for the Christmas period
+//   Copyright 2012 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+import Slides
+import WaterSurface
+
+module_description
+    id "d0dc1693-bb4e-4884-87b1-c2f29d437c58"
+    name "Water theme"
+    description "A theme with some nice water effects."
+    import_name "WaterTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+
+module_description "fr",
+    name "Thème Water"
+    description "Un thème comprenant divers effets d'eau."
+
+add_search_path "Water:", module_dir
+
+
+theme_slide_width  "Water" -> 1920
+theme_slide_height "Water" -> 1080
+
+theme_background "Water",Master:text ->
+    clear_color 0, 0, 0, 1
+    background -900,
+        mouse_drop
+        color "white"
+        locally
+            seconds
+            add_random_drops "rain", 1
+        // Bind underwater texture
+        texture_unit 1
+        texture "Water:background.jpg"
+        colored_water_surface "water_theme", slide_width * 110%, slide_height * 110%
+
+theme_size "Water",Master:text,"title"       -> 120
+theme_size "Water",Master:text,"subtitle"    -> 80
+
+theme_color "lightblue" -> "#3399FF"
+theme_color "Water",Master:text,"title"     -> color theme_color "lightblue"
+theme_color "Water",Master:text,"story"     -> color "black"
+
+theme_font "Water",Master:text,Style:text     -> font "Yanone Kaffeesatz", "Yanone Kaffeesatz Regular"
+
+theme_boxstyle "Water",Master:text,Style:text  -> color "white",0.2; line_color "lightblue", 0.50
+
+theme_align "Water",Master:text,"story", N  -> margins 25+50*N, 0
+theme_box "Water",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 0.9, 0.9, 1, 0.9
+            gradient_color 0.5, 0.9, 0.9, 1, 0.95
+            gradient_color 1.0, 0.9, 0.9, 1, 1.0
+        rectangle X, Y, W + 10, H + 10
+
+
+
+theme_bullet_picture "Water", Master:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Draw theme bullets
+// ----------------------------------------------------------------------------
+    theme_bullet_circle S:real -> circle -50% * S, 30% * S, 20% * S
+    color theme_color "lightblue"
+    theme_bullet_circle theme_size ("Water", Master, "bullet", Level)
+
+// ============================================================================
+//
+//   Water functions
+//
+// ============================================================================
+
+mouse_drop ->
+// ----------------------------------------------------------------------------
+//    Add drops on the water surface with the mouse
+// ----------------------------------------------------------------------------
+    enable_selection_rectangle false
+    locally
+        add_drop "water_theme", mouse_x / (slide_width * 110%), mouse_y / (slide_height * 110%), 0.5, 0.08

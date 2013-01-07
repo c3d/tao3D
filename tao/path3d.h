@@ -46,7 +46,8 @@ struct GraphicPath : Shape
     virtual void        DrawSelection(Layout *where);
     virtual void        Identify(Layout *where);
     virtual void        Draw(Layout *where, GLenum tessel);
-    virtual void        Draw(const Vector3 &offset, const uint64 texUnits, GLenum mode, GLenum tessel);
+    virtual void        Draw(const Vector3 &offset, uint64 texUnits,
+                             GLenum mode, GLenum tessel);
     virtual Box3        Bounds(Layout *layout);
 
     // Absolute coordinates

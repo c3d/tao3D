@@ -288,6 +288,9 @@ void PageLayout::Draw(Layout *where)
         std::cerr << "<-PageLayout::Draw ["<< this << "] offset = "
                   << where->Offset()
                   << " -- where->offset = "<<  where->Offset() << "\n";
+
+    if (where)
+        where->previousTextures = previousTextures;
 }
 
 
@@ -504,6 +507,15 @@ void PageLayout::Add(Drawing *d)
     }
 
     Layout::Add(d);
+}
+
+
+Layout *PageLayout::NewChild()
+// ----------------------------------------------------------------------------
+//   Creating a text span for locally inside a page layout
+// ----------------------------------------------------------------------------
+{
+    return new TextSpan(this);
 }
 
 

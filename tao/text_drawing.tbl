@@ -123,14 +123,6 @@ PREFIX(Font,  tree,  "font",
        GROUP(text:font)
        SYNOPSIS("Select a font family")
        DESCRIPTION("Select a font family"))
-PREFIX(FontScaling,  tree,  "font_scaling",
-       PARM(s,real, "Scaling factor")
-       PARM(ms,real, "Minimum AA size"),
-       RTAO(fontScaling(self,s,ms)),
-       GROUP(text:font)
-       SYNOPSIS("Change the font scaling factor")
-       DESCRIPTION("Change the font scaling factor")
-       RETURNS(tree, ""))
 PREFIX(FontPlain,  tree,  "plain", , RTAO(fontPlain(self)),
        GROUP(text:font)
        SYNOPSIS("Set plain text")
@@ -315,9 +307,31 @@ PREFIX(DocVersion,  tree,  "doc_version", , RTAO(docVersion(self)),
        SYNOPSIS("The document version")
        DESCRIPTION("Return the version of the current document (if known)")
        RETURNS(tree, "The current document version"))
+PREFIX(GlyphCacheScaling,  tree,  "glyph_cache_scaling",
+       PARM(scalingFactor,real, "Scaling factor")
+       PARM(minAAScaling,real, "Minimum AA size"),
+       RTAO(glyphCacheScaling(self, scalingFactor, minAAScaling)),
+       GROUP(text:font)
+       SYNOPSIS("Change the font scaling factor")
+       DESCRIPTION("Change the font scaling factor")
+       RETURNS(tree, ""))
+PREFIX(GlyphCacheSizeRange,  tree,  "glyph_cache_size_range",
+       PARM(minSize,real, "Minimum size for using the glyph cache")
+       PARM(maxSize,real, "Maximum size for using the glyph cache"),
+       RTAO(glyphCacheSizeRange(self, minSize, maxSize)),
+       GROUP(text:font)
+       SYNOPSIS("Change the font scaling factor")
+       DESCRIPTION("Change the font scaling factor")
+       RETURNS(tree, ""))
 PREFIX(EnableGlyphCache,  boolean,  "enable_glyph_cache",
-       PARM(an, boolean, "on or off"),
-       RTAO(enableGlyphCache(self, an)),
+       PARM(enableCache, boolean, "on or off"),
+       RTAO(enableGlyphCache(self, enableCache)),
+       GROUP(text)
+       SYNOPSIS("Enable or disable bitmap glyph cache")
+       DESCRIPTION("Enable or disable the bitmap glyph cache. Enabled by default. When enabled, drawing text is faster, but typically lower quality especially when fullscreen antialiasing is available.")
+       RETURNS(boolean, "True if previous state was on."))
+PREFIX(GlyphCacheTexture, integer,  "glyph_cache_texture", ,
+       RTAO(glyphCacheTexture(self)),
        GROUP(text)
        SYNOPSIS("Enable or disable bitmap glyph cache")
        DESCRIPTION("Enable or disable the bitmap glyph cache. Enabled by default. When enabled, drawing text is faster, but typically lower quality especially when fullscreen antialiasing is available.")

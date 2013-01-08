@@ -9086,22 +9086,6 @@ Tree_p Widget::fontSize(Tree_p self, double size)
 }
 
 
-Tree_p Widget::fontScaling(Tree_p self, double scaling, double minAASize)
-// ----------------------------------------------------------------------------
-//   Change the font scaling factor
-// ----------------------------------------------------------------------------
-{
-    if (glyphCache.fontScaling != scaling ||
-        glyphCache.minFontSizeForAntialiasing != minAASize)
-    {
-        glyphCache.Clear();
-        glyphCache.fontScaling = scaling;
-        glyphCache.minFontSizeForAntialiasing = minAASize;
-    }
-    return XL::xl_true;
-}
-
-
 Tree_p Widget::fontPlain(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Select whether this is italic or not
@@ -9478,6 +9462,46 @@ Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
     bool old = TextUnit::cacheEnabled;
     TextUnit::cacheEnabled = enable;
     return old ? XL::xl_true : XL::xl_false;
+}
+
+
+Tree_p Widget::glyphCacheSizeRange(Tree_p self, double min, double max)
+// ----------------------------------------------------------------------------
+//   Change the font scaling in the glyph cache
+// ----------------------------------------------------------------------------
+{
+    glyphCache.minFontSize = min;
+    glyphCache.maxFontSize = max;
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::glyphCacheScaling(Tree_p self, double scaling, double minAASize)
+// ----------------------------------------------------------------------------
+//   Change the font scaling in the glyph cache
+// ----------------------------------------------------------------------------
+{
+    if (glyphCache.fontScaling != scaling ||
+        glyphCache.minFontSizeForAntialiasing != minAASize)
+    {
+        glyphCache.Clear();
+        glyphCache.fontScaling = scaling;
+        glyphCache.minFontSizeForAntialiasing = minAASize;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Integer_p Widget::glyphCacheTexture(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return a texture corresponding to the glyph cache contents
+// ----------------------------------------------------------------------------
+{
+    uint textureID = glyphCache.Texture();
+    layout->Add(new FillTexture(textureID, GL_TEXTURE_RECTANGLE_ARB));
+    layout->hasAttributes = true;
+    return new Integer(textureID, self->Position());
 }
 
 

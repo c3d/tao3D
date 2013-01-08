@@ -649,7 +649,6 @@ public:
     Tree_p      fontFamily(Context *, Tree_p self, Text_p family);
     Tree_p      fontFamily(Context *, Tree_p self, Text_p family, Real_p size);
     Tree_p      fontSize(Tree_p self, double size);
-    Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
     Tree_p      fontItalic(Tree_p self, scale amount = 1);
     Tree_p      fontBold(Tree_p self, scale amount = 1);
@@ -673,6 +672,9 @@ public:
     Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
+    Tree_p      glyphCacheSizeRange(Tree_p self, double min, double max);
+    Tree_p      glyphCacheScaling(Tree_p self, double scaling, double minSize);
+    Integer_p   glyphCacheTexture(Tree_p self);
     Text_p      unicodeChar(Tree_p self, int code);
     Text_p      unicodeCharText(Tree_p self, text code);
 

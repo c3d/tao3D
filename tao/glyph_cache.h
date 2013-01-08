@@ -130,7 +130,7 @@ protected:
                 ptSize = font.pixelSize();
             uint result = ptSize;
             uint mask = 0;
-            // Keep only 4 significant bits
+            // Keep only 2 significant bits
             while (ptSize > 16)
             {
                 ptSize >>= 1;
@@ -173,7 +173,7 @@ protected:
             return 0;
         }
 
-        int compare(const uint64 u1, const uint64 u2) const
+        int compare(uint64 u1, uint64 u2) const
         {
             if(int unit = order(u1, u2))
                 return unit;
@@ -200,10 +200,11 @@ protected:
 
 public:
     static uint defaultSize;
+    scale       minFontSize;
+    scale       maxFontSize;
     scale       minFontSizeForAntialiasing;
-    uint        maxFontSize;
-    uint        antiAliasMargin;
     scale       fontScaling;
+    uint        antiAliasMargin;
     uint64      texUnits;
     PerFont *   lastFont;
     const

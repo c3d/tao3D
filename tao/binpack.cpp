@@ -52,6 +52,16 @@ BinPacker::~BinPacker()
 }
 
 
+void BinPacker::Clear()
+// ----------------------------------------------------------------------------
+//   Clear the whole binary packer
+// ----------------------------------------------------------------------------
+{
+    delete top;
+    top = NULL;
+}
+
+
 bool BinPacker::Allocate(uint w, uint h, Rect &rect)
 // ----------------------------------------------------------------------------
 //   Do a binary partition of the rectangle to find a place big enough to fit

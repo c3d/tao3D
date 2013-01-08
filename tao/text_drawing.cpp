@@ -87,12 +87,12 @@ void TextSplit::Draw(Layout *where)
     bool        hasLine    = setLineColor(where);
     bool        hasTexture = setTexture(where);
     GlyphCache &glyphs     = widget->glyphs();
-    int         maxSize    = (int) glyphs.maxFontSize;
-    bool        tooBig     = where->font.pointSize() > maxSize;
+    scale       fontSize   = where->font.pointSizeF();
+    bool        tooBig     = fontSize > glyphs.maxFontSize;
+    bool        tooSmall   = fontSize < glyphs.minFontSize;
+    bool        badSize    = tooBig || tooSmall;
     bool        printing   = where->printing;
     Point3      offset0    = where->Offset();
-    uint        dbgMod     = (Qt::ShiftModifier | Qt::ControlModifier);
-    bool        dbgDirect  = (widget->lastModifiers() & dbgMod) == dbgMod;
     IFTRACE(justify)
         std::cerr << "<->TextSplit::Draw(Layout *" << where
                   <<") [" << this
@@ -105,8 +105,7 @@ void TextSplit::Draw(Layout *where)
     // Check if we activated new texture units
     glyphs.CheckTextureUnits(where->textureUnits);
 
-    if (!printing && !hasLine && !hasTexture && !tooBig && !dbgDirect &&
-        cacheEnabled)
+    if (!printing && !hasLine && !hasTexture && !badSize && cacheEnabled)
         DrawCached(where);
     else
         DrawDirect(where);
@@ -169,7 +168,7 @@ void TextSplit::DrawCached(Layout *where)
             scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing * glyphs.fontScaling;
+            y -= spacing;
         }
         else
         {
@@ -289,7 +288,7 @@ void TextSplit::DrawDirect(Layout *where)
             scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing * glyphs.fontScaling;
+            y -= spacing;
         }
         else
         {
@@ -397,8 +396,8 @@ void TextSplit::DrawSelection(Layout *where)
                         str = source->value;
                         max = str.length();
                     }
-                    scale sd = glyph.scalingFactor * descent;
-                    scale sh = glyph.scalingFactor * height;
+                    scale sd = descent;
+                    scale sh = height;
                     sel->selBox |= Box3(charX,charY - sd,z, 1, sh, 0);
 
                     // Add the char to the selected text
@@ -417,8 +416,8 @@ void TextSplit::DrawSelection(Layout *where)
             {
                 coord charX = x + glyph.bounds.lower.x;
                 coord charY = y;
-                scale sd = glyph.scalingFactor * descent;
-                scale sh = glyph.scalingFactor * height;
+                scale sd = descent;
+                scale sh = height;
                 sel->formulaBox |= Box3(charX,charY - sd,z, 1, sh, 0);
                 sel->formulaMode--;
                 if (!sel->formulaMode)
@@ -471,8 +470,8 @@ void TextSplit::DrawSelection(Layout *where)
             {
                 if (sel->replace && sel->mark == sel->point)
                     PerformEditOperation(widget, i);
-                scale sd = glyph.scalingFactor * descent;
-                scale sh = glyph.scalingFactor * height;
+                scale sd = descent;
+                scale sh = height;
                 sel->selBox |= Box3(x,y - sd,z, 1, sh, 0);
             }
         }
@@ -505,7 +504,7 @@ void TextSplit::Identify(Layout *where)
     scale       ascent    = glyphs.Ascent(font);
     scale       descent   = glyphs.Descent(font);
     scale       height    = ascent + descent;
-    scale       sd        = descent ;
+    scale       sd        = descent;
     scale       sh        = height;
     scale       charW     = 0;
     coord       charX1    = x;
@@ -552,8 +551,8 @@ void TextSplit::Identify(Layout *where)
             glLoadName((charId & ~Widget::SELECTION_MASK) |
                        Widget::CHARACTER_SELECTED);
 
-        sd = glyph.scalingFactor * descent;
-        sh = glyph.scalingFactor * height;
+        sd = descent;
+        sh = height;
         charW = glyph.bounds.Width() / 2;
         charX2 = x + glyph.bounds.upper.x - charW/2;
         charY1 = y - sd;
@@ -590,8 +589,8 @@ void TextSplit::Identify(Layout *where)
                    Widget::CHARACTER_SELECTED);
         if (glyphs.Find(font, ' ', glyph, false))
         {
-            sd = glyph.scalingFactor * descent;
-            sh = glyph.scalingFactor * height;
+            sd = descent;
+            sh = height;
             charW = glyph.bounds.Width() / 2;
             charX2 = x + glyph.bounds.upper.x - charW/2;
             charY1 = y - sd;
@@ -681,9 +680,9 @@ Box3 TextSplit::Bounds(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        scale sa = ascent * glyph.scalingFactor;
-        scale sd = descent * glyph.scalingFactor;
-        scale sl = leading * glyph.scalingFactor;
+        scale sa = ascent;
+        scale sd = descent;
+        scale sl = leading;
 
         // Enter the geometry coordinates
         coord charX1 = x + glyph.bounds.lower.x;
@@ -700,7 +699,7 @@ Box3 TextSplit::Bounds(Layout *where)
             scale height = glyphs.Ascent(font) + glyphs.Descent(font);
             scale spacing = height + glyphs.Leading(font);
             x = 0;
-            y -= spacing * glyph.scalingFactor;
+            y -= spacing;
         }
         else
         {
@@ -751,9 +750,9 @@ Box3 TextSplit::Space(Layout *where)
         if (!glyphs.Find(font, unicode, glyph, true))
             continue;
 
-        scale sa = ascent * glyph.scalingFactor;
-        scale sd = descent * glyph.scalingFactor;
-        scale sl = leading * glyph.scalingFactor;
+        scale sa = ascent;
+        scale sd = descent;
+        scale sl = leading;
 
         // Enter the geometry coordinates
         coord charX1 = x + glyph.bounds.lower.x;

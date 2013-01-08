@@ -154,15 +154,15 @@ GlyphCache::GlyphCache()
       texture(0),
       image(defaultSize, defaultSize, QImage::Format_ARGB32),
       dirty(false),
+      minFontSize(30),
+      maxFontSize(120),
       minFontSizeForAntialiasing(9),
-      maxFontSize(64),
-      antiAliasMargin(1),
       fontScaling(2.0),
+      antiAliasMargin(3),
       texUnits(1),              // Default is texture unit 0 only
       lastFont(NULL),
       GLcontext(QGLContext::currentContext())
 {
-    glGenTextures(1, &texture);
     image.fill(0);
 }
 
@@ -174,12 +174,10 @@ GlyphCache::~GlyphCache()
 {
     // Don't delete texture if context has been changed
     // REVISIT glyph cache should support multiple contexts
-    if (GLcontext != QGLContext::currentContext())
-        return;
-
-    glDeleteTextures(1, &texture);
-    for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
-        delete (*it).second;
+    if (GLcontext == QGLContext::currentContext())
+        if (texture)
+            glDeleteTextures(1, &texture);
+    Clear();
 }
 
 
@@ -191,6 +189,7 @@ void GlyphCache::Clear()
     for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
         delete (*it).second;
     cache.clear();
+    packer.Clear();
     image.fill(0);
     lastFont = NULL;
 }
@@ -258,7 +257,7 @@ bool GlyphCache::Find(const QFont &font,
         // Apply a font with scaling
         scale fs = fontScaling;
         uint aam = antiAliasMargin;
-        if (font.pointSizeF() <= minFontSizeForAntialiasing)
+        if (font.pointSizeF() < minFontSizeForAntialiasing)
         {
             fs = 1;
             aam = 0;
@@ -314,6 +313,12 @@ bool GlyphCache::Find(const QFont &font,
                 std::cerr << +msg << "\n";
             }
         }
+        scale bx = bounds.x();
+        scale by = bounds.y();
+        scale bw = bounds.width();
+        scale bh = bounds.height();
+
+        bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());
 
@@ -324,8 +329,7 @@ bool GlyphCache::Find(const QFont &font,
         // Record glyph information in the entry
         entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
                            bounds.width()/fs, bounds.height()/fs);
-        entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
-                            Point(rect.x1+aam + bounds.width(), rect.y2-aam));
+        entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qc) / fs;
         entry.interior = 0;
         entry.outlines.clear();
@@ -335,13 +339,29 @@ bool GlyphCache::Find(const QFont &font,
         perFont->Insert(code, entry);
 
         // Draw the texture portion for the desired word
-        qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
+        qreal x = rect.x1 + aam - bounds.left();
         qreal y = rect.y2 - aam - bounds.bottom();
+
         QPainter painter(&image);
         painter.setFont(scaled);
         painter.setBrush(Qt::transparent);
-        painter.setPen(Qt::white);
-        painter.drawText(QPointF(x, y), QString(qc));
+        painter.setPen(Qt::black);
+        painter.drawText(QPointF(x+fs, y+fs), QString(qc));
+
+#if 0 // DEBUG CODE
+        painter.setPen(QColor(0, 255, 0, 80));
+        painter.drawRect(bounds.translated(x, y));
+
+        painter.setPen(QColor(0, 0, 255, 80));
+        painter.drawRect(QRectF(x, y, 1, 1));
+
+        painter.setPen(QColor(255, 0, 255, 80));
+        painter.drawRect(QRectF(x+bounds.x(), y+bounds.y(), 1, 1));
+
+        painter.setPen(QColor(255, 0, 0, 80));
+        painter.drawRect(QRectF(rect.x1, rect.y1, rect.x2-rect.x1, rect.y2-rect.y1));
+#endif
+
         painter.end();
 
         // We will need to update the texture
@@ -425,7 +445,7 @@ bool GlyphCache::Find(const QFont &font,
         // Apply a font with scaling
         scale fs = fontScaling;
         uint aam = antiAliasMargin;
-        if (font.pointSizeF() <= minFontSizeForAntialiasing)
+        if (font.pointSizeF() < minFontSizeForAntialiasing)
         {
             fs = 1;
             aam = 0;
@@ -442,6 +462,12 @@ bool GlyphCache::Find(const QFont &font,
         QFontMetricsF fm(scaled);
         QString qs(+code);
         QRectF bounds = fm.boundingRect(qs);
+        scale bx = bounds.x();
+        scale by = bounds.y();
+        scale bw = bounds.width();
+        scale bh = bounds.height();
+
+        bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());
 
@@ -452,8 +478,7 @@ bool GlyphCache::Find(const QFont &font,
         // Record glyph information in the entry
         entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
                            bounds.width()/fs, bounds.height()/fs);
-        entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
-                            Point(rect.x1+aam + bounds.width(), rect.y2-aam));
+        entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qs) / fs;
         entry.interior = 0;
         entry.outlines.clear();
@@ -463,13 +488,14 @@ bool GlyphCache::Find(const QFont &font,
         perFont->Insert(code, entry);
 
         // Draw the texture portion for the desired word
-        qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
+        qreal x = rect.x1 + aam - bounds.left();
         qreal y = rect.y2 - aam - bounds.bottom();
+
         QPainter painter(&image);
         painter.setFont(scaled);
         painter.setBrush(Qt::transparent);
-        painter.setPen(Qt::white);
-        painter.drawText(QPointF(x, y), qs);
+        painter.setPen(Qt::black);
+        painter.drawText(QPointF(x+fs, y+fs), qs);
         painter.end();
 
         // We will need to update the texture
@@ -562,7 +588,12 @@ void GlyphCache::GenerateTexture()
 //   Copy the current image into our GL texture
 // ----------------------------------------------------------------------------
 {
-    QImage texImg = QGLWidget::convertToGLFormat(image).mirrored(false, true);
+    if (!texture)
+        glGenTextures(1, &texture);
+
+    QImage invert(image);
+    invert.invertPixels();
+    QImage texImg = QGLWidget::convertToGLFormat(invert).mirrored(false, true);
     glBindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
     glTexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
@@ -577,7 +608,8 @@ qreal GlyphCache::Ascent(const QFont &font)
 //   Return the ascent for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, true)->ascent;
+    PerFont *pf = FindFont(font, true);
+    return pf->ascent * font.pointSizeF() / pf->baseSize;
 }
 
 
@@ -586,7 +618,8 @@ qreal GlyphCache::Descent(const QFont &font)
 //   Return the descent for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, true)->descent;
+    PerFont *pf = FindFont(font, true);
+    return pf->descent * font.pointSizeF() / pf->baseSize;
 }
 
 
@@ -595,7 +628,8 @@ qreal GlyphCache::Leading(const QFont &font)
 //   Return the leading for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, true)->leading;
+    PerFont *pf = FindFont(font, true);
+    return pf->leading * font.pointSizeF() / pf->baseSize;
 }
 
 
@@ -608,7 +642,7 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
     entry.bounds.lower.x *= fontScale;
     entry.bounds.upper.x *= fontScale;
     entry.bounds.lower.y *= fontScale;
-    entry.bounds.upper.x *= fontScale;
+    entry.bounds.upper.y *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
 }

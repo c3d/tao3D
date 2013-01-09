@@ -4,9 +4,14 @@ import VLCAudioVideo
 
 main_title_slide "Main title",
     title
-        text "Main title"
+        text "Blue Claire theme"
     subtitle
-        text "Main subtitle"
+        text "Main title slide"
+        line_break
+        font_size 20
+        text "Background image from http://freestock.ca,"
+        line_break
+        text "used with permission"
 
 
 section_slide "Section title",

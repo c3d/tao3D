@@ -1,4 +1,3 @@
-
 // ****************************************************************************
 //  Welcome.ddd                                                     Tao project
 // ****************************************************************************
@@ -13,133 +12,130 @@
 //
 //
 //
-// Origin gift images from http://www.iconka.com,  http://www.designcontest.com
 //
 // ****************************************************************************
 //  (C) 2010-2012 Taodyne SAS
 // ****************************************************************************
-import Animate 
+
+import Animate
 
 // Avoid clipping
-z_near 500 
+z_near 500
 
 // ----------------------------------------------------------------------------
 //   Global variables
 // ----------------------------------------------------------------------------
-Animated -> 0 
-cam_z -> camera_position at 3 
-bg_z -> -30000 
-bg_w -> 1920 
-bg_h -> 1080 
-bg_zscale -> 100% * (1.0 - bg_z / cam_z) 
-bg_sx -> bg_zscale * window_width / bg_w 
-bg_sy -> bg_zscale * window_height / bg_h 
-window_scale -> min (window_width / bg_w, window_height / bg_h) 
+Animated -> 1
+cam_z -> camera_position at 3
+bg_z -> -30000
+bg_w -> 1920
+bg_h -> 1080
+bg_zscale -> 110% * (1.0 - bg_z / cam_z)
+bg_sx -> bg_zscale * window_width / bg_w
+bg_sy -> bg_zscale * window_height / bg_h
+window_scale -> min (window_width / bg_w, window_height / bg_h)
 
 // Logic to stop/start animation
-Initial -> 0 
-key "Space" -> 
-    if Animated = 1 then 
-        anim false 
-    else 
-        anim true 
-anim On:boolean -> 
-    Initial := 0 
-    if On then 
-        enable_animations true 
-        Animated := 1 
-    else 
-        enable_animations false 
-        Animated := 0 
+Initial -> 1
+key "Space" ->
+    if Animated = 1 then
+        anim false
+    else
+        anim true
+anim On:boolean ->
+    Initial := 0
+    if On then
+        enable_animations true
+        Animated := 1
+    else
+        enable_animations false
+        Animated := 0
 
-page "Welcome", 
-    if page_time > 5 and Initial = 1 then 
-        anim false 
-        Initial := 0 
-    welcome_background 
-    locally 
-        text_box 450 * window_scale, 0, window_width, window_height, 
-            vertical_align_bottom 
-            font "Arial", 25 * window_scale 
-            align_center 
+page "Welcome",
+    if page_time > 5 and Initial = 1 then
+        anim false
+        Initial := 0
+    welcome_background
+    locally
+        text_box 450 * window_scale, 0, window_width, window_height,
+            vertical_align_bottom
+            font "Arial", 25 * window_scale
+            align_center
+            color "black"
+            welcome_help tao_language
+    scale window_scale, window_scale, window_scale
+
+    locally
+        adjust t:real ->
+            scale 0.3, 0.3, 0.3
+            rotatey 33 * t
+            rotatex 4 * t
+            translate -2000 * t, 0, -8000 * t
+            rotatex 7.5 * t
+
+        locally
             color "white"
-            welcome_help tao_language 
-    scale window_scale, window_scale, window_scale 
-
-    locally 
-        adjust t:real -> 
-            scale 0.18, 0.18, 0.18
-            translate -2100, -700, 0
-            rotatey 33 * t 
-            rotatex -5 * t
-            //translate -2000 * t, 0, -8000 * t 
-            rotatex 7.5 * t 
-
-        locally 
-            color "white" 
-            adjust 0.5 
-            locally 
-                welcome_flow 40, 20, page_time 
-            color "white" 
+            adjust 0.5
+            image 0, 0, 150% , 150% , "MacBookPro.png"
+            locally
+                welcome_flow 40, 20, page_time
+            color "white"
             translatez 500
-            if seconds mod 2 = 0 then
-                image 0, -1500, 100%, 100%, "Taodyne-Logo.png"
-            else
-                image 0, -1500, 100%, 100%, "Taodyne-Logo_light.png"
+            image 0, -1500, 100% , 100% , "Taodyne_Logo.svg"
 
-    text_box 400, 150, window_width, window_height,
-        font "Dancing Script", 80, bold
-        line_width 2 
-        align_center 
-        vertical_align_center 
-        color "#e5021f"
-        text "Tao Presentations" 
-        line_break 
-        if tao_edition <> "" then 
-            text tao_edition 
-            line_break 
+    text_box 300, 150, window_width, window_height,
+        font "Ubuntu", 80, bold
+        line_width 2
+        align_center
+        vertical_align_center
+        color "#EEAA11"
+        text "Tao Presentations"
+        line_break
+        if tao_edition <> "" then
+            text tao_edition
+            line_break
 
-        font "Arial", 20, italic 
-        color "white"
-        line_width 0 
-        text "Version " & tao_version 
-        line_break 
-        text "© Copyright 2010-2012 Taodyne SAS" 
+        font "Arial", 20, italic
+        color "black"
+        line_width 0
+        text "Version " & tao_version
+        line_break
+        text "© Copyright 2010-2012 Taodyne SAS"
 
-welcome_help T:text -> 
+welcome_help T:text ->
 // ----------------------------------------------------------------------------
 //   Show the welcome help
 // ----------------------------------------------------------------------------
-    if T = "fr" then 
-        text "Appuyer sur la touche espace pour " 
-        if Animated = 1 then 
-            text "arrêter " 
-        else 
-            text "démarrer " 
-        text "l'animation" 
-    else 
-        text "Press the spacebar to " 
-        if Animated = 1 then 
-            text "stop " 
-        else 
-            text "start " 
-        text "the animation" 
+    if T = "fr" then
+        text "Appuyer sur la touche espace pour "
+        if Animated = 1 then
+            text "arrêter "
+        else
+            text "démarrer "
+        text "l'animation"
+    else
+        text "Press the spacebar to "
+        if Animated = 1 then
+            text "stop "
+        else
+            text "start "
+        text "the animation"
 
-welcome_background -> 
+welcome_background ->
 // ----------------------------------------------------------------------------
 //   Show the welcome backround
 // ----------------------------------------------------------------------------
-    locally 
-        translatez bg_z 
-        color "white" 
+    locally
+        translatez bg_z
+        color "white"
         image 0.0, 0.0, bg_sx, bg_sy, "background.png"
 
 
-welcome_flow Shown:integer, Displayed:integer, Time:real -> 
+welcome_flow Shown:integer, Displayed:integer, Time:real ->
 // ----------------------------------------------------------------------------
 //   Show the welcome flow
 // ----------------------------------------------------------------------------
-    ptime -> 384.99 
+    ptime -> 0.0
     pcount -> 15 
     pshown -> 40 
     pdisplayed -> 20 
@@ -149,23 +145,23 @@ welcome_flow Shown:integer, Displayed:integer, Time:real ->
     picZ N:integer -> 35000 * picT N / pshown 
     picA N:integer -> 10 * sin (picT N) 
     picS N:integer -> 80% + 30% * sin (153.27 * picN N)
-    picN N:integer -> N - integer ptime 
-    picT N:integer -> N + ptime mod 1 - 1 
+    picN N:integer -> N - integer ptime
+    picT N:integer -> N + ptime mod 1 - 1
 
-    pimg N:integer -> (picN N mod 15) + 1 
-    pname N:integer -> "picto_" & text (pimg N) & ".png" 
+    pimg N:integer -> (picN N mod 15) + 1
+    pname N:integer -> "picto_" & text (pimg N) & ".png"
 
-    picto N:integer -> 
-        locally 
-            translate picX N, picY N, picZ N 
-            rotatez picA N 
-            image 0, 0, picS N, picS N, pname N 
+    picto N:integer ->
+        locally
+            translate picX N, picY N, picZ N
+            rotatez picA N
+            image 0, 0, picS N, picS N, pname N
 
-    ptime := Time 
-    pshown := Shown 
-    pdisplayed := Displayed 
-    locally 
-        color "white" 
-        rotatez picA 0 
-        image 0, 0, picS 0 * (ptime mod 1), picS 0 * (ptime mod 1), pname 0 
+    ptime := Time
+    pshown := Shown
+    pdisplayed := Displayed
+    locally
+        color "white"
+        rotatez picA 0
+        image 0, 0, picS 0 * (ptime mod 1), picS 0 * (ptime mod 1), pname 0
     picto with 1 .. pdisplayed

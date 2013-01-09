@@ -2,6 +2,14 @@ Change log for Tao Presentations
 
 1.17
 
+#2693 Separate themes and miscellaneous documents in the example menu
+#2692 Template chooser: add "Show all" option (reveals harder to customize examples)
+#2691 Update Qt copyright notice (Digia)
+#2689 Close entry of command chooser quits Tao
+#2686 Crash in VMware Fusion 5 when canvas or frame texture are used
+#2682 Windows: syntax error reported on valid file
+#2672 Garbage/uninitialized memory shown in canvas
+#2625 Add glyph_cache_size_range and glyph_cache_scaling
 #2684 Several modules have a header refering to the GPL license
 #2679 MacOSX 10.6: space character of font "Mountains of Christmas" prevents text from displaying
 #2676 When full justification is active, the last line should be justified even if it contains a single word

@@ -1,167 +1,103 @@
 // ****************************************************************************
-//  Welcome.ddd                                                     Tao project
-// ****************************************************************************
 //
-//   File Description:
-//
-//     Welcome screen.
+//                    Default Taodyne welcome screen for 2013
 //
 //
-//
-//
-//
-//
-//
-//
-// ****************************************************************************
-//  (C) 2010-2012 Taodyne SAS
+//                                                  (C) 2010-2013 Taodyne SAS
 // ****************************************************************************
 
-import Animate
+import KeyboardTheme
 
-// Avoid clipping
-z_near 500
+theme "Keyboard"
 
+title_slide "Tao Presentations " & tao_edition,
 // ----------------------------------------------------------------------------
-//   Global variables
+//   Show the welcome slide for Tao Presentations
 // ----------------------------------------------------------------------------
-Animated -> 1
-cam_z -> camera_position at 3
-bg_z -> -30000
-bg_w -> 1920
-bg_h -> 1080
-bg_zscale -> 110% * (1.0 - bg_z / cam_z)
-bg_sx -> bg_zscale * window_width / bg_w
-bg_sy -> bg_zscale * window_height / bg_h
-window_scale -> min (window_width / bg_w, window_height / bg_h)
+    left_column
+        lang tao_language
+        * "Discover our all new themes and samples in the Help menu" fr "Découvrez nos nouveaux thèmes et examples dans le menu Aide"
 
-// Logic to stop/start animation
-Initial -> 1
-key "Space" ->
-    if Animated = 1 then
-        anim false
-    else
-        anim true
-anim On:boolean ->
-    Initial := 0
-    if On then
-        enable_animations true
-        Animated := 1
-    else
-        enable_animations false
-        Animated := 0
+        --
+        * "Press the Space bar to animate" fr "Appuyez sur la barre d'espace pour animer"
 
-page "Welcome",
-    if page_time > 5 and Initial = 1 then
-        anim false
-        Initial := 0
-    welcome_background
-    locally
-        text_box 450 * window_scale, 0, window_width, window_height,
-            vertical_align_bottom
-            font "Arial", 25 * window_scale
-            align_center
-            color "black"
-            welcome_help tao_language
-    scale window_scale, window_scale, window_scale
 
-    locally
-        adjust t:real ->
-            scale 0.3, 0.3, 0.3
-            rotatey 33 * t
-            rotatex 4 * t
-            translate -2000 * t, 0, -8000 * t
-            rotatex 7.5 * t
-
-        locally
-            color "white"
-            adjust 0.5
-            image 0, 0, 150% , 150% , "MacBookPro.png"
-            locally
-                welcome_flow 40, 20, page_time
-            color "white"
-            translatez 500
-            image 0, -1500, 100% , 100% , "Taodyne_Logo.svg"
-
-    text_box 300, 150, window_width, window_height,
-        font "Ubuntu", 80, bold
-        line_width 2
-        align_center
-        vertical_align_center
-        color "#EEAA11"
-        text "Tao Presentations"
+    box 450, -450, 820, 90,
+        theme_style theme, slide_master, "story"
+        align 50%
+        font_size 30
+        text "© Copyright 2010-2013 Taodyne SAS"
         line_break
-        if tao_edition <> "" then
-            text tao_edition
-            line_break
-
-        font "Arial", 20, italic
-        color "black"
-        line_width 0
+        font_size 20
         text "Version " & tao_version
-        line_break
-        text "© Copyright 2010-2012 Taodyne SAS"
 
-welcome_help T:text ->
-// ----------------------------------------------------------------------------
-//   Show the welcome help
-// ----------------------------------------------------------------------------
-    if T = "fr" then
-        text "Appuyer sur la touche espace pour "
-        if Animated = 1 then
-            text "arrêter "
-        else
-            text "démarrer "
-        text "l'animation"
-    else
-        text "Press the spacebar to "
-        if Animated = 1 then
-            text "stop "
-        else
-            text "start "
-        text "the animation"
 
-welcome_background ->
+    draw_macbook_and_pictos
+
+
+draw_macbook_and_pictos ->
 // ----------------------------------------------------------------------------
-//   Show the welcome backround
+//   Draw the MacBook and the various pictograms
 // ----------------------------------------------------------------------------
-    locally
-        translatez bg_z
+    contents -490,
+        translate 200, -230, 0
+        scale3 0.25
         color "white"
-        image 0.0, 0.0, bg_sx, bg_sy, "background.png"
+        image 0, 0, 100% , 100% , "MacBookPro.png"
 
-
-welcome_flow Shown:integer, Displayed:integer, Time:real ->
-// ----------------------------------------------------------------------------
-//   Show the welcome flow
-// ----------------------------------------------------------------------------
-    ptime -> 0.0
-    pcount -> 15 
-    pshown -> 40 
-    pdisplayed -> 20 
-    pup -> 3600 
-    picX N:integer -> 450 * picT N / pshown * sin (177.312 * picN N) 
-    picY N:integer -> 600 * picT N / pshown * cos (127.221 * picN N) + pup * (picT N) ^ 2 / pshown ^ 2 
-    picZ N:integer -> 35000 * picT N / pshown 
-    picA N:integer -> 10 * sin (picT N) 
-    picS N:integer -> 80% + 30% * sin (153.27 * picN N)
-    picN N:integer -> N - integer ptime
-    picT N:integer -> N + ptime mod 1 - 1
-
-    pimg N:integer -> (picN N mod 15) + 1
-    pname N:integer -> "picto_" & text (pimg N) & ".png"
-
-    picto N:integer ->
         locally
-            translate picX N, picY N, picZ N
-            rotatez picA N
-            image 0, 0, picS N, picS N, pname N
+            translate -300, 300, 200
+            color "black", 0.3
+            rounded_rectangle 0, 0, 600, 180, 600
+            color "white"
+            image 0, 0, 40% , 40%,
+                if seconds mod 2 = 0 then
+                    "Taodyne-Logo.png"
+                else
+                    "Taodyne-Logo_light.png"
 
-    ptime := Time
-    pshown := Shown
-    pdisplayed := Displayed
-    locally
+        scale3 0.8
         color "white"
-        rotatez picA 0
-        image 0, 0, picS 0 * (ptime mod 1), picS 0 * (ptime mod 1), pname 0
-    picto with 1 .. pdisplayed
+        rotatey 12
+        rotatex 10
+        locally
+            if animation_duration > 0.0 then
+                pictogram_time := page_time - animation_start
+                if pictogram_time > animation_duration then
+                    animation_duration := 0.0
+            pictogram with 1..pictogram_count
+
+
+// Duration of the animation (initially 5 seconds)
+animation_duration -> 20.0
+animation_start    -> 0.0
+
+// Toggle animations with space bar
+key "Space" ->
+    if animation_duration <= 0.0 then
+        animation_duration := page_time + 30.0
+        animation_start := page_time - pictogram_time
+    else
+        animation_duration := 0.0
+
+// Configuration of pictograms in the directory
+pictogram_count -> 28
+pictogram_name N:integer -> "picto_" & text N & ".png"
+pictogram_ratio N:integer -> ((N + pictogram_time)/pictogram_count mod 1)
+
+
+// Configuration of the drawing of the pictograms
+pictogram_time -> 0.0
+pictogram_adjust S:real ->
+    translate 0, 28000*S^2, 20000 * S
+    scale3 2*(1-(1-S)^4)
+
+
+pictogram N:integer ->
+// ----------------------------------------------------------------------------
+//    Draw a given pictogram
+// ----------------------------------------------------------------------------
+    locally
+        pictogram_adjust pictogram_ratio N
+        rotatez 10 * sin(191.3*N)
+        image 0, 0, 1, 1, pictogram_name N

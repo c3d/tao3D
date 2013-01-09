@@ -74,8 +74,7 @@ protected:
 
 protected slots:
     void updateDescription();
-    void doSearch();
-    void showAllExamples(bool);
+    void filterItems();
 
 private:
     QListWidget *templateListWidget;

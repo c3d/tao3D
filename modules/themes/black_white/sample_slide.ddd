@@ -4,9 +4,9 @@ import VLCAudioVideo
 main_title_slide "Main title",
     theme "BlackOnWhite"
     title
-        text "Main title"
+        text "Basic themes"
     subtitle
-        text "Main subtitle"
+        text "Neutral and non-intrusive themes"
 
 
 section_slide "Section title",

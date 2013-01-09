@@ -5,9 +5,9 @@ import VLCAudioVideo
 
 main_title_slide "Main title",
     title
-        text "Main title"
+        text "Keyboard theme"
     subtitle
-        text "Main subtitle"
+        text "A theme for software presentations"
 
 
 section_slide "Section title",

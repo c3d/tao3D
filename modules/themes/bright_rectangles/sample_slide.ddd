@@ -4,9 +4,9 @@ import VLCAudioVideo
 
 main_title_slide "Main title",
     title
-        text "Main title"
+        text "Bright rectangles"
     subtitle
-        text "Main subtitle"
+        text "A theme with automated geometric backgrounds"
 
 
 section_slide "Section title",

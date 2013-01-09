@@ -4,9 +4,9 @@ import VLCAudioVideo
 
 main_title_slide "Main title",
     title
-        text "Main title"
+        text "Seasons Greetings theme"
     subtitle
-        text "Main subtitle"
+        text "A theme for the Holidays"
 
 
 section_slide "Section title",

@@ -6,16 +6,16 @@ import Animate
 
 main_title_slide "Main title",
     title
-        text "Main title"
+        text "Lucky Star theme"
     subtitle
-        text "Main subtitle"
+        text "A space-based theme"
 
 
 section_slide "Section title",
     title
-        text "Section title"
+        text "Lucky Star theme"
     subtitle
-        text "Section subtitle"
+        text "A simple space-based theme"
 
 
 slide "Bullet points",

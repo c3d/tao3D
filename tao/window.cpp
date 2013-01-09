@@ -1900,7 +1900,9 @@ void Window::createMenus()
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
-    ExamplesMenu * examplesMenu = new ExamplesMenu(helpMenu);
+    ExamplesMenu * themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
+    ExamplesMenu * examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
+
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
     foreach (Template t, templates)
@@ -1910,12 +1912,17 @@ void Window::createMenus()
         QString name(t.name);
         // Strip "(Demo) " or "(Démo) "
         name.replace(QRegExp("^\\([^)]+\\) "), "");
-        examplesMenu->addExample(name,
-                                 t.mainFileFullPath(),
-                                 t.description, t.type);
+        if (t.type == "theme")
+            themesMenu->addExample(name, t.mainFileFullPath(), t.description);
+        else
+            examplesMenu->addExample(name, t.mainFileFullPath(), t.description);
     }
+
+    connect(themesMenu, SIGNAL(openDocument(QString)),
+            this, SLOT(openReadOnly(QString)));
     connect(examplesMenu, SIGNAL(openDocument(QString)),
             this, SLOT(openReadOnly(QString)));
+    helpMenu->addMenu(themesMenu);
     helpMenu->addMenu(examplesMenu);
 }
 

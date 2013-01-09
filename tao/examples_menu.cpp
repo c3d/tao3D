@@ -30,33 +30,22 @@
 
 namespace Tao {
 
-ExamplesMenu::ExamplesMenu(QWidget *parent) : QMenu(tr("Examples"), parent)
+ExamplesMenu::ExamplesMenu(QString caption, QWidget *parent) 
 // ----------------------------------------------------------------------------
 //   Constructor
 // ----------------------------------------------------------------------------
-{
-    // Create submenus
-    themesMenu = new QMenu(tr("Themes"));
-    miscMenu   = new QMenu(tr("Miscellaneous"));
-
-    // Add it to the example menu
-    addMenu(themesMenu);
-    addMenu(miscMenu);
-}
+    : QMenu(caption, parent)
+{}
 
 
 ExamplesMenu::~ExamplesMenu()
 // ----------------------------------------------------------------------------
 //   Destructor
 // ----------------------------------------------------------------------------
-{
-    // Delete submenus
-    delete themesMenu;
-    delete miscMenu;
-}
+{}
 
 
-void ExamplesMenu::addExample(QString caption, QString path, QString tip, QString type)
+void ExamplesMenu::addExample(QString caption, QString path, QString tip)
 // ----------------------------------------------------------------------------
 //   Add an entry to the menu, linking to a particular document
 // ----------------------------------------------------------------------------
@@ -71,10 +60,7 @@ void ExamplesMenu::addExample(QString caption, QString path, QString tip, QStrin
         action->setToolTip(tip);
     connect(action, SIGNAL(triggered()), this, SLOT(actionTriggered()));
 
-    if(type == "theme")
-        themesMenu->addAction(action);
-    else
-        miscMenu->addAction(action);
+    addAction(action);
 }
 
 

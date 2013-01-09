@@ -1912,7 +1912,7 @@ void Window::createMenus()
         name.replace(QRegExp("^\\([^)]+\\) "), "");
         examplesMenu->addExample(name,
                                  t.mainFileFullPath(),
-                                 t.description);
+                                 t.description, t.type);
     }
     connect(examplesMenu, SIGNAL(openDocument(QString)),
             this, SLOT(openReadOnly(QString)));

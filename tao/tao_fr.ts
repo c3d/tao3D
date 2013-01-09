@@ -902,9 +902,19 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::ExamplesMenu</name>
     <message>
-        <location filename="examples_menu.h" line="38"/>
+        <location filename="examples_menu.cpp" line="33"/>
         <source>Examples</source>
         <translation>Exemples</translation>
+    </message>
+    <message>
+        <location filename="examples_menu.cpp" line="39"/>
+        <source>Themes</source>
+        <translation>Thèmes</translation>
+    </message>
+    <message>
+        <location filename="examples_menu.cpp" line="40"/>
+        <source>Miscellaneous</source>
+        <translation>Divers</translation>
     </message>
 </context>
 <context>

@@ -4,9 +4,13 @@ import VLCAudioVideo
 
 main_title_slide "Main title",
     title
-        text "Main title"
+        text "Autumn On Earth Theme"
     subtitle
-        text "Main subtitle"
+        text "Main subtitle inserted here"
+        line_break
+        font_size 20
+        text "Background image by Norebbo, used with permission"
+        
 
 
 section_slide "Section title",

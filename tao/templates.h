@@ -65,7 +65,7 @@ public:
 
     bool isValid() { return valid; }
     bool copyTo(QDir &dst);
-    bool contains(const QString &keyword, bool searchSource = true);
+    bool contains(const QString &keyword, bool searchSource = false);
     QString mainFileFullPath();
 
 public:

@@ -89,7 +89,8 @@ void TextSplit::Draw(Layout *where)
     GlyphCache &glyphs     = widget->glyphs();
     scale       fontSize   = where->font.pointSizeF();
     bool        tooBig     = fontSize > glyphs.maxFontSize;
-    bool        tooSmall   = fontSize < glyphs.minFontSize;
+    bool        tooSmall   = fontSize < glyphs.minFontSize &&
+                             TaoApp->hasGLMultisample;
     bool        badSize    = tooBig || tooSmall;
     bool        printing   = where->printing;
     Point3      offset0    = where->Offset();

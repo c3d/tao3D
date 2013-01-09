@@ -398,82 +398,82 @@
         <translation>Cet ordinateur ne permet pas de faire fonctionner l&apos;application (la fonction FBO est requise).</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="573"/>
+        <location filename="application.cpp" line="574"/>
         <source>Information</source>
         <translation>Information</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="574"/>
+        <location filename="application.cpp" line="575"/>
         <source>On this system, graphics and text edges may look jagged.</source>
         <translation>Sur cet ordinateur, il se peut que les graphiques et le texte apparaissent légèrement dentelés.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="605"/>
+        <location filename="application.cpp" line="606"/>
         <source>Checking modules [%1]</source>
         <translation>Vérification des modules [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="618"/>
+        <location filename="application.cpp" line="619"/>
         <source>Updating modules [%1]</source>
         <translation>Mise à jour du module [%1]</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="642"/>
+        <location filename="application.cpp" line="643"/>
         <source>Tao Presentations</source>
         <translation>Tao Presentations</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="643"/>
+        <location filename="application.cpp" line="644"/>
         <source>&lt;h3&gt;Reminder&lt;/h3&gt;</source>
         <translation>&lt;h3&gt;Rappel&lt;/h3&gt;</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="645"/>
+        <location filename="application.cpp" line="646"/>
         <source>&lt;p&gt;This is an evaluation copy of Tao Presentations.&lt;/p&gt;</source>
         <translation>&lt;p&gt;Ceci est une version d&apos;évaluation de Tao Presentations.&lt;/p&gt;</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="648"/>
+        <location filename="application.cpp" line="649"/>
         <source>Buy now</source>
         <translation>Acheter en ligne</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="649"/>
+        <location filename="application.cpp" line="650"/>
         <source>Buy later</source>
         <translation>Acheter plus tard</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="663"/>
+        <location filename="application.cpp" line="664"/>
         <source>http://taodyne.com/taopresentations/buynow</source>
         <translation>http://taodyne.com/taopresentations/acheter</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="869"/>
+        <location filename="application.cpp" line="870"/>
         <source>-render: option requires parameters
 </source>
         <translation>-render : cette option nécessite des paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="877"/>
+        <location filename="application.cpp" line="878"/>
         <source>-render: too few or too many parameters
 </source>
         <translation>-redner : pas assez ou trop de paramètres</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1049"/>
+        <location filename="application.cpp" line="1050"/>
         <source>/Tao</source>
         <translation>/Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1182"/>
-        <location filename="application.cpp" line="1198"/>
-        <location filename="application.cpp" line="1211"/>
-        <location filename="application.cpp" line="1224"/>
+        <location filename="application.cpp" line="1183"/>
+        <location filename="application.cpp" line="1199"/>
+        <location filename="application.cpp" line="1212"/>
+        <location filename="application.cpp" line="1225"/>
         <source>Tao</source>
         <translation>Tao</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1183"/>
+        <location filename="application.cpp" line="1184"/>
         <source>Cleaning the Tao environment
 
 This command allows you to clean the Tao environment
@@ -484,7 +484,7 @@ Cette commande vous permet de nettoyer l&apos;environnement Tao
 Une confirmation vous sera demandée avant d&apos;effacer chaque item. Vous pouvez choisir de tout effacer d&apos;un coup.</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1199"/>
+        <location filename="application.cpp" line="1200"/>
         <source>Do you want to delete:
 
 User&apos;s Tao documents folder?</source>
@@ -493,7 +493,7 @@ User&apos;s Tao documents folder?</source>
 Le répertoire de documents Tao de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1212"/>
+        <location filename="application.cpp" line="1213"/>
         <source>Do you want to delete:
 
 User&apos;s Tao prefs/modules folder?</source>
@@ -502,7 +502,7 @@ User&apos;s Tao prefs/modules folder?</source>
 Le répertoire de modules de l&apos;utilisateur ?</translation>
     </message>
     <message>
-        <location filename="application.cpp" line="1225"/>
+        <location filename="application.cpp" line="1226"/>
         <source>Do you want to delete:
 
 Tao user preferences?</source>
@@ -2085,12 +2085,12 @@ Code : %1
         <translation>Erreur GL : erreur %1 répétée %2 fois</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="11973"/>
+        <location filename="widget.cpp" line="11997"/>
         <source>Insert</source>
         <translation>Insertion</translation>
     </message>
     <message>
-        <location filename="widget.cpp" line="11974"/>
+        <location filename="widget.cpp" line="11998"/>
         <source>Current document is read-only. Use &quot;Save as...&quot; to make a modifiable copy.</source>
         <translation>Le document est en lecture seule. Utilisez &quot;Enregistrer sous...&quot; pour en faire une copie modifiable.</translation>
     </message>

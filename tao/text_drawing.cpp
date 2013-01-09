@@ -54,7 +54,7 @@ TAO_BEGIN
 
 // Bitmap cache is enabled globally on platforms that do not support
 // GL multisampling
-bool TextSplit::cacheEnabled = true;
+bool TextSplit::cacheEnabled = false;
 
 TextSplit::TextSplit(Text *source, uint start, uint end)
 // ----------------------------------------------------------------------------

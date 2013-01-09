@@ -566,7 +566,7 @@ bool Application::checkGL()
         }
 
         // Enable font bitmap cache only if we don't have multisampling
-        // TextUnit::cacheEnabled = !(hasGLMultisample || hasFBOMultisample);
+        TextUnit::cacheEnabled = !(hasGLMultisample || hasFBOMultisample);
     }
     if (!hasGLMultisample)
     {

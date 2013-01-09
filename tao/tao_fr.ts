@@ -841,32 +841,32 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DocumentNameAndLocationPage</name>
     <message>
-        <location filename="new_document_wizard.cpp" line="257"/>
+        <location filename="new_document_wizard.cpp" line="291"/>
         <source>Document Name and Location</source>
         <translation>Nom et Emplacement du Document</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="258"/>
+        <location filename="new_document_wizard.cpp" line="292"/>
         <source>Specify the name and location of your document.</source>
         <translation>Précisez le nom et l&apos;emplacement de votre document.</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="260"/>
+        <location filename="new_document_wizard.cpp" line="294"/>
         <source>&amp;Name:</source>
         <translation>&amp;Nom :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="264"/>
+        <location filename="new_document_wizard.cpp" line="298"/>
         <source>&amp;Location:</source>
         <translation>&amp;Emplacement :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="269"/>
+        <location filename="new_document_wizard.cpp" line="303"/>
         <source>Choose...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="323"/>
+        <location filename="new_document_wizard.cpp" line="357"/>
         <source>Choose Document Location</source>
         <translation>Emplacement du Document</translation>
     </message>
@@ -1873,6 +1873,11 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
         <location filename="new_document_wizard.cpp" line="152"/>
         <source>Search</source>
         <translation>Recherche</translation>
+    </message>
+    <message>
+        <location filename="new_document_wizard.cpp" line="155"/>
+        <source>Show all examples</source>
+        <translation>Afficher tous les exemples</translation>
     </message>
 </context>
 <context>

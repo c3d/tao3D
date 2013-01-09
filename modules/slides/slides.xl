@@ -343,14 +343,28 @@ box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_text theme, slide_master, X, Y, W, H, Body
+    theme_text theme, slide_master, "story", X, Y, W, H, Body
+
+
+box Style:text, X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a box for an element kind
+// ----------------------------------------------------------------------------
+    theme_text theme, slide_master, Style, X, Y, W, H, Body
+
+
+box Style:text, X:real, Y:real, W:real, H:real ->
+// ----------------------------------------------------------------------------
+//   Draw a box for an element kind
+// ----------------------------------------------------------------------------
+    theme_box theme, slide_master, Style, X, Y, W, H
 
 
 box X:real, Y:real, W:real, H:real ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_box theme, slide_master, X, Y, W, H
+    theme_box theme, slide_master, "story", X, Y, W, H
 
 
 flow X:real, Y:real, W:real, H:real, Flow:text ->
@@ -447,6 +461,7 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
 // ----------------------------------------------------------------------------
 //   Separators
 // ----------------------------------------------------------------------------
+
 
 +T:text -> numbered_item 1, T
 // ----------------------------------------------------------------------------

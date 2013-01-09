@@ -9204,8 +9204,6 @@ static inline JustificationChange::Axis jaxis(uint a)
 }
 
 
-
-
 Tree_p Widget::align(Tree_p self, scale center, scale justify, scale spread,
                      scale fullJustify, uint axis)
 // ----------------------------------------------------------------------------

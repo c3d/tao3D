@@ -261,7 +261,7 @@
         <location filename="module_manager.cpp" line="1274"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
-        <translation>ATTENTION : Module binaire incompatible : </translation>
+        <translation>ATTENTION : Module binaire incompatible </translation>
     </message>
     <message>
         <location filename="repository.cpp" line="386"/>
@@ -841,32 +841,32 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::DocumentNameAndLocationPage</name>
     <message>
-        <location filename="new_document_wizard.cpp" line="291"/>
+        <location filename="new_document_wizard.cpp" line="269"/>
         <source>Document Name and Location</source>
         <translation>Nom et Emplacement du Document</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="292"/>
+        <location filename="new_document_wizard.cpp" line="270"/>
         <source>Specify the name and location of your document.</source>
         <translation>Précisez le nom et l&apos;emplacement de votre document.</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="294"/>
+        <location filename="new_document_wizard.cpp" line="272"/>
         <source>&amp;Name:</source>
         <translation>&amp;Nom :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="298"/>
+        <location filename="new_document_wizard.cpp" line="276"/>
         <source>&amp;Location:</source>
         <translation>&amp;Emplacement :</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="303"/>
+        <location filename="new_document_wizard.cpp" line="281"/>
         <source>Choose...</source>
         <translation>Parcourir...</translation>
     </message>
     <message>
-        <location filename="new_document_wizard.cpp" line="357"/>
+        <location filename="new_document_wizard.cpp" line="335"/>
         <source>Choose Document Location</source>
         <translation>Emplacement du Document</translation>
     </message>
@@ -902,19 +902,16 @@ Voulez-vouz la supprimer malgré tout ?</translation>
 <context>
     <name>Tao::ExamplesMenu</name>
     <message>
-        <location filename="examples_menu.cpp" line="33"/>
         <source>Examples</source>
-        <translation>Exemples</translation>
+        <translation type="obsolete">Exemples</translation>
     </message>
     <message>
-        <location filename="examples_menu.cpp" line="39"/>
         <source>Themes</source>
-        <translation>Thèmes</translation>
+        <translation type="obsolete">Thèmes</translation>
     </message>
     <message>
-        <location filename="examples_menu.cpp" line="40"/>
         <source>Miscellaneous</source>
-        <translation>Divers</translation>
+        <translation type="obsolete">Divers</translation>
     </message>
 </context>
 <context>
@@ -1327,7 +1324,7 @@ Emplacement : %2</translation>
         <location filename="module_manager.cpp" line="1263"/>
         <source>Module %1 cannot be initialized.
 %2</source>
-        <translation>Le module %1 ne peut être initalisé.</translation>
+        <translation>Le module %1 ne peut être initalisé.%2</translation>
     </message>
 </context>
 <context>
@@ -2187,7 +2184,7 @@ Code : %1
     <message>
         <location filename="window.cpp" line="1323"/>
         <source>Template was updated</source>
-        <translation>Modèle mis à jour.</translation>
+        <translation>Modèle mis à jour</translation>
     </message>
     <message>
         <location filename="window.cpp" line="1324"/>
@@ -2533,74 +2530,84 @@ Code : %1
         <translation>&amp;Aide</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1931"/>
+        <location filename="window.cpp" line="1903"/>
+        <source>Themes</source>
+        <translation type="unfinished">Thèmes</translation>
+    </message>
+    <message>
+        <location filename="window.cpp" line="1904"/>
+        <source>Examples</source>
+        <translation type="unfinished">Exemples</translation>
+    </message>
+    <message>
+        <location filename="window.cpp" line="1938"/>
         <source>File</source>
         <translation>Fichier</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1943"/>
+        <location filename="window.cpp" line="1950"/>
         <source>Edit</source>
         <translation>Édition</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1953"/>
+        <location filename="window.cpp" line="1960"/>
         <source>View</source>
         <translation>Affichage</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1964"/>
+        <location filename="window.cpp" line="1971"/>
         <source>Git Tools</source>
         <translation>Git</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="1991"/>
+        <location filename="window.cpp" line="1998"/>
         <source>Change History</source>
         <translation>Historique</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2057"/>
+        <location filename="window.cpp" line="2064"/>
         <source>Save changes?</source>
         <translation>Enregistrer ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2058"/>
+        <location filename="window.cpp" line="2065"/>
         <source>The document has been modified.
 Do you want to save your changes?</source>
         <translation>Le document a été modifié.
 Voulez-vous l&apos;enregistrer ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2140"/>
+        <location filename="window.cpp" line="2147"/>
         <source>Loading %1 [%2]...</source>
         <translation>Chargement de %1 [%2]...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2156"/>
+        <location filename="window.cpp" line="2163"/>
         <source>Repository cleanup</source>
         <translation>Nettoyage du projet</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2160"/>
+        <location filename="window.cpp" line="2167"/>
         <source>Fonts</source>
         <translation>Polices</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2169"/>
+        <location filename="window.cpp" line="2176"/>
         <source>Document</source>
         <translation>Document</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2215"/>
+        <location filename="window.cpp" line="2222"/>
         <source>Load error</source>
         <translation>Erreur de chargement</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2233"/>
+        <location filename="window.cpp" line="2240"/>
         <source>Caching code</source>
         <translation>Mise en cache</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2246"/>
+        <location filename="window.cpp" line="2253"/>
         <source>File loaded</source>
         <translation>Fichier chargé</translation>
     </message>
@@ -2622,59 +2629,59 @@ Voulez-vous l&apos;enregistrer ?</translation>
         <translation>Enregistrement...</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2424"/>
+        <location filename="window.cpp" line="2431"/>
         <source>The file &apos;%1&apos; is not associated with a Tao project.</source>
         <translation>Le fichier %1 n&apos;est pas associé à un projet Tao.</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2427"/>
+        <location filename="window.cpp" line="2434"/>
         <source>Do you want to create a new project in %1, or skip and continue without a project (version control and sharing will be disabled)?</source>
         <translation>Voulez-vous créer un nouveau projet sous %1, ou continuer sans projet (l&apos;historique et le partage seront désactivés) ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2431"/>
+        <location filename="window.cpp" line="2438"/>
         <source>Cancel</source>
         <translation>Annuler</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2433"/>
+        <location filename="window.cpp" line="2440"/>
         <source>Skip</source>
         <translation>Continuer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2435"/>
+        <location filename="window.cpp" line="2442"/>
         <source>Create</source>
         <translation>Créer</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2455"/>
+        <location filename="window.cpp" line="2462"/>
         <source>Puzzled</source>
         <translation>Bizarre</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2456"/>
+        <location filename="window.cpp" line="2463"/>
         <source>How did you do that?</source>
         <translation>Comment avez-vous fait ça ?</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2474"/>
+        <location filename="window.cpp" line="2481"/>
         <source>Task selection</source>
         <translation>Sélection de tâche</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2475"/>
+        <location filename="window.cpp" line="2482"/>
         <source>An error occurred setting the task:
 %1</source>
         <translation>Une erreur est survenue en choisissant la tâche :
 %1</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2828"/>
+        <location filename="window.cpp" line="2835"/>
         <source>%1/Untitled%2.ddd</source>
         <translation>%1/Sans titre %2.ddd</translation>
     </message>
     <message>
-        <location filename="window.cpp" line="2856"/>
+        <location filename="window.cpp" line="2863"/>
         <source>&amp;%1 %2</source>
         <translation>&amp;%1 %2</translation>
     </message>

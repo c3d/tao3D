@@ -26,7 +26,7 @@ Once:
   Commit your translations (both tao_fr.ts AND tao_fr.qm need to be committed).
   Do the same for all modules that have *.ts files.
 - Make sure tao.xl translations are up-to-date
-  $ ./extract_tr.pl -ref tao_fr.xl tao.xl
+  $ ./extract_tr.pl -ref tao_fr.xl tao.xl.in
   If the command returns nothing, there is nothing to do, otherwise append
   translations to tao_fr.xl, and commit.
 - There is no easy way to make sure other translations (e.g., module/template

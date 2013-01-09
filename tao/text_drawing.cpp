@@ -194,10 +194,11 @@ void TextSplit::DrawCached(Layout *where)
             // Enter the texture coordinates
             Point &texL = glyph.texture.lower;
             Point &texU = glyph.texture.upper;
-            texCoords.push_back(Point(texL.x, texL.y));
-            texCoords.push_back(Point(texU.x, texL.y));
-            texCoords.push_back(Point(texU.x, texU.y));
-            texCoords.push_back(Point(texL.x, texU.y));
+            int tw = glyphs.Width(), th = glyphs.Height();
+            texCoords.push_back(Point(texL.x/tw, texL.y/th));
+            texCoords.push_back(Point(texU.x/tw, texL.y/th));
+            texCoords.push_back(Point(texU.x/tw, texU.y/th));
+            texCoords.push_back(Point(texL.x/tw, texU.y/th));
 
             x += glyph.advance + spread;
         }
@@ -208,14 +209,8 @@ void TextSplit::DrawCached(Layout *where)
     if (count && setFillColor(where))
     {
         // Bind the glyph texture
-        glBindTexture(GL_TEXTURE_RECTANGLE_ARB, glyphs.Texture());
-        GLenum blur = GL_LINEAR;
-        if (!where->hasPixelBlur &&
-            font.pointSizeF() < glyphs.minFontSizeForAntialiasing)
-            blur = GL_NEAREST;
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MAG_FILTER, blur);
-        glTexParameteri(GL_TEXTURE_RECTANGLE_ARB, GL_TEXTURE_MIN_FILTER, blur);
-        glEnable(GL_TEXTURE_RECTANGLE_ARB);
+        glBindTexture(GL_TEXTURE_2D, glyphs.Texture());
+        glEnable(GL_TEXTURE_2D);
         if (TaoApp->hasGLMultisample)
             glEnable(GL_MULTISAMPLE);
 
@@ -229,7 +224,7 @@ void TextSplit::DrawCached(Layout *where)
         glDrawArrays(GL_QUADS, 0, count);
         glDisableClientState(GL_VERTEX_ARRAY);
         glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-        glDisable(GL_TEXTURE_RECTANGLE_ARB);
+        glDisable(GL_TEXTURE_2D);
     }
 
     where->offset = Point3(x, y, z);

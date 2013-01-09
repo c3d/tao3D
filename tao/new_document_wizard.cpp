@@ -151,9 +151,17 @@ TemplateChooserPage::TemplateChooserPage(QWidget *parent)
     search = new QLineEdit;
     search->setPlaceholderText(tr("Search"));
     connect(search, SIGNAL(textChanged(QString)), this, SLOT(doSearch()));
+
+    showAll = new QCheckBox(tr("Show all examples"));
+    connect(showAll, SIGNAL(toggled(bool)),
+            this, SLOT(showAllExamples(bool)));
+    showAll->setChecked(false);
+
     QHBoxLayout *searchLayout = new QHBoxLayout;
-    searchLayout->addStretch(2);
-    searchLayout->addWidget(search, 1);
+    searchLayout->addWidget(showAll, 2);
+    searchLayout->addStretch(1);
+    searchLayout->addWidget(search, 2);
+
 
     templateListWidget = new QListWidget;
     templateListWidget->setViewMode(QListView::IconMode);
@@ -203,6 +211,9 @@ void TemplateChooserPage::initializePage()
         t->setText(tmpl.name);
         t->setTextAlignment(Qt::AlignHCenter);
         t->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
+
+        if(tmpl.type != "theme")
+            t->setHidden(true);
     }
 
     templateListWidget->setCurrentRow(0);
@@ -231,6 +242,7 @@ void TemplateChooserPage::doSearch()
 //   Show or hide items, depending on wether they match current search string
 // ----------------------------------------------------------------------------
 {
+    std::cout << "searched" << std::endl;
     NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
     QString searchString = search->text();
     int firstShown = -1;
@@ -245,6 +257,28 @@ void TemplateChooserPage::doSearch()
     }
 
     templateListWidget->setCurrentRow(firstShown);
+}
+
+
+void TemplateChooserPage::showAllExamples(bool show)
+// ----------------------------------------------------------------------------
+//   Show or hide examples
+// ----------------------------------------------------------------------------
+{
+    NewDocumentWizard * wiz = (NewDocumentWizard *)wizard();
+    for (int idx = 0; idx < templateListWidget->count(); idx++)
+    {
+        QListWidgetItem *item = templateListWidget->item(idx);
+        Template t = wiz->templates.at(idx);
+
+        // If checked, then show all examples.
+        // Otherwise, show only themes.
+        if(show)
+            item->setHidden(false);
+        else
+            if(t.type != "theme")
+                item->setHidden(true);
+    }
 }
 
 

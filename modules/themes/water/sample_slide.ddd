@@ -1,0 +1,120 @@
+import VLCAudioVideo
+
+// Apply Water theme
+theme "Water"
+
+// Change  language
+key "e" -> lang "en"; time
+key "f" -> lang "fr"; time
+
+
+main_title_slide "Main title",
+    title
+        text "Water, the blue gold" fr "L'eau, l'or bleu"
+    subtitle
+        text "Press E or F to change the language" fr "Appuyer sur E ou F pour changer la langue"
+
+
+base_slide "On earth...",
+    title
+        text "On earth..." fr "Sur la terre..."
+    left_column
+        * "70% of water, but only 0.3% is accessible and drinkable." fr "70% d'eau, dont seulement 0.3% d'eau potable et accessible."
+        --
+        * "9 countries have 60% of the world reserves." fr "Neuf pays se partagent 60% des réserves mondiales."
+        --
+        * "1.5 billion people have no access to drinkable water." fr "1,5 milliard de personnes n'ont pas accès à l'eau potable."
+    right_picture
+        rotatex -30
+        image_px -50, 120, 700, 525, "http://www.tuxboard.com/photos/2011/03/Carte-Consommation-personnelle-eau-par-pays-640x317.jpg" fr "http://www.droitalenergie.org/wp-content/uploads/2012/03/CARTE-EAU.jpg"
+
+
+base_slide "Problems of water management",
+    title
+        text "Problems of water management" fr "Problèmes de gestion de l'eau"
+    left_column
+        * "A european uses 8 times more water today than before." fr "Un Européen utilise 8 fois plus d'eau que par le passé."
+        --
+        * "Farming accounts for 70% of water used in the world, with approximately 50% lost." fr "L'agriculture représente 70% des prélevements mondiaux dont environ 50% sont perdus."
+        --
+        * "Ecosystems are polluted by sewerage." fr "Les écosystèmes sont pollués par les eaux usées."
+    right_picture
+        rotatex -30
+        image_px -50, 120, 700, 525, "http://cdn3.chartsbin.com/chartimages/l_1455_87e40e6f6a411f85bcc5b6ba84a271da" fr "http://www.tuxboard.com/photos/2011/03/Carte-eau-prevelements-agricultures-640x439.jpg"
+
+
+base_slide "Towards a drinkable water shortage",
+    title
+        text "Towards a drinkable water shortage" fr "Vers une pénurie d'eau potable"
+    left_column
+        * "Water consumption increases twice as fast as the demographic growth rate." fr "La consommation d'eau augmente deux fois plus vite que le taux de croissante démographique."
+        --
+        * "Before 2025, the quantity of available fresh water will be reduced by one third." fr "D'ici 2025, la quantité d'eau douce disponible devrait avoir chuté d'un tiers."
+        --
+        * "Then, 35% of humans will be concerned by the water shortage." fr "A cette date, 35% des humains seront concernés par la pénurie d'eau."
+    right_picture
+        rotatex -30
+        image_px -50, 120, 700, 525, "http://www.waternunc.com/assets/images/waterscarity2025.jpg" fr "http://www.tuxboard.com/photos/2011/03/Carte-eau-dans-le-monde-2020-640x404.jpg"
+
+
+base_slide "Blue Gold",
+    title
+        text "Blue Gold" fr "L'Or Bleu"
+    picture
+        movie 0, 0, 2.0, 2.0, "http://www.youtube.com/watch?v=WOH5Dku66nI"
+
+
+// ****************************************************************************
+//  blue_gold                                                       Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     The Water template.
+//     The up arrow key move forward the presentation.
+//     Use the down arrow to go back.
+//     Press E or F to change language.
+//     Ctrl-G (Cmd-G on Mac) shows a page selector.
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2011
+// Contributors:
+//   Baptiste Soulisse  <soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jerome Forissier <jerome@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

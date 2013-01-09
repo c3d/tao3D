@@ -88,7 +88,7 @@ public:
 
     virtual void        Add(Drawing *child);
     virtual void        Clear();
-    virtual PageLayout *NewChild()      { return new PageLayout(*this); }
+    virtual Layout *    NewChild();
 
     virtual void        Compute(Layout *where);
 

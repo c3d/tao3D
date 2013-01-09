@@ -95,7 +95,7 @@ public:
     bool                PaginateItem(Drawing *d,
                                      BreakOrder order = NoBreak,
                                      uint count = 1);
-    bool                PaginateLastLine(bool hardBreak);
+    bool                PaginateLastLine(BreakOrder order);
     void                DrawPlaceholder();
     void                DrawSelectionBox(TextSelect *sel,
                                          Drawing *child,

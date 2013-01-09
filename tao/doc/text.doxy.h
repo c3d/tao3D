@@ -162,10 +162,6 @@
  *     "Bold Italic" cannot be selected. This is caused by
  * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
  *
- * @todo The following primitives are not documented yet: paragraph_space,
- *       character_space (should it be called word_space ?), line_break,
- *       sentence_break, paragraph_break, column_break, page_break.
- *
  * @~french
  * @par Utilisation de polices de caractères additionnelles
  *
@@ -1166,6 +1162,77 @@ word_spacing(factor:real);
  * tandis qu'une valeur inférieure le réduit.
  */
 line_spacing(factor:real);
+
+/**
+ * @~english
+ * Sets the space before and after paragraphs.
+ * Defines @p before as the minimum number of points to insert before each
+ * paragraph, and the @p after as the number of points to insert after
+ * each paragraph. These values impact paragraphs (separated by
+ * @a paragraph_break) but not lines (separated by @a line_break)
+ * @see line_spacing
+ * @see paragraph_break
+ * @see line_break
+ *
+ * @~french
+ * Définit l'espace avant et après les paragraphes
+ * La valeur @p before est le nombre minimum de points insérés avant
+ * chaque paragraphe, tandis que @p after est le nombre de points
+ * minimum après chaque paragraphe. Ces valeurs n'ont d'effet que sur
+ * les paragraphes (définis avec @a paragraph_break) mais pas sur les
+ * lignes (définies avec @a line_break).
+ * @see line_spacing
+ * @see paragraph_break
+ * @see line_break
+ */
+paragraph_space (before:real, after:real);
+
+/**
+ * @~english
+ * Sets the space before and after words.
+ * Defines @p before as the minimum number of points to insert before each
+ * word, and the @p after as the number of points to insert after
+ * each word. These values impact full words, not individual characters.
+ *
+ * @~french
+ * Définit l'espace avant et après les mots
+ * La valeur @p before est le nombre minimum de points insérés avant
+ * chaque mot, tandis que @p after est le nombre de points
+ * minimum après chaque mot. Ces valeurs n'ont d'effet que sur
+ * les mots, pas sur les caractères individuels.
+ */
+word_space (before:real, after:real);
+
+
+/**
+ * @~english
+ * Insert a line break
+ * @~french
+ * Insère un saut de ligne
+ */
+line_break();
+
+/**
+ * @~english
+ * Insert a paragraph break
+ * @~french
+ * Insère un saut de paragraphe
+ */
+paragraph_break();
+
+/**
+ * @~english
+ * Insert a column break
+ * When a text flow is separated between individual text boxes, this
+ * makes the text restart at the following text box.
+ * @~french
+ * Insère un saut de colonne
+ * Lorsque un flot de texte est séparé en boîtes de texte
+ * individuelles, cette fonction fait redémarrer le texte à la boîte
+ * de texte suivante.
+ */
+column_break();
+
 
 /**
  * @~english

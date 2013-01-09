@@ -224,7 +224,7 @@ PREFIX(MinimumParagraphSpace,  tree,  "paragraph_space",
        GROUP(text:spread)
        SYNOPSIS("Set the space around the paragraph")
        DESCRIPTION("Set the minimum space allowed around the paragraph. [TODO: Quelle valeur faut-il mettre si on ne veut modifier que la valeur avant (ou apres) est-ce -1, ou est-ce que des valeurs negatives sont autorisees et que dans ce cas des paragraphes peuvent se marcher dessus ?]"))
-PREFIX(MinimumCharacterSpace,  tree,  "character_space",
+PREFIX(MinimumCharacterSpace,  tree,  "word_space",
        PARM(b, real, "Space before the [TODO].")
        PARM(a, real, "Space after the [TODO]."),
        RTAO(minimumSpace(self, b, a, 0)),

@@ -109,9 +109,9 @@ struct Justifier
 
     // Build the layout
     void        BeginLayout(coord start, coord end, Justification &j);
-    bool        AddItem(Item item, uint count = 1, bool solid = true,
-                        scale size = 0, coord offset = 0, scale lastSpace = 0,
-                        bool hardBreak = false);
+    bool        AddItem(Item item, uint count = 1,
+                        bool pack = true, bool forceBreak = false,
+                        scale size = 0, coord offset = 0, scale lastSpace = 0);
     void        EndLayout(float *perSolid, float *perBreak);
 
     // Adding items to the layout
@@ -158,7 +158,7 @@ public:
         uint            numItems;
         uint            numBreaks;
         int             sign;
-        bool            hardBreak;
+        bool            forceBreak;
         bool            hasRoom;
     };
 
@@ -202,7 +202,7 @@ Justifier<Item>::LayoutData::LayoutData(coord start, coord end,
       numItems(0),
       numBreaks(0),
       sign(start <= end ? 1 : -1),
-      hardBreak(false),
+      forceBreak(false),
       hasRoom(true)
 { }
 
@@ -247,9 +247,9 @@ void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 
 
 template<class Item>
-bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
-                              scale size, coord offset, scale lspace,
-                              bool hardBreak)
+bool Justifier<Item>::AddItem(Item item, uint count,
+                              bool solid, bool forceBreak,
+                              scale size, coord offset, scale lspace)
 // ----------------------------------------------------------------------------
 //   Place item and returns true if it fits, otherwise return false
 // ----------------------------------------------------------------------------
@@ -264,7 +264,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
                   << " * " << count 
                   << (solid ? " solid " : " break ")
                   << size << " + " << offset << " "
-                  << (hardBreak ? "hard-break\n" : "\n");
+                  << (forceBreak ? "force-break\n" : "\n");
 
     // Shortcuts for elements of data
     Justification &justify      = data->justify;
@@ -280,7 +280,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
 
     // Record interspace for the next line
     scale ispace = 0;
-    if (size > 0)
+    if (!solid)
     {
         ispace = interspace;
         if (ispace < justify.after)
@@ -292,7 +292,7 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     scale spacing = justify.spacing;
     coord originalSize = size;
     size *= spacing;
-    if (size < originalSize + ispace)
+    if (!solid && size < originalSize + ispace)
         size = originalSize + ispace;
     if (sign * pos + originalSize > sign * end &&
         sign * pos > sign * start)
@@ -313,10 +313,10 @@ bool Justifier<Item>::AddItem(Item item, uint count, bool solid,
     lastOversize = size - originalSize;
 
     // If this was a hard break, we no longer have room
-    if (hardBreak)
+    if (forceBreak)
     {
         hasRoom = false;
-        data->hardBreak = hardBreak;
+        data->forceBreak = forceBreak;
         if (size <= 0)
             return false;
         else if (!solid)
@@ -357,7 +357,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     uint          &numItems     = data->numItems;
     uint          &numBreaks    = data->numBreaks;
     int           &sign         = data->sign;
-    bool          &hardBreak    = data->hardBreak;
+    bool          &forceBreak   = data->forceBreak;
     bool          &hasRoom      = data->hasRoom;
 
 
@@ -369,7 +369,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     scale just = extra * justify.amount;
 
     // If we placed all the items or we had a hard break, partial justify
-    if (hasRoom || hardBreak)
+    if (hasRoom || forceBreak)
         just = extra * justify.partial;
 
     // Count last space as a break only if had a non-zero size
@@ -382,7 +382,7 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     // Allocate extra space between characters
     scale spread = justify.spread;
     coord forSolids = just * spread;
-    if ((hasRoom || hardBreak) && numBreaks <= 1)
+    if ((hasRoom || forceBreak) && numBreaks <= 1)
         forSolids = just;
     coord atSolid   = forSolids / (numItems > 2 ? numItems - 2 : 1);
 

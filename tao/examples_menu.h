@@ -35,10 +35,13 @@ class ExamplesMenu : public QMenu
     Q_OBJECT
 
 public:
-    ExamplesMenu(QWidget *parent = 0) : QMenu(tr("Examples"), parent) {}
-    virtual ~ExamplesMenu() {}
+    ExamplesMenu(QWidget *parent = 0);
+    virtual ~ExamplesMenu();
+    void addExample(QString caption, QString path, QString tip = "", QString type = "theme");
 
-    void addExample(QString caption, QString path, QString tip = "");
+protected:
+    QMenu *themesMenu;
+    QMenu *miscMenu;
 
 signals:
     void openDocument(QString path);

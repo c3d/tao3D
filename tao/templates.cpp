@@ -55,6 +55,10 @@ Template::Template(const QDir &dir)
     QVariant noDesc(QObject::tr("No description available."));
     description = ini.value("description", noDesc).toString();
 
+    // Read template type
+    QVariant defaultType("theme");
+    type = ini.value("type", defaultType).toString();
+
     // Read thumbnail picture
     thumbFile = ini.value("thumbnail").toString();
     thumbnail = QPixmap(path + "/" + thumbFile);

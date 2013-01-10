@@ -14,12 +14,11 @@ module_description
     website "http://www.taodyne.com"
     version 1.0
 
+
 module_description "fr",
     name "Rectangles Lumineux"
     description "Un thème avec des rectangles de couleur vives en fond d'écran"
 
-// This file is designed to be overriden
-override_priority -1
 
 
 // ============================================================================

@@ -18,9 +18,6 @@ module_description "fr",
     name "Thème Triangles Pastel"
     description "Un thème avec des triangles pastels se déplaçant lentement sur le fond"
 
-// This file is designed to be overriden
-override_priority -1
-
 
 // ============================================================================
 // 

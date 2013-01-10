@@ -54,7 +54,7 @@
 // ****************************************************************************
 
 // This file is designed to be overriden by themes, etc.
-override_priority -3
+override_priority -2
 
 
 

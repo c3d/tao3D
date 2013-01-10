@@ -18,9 +18,6 @@ module_description "fr",
     name "Thème Seyes"
     description "Un thème écolier simple sur fond Seyes"
 
-// This file is designed to be overriden
-override_priority -1
-
 // Adding this module's images/ directory to the BlueClaire: search path
 // for the current document
 add_search_path "Seyes:", module_dir

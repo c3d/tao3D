@@ -20,9 +20,6 @@ module_description "fr",
     name "Thème Water"
     description "Un thème comprenant divers effets d'eau."
 
-// This file is designed to be overriden
-override_priority -1
-
 add_search_path "Water:", module_dir
 
 

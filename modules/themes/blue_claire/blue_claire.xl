@@ -19,9 +19,6 @@ module_description "fr",
     name "Theme BleuClaire"
     description "Un thème bleu simple"
 
-// This file is designed to be overriden
-override_priority -1
-
 // Adding this module's images/ directory to the BlueClaire: search path
 // for the current document
 add_search_path "BlueClaire:", module_dir

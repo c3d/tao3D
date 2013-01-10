@@ -18,6 +18,9 @@ module_description "fr",
     name "Thème Lucky Stars"
     description "Un thème en 3D simple sur fond de terre et d'étoiles"
 
+// This file is designed to be overriden
+override_priority -1
+
 add_search_path "LuckyStars:", module_dir
 
 

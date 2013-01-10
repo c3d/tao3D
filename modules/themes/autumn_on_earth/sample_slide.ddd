@@ -38,7 +38,7 @@ picture_slide "Picture slide",
     movie_only ""
 
 
-picture_slide "YouTube Video slide",
+base_slide "YouTube Video slide",
     left_picture
         rotatey 180 * sin (0.2*time) ^ 19
         translate 100, 100, -150

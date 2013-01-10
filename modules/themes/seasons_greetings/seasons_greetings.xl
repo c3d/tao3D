@@ -20,6 +20,9 @@ module_description "fr",
     name "Joyeux Noel"
     description "Un thème spécialement réalisé pour la période des fêtes de Noël"
 
+// This file is designed to be overriden
+override_priority -1
+
 add_search_path "SeasonsGreetings:", module_dir
 
 

@@ -18,8 +18,10 @@ module_description "fr",
     name "Thème Clavier"
     description "Un thème simple avec un clavier en fond d'écran"
 
-// Adding this module's images/ directory to the BlueClaire: search path
-// for the current document
+// This file is designed to be overriden
+override_priority -1
+
+// Adding this module's directory to the Keyboard: search path
 add_search_path "Keyboard:", module_dir
 
 

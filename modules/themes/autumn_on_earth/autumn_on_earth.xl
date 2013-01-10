@@ -21,6 +21,9 @@ module_description "fr",
     name "Automne sur terre"
     description "Un simple module à dominantes brunes"
 
+// This file is designed to be overriden
+override_priority -1
+
 // Adding this module's images/ directory to the AutumnOnEarth: search path
 // for the current document
 add_search_path "AutumnOnEarth:", module_dir

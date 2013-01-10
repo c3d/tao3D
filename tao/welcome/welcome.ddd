@@ -76,7 +76,6 @@ base_slide "Tao Presentations",
 // 
 // ============================================================================
 
-override_priority 1
 theme_background "keyboard", Master:text ->
 // ----------------------------------------------------------------------------
 //    We override the background picture with a more neutral one

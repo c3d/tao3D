@@ -10,16 +10,53 @@ import KeyboardTheme
 
 theme "Keyboard"
 
-title_slide "Tao Presentations " & tao_edition,
+
+base_slide "Tao Presentations",
 // ----------------------------------------------------------------------------
 //   Show the welcome slide for Tao Presentations
 // ----------------------------------------------------------------------------
+
+    // Contents of the left column box
     left_column
+        // Select the slide language based on default user language
         lang tao_language
+
+        // Display a simple bullet point
         * "Discover our all new themes and samples in the Help menu" fr "Découvrez nos nouveaux thèmes et examples dans le menu Aide"
         --
-        * "Press the Space bar to animate" fr "Appuyez sur la barre d'espace pour animer"
 
+        // Display a more complicated computed bullet point
+        english
+           show_menu "Select ", "View->Document Source", " to see how this page is done"
+        french
+            show_menu "Choisissez ", "Affichage->Source du document", " pour voir comment cette page est réalisée"
+        show_menu Action, Menu, Details ->
+            * Action
+            text_span
+                color "#036"
+                italic
+                text Menu
+            text Details
+
+        // Non-bullet text and line separators
+        --
+        --
+        --
+        --
+        --- "Press the Space bar to animate" fr "Appuyez sur Espace pour animer"
+
+    // Contents of the title
+    title
+        text "Tao Presentations "
+        show_edition tao_edition
+
+        // We adjust the color based on the edition of the software
+        show_edition "Impress"          -> color "#A02"; text "Impress"
+        show_edition "Creativity"       -> color "#EA1"; text "Creativity"
+        show_edition "Discovery"        -> color "#063"; text "Discovery"
+        show_edition Other              -> color "#036"; text Other 
+
+    // Manually create an additional text box matching the theme
     box 450, -450, 820, 90,
         theme_style theme, slide_master, "story"
         align 50%
@@ -29,15 +66,40 @@ title_slide "Tao Presentations " & tao_edition,
         font_size 20
         text "Version " & tao_version
 
+    // Draw a small animation with a computer from which slides fly out
+    draw_computer_and_pictograms
 
-    draw_macbook_and_pictos
+
+// ============================================================================
+// 
+//    Theme override (change the background picture)
+// 
+// ============================================================================
+
+override_priority 1
+theme_background "keyboard", Master:text ->
+// ----------------------------------------------------------------------------
+//    We override the background picture with a more neutral one
+// ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
+    background -1500,
+        // Slowly shifting background color
+        color_hsv 6 * seconds, 0.05, 1.0
+        image 0, 0, 110%, 110%, "background.png"
 
 
-draw_macbook_and_pictos ->
+
+// ============================================================================
+// 
+//   Animated pictograms
+// 
+// ============================================================================
+
+draw_computer_and_pictograms ->
 // ----------------------------------------------------------------------------
 //   Draw the MacBook and the various pictograms
 // ----------------------------------------------------------------------------
-    contents -490,
+    contents -1490,
         translate 200, -230, 0
         scale3 0.25
         color "white"
@@ -66,18 +128,6 @@ draw_macbook_and_pictos ->
             pictogram with 1..pictogram_count
 
 
-// Duration of the animation (initially 5 seconds)
-animation_duration -> 20.0
-animation_start    -> 0.0
-
-// Toggle animations with space bar
-key "Space" ->
-    if animation_duration <= 0.0 then
-        animation_duration := page_time + 30.0
-        animation_start := page_time - pictogram_time
-    else
-        animation_duration := 0.0
-
 // Configuration of pictograms in the directory
 pictogram_count -> 28
 pictogram_name N:integer -> "picto_" & text N & ".png"
@@ -99,3 +149,24 @@ pictogram N:integer ->
         pictogram_adjust pictogram_ratio N
         rotatez 10 * sin(191.3*N)
         image 0, 0, 1, 1, pictogram_name N
+
+
+
+// ============================================================================
+// 
+//   Animation
+// 
+// ============================================================================
+
+// Duration of the animation (initially 5 seconds)
+animation_duration -> 20.0
+animation_start    -> 0.0
+
+// Toggle animations with space bar
+key "Space" ->
+    if animation_duration <= 0.0 then
+        animation_duration := page_time + 30.0
+        animation_start := page_time - pictogram_time
+    else
+        animation_duration := 0.0
+

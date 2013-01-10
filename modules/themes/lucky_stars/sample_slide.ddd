@@ -47,7 +47,7 @@ picture_slide "Picture slide",
 
 picture_slide "YouTube Video slide",
     left_picture
-        translate 0, 100, -4000 + 4100 * fade_in(page_time, 50)
+        translate 100, 100, -4500 + 4100 * fade_in(page_time, 50)
         rotatey 35
         scale3 fade_in(page_time, 50)
         movie 0, 0, 3.5, 3.5, "http://www.youtube.com/watch?v=oALxLNOhI6I"

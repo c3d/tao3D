@@ -40,8 +40,8 @@ picture_slide "Picture slide",
 
 picture_slide "YouTube Video slide",
     left_picture
+        translate 240, 100, -150
         rotatey 180 * sin (0.2*time) ^ 19
-        translate 100, 100, -150
         rotatez 5
         movie 0, 0, 1.2, 1.2, "http://www.youtube.com/watch?v=rn1n-YYHs4g"
     right_column

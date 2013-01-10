@@ -130,7 +130,7 @@ void LensFlare::Draw()
     static bool licensed, tested = false;
     if (!tested)
     {
-        licensed = tao->checkImpressOrLicense("LensFlare 1.003");
+        licensed = tao->checkImpressOrLicense("LensFlare 1.004");
         tested = true;
         Q_UNUSED(licensed);
     }

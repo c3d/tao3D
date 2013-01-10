@@ -522,13 +522,14 @@ background Depth:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw something in the background. Backgrounds always fill the screen.
 // ----------------------------------------------------------------------------
-    locally
-        if scaling_factor = 1.0 then
+    if scaling_factor = 1.0 then
+        locally
             scale_background
             ztrans_background Depth
             Body
             scaling_factor := 1.0
-        else
+    else
+        locally
             translatez Depth
             Body
 
@@ -537,13 +538,14 @@ contents Depth:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw contents, i.e. always fit in the screen
 // ----------------------------------------------------------------------------
-    locally
-        if scaling_factor = 1.0 then
+    if scaling_factor = 1.0 then
+        locally
             scale_contents
             ztrans_contents Depth
             Body
             scaling_factor := 1.0
-        else
+    else
+        locally
             translatez Depth
             Body
 

@@ -219,9 +219,9 @@ bool Template::contains(const QString &keyword, bool searchSource)
 //   Check if name, description or main file contains keyword
 // ----------------------------------------------------------------------------
 {
-    if (name.contains(keyword))
+    if (name.contains(keyword, Qt::CaseInsensitive))
         return true;
-    if (description.contains(keyword))
+    if (description.contains(keyword, Qt::CaseInsensitive))
         return true;
     if (searchSource)
     {

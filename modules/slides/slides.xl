@@ -523,9 +523,14 @@ background Depth:real, Body ->
 //   Draw something in the background. Backgrounds always fill the screen.
 // ----------------------------------------------------------------------------
     locally
-        scale_background
-        ztrans_background Depth
-        Body
+        if scaling_factor = 1.0 then
+            scale_background
+            ztrans_background Depth
+            Body
+            scaling_factor := 1.0
+        else
+            translatez Depth
+            Body
 
 
 contents Depth:real, Body ->
@@ -533,9 +538,14 @@ contents Depth:real, Body ->
 //   Draw contents, i.e. always fit in the screen
 // ----------------------------------------------------------------------------
     locally
-        scale_contents
-        ztrans_contents Depth
-        Body
+        if scaling_factor = 1.0 then
+            scale_contents
+            ztrans_contents Depth
+            Body
+            scaling_factor := 1.0
+        else
+            translatez Depth
+            Body
 
 
 // Two ways to scale contents when resizing the window :
@@ -545,9 +555,12 @@ contents Depth:real, Body ->
 // we scale to fit the contents, using the min function.
 background_scale -> max(window_width/slide_width, window_height/slide_height)
 contents_scale   -> min(window_width/slide_width, window_height/slide_height)
-scale_background -> scale3 background_scale
-scale_contents   -> scale3 contents_scale
+scale_background -> scale_all background_scale
+scale_contents   -> scale_all contents_scale
+scale_all S:real -> scale3 S; scaling_factor := scaling_factor * S
 scale3 S:real    -> scale S, S, S
+scaling_factor -> 1.0
+
 
 ztrans_contents Z:real ->
 // ----------------------------------------------------------------------------

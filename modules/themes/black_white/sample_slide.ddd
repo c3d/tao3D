@@ -40,9 +40,9 @@ picture_slide "Picture slide",
 picture_slide "YouTube Video slide",
     theme "WhiteOnBlack"
     left_picture
-        translate 0, 100, -150
+        translate 100, 100, -150
         rotatez 5
-        movie 0, 0, 1.5, 1.5, "http://www.youtube.com/watch?v=OK7pfLlsUQM"
+        movie 0, 0, 1, 1, "http://www.youtube.com/watch?v=OK7pfLlsUQM"
     right_column
         - "We wish you a Merry Christmas"
         - "and a Happy New Year 2013"

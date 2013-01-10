@@ -44,10 +44,10 @@ picture_slide "Picture slide",
 
 picture_slide "YouTube Video slide",
     locally
-        translate -300, 0, 0
+        translate -200, 50, -150
         rotatez 5
         rotatey mouse_x * 0.02 * page_time
-        movie 0, 0, 0.9, 0.9, "http://www.youtube.com/watch?v=oCsRBnUJmxk"
+        movie 0, 0, 1.1, 1.1, "http://www.youtube.com/watch?v=oCsRBnUJmxk"
     right_column
         - "We wish you a Merry Christmas"
         - "and a Happy New Year 2013"

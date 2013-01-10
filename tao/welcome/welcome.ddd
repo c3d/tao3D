@@ -17,10 +17,8 @@ title_slide "Tao Presentations " & tao_edition,
     left_column
         lang tao_language
         * "Discover our all new themes and samples in the Help menu" fr "Découvrez nos nouveaux thèmes et examples dans le menu Aide"
-
         --
         * "Press the Space bar to animate" fr "Appuyez sur la barre d'espace pour animer"
-
 
     box 450, -450, 820, 90,
         theme_style theme, slide_master, "story"

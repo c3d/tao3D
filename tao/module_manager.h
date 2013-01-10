@@ -392,11 +392,11 @@ public:
 
         bool contains(const QString &keyword, bool searchSource = false)
         {
-            if ((+name).contains(keyword))
+            if ((+name).contains(keyword, Qt::CaseInsensitive))
                 return true;
-            if ((+importName).contains(keyword))
+            if ((+importName).contains(keyword, Qt::CaseInsensitive))
                 return true;
-            if ((+desc).contains(keyword))
+            if ((+desc).contains(keyword, Qt::CaseInsensitive))
                 return true;
             if (searchSource)
             {

@@ -2668,6 +2668,9 @@ void Window::switchToFullScreen(bool fs)
     }
     slideShowAct->setChecked(fs);
 
+    QEvent r(QEvent::Resize);
+    taoWidget->refreshNow(&r);
+
 #endif // !CFG_NOFULLSCREEN
 }
 

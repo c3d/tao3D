@@ -38,7 +38,7 @@ picture_slide "YouTube Video slide",
     left_picture
         rotatey 15
         movie_texture "http://www.youtube.com/watch?v=EcDQr75GlxIK"
-        rounded_rectangle 0, 150, texture_width*2.5, texture_height*2.5, 200
+        rounded_rectangle 120, 150, 1.5*texture_width, 1.5*texture_height, 150
     right_column
         - "We wish you a Merry Christmas"
         - "and a Happy New Year 2013"

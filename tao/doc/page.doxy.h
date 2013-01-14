@@ -460,4 +460,38 @@ tree transition_current_page();
  */
 tree transition_next_page();
 
+/**
+ * @~english
+ * Skip to the next page.
+ * This function is implemented as follows:
+ * @~french
+ * Affiche la page suivante.
+ * Cette fonction est implémentée de la façon suivante:
+ * @~
+ * @code
+next_page ->
+    if page_number < page_count then
+        goto_page page_name(page_number+1)
+        refresh 0.0
+ * @endcode
+ */
+next_page();
+
+/**
+ * @~english
+ * Skip to the previous page.
+ * This function is implemented as follows:
+ * @~french
+ * Affiche la page précédente.
+ * Cette fonction est implémentée de la façon suivante:
+ * @~
+ * @code
+previous_page ->
+    if page_number > 1 then
+        goto_page page_name(page_number-1)
+        refresh 0.0
+ * @endcode
+ */
+previous_page();
+
 /** @} */

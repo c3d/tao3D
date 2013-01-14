@@ -22,6 +22,16 @@ key "Control-Right"                     -> increase_eye_distance
 key "b"                                 -> toggle_blank_screen
 key X                                   -> text_edit_key X
 
+next_page ->
+    if page_number < page_count then
+        goto_page page_name(page_number+1)
+        refresh 0.0
+
+previous_page ->
+    if page_number > 1 then
+        goto_page page_name(page_number-1)
+        refresh 0.0
+
 // Zoom
 zoom_max                                -> 32.0
 zoom_min                                -> 0.125

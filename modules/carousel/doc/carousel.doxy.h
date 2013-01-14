@@ -2,7 +2,7 @@
  * @~english
  * @taomoduledescription{Carousel, 3D Carousel}
  *
- * 3D Carousel.\n
+ * <tt>import Carousel</tt> - 3D Carousel.
  *
  * This module allows to add a 3D and dynamic carousel in your presentations.
  *
@@ -18,7 +18,7 @@
  * @~french
  * @taomoduledescription{Carousel, Carrousel 3D}
  *
- * Carrousel 3D.\n
+ * <tt>import Carousel</tt> - Carrousel 3D.
  *
  * Ce module permet d'ajouter un carrousel dynamique en 3D dans vos présentations.
  *

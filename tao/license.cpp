@@ -653,6 +653,9 @@ void Licenses::Warn(text feature, int days, bool critical)
     // Link to search page with feature name
     QString link;
     QString q = +feature;
+    QRegExp re("([^\\d\\.]+)(?:s*\\d+(?:\\.\\d*)?)?$");
+    if (re.indexIn(+feature) != -1)
+        q = re.cap(1).trimmed();
     QByteArray ba;
     ba = QUrl::toPercentEncoding(q.replace(" ", "+"), QByteArray("+"));
     q.fromUtf8(ba.constData());

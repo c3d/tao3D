@@ -82,6 +82,9 @@
 #   templates=none +my_template
 #     Select which templates to install. Similar to 'modules' above.
 #
+#   NO_SDK=1
+#     Do not include the module SDK in the package.
+#
 # 2. To build:
 #
 #   $ make             # build everything

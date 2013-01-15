@@ -1,3 +1,4 @@
+
 // slides.ddd
 import Transitions
 import Slides
@@ -7,38 +8,24 @@ import Slides
 theme "Default"
 
 
-title_slide "Ceci est le titre principal",
+main_title_slide "Titre principal",
 // ----------------------------------------------------------------------------
-//   Creation d'une diapositive simple avec un titre principal
+//   Creation d'une diapositive principale avec un titre et un sous titre
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    subtitle text "Ceci est le sous-titre"
+    title text "Titre principal" // Ajoute le titre principal sur la diapositive
+    subtitle text "Sous-titre" // Ajoute le sous-titre sur la diapositive
 
 
-section_slide "Ceci est le titre de la section",
+section_slide "Section 1",
 // ----------------------------------------------------------------------------
 //   Creation d'une diapositive de section simple
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
-    main_title text "Ceci est le titre principal" // Ajoute le titre principal sur la diapositive
+    title text "Section 1" // Ajoute le titre de la section sur la diapositive
 
 
-slide "Ceci est le titre de la diapositive n°1",
-// ----------------------------------------------------------------------------
-//   Creation d'une diapositive simple comprenant des puces de textes
-// ----------------------------------------------------------------------------
-    transition_ft_wipe 1, 0
-    *"Premier niveau de texte"
-    -"Second niveau de texte"
-    *"Premier niveau de texte"
-    -"Second niveau de texte"
-    +"Troisième niveau de texte"
-    *"Premier niveau de texte"
-    -"Second niveau de texte"
-    +"Troisième niveau de texte"
-
-
-picture_slide "Ceci est le titre de la diapositive n°2",
+picture_slide "Diapositive avec une image",
 // ----------------------------------------------------------------------------
 //   Creation d'une diapositive simple comprenant une image
 // ----------------------------------------------------------------------------
@@ -47,33 +34,58 @@ picture_slide "Ceci est le titre de la diapositive n°2",
     image 0, 0, 100%, 100%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
 
 
-toptitle_slide "Ceci est le titre de la diapositive n°3",
+slide "Diapositive avec textes",
+// ----------------------------------------------------------------------------
+//   Creation d'une diapositive simple comprenant du texte
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    *"Premier niveau de texte"
+    ** "Second niveau de texte"
+    --                               // Séparateur
+    *"Premier niveau de texte"
+    ** "Second niveau de texte"
+    *** "Troisième niveau de texte"
+    --                               // Séparateur
+    *"Premier niveau de texte"
+    ** "Second niveau de texte"
+    *** "Troisième niveau de texte"
+
+
+section_slide "Section 2",
+// ----------------------------------------------------------------------------
+//   Creation d'une diapositive de section simple
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    title text "Section 2" // Ajoute le titre de la section sur la diapositive
+
+
+title_slide "Diapositive avec deux images",
+// ----------------------------------------------------------------------------
+//   Creation d'une diapositive simple comprenant une image à gauche et à droite
+// ----------------------------------------------------------------------------
+    transition_ft_wipe 1, 0
+    left_picture
+        image 0, 0, 80%, 80%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
+    right_picture
+        image 0, 0, 80%, 80%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
+
+
+title_slide "Diapositive avec colonnes de texte",
 // ----------------------------------------------------------------------------
 //   Creation d'une diapositive simple comprenant du texte à gauche et à droite
 // ----------------------------------------------------------------------------
     transition_ft_wipe 1, 0
     left_column
-        *"Premier niveau de texte"
-        -"Second niveau de texte"
-        -"Second niveau de texte"
-        *"Premier niveau de texte"
-        -"Second niveau de texte"
+        +"Premier niveau de texte"
+        ++ "Second niveau de texte"
+        ++ "Second niveau de texte"
+        --
+        +"Premier niveau de texte"
+        ++ "Second niveau de texte"
     right_column
-        *"Premier niveau de texte"
-        -"Second niveau de texte"
-        -"Second niveau de texte"
-        *"Premier niveau de texte"
-        -"Second niveau de texte"
-
-
-toptitle_slide "Ceci est le titre de la diapositive n°4",
-// ----------------------------------------------------------------------------
-//   Creation d'une diapositive simple comprenant une image à gauche et à droite
-// ----------------------------------------------------------------------------
-    transition_ft_wipe 1, 0
-    left_column_picture
-        image 0, 0, 80%, 80%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
-    right_column_picture
-        image 0, 0, 80%, 80%, "http://www.inc.com/uploaded_files/image/create-a-great-powerpoint-presentation-Steve-Jobs-pop_7110.jpg"
-
-
+        +"Premier niveau de texte"
+        ++ "Second niveau de texte"
+        ++ "Second niveau de texte"
+        --
+        +"Premier niveau de texte"
+        ++ "Second niveau de texte"

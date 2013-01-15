@@ -86,6 +86,9 @@
 #     Do not include the module SDK in the package.
 #   NO_DOC=1
 #     Do not build online documentation.
+#   NO_HELP_VIEWER=1
+#     Do not build the help viewer application (the Help/Documentation menu is
+#     suppressed at run time when the viewer is not there).
 #
 # 2. To build:
 #
@@ -104,9 +107,15 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen crypt help_viewer
+           packaging libcryptopp keygen crypt
 
 win32:SUBDIRS += detach
+
+isEmpty(NO_HELP_VIEWER) {
+  SUBDIRS += help_viewer
+} else {
+  !build_pass:message(Won't build help viewer application.)
+}
 
 tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp tao

@@ -104,6 +104,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NORELOAD
       fileCheckTimer(this),
 #endif
+      onlineDocAct(NULL),
       splashScreen(NULL), aboutSplash(NULL)
 {
 #ifndef CFG_NOSRCEDIT
@@ -1731,9 +1732,12 @@ void Window::createActions()
     licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
 
-    onlineDocAct = new QAction(tr("&Documentation"), this);
-    onlineDocAct->setObjectName("onlineDoc");
-    connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
+    if (Assistant::installed())
+    {
+        onlineDocAct = new QAction(tr("&Documentation"), this);
+        onlineDocAct->setObjectName("onlineDoc");
+        connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
+    }
 
     tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
     tutorialsPageAct->setObjectName("tutorialsPage");
@@ -1897,7 +1901,8 @@ void Window::createMenus()
     helpMenu->addAction(updateAct);
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
-    helpMenu->addAction(onlineDocAct);
+    if (onlineDocAct)
+        helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
     ExamplesMenu * themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);

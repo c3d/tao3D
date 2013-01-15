@@ -84,6 +84,8 @@
 #
 #   NO_SDK=1
 #     Do not include the module SDK in the package.
+#   NO_DOC=1
+#     Do not build online documentation.
 #
 # 2. To build:
 #
@@ -141,5 +143,5 @@ QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 
 # Display configuration info
 !build_pass {
-  !isEmpty(DISABLE_DOC):message(Documentation is disabled.)
+  !isEmpty(NO_DOC):message(Documentation is disabled.)
 }

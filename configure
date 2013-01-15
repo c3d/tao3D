@@ -123,7 +123,7 @@ while [ $# -ne 0 ] ; do
       shift
       ;;
     --disable-doc)
-      FLAGS="$FLAGS DISABLE_DOC=1"
+      FLAGS="$FLAGS NO_DOC=1"
       shift
       ;;
     --with-eula)

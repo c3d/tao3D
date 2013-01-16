@@ -89,6 +89,8 @@
 #   NO_HELP_VIEWER=1
 #     Do not build the help viewer application (the Help/Documentation menu is
 #     suppressed at run time when the viewer is not there).
+#   NO_WELCOME=1
+#     Include a minimalistic welcome screen.
 #
 # 2. To build:
 #

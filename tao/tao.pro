@@ -389,7 +389,8 @@ OTHER_FILES +=  \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
-    welcome/welcome.ddd
+    welcome/welcome.ddd \
+    welcome/lite/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     inspectordialog.ui \
@@ -440,7 +441,12 @@ xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
 
 welcome.path  = $$APPINST/welcome
-welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+isEmpty(NO_WELCOME) {
+  welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+} else {
+  !build_pass:message([NO_WELCOME] Welcome screen is disabled.)
+  welcome.files = no_welcome/welcome.ddd
+}
 INSTALLS += welcome
 
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet

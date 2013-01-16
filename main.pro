@@ -114,7 +114,7 @@ win32:SUBDIRS += detach
 isEmpty(NO_HELP_VIEWER) {
   SUBDIRS += help_viewer
 } else {
-  !build_pass:message(Won't build help viewer application.)
+  !build_pass:message(Will not build help viewer application.)
 }
 
 tao.depends = libxlr libcryptopp

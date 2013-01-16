@@ -15,7 +15,7 @@
 //
 // ****************************************************************************
 // This software is property of Taodyne SAS - Confidential
-// Ce logiciel est la propriÃ©tÃ© de Taodyne SAS - Confidentiel
+// Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
 //  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
@@ -44,7 +44,7 @@ using namespace XL;
 #include "graphics.tbl"
 
 
-Tree *xl_process_module_import(Symbols *symbols, Tree *source, bool execute)
+Tree *xl_process_module_import(Symbols *symbols, Tree *source, phase_t phase)
 // ----------------------------------------------------------------------------
 //   Standard connector for 'load' statements
 // ----------------------------------------------------------------------------
@@ -53,7 +53,7 @@ Tree *xl_process_module_import(Symbols *symbols, Tree *source, bool execute)
     {
         source->SetSymbols(symbols);
         return Tao::ModuleManager::import(MAIN->context, source,
-                                          pfx->right, execute);
+                                          pfx->right, phase);
     }
     return NULL;
 }

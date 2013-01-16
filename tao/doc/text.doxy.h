@@ -162,12 +162,6 @@
  *     "Bold Italic" cannot be selected. This is caused by
  * <a href="http://bugreports.qt.nokia.com/browse/QTBUG-13518">QTBUG-13518</a>.
  *
- * @todo font_scaling not documented - I don't understand its purpose
- * @todo The following primitives are not documented yet: paragraph_space,
- *       character_space (should it be called word_space ?), line_break,
- *       sentence_break, paragraph_break, column_break, page_break.
- * @todo Document enable_glyph_cache?
- *
  * @~french
  * @par Utilisation de polices de caractères additionnelles
  *
@@ -1171,6 +1165,77 @@ line_spacing(factor:real);
 
 /**
  * @~english
+ * Sets the space before and after paragraphs.
+ * Defines @p before as the minimum number of points to insert before each
+ * paragraph, and the @p after as the number of points to insert after
+ * each paragraph. These values impact paragraphs (separated by
+ * @a paragraph_break) but not lines (separated by @a line_break)
+ * @see line_spacing
+ * @see paragraph_break
+ * @see line_break
+ *
+ * @~french
+ * Définit l'espace avant et après les paragraphes
+ * La valeur @p before est le nombre minimum de points insérés avant
+ * chaque paragraphe, tandis que @p after est le nombre de points
+ * minimum après chaque paragraphe. Ces valeurs n'ont d'effet que sur
+ * les paragraphes (définis avec @a paragraph_break) mais pas sur les
+ * lignes (définies avec @a line_break).
+ * @see line_spacing
+ * @see paragraph_break
+ * @see line_break
+ */
+paragraph_space (before:real, after:real);
+
+/**
+ * @~english
+ * Sets the space before and after words.
+ * Defines @p before as the minimum number of points to insert before each
+ * word, and the @p after as the number of points to insert after
+ * each word. These values impact full words, not individual characters.
+ *
+ * @~french
+ * Définit l'espace avant et après les mots
+ * La valeur @p before est le nombre minimum de points insérés avant
+ * chaque mot, tandis que @p after est le nombre de points
+ * minimum après chaque mot. Ces valeurs n'ont d'effet que sur
+ * les mots, pas sur les caractères individuels.
+ */
+word_space (before:real, after:real);
+
+
+/**
+ * @~english
+ * Insert a line break
+ * @~french
+ * Insère un saut de ligne
+ */
+line_break();
+
+/**
+ * @~english
+ * Insert a paragraph break
+ * @~french
+ * Insère un saut de paragraphe
+ */
+paragraph_break();
+
+/**
+ * @~english
+ * Insert a column break
+ * When a text flow is separated between individual text boxes, this
+ * makes the text restart at the following text box.
+ * @~french
+ * Insère un saut de colonne
+ * Lorsque un flot de texte est séparé en boîtes de texte
+ * individuelles, cette fonction fait redémarrer le texte à la boîte
+ * de texte suivante.
+ */
+column_break();
+
+
+/**
+ * @~english
  * Sets the left and right margins in pixels.
  * @~french
  * Définit les marges gauche et droite en pixels.
@@ -1218,6 +1283,135 @@ text uc 169 & " Ta" & uc "x6f" & "dy" & uc "x6E" & "e"
  * @endcode
  */
 unicode_char(code:text);
+
+
+/**
+ * @~english
+ * Positions graphics relative to the current text position.
+ * The graphics described by @p Body are drawn relative to the current
+ * text position, i.e. the graphic moves with the text.
+ * For example, the following draws a red dot immediately before "World":
+ * @~french
+ * Positionne un graphique par rapport à la position actuelle du texte.
+ * Le graphique décrit par @p Body est positionné par rapport à la
+ * position actuelle du texte, c'est à dire que le graphique se
+ * déplace avec le texte.
+ * Par exemple, pour dessiner un point rouge juste sous "World" :
+ * @~
+ * @code
+text_box 0, 0, 800, 600,
+    text "Hello" & text page_time
+    anchor
+        color "red"
+        circle 0, -10, 5
+    text "World"
+ * @endcode
+ */
+anchor(Body:code);
+
+
+/**
+ * @~english
+ * Positions graphics relative to the current text box
+ * The graphics described by @p Body are drawn relative to the current
+ * text box, i.e. the graphic does not move with the text.
+ * For example, the following draws a rectangle covering the text box:
+ * @~french
+ * Positionne un graphique par rapport à la position actuelle de la boîte de texte.
+ * Le graphique décrit par @p Body est positionné par rapport à la boîte de texte,
+ * et non par rapport à la position actuelle du texte, c'est à dire que le graphique
+ * ne se déplace pas avec le texte.
+ * Par exemple, le code suivant dessine un rectangle couvrant la boîte de texte :
+ * @~
+ * @code
+text_box 0, 0, 800, 600,
+    text "Hello" & text page_time
+    floating
+        color "red", 0.3
+        rectangle 0, 0, 800, 600
+    text "World"
+ * @endcode
+ */
+floating(Body:code);
+
+
+/**
+ * @~english
+ * Enable or disable the glyph cache used to accelerate text rendering.
+ * The glyph cache is used to store bitmap images of glyphs in order
+ * to accelerate text rendering. This function globally control
+ * whether the glyph cache is used or not. When the glyph cache is
+ * disabled, all rendering is done using vector-based 3D shapes. This
+ * results in higher-quality rendering, in particular when zooming,
+ * but at the expense of speed. The glyph cache is active by default.
+ * @see glyph_cache_size_range
+ * @see glyph_cache_scaling
+ *
+ * @~french
+ * Active ou désactive l'accélération du tracé de textes par textures.
+ * Le "cache de glyphes" est utilisé pour stocker des images bitmap
+ * des glyphes afin d'accélérer le tracé de texte. Cette fonction
+ * contrôle globalement si le cache de glyphes est utilisé ou
+ * non. Quand le cache de glyphes est débranché, l'affichage de texte
+ * est effectué en dessinant des formes vectorielles en 3D. Cela donne
+ * un résultat de meilleure qualité, en particulier lors
+ * d'agrandissements, mais au prix de la vitesse. Le cache de glyphes
+ * est activé par défaut.
+ * @see glyph_cache_size_range
+ * @see glyph_cache_scaling
+ */
+enable_glyph_cache (enable:boolean);
+
+/**
+ * @~english
+ * Select the range of font sizes for which the glyph cache will be used. 
+ * This function selects the range of font sizes for which the glyph
+ * cache will be used for rendering. Text for fonts smaller than
+ * @a min or larger than @a max will be rendered using vectors and not
+ * bitmaps. The reason for rendering small sizes as vectors is to get
+ * better anti-aliasing, which matters more for smaller sizes. The
+ * reason for rendering bigger sizes as vectors is to limit the size
+ * of bitmaps being generated.
+ * @see enable_glyph_cache
+ * @see glyph_cache_scaling
+ *
+ * @~french
+ * Définit l'intervalle de tailles de caractères tracés en bitmap.
+ * Cette fonction sélectionne l'intervalle de tailles de caractères
+ * pour lesquelles le cache de glyphes sera utilisé pour accélérer le
+ * tracé. Les caractères d'une taille inférieure à @a min ou supérieure
+ * à @a max seront tracés à l'aide de formes vectorielles et non de
+ * bitmaps. La raison pour utiliser un rendu vectoriel pour les
+ * petites tailles est de mieux tirer parti de l'anti-aliasing. La
+ * raison pour utiliser un rendu vectoriel pour les plus grande
+ * tailles est de limiter la taille des bitmaps générés.
+ * @see enable_glyph_cache
+ * @see glyph_cache_scaling
+ */
+
+glyph_cache_size_range (min:real, max:real);
+
+
+/**
+ * @~english
+ * Configure antialiasing for characters in the glyph cache
+ * This function configures how anti-aliasing is performed when
+ * rendering in the glyph cache. The characters of size greater than
+ * @a min points are oversampled by @a scaling.
+ * @see enable_glyph_cache
+ * @see glyph_cache_size_range
+ *
+ * @~french
+ * Configure l'anti-aliasing pour les caractères dans le cache de glyphes
+ * Cette fonction configure la façon dont l'anti-aliasing est effectué
+ * lorsqu'on dessine des caractères pour le cache de glyphes. Les
+ * caractères de taille supérieure à @a minSize sont suréchantillonnés
+ * d'une facteur @a scaling.
+ * @see enable_glyph_cache
+ * @see glyph_cache_size_range
+ */
+
+glyph_cache_scaling (scaling:real, minSize:real);
 
 /**
  * @}

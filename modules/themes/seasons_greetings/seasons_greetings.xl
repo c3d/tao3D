@@ -1,0 +1,79 @@
+// ****************************************************************************
+//   Seasons Greetings - A theme specially designed for the Christmas period
+//   Copyright 2012 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+import Slides
+import Snowfall
+
+module_description
+    id "C91502F7-2CC0-40C5-8E89-75893D886B49" 
+    name "Seasons Greetings theme"
+    description "A theme specially designed for seaons greetings"
+    import_name "SeasonsGreetingsTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+
+module_description "fr",
+    name "Joyeux Noel"
+    description "Un thème spécialement réalisé pour la période des fêtes de Noël"
+
+add_search_path "SeasonsGreetings:", module_dir
+
+
+theme_slide_width  "SeasonsGreetings" -> 1920
+theme_slide_height "SeasonsGreetings" -> 1080
+
+theme_background "SeasonsGreetings",Master:text ->
+    clear_color 0, 0, 0, 1
+    background -900,
+        radial_gradient 480, 270, 400, 960, 540,
+            gradient_color 0, 1,1,1,1
+            gradient_color 0.4, 0.7,0.7,0.7,1
+            gradient_color 1, 0.35, 0.35, 0.35, 1
+        color_hsv 175 * (page_number - 1), 1, 1, 0.7
+        rectangle slide_width, slide_height
+    background -800,
+        theme_color theme, Master, "picture"
+        image 0, 0, 1.0, 1.0, "SeasonsGreetings:background-transp.png"
+    background -500,
+        snowfall 1.1, 4.0, 5000
+    background -400,
+        snowpack
+
+theme_color "SeasonsGreetings",Master:text,"story"     -> color "white"
+theme_font "SeasonsGreetings",Master:text,"story"     -> font "Dancing Script"
+theme_boxstyle "SeasonsGreetings",Master:text,Style:text  -> color "white",0.2; line_color "black", 0.15
+theme_align "SeasonsGreetings",Master:text,"story", N  -> margins 75+50*N, 0
+
+theme_box "SeasonsGreetings",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        radial_gradient (W+10)/2, (H+10)/2, (W+H)/2, W+10, H+10,
+            gradient_color 0.0, 1, 1, 1, 0.2
+            gradient_color 0.5, 1, 1, 1, 0.4
+            gradient_color 1.0, 1, 1, 1, 1.0
+        rectangle X, Y, W + 10, H + 10
+        for I in 1..15 loop
+            snowflake_on_box I, X, Y, W, H
+        snowflake_on_box I:integer, X:real, Y:real, W:real, H:real ->
+            locally
+                translate X + W/2*sin(I+W), Y+H/2*cos(I+W), 0
+                rotatez 90 * sin(11.8*I+X)
+                scale3 0.2+0.1*sin(32.2*I+Y)
+                image 0, 0, 1, 1, "Snowfall:snowflake.png"
+
+
+theme_bullet_picture "SeasonsGreetings", Master:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Draw a snowflake for the theme bullets
+// ----------------------------------------------------------------------------
+    seasons_greetings_bullet S:real ->
+        color "white"
+        image_px -30, 15, S*0.8, S*0.8, "Snowfall:snowflake.png"
+    seasons_greetings_bullet theme_size(theme, Master, "bullet", Level)

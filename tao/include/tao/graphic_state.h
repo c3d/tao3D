@@ -57,6 +57,7 @@ struct GraphicState
     // Return attributes of state
     virtual uint   MaxTextureCoords() = 0;
     virtual uint   MaxTextureUnits() = 0;
+    virtual uint   MaxTextureSize() = 0;
     virtual text   Vendor() = 0;
     virtual text   Renderer() = 0;
     virtual text   Version() = 0;
@@ -110,6 +111,7 @@ struct GraphicState
     virtual void MultiTexCoord3v(GLenum target, const coord *array) = 0;
     virtual void EnableClientState(GLenum cap) = 0;
     virtual void DisableClientState(GLenum cap) = 0;
+    virtual void ClientActiveTexture(GLenum tex) = 0;
     virtual void DrawArrays(GLenum mode, int first, int count) = 0;
     virtual void VertexPointer(int size, GLenum type, int stride,
                                const void* pointer) = 0;

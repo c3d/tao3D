@@ -226,7 +226,7 @@ public:
     bool        sourceChanged();
     void        normalizeProgram();
     void        updateProgram(SourceFile *sf);
-    int         loadFile(text file, bool updateContext = false);
+    int         loadFile(text file);
     void        loadContextFiles(XL::source_names &files);
     void        reloadProgram(Tree *newProg = NULL);
     void        refreshProgram();
@@ -332,16 +332,18 @@ public:
     Tree *      shapeAction(text n, GLuint id, int x, int y);
 
     // Text flows and text management
-    TextFlow *  pageLayoutFlow(text name) { return flows[name]; }
-    GlyphCache &glyphs()    { return glyphCache; }
+    TextFlow *  pageLayoutFlow(text f)  { return flows[f]; }
+    void        eraseFlow(text f)       { flows.erase(f);}
+    GlyphCache &glyphs()                { return glyphCache; }
     QStringList fontFiles();
 
     void        purgeTaoInfo();
 
-    FileMonitor & fileMonitor() { return srcFileMonitor; }
+    FileMonitor & fileMonitor()         { return srcFileMonitor; }
 
 public:
     static Widget *Tao()                { assert(current); return current; }
+    static Widget *TaoExists()          { return current; }
     static Widget *findTaoWidget();
     Context *   formulasContext()       { return formulas; }
     static int  screenNumber() { return qApp->desktop()->screenNumber(Tao()); }
@@ -632,9 +634,13 @@ public:
                      double ratio);
 
     // Text and font
-    Tree_p      textBox(Tree_p self, text flowName,
-                        Real_p x, Real_p y, Real_p w, Real_p h);
+    Tree_p      textBox(Context *context, Tree_p self,
+                        Real_p x, Real_p y, Real_p w, Real_p h,
+                        Tree_p body);
     Tree_p      textFlow(Context *context, Tree_p self, Text_p name, Tree_p child);
+    Tree_p      textFlow(Context *context, Tree_p self, Text_p name);
+    Text_p      textFlow(Context *context, Tree_p self);
+    Name_p      textFlowExists(Context *context, Tree_p self, Text_p name);
     Tree_p      textSpan(Context *context, Tree_p self, Tree_p child);
     Tree_p      textUnit(Tree_p self, Text_p content);
     Box3        textSize(Tree_p self, Text_p content);
@@ -644,7 +650,6 @@ public:
     Tree_p      fontFamily(Context *, Tree_p self, Text_p family);
     Tree_p      fontFamily(Context *, Tree_p self, Text_p family, Real_p size);
     Tree_p      fontSize(Tree_p self, double size);
-    Tree_p      fontScaling(Tree_p self, double scaling, double minSize);
     Tree_p      fontPlain(Tree_p self);
     Tree_p      fontItalic(Tree_p self, scale amount = 1);
     Tree_p      fontBold(Tree_p self, scale amount = 1);
@@ -659,7 +664,7 @@ public:
     Tree_p      minimumSpace(Tree_p self, coord before, coord after, uint ax);
     Tree_p      horizontalMargins(Tree_p self, coord left, coord right);
     Tree_p      verticalMargins(Tree_p self, coord top, coord bottom);
-    Tree_p      drawingBreak(Tree_p self, Drawing::BreakOrder order);
+    Tree_p      drawingBreak(Tree_p self, BreakOrder order);
     Name_p      textEditKey(Tree_p self, text key);
     Text_p      loremIpsum(Tree_p self, Integer_p nwords);
     Text_p      loadText(Tree_p self, text file, text encoding);
@@ -668,6 +673,9 @@ public:
     Text_p      taoEdition(Tree_p self);
     Text_p      docVersion(Tree_p self);
     Name_p      enableGlyphCache(Tree_p self, bool enable);
+    Tree_p      glyphCacheSizeRange(Tree_p self, double min, double max);
+    Tree_p      glyphCacheScaling(Tree_p self, double scaling, double minSize);
+    Integer_p   glyphCacheTexture(Tree_p self);
     Text_p      unicodeChar(Tree_p self, int code);
     Text_p      unicodeCharText(Tree_p self, text code);
 
@@ -880,7 +888,7 @@ private:
     friend class MouseFocusTracker;
     friend class Drag;
     friend class TextSelect;
-    friend class TextUnit;
+    friend class TextSplit;
     friend class Manipulator;
     friend class ControlPoint;
     friend class Renormalize;
@@ -921,11 +929,11 @@ private:
     QStringList           toReload;
 
     // Rendering
+    OpenGLState           gl;   // Must appear first (ctor and dtor order)
     QGradient*            gradient;
     QColor                clearCol;
     SpaceLayout *         space;
     Layout *              layout;
-    OpenGLState *         graphicState;
     FrameInfo *           frameInfo;
     GraphicPath *         path;
     Table *               table;
@@ -988,8 +996,8 @@ private:
     QMenu                *currentMenu;
     QMenuBar             *currentMenuBar;
     QToolBar             *currentToolBar;
-    QVector<MenuInfo*>    orderedMenuElements;
-    int                   order;
+    QVector<MenuInfo*>    menuItems;
+    int                   menuCount;
     Tree_p                colorAction, fontAction;
     text                  colorName;
     std::map<text,Color>  selectionColor;
@@ -1072,7 +1080,6 @@ public:
     static bool           isGLExtensionAvailable(text name);
     static text           currentDocumentFolder();
     static bool           blink(double on, double off, double after);
-    void eraseFlow(text flowName){ flows.erase(flowName);}
     void                  setWatermarkText(text t, int w, int h);
     static void           setWatermarkTextAPI(text t, int w, int h);
     void                  drawFullScreenTexture(int texw, int texh, GLuint tex,

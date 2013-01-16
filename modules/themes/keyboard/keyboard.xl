@@ -1,0 +1,139 @@
+// ****************************************************************************
+//    Keyboard theme - A simple theme with a keyboard in background 
+//    Copyright 2012 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+import Slides
+
+module_description
+    id "0CA6CDE4-8EA2-4A66-B18B-AA117457114D" 
+    name "Keyboard theme"
+    description "A simple theme with a keyboard in background"
+    import_name "KeyboardTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Thème Clavier"
+    description "Un thème simple avec un clavier en fond d'écran"
+
+// Adding this module's images/ directory to the BlueClaire: search path
+// for the current document
+add_search_path "Keyboard:", module_dir
+
+
+// ============================================================================
+// 
+//    Theme definition
+// 
+// ============================================================================
+
+// Aliases for this theme name
+theme "Keyboard" -> theme "keyboard"
+
+
+// ============================================================================
+// 
+//    Color palette
+// 
+// ============================================================================
+
+// A few colors we selected for the theme (these are from the Taodyne palette)
+theme_color "keyboard", "darkgrey"  -> "#333"
+theme_color "keyboard", "grey"      -> "#555"
+theme_color "keyboard", "black"     -> "black"
+theme_color "keyboard", "red"       -> "#B46"
+theme_color "keyboard", "orange"    -> "#C54"
+theme_color "keyboard", "navy"      -> "#456"
+
+theme_color "keyboard", Master:text, "story" -> color "#333"
+theme_color "keyboard", Master:text, "title" -> color "#555"
+theme_color "keyboard", Master:text, "subtitle" -> color "#777"
+
+theme_font "keyboard", Master:text, "story" -> font "Ubuntu", "Arial"
+theme_boxstyle "keyboard",Master:text,Style:text-> color "white", 0.5
+
+
+theme_box "keyboard",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        rounded_rectangle X, Y, W + 10, H + 10, 20
+
+
+
+// ============================================================================
+// 
+//    Background picture
+// 
+// ============================================================================
+
+theme_background "keyboard", Master:text ->
+// ----------------------------------------------------------------------------
+//    Keyboard title background has rectangles at top and bottom
+// ----------------------------------------------------------------------------
+    clear_color 1, 1, 1, 1
+    background -500,
+        color "white"
+        image 0, 0, 1.1, 1.1, "Keyboard:keyboard.jpg"
+
+
+
+// ============================================================================
+// 
+//   Text boxes
+// 
+// ============================================================================
+
+theme_bbox "keyboard", Master:text, X:real, Y:real, W:real, H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_style theme, "box"
+        rounded_rectangle X, Y, W + 10, H + 10, 20
+
+
+
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

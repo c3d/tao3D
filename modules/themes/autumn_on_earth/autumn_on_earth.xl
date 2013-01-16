@@ -1,0 +1,206 @@
+// ****************************************************************************
+//    AutumnOnEarth theme - A simple brown theme 
+//    Copyright 2012 Taodyne SAS - See licences at end of file
+//    Norebbo image used with permission. Source:
+//    http://www.norebbo.com/store/photo/NTgxMWRlYThhOGQ5N2U=/global-electronic-network-background.html
+// ****************************************************************************
+
+import Slides
+
+module_description
+    id "EC3C6ED6-1727-4248-9449-61AC6A2D477E" 
+    name "Autumn on Earth theme"
+    description "A simple brown theme"
+    import_name "AutumnOnEarthTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+
+module_description "fr",
+    name "Automne sur terre"
+    description "Un simple module à dominantes brunes"
+
+// Adding this module's images/ directory to the AutumnOnEarth: search path
+// for the current document
+add_search_path "AutumnOnEarth:", module_dir
+
+
+
+// ============================================================================
+// 
+//    Theme definition
+// 
+// ============================================================================
+
+theme_slide_width  "AutumnOnEarth" -> 1024
+theme_slide_height "AutumnOnEarth" -> 768
+
+
+
+// ============================================================================
+// 
+//    Colors
+// 
+// ============================================================================
+
+theme_color      "AutumnOnEarth","main","title"           -> color "white"
+theme_color      "AutumnOnEarth","main","subtitle"        -> color "black"
+theme_color      "AutumnOnEarth","section","title"        -> color "white"
+theme_color      "AutumnOnEarth","section","subtitle"     -> color "black"
+theme_color      "AutumnOnEarth",Master:text,"title"      -> color "white"
+theme_color      "AutumnOnEarth",Master:text,"subtitle"   -> color "#888"
+theme_color      "AutumnOnEarth",Master:text,"story"      -> color "black"
+theme_font       "AutumnOnEarth",Master:text,"story"      -> font "Gill Sans", "Ubuntu", "Arial"
+theme_boxstyle   "AutumnOnEarth",Master:text,"title"      -> color "transparent"
+theme_boxstyle   "AutumnOnEarth",Master:text,Style:text   -> color "transparent"
+
+theme_align "AutumnOnEarth","main","title"                -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth","main","subtitle"             -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth","section","title"             -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth","section","subtitle"          -> align 0.5; vertical_align 0.5
+theme_align "AutumnOnEarth",Master:text,"title"           -> align 0.0; vertical_align 1.0
+theme_align "AutumnOnEarth",Master:text,"subtitle"        -> align 1.0; vertical_align 1.0
+theme_align "AutumnOnEarth",Master:text,Style:text        -> align 0.0; vertical_align 0.5
+
+
+theme_size "AutumnOnEarth",Master:text,"story"             -> 36
+theme_size "AutumnOnEarth","main","title"                  -> 56
+theme_size "AutumnOnEarth","main","subtitle"               -> 48
+theme_size "AutumnOnEarth","section","title"               -> 56
+theme_size "AutumnOnEarth","section","subtitle"            -> 48
+theme_size "AutumnOnEarth",Master:text,"title"             -> 48
+theme_size "AutumnOnEarth",Master:text,"subtitle"          -> 42
+theme_size "AutumnOnEarth",Master:text,"story",1           -> 36
+theme_size "AutumnOnEarth",Master:text,"story",2           -> 32
+theme_size "AutumnOnEarth",Master:text,"story",3           -> 30
+theme_size "AutumnOnEarth",Master:text,"story",4           -> 28
+
+
+// ============================================================================
+// 
+//    Background pictures
+// 
+// ============================================================================
+
+theme_background "AutumnOnEarth", "main" ->
+// ----------------------------------------------------------------------------
+//   Background for main title slides
+// ----------------------------------------------------------------------------
+    clear_color 0.70,0.45,0.40,1
+    contents -900,
+        color "white"
+        image 0, 0, 1.1, 1.1, "AutumnOnEarth:brown-main.png"
+
+
+theme_background "AutumnOnEarth", "section" ->
+// ----------------------------------------------------------------------------
+//   Background for section slides
+// ----------------------------------------------------------------------------
+    clear_color 0.70,0.45,0.40,1
+    contents -900,
+        color "white"
+        image 0, 0, 1.1, 1.1, "AutumnOnEarth:brown-section.png"
+
+
+theme_background "AutumnOnEarth", Master:text ->
+// ----------------------------------------------------------------------------
+//   Background for other slides (story, etc)
+// ----------------------------------------------------------------------------
+    clear_color 0.70,0.45,0.40,1
+    contents -900,
+        color "white"
+        image 0, 0, 1.1, 1.1, "AutumnOnEarth:brown-story.png"
+
+
+
+// ============================================================================
+// 
+//    Slide layout
+// 
+// ============================================================================
+
+theme_layout "AutumnOnEarth", "main" ->
+// ----------------------------------------------------------------------------
+//    Flows for main title
+// ----------------------------------------------------------------------------
+    flow 150, 30, 700, 200, "title"
+    locally
+        rotatez 8
+        flow 0, -160, 700, 150, "subtitle"
+
+
+theme_layout "AutumnOnEarth", "section" ->
+// ----------------------------------------------------------------------------
+//    Flows for section title
+// ----------------------------------------------------------------------------
+    locally
+        rotatez -4
+        flow 200, 180, 550, 200, "title"
+    locally
+        rotatez 4
+        flow -260, -180, 500, 200, "subtitle"
+
+
+theme_layout "AutumnOnEarth", Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow -220, 280, 500, 120, "title"
+    flow 270, 260, 450, 90, "subtitle"
+    flow 0, -70, 950, 540, "story"
+    flow -250, -70, 480, 540, "left"
+    flow  250, -70, 480, 540, "right"
+
+
+theme_picture Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate 0, -70, 0
+        theme_color Theme, Master, "picture"
+        Body
+
+
+
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//   Claire Hyvrier <claire.hyvrier@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

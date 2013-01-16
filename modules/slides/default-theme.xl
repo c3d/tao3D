@@ -1,0 +1,339 @@
+// ****************************************************************************
+//  default-theme.xl                                              Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Define a default theme for slides.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+// This file is designed to be overriden by themes, etc.
+override_priority -2
+
+
+
+// ============================================================================
+// 
+//    Easily configurable parameters
+// 
+// ============================================================================
+
+theme_background Theme:text,Master:text         -> clear_color 1, 1, 1, 1
+
+theme_color Theme:text,Master:text,"picture"    -> color "white"
+theme_color Theme:text,Master:text,"story"      -> color "black"
+theme_color Theme:text,Master:text,"story",N    -> theme_color Theme,Master,"story"
+theme_color Theme:text,Master:text,Style:text   -> theme_color Theme,Master,"story"
+theme_color Theme:text,Master:text,Style:text,N -> theme_color Theme,Master,"story",N
+
+theme_font Theme:text,Master:text,"story"       -> font "Ubuntu", "TeX Gyre Adventor", "Arial"
+theme_font Theme:text,Master:text,Style:text    -> theme_font Theme,Master,"story"
+theme_font Theme:text,Master:text,"story",N     -> theme_font Theme,Master,"story"
+theme_font Theme:text,Master:text,Style:text,N  -> theme_font Theme,Master,"story",N
+
+theme_size Theme:text,Master:text,"story"       -> 52
+theme_size Theme:text,Master:text,"title"       -> 90
+theme_size Theme:text,Master:text,"subtitle"    -> 70
+theme_size Theme:text,Master:text,"story",1     -> 52
+theme_size Theme:text,Master:text,"story",2     -> 48
+theme_size Theme:text,Master:text,"story",3     -> 44
+theme_size Theme:text,Master:text,"story",4     -> 40
+theme_size Theme:text,Master:text,Style:text    -> theme_size Theme,Master, "story"
+theme_size Theme:text,Master:text,Style:text,N  -> theme_size Theme,Master,"story",N
+
+theme_align Theme:text,Master:text,"story"      -> align 0.0; vertical_align 0.3
+theme_align Theme:text,Master:text,"title"      -> align 0.5; vertical_align 0.5
+theme_align Theme:text,Master:text,"subtitle"   -> theme_align Theme,Master,"title"
+theme_align Theme:text,Master:text,Style:text   -> theme_align Theme,Master, "story"
+theme_align Theme:text,Master:text,"story",N    -> margins 40+10*N, 0
+theme_align Theme:text,Master:text,Style:text,N -> theme_align Theme,Master,"story",N
+
+theme_boxstyle Theme:text,Master:text,Style:text-> color "black", 0.1
+
+
+theme_slide_width  Theme:text -> 1920
+theme_slide_height Theme:text -> 1080
+
+
+
+// ============================================================================
+// 
+//    Styles for the various elements
+// 
+// ============================================================================
+
+theme_style Theme:text, Master:text, Style:text ->
+// ----------------------------------------------------------------------------
+//    Style for title in normal slides
+// ----------------------------------------------------------------------------
+    theme_font Theme, Master, Style
+    font_size theme_size(Theme, Master, Style)
+    theme_color Theme, Master, Style
+    theme_align Theme, Master, Style
+
+
+theme_style Theme:text, Master:text, Style:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Style for title in normal slides
+// ----------------------------------------------------------------------------
+    theme_font Theme, Master, Style, Level
+    font_size theme_size(Theme, Master, Style, Level)
+    theme_color Theme, Master, Style, Level
+    theme_align Theme, Master, Style, Level
+
+
+
+// ============================================================================
+// 
+//   Titles and subtitles
+// 
+// ============================================================================
+
+theme_title Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default implementation for title
+// ----------------------------------------------------------------------------
+    text_flow "title",
+        theme_style Theme, Master, "title"
+        Body
+
+
+theme_subtitle Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default main title (centered on the slide)
+// ----------------------------------------------------------------------------
+    text_flow "subtitle",
+        theme_style Theme, Master, "subtitle"
+        Body
+
+
+
+// ============================================================================
+// 
+//   Contents
+// 
+// ============================================================================
+
+theme_story Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default story box
+// ----------------------------------------------------------------------------
+    text_flow "story",
+        theme_style Theme, Master, "story"
+        Body
+
+
+theme_left_column Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default left column
+// ----------------------------------------------------------------------------
+    text_flow "left",
+        theme_style Theme, Master, "left"
+        Body
+
+
+theme_right_column Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default right column
+// ----------------------------------------------------------------------------
+    text_flow "right",
+        theme_style Theme, Master, "right"
+        Body
+
+
+theme_picture Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translatey -120
+        theme_color Theme, Master, "picture"
+        Body
+
+
+theme_left_column_picture Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default left column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate -475, -120, 0
+        theme_color Theme, Master, "picture"
+        Body
+
+
+theme_right_column_picture Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default right column picture (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate 475, -120, 0
+        theme_color Theme, Master, "picture"
+        Body
+
+
+
+// ============================================================================
+// 
+//    Layout for the various kind of pages
+// 
+// ============================================================================
+
+theme_layout Theme:text, "main" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 50, 1800, 400, "title"
+    flow 0, -300, 1800, 200, "subtitle"
+
+
+theme_layout Theme:text, "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flow 0, 50, 1800, 250, "title"
+    flow 0, -300, 1800, 150, "subtitle"
+
+
+theme_layout Theme:text, Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flows 0, 400, 1800, 220, "title", "subtitle"
+    flow 0, -120, 1800, 750, "story"
+    flow -475, -120, 850, 750, "left"
+    flow  475, -120, 850, 750, "right"
+
+
+
+// ============================================================================
+// 
+//   Text boxes
+// 
+// ============================================================================
+
+theme_box Theme:text,Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle Theme, Master, Style
+        rectangle X, Y, W + 10, H + 10
+
+
+theme_text Theme:text,Master:text,Style:text,X:real,Y:real,W:real,H:real,Body ->
+// ----------------------------------------------------------------------------
+//   Draw a default text box
+// ----------------------------------------------------------------------------
+    theme_box Theme, Master, Style, X, Y, W, H
+    contents 0,
+        text_box X, Y, W, H, Body
+
+
+
+// ============================================================================
+// 
+//    Bullet formatting
+// 
+// ============================================================================
+
+theme_item Theme:text, Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a text item (without bullet)
+// ----------------------------------------------------------------------------
+    theme_style Theme, Master, "story", Level
+    paragraph_break
+    text Text
+
+
+theme_bullet Theme:text, Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a bullet
+// ----------------------------------------------------------------------------
+    theme_style Theme, Master, "story", Level
+    paragraph_break
+    anchor
+        theme_style Theme, Master, "bullet"
+        theme_bullet_picture Theme, Master, Level
+    text Text
+
+
+theme_numbered_item Theme:text, Master:text, Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Default formatting for a numbered text item
+// ----------------------------------------------------------------------------
+    theme_style Theme, Master, "number", Level
+    paragraph_break
+    default_item_level := Level
+    text text default_item_number[default_item_level] & ". "
+    theme_style Theme, Master, "story", Level
+    text Text
+    default_item_number[default_item_level] := 1 + default_item_number[default_item_level]
+    default_item_number[default_item_level+1] := 1
+
+
+theme_reset Theme:text ->
+// ----------------------------------------------------------------------------
+//    Reset theme numbers
+// ----------------------------------------------------------------------------
+    default_item_number[1] := 1
+    default_item_number[2] := 1
+    default_item_number[3] := 1
+    default_item_number[4] := 1
+    default_item_number[5] := 1
+
+default_item_level -> 1
+data default_item_number
+
+
+theme_bullet_picture Theme:text, Master:text, Level:integer ->
+// ----------------------------------------------------------------------------
+//    Default style of a bullet
+// ----------------------------------------------------------------------------
+    theme_bullet_circle S:real -> circle -50% * S, 30% * S, 12% * S
+    theme_bullet_circle theme_size (Theme, Master, "bullet", Level)

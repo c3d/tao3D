@@ -62,6 +62,7 @@ GS(AlphaFunctionState,  alphaFunc)
 GS(GLenum,              renderMode)
 GS(GLuint,              shaderProgram)
 GS(GLuint,              activeTexture)
+GS(GLenum,              clientActiveTexture)
 
 //GCLIENTSTATE(GL_VERTEX_ARRAY)
 //GCLIENTSTATE(GL_NORMAL_ARRAY)

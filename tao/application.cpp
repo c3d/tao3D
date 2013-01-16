@@ -280,8 +280,8 @@ void Application::deferredInit()
     updateApp = new UpdateApplication;
 
     // Initialize the graphics just below contents of basics.tbl
-    xlr->CreateScope();
     Initialize();
+    xlr->CreateScope();
 
     // Activate basic compilation
     xlr->options.debug = true;  // #1205 : enable stack traces through LLVM
@@ -534,6 +534,7 @@ bool Application::checkGL()
                           << hasFBOMultisample
                           << " (samples per pixel: " << samples << ")\n";
         }
+
         // Enable font bitmap cache only if we don't have multisampling
         TextUnit::cacheEnabled = !(hasGLMultisample || hasFBOMultisample);
     }
@@ -547,6 +548,7 @@ bool Application::checkGL()
 
     return true;
 }
+
 
 void Application::checkModules()
 // ----------------------------------------------------------------------------

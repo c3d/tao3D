@@ -34,15 +34,6 @@
 
 TAO_BEGIN
 
-enum OpenGLState::VendorID OpenGLState::vendorID = OpenGLState::UNKNOWN;
-GLuint OpenGLState::maxTextureCoords = 0;
-GLuint OpenGLState::maxTextureUnits = 0;
-text   OpenGLState::vendor = "?";
-text   OpenGLState::renderer = "?";
-text   OpenGLState::version = "?";
-text   OpenGLState::extensionsAvailable = "?";
-
-
 text OpenGLState::vendorsList[LAST_VENDOR] =
 // ----------------------------------------------------------------------------
 //   List of vendors (we use that for some optimizations)
@@ -131,6 +122,14 @@ OpenGLState::OpenGLState()
     : GraphicState(),
 #define GS(type, name)          name##_isDirty(true),
 #include "opengl_state.tbl"
+
+      vendorID(UNKNOWN),
+      maxTextureCoords(4), maxTextureUnits(4), maxTextureSize(256),
+      vendor("Uninitialized Bitblaster Corp."),
+      renderer("Random Bits Pusher"),
+      version("Unreleased Internal version pi"),
+      extensionsAvailable("None"),
+
       matrixMode(GL_MODELVIEW),
       viewport(0, 0, 0, 0), listBase(0), pointSize(1),
       color(1,1,1,1), clearColor(0,0,0,1),
@@ -145,13 +144,24 @@ OpenGLState::OpenGLState()
       perspectiveCorrectionHint(GL_DONT_CARE),
       blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
-      renderMode(GL_RENDER), shaderProgram(0), activeTexture(0),
+      renderMode(GL_RENDER), shaderProgram(0),
+      activeTexture(0), clientActiveTexture(GL_TEXTURE0),
 #define GS(type, name)
 #define GFLAG(name)             glflag_##name(false),
 #define GCLIENTSTATE(name)      glclientstate_##name(false),
 #include "opengl_state.tbl"
       save(NULL)
+{}
+
+
+void OpenGLState::MakeCurrent()
+// ----------------------------------------------------------------------------
+//   Make this object the current OpenGLState
+// ----------------------------------------------------------------------------
 {
+    current = this;
+    ModuleManager::moduleManager()->updateGraphicStatePointers(current);
+
     // Ask graphic card constructor to OpenGL
     vendor = text ((const char*) glGetString (GL_VENDOR));
 
@@ -184,6 +194,7 @@ OpenGLState::OpenGLState()
     // (texture units are limited to 4 otherwise)
     glGetIntegerv(GL_MAX_TEXTURE_COORDS,(GLint*) &maxTextureCoords);
     glGetIntegerv(GL_MAX_TEXTURE_IMAGE_UNITS,(GLint*) &maxTextureUnits);
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE,(GLint*) &maxTextureSize);
 
     // We never use single buffered contexts, so the OpenGL default is
     // always GL_BACK
@@ -191,16 +202,7 @@ OpenGLState::OpenGLState()
 
     if (maxTextureUnits > MAX_TEXTURE_UNITS)
         maxTextureUnits = MAX_TEXTURE_UNITS;
-}
 
-
-void OpenGLState::MakeCurrent()
-// ----------------------------------------------------------------------------
-//   Make this object the current OpenGLState
-// ----------------------------------------------------------------------------
-{
-    current = this;
-    ModuleManager::moduleManager()->updateGraphicStatePointers(current);
 }
 
 
@@ -323,6 +325,8 @@ void OpenGLState::Sync(ulonglong which)
          matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
     SYNC(activeTexture,
          glActiveTexture(GL_TEXTURE0 + activeTexture));
+    SYNC(clientActiveTexture,
+         glClientActiveTexture(clientActiveTexture));
 
     GLenum mmode = matrixMode;
     SYNC(mvMatrix,
@@ -1061,6 +1065,16 @@ void OpenGLState::DisableClientState(GLenum cap)
         break;
     }
 }
+
+
+void OpenGLState::ClientActiveTexture(GLenum tex)
+// ----------------------------------------------------------------------------
+//   Activate a given client active texture
+// ----------------------------------------------------------------------------
+{
+    CHANGE(clientActiveTexture, tex);
+}
+
 
 
 void OpenGLState::DrawArrays(GLenum mode, int first, int count)

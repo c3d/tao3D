@@ -37,6 +37,16 @@
        shaders/sparks  \
        shaders/glow  \
        shaders/depth_of_field \
+       themes/blue_claire \
+       themes/autumn_on_earth \
+       themes/keyboard \
+       themes/seyes \
+       themes/black_white \
+       themes/pastel_triangles \
+       themes/bright_rectangles \
+       themes/lucky_stars \
+       themes/seasons_greetings \
+       themes/water \
        slideshow_3d \
        vlc_audio_video \
        stereo_decoder \
@@ -48,13 +58,10 @@
        remote_control \
        regexp \
        chroma_key \
-       transitions
+       transitions \
+       snowfall
 
     OTHER_MODULES =     \
-        dip_voting \
-        dip_mouse \
-        dip_null \
-        dip_dedication \
         DIP \
         hello_world     \
         tao_synchro  \

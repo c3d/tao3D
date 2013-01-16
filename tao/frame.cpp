@@ -32,9 +32,13 @@ FrameInfo::FrameInfo(uint w, uint h, GLenum f)
 // ----------------------------------------------------------------------------
 //   Create the required frame buffer objects
 // ----------------------------------------------------------------------------
-    : w(w), h(h), format(f), refreshTime(-1), clearColor(1, 1, 1, 0)
+    : w(w), h(h), format(f), depthTextureID(0),
+      context(NULL), renderFBO(NULL), textureFBO(NULL),
+      refreshTime(-1), clearColor(1, 1, 1, 0)
 {
-    resize(w, h);
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Constructor " << this
+                  << " size "<< w << "x" << h << "\n";
 }
 
 
@@ -42,10 +46,14 @@ FrameInfo::FrameInfo(const FrameInfo &o)
 // ----------------------------------------------------------------------------
 //   Copy constructor - Don't copy the framebuffers
 // ----------------------------------------------------------------------------
-    : XL::Info(o), w(o.w), h(o.h), format(o.format), refreshTime(o.refreshTime),
-      clearColor(o.clearColor)
+    : XL::Info(o), w(o.w), h(o.h), format(o.format), depthTextureID(0),
+      context(NULL), renderFBO(NULL), textureFBO(NULL),
+      refreshTime(o.refreshTime), clearColor(o.clearColor)
 {
-    resize(w, h);
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Copy " << this
+                  << " from " << &o
+                  << " size "<< w << "x" << h << "\n";
 }
 
 
@@ -54,18 +62,9 @@ FrameInfo::~FrameInfo()
 //   Delete the frame buffer objects and GL tiles
 // ----------------------------------------------------------------------------
 {
-    fbo_map::iterator i;
-    for (i = render_fbos.begin(); i != render_fbos.end(); i++)
-    {
-        fbo_map::key_type    k  = (*i).first;
-        fbo_map::mapped_type rv = (*i).second;
-        fbo_map::mapped_type tv = texture_fbos[k];
-        delete rv;
-        if (rv != tv)
-            delete tv;
-    }
-    if (depth_tex)
-        GL.DeleteTextures(1, &depth_tex);
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Destructor " << this << "\n";
+    purge();
 }
 
 
@@ -74,17 +73,23 @@ void FrameInfo::resize(uint w, uint h)
 //   Change the size of the frame buffer used for rendering
 // ----------------------------------------------------------------------------
 {
+    assert(QGLContext::currentContext() ||
+           !"FrameInfo::resize without an OpenGL context???");
+    
     // Don't change anything if size stays the same
-    if (render_fbo &&
-        render_fbo->width() == int(w) &&
-        render_fbo->height() == int(h))
+    if (renderFBO && renderFBO->width()==int(w) && renderFBO->height()==int(h))
         return;
-
+    
     // Delete anything we might have
-    if (texture_fbo)
-        delete texture_fbo;
-    if (render_fbo != texture_fbo)
-        delete render_fbo;
+    purge();
+
+    // If the size is too big, we shouldn't use multisampling, it crashes
+    // on MacOSX
+    const uint SAMPLES = 4;
+    const uint maxTextureSize = GL.MaxTextureSize() / SAMPLES;
+    bool canMultiSample = QGLFramebufferObject::hasOpenGLFramebufferBlit();
+    if (w >= maxTextureSize || h >= maxTextureSize)
+        canMultiSample = false;
 
     // Select whether we draw directly in texture or blit to it
     // If we can blit and suceed in creating a multisample buffer,
@@ -93,39 +98,39 @@ void FrameInfo::resize(uint w, uint h)
     QGLFramebufferObjectFormat format;
     format.setInternalTextureFormat(this->format);
     format.setAttachment(QGLFramebufferObject::CombinedDepthStencil);
-    if (QGLFramebufferObject::hasOpenGLFramebufferBlit())
+    if (canMultiSample)
     {
         QGLFramebufferObjectFormat mformat(format);
-        mformat.setSamples(4);
-        render_fbo = new QGLFramebufferObject(w, h, mformat);
-        QGLFramebufferObjectFormat actualFormat = render_fbo->format();
+        mformat.setSamples(SAMPLES);
+        renderFBO = new QGLFramebufferObject(w, h, mformat);
+        QGLFramebufferObjectFormat actualFormat = renderFBO->format();
         int samples = actualFormat.samples();
-        if (samples > 0)
+        if (samples > 1)
         {
             // REVISIT: we pass format to have a depth buffer attachment.
             // This is required only when we want to later use depthTexture().
             // TODO: specify at object creation?
-            texture_fbo = new QGLFramebufferObject(w, h, format);
+            textureFBO = new QGLFramebufferObject(w, h, format);
         }
         else
         {
             // Multisample framebuffer objects are not supported.
-            // Normally we could just do: texture_fbo = render_fbo, to use
+            // Normally we could just do: textureFBO = renderFBO, to use
             // the FBO as a texture.
             // But on Windows/VMWare, even when samples == 0 the
             // FBO cannot be used directly as a texture.
-            // 2 options: (1) create a texture_fbo and blit as if MS was
+            // 2 options: (1) create a textureFBO and blit as if MS was
             // enabled, or (2) re-create render FBO without asking for
             // multisampling. (2) is obviously better.
-            delete render_fbo;
-            render_fbo = new QGLFramebufferObject(w, h, format);
-            texture_fbo = render_fbo;
+            delete renderFBO;
+            renderFBO = new QGLFramebufferObject(w, h, format);
+            textureFBO = renderFBO;
         }
     }
     else
     {
-        render_fbo = new QGLFramebufferObject(w, h, format);
-        texture_fbo = render_fbo;
+        renderFBO = new QGLFramebufferObject(w, h, format);
+        textureFBO = renderFBO;
     }
 
     // The value of the min and mag filters of the underlying texture
@@ -133,7 +138,7 @@ void FrameInfo::resize(uint w, uint h)
     // => We must synchronize our cache or some later GL.TexParameter calls
     // may be ignored.
     GLint min, mag;
-    GLuint tex = texture_fbo->texture();
+    GLuint tex = textureFBO->texture();
     glBindTexture(GL_TEXTURE_2D, tex);
     // Query the actual values to be safe
     glGetTexParameteriv(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, &min);
@@ -145,17 +150,20 @@ void FrameInfo::resize(uint w, uint h)
     GL.Sync(STATE_textures);
     GL.BindTexture(GL_TEXTURE_2D, 0);
 
-    // depth_tex is optional, resize if we have one
-    if (depth_tex)
+    // depthTextureID is optional, resize if we have one
+    if (depthTextureID)
         resizeDepthTexture(w, h);
-
+    
+    // Store what context we created things in
     this->w = w; this->h = h;
-    glShowErrors();
-
+    this->context = (QGLContext *) QGLContext::currentContext();
+    IFTRACE(fbo)
+        std::cerr << "[FrameInfo] Resized " << w << "x" << h
+                  << " in " << context << "\n";
+    
     // Clear the contents of the newly created frame buffer
-    render_fbo->bind();
-    clear();
-    render_fbo->release();
+    begin(true);
+    end();
 }
 
 
@@ -164,24 +172,28 @@ void FrameInfo::resizeDepthTexture(uint w, uint h)
 //   Change the size of the depth texture
 // ----------------------------------------------------------------------------
 {
-    if (depth_tex && this->w == w && this->h == h)
-        return;
+    if (depthTextureID)
+    {
+        if (this->w == w && this->h == h)
+            return;
 
-    // Delete current depth texture
-    if (depth_tex)
-        GL.DeleteTextures(1, &depth_tex);
+        // Delete current depth texture
+        if (depthTextureID)
+        {
+            GL.DeleteTextures(1, &depthTextureID);
+            depthTextureID = 0;
+        }
+    }
 
     // Create the depth texture
-    GL.GenTextures(1, &depth_tex);
-    GL.BindTexture(GL_TEXTURE_2D, depth_tex);
+    GL.GenTextures(1, &depthTextureID);
+    GL.BindTexture(GL_TEXTURE_2D, depthTextureID);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
     GL.TexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT, w, h, 0,
                   GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-    glShowErrors();
 }
 
 
@@ -192,17 +204,18 @@ void FrameInfo::begin(bool clearContents)
 {
     // Clear the render FBO
     checkGLContext();
-    int ok = render_fbo->bind();
+    int ok = renderFBO->bind();
     if (!ok) std::cerr << "FrameInfo::begin(): unexpected result\n";
-    glShowErrors();
+
     // Synchronize cached state
     GL.SetCached_bufferMode(GL_COLOR_ATTACHMENT0);
-
     GL.Disable(GL_TEXTURE_2D);
     GL.Disable(GL_STENCIL_TEST);
 
     if (clearContents)
         clear();
+    else if (renderFBO != textureFBO)
+        backBlit();
 }
 
 
@@ -211,19 +224,20 @@ void FrameInfo::end()
 //   Finish rendering in an off-screen buffer
 // ----------------------------------------------------------------------------
 {
-    int ok = render_fbo->release();
+    // Blit the result in the texture FBO and in depth texture if necessary
+    checkGLContext();
+    if (renderFBO != textureFBO)
+        blit();
+    if (depthTextureID)
+        copyToDepthTexture();
+
+    int ok = renderFBO->release();
     if (!ok) std::cerr << "FrameInfo::end(): unexpected result\n";
-    glShowErrors();
+
     // Synchronize cached state
     GLint buf;
     glGetIntegerv(GL_DRAW_BUFFER, &buf);
     GL.SetCached_bufferMode(buf);
-
-    // Blit the result in the texture if necessary
-    blit();
-    if (depth_tex)
-        copyToDepthTexture();
-    glShowErrors();
 }
 
 
@@ -233,7 +247,7 @@ GLuint FrameInfo::bind()
 // ----------------------------------------------------------------------------
 {
     checkGLContext();
-    GLuint texId = texture_fbo->texture();
+    GLuint texId = textureFBO->texture();
     GL.BindTexture(GL_TEXTURE_2D, texId);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
@@ -251,7 +265,7 @@ void FrameInfo::clear()
 {
     GL.ClearColor(clearColor.red, clearColor.green, clearColor.blue,
                  clearColor.alpha);
-    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
 }
 
 
@@ -260,15 +274,66 @@ void FrameInfo::blit()
 //   Blit from multisampled FBO to non-multisampled FBO
 // ----------------------------------------------------------------------------
 {
-    if (render_fbo != texture_fbo)
+    assert (QGLContext::currentContext() == context ||
+            !"FrameInfo::blit invoked with invalid GL context");
+    assert (textureFBO != renderFBO ||
+            !"FrameInfo::blit invoked without any need for it.");
+
+    GLenum buffers = depthTextureID
+        ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT
+        : GL_COLOR_BUFFER_BIT;
+    uint width = renderFBO->width();
+    uint height = renderFBO->height();
+    QRect rect(0, 0, width, height);
+    QGLFramebufferObject::blitFramebuffer(textureFBO, rect,
+                                          renderFBO, rect,
+                                          buffers);
+}
+
+
+void FrameInfo::backBlit()
+// ----------------------------------------------------------------------------
+//   Blit from multisampled FBO to non-multisampled FBO
+// ----------------------------------------------------------------------------
+{
+    assert (QGLContext::currentContext() == context ||
+            !"FrameInfo::backBlit invoked with invalid GL context");
+    assert (textureFBO != renderFBO ||
+            !"FrameInfo::backBlit invoked without any need for it.");
+
+    GLenum buffers = depthTextureID
+        ? GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT
+        : GL_COLOR_BUFFER_BIT;
+    uint width = renderFBO->width();
+    uint height = renderFBO->height();
+    QRect rect(0, 0, width, height);
+    QGLFramebufferObject::blitFramebuffer(renderFBO, rect,
+                                          textureFBO, rect,
+                                          buffers);
+}
+
+
+void FrameInfo::purge()
+// ----------------------------------------------------------------------------
+//   Purge frame buffer objects and delete them
+// ----------------------------------------------------------------------------
+{
+    if (context)
     {
-        GLenum buffers = GL_COLOR_BUFFER_BIT;
-        if (depth_tex)
-            buffers |= GL_DEPTH_BUFFER_BIT;
-        QRect rect(0, 0, render_fbo->width(), render_fbo->height());
-        QGLFramebufferObject::blitFramebuffer(texture_fbo, rect,
-                                              render_fbo, rect,
-                                              buffers);
+        if (context != QGLContext::currentContext())
+            context->makeCurrent();
+
+        delete renderFBO;
+        if (textureFBO != renderFBO)
+            delete textureFBO;
+        if (depthTextureID)
+            GL.DeleteTextures(1, &depthTextureID);
+
+        IFTRACE(fbo)
+            std::cerr << "[FrameInfo] Purged " << context << "\n";
+        renderFBO = textureFBO = NULL;
+        depthTextureID = 0;
+        context = NULL;
     }
 }
 
@@ -279,7 +344,7 @@ GLuint FrameInfo::texture()
 // ----------------------------------------------------------------------------
 {
     checkGLContext();
-    return texture_fbo->texture();
+    return textureFBO->texture();
 }
 
 
@@ -289,13 +354,14 @@ GLuint FrameInfo::depthTexture()
 // ----------------------------------------------------------------------------
 {
     checkGLContext();
-    if (!depth_tex)
+    if (!depthTextureID)
     {
         resizeDepthTexture(w, h);
-        blit();
+        if (renderFBO != textureFBO)
+            blit();
         copyToDepthTexture();
     }
-    return depth_tex;
+    return depthTextureID;
 }
 
 
@@ -304,8 +370,17 @@ void FrameInfo::checkGLContext()
 //   Make sure FBOs have been allocated for the current GL context
 // ----------------------------------------------------------------------------
 {
-    if (!render_fbos.count(QGLContext::currentContext()))
+    if (context != QGLContext::currentContext())
+    {
+        IFTRACE(fbo)
+            std::cerr << "[FrameInfo] Changing context from " << context
+                      << " to " << QGLContext::currentContext()
+                      << "\n";
+        purge();
         resize(w, h);
+    }
+    assert(context == QGLContext::currentContext() ||
+           !"FrameInfo::checkGLContext was unable to set GL context???");
 }
 
 
@@ -315,22 +390,21 @@ QImage FrameInfo::toImage()
 // ----------------------------------------------------------------------------
 {
     checkGLContext();
-    return render_fbo->toImage();
+    return renderFBO->toImage();
 }
 
 
 void FrameInfo::copyToDepthTexture()
 // ----------------------------------------------------------------------------
-//   Copy the texture_fbo depth buffer into our depth texture
+//   Copy the textureFBO depth buffer into our depth texture
 // ----------------------------------------------------------------------------
 {
     GLint fbname = 0;
     glGetIntegerv(GL_FRAMEBUFFER_BINDING, &fbname);
-    glBindFramebuffer(GL_FRAMEBUFFER, texture_fbo->handle());
-    glBindTexture(GL_TEXTURE_2D, depth_tex);
+    glBindFramebuffer(GL_FRAMEBUFFER, textureFBO->handle());
+    glBindTexture(GL_TEXTURE_2D, depthTextureID);
     glCopyTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, 0, 0, w, h);
     glBindFramebuffer(GL_FRAMEBUFFER, fbname);
-    glShowErrors();
 }
 
 
@@ -343,7 +417,8 @@ ModuleApi::fbo * FrameInfo::newFrameBufferObject(uint w, uint h)
 }
 
 
-ModuleApi::fbo * FrameInfo::newFrameBufferObjectWithFormat(uint w, uint h, uint format)
+ModuleApi::fbo * FrameInfo::newFrameBufferObjectWithFormat(uint w, uint h,
+                                                           uint format)
 // ----------------------------------------------------------------------------
 //   Create a framebuffer object with a specified format
 // ----------------------------------------------------------------------------
@@ -362,7 +437,7 @@ void FrameInfo::deleteFrameBufferObject(ModuleApi::fbo * obj)
 
 
 void FrameInfo::resizeFrameBufferObject(ModuleApi::fbo * obj,
-                                         uint w, uint h)
+                                        uint w, uint h)
 // ----------------------------------------------------------------------------
 //   Resize a framebuffer object
 // ----------------------------------------------------------------------------
@@ -451,13 +526,10 @@ FramePainter::FramePainter(FrameInfo *info)
     GL.LoadMatrix();
 
     // Clear the render FBO
-    info->checkGLContext();
-    info->render_fbo->bind();
-    GL.ClearColor(0,0,0,0);
-    GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    info->render_fbo->release();
+    info->begin(true);
 
-    begin(info->render_fbo);
+    // Begin drawing in the render FBO
+    begin(info->renderFBO);
 }
 
 
@@ -468,13 +540,8 @@ FramePainter::~FramePainter()
 {
     end();
 
-    // Blit the result in the texture if necessary
-    if (info->render_fbo != info->texture_fbo)
-    {
-        QRect rect(0,0,info->render_fbo->width(),info->render_fbo->height());
-        QGLFramebufferObject::blitFramebuffer(info->texture_fbo, rect,
-                                              info->render_fbo, rect);
-    }
+    // Blit into the texture as necesary
+    info->end();
 }
 
 TAO_END

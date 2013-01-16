@@ -53,15 +53,14 @@ Box3 Attribute::Space(Layout *where)
 }
 
 
-Drawing *DrawingBreak::Break(BreakOrder &order, uint &size)
+bool DrawingBreak::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
-//   Perform a character, word, line, column or page break
+//   Perform pagination: append this as a character break
 // ----------------------------------------------------------------------------
 {
-    order = this->order;
-    size = 0;
-    return NULL;
+    return page->PaginateItem(this, order);
 }
+
 
 void DrawingBreak::DrawSelection(Layout *l)
 // ----------------------------------------------------------------------------

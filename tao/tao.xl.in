@@ -277,11 +277,9 @@ copy_texture ->
         texture ID
         rectangle 0, 0, W, H
 
-// Text Layout
-text_box x:real, y, w, h, body:tree ->
-    flow_name->"defaultTextBox"
-    text_flow flow_name, body
-    text_box flow_name, x, y, w, h
+text_box F:text, X:real, Y:real, W:real, H:real ->
+    text_box X, Y, W, H,
+        text_flow F
 
 para_span b:tree ->
     text_span
@@ -1045,6 +1043,8 @@ menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768",
     window_size 1024, 768
 menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768",
     window_size 1280, 768
+menu_item "TAO_VIEW_MENU:windowsize > 720p", "1280 x 720",
+    window_size 1280, 720
 menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200",
     window_size 1600, 1200
 menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
@@ -1058,6 +1058,8 @@ window_choices ->
         window_size 960, 540
     chooser_choice "1024 x 768",
         window_size 1024, 768
+    chooser_choice "1280 x 720",
+        window_size 1280, 720
     chooser_choice "1280 x 768",
         window_size 1280, 768
     chooser_choice "1600 x 1200",

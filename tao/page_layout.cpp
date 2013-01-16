@@ -23,7 +23,8 @@
 #include "page_layout.h"
 #include "attributes.h"
 #include "text_drawing.h"
-#include "justification.hpp"
+#define JUSTIFICATION_H_IMPLEMENTATION
+#include "justification.h"
 #include "gl_keepers.h"
 #include "window.h"
 #include "path3d.h"
@@ -40,110 +41,13 @@ TAO_BEGIN
 //
 // ============================================================================
 
-template<> inline line_t Justifier<line_t>::Break(line_t item,
-                                                  uint &size,
-                                                  bool &hadBreak,
-                                                  bool &hadSep,
-                                                  bool &done)
+template<> void Justifier<LayoutLine *>::PurgeItems()
 // ----------------------------------------------------------------------------
-//   For drawings, we break at word boundaries
+//   The layout lines are actually owned by the page layout justifier
 // ----------------------------------------------------------------------------
 {
-    order = Drawing::WordBreak;
-    line_t result = item->Break(order, size);
-    done = order > Drawing::SentenceBreak;
-    hadSep = order > Drawing::WordBreak;
-    hadBreak = order != Drawing::NoBreak;
-    return result;
-}
-
-
-template<> inline scale Justifier<line_t>::Size(line_t item, Layout *layout)
-// ----------------------------------------------------------------------------
-//   For drawings, we compute the horizontal size
-// ----------------------------------------------------------------------------
-{
-    Box3 space = item->Space(layout);
-    scale result = space.Width();
-    if (result < 0)
-        result = 0;
-    return result;
-}
-
-
-template<> inline scale Justifier<line_t>::SpaceSize(line_t item, Layout * l)
-// ----------------------------------------------------------------------------
-//   Return the size of the spaces at the end of an item
-// ----------------------------------------------------------------------------
-{
-    return item->TrailingSpaceSize(l);
-}
-
-
-template<> inline coord Justifier<line_t>::ItemOffset(line_t item, Layout *l)
-// ----------------------------------------------------------------------------
-//   Return the horizontal offset for placing items
-// ----------------------------------------------------------------------------
-//   Since the bounds are supposed drawn at coordinates (0,0,0),
-//   the offset is the opposite of the left of the bounds
-{
-    XL::Save<Point3> zeroOffset(l->offset, Point3(0,0,0));
-    Box3 space = item->Space(l);
-    return -space.Left();
-}
-
-
-template<> inline page_t Justifier<page_t>::Break(page_t line,
-                                                  uint &size,
-                                                  bool &hadBreak,
-                                                  bool &hadSep,
-                                                  bool &done)
-// ----------------------------------------------------------------------------
-//   For lines, we break at line boundaries
-// ----------------------------------------------------------------------------
-{
-    order = Drawing::LineBreak;
-    page_t result = line->Break(order, size);
-    done = order > Drawing::ParaBreak;
-    hadSep = order > Drawing::LineBreak;
-    hadBreak = order != Drawing::NoBreak;
-    return result;
-}
-
-
-template<> inline scale Justifier<page_t>::Size(page_t line, Layout *l)
-// ----------------------------------------------------------------------------
-//   For lines, we compute the vertical size
-// ----------------------------------------------------------------------------
-{
-    Box3 space = line->Space(l);
-    scale result = space.Height();
-    if (result < 0)
-        result = 0;
-    return result;
-}
-
-
-template<> inline scale Justifier<page_t>::SpaceSize(page_t, Layout *)
-// ----------------------------------------------------------------------------
-//   Return the size of a space for the layout
-// ----------------------------------------------------------------------------
-{
-    // REVISIT: Paragraph interspace
-    return 0;
-}
-
-
-template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
-// ----------------------------------------------------------------------------
-//   Return the vertical offset for lines
-// ----------------------------------------------------------------------------
-//   Since the bounds are supposed to be computed at coordinates (0,0,0),
-//   the offset for the top is Top()
-{
-    XL::Save<Point3> zeroOffset(l->offset, Point3(0,0,0));
-    Box3 space = item->Space(l);
-    return space.Top();
+    for (PlacesIterator p = places.begin(); p != places.end(); p++)
+        delete (*p).item;
 }
 
 
@@ -154,40 +58,24 @@ template<> inline coord Justifier<page_t>::ItemOffset(page_t item, Layout *l)
 //
 // ============================================================================
 
-LayoutLine::LayoutLine(coord left, coord right, TextFlow *flow)
+LayoutLine::LayoutLine(coord left, coord right, Justification &j)
 // ----------------------------------------------------------------------------
 //   Create a new line of drawing elements
 // ----------------------------------------------------------------------------
-    : line(flow->getItems(), flow->getCurrentIterator()), left(left),
-      right(right), perSolid(0.0), flow(flow),
-      flowRewindPoint(*(flow->getCurrentIterator()))
+    : bounds(Point(left, 0), Point(right, 0)), line(), perSolid(0), perBreak(0)
 {
     IFTRACE(justify)
         std::cerr << "##### "<< left <<" ##### new LayoutLine L-R " << this
-                  <<"##### "<< right <<" #####\n";
-}
-
-
-LayoutLine::LayoutLine(const LayoutLine &o)
-// ----------------------------------------------------------------------------
-//   Copy a line
-// ----------------------------------------------------------------------------
-    : Drawing(o), line(o.line), left(o.left), right(o.right), flow(o.flow),
-      flowRewindPoint(*(flow->getCurrentIterator()))
-{
-    IFTRACE(justify)
-        std::cerr << "##### "<<left <<" ##### new LayoutLine " << this
-                  <<"##### "<< right <<" ##### Copy of "<< &o << "\n";
+                  << "##### "<< right <<" #####\n";
+    line.BeginLayout(left, right, j);
 }
 
 
 LayoutLine::~LayoutLine()
 // ----------------------------------------------------------------------------
-//    Delete the elements we placed (and therefore own)
+//    The real work happens in the LineJustifier's destructor
 // ----------------------------------------------------------------------------
-{
-    line.Clear();
-}
+{}
 
 
 void LayoutLine::Draw(Layout *where)
@@ -195,12 +83,15 @@ void LayoutLine::Draw(Layout *where)
 //   Compute line layout and draw the placed elements
 // ----------------------------------------------------------------------------
 {
+    assert(!line.data && "LayoutLine::Draw called before layout");
+
     IFTRACE(justify)
         std::cerr << "->LayoutLine:" << this
                   << ":Draw(Layout * " << where << ")\n";
 
-    // Compute layout
-    Compute(where);
+    // Copy the perSolid we computed to the layout we draw in
+    where->alongX.perSolid = perSolid;
+    where->alongX.perBreak = perBreak;
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -211,16 +102,11 @@ void LayoutLine::Draw(Layout *where)
         Drawing *child = place.item;
         IFTRACE(justify)
             std::cerr << "--LayoutLine::Draw child is "
+                      << child << ":"
                       << demangle(typeid(*child).name()) << std::endl;
 
-        Layout * ll = dynamic_cast<Layout*>(child);
-
-        if (ll)
-            ll->Inherit(where);
-        else
-            ll = where;
-        XL::Save<coord> saveX(ll->offset.x, ll->offset.x+place.position);
-        child->Draw(ll);
+        XL::Save<coord> saveX(where->offset.x, where->offset.x+place.position);
+        child->Draw(where);
     }
 
     IFTRACE(justify)
@@ -233,8 +119,11 @@ void LayoutLine::DrawSelection(Layout *where)
 //   Recompute layout if necessary and draw selection for all children
 // ----------------------------------------------------------------------------
 {
-    // Compute layout
-    Compute(where);
+    assert(!line.data && "LayoutLine::DrawSelection called before layout");
+
+    // Copy the perSolid we computed to the layout we draw in
+    where->alongX.perSolid = perSolid;
+    where->alongX.perBreak = perBreak;
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -254,7 +143,11 @@ void LayoutLine::Identify(Layout *where)
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    Compute(where);
+    assert(!line.data && "LayoutLine::Identify called before layout");
+
+    // Copy the perSolid we computed to the layout we draw in
+    where->alongX.perSolid = perSolid;
+    where->alongX.perBreak = perBreak;
 
     // Display all items
     LineJustifier::Places &places = line.places;
@@ -269,143 +162,45 @@ void LayoutLine::Identify(Layout *where)
 }
 
 
-void LayoutLine::RefreshLayouts(Layout::Layouts &out)
-// ----------------------------------------------------------------------------
-//   Copy all items that are layouts in the children
-// ----------------------------------------------------------------------------
-{
-    LineJustifier::Places &ps = line.places;
-    for (LineJustifier::PlacesIterator p = ps.begin(); p != ps.end(); p++)
-    {
-        if (Layout *layout = dynamic_cast<Layout*>((*p).item))
-            out.push_back(layout);
-    }
-}
-
-
-Box3 LayoutLine::Bounds(Layout *where)
+Box3 LayoutLine::Bounds(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the box
 // ----------------------------------------------------------------------------
 {
-    // Loop over all elements, offseting by their position
-    Box3 result;
-    LineJustifier::Places &places = line.places;
-    LineJustifier::PlacesIterator p;
-
-    for (p = places.begin(); p != places.end(); p++)
-    {
-        LineJustifier::Place &place = *p;
-        Drawing *child = place.item;
-        XL::Save<coord> saveY(where->offset.x, where->offset.x+place.position);
-        Box3 childBounds = child->Bounds(where);
-        result |= childBounds;
-    }
-
-    return result;
+    assert(!line.data && "LayoutLine::Bounds called before layout");
+    return bounds; // Converts Box to Box3
 }
 
 
-Box3 LayoutLine::Space(Layout *where)
+Box3 LayoutLine::Space(Layout *)
 // ----------------------------------------------------------------------------
 //   Return the space for the box
 // ----------------------------------------------------------------------------
 {
-    // Loop over all elements, offseting by their position
-    Box3 result;
-    LineJustifier::Places &places = line.places;
-    LineJustifier::PlacesIterator p;
-
-    IFTRACE(justify)
-        std::cerr << "->LayoutLine::Space[" << this
-                  << "] : result = " << result << std::endl;
-
-    for (p = places.begin(); p != places.end(); p++)
-    {
-        LineJustifier::Place &place = *p;
-        Drawing *child = place.item;
-        XL::Save<coord> saveX(where->offset.x,
-                              where->offset.x + place.position);
-        Box3 childSpace = child->Space(where);
-        result |= childSpace;
-        IFTRACE(justify)
-            std::cerr << "--LayoutLine::Space[" << this << "] : child "
-                      << demangle(typeid(*child).name()) << " height = "
-                      << childSpace.Height() << " -- Total height = "
-                      << result.Height()  << std::endl;
-
-    }
-    IFTRACE(justify)
-        std::cerr << "<-LayoutLine::Space[" << this
-                  << "] : result = " << result << std::endl;
-    return result;
+    assert(!line.data && "LayoutLine::Space called before layout");
+    return bounds; // Convert Box to Box3
 }
 
 
-LayoutLine *LayoutLine::Break(BreakOrder &order, uint &size)
+bool LayoutLine::Paginate(PageLayout *)
 // ----------------------------------------------------------------------------
-//   Cut a line layout at a line, paragraph or column boundary
-// ----------------------------------------------------------------------------
-// LayoutLine has been build as a line so nothing to break down.
-// Gives back the order and size value computed when created by the Adjust.
-{
-    order = line.order;
-    size = line.numItems;
-    return NULL;
-}
-
-
-void LayoutLine::Compute(Layout *layout)
-// ----------------------------------------------------------------------------
-//   Compute the placement of items on the line, preserving layout state
+//   We should never arrive here, since layout lines are only created by pages
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr <<"-> LayoutLine::Compute[" << this << "]\n";
-    // If we already computed the placement, re-use that
-    if (line.places.size())
-    {
-        layout->alongX.perSolid = perSolid;
-        return;
-    }
-
-    // If line start with a Layout, use it instead of the provided one.
-    Layout * ll = dynamic_cast<Layout*>(flow->getCurrentElement());
-    if (ll)
-        ll->Inherit(layout);
-    else
-        ll = layout;
-
-    if (RevertLayoutState* revert =
-        dynamic_cast<RevertLayoutState*>(flow->getCurrentElement()))
-        revert->Draw(ll);
-
-    // Position one line of items
-    if (left > right) std::swap(left, right);
-    line.Adjust(left + ll->left, right - ll->right, ll->alongX, ll);
-    perSolid = ll->alongX.perSolid;
-    IFTRACE(justify)
-    {
-        line.Dump("Line justification");
-        std::cerr <<"<- LayoutLine::Compute[" << this << "]\n";
-    }
+    assert(!"LayoutLine::Paginate called");
+    return false;
 }
 
 
-LayoutLine *LayoutLine::Remaining()
+void LayoutLine::PerformLayout()
 // ----------------------------------------------------------------------------
-//   Build a layout line with items that were not processed
+//   Layout the current line
 // ----------------------------------------------------------------------------
 {
-    // Check if we are done
-    if (flow->atEnd() || line.places.size() == 0)
-        return NULL;
-
-    // Transfer remaining items over to new line
-    LayoutLine *result = new LayoutLine(*this);
-
-    return result;
+    if (line.data)
+        line.EndLayout(&perSolid, &perBreak);
 }
+
 
 
 // ============================================================================
@@ -414,21 +209,15 @@ LayoutLine *LayoutLine::Remaining()
 //
 // ============================================================================
 
-PageLayout::PageLayout(Widget *widget, TextFlow *flow)
+PageLayout::PageLayout(Widget *widget)
 // ----------------------------------------------------------------------------
 //   Create a new layout
 // ----------------------------------------------------------------------------
     : Layout(widget),
-      space(),
-      flow(flow),lines(), current(lines.begin()),
-      page(&lines,&current), selectId(0)
+      space(), bounds(), page(), currentFlow(NULL), selectId(0)
 {
     IFTRACE(justify)
         std::cerr << "PageLayout::PageLayout " << this << std::endl;
-    lastFlowPoint = *(flow->getCurrentIterator());
-    flow->addBox(this);
-    Inherit(widget->layout);
-    Inherit(flow);
 }
 
 
@@ -436,15 +225,12 @@ PageLayout::PageLayout(const PageLayout &o)
 // ----------------------------------------------------------------------------
 //   Copy a layout from another layout
 // ----------------------------------------------------------------------------
-    : Layout(o), space(), flow(o.flow),lines(), current(lines.begin()),
-      page(&lines, &current), selectId(0)
+    : Layout(o), space(o.space), bounds(o.bounds),
+      page(), currentFlow(NULL), selectId(0)
 {
     IFTRACE(justify)
-        std::cerr << "PageLayout::PageLayout " << this << std::endl;
-    lastFlowPoint = *(flow->getCurrentIterator());
-    flow->addBox(this);
-    Inherit(flow);
-    space |= Point3(0,0,0);
+        std::cerr << "PageLayout::PageLayout copy " << this << std::endl;
+    space |= Point(0,0);
 }
 
 
@@ -455,58 +241,7 @@ PageLayout::~PageLayout()
 {
     IFTRACE(justify)
         std::cerr << "PageLayout::~PageLayout " << this << std::endl;
-    if (flow)
-        flow->removeBox(this);
-
-    flow = NULL;
-
     Clear();
-}
-
-
-void PageLayout::AddLine(LayoutLine *d)
-// ----------------------------------------------------------------------------
-//   Make sure we force a new computation of the justification
-// ----------------------------------------------------------------------------
-{
-    if ( !d) return;
-
-    return lines.push_back(d);
-}
-
-void PageLayout::Add(Drawing *d)
-// ----------------------------------------------------------------------------
-//   Make sure we force a new computation of the justification
-// ----------------------------------------------------------------------------
-{
-    if ( !d) return;
-    if (page.places.size())
-    {
-        // Adding elements after we computed a layout is messy at best
-        std::cerr << "WARNING: PageLayout gets new elements after layout\n";
-        assert(!"PageLayout gets a new element after layout");
-        page.Clear();
-    }
-    return Layout::Add(d);
-}
-
-
-void PageLayout::Clear()
-// ----------------------------------------------------------------------------
-//   When we clear a page layout, we need to also clear placed items
-// ----------------------------------------------------------------------------
-{
-    LayoutLine *ll = NULL;
-
-    for  (Items::iterator  l = lines.begin(); l != lines.end(); l++)
-    {
-        ll = (*l);
-        delete ll;
-    }
-
-    lines.clear();
-    page.Clear();
-    Layout::Clear();
 }
 
 
@@ -521,63 +256,41 @@ void PageLayout::Draw(Layout *where)
     IFTRACE(justify)
         std::cerr << "->PageLayout::Draw ["<< this << "] offset "
                   << where->Offset() <<  "\n";
-    flow->offset = where->Offset();
-    flow->currentTextBox = this;
-    // Inherit state from our parent layout if there is one and compute layout
-    Compute(flow);
-    if (page.places.size() == 0 && ! flow->atEnd())
-    {
-        // text box is empty, because
-        //  - either there is nothing (left) in the flow,
-        //  - either the smallest piece of content is wider than the box.
-        // Draw a striked rectangle.
 
-        // set line width
-        LineWidth lw(3);
-        // set colors
-        LineColor line(0.8, 0.8, 0.8, 0.7);
-        FillColor fill(0.2, 0.2, 0.2, 0.1);
-        // create path
-        TesselatedPath path(GLU_TESS_WINDING_ODD);
-        path.moveTo(Point3(space.Left(), space.Top(), space.Front()));
-        path.lineTo(Point3(space.Left(), space.Bottom(), space.Front()));
-        path.lineTo(Point3(space.Right(), space.Bottom(), space.Front()));
-        path.lineTo(Point3(space.Right(), space.Top(), space.Front()));
-        path.close();
-        path.lineTo(Point3(space.Right(), space.Bottom(), space.Front()));
-        // Draw line width, colors and path
-        lw.Draw(where);
-        line.Draw(where);
-        fill.Draw(where);
-        path.Draw(where);
-       return;
-    }
+    // Inherit state from where, compute layout if necessary
+    Compute(where);
+
+    // Inherit state from our parent layout if there is one and compute layout
+    if (page.places.size() == 0 && !page.HadRoom())
+        return DrawPlaceholder();
 
     // Display all items
+    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
     PushLayout(this);
-    PageJustifier::Places &places = page.places;
-    PageJustifier::PlacesIterator p;
-    for (p = places.begin(); p != places.end(); p++)
+    PageJustifier::Places &all = page.places;
+    for (PageJustifier::PlacesIterator p = all.begin(); p != all.end(); p++)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
+
         IFTRACE(justify)
             std::cerr << "--PageLayout::Draw ["<< this
-                      << "] saved y = " << flow->offset.y
-                      << " -- new y = " << flow->offset.y + place.position << "\n";
-        XL::Save<coord> saveY(flow->offset.y, flow->offset.y + place.position);
-        GLAllStateKeeper glSave(glSaveBits(),
-                                hasMatrix, false, hasTextureMatrix);
-        child->Draw(flow);
+                      << "] saved y = " << where->offset.y
+                      << " -- new y = " << where->offset.y + place.position
+                      << "\n";
+
+        XL::Save<coord> saveY(offset.y, offset.y+place.position);
+        child->Draw(this);
     }
     PopLayout(this);
 
-    if(where)
-       where->previousTextures = previousTextures;
     IFTRACE(justify)
-        std::cerr << "<-PageLayout::Draw ["<< this << "] flow->offset = "
-                  << flow->Offset()
+        std::cerr << "<-PageLayout::Draw ["<< this << "] offset = "
+                  << where->Offset()
                   << " -- where->offset = "<<  where->Offset() << "\n";
+
+    if (where)
+        where->previousTextures = previousTextures;
 }
 
 
@@ -589,13 +302,10 @@ void PageLayout::DrawSelection(Layout *where)
     // Remember the initial selection ID
     Widget     *widget   = where->Display();
     TextSelect *sel      = widget->textSelection();
-    GLuint      lineStart, lineEnd;
 
-    flow->currentTextBox = this;
-    flow->offset = where->Offset();
     id = where->id;
     // Inherit state from our parent layout if there is one and compute layout
-    Compute(flow);
+    Compute(where);
 
     // Clear the selection box in case it was set by some previous text
     if (sel)
@@ -610,14 +320,15 @@ void PageLayout::DrawSelection(Layout *where)
     if (selected)
     {
         Box3 bounds = space;
-        XL::Save<Point3> zeroOffset(flow->offset, Point3(0,0,0));
+        XL::Save<Point3> zeroOffset(where->offset, Point3(0,0,0));
         if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)
-            widget->drawSelection(flow, bounds, "open_textbox", where->id);
+            widget->drawSelection(where, bounds, "open_textbox", where->id);
         else
-            widget->drawSelection(flow, bounds, "selected_textbox", where->id);
+            widget->drawSelection(where, bounds, "selected_textbox", where->id);
     }
 
     // Display all items
+    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
     PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
@@ -626,77 +337,31 @@ void PageLayout::DrawSelection(Layout *where)
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
 
-        if (!sel)
-        {
-            // No text selection, just draw children directly
-            XL::Save<coord> saveY(flow->offset.y, flow->offset.y + place.position);
-            GLAllStateKeeper glSave(glSaveBits(),
-                                    hasMatrix, false, hasTextureMatrix);
-            child->DrawSelection(flow);
-        }
+        XL::Save<coord> saveY(offset.y, offset.y+place.position);
+        if (sel)
+            DrawSelectionBox(sel, child, saveY.saved);
         else
-        {
-            // Text selection: Draw the selection box
-            sel->processLineBreak();
-            lineStart = widget->selectionCurrentId();
-            XL::Save<coord> saveY(flow->offset.y, flow->offset.y + place.position);
-            GLAllStateKeeper glSave(glSaveBits(),
-                                    hasMatrix, false, hasTextureMatrix);
-            child->DrawSelection(flow);
-            flow->offset.y = saveY.saved;
-            lineEnd = widget->selectionCurrentId();
-
-            if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
-            {
-                if (PageLayout *pl = dynamic_cast<PageLayout *> (where))
-                {
-                    if (sel->point != sel->mark)
-                    {
-                        coord y = sel->selBox.Bottom();
-                        if (sel->start()<=lineStart && sel->end()>=lineStart)
-                            sel->selBox |= Point3(pl->space.Left(), y, 0);
-                        if (sel->end() >= lineEnd && sel->start() <= lineEnd)
-                            sel->selBox |= Point3(pl->space.Right(), y, 0);
-                    }
-                }
-
-                GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
-                text mode = sel->textMode ? "text_selection" : "text_highlight";
-                XL::Save<Point3> zeroOffset(flow->offset, Point3());
-                widget->drawSelection(flow, sel->selBox, mode, 0);
-                sel->selBox.Empty();
-                GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-
-            if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
-            {
-                GL.BlendFunc(GL_DST_COLOR, GL_ZERO);
-                text mode = "formula_highlight";
-                XL::Save<Point3> zeroOffset(flow->offset, Point3());
-                widget->drawSelection(flow, sel->formulaBox, mode, 0);
-                sel->formulaBox.Empty();
-                GL.BlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-            }
-        }
+            // No text selection, just draw children directly
+            child->DrawSelection(this);
     }
     PopLayout(this);
 
     // Save color and font as necessary for color selectors
-    if (widget->selected(where))
-        widget->saveSelectionColorAndFont(flow);
+    if (widget->selected(this))
+        widget->saveSelectionColorAndFont(this);
 }
 
 
-void PageLayout::Identify(Layout */*where*/)
+void PageLayout::Identify(Layout *where)
 // ----------------------------------------------------------------------------
 //   Identify page elements for OpenGL
 // ----------------------------------------------------------------------------
 {
-    flow->currentTextBox = this;
     // Inherit state from our parent layout if there is one and compute layout
-    Compute(flow);
+    Compute(where);
 
     // Display all items
+    GLAllStateKeeper glSave(glSaveBits(), hasMatrix, false, hasTextureMatrix);
     PushLayout(this);
     PageJustifier::Places &places = page.places;
     PageJustifier::PlacesIterator p;
@@ -704,22 +369,19 @@ void PageLayout::Identify(Layout */*where*/)
     {
         PageJustifier::Place &place = *p;
         LayoutLine *child = place.item;
-        XL::Save<coord> saveY(flow->offset.y, flow->offset.y + place.position);
-        GLAllStateKeeper glSave(glSaveBits(),
-                                hasMatrix, false, hasTextureMatrix);
-        child->Identify(flow);
+        XL::Save<coord> saveY(offset.y, offset.y+place.position);
+        child->Identify(this);
     }
     PopLayout(this);
 
     coord x = space.Left(),  y = space.Bottom();
     coord w = space.Width(), h = space.Height();
-    coord z = (space.Front() + space.Back()) / 2;
     coord array[4][3] =
     {
-        { x,     y,     z },
-        { x + w, y,     z },
-        { x + w, y + h, z },
-        { x,     y + h, z }
+        { x,     y,     0 },
+        { x + w, y,     0 },
+        { x + w, y + h, 0 },
+        { x,     y + h, 0 }
     };
 
     GL.Color(0.2,0.6,1.0,0.1);
@@ -732,29 +394,81 @@ void PageLayout::Identify(Layout */*where*/)
 }
 
 
+void PageLayout::DrawPlaceholder()
+// ----------------------------------------------------------------------------
+//   Draw a striked rectangle to indicate that the page layout is too small
+// ----------------------------------------------------------------------------
+{
+    // Create path
+    TesselatedPath path(GLU_TESS_WINDING_ODD);
+    path.moveTo(Point3(space.Left(), space.Top(), 0));
+    path.lineTo(Point3(space.Left(), space.Bottom(), 0));
+    path.lineTo(Point3(space.Right(), space.Bottom(), 0));
+    path.lineTo(Point3(space.Right(), space.Top(), 0));
+    path.close();
+    path.lineTo(Point3(space.Right(), space.Bottom(), 0));
+
+    // Draw line width, colors and path
+    LineWidth(3)                        .Draw(this);
+    LineColor(0.8, 0.8, 0.8, 0.7)       .Draw(this);
+    FillColor(0.2, 0.2, 0.2, 0.1)       .Draw(this);
+    path                                .Draw(this);
+}
+
+
+void PageLayout::DrawSelectionBox(TextSelect *sel,Drawing *child,coord savedY)
+// ----------------------------------------------------------------------------
+//   Draw the selection box for a given text box
+// ----------------------------------------------------------------------------
+{
+    Widget *widget = Display();
+
+    // Text selection: Draw the selection box
+    sel->processLineBreak();
+    GLuint lineStart = widget->selectionCurrentId();
+    child->DrawSelection(this);
+    offset.y = savedY;
+    GLuint lineEnd = widget->selectionCurrentId();
+
+    if (sel->selBox.Width() > 0 && sel->selBox.Height() > 0)
+    {
+        if (sel->point != sel->mark)
+        {
+            coord y = sel->selBox.Bottom();
+            if (sel->start()<=lineStart && sel->end()>=lineStart)
+                sel->selBox |= Point3(space.Left(), y, 0);
+            if (sel->end() >= lineEnd && sel->start() <= lineEnd)
+                sel->selBox |= Point3(space.Right(), y, 0);
+        }
+
+        glBlendFunc(GL_DST_COLOR, GL_ZERO);
+        text mode = sel->textMode ? "text_selection" : "text_highlight";
+        XL::Save<Point3> zeroOffset(offset, Point3());
+        widget->drawSelection(this, sel->selBox, mode, 0);
+        sel->selBox.Empty();
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+
+    if (sel->formulaBox.Width() > 0 && sel->formulaBox.Height() > 0)
+    {
+        glBlendFunc(GL_DST_COLOR, GL_ZERO);
+        text mode = "formula_highlight";
+        XL::Save<Point3> zeroOffset(offset, Point3());
+        widget->drawSelection(this, sel->formulaBox, mode, 0);
+        sel->formulaBox.Empty();
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    }
+}
+
+
 Box3 PageLayout::Bounds(Layout *layout)
 // ----------------------------------------------------------------------------
 //   Return the bounds for the page layout
 // ----------------------------------------------------------------------------
 {
-    // Inherit from surrounding context and compute layout
+    // Return the bounds after we computed the inner placement
     Compute(layout);
-
-    // Loop over all elements, offseting by their position
-    Box3 result;
-    PageJustifier::Places &places = page.places;
-    PageJustifier::PlacesIterator p;
-
-    for (p = places.begin(); p != places.end(); p++)
-    {
-        PageJustifier::Place &place = *p;
-        Drawing *child = place.item;
-        XL::Save<coord> saveY(offset.y, offset.y + place.position);
-        Box3 childBounds = child->Bounds(this);
-        result |= childBounds;
-    }
-
-    return result;
+    return bounds;              // Converts Box to Box3
 }
 
 
@@ -763,150 +477,265 @@ Box3 PageLayout::Space(Layout *layout)
 //   Return the space for the page layout
 // ----------------------------------------------------------------------------
 {
-    // Inherit context and compute layout
+    // Return the union of space and bounds, in case we take more than planned
     Compute(layout);
-
-    Box3 result = space;
-    Box3 bounds;
-    if (page.places.size())
-        bounds =  Bounds(this);
-    result |= bounds;
-    return result;
+    bounds |= space;
+    return bounds;              // Converts Box to Box3
 }
 
 
-void PageLayout::RefreshLayouts(Layouts &out)
+bool PageLayout::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
-//   Refresh all child layouts
+//   Paginate a text box inside a text box
 // ----------------------------------------------------------------------------
 {
-    PageJustifier::PlacesIterator p;
-    PageJustifier::Places places = page.places;
-    for (p = places.begin(); p != places.end(); p++)
-        (*p).item->RefreshLayouts(out);
-
-    Layout::RefreshLayouts(out);
+    // We will treat the text box as a complete rectangular entity
+    return page->PaginateItem(this);
 }
 
 
-void PageLayout::Compute(Layout */*where*/)
+void PageLayout::Add(Drawing *d)
+// ----------------------------------------------------------------------------
+//   Make sure we force a new computation of the justification
+// ----------------------------------------------------------------------------
+{
+    assert(d);
+
+    if (page.places.size())
+    {
+        // Adding elements after we computed a layout is bad practice
+        std::cerr << "WARNING: PageLayout gets new elements after layout\n";
+        page.Clear();
+    }
+
+    Layout::Add(d);
+}
+
+
+Layout *PageLayout::NewChild()
+// ----------------------------------------------------------------------------
+//   Creating a text span for locally inside a page layout
+// ----------------------------------------------------------------------------
+{
+    return new TextSpan(this);
+}
+
+
+void PageLayout::Clear()
+// ----------------------------------------------------------------------------
+//   When we clear a page layout, we need to also clear placed items
+// ----------------------------------------------------------------------------
+{
+    page.Clear();
+    bounds = Box();
+    Layout::Clear();
+}
+
+
+void PageLayout::Compute(Layout *where)
 // ----------------------------------------------------------------------------
 //   Layout all elements on the page, preserving layout state
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
-    if (flow->atEnd() )
-    {
-        IFTRACE(justify)
-            std::cerr << "<-PageLayout::Compute ["<< this <<"] Flow at end\n";
-        return;
-    }
     // Get attributes from surrounding context
-    Inherit(flow);
+    Inherit(where);
 
-    // If we already computed the layout,
-    // just reuse that and place the flow accordingly
+    // If we already computed the layout, nothing to do
     if (page.places.size())
-    {
-        flow->rewindFlow(lastFlowPoint);
-        IFTRACE(justify)
-            std::cerr << "<-PageLayout::Compute ["<< this
-                      <<"] (already computed)\n";
         return;
-    }
 
+    // Check height of page, quick exit if page is empty
     coord top = space.Top() - this->top;
     coord bottom = space.Bottom() + this->bottom;
-    if (top < bottom) std::swap(top, bottom);
-
-    // Transfer all items into a single line
-    LayoutLine *line = new LayoutLine(space.Left(), space.Right(), flow);
-    {
-        // Save the font to let the vertical computing work with the
-        // original one. BUG#407
-        XL::Save<QFont> saveFont(this->font);
-
-        bool  firstElement  = true;
-        scale page_height = 0;
-        Justification justify = this->alongY;
-        // Loop while there are more lines to place
-        while (line && page_height < top - bottom)
-        {
-            // Compute horizontal layout for current line
-            line->Compute(this);
-
-            // Compute and check the size
-            scale size = line->Space(this).Height();
-            size *= justify.spacing;
-            if (line->line.order > LineBreak)
-            {
-                coord additional = justify.before;
-                if (!firstElement && additional < justify.after)
-                    additional = justify.after;
-                if ( firstElement ) firstElement = false;
-                size += additional;
-            }
-            page_height +=  size;
-            if (page_height > top - bottom)
-            {
-                flow->rewindFlow(line->flowRewindPoint);
-                delete line;
-                line = NULL;
-                break;
-            }
-            // Remember the line for vertical layout
-            AddLine(line);
-            // Must stop here
-            if (line->line.order > ParaBreak)
-                break;
-            // Get next line if there is anything left to layout
-            line = line->Remaining();
-        }
-        if (line)
-        {
-            delete line;
-            line = NULL;
-        }
-    }
-    // Now that we have all lines, do the vertical layout
-    current = lines.begin();
-    page.Adjust(top, bottom, this->alongY, this);
-    lastFlowPoint = *(flow->getCurrentIterator());
+    if (top <= bottom)
+        return;
 
     IFTRACE(justify)
+        std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
+
+    // Begin pagination
+    page.BeginLayout(top, bottom, alongY);
+
+    // Paginate all the items that fit
+    bool ok = true;
+    for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
     {
-        page.Dump("Page justification");
-        std::cerr << "<-PageLayout::Compute ["<< this <<"]\n";
+        Drawing *child = *i;
+        ok = child->Paginate(this);
     }
+
+    // We are done with the pagination
+    if (ok && !page.Empty())
+        PaginateLastLine(NoBreak);
+    page.EndLayout(&alongY.perSolid, &alongY.perBreak);
+
+    IFTRACE(justify)
+        page.Dump("<-PageLayout::Compute");
+
+    // Restore state as it was at the beginning of the layout
+    Inherit(where);
 }
 
 
-PageLayout *PageLayout::Remaining()
+bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
 // ----------------------------------------------------------------------------
-//   Build a layout with items that were not processed
+//    Add a drawable item to the current page
 // ----------------------------------------------------------------------------
 {
-    // Check if we are done
-    if (flow->atEnd() || page.places.size() == 0)
-        return NULL;
+    // Quick exit if we are out of space
+    if (!page.HasRoom())
+        return false;
 
-    return new PageLayout(*this);
+    // Find which layout line we are working with
+    LayoutLine *line = NULL;
+    if (!page.Empty())
+    {
+        line = page.Current();
+        if (!line->line.HasRoom())
+        {
+            if (!PaginateLastLine(order))
+                return false;
+            line = NULL;
+        }
+    }
+    if (!line)
+    {
+        line = new LayoutLine(space.Left()+left, space.Right()-right, alongX);
+        bool lineFits = page.AddItem(line);
+        if (!lineFits)
+        {
+            // No need to transfer: the just-created line is empty,
+            // and since hardBreak is false it has not been added to places.
+            delete line;
+            return false;
+        }
+    }
+
+    // Compute the size of the item
+    XL::Save<Vector3> zeroOffset(this->offset, Vector3(0,0,0));
+    Box3 drawSpace = drawing->Space(this);
+    if (drawSpace.Width() < 0 || drawSpace.Height() < 0)
+        drawSpace |= Point3(0,0,0);     // Eliminate empty boxes
+    coord offset = -drawSpace.Left();
+    scale size = fabs(drawSpace.Width());
+    scale spc = drawing->TrailingSpaceSize(this);
+
+    // Try to add item to layout line
+    Justifier<Drawing *> &lj = line->line;
+    bool pack = order < WordBreak;
+    bool forceBreak = order >= LineBreak;
+    bool fits = lj.AddItem(drawing, count, pack, forceBreak, size, offset, spc);
+
+    // Adjust layout line
+    if (fits || (forceBreak && count <= 1))
+    {
+        // If drawing fits, adjust the dimensions of the line accordingly
+        Box &lineBounds = line->bounds;
+        if (lineBounds.lower.y > drawSpace.lower.y)
+            lineBounds.lower.y = drawSpace.lower.y;
+        if (lineBounds.upper.y < drawSpace.upper.y)
+            lineBounds.upper.y = drawSpace.upper.y;
+    }
+    if (!fits)
+    {
+        // If drawing doesn't fit, try to fit the last line vertically
+        if (!PaginateLastLine(order))
+            return false;
+
+        // Create a new layout line
+        line = new LayoutLine(space.Left()+left, space.Right()-right, alongX);
+        bool lineFits = page.AddItem(line);
+        if (!lineFits)
+        {
+            // No need to transfer: the just-created line is empty
+            delete line;
+            return false;
+        }
+
+        Justifier<Drawing *> &lj = line->line;
+        bool fits = 
+            (forceBreak && size==0) ||
+            lj.AddItem(drawing, count, pack, forceBreak, size, offset, spc);
+        if (fits)
+        {
+            Box &lineBounds = line->bounds;
+            if (lineBounds.lower.y > drawSpace.lower.y)
+                lineBounds.lower.y = drawSpace.lower.y;
+            if (lineBounds.upper.y < drawSpace.upper.y)
+                lineBounds.upper.y = drawSpace.upper.y;
+        }
+        return fits;
+    }
+
+    // Happy campers - Everything fits
+    return true;
+}
+
+
+bool PageLayout::PaginateLastLine(BreakOrder order)
+// ----------------------------------------------------------------------------
+//   Paginate the last line that was created
+// ----------------------------------------------------------------------------
+{
+    assert (!page.Empty());
+
+    LayoutLine *line = page.Current();
+    page.PopItem();
+
+    Box &lineBounds = line->bounds;
+    scale lsize = fabs(lineBounds.Height());
+    coord loffset = lineBounds.Top();
+    bool pack = order <= LineBreak;
+    bool forceBreak = order >= ColumnBreak;
+    bool lfits = page.AddItem(line, 1, pack, forceBreak, lsize, loffset, 0);
+    if (lfits)
+    {
+        line->PerformLayout();
+    }
+    else
+    {
+        if (currentFlow)
+            currentFlow->Transfer(line);
+        delete line;
+    }
+    return lfits;
+}
+
+
+void PageLayout::SetLastSplit(TextSplit *split)
+// ----------------------------------------------------------------------------
+//   Record last text split if we have an active flow
+// ----------------------------------------------------------------------------
+{
+    if (currentFlow)
+        currentFlow->SetLastSplit(split);
+}
+
+
+TextSplit *PageLayout::LastSplit()
+// ----------------------------------------------------------------------------
+//   Return the last item placed in the last line, if any
+// ----------------------------------------------------------------------------
+{
+    if (currentFlow)
+        return currentFlow->LastSplit();
+    return NULL;
 }
 
 
 
 // ============================================================================
 //
-//    PageLayoutOverflow: Overflow for a page layout
+//    TextFlow: Records item to draw e.g. in a PageLayout
 //
 // ============================================================================
 
 TextFlow::TextFlow(Layout *layout, text flowName)
 // ----------------------------------------------------------------------------
-//   Create a page layout overflow rectangle
+//   Create a text flow recording items in the given layout
 // ----------------------------------------------------------------------------
-    : Layout(*layout), flowName(flowName), currentTextBox(NULL), currentIterator(items.begin())
+    : Layout(*layout), flowName(flowName),
+      textBoxIds(), current(0), reject(), lastSplit(NULL)
 {
     IFTRACE(justify)
         std::cerr << "TextFlow::TextFlow[" << this
@@ -916,103 +745,285 @@ TextFlow::TextFlow(Layout *layout, text flowName)
 
 TextFlow::~TextFlow()
 // ----------------------------------------------------------------------------
-//    If we got a child, then we need to delete it
+//    Make sure that the widget drops references to this flow
 // ----------------------------------------------------------------------------
 {
-    for (page_layouts::iterator i = boxes.begin(); i != boxes.end(); i++)
-        (*i)->flow = NULL;
-
     Clear();
-    boxes.clear();
     display->eraseFlow(flowName);
 }
 
-void TextFlow::insertAfterCurrent(Drawing *d)
+
+void TextFlow::Draw(Layout *)
 // ----------------------------------------------------------------------------
-//    Inser the drawing as the next element of the current one
+//   The text flow records things, doesn't display them
 // ----------------------------------------------------------------------------
 {
-    if (items.size() == 0 || currentIterator == items.end())
-        items.push_back(d);
-    else
-    {
-        Drawings::iterator next = currentIterator;
-        next++;
-        items.insert(next, d);
-    }
-}
-
-Drawing * TextFlow::getCurrentElement()
-// ----------------------------------------------------------------------------
-// Returns the current drawing being displayed.
-// ----------------------------------------------------------------------------
-{
-    if (! items.size()) return NULL;
-
-    return *currentIterator;
-}
-
-
-bool TextFlow::atEnd()
-// ----------------------------------------------------------------------------
-// True if there is nothing left to be displayed.
-// ----------------------------------------------------------------------------
-{
-    return (currentIterator == items.end()) || (items.empty());
-}
-
-
-void TextFlow::resetIterator()
-// ----------------------------------------------------------------------------
-// Set the flow iterator to the first drawing to be displayed.
-// ----------------------------------------------------------------------------
-{
-    currentIterator = items.begin();
-}
-
-
-void TextFlow::Draw(Layout *where)
-// ----------------------------------------------------------------------------
-//   Check if the original layout has remaining elements
-// ----------------------------------------------------------------------------
-{
+    // When we draw the text flow, reset drawing at the beginning
     charId = 0;
-    Inherit(where);
-    resetIterator();
-    return ;
+    current = 0;
+    lastSplit = NULL;
 }
 
 
 void TextFlow::DrawSelection(Layout *)
 // ----------------------------------------------------------------------------
-//   Draw the selection
+//   The text flow records things, no display
 // ----------------------------------------------------------------------------
 {
     charId = 0;
-    return;
+    current = 0;
+    lastSplit = NULL;
 }
 
 
 void TextFlow::Identify(Layout *)
 // ----------------------------------------------------------------------------
-//   Identify elements of the layout
+//   The text flow records things, no display
 // ----------------------------------------------------------------------------
 {
     charId = 0;
-    return;
+    current = 0;
+    lastSplit = NULL;
 }
 
 
 void TextFlow::Clear()
 // ----------------------------------------------------------------------------
-//   Reset the layout to the initial setup
+//   Reset the text flow to the initial setup
 // ----------------------------------------------------------------------------
 {
-    for (page_layouts::iterator i = boxes.begin(); i != boxes.end(); i++)
-        (*i)->Clear();
-
+    charId = 0;
+    current = 0;
+    lastSplit = NULL;
     textBoxIds.clear();
+    reject.clear();
     Layout::Clear();
+}
+
+
+bool TextFlow::Paginate(PageLayout *page)
+// ----------------------------------------------------------------------------
+//   Paginate all elements in the text flow
+// ----------------------------------------------------------------------------
+//   This scenario happens if you put a text box definition inside a text flow
+{
+    XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
+    page->RefreshOn(this);
+
+    bool ok = true;
+
+    // First try to playback items that were rejected before
+    Drawings::iterator d, good = reject.begin();
+    for (d = good; ok && d != reject.end(); d++)
+    {
+        Drawing *child = *d;
+        ok = child->Paginate(page);
+        if (ok)
+            good = d;
+    }
+    reject.erase(reject.begin(), good);
+
+    uint max = items.size();
+    while (ok && current < max)
+    {
+        Drawing *child = items[current];
+        ok = child->Paginate(page);
+        if (ok)
+            current++;
+    }
+    return ok;
+}
+
+
+void TextFlow::Transfer(LayoutLine *line)
+// ----------------------------------------------------------------------------
+//   Transfer to a text flow the items that don't fit in a text box
+// ----------------------------------------------------------------------------
+{
+    typedef Justifier<Drawing *> DJ;
+    DJ::Places &places = line->line.places;
+    for(DJ::PlacesIterator p = places.begin(); p != places.end(); p++)
+        reject.push_back((*p).item);
+    places.clear();
+}
+
+
+
+// ============================================================================
+//
+//    TextFlowReplay : Replay a given text flow in current layout
+//
+// ============================================================================
+
+void TextFlowReplay::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the given text flow
+// ----------------------------------------------------------------------------
+{
+    Widget *display = where->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
+    {
+        if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+        {
+            XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+            flow->Layout::Draw(where);
+        }
+        else
+        {
+            flow->Layout::Draw(where);
+        }
+    }
+}
+
+
+void TextFlowReplay::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw the selection for the given text flow
+// ----------------------------------------------------------------------------
+{
+    Widget *display = where->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
+    {
+        if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+        {
+            XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+            flow->Layout::DrawSelection(where);
+        }
+        else
+        {
+            flow->Layout::DrawSelection(where);
+        }
+    }
+}
+
+
+void TextFlowReplay::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify the selection for a given text flow
+// ----------------------------------------------------------------------------
+{
+     Widget *display = where->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
+    {
+        if (PageLayout *page = dynamic_cast<PageLayout *> (where))
+        {
+            XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+            flow->Layout::Identify(where);
+        }
+        else
+        {
+            flow->Layout::Identify(where);
+        }
+    }
+}
+
+
+bool TextFlowReplay::Paginate(PageLayout *page)
+// ----------------------------------------------------------------------------
+//   Paginate the original text flow
+// ----------------------------------------------------------------------------
+{
+    Widget *display = page->Display();
+    if (TextFlow *flow = display->pageLayoutFlow(flowName))
+    {
+        XL::Save<TextFlow *> saveFlow(page->currentFlow, flow);
+        return flow->Paginate(page);
+    }
+    return true;
+}
+
+
+
+// ============================================================================
+//
+//    Text Span: Save and restore text states
+//
+// ============================================================================
+
+void TextSpan::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw items, then restore the state as it was initially
+// ----------------------------------------------------------------------------
+{
+    state.InheritState(where);
+    Vector3 offset = where->offset;
+    Layout::Draw(where);
+    state.previousTextures = where->previousTextures;
+    where->InheritState(&state);
+    where->offset = offset;
+}
+
+
+void TextSpan::DrawSelection(Layout *where)
+// ----------------------------------------------------------------------------
+//   Draw selection, then restore the state as it was initially
+// ----------------------------------------------------------------------------
+{
+    state.InheritState(where);
+    Vector3 offset = where->offset;
+    Layout::DrawSelection(where);
+    state.previousTextures = where->previousTextures;
+    where->InheritState(&state);
+    where->offset = offset;
+}
+
+
+void TextSpan::Identify(Layout *where)
+// ----------------------------------------------------------------------------
+//   Identify selection, then restore the state as it was initially
+// ----------------------------------------------------------------------------
+{
+    state.InheritState(where);
+    Vector3 offset = where->offset;
+    Layout::Identify(where);
+    state.previousTextures = where->previousTextures;
+    where->InheritState(&state);
+    where->offset = offset;
+}
+
+
+bool TextSpan::Paginate(PageLayout *page)
+// ----------------------------------------------------------------------------
+//   Paginate, then restore the state as it was initially
+// ----------------------------------------------------------------------------
+{
+    Save *save;
+    if (restore)
+    {
+        save = restore->saved;
+    }
+    else
+    {
+        save = new Save;
+        restore = new Restore(save);
+    }
+
+    bool ok = (page->PaginateItem(save) &&
+               Layout::Paginate(page) &&
+               page->PaginateItem(restore));
+
+    return ok;
+}
+
+
+void TextSpan::Save::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Save the attributes state
+// ----------------------------------------------------------------------------
+{
+    InheritState(where);
+}
+
+
+void TextSpan::Restore::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Restore the attributes state
+// ----------------------------------------------------------------------------
+{
+    Vector3 offset = where->offset;
+    saved->previousTextures = where->previousTextures;
+    where->InheritState(saved);
+    where->offset = offset;
 }
 
 
@@ -1093,6 +1104,15 @@ void AnchorLayout::Identify(Layout *where)
     GL.Translate(o.x, o.y, o.z);
     XL::Save<Vector3> saveOffset(where->offset, Vector3());
     Layout::Identify(where);
+}
+
+
+bool AnchorLayout::Paginate(PageLayout *page)
+// ----------------------------------------------------------------------------
+//    Since the anchor layout is floating, do not paginate its contents
+// ----------------------------------------------------------------------------
+{
+    return page->PaginateItem(this);
 }
 
 

@@ -1,0 +1,180 @@
+// ****************************************************************************
+//    BlueClaire - A simple blue theme 
+//    Copyright 2012 Taodyne SAS - See licence at end of file
+//    Background image from http://freestock.ca, used with permission
+// ****************************************************************************
+
+import Slides
+
+module_description
+    id "C3FE1E13-F4EB-4E65-96D9-73C8FBBFC90D" 
+    name "BlueClaire theme"
+    description "A simple blue theme"
+    import_name "BlueClaireTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Theme BleuClaire"
+    description "Un thème bleu simple"
+
+// Adding this module's images/ directory to the BlueClaire: search path
+// for the current document
+add_search_path "BlueClaire:", module_dir
+
+
+
+// ============================================================================
+// 
+//   Theme size
+// 
+// ============================================================================
+
+theme_slide_width  "BlueClaire" -> 1024
+theme_slide_height "BlueClaire" -> 768
+
+
+// ============================================================================
+// 
+//    Colors
+// 
+// ============================================================================
+
+theme_color      "BlueClaire","main","title"            -> color "#960000"
+theme_color      "BlueClaire","main","subtitle"         -> color "#264580"
+theme_color      "BlueClaire","section","title"         -> color "#5685c0"
+theme_color      "BlueClaire","section","subtitle"      -> color "#264580"
+theme_color      "BlueClaire",Master:text,"title"       -> color "#960000"
+theme_color      "BlueClaire",Master:text,"subtitle"    -> color "#264580"
+theme_color      "BlueClaire",Master:text,"story"       -> color "black"
+theme_font       "BlueClaire",Master:text,"story"       -> font "TeX Gyre Adventor", "Ubuntu", "Arial"
+theme_boxstyle   "BlueClaire",Master:text,"title"       -> color "transparent"
+theme_boxstyle   "BlueClaire",Master:text,Style:text    -> color "transparent"
+
+theme_size "BlueClaire",Master:text,"story"             -> 32
+theme_size "BlueClaire",Master:text,"title"             -> 48
+theme_size "BlueClaire",Master:text,"subtitle"          -> 32
+theme_size "BlueClaire",Master:text,"story",1           -> 32
+theme_size "BlueClaire",Master:text,"story",2           -> 28
+theme_size "BlueClaire",Master:text,"story",3           -> 24
+theme_size "BlueClaire",Master:text,"story",4           -> 22
+
+
+// ============================================================================
+// 
+//    Background pictures
+// 
+// ============================================================================
+
+theme_background "BlueClaire", "main" ->
+// ----------------------------------------------------------------------------
+//   Background for main title slides
+// ----------------------------------------------------------------------------
+    clear_color 0.35, 0.52, 0.74, 1
+    contents -900,
+        color "white"
+        image 0, 0, 1.1, 1.1, "BlueClaire:blue-main.png"
+
+
+theme_background "BlueClaire", "section" ->
+// ----------------------------------------------------------------------------
+//   Background for section slides
+// ----------------------------------------------------------------------------
+    clear_color 0.35, 0.52, 0.74, 1
+    contents -900,
+        color "white"
+        image 0, 0, 1.1, 1.1, "BlueClaire:blue-section.png"
+
+
+theme_background "BlueClaire", Master:text ->
+// ----------------------------------------------------------------------------
+//   Background for other slides (story, etc)
+// ----------------------------------------------------------------------------
+    clear_color 0.35, 0.52, 0.74, 1
+    contents -900,
+        color "white"
+        image 0, 0, 1.1, 1.1, "BlueClaire:blue-story.png"
+
+
+
+// ============================================================================
+// 
+//    Slide layout
+// 
+// ============================================================================
+
+theme_layout "BlueClaire", "main" ->
+// ----------------------------------------------------------------------------
+//    Flows for main title
+// ----------------------------------------------------------------------------
+    flows -200, -20, 600, 280, "title", "subtitle"
+
+
+theme_layout "BlueClaire", "section" ->
+// ----------------------------------------------------------------------------
+//    Flows for section title
+// ----------------------------------------------------------------------------
+    flows 0, 50, 700, 250, "title", "subtitle"
+
+
+theme_layout "BlueClaire", Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    flows 80, 300, 850, 120, "title", "subtitle"
+    flow 80, -80, 850, 580, "story"
+    flow -140, -80, 400, 580, "left"
+    flow  300, -80, 400, 580, "right"
+
+
+theme_picture Theme:text, Master:text, Body ->
+// ----------------------------------------------------------------------------
+//    Default picture box (keep consistent with layout below)
+// ----------------------------------------------------------------------------
+    contents 0,
+        translate 80, -80, 0
+        theme_color Theme, Master, "picture"
+        Body
+
+
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//   Claire Hyvrier <claire.hyvrier@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

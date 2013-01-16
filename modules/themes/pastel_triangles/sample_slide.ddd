@@ -1,0 +1,69 @@
+theme "PastelTriangles"
+import VLCAudioVideo
+
+
+main_title_slide "Main title",
+    title
+        text "Pastel Triangles theme"
+    subtitle
+        text "A theme with automated geometric backgrounds"
+
+
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    locally
+        if seconds = 58 then
+            rotatez -360 * page_time
+        translate 0, 0, -500
+        draw_triangle with 0..seconds
+    locally
+        if seconds = 59 then
+            rotatez 360 * page_time
+        translate 20, 20, -200
+        scale 0.6, 0.6, 0.6
+        draw_triangle with 0..minutes
+        show 0.1
+        draw_triangle with minutes..59
+    locally
+        if seconds = 0 then
+            rotatez -360 * page_time
+        translate -20, -5, -50
+        rotatez -30 * hours
+        color "black", 0.4
+        triangle 0, 100, 150, 150
+    
+    draw_triangle N:integer ->
+        rotatez -6
+        color_hsv 6 * N, 0.3, 0.9, 0.9
+        triangle 0, 500, 50, 150
+    movie_only ""
+
+
+picture_slide "YouTube Video slide",
+    left_picture
+        translate 0, 150 + 300 * sin (0.5*time) ^ 140, -150
+        rotatez 5
+        movie 0, 0, 1.5, 1.5, "http://www.youtube.com/watch?v=30T5RQv6rxw"
+    right_column
+        - "We wish you a Merry Christmas"
+        - "and a Happy New Year 2013"
+        --
+        --
+        * "Video on the left: Alpha Waves, the first 3D platform game on a PC, edited in 1990 by Infogrames"

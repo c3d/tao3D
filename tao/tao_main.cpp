@@ -70,6 +70,11 @@ int main(int argc, char **argv)
 {
     using namespace Tao;
 
+#ifdef CONFIG_MINGW
+    // Do our best to send stdout/stderr output somewhere
+    win_redirect_io();
+#endif
+
     // Process --version before graphic initialization so that this option may
     // be used without a valid X11 display on Linux
     for (int i = 1; i < argc; i++)
@@ -93,10 +98,6 @@ int main(int argc, char **argv)
 
     Q_INIT_RESOURCE(tao);
 
-#ifdef CONFIG_MINGW
-    // Do our best to send stdout/stderr output somewhere
-    win_redirect_io();
-#endif
 
     // Initialize and run the Tao application
     int ret = 0;
@@ -313,6 +314,25 @@ void signal_handler(int sigid)
     static char buffer[512];
     int two = fileno(stderr);
 
+    kstring vendor = "Unknown";
+    kstring renderer = "Unknown";
+    kstring version = "Unknown";
+
+    if (OpenGLState *state = OpenGLState::State())
+    {
+        vendor = state->Vendor().c_str();
+        renderer = state->Renderer().c_str();
+        version = state->Version().c_str();
+    }
+    else if (QGLContext::currentContext() &&
+             QGLContext::currentContext()->isValid())
+    {
+        // Get OpenGL supported version
+        vendor = (kstring) glGetString(GL_VENDOR);
+        renderer = (kstring) glGetString(GL_RENDERER);
+        version = (kstring) glGetString(GL_VERSION);
+    }
+
     // Show something if we get there, even if we abort
     size_t size = snprintf(buffer, sizeof buffer,
                            "RECEIVED SIGNAL %d FROM %p\n"
@@ -325,9 +345,8 @@ void signal_handler(int sigid)
                            "STACK TRACE:\n",
                            sigid, __builtin_return_address(0),
                            sig_handler_log,
-                           OpenGLState::vendor.c_str(),
-                           OpenGLState::renderer.c_str(),
-                           OpenGLState::version.c_str());
+                           vendor, renderer, version);
+
     Write(two, buffer, size);
 
     // Prevent recursion in the signal handler
@@ -558,8 +577,11 @@ Tree *Main::Normalize(Tree *input)
 //   Normalize the input tree
 // ----------------------------------------------------------------------------
 {
-    Renormalize renorm(Widget::Tao());
-    input = input->Do(renorm);
+    if (Widget *widget = Widget::TaoExists())
+    {
+        Renormalize renorm(widget);
+        input = input->Do(renorm);
+    }
     return input;
 }
 

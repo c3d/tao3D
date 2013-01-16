@@ -153,7 +153,7 @@ while [ $# -ne 0 ] ; do
       shift ; done=1
       ;;
     youactive)
-      FLAGS="$FLAGS modules+=+DIP modules+=+dip_dedication modules+=+dip_mouse modules+=+dip_null modules+=+dip_voting"
+      FLAGS="$FLAGS modules+=+DIP"
       FLAGS="$FLAGS PACKAGE_APPEND=YouActive"
       shift ; done=1
       ;;

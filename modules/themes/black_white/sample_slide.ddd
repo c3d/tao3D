@@ -1,0 +1,48 @@
+import VLCAudioVideo
+
+
+main_title_slide "Main title",
+    theme "BlackOnWhite"
+    title
+        text "Basic themes"
+    subtitle
+        text "Neutral and non-intrusive themes"
+
+
+section_slide "Section title",
+    theme "WhiteOnBlack"
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    theme "WhiteOnGray"
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    theme "BlackOnGray"
+    translatez -500
+    rotatez 3 * sin (1.2*page_time)^25 * sin(18*page_time)
+    image 0, 0, 0.9, 0.9, "http://images2.fanpop.com/image/photos/14400000/City-Lights-charlie-chaplin-14440701-1600-1213.jpg"
+    movie_only ""
+
+
+picture_slide "YouTube Video slide",
+    theme "WhiteOnBlack"
+    left_picture
+        translate 100, 100, -150
+        rotatez 5
+        movie 0, 0, 1, 1, "http://www.youtube.com/watch?v=OK7pfLlsUQM"
+    right_column
+        - "We wish you a Merry Christmas"
+        - "and a Happy New Year 2013"

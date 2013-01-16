@@ -27,6 +27,7 @@
 #include "tao_tree.h"
 #include "tao_utf8.h"
 #include <sstream>
+#include "demangle.h"
 
 TAO_BEGIN
 
@@ -166,7 +167,9 @@ Layout::Layout(Widget *widget)
 // ----------------------------------------------------------------------------
 //    Create an empty layout
 // ----------------------------------------------------------------------------
-    : Drawing(), LayoutState(), id(0), charId(0),
+    : Drawing(),
+      LayoutState(widget->layout ? *widget->layout : LayoutState()),
+      id(0), charId(0),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
 {}
@@ -239,6 +242,7 @@ void Layout::Draw(Layout *where)
                             hasMatrix, false, hasTextureMatrix);
     Inherit(where);
 
+
     // Display all items
     PushLayout(this);
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
@@ -248,7 +252,7 @@ void Layout::Draw(Layout *where)
     }
     PopLayout(this);
 
-    if(where)
+    if (where)
        where->previousTextures = previousTextures;
 }
 
@@ -272,7 +276,7 @@ void Layout::DrawSelection(Layout *where)
     }
     PopLayout(this);
 
-    if(where)
+    if (where)
        where->previousTextures = previousTextures;
 }
 
@@ -300,7 +304,7 @@ void Layout::Identify(Layout *where)
     }
     PopLayout(this);
 
-    if(where)
+    if (where)
        where->previousTextures = previousTextures;
 }
 
@@ -343,6 +347,18 @@ Box3 Layout::Space(Layout *layout)
         for (Drawings::iterator i = items.begin(); i != items.end(); i++)
             result |= (*i)->Space(this);
     return result;
+}
+
+
+bool  Layout::Paginate(PageLayout *page)
+// ----------------------------------------------------------------------------
+//   Paginate all the items in the given page
+// ----------------------------------------------------------------------------
+{
+    bool ok = true;
+    for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
+        ok = (*i)->Paginate(page);
+    return ok;
 }
 
 
@@ -647,6 +663,7 @@ void Layout::Inherit(Layout *where)
     offset = where->Offset();
     LayoutState::InheritState(where);
 }
+
 
 void LayoutState::InheritState(LayoutState *where)
 // ----------------------------------------------------------------------------

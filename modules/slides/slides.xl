@@ -14,11 +14,43 @@
 // 
 // 
 // ****************************************************************************
-// This document is property of Taodyne SAS
-//  (C) 2011 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2011 Jérôme Forissier <jerome@taodyne.com>
-//  (C) 2011 Catherine Burvelle <cathy@taodyne.com>
-//  (C) 2011 Taodyne SAS
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
 // ****************************************************************************
 
 module_description
@@ -29,18 +61,21 @@ module_description
     import_name "Slides"
     author "Taodyne SAS"
     website "http://www.taodyne.com"
-    version 1.010
+    version 1.02
 
 module_description "fr",
     name "Diapositives"
     description "Commandes pour créer facilement des présentations " &
                 "avec des diapositives traditionnelles."
 
+// This file is designed to be overriden
+override_priority -1
 
 // We use prefix operators as markup for bullets, add a syntax for it
 syntax
     PREFIX     370     ** *** ****
     PREFIX     370     ++ +++ ++++
+    PREFIX     370     -- --- ----
     INFIX      500     en fr de it es
 
 
@@ -94,8 +129,8 @@ theme T:text ->
     theme := T
 
 
-// Define the "Default" theme
-import "default.xl"
+// Define the default theme
+import "default-theme.xl"
 
 
 
@@ -111,8 +146,8 @@ import "default.xl"
 // This will be used to define the logical coordinates of anything that
 // follows "scale_contents".
 // Here, we use the size of our background picture
-slide_width  -> 1920
-slide_height -> 1080
+slide_width  -> theme_slide_width theme
+slide_height -> theme_slide_height theme
 
 set_slide_size Width:real, Height:real ->
 // ----------------------------------------------------------------------------
@@ -129,16 +164,23 @@ set_slide_size Width:real, Height:real ->
 // 
 // ============================================================================
 
-slide_kind -> ""
-slide_kind Theme:text, Kind:text, Title:text, Body ->
+slide_master -> ""
+slide_master Theme:text, Master:text, Title:text, Body ->
 // ----------------------------------------------------------------------------
-//    Draw a slide with a given kind
+//    Draw a slide with a given master style
 // ----------------------------------------------------------------------------
    page Title,
-       theme_background Theme, Kind
+       old_theme -> ""
+       old_theme := Theme
+       theme_background Theme, Master
        locally
-           slide_kind := Kind
+           slide_master := Master
+           theme_reset theme
            Body
+       theme_layout Theme, Master
+       // User changed theme from within slide : refresh whole slide
+       if theme <> old_theme then refresh 0
+
 
 
 // ============================================================================
@@ -147,18 +189,18 @@ slide_kind Theme:text, Kind:text, Title:text, Body ->
 //
 // ============================================================================
 
-blank_slide Theme:text, Title:text, Body ->
+base_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create an empty slide
 // ----------------------------------------------------------------------------
-    slide_kind theme, "blank", Title, Body
+    slide_master theme, "slide", Title, Body
 
 
 main_title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide showing the main title of the slide show
 // ----------------------------------------------------------------------------
-    slide_kind theme, "main", Title, Body
+    slide_master theme, "main", Title, Body
 
 
 main_title_slide Title:text ->
@@ -174,7 +216,7 @@ section_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a section slide (transition between sections)
 // ----------------------------------------------------------------------------
-    slide_kind theme, "section", Title, Body
+    slide_master theme, "section", Title, Body
 
 
 section_slide Title:text ->
@@ -190,30 +232,30 @@ title_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide with just a title at the top
 // ----------------------------------------------------------------------------
-    slide_kind theme, "title", Title,
-        Body
+    slide_master theme, "title", Title,
         title
             text Title
+        Body
 
 
 picture_slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a slide for pictures, photos, animations
 // ----------------------------------------------------------------------------
-    slide_kind theme, "picture", Title,
-        picture Body
+    slide_master theme, "picture", Title,
         title
             text Title
+        picture Body
 
 
 slide Title:text, Body ->
 // ----------------------------------------------------------------------------
 //   Create a traditional slide with bullet points
 // ----------------------------------------------------------------------------
-    slide_kind theme, "slide", Title,
-        story Body
+    slide_master theme, "slide", Title,
         title
             text Title
+        story Body
 
 
 
@@ -223,88 +265,148 @@ slide Title:text, Body ->
 //
 // ============================================================================
 
-background Depth:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw something in the background. Backgrounds always fill the screen.
-// ----------------------------------------------------------------------------
-    locally
-        scale_background
-        ztrans_background Depth
-        Body
-
-
-contents Depth:real, Body ->
-// ----------------------------------------------------------------------------
-//   Draw contents, i.e. always fit in the screen
-// ----------------------------------------------------------------------------
-    locally
-        scale_contents
-        ztrans_contents Depth
-        Body
-
+data slide_flow
 
 title Body ->
 // ----------------------------------------------------------------------------
 //   Draw a title in a regular slide
 // ----------------------------------------------------------------------------
-    theme_title theme, slide_kind, Body
+    slide_flow["title"] := true
+    theme_title theme, slide_master, Body
 
 
 subtitle Body ->
 // ----------------------------------------------------------------------------
 //   Draw a subtitle in a regular slide
 // ----------------------------------------------------------------------------
-    theme_subtitle theme, slide_kind, Body
+    slide_flow["subtitle"] := true
+    theme_subtitle theme, slide_master, Body
 
 
 picture Body ->
 // ----------------------------------------------------------------------------
 //   Box for picture, photos, animations
 // ----------------------------------------------------------------------------
-    theme_picture theme, slide_kind, Body
+    slide_flow["picture"] := true
+    theme_picture theme, slide_master, Body
 
 
 story Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the story, i.e. a rectangle somewhere in the middle
 // ----------------------------------------------------------------------------
-    theme_story theme, slide_kind, Body
+    slide_flow["story"] := true
+    theme_story theme, slide_master, Body
 
 
 left_column Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the story
 // ----------------------------------------------------------------------------
-    theme_left_column theme, slide_kind, Body
+    slide_flow["left"] := true
+    theme_left_column theme, slide_master, Body
 
 
 right_column Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the story
 // ----------------------------------------------------------------------------
-    theme_right_column theme, slide_kind, Body
+    slide_flow["right"] := true
+    theme_right_column theme, slide_master, Body
 
 
-left_column_picture Body ->
+left_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the left side of the picture
 // ----------------------------------------------------------------------------
-    theme_left_column_picture theme, slide_kind, Body
+    slide_flow["leftpic"] := true
+    theme_left_column_picture theme, slide_master, Body
 
 
-right_column_picture Body ->
+right_picture Body ->
 // ----------------------------------------------------------------------------
 //   Draw something as the right side of the picture
 // ----------------------------------------------------------------------------
-    theme_right_column_picture theme, slide_kind, Body
+    slide_flow["rightpic"] := true
+    theme_right_column_picture theme, slide_master, Body
 
+
+
+
+// ============================================================================
+// 
+//   Text boxes and text flows
+// 
+// ============================================================================
 
 box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 //   Draw a box for an element kind
 // ----------------------------------------------------------------------------
-    theme_box theme, slide_kind, X, Y, W, H, Body
+    theme_text theme, slide_master, "story", X, Y, W, H, Body
 
+
+box Style:text, X:real, Y:real, W:real, H:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw a box for an element kind
+// ----------------------------------------------------------------------------
+    theme_text theme, slide_master, Style, X, Y, W, H, Body
+
+
+box Style:text, X:real, Y:real, W:real, H:real ->
+// ----------------------------------------------------------------------------
+//   Draw a box for an element kind
+// ----------------------------------------------------------------------------
+    theme_box theme, slide_master, Style, X, Y, W, H
+
+
+box X:real, Y:real, W:real, H:real ->
+// ----------------------------------------------------------------------------
+//   Draw a box for an element kind
+// ----------------------------------------------------------------------------
+    theme_box theme, slide_master, "story", X, Y, W, H
+
+
+flow X:real, Y:real, W:real, H:real, Flow:text ->
+// ----------------------------------------------------------------------------
+//   Draw a given flow in the box
+// ----------------------------------------------------------------------------
+    flow_name -> ""
+    flow_name := Flow
+    if slide_flow[flow_name] then
+        theme_text theme, slide_master, flow_name, X, Y, W, H,
+            text_flow Flow
+        slide_flow[flow_name] := false
+
+
+flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
+// ----------------------------------------------------------------------------
+//   Draw a given flow in the box
+// ----------------------------------------------------------------------------
+    flow_name1 -> ""
+    flow_name2 -> ""
+    flow_name1 := Flow1
+    flow_name2 := Flow2
+    if slide_flow[flow_name1] then
+        theme_text theme, slide_master, flow_name1, X, Y, W, H,
+            text_flow Flow1
+            if slide_flow[flow_name2] then
+                paragraph_break
+                text_flow Flow2
+    else
+        theme_text theme, slide_master, flow_name1, X, Y, W, H,
+            text_flow Flow2
+
+    slide_flow[flow_name1] := false
+    slide_flow[flow_name2] := false
+
+
+
+// ============================================================================
+// 
+//    Bulletts
+// 
+// ============================================================================
 
 *T:text -> bullet 1, T
 // ----------------------------------------------------------------------------
@@ -330,50 +432,83 @@ box X:real, Y:real, W:real, H:real, Body ->
 // ----------------------------------------------------------------------------
 
 
-+T:text -> no_bullet 1, T
+-T:text -> text_item 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-++T:text -> no_bullet 2, T
+--T:text -> text_item 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-+++T:text -> no_bullet 3, T
+---T:text -> text_item 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-++++T:text -> no_bullet 4, T
+----T:text -> text_item 4, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-bullet Level, Text ->
+--      -> text_item 2, " "
+---     -> text_item 3, " "
+// ----------------------------------------------------------------------------
+//   Separators
+// ----------------------------------------------------------------------------
+
+
++T:text -> numbered_item 1, T
+// ----------------------------------------------------------------------------
+//   Display a first-level numbered text
+// ----------------------------------------------------------------------------
+
+
+++T:text -> numbered_item 2, T
+// ----------------------------------------------------------------------------
+//   Display a second-level numbered text
+// ----------------------------------------------------------------------------
+
+
++++T:text -> numbered_item 3, T
+// ----------------------------------------------------------------------------
+//   Display a third-level numbered text
+// ----------------------------------------------------------------------------
+
+
+++++T:text -> numbered_item 4, T
+// ----------------------------------------------------------------------------
+//   Display a third-level numbered text
+// ----------------------------------------------------------------------------
+
+
+bullet Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a bullet point with a given text
 // ----------------------------------------------------------------------------
-    margins Level * theme_bullet_size(theme, slide_kind, Level), 0
-    paragraph_break
-    anchor
-        theme_bullet_picture theme, slide_kind, Level
-    theme_bullet_style theme, slide_kind, Level
-    text Text
+    theme_bullet theme, slide_master, Level, Text
 
 
-no_bullet Level, Text ->
+text_item Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a given text without bullet point
 // ----------------------------------------------------------------------------
-    margins (Level - 62%) * theme_bullet_size(theme, slide_kind, Level), 0
-    paragraph_break
-    theme_bullet_style theme, slide_kind, Level
-    text Text
+    theme_item theme, slide_master, Level, Text
+
+
+numbered_item Level:integer, Text:text ->
+// ----------------------------------------------------------------------------
+//   Draw a given text without bullet point
+// ----------------------------------------------------------------------------
+    theme_numbered_item theme, slide_master, Level, Text
+
+
+data item_number
 
 
 
@@ -383,6 +518,38 @@ no_bullet Level, Text ->
 //
 // ============================================================================
 
+background Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw something in the background. Backgrounds always fill the screen.
+// ----------------------------------------------------------------------------
+    if scaling_factor = 1.0 then
+        locally
+            scale_background
+            ztrans_background Depth
+            Body
+            scaling_factor := 1.0
+    else
+        locally
+            translatez Depth
+            Body
+
+
+contents Depth:real, Body ->
+// ----------------------------------------------------------------------------
+//   Draw contents, i.e. always fit in the screen
+// ----------------------------------------------------------------------------
+    if scaling_factor = 1.0 then
+        locally
+            scale_contents
+            ztrans_contents Depth
+            Body
+            scaling_factor := 1.0
+    else
+        locally
+            translatez Depth
+            Body
+
+
 // Two ways to scale contents when resizing the window :
 // For background pictures, we'd rather not see some white around them,
 // so we scale to crop the picture, using the ma function.
@@ -390,9 +557,12 @@ no_bullet Level, Text ->
 // we scale to fit the contents, using the min function.
 background_scale -> max(window_width/slide_width, window_height/slide_height)
 contents_scale   -> min(window_width/slide_width, window_height/slide_height)
-scale_background -> scale3 background_scale
-scale_contents   -> scale3 contents_scale
+scale_background -> scale_all background_scale
+scale_contents   -> scale_all contents_scale
+scale_all S:real -> scale3 S; scaling_factor := scaling_factor * S
 scale3 S:real    -> scale S, S, S
+scaling_factor -> 1.0
+
 
 ztrans_contents Z:real ->
 // ----------------------------------------------------------------------------

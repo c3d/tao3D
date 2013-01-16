@@ -1,0 +1,183 @@
+// ****************************************************************************
+//   Lucky Stars - A simple 3D theme with Earth and stars
+//   Copyright 2012 Taodyne SAS - See licence at end of file
+// ****************************************************************************
+
+import Slides
+
+module_description
+    id "78DF4E14-6E7F-4F93-AB2A-FB099BD2B25B" 
+    name "Lucky Stars theme"
+    description "A simple 3D theme with Earth and stars"
+    import_name "LuckyStarsTheme"
+    author "Taodyne SAS"
+    website "http://www.taodyne.com"
+    version 1.0
+
+module_description "fr",
+    name "Thème Lucky Stars"
+    description "Un thème en 3D simple sur fond de terre et d'étoiles"
+
+add_search_path "LuckyStars:", module_dir
+
+
+
+// ============================================================================
+// 
+//    Easily configurable parameters
+// 
+// ============================================================================
+
+theme_slide_width  "LuckyStars"                  -> 1920
+theme_slide_height "LuckyStars"                  -> 1080
+
+
+theme_background "LuckyStars", Master:text ->
+// ----------------------------------------------------------------------------
+//   Draw the luckys in the background
+// ----------------------------------------------------------------------------
+    clear_color 0,0,0,1
+    background -750,
+        lucky_stars_target := 3*hours+5*minutes + 11 * page_number
+        if abs(lucky_stars_current - lucky_stars_target) > 1000 then
+            lucky_stars_current := lucky_stars_target
+        lucky_stars_current := 0.99 * lucky_stars_current + 0.01 * lucky_stars_target
+        if abs(lucky_stars_current - lucky_stars_target) > 0.2 then
+            time
+
+        locally
+            translate 0.6*slide_width, 0, -slide_width
+            rotatey lucky_stars_current
+            rotatex 23
+            color "white"
+            texture "LuckyStars:earth.bmp"
+            sphere 1600
+            rotatey 0.3 * lucky_stars_current
+            texture "LuckyStars:clouds.png"
+            sphere 1630
+
+        rotatey lucky_stars_current
+        rotatex 0.14 * lucky_stars_current
+        cached
+            lucky_star with 1..1000
+
+
+lucky_star N:integer ->
+// ----------------------------------------------------------------------------
+//    Draw a lucky star
+// ----------------------------------------------------------------------------
+    color_hsv random(0,360), random(0, 0.3), random(0.8,1), 1
+    point random(-2000, 2000), random(-2000, 2000), random(-2000, 2000), random(1,4)
+
+
+theme_color "LuckyStars",Master:text,"picture"   -> color "white"
+theme_color "LuckyStars",Master:text,"story"     -> color "lightyellow"
+theme_font "LuckyStars",Master:text,"story"      -> font "Luckiest Guy", "Times"
+
+theme_boxstyle "LuckyStars",Master:text,Style:text->
+// ----------------------------------------------------------------------------
+//   A text box surrounded by yellow 
+// ----------------------------------------------------------------------------
+    color "transparent"
+    line_color "yellow", 0.8
+    line_width 8
+
+
+theme_box "LuckyStars",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        rounded_rectangle X, Y, W+20, H+20, lucky_round_size Style
+
+        color "lightyellow", 0.1
+        line_color "transparent"
+        rounded_rectangle X, Y, W+5, H+5, lucky_round_size Style
+        
+
+lucky_round_size "title" -> 200
+lucky_round_size Style:text -> 40
+
+
+theme_layout "LuckyStars", "main" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    locally
+        translatez -200
+        rotatex -45
+        flow 0, 50, 1800, 400, "title"
+        flow 0, -300, 1800, 200, "subtitle"
+
+
+theme_layout "LuckyStars", "section" ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    locally
+        translatex slide_width*0.3
+        rotatey -45
+        translatex -slide_width*0.3
+        flow 0, 50, 1800, 250, "title"
+        flow 0, -300, 1800, 150, "subtitle"
+
+
+theme_layout "LuckyStars", Master:text ->
+// ----------------------------------------------------------------------------
+//    Centered flows
+// ----------------------------------------------------------------------------
+    locally
+        rotatey 25
+        flows 0, 400, 1800, 220, "title", "subtitle"
+        flow 0, -120, 1800, 750, "story"
+        flow -475, -120, 850, 750, "left"
+    locally
+        rotatey -25
+        flow  475, -120, 850, 750, "right"
+
+
+lucky_stars_current -> 0.0
+lucky_stars_target -> 0.0
+
+
+
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************

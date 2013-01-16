@@ -68,3 +68,5 @@ macx {
 INSTALLS += thismod_bin
 thismod_icon.path  = $$MODINSTPATH
 thismod_icon.files = icon.png
+thismod_images.path = $$MODINSTPATH
+thismod_images.files = $$PICTURES

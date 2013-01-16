@@ -303,6 +303,9 @@ void Window::addError(QString txt)
     cursor.insertText(txt + "\n");
     if (!isFullScreen())
         errorDock->show();
+    else
+        std::cerr << +txt << std::endl;
+
     // Before trying to show the error in the status bar, see #970
 }
 
@@ -401,8 +404,7 @@ void Window::closeDocument()
 //   Replace current document with welcome screen or close welcome window.
 // ----------------------------------------------------------------------------
 {
-    loadFile(QFileInfo("system:welcome/welcome.ddd").absoluteFilePath(),
-             false);
+    loadFile(QFileInfo("system:welcome/welcome.ddd").absoluteFilePath(),false);
 }
 
 
@@ -1898,7 +1900,9 @@ void Window::createMenus()
     helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
-    ExamplesMenu * examplesMenu = new ExamplesMenu(helpMenu);
+    ExamplesMenu * themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
+    ExamplesMenu * examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
+
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
     foreach (Template t, templates)
@@ -1908,12 +1912,17 @@ void Window::createMenus()
         QString name(t.name);
         // Strip "(Demo) " or "(Démo) "
         name.replace(QRegExp("^\\([^)]+\\) "), "");
-        examplesMenu->addExample(name,
-                                 t.mainFileFullPath(),
-                                 t.description);
+        if (t.type == "theme")
+            themesMenu->addExample(name, t.mainFileFullPath(), t.description);
+        else
+            examplesMenu->addExample(name, t.mainFileFullPath(), t.description);
     }
+
+    connect(themesMenu, SIGNAL(openDocument(QString)),
+            this, SLOT(openReadOnly(QString)));
     connect(examplesMenu, SIGNAL(openDocument(QString)),
             this, SLOT(openReadOnly(QString)));
+    helpMenu->addMenu(themesMenu);
     helpMenu->addMenu(examplesMenu);
 }
 
@@ -2337,7 +2346,7 @@ bool Window::updateProgram(const QString &fileName)
         resetTaoMenus();
         if (!sf->tree)
         {
-            if (taoWidget->loadFile(fn, true))
+            if (taoWidget->loadFile(fn))
                 hadError = true;
         }
 
@@ -2347,7 +2356,7 @@ bool Window::updateProgram(const QString &fileName)
     }
     else
     {
-        if (taoWidget->loadFile(fn, true))
+        if (taoWidget->loadFile(fn))
             return true;
         sf = &xlRuntime->files[fn];
     }
@@ -2658,6 +2667,9 @@ void Window::switchToFullScreen(bool fs)
 #endif
     }
     slideShowAct->setChecked(fs);
+
+    QEvent r(QEvent::Resize);
+    taoWidget->refreshNow(&r);
 
 #endif // !CFG_NOFULLSCREEN
 }

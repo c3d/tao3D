@@ -74,12 +74,13 @@ protected:
 
 protected slots:
     void updateDescription();
-    void doSearch();
+    void filterItems();
 
 private:
     QListWidget *templateListWidget;
     QLabel      *description;
     QLineEdit   *search;
+    QCheckBox   *showAll;
 };
 
 

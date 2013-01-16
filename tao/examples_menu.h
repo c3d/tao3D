@@ -35,9 +35,8 @@ class ExamplesMenu : public QMenu
     Q_OBJECT
 
 public:
-    ExamplesMenu(QWidget *parent = 0) : QMenu(tr("Examples"), parent) {}
-    virtual ~ExamplesMenu() {}
-
+    ExamplesMenu(QString caption, QWidget *parent = 0);
+    virtual ~ExamplesMenu();
     void addExample(QString caption, QString path, QString tip = "");
 
 signals:

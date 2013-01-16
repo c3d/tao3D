@@ -55,6 +55,10 @@ Template::Template(const QDir &dir)
     QVariant noDesc(QObject::tr("No description available."));
     description = ini.value("description", noDesc).toString();
 
+    // Read template type
+    QVariant defaultType("theme");
+    type = ini.value("type", defaultType).toString();
+
     // Read thumbnail picture
     thumbFile = ini.value("thumbnail").toString();
     thumbnail = QPixmap(path + "/" + thumbFile);
@@ -215,9 +219,9 @@ bool Template::contains(const QString &keyword, bool searchSource)
 //   Check if name, description or main file contains keyword
 // ----------------------------------------------------------------------------
 {
-    if (name.contains(keyword))
+    if (name.contains(keyword, Qt::CaseInsensitive))
         return true;
-    if (description.contains(keyword))
+    if (description.contains(keyword, Qt::CaseInsensitive))
         return true;
     if (searchSource)
     {

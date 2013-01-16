@@ -1,3 +1,5 @@
+#ifndef DEMANGLE_H
+#define DEMANGLE_H
 // ****************************************************************************
 //  demangle.h                                                     Tao project 
 // ****************************************************************************
@@ -43,3 +45,4 @@ inline text demangle(const char *symbol)
 }
 
 
+#endif // DEMANGLE_H

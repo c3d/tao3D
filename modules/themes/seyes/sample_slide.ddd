@@ -1,0 +1,73 @@
+theme "Seyes"
+import VLCAudioVideo
+import Animate
+
+
+main_title_slide "Main title",
+    title
+        text "Seyes Theme"
+    subtitle
+        text "A theme for classroom reports"
+
+
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    translatez -500
+    color "lightyellow"
+    image -300, 0, 1.5, 1.5, "http://blog.lesoir.be/jour-apres-jour/files/2008/11/t-20080919-00j0j7-11.jpg"
+    image 500, 0, 1, 1, "http://ars.els-cdn.com/content/image/1-s2.0-S1574101X08006145-si1.gif"
+    locally
+        translate 500, -400, 200
+        rotatez random(-5, 15)
+        math_eq eq_of_the_day at random(1, size eq_of_the_day)
+        refresh 0.5
+    movie_only ""
+
+eq_of_the_day -> "\sum_{i=0}^{i=k}{i^k}", "E=m c^2", "E=h \nu", "\gamma=\frac{1}{\sqrt{1-\frac{v^2}{c^2}}}", "{\frac {d}{dx}}\arctan(\sin({x}^{2}))", "\cos x^2+\sin x^2=1", "x^n+y^n=1", "e^{i \pi}+1=0", "J_n^m=\frac{-\rho_m}{-\mu_n}", ""
+
+math_eq Eq:text ->
+    image 0, 0, 1, 1, "http://latex.codecogs.com/png.latex?\dpi{600} " & Eq
+
+
+picture_slide "YouTube Video slide",
+    left_picture
+        translate 50, 40, -150
+        rotatez 5
+        scale3 80%
+        MOVIE -> "http://www.youtube.com/watch?v=I0pLmcx7aH4"
+        color "white", fade_in(page_time, 100)
+        movie_texture MOVIE
+        rectangle texture_width, texture_height
+        texture ""
+        color "white", 0.5
+        translatey -0.4 * texture_height
+        rectangle 0, 0, texture_width, 0.1 * texture_height
+        text_box 0, 0, texture_width, 0.2 * texture_height,
+            align 90%
+            vertical_align 50%
+            font "Arial", bold, 120
+            text text integer (movie_time MOVIE / 60)
+            text ":"
+            zero integer(movie_time MOVIE mod 60)
+            zero N:integer -> if N < 10 then text "0" & text N else text text N
+    right_column
+        vertical_align 10%
+        - "We wish you a Merry Christmas"
+        - "and a Happy New Year 2013"

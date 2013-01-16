@@ -1,5 +1,82 @@
 Change log for Tao Presentations
 
+1.17 (10-Jan-2013)
+
+#2700 Switching to full screen does not correctly resize slides contents
+#2693 Separate themes and miscellaneous documents in the example menu
+#2692 Template chooser: add "Show all" option (reveals harder to customize examples)
+#2691 Update Qt copyright notice (Digia)
+#2689 Close entry of command chooser quits Tao
+#2686 Crash in VMware Fusion 5 when canvas or frame texture are used
+#2685 MacOSX/Windows: Upgrade to Qt 4.8.4
+#2682 Windows: syntax error reported on valid file
+#2672 Garbage/uninitialized memory shown in canvas
+#2625 Add glyph_cache_size_range and glyph_cache_scaling
+#2684 Several modules have a header refering to the GPL license
+#2679 MacOSX 10.6: space character of font "Mountains of Christmas" prevents text from displaying
+#2676 When full justification is active, the last line should be justified even if it contains a single word
+#2672 Garbage/uninitialized memory shown in canvas
+#2669 VLCAudioVideo: video playback in PBO mode (default) may cause GL error 1282 (invalid operation) on textures
+#2663 Texture leaking from text_span
+#2662 Add feature to detect which OS the presentation is running on
+#2659 Create a module to add a snowfall effect into a presentation
+#2658 Contents of menus changes during transitions
+#2657 Define a better import order that gives us some kind of guarantee for overrides
+#2622 Kernel crash in Mountain Lion NVidia driver allocating large textures
+#2617 ChromaKey: preserve alpha in input
+#2613 load_csv fails on lines terminated with a ;
+#2611 Redesign the text block management
+#2601 Define an alternative of the frame_texture primitive with a name as id
+#2592 Add floating built-in
+#2571 Redefine Slides module to make slide creation easier for basic users
+#2546 Create a really good starting template for slides
+
+1.16 (10-Dec-2012)
+
+#2656 ChromaKey: respect glColor to allow colorization of the input
+#2653 VLCAudioVideo: movie_pause ignored when called immediately after movie or movie_texture
+#2652 Linux: useless shell process exists when running /usr/bin/tao
+#2650 Show XL error messages in the console in fullscreen mode
+#2643 Windows: load_csv fails to open file when path contains accented character
+#2642 Use of local variable can cause a memory leak
+#2640 VLCAudioVideo: Linux: movie_set_volume may take a long time
+#2639 VLCAudioVideo: add movie_texture_relative primitive
+#2638 Linux: error message on install/uninstall of .deb package
+#2637 Linux: tao --version fails if no valid X display exists
+#2636 VLCAudioVideo: MacOSX: GL error 1282 if movie_texture is given an odd width
+#2633 load_text does not load UTF-8 on PC
+#2629 load_csv incorrectly loads UTF-8 data that contains a no-break space
+#2628 Invalid characters in french documentation for files and camera
+#2627 load_csv cannot read string that contains a double quote
+#2622 Kernel crash in Mountain Lion NVidia driver allocating large textures
+#2621 Add -licpath command line option to provide an additional license directory
+#2617 ChromaKey: preserve alpha in input
+#2616 Add file_exists primitive
+#2613 load_csv fails on lines terminated with a ;
+#2606 Add network access support to point_cloud
+#2605 RemoteControl: add command to suppress prompt
+#2603 PointCloud: reload files as they change
+#2602 Document is not reloaded if it is a symbolic link and the link is changed
+#2601 Define an alternative of the frame_texture primitive with a name as id
+#2600 Module API: export file monitoring functions
+#2599 PointCloud: ASSERT: "points.size() == colors.size()" in file point_cloud.cpp, line 58
+#2593 Add random_seed primitive
+#2592 Add floating built-in
+#2588 Pressing F1 on module name should open online documentation
+#2586 PointCloud: add point sprite support (cloud_point_sprites)
+#2585 Add text_width and text_height primitives
+#2582 Create a module encapsulating news feeds
+#2572 Add Transitions module
+#2570 Default clear_color not restored when changing page
+#2567 VLC hangs if cleanup and play a movie at the same time
+#2566 Toolbar buttons show no tooltip
+#2564 Delete menu status tips
+#2563 Significant slow-down when moving the mouse on a point cloud or object
+#2547 Add a 'transition' primitive to describe transitions between pages
+#2527 RemoteControl: some 'xl!' commands may be ignored
+#2121 Calibrate eye_distance for Alioscopy and Tridelity
+#2007 load_csv called with a different file name returns the same data as the previous call
+
 1.15 (12-Oct-2012)
 
 #2562 status primitive lacks a duration parameter

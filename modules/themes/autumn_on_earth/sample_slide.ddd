@@ -1,0 +1,48 @@
+theme "AutumnOnEarth"
+import VLCAudioVideo
+
+
+main_title_slide "Main title",
+    title
+        text "Autumn On Earth Theme"
+    subtitle
+        text "An environmental theme"
+        line_break
+        font_size 20
+        text "Background image by Norebbo, used with permission"
+        
+
+
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    translatez -500
+    rotatez 5
+    image 0, 0, 0.8, 0.8, "http://4.bp.blogspot.com/-yl3tNmbZcFs/T1RQRe81siI/AAAAAAAAADY/rwY672aTwko/s1600/end-of-the-world.jpg"
+    movie_only ""
+
+
+picture_slide "YouTube Video slide",
+    left_picture
+        translate 240, 100, -150
+        rotatey 180 * sin (0.2*time) ^ 19
+        rotatez 5
+        movie 0, 0, 1.2, 1.2, "http://www.youtube.com/watch?v=rn1n-YYHs4g"
+    right_column
+        - "We wish you a Peaceful End of the World and a Happy New Year 2013"

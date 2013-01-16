@@ -30,6 +30,21 @@
 
 namespace Tao {
 
+ExamplesMenu::ExamplesMenu(QString caption, QWidget *parent) 
+// ----------------------------------------------------------------------------
+//   Constructor
+// ----------------------------------------------------------------------------
+    : QMenu(caption, parent)
+{}
+
+
+ExamplesMenu::~ExamplesMenu()
+// ----------------------------------------------------------------------------
+//   Destructor
+// ----------------------------------------------------------------------------
+{}
+
+
 void ExamplesMenu::addExample(QString caption, QString path, QString tip)
 // ----------------------------------------------------------------------------
 //   Add an entry to the menu, linking to a particular document

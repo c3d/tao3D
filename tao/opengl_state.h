@@ -375,6 +375,7 @@ struct OpenGLState : GraphicState
     // Return attributes of state
     virtual uint   MaxTextureCoords()       { return maxTextureCoords; }
     virtual uint   MaxTextureUnits()        { return maxTextureUnits; }
+    virtual uint   MaxTextureSize()         { return maxTextureSize; }
     virtual text   Vendor()                 { return vendor; }
     virtual text   Renderer()               { return renderer; }
     virtual text   Version()                { return version; }
@@ -433,6 +434,7 @@ struct OpenGLState : GraphicState
     virtual void MultiTexCoord3v(GLenum target, const coord *array);
     virtual void EnableClientState(GLenum cap);
     virtual void DisableClientState(GLenum cap);
+    virtual void ClientActiveTexture(GLenum tex);
     virtual void DrawArrays(GLenum mode, int first, int count);
     virtual void VertexPointer(int size, GLenum type, int stride,
                                const void* pointer);
@@ -590,12 +592,12 @@ public:
     };
 
 public:
-    static enum VendorID        vendorID;
-    static GLuint               maxTextureCoords, maxTextureUnits;
-    static text                 vendor, renderer, version, extensionsAvailable;
-    TexturesState               currentTextures;
-    TextureUnitsState           currentTextureUnits;
-    LightsState                 currentLights;
+    enum VendorID     vendorID;
+    GLuint            maxTextureCoords,maxTextureUnits,maxTextureSize;
+    text              vendor, renderer, version, extensionsAvailable;
+    TexturesState     currentTextures;
+    TextureUnitsState currentTextureUnits;
+    LightsState       currentLights;
 
 #define GS(type, name)                          \
     type name;

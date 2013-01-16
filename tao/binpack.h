@@ -47,6 +47,7 @@ public:
     void        Resize(uint w, uint h);
     uint        Width()                         { return width; }
     uint        Height()                        { return height; }
+    void        Clear();
 
 protected:
     struct Node

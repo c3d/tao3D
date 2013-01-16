@@ -1,0 +1,55 @@
+theme "BlueClaire"
+import VLCAudioVideo
+
+
+main_title_slide "Main title",
+    title
+        text "Blue Claire theme"
+    subtitle
+        text "A bright and optimistic theme"
+        line_break
+        font_size 20
+        text "Background image from http://freestock.ca,"
+        line_break
+        text "used with permission"
+
+
+section_slide "Section title",
+    title
+        text "Section title"
+    subtitle
+        text "Section subtitle"
+
+
+slide "Bullet points",
+    * "Bullet points"
+    ** "More bullet points"
+    *** "Deeper"
+    --
+    * "Again"
+    ++ "Numbered text"
+    ++ "Numbered"
+    -- "Additional text"
+
+
+picture_slide "Picture slide",
+    translatez -500
+    adjust_position mouse_x
+    adjust_position X:real ->
+        translate X, 0, 300
+        rotatey -0.06 * X
+    image 0, 0, 0.5, 0.5, "http://sawnconcept.files.wordpress.com/2012/04/blue-ocean-scene.jpg"
+    movie_only ""
+
+
+picture_slide "YouTube Video slide",
+    locally
+        translate -200, 50, -150
+        rotatez 5
+        rotatey mouse_x * 0.02 * page_time
+        movie 0, 0, 1.1, 1.1, "http://www.youtube.com/watch?v=oCsRBnUJmxk"
+    right_column
+        - "We wish you a Merry Christmas"
+        - "and a Happy New Year 2013"
+        --
+        * "Move the mouse cursor around..."

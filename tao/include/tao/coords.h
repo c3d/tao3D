@@ -296,14 +296,26 @@ struct Box
         return *this;
     }
 
+    Box &operator |= (const Point &p)
+    {
+        // Ensure that the box extends to the point
+        if (lower.x > p.x)      lower.x = p.x;
+        if (lower.y > p.y)      lower.y = p.y;
+
+        if (upper.x < p.x)      upper.x = p.x;
+        if (upper.y < p.y)      upper.y = p.y;
+
+        return *this;
+    }
+
     Box &operator |= (const Box &o)
     {
         // Return union of the two boxes (smallest box containing both)
-        if (o.lower.x < lower.x)        lower.x = o.lower.x;
-        if (o.lower.y < lower.y)        lower.y = o.lower.y;
+        if (lower.x > o.lower.x)        lower.x = o.lower.x;
+        if (lower.y > o.lower.y)        lower.y = o.lower.y;
 
-        if (o.upper.x > upper.x)        upper.x = o.upper.x;
-        if (o.upper.y > upper.y)        upper.y = o.upper.y;
+        if (upper.x < o.upper.x)        upper.x = o.upper.x;
+        if (upper.y < o.upper.y)        upper.y = o.upper.y;
 
         return *this;
     }
@@ -311,11 +323,11 @@ struct Box
     Box &operator &= (const Box &o)
     {
         // Return intersection of the two boxes (biggest box contained in both)
-        if (o.lower.x > lower.x)        lower.x = o.lower.x;
-        if (o.lower.y > lower.y)        lower.y = o.lower.y;
+        if (lower.x < o.lower.x)        lower.x = o.lower.x;
+        if (lower.y < o.lower.y)        lower.y = o.lower.y;
 
-        if (o.upper.x < upper.x)        upper.x = o.upper.x;
-        if (o.upper.y < upper.y)        upper.y = o.upper.y;
+        if (upper.x > o.upper.x)        upper.x = o.upper.x;
+        if (upper.y > o.upper.y)        upper.y = o.upper.y;
 
         return *this;
     }
@@ -382,6 +394,9 @@ public:
 // ============================================================================
 
 inline Box operator+ (const Box &b, const Vector &v)
+// ----------------------------------------------------------------------------
+//   Translate a box by a vector
+// ----------------------------------------------------------------------------
 {
     Box result(b);
     result += v;

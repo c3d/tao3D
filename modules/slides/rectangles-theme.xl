@@ -1,0 +1,116 @@
+// ****************************************************************************
+//  rectangles-theme.xl                                             Tao project
+// ****************************************************************************
+//
+//   File Description:
+//
+//     Define a default theme for slides.
+//
+//
+//
+//
+//
+//
+//
+//
+// ****************************************************************************
+// Copyright Taodyne SAS, 2012
+// Contributors:
+//   Baptiste Soulisse <baptiste.soulisse@taodyne.com>
+//   Christophe de Dinechin <christophe@taodyne.com>
+//   Jérôme Forissier <jerome@taodyne.com>
+//   Catherine Burvelle <cathy@taodyne.com>
+//
+// <contact@taodyne.com>
+//
+// This software is a computer program whose purpose is to serve as a
+// document template for the Tao Presentations application.
+//
+// This software is governed by the CeCILL license under French law and
+// abiding by the rules of distribution of free software.  You can  use,
+// modify and/ or redistribute the software under the terms of the CeCILL
+// license as circulated by CEA, CNRS and INRIA at the following URL
+// "http://www.cecill.info".
+//
+// As a counterpart to the access to the source code and  rights to copy,
+// modify and redistribute granted by the license, users are provided only
+// with a limited warranty  and the software's author,  the holder of the
+// economic rights,  and the successive licensors  have only  limited
+// liability.
+//
+// In this respect, the user's attention is drawn to the risks associated
+// with loading,  using,  modifying and/or developing or reproducing the
+// software by the user in light of its specific status of free software,
+// that may mean  that it is complicated to manipulate,  and  that  also
+// therefore means  that it is reserved for developers  and  experienced
+// professionals having in-depth computer knowledge. Users are therefore
+// encouraged to load and test the software's suitability as regards their
+// requirements in conditions enabling the security of their systems and/or
+// data to be ensured and,  more generally, to use and operate it in the
+// same conditions as regards security.
+//
+// The fact that you are presently reading this means that you have had
+// knowledge of the CeCILL license and that you accept its terms.
+// ****************************************************************************
+
+
+// ============================================================================
+// 
+//    Easily configurable parameters
+// 
+// ============================================================================
+
+rectangles_current -> 0.0
+rectangles_target -> 0.0
+
+theme_background "Rectangles",Master:text        ->
+// ----------------------------------------------------------------------------
+//   Draw the rectangles in the background
+// ----------------------------------------------------------------------------
+    clear_color 0,0,0,1
+    background -750,
+        rectangles_target := hours*60+minutes + 137 * page_number
+        if abs(rectangles_current - rectangles_target) > 1000 then
+            rectangles_current := rectangles_target
+        rectangles_current := 0.9 * rectangles_current + 0.1 * rectangles_target
+        rectangle_background with 1..9
+        if abs(rectangles_current - rectangles_target) > 0.2 then
+            time
+
+
+rectangle_background N:integer ->
+// ----------------------------------------------------------------------------
+//   Draw one rectangle
+// ----------------------------------------------------------------------------
+    color_hsv 42 * N + rectangles_current, 1.0, 0.7, 0.9
+    sw R:real,S:real -> slide_width * sin (R*rectangles_current+S)
+    sh R:real,S:real -> slide_height * cos (R*rectangles_current+S)
+    rectangle sw(121e-5,1.2*N), sh(133e-5,1.1*N), sw(232e-5,0.7*N), slide_height
+    rectangle sw(142e-5,1.2*N), sh(127e-5,1.1*N), slide_width, sh(114e-5,0.7*N)
+
+
+theme_color "Rectangles",Master:text,"picture"   -> color "white"
+theme_color "Rectangles",Master:text,"story"     -> color "white"
+
+theme_font "Rectangles",Master:text,"story"      -> font "Mountains of Christmas", "Times"
+theme_boxstyle "Rectangles",Master:text,Style:text-> color "black", 0.6
+
+
+theme_box "Rectangles",Master:text,Style:text, X:real,Y:real,W:real,H:real ->
+// ----------------------------------------------------------------------------
+//   Draw the background box for text and flows
+// ----------------------------------------------------------------------------
+    contents -10,
+        theme_boxstyle theme, Master, Style
+        path
+            sx X:real,W:real,S:real -> X + W * (0.5 + 0.01 * sin(S * rectangles_current + page_number))
+            sy X:real,W:real,S:real -> X + W * (0.5 + 0.05 * cos(S * rectangles_current + page_number))
+            line_to sx(X,-W,222e-5), sy(Y,-H,235e-5)
+            quad_to sx(X, W,432e-5), sy(Y,-H,229e-5), sx(X, W,442e-5), sy(Y,-H,249e-5)
+            quad_to sx(X, W,217e-5), sy(Y, H,418e-5), sx(X, W,237e-5), sy(Y, H,218e-5)
+            quad_to sx(X,-W,611e-5), sy(Y, H,910e-5),  sx(X,-W,211e-5), sy(Y, H,912e-5)
+            quad_to sx(X,-W,322e-5), sy(Y,-H,225e-5), sx(X,-W,222e-5), sy(Y,-H,235e-5)
+
+
+theme_slide_width  "Rectangles"                  -> 1920
+theme_slide_height "Rectangles"                  -> 1080

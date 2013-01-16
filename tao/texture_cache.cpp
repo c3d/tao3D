@@ -866,7 +866,7 @@ void CachedTexture::purgeGL()
 {
     Q_ASSERT(id);
 
-    if(Tao::OpenGLState::State())
+    if (Tao::OpenGLState::State())
     {
         // Resize the texture as a 1x1 pixel. Resizing at 0x0 triggers a bug in
         // the Nvidia driver on MacOS Mountain Lion (#2622)

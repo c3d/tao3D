@@ -48,11 +48,11 @@ TAO_BEGIN
 //   The entries we return from Find, on the other hand, are OpenGL texture
 //   coordinates, i.e. we normalize them in the 0..1 range.
 
-PerFontGlyphCache::PerFontGlyphCache(const QFont &font, const uint64 texUnits)
+PerFontGlyphCache::PerFontGlyphCache(const QFont &font)
 // ----------------------------------------------------------------------------
 //   Construct an empty per-font glyph cache
 // ----------------------------------------------------------------------------
-    : font(font), texUnits(texUnits), ascent(0), descent(0), leading(0)
+    : font(font), ascent(0), descent(0), leading(0)
 {
     QFontMetricsF fm(font);
     ascent = fm.ascent();
@@ -154,14 +154,15 @@ GlyphCache::GlyphCache()
       texture(0),
       image(defaultSize, defaultSize, QImage::Format_ARGB32),
       dirty(false),
+      minFontSize(30),
+      maxFontSize(120),
       minFontSizeForAntialiasing(9),
-      maxFontSize(64),
-      antiAliasMargin(1),
       fontScaling(2.0),
+      antiAliasMargin(3),
+      texUnits(1),              // Default is texture unit 0 only
       lastFont(NULL),
       GLcontext(QGLContext::currentContext())
 {
-    glGenTextures(1, &texture);
     image.fill(0);
 }
 
@@ -173,12 +174,10 @@ GlyphCache::~GlyphCache()
 {
     // Don't delete texture if context has been changed
     // REVISIT glyph cache should support multiple contexts
-    if (GLcontext != QGLContext::currentContext())
-        return;
-
-    glDeleteTextures(1, &texture);
-    for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
-        delete (*it).second;
+    if (GLcontext == QGLContext::currentContext())
+        if (texture)
+            glDeleteTextures(1, &texture);
+    Clear();
 }
 
 
@@ -190,27 +189,42 @@ void GlyphCache::Clear()
     for (FontMap::iterator it = cache.begin(); it != cache.end(); it++)
         delete (*it).second;
     cache.clear();
+    packer.Clear();
     image.fill(0);
     lastFont = NULL;
 }
 
 
-GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, const uint64 texUnits, bool create)
+void GlyphCache::CheckTextureUnits(uint64 texUnits)
+// ----------------------------------------------------------------------------
+//   Check if we use more texture units. If so, need to re-emit texture coords
+// ----------------------------------------------------------------------------
+{
+    // Check if there are new texture units active compared to what we had
+    if (texUnits & ~this->texUnits)
+    {
+        Clear();
+        this->texUnits |= texUnits;
+    }
+}
+
+
+GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, bool create)
 // ----------------------------------------------------------------------------
 //   Find the per-font information in the cache
 // ----------------------------------------------------------------------------
 {
     PerFontGlyphCache *perFont = lastFont;
-    if (!perFont || perFont->font != font || perFont->texUnits != texUnits)
+    if (!perFont || perFont->font != font)
     {
-        Key key(font, texUnits);
+        Key key(font);
         FontMap::iterator cacheEntry = cache.find(key);
         if (cacheEntry == cache.end())
         {
             // Create font cache entry if necessary
             if (!create)
                 return NULL;
-            perFont = new PerFontGlyphCache(font, texUnits);
+            perFont = new PerFontGlyphCache(font);
             cache[key] = perFont;
         }
         else
@@ -224,14 +238,14 @@ GlyphCache::PerFont *GlyphCache::FindFont(const QFont &font, const uint64 texUni
 }
 
 
-bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
+bool GlyphCache::Find(const QFont &font,
                       uint code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a unicode entry in the cache
 // ----------------------------------------------------------------------------
 {
-    PerFont *perFont = FindFont(font, texUnits, create);
+    PerFont *perFont = FindFont(font, create);
     if (!perFont)
         return false;
     bool found = perFont->Find(code, entry);
@@ -243,7 +257,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         // Apply a font with scaling
         scale fs = fontScaling;
         uint aam = antiAliasMargin;
-        if (font.pointSizeF() <= minFontSizeForAntialiasing)
+        if (font.pointSizeF() < minFontSizeForAntialiasing)
         {
             fs = 1;
             aam = 0;
@@ -260,11 +274,10 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         QFontMetricsF fm(scaled);
         QChar qc(code);
         QRectF bounds = fm.boundingRect(qc);
-        IFTRACE(fonts)
+        if (fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
+            fabs(bounds.y()) > 10 * scaled.pointSizeF())
         {
-            if (bounds.width() == 0 || bounds.height() == 0 ||
-                fabs(bounds.x()) > 10 * scaled.pointSizeF() ||
-                fabs(bounds.y()) > 10 * scaled.pointSizeF())
+            IFTRACE(fonts)
             {
                 QString exactMatchText;
                 if (!scaled.exactMatch())
@@ -278,10 +291,34 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
                         .arg(bounds.x()).arg(bounds.y());
                 std::cerr << +msg << "\n";
             }
+            // #1161 Workaround font metric bug in TeX Gyre Adventor
+            // 'Mountains of Christmas' has the same problem at least
+            // on MacOSX 10.6.8
+            // All issues have always been with the space character up to now,
+            // but handle other characters just in case
+            QChar repl;
+            if (qc == ' ')
+                repl = QChar('l');
+            else
+                repl = QChar('m');
+            bounds = fm.boundingRect(repl);
+            IFTRACE(fonts)
+            {
+                QString msg;
+                msg = QString("Using metrics of character '%1' instead:\n"
+                              "  width %2 height %3 x %4 y %7")
+                        .arg(repl)
+                        .arg(bounds.width()).arg(bounds.height())
+                        .arg(bounds.x()).arg(bounds.y());
+                std::cerr << +msg << "\n";
+            }
         }
-        // #1161 Workaround font metric bug in TeX Gyre Adventor
-        if (qc == ' ' && font.family() == "TeX Gyre Adventor")
-            bounds = fm.boundingRect(QChar('l'));
+        scale bx = bounds.x();
+        scale by = bounds.y();
+        scale bw = bounds.width();
+        scale bh = bounds.height();
+
+        bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());
 
@@ -292,8 +329,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         // Record glyph information in the entry
         entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
                            bounds.width()/fs, bounds.height()/fs);
-        entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
-                            Point(rect.x1+aam + bounds.width(), rect.y2-aam));
+        entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qc) / fs;
         entry.interior = 0;
         entry.outlines.clear();
@@ -303,13 +339,29 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         perFont->Insert(code, entry);
 
         // Draw the texture portion for the desired word
-        qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
+        qreal x = rect.x1 + aam - bounds.left();
         qreal y = rect.y2 - aam - bounds.bottom();
+
         QPainter painter(&image);
         painter.setFont(scaled);
         painter.setBrush(Qt::transparent);
-        painter.setPen(Qt::white);
-        painter.drawText(QPointF(x, y), QString(qc));
+        painter.setPen(Qt::black);
+        painter.drawText(QPointF(x+fs, y+fs), QString(qc));
+
+#if 0 // DEBUG CODE
+        painter.setPen(QColor(0, 255, 0, 80));
+        painter.drawRect(bounds.translated(x, y));
+
+        painter.setPen(QColor(0, 0, 255, 80));
+        painter.drawRect(QRectF(x, y, 1, 1));
+
+        painter.setPen(QColor(255, 0, 255, 80));
+        painter.drawRect(QRectF(x+bounds.x(), y+bounds.y(), 1, 1));
+
+        painter.setPen(QColor(255, 0, 0, 80));
+        painter.drawRect(QRectF(rect.x1, rect.y1, rect.x2-rect.x1, rect.y2-rect.y1));
+#endif
+
         painter.end();
 
         // We will need to update the texture
@@ -359,8 +411,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
             GL.NewList(outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
-                            GLU_TESS_WINDING_POSITIVE);
+            strokePath.Draw(Vector3(0,0,0), texUnits,
+                            GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
             GL.EndList();
         }
 
@@ -374,14 +426,14 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
 }
 
 
-bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
+bool GlyphCache::Find(const QFont &font,
                       text code, GlyphEntry &entry,
                       bool create, bool interior, scale lineWidth)
 // ----------------------------------------------------------------------------
 //   Find or create a word entry in the cache
 // ----------------------------------------------------------------------------
 {
-    PerFont *perFont = FindFont(font, texUnits, create);
+    PerFont *perFont = FindFont(font, create);
     if (!perFont)
         return false;
     bool found = perFont->Find(code, entry);
@@ -393,7 +445,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         // Apply a font with scaling
         scale fs = fontScaling;
         uint aam = antiAliasMargin;
-        if (font.pointSizeF() <= minFontSizeForAntialiasing)
+        if (font.pointSizeF() < minFontSizeForAntialiasing)
         {
             fs = 1;
             aam = 0;
@@ -410,6 +462,12 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         QFontMetricsF fm(scaled);
         QString qs(+code);
         QRectF bounds = fm.boundingRect(qs);
+        scale bx = bounds.x();
+        scale by = bounds.y();
+        scale bw = bounds.width();
+        scale bh = bounds.height();
+
+        bounds = QRectF(bx - fs, by - fs, bw + 2*fs, bh + 2*fs);
         uint width = ceil(bounds.width());
         uint height = ceil(bounds.height());
 
@@ -420,8 +478,7 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         // Record glyph information in the entry
         entry.bounds = Box(bounds.x()/fs, bounds.y()/fs,
                            bounds.width()/fs, bounds.height()/fs);
-        entry.texture = Box(Point(rect.x1+aam, rect.y2-aam - bounds.height()),
-                            Point(rect.x1+aam + bounds.width(), rect.y2-aam));
+        entry.texture = Box(rect.x1+aam, rect.y1+aam, width, height);
         entry.advance = fm.width(qs) / fs;
         entry.interior = 0;
         entry.outlines.clear();
@@ -431,13 +488,14 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
         perFont->Insert(code, entry);
 
         // Draw the texture portion for the desired word
-        qreal x = rect.x1 + aam - bounds.x(); // + (lb < 0 ? lb : 0);
+        qreal x = rect.x1 + aam - bounds.left();
         qreal y = rect.y2 - aam - bounds.bottom();
+
         QPainter painter(&image);
         painter.setFont(scaled);
         painter.setBrush(Qt::transparent);
-        painter.setPen(Qt::white);
-        painter.drawText(QPointF(x, y), qs);
+        painter.setPen(Qt::black);
+        painter.drawText(QPointF(x+fs, y+fs), qs);
         painter.end();
 
         // We will need to update the texture
@@ -468,7 +526,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             if (!entry.interior)
                 entry.interior = GL.GenLists(1);
             GL.NewList(entry.interior, GL_COMPILE);
-            path.Draw(Vector3(0,0,0), texUnits, GL_POLYGON, GLU_TESS_WINDING_ODD);
+            path.Draw(Vector3(0,0,0), texUnits,
+                      GL_POLYGON, GLU_TESS_WINDING_ODD);
             GL.EndList();
         }
 
@@ -487,8 +546,8 @@ bool GlyphCache::Find(const QFont &font, const uint64 texUnits,
             GraphicPath strokePath;
             strokePath.addQtPath(stroke, -1);
             GL.NewList(outline, GL_COMPILE);
-            strokePath.Draw(Vector3(0,0,0), texUnits, GL_POLYGON,
-                            GLU_TESS_WINDING_POSITIVE);
+            strokePath.Draw(Vector3(0,0,0), texUnits,
+                            GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
             GL.EndList();
         }
 
@@ -529,40 +588,54 @@ void GlyphCache::GenerateTexture()
 //   Copy the current image into our GL texture
 // ----------------------------------------------------------------------------
 {
-    QImage texImg = QGLWidget::convertToGLFormat(image).mirrored(false, true);
-    GL.BindTexture(GL_TEXTURE_RECTANGLE_ARB, texture);
-    GL.TexImage2D(GL_TEXTURE_RECTANGLE_ARB, 0, GL_RGBA,
+    if (!texture)
+        GL.GenTextures(1, &texture);
+
+    QImage invert(image);
+    invert.invertPixels();
+    QImage texImg = QGLWidget::convertToGLFormat(invert).mirrored(false, true);
+    GL.BindTexture(GL_TEXTURE_2D, texture);
+    GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_TRUE);
+    GL.TexImage2D(GL_TEXTURE_2D, 0, GL_RGBA,
                  texImg.width(), texImg.height(), 0, GL_RGBA,
                  GL_UNSIGNED_BYTE, texImg.bits());
+    GL.TexParameter(GL_TEXTURE_2D, GL_GENERATE_MIPMAP, GL_FALSE);
+    GL.TexParameter(GL_TEXTURE_2D,
+                     GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+    GL.TexParameter(GL_TEXTURE_2D,
+                    GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
     dirty = false;
 }
 
 
-qreal GlyphCache::Ascent(const QFont &font, const uint64 texUnits)
+qreal GlyphCache::Ascent(const QFont &font)
 // ----------------------------------------------------------------------------
 //   Return the ascent for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, texUnits, true)->ascent;
+    PerFont *pf = FindFont(font, true);
+    return pf->ascent * font.pointSizeF() / pf->baseSize;
 }
 
 
-qreal GlyphCache::Descent(const QFont &font, const uint64 texUnits)
+qreal GlyphCache::Descent(const QFont &font)
 // ----------------------------------------------------------------------------
 //   Return the descent for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, texUnits, true)->descent;
+    PerFont *pf = FindFont(font, true);
+    return pf->descent * font.pointSizeF() / pf->baseSize;
 }
 
 
-qreal GlyphCache::Leading(const QFont &font, const uint64 texUnits)
+qreal GlyphCache::Leading(const QFont &font)
 // ----------------------------------------------------------------------------
 //   Return the leading for the font
 // ----------------------------------------------------------------------------
 {
-    return FindFont(font, texUnits, true)->leading;
+    PerFont *pf = FindFont(font, true);
+    return pf->leading * font.pointSizeF() / pf->baseSize;
 }
 
 
@@ -575,7 +648,7 @@ void GlyphCache::ScaleDown(GlyphEntry &entry, scale fontScale)
     entry.bounds.lower.x *= fontScale;
     entry.bounds.upper.x *= fontScale;
     entry.bounds.lower.y *= fontScale;
-    entry.bounds.upper.x *= fontScale;
+    entry.bounds.upper.y *= fontScale;
     entry.advance *= fontScale;
     entry.scalingFactor = fontScale;
 }

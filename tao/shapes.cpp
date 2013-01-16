@@ -57,20 +57,19 @@ bool Shape::setTexture(Layout *where)
 
         // If there is a previous texture and no current
         // then unbind this one.
-        if(hasPrevious && (! hasCurrent))
+        if (hasPrevious && !hasCurrent)
         {
             // Unbind the previous texture
             unbindTexture(where->previousTextures[i]);
         }
-        else if(hasCurrent && (where->textureUnits & (1 << i)))
+        else if (hasCurrent && (where->textureUnits & (1 << i)))
         {
             // If there is a previous texture with a different type
-            // of the current then unbind the previous before to bind the
-            // current.
-            if(hasPrevious)
+            // of the current then unbind the previous before binding current
+            if (hasPrevious)
             {
-                if(where->fillTextures[i].type !=
-                   where->previousTextures[i].type)
+                if (where->fillTextures[i].type !=
+                    where->previousTextures[i].type)
                 {
                     // Unbind the previous texture
                     unbindTexture(where->previousTextures[i]);
@@ -85,7 +84,7 @@ bool Shape::setTexture(Layout *where)
     // Active current shader
     setShader(where);
 
-    //Update used texture units
+    // Update used texture units
     where->previousTextures = where->fillTextures;
 
     bool hasTextures = !where->fillTextures.empty();

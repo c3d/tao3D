@@ -59,10 +59,11 @@ page "Init",
     shaded_background
     scale_contents
     font "Comic Sans MS", 40
-    text_box 0,0,600,400,
+    text_box 0,0,window_width,window_height,
         color "tao_sea"
         paragraph_space 30, 30
         align_center
+        vertical_align_center
         text "Page de démarrage" en "Initial page."
         paragraph_break
         text_span

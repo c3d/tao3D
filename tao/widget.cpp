@@ -163,7 +163,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     : QGLWidget(TaoGLFormat(), parent),
       xlProgram(sf), formulas(NULL), inError(false), mustUpdateDialogs(false),
       runOnNextDraw(true), srcFileMonitor("XL"), clearCol(255, 255, 255, 255),
-      space(NULL), layout(NULL), graphicState(NULL),
+      space(NULL), layout(NULL),
       frameInfo(NULL), path(NULL), table(NULL),
       pageW(21), pageH(29.7), blurFactor(0.0),
       currentFlowName(""), pageName(""), lastPageName(""),
@@ -188,7 +188,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
       hadSelection(false), selectionChanged(false),
       w_event(NULL), focusWidget(NULL), keyboardModifiers(0),
       currentMenu(NULL), currentMenuBar(NULL),currentToolBar(NULL),
-      orderedMenuElements(QVector<MenuInfo*>(10, NULL)), order(0),
+      menuItems(QVector<MenuInfo*>(10, NULL)), menuCount(0),
       colorAction(NULL), fontAction(NULL),
       lastMouseX(0), lastMouseY(0), lastMouseButtons(0),
       mouseCoordinatesInfo(NULL),
@@ -237,6 +237,7 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
 
     // Make this the current context for OpenGL
     makeCurrent();
+    gl.MakeCurrent();
 
     // Initialize GLEW when we use it
     glewInit();
@@ -244,10 +245,6 @@ Widget::Widget(QWidget *parent, SourceFile *sf)
     // Create the main page we draw on
     space = new SpaceLayout(this);
     layout = space;
-
-    // Initialize graphic state
-    graphicState = new OpenGLState();
-    graphicState->MakeCurrent();
 
     // Prepare the idle timer
     connect(&idleTimer, SIGNAL(timeout()), this, SLOT(dawdle()));
@@ -363,7 +360,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       xlProgram(o.xlProgram), formulas(o.formulas), inError(o.inError),
       mustUpdateDialogs(o.mustUpdateDialogs),
       runOnNextDraw(true), srcFileMonitor(o.srcFileMonitor),
-      clearCol(o.clearCol), space(NULL), layout(NULL), graphicState(new OpenGLState()),
+      clearCol(o.clearCol), space(NULL), layout(NULL),
       frameInfo(NULL), path(o.path), table(o.table),
       pageW(o.pageW), pageH(o.pageH), blurFactor(o.blurFactor),
       currentFlowName(o.currentFlowName), flows(o.flows),
@@ -404,7 +401,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
       keyboardModifiers(o.keyboardModifiers),
       currentMenu(o.currentMenu), currentMenuBar(o.currentMenuBar),
       currentToolBar(o.currentToolBar),
-      orderedMenuElements(o.orderedMenuElements), order(o.order),
+      menuItems(o.menuItems), menuCount(o.menuCount),
       colorAction(o.colorAction), fontAction(o.fontAction),
       colorName(o.colorName), selectionColor(o.selectionColor),
       originalColor(o.originalColor),
@@ -465,7 +462,7 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Make this the current context for OpenGL
     makeCurrent();
-    graphicState->MakeCurrent();
+    gl.MakeCurrent();
 
     // Create new layout to draw into
     space = new SpaceLayout(this);
@@ -565,7 +562,7 @@ Widget::~Widget()
     // NB: if you're about to call glDeleteTextures here, think twice.
     // Or make sure you set the correct GL context. See #1686.
 
-    delete graphicState;
+    TextureCache::instance()->clear();
 }
 
 
@@ -726,7 +723,7 @@ void Widget::drawScene()
     if (blanked)
     {
         GL.ClearColor(0.0, 0.0, 0.0, 1.0);
-        GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
     }
     else if (stereoIdent)
     {
@@ -866,7 +863,7 @@ void Widget::draw()
     // In offline rendering mode, just keep the widget clear
     if (inOfflineRendering)
     {
-        GL.Clear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+        GL.Clear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT|GL_STENCIL_BUFFER_BIT);
         return;
     }
 
@@ -1211,18 +1208,21 @@ void Widget::runProgramOnce()
     // If we have evaluation errors, show them (bug #498)
     checkErrors(true);
 
-    // Clean the end of the old menu list.
-    for  (; order < orderedMenuElements.count(); order++)
+    // Clean the end of the old menu list, unless in a transition.
+    if (menuCount >= 0)
     {
-        delete orderedMenuElements[order];
-        orderedMenuElements[order] = NULL;
+        for  (; menuCount < menuItems.count(); menuCount++)
+        {
+            delete menuItems[menuCount];
+            menuItems[menuCount] = NULL;
+        }
+        
+        // Reset the menuCount value.
+        menuCount          = 0;
+        currentMenu    = NULL;
+        currentToolBar = NULL;
+        currentMenuBar = taoWindow()->menuBar();
     }
-
-    // Reset the order value.
-    order          = 0;
-    currentMenu    = NULL;
-    currentToolBar = NULL;
-    currentMenuBar = taoWindow()->menuBar();
 
     // Check pending events
     processProgramEvents();
@@ -2110,7 +2110,7 @@ void Widget::zoomIn()
 //    Call zoom_in builtin
 // ----------------------------------------------------------------------------
 {
-    if (! xlProgram) return;
+    if (!xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_in"))(xlProgram);
     do
@@ -2126,7 +2126,7 @@ void Widget::zoomOut()
 //    Call zoom_out builtin
 // ----------------------------------------------------------------------------
 {
-    if (! xlProgram) return;
+    if (!xlProgram) return;
     TaoSave saveCurrent(current, this);
     (XL::XLCall("zoom_out"))(xlProgram);
     do
@@ -2382,7 +2382,7 @@ void Widget::setupGL()
     uint maxtu = GL.MaxTextureUnits();
     for(int i = maxtu - 1; i > 0 ; i--)
     {
-        if(layout->textureUnits & (1 << i))
+        if (layout->textureUnits & (1 << i))
         {
             GL.ActiveTexture(GL_TEXTURE0 + i);
             GL.BindTexture(GL_TEXTURE_2D, 0);
@@ -2932,8 +2932,8 @@ void Widget::mousePressEvent(QMouseEvent *event)
     // Create a selection if left click and nothing going on right now
     if (button == Qt::LeftButton && selectionRectangleEnabled)
         new Selection(this);
-    else if ( ! (event->modifiers() & Qt::ShiftModifier) )
-        if ( uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
+    else if ((event->modifiers() & Qt::ShiftModifier) == 0)
+        if (uint id = Identify("Cl", this).ObjectAtPoint(x, height() - y))
             shapeAction("click", id, x, y);
 
     // Send the click to all activities
@@ -3471,7 +3471,7 @@ void Widget::showEvent(QShowEvent *event)
 {
     Q_UNUSED(event);
     bool oldFs = hasAnimations();
-    if (! oldFs)
+    if (!oldFs)
         taoWindow()->toggleAnimations();
 }
 
@@ -3556,14 +3556,14 @@ void Widget::updateProgram(XL::SourceFile *source)
 }
 
 
-int Widget::loadFile(text name, bool updateContext)
+int Widget::loadFile(text name)
 // ----------------------------------------------------------------------------
 //   Load regular source file in current widget
 // ----------------------------------------------------------------------------
 {
     purgeTaoInfo();
     TaoSave saveCurrent(current, this);
-    return XL::MAIN->LoadFile(name, updateContext);
+    return XL::MAIN->LoadFile(name);
 }
 
 
@@ -5168,6 +5168,7 @@ Tree_p Widget::runTransition(Context *context)
     }
     else
     {
+        menuCount = -1;
         result = context->Evaluate(transitionTree);
     }
     return result;
@@ -5757,7 +5758,7 @@ Tree_p Widget::rotate(Tree_p self, Real_p ra, Real_p rx, Real_p ry, Real_p rz)
 //    Rotation along an arbitrary axis
 // ----------------------------------------------------------------------------
 {
-    if(! layout->hasTransform)
+    if (!layout->hasTransform)
     {
         layout->model.Rotate(ra, rx, ry, rz);
     }
@@ -5800,7 +5801,7 @@ Tree_p Widget::translate(Tree_p self, Real_p tx, Real_p ty, Real_p tz)
 //     Translation along three axes
 // ----------------------------------------------------------------------------
 {
-    if(! layout->hasTransform)
+    if (!layout->hasTransform)
     {
         // Update the current model translation
         layout->model.Translate(tx, ty, tz);
@@ -5843,7 +5844,7 @@ Tree_p Widget::rescale(Tree_p self, Real_p sx, Real_p sy, Real_p sz)
 //     Scaling along three axes
 // ----------------------------------------------------------------------------
 {
-    if(! layout->hasTransform)
+    if (!layout->hasTransform)
     {
         // Update the current model scaling
         layout->model.Scale(sx, sy, sz);
@@ -7167,7 +7168,7 @@ Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
     CHECK_0_1_RANGE(b);
     CHECK_0_1_RANGE(a);
 
-    if(! gradient)
+    if (!gradient)
     {
         Ooops("No gradient defined $1", self);
         return 0;
@@ -7185,7 +7186,7 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > GL.MaxTextureUnits())
+    if (texUnit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
@@ -7204,7 +7205,7 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
 //     Build a GL texture out of an id
 // ----------------------------------------------------------------------------
 {
-    if((! glIsTexture(texId)) && (texId != 0))
+    if ((!glIsTexture(texId)) && (texId != 0))
     {
         Ooops("Invalid texture id $1", self);
         return 0;
@@ -7574,7 +7575,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     uint texUnit = layout->currentTexture.unit;
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
-    if(texUnit >= GL.MaxTextureCoords())
+    if (texUnit >= GL.MaxTextureCoords())
     {
         Ooops("Invalid texture unit to transform $1", self);
         return XL::xl_false;
@@ -7646,14 +7647,14 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
 //   Return the texture id set at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(unit > GL.MaxTextureUnits())
+    if (unit > GL.MaxTextureUnits())
     {
         Ooops("Invalid texture unit $1", self);
         return 0;
     }
 
     uint hasTexture = layout->textureUnits & (1 << unit);
-    if(hasTexture)
+    if (hasTexture)
         return XL::xl_true;
 
     return XL::xl_false;
@@ -7713,7 +7714,7 @@ Tree_p Widget::lightId(Tree_p self, GLuint id, bool enable)
 //   Select and enable or disable a light
 // ----------------------------------------------------------------------------
 {
-    if(enable)
+    if (enable)
         layout->currentLights |= 1 << id;
     else
         layout->currentLights ^= 1 << id;
@@ -7865,7 +7866,7 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
     QDir::setCurrent(taoWindow()->currentProjectFolderPath());
     bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
                                                             +file);
-    if(! ok)
+    if (!ok)
     {
         Ooops("Unable to open file in $1", self);
         return XL::xl_false;
@@ -8028,7 +8029,7 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
     }
 
     uint maxVertices = currentShaderProgram->maxGeometryOutputVertices();
-    if(outputCount < maxVertices)
+    if (outputCount < maxVertices)
         currentShaderProgram->setGeometryOutputVertexCount(outputCount);
     else
         currentShaderProgram->setGeometryOutputVertexCount(maxVertices);
@@ -8645,10 +8646,10 @@ struct ImagePacker : XL::Action
 
 
 Integer* Widget::picturePacker(Tree_p self,
-                                 uint tw, uint th,
-                                 uint iw, uint ih,
-                                 uint pw, uint ph,
-                                 Tree_p t)
+                               uint tw, uint th,
+                               uint iw, uint ih,
+                               uint pw, uint ph,
+                               Tree_p t)
 // ----------------------------------------------------------------------------
 //   Debug the bin packer
 // ----------------------------------------------------------------------------
@@ -8838,7 +8839,8 @@ void Widget::updateCursor(Text_p t)
 //   Update the cursor with the current layout info and text.
 // ----------------------------------------------------------------------------
 {
-    if (! editCursor) return;
+    if (!editCursor)
+        return;
 
     QTextBlockFormat copyBF = editCursor->blockFormat();
     QTextCharFormat copyCF = editCursor->charFormat();
@@ -8853,79 +8855,94 @@ void Widget::updateCursor(Text_p t)
         editCursor->insertText(+t->value);
 }
 
-Tree_p  Widget::textBox(Tree_p self, text flowName,
-                        Real_p x, Real_p y, Real_p w, Real_p h)
+
+Tree_p  Widget::textBox(Context *context, Tree_p self,
+                        Real_p x, Real_p y, Real_p w, Real_p h,
+                        Tree_p body)
 // ----------------------------------------------------------------------------
-//   Create a new page layout and render text in it
+//   Create a new text box and render the given flow into it
 // ----------------------------------------------------------------------------
 {
-    if (flows.count(flowName) == 0)
-        return XL::xl_false;
-
-    TextFlow *flow = flows[flowName];
-    this->currentFlowName = flowName;
-    PageLayout *tbox = new PageLayout(this, flow);
-    tbox->space = Box3(x - w/2, y-h/2, 0, w, h, 0);
+    ADJUST_CONTEXT_FOR_INTERPRETER(context);
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box(x - w/2, y-h/2, w, h);
+    tbox->id = shapeId();
+    tbox->body = body;
+    tbox->ctx = context;
     layout->Add(tbox);
+    layout->lastRefresh = CurrentTime();
 
     if (currentShape)
     {
-        flow->textBoxIds.insert(layout->id);
         tbox->selectId = layout->id;
         layout->Add(new ControlRectangle(currentShape, x, y, w, h));
     }
 
-    return XL::xl_true;
+    XL::Save<Layout *> save(layout, tbox);
+    Tree_p result = context->Evaluate(body);
+    return result;
 }
 
 
 Tree_p Widget::textFlow(Context *context, Tree_p self,
                         Text_p flowName, Tree_p prog)
 // ----------------------------------------------------------------------------
-//   Overflow text box for the rest of the current text flow
+//   Define the contents of a text flow, or add to an existing one
 // ----------------------------------------------------------------------------
 {
-    // Creation du PageJustifier
-    // Enregistrement du flow
-    // Evaluation du prog
-    Context *currentContext = context;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
 
-    text computedFlowName = flowName;
-    if (flows.count(computedFlowName))
-    {
-        QString toto = +computedFlowName;
-        QRegExp reg("_(\\d+)$");
-        uint i = 0;
-        int id = 0;
-        if ((id = toto.indexOf(reg)) != -1)
-        {
-            i = reg.cap(1).toInt();
-            if (i>flows.size())
-                i = flows.size();
-            toto.truncate(id);
-        }
-        while (flows.count(computedFlowName) != 0)
-            computedFlowName = +QString("%1_%2").arg(toto).arg(++i);
-        flowName->value = computedFlowName;
-    }
-    currentFlowName = computedFlowName;
-    TextFlow *flow = new TextFlow(layout, computedFlowName);
+    currentFlowName = flowName;
+    TextFlow *existing = flows[currentFlowName];
+    Layout *parent = existing ? existing : layout;
+
+    TextFlow *flow = new TextFlow(parent, currentFlowName);
     flow->id = shapeId();
     flow->body = prog;
     flow->ctx = context;
-    flows[computedFlowName] = flow;
+    if (!existing)
+        flows[currentFlowName] = flow;
 
     layout->Add(flow);
     XL::Save<Layout *> save(layout, flow);
+    Tree_p result = context->Evaluate(prog);
+    flow->lastRefresh = CurrentTime();
 
-    Tree_p result = currentContext->Evaluate(prog);
-    layout->lastRefresh = CurrentTime();
-    flow->resetIterator();
-    // Protection agains recursive call of textFlow with same flowname.
-    currentFlowName = computedFlowName;
-    flowName->value = computedFlowName;
     return result;
+}
+
+
+Tree_p Widget::textFlow(Context *context, Tree_p self, Text_p name)
+// ----------------------------------------------------------------------------
+//   Replay the reminder of an existing text flow in the current layout
+// ----------------------------------------------------------------------------
+{
+    if (flows.count(name) == 0)
+        return XL::xl_false;
+
+    TextFlowReplay *replay = new TextFlowReplay(name);
+    layout->Add(replay);
+    return XL::xl_true;
+}
+
+
+Text_p Widget::textFlow(Context *context, Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return the name of the current text flow
+// ----------------------------------------------------------------------------
+{
+    return new XL::Text(currentFlowName, "\"", "\"", self->Position());
+}
+
+
+Name_p Widget:: textFlowExists(Context *context, Tree_p self, Text_p name)
+// ----------------------------------------------------------------------------
+//   Return true if the given text flow has been created
+// ----------------------------------------------------------------------------
+{
+    if (flows.count(name->value))
+        return XL::xl_true;
+    return XL::xl_false;
 }
 
 
@@ -8936,19 +8953,15 @@ Tree_p Widget::textSpan(Context *context, Tree_p self, Tree_p child)
 {
     // To be preserved:
     // Font, color, line_color, texture, alignement, linewidth, rotation, scale
-    TextFlow *flow = flows[currentFlowName];
-    BlockLayout *childLayout = new BlockLayout(flow);
+    TextSpan *childLayout = new TextSpan(layout);
     childLayout->body = child;
     childLayout->ctx = context;
     layout->Add(childLayout);
-    Tree_p result;
-    {
-        XL::Save<Layout *> saveLayout(layout, childLayout);
-        result = context->Evaluate(child);
-        layout->lastRefresh = CurrentTime();
-    }
-    childLayout->Revert()->Draw(flow);
-    layout->Add(childLayout->Revert());
+
+    XL::Save<Layout *> saveLayout(layout, childLayout);
+    Tree_p result = context->Evaluate(child);
+    layout->lastRefresh = CurrentTime();
+
     return result;
 }
 
@@ -9082,22 +9095,6 @@ Tree_p Widget::fontSize(Tree_p self, double size)
 }
 
 
-Tree_p Widget::fontScaling(Tree_p self, double scaling, double minAASize)
-// ----------------------------------------------------------------------------
-//   Change the font scaling factor
-// ----------------------------------------------------------------------------
-{
-    if (glyphCache.fontScaling != scaling ||
-        glyphCache.minFontSizeForAntialiasing != minAASize)
-    {
-        glyphCache.Clear();
-        glyphCache.fontScaling = scaling;
-        glyphCache.minFontSizeForAntialiasing = minAASize;
-    }
-    return XL::xl_true;
-}
-
-
 Tree_p Widget::fontPlain(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Select whether this is italic or not
@@ -9216,8 +9213,6 @@ static inline JustificationChange::Axis jaxis(uint a)
 }
 
 
-
-
 Tree_p Widget::align(Tree_p self, scale center, scale justify, scale spread,
                      scale fullJustify, uint axis)
 // ----------------------------------------------------------------------------
@@ -9272,7 +9267,7 @@ Tree_p Widget::verticalMargins(Tree_p self, coord top, coord bottom)
 }
 
 
-Tree_p Widget::drawingBreak(Tree_p self, Drawing::BreakOrder order)
+Tree_p Widget::drawingBreak(Tree_p self, BreakOrder order)
 // ----------------------------------------------------------------------------
 //   Change the spacing along the given axis
 // ----------------------------------------------------------------------------
@@ -9477,6 +9472,46 @@ Name_p Widget::enableGlyphCache(Tree_p self, bool enable)
 }
 
 
+Tree_p Widget::glyphCacheSizeRange(Tree_p self, double min, double max)
+// ----------------------------------------------------------------------------
+//   Change the font scaling in the glyph cache
+// ----------------------------------------------------------------------------
+{
+    glyphCache.minFontSize = min;
+    glyphCache.maxFontSize = max;
+    return XL::xl_true;
+}
+
+
+Tree_p Widget::glyphCacheScaling(Tree_p self, double scaling, double minAASize)
+// ----------------------------------------------------------------------------
+//   Change the font scaling in the glyph cache
+// ----------------------------------------------------------------------------
+{
+    if (glyphCache.fontScaling != scaling ||
+        glyphCache.minFontSizeForAntialiasing != minAASize)
+    {
+        glyphCache.Clear();
+        glyphCache.fontScaling = scaling;
+        glyphCache.minFontSizeForAntialiasing = minAASize;
+        return XL::xl_true;
+    }
+    return XL::xl_false;
+}
+
+
+Integer_p Widget::glyphCacheTexture(Tree_p self)
+// ----------------------------------------------------------------------------
+//   Return a texture corresponding to the glyph cache contents
+// ----------------------------------------------------------------------------
+{
+    uint textureID = glyphCache.Texture();
+    layout->Add(new FillTexture(textureID, GL_TEXTURE_RECTANGLE_ARB));
+    layout->hasAttributes = true;
+    return new Integer(textureID, self->Position());
+}
+
+
 Text_p Widget::unicodeChar(Tree_p self, int code)
 // ----------------------------------------------------------------------------
 //    Return the character with the specified Unicode code point
@@ -9582,20 +9617,17 @@ Tree_p Widget::tableCell(Context *context, Tree_p self,
 {
     if (!table)
         return Ooops("Table cell '$1' outside of any table", self);
-    if (!body->Symbols())
-        body->SetSymbols(self->Symbols());
 
     // Define a new text layout
-    text cellName = "defaultTableCell";
-    int i = flows.size();
-    while (flows.count(cellName) != 0)
-        cellName = +QString("defaultTableCell_%1").arg(++i);
-    XL::Text * cell = new XL::Text(cellName);
-    Tree_p result = textFlow(context, self,cell , body);
-    TextFlow *flow = flows[cellName];
-    PageLayout *tbox = new PageLayout(this, flow);
-    tbox->space = Box3(0, 0, 0, w, h, 0);
+    PageLayout *tbox = new PageLayout(this);
+    tbox->space = Box(0, 0, w, h);
     table->Add(tbox);
+
+    tbox->body = body;
+    tbox->ctx = context;
+
+    XL::Save<Layout *> save(layout, tbox);
+    Tree_p result = context->Evaluate(body);
 
     table->NextCell();
     return result;
@@ -9825,12 +9857,14 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     glPushAttrib(GL_ALL_ATTRIB_BITS);
 
     Tree_p result = XL::xl_false;
-    if (w < 16) w = 16;
-    if (h < 16) h = 16;
-
+    GLuint maxTextureSize = GL.MaxTextureSize();
+    if (w < 1) w = 1;
+    if (h < 1) h = 1;
+    if (w > maxTextureSize) w = maxTextureSize;
+    if (h > maxTextureSize) h = maxTextureSize;
 
     FrameInfo *pFrame;
-    if(name != "")
+    if (name != "")
     {
         // Get or build the current frame if we don't have one
         MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
@@ -10356,7 +10390,7 @@ Tree_p Widget::urlPaint(Tree_p self,
 // ----------------------------------------------------------------------------
 {
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
-    if (! urlTexture(self, w, h, url, progress))
+    if (!urlTexture(self, w, h, url, progress))
         return XL::xl_false;
 
     WebViewSurface *surface = self->GetInfo<WebViewSurface>();
@@ -10948,7 +10982,7 @@ void Widget::fileChosen(const QString & filename)
 //   Slot called by the filechooser widget when a file is selected
 // ----------------------------------------------------------------------------
 {
-    if(!currentFileDialog)
+    if (!currentFileDialog)
         return;
 
     XL::Tree_p fileAction =
@@ -11453,16 +11487,12 @@ Name_p Widget::currentRepository(Tree_p self)
 
 Tree_p Widget::closeCurrentDocument(Tree_p self)
 // ----------------------------------------------------------------------------
-//   Close the current document window
+//   Close the current document
 // ----------------------------------------------------------------------------
 {
     Window *window = taoWindow();
-    // Make sure we are not full screen, because closing window saves the
-    // current geometry
-    window->switchToFullScreen(false);
-    if (window->close())
-        return XL::xl_true;
-    return XL::xl_false;
+    QTimer::singleShot(0, window, SLOT(closeDocument()));
+    return XL::xl_true;
 }
 
 
@@ -11593,7 +11623,7 @@ void Widget::checkErrors(bool clear)
 //   modified at each execution. At each loop, for each element (menu,
 //   menu_item, toolbar,...) there name is looked for as a main window children,
 //   if found, the order is checked against the registered value in
-//   orderedMenuElements. If the order is OK, the label, etc are updated; if not
+//   menuItems. If the order is OK, the label, etc are updated; if not
 //   or not found at all a new element is created and registered.
 // ============================================================================
 
@@ -11603,6 +11633,9 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
 //   Create a menu item
 // ----------------------------------------------------------------------------
 {
+    // Do not update menus during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -11611,9 +11644,9 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     if (QAction* act = taoWindow()->findChild<QAction*>(fullName))
     {
         // MenuItem found, update label, icon, checkmark if the order is OK.
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullName)
+        if (menuCount < menuItems.size() &&
+            menuItems[menuCount] != NULL &&
+            menuItems[menuCount]->fullname == fullName)
         {
             act->setText(+lbl);
             if (iconFileName != "")
@@ -11622,7 +11655,7 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
                 act->setIcon(QIcon());
             act->setChecked(strcasecmp(isChecked->value.c_str(), "true") == 0);
 
-            order++;
+            menuCount++;
             return XL::xl_true;
         }
 
@@ -11636,7 +11669,8 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     IFTRACE(menus)
     {
         std::cerr << "menuItem CREATION with name "
-                  << fullName.toStdString() << " and order " << order << "\n";
+                  << fullName.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
 
@@ -11671,18 +11705,18 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
     p_action->setChecked(strcasecmp(isChecked->value.c_str(), "true") == 0);
     p_action->setObjectName(fullName);
 
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
-    if (orderedMenuElements[order])
+    if (menuItems[menuCount])
     {
-        QAction*before = orderedMenuElements[order]->p_action;
+        QAction*before = menuItems[menuCount]->p_action;
         if (currentMenu)
             currentMenu->insertAction(before, p_action);
         else
             currentToolBar->insertAction(before, p_action);
 
-        delete orderedMenuElements[order];
+        delete menuItems[menuCount];
     }
     else
     {
@@ -11692,9 +11726,8 @@ Tree_p Widget::menuItem(Tree_p self, text name, text lbl, text iconFileName,
             currentToolBar->addAction(p_action);
     }
 
-    orderedMenuElements[order] = new MenuInfo(fullName,
-                                              p_action);
-    order++;
+    menuItems[menuCount] = new MenuInfo(fullName, p_action);
+    menuCount++;
 
     return XL::xl_true;
 }
@@ -11706,6 +11739,10 @@ Tree_p  Widget::menuItemEnable(Tree_p self, text name, bool enable)
 //  Enable or disable a menu item
 // ----------------------------------------------------------------------------
 {
+    // Do not update menus during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
     if (!currentMenu && !currentToolBar)
         return XL::xl_false;
 
@@ -11727,6 +11764,10 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
 // Add the menu to the current menu bar or create the contextual menu
 // ----------------------------------------------------------------------------
 {
+    // Do not update menus during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
     bool isContextMenu = false;
 
     // Build the full name of the menu
@@ -11737,7 +11778,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
         isContextMenu = true;
     }
 
-    // If the menu is registered, no need to recreate it if the order is exact.
+    // If the menu is registered, no need to recreate it if same order as before
     // This is used at reload time.
     if (QMenu *tmp = taoWindow()->findChild<QMenu*>(fullname))
     {
@@ -11748,9 +11789,9 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
             return XL::xl_true;
         }
 
-        if (order < orderedMenuElements.size())
+        if (menuCount < menuItems.size())
         {
-            if (MenuInfo *menuInfo = orderedMenuElements[order])
+            if (MenuInfo *menuInfo = menuItems[menuCount])
             {
                 if (menuInfo->fullname == fullname)
                 {
@@ -11769,7 +11810,7 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
                             currentMenu->setIcon(QIcon());
                         menuInfo->icon = iconFileName;
                     }
-                    order++;
+                    menuCount++;
                     return XL::xl_true;
                 }
             }
@@ -11803,15 +11844,15 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
     if (iconFileName != "")
         currentMenu->setIcon(QIcon(+iconFileName));
 
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
     if (par)
     {
         QAction *before = NULL;
-        if (orderedMenuElements[order])
+        if (menuItems[menuCount])
         {
-            before = orderedMenuElements[order]->p_action;
+            before = menuItems[menuCount]->p_action;
         }
         else
         {
@@ -11833,22 +11874,22 @@ Tree_p Widget::menu(Tree_p self, text name, text lbl,
             button->setPopupMode(QToolButton::InstantPopup);
     }
 
-    if (orderedMenuElements[order])
-        delete orderedMenuElements[order];
+    if (menuItems[menuCount])
+        delete menuItems[menuCount];
 
-    orderedMenuElements[order] = new MenuInfo(fullname,
-                                              currentMenu->menuAction());
-    orderedMenuElements[order]->title = lbl;
-    orderedMenuElements[order]->icon = iconFileName;
+    menuItems[menuCount] = new MenuInfo(fullname, currentMenu->menuAction());
+    menuItems[menuCount]->title = lbl;
+    menuItems[menuCount]->icon = iconFileName;
 
     IFTRACE(menus)
     {
         std::cerr << "menu CREATION with name "
-                  << fullname.toStdString() << " and order " << order << "\n";
+                  << fullname.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
 
-    order++;
+    menuCount++;
 
     return XL::xl_true;
 }
@@ -11874,17 +11915,21 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
 // The location is the prefered location for the toolbar.
 // The supported values are [n|N]*, [e|E]*, [s|S]*, West or N, E, S, W, O
 {
+    // Do not update toolbars during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
     QString fullname = +name;
     Window *win = taoWindow();
     if (QToolBar *tmp = win->findChild<QToolBar*>(fullname))
     {
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (menuCount < menuItems.size() &&
+            menuItems[menuCount] != NULL &&
+            menuItems[menuCount]->fullname == fullname)
         {
             // Set the currentMenu and update the label and icon.
             currentToolBar = tmp;
-            order++;
+            menuCount++;
             currentMenuBar = NULL;
             currentMenu = NULL;
             return XL::xl_true;
@@ -11932,19 +11977,20 @@ Tree_p  Widget::toolBar(Tree_p self, text name, text title, bool isFloatable,
     IFTRACE(menus)
     {
         std::cerr << "toolbar CREATION with name "
-                  << fullname.toStdString() << " and order " << order << "\n";
+                  << fullname.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
 
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
-    if (orderedMenuElements[order])
-        delete orderedMenuElements[order];
+    if (menuItems[menuCount])
+        delete menuItems[menuCount];
 
-    orderedMenuElements[order] = new MenuInfo(fullname, currentToolBar);
+    menuItems[menuCount] = new MenuInfo(fullname, currentToolBar);
 
-    order++;
+    menuCount++;
     currentMenuBar = NULL;
     currentMenu = NULL;
 
@@ -11957,22 +12003,19 @@ Tree_p  Widget::separator(Tree_p self)
 //   Add the separator to the current widget
 // ----------------------------------------------------------------------------
 {
-    QString fullname = QString("SEPARATOR_%1").arg(order);
+    // Do not update toolbars during transitions
+    if (menuCount < 0)
+        return XL::xl_false;
+
+    QString fullname = QString("SEPARATOR_%1").arg(menuCount);
 
     if (QAction *tmp = taoWindow()->findChild<QAction*>(fullname))
     {
-        if (order < orderedMenuElements.size() &&
-            orderedMenuElements[order] != NULL &&
-            orderedMenuElements[order]->fullname == fullname)
+        if (menuCount < menuItems.size() &&
+            menuItems[menuCount] != NULL &&
+            menuItems[menuCount]->fullname == fullname)
         {
-//            IFTRACE(menus)
-//            {
-//                std::cerr << "separator found with name "
-//                          << fullname.toStdString() << " and order "
-//                          << order << "\n";
-//                std::cerr.flush();
-//            }
-            order++;
+            menuCount++;
             return XL::xl_true;
         }
 
@@ -11994,28 +12037,29 @@ Tree_p  Widget::separator(Tree_p self)
     IFTRACE(menus)
     {
         std::cerr << "separator CREATION with name "
-                  << fullname.toStdString() << " and order " << order << "\n";
+                  << fullname.toStdString()
+                  << " at index " << menuCount << "\n";
         std::cerr.flush();
     }
-    if (order >= orderedMenuElements.size())
-        orderedMenuElements.resize(order+10);
+    if (menuCount >= menuItems.size())
+        menuItems.resize(menuCount+10);
 
-    if (orderedMenuElements[order])
+    if (menuItems[menuCount])
     {
         if (par)
         {
-            QAction *before = orderedMenuElements[order]->p_action;
+            QAction *before = menuItems[menuCount]->p_action;
             par->insertAction(before, act);
         }
-        delete orderedMenuElements[order];
+        delete menuItems[menuCount];
     }
     else
     {
         if (par)
             par->addAction(act);
     }
-    orderedMenuElements[order] = new MenuInfo(fullname, act);
-    order++;
+    menuItems[menuCount] = new MenuInfo(fullname, act);
+    menuCount++;
     return XL::xl_true;
 }
 
@@ -12521,6 +12565,28 @@ Name_p Widget::taoFeatureAvailable(Tree_p self, Name_p name)
     if (name->value == "git")
         return XL::xl_false;
 #endif
+
+    if (name->value == "mac")
+#ifdef CONFIG_MACOSX
+        return XL::xl_true;
+#else
+        return XL::xl_false;
+#endif
+
+    if (name->value == "linux")
+#ifdef CONFIG_LINUX
+        return XL::xl_true;
+#else
+        return XL::xl_false;
+#endif
+
+    if (name->value == "windows")
+#ifdef CONFIG_MINGW
+        return XL::xl_true;
+#else
+        return XL::xl_false;
+#endif
+
     return XL::xl_true;
 }
 

@@ -973,8 +973,8 @@ import "xl:mes_définitions.xl"
  * Tao Presentations uses the following components:
  *
  *   - <b>Qt</b>: Qt is a C++ toolkit for cross-platform application
- *   development. Qt is a Nokia product. See
- *   <a href="http://qt.nokia.com/">qt.nokia.com</a> for more information.
+ *   development. Qt is an open source project. See
+ *   <a href="http://qt-project.org/">qt-project.org</a> for more information.
  *   - <b>LLVM</b>: The LLVM Project is a collection of modular and reusable
  *   compiler and toolchain technologies. See
  *   <a href="http://llvm.org/">llvm.org</a> for more information.
@@ -982,11 +982,11 @@ import "xl:mes_définitions.xl"
  *   rewrites. See <a href="http://xlr.sf.net/">xlr.sf.net</a> for more
  *   information.
  *   - <b>Qt Solutions</b>: Tao Presentations contains portions of
- *   the Qt Solutions component by Nokia. These portions are subject to the
+ *   the Qt Solutions component. These portions are subject to the
  *   following licensing terms:
  * @verbinclude "QtSolutionsLicense.txt"
  *   - <b>Qt Assistant</b>: The Tao Presentations Help application is derived
- *   from the Qt Assistant of the Qt Toolkit by Nokia. This
+ *   from the Qt Assistant of the Qt Toolkit. This
  *   application is covered by the GNU General Public License version 3.0.
  *   The source code is published as a Gitorious project:
  *   <a href="http://gitorious.org/taodyne-open-source/tao_help_viewer">
@@ -997,8 +997,8 @@ import "xl:mes_définitions.xl"
  * Tao Presentations utilise les composants suivants :
  *
  *   - <b>Qt</b>: Qt est une boîte à outils C++ pour le développement
- *   d'applications multi-plateformes. Qt est un produit de Nokia. Cf.
- *   <a href="http://qt.nokia.com/">qt.nokia.com</a> pour plus d'informations.
+ *   d'applications multi-plateformes. Qt est un logiciel open source. Cf.
+ *   <a href="http://qt-project.org/">qt-project.org</a> pour plus d'informations.
  *   - <b>LLVM</b>: Le projet LLVM est un ensemble de technologies de
  *   compilation et d'outils modulaires et réutilisables. Cf.
  *   <a href="http://llvm.org/">llvm.org</a> pour plus d'informations.
@@ -1006,12 +1006,12 @@ import "xl:mes_définitions.xl"
  *   réécritures d'arbres. Cf. <a href="http://xlr.sf.net/">xlr.sf.net</a>
  *   pour plus d'informations.
  *   - <b>Qt Solutions</b>: Tao Presentations contient des portions du
- *   composant Qt Solutions de Nokia. Ces portions sont soumises à la license
+ *   composant Qt Solutions. Ces portions sont soumises à la license
  *   suivante :
  * @verbinclude "QtSolutionsLicense.txt"
  *   - <b>Qt Assistant</b>: L'application d'aide de Tao Presentations est
- *   dérivée de <em>Qt Assistant</em> qui fait partie du <em>Qt Toolkit</em>
- *   de Nokia. Cette application est soumise à la <em>GNU General Public
+ *   dérivée de <em>Qt Assistant</em> qui fait partie du <em>Qt Toolkit</em>.
+ *   Cette application est soumise à la <em>GNU General Public
  *   License</em> version 3.0. Le code source est publié sous le projet Gitorious :
  *   <a href="http://gitorious.org/taodyne-open-source/tao_help_viewer">
  *   http://gitorious.org/taodyne-open-source/tao_help_viewer</a>.

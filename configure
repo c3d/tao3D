@@ -69,7 +69,7 @@ usage() {
   echo "QMake options:"
   echo ""
   echo "  Any other option is passed unmodified to Qmake, after the options added by"
-  echo "  this configure script."
+  echo "  this configure script. Many Tao build options are documented in main.pro."
   echo ""
   echo "Examples:"
   echo ""
@@ -123,7 +123,7 @@ while [ $# -ne 0 ] ; do
       shift
       ;;
     --disable-doc)
-      FLAGS="$FLAGS DISABLE_DOC=1"
+      FLAGS="$FLAGS NO_DOC=1"
       shift
       ;;
     --with-eula)

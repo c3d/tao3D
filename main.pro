@@ -82,6 +82,16 @@
 #   templates=none +my_template
 #     Select which templates to install. Similar to 'modules' above.
 #
+#   NO_SDK=1
+#     Do not include the module SDK in the package.
+#   NO_DOC=1
+#     Do not build online documentation.
+#   NO_HELP_VIEWER=1
+#     Do not build the help viewer application (the Help/Documentation menu is
+#     suppressed at run time when the viewer is not there).
+#   NO_WELCOME=1
+#     Include a minimalistic welcome screen.
+#
 # 2. To build:
 #
 #   $ make             # build everything
@@ -99,9 +109,15 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen crypt help_viewer
+           packaging libcryptopp keygen crypt
 
 win32:SUBDIRS += detach
+
+isEmpty(NO_HELP_VIEWER) {
+  SUBDIRS += help_viewer
+} else {
+  !build_pass:message(Will not build help viewer application.)
+}
 
 tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp tao
@@ -138,5 +154,5 @@ QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 
 # Display configuration info
 !build_pass {
-  !isEmpty(DISABLE_DOC):message(Documentation is disabled.)
+  !isEmpty(NO_DOC):message(Documentation is disabled.)
 }

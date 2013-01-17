@@ -80,7 +80,6 @@ HEADERS +=     activity.h \
     font_file_manager.h \
     frame.h \
     gc_thread.h \
-    git_backend.h \
     gl_keepers.h \
     glyph_cache.h \
     group_layout.h \
@@ -161,7 +160,6 @@ SOURCES +=     activity.cpp \
     font_file_manager.cpp \
     frame.cpp \
     gc_thread.cpp \
-    git_backend.cpp \
     gl_keepers.cpp \
     glyph_cache.cpp \
     group_layout.cpp \
@@ -296,6 +294,12 @@ contains(DEFINES, CFG_NONETWORK) {
     FORMS += \
         open_uri_dialog.ui
 }
+contains(DEFINES, CFG_NOGIT):contains(DEFINES,CFG_NONETWORK) {
+   # Nothing
+} else {
+    HEADERS += git_backend.h
+    SOURCES += git_backend.cpp
+}
 contains(DEFINES, CFG_NOSTEREO) {
     !build_pass:message("Stereoscopic display support is disabled")
 }
@@ -389,7 +393,8 @@ OTHER_FILES +=  \
     html/module_info_dialog.html \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
-    welcome/welcome.ddd
+    welcome/welcome.ddd \
+    welcome/lite/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     inspectordialog.ui \
@@ -440,12 +445,18 @@ xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
 
 welcome.path  = $$APPINST/welcome
-welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+isEmpty(NO_WELCOME) {
+  welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+} else {
+  !build_pass:message([NO_WELCOME] Welcome screen is disabled.)
+  welcome.files = no_welcome/welcome.ddd
+}
 INSTALLS += welcome
 
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
-fonts.files = fonts/*
+fonts.files = fonts/*.ttf fonts/README
+!contains(DEFINES, CFG_NOSRCEDIT):fonts.files += fonts/unifont/unifont-5.1.20080907.ttf
 INSTALLS    += xl_files fonts
 macx {
   # Workaround install problem: on Mac, the standard way of installing (the 'else'

@@ -451,7 +451,8 @@ INSTALLS += welcome
 
 CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
 fonts.path  = $$APPINST/fonts
-fonts.files = fonts/*
+fonts.files = fonts/*.ttf fonts/README
+!contains(DEFINES, CFG_NOSRCEDIT):fonts.files += fonts/unifont/unifont-5.1.20080907.ttf
 INSTALLS    += xl_files fonts
 macx {
   # Workaround install problem: on Mac, the standard way of installing (the 'else'

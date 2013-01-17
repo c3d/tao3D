@@ -46,6 +46,8 @@ doo cp -r "${LIBDIR_QT}"/../plugins/* build_root/
 # Uncompress Git distribution into build_root/
 #
 
+if [ -z "$PACKAGE_NOGIT" ] ; then
+
 GITKIT=PortableGit-1.7.8-preview20111206.7z
 GITURL=http://msysgit.googlecode.com/files/$GITKIT
 function git_file_ok() {
@@ -127,3 +129,4 @@ lib/reg1.2
 lib/dde1.3
 _EOF_
 )
+fi # -z $PACKAGE_NOGIT

@@ -80,7 +80,6 @@ HEADERS +=     activity.h \
     font_file_manager.h \
     frame.h \
     gc_thread.h \
-    git_backend.h \
     gl_keepers.h \
     glyph_cache.h \
     group_layout.h \
@@ -161,7 +160,6 @@ SOURCES +=     activity.cpp \
     font_file_manager.cpp \
     frame.cpp \
     gc_thread.cpp \
-    git_backend.cpp \
     gl_keepers.cpp \
     glyph_cache.cpp \
     group_layout.cpp \
@@ -295,6 +293,12 @@ contains(DEFINES, CFG_NONETWORK) {
         uri.cpp
     FORMS += \
         open_uri_dialog.ui
+}
+contains(DEFINES, CFG_NOGIT):contains(DEFINES,CFG_NONETWORK) {
+   # Nothing
+} else {
+    HEADERS += git_backend.h
+    SOURCES += git_backend.cpp
 }
 contains(DEFINES, CFG_NOSTEREO) {
     !build_pass:message("Stereoscopic display support is disabled")

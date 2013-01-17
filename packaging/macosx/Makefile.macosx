@@ -15,8 +15,9 @@
 #   - run "make install" at the top level of the Tao project
 #   - copy the installation directory under ./build_root
 #   - run deployqt on ./build_root to import Qt frameworks
-#   - download and build git under ./git_build
-#   - install git under ./build_root
+#   - if Git is needed:
+#     - download and build git under ./git_build
+#     - install git under ./build_root
 #   - create the DMG from ./buid_root
 #
 # HOW TO CHANGE THE APPEARANCE OF THE DISK IMAGE IN FINDER
@@ -50,11 +51,13 @@
 #   make clean      # Won't remove Git source package
 #   make veryclean  # Will remove Git source
 
-GIT_VERSION=1.7.12.1
-
 ########
 
 include Makefile.config
+
+ifndef PACKAGE_NOGIT
+
+GIT_VERSION=1.7.12.1
 
 # Warning: GIT_DESTDIR can't contain spaces
 GIT_DESTDIR=$(shell pwd)/git_build/install
@@ -63,6 +66,12 @@ define git-makeparms
 NO_DARWIN_PORTS=1 NO_GETTEXT=1 NO_INSTALL_HARDLINKS=1 \
 NO_PERL=1 NO_PYTHON=1 NO_TCLTK=1 prefix=/usr/local DESTDIR=$(GIT_DESTDIR)
 endef
+
+MAYBE_GIT_INSTALL   = .git_install_ts
+MAYBE_GIT_CLEAN     = clean.git
+MAYBE_GIT_VERYCLEAN = veryclean.git
+
+endif
 
 ifdef TAO_EDITION
 EDSTR=$(TAO_EDITION) # ends with one space - do not remove this comment!
@@ -81,7 +90,7 @@ tao.dmg .dmg_ts: tmp.dmg
 	mv tao.dmg "$(DMG)"
 	touch .dmg_ts
 
-prepare: .tao_install_ts .git_install_ts .cp_template_ts .cp_sdk_ts
+prepare: .tao_install_ts $(MAYBE_GIT_INSTALL) .cp_template_ts .cp_sdk_ts
 
 # Note: blue arrow in DMG_image.{svg,png} is taken from http://www.clker.com/clipart-12263.html
 tmp.dmg: prepare
@@ -90,9 +99,9 @@ tmp.dmg: prepare
 	SetFile -a C "/Volumes/Tao Presentations"
 	hdiutil detach "/Volumes/Tao Presentations"
 
-clean: clean.git clean.tao clean.dmg clean.cp_sdk
+clean: $(MAYBE_GIT_CLEAN) clean.tao clean.dmg clean.cp_sdk
 
-veryclean: clean veryclean.git
+veryclean: clean $(MAYBE_GIT_VERYCLEAN)
 
 clean.dmg: clean.cp_template
 	rm -f tao.dmg tmp.dmg .dmg "Tao Presentations"*.dmg
@@ -155,6 +164,8 @@ clean.tao: clean.tao_install
 
 ########
 
+ifndef PACKAGE_NOGIT
+
 .git_install_ts: .git_build_ts
 	$(MAKE) -C git_build/git-$(GIT_VERSION) $(git-makeparms) install
 	rm -rf $(GIT_DEST) ; mkdir -p "$(GIT_DEST)"
@@ -200,3 +211,4 @@ clean.git: clean.git_extract clean.git_build clean.git_install
 
 veryclean.git: clean.git clean.git_download
 
+endif # !PACKAGE_NOGIT

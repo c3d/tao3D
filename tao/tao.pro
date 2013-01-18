@@ -28,8 +28,7 @@ INC = . \
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
-QT += webkit \
-    network \
+QT += network \
     opengl \
     svg
 CONFIG += help
@@ -341,6 +340,8 @@ contains(DEFINES, CFG_NO_NEW_FROM_TEMPLATE) {
 }
 contains(DEFINES, CFG_NO_QTWEBKIT) {
     !build_pass:message("[CFG_NO_QTWEBKIT] QtWebKit disabled: primitives url/url_texture will do nothing")
+} else {
+    QT += webkit
 }
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp

@@ -83,6 +83,9 @@
 #   templates=all -my_template
 #   templates=none +my_template
 #     Select which templates to install. Similar to 'modules' above.
+#     Note: templates installed by theme modules (modules/themes/*) cannot be
+#     selected with this variable. They can only be disabled altogether,
+#     when templates contains the word "none".
 #
 #   NO_SDK=1
 #     Do not include the module SDK in the package.

@@ -119,6 +119,7 @@ void FillTexture::Draw(Layout *where)
 {
     (void) where;
     GL.BindTexture(glType, glName);
+    GL.Enable(glType);
 }
 
 

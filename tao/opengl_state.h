@@ -355,14 +355,14 @@ struct OpenGLState : GraphicState
 // ----------------------------------------------------------------------------
 {
     OpenGLState();
-    virtual ~OpenGLState()  { if (current == this) current = NULL; }
+    virtual ~OpenGLState()              { if (current == this) current = NULL; }
 
     // Return the current graphic state (one per widget)
-    static OpenGLState *State()        { return current; }
+    static OpenGLState *State()         { return current; }
     void   MakeCurrent();
     void   Sync(uint64 which);
-    uint   VendorID()               { return vendorID; }
-    bool   IsATIOpenGL()            { return vendorID == ATI; }
+    uint   VendorID()                   { return vendorID; }
+    bool   IsATIOpenGL()                { return vendorID == ATI; }
 
     // Saving and restoring state
     virtual GraphicSave *       Save();
@@ -374,15 +374,15 @@ struct OpenGLState : GraphicState
     std::ostream & debug();
 
     // Return attributes of state
-    virtual uint   MaxTextureCoords()       { return maxTextureCoords; }
-    virtual uint   MaxTextureUnits()        { return maxTextureUnits; }
-    virtual uint   MaxTextureSize()         { return maxTextureSize; }
-    virtual text   Vendor()                 { return vendor; }
-    virtual text   Renderer()               { return renderer; }
-    virtual text   Version()                { return version; }
-    virtual coord* ModelViewMatrix()        { return mvMatrix.Data(false); }
-    virtual coord* ProjectionMatrix()       { return projMatrix.Data(false); }
-    virtual int*   Viewport()               { return (int *) &viewport.x; }
+    virtual uint   MaxTextureCoords()   { return maxTextureCoords; }
+    virtual uint   MaxTextureUnits()    { return maxTextureUnits; }
+    virtual uint   MaxTextureSize()     { return maxTextureSize; }
+    virtual text   Vendor()             { return vendor; }
+    virtual text   Renderer()           { return renderer; }
+    virtual text   Version()            { return version; }
+    virtual coord* ModelViewMatrix()    { return mvMatrix.Data(false); }
+    virtual coord* ProjectionMatrix()   { return projMatrix.Data(false); }
+    virtual int*   Viewport()           { return (int *) &viewport.x; }
     virtual void   Get(GLenum pname, GLboolean * params);
     virtual void   Get(GLenum pname, GLfloat * params);
     virtual void   Get(GLenum pname, GLint * params);

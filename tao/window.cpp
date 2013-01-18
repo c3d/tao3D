@@ -45,7 +45,9 @@
 #include "resource_mgt.h"
 #include "splash_screen.h"
 #include "uri.h"
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
 #include "new_document_wizard.h"
+#endif
 #include "preferences_dialog.h"
 #include "tool_window.h"
 #include "xl_source_edit.h"
@@ -364,6 +366,8 @@ void Window::toggleStereoIdent()
 }
 
 
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
+
 void Window::newDocument()
 // ----------------------------------------------------------------------------
 //   Create, save and open a new document from a wizard
@@ -377,6 +381,7 @@ void Window::newDocument()
         open(wizard.docPath);
 }
 
+#endif
 
 void Window::newFile()
 // ----------------------------------------------------------------------------
@@ -1554,12 +1559,14 @@ void Window::createActions()
 //   Create the various menus and icons on the toolbar
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     newDocAct = new Action(QIcon(":/images/new.png"),
                             tr("New from &Template Chooser..."), this);
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
     newDocAct->setIconVisibleInMenu(false);
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
+#endif
 
 #if 0 // Workaround for bug #928
     newAct = new Action(QIcon(":/images/new.png"), tr("&New"), this);
@@ -1823,7 +1830,9 @@ void Window::createMenus()
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
     // fileMenu->addAction(newAct);
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     fileMenu->addAction(newDocAct);
+#endif
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
 #ifndef CFG_NONETWORK
@@ -1905,6 +1914,7 @@ void Window::createMenus()
         helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     ExamplesMenu * themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
     ExamplesMenu * examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
 
@@ -1929,6 +1939,7 @@ void Window::createMenus()
             this, SLOT(openReadOnly(QString)));
     helpMenu->addMenu(themesMenu);
     helpMenu->addMenu(examplesMenu);
+#endif
 }
 
 

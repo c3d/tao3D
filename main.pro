@@ -60,6 +60,8 @@
 #   DEFINES+=CFG_WITH_EULA
 #     Show the End-User License Agreement on startup, if not already accepted
 #     for the current version.
+#   DEFINES+=CFG_NO_NEW_FROM_TEMPLATE
+#     Removes menus: File>New from Template..., Help>Themes and Help>Examples.
 #
 #   modules=none
 #     Do not build any Tao module

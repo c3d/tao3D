@@ -2183,7 +2183,7 @@ void TextureUnitState::Sync(TextureUnitState &ns, bool force)
 #undef SYNC_CAP
 
     // Check if there was a change in the texture bound to the unit
-    if (texture != ns.texture || target != ns.target)
+    if (force || texture != ns.texture || target != ns.target)
     {
         texture = ns.texture;
         target = ns.target;

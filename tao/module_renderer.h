@@ -66,10 +66,10 @@ struct ModuleRenderer : Drawing
     static bool     BindTexture(unsigned int id, unsigned int type);
     static void     BindTexture2D(unsigned int id, unsigned int width,
                                   unsigned int height);
-    static bool     EnableTexCoords(double* texCoord);
-    static bool     DisableTexCoords();
+    static bool     EnableTexCoords(double* texCoord, uint64 mask = ~0ULL);
+    static bool     DisableTexCoords(uint64 mask = ~0ULL);
     static uint     TextureUnit();
-    static uint     TextureUnits();
+    static uint64   TextureUnits();
     static void     SetTextureUnits(uint64 texUnits);
     static bool     HasTexture(uint texUnit);
     static bool     SetShader(int id);

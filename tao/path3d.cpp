@@ -426,7 +426,7 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
 
     if (setFillColor(where))
     {
-        Draw(where->offset, where->textureUnits, GL_POLYGON, tessel);
+        Draw(where->offset, GL.ActiveTextureUnits(), GL_POLYGON, tessel);
     }
     if (setLineColor(where))
     {
@@ -604,12 +604,13 @@ void GraphicPath::Draw(Layout *where, GLenum tessel)
             {
                 addEndpointToPath(endStyle, endPoint, endHeading, outline);
             }
-            outline.Draw(where->offset, where->textureUnits, GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
+            outline.Draw(where->offset, GL.ActiveTextureUnits(),
+                         GL_POLYGON, GLU_TESS_WINDING_POSITIVE);
         }
         else
         {
             // Path is not flat: use GL lines (temporarily)
-            Draw(where->offset, where->textureUnits, GL_LINE_STRIP, 0);
+            Draw(where->offset, GL.ActiveTextureUnits(), GL_LINE_STRIP, 0);
         }
     }
 }

@@ -143,7 +143,7 @@ struct OpenGLSave : GraphicSave
 
 public:
     OpenGLSave(OpenGLState *gs = NULL);
-    OpenGLSave(ulonglong which = OpenGLSave_All, OpenGLState *gs = NULL);
+    OpenGLSave(uint64 which = OpenGLSave_All, OpenGLState *gs = NULL);
     ~OpenGLSave();
 
 public:
@@ -190,7 +190,7 @@ inline OpenGLSave::OpenGLSave(OpenGLState *gs)
 }
 
 
-inline OpenGLSave::OpenGLSave(ulonglong flags, OpenGLState *gs)
+inline OpenGLSave::OpenGLSave(uint64 flags, OpenGLState *gs)
 // ----------------------------------------------------------------------------
 //   Prepare to save the state
 // ----------------------------------------------------------------------------

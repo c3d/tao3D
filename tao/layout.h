@@ -51,8 +51,6 @@ struct LayoutState
 
 public:
     typedef std::set<int>                       qevent_ids;
-    typedef std::map<uint,TextureState>         tex_list;
-
 
 public:
     void                ClearAttributes(bool all = false);
@@ -71,13 +69,7 @@ public:
     Color               lineColor;
     Color               fillColor;
 
-    // Textures parameters
-    TextureState        currentTexture;
-    uint64              textureUnits; //Current used texture units
-    tex_list            previousTextures;
-    tex_list            fillTextures;
-
-    // Lighting parameters
+    // Lighting states
     uint                lightId;
     uint64              currentLights; //Current used lights
     uint                perPixelLighting;

@@ -288,9 +288,6 @@ void PageLayout::Draw(Layout *where)
         std::cerr << "<-PageLayout::Draw ["<< this << "] offset = "
                   << where->Offset()
                   << " -- where->offset = "<<  where->Offset() << "\n";
-
-    if (where)
-        where->previousTextures = previousTextures;
 }
 
 
@@ -948,7 +945,6 @@ void TextSpan::Draw(Layout *where)
     state.InheritState(where);
     Vector3 offset = where->offset;
     Layout::Draw(where);
-    state.previousTextures = where->previousTextures;
     where->InheritState(&state);
     where->offset = offset;
 }
@@ -962,7 +958,6 @@ void TextSpan::DrawSelection(Layout *where)
     state.InheritState(where);
     Vector3 offset = where->offset;
     Layout::DrawSelection(where);
-    state.previousTextures = where->previousTextures;
     where->InheritState(&state);
     where->offset = offset;
 }
@@ -976,7 +971,6 @@ void TextSpan::Identify(Layout *where)
     state.InheritState(where);
     Vector3 offset = where->offset;
     Layout::Identify(where);
-    state.previousTextures = where->previousTextures;
     where->InheritState(&state);
     where->offset = offset;
 }
@@ -1021,7 +1015,6 @@ void TextSpan::Restore::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 {
     Vector3 offset = where->offset;
-    saved->previousTextures = where->previousTextures;
     where->InheritState(saved);
     where->offset = offset;
 }

@@ -277,6 +277,13 @@ copy_texture ->
         texture ID
         rectangle 0, 0, W, H
 
+image_px X:real, Y:real, W:real, H:real, Img:text ->
+    locally
+        texture Img
+        rectangle X, Y, W, H
+
+image X:real, Y:real, Img:text -> image X, Y, constant 1, constant 1, Img
+
 text_box F:text, X:real, Y:real, W:real, H:real ->
     text_box X, Y, W, H,
         text_flow F

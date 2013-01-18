@@ -45,52 +45,15 @@ bool Shape::setTexture(Layout *where)
 // ----------------------------------------------------------------------------
 {
     // Do not bother with textures if in Identify phase
-    if (where->InIdentify())
-        return !where->fillTextures.empty();
-
-    uint maxtu = GL.MaxTextureUnits();
-    for(uint i = 0; i < maxtu; i++)
+    if (!where->InIdentify())
     {
-        //Determine if there is a current and previous texture
-        bool hasCurrent = where->fillTextures.count(i);
-        bool hasPrevious = where->previousTextures.count(i);
+        // Activate current shader
+        setShader(where);
 
-        // If there is a previous texture and no current
-        // then unbind this one.
-        if (hasPrevious && !hasCurrent)
-        {
-            // Unbind the previous texture
-            unbindTexture(where->previousTextures[i]);
-        }
-        else if (hasCurrent && (where->textureUnits & (1 << i)))
-        {
-            // If there is a previous texture with a different type
-            // of the current then unbind the previous before binding current
-            if (hasPrevious)
-            {
-                if (where->fillTextures[i].type !=
-                    where->previousTextures[i].type)
-                {
-                    // Unbind the previous texture
-                    unbindTexture(where->previousTextures[i]);
-                }
-            }
-
-            // Bind the current texture
-            bindTexture(where->fillTextures[i], where->hasPixelBlur);
-        }
+        // Synchronize the GL state
+        GL.Sync(STATE_textures | STATE_textureUnits);
     }
-
-    // Active current shader
-    setShader(where);
-
-    // Update used texture units
-    where->previousTextures = where->fillTextures;
-
-    bool hasTextures = !where->fillTextures.empty();
-    if (hasTextures)
-        GL.Sync();
-    return hasTextures;
+    return GL.ActiveTextureUnitsCount() > 0;
 }
 
 
@@ -154,24 +117,44 @@ void Shape::unbindTexture(TextureState& texture)
 }
 
 
-void Shape::enableTexCoord(uint unit, void *texCoord)
+void Shape::enableTexCoord(double *texCoord, uint64 mask)
 // ----------------------------------------------------------------------------
-//    Enable texture coordinates of the specified unit
+//    Enable texture coordinates of the specified units
 // ----------------------------------------------------------------------------
 {
-    glClientActiveTexture( GL_TEXTURE0 + unit);
-    GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
-    GL.TexCoordPointer(2, GL_DOUBLE, 0, texCoord);
+    uint unit = 1;
+    mask &= GL.ActiveTextureUnits();
+    while (mask)
+    {
+        if (mask & (1ULL << unit))
+        {
+            GL.ClientActiveTexture(GL_TEXTURE0 + unit);
+            GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
+            GL.TexCoordPointer(2, GL_DOUBLE, 0, texCoord);
+            mask &= ~(1ULL << unit);
+        }
+        unit++;
+    }
 }
 
 
-void Shape::disableTexCoord(uint unit)
+void Shape::disableTexCoord(uint64 mask)
 // ----------------------------------------------------------------------------
 //    Disable texture coordinates of the specified unit
 // ----------------------------------------------------------------------------
 {
-    glClientActiveTexture( GL_TEXTURE0 + unit);
-    GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+    uint unit = 1;
+    mask &= GL.ActiveTextureUnits();
+    while (mask)
+    {
+        if (mask & (1ULL << unit))
+        {
+            GL.ClientActiveTexture( GL_TEXTURE0 + unit);
+            GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+            mask &= ~(1ULL << unit);
+        }
+        unit++;
+    }
 }
 
 
@@ -244,7 +227,7 @@ bool Shape::setShader(Layout *where)
             glUniform1i(lights, where->currentLights);
 
             GLint textures = glGetUniformLocation(where->programId, "textures");
-            glUniform1i(textures, where->textureUnits);
+            glUniform1i(textures, GL.ActiveTextureUnits());
 
             GLint vendor = glGetUniformLocation(where->programId, "vendor");
             glUniform1i(vendor, GL.VendorID());
@@ -345,7 +328,7 @@ void PlaceholderRectangle::Draw(Layout *where)
     GL.Disable(GL_LINE_STIPPLE);
 
     where->PolygonOffset();
-    path.Draw(where->Offset(), where->textureUnits, GL_LINE_STRIP, 0);
+    path.Draw(where->Offset(), GL.ActiveTextureUnits(), GL_LINE_STRIP, 0);
 }
 
 

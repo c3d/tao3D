@@ -51,7 +51,7 @@ ModuleApiPrivate::ModuleApiPrivate()
 
     isGLExtensionAvailable = Widget::isGLExtensionAvailable;
 
-    //Drawing paramaters
+    //Drawing parameters
     SetTextures      = ModuleRenderer::SetTextures;
     BindTexture      = ModuleRenderer::BindTexture;
     BindTexture2D    = ModuleRenderer::BindTexture2D;

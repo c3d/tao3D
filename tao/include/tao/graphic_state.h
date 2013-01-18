@@ -233,6 +233,17 @@ struct GraphicState
                                       GLint border, GLsizei imgSize,
                                       const GLvoid *data) = 0;
 
+    virtual void TextureSize(uint width, uint height) = 0;
+    virtual uint TextureWidth() = 0;
+    virtual uint TextureHeight() = 0;
+    virtual uint TextureType() = 0;
+    virtual uint TextureMode() = 0;
+    virtual uint TextureID() = 0;
+    virtual void ActivateTextureUnits(uint64 mask) = 0;
+    virtual uint ActiveTextureUnitIndex() = 0;
+    virtual uint ActiveTextureUnitsCount() = 0;
+    virtual uint64 ActiveTextureUnits() = 0;
+
     // Lighting
     virtual void Light(GLenum light, GLenum pname, const float* params) = 0;
 };

@@ -43,8 +43,8 @@ struct Shape : Drawing
 
 public:
     // Shape parameters
-    static void         enableTexCoord(uint units, void *texCoord);
-    static void         disableTexCoord(uint units);
+    static void         enableTexCoord(double *texCoord, uint64 mask = ~0UL);
+    static void         disableTexCoord(uint64 mask);
     static bool         setTexture(Layout *where);
     static bool         setShader(Layout *where);
     static bool         setFillColor(Layout *where);

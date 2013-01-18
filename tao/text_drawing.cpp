@@ -104,7 +104,7 @@ void TextSplit::Draw(Layout *where)
                   << *this << std::endl;
 
     // Check if we activated new texture units
-    glyphs.CheckTextureUnits(where->textureUnits);
+    glyphs.CheckTextureUnits(GL.ActiveTextureUnits());
 
     if (!printing && !hasLine && !hasTexture && !badSize && cacheEnabled)
         DrawCached(where);

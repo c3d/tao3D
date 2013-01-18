@@ -342,7 +342,7 @@ struct PurgeGLContextSensitiveInfo : XL::Action
 {
     virtual Tree *Do (Tree *what)
     {
-        what->Purge<ImageTextureInfo>();
+        what->Purge<AnimatedTextureInfo>();
         what->Purge<SvgRendererInfo>();
         what->Purge<TextureIdInfo>();
         what->Purge<ShaderProgramInfo>();
@@ -502,7 +502,6 @@ Widget::Widget(Widget &o, const QGLFormat &format)
     // Texture and glyph cache do not support multiple GL contexts. So,
     // clear them here so that textures or GL lists created with the
     // previous context are not re-used with the new.
-    AnimatedTextureInfo::textures.clear();
     TextureCache::instance()->clear();
     if (o.watermark)
         GL.DeleteTextures(1, &o.watermark);
@@ -2379,16 +2378,7 @@ void Widget::setupGL()
     GL.LineStipple(1, -1);
 
     // Disable all texture units
-    uint maxtu = GL.MaxTextureUnits();
-    for(int i = maxtu - 1; i > 0 ; i--)
-    {
-        if (layout->textureUnits & (1 << i))
-        {
-            GL.ActiveTexture(GL_TEXTURE0 + i);
-            GL.BindTexture(GL_TEXTURE_2D, 0);
-            GL.Disable(GL_TEXTURE_2D);
-        }
-    }
+    GL.ActivateTextureUnits(0);
     GL.ActiveTexture(GL_TEXTURE0);
     GL.BindTexture(GL_TEXTURE_2D, 0);
     GL.Disable(GL_TEXTURE_2D);
@@ -4747,11 +4737,8 @@ static inline void resetLayout(Layout *where)
     {
         where->lineWidth = 1;
         where->currentLights = 0;
-        where->textureUnits = 0;
         where->lineColor = Color(0,0,0,0);
         where->fillColor = Color(0,1,0,0.8);
-        where->fillTextures.clear();
-        where->previousTextures.clear();
     }
 }
 
@@ -7193,9 +7180,6 @@ Integer* Widget::fillTextureUnit(Tree_p self, GLuint texUnit)
     }
 
     layout->Add(new TextureUnit(texUnit));
-    layout->textureUnits |= 1 << texUnit;
-    layout->currentTexture.unit = texUnit;
-
     return new XL::Integer(texUnit);
 }
 
@@ -7210,9 +7194,6 @@ Integer* Widget::fillTextureId(Tree_p self, GLuint texId)
         Ooops("Invalid texture id $1", self);
         return 0;
     }
-
-    layout->currentTexture.id   = id;
-    layout->currentTexture.type = GL_TEXTURE_2D;
 
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
@@ -7234,26 +7215,17 @@ Integer* Widget::fillTexture(Context *context, Tree_p self, text img)
         ADJUST_CONTEXT_FOR_INTERPRETER(context);
         img  = context->ResolvePrefixedPath(img);
 
-        ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-        if (!rinfo)
-        {
-            rinfo = new ImageTextureInfo();
-            self->SetInfo<ImageTextureInfo>(rinfo);
-        }
-
         text docPath = +taoWindow()->currentProjectFolderPath();
-        ImageTextureInfo::Texture t = rinfo->load(img, docPath);
-        layout->currentTexture.id     = t.id;
-        layout->currentTexture.width  = t.width;
-        layout->currentTexture.height = t.height;
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-        layout->currentTexture.minFilt = TextureCache::instance()->minFilter();
-        layout->currentTexture.magFilt = TextureCache::instance()->magFilter();
-
-        texId = layout->currentTexture.id;
+        CachedTexture *t = TextureCache::instance()->load(+img, +docPath);
+        layout->Add(new FillTexture(t->id, GL_TEXTURE_2D));
+        GL.TextureSize(t->width, t->height);
+    }
+    else
+    {
+        layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
+        GL.TextureSize(0, 0);
     }
 
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -7280,15 +7252,15 @@ Integer* Widget::fillAnimatedTexture(Context *context, Tree_p self, text img)
             rinfo = new AnimatedTextureInfo();
             self->SetInfo<AnimatedTextureInfo>(rinfo);
         }
-        layout->currentTexture.id     = rinfo->bind(img);
-        layout->currentTexture.width  = rinfo->width;
-        layout->currentTexture.height = rinfo->height;
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-
-        texId = layout->currentTexture.id;
+        layout->Add(new FillTexture(rinfo->bind(img), GL_TEXTURE_2D));
+        GL.TextureSize(rinfo->width, rinfo->height);
+    }
+    else
+    {
+        layout->Add(new FillTexture(texId));
+        GL.TextureSize(0, 0);
     }
 
-    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
@@ -7318,29 +7290,18 @@ Integer* Widget::fillTextureFromSVG(Context *context, Tree_p self, text img)
             self->SetInfo<SvgRendererInfo>(rinfo);
         }
 
-        layout->currentTexture.id     = rinfo->bind(img);
-        layout->currentTexture.width  = rinfo->w;
-        layout->currentTexture.height = rinfo->h;
-        layout->currentTexture.type   = GL_TEXTURE_2D;
-
-        texId   = layout->currentTexture.id;
+        layout->Add(new FillTexture(rinfo->bind(img), GL_TEXTURE_2D));
+        GL.TextureSize(rinfo->w, rinfo->h);
+    }
+    else
+    {
+        layout->Add(new FillTexture(texId));
+        GL.TextureSize(0, 0);
     }
 
-    layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
 
     return new Integer(texId, self->Position());
-}
-
-
-Integer* Widget::image(Context *context,
-                       Tree_p self, Real_p x, Real_p y, text filename)
-//----------------------------------------------------------------------------
-//  Make an image with default size
-//----------------------------------------------------------------------------
-//  If w or h is 0 then the image width or height is used and assigned to it.
-{
-    return image(context, self, x, y, NULL, NULL, filename);
 }
 
 
@@ -7358,68 +7319,26 @@ Integer* Widget::image(Context *context,
     filename = context->ResolvePrefixedPath(filename);
 
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(shapeId()));
-    double sx = sxp.Pointer() ? (double) sxp : 1.0;
-    double sy = syp.Pointer() ? (double) syp : 1.0;
-
-    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-    if (!rinfo)
-    {
-        rinfo = new ImageTextureInfo();
-        self->SetInfo<ImageTextureInfo>(rinfo);
-    }
+    double sx = sxp->value;
+    double sy = syp->value;
 
     text docPath = +taoWindow()->currentProjectFolderPath();
-    ImageTextureInfo::Texture t = rinfo->load(filename, docPath);
-    layout->currentTexture.id     = t.id;
-    layout->currentTexture.width  = t.width;
-    layout->currentTexture.height = t.height;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-    layout->currentTexture.minFilt = TextureCache::instance()->minFilter();
-    layout->currentTexture.magFilt = TextureCache::instance()->magFilter();
+    CachedTexture *t = TextureCache::instance()->load(+filename, +docPath);
+    layout->Add(new FillTexture(t->id, GL_TEXTURE_2D));
+    GL.TextureSize(t->width, t->height);
+    layout->hasAttributes = true;
 
-    uint texId   = layout->currentTexture.id;
-
-    double w0 = rinfo->width;
-    double h0 = rinfo->height;
+    double w0 = t->width;
+    double h0 = t->height;
     double w = w0 * sx;
     double h = h0 * sy;
-
-    layout->Add(new FillTexture(texId, GL_TEXTURE_2D));
-    layout->hasAttributes = true;
 
     Rectangle shape(Box(x-w/2, y-h/2, w, h));
     layout->Add(new Rectangle(shape));
     if (sxp.Pointer() && syp.Pointer() && currentShape)
         layout->Add(new ImageManipulator(currentShape, x,y, sxp,syp, w0,h0));
 
-    return new Integer(texId, self->Position());
-}
-
-
-Integer* Widget::imagePx(Context *context,
-                         Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
-                         text filename)
-//----------------------------------------------------------------------------
-//  Make an image
-//----------------------------------------------------------------------------
-{
-    Infix_p resolution = imageSize(context, self, filename);
-    Integer_p ww = resolution->left->AsInteger();
-    Integer_p hh = resolution->right->AsInteger();
-    if (ww == 1 && hh == 1)
-    {
-        // File not found
-        ww->value = ImageTextureInfo::defaultTexture().width;
-        hh->value = ImageTextureInfo::defaultTexture().height;
-    }
-    double sx = (double)w / (double)ww;
-    double sy = (double)h / (double)hh;
-    if ((double)w == 0.0 && (double)h != 0)
-        sx = sy;
-    if ((double)h == 0.0 && (double)w != 0)
-        sy = sx;
-
-    return image(context, self, x, y, new Real(sx), new Real(sy), filename);
+    return new Integer(t->id, self->Position());
 }
 
 
@@ -7431,24 +7350,12 @@ Infix_p Widget::imageSize(Context *context,
 {
     refreshOn(TextureCache::instance()->textureChangedEvent());
 
-    GLuint w = 1, h = 1;
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     filename = context->ResolvePrefixedPath(filename);
 
-    ImageTextureInfo *rinfo = self->GetInfo<ImageTextureInfo>();
-    if (!rinfo)
-    {
-        rinfo = new ImageTextureInfo();
-        self->SetInfo<ImageTextureInfo>(rinfo);
-    }
     text docPath = +taoWindow()->currentProjectFolderPath();
-    ImageTextureInfo::Texture t = rinfo->load(filename, docPath);
-    if (t.id != ImageTextureInfo::defaultTexture().id)
-    {
-        w = t.width; h = t.height;
-    }
-
-    longlong v[2] = { w, h };
+    CachedTexture *t = TextureCache::instance()->load(+filename, +docPath);
+    longlong v[2] = { t->width, t->height };
     Tree *result = xl_integer_list(self, 2, v);
     return result->AsInfix();
 }
@@ -7535,9 +7442,7 @@ Tree_p Widget::textureMode(Tree_p self, text mode)
 // ----------------------------------------------------------------------------
 {
     GLenum glMode = TextToGLEnum(mode, GL_MODULATE);
-    layout->currentTexture.mode = glMode;
     layout->Add(new TextureMode(glMode));
-
     return XL::xl_true;
 }
 
@@ -7548,9 +7453,7 @@ Tree_p Widget::textureMinFilter(Tree_p self, text filter)
 // ----------------------------------------------------------------------------
 {
     GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
-    layout->currentTexture.minFilt = glFilt;
     layout->Add(new TextureMinFilter(glFilt));
-
     return XL::xl_true;
 }
 
@@ -7561,9 +7464,7 @@ Tree_p Widget::textureMagFilter(Tree_p self, text filter)
 // ----------------------------------------------------------------------------
 {
     GLenum glFilt = TextToGLEnum(filter, GL_LINEAR);
-    layout->currentTexture.magFilt = glFilt;
     layout->Add(new TextureMagFilter(glFilt));
-
     return XL::xl_true;
 }
 
@@ -7572,7 +7473,8 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 //   Apply a texture transformation
 // ----------------------------------------------------------------------------
 {
-    uint texUnit = layout->currentTexture.unit;
+    uint texUnit = GL.ActiveTextureUnitIndex();
+
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
     if (texUnit >= GL.MaxTextureCoords())
@@ -7595,7 +7497,7 @@ Integer* Widget::textureWidth(Tree_p self)
 //   Return the current texture width
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.width);
+    return new Integer(GL.TextureWidth());
 }
 
 
@@ -7604,16 +7506,18 @@ Integer* Widget::textureHeight(Tree_p self)
 //   Return the current texture height
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.height);
+    return new Integer(GL.TextureHeight());
 }
+
 
 Integer* Widget::textureType(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current texture type
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.type);
+    return new Integer(GL.TextureType());
 }
+
 
 Text_p Widget::textureMode(Tree_p self)
 // ----------------------------------------------------------------------------
@@ -7621,7 +7525,8 @@ Text_p Widget::textureMode(Tree_p self)
 // ----------------------------------------------------------------------------
 {
     text mode;
-    switch(layout->currentTexture.mode)
+    uint m = GL.TextureMode();
+    switch(m)
     {
     case GL_REPLACE: mode = "replace";  break;
     case GL_ADD    : mode = "add";      break;
@@ -7632,12 +7537,13 @@ Text_p Widget::textureMode(Tree_p self)
     return new Text(mode);
 }
 
+
 Integer* Widget::textureId(Tree_p self)
 // ----------------------------------------------------------------------------
 //   Return the current texture id
 // ----------------------------------------------------------------------------
 {
-   return new Integer(layout->currentTexture.id);
+    return new Integer(GL.TextureID());
 }
 
 
@@ -7653,7 +7559,7 @@ Tree_p Widget::hasTexture(Tree_p self, GLuint unit)
         return 0;
     }
 
-    uint hasTexture = layout->textureUnits & (1 << unit);
+    uint hasTexture = GL.ActiveTextureUnits() & (1ULL << unit);
     if (hasTexture)
         return XL::xl_true;
 
@@ -7666,7 +7572,7 @@ Integer* Widget::textureUnit(Tree_p self)
 //   Return the current texture unit
 // ----------------------------------------------------------------------------
 {
-    return new Integer(layout->currentTexture.unit);
+    return new Integer(GL.ActiveTextureUnitIndex());
 }
 
 
@@ -8674,14 +8580,9 @@ Integer* Widget::picturePacker(Tree_p self,
                      GL_UNSIGNED_BYTE, texImg.bits());
     }
 
-    layout->currentTexture.id     = tinfo->bind();
-    layout->currentTexture.width  = iw;
-    layout->currentTexture.height = ih;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId   = tinfo->bind();
     layout->Add(new FillTexture(texId));
+    GL.TextureSize(iw, ih);
     return new Integer(texId, self->Position());
 }
 
@@ -8817,15 +8718,11 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
 
     // Resize to requested size, bind texture and save current infos
     surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(doc);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = surface->bind(doc);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize(w, h);
+
     delete editCursor;
     editCursor = NULL;
 
@@ -9938,15 +9835,10 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize(w, h);
 
     if (withDepth.Pointer())
     {
@@ -10089,15 +9981,10 @@ Integer* Widget::thumbnail(Context *context,
     }
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     glPopAttrib();
 
@@ -10178,15 +10065,10 @@ Integer* Widget::linearGradient(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     glPopAttrib();
 
@@ -10268,15 +10150,10 @@ Integer* Widget::radialGradient(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     glPopAttrib();
 
@@ -10358,15 +10235,10 @@ Integer* Widget::conicalGradient(Context *context, Tree_p self,
     } while (0); // State keeper and layout
 
     // Bind the resulting texture and save current infos
-    layout->currentTexture.id     = frame.bind();
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     glPopAttrib();
     return new Integer(texId, self->Position());
@@ -10419,16 +10291,11 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(url, progress);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w,h);
+    uint texId = surface->bind(url, progress);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10469,16 +10336,11 @@ Integer* Widget::lineEditTexture(Tree_p self, double w, double h, Text_p txt)
 
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(txt);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(txt);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10514,16 +10376,11 @@ Integer* Widget::radioButtonTexture(Tree_p self, double w, double h, Text_p name
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl, act, sel);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10561,16 +10418,11 @@ Integer* Widget::checkBoxButtonTexture(Tree_p self,
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl, act, sel);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl, act, sel);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -10608,16 +10460,11 @@ Integer* Widget::pushButtonTexture(Tree_p self,
     }
 
     // Resize to requested size, bind texture and save current infos
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl, act, NULL);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl, act, NULL);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }
@@ -11116,16 +10963,11 @@ Integer* Widget::groupBoxTexture(Tree_p self, double w, double h, Text_p lbl)
 
 
     // Resize to requested size, and bind texture
-    surface->resize(w,h);
-    layout->currentTexture.id     = surface->bind(lbl);
-    layout->currentTexture.width  = w;
-    layout->currentTexture.height = h;
-    layout->currentTexture.type   = GL_TEXTURE_2D;
-
-    uint texId   = layout->currentTexture.id;
-
+    surface->resize (w, h);
+    uint texId = surface->bind(lbl);
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
+    GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
 }

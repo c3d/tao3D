@@ -119,13 +119,8 @@ void Cube::Draw(Layout *where)
     }
 
     //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, textures);
-
+    enableTexCoord(&textures[0][0], ~0ULL);
     setTexture(where);
-
     GL.LoadMatrix();
 
     // Draw filled faces
@@ -136,10 +131,9 @@ void Cube::Draw(Layout *where)
     if (setLineColor(where))
         for (uint face = 0; face < 6; face++)
             GL.DrawArrays(GL_LINE_LOOP, 4*face, 4);
-
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            disableTexCoord((*it).first);
+    
+    // Disable texture coordinates after drawing
+    disableTexCoord(~0ULL);
 
     if(where->currentLights || where->programId)
         GL.DisableClientState(GL_NORMAL_ARRAY);
@@ -178,11 +172,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     }
 
     //Active texture coordinates for all used units
-    std::map<uint, TextureState>::iterator it;
-    for(it = where->fillTextures.begin(); it != where->fillTextures.end(); it++)
-        if(((*it).second).id)
-            enableTexCoord((*it).first, &mesh->textures[0].x);
-
+    enableTexCoord(&mesh->textures[0].x, ~0ULL);
     GL.Translate(p.x, p.y, p.z);
     GL.Scale(bounds.Width(), bounds.Height(), bounds.Depth());
     GL.LoadMatrix();
@@ -225,9 +215,7 @@ void MeshBased::Draw(Mesh *mesh, Layout *where)
     GL.Disable(GL_CULL_FACE);
 
     // Disable texture coordinates
-    for (it = where->fillTextures.begin(); it!=where->fillTextures.end(); it++)
-        if (((*it).second).id)
-            disableTexCoord((*it).first);
+    disableTexCoord(~0ULL);
 
     // Disable normals
     if (where->currentLights || where->programId)

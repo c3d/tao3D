@@ -426,7 +426,6 @@ bool FrameManipulator::DrawHandles(Layout *layout)
     Drag   *drag = widget->drag();
     uint    handle = 0;
     uint    selected = widget->selected(layout);
-    layout->fillTextures.clear();
 
     // Don't draw the handles if this is an open container
     if ((selected & Widget::SELECTION_MASK) == Widget::CONTAINER_OPENED)

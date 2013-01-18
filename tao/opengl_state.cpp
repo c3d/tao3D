@@ -291,7 +291,7 @@ void OpenGLState::Sync()
 }
 
 
-void OpenGLState::Sync(ulonglong which)
+void OpenGLState::Sync(uint64 which)
 // ----------------------------------------------------------------------------
 //    Synchronize pending changes and send them to the card
 // ----------------------------------------------------------------------------
@@ -1854,6 +1854,7 @@ void OpenGLState::TexImage2D(GLenum target, GLint level, GLint internalformat,
     Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
     glTexImage2D(target, level, internalformat, width, height, border,
                  format, type, pixels);
+    TextureSize(width, height);
 }
 
 
@@ -1869,6 +1870,116 @@ void OpenGLState::CompressedTexImage2D(GLenum target, GLint level,
     Sync(STATE_textures | STATE_textureUnits | STATE_activeTexture);
     glCompressedTexImage2D(target, level, internalformat,
                            width, height, border, imgSize, data);
+    TextureSize(width, height);
+}
+
+
+void OpenGLState::TextureSize(uint width, uint height)
+// ----------------------------------------------------------------------------
+//   Set the dimension of the given texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    ts.width = width;
+    ts.height = height;
+}
+
+
+uint OpenGLState::TextureWidth()
+// ----------------------------------------------------------------------------
+//   Get the width of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.width;
+}
+
+
+uint OpenGLState::TextureHeight()
+// ----------------------------------------------------------------------------
+//   Get the height of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.height;
+}
+
+
+uint OpenGLState::TextureType()
+// ----------------------------------------------------------------------------
+//   Get the type of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.type;
+}
+
+
+uint OpenGLState::TextureMode()
+// ----------------------------------------------------------------------------
+//   Get the mode of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.mode;
+}
+
+
+uint OpenGLState::TextureID()
+// ----------------------------------------------------------------------------
+//   Get the ID of the current texture
+// ----------------------------------------------------------------------------
+{
+    TextureState &ts = ActiveTexture();
+    return ts.id;
+}
+
+
+void OpenGLState::ActivateTextureUnits(uint64 mask)
+// ----------------------------------------------------------------------------
+//   Activate textures marked in the mask
+// ----------------------------------------------------------------------------
+{
+    uint64 todo = mask ^ currentTextureUnits.active;
+    uint unit = 0;
+    while(todo)
+    {
+        if (todo & (1ULL << unit))
+        {
+            TextureUnitState &tus = currentTextureUnits.units[unit];
+            tus.Set(tus.target, (mask & (1ULL << unit)) ? true : false);
+            todo &= ~(1ULL << unit);
+        }
+        unit++;
+    }
+}
+
+
+uint OpenGLState::ActiveTextureUnitIndex()
+// ----------------------------------------------------------------------------
+//    Return the ID of the current active texture
+// ----------------------------------------------------------------------------
+{
+    return activeTexture;
+}
+
+
+uint OpenGLState::ActiveTextureUnitsCount()
+// ----------------------------------------------------------------------------
+//   Return the number of bound and active textures in current state
+// ----------------------------------------------------------------------------
+{
+    // OK, it's a bit dirty to use a GCC-specific thing, but C ought to have it
+    return __builtin_popcount(currentTextureUnits.active);
+}
+
+
+uint64 OpenGLState::ActiveTextureUnits()
+// ----------------------------------------------------------------------------
+//   Return the mask of active textures in the current state     
+// ----------------------------------------------------------------------------
+{
+    return currentTextureUnits.active;
 }
 
 
@@ -2058,7 +2169,7 @@ LightsState &LightsState::operator=(const LightsState &o)
 {
     uint max = lights.size();
     uint omax = o.lights.size();
-    ulonglong d = 0;
+    uint64 d = 0;
 
     // Compare all the light states we write to mark changed ones as dirty
     uint lmax = max < omax ? max : omax;
@@ -2098,7 +2209,7 @@ void LightsState::Sync(LightsState &nl)
 {
     uint max = lights.size();
     uint nmax = nl.lights.size();
-    ulonglong dirty = nl.dirty;
+    uint64 dirty = nl.dirty;
 
     // Quick bail out if nothing to do
     if (dirty == 0 && max == nmax)
@@ -2199,20 +2310,23 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
 {
     uint max = units.size();
     uint nmax = ns.units.size();
-    ulonglong dirty = ns.dirty;
+    uint64 dirty = ns.dirty;
     uint lastUnit = activeUnit;
 
     // Quick bail out if nothing to do
     if (dirty == 0 && max == nmax)
         return false;
 
+    // Reset count of active texture units
+    active = 0;
+
     // Synchronize all texture units that are common between the two states
     uint umax = max < nmax ? max : nmax;
     for (uint u = 0; u < umax; u++)
     {
+        TextureUnitState &us = units[u];
         if (dirty && (1ULL << u))
         {
-            TextureUnitState &us = units[u];
             TextureUnitState &nus = ns.units[u];
             if (lastUnit != u)
             {
@@ -2221,6 +2335,8 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
             }
             us.Sync(nus, false);
         }
+        if (us.tex1D || us.tex2D || us.tex3D || us.texCube)
+            active |= 1ULL << u;
     }
 
     // Check if number of texture units changed
@@ -2259,6 +2375,8 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
                 lastUnit = u;
             }
             us.Sync(nus, true);
+            if (us.tex1D || us.tex2D || us.tex3D || us.texCube)
+                active |= 1ULL << u;
         }
     }
 

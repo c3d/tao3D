@@ -117,46 +117,31 @@ void FillTexture::Draw(Layout *where)
 //   Remember the texture in the layout
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->textureUnits |= 1 << glUnit;
-
-    where->fillTextures[glUnit].unit = glUnit;
-    where->fillTextures[glUnit].id   = glName;
-    where->fillTextures[glUnit].type = glType;
+    (void) where;
+    GL.BindTexture(glType, glName);
 }
+
 
 void TextureUnit::Draw(Layout *where)
 // ------------------------------------------------------------- ---------------
 //   Remember the texture unit in the layout
 // ----------------------------------------------------------------------------
 {
-    // Fig a bug with ATI drivers which set texture matrices
-    // to null instead of identity
-    if(glUnit && GL.IsATIOpenGL())
-    {
-        GL.ActiveTexture(GL_TEXTURE0 + glUnit);
-        GL.MatrixMode(GL_TEXTURE);
-        GL.LoadIdentity();
-        GL.MatrixMode(GL_MODELVIEW);
-        GL.ActiveTexture(GL_TEXTURE0);
-        GL.Sync();
-    }
-
-    if(glUnit < GL.MaxTextureCoords())
-    {
-        where->textureUnits |= 1 << glUnit;
-        where->currentTexture.unit = glUnit;
-    }
+    (void) where;
+    GL.ActiveTexture(GL_TEXTURE0 + glUnit);
 }
+
 
 void TextureWrap::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a texture change
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].wrapS = s;
-    where->fillTextures[glUnit].wrapT = t;
+    (void) where;
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,
+                    s ? GL_CLAMP_TO_EDGE : GL_REPEAT);
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,
+                    t ? GL_CLAMP_TO_EDGE : GL_REPEAT);
 }
 
 
@@ -165,8 +150,8 @@ void TextureMode::Draw(Layout *where)
 //   Replay a texture mode
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].mode = mode;
+    (void) where;
+    GL.TexEnv(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, mode);
 }
 
 
@@ -175,17 +160,18 @@ void TextureMinFilter::Draw(Layout *where)
 //   Replay a texture minifiying filter
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].minFilt = filter;
+    (void) where;
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, filter);
 }
+
 
 void TextureMagFilter::Draw(Layout *where)
 // ----------------------------------------------------------------------------
 //   Replay a texture magnigication filter
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    where->fillTextures[glUnit].magFilt = filter;
+    (void) where;
+    GL.TexParameter(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, filter);
 }
 
 
@@ -194,8 +180,7 @@ void TextureTransform::Draw(Layout *where)
 //   Enter or exit texture transform mode
 // ----------------------------------------------------------------------------
 {
-    uint glUnit = where->currentTexture.unit;
-    GL.ActiveTexture(GL_TEXTURE0 + glUnit);
+    (void) where;
     if (enable)
         GL.MatrixMode(GL_TEXTURE);
     else

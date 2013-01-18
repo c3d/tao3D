@@ -77,35 +77,22 @@ bool ModuleRenderer::AddToLayout2(ModuleApi::render_fn callback,
 
 
 
-bool ModuleRenderer::EnableTexCoords(double* texCoord)
+bool ModuleRenderer::EnableTexCoords(double* texCoords, uint64 mask)
 // ----------------------------------------------------------------------------
 //   Enable specified coordinates for active textures in the current layout
 // ----------------------------------------------------------------------------
 {
-    if(! texCoord)
-        return false;
-
-    std::map<uint, TextureState>::iterator it;
-    for(it = currentLayout->fillTextures.begin();
-        it != currentLayout->fillTextures.end(); it++)
-        if(((*it).second).id)
-            Shape::enableTexCoord((*it).first, texCoord);
-
+    Shape::enableTexCoord(texCoords, mask);
     return true;
 }
 
 
-bool ModuleRenderer::DisableTexCoords()
+bool ModuleRenderer::DisableTexCoords(uint64 mask)
 // ----------------------------------------------------------------------------
 //   Disable coordinates for active textures in the current layout
 // ----------------------------------------------------------------------------
 {
-    std::map<uint, TextureState>::iterator it;
-    for(it = currentLayout->fillTextures.begin();
-        it != currentLayout->fillTextures.end(); it++)
-        if(((*it).second).id)
-            Shape::disableTexCoord((*it).first);
-
+    Shape::disableTexCoord(mask);
     return true;
 }
 
@@ -115,34 +102,25 @@ uint ModuleRenderer::TextureUnit()
 //  Return last activated texture unit
 // ----------------------------------------------------------------------------
 {
-    if(currentLayout)
-        return currentLayout->currentTexture.unit;
-    else
-        return Widget::Tao()->layout->currentTexture.unit;
+    return GL.ActiveTextureUnitIndex();
 }
 
 
-uint ModuleRenderer::TextureUnits()
+uint64 ModuleRenderer::TextureUnits()
 // ----------------------------------------------------------------------------
 //  Return bitmask of all current activated texture units
 // ----------------------------------------------------------------------------
 {
-    if(currentLayout)
-        return currentLayout->textureUnits;
-    else
-        return Widget::Tao()->layout->textureUnits;
+    return GL.ActiveTextureUnits();
 }
 
 
-void ModuleRenderer::SetTextureUnits(uint64 texUnits)
+void ModuleRenderer::SetTextureUnits(uint64 mask)
 // ----------------------------------------------------------------------------
 //  Set bitmask of current activated texture units
 // ----------------------------------------------------------------------------
 {
-    if(currentLayout)
-        currentLayout->textureUnits = texUnits;
-    else
-        Widget::Tao()->layout->textureUnits = texUnits;
+    GL.ActivateTextureUnits(mask);
 }
 
 
@@ -161,11 +139,9 @@ bool ModuleRenderer::BindTexture(unsigned int id, unsigned int type)
 // ----------------------------------------------------------------------------
 {
     Layout *layout = Widget::Tao()->layout;
-    layout->currentTexture.id = id;
-    layout->currentTexture.type = type;
-
     layout->Add(new FillTexture(id, type));
     layout->hasAttributes = true;
+    GL.BindTexture(type, id);
     return false;
 }
 
@@ -175,12 +151,7 @@ bool ModuleRenderer::HasTexture(uint texUnit)
 //  Check if a texture is bound at the specified unit
 // ----------------------------------------------------------------------------
 {
-    if(texUnit > GL.MaxTextureUnits())
-        return false;
-
-    uint hasTexture = currentLayout->textureUnits & (1 << texUnit);
-
-    return hasTexture ? true : false;
+    return (GL.ActiveTextureUnits() & (1ULL << texUnit)) ? true : false;
 }
 
 
@@ -196,19 +167,20 @@ bool ModuleRenderer::SetShader(int id)
 }
 
 
-void ModuleRenderer::BindTexture2D(unsigned int id, unsigned int width,
+void ModuleRenderer::BindTexture2D(unsigned int id,
+                                   unsigned int width,
                                    unsigned int height)
 // ----------------------------------------------------------------------------
 //   Add 2D texture to current layout
 // ----------------------------------------------------------------------------
 {
-    Widget::Tao()->layout->currentTexture.id = id;
-    Widget::Tao()->layout->currentTexture.type = GL_TEXTURE_2D;
-    Widget::Tao()->layout->currentTexture.width = width;
-    Widget::Tao()->layout->currentTexture.height = height;
-
-    Widget::Tao()->layout->Add(new FillTexture(id, GL_TEXTURE_2D));
-    Widget::Tao()->layout->hasAttributes = true;
+    GL.BindTexture(GL_TEXTURE_2D, id);
+    GL.TextureSize(width, height);
+    if (Layout *layout = Widget::Tao()->layout)
+    {
+        layout->Add(new FillTexture(id, GL_TEXTURE_2D));
+        layout->hasAttributes = true;
+    }
 }
 
 

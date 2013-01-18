@@ -51,8 +51,6 @@ LayoutState::LayoutState()
       lineWidth(1.0),
       lineColor(0,0,0,0),       // Transparent black
       fillColor(0,0,0,1),       // Black
-      currentTexture(),
-      textureUnits(0),
       lightId(GL_LIGHT0), currentLights(0),
       perPixelLighting(0),
       programId(0),
@@ -78,10 +76,6 @@ LayoutState::LayoutState(const LayoutState &o)
         lineWidth(o.lineWidth),
         lineColor(o.lineColor),
         fillColor(o.fillColor),
-        currentTexture(o.currentTexture),
-        textureUnits(o.textureUnits),
-        previousTextures(o.previousTextures),
-        fillTextures(o.fillTextures),
         lightId(o.lightId),
         currentLights(o.currentLights),
         perPixelLighting(o.perPixelLighting),
@@ -251,9 +245,6 @@ void Layout::Draw(Layout *where)
         child->Draw(this);
     }
     PopLayout(this);
-
-    if (where)
-       where->previousTextures = previousTextures;
 }
 
 
@@ -275,9 +266,6 @@ void Layout::DrawSelection(Layout *where)
         child->DrawSelection(this);
     }
     PopLayout(this);
-
-    if (where)
-       where->previousTextures = previousTextures;
 }
 
 
@@ -303,9 +291,6 @@ void Layout::Identify(Layout *where)
         child->Identify(this);
     }
     PopLayout(this);
-
-    if (where)
-       where->previousTextures = previousTextures;
 }
 
 
@@ -654,10 +639,7 @@ void Layout::Inherit(Layout *where)
 // ----------------------------------------------------------------------------
 {
     if (!where)
-    {
-        currentTexture = TextureState();
         return;
-    }
 
     // Add offset of parent to the one we have
     offset = where->Offset();
@@ -685,11 +667,6 @@ void LayoutState::InheritState(LayoutState *where)
     lineWidth        = where->lineWidth;
     lineColor        = where->lineColor;
     fillColor        = where->fillColor;
-
-    textureUnits     = where->textureUnits;
-    previousTextures = where->previousTextures;
-    fillTextures     = where->fillTextures;
-    currentTexture   = where->currentTexture;
 
     lightId          = where->lightId;
     currentLights    = where->currentLights;

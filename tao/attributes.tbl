@@ -204,7 +204,7 @@ PREFIX(FillAnimatedTexture,  integer,  "animated_texture",
 GIF	Animated Graphic Interchange Format\n                           \
 MNG	Animated portable Network Graphics\n                            \
 others [TODO:  description is troncated] "))
-PREFIX(ImageA,  integer, "image",
+PREFIX(Image,  integer, "image",
        PARM(x, real, )
        PARM(y, real, )
        PARM(w, real, )
@@ -213,24 +213,6 @@ PREFIX(ImageA,  integer, "image",
        RTAO(image(context, self, x, y, w, h, img)),
        GROUP()
        SYNOPSIS("")
-       DESCRIPTION(""))
-PREFIX(ImageB,  integer, "image",
-       PARM(x, real, "x-coordinate of the image")
-       PARM(y, real, "y-coordinate of the image")
-       PARM(img, text, "width of the image"),
-       RTAO(image(context, self, x, y, img)),
-       GROUP(graph)
-       SYNOPSIS("Make an image")
-       DESCRIPTION("Make an image. image x,y,img rewrites the source with image x,y,w,h,img where w and h are the original size of the image."))
-PREFIX(ImagePx,  integer, "image_px",
-       PARM(x, real, "X coordinate of image center")
-       PARM(y, real, "Y coordinate of image center")
-       PARM(w, real, "Image width in pixels")
-       PARM(h, real, "Image height in pixels")
-       PARM(img, text, "File path"),
-       RTAO(imagePx(context, self, x, y, w, h, img)),
-       GROUP()
-       SYNOPSIS("Insert an image")
        DESCRIPTION(""))
 PREFIX(ImageSize,  infix, "image_size",
        PARM(img, text, "File path"),

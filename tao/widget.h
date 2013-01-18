@@ -784,12 +784,7 @@ public:
     Integer*    image(Context *context,
                       Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
                       text filename);
-    Integer*    image(Context *context,
-                      Tree_p self, Real_p x, Real_p y, text filename);
     Tree_p      listFiles(Context *context, Tree_p self, Tree_p pattern);
-    Integer*      imagePx(Context *context,
-                        Tree_p self, Real_p x, Real_p y, Real_p w, Real_p h,
-                        text filename);
     Infix_p     imageSize(Context *context,
                           Tree_p self, text filename);
 

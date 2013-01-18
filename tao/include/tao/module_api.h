@@ -49,8 +49,9 @@
 // - [INCOMPATIBLE CHANGE] If any interfaces have been removed or changed
 //   since the last public release, then set age to 0.
 
-#define TAO_MODULE_API_CURRENT   29
-#define TAO_MODULE_API_AGE       10
+#define TAO_MODULE_API_CURRENT   30
+#define TAO_MODULE_API_AGE       0
+
 
 // ========================================================================
 //
@@ -113,18 +114,19 @@ struct ModuleApi
 
     // Allow to enable specified texture coordinates before a drawing
     // according to current application parameters.
-    // After drawing, texture coordinates have to be disable.
-    bool (*EnableTexCoords)(double* texCoord);
+    // After drawing, texture coordinates have to be disabled.
+    bool (*EnableTexCoords)(double* texCoord, uint64 mask);
 
     // Allow to disable texture coordinates after a drawing.
-    bool (*DisableTexCoords)();
+    // See also EnableMultiTexCoords
+    bool (*DisableTexCoords)(uint64 mask);
 
     // Get the last activated texture unit
     unsigned int (*TextureUnit)();
 
     // Get the bimasks of all activated texture units
     // in the current layout.
-    unsigned int (*TextureUnits)();
+    uint64 (*TextureUnits)();
 
     // Set the bimasks of all activated texture units in
     // the current layout.
@@ -335,7 +337,7 @@ struct ModuleApi
 
     // Resize a framebuffer object.
     void               (*resizeFrameBufferObject)(ModuleApi::fbo * obj,
-                                                      uint w, uint h);
+                                                  uint w, uint h);
 
     // Make a framebuffer object the current rendering target.
     // After this call, OpenGL will draw into the framebuffer.

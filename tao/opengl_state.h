@@ -181,7 +181,7 @@ struct TextureUnitsState
 //    The state of all texture units
 // ----------------------------------------------------------------------------
 {
-    TextureUnitsState(): dirty(~0ULL), units() {}
+    TextureUnitsState(): dirty(~0ULL), active(0), units() {}
     bool operator==(const TextureUnitsState &o)
     {
         uint max = units.size();
@@ -197,7 +197,8 @@ struct TextureUnitsState
     bool Sync(TextureUnitsState &ns, uint active);
 
 public:
-    ulonglong                       dirty;
+    uint64                          dirty;
+    uint64                          active;
     std::vector<TextureUnitState>   units;
 };
 
@@ -336,7 +337,7 @@ struct LightsState
     void Sync(LightsState &nl);
 
 public:
-    ulonglong dirty;
+    uint64                    dirty;
     std::vector<LightState>   lights;
 };
 
@@ -359,7 +360,7 @@ struct OpenGLState : GraphicState
     // Return the current graphic state (one per widget)
     static OpenGLState *State()        { return current; }
     void   MakeCurrent();
-    void   Sync(ulonglong which);
+    void   Sync(uint64 which);
     uint   VendorID()               { return vendorID; }
     bool   IsATIOpenGL()            { return vendorID == ATI; }
 
@@ -562,6 +563,17 @@ struct OpenGLState : GraphicState
                                       GLsizei width, GLsizei height,
                                       GLint border, GLsizei imgSize,
                                       const GLvoid *data);
+
+    virtual void TextureSize(uint width, uint height);
+    virtual uint TextureWidth();
+    virtual uint TextureHeight();
+    virtual uint TextureType();
+    virtual uint TextureMode();
+    virtual uint TextureID();
+    virtual void ActivateTextureUnits(uint64 mask);
+    virtual uint ActiveTextureUnitIndex();
+    virtual uint ActiveTextureUnitsCount();
+    virtual uint64 ActiveTextureUnits();
 
     // Lighting
     void SetLight(GLenum light, bool active);

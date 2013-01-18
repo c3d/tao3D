@@ -7147,8 +7147,12 @@ Tree_p Widget::fillColorCmyk(Tree_p self, double c, double m, double y,
     return XL::xl_true;
 }
 
+
 Tree_p  Widget::fillColorGradient(Tree_p self, Real_p pos,
                                 double r, double g, double b, double a)
+// ----------------------------------------------------------------------------
+//   Define a step of a color gradient
+// ----------------------------------------------------------------------------
 {
     CHECK_0_1_RANGE(r);
     CHECK_0_1_RANGE(g);
@@ -8727,7 +8731,6 @@ Tree_p  Widget::textEditTexture(Context *context, Tree_p self,
     editCursor = NULL;
 
     return result;
-
 }
 
 

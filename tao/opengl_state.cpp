@@ -297,7 +297,7 @@ void OpenGLState::Sync(ulonglong which)
 // ----------------------------------------------------------------------------
 {
     bool needSync =
-#define GS(type, name) name##_isDirty |
+#define GS(type, name) (name##_isDirty && (which & STATE_##name)) ||
 #include "opengl_state.tbl"
         false;
     if (!needSync)

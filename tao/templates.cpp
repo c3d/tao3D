@@ -119,6 +119,28 @@ bool Template::copyTo(QDir &dst)
 }
 
 
+bool Template::operator<(const Template t) const
+// ----------------------------------------------------------------------------
+//   Overload the < operator for a template (used to sort templates)
+// ----------------------------------------------------------------------------
+{
+    QString name1(name);
+    QString name2(t.name);
+
+    // Strip "(Demo) " or "(Démo) "
+    name1.replace(QRegExp("^\\([^)]+\\) "), "");
+    name2.replace(QRegExp("^\\([^)]+\\) "), "");
+
+    // Case of blank document
+    if(t.mainFile == "blank.ddd")
+        return false;
+    if (mainFile == "blank.ddd")
+        return true;
+
+    return (name1 < name2);
+}
+
+
 std::ostream& Template::debug()
 // ----------------------------------------------------------------------------
 //   Convenience method to log with a common prefix
@@ -261,7 +283,6 @@ Templates::Templates(const QList<QDir> &dirs)
         read(d);
 }
 
-
 void Templates::read(const QDir &dir)
 // ----------------------------------------------------------------------------
 //   Find document templates in a directory
@@ -278,6 +299,9 @@ void Templates::read(const QDir &dir)
         if (t.isValid())
             append(t);
     }
+
+    // Sort templates by alphabetical order
+    qSort(begin(), end());
 }
 
 

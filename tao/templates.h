@@ -71,6 +71,7 @@ public:
 public:
     static bool recursiveCopy(const QDir &src, QDir &dst,
                               QString mainFile = "");
+    bool operator<(const Template o) const;
 
 private:
     static std::ostream& debug();
@@ -107,6 +108,8 @@ private:
 private:
     QDir dir;  // Parent directory
 };
+
+
 
 TAO_END
 

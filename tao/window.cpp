@@ -1915,8 +1915,8 @@ void Window::createMenus()
     helpMenu->addAction(tutorialsPageAct);
 
 #ifndef CFG_NO_NEW_FROM_TEMPLATE
-    ExamplesMenu * themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
-    ExamplesMenu * examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
+    ExamplesMenu * themesMenu = NULL;
+    ExamplesMenu * examplesMenu = NULL;
 
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
@@ -1928,17 +1928,31 @@ void Window::createMenus()
         // Strip "(Demo) " or "(Démo) "
         name.replace(QRegExp("^\\([^)]+\\) "), "");
         if (t.type == "theme")
+        {
+            if (!themesMenu)
+            {
+                themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
+                connect(themesMenu, SIGNAL(openDocument(QString)),
+                        this, SLOT(openReadOnly(QString)));
+            }
             themesMenu->addExample(name, t.mainFileFullPath(), t.description);
+        }
         else
+        {
+            if (!examplesMenu)
+            {
+                examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
+                connect(examplesMenu, SIGNAL(openDocument(QString)),
+                        this, SLOT(openReadOnly(QString)));
+            }
             examplesMenu->addExample(name, t.mainFileFullPath(), t.description);
+        }
     }
 
-    connect(themesMenu, SIGNAL(openDocument(QString)),
-            this, SLOT(openReadOnly(QString)));
-    connect(examplesMenu, SIGNAL(openDocument(QString)),
-            this, SLOT(openReadOnly(QString)));
-    helpMenu->addMenu(themesMenu);
-    helpMenu->addMenu(examplesMenu);
+    if (themesMenu)
+        helpMenu->addMenu(themesMenu);
+    if (examplesMenu)
+        helpMenu->addMenu(examplesMenu);
 #endif
 }
 

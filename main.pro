@@ -62,6 +62,8 @@
 #     for the current version.
 #   DEFINES+=CFG_NO_NEW_FROM_TEMPLATE
 #     Removes menus: File>New from Template..., Help>Themes and Help>Examples.
+#   DEFINES+=CFG_NOQTWEBKIT
+#     Do not use QtWebKit. The url and url_texture primitives become no-ops.
 #
 #   modules=none
 #     Do not build any Tao module

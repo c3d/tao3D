@@ -70,6 +70,8 @@ protected slots:
 };
 
 
+#ifndef CFG_NO_QTWEBKIT
+
 struct WebViewSurface : WidgetSurface
 // ----------------------------------------------------------------------------
 //    Hold information about a QWebView
@@ -92,6 +94,7 @@ protected slots:
     void        loadProgress(int progress);
 };
 
+#endif
 
 struct LineEditSurface : WidgetSurface
 // ----------------------------------------------------------------------------

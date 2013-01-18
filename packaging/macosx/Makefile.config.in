@@ -21,3 +21,6 @@ ifneq (,\$(findstring CFG_NONETWORK, $$DEFINES))
 PACKAGE_NOGIT=1
 endif
 endif
+ifneq (,\$findstring CFG_NOQTWEBKIT, $$DEFINES))
+PACKAGE_NOQTWEBKIT=1
+endif

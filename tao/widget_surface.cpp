@@ -30,7 +30,9 @@
 #include "tree_cloning.h"
 #include "text_edit.h"
 #include "widget.h"
+#ifndef CFG_NO_QTWEBKIT
 #include <QtWebKit>
+#endif
 #include <cstring>
 #include <string>
 
@@ -191,6 +193,8 @@ void WidgetSurface::repaint()
 //
 // ============================================================================
 
+#ifndef CFG_NO_QTWEBKIT
+
 WebViewSurface::WebViewSurface(XL::Tree *self, Widget *parent)
 // ----------------------------------------------------------------------------
 //    Build the QWebView
@@ -261,6 +265,7 @@ void WebViewSurface::loadProgress(int progressPercent)
         progress->value = progressPercent;
 }
 
+#endif
 
 
 // ============================================================================

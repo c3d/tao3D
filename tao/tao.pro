@@ -339,6 +339,9 @@ contains(DEFINES, CFG_NO_NEW_FROM_TEMPLATE) {
         new_document_wizard.cpp \
         templates.cpp
 }
+contains(DEFINES, CFG_NO_QTWEBKIT) {
+    !build_pass:message("[CFG_NO_QTWEBKIT] QtWebKit disabled: primitives url/url_texture will do nothing")
+}
 
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 

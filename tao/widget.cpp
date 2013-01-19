@@ -7488,11 +7488,12 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
     }
 
     layout->hasTextureMatrix |= 1 << texUnit;
+    bool hadTransform = layout->hasTransform;
     layout->hasTransform = true;
     layout->Add(new TextureTransform(true));
     Tree_p result = context->Evaluate(code);
     layout->Add(new TextureTransform(false));
-    layout->hasTransform = false;
+    layout->hasTransform = hadTransform;
     return result;
 }
 

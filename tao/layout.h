@@ -69,6 +69,9 @@ public:
     Color               lineColor;
     Color               fillColor;
 
+    // Texture states
+    uint                minFilter, magFilter;
+
     // Lighting states
     uint                lightId;
     uint64              currentLights; //Current used lights
@@ -95,7 +98,8 @@ public:
     bool                hasDepthAttr    : 1;
     bool                isSelection     : 1;
     bool                groupDrag       : 1;
-
+    bool                wrapS           : 1;
+    bool                wrapT           : 1;
 };
 
 

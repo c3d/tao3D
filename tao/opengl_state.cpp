@@ -18,7 +18,7 @@
 // Ce logiciel est la propriété de Taodyne SAS - Confidentiel
 //  (C) 2012 Baptiste Soulisse <baptiste.soulisse@taodyne.com>
 //  (C) 1992-2010 Christophe de Dinechin <christophe@taodyne.com>
-//  (C) 2010 Lionel Schaffhauser <lionel@taodyne.com>
+//  (C) 2010 Jérôme Forissier <jerome@taodyne.com>
 //  (C) 2010 Taodyne SAS
 // ****************************************************************************
 
@@ -146,6 +146,7 @@ OpenGLState::OpenGLState()
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER), shaderProgram(0),
       activeTexture(0), clientActiveTexture(GL_TEXTURE0),
+
 #define GS(type, name)
 #define GFLAG(name)             glflag_##name(false),
 #define GCLIENTSTATE(name)      glclientstate_##name(false),
@@ -2404,7 +2405,7 @@ TextureState::TextureState(GLuint id)
     minFilt(GL_NEAREST_MIPMAP_LINEAR),
     magFilt(GL_LINEAR),
     active(false),
-    wrapS(true), wrapT(true), wrapR(true),
+    wrapS(false), wrapT(false), wrapR(false),
     mipmap(false),
     unit(0), mode(GL_MODULATE)
 {}

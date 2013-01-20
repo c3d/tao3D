@@ -854,30 +854,37 @@ void GraphicPath::Draw(const Vector3 &offset,
                     GL.EnableClientState(GL_VERTEX_ARRAY);
                     GL.EnableClientState(GL_NORMAL_ARRAY);
 
-                    //Active texture coordinates for all used units
-                    uint maxtc = GL.MaxTextureCoords();
-                    for(uint i = 0; i < maxtc ; i++)
+                    // Activate texture coordinates for all used units
+                    uint unit = 0;
+                    uint64 mask = GL.ActiveTextureUnits();
+                    while (mask)
                     {
-                        if(texUnits & (1 << i))
+                        if (mask & (1ULL << unit))
                         {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
+                            GL.ClientActiveTexture(GL_TEXTURE0 + unit);
                             GL.EnableClientState(GL_TEXTURE_COORD_ARRAY);
-                            GL.TexCoordPointer(3, GL_DOUBLE, sizeof(VertexData),
-                                               tdata);
+                            GL.TexCoordPointer(3, GL_DOUBLE,
+                                               sizeof(VertexData), tdata);
+                            mask &= ~(1ULL << unit);
                         }
+                        unit++;
                     }
 
                     GL.DrawArrays(mode, 0, size);
                     GL.DisableClientState(GL_VERTEX_ARRAY);
                     GL.DisableClientState(GL_NORMAL_ARRAY);
 
-                    for(uint i = 0; i < maxtc ; i++)
+                    unit = 0;
+                    mask = GL.ActiveTextureUnits();
+                    while (mask)
                     {
-                        if(texUnits & (1 << i))
+                        if (mask & (1ULL << unit))
                         {
-                            glClientActiveTexture( GL_TEXTURE0 + i );
+                            GL.ClientActiveTexture(GL_TEXTURE0 + unit);
                             GL.DisableClientState(GL_TEXTURE_COORD_ARRAY);
+                            mask &= ~(1ULL << unit);
                         }
+                        unit++;
                     }
                 }
 

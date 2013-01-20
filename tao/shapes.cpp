@@ -122,7 +122,7 @@ void Shape::enableTexCoord(double *texCoord, uint64 mask)
 //    Enable texture coordinates of the specified units
 // ----------------------------------------------------------------------------
 {
-    uint unit = 1;
+    uint unit = 0;
     mask &= GL.ActiveTextureUnits();
     while (mask)
     {
@@ -143,7 +143,7 @@ void Shape::disableTexCoord(uint64 mask)
 //    Disable texture coordinates of the specified unit
 // ----------------------------------------------------------------------------
 {
-    uint unit = 1;
+    uint unit = 0;
     mask &= GL.ActiveTextureUnits();
     while (mask)
     {

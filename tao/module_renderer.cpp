@@ -102,7 +102,7 @@ uint ModuleRenderer::TextureUnit()
 //  Return last activated texture unit
 // ----------------------------------------------------------------------------
 {
-    return GL.ActiveTextureUnitIndex();
+    return GL.ActiveTextureUnitIndex() - GL_TEXTURE0;
 }
 
 

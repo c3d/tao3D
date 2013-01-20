@@ -7477,7 +7477,7 @@ Tree_p Widget::textureTransform(Context *context, Tree_p self, Tree_p code)
 //   Apply a texture transformation
 // ----------------------------------------------------------------------------
 {
-    uint texUnit = GL.ActiveTextureUnitIndex();
+    uint texUnit = GL.ActiveTextureUnitIndex() - GL_TEXTURE0;
 
     //Check if we can use this texture unit for transform according
     //to the maximum of texture coordinates (maximum of texture transformation)
@@ -7577,7 +7577,7 @@ Integer* Widget::textureUnit(Tree_p self)
 //   Return the current texture unit
 // ----------------------------------------------------------------------------
 {
-    return new Integer(GL.ActiveTextureUnitIndex());
+    return new Integer(GL.ActiveTextureUnitIndex() - GL_TEXTURE0);
 }
 
 
@@ -12795,4 +12795,13 @@ void tao_widget_refresh(double delay)
     TAO(refresh(delay));
 }
 
+}
+
+
+void sd()
+{
+    GLint attr = 0, cattr = 0;
+    glGetIntegerv(GL_ATTRIB_STACK_DEPTH, &attr);
+    glGetIntegerv(GL_CLIENT_ATTRIB_STACK_DEPTH, &cattr);
+    std::cerr << "Attr=" << attr << " cattr=" << cattr << "\n";
 }

@@ -145,7 +145,7 @@ OpenGLState::OpenGLState()
       blendFunction(GL_ONE, GL_ZERO, GL_ONE, GL_ZERO),
       blendEquation(GL_FUNC_ADD), alphaFunc(GL_ALWAYS, 0.0),
       renderMode(GL_RENDER), shaderProgram(0),
-      activeTexture(0), clientActiveTexture(GL_TEXTURE0),
+      activeTexture(GL_TEXTURE0), clientActiveTexture(GL_TEXTURE0),
 
 #define GS(type, name)
 #define GFLAG(name)             glflag_##name(false),
@@ -325,7 +325,7 @@ void OpenGLState::Sync(uint64 which)
          currentTextures.Sync(textures, ActiveTextureUnit());
          matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
     SYNC(activeTexture,
-         glActiveTexture(GL_TEXTURE0 + activeTexture));
+         glActiveTexture(activeTexture));
     SYNC(clientActiveTexture,
          glClientActiveTexture(clientActiveTexture));
 
@@ -404,7 +404,7 @@ void OpenGLState::Sync(uint64 which)
              glDisable(name));
 #define GCLIENTSTATE(name)                      \
     SYNC(glclientstate_##name,                  \
-         if (glflag_##name)                     \
+         if (glclientstate_##name)              \
              glEnableClientState(name);         \
          else                                   \
              glDisableClientState(name));
@@ -1713,7 +1713,7 @@ void OpenGLState::ActiveTexture(GLenum active)
 // ----------------------------------------------------------------------------
 {
     if (active >= GL_TEXTURE0 && active < GL_TEXTURE0 + maxTextureUnits)
-        CHANGE(activeTexture, active - GL_TEXTURE0);
+        CHANGE(activeTexture, active);
 }
 
 
@@ -1740,17 +1740,19 @@ TextureUnitState &OpenGLState::ActiveTextureUnit()
 //    Return the state of the active texture unit
 // ----------------------------------------------------------------------------
 {
-    Q_ASSERT(activeTexture < MAX_TEXTURE_UNITS);
-    if (activeTexture >= textureUnits.units.size())
-        textureUnits.units.resize(activeTexture + 1);
-    textureUnits.dirty |=  1ULL << activeTexture;
+    Q_ASSERT(activeTexture >= GL_TEXTURE0);
+    Q_ASSERT(activeTexture < GL_TEXTURE0+MAX_TEXTURE_UNITS);
+    uint at = activeTexture - GL_TEXTURE0;
+    if (at >= textureUnits.units.size())
+        textureUnits.units.resize(at + 1);
+    textureUnits.dirty |=  1ULL << at;
 
     // Save texture unit state on the state stack
     textureUnits_isDirty = true;
     if (save)
         save->save_textureUnits(textureUnits);
 
-    return textureUnits.units[activeTexture];
+    return textureUnits.units[at];
 }
 
 

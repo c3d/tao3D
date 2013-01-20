@@ -639,7 +639,8 @@ private:
         return ActiveTextureUnit().matrix;
     }
 
-
+    // Singleton
+    OpenGLState(const OpenGLState &other);
     static OpenGLState *        current;
 };
 

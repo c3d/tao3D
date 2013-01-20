@@ -9768,27 +9768,27 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
     if (name != "")
     {
         // Get or build the current frame if we don't have one
-        MultiFrameInfo<text> *multiframe = self->GetInfo< MultiFrameInfo<text> >();
-        if (!multiframe)
+        MultiFrameInfo<text> *mf = self->GetInfo< MultiFrameInfo<text> >();
+        if (!mf)
         {
-            multiframe = new MultiFrameInfo<text>();
-            self->SetInfo< MultiFrameInfo<text> > (multiframe);
+            mf = new MultiFrameInfo<text>();
+            self->SetInfo< MultiFrameInfo<text> > (mf);
         }
 
-        pFrame = &multiframe->frame(name);
+        pFrame = &mf->frame(name);
     }
     else
     {
         // Get or build the current frame if we don't have one
-        MultiFrameInfo<uint> *multiframe = self->GetInfo< MultiFrameInfo<uint> >();
-        if (!multiframe)
+        MultiFrameInfo<uint> *mf = self->GetInfo< MultiFrameInfo<uint> >();
+        if (!mf)
         {
-            multiframe = new MultiFrameInfo<uint>();
-            self->SetInfo< MultiFrameInfo<uint> > (multiframe);
+            mf = new MultiFrameInfo<uint>();
+            self->SetInfo< MultiFrameInfo<uint> > (mf);
         }
 
         uint id = shapeId();
-        pFrame = &multiframe->frame(id);
+        pFrame = &mf->frame(id);
     }
 
     FrameInfo &frame = *pFrame;

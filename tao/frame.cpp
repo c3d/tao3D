@@ -25,6 +25,8 @@
 #include "widget.h"
 #include "application.h"
 #include "tao_utf8.h"
+#include "preferences_pages.h"
+
 
 TAO_BEGIN
 
@@ -288,6 +290,11 @@ void FrameInfo::blit()
     QGLFramebufferObject::blitFramebuffer(textureFBO, rect,
                                           renderFBO, rect,
                                           buffers);
+    if (PerformancesPage::texture2DMipmap())
+    {
+        glBindTexture(GL_TEXTURE_2D, textureFBO->texture());
+        glGenerateMipmap(GL_TEXTURE_2D);
+    }
 }
 
 

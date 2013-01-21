@@ -9838,6 +9838,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         layout = NULL;
     } while (0); // State keeper and layout
 
+    glPopAttrib();
+
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
@@ -9849,8 +9851,6 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
         uint depthTexId = frame.depthTexture();
         withDepth->value = depthTexId;
     }
-
-    glPopAttrib();
 
     return new Integer(texId, self->Position());
 }
@@ -9984,16 +9984,18 @@ Integer* Widget::thumbnail(Context *context,
         frame.refreshTime = CurrentTime() + interval;
     }
 
+    glPopAttrib();
+
     // Bind the resulting texture and save current infos
     uint texId = frame.bind();
     layout->Add(new FillTexture(texId));
     layout->hasAttributes = true;
     GL.TextureSize (w, h);
 
-    glPopAttrib();
 
     return new Integer(texId, self->Position());
 }
+
 
 Integer* Widget::linearGradient(Context *context, Tree_p self,
                                 Real_p start_x, Real_p start_y,

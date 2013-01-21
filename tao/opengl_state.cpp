@@ -1094,6 +1094,7 @@ void OpenGLState::VertexPointer(int size, GLenum type,
 //    Define an array of vertex data
 // ----------------------------------------------------------------------------
 {
+    Sync();
     glVertexPointer(size, type, stride, pointer);
 }
 
@@ -1103,6 +1104,7 @@ void OpenGLState::NormalPointer(GLenum type, int stride, const void* pointer)
 //    Define an array of normal data
 // ----------------------------------------------------------------------------
 {
+    Sync();
     glNormalPointer(type, stride, pointer);
 }
 
@@ -1113,6 +1115,7 @@ void OpenGLState::TexCoordPointer(int size, GLenum type,
 //    Define an array of texture coordinates
 // ----------------------------------------------------------------------------
 {
+    Sync();
     glTexCoordPointer(size, type, stride, pointer);
 }
 
@@ -1123,6 +1126,7 @@ void OpenGLState::ColorPointer(int size, GLenum type,
 //    Define an array of color data
 // ----------------------------------------------------------------------------
 {
+    Sync();
     glColorPointer(size, type, stride, pointer);
 }
 
@@ -1143,6 +1147,7 @@ void OpenGLState::EndList()
 //    Replace a display list
 // ----------------------------------------------------------------------------
 {
+    Sync();
     glEndList();
 }
 
@@ -1460,8 +1465,9 @@ void OpenGLState::Enable(GLenum cap)
         return;
 #include "opengl_state.tbl"
 
-    case GL_TEXTURE_1D:
     case GL_TEXTURE_2D:
+        currentTextureUnits.active |= 1ULL << (activeTexture - GL_TEXTURE0);
+    case GL_TEXTURE_1D:
     case GL_TEXTURE_3D:
     case GL_TEXTURE_CUBE_MAP:
     {
@@ -1501,8 +1507,9 @@ void OpenGLState::Disable(GLenum cap)
 #define GFLAG(name) case name: CHANGE(glflag_##name, false); return;
 #include "opengl_state.tbl"
 
-    case GL_TEXTURE_1D:
     case GL_TEXTURE_2D:
+        currentTextureUnits.active &= ~(1ULL << (activeTexture - GL_TEXTURE0));
+    case GL_TEXTURE_1D:
     case GL_TEXTURE_3D:
     case GL_TEXTURE_CUBE_MAP:
     {

@@ -454,6 +454,8 @@ QMAKE_CLEAN += tao.xl
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
+CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
+INSTALLS    += xl_files
 
 welcome.path  = $$APPINST/welcome
 isEmpty(NO_WELCOME) {
@@ -464,11 +466,15 @@ isEmpty(NO_WELCOME) {
 }
 INSTALLS += welcome
 
-CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
-fonts.path  = $$APPINST/fonts
-fonts.files = fonts/*.ttf fonts/README
-!contains(DEFINES, CFG_NOSRCEDIT):fonts.files += fonts/unifont/unifont-5.1.20080907.ttf
-INSTALLS    += xl_files fonts
+isEmpty(NO_FONTS) {
+  fonts.path  = $$APPINST/fonts
+  fonts.files = fonts/*.ttf fonts/README
+  !contains(DEFINES, CFG_NOSRCEDIT):fonts.files += fonts/unifont/unifont-5.1.20080907.ttf
+  INSTALLS += fonts
+} else {
+    !build_pass:message("[NO_FONTS] No font file wil be installed.")
+}
+
 macx {
   # Workaround install problem: on Mac, the standard way of installing (the 'else'
   # part of this block) starts by recursively deleting $$target.path/Tao.app.

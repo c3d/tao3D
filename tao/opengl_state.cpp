@@ -1467,9 +1467,8 @@ void OpenGLState::Enable(GLenum cap)
         return;
 #include "opengl_state.tbl"
 
-    case GL_TEXTURE_2D:
-        currentTextureUnits.active |= 1ULL << (activeTexture - GL_TEXTURE0);
     case GL_TEXTURE_1D:
+    case GL_TEXTURE_2D:
     case GL_TEXTURE_3D:
     case GL_TEXTURE_CUBE_MAP:
     {
@@ -1509,9 +1508,8 @@ void OpenGLState::Disable(GLenum cap)
 #define GFLAG(name) case name: CHANGE(glflag_##name, false); return;
 #include "opengl_state.tbl"
 
-    case GL_TEXTURE_2D:
-        currentTextureUnits.active &= ~(1ULL << (activeTexture - GL_TEXTURE0));
     case GL_TEXTURE_1D:
+    case GL_TEXTURE_2D:
     case GL_TEXTURE_3D:
     case GL_TEXTURE_CUBE_MAP:
     {

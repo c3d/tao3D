@@ -324,7 +324,7 @@ QString Assistant::assistantPath()
     QString app = QCoreApplication::applicationDirPath()
                 + QDir::separator();
 #if !defined(Q_OS_MAC)
-    app += QLatin1String("assistant");
+    app += QLatin1String("assistant.exe");
 #else
     app += QLatin1String("Tao Presentations Help.app/Contents/MacOS/"
                          "Tao Presentations Help");

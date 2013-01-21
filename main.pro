@@ -60,6 +60,10 @@
 #   DEFINES+=CFG_WITH_EULA
 #     Show the End-User License Agreement on startup, if not already accepted
 #     for the current version.
+#   DEFINES+=CFG_NO_NEW_FROM_TEMPLATE
+#     Removes menus: File>New from Template..., Help>Themes and Help>Examples.
+#   DEFINES+=CFG_NO_QTWEBKIT
+#     Do not use QtWebKit. The url and url_texture primitives become no-ops.
 #
 #   modules=none
 #     Do not build any Tao module
@@ -81,6 +85,9 @@
 #   templates=all -my_template
 #   templates=none +my_template
 #     Select which templates to install. Similar to 'modules' above.
+#     Note: templates installed by theme modules (modules/themes/*) cannot be
+#     selected with this variable. They can only be disabled altogether,
+#     when templates contains the word "none".
 #
 #   NO_SDK=1
 #     Do not include the module SDK in the package.

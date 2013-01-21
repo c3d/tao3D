@@ -28,8 +28,7 @@ INC = . \
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
-QT += webkit \
-    network \
+QT += network \
     opengl \
     svg
 CONFIG += help
@@ -96,7 +95,6 @@ HEADERS +=     activity.h \
     module_info_dialog.h \
     module_manager.h \
     module_renderer.h \
-    new_document_wizard.h \
     normalize.h \
     page_layout.h \
     path3d.h \
@@ -119,7 +117,6 @@ HEADERS +=     activity.h \
     table.h \
     tao_main.h \
     tao_tree.h \
-    templates.h \
     text_drawing.h \
     text_edit.h \
     texture.h \
@@ -175,7 +172,6 @@ SOURCES +=     activity.cpp \
     module_info_dialog.cpp \
     module_manager.cpp \
     module_renderer.cpp \
-    new_document_wizard.cpp \
     normalize.cpp \
     page_layout.cpp \
     path3d.cpp \
@@ -197,7 +193,6 @@ SOURCES +=     activity.cpp \
     svg.cpp \
     table.cpp \
     tao_main.cpp \
-    templates.cpp \
     text_drawing.cpp \
     text_edit.cpp \
     texture.cpp \
@@ -333,6 +328,22 @@ contains(DEFINES, CFG_WITH_EULA) {
 contains(DEFINES, CFG_WITH_CFU) {
     !build_pass:message("Check for update on startup is enabled by default")
 }
+contains(DEFINES, CFG_NO_NEW_FROM_TEMPLATE) {
+    !build_pass:message("[CFG_NO_NEW_FROM_TEMPLATE] File/New from Template is disabled")
+} else {
+    HEADERS += \
+        new_document_wizard.h \
+        templates.h
+    SOURCES += \
+        new_document_wizard.cpp \
+        templates.cpp
+}
+contains(DEFINES, CFG_NO_QTWEBKIT) {
+    !build_pass:message("[CFG_NO_QTWEBKIT] QtWebKit disabled: primitives url/url_texture will do nothing")
+} else {
+    QT += webkit
+}
+
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
 NOWARN_SOURCES += decryption.cpp license.cpp

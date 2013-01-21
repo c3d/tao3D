@@ -20,6 +20,10 @@
 #    parameter ($2). Instead, resolve frameworks dynamically (otool -L,
 #    otool -l).
 #
+# Environment variables:
+#  PACKAGE_NO_QTWEBKIT
+#    When not empty, do not package QtWebKit.
+#
 # ******************************************************************************
 # This software is property of Taodyne SAS - Confidential
 # Ce logiciel est la propriété de Taodyne SAS - Confidentiel
@@ -28,8 +32,7 @@
 # (C) 2011 Taodyne SAS
 # ******************************************************************************
 
-FRAMEWORKS="QtWebKit.framework/Versions/4/QtWebKit \
-           phonon.framework/Versions/4/phonon \
+FRAMEWORKS="phonon.framework/Versions/4/phonon \
            QtDBus.framework/Versions/4/QtDBus \
            QtXml.framework/Versions/4/QtXml \
            QtSvg.framework/Versions/4/QtSvg \
@@ -39,6 +42,7 @@ FRAMEWORKS="QtWebKit.framework/Versions/4/QtWebKit \
            QtHelp.framework/Versions/4/QtHelp \
            QtSql.framework/Versions/4/QtSql \
            QtCore.framework/Versions/4/QtCore"
+[ "$PACKAGE_NO_QTWEBKIT" ] || FRAMEWORKS="$FRAMEWORKS QtWebKit.framework/Versions/4/QtWebKit"
 
 if [ $# -ne 2 ] ; then
   echo Usage: $0 \<app bundle directory\> \<Qt library dir\>

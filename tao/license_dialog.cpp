@@ -25,6 +25,8 @@
 #include "license.h"
 #include "tao_utf8.h"
 
+#include <QAbstractButton>
+#include <QClipboard>
 #include <QPixmap>
 
 namespace Tao {
@@ -71,9 +73,16 @@ void LicenseDialog::showDialog()
 
 void LicenseDialog::done(int r)
 // ----------------------------------------------------------------------------
-//   Close this dialog and show next one, if any
+//   Maybe close this dialog and show next one, if any
 // ----------------------------------------------------------------------------
 {
+    if (r == QMessageBox::Apply)
+    {
+        // Copy host ID into clipboard and keep dialog open
+        QApplication::clipboard()->setText(+Licenses::hostID());
+        return;
+    }
+
     QMessageBox::done(r);
     // NB: A dialog shown by exec() rather than showDialog() is NOT in dialogs
     if (dialogs.contains(this))
@@ -130,6 +139,12 @@ void LicenseDialog::init()
     QPixmap *pm = Application::padlockIcon;
     if (pm && !pm->isNull())
         setIconPixmap(*pm);
+
+    addButton(QMessageBox::Apply);
+    button(QMessageBox::Apply)->setText(tr("Copy host ID to clipboard"));
+    addButton(QMessageBox::Ok);
+    setDefaultButton(QMessageBox::Ok);
+    setEscapeButton(QMessageBox::Ok);
 }
 
 }

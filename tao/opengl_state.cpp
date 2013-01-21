@@ -310,6 +310,8 @@ void OpenGLState::Sync(uint64 which)
     {                                                   \
         if (name##_isDirty && (which & STATE_##name))   \
         {                                               \
+            if (traceErrors)                            \
+                ShowErrors("before " #name);            \
             Code;                                       \
             name##_isDirty = false;                     \
             if (traceErrors)                            \
@@ -1956,6 +1958,7 @@ void OpenGLState::ActivateTextureUnits(uint64 mask)
     {
         if (todo & (1ULL << unit))
         {
+            Q_ASSERT(unit < currentTextureUnits.units.size());
             TextureUnitState &tus = currentTextureUnits.units[unit];
             tus.Set(tus.target, (mask & (1ULL << unit)) ? true : false);
             todo &= ~(1ULL << unit);
@@ -2499,3 +2502,11 @@ void TexturesState::Sync(TexturesState &nt, TextureUnitState &at)
 
 TAO_END
 
+
+void debugglerrors()
+// ----------------------------------------------------------------------------
+//   Show GL errors
+// ----------------------------------------------------------------------------
+{
+    Tao::OpenGLState::ShowErrors("From debugger");
+}

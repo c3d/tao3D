@@ -51,7 +51,7 @@ bool Shape::setTexture(Layout *where)
         setShader(where);
 
         // Synchronize the GL state
-        GL.Sync(STATE_textures | STATE_textureUnits);
+        GL.Sync(STATE_shaderProgram | STATE_textures | STATE_textureUnits);
     }
     return GL.ActiveTextureUnitsCount() > 0;
 }
@@ -219,28 +219,28 @@ bool Shape::setShader(Layout *where)
     // In order to improve performance of large and complex 3D models,
     // we use a shader based ligting (Feature #1508), which needs some
     // uniform values to have an efficient behaviour.
-    if(where->perPixelLighting == where->programId)
+    if(where->programId)
     {
-        if(where->programId)
+        if(where->perPixelLighting == where->programId)
         {
-            GLint lights = glGetUniformLocation(where->programId, "lights");
-            glUniform1i(lights, where->currentLights);
+            GLint lights = GL.GetUniformLocation(where->programId, "lights");
+            GL.Uniform(lights, (int) where->currentLights);
 
-            GLint textures = glGetUniformLocation(where->programId, "textures");
-            glUniform1i(textures, GL.ActiveTextureUnits());
+            GLint textures = GL.GetUniformLocation(where->programId,"textures");
+            GL.Uniform(textures, (int) GL.ActiveTextureUnits());
 
-            GLint vendor = glGetUniformLocation(where->programId, "vendor");
-            glUniform1i(vendor, GL.VendorID());
+            GLint vendor = GL.GetUniformLocation(where->programId, "vendor");
+            GL.Uniform(vendor, (int) GL.VendorID());
 
             // Set texture units
-            GLint tex0 = glGetUniformLocation(where->programId, "tex0");
-            glUniform1i(tex0, 0);
-            GLint tex1 = glGetUniformLocation(where->programId, "tex1");
-            glUniform1i(tex1, 1);
-            GLint tex2 = glGetUniformLocation(where->programId, "tex2");
-            glUniform1i(tex2, 2);
-            GLint tex3 = glGetUniformLocation(where->programId, "tex3");
-            glUniform1i(tex3, 3);
+            GLint tex0 = GL.GetUniformLocation(where->programId, "tex0");
+            GL.Uniform(tex0, 0);
+            GLint tex1 = GL.GetUniformLocation(where->programId, "tex1");
+            GL.Uniform(tex1, 1);
+            GLint tex2 = GL.GetUniformLocation(where->programId, "tex2");
+            GL.Uniform(tex2, 2);
+            GLint tex3 = GL.GetUniformLocation(where->programId, "tex3");
+            GL.Uniform(tex3, 3);
         }
     }
 

@@ -52,7 +52,8 @@ struct GraphicState
     virtual void                Restore(GraphicSave *saved) = 0;
 
     // Apply pending state changes
-    virtual void                Sync() = 0;
+    virtual void                Sync(uint64 which = ~0ULL) = 0;
+    virtual void                Invalidate(uint64 which = ~0ULL) = 0;
 
     // Return attributes of state
     virtual uint   MaxTextureCoords() = 0;

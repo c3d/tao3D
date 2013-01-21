@@ -239,6 +239,8 @@ void ModuleRenderer::Draw(Layout *where)
 
     currentLayout = where;
     callback(arg);
+
+    GL.Invalidate();
 }
 
 
@@ -263,6 +265,8 @@ void ModuleRenderer::Identify(Layout *where)
         else
             callback(arg);
     }
+
+    GL.Invalidate();
 }
 
 }

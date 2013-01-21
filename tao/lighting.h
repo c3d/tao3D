@@ -41,6 +41,7 @@ struct Lighting : Attribute
     Lighting(): Attribute() {}
 };
 
+
 struct ShaderProgramInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //   Hold info associated to a tree
@@ -55,7 +56,6 @@ struct ShaderProgramInfo : XL::Info, InfoTrashCan
 };
 
 
-
 struct ShaderProgram : Lighting
 // ----------------------------------------------------------------------------
 //   Activate a shader program
@@ -67,37 +67,31 @@ struct ShaderProgram : Lighting
 };
 
 
-struct ShaderUniformInfo : XL::Info
-// ----------------------------------------------------------------------------
-//   Record information about a uniform variable
-// ----------------------------------------------------------------------------
-{
-    ShaderUniformInfo(GLuint id): id(id) {}
-    GLuint id;
-};
-
-
-struct ShaderAttributeInfo : XL::Info
-// ----------------------------------------------------------------------------
-//   Record information about an attribute variable
-// ----------------------------------------------------------------------------
-{
-    ShaderAttributeInfo(GLuint id): id(id) {}
-    GLuint id;
-};
-
-
 struct ShaderValue : Lighting
 // ----------------------------------------------------------------------------
 //   Set a shader uniform or attribute value
 // ----------------------------------------------------------------------------
 {
     typedef std::vector<float> Values;
-    ShaderValue(Name_p name, Values values): name(name), values(values) {}
+    ShaderValue(GLuint location, GLuint type, Values values)
+        : location(location), type(type), values(values) {}
     virtual void Draw(Layout *where);
-    Name_p name;
+    GLuint location;
+    GLuint type;
     Values values;
 };
+
+
+struct ShaderAttribute : ShaderValue
+// ----------------------------------------------------------------------------
+//   Set a shader attribute
+// ----------------------------------------------------------------------------
+{
+    ShaderAttribute(GLuint location, GLuint type, Values values)
+        : ShaderValue(location, type, values) {}
+    virtual void Draw(Layout *where);
+};
+
 
 struct PerPixelLighting : Lighting
 // ----------------------------------------------------------------------------
@@ -113,6 +107,7 @@ struct PerPixelLighting : Lighting
     static QGLShaderProgram* pgm;
     static bool failed;
 };
+
 
 struct LightId : Lighting
 // ----------------------------------------------------------------------------

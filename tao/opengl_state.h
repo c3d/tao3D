@@ -360,7 +360,6 @@ struct OpenGLState : GraphicState
     // Return the current graphic state (one per widget)
     static OpenGLState *State()         { return current; }
     void   MakeCurrent();
-    void   Sync(uint64 which);
     uint   VendorID()                   { return vendorID; }
     bool   IsATIOpenGL()                { return vendorID == ATI; }
 
@@ -369,7 +368,8 @@ struct OpenGLState : GraphicState
     virtual void                Restore(GraphicSave *saved);
 
     // Apply pending state changes
-    virtual void                Sync();
+    virtual void                Sync(uint64 which = ~0ULL);
+    virtual void                Invalidate(uint64 which = ~0ULL);
 
     std::ostream & debug();
 
@@ -515,37 +515,35 @@ struct OpenGLState : GraphicState
     virtual void GetActiveUniform(uint prg, uint id, uint bufSize, GLsizei* length,
                                   GLsizei* size, GLenum* type, char *name);
 
-#define SYNC Sync(STATE_shaderProgram)
     virtual int  GetAttribLocation(uint program, const char* name);
-    virtual void VertexAttrib1fv(uint id, const float *v)      { SYNC; glVertexAttrib1fv(id, v); }
-    virtual void VertexAttrib2fv(uint id, const float *v)      { SYNC; glVertexAttrib2fv(id, v); }
-    virtual void VertexAttrib3fv(uint id, const float *v)      { SYNC; glVertexAttrib3fv(id, v); }
-    virtual void VertexAttrib4fv(uint id, const float *v)      { SYNC; glVertexAttrib4fv(id, v); }
+    virtual void VertexAttrib1fv(uint id, const float *v);
+    virtual void VertexAttrib2fv(uint id, const float *v);
+    virtual void VertexAttrib3fv(uint id, const float *v);
+    virtual void VertexAttrib4fv(uint id, const float *v);
 
     virtual int  GetUniformLocation(uint program, const char* name);
-    virtual void Uniform(uint id, float v)                                { SYNC; glUniform1f(id, v); }
-    virtual void Uniform(uint id, float v0, float v1)                     { SYNC; glUniform2f(id, v0, v1); }
-    virtual void Uniform(uint id, float v0, float v1, float v2)           { SYNC; glUniform3f(id, v0, v1, v2); }
-    virtual void Uniform(uint id, float v0, float v1, float v2, float v3) { SYNC; glUniform4f(id, v0, v1, v2, v3); }
-    virtual void Uniform(uint id, int v)                                  { SYNC; glUniform1i(id, v); }
-    virtual void Uniform(uint id, int v0, int v1)                         { SYNC; glUniform2i(id, v0, v1); }
-    virtual void Uniform(uint id, int v0, int v1, int v2)                 { SYNC; glUniform3i(id, v0, v1, v2); }
-    virtual void Uniform(uint id, int v0, int v1, int v2, int v3)         { SYNC; glUniform4i(id, v0, v1, v2, v3); }
-    virtual void Uniform1fv(uint id, GLsizei size, const float* v) { SYNC; glUniform1fv(id, size, v); }
-    virtual void Uniform2fv(uint id, GLsizei size, const float* v) { SYNC; glUniform2fv(id, size, v); }
-    virtual void Uniform3fv(uint id, GLsizei size, const float* v) { SYNC; glUniform3fv(id, size, v); }
-    virtual void Uniform4fv(uint id, GLsizei size, const float* v) { SYNC; glUniform4fv(id, size, v); }
-    virtual void Uniform1iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform1iv(id, size, v); }
-    virtual void Uniform2iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform2iv(id, size, v); }
-    virtual void Uniform3iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform3iv(id, size, v); }
-    virtual void Uniform4iv(uint id, GLsizei size, const int* v)   { SYNC; glUniform4iv(id, size, v); }
+    virtual void Uniform(uint id, float v);
+    virtual void Uniform(uint id, float v0, float v1);
+    virtual void Uniform(uint id, float v0, float v1, float v2);
+    virtual void Uniform(uint id, float v0, float v1, float v2, float v3);
+    virtual void Uniform(uint id, int v);
+    virtual void Uniform(uint id, int v0, int v1);
+    virtual void Uniform(uint id, int v0, int v1, int v2);
+    virtual void Uniform(uint id, int v0, int v1, int v2, int v3);
+    virtual void Uniform1fv(uint id, GLsizei size, const float* v);
+    virtual void Uniform2fv(uint id, GLsizei size, const float* v);
+    virtual void Uniform3fv(uint id, GLsizei size, const float* v);
+    virtual void Uniform4fv(uint id, GLsizei size, const float* v);
+    virtual void Uniform1iv(uint id, GLsizei size, const int* v);
+    virtual void Uniform2iv(uint id, GLsizei size, const int* v);
+    virtual void Uniform3iv(uint id, GLsizei size, const int* v);
+    virtual void Uniform4iv(uint id, GLsizei size, const int* v);
     virtual void UniformMatrix2fv(uint id, GLsizei size,
-                                  bool transp, const float* m) { SYNC; glUniformMatrix2fv(id, size, transp, m); }
+                                  bool transp, const float* m);
     virtual void UniformMatrix3fv(uint id, GLsizei size,
-                                  bool transp, const float* m) { SYNC; glUniformMatrix3fv(id, size, transp, m); }
+                                  bool transp, const float* m);
     virtual void UniformMatrix4fv(uint id, GLsizei size,
-                                  bool transp, const float* m) { SYNC; glUniformMatrix4fv(id, size, transp, m); }
-#undef SYNC
+                                  bool transp, const float* m);
 
     // Textures
     virtual void ActiveTexture(GLenum id);

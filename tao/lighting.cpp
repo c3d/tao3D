@@ -198,11 +198,11 @@ void ShaderProgram::Draw(Layout *where)
 //   Activate the given shader program
 // ----------------------------------------------------------------------------
 {
-
     if (!where->InIdentify())
     {
-	program->bind();
+        program->bind();
 	where->programId = program->programId();
+        GL.UseProgram(where->programId);
     }
 }
 
@@ -214,110 +214,64 @@ void ShaderValue::Draw(Layout *where)
 {
     if (where->programId && !where->InIdentify())
     {
-        ShaderUniformInfo   *uniform   = name->GetInfo<ShaderUniformInfo>();
-        ShaderAttributeInfo *attribute = name->GetInfo<ShaderAttributeInfo>();
-        if (!uniform && !attribute)
+        GLint id = location;
+        int sz = values.size();
+
+        switch (type)
         {
-            kstring cname = name->value.c_str();
-            GLint uni = GL.GetUniformLocation(where->programId, cname);
-            if (uni >= 0)
-            {
-                uniform = new ShaderUniformInfo(uni);
-                name->SetInfo<ShaderUniformInfo>(uniform);
-            }
-            else
-            {
-                GLint attri = GL.GetAttribLocation(where->programId, cname);
-                if (attri >= 0)
-                {
-                    attribute = new ShaderAttributeInfo(attri);
-                    name->SetInfo<ShaderAttributeInfo>(attribute);
-                }
-            }
-        }
-
-
-        if (uniform)
-        {
-            uint id = uniform->id;
-            GLint type = 0;
-
-            GLint uniformMaxLength = 0;
-            GL.GetProgram(where->programId,
-                          GL_ACTIVE_UNIFORM_MAX_LENGTH, &uniformMaxLength);
-
-            GLint uniformActive = 0;
-            GL.GetProgram(where->programId,
-                          GL_ACTIVE_UNIFORMS, &uniformActive);
-
-            //Get type of current uniform variable
-            GLint size = 0;
-            GLint length = 0;
-            GLchar* uniformName = new GLchar[uniformMaxLength + 1];
-            for(int index = 0; index < uniformActive; index++)
-            {
-                GL.GetActiveUniform(where->programId,
-                                    index, uniformMaxLength + 1,
-                                    &length, &size, (GLenum*) &type,
-                                    uniformName);
-
-                // If uniform is an array,
-                // compare just name without []
-                if(length >= 3 && uniformName[length - 1] == ']')
-                    if(! strncmp(uniformName,name->value.c_str(), length - 3))
-                        break;
-
-                // Otherwise juste compare
-                if(! strcmp(uniformName,name->value.c_str()))
-                    break;
-            }
-            delete[] uniformName;
-
-            switch (type)
-            {
-            case GL_BOOL:
-            case GL_INT:
-            case GL_SAMPLER_1D:
-            case GL_SAMPLER_2D:
-            case GL_SAMPLER_3D:
-            case GL_SAMPLER_CUBE:
+        case GL_BOOL:
+        case GL_INT:
+        case GL_SAMPLER_1D:
+        case GL_SAMPLER_2D:
+        case GL_SAMPLER_3D:
+        case GL_SAMPLER_CUBE:
 #ifdef GL_SAMPLER_2D_RECT
-            case GL_SAMPLER_2D_RECT:
+        case GL_SAMPLER_2D_RECT:
 #endif
-                GL.Uniform(id, values[0]);
-                break;
-            case GL_FLOAT_VEC2:
-                GL.Uniform2fv(id, (int) (values.size() / 2), &values[0]);
-                break;
-            case GL_FLOAT_VEC3:
-                GL.Uniform3fv(id, (int) (values.size() / 3), &values[0]);
-                break;
-            case GL_FLOAT_VEC4:
-                GL.Uniform4fv(id, (int) (values.size() / 4), &values[0]);
-                break;
-            case GL_FLOAT_MAT2:
-                GL.UniformMatrix2fv(id, (int) (values.size()/4), 0, &values[0]);
-                break;
-            case GL_FLOAT_MAT3:
-                GL.UniformMatrix3fv(id, (int) (values.size()/9), 0, &values[0]);
-                break;
-            case GL_FLOAT_MAT4:
-                GL.UniformMatrix4fv(id, (int) (values.size()/16), 0, &values[0]);
-                break;
-            default:
-                GL.Uniform1fv(id, values.size(), &values[0]);
-                break;
-            }
+            GL.Uniform(id, (int) values[0]);
+            break;
+        case GL_FLOAT:
+            GL.Uniform(id, values[0]);
+            break;
+        case GL_FLOAT_VEC2:
+            GL.Uniform2fv(id, sz/2, &values[0]);
+            break;
+        case GL_FLOAT_VEC3:
+            GL.Uniform3fv(id, sz/3, &values[0]);
+            break;
+        case GL_FLOAT_VEC4:
+            GL.Uniform4fv(id, sz/4, &values[0]);
+            break;
+        case GL_FLOAT_MAT2:
+            GL.UniformMatrix2fv(id, sz/4, 0, &values[0]);
+            break;
+        case GL_FLOAT_MAT3:
+            GL.UniformMatrix3fv(id, sz/9, 0, &values[0]);
+            break;
+        case GL_FLOAT_MAT4:
+            GL.UniformMatrix4fv(id, sz/16, 0, &values[0]);
+            break;
+        default:
+            GL.Uniform1fv(id, sz, &values[0]);
+            break;
         }
-        else if (attribute)
+    }
+}
+
+
+void ShaderAttribute::Draw(Layout *where)
+// ----------------------------------------------------------------------------
+//   Set the shader attribute
+// ----------------------------------------------------------------------------
+{
+    if (where->programId && !where->InIdentify())
+    {
+        switch(values.size())
         {
-            switch(values.size())
-            {
-            case 1: GL.VertexAttrib1fv(uniform->id, &values[0]); break;
-            case 2: GL.VertexAttrib2fv(uniform->id, &values[0]); break;
-            case 3: GL.VertexAttrib3fv(uniform->id, &values[0]); break;
-            case 4: GL.VertexAttrib4fv(uniform->id, &values[0]); break;
-            }
+        case 1: GL.VertexAttrib1fv(location, &values[0]); break;
+        case 2: GL.VertexAttrib2fv(location, &values[0]); break;
+        case 3: GL.VertexAttrib3fv(location, &values[0]); break;
+        case 4: GL.VertexAttrib4fv(location, &values[0]); break;
         }
     }
 }

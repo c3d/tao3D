@@ -7793,6 +7793,10 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
 //   Evaluate the code argument as an assignment for the current shader
 // ----------------------------------------------------------------------------
 {
+    GLuint programId = layout->programId;
+    if (!programId)
+        return Ooops("No program for shader assignment $1", self);
+
     if (Infix *infix = code->AsInfix())
     {
         if (infix->name == ":=")
@@ -7836,7 +7840,40 @@ Tree_p Widget::shaderSet(Context *context, Tree_p self, Tree_p code)
                     Ooops("Shader value $1 is not a number", value);
             }
 
-            layout->Add(new ShaderValue(name, values));
+            // Get location for the given uniform
+            kstring cname = name->value.c_str();
+            GLint uniformLoc = GL.GetUniformLocation(programId, cname);
+            char altName[80];
+            GLsizei length = 0;
+            GLint size = 0;
+            GLenum type = 0;
+
+            if (uniformLoc >= 0)
+            {
+
+                GL.GetActiveUniform(programId, uniformLoc,
+                                    sizeof(altName)-1, &length, &size, &type,
+                                    altName);
+
+                // REVISIT: Check size returned by above function vs. values
+
+                // Register that we want to set a shader value
+                layout->Add(new ShaderValue(uniformLoc, type, values));
+            }
+            else
+            {
+                GLint attributeLoc = GL.GetAttribLocation(programId, cname);
+                if (attributeLoc >= 0)
+                {
+                    layout->Add(new ShaderAttribute(attributeLoc,
+                                                    GL_FLOAT, values));
+                }
+                else
+                {
+                    return Ooops("Unkown shader variable name $1", name);
+                }
+            }
+
             return XL::xl_true;
         }
     }

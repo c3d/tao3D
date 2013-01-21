@@ -258,7 +258,7 @@ uint OpenGLState::ShowErrors(kstring msg)
             char *p = (char *) gluErrorString(err);
             std::cerr << "GL Error: " << p;
             if (msg)
-                std::cerr << " in " << msg << " ";
+                std::cerr << " (" << msg << ") ";
             std::cerr << "[error code: " << err << "]\n";
             IFTRACE(glerrors)
                 tao_stack_trace(2);
@@ -280,15 +280,6 @@ uint OpenGLState::ShowErrors(kstring msg)
     }
 
     return errorsFound;
-}
-
-
-void OpenGLState::Sync()
-// ----------------------------------------------------------------------------
-//    Synchronize all pending changes and send them to the card
-// ----------------------------------------------------------------------------
-{
-    Sync(~0ULL);
 }
 
 
@@ -315,7 +306,7 @@ void OpenGLState::Sync(uint64 which)
             Code;                                       \
             name##_isDirty = false;                     \
             if (traceErrors)                            \
-                ShowErrors(#name);                      \
+                ShowErrors("after " #name);             \
         }                                               \
     } while(0)
 
@@ -436,6 +427,16 @@ void OpenGLState::Sync(uint64 which)
          glMaterialf(GL_BACK, GL_SHININESS, backShininess));
 
 #undef SYNC
+}
+
+
+void OpenGLState::Invalidate(uint64 which)
+// ----------------------------------------------------------------------------
+//   Invalidate selected elements, e.g. because of known direct calls
+// ----------------------------------------------------------------------------
+{
+#define GS(type, name) if (which & STATE_##name) name##_isDirty = true;
+#include "opengl_state.tbl"
 }
 
 
@@ -1665,13 +1666,24 @@ void OpenGLState::UseProgram(uint prg)
 }
 
 
+#define SHADER(body)                            \
+{                                               \
+    bool traceErrors = XLTRACE(glerrors);       \
+    if (traceErrors)                            \
+        ShowErrors("before " #body);            \
+    Sync(STATE_shaderProgram);                  \
+    body;                                       \
+    if (traceErrors)                            \
+        ShowErrors("after " #body);             \
+}
+
+
 void OpenGLState::GetProgram(uint prg, GLenum pname, int *params)
 // ----------------------------------------------------------------------------
 //   Returns a parameter from a program object
 // ----------------------------------------------------------------------------
 {
-    Sync(STATE_shaderProgram);
-    glGetProgramiv(prg, pname, params);
+    SHADER(glGetProgramiv(prg, pname, params));
 }
 
 
@@ -1682,8 +1694,7 @@ void OpenGLState::GetActiveUniform(uint prg, uint id,
 //   Returns information about an active uniform variable
 // ----------------------------------------------------------------------------
 {
-    Sync(STATE_shaderProgram);
-    glGetActiveUniform(prg, id, bufSize, length, size, type, name);
+    SHADER(glGetActiveUniform(prg, id, bufSize, length, size, type, name));
 }
 
 
@@ -1704,6 +1715,216 @@ int OpenGLState::GetUniformLocation(uint program, const char* name)
 {
     Sync(STATE_shaderProgram);
     return glGetUniformLocation(program, name);
+}
+
+
+void OpenGLState::VertexAttrib1fv(uint id, const float *v)
+// ----------------------------------------------------------------------------
+//   Vertex attributes
+// ----------------------------------------------------------------------------
+{
+    SHADER(glVertexAttrib1fv(id, v));
+}
+
+
+void OpenGLState::VertexAttrib2fv(uint id, const float *v)
+// ----------------------------------------------------------------------------
+//   Vertex attributes
+// ----------------------------------------------------------------------------
+{
+    SHADER(glVertexAttrib2fv(id, v));
+}
+
+
+void OpenGLState::VertexAttrib3fv(uint id, const float *v)
+// ----------------------------------------------------------------------------
+//   Vertex attributes
+// ----------------------------------------------------------------------------
+{
+    SHADER(glVertexAttrib3fv(id, v));
+}
+
+
+void OpenGLState::VertexAttrib4fv(uint id, const float *v)
+// ----------------------------------------------------------------------------
+//   Vertex attributes
+// ----------------------------------------------------------------------------
+{
+    SHADER(glVertexAttrib4fv(id, v));
+}
+
+
+void OpenGLState::Uniform(uint id, float v)
+// ----------------------------------------------------------------------------
+//   Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform1f(id, v));
+}
+
+
+void OpenGLState::Uniform(uint id, float v0, float v1)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform2f(id, v0, v1));
+}
+
+
+void OpenGLState::Uniform(uint id, float v0, float v1, float v2)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform3f(id, v0, v1, v2));
+}
+
+
+void OpenGLState::Uniform(uint id, float v0, float v1, float v2, float v3)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform4f(id, v0, v1, v2, v3));
+}
+
+
+void OpenGLState::Uniform(uint id, int v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform1i(id, v));
+}
+
+
+void OpenGLState::Uniform(uint id, int v0, int v1)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform2i(id, v0, v1));
+}
+
+
+void OpenGLState::Uniform(uint id, int v0, int v1, int v2)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform3i(id, v0, v1, v2));
+}
+
+
+void OpenGLState::Uniform(uint id, int v0, int v1, int v2, int v3)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform4i(id, v0, v1, v2, v3));
+}
+
+
+void OpenGLState::Uniform1fv(uint id, GLsizei size, const float* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform1fv(id, size, v));
+}
+
+
+void OpenGLState::Uniform2fv(uint id, GLsizei size, const float* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform2fv(id, size, v));
+}
+
+
+void OpenGLState::Uniform3fv(uint id, GLsizei size, const float* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform3fv(id, size, v));
+}
+
+
+void OpenGLState::Uniform4fv(uint id, GLsizei size, const float* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform4fv(id, size, v));
+}
+
+
+void OpenGLState::Uniform1iv(uint id, GLsizei size, const int* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform1iv(id, size, v));
+}
+
+
+void OpenGLState::Uniform2iv(uint id, GLsizei size, const int* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform2iv(id, size, v));
+}
+
+
+void OpenGLState::Uniform3iv(uint id, GLsizei size, const int* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform3iv(id, size, v));
+}
+
+
+void OpenGLState::Uniform4iv(uint id, GLsizei size, const int* v)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniform4iv(id, size, v));
+}
+
+
+void OpenGLState::UniformMatrix2fv(uint id, GLsizei size,
+                                  bool transp, const float* m)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniformMatrix2fv(id, size, transp, m));
+}
+
+
+void OpenGLState::UniformMatrix3fv(uint id, GLsizei size,
+                                  bool transp, const float* m)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniformMatrix3fv(id, size, transp, m));
+}
+
+
+void OpenGLState::UniformMatrix4fv(uint id, GLsizei size,
+                                  bool transp, const float* m)
+// ----------------------------------------------------------------------------
+//    Setting uniform values
+// ----------------------------------------------------------------------------
+{
+    SHADER(glUniformMatrix4fv(id, size, transp, m));
 }
 
 

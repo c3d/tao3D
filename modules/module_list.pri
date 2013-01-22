@@ -59,6 +59,7 @@
        regexp \
        chroma_key \
        transitions \
+       news_feed \
        snowfall
 
     OTHER_MODULES =     \
@@ -66,8 +67,7 @@
         hello_world     \
         tao_synchro  \
         tao_tester   \
-        database \
-        news_feed
+        database
 
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

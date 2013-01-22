@@ -38,6 +38,9 @@
 #include <unistd.h>    // For chdir()
 #include <sys/param.h> // For MAXPATHLEN
 #include <math.h>
+#ifdef Q_OS_WIN
+#include <windows.h> // For GetEnvironmenVariable(), etc.
+#endif
 
 
 namespace Tao {
@@ -686,6 +689,10 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.importName = +moduleAttr(tree, "import_name");
                 m.autoLoad = (moduleAttr(tree, "auto_load") != "");
                 m.onLoadError = +moduleAttr(tree, "on_load_error");
+#ifdef Q_OS_WIN
+                m.windowsLoadPath = +moduleAttr(tree, "windows_load_path");
+                m.expandSpecialPathTokens();
+#endif
             }
             else
             {
@@ -997,6 +1004,122 @@ struct SetCwd
     char wd[MAXPATHLEN];
 };
 
+#ifdef Q_OS_WIN
+
+struct SetPath
+// ----------------------------------------------------------------------------
+//   Temporarily change %PATH%
+// ----------------------------------------------------------------------------
+{
+#define VAR L"PATH"
+#define BUFSIZE 4096
+
+    SetPath(QString path) : exists(true), savedPath(NULL), path(path)
+    {
+        if (path.isEmpty())
+            return;
+        IFTRACE(modules)
+        {
+            ModuleManager::debug() << "    Setting %PATH% to: "
+                                   << +path << "\n";
+        }
+        savedPath = (WCHAR *)malloc(BUFSIZE * sizeof(WCHAR));
+        if (savedPath == NULL)
+        {
+            std::cerr << "SetPath: malloc: out of memory\n";
+            return;
+        }
+        DWORD st = GetEnvironmentVariableW(VAR, savedPath, BUFSIZE);
+        if (st == 0)
+        {
+            DWORD err = GetLastError();
+            free(savedPath);
+            savedPath = NULL;
+            if (err != ERROR_ENVVAR_NOT_FOUND)
+            {
+                std::cerr << "SetPath: GetEnvironmentVariable failed ("
+                          << err << ")\n";
+                return;
+            }
+            exists = false;
+        }
+        else if (BUFSIZE < st)
+        {
+            savedPath = (WCHAR *)realloc(savedPath, st*sizeof(WCHAR));
+            if (savedPath == NULL)
+            {
+                std::cerr << "SetPath: realloc: out of memory\n";
+                return;
+            }
+        }
+        setVar((const WCHAR*)path.utf16());
+    }
+    ~SetPath()
+    {
+        if (path.isEmpty())
+            return;
+        IFTRACE(modules)
+            ModuleManager::debug() << "    Restoring %PATH% to: "
+                << +QString::fromUtf16((const ushort *)savedPath) << "\n";
+        if (exists && savedPath)
+            setVar(savedPath);
+        else if (!exists)
+            setVar(NULL);
+        free(savedPath);
+    }
+
+protected:
+    void setVar(const WCHAR *val)
+    {
+        if (!SetEnvironmentVariableW(VAR, val))
+        {
+            std::cerr << "SetPath: SetEnvironmentVariable failed ("
+                      << GetLastError() << ")\n";
+        }
+    }
+
+    bool     exists;
+    WCHAR *  savedPath;
+    QString  path;
+
+#undef BUFSIZE
+};
+
+
+void ModuleManager::ModuleInfoPrivate::expandSpecialPathTokens()
+// ----------------------------------------------------------------------------
+//   Expand some special tokens in the string read from windows_load_path
+// ----------------------------------------------------------------------------
+{
+#define BUFSIZE 32*1024
+    QString path = +windowsLoadPath;
+    path.replace("@loader_path", QDir::toNativeSeparators(libDir()));
+    WCHAR * wpath = (WCHAR *)malloc(BUFSIZE * sizeof(WCHAR));
+    if (wpath)
+    {
+        DWORD ret;
+        ret = ExpandEnvironmentStringsW((WCHAR *)path.utf16(), wpath, BUFSIZE);
+        if (ret == 0 || BUFSIZE < ret)
+        {
+            std::cerr << "expandSpecialPathTokens: ExpandEnvironmentStringsW "
+                         "failed (" << GetLastError() << ")\n";
+        }
+        else
+        {
+            path = QString::fromUtf16((const ushort *)wpath);
+        }
+        free(wpath);
+    }
+    else
+    {
+        std::cerr << "expandSpecialPathTokens: malloc: out of memory\n";
+    }
+    windowsLoadPath = +path;
+#undef BUFSIZE
+}
+
+#endif
+
 
 
 bool ModuleManager::loadNative(Context * /*context*/,
@@ -1016,8 +1139,11 @@ bool ModuleManager::loadNative(Context * /*context*/,
     {
         // Change current directory, just the time to load any module dependency
         QString path = m.libPath();
-        QString libdir = QFileInfo(path).absolutePath();
+        QString libdir = m.libDir();
         SetCwd cd(libdir);
+#ifdef Q_OS_WIN
+        SetPath sp(+m_p->windowsLoadPath);
+#endif
         QLibrary * lib = new QLibrary(path, this);
         if (lib->load())
         {

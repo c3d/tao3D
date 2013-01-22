@@ -395,6 +395,11 @@ public:
             return ret;
         }
 
+        QString libDir() const
+        {
+            return QFileInfo(libPath()).absolutePath();
+        }
+
         bool operator<(const ModuleInfoPrivate o) const
         {
             return (name.compare(o.name) < 0);
@@ -424,6 +429,12 @@ public:
             }
             return false;
         }
+
+
+#ifdef Q_OS_WIN
+        void expandSpecialPathTokens();
+#endif
+
     };
 
     bool                init();
@@ -519,6 +530,9 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfoPrivate>   newModules(QString parentDir);
     ModuleInfoPrivate          readModule(QString moduleDir);
+#ifdef Q_OS_WIN32
+    void                expandSpecialPathTokens(ModuleInfoPrivate &m);
+#endif
     bool                applyPendingUpdate(const ModuleInfoPrivate &m);
     QString             gitVersion(QString moduleDir);
 
@@ -557,6 +571,9 @@ friend class CheckForUpdate;
 friend class CheckAllForUpdate;
 friend class UpdateModule;
 friend class SetCwd;
+#ifdef Q_OS_WIN
+friend class SetPath;
+#endif
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };

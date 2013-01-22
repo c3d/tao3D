@@ -8639,10 +8639,10 @@ struct ImagePacker : XL::Action
 
 
 Integer* Widget::picturePacker(Tree_p self,
-                                 uint tw, uint th,
-                                 uint iw, uint ih,
-                                 uint pw, uint ph,
-                                 Tree_p t)
+                               uint tw, uint th,
+                               uint iw, uint ih,
+                               uint pw, uint ph,
+                               Tree_p t)
 // ----------------------------------------------------------------------------
 //   Debug the bin packer
 // ----------------------------------------------------------------------------

@@ -1399,7 +1399,8 @@ void ModuleManager::warnLibraryLoadError(QString name, QString errorString,
     }
     else
     {
-        warn.setText(moduleSuppliedText);
+        warn.setText(tr("Module %1 cannot be initialized.").arg(name));
+        warn.setInformativeText(moduleSuppliedText);
         warn.setDetailedText(errorString);
     }
     warn.exec();

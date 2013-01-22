@@ -685,6 +685,7 @@ ModuleManager::ModuleInfoPrivate ModuleManager::readModule(QString moduleDir)
                 m.website = +moduleAttr(tree, "website");
                 m.importName = +moduleAttr(tree, "import_name");
                 m.autoLoad = (moduleAttr(tree, "auto_load") != "");
+                m.onLoadError = +moduleAttr(tree, "on_load_error");
             }
             else
             {
@@ -1074,7 +1075,8 @@ bool ModuleManager::loadNative(Context * /*context*/,
         {
             IFTRACE(modules)
                 debug() << "    Load error: " << +lib->errorString() << "\n";
-            warnLibraryLoadError(+m.name, lib->errorString());
+            warnLibraryLoadError(+m_p->name, lib->errorString(),
+                                 +m_p->onLoadError);
             delete lib;
             m_p->inError = true;
         }
@@ -1255,14 +1257,26 @@ void ModuleManager::warnDuplicateModule(const ModuleInfoPrivate &m)
 }
 
 
-void ModuleManager::warnLibraryLoadError(QString name, QString errorString)
+void ModuleManager::warnLibraryLoadError(QString name, QString errorString,
+                                         QString moduleSuppliedText)
 // ----------------------------------------------------------------------------
 //   Tell user that library failed to load (module will be ignored)
 // ----------------------------------------------------------------------------
 {
-    QString msg = tr("Module %1 cannot be initialized.\n%2").arg(name)
-                                                            .arg(errorString);
-    QMessageBox::warning(NULL, tr("Tao modules"), msg);
+    QMessageBox warn;
+    warn.setWindowTitle(tr("Tao modules"));
+    if (moduleSuppliedText.isEmpty())
+    {
+        QString msg = tr("Module %1 cannot be initialized.\n%2").arg(name)
+                                                                .arg(errorString);
+        warn.setText(msg);
+    }
+    else
+    {
+        warn.setText(moduleSuppliedText);
+        warn.setDetailedText(errorString);
+    }
+    warn.exec();
 }
 
 

@@ -47,6 +47,8 @@ struct ModuleInfo
     std::string website;
     std::string importName;
     bool        autoLoad;
+    // Message supplied by the module, shown in case of library load error
+    std::string onLoadError;
 };
 
 }

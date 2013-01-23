@@ -60,6 +60,7 @@
        chroma_key \
        transitions \
        news_feed \
+       speech \
        snowfall
 
     OTHER_MODULES =     \

@@ -258,7 +258,7 @@
         <translation>Impossible de changer le fichier de police : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1274"/>
+        <location filename="module_manager.cpp" line="1415"/>
         <source>WARNING: Skipping incompatible binary module </source>
         <translatorcomment>Utiliser %1</translatorcomment>
         <translation>ATTENTION : Module binaire incompatible </translation>
@@ -1073,7 +1073,7 @@ Voulez-vous me montrer où elle se trouve ?</translation>
     <message>
         <location filename="license_dialog.cpp" line="144"/>
         <source>Copy host ID to clipboard</source>
-        <translation>Copier l'identifiant dans le presse-papier</translation>
+        <translation>Copier l&apos;identifiant dans le presse-papier</translation>
     </message>
 </context>
 <context>
@@ -1258,22 +1258,22 @@ Choisisser Annuler pour laisser le projet en l&apos;état et résoudre les confl
 <context>
     <name>Tao::ModuleManager</name>
     <message>
-        <location filename="module_manager.cpp" line="559"/>
+        <location filename="module_manager.cpp" line="562"/>
         <source>New module</source>
         <translation>Nouveau module</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="691"/>
+        <location filename="module_manager.cpp" line="699"/>
         <source>Missing ID, name or version</source>
         <translation>Identifiant, nom ou version manquant</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="696"/>
+        <location filename="module_manager.cpp" line="704"/>
         <source>Could not parse %1</source>
         <translation>Impossible de faire l&apos;analyse grammaticale de %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1200"/>
+        <location filename="module_manager.cpp" line="1328"/>
         <source>Do you want to remove the following module from the Tao configuration?
 
 Name: %1
@@ -1284,8 +1284,8 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1205"/>
-        <location filename="module_manager.cpp" line="1226"/>
+        <location filename="module_manager.cpp" line="1333"/>
+        <location filename="module_manager.cpp" line="1354"/>
         <source>
 
 Reason: %1</source>
@@ -1294,14 +1294,14 @@ Reason: %1</source>
 Cause : %1</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1207"/>
-        <location filename="module_manager.cpp" line="1228"/>
-        <location filename="module_manager.cpp" line="1265"/>
+        <location filename="module_manager.cpp" line="1335"/>
+        <location filename="module_manager.cpp" line="1356"/>
+        <location filename="module_manager.cpp" line="1393"/>
         <source>Tao modules</source>
         <translation>Modules Tao</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1222"/>
+        <location filename="module_manager.cpp" line="1350"/>
         <source>Do you want to enable following module?
 
 Name: %1
@@ -1312,24 +1312,29 @@ Nom : %1
 Emplacement : %2</translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1242"/>
+        <location filename="module_manager.cpp" line="1370"/>
         <source>WARNING: Skipping invalid module %1
 </source>
         <translation>ATTENTION : Module invalide : %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1245"/>
+        <location filename="module_manager.cpp" line="1373"/>
         <source>WARNING:   %1
 </source>
         <translation>ATTENTION:   %1
 </translation>
     </message>
     <message>
-        <location filename="module_manager.cpp" line="1263"/>
+        <location filename="module_manager.cpp" line="1396"/>
         <source>Module %1 cannot be initialized.
 %2</source>
         <translation>Le module %1 ne peut être initalisé.%2</translation>
+    </message>
+    <message>
+        <location filename="module_manager.cpp" line="1402"/>
+        <source>Module %1 cannot be initialized.</source>
+        <translation>Le module %1 ne peut être initalisé.</translation>
     </message>
 </context>
 <context>

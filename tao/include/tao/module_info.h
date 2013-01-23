@@ -47,6 +47,12 @@ struct ModuleInfo
     std::string website;
     std::string importName;
     bool        autoLoad;
+    // Message supplied by the module as on_load_error, shown in case of
+    // library load error
+    std::string onLoadError;
+    // Windows: value of %PATH% to be set to load the library (supplied by
+    // the module as windows_load_path)
+    std::string windowsLoadPath;
 };
 
 }

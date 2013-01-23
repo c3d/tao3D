@@ -24,7 +24,9 @@
 #include "renderer.h"
 #include "parser.h"
 #include "main.h"
+#if !defined(CFG_NOGIT) || !defined(CFG_NONETWORK)
 #include "git_backend.h"
+#endif
 #include "tao_utf8.h"
 
 #include <QDir>
@@ -33,6 +35,9 @@
 #include <fstream>
 #include <math.h>
 
+#if defined(CFG_NOGIT) && defined(CFG_NONETWORK)
+#define REPO_DISABLED 1
+#endif
 
 namespace Tao {
 
@@ -363,6 +368,11 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
 //    Create the right repository object kind for a directory
 // ----------------------------------------------------------------------------
 {
+#ifdef REPO_DISABLED
+    Q_UNUSED(path);
+    Q_UNUSED(mode);
+    return NULL;
+#else
     if (no_repo) return NULL;
 
     // Try a Git repository first
@@ -406,6 +416,7 @@ RepositoryFactory::newRepository(QString path, RepositoryFactory::Mode mode)
 
     delete git;
     return NULL;
+#endif
 }
 
 
@@ -426,6 +437,9 @@ bool RepositoryFactory::available()
 //    Test if Repository features are available
 // ----------------------------------------------------------------------------
 {
+#ifdef REPO_DISABLED
+    return false;
+#else
     if (availableScm == Repository::Unknown ||
         availableScm == Repository::None)
     {
@@ -437,6 +451,7 @@ bool RepositoryFactory::available()
     if (!available)
         errors = QObject::tr("'git' command not found or invalid");
     return available;
+#endif
 }
 
 }

@@ -60,6 +60,10 @@
 #   DEFINES+=CFG_WITH_EULA
 #     Show the End-User License Agreement on startup, if not already accepted
 #     for the current version.
+#   DEFINES+=CFG_NO_NEW_FROM_TEMPLATE
+#     Removes menus: File>New from Template..., Help>Themes and Help>Examples.
+#   DEFINES+=CFG_NO_QTWEBKIT
+#     Do not use QtWebKit. The url and url_texture primitives become no-ops.
 #
 #   modules=none
 #     Do not build any Tao module
@@ -81,6 +85,21 @@
 #   templates=all -my_template
 #   templates=none +my_template
 #     Select which templates to install. Similar to 'modules' above.
+#     Note: templates installed by theme modules (modules/themes/*) cannot be
+#     selected with this variable. They can only be disabled altogether,
+#     when templates contains the word "none".
+#
+#   NO_SDK=1
+#     Do not include the module SDK in the package.
+#   NO_DOC=1
+#     Do not build online documentation.
+#   NO_HELP_VIEWER=1
+#     Do not build the help viewer application (the Help/Documentation menu is
+#     suppressed at run time when the viewer is not there).
+#   NO_WELCOME=1
+#     Include a minimalistic welcome screen.
+#   NO_FONTS=1
+#     Do not install font files.
 #
 # 2. To build:
 #
@@ -99,9 +118,15 @@ include(main.pri)
 
 TEMPLATE = subdirs
 SUBDIRS  = libxlr tao modules ssh_ask_pass tao_sign tests doc templates \
-           packaging libcryptopp keygen crypt help_viewer
+           packaging libcryptopp keygen crypt
 
 win32:SUBDIRS += detach
+
+isEmpty(NO_HELP_VIEWER) {
+  SUBDIRS += help_viewer
+} else {
+  !build_pass:message(Will not build help viewer application.)
+}
 
 tao.depends = libxlr libcryptopp
 tao_sign.depends = libxlr libcryptopp tao
@@ -138,5 +163,5 @@ QMAKE_SUBSTITUTES = fix_qt_refs_app.in
 
 # Display configuration info
 !build_pass {
-  !isEmpty(DISABLE_DOC):message(Documentation is disabled.)
+  !isEmpty(NO_DOC):message(Documentation is disabled.)
 }

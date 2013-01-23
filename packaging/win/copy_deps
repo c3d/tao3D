@@ -35,16 +35,30 @@ done
 cd $THISDIR
 export PATH=$PATH:.
 cp_deps build_root/Tao.exe
-cp_deps build_root/assistant.exe
+[ -e build_root/assistant.exe ] && cp_deps build_root/assistant.exe
 doo cp "${LIBDIR_QT}/../bin/QtXml4.dll" build_root/
 
-doo cp -r "${LIBDIR_QT}"/../plugins/* build_root/
+# Qt plugins
+echo \# Copying Qt plugins
+PLUGINS_DIR="${LIBDIR_QT}/../plugins/"
+EXCL=/tmp/tao_excl.$$.txt
+echo '*.a' >$EXCL
+if [ "$RELEASE" ] ; then
+  # Exclude *d4.dll when there exists *4.dll
+  (cd "${PLUGINS_DIR}" ; find * -name \*d4.dll) | while read d ; do r=$(echo $d | sed s/d4\.dll/4.dll/) ; [ -e "${PLUGINS_DIR}/$r" ] && echo "$d">>$EXCL ; done
+  echo \# Excluding:
+  cat $EXCL
+fi
+(cd "${PLUGINS_DIR}" && tar --exclude-from=$EXCL -cf - *) | (cd build_root/ ; tar xf -)
+rm -f $EXCL
 )
 
 
 #
 # Uncompress Git distribution into build_root/
 #
+
+if [ -z "$PACKAGE_NOGIT" ] ; then
 
 GITKIT=PortableGit-1.7.8-preview20111206.7z
 GITURL=http://msysgit.googlecode.com/files/$GITKIT
@@ -127,3 +141,4 @@ lib/reg1.2
 lib/dde1.3
 _EOF_
 )
+fi # -z $PACKAGE_NOGIT

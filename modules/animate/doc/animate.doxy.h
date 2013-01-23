@@ -2,7 +2,7 @@
  * @~english
  * @taomoduledescription{Animate, Animation utilities for slides}
  *
- * Commands to create animations and transitions within a slide
+ * <tt>import Animate</tt> - Commands to create animations and transitions within a slide.
  *
  * The Animate module defines commands that you can use to animate elements
  * within a slide or across slides, either as a function of time or
@@ -14,7 +14,7 @@
  * @~french
  * @taomoduledescription{Animate, Fonctions d'animations}
  *
- * Commandes pour créer des animations et des transitions dans des
+ * <tt>import Animate</tt> - Commandes pour créer des animations et des transitions dans des
  * diapositives.
  *
  * Le module Animate définit des commandes que vous pouvez utiliser pour

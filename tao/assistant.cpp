@@ -75,6 +75,9 @@ Assistant * Assistant::instance()
 
 void Assistant::showDocumentation(const QString &page)
 {
+    if (!installed())
+        return;
+
     Q_UNUSED(page);
     if (!registered)
     {
@@ -107,6 +110,9 @@ void Assistant::showKeywordHelp(const QString keyword)
 //   Show help about keyword
 // ----------------------------------------------------------------------------
 {
+    if (!installed())
+        return;
+
     IFTRACE(assistant)
             debug() << "Show keyword help: '" << +keyword << "'\n";
 
@@ -318,12 +324,21 @@ QString Assistant::assistantPath()
     QString app = QCoreApplication::applicationDirPath()
                 + QDir::separator();
 #if !defined(Q_OS_MAC)
-    app += QLatin1String("assistant");
+    app += QLatin1String("assistant.exe");
 #else
     app += QLatin1String("Tao Presentations Help.app/Contents/MacOS/"
                          "Tao Presentations Help");
 #endif
     return app;
+}
+
+
+bool Assistant::installed()
+// ----------------------------------------------------------------------------
+//   Return true if the help viewer is installed
+// ----------------------------------------------------------------------------
+{
+    return QFile(assistantPath()).exists();
 }
 
 

@@ -19,3 +19,4 @@ LIBINST = "$$INSTROOT/Tao Presentations.app/Contents/Frameworks"
 APPINST = $$INSTROOT
 LIBINST = $$INSTROOT
 }
+CONFIG(release, debug|release):RELEASE=1

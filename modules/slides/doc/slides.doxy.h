@@ -2,7 +2,7 @@
  * @~english
  * @taomoduledescription{Slides, Slides creation}
  *
-* Commands create easily some basic slides.
+ * <tt>import Slides</tt> - Commands to create easily some basic slides.\n
  *
  * The Slides module defines commands that you can use to add some basic slides into
  * your presentations: @ref blank_slide, @ref title_slide, @ref section_slide,
@@ -63,7 +63,7 @@ slide "The Keyboard theme",
  * @~french
  * @taomoduledescription{Slides, Creation de Diapositives }
  *
- * Commandes pour créer facilement des présentations type "Powerpoint".
+ * <tt>import Slides</tt> - Commandes pour créer facilement des présentations.\n
  *
  * Le module Slides fournit des commandes que vous pouvez utiliser pour
  * ajouter facilement des diapositives simples dans vos présentations : @ref blank_slide, @ref title_slide, @ref section_slide,

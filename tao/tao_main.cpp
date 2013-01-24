@@ -346,10 +346,10 @@ void install_signal_handler(sig_t handler)
 {
     // Insert signal handlers
 #ifdef CONFIG_MINGW
-    static int sigids[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM };
+    static int sigids[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV };
 #else
     static int sigids[] = { SIGHUP, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
-                            SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE, SIGTERM,
+                            SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE,
                             SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF };
 #endif
 

@@ -1235,3 +1235,9 @@ PREFIX(TextureCacheGLSize, integer, "texture_cache_gl_size",
        SYNOPSIS("Set the size of the texture cache (GL memory)")
        DESCRIPTION("Defines the maximum amount of GL memory that may be "
                    "used to keep textures as they are loaded from disk."))
+PREFIX(TextureCacheRefresh, boolean, "texture_cache_refresh", ,
+       return Tao::TextureCache::textureCacheRefresh(),
+       SYNOPSIS("Purge stale images")
+       DESCRIPTION("Causes the texture cache to purge any network image "
+                   "that has changed on the server. NOTE: currently "
+                   "all network images are purged."))

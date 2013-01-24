@@ -10,3 +10,6 @@
 [submodule "modules/chroma_key"]
 	path = modules/chroma_key
 	url = git://gitorious.org/tao-presentation-modules/chroma_key.git
+[submodule "modules/speech/qt-speech"]
+	path = modules/speech/qt-speech
+	url = git://gitorious.org/qt-speech/qt-speech.git

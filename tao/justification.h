@@ -137,7 +137,7 @@ public:
             : item(item), size(size), position(pos),
               itemCount(itemCount),
               solid(solid)
-        {}
+        { }
         Item    item;
         scale   size;
         coord   position;

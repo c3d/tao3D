@@ -59,7 +59,6 @@
        chroma_key \
        transitions \
        news_feed \
-       speech \
        snowfall
 
     OTHER_MODULES =     \
@@ -68,6 +67,7 @@
         tao_synchro  \
         tao_tester   \
         tao_visuals  \
+        speech \
         database
 
 } else {

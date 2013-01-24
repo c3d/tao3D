@@ -524,9 +524,18 @@ void PageLayout::Clear()
 //   When we clear a page layout, we need to also clear placed items
 // ----------------------------------------------------------------------------
 {
+    ClearPagination();
+    Layout::Clear();
+}
+
+
+void PageLayout::ClearPagination()
+// ----------------------------------------------------------------------------
+//   If a text flow referenced us and was cleared, we need to recompute
+// ----------------------------------------------------------------------------
+{
     page.Clear();
     bounds = Box();
-    Layout::Clear();
 }
 
 
@@ -806,7 +815,7 @@ bool TextFlow::Paginate(PageLayout *page)
 //   This scenario happens if you put a text box definition inside a text flow
 {
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
-    page->RefreshOn(this);
+    pages.push_back(page);
 
     bool ok = true;
 
@@ -996,7 +1005,6 @@ bool TextSpan::Paginate(PageLayout *page)
         restore = new Restore(save);
     }
 
-    page->RefreshOn(this);
     bool ok = (page->PaginateItem(save) &&
                Layout::Paginate(page) &&
                page->PaginateItem(restore));

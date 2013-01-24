@@ -218,6 +218,12 @@ void Layout::Clear()
 //   Reset the layout (mostly) to the initial setup
 // ----------------------------------------------------------------------------
 {
+    // Clear all pages we may have sent data to
+    for (Layouts::iterator p = pages.begin(); p != pages.end(); p++)
+        (*p)->ClearPagination();
+    pages.clear();
+
+    // Remove items now that they are no longer referenced elsewhere
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
         delete *i;
     items.clear();
@@ -228,6 +234,14 @@ void Layout::Clear()
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
     // lastRefresh is NOT reset on purpose
+}
+
+
+void Layout::ClearPagination()
+// ----------------------------------------------------------------------------
+//   Clear items of other layouts referenced by this layout
+// ----------------------------------------------------------------------------
+{
 }
 
 
@@ -350,12 +364,13 @@ Box3 Layout::Space(Layout *layout)
 }
 
 
-bool  Layout::Paginate(PageLayout *page)
+bool Layout::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   Paginate all the items in the given page
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
+    pages.push_back (page);
     for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
         ok = (*i)->Paginate(page);
     return ok;

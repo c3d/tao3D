@@ -88,6 +88,7 @@ public:
 
     virtual void        Add(Drawing *child);
     virtual void        Clear();
+    virtual void        ClearPagination();
     virtual Layout *    NewChild();
 
     virtual void        Compute(Layout *where);

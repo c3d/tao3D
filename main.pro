@@ -98,6 +98,8 @@
 #     suppressed at run time when the viewer is not there).
 #   NO_WELCOME=1
 #     Include a minimalistic welcome screen.
+#   NO_FONTS=1
+#     Do not install font files.
 #
 # 2. To build:
 #

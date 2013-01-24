@@ -12,7 +12,6 @@
     DEFAULT_MODULES =   \
        lorem_ipsum      \
        object_loader    \
-       tao_visuals      \
        movie_credits    \
        pan_and_zoom     \
        digital_clock    \
@@ -66,6 +65,7 @@
         hello_world     \
         tao_synchro  \
         tao_tester   \
+        tao_visuals  \
         database \
         news_feed
 

@@ -45,4 +45,5 @@ picture_slide "YouTube Video slide",
         rotatez 5
         movie 0, 0, 1.2, 1.2, "http://www.youtube.com/watch?v=rn1n-YYHs4g"
     right_column
-        - "We wish you a Peaceful End of the World and a Happy New Year 2013"
+        - "Video on the left:"
+        - "Global Warming Documentary by National Geographic"

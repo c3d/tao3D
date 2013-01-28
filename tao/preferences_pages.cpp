@@ -462,7 +462,7 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 4, item);
 
-        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
+        QString txt = (m.enabled && !m.inError) ? tr("Enabled") : tr("Disabled");
         QToolButton *b = new QToolButton;
         QAction *act = new QAction(txt, this);
         act->setData(QVariant(row));

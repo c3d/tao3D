@@ -49,7 +49,7 @@ picture_slide "YouTube Video slide",
         rotatey mouse_x * 0.02 * page_time
         movie 0, 0, 1.1, 1.1, "http://www.youtube.com/watch?v=oCsRBnUJmxk"
     right_column
-        - "We wish you a Merry Christmas"
-        - "and a Happy New Year 2013"
+        - "Video on the left:"
+        - "Le Grand Bleu (1999)"
         --
         * "Move the mouse cursor around..."

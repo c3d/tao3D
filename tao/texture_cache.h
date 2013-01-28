@@ -159,6 +159,7 @@ public:
     int             width, height;
     bool            mipmap, compress;
     bool            isDefaultTexture;
+    bool            networked;
 
 private:
     TextureCache &  cache;
@@ -167,7 +168,6 @@ private:
 
     Image           image;
     bool            saveCompressed;
-    bool            networked;
     QNetworkReply  *networkReply;
 
     bool            inLoad;
@@ -198,6 +198,8 @@ public:
     static XL::Integer_p textureCacheMemSize(quint64 bytes);
     static XL::Integer_p textureCacheGLSize(quint64 bytes);
 
+    static XL::Name_p    textureCacheRefresh();
+
 public:
     TextureCache();
     virtual ~TextureCache() { clear(); }
@@ -220,6 +222,7 @@ public:
 public slots:
     void            clear();
     void            purge();
+    void            refresh();
     void            setMaxMemSize(quint64 bytes){ maxMemSize = bytes; }
     void            setMaxGLSize(quint64 bytes) { maxGLSize  = bytes; }
     void            setMipmap(bool enable)      { mipmap = enable; purge(); }

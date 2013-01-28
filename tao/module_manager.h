@@ -60,6 +60,9 @@ module_description
     website "http://greatmodule.xyz.com/"
     import_name "GreatModule"
     auto_load "true"
+    on_load_error "The Great module could not be loaded. Please make sure " &
+                  "that the required library libfoobar is installed on " &
+                  "this computer."
 
 module_init
     // Some XL code that will be evaluated on init
@@ -103,6 +106,13 @@ calls "import ModuleName". By setting auto_load to a non-empty string, you
 tell the application to load and initialize the module on startup, then to
 wait for an import statement to actually import the new XL symbols.
 
+on_load_error [Optional]
+An optional error message to be shown if the native library of the module
+cannot be loaded (for instance, due to missing dependencies).
+When this text is not empty, it is displayed as the primary error message, and
+the dynamic loader's error string is shown as the "detailed text" in the
+message box. Otherwise, the error reported by the loader is the only text
+shown.
 
 
  2.2 Internationalization
@@ -386,6 +396,11 @@ public:
             return ret;
         }
 
+        QString libDir() const
+        {
+            return QFileInfo(libPath()).absolutePath();
+        }
+
         bool operator<(const ModuleInfoPrivate o) const
         {
             return (name.compare(o.name) < 0);
@@ -415,6 +430,12 @@ public:
             }
             return false;
         }
+
+
+#ifdef Q_OS_WIN
+        void expandSpecialPathTokens();
+#endif
+
     };
 
     bool                init();
@@ -434,7 +455,8 @@ public:
                                   QString reason = "");
     virtual void        warnInvalidModule(QString moduleDir, QString cause);
     virtual void        warnDuplicateModule(const ModuleInfoPrivate &m);
-    virtual void        warnLibraryLoadError(QString name, QString errorString);
+    virtual void        warnLibraryLoadError(QString name, QString errorString,
+                                             QString moduleSuppliedText = "");
     virtual void        warnBinaryModuleIncompatible(QLibrary *lib);
     static double       parseVersion(Tree *versionId);
     static double       parseVersion(text versionId);
@@ -510,6 +532,9 @@ private:
     bool                checkNew(QString parentDir);
     QList<ModuleInfoPrivate>   newModules(QString parentDir);
     ModuleInfoPrivate          readModule(QString moduleDir);
+#ifdef Q_OS_WIN32
+    void                expandSpecialPathTokens(ModuleInfoPrivate &m);
+#endif
     bool                applyPendingUpdate(const ModuleInfoPrivate &m);
     QString             gitVersion(QString moduleDir);
 
@@ -548,6 +573,9 @@ friend class CheckForUpdate;
 friend class CheckAllForUpdate;
 friend class UpdateModule;
 friend class SetCwd;
+#ifdef Q_OS_WIN
+friend class SetPath;
+#endif
 
 #   define USER_MODULES_SETTING_GROUP "Modules"
 };

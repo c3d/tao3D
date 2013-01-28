@@ -141,7 +141,9 @@ protected:
     void closeEvent(QCloseEvent *event);
 
 private slots:
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     void newDocument();
+#endif
     void newFile();
     void openRecentFile();
     void clearRecentFileList();
@@ -271,7 +273,9 @@ private:
 #endif
     QToolBar         *viewToolBar;
     GitToolBar       *gitToolBar;
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     QAction          *newDocAct;
+#endif
     QAction          *newAct;
     QAction          *openAct;
 #ifndef CFG_NOEDIT

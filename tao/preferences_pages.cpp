@@ -330,10 +330,10 @@ ModulesPage::ModulesPage(QWidget *parent)
     table->setHorizontalHeaderItem(0, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(1, new QTableWidgetItem(""));
     table->setHorizontalHeaderItem(2, new QTableWidgetItem(""));
-    table->setHorizontalHeaderItem(3, new QTableWidgetItem("Name"));
-    table->setHorizontalHeaderItem(4, new QTableWidgetItem("Version"));
+    table->setHorizontalHeaderItem(3, new QTableWidgetItem(tr("Name")));
+    table->setHorizontalHeaderItem(4, new QTableWidgetItem(tr("Version")));
     table->setHorizontalHeaderItem(6, new QTableWidgetItem(""));
-    table->setHorizontalHeaderItem(5, new QTableWidgetItem("Status"));
+    table->setHorizontalHeaderItem(5, new QTableWidgetItem(tr("Status")));
     table->horizontalHeader()->setStretchLastSection(true);
     table->verticalHeader()->hide();
     table->setSizePolicy(QSizePolicy::Preferred, QSizePolicy::Expanding);
@@ -463,7 +463,7 @@ void ModulesPage::updateTable()
         item->setFlags(enFlag);
         table->setItem(row, 4, item);
 
-        QString txt = (m.enabled && !m.inError) ? tr("Disable") : tr("Enable");
+        QString txt = (m.enabled && !m.inError) ? tr("Enabled") : tr("Disabled");
         QToolButton *b = new QToolButton;
         QAction *act = new QAction(txt, this);
         act->setData(QVariant(row));

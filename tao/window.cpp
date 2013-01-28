@@ -45,7 +45,9 @@
 #include "resource_mgt.h"
 #include "splash_screen.h"
 #include "uri.h"
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
 #include "new_document_wizard.h"
+#endif
 #include "preferences_dialog.h"
 #include "tool_window.h"
 #include "xl_source_edit.h"
@@ -104,6 +106,7 @@ Window::Window(XL::Main *xlr, XL::source_names context, QString sourceFile,
 #ifndef CFG_NORELOAD
       fileCheckTimer(this),
 #endif
+      onlineDocAct(NULL),
       splashScreen(NULL), aboutSplash(NULL)
 {
 #ifndef CFG_NOSRCEDIT
@@ -363,6 +366,8 @@ void Window::toggleStereoIdent()
 }
 
 
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
+
 void Window::newDocument()
 // ----------------------------------------------------------------------------
 //   Create, save and open a new document from a wizard
@@ -376,6 +381,7 @@ void Window::newDocument()
         open(wizard.docPath);
 }
 
+#endif
 
 void Window::newFile()
 // ----------------------------------------------------------------------------
@@ -1553,12 +1559,14 @@ void Window::createActions()
 //   Create the various menus and icons on the toolbar
 // ----------------------------------------------------------------------------
 {
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     newDocAct = new Action(QIcon(":/images/new.png"),
                             tr("New from &Template Chooser..."), this);
     newDocAct->setShortcut(QKeySequence(Qt::SHIFT + Qt::CTRL + Qt::Key_N));
     newDocAct->setIconVisibleInMenu(false);
     newDocAct->setObjectName("newDocument");
     connect(newDocAct, SIGNAL(triggered()), this, SLOT(newDocument()));
+#endif
 
 #if 0 // Workaround for bug #928
     newAct = new Action(QIcon(":/images/new.png"), tr("&New"), this);
@@ -1731,9 +1739,12 @@ void Window::createActions()
     licensesAct->setMenuRole(QAction::ApplicationSpecificRole);
     connect(licensesAct, SIGNAL(triggered()), this, SLOT(licenses()));
 
-    onlineDocAct = new QAction(tr("&Documentation"), this);
-    onlineDocAct->setObjectName("onlineDoc");
-    connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
+    if (Assistant::installed())
+    {
+        onlineDocAct = new QAction(tr("&Documentation"), this);
+        onlineDocAct->setObjectName("onlineDoc");
+        connect(onlineDocAct, SIGNAL(triggered()), this, SLOT(onlineDoc()));
+    }
 
     tutorialsPageAct = new QAction(tr("&Tutorials (taodyne.com)"), this);
     tutorialsPageAct->setObjectName("tutorialsPage");
@@ -1819,7 +1830,9 @@ void Window::createMenus()
     fileMenu = menuBar()->addMenu(tr("&File"));
     fileMenu->setObjectName(FILE_MENU_NAME);
     // fileMenu->addAction(newAct);
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
     fileMenu->addAction(newDocAct);
+#endif
     fileMenu->addSeparator();
     fileMenu->addAction(openAct);
 #ifndef CFG_NONETWORK
@@ -1897,11 +1910,13 @@ void Window::createMenus()
     helpMenu->addAction(updateAct);
     helpMenu->addAction(preferencesAct);
     helpMenu->addAction(licensesAct);
-    helpMenu->addAction(onlineDocAct);
+    if (onlineDocAct)
+        helpMenu->addAction(onlineDocAct);
     helpMenu->addAction(tutorialsPageAct);
 
-    ExamplesMenu * themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
-    ExamplesMenu * examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
+#ifndef CFG_NO_NEW_FROM_TEMPLATE
+    ExamplesMenu * themesMenu = NULL;
+    ExamplesMenu * examplesMenu = NULL;
 
     QDir tdir = QDir(TaoApp->applicationDirPath() + "/templates");
     Templates templates = Templates(tdir);
@@ -1913,17 +1928,32 @@ void Window::createMenus()
         // Strip "(Demo) " or "(Démo) "
         name.replace(QRegExp("^\\([^)]+\\) "), "");
         if (t.type == "theme")
+        {
+            if (!themesMenu)
+            {
+                themesMenu = new ExamplesMenu(tr("Themes"), helpMenu);
+                connect(themesMenu, SIGNAL(openDocument(QString)),
+                        this, SLOT(openReadOnly(QString)));
+            }
             themesMenu->addExample(name, t.mainFileFullPath(), t.description);
+        }
         else
+        {
+            if (!examplesMenu)
+            {
+                examplesMenu = new ExamplesMenu(tr("Examples"), helpMenu);
+                connect(examplesMenu, SIGNAL(openDocument(QString)),
+                        this, SLOT(openReadOnly(QString)));
+            }
             examplesMenu->addExample(name, t.mainFileFullPath(), t.description);
+        }
     }
 
-    connect(themesMenu, SIGNAL(openDocument(QString)),
-            this, SLOT(openReadOnly(QString)));
-    connect(examplesMenu, SIGNAL(openDocument(QString)),
-            this, SLOT(openReadOnly(QString)));
-    helpMenu->addMenu(themesMenu);
-    helpMenu->addMenu(examplesMenu);
+    if (themesMenu)
+        helpMenu->addMenu(themesMenu);
+    if (examplesMenu)
+        helpMenu->addMenu(examplesMenu);
+#endif
 }
 
 

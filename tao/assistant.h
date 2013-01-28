@@ -48,6 +48,7 @@ public:
 public:
     static Assistant * instance();
     static void    showKeywordHelp(const QString keyword);
+    static bool    installed();
 
 private slots:
     void           readStandardOutput();
@@ -58,7 +59,6 @@ private:
     QString        taoCollectionFilePath();
     QString        userCollectionFilePath();
     QString        userCollectionFile();
-    QString        assistantPath();
     QStringList    collectionFileArgs();
     QStringList    registeredFiles(QString collectionFile);
     QStringList    registeredNamespaces(QString collectionFile);
@@ -73,6 +73,7 @@ private:
     bool           startAssistant();
 
     static std::ostream & debug();
+    static QString        assistantPath();
 
     bool           registered;
     QProcess *     proc;

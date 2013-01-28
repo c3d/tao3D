@@ -52,5 +52,5 @@ picture_slide "YouTube Video slide",
         scale3 fade_in(page_time, 50)
         movie 0, 0, 3.5, 3.5, "http://www.youtube.com/watch?v=oALxLNOhI6I"
     right_column
-        - "We wish you a Merry Christmas"
-        - "and a Happy New Year 2013"
+        - "Video on the left:"
+        - "2010 (1984)"

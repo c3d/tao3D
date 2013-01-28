@@ -12,7 +12,6 @@
     DEFAULT_MODULES =   \
        lorem_ipsum      \
        object_loader    \
-       tao_visuals      \
        movie_credits    \
        pan_and_zoom     \
        digital_clock    \
@@ -59,6 +58,7 @@
        regexp \
        chroma_key \
        transitions \
+       news_feed \
        snowfall
 
     OTHER_MODULES =     \
@@ -66,8 +66,9 @@
         hello_world     \
         tao_synchro  \
         tao_tester   \
-        database \
-        news_feed
+        tao_visuals  \
+        speech \
+        database
 
 } else {
     # We're building inside the Tao SDK: default modules = all sub-directories

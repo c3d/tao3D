@@ -28,8 +28,7 @@ INC = . \
 DEPENDPATH += $$INC
 INCLUDEPATH += $$INC
 LIBS += -L../libxlr/\$(DESTDIR) -lxlr -L../libcryptopp/\$(DESTDIR) -lcryptopp
-QT += webkit \
-    network \
+QT += network \
     opengl \
     svg
 CONFIG += help
@@ -79,7 +78,6 @@ HEADERS +=     activity.h \
     font_file_manager.h \
     frame.h \
     gc_thread.h \
-    git_backend.h \
     gl_keepers.h \
     glyph_cache.h \
     group_layout.h \
@@ -96,7 +94,6 @@ HEADERS +=     activity.h \
     module_info_dialog.h \
     module_manager.h \
     module_renderer.h \
-    new_document_wizard.h \
     normalize.h \
     page_layout.h \
     path3d.h \
@@ -119,7 +116,6 @@ HEADERS +=     activity.h \
     table.h \
     tao_main.h \
     tao_tree.h \
-    templates.h \
     text_drawing.h \
     text_edit.h \
     texture.h \
@@ -165,7 +161,6 @@ SOURCES +=     activity.cpp \
     font_file_manager.cpp \
     frame.cpp \
     gc_thread.cpp \
-    git_backend.cpp \
     gl_keepers.cpp \
     glyph_cache.cpp \
     group_layout.cpp \
@@ -181,7 +176,6 @@ SOURCES +=     activity.cpp \
     module_info_dialog.cpp \
     module_manager.cpp \
     module_renderer.cpp \
-    new_document_wizard.cpp \
     normalize.cpp \
     page_layout.cpp \
     path3d.cpp \
@@ -203,7 +197,6 @@ SOURCES +=     activity.cpp \
     svg.cpp \
     table.cpp \
     tao_main.cpp \
-    templates.cpp \
     text_drawing.cpp \
     text_edit.cpp \
     texture.cpp \
@@ -302,6 +295,12 @@ contains(DEFINES, CFG_NONETWORK) {
     FORMS += \
         open_uri_dialog.ui
 }
+contains(DEFINES, CFG_NOGIT):contains(DEFINES,CFG_NONETWORK) {
+   # Nothing
+} else {
+    HEADERS += git_backend.h
+    SOURCES += git_backend.cpp
+}
 contains(DEFINES, CFG_NOSTEREO) {
     !build_pass:message("Stereoscopic display support is disabled")
 }
@@ -335,6 +334,22 @@ contains(DEFINES, CFG_WITH_EULA) {
 contains(DEFINES, CFG_WITH_CFU) {
     !build_pass:message("Check for update on startup is enabled by default")
 }
+contains(DEFINES, CFG_NO_NEW_FROM_TEMPLATE) {
+    !build_pass:message("[CFG_NO_NEW_FROM_TEMPLATE] File/New from Template is disabled")
+} else {
+    HEADERS += \
+        new_document_wizard.h \
+        templates.h
+    SOURCES += \
+        new_document_wizard.cpp \
+        templates.cpp
+}
+contains(DEFINES, CFG_NO_QTWEBKIT) {
+    !build_pass:message("[CFG_NO_QTWEBKIT] QtWebKit disabled: primitives url/url_texture will do nothing")
+} else {
+    QT += webkit
+}
+
 CXXTBL_SOURCES += formulas.cpp graphics.cpp
 
 NOWARN_SOURCES += decryption.cpp license.cpp
@@ -396,7 +411,8 @@ OTHER_FILES +=  \
     html/module_info_dialog_fr.html \
     tao_fr.ts \
     welcome/welcome.ddd \
-    opengl_state.tbl
+    opengl_state.tbl \
+    welcome/lite/welcome.ddd
 
 FORMS += error_message_dialog.ui \
     inspectordialog.ui \
@@ -445,15 +461,27 @@ QMAKE_CLEAN += tao.xl
 # What to install
 xl_files.path  = $$APPINST
 xl_files.files = $${SUPPORT_FILES}
+CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
+INSTALLS    += xl_files
 
 welcome.path  = $$APPINST/welcome
-welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+isEmpty(NO_WELCOME) {
+  welcome.files = welcome/*.png welcome/*.svg welcome/welcome.ddd
+} else {
+  !build_pass:message([NO_WELCOME] Welcome screen is disabled.)
+  welcome.files = no_welcome/welcome.ddd
+}
 INSTALLS += welcome
 
-CONFIG(debug, debug|release):xl_files.files += xlr/xlr/debug.stylesheet
-fonts.path  = $$APPINST/fonts
-fonts.files = fonts/*
-INSTALLS    += xl_files fonts
+isEmpty(NO_FONTS) {
+  fonts.path  = $$APPINST/fonts
+  fonts.files = fonts/*.ttf fonts/README
+  !contains(DEFINES, CFG_NOSRCEDIT):fonts.files += fonts/unifont/unifont-5.1.20080907.ttf
+  INSTALLS += fonts
+} else {
+    !build_pass:message("[NO_FONTS] No font file wil be installed.")
+}
+
 macx {
   # Workaround install problem: on Mac, the standard way of installing (the 'else'
   # part of this block) starts by recursively deleting $$target.path/Tao.app.

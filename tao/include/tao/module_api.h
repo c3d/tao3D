@@ -52,7 +52,6 @@
 #define TAO_MODULE_API_CURRENT   30
 #define TAO_MODULE_API_AGE       0
 
-
 // ========================================================================
 //
 //   Tao runtime interface

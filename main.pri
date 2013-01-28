@@ -26,9 +26,6 @@ QMAKE_CXXFLAGS         += -Werror
 QMAKE_CXXFLAGS_DEBUG   += -ggdb
 !win32:QMAKE_CXXFLAGS_RELEASE += -ggdb
 
-# Don't strip symbols on Windows to help crash analysis
-win32:QMAKE_LFLAGS_RELEASE -= -Wl,-s
-
 # Avoid linker warnings with Qt >= 4.7.4
 # (Qt commit 0c4ed66e87ef6f76d5b0d67905b587c31ad03a18)
 win32-g++:QMAKE_LFLAGS *= -Wl,-enable-auto-import

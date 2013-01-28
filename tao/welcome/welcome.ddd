@@ -22,7 +22,7 @@ base_slide "Tao Presentations",
         lang tao_language
 
         // Display a simple bullet point
-        * "Discover our all new themes and samples in the Help menu" fr "Découvrez nos nouveaux thèmes et examples dans le menu Aide"
+        * "Discover our all new themes and samples in the Help menu" fr "Découvrez nos nouveaux thèmes et exemples dans le menu Aide"
         --
 
         // Display a more complicated computed bullet point

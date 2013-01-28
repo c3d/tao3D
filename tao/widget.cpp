@@ -96,7 +96,9 @@
 #include <sstream>
 #include <algorithm>
 #include <QVariant>
+#ifndef CFG_NO_QTWEBKIT
 #include <QtWebKit>
+#endif
 #include <sys/time.h>
 #include <string.h>
 #include <ctype.h>
@@ -10304,6 +10306,9 @@ Tree_p Widget::urlPaint(Tree_p self,
 //   Draw a URL in the curent frame
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NO_QTWEBKIT
+    return XL::xl_false;
+#else
     XL::Save<Layout *> saveLayout(layout, layout->AddChild(selectionId()));
     if (!urlTexture(self, w, h, url, progress))
         return XL::xl_false;
@@ -10313,6 +10318,7 @@ Tree_p Widget::urlPaint(Tree_p self,
     if (currentShape)
         layout->Add(new WidgetManipulator(currentShape, x, y, w, h, surface));
     return XL::xl_true;
+#endif
 }
 
 
@@ -10322,6 +10328,9 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
 //   Make a texture out of a given URL
 // ----------------------------------------------------------------------------
 {
+#ifdef CFG_NO_QTWEBKIT
+    return new Integer(0, self->Position());
+#else
     if (w < 16) w = 16;
     if (h < 16) h = 16;
 
@@ -10341,6 +10350,7 @@ Integer* Widget::urlTexture(Tree_p self, double w, double h,
     GL.TextureSize (w, h);
 
     return new Integer(texId, self->Position());
+#endif
 }
 
 

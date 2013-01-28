@@ -32,12 +32,25 @@ using namespace Tao;
 
 QRegExp regexpCurrent;
 
+// Pointer to Tao functions
+const Tao::ModuleApi *tao = NULL;
+
+static bool hasLicense()
+// ----------------------------------------------------------------------------
+//   Check if we have a valid licence for this feature
+// ----------------------------------------------------------------------------
+{
+    static bool result = tao->checkImpressOrLicense("RegExp 1.002");
+    return result;
+}
+
 
 Name_p regexpMatch(Context *, Tree *, text input, text pattern)
 // ----------------------------------------------------------------------------
 //    Return true if the input matches the pattern
 // ----------------------------------------------------------------------------
 {
+    hasLicense();
     regexpCurrent = QRegExp(+pattern, Qt::CaseSensitive, QRegExp::RegExp2);
     int position = regexpCurrent.indexIn(+input);
     return position >= 0 ? xl_true : xl_false;
@@ -49,6 +62,7 @@ Integer_p regexpSearch(Context *, Tree *self, text input, text pattern)
 //    Return the position of input in the pattern
 // ----------------------------------------------------------------------------
 {
+    hasLicense();
     regexpCurrent = QRegExp(+pattern, Qt::CaseSensitive, QRegExp::RegExp2);
     int position = regexpCurrent.indexIn(+input);
     return new Integer(position, self->Position());
@@ -199,6 +213,7 @@ Tree_p regexpParse(Context *context,
         running = keepRunning;
     }
 
+    hasLicense();
     if (mode == REGEXP_TEXT)
         result = new Text(resultText, "\"", "\"", self->Position());
     else if (mode == REGEXP_LIST)
@@ -213,6 +228,7 @@ Text_p regexpAt(Context *, Tree *self, uint index)
 //   Return the captured item n
 // ----------------------------------------------------------------------------
 {
+    hasLicense();
     text captured = +regexpCurrent.cap(index);
     return new Text(captured, "\"", "\"", self->Position());
 }
@@ -223,6 +239,7 @@ Integer_p regexpPos(Context *, Tree *self, uint index)
 //   Return position at given index
 // ----------------------------------------------------------------------------
 {
+    hasLicense();
     int pos = regexpCurrent.pos(index);
     return new Integer(pos, self->Position());
 }
@@ -233,6 +250,7 @@ Integer_p regexpMatchedLength(Context *, Tree *self)
 //   Return total matched length
 // ----------------------------------------------------------------------------
 {
+    hasLicense();
     int length = regexpCurrent.matchedLength();
     return new Integer(length, self->Position());
 
@@ -244,6 +262,7 @@ Text_p regexpEscape(Context *, Tree *self, text toEscape)
 //   Return input text, escaped so that it works in a regexp
 // ----------------------------------------------------------------------------
 {
+    hasLicense();
     text escaped = +QRegExp::escape(+toEscape);
     return new Text(escaped, "\"", "\"", self->Position());
 }
@@ -256,12 +275,13 @@ Text_p regexpEscape(Context *, Tree *self, text toEscape)
 //
 // ============================================================================
 
-int module_init(const Tao::ModuleApi *, const Tao::ModuleInfo *)
+int module_init(const Tao::ModuleApi *api, const Tao::ModuleInfo *)
 // ----------------------------------------------------------------------------
 //   Initialize the Tao module
 // ----------------------------------------------------------------------------
 {
     XL_INIT_TRACES();
+    tao = api;
     return 0;
 }
 

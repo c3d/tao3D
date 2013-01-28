@@ -56,7 +56,10 @@
 #include <QLineEdit>
 #include <QDir>
 #include <QDebug>
+#ifndef CFG_NO_QTWEBKIT
 #include <QtWebKit>
+#endif
+#include <QFileOpenEvent>
 #include <QProcessEnvironment>
 #include <QStringList>
 #include <QDesktopServices>
@@ -290,6 +293,7 @@ void Application::deferredInit()
     // Load settings
     loadDebugTraceSettings();
 
+#ifndef CFG_NO_QTWEBKIT
     // Web settings
     QWebSettings *gs = QWebSettings::globalSettings();
     gs->setAttribute(QWebSettings::JavascriptEnabled, true);
@@ -301,6 +305,7 @@ void Application::deferredInit()
     gs->setAttribute(QWebSettings::OfflineStorageDatabaseEnabled, true);
     gs->setAttribute(QWebSettings::OfflineWebApplicationCacheEnabled,true);
     gs->setAttribute(QWebSettings::LocalStorageEnabled, true);
+#endif
 
     // Configure the proxies for URLs
     QNetworkProxyFactory::setUseSystemConfiguration(true);

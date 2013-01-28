@@ -992,6 +992,7 @@ bool TextSpan::Paginate(PageLayout *page)
         restore = new Restore(save);
     }
 
+    page->RefreshOn(this);
     bool ok = (page->PaginateItem(save) &&
                Layout::Paginate(page) &&
                page->PaginateItem(restore));

@@ -2,10 +2,10 @@
  * @~english
  * @taomoduledescription{Slides, Slides creation}
  *
-* Commands create easily some basic slides.
+ * <tt>import Slides</tt> - Commands to create easily some basic slides.\n
  *
  * The Slides module defines commands that you can use to add some basic slides into
- * your presentations: @ref blank_slide, @ref title_slide, @ref section_slide,
+ * your presentations: @ref base_slide, @ref title_slide, @ref section_slide,
  * @ref slide and more. You can add text bullets with symbols
  * like @ref ＊, @ref ‐ and @ref ＋. \n
  *
@@ -18,9 +18,13 @@
 import Slides
 import KeyboardTheme // Import "Keyboard" theme
 
-// Show a top title slide with the default theme
-toptitle_slide "My title slide",
-    text "This shows the default theme"
+// Set default theme
+theme "Default"
+
+// Show a main title slide with the default theme
+main_title_slide "My presentation slide",
+    title text "My presentation title"
+    subtitle text "Default theme"
 
 // Change theme to "Keyboard"
 theme "Keyboard"
@@ -63,10 +67,10 @@ slide "The Keyboard theme",
  * @~french
  * @taomoduledescription{Slides, Creation de Diapositives }
  *
- * Commandes pour créer facilement des présentations type "Powerpoint".
+ * <tt>import Slides</tt> - Commandes pour créer facilement des présentations.\n
  *
  * Le module Slides fournit des commandes que vous pouvez utiliser pour
- * ajouter facilement des diapositives simples dans vos présentations : @ref blank_slide, @ref title_slide, @ref section_slide,
+ * ajouter facilement des diapositives simples dans vos présentations : @ref base_slide, @ref title_slide, @ref section_slide,
  * @ref slide et d'autres. Les puces de texte peuvent être affichées
  * en utilisant @ref ＊, @ref ‐ et @ref ＋.. \n
  *
@@ -78,9 +82,13 @@ slide "The Keyboard theme",
 import Slides
 import KeyboardTheme // Importation du thème "Keyboard
 
+// Thème par défaut
+theme "Default"
+
 // Diapositive avec un titre, style par défaut
-toptitle_slide "Diapo de titre",
-    text "Il s'agit du thème par défaut"
+main_title_slide "Titre de la présentation",
+    title text "Mon titre de présentation"
+    subtitle text "Thème par défaut"
 
 // Activation du thème "Keyboard"
 theme "Keyboard"
@@ -134,7 +142,7 @@ slide "Le thème Keyboard",
  * La prochaine commande qui crée une diapositive utilisera la valeur de cette
  * variable pour sélectionner l'apparence de la page.
  */
-text theme = "default";
+text theme = "Default";
 
 /**
  * @~english
@@ -155,11 +163,483 @@ real slide_height = 1080.0;
 
 /**
  * @~english
- * Select a new theme for all subsequent slides
+ * The name of the current language.
+ * The default value is english (en).
+ * @~french
+ * Le nom du langage courant.
+ * La valeur par défaut est english (en).
+ */
+text lang = "en";
+
+
+/**
+ * @~english
+ * Change language of slides.
+ * @p L is the name of the new language to be applied.
+ * When a language is selected, only texts defined with specifics functions (@ref en, @ref fr, etc.)
+ * will be shown.
+ * Accepted values for languages are :
+ *  - "en" : english (default value)
+ *  - "fr" : french
+ *  - "de" : german
+ *  - "it" : italian
+ *  - "es" : spanish
+ *
+ * For instance, to select the english language.
+@code
+import Slides
+
+lang "en"
+@endcode
+ *
+ * It can be convient to use some keys to change dynamically language thanks to following code:
+@code
+import Slides
+
+key "f" -> lang "fr"; refresh 0.01 // Use "f" to select french language
+key "e" -> lang "en"; refresh 0.01 // Use "e" to select english language
+@endcode
+ *
+ * @~french
+ * Change la langue des dispositives.
+ * @p L correspond au nom de la nouvelle langue à appliquer.
+ * Par exemple, le code suivant ré-applique le thème par défaut.
+ * Les valeurs acceptées pour le langage sont :
+ *  - "en" : anglais (valeur par défaut)
+ *  - "fr" : français
+ *  - "de" : allemand
+ *  - "it" : italien
+ *  - "es" : espagnole
+ *
+ * Par exemple, pour choisir l'anglais :
+@code
+import Slides
+
+lang "en"
+@endcode
+ *
+ * Il peut être également pratique d'utiliser les touches du clavier pour changer dynamiquement la langue
+ * d'une présentation :
+@code
+import Slides
+
+key "f" -> lang "fr"; refresh 0.01 // Utilise la touche "f" pour choisir le français.
+key "e" -> lang "en"; refresh 0.01 // Utilise la touche "e" pour choisir l'anglais.
+@endcode
+ *
+ */
+lang(L:text);
+
+
+/**
+ * @~english
+ * Define a specific version of a text for the english language.
+ * The right part of this function corresponds to the text shown when english language
+ * is selected with @ref lang "lang()".
+ * The left part of this function corresponds to the text shown for other language.
+ *
+ * For instance, to define simply an english text.
+@code
+import Slides
+
+// Select english language
+lang "en"
+
+// Define text
+text "Text for others languages" en "English text"
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un texte pour la langue anglaise.
+ * La partie à droite de cette fonction correspond au texte affiché
+ * lorsque la langue anglaise est sélectionnée grâce à @ref lang "lang()".
+ * La partie gauche de cette fonction correspond au texte pour les autres langues.
+ *
+ * Par exemple, pour définir simplement un texte en anglais :
+@code
+import Slides
+
+// Sélectionne la langue anglaise
+lang "en"
+
+// Définit les différentes versions du texte
+text "Autres langages" en "English text"
+@endcode
+ *
+ */
+en();
+
+
+/**
+ * @~english
+ * Define a specific version of a text for the french language.
+ * The right part of this function corresponds to the text shown when the french language
+ * is selected with @ref lang "lang()".
+ * The left part of this function corresponds to the text shown for other language.
+ *
+ * For instance, to define simply a french text.
+@code
+import Slides
+
+// Select french language
+lang "fr"
+
+// Define text
+text "Text for others languages" fr "Texte français"
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un texte pour la langue française.
+ * La partie à droite de cette fonction correspond au texte affiché
+ * lorsque la langue française est sélectionnée grâce à @ref lang "lang()".
+ * La partie gauche de cette fonction correspond au texte pour les autres langues.
+ *
+ * Par exemple, pour définir simplement un texte en français :
+@code
+import Slides
+
+// Sélectionne la langue française
+lang "fr"
+
+// Définit les différentes versions du texte
+text "Autres langage" fr "Texte français"
+@endcode
+ *
+ */
+fr();
+
+
+/**
+ * @~english
+ * Define a specific version of a text for the german language.
+ * The right part of this function corresponds to the text shown when the german language
+ * is selected with @ref lang "lang()".
+ * The left part of this function corresponds to the text shown for other language.
+ *
+ * For instance, to define simply a german text.
+@code
+import Slides
+
+// Select german language
+lang "de"
+
+// Define text
+text "Text for others languages" de "Deutscher Text"
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un texte pour la langue allemande.
+ * La partie à droite de cette fonction correspond au texte affiché
+ * lorsque la langue allemande est sélectionnée grâce à @ref lang "lang()".
+ * La partie gauche de cette fonction correspond au texte pour les autres langues.
+ *
+ * Par exemple, pour définir simplement un texte en allemand :
+@code
+import Slides
+
+// Sélectionne la langue allemande
+lang "de"
+
+// Définit les différentes versions du texte
+text "Autres langage" de "Deutscher Text"
+@endcode
+ *
+ */
+de();
+
+
+/**
+ * @~english
+ * Define a specific version of a text for the italian language.
+ * The right part of this function corresponds to the text shown when the italian language
+ * is selected with @ref lang "lang()".
+ * The left part of this function corresponds to the text shown for other language.
+ *
+ * For instance, to define simply an italian text.
+@code
+import Slides
+
+// Select italian language
+lang "it"
+
+// Define text
+text "Text for others languages" it "Testo italiano"
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un texte pour la langue italienne.
+ * La partie à droite de cette fonction correspond au texte affiché
+ * lorsque la langue italienne est sélectionnée grâce à @ref lang "lang()".
+ * La partie gauche de cette fonction correspond au texte pour les autres langues.
+ *
+ * Par exemple, pour définir simplement un texte en italien :
+@code
+import Slides
+
+// Sélectionne la langue italienne
+lang "it"
+
+// Définit les différentes versions du texte
+text "Autres langage" it "Testo italiano"
+@endcode
+ *
+ */
+it();
+
+
+/**
+ * @~english
+ * Define a specific version of a text for the spanish language.
+ * The right part of this function corresponds to the text shown when the spanish language
+ * is selected with @ref lang "lang()".
+ * The left part of this function corresponds to the text shown for other language.
+ *
+ * For instance, to define simply a spanish text.
+@code
+import Slides
+
+// Select spanish language
+lang "es"
+
+// Define text
+text "Text for others languages" es "Texto español"
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un texte pour la langue espagnole.
+ * La partie à droite de cette fonction correspond au texte affiché
+ * lorsque la langue espagnole est sélectionnée grâce à @ref lang "lang()".
+ * La partie gauche de cette fonction correspond au texte pour les autres langues.
+ *
+ * Par exemple, pour définir simplement un texte en espagnol :
+@code
+import Slides
+
+// Sélectionne la langue espagnole
+lang "es"
+
+// Définit les différentes versions du texte
+text "Autres langage" es "Texto español"
+@endcode
+ *
+ */
+es();
+
+
+/**
+ * @~english
+ * Define a specific version of a content for the english language.
+ * This content will be shown only if english language
+ * is selected with @ref lang "lang()".
+ *
+ * For instance, to define simply an english content.
+@code
+import Slides
+
+// Select english language
+lang "en"
+
+// Define contents
+english
+    color "red"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un contenu pour la langue anglaise.
+ * Ce contenu ne sera affiché que si la langue anglaise est sélectionnée grâce à
+ * @ref lang "lang()".
+ *
+ * Par exemple, pour définir simplement un contenu anglais :
+@code
+import Slides
+
+// Sélectionne la langue anglaise
+lang "en"
+
+// Definit le contenu anglais
+english
+    color "red"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ */
+english(Body:code);
+
+
+/**
+ * @~english
+ * Define a specific version of a content for the french language.
+ * This content will be shown only if french language
+ * is selected with @ref lang "lang()".
+ *
+ * For instance, to define simply a french content.
+@code
+import Slides
+
+// Select french language
+lang "fr"
+
+// Define contents
+french
+    color "green"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un contenu pour la langue française.
+ * Ce contenu ne sera affiché que si la langue française est sélectionnée grâce à
+ * @ref lang "lang()".
+ *
+ * Par exemple, pour définir simplement un contenu français :
+@code
+import Slides
+
+// Sélectionne la langue française
+lang "fr"
+
+// Definit le contenu français
+french
+    color "green"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ */
+french(Body:code);
+
+
+/**
+ * @~english
+ * Define a specific version of a content for the german language.
+ * This content will be shown only if german language
+ * is selected with @ref lang "lang()".
+ *
+ * For instance, to define simply a german content.
+@code
+import Slides
+
+// Select german language
+lang "de"
+
+// Define german contents
+german
+    color "blue"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un contenu pour la langue allemande.
+ * Ce contenu ne sera affiché que si la langue allemande est sélectionnée grâce à
+ * @ref lang "lang()".
+ *
+ * Par exemple, pour définir simplement un contenu allemand :
+@code
+import Slides
+
+// Sélectionne la langue allemande
+lang "de"
+
+// Définit le contenu allemand
+german
+    color "blue"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ */
+german(Body:code);
+
+
+/**
+ * @~english
+ * Define a specific version of a content for the italian language.
+ * This content will be shown only if italian language
+ * is selected with @ref lang "lang()".
+ *
+ * For instance, to define simply an italian content.
+@code
+import Slides
+
+// Select italian language
+lang "it"
+
+// Define contents
+italian
+    color "yellow"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un contenu pour la langue italienne.
+ * Ce contenu ne sera affiché que si la langue italienne est sélectionnée grâce à
+ * @ref lang "lang()".
+ *
+ * Par exemple, pour définir simplement un contenu italien :
+@code
+import Slides
+
+// Sélectionne la langue italienne
+lang "it"
+
+// Définit le contenu italien
+italian
+    color "yellow"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ */
+italian(Body:code);
+
+
+/**
+ * @~english
+ * Define a specific version of a content for the spanish language.
+ * This content will be shown only if spanish language
+ * is selected with @ref lang "lang()".
+ *
+ * For instance, to define simply a spanish content.
+@code
+import Slides
+
+// Select spanish language
+lang "es"
+
+// Define contents
+spanish
+    color "black"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ * @~french
+ * Définit une version particulière d'un contenu pour la langue espagnole.
+ * Ce contenu ne sera affiché que si la langue espagnole est sélectionnée grâce à
+ * @ref lang "lang()".
+ *
+ * Par exemple, pour définir simplement un contenu espagnol :
+@code
+import Slides
+
+// Sélectionne la langue espagnole
+lang "es"
+
+// Définit le contenu espagnol
+spanish
+    color "black"
+    sphere 0, 0, 0, 500
+@endcode
+ *
+ */
+spanish(Body:code);
+
+
+/**
+ * @~english
+ * Select a new theme for all subsequent slides.
  * @p Theme is the name of the new theme to be applied.
  * For instance, the following code re-select the default theme.
 @code
-theme "default"
+import Slides
+
+theme "Default"
 @endcode
  *
  * @~french
@@ -167,7 +647,9 @@ theme "default"
  * @p Theme correspond au nom du nouveau thème à  appliquer.
  * Par exemple, le code suivant ré-applique le thème par défaut.
 @code
-theme "default"
+import Slides
+
+theme "Default"
 @endcode
  *
  * @~
@@ -178,92 +660,133 @@ theme(Theme:text);
 
 /**
  * @~english
- * Creates a slide without a title and story (only the background).
+ * Creates a slide without a title or story.
  * @p T corresponds to the page name.
  * Below, an example of blank slide using the default theme.
 @code
-blank_slide "Empty slide", false
+import Slides
+
+base_slide "Empty slide",
+    false
 @endcode
+ *
+ * @image html base_slide.png "Screenshot of the previous example"
+ *
  * @~french
- * Créer une diapositive vide (uniquement le background).
+ * Créer une diapositive vide (sans titre ou contenu).
  * @p T correspond au nom de la diapositive.
  * Ci-dessous, un exemple de diapositive vide utilisant le thème par défaut.
 @code
-blank_slide "Diapositive vide", false
+import Slides
+
+base_slide "Diapositive vide",
+    false
 @endcode
+ *
+ * @image html base_slide.png "Capture d'écran de l'exemple précédent"
  */
-blank_slide(T:text, Body:code);
+base_slide(T:text, Body:code);
 
 
 /**
  * @~english
- * Creates a slide with title and picture content.
- * The slide title @a T is used as the page name.
- * @~french
- * Créer une diapositive avec un titre et une zone libre.
- * Le titre de la diapositive, @p T, est utilisé comme nom de page.
- */
-picture_slide(T:text, Body:code);
-
-/**
- * @~english
- * Creates a main title slide (one unique text area).
- * @p T corresponds to the main title and the page name.
+ * Creates a main title slide.
+ * @p T corresponds to the page name in Tao Presentations.
  * Below, an example of a title slide using the default theme.
 @code
+import Slides
+
 // Show only title and nothing else
-title_slide "Presentation title", false
+main_title_slide "Main slide",
+    title text "My Presentation title"  // Main titre
 @endcode
+ *
+ * @image html main_title_slide_en.png "Screenshot of the previous example"
+ *
  * @~french
- * Créer une diapositive de titre principal (une seule zone de texte).
- * @p T correspond au titre principal et au nom de la page.
+ * Créer une diapositive de titre principal.
+ * @p T correspond au nom de la page dans Tao Presentations.
  * Ci-dessous, un exemple de diapositive de titre utilisant le thème par défaut.
 @code
+import Slides
+
 // Affiche le titre principal et rien d'autre
-title_slide "Titre de la présentation", false
+main_title_slide "Diapositive principal",
+    title text "Mon titre de présentation" // Titre principale
 @endcode
+ *
+ * @image html main_title_slide_fr.png "Capture d'écran de l'exemple précédent"
  */
-title_slide(T:text, Body:code);
+main_title_slide(T:text, Body:code);
 
 
 /**
  * @~english
- * Creates an empty @ref title_slide.
+ * Creates an empty @ref main_title_slide.
  * @p T corresponds to the main title and the page name.
+ *
+ * For instance:
+@code
+main_title_slide "Diapositive principal"
+@endcode
+ *
  * It is a shortcut to the following code :
 @code
-title_slide T, false
+import Slides
+
+main_title_slide T,
+    title text T
 @endcode
  *
  * @~french
- * Créer une diapositive @ref title_slide vide.
- * @p T correspond au titre principal et au nom de la page.
+ * Créer une diapositive @ref main_title_slide vide.
+ * @p T correspond à la fois au nom de la page et au titre principal.
+ *
+ * Exemple :
+@code
+import Slides
+
+main_title_slide "Diapositive principal"
+@endcode
+ *
  * Il s'agit d'un raccourci au code suivant :
 @code
-title_slide T, false
+main_title_slide T,
+    title text T
 @endcode
  *
  */
-title_slide(T:text);
+main_title_slide(T:text);
 
 
 /**
  * @~english
- * Creates a section slide (one unique text area).
- * @p T corresponds to the section title and the page name.
+ * Creates a section slide.
+ * @p T corresponds to the page name in Tao Presentations.
  * Below, an example of this type of slide using the default theme.
 @code
-// Show only section title and nothing else
-section_slide "Section title", false
+import Slides
+
+// Show a slide with a section title
+section_slide "Section slide",
+    title text "First section" // Section title
 @endcode
+ *
+ * @image html section_slide_en.png "Screenshot of the previous example"
+ *
  * @~french
  * Créer une diapositive de transition entre sections.
- * @p T correspond au titre de la section et au nom de la page.
+ * @p T correspond au nom de la page dans Tao Presentations.
  * Ci-dessous, un exemple de ce type de diapositive utilisant le thème par défaut.
 @code
-// Affiche le titre de la section et rien d'autre
-section_slide "Titre de la section", false
+import Slides
+
+// Affiche une diapositive avec un titre de section
+section_slide "Diapositive de section",
+    title text "Section 1"  // Titre de la section
 @endcode
+ *
+ * @image html section_slide_fr.png "Capture d'écran de l'exemple précédent"
  */
 section_slide(T:text, Body:code);
 
@@ -272,17 +795,33 @@ section_slide(T:text, Body:code);
  * @~english
  * Creates an empty @ref section_slide.
  * @p T corresponds to the section title and the page name.
+ *
+ * For instance:
+@code
+import Slides
+
+section_slide "Section slide"
+@endcode
+ *
  * It is a shortcut to the following code :
 @code
-section_slide T, false
+section_slide T,
+    title text T
 @endcode
  *
  * @~french
  * Créer une diapositive @ref section_slide vide.
- * @p T correspond au titre de la section et au nom de la page.
+ * @p T correspond à la fois au titre de la section et au nom de la page.
+ *
+@code
+import Slides
+
+section_slide "Diapositive de section"
+@endcode
  * Il s'agit d'un raccourci au code suivant :
 @code
-section_slide T, false
+section_slide T,
+    title text T
 @endcode
  *
  */
@@ -291,162 +830,260 @@ section_slide(T:text);
 
 /**
  * @~english
- * Creates a slide with a title at the top.
- * The slide title @p T is used as the page name.
- * Below, an example of this type of slide using the default theme.
-@code
-// Show only top title and nothing else
-toptitle_slide "Slide title", false
-@endcode
- *
- * @~french
- * Créer une diapositive avec un titre situé en haut.
- * Le titre de la diapositive, @p T, est utilisé comme nom de page.
- * Ci-dessous, un exemple de ce type de diapositive utilisant le thème par défaut.
-@code
-// Affiche le titre en haut et rien d'autre
-toptitle_slide "Titre de la diapositive", false
-@endcode
- */
-toptitle_slide(T:text, Body:code);
-
-
-/**
- * @~english
  * Creates a slide with title and picture content.
- * The slide title @p T is used as the page name.
+ * Creates a slide with title and picture content
+ * allowing to show an image, a video, a 3D model, etc.
+ * The page name @a T is used as the slide title.
  * Below, an example of this type of slide using the default theme.
 @code
-// Show a slide with a picture
-picture_slide "Slide title",
-    image 0, 0, 100%, 100%, "my_picture.png"
+import Slides
+
+picture_slide "Slide with image",
+    image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
 @endcode
+ *
+ * @image html picture_slide_en.png "Screenshot of the previous example"
  *
  * @~french
- * Créer une diapositive avec un titre et une zone libre pour afficher images, photos, animations.
- * Le titre de la diapositive, @p T, est utilisé comme nom de page.
- * Ci-dessous, un exemple de ce type de diapositive utilisant le thème par défaut.
+ * Créer une diapositive avec un titre et une zone libre.
+ * Créer une diapositive avec un titre et une zone libre permettant
+ * d'afficher une vidéo, une image, un modèle 3D, etc.
+ * Le nom de page, @p T, est utilisé ici comme titre de la diapositive.
+ * Par exemple :
 @code
-// Affiche une diapositive contenant une image
-picture_slide "Titre de la diapositive",
-    image 0, 0, 100%, 100%, "mon_image.png"
+import Slides
+
+picture_slide "Diapositive avec image",
+    image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
 @endcode
  *
+ * @image html picture_slide_fr.png "Capture d'écran de l'exemple précédent"
  */
 picture_slide(T:text, Body:code);
 
 
 /**
  * @~english
- * Creates a slide with title and bullet points.
- * The slide title @p T is used as the page name.
+ * Creates a classic slide with a title at the top.
+ * The page name @p T is used as the slide title.
  * Below, an example of this type of slide using the default theme.
 @code
-// Show a slide with some bullet points
-slide "Slide title",
-    *"First-level bullet"
-    -"Second-level bullet"
-    +"Third-level bullet"
+import Slides
+
+// Show title at the top of slide
+title_slide "Slide with top title",
+    false
 @endcode
+ *
+ * @image html title_slide_en.png "Screenshot of the previous example"
+ *
  * @~french
- * Créer une diapositive avec un titre et du texte.
- * Le titre de la diapositive, @p T, est utilisé comme nom de page.
+ * Créer une diapositive traditionnelle avec un titre situé en haut.
+ * Le nom de la page, @p T, est utilisé ici comme titre de la diapositive.
  * Ci-dessous, un exemple de ce type de diapositive utilisant le thème par défaut.
 @code
-// Affiche une diapositive avec différentes puces de texte
-picture_slide "Titre de la diapositive",
-    *"Texte de premier niveau"
-    -"Texte de second niveau"
-    +"Texte de troisième niveau"
+import Slides
+
+// Affiche le titre en haut de la diapositive
+title_slide "Diapositive avec titre en haut",
+    false
 @endcode
+ *
+ * @image html title_slide_fr.png "Capture d'écran de l'exemple précédent"
+ */
+title_slide(T:text, Body:code);
+
+
+/**
+ * @~english
+ * Creates a slide with title and some texts.
+ * The page name @p T is used as the slide title.
+ * Below, an example of this type of slide using the default theme.
+@code
+import Slides
+
+// Show a slide with some bullet points
+slide "Slide with some texts",
+    *"First-level bullet"
+    **"Second-level bullet"
+    ***"Third-level bullet"
+@endcode
+ *
+ * @image html slide_en.png "Screenshot of the previous example"
+ *
+ * @~french
+ * Créer une diapositive avec un titre et du texte.
+ * Le nom de la page, @p T, est utilisé ici comme titre de la diapositive.
+ * Ci-dessous, un exemple de ce type de diapositive utilisant le thème par défaut.
+@code
+import Slides
+
+// Affiche une diapositive avec différentes puces de texte
+slide "Diapositive avec puces de texte",
+    *"Texte de premier niveau"
+    **"Texte de second niveau"
+    ***"Texte de troisième niveau"
+@endcode
+ *
+ * @image html slide_fr.png "Capture d'écran de l'exemple précédent"
  */
 slide(T:text, Body:code);
 
 
 /**
  * @~english
- * Show a main title on the slide.
- * The main title given as an argument will be displayed according to
- * the current applied theme.
- *
- * For instance:
-@code
-// Define a main title
-main_title
-    text "My main title"
-@endcode
- * @~french
- * Affiche un titre principal sur une diapositive.
- * Le titre principal donné en argument sera affiché suivant le
- * thème courant appliqué.
- *
- * Par exemple :
-@code
-// Définit un titre principal.
-main_title
-    text "Mon titre principal"
-@endcode
- */
-main_title(Body:code);
-
-
-/**
- * @~english
- * Show a section title on the slide.
- * The section title given as an argument will be displayed according to
- * the current applied theme.
- *
- * For instance:
-@code
-// Define a section title
-section_title
-    text "My section title"
-@endcode
- * @~french
- * Affiche un titre de section sur une diapositive.
- * Le titre donné en argument sera affiché suivant le
- * thème courant appliqué.
- *
- * Par exemple :
-@code
-// Définit un titre de section.
-section_title
-    text "Mon titre de section"
-@endcode
- */
-section_title(Body:code);
-
-
-/**
- * @~english
- * Show a title on the slide.
+ * Show a title in a regular slide.
  * The title given as an argument will be displayed according to
- * the current applied theme.
+ * the current applied theme and the current type of slide.
  *
- * For instance:
+ * For instance, to add a title on a main slide:
 @code
-// Show a title on blank slide
-blank_slide "Page name",
+import Slides
+
+// Show a main title
+main_title_slide "Example of main title",
     title
-        text "My slide title"
+        text "My main title"
 @endcode
+ *
+ * @image html title_en.png "Screenshot of the previous example"
+ *
  * @~french
- * Affiche un titre de section sur une diapositive.
- * Le titre donné en argument sera affiché suivant le
- * thème courant appliqué.
+ * Affiche un titre sur une diapositive standard.
+ * Le titre donné en argument sera affiché suivant le type de diapositive choisi
+ * ainsi que le thème courant appliqué.
  *
- * Par exemple :
+ * Par exemple, pour ajouter un titre dans une diapositive principale :
 @code
+import Slides
+
 // Affiche un titre sur une diapositive vide.
-blank_slide "Page name",
+main_title_slide "Exemple de titre principal",
     title
-        text "Mon titre de diapositive"
+        text "Mon titre principal"
 @endcode
+ *
+ * @image html title_fr.png "Capture d'écran de l'exemple précédent"
  */
 title(Body:code);
 
 
+/**
+ * @~english
+ * Show a subtitle in a regular slide.
+ * The subtitle given as an argument will be displayed according to
+ * the current applied theme and the current type of slide.
+ *
+ * For instance, to add a subtitle on a main slide:
+@code
+import Slides
+
+// Show a main title
+main_title_slide "Example of subtitle",
+    subtitle
+        text "My subtitle"
+@endcode
+ *
+ * @image html subtitle_en.png "Screenshot of the previous example"
+ *
+ * @~french
+ * Affiche un sous-titre sur une diapositive standard.
+ * Le sous-titre donné en argument sera affiché suivant le type de diapositive choisi
+ * ainsi que le thème courant appliqué.
+ *
+ * Par exemple, pour ajouter un titre dans une diapositive principale :
+@code
+import Slides
+
+// Affiche un titre sur une diapositive vide.
+main_title_slide "Exemple de sous-titre",
+    subtitle
+        text "Mon sous-titre"
+@endcode
+ *
+ * @image html subtitle_fr.png "Capture d'écran de l'exemple précédent"
+ */
 subtitle(Body:code);
+
+
+/**
+ * @~english
+ * Define a box for picture, photos, animations on the slide.
+ * This box will be displayed according to
+ * the current applied theme (by default, at the bottom of the slide).
+ *
+ * For instance:
+@code
+import Slides
+
+title_slide "Example of picture box",
+    // Show an image in the picture box
+    picture
+        image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
+@endcode
+ *
+ * @image html picture_en.png "Screenshot of the previous example"
+ *
+ * @~french
+ * Définit une boîte où placer images, photos, animation sur une diapositive.
+ * Cette boîte sera affichée suivant le thème courant appliqué
+ *(par défaut en bas de la diapositive).
+ *
+ * Par exemple :
+@code
+import Slides
+
+title_slide "Exemple de boîte de contenus",
+    // Affiche une image dans la boîte
+    picture
+        image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
+@endcode
+ *
+ * @image html picture_fr.png "Capture d'écran de l'exemple précédent"
+ */
+picture(Body:code);
+
+
+/**
+ * @~english
+ * Define a box where to put some texts.
+ * This box will be displayed according to
+ * the current applied theme (by default, somewhere in the middle).
+ *
+ * For instance:
+@code
+import Slides
+
+title_slide "Example of story",
+    // Show some bullet points
+    story
+        -"First-level text"
+        -"First-level text"
+        --"Second-level text"
+@endcode
+ *
+ * @image html story_en.png "Screenshot of the previous example"
+ *
+ * @~french
+ * Définit une boîte où placer du texte.
+ * Cette boîte sera affichée suivant le thème courant appliqué (par défaut,
+ * quelque part au milieu de la diapositive).
+ *
+ * Par exemple :
+@code
+import Slides
+
+title_slide "Exemple de boîte de texte",
+    // Affiche du contenu texte
+    story
+        -"Texte de premier niveau"
+        -"Texte de premier niveau"
+        --"Texte de second niveau"
+@endcode
+ *
+ * @image html story_fr.png "Capture d'écran de l'exemple précédent"
+ */
+story(Body:code);
 
 
 /**
@@ -459,10 +1096,17 @@ subtitle(Body:code);
  *
  * For instance, to use an image as background:
 @code
-// Define a background at a depth of -300
-background -300,
-    image 0, 0, 100%, 100%, "my_image.png"
+import Slides
+
+base_slide "Example of backgground",
+    // Define a background at a depth of -300
+    background -300,
+        color "white"
+        image 0, 0, 100%, 100%, "http://world-lolo.com/images/uploads/image.num1302250544.of.world-lolo.com.jpg"
 @endcode
+ *
+ * @image html background.png "Screenshot of the previous example"
+ *
  * @~french
  * Affiche quelque chose en arrière-plan d'une diapositive.
  * L'arrière-plan donné en argument sera affiché avec
@@ -472,10 +1116,16 @@ background -300,
  *
  * Par exemple, pour afficher une image en arrière-plan :
 @code
-// Place un arrière-plan à  une profondeur de -300 pixels.
-background -300,
-    image 0, 0, 100%, 100%, "mon_image.png"
+import Slides
+
+base_slide "Exemple d'arrière-plan",
+    // Place un arrière-plan à  une profondeur de -300 pixels.
+    background -300,
+        color "white"
+        image 0, 0, 100%, 100%, "http://world-lolo.com/images/uploads/image.num1302250544.of.world-lolo.com.jpg"
 @endcode
+ *
+ * @image html background.png "Capture d'écran de l'exemple précédent"
  */
 background(Depth:real, Body:code);
 
@@ -490,10 +1140,17 @@ background(Depth:real, Body:code);
  *
  * For instance, to use an image as contents:
 @code
-// Show an image at a zero depth.
-contents 0,
-    image 0, 0, 100%, 100%, "my_image.png"
+import Slides
+
+title_slide "Example of contents",
+    // Show an image at a zero depth.
+    contents 0,
+        color "white"
+        image 0, 0, 100%, 100%, "http://www.gettyimages.fr/CMS/Pages/PhotoLibraryRMFrontdoor/StaticContent/image_4.jpg"
 @endcode
+ *
+ * @image html contents_en.png "Screenshot of the previous example"
+ *
  * @~french
  * Affiche du contenu divers sur une diapositive.
  * Le contenu donné en argument sera affiché avec
@@ -503,130 +1160,100 @@ contents 0,
  *
  * Par exemple, pour afficher une image :
 @code
-// Place une image à  une profondeur zéro.
-contents 0,
-    image 0, 0, 100%, 100%, "mon_image.png"
+import Slides
+
+title_slide "Exemple de contenu divers",
+    // Place une image à  une profondeur zéro.
+    contents 0,
+        color "white"
+        image 0, 0, 100%, 100%, "http://www.gettyimages.fr/CMS/Pages/PhotoLibraryRMFrontdoor/StaticContent/image_4.jpg"
 @endcode
+ *
+ * @image html contents_fr.png "Capture d'écran de l'exemple précédent"
  */
 contents(Depth:real, Body:code);
 
 
 /**
  * @~english
- * Define a box for picture, photos, animations on the slide.
- * This box will be displayed according to
- * the current applied theme (by default, at the bottom of the slide).
- *
- * For instance:
-@code
-// Show an image in the picture box
-picture
-    image 0, 0, 100%, 100%, "my_image.png"
-@endcode
- * @~french
- * Définit une boîte où placer images, photos, animation sur une diapositive.
- * Cette boîte sera affichée suivant le thème courant appliqué
- *(par défaut en bas de la diapositive).
- *
- * Par exemple :
-@code
-// Affiche une image dans la boîte
-picture
-    image 0, 0, 100%, 100%, "mon_image.png"
-@endcode
- */
-picture(Body:code);
-
-
-/**
- * @~english
- * Define a box where to put bullet points.
- * This box will be displayed according to
- * the current applied theme (by default, somewhere in the middle).
- *
- * For instance:
-@code
-// Show some bullet points
-story
-    *"First-level bullet"
-    *"First-level bullet"
-    -"Second-level bullet"
-@endcode
- * @~french
- * Définit une boîte où placer des puces de textes.
- * Cette boîte sera affichée suivant le thème courant appliqué (par défaut,
- * quelque part au milieu de la diapositive).
- *
- * Par exemple :
-@code
-// Affiche plusieurs puces de textes
-story
-    *"Puce de premier niveau"
-    *"Puce de premier niveau"
-    -"Puce de second niveau"
-@endcode
- */
-story(Body:code);
-
-
-/**
- * @~english
- * Define a column at the left of the slide where to put bullet points.
+ * Define a column at the left of the slide where to put some texts.
  * This column will be displayed according to
  * the current applied theme (by default, somewhere in the left).
  *
  * For instance:
 @code
-// Show some bullet points at the left
-left_column
-    *"First-level bullet"
-    *"First-level bullet"
-    -"Second-level bullet"
+import Slides
+
+title_slide "Example of left column",
+    // Show some texts at the left
+    left_column
+        +"First-level text"
+        +"First-level text"
+        ++"Second-level text"
 @endcode
+ *
+ * @image html left_column_en.png "Screenshot of the previous example"
+ *
  * @~french
- * Définit une colonne à  gauche de la diapositive où placer des puces de textes.
+ * Définit une colonne à  gauche de la diapositive où placer du texte.
  * Cette colonne sera affichée suivant le thème courant appliqué (par défault,
  * quelque part à gauche de la diapositive).
  *
  * Par exemple :
 @code
-// Affiche plusieurs puces de textes à gauche
-left_column
-    *"Puce de premier niveau"
-    *"Puce de premier niveau"
-    -"Puce de second niveau"
+import Slides
+
+title_slide "Exemple de colonne à gauche",
+    // Affiche du texte à gauche
+    left_column
+        +"Texte de premier niveau"
+        +"Texte de premier niveau"
+        ++"Texte de second niveau"
 @endcode
+ *
+ * @image html left_column_fr.png "Capture d'écran de l'exemple précédent"
  */
 left_column(Body:code);
 
 
 /**
  * @~english
- * Define a column at the right of the slide where to put bullet points.
+ * Define a column at the right of the slide where to put some texts.
  * This column will be displayed according to
  * the current applied theme (by default, somewhere in the right).
  *
  * For instance:
 @code
-// Show some bullet points at the right
-right_column
-    *"First-level bullet"
-    *"First-level bullet"
-    -"Second-level bullet"
+import Slides
+
+title_slide "Example of right column",
+    // Show some texts at the right
+    right_column
+        +"First-level text"
+        +"First-level text"
+        ++"Second-level text"
 @endcode
+ *
+ * @image html right_column_en.png "Screenshot of the previous example"
+ *
  * @~french
- * Définit une colonne à droite de la diapositive où placer des puces de textes.
+ * Définit une colonne à droite de la diapositive où placer du texte.
  * Cette colonne sera affichée suivant le thème courant appliqué (par défaut,
  * quelque part à  droite de la diapositive).
  *
  * Par exemple :
 @code
-// Affiche plusieurs puces de textes à  droite
-right_column
-    *"Puce de premier niveau"
-    *"Puce de premier niveau"
-    -"Puce de second niveau"
+import Slides
+
+title_slide "Exemple de colonne à droite",
+    // Affiche du texte à droite
+    right_column
+        +"Texte de premier niveau"
+        +"Texte de premier niveau"
+        ++"Texte de second niveau"
 @endcode
+ *
+ * @image html right_column_fr.png "Capture d'écran de l'exemple précédent"
  */
 right_column(Body:code);
 
@@ -639,23 +1266,34 @@ right_column(Body:code);
  *
  * For instance:
 @code
-// Show an image at the left
-left_column_picture
-    image 0, 0, 100%, 100%, "my_image.png"
+import Slides
+
+title_slide "Example of contents at the left",
+    // Show an image at the left
+    left_picture
+        image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
 @endcode
+ *
+ * @image html left_picture_en.png "Screenshot of the previous example"
+ *
  * @~french
- * Définit une colonne à  gauche de la diapositive où placer images, photos, animations.
+ * Définit une colonne à gauche de la diapositive où placer images, photos, animations.
  * Cette colonne sera affichée suivant le thème courant appliqué (par défaut,
  * quelque part à  gauche de la diapositive).
  *
  * Par exemple :
 @code
-// Affiche une image à  gauche
-left_column_picture
-    image 0, 0, 100%, 100%, "mon_image.png"
+import Slides
+
+title_slide "Exemple de contenu à gauche",
+    // Affiche une image à gauche
+    left_picture
+        image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
 @endcode
+ *
+ * @image html left_picture_fr.png "Capture d'écran de l'exemple précédent"
  */
-left_column_picture(Body:code);
+left_picture(Body:code);
 
 
 /**
@@ -666,10 +1304,16 @@ left_column_picture(Body:code);
  *
  * For instance:
 @code
-// Show an image at the right
-right_column_picture
-    image 0, 0, 100%, 100%, "my_image.png"
+import Slides
+
+title_slide "Example of contents at the left",
+    // Show an image at the right
+    right_picture
+        image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
 @endcode
+ *
+ * @image html right_picture_en.png "Screenshot of the previous example"
+ *
  * @~french
  * Définit une colonne à  droite de la diapositive où placer images, photos, animations.
  * Cette colonne sera affichée suivant le thème courant appliqué (par défaut,
@@ -677,12 +1321,17 @@ right_column_picture
  *
  * Par exemple :
 @code
-// Affiche une image à  droite
-right_column_picture
-    image 0, 0, 100%, 100%, "mon_image.png"
+import Slides
+
+title_slide "Exemple de contenu à droite",
+    // Affiche une image à droite
+    right_picture
+        image 0, 0, 100%, 100%, "http://images.sixrevisions.com/2009/07/28-20_sunrise_in_space.jpg"
 @endcode
+ *
+ * @image html right_picture_fr.png "Capture d'écran de l'exemple précédent"
  */
-right_column_picture(Body:code);
+right_picture(Body:code);
 
 
 /**
@@ -695,16 +1344,14 @@ right_column_picture(Body:code);
  * @p W Box width
  * @p H Box height
  * @p Kind Element kind. Typically, it is :
- *   - main_title
- *   - section_title
  *   - title
  *   - subtitle
  *   - picture
  *   - story
  *   - left_column
  *   - right_column
- *   - left_column_picture
- *   - right_column_picture
+ *   - left_picture
+ *   - right_picture
  *
  * @~french
  * Définit une boite pour un type d'élément.
@@ -716,16 +1363,14 @@ right_column_picture(Body:code);
  * @p W Largeur de la boite
  * @p H Longueur de la boite
  * @p Kind Type d'élément. Typiquement, il s'agit de :
- *   - main_title
- *   - section_title
  *   - title
  *   - subtitle
  *   - picture
  *   - story
  *   - left_column
  *   - right_column
- *   - left_column_picture
- *   - right_column_picture
+ *   - left_picture
+ *   - right_picture
  *
  */
 box(X:real, Y:real, W:real, H:real, Kind:text, Body);
@@ -740,8 +1385,9 @@ box(X:real, Y:real, W:real, H:real, Kind:text, Body);
  *
  * For instance:
 @code
-// Create a story with first-level bullet
-story
+import Slides
+
+slide "Example of first-level bullets",
     *"First-level bullet"
     *"First-level bullet"
 @endcode
@@ -753,13 +1399,15 @@ story
  *
  * Par exemple :
 @code
-// Affiche des puces de premier niveau
-story
+import Slides
+
+slide "Exemple de puces de texte de premier niveau",
     *"Texte de premier niveau"
     *"Texte de premier niveau"
 @endcode
  */
-＊(T:text);
+∗(T:text);
+
 
 /**
  * @~english
@@ -770,11 +1418,12 @@ story
  *
  * For instance:
 @code
-// Create a story with second-level bullet
-story
+import Slides
+
+slide "Example of second-level bullets",
     *"First-level bullet"
-    -"Second-level bullet"
-    -"Second-level bullet"
+    **"Second-level bullet"
+    **"Second-level bullet"
 @endcode
  *
  * @~french
@@ -784,77 +1433,123 @@ story
  *
  * Par exemple :
 @code
-// Affiche des puces de second niveau
-story
+import Slides
+
+slide "Exemple de puces de texte de second niveau",
     *"Texte de premier niveau"
-    -"Texte de second niveau"
-    -"Texte de second niveau"
+    **"Texte de second niveau"
+    **"Texte de second niveau"
 @endcode
  */
-‐(T:text);
+∗∗(T:text);
+
 
 /**
  * @~english
  * Display a third-level bullet.
- * @note that this is really a normal plus character (+). In this
+ * @note that this is really a normal minus character (-). In this
  * documentation we are using a special unicode character due to
  * technical constraints.
- **
+ *
  * For instance:
 @code
-// Create a story with third-level bullet
-story
+import Slides
+
+slide "Example of third-level bullets",
     *"First-level bullet"
-    -"Second-level bullet"
-    -"Third-level bullet"
+    **"Second-level bullet"
+    ***"Third-level bullet"
+    ***"Third-level bullet"
 @endcode
  *
  * @~french
  * Affiche une puce de texte de troisième niveau.
- * @note Il s'agit d'un caractère plus normal (+). Dans cette documentation
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
  * nous utilisons un caractère spécial pour des raisons techniques.
  *
  * Par exemple :
 @code
-// Affiche des puces de troisième niveau
-story
+import Slides
+
+slide "Exemple de puces de texte de troisième niveau",
     *"Texte de premier niveau"
-    -"Texte de second niveau"
-    +"Texte de troisième niveau"
+    **"Texte de second niveau"
+    ***"Texte de troisième niveau"
+    ***"Texte de troisième niveau"
 @endcode
  */
-＋(T:text);
+∗∗∗(T:text);
+
+
+/**
+ * @~english
+ * Display a fourth-level bullet.
+ * @note that this is really a normal minus character (-). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of fourth-level bullets",
+    *"First-level bullet"
+    **"Second-level bullet"
+    ***"Third-level bullet"
+    ****"Fourth-level bullet"
+@endcode
+ *
+ * @~french
+ * Affiche une puce de texte de quatrième niveau.
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de puces de texte de quatrième niveau",
+    *"Texte de premier niveau"
+    **"Texte de second niveau"
+    ***"Texte de troisième niveau"
+    ****"Texte de quatrième niveau"
+@endcode
+ */
+∗∗∗∗(T:text);
 
 
 /**
  * @~english
  * Display a first-level text without bullet point.
- * @note This is really a normal asterisk character (*). In this
+ * @note that this is really a normal minus character (-). In this
  * documentation we are using a special unicode character due to
  * technical constraints.
  *
  * For instance:
 @code
-// Create a story with first-level text
-story
-    !*"First-level bullet"
-    !*"First-level bullet"
+import Slides
+
+slide "Example of first-level text",
+    -"First-level text"
+    -"First-level text"
 @endcode
  *
  * @~french
  * Affiche un texte de premier niveau sans puce.
- * @note Il s'agit d'une astérisque normale (*). Dans cette documentation
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
  * nous utilisons un caractère spécial pour des raisons techniques.
  *
  * Par exemple :
 @code
-// Affiche des textes de premier niveau sans puces
-story
-    !*"Texte de premier niveau"
-    !*"Texte de premier niveau"
+import Slides
+
+slide "Exemple de texte de premier niveau",
+    -"Texte de premier niveau"
+    -"Texte de premier niveau"
 @endcode
  */
-!＊(T:text);
+－(T:text);
+
 
 /**
  * @~english
@@ -865,11 +1560,12 @@ story
  *
  * For instance:
 @code
-// Create a story with second-level bullet
-story
-    !*"First-level text"
-    !-"Second-level text"
-    !-"Second-level text"
+import Slides
+
+slide "Example of second-level texts",
+    -"First-level text"
+    --"Second-level text"
+    --"Second-level text"
 @endcode
  *
  * @~french
@@ -879,46 +1575,328 @@ story
  *
  * Par exemple :
 @code
-// Affiche des textes de second niveau sans puces
-story
-    !*"Texte de premier niveau"
-    !-"Texte de second niveau"
-    !-"Texte de second niveau"
+import Slides
+
+slide "Exemple de texte de second niveau",
+    -"Texte de premier niveau"
+    --"Texte de second niveau"
+    --"Texte de second niveau"
 @endcode
  */
-!‐(T:text);
+－－(T:text);
+
+
+/**
+ * @~english
+ * Add a seperation between second-level texts.
+ * @note that this is really a normal minus character (-). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of second-level seperator",
+    *"First-level bullet"
+    **"Second-level bullet"
+    --
+    **"Second-level bullet"
+@endcode
+ *
+ * It is a shortcut to the following code :
+@code
+--" "
+@endcode
+ *
+ * @~french
+ * Ajoute une séparation entre textes de deuxième niveau.
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de sépération de textes de second niveau",
+    *"Texte de premier niveau"
+    **"Texte de second niveau"
+    --
+    **"Texte de second niveau"
+@endcode
+ *
+ * Il s'agit d'un raccourci au code suivant :
+@code
+--" "
+@endcode
+ */
+－－();
+
+
 
 /**
  * @~english
  * Display a third-level text without bullet point.
- * @note that this is really a normal plus character (+). In this
+ * @note that this is really a normal minus character (-). In this
  * documentation we are using a special unicode character due to
  * technical constraints.
  **
  * For instance:
 @code
-// Create a story with third-level text
-story
-    !*"First-level text"
-    !-"Second-level text"
-    !-"Third-level text"
+import Slides
+
+slide "Example of third-level texts",
+    -"First-level text"
+    --"Second-level text"
+    ---"Third-level text"
+    ---"Third-level text"
 @endcode
  *
  * @~french
  * Affiche un texte de troisième niveau sans puce.
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de texte de troisième niveau",
+    -"Texte de premier niveau"
+    --"Texte de second niveau"
+    ---"Texte de troisième niveau"
+    ---"Texte de troisième niveau"
+@endcode
+ */
+－－－(T:text);
+
+
+/**
+ * @~english
+ * Add a seperation between third-level texts.
+ * @note that this is really a normal minus character (-). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of third-level seperator",
+    *"First-level bullet"
+    **"Second-level bullet"
+    ***"Third-level bullet"
+    ---
+    ***"Third-level bullet"
+@endcode
+ *
+ * It is a shortcut to the following code :
+@code
+---" "
+@endcode
+ *
+ * @~french
+ * Ajoute une séparation entre textes de troisième niveau.
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de séparation de troisième niveau",
+    *"Texte de premier niveau"
+    **"Texte de second niveau"
+    ***"Texte de troisième niveau"
+    ---
+    ***"Texte de troisième niveau"
+@endcode
+ *
+ * Il s'agit d'un raccourci au code suivant :
+@code
+---" "
+@endcode
+ */
+－－－();
+
+/**
+ * @~english
+ * Display a fourth-level text without bullet point.
+ * @note that this is really a normal minus character (-). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ **
+ * For instance:
+@code
+import Slides
+
+slide "Example of fourth-level texts",
+    -"First-level text"
+    --"Second-level text"
+    ---"Third-level text"
+    ----"Fourth-level text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte de quatrième niveau sans puce.
+ * @note Il s'agit d'un caractère moins normal (-). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de texte de quatrième niveau",
+    -"Texte de premier niveau"
+    --"Texte de second niveau"
+    ---"Texte de troisième niveau"
+    ----"Texte de quatrième niveau"
+@endcode
+ */
+－－－－(T:text);
+
+
+/**
+ * @~english
+ * Display a first-level numbered text.
+ * @note that this is really a normal plus character (+). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of first-level numbered text",
+    -"First-level numbered text"
+    -"First-level numbered text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte numéroté de premier niveau.
  * @note Il s'agit d'un caractère plus normal (+). Dans cette documentation
  * nous utilisons un caractère spécial pour des raisons techniques.
  *
  * Par exemple :
 @code
-// Affiche des textes de troisième niveau sans puces
-story
-    !*"Texte de premier niveau"
-    !-"Texte de second niveau"
-    !+"Texte de troisième niveau"
+import Slides
+
+slide "Exemple de texte numéroté de premier niveau",
+    +"Texte numéroté de premier niveau"
+    +"Texte numéroté de premier niveau"
 @endcode
  */
-!＋(T:text);
+＋(T:text);
+
+
+/**
+ * @~english
+ * Display a second-level numbered text.
+ * @note that this is really a normal plus character (+). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of second-level numbered texts",
+    +"First-level numbered text"
+    ++"Second-level numbered text"
+    ++"Second-level numbered text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte numéroté de deuxième niveau.
+ * @note Il s'agit d'un caractère plus normal (+). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de texte numéroté de second niveau",
+    +"Texte numéroté de premier niveau"
+    ++"Texte numéroté de second niveau"
+    ++"Texte numéroté de second niveau"
+@endcode
+ */
+＋＋(T:text);
+
+
+/**
+ * @~english
+ * Display a third-level numbered text.
+ * @note that this is really a normal plus character (+). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of third-level numbered texts",
+    +"First-level numbered text"
+    ++"Second-level numbered text"
+    +++"Third-level numbered text"
+    +++"Third-level numbered text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte numéroté de troisième niveau.
+ * @note Il s'agit d'un caractère plus normal (+). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de texte numéroté de troisième niveau",
+    +"Texte numéroté de premier niveau"
+    ++"Texte numéroté de second niveau"
+    +++"Texte numéroté de troisième niveau"
+    +++"Texte numéroté de troisième niveau"
+@endcode
+ */
+＋＋＋(T:text);
+
+
+/**
+ * @~english
+ * Display a fourth-level numbered text.
+ * @note that this is really a normal plus character (+). In this
+ * documentation we are using a special unicode character due to
+ * technical constraints.
+ *
+ * For instance:
+@code
+import Slides
+
+slide "Example of fourth-level numbered texts",
+    +"First-level numbered text"
+    ++"Second-level numbered text"
+    +++"Third-level numbered text"
+    ++++"Fourth-level numbered text"
+@endcode
+ *
+ * @~french
+ * Affiche un texte numéroté de quatrième niveau.
+ * @note Il s'agit d'un caractère plus normal (+). Dans cette documentation
+ * nous utilisons un caractère spécial pour des raisons techniques.
+ *
+ * Par exemple :
+@code
+import Slides
+
+slide "Exemple de texte numéroté de quatrième niveau",
+    +"Texte numéroté de premier niveau"
+    ++"Texte numéroté de second niveau"
+    +++"Texte numéroté de troisième niveau"
+    ++++"Texte numéroté de quatrième niveau"
+@endcode
+ */
+＋＋＋＋(T:text);
+
 
 /**
  * @~english

@@ -346,10 +346,10 @@ void install_signal_handler(sig_t handler)
 {
     // Insert signal handlers
 #ifdef CONFIG_MINGW
-    static int sigids[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV };
+    static int sigids[] = { SIGILL, SIGABRT, SIGFPE, SIGSEGV, SIGTERM };
 #else
     static int sigids[] = { SIGHUP, SIGQUIT, SIGILL, SIGTRAP, SIGABRT,
-                            SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE,
+                            SIGFPE, SIGBUS, SIGSEGV, SIGSYS, SIGPIPE, SIGTERM,
                             SIGXCPU, SIGXFSZ, SIGVTALRM, SIGPROF };
 #endif
 
@@ -491,8 +491,19 @@ void signal_handler(int sigid)
     // Close the output stream
     close(fd);
 
-    // Install the default signal handler and resume
-    install_signal_handler((sig_t) SIG_DFL);
+#ifdef CONFIG_MINGW
+    if (sigid == SIGTERM)
+#else
+    if (sigid == SIGQUIT || sigid == SIGTERM)
+#endif
+    {
+        ::exit(0);
+    }
+    else
+    {
+        // Install the default signal handler and resume
+        install_signal_handler((sig_t) SIG_DFL);
+    }
 }
 
 

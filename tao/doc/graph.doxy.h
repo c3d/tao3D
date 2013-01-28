@@ -1204,6 +1204,23 @@ texture_cache_gl_size(bytes:integer);
 
 /**
  * @~english
+ * Invalidates stale network images.
+ * Causes the texture cache to check all network images (the ones which have
+ * been downloaded over HTTP or HTTPS), and purge the images that
+ * have changed on the server.
+ * @note Currently, all network images are purged, whether they are stale
+ * or not.
+ * @~french
+ * Invalide les images réseau qui ont changé.
+ * Le cache de textures vérifie si les images chargées depuis le réseau
+ * (HTTP ou HTTPS) ont changé sur le serveur, et supprime du cache celles
+ * qui sont devenues invalides.
+ * @note Actuellement, toutes les images réseau sont supprimées du cache.
+ */
+texture_cache_refresh();
+
+/**
+ * @~english
  * Enables or disables creation of mipmaps for new textures.
  * @~french
  * Active ou désactive la création de mipmaps pour les nouvelles textures.

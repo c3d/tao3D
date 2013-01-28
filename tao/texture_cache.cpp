@@ -106,6 +106,15 @@ SIZE_SETTER(textureCacheMemSize, maxMemSize)
 SIZE_SETTER(textureCacheGLSize, maxGLSize)
 
 
+XL::Name_p TextureCache::textureCacheRefresh()
+// ----------------------------------------------------------------------------
+//   Primitive to refresh stale images downloaded over the newtwork
+// ----------------------------------------------------------------------------
+{
+    TextureCache::instance()->refresh();
+    return XL::xl_true;
+}
+
 
 // ============================================================================
 // 
@@ -435,6 +444,21 @@ void TextureCache::purge()
 }
 
 
+void TextureCache::refresh()
+// ----------------------------------------------------------------------------
+//   Purge stale images
+// ----------------------------------------------------------------------------
+{
+    // REVISIT: the current implementation purges all network images
+    foreach (GLuint id, fromId.keys())
+    {
+        CachedTexture * tex = fromId[id];
+        if (tex->networked)
+            tex->purge();
+    }
+}
+
+
 CachedTexture::Links *TextureCache::texLinksForLRU(CachedTexture *tex,
                                                    LRU &lru)
 // ----------------------------------------------------------------------------
@@ -536,9 +560,11 @@ CachedTexture::CachedTexture(TextureCache &cache, const QString &path,
 //   Allocate GL texture ID to image
 // ----------------------------------------------------------------------------
     : path(path), width(0), height(0),  mipmap(mipmap),
-      compress(compress), isDefaultTexture(false), cache(cache), GLsize(0),
+      compress(compress), isDefaultTexture(false),
+      networked(path.contains("://")),
+      cache(cache), GLsize(0),
       memLRU(this), GLmemLRU(this), saveCompressed(cache.saveCompressed),
-      networked(path.contains("://")), networkReply(NULL), inLoad(false)
+      networkReply(NULL), inLoad(false)
 {
     glGenTextures(1, &id);
     if (networked)

@@ -1350,6 +1350,21 @@ Emplacement : %2</translation>
         <translation>Modules installés</translation>
     </message>
     <message>
+        <location filename="preferences_pages.cpp" line="332"/>
+        <source>Name</source>
+        <translation>Nom</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="333"/>
+        <source>Version</source>
+        <translation>Version</translation>
+    </message>
+    <message>
+        <location filename="preferences_pages.cpp" line="335"/>
+        <source>Status</source>
+        <translation>État</translation>
+    </message>
+    <message>
         <location filename="preferences_pages.cpp" line="345"/>
         <source>Search</source>
         <translation>Recherche</translation>
@@ -1361,13 +1376,13 @@ Emplacement : %2</translation>
     </message>
     <message>
         <location filename="preferences_pages.cpp" line="465"/>
-        <source>Disable</source>
-        <translation>Désactiver</translation>
+        <source>Enabled</source>
+        <translation>Activé</translation>
     </message>
     <message>
         <location filename="preferences_pages.cpp" line="465"/>
-        <source>Enable</source>
-        <translation>Activer</translation>
+        <source>Disabled</source>
+        <translation>Désactivé</translation>
     </message>
     <message>
         <location filename="preferences_pages.cpp" line="500"/>

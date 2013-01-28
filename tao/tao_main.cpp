@@ -491,7 +491,11 @@ void signal_handler(int sigid)
     // Close the output stream
     close(fd);
 
+#ifdef CONFIG_MINGW
+    if (sigid == SIGTERM)
+#else
     if (sigid == SIGQUIT || sigid == SIGTERM)
+#endif
     {
         ::exit(0);
     }

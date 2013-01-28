@@ -7789,20 +7789,24 @@ Tree_p Widget::shaderProgram(Context *context, Tree_p self, Tree_p code)
         return XL::xl_false;
     }
 
-    QGLShaderProgram *program = self->Get<ShaderProgramInfo>();
+    ShaderProgramInfo *info = self->GetInfo<ShaderProgramInfo>();
+    QGLShaderProgram *program = NULL;
     Tree_p result = XL::xl_true;
-    if (!program)
+    if (!info)
     {
-        XL::Save<QGLShaderProgram *> prog(currentShaderProgram,
-                                          new QGLShaderProgram());
-        result = context->Evaluate(code);
-        program = currentShaderProgram;
-        self->Set<ShaderProgramInfo>(program);
-
-        QString message = currentShaderProgram->log();
-        if (message.length())
-            taoWindow()->addError(message);
+        program = new QGLShaderProgram;
+        info = new ShaderProgramInfo(program);
+        self->SetInfo<ShaderProgramInfo> (info);
     }
+
+    XL::Save<ShaderProgramInfo *> saveInfo(currentShaderProgram, info);
+    result = context->Evaluate(code);
+    program = info->program;
+
+    QString message = program->log();
+    if (message.length())
+        taoWindow()->addError(message);
+
     layout->Add(new ShaderProgram(program));
     return result;
 }
@@ -7839,9 +7843,24 @@ Tree_p Widget::shaderFromSource(Tree_p self, ShaderKind kind, text source)
         return XL::xl_false;
     }
 
-    bool ok = currentShaderProgram->addShaderFromSourceCode(ShaderType(kind),
-                                                            +source);
-    return ok ? XL::xl_true : XL::xl_false;
+    QGLShader::ShaderType shaderType = ShaderType(kind);
+    Q_ASSERT(shaderType < ShaderProgramInfo::SHADER_TYPES);
+    if (source != currentShaderProgram->shaderSource[shaderType])
+    {
+        QGLShaderProgram *prog = currentShaderProgram->program;
+
+        // Remove old shader of that kind
+        QList<QGLShader *> shaders = prog->shaders();
+        foreach(QGLShader *shader, shaders)
+            if (shader->shaderType() == shaderType)
+                prog->removeShader(shader);
+
+        // Add new shader
+        bool ok = prog->addShaderFromSourceCode(shaderType, +source);
+        currentShaderProgram->shaderSource[shaderType] = source;
+        return ok ? XL::xl_true : XL::xl_false;
+    }
+    return XL::xl_true;
 }
 
 
@@ -7856,18 +7875,8 @@ Tree_p Widget::shaderFromFile(Tree_p self, ShaderKind kind, text file)
         return XL::xl_false;
     }
 
-    QString savePath = QDir::currentPath();
-    QDir::setCurrent(taoWindow()->currentProjectFolderPath());
-    bool ok = currentShaderProgram->addShaderFromSourceFile(ShaderType(kind),
-                                                            +file);
-    if (!ok)
-    {
-        Ooops("Unable to open file in $1", self);
-        return XL::xl_false;
-    }
-
-    QDir::setCurrent(savePath);
-    return XL::xl_true;
+    Text_p source = loadText(self, file, "");
+    return shaderFromSource(self, kind, source->value);
 }
 
 
@@ -7939,7 +7948,7 @@ Text_p Widget::shaderLog(Tree_p self)
         return new Text("");
     }
 
-    text message = +currentShaderProgram->log();
+    text message = +currentShaderProgram->program->log();
     return new Text(message);
 }
 
@@ -7955,7 +7964,7 @@ Name_p Widget::setGeometryInputType(Tree_p self, uint inputType)
         return XL::xl_false;
     }
 
-    currentShaderProgram->setGeometryInputType(inputType);
+    currentShaderProgram->program->setGeometryInputType(inputType);
     return XL::xl_true;
 }
 
@@ -7970,7 +7979,7 @@ Integer* Widget::geometryInputType(Tree_p self)
         Ooops("No shader program while executing $1", self);
         return 0;
     }
-    return new XL::Integer(currentShaderProgram->geometryInputType());
+    return new XL::Integer(currentShaderProgram->program->geometryInputType());
 }
 
 
@@ -7985,14 +7994,15 @@ Name_p Widget::setGeometryOutputType(Tree_p self, uint outputType)
         return XL::xl_false;
     }
 
+    QGLShaderProgram *prog = currentShaderProgram->program;
     switch(outputType)
     {
     case GL_LINE_STRIP:
-        currentShaderProgram->setGeometryOutputType(GL_LINE_STRIP); break;
+        prog->setGeometryOutputType(GL_LINE_STRIP); break;
     case GL_TRIANGLE_STRIP:
-        currentShaderProgram->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
+        prog->setGeometryOutputType(GL_TRIANGLE_STRIP); break;
     default:
-        currentShaderProgram->setGeometryOutputType(GL_POINTS); break;
+        prog->setGeometryOutputType(GL_POINTS); break;
     }
     return XL::xl_true;
 }
@@ -8007,7 +8017,7 @@ Integer* Widget::geometryOutputType(Tree_p self)
         Ooops("No shader program while executing $1", self);
         return 0;
     }
-    return new XL::Integer(currentShaderProgram->geometryOutputType());
+    return new XL::Integer(currentShaderProgram->program->geometryOutputType());
 }
 
 Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
@@ -8021,11 +8031,12 @@ Name_p Widget::setGeometryOutputCount(Tree_p self, uint outputCount)
         return XL::xl_false;
     }
 
-    uint maxVertices = currentShaderProgram->maxGeometryOutputVertices();
+    QGLShaderProgram *prog = currentShaderProgram->program;
+    uint maxVertices = prog->maxGeometryOutputVertices();
     if (outputCount < maxVertices)
-        currentShaderProgram->setGeometryOutputVertexCount(outputCount);
+        prog->setGeometryOutputVertexCount(outputCount);
     else
-        currentShaderProgram->setGeometryOutputVertexCount(maxVertices);
+        prog->setGeometryOutputVertexCount(maxVertices);
 
     return XL::xl_true;
 }
@@ -8041,7 +8052,8 @@ Integer* Widget::geometryOutputCount(Tree_p self)
         return 0;
     }
 
-    return new XL::Integer(currentShaderProgram->geometryOutputVertexCount());
+    QGLShaderProgram *prog = currentShaderProgram->program;
+    return new XL::Integer(prog->geometryOutputVertexCount());
 }
 
 
@@ -9335,12 +9347,14 @@ Text_p Widget::loadText(Tree_p self, text file, text encoding)
 // ----------------------------------------------------------------------------
 {
     bool doLoad = false;
+
     QFileInfo fileInfo(+file);
     if (!fileInfo.isAbsolute())
     {
         file = "doc:" + file;
         fileInfo.setFile(+file);
     }
+    srcFileMonitor.addPath(+file);
 
     LoadTextInfo *info = self->GetInfo<LoadTextInfo>();
     LoadTextInfo::PerFile *pf = NULL;

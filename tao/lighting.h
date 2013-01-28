@@ -41,6 +41,7 @@ struct Lighting : Attribute
     Lighting(): Attribute() {}
 };
 
+
 struct ShaderProgramInfo : XL::Info, InfoTrashCan
 // ----------------------------------------------------------------------------
 //   Hold info associated to a tree
@@ -51,9 +52,10 @@ struct ShaderProgramInfo : XL::Info, InfoTrashCan
     virtual void Delete() { trash.push_back(this); }
     typedef QGLShaderProgram *data_t;
     operator data_t() { return program; }
+    enum { SHADER_TYPES = 3 };
     QGLShaderProgram *program;
+    text shaderSource[SHADER_TYPES];
 };
-
 
 
 struct ShaderProgram : Lighting

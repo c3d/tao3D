@@ -2557,13 +2557,14 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
     for (uint u = 0; u < umax; u++)
     {
         TextureUnitState &us = units[u];
+        uint unit = GL_TEXTURE0 + u;
         if (dirty && (1ULL << u))
         {
             TextureUnitState &nus = ns.units[u];
-            if (lastUnit != u)
+            if (lastUnit != unit)
             {
-                glActiveTexture(GL_TEXTURE0 + u);
-                lastUnit = u;
+                glActiveTexture(unit);
+                lastUnit = unit;
             }
             us.Sync(nus, false);
         }
@@ -2578,10 +2579,11 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
         for (uint u = nmax; u < max; u++)
         {
             TextureUnitState &oldtu = units[u];
-            if (lastUnit != u)
+            uint unit = GL_TEXTURE0 + u;
+            if (lastUnit != unit)
             {
-                glActiveTexture(GL_TEXTURE0 + u);
-                lastUnit = u;
+                glActiveTexture(unit);
+                lastUnit = unit;
             }
             if (oldtu.tex1D)   glDisable(GL_TEXTURE_1D);
             if (oldtu.tex2D)   glDisable(GL_TEXTURE_2D);
@@ -2601,10 +2603,11 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
             // Sync that state now
             TextureUnitState &nus = ns.units[u];
             TextureUnitState &us = units.back();
-            if (lastUnit != u)
+            uint unit = GL_TEXTURE0 + u;
+            if (lastUnit != unit)
             {
-                glActiveTexture(GL_TEXTURE0 + u);
-                lastUnit = u;
+                glActiveTexture(unit);
+                lastUnit = unit;
             }
             us.Sync(nus, true);
             if (us.tex1D || us.tex2D || us.tex3D || us.texCube)

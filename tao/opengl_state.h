@@ -203,6 +203,69 @@ public:
 };
 
 
+// ============================================================================
+//
+//   Client active texture units
+//
+// ============================================================================
+
+struct ClientTextureUnitState
+// ----------------------------------------------------------------------------
+//    The state of a single client texture unit (for texture coordinates)
+// ----------------------------------------------------------------------------
+{
+    ClientTextureUnitState()
+        :   texCoordArray(false) {}
+
+    void Set(GLenum cap, bool enabled)
+    {
+        switch (cap)
+        {
+        case GL_TEXTURE_COORD_ARRAY:    texCoordArray = enabled; break;
+        default:                        Q_ASSERT(!"Invalid enum");
+        }
+    }
+
+    bool operator==(const ClientTextureUnitState &o)
+    {
+        return texCoordArray == o.texCoordArray;
+    }
+
+    bool operator!=(const ClientTextureUnitState &o) { return !operator==(o); }
+    void Sync(ClientTextureUnitState &ns, bool force);
+
+    bool        texCoordArray   : 1;
+};
+
+
+#define MAX_TEXTURE_COORDS 8
+
+struct ClientTextureUnitsState
+// ----------------------------------------------------------------------------
+//    The state of all client texture units
+// ----------------------------------------------------------------------------
+{
+    ClientTextureUnitsState(): dirty(~0ULL), active(0), units() {}
+    bool operator==(const ClientTextureUnitsState &o)
+    {
+        uint max = units.size();
+        if (max != o.units.size())
+            return false;
+        for (uint i = 0; i < max; i++)
+            if (units[i] != o.units[i])
+                return false;
+        return true;
+    }
+    bool operator!=(const ClientTextureUnitsState &o) { return !operator==(o); }
+
+    bool Sync(ClientTextureUnitsState &ns, uint clientActiveUnit);
+
+public:
+    uint64                                dirty;
+    uint64                                active;
+    std::vector<ClientTextureUnitState>   units;
+};
+
 
 // ============================================================================
 // 
@@ -602,12 +665,13 @@ public:
     };
 
 public:
-    enum VendorID     vendorID;
-    GLuint            maxTextureCoords,maxTextureUnits,maxTextureSize;
-    text              vendor, renderer, version, extensionsAvailable;
-    TexturesState     currentTextures;
-    TextureUnitsState currentTextureUnits;
-    LightsState       currentLights;
+    enum VendorID           vendorID;
+    GLuint                  maxTextureCoords,maxTextureUnits,maxTextureSize;
+    text                    vendor, renderer, version, extensionsAvailable;
+    TexturesState           currentTextures;
+    TextureUnitsState       currentTextureUnits;
+    ClientTextureUnitsState currentClientTextureUnits;
+    LightsState             currentLights;
 
 #define GS(type, name)                          \
     type name;
@@ -622,6 +686,9 @@ public:
     static uint ShowErrors(kstring msg = NULL);
 
 public:
+    // Return the current client texture unit state
+    ClientTextureUnitState & ClientActiveTexture();
+
     // Return the current texture state
     TextureState &      ActiveTexture();
     TextureUnitState &  ActiveTextureUnit();

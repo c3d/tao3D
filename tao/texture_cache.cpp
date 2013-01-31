@@ -932,8 +932,29 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         image.isNull() &&
         reply->error() == QNetworkReply::NoError)
     {
+        QNetworkRequest::Attribute
+                attr = QNetworkRequest::HttpStatusCodeAttribute;
+        int code = networkReply->attribute(attr).toInt();
+
         IFTRACE(texturecache)
-            debug() << "Received: '" << +path << "'\n";
+        {
+            debug() << "Received response for: '" << +path << "' (HTTP "
+                    << "status: " << code << ")\n";
+        }
+        if (code >= 300 && code <= 400)
+        {
+            // Redirected
+            networkReply->deleteLater();
+            QNetworkRequest::Attribute
+                    attr = QNetworkRequest::RedirectionTargetAttribute;
+            QUrl url = reply->attribute(attr).toUrl();
+            IFTRACE(texturecache)
+                    debug() << "Redirected to: '" << +url.toString() << "'\n";
+            QNetworkRequest req(url);
+            networkReply = cache.network.get(req);
+            return;
+        }
+
         reload();
         reply->deleteLater();
         networkReply = NULL;

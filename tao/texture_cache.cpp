@@ -640,7 +640,8 @@ bool CachedTexture::load()
     }
     if (image.isNull())
     {
-        if (!networked)
+        if (!networked || (networkReply && networkReply->isFinished() &&
+                           networkReply->error() != QNetworkReply::NoError))
             image.load(":/images/default_image.svg");
         isDefaultTexture = true;
     }
@@ -921,7 +922,7 @@ GLuint CachedTexture::bind()
 
 void CachedTexture::checkReply(QNetworkReply *reply)
 // ----------------------------------------------------------------------------
-//   Check if network reply is complete, if so then load image
+//   Process network reply completion (success or error)
 // ----------------------------------------------------------------------------
 {
     // Check if this is for me
@@ -929,34 +930,44 @@ void CachedTexture::checkReply(QNetworkReply *reply)
         return;
 
     if (networked &&
-        image.isNull() &&
-        reply->error() == QNetworkReply::NoError)
+        image.isNull())
     {
         QNetworkRequest::Attribute
                 attr = QNetworkRequest::HttpStatusCodeAttribute;
         int code = networkReply->attribute(attr).toInt();
 
-        IFTRACE(texturecache)
+        if (reply->error() == QNetworkReply::NoError)
         {
-            debug() << "Received response for: '" << +path << "' (HTTP "
-                    << "status: " << code << ")\n";
-        }
-        if (code >= 300 && code <= 400)
-        {
-            // Redirected
-            networkReply->deleteLater();
-            QNetworkRequest::Attribute
-                    attr = QNetworkRequest::RedirectionTargetAttribute;
-            QUrl url = reply->attribute(attr).toUrl();
             IFTRACE(texturecache)
+            {
+                debug() << "Received response for: '" << +path << "' (HTTP "
+                        << "status: " << code << ")\n";
+            }
+            if (code >= 300 && code <= 400)
+            {
+                // Redirected
+                networkReply->deleteLater();
+                QNetworkRequest::Attribute
+                        attr = QNetworkRequest::RedirectionTargetAttribute;
+                QUrl url = reply->attribute(attr).toUrl();
+                IFTRACE(texturecache)
                     debug() << "Redirected to: '" << +url.toString() << "'\n";
-            QNetworkRequest req(url);
-            networkReply = cache.network.get(req);
-            return;
+                QNetworkRequest req(url);
+                networkReply = cache.network.get(req);
+                return;
+            }
         }
-
+        else
+        {
+            IFTRACE(texturecache)
+            {
+                debug() << "Error downloading '" << +path << "' ("
+                        << +reply->errorString() << ")\n";
+            }
+        }
+        // Show received image, or error placeholder
         reload();
-        reply->deleteLater();
+        networkReply->deleteLater();
         networkReply = NULL;
         // A simple update is not enough here: the texture id has not yet been
         // returned, so a XL refresh is needed

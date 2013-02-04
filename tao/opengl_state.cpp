@@ -313,20 +313,11 @@ void OpenGLState::Sync(uint64 which)
     } while(0)
 
     // Current texture unit, then texture bindings - ORDER MATTERS
-    SYNC(textureUnits,
-         if (currentTextureUnits.Sync(textureUnits, activeTexture))
-             activeTexture_isDirty = true);
+    SYNC(textureUnits, currentTextureUnits.Sync(textureUnits, activeTexture));
     SYNC(textures,
          currentTextures.Sync(textures, ActiveTextureUnit());
          matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
-    SYNC(activeTexture,
-         glActiveTexture(activeTexture));
-    SYNC(clientTextureUnits,
-         if (currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture))
-             clientActiveTexture_isDirty = true);
-    SYNC(clientActiveTexture,
-         glClientActiveTexture(clientActiveTexture));
-
+    SYNC(clientTextureUnits, currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture));
     GLenum mmode = matrixMode;
     SYNC(mvMatrix,
          if (matrixMode_isDirty || mmode != GL_MODELVIEW)

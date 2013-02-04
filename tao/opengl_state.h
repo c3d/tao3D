@@ -691,7 +691,7 @@ public:
 
     // Return the current texture state
     TextureState &      ActiveTexture();
-    TextureUnitState &  ActiveTextureUnit();
+    TextureUnitState &  ActiveTextureUnit(bool isDirty = true);
 
 private:
     // Structure used to push/pop state

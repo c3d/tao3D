@@ -315,7 +315,7 @@ void OpenGLState::Sync(uint64 which)
     // Current texture unit, then texture bindings - ORDER MATTERS
     SYNC(textureUnits, currentTextureUnits.Sync(textureUnits, activeTexture));
     SYNC(textures,
-         currentTextures.Sync(textures, ActiveTextureUnit());
+         currentTextures.Sync(textures, ActiveTextureUnit(false));
          matrixMode_isDirty = true /* Pessimistic: we don't know if set */);
     SYNC(clientTextureUnits, currentClientTextureUnits.Sync(clientTextureUnits, clientActiveTexture));
     GLenum mmode = matrixMode;
@@ -1991,7 +1991,7 @@ TextureState &OpenGLState::ActiveTexture()
 }
 
 
-TextureUnitState &OpenGLState::ActiveTextureUnit()
+TextureUnitState &OpenGLState::ActiveTextureUnit(bool isDirty)
 // ----------------------------------------------------------------------------
 //    Return the state of the active texture unit
 // ----------------------------------------------------------------------------
@@ -2001,12 +2001,17 @@ TextureUnitState &OpenGLState::ActiveTextureUnit()
     uint at = activeTexture - GL_TEXTURE0;
     if (at >= textureUnits.units.size())
         textureUnits.units.resize(at + 1);
-    textureUnits.dirty |=  1ULL << at;
 
-    // Save texture unit state on the state stack
-    textureUnits_isDirty = true;
-    if (save)
-        save->save_textureUnits(textureUnits);
+    // Avoid to flag a texture unit as dirty if not needed
+    if(isDirty)
+    {
+        textureUnits.dirty |=  1ULL << at;
+
+        // Save texture unit state on the state stack
+        textureUnits_isDirty = true;
+        if (save)
+            save->save_textureUnits(textureUnits);
+    }
 
     return textureUnits.units[at];
 }

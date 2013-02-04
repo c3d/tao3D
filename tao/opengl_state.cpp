@@ -2579,11 +2579,11 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
 {
     uint max = units.size();
     uint nmax = ns.units.size();
-    uint64 dirty = ns.dirty;
+    uint64 ndirty = ns.dirty;
     uint lastUnit = activeUnit;
 
     // Quick bail out if nothing to do
-    if (dirty == 0 && max == nmax)
+    if (ndirty == 0 && max == nmax)
         return false;
 
     // Reset count of active texture units
@@ -2595,7 +2595,7 @@ bool TextureUnitsState::Sync(TextureUnitsState &ns, uint activeUnit)
     {
         TextureUnitState &us = units[u];
         uint unit = GL_TEXTURE0 + u;
-        if (dirty && (1ULL << u))
+        if (ndirty && (1ULL << u))
         {
             TextureUnitState &nus = ns.units[u];
             if (lastUnit != unit)

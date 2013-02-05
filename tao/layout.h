@@ -201,7 +201,7 @@ public:
 
     // Used to optimize away texturing and programs if in Identify
     static bool         InIdentify()    { return inIdentify; }
-    
+
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
@@ -227,7 +227,8 @@ protected:
     Widget *            display;
     // Debug: index in parent items (-1 = root layout)
     int                 idx;
-    Layouts             pages;  // Layouts where we paginated our items
+    Layouts             referencers;  // Layouts where we paginated our items
+    friend struct TextFlow;
 
 public:
     qevent_ids          refreshEvents;

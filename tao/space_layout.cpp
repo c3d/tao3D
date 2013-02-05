@@ -30,14 +30,21 @@ SpaceLayout::SpaceLayout(Widget *widget)
 //   Constructor sets defaults
 // ----------------------------------------------------------------------------
     : Layout(widget)
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "<->SpaceLayout::SpaceLayout "<<this << std::endl;
+
+}
 
 
 SpaceLayout::~SpaceLayout()
 // ----------------------------------------------------------------------------
 //   Destructor
 // ----------------------------------------------------------------------------
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "<->SpaceLayout::~SpaceLayout "<<this << std::endl;
+}
 
 
 Box3 SpaceLayout::Space(Layout *layout)

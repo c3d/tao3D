@@ -510,6 +510,8 @@ Widget::Widget(Widget &o, const QGLFormat &format)
 
     // Now, o has become invalid ; make sure it can't be redrawn before being
     // deleted (asynchronously, by deleteLater()).
+    IFTRACE(justify)
+        std::cerr << "--Widget::Widget Clears layout " << o.space << std::endl;
     o.space->Clear();
     o.isInvalid = true;
 
@@ -1182,6 +1184,8 @@ void Widget::runProgramOnce()
 
     // Run the XL program associated with this widget
     XL::Save<Layout *> saveLayout(layout, space);
+    IFTRACE(justify)
+        std::cerr << "--Widget::runProgramOnce Clears layout " << space << std::endl;
     space->Clear();
 
     // Evaluate the program
@@ -1212,7 +1216,7 @@ void Widget::runProgramOnce()
             delete menuItems[menuCount];
             menuItems[menuCount] = NULL;
         }
-        
+
         // Reset the menuCount value.
         menuCount          = 0;
         currentMenu    = NULL;
@@ -3540,6 +3544,8 @@ void Widget::updateProgram(XL::SourceFile *source)
 {
     if (xlProgram != NULL && sourceChanged())
         return;
+    IFTRACE(justify)
+        std::cerr << "--Widget::updateProgram Clears layout " << space << std::endl;
     space->Clear();
     dfltRefresh = optimalDefaultRefresh();
     clearCol.setRgb(255, 255, 255, 255);
@@ -8900,6 +8906,9 @@ Tree_p Widget::textFlow(Context *context, Tree_p self,
     currentFlowName = flowName;
     TextFlow *existing = flows[currentFlowName];
     Layout *parent = existing ? existing : layout;
+    IFTRACE(justify)
+            std::cerr << "-- Widget::textFlow ["<< currentFlowName << "] is "
+                         << existing <<"\n";
 
     TextFlow *flow = new TextFlow(parent, currentFlowName);
     flow->id = shapeId();

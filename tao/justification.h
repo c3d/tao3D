@@ -117,7 +117,7 @@ struct Justifier
     // Adding items to the layout
     bool        Empty()                 { return places.size() == 0; }
     Item        Current()               { return places.back().item; }
-    bool        HasRoom()               { return data->hasRoom; }
+    bool        HasRoom()               { return data ? data->hasRoom : false; }
     bool        HadRoom()               { return interspace < 0.0; /* UGLY */ }
 
     // Clear the layout
@@ -213,10 +213,15 @@ void Justifier<Item>::Clear()
 //   Delete the elements we have moved in places
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->Justifier<Item>::Clear()[" << this << "]\n";
+
     PurgeItems();
     places.clear();
     delete data;
     data = NULL;
+    IFTRACE(justify)
+        std::cerr << "<-Justifier<Item>::Clear()[" << this << "]\n";
 }
 
 
@@ -235,7 +240,7 @@ void Justifier<Item>::PopItem()
 template<class Item>
 void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 // ----------------------------------------------------------------------------
-//   Create data for the given 
+//   Create data for the given
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
@@ -255,13 +260,13 @@ bool Justifier<Item>::AddItem(Item item, uint count,
 // ----------------------------------------------------------------------------
 {
     // Quick exit if we are already full
-    if (!data->hasRoom)
+    if (!HasRoom())
         return false;
 
     IFTRACE(justify)
         std::cerr << "Justifier[" << this << "]::AddItem "
                   << item << ":" << demangle(typeid(*item).name())
-                  << " * " << count 
+                  << " * " << count
                   << (solid ? " solid " : " break ")
                   << size << " + " << offset << " "
                   << (forceBreak ? "force-break\n" : "\n");
@@ -348,6 +353,8 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
     IFTRACE(justify)
         std::cerr << "Justifier[" << this << "]::EndLayout\n";
 
+    if (!data) return;
+
     // Shortcuts for elements of data
     Justification &justify      = data->justify;
     coord         &pos          = data->pos;
@@ -401,9 +408,9 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
         Place &place = *p;
         place.position += offset;
         IFTRACE(justify)
-            std::cerr << "Justifier<Item>::Adjust Place.position change by "
-                      << offset << " to "
-                      << place.position << std::endl;
+                std::cerr << "Justifier<Item>::Adjust Place.position change by "
+                          << offset << " to "
+                          << place.position << std::endl;
 
         if (place.size > 0)
         {

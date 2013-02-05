@@ -33,7 +33,8 @@
 TAO_BEGIN
 
 struct OpenGLSave;              // Structure used to save/restore state
-
+struct TextureState;
+struct TexturesState;
 
 
 // ============================================================================
@@ -194,7 +195,7 @@ struct TextureUnitsState
     }
     bool operator!=(const TextureUnitsState &o) { return !operator==(o); }
 
-    bool Sync(TextureUnitsState &ns, uint active);
+    bool Sync(TexturesState &nts, TexturesState &ots, TextureUnitsState &ns);
 
 public:
     uint64                          dirty;
@@ -289,7 +290,7 @@ struct TextureState
                 mipmap == o.mipmap);
     }
     bool operator!=(const TextureState &o) { return !operator==(o); }
-    void Sync(TextureState &newState);
+    void Sync(TextureState &newState, bool force);
 
 public:
     GLenum      type;
@@ -318,7 +319,6 @@ struct TexturesState
 //    textures that have been changed.
 {
     TexturesState(): textures() { textures[0] = TextureState(); }
-    void Sync(TexturesState &newState, TextureUnitState &at);
 
 public:
     typedef std::map<GLuint, TextureState> texture_map;

@@ -1131,7 +1131,7 @@ AnchorLayout::AnchorLayout(const AnchorLayout &o)
 // ----------------------------------------------------------------------------
 //   Create a copy of an anchor layout
 // ----------------------------------------------------------------------------
-    : Layout(o)
+    : Layout(o), absolute(false)
 {
     IFTRACE(justify)
             std::cerr << "<->AnchorLayout::AnchorLayout ["<< this

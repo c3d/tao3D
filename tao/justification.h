@@ -117,7 +117,7 @@ struct Justifier
     // Adding items to the layout
     bool        Empty()                 { return places.size() == 0; }
     Item        Current()               { return places.back().item; }
-    bool        HasRoom()               { return data ? data->hasRoom : false; }
+    bool        HasRoom()               { return data->hasRoom; }
     bool        HadRoom()               { return interspace < 0.0; /* UGLY */ }
 
     // Clear the layout
@@ -352,8 +352,6 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
 {
     IFTRACE(justify)
         std::cerr << "Justifier[" << this << "]::EndLayout\n";
-
-    if (!data) return;
 
     // Shortcuts for elements of data
     Justification &justify      = data->justify;

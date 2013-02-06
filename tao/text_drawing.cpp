@@ -1163,15 +1163,15 @@ bool TextUnit::Paginate(PageLayout *page)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->TextUnit::Paginate[" << this << "] nb splits :"
+                  << splits.size() <<"\n";
     text str = source->value;
     uint i, max = str.length();
     bool ok = true;
     uint size = 0;
     uint last = start;
     uint first = start;
-
-    // Remove all text splits we generated during previous pagination
-    ClearSplits();
 
     // Case where we replayed a line from a text flow : we played text splits
     // that we would otherwise emit here (resulting in duplicated text)
@@ -1217,6 +1217,9 @@ bool TextUnit::Paginate(PageLayout *page)
         split->referencers.push_back(page);
         ok = page->PaginateItem(split, NoBreak, size);
     }
+    IFTRACE(justify)
+        std::cerr << "<-TextUnit::Paginate[" << this << "] nb splits :"
+                     << splits.size() <<"\n";
 
     return ok;
 }

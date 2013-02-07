@@ -1056,6 +1056,8 @@ menu_item "TAO_VIEW_MENU:windowsize > 1024", "1024 x 768",
     window_size 1024, 768
 menu_item "TAO_VIEW_MENU:windowsize > 1280", "1280 x 768",
     window_size 1280, 768
+menu_item "TAO_VIEW_MENU:windowsize > 720p", "1280 x 720",
+    window_size 1280, 720
 menu_item "TAO_VIEW_MENU:windowsize > 1600", "1600 x 1200",
     window_size 1600, 1200
 menu_item "TAO_VIEW_MENU:windowsize > 1920", "1920 x 1080",
@@ -1069,6 +1071,8 @@ window_choices ->
         window_size 960, 540
     chooser_choice "1024 x 768",
         window_size 1024, 768
+    chooser_choice "1280 x 720",
+        window_size 1280, 720
     chooser_choice "1280 x 768",
         window_size 1280, 768
     chooser_choice "1600 x 1200",

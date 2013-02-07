@@ -34,6 +34,7 @@
 #include "text_edit.h"
 #include "tao_gl.h"
 #include "tree-walk.h"
+#include "demangle.h"
 
 #include <QPainterPath>
 #include <QFont>
@@ -73,8 +74,34 @@ TextSplit::~TextSplit()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-        std::cerr << "<->TextSplit::~TextSplit[" << this << "]\n";
+        std::cerr << "->TextSplit::~TextSplit[" << this << "]\n";
+    Clear();
+    IFTRACE(justify)
+        std::cerr << "<-TextSplit::~TextSplit[" << this << "]\n";
+}
+
+
+void TextSplit::Clear()
+// ----------------------------------------------------------------------------
+//    Clean a text unit
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(justify)
+        std::cerr << "->TextSplit::Clear[" << this << "]\n";
     source = NULL;
+    // Clear all element we may have sent data to
+    for (Layouts::iterator p = referencers.begin(); p != referencers.end(); p++)
+    {
+        IFTRACE(justify)
+                std::cerr << "-- TextSplit::Clear["<< this << "] ClearPagination of "
+                          << (void*) *p << " of type "
+                          << demangle(typeid(**p).name()) << std::endl;
+
+        (*p)->ClearPagination();
+    }
+    referencers.clear();
+    IFTRACE(justify)
+        std::cerr << "<-TextSplit::Clear[" << this << "]\n";
 }
 
 
@@ -819,7 +846,7 @@ bool TextSplit::Paginate(PageLayout *page)
         else if (c == '\f')
             charOrder = SentenceBreak;
     }
-
+    referencers.push_back(page);
     page->SetLastSplit(this);
     return page->PaginateItem(this, charOrder, size);
 }
@@ -1104,9 +1131,9 @@ std::ostream &operator<<(std::ostream &out, TextSplit &ts)
 
 
 // ============================================================================
-// 
+//
 //   TextUnit class
-// 
+//
 // ============================================================================
 
 TextUnit::TextUnit(Text *source, uint start, uint end)
@@ -1136,15 +1163,15 @@ bool TextUnit::Paginate(PageLayout *page)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->TextUnit::Paginate[" << this << "] nb splits :"
+                  << splits.size() <<"\n";
     text str = source->value;
     uint i, max = str.length();
     bool ok = true;
     uint size = 0;
     uint last = start;
     uint first = start;
-
-    // Remove all text splits we generated during previous pagination
-    ClearSplits();
 
     // Case where we replayed a line from a text flow : we played text splits
     // that we would otherwise emit here (resulting in duplicated text)
@@ -1174,6 +1201,7 @@ bool TextUnit::Paginate(PageLayout *page)
             uint next = XL::Utf8Next(str, i);
             TextSplit *split = new TextSplit(source, last, next);
             splits.push_back(split);
+            split->referencers.push_back(page);
             ok = page->PaginateItem(split, charOrder, size);
             size = 0;
             last = next;
@@ -1186,8 +1214,12 @@ bool TextUnit::Paginate(PageLayout *page)
         // Create a text split with the part on the right
         TextSplit *split = new TextSplit(source, last, end);
         splits.push_back(split);
+        split->referencers.push_back(page);
         ok = page->PaginateItem(split, NoBreak, size);
     }
+    IFTRACE(justify)
+        std::cerr << "<-TextUnit::Paginate[" << this << "] nb splits :"
+                     << splits.size() <<"\n";
 
     return ok;
 }
@@ -1198,10 +1230,17 @@ void TextUnit::ClearSplits()
 //   Delete all split text units we created
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "-> TextUnit::ClearSplits["<< this << "]\n";
+
+    // Clear splits
     uint i, max = splits.size();
     for (i = 0; i < max; i++)
         delete splits[i];
     splits.clear();
+
+    IFTRACE(justify)
+            std::cerr << "<- TextUnit::ClearSplits["<< this << "]\n";
 }
 
 

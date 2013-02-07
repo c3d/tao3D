@@ -94,7 +94,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasTextureMatrix(o.hasTextureMatrix),
         printing(o.printing),
         hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes), 
+        hasAttributes(o.hasAttributes),
         hasLighting(false),
         hasBlending(false),
         hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
@@ -172,7 +172,12 @@ Layout::Layout(Widget *widget)
       id(0), charId(0),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "<-> Layout::Layout ["<< this << "] parent widget is "
+                      << widget << " layout is "
+                      << widget->layout <<"\n";
+}
 
 
 Layout::Layout(const Layout &o)
@@ -182,7 +187,11 @@ Layout::Layout(const Layout &o)
     : Drawing(o), LayoutState(o), id(0), charId(0),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(o.lastRefresh)
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "<-> Layout::Layout ["<< this << "] parent layout is "
+                      << &o <<"\n";
+}
 
 
 Layout::~Layout()
@@ -190,7 +199,11 @@ Layout::~Layout()
 //   Destroy a layout
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "-> Layout::~Layout ["<< this << "] \n";
     Clear();
+    IFTRACE(justify)
+            std::cerr << "<- Layout::~Layout ["<< this << "] \n";
 }
 
 
@@ -203,6 +216,7 @@ Layout *Layout::AddChild(uint childId,
 {
     IFTRACE(layoutevents)
         std::cerr << "Adding child id " << childId << " to " << id << "\n";
+
     Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
@@ -218,8 +232,29 @@ void Layout::Clear()
 //   Reset the layout (mostly) to the initial setup
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "-> Layout::Clear ["<< this << "] \n";
+    // Clear all pages we may have sent data to
+    for (Layouts::iterator p = referencers.begin(); p != referencers.end(); p++)
+    {
+        IFTRACE(justify)
+            std::cerr << "-- Layout::Clear ["<< this << "] ClearPagination of "
+                      << (void*) *p << " of type "
+                      << demangle(typeid(**p).name()) << std::endl;
+
+        (*p)->ClearPagination();
+    }
+    referencers.clear();
+
+    // Remove items now that they are no longer referenced elsewhere
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+    {
+        IFTRACE(justify)
+            std::cerr << "-- Layout::Clear ["<< this << "] delete drawing "
+                      << (void*) *i << " of type "
+                      << demangle(typeid(**i).name()) << std::endl;
         delete *i;
+    }
     items.clear();
 
     // Initial state has no rotation or attribute changes
@@ -228,6 +263,16 @@ void Layout::Clear()
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
     // lastRefresh is NOT reset on purpose
+    IFTRACE(justify)
+        std::cerr << "<- Layout::Clear ["<< this << "] \n";
+}
+
+
+void Layout::ClearPagination()
+// ----------------------------------------------------------------------------
+//   Clear items of other layouts referenced by this layout
+// ----------------------------------------------------------------------------
+{
 }
 
 
@@ -350,12 +395,13 @@ Box3 Layout::Space(Layout *layout)
 }
 
 
-bool  Layout::Paginate(PageLayout *page)
+bool Layout::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   Paginate all the items in the given page
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
+    referencers.push_back (page);
     for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
         ok = (*i)->Paginate(page);
     return ok;
@@ -367,6 +413,11 @@ void Layout::Add(Drawing *d)
 //   Add a drawing to the items, return true if item fits in layout
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "<->Layout::Add[" << this << "] drawing is "
+                  << d << ":"
+                  << demangle(typeid(*d).name()) << std::endl;
+
     items.push_back(d);
     d->Evaluate(this);
 }
@@ -451,6 +502,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "->Layout::Refresh[" << this << "]  \n";
     bool changed = false;
     if (!e)
         return false;
@@ -478,6 +531,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         // Check if we can evaluate locally
         if (ctx && body)
         {
+            IFTRACE(justify)
+                    std::cerr << "--Layout::Refresh[" << this << "] clears itself \n";
             // Clear old contents of the layout, drop all children
             Clear();
 
@@ -514,6 +569,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);
     }
+    IFTRACE(justify)
+            std::cerr << "<-Layout::Refresh[" << this << "]  \n";
 
     return changed;
 }
@@ -791,9 +848,9 @@ double Layout::PrinterScaling()
 
 
 // ============================================================================
-// 
+//
 //    Stereo layout
-// 
+//
 // ============================================================================
 
 bool StereoLayout::Valid(Layout *where)

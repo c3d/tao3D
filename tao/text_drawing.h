@@ -48,6 +48,7 @@ struct TextSplit : Shape
     virtual bool        Paginate(PageLayout *);
     virtual scale       TrailingSpaceSize(Layout *where);
     virtual void        Draw(GraphicPath &path, Layout *where);
+    virtual void        Clear();
 
     friend std::ostream &operator <<(std::ostream &, TextSplit &);
 
@@ -62,6 +63,7 @@ protected:
 public:
     Text_p              source;
     uint                start, end;
+    std::vector<Layout*> referencers;
     static bool         cacheEnabled;
 };
 
@@ -75,7 +77,6 @@ struct TextUnit : TextSplit
     virtual ~TextUnit();
     virtual bool        Paginate(PageLayout *);
 
-protected:
     void                ClearSplits();
 
 public:

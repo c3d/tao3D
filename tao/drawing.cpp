@@ -49,13 +49,6 @@ Drawing::Drawing(const Drawing&)
 }
 
 
-void Drawing::Draw(Layout *)
-// ----------------------------------------------------------------------------
-//   Draw a shape for rendering purpose
-// ----------------------------------------------------------------------------
-{}
-
-
 Drawing::~Drawing()
 // ----------------------------------------------------------------------------
 //   Destroy a Drawing
@@ -63,6 +56,13 @@ Drawing::~Drawing()
 {
     count--;
 }
+
+
+void Drawing::Draw(Layout *)
+// ----------------------------------------------------------------------------
+//   Draw a shape for rendering purpose
+// ----------------------------------------------------------------------------
+{}
 
 
 void Drawing::DrawSelection(Layout *layout)

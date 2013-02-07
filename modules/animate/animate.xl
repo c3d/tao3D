@@ -149,6 +149,8 @@ skip S:real ->
             goto_page page_name(page_number+1)
         if S < 0 and step < 0 and page_number >= 1 then
             goto_page page_name(page_number - 1)
+    if S <> 0 then
+        refresh 0
 
 
 skip_to S:real  ->
@@ -156,6 +158,8 @@ skip_to S:real  ->
 //   Skip directly to given animation step
 // ----------------------------------------------------------------------------
     step := S
+    refresh 0
+    
 
 
 skip_directly_to S:real  ->
@@ -190,8 +194,9 @@ compute_smooth_step ->
         else
             step := 12345678
 
-    page_time
     interpolate 0.05, step, smooth_step
+    if abs (step - smooth_step) > 0.01 then
+        page_time
     highest_step := 0.0
 
 

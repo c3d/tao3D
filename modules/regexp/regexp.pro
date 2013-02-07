@@ -31,3 +31,6 @@ QMAKE_DISTCLEAN = doc/Doxyfile
 DOXYFILE = doc/Doxyfile
 DOXYLANG = en,fr
 include(../modules_doc.pri)
+
+LICENSE_FILES = regexp.taokey.notsigned
+include(../licenses.pri)

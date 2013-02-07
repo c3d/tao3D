@@ -119,7 +119,11 @@ void Application::deferredInit()
 // ----------------------------------------------------------------------------
 {
     // Set some useful parameters for the application
+#ifdef TAO_PLAYER
+    setApplicationName ("Tao Presentations Player");
+#else
     setApplicationName ("Tao Presentations");
+#endif
     setOrganizationName ("Taodyne");
     setOrganizationDomain ("taodyne.com");
 
@@ -237,12 +241,20 @@ void Application::deferredInit()
     // Discovery/Creativity/Impress build - do a runtime license check
     QString impress = QString("Tao Presentations Impress %1").arg(GITREV);
     QString creat = QString("Tao Presentations Creativity %1").arg(GITREV);
+#ifdef TAO_PLAYER
+    QString player = QString("Tao Presentations Player %1").arg(GITREV);
+    if (Licenses::Has(+player) || Licenses::Has(+impress))
+        edition = Application::Player;
+    else
+        edition = Application::PlayerUnlicensed;
+#else
     if (Licenses::Has(+impress))
         edition = Application::Impress;
     else if (Licenses::Has(+creat))
         edition = Application::Creativity;
     else
         edition = Application::Discovery;
+#endif
 #endif
 
 #if defined (CFG_WITH_EULA)

@@ -260,19 +260,20 @@ quizz_I_am_sure_I_want_to_reset_all ->
 //  Functions to set generic behavior
 // 
 // ============================================================================
-quizz_deactivate_on_answer ->
-// ----------------------------------------------------------------------------
-//   Stop the possibility to users to answer, but the result is still showable
-// ----------------------------------------------------------------------------
-    deactivate quizz_phase
-
-
 quizz_deactivate_on_answer Time:integer ->
 // ----------------------------------------------------------------------------
 //   Stop the possibility to users to answer, but the result is still showable
 // ----------------------------------------------------------------------------
     after Time,
         deactivate quizz_phase
+
+
+quizz_deactivate_on_answer ->
+// ----------------------------------------------------------------------------
+//   Stop the possibility to users to answer, but the result is still showable
+// ----------------------------------------------------------------------------
+    deactivate quizz_phase
+
 
 deactivate "answer" -> 
      quizz_set_url := quizz_set_url & "&deactivate"
@@ -304,13 +305,6 @@ quizz_set_multiple ->
 //   'multiple' mode: for each user, all answers are registered
 // ----------------------------------------------------------------------------
     quizz_set_url := quizz_set_url & "&multiple"
-
-
-quizz_set_show_result  ->
-// ----------------------------------------------------------------------------
-//    Show stat as the user's feedback
-// ----------------------------------------------------------------------------
-     quizz_set_user_feedback "stat"
 
 
 quizz_set_user_feedback T:text  ->
@@ -427,7 +421,8 @@ colorpie T -> color "gray"; line_color "darkgray"
 //  Functions to draw a Pie to summup all answers
 // 
 // ============================================================================
-fullpie -> fullpie quizz_state
+total_answer_graph -> fullpie quizz_state
+
 fullpie "answer" ->
 // ----------------------------------------------------------------------------
 //   Draw the full pie chart and the number of received answers
@@ -486,7 +481,7 @@ Delta_Y -> 60
 BoxPerCol -> 10
 
 
-show_answers -> show_answers_def quizz_state
+quizz_show_text_answers -> show_answers_def quizz_state
 // ----------------------------------------------------------------------------
 //  Default style to draw answers.
 // ----------------------------------------------------------------------------

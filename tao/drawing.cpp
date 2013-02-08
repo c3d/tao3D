@@ -136,6 +136,22 @@ bool Drawing::Paginate(PageLayout *page)
 }
 
 
+void Drawing::ClearCaches()
+// ----------------------------------------------------------------------------
+//   Clear any information not owned by this item and that can be reconstructed
+// ----------------------------------------------------------------------------
+{
+}
+
+
+void Drawing::Clear()
+// ----------------------------------------------------------------------------
+//   Clear any information owned by this drawing
+// ----------------------------------------------------------------------------
+{
+}
+
+
 scale Drawing::TrailingSpaceSize(Layout *)
 // ----------------------------------------------------------------------------
 //   By default, the trailing space is 0

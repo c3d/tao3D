@@ -39,6 +39,7 @@
 #include "flight_recorder.h"
 #include "tao_utf8.h"
 #include "version.h"
+#include "../config.h"
 #include "decryption.h"
 #include "normalize.h"
 
@@ -87,6 +88,9 @@ int main(int argc, char **argv)
 #endif
             std::cout << "Tao Presentations " EDSTR GITREV " (" GITSHA1 ")\n";
 #undef EDSTR
+#ifdef BUILD_OPTIONS
+            std::cout << "Build options: " << BUILD_OPTIONS << "\n";
+#endif
             exit(0);
         }
     }

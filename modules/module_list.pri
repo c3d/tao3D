@@ -61,13 +61,14 @@
        news_feed \
        snowfall
 
-    OTHER_MODULES =     \
-        DIP \
-        hello_world     \
+    OTHER_MODULES =  \
+        DIP          \
+        hello_world  \
         tao_synchro  \
         tao_tester   \
         tao_visuals  \
-        speech \
+        tao_quiz     \
+        speech       \
         database
 
 } else {

@@ -323,11 +323,15 @@ QString Assistant::assistantPath()
 {
     QString app = QCoreApplication::applicationDirPath()
                 + QDir::separator();
-#if !defined(Q_OS_MAC)
+#if defined(Q_OS_LINUX)
+    app += QLatin1String("assistant");
+#elif defined(Q_OS_WIN)
     app += QLatin1String("assistant.exe");
-#else
+#elif defined(Q_OS_MAC)
     app += QLatin1String("Tao Presentations Help.app/Contents/MacOS/"
                          "Tao Presentations Help");
+#else
+#error Please define Assistant path for this platform
 #endif
     return app;
 }

@@ -103,7 +103,11 @@ UpdateApplication::UpdateApplication()
    // Get current edition
    edition = TAO_EDITION;
 #else
-   edition = "unified";
+#ifdef TAO_PLAYER
+    edition = "player";
+#else
+    edition = "unified";
+#endif
 #endif
 
 #if defined(Q_OS_MACX)

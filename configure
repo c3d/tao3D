@@ -58,6 +58,13 @@ usage() {
   echo "              ** Creativity is the intermediate version. No 'Buy' reminder, and no"
   echo "                 watermark unless an unlicensed module is used."
   echo "              ** Impress allows many modules to work without explicit license."
+  echo "  player      Configure for Tao Presentations Player. A stripped-down version of the"
+  echo "              regular build, with no template, no documentation, no SDK, and some"
+  echo "              limitations (see compile options). VLC is not packaged, it may be"
+  echo "              installed separately."
+  echo "              Two licenses are checked at run time: '...Impress...' and '...Player...'."
+  echo "              If either is available, most modules are unlocked, watermark is disabled,"
+  echo "              and no 'Buy' reminder is shown." 
   echo "  youactive   Configure for Tao Presentations YouActive. Same as the regular (\"unified\")"
   echo "              build, but includes additional modules used in the YouActive solution (DIP)."
   echo "  internal    Configure for an internal build with most features enabled (including"
@@ -150,6 +157,17 @@ while [ $# -ne 0 ] ; do
     impress)
       EDITION="Impress"
       with_lic=1
+      shift ; done=1
+      ;;
+    player)
+      FLAGS="$FLAGS NO_SDK=1 NO_DOC=1 NO_HELP_VIEWER=1 NO_WELCOME=1"
+      FLAGS="$FLAGS NO_FONTS=1 VLCAV_NO_VLC_INSTALL=1 TAO_PLAYER=1"
+      FLAGS="$FLAGS PACKAGE_APPEND=Player"
+      FLAGS="$FLAGS DEFINES+=CFG_NOSRCEDIT DEFINES+=CFG_NOGIT"
+      FLAGS="$FLAGS DEFINES+=CFG_NONETWORK DEFINES+=CFG_NOEDIT"
+      FLAGS="$FLAGS DEFINES+=CFG_NO_NEW_FROM_TEMPLATE"
+      FLAGS="$FLAGS DEFINES+=CFG_NO_QTWEBKIT"
+      FLAGS="$FLAGS templates=none"
       shift ; done=1
       ;;
     youactive)

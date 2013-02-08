@@ -34,6 +34,7 @@ QT += network \
 CONFIG += help
 QMAKE_SUBSTITUTES += version2.h.in
 QMAKE_DISTCLEAN += version2.h
+!isEmpty(TAO_PLAYER):DEFINES *= TAO_PLAYER
 
 macx {
     CFBUNDLEEXECUTABLE=$$TARGET

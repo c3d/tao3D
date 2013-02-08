@@ -4910,13 +4910,22 @@ XL::Text_p Widget::page(Context *context, text name, Tree_p body)
         pageName = name;
     if (drawAllPages || pageName == name)
     {
-        // Initialize back-link
-        pageFound = pageId;
-        pageLinks.clear();
-        if (pageId > 1)
-            pageLinks["Up"] = lastPageName;
-        pageTree = body;
-        context->Evaluate(body);
+        // Check if we already displayed a page with that name
+        if (pageFound && !drawAllPages)
+        {
+            Ooops("Page name $1 is already used",
+                  new Text(name, "\"", "\"", body->Position()));
+        }
+        else
+        {
+            // Initialize back-link
+            pageFound = pageId;
+            pageLinks.clear();
+            if (pageId > 1)
+                pageLinks["Up"] = lastPageName;
+            pageTree = body;
+            context->Evaluate(body);
+        }
     }
     else if (pageName == lastPageName)
     {

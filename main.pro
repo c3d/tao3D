@@ -152,8 +152,9 @@ QMAKE_EXTRA_TARGETS += help
 # Extend distclean target to also delete directories created by "make install"
 # and "make sdk"
 distclean_inst_sdk.commands = rm -rf ./install ./sdk
-distclean.depends = distclean_inst_sdk
-QMAKE_EXTRA_TARGETS += distclean distclean_inst_sdk
+distclean_rm_config_h = rm -r ./config.h
+distclean.depends = distclean_inst_sdk distclean_rm_config_h
+QMAKE_EXTRA_TARGETS += distclean distclean_inst_sdk distclean_rm_config_h
 
 kit.commands = \$(MAKE) -C packaging kit
 kit.depends = FORCE

@@ -30,3 +30,4 @@ doc/doc
 *.~?~
 /sdk
 /fix_qt_refs_app
+/config.h

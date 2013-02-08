@@ -34,7 +34,7 @@ OTHER_TEMPLATES =     \
     sparks \
     glow \
     YouCube \
-    rising_text
+    quizz
 
 # Process qmake command line variable: 'templates'
 # Allows to add/remove templates to/from the default value above

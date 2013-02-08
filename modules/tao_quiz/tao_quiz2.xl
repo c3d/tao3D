@@ -611,7 +611,12 @@ draw_mouse x:real, y:real, buttons:integer, id ->
         release_color id
     circle (x - 0.5) * 1000, (y - 0.5) * 1000, 10
 
-draw_mouse T -> false
+draw_mouse "" -> false
+
+draw_mouse button:text /*, id*/ ->
+    LAST_BUTTON = button
+
+draw_mouse Other -> false
 
 text_mouse x:real, y:real, buttons:integer, id:integer ->
 // ----------------------------------------------------------------------------
@@ -628,6 +633,7 @@ text_mouse x:real, y:real, buttons:integer, id:integer ->
 
 text_mouse T-> false
 
+LAST_BUTTON -> "none"
 
 quizz_draw_mouse "draw_mouse" -> 
 // ----------------------------------------------------------------------------
@@ -636,7 +642,6 @@ quizz_draw_mouse "draw_mouse" ->
     canvas 1000, 1000,
         get_url_data quizz_url & "mouse_data.php?" & prez_code, "draw_mouse", ",", "\n"
     rectangle 0,0,1000,1000
-
 
 quizz_draw_mouse Style:text -> 
 // ----------------------------------------------------------------------------

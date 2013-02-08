@@ -215,7 +215,7 @@ piegraph();
  * Dans la partie réponse, donne le nombre total de votes et la répartition
  * entre les réponse avec un camenbert.
  */
-quizz_total_answer_graph();
+total_answer_graph();
 
 /**
  * @~english

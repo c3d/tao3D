@@ -155,7 +155,8 @@ UpdateApplication::UpdateApplication()
    IFTRACE(update)
        debug() << "Current version: edition='" << +edition
                << "' version=" << version
-               << " target='" << +target << "'\n";
+               << " target='" << +target << "'"
+               << " User-Agent='" << +userAgent() << "'\n";
 }
 
 
@@ -171,14 +172,24 @@ UpdateApplication::~UpdateApplication()
 }
 
 
+QString UpdateApplication::userAgent()
+// ----------------------------------------------------------------------------
+//    HTTP User-Agent string
+// ----------------------------------------------------------------------------
+{
+    QString ua("Tao Presentations/%1 (%2; %3; %4)");
+    return ua.arg(version).arg(Application::editionStr()).arg(edition)
+             .arg(target);
+}
+
+
 void UpdateApplication::resetRequest()
 // ----------------------------------------------------------------------------
 //    Initialize HTTP request
 // ----------------------------------------------------------------------------
 {
     request = QNetworkRequest();
-    QString ua("Tao Presentations %1");
-    request.setRawHeader("User-Agent", (ua.arg(version)).toAscii());
+    request.setRawHeader("User-Agent", userAgent().toAscii());
 }
 
 

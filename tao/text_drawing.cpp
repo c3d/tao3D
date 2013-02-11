@@ -86,22 +86,7 @@ void TextSplit::Clear()
 //    Clean a text unit
 // ----------------------------------------------------------------------------
 {
-    IFTRACE(justify)
-        std::cerr << "->TextSplit::Clear[" << this << "]\n";
     source = NULL;
-    // Clear all element we may have sent data to
-    for (Layouts::iterator p = referencers.begin(); p != referencers.end(); p++)
-    {
-        IFTRACE(justify)
-                std::cerr << "-- TextSplit::Clear["<< this << "] ClearPagination of "
-                          << (void*) *p << " of type "
-                          << demangle(typeid(**p).name()) << std::endl;
-
-        (*p)->ClearPagination();
-    }
-    referencers.clear();
-    IFTRACE(justify)
-        std::cerr << "<-TextSplit::Clear[" << this << "]\n";
 }
 
 
@@ -846,7 +831,7 @@ bool TextSplit::Paginate(PageLayout *page)
         else if (c == '\f')
             charOrder = SentenceBreak;
     }
-    referencers.push_back(page);
+
     page->SetLastSplit(this);
     return page->PaginateItem(this, charOrder, size);
 }
@@ -1154,7 +1139,7 @@ TextUnit::~TextUnit()
 {
     IFTRACE(justify)
         std::cerr << "<->TextUnit::~TextUnit[" << this << "]\n";
-    ClearSplits();
+    Clear();
 }
 
 
@@ -1173,6 +1158,9 @@ bool TextUnit::Paginate(PageLayout *page)
     uint last = start;
     uint first = start;
 
+    // Record that we are referenced by the given page
+    caches.push_back(page);
+    
     // Case where we replayed a line from a text flow : we played text splits
     // that we would otherwise emit here (resulting in duplicated text)
     if (TextSplit *lastSplit = page->LastSplit())
@@ -1201,7 +1189,6 @@ bool TextUnit::Paginate(PageLayout *page)
             uint next = XL::Utf8Next(str, i);
             TextSplit *split = new TextSplit(source, last, next);
             splits.push_back(split);
-            split->referencers.push_back(page);
             ok = page->PaginateItem(split, charOrder, size);
             size = 0;
             last = next;
@@ -1214,7 +1201,6 @@ bool TextUnit::Paginate(PageLayout *page)
         // Create a text split with the part on the right
         TextSplit *split = new TextSplit(source, last, end);
         splits.push_back(split);
-        split->referencers.push_back(page);
         ok = page->PaginateItem(split, NoBreak, size);
     }
     IFTRACE(justify)
@@ -1225,13 +1211,34 @@ bool TextUnit::Paginate(PageLayout *page)
 }
 
 
-void TextUnit::ClearSplits()
+void TextUnit::ClearCaches()
+// ----------------------------------------------------------------------------
+//   Drop all references to this text unit and its text splits from caches
+// ----------------------------------------------------------------------------
+{
+    // Loop on all items that may hold this split in the cache
+    Drawings ch = caches;
+    caches.clear();
+    for (Drawings::iterator d = ch.begin(); d != ch.end(); d++)
+        (*d)->ClearCaches();
+
+    // Probably useless for now, but clear caches in the splits as well
+    for (TextSplits::iterator t = splits.begin(); t != splits.end(); t++)
+        (*t)->ClearCaches();
+}
+
+
+void TextUnit::Clear()
 // ----------------------------------------------------------------------------
 //   Delete all split text units we created
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
             std::cerr << "-> TextUnit::ClearSplits["<< this << "]\n";
+
+    // Make sure we cleared the caches before
+    ClearCaches();
+    assert(caches.size() == 0 || !"TextUnit::Clear called with dirty cache");
 
     // Clear splits
     uint i, max = splits.size();

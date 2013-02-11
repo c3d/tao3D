@@ -88,7 +88,7 @@ public:
 
     virtual void        Add(Drawing *child);
     virtual void        Clear();
-    virtual void        ClearPagination();
+    virtual void        ClearCaches();
     virtual Layout *    NewChild();
 
     virtual void        Compute(Layout *where);
@@ -126,8 +126,8 @@ public:
     virtual void        DrawSelection(Layout *);
     virtual void        Identify(Layout *l);
     virtual void        Clear();
-    virtual void        ClearPagination();
     virtual bool        Paginate(PageLayout *page);
+    virtual void        ClearCaches();
 
     void                Transfer(LayoutLine *line);
     TextSplit *         LastSplit()                     { return lastSplit; }

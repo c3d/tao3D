@@ -172,7 +172,7 @@ public:
                                  Tree_p body = 0, Context_p ctx = 0,
                                  Layout *child = NULL);
     virtual void        Clear();
-    virtual void        ClearPagination();
+    virtual void        ClearCaches();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
     virtual void        ClearPolygonOffset();
@@ -227,7 +227,7 @@ protected:
     Widget *            display;
     // Debug: index in parent items (-1 = root layout)
     int                 idx;
-    Layouts             referencers;  // Layouts where we paginated our items
+    Drawings            caches;  // Drawings that may reference us
     friend struct TextFlow;
 
 public:

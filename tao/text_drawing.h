@@ -63,7 +63,6 @@ protected:
 public:
     Text_p              source;
     uint                start, end;
-    std::vector<Layout*> referencers;
     static bool         cacheEnabled;
 };
 
@@ -76,12 +75,13 @@ struct TextUnit : TextSplit
     TextUnit(Text *source, uint start = 0, uint end = ~0);
     virtual ~TextUnit();
     virtual bool        Paginate(PageLayout *);
-
-    void                ClearSplits();
+    virtual void        Clear();
+    virtual void        ClearCaches();
 
 public:
     typedef std::vector<TextSplit *> TextSplits;
     TextSplits          splits;
+    Drawings            caches;
 };
 
 

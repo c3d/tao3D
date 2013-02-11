@@ -536,15 +536,14 @@ void PageLayout::Clear()
 {
     IFTRACE(justify)
         std::cerr << "-- PageLayout::Clear ["<< this << "] \n";
-
-    ClearPagination();
+    assert(page.Empty() || !"PageLayout::Clear called with dirty cache");
     Layout::Clear();
 }
 
 
-void PageLayout::ClearPagination()
+void PageLayout::ClearCaches()
 // ----------------------------------------------------------------------------
-//   If a text flow referenced us and was cleared, we need to recompute
+//   Drop references to objects we don't own (e.g. drawings in text flows)
 // ----------------------------------------------------------------------------
 {
     page.Clear();
@@ -822,11 +821,13 @@ void TextFlow::Clear()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "-> TextFlow::Clear ["<< this << "] "
-                      << flowName <<" \n";
+        std::cerr << "-> TextFlow::Clear ["<< this << "] " << flowName <<" \n";
+
+    assert(reject.size() == 0 || !"TextFlow::Clear called with dirty 'reject'");
+    assert(!lastSplit || !"TextFlow::Clear called with dirty 'lastSplit'");
+
     charId = 0;
     current = 0;
-    lastSplit = NULL;
     textBoxIds.clear();
     reject.clear();
     Layout::Clear();
@@ -835,19 +836,33 @@ void TextFlow::Clear()
 }
 
 
-void TextFlow::ClearPagination()
+void TextFlow::ClearCaches()
 // ----------------------------------------------------------------------------
-//   Reset the text flow to the initial setup
+//   Drop all cached references to other drawings from this text flow
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "-> TextFlow::ClearPagination ["<< this << "] "
-                      << flowName <<" \n";
+        std::cerr << "-> TextFlow::ClearCaches ["<<this<<"] "<<flowName<<" \n";
+
+    // Clear caches from rejects
+    Drawings r = reject;
     reject.clear();
-    lastSplit = NULL;
+    for (Drawings::iterator d = reject.begin(); d != reject.end(); d++)
+        (*d)->ClearCaches();
+
+    // Clear splits
+    if (Drawing *ls = lastSplit)
+    {
+        lastSplit = NULL;
+        ls->ClearCaches();
+    }
+
+    // We need to restart from the beginning
+    current = 0;
+    Layout::ClearCaches();
 
     IFTRACE(justify)
-        std::cerr << "<- TextFlow::ClearPagination ["<< this << "]  \n";
+        std::cerr << "<- TextFlow::ClearCaches ["<<this<<"] "<<flowName<<" \n";
 }
 
 
@@ -862,7 +877,7 @@ bool TextFlow::Paginate(PageLayout *page)
                   << page <<  "\n";
 
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
-    referencers.push_back(page);
+    caches.push_back(page);
 
     bool ok = true;
 
@@ -872,8 +887,8 @@ bool TextFlow::Paginate(PageLayout *page)
     {
         Drawing *child = *d;
         IFTRACE(justify)
-            std::cerr << "-- TextFlow::Paginate ["<< this << "] used reject child is "
-                      << child <<  "\n";
+            std::cerr << "-- TextFlow::Paginate [" << this
+                      << "] repaginating reject " << child <<  "\n";
         ok = child->Paginate(page);
         if (ok)
             good = d;
@@ -885,8 +900,9 @@ bool TextFlow::Paginate(PageLayout *page)
     {
         Drawing *child = items[current];
         IFTRACE(justify)
-            std::cerr << "-- TextFlow::Paginate ["<< this << "] current child is "
-                      << child <<  "\n";
+            std::cerr << "-- TextFlow::Paginate ["<< this
+                      << "] paginating #" << current
+                      << " child " << child <<  "\n";
         ok = child->Paginate(page);
         if (ok)
             current++;
@@ -911,10 +927,6 @@ void TextFlow::Transfer(LayoutLine *line)
             std::cerr << "-- TextFlow::Transfer ["<< this << "] added to reject "
                       << (*p).item <<  "\n";
         reject.push_back((*p).item);
-        if (Layout *l = dynamic_cast<Layout*>((*p).item))
-            l->referencers.push_back(this);
-        else if (TextSplit *ts = dynamic_cast<TextSplit*>((*p).item))
-            ts->referencers.push_back(this);
     }
     places.clear();
 }
@@ -925,9 +937,9 @@ void TextFlow::SetLastSplit(TextSplit *split)
 //   Set last paginated split
 // ----------------------------------------------------------------------------
 {
-    split->referencers.push_back(this);
     lastSplit = split;
 }
+
 
 
 // ============================================================================

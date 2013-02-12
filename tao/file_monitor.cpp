@@ -471,12 +471,14 @@ void FileMonitorThread::checkFiles()
         }
     }
 
+#if 0
     IFTRACE(filemon)
     {
         int ms = time.elapsed();
         debug() << files.size() << " paths checked in " << ms << "ms\n";
         time.start();
     }
+#endif
 
     mergePending();
     QTimer::singleShot(pollInterval, this, SLOT(checkFiles()));

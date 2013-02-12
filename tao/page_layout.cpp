@@ -536,8 +536,8 @@ void PageLayout::Clear()
 {
     IFTRACE(justify)
         std::cerr << "-- PageLayout::Clear ["<< this << "] \n";
-    assert(page.Empty() || !"PageLayout::Clear called with dirty cache");
     Layout::Clear();
+    assert(page.Empty() || !"PageLayout::Clear called with dirty cache");
 }
 
 

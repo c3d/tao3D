@@ -43,7 +43,7 @@ SpaceLayout::~SpaceLayout()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "<->SpaceLayout::~SpaceLayout "<<this << std::endl;
+        std::cerr << "<->SpaceLayout::~SpaceLayout "<<this << std::endl;
 }
 
 

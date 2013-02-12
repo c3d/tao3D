@@ -234,18 +234,13 @@ void Layout::Clear()
 {
     IFTRACE(justify)
         std::cerr << "-> Layout::Clear ["<< this << "] \n";
-    // Clear all pages we may have sent data to
-    for (Layouts::iterator p = referencers.begin(); p != referencers.end(); p++)
-    {
-        IFTRACE(justify)
-            std::cerr << "-- Layout::Clear ["<< this << "] ClearPagination of "
-                      << (void*) *p << " of type "
-                      << demangle(typeid(**p).name()) << std::endl;
 
-        (*p)->ClearPagination();
-    }
-    referencers.clear();
+    // Clear caches before
+    ClearCaches();
 
+    // When clearing, we should have no cached information left anywhere
+    assert(caches.size() == 0);
+    
     // Remove items now that they are no longer referenced elsewhere
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
     {
@@ -268,11 +263,37 @@ void Layout::Clear()
 }
 
 
-void Layout::ClearPagination()
+void Layout::ClearCaches()
 // ----------------------------------------------------------------------------
-//   Clear items of other layouts referenced by this layout
+//   Clear all cached information related to this layout
 // ----------------------------------------------------------------------------
 {
+    // Clear all pages we may have sent data to
+    IFTRACE(justify)
+        std::cerr << "Layout::ClearCaches ["<< this << "]\n";
+
+    // Remove cached references
+    Drawings ch = caches;
+    caches.clear();
+    for (Drawings::iterator d = ch.begin(); d != ch.end(); d++)
+    {
+        IFTRACE(justify)
+            std::cerr << "[" << this << "]  cache "
+                      << demangle(typeid(**d).name())
+                      << "@" << (void*) *d << "\n";
+        (*d)->ClearCaches();
+    }
+
+    // Remove cached information from children
+    for (Drawings::iterator d = items.begin(); d != items.end(); d++)
+    {
+        IFTRACE(justify)
+        IFTRACE(justify)
+            std::cerr << "[" << this << "]  child "
+                      << demangle(typeid(**d).name())
+                      << "@" << (void*) *d << "\n";
+        (*d)->ClearCaches();
+    }
 }
 
 
@@ -401,7 +422,7 @@ bool Layout::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
-    referencers.push_back (page);
+    caches.push_back (page);
     for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
         ok = (*i)->Paginate(page);
     return ok;

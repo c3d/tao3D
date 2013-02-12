@@ -1185,7 +1185,9 @@ void Widget::runProgramOnce()
     // Run the XL program associated with this widget
     XL::Save<Layout *> saveLayout(layout, space);
     IFTRACE(justify)
-        std::cerr << "--Widget::runProgramOnce Clears layout " << space << std::endl;
+        std::cerr << "--Widget::runProgramOnce Clears layout "
+                  << space << std::endl;
+    space->ClearCaches();
     space->Clear();
 
     // Evaluate the program

@@ -3668,13 +3668,10 @@ void Widget::refreshProgram()
 //   Check if any of the source files we depend on changed
 // ----------------------------------------------------------------------------
 {
-    if (toReload.isEmpty() || !xlProgram)
+    if (toReload.isEmpty() || !xlProgram || xlProgram->readOnly)
         return;
 
     Repository *repo = repository();
-    Tree *prog = xlProgram->tree;
-    if (!prog || xlProgram->readOnly)
-        return;
     bool needBigHammer = false;
     bool needRefresh   = false;
     foreach (QString path, toReload)
@@ -3705,13 +3702,22 @@ void Widget::refreshProgram()
         }
         else
         {
+            Q_ASSERT(XL::MAIN->files.count(fname));
+            XL::SourceFile &sf = XL::MAIN->files[fname];
+            if (!sf.tree)
+            {
+                // Reached when the main document is initially empty,
+                // then modified
+                XL::MAIN->LoadFile(sf.name);
+                needBigHammer = true;
+                break;
+            }
+
             // Make sure we normalize the replacement
             Renormalize renorm(this);
             replacement = replacement->Do(renorm);
 
             // Check if we can simply change some parameters in file
-            Q_ASSERT(XL::MAIN->files.count(fname));
-            XL::SourceFile &sf = XL::MAIN->files[fname];
             ApplyChanges changes(replacement);
             if (!sf.tree->Do(changes))
             {

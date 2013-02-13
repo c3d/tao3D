@@ -5120,10 +5120,21 @@ Tree_p Widget::transitionCurrentPage(Context *context, Tree_p self)
     {
         XL::Save<text> saveLastPage(lastPageName, pageName);
         XL::Save<text> savePageName(pageName, transitionPageName);
+        XL::Save<page_map> saveLinks(pageLinks, pageLinks);
+        XL::Save<page_list> saveList(pageNames, pageNames);
+        XL::Save<page_list> saveNewList(newPageNames, newPageNames);
+        XL::Save<uint> savePageId(pageId, 0);
+        XL::Save<uint> savePageFound(pageFound, 0);
+        XL::Save<uint> savePageShown(pageShown, pageShown);
+        XL::Save<uint> savePageTotal(pageTotal, pageTotal);
+        XL::Save<Tree_p> savePageTree(pageTree, pageTree);
 
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == pageName)
+            {
                 pageShown = p + 1;
+                break;
+            }
 
         clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);
@@ -5153,7 +5164,10 @@ Tree_p Widget::transitionNextPage(Context *context, Tree_p self)
 
         for (uint p = 0; p < pageNames.size(); p++)
             if (pageNames[p] == pageName)
+            {
                 pageShown = p + 1;
+                break;
+            }
 
         clearColor(self, 1, 1, 1, 1);
         return context->Evaluate(xlProgram->tree);

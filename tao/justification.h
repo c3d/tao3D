@@ -112,6 +112,7 @@ struct Justifier
     bool        AddItem(Item item, uint count = 1,
                         bool pack = true, bool forceBreak = false,
                         scale size = 0, coord offset = 0, scale lastSpace = 0);
+    void        RemoveItem(Item item);
     void        EndLayout(float *perSolid, float *perBreak);
 
     // Adding items to the layout
@@ -341,6 +342,21 @@ bool Justifier<Item>::AddItem(Item item, uint count,
 
     // We were successful inserting that item
     return true;
+}
+
+
+template<class Item>
+void Justifier<Item>::RemoveItem (Item item)
+// ----------------------------------------------------------------------------
+//   Remove item from the places - It's supposed to be the last one
+// ----------------------------------------------------------------------------
+{
+    if (places.size() > 0)
+    {
+        Place &last = places.back();
+        if (last.item == item)
+            places.pop_back();
+    }
 }
 
 

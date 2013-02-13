@@ -723,6 +723,7 @@ bool PageLayout::PaginateLastLine(BreakOrder order)
     {
         if (currentFlow)
             currentFlow->Transfer(line);
+        page.RemoveItem(line);
         delete line;
     }
     return lfits;
@@ -895,18 +896,19 @@ bool TextFlow::Paginate(PageLayout *page)
     bool ok = true;
 
     // First try to playback items that were rejected before
-    Drawings::iterator d, good = reject.begin();
-    for (d = good; ok && d != reject.end(); d++)
+    Drawings rej = reject;
+    reject.clear();
+
+    Drawings::iterator d;
+    for (d = rej.begin(); ok && d != rej.end(); d++)
     {
         Drawing *child = *d;
         IFTRACE(justify)
             std::cerr << "-- TextFlow::Paginate [" << this
                       << "] repaginating reject " << child <<  "\n";
         ok = child->Paginate(page);
-        if (ok)
-            good = d;
     }
-    reject.erase(reject.begin(), good);
+    reject.insert(reject.end(), d, rej.end());
 
     uint max = items.size();
     while (ok && current < max)
@@ -937,7 +939,8 @@ void TextFlow::Transfer(LayoutLine *line)
     for(DJ::PlacesIterator p = places.begin(); p != places.end(); p++)
     {
         IFTRACE(justify)
-            std::cerr << "-- TextFlow::Transfer ["<< this << "] added to reject "
+            std::cerr << "-- TextFlow::Transfer ["<< this
+                      << "] added to reject "
                       << (*p).item <<  "\n";
         reject.push_back((*p).item);
     }

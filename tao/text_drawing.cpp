@@ -1159,6 +1159,8 @@ bool TextUnit::Paginate(PageLayout *page)
     uint first = start;
 
     // Record that we are referenced by the given page
+    // If we are invalidated, we need to drop references to text splits we
+    // created from the justifiers in the page layout
     caches.push_back(page);
     
     // Case where we replayed a line from a text flow : we played text splits
@@ -1247,7 +1249,7 @@ void TextUnit::Clear()
     splits.clear();
 
     IFTRACE(justify)
-            std::cerr << "<- TextUnit::ClearSplits["<< this << "]\n";
+        std::cerr << "<- TextUnit::ClearSplits["<< this << "]\n";
 }
 
 

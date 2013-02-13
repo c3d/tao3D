@@ -497,6 +497,12 @@ bool PageLayout::Paginate(PageLayout *page)
 //   Paginate a text box inside a text box
 // ----------------------------------------------------------------------------
 {
+    // There is a possibility for this page to be in a text flow and refresh
+    // independently from the page it is paginated in. So we need to ensure
+    // that each page gets refreshed whenever the other is
+    this->CachesInfoFrom(page);
+    page->CachesInfoFrom(this);
+
     // We will treat the text box as a complete rectangular entity
     return page->PaginateItem(this);
 }
@@ -548,6 +554,7 @@ void PageLayout::ClearCaches()
 {
     page.Clear();
     bounds = Box();
+    Layout::ClearCaches();
 }
 
 
@@ -823,6 +830,8 @@ void TextFlow::Clear()
     IFTRACE(justify)
         std::cerr << "-> TextFlow::Clear ["<< this << "] " << flowName <<" \n";
 
+    Layout::Clear();
+
     assert(reject.size() == 0 || !"TextFlow::Clear called with dirty 'reject'");
     assert(!lastSplit || !"TextFlow::Clear called with dirty 'lastSplit'");
 
@@ -830,7 +839,6 @@ void TextFlow::Clear()
     current = 0;
     textBoxIds.clear();
     reject.clear();
-    Layout::Clear();
     IFTRACE(justify)
         std::cerr << "<- TextFlow::Clear ["<< this << "]  \n";
 }
@@ -877,7 +885,12 @@ bool TextFlow::Paginate(PageLayout *page)
                   << page <<  "\n";
 
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
-    caches.push_back(page);
+
+    // Since text flows and pages can refresh independently, each one need
+    // to notify the other if it is refreshed, in order to clear cached data
+    // that may be deleted by the refresh.
+    this->CachesInfoFrom(page);
+    page->CachesInfoFrom(this);
 
     bool ok = true;
 
@@ -1134,8 +1147,8 @@ AnchorLayout::AnchorLayout(Widget *widget, bool abs)
     : Layout(widget), absolute(abs)
 {
     IFTRACE(justify)
-            std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
-                      << "] Widget " << widget << "\n";
+        std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
+                  << "] Widget " << widget << "\n";
 }
 
 
@@ -1146,8 +1159,8 @@ AnchorLayout::AnchorLayout(const AnchorLayout &o)
     : Layout(o), absolute(false)
 {
     IFTRACE(justify)
-            std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
-                      << "] layout " << &o << "\n";
+        std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
+                  << "] layout " << &o << "\n";
 }
 
 
@@ -1157,8 +1170,8 @@ AnchorLayout::~AnchorLayout()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-            std::cerr << "<->AnchorLayout::~AnchorLayout ["<< this
-                      << "]\n";
+        std::cerr << "<->AnchorLayout::~AnchorLayout ["<< this
+                  << "]\n";
 }
 
 
@@ -1217,6 +1230,12 @@ bool AnchorLayout::Paginate(PageLayout *page)
 //    Since the anchor layout is floating, do not paginate its contents
 // ----------------------------------------------------------------------------
 {
+    // Like any layout, an anchor layout may refresh at its own pace.
+    // If the anchor layout is inside a text flow, we need to ensure that
+    // the page gets refreshed when the text flow or anchor layout is.
+    page->CachesInfoFrom(this);
+    this->CachesInfoFrom(page);
+
     return page->PaginateItem(this);
 }
 

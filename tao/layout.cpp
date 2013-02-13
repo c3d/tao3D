@@ -288,7 +288,6 @@ void Layout::ClearCaches()
     for (Drawings::iterator d = items.begin(); d != items.end(); d++)
     {
         IFTRACE(justify)
-        IFTRACE(justify)
             std::cerr << "[" << this << "]  child "
                       << demangle(typeid(**d).name())
                       << "@" << (void*) *d << "\n";
@@ -422,7 +421,14 @@ bool Layout::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
-    caches.push_back (page);
+
+    // Layouts are the basic unit for refresh. Since this layout may
+    // be placed in a text flow and refresh independently from the page,
+    // we need each to refresh when the other does. This causes
+    // the page to re-compute its entire layout if we get refreshed.
+    this->CachesInfoFrom(page);
+    page->CachesInfoFrom(this);
+
     for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
         ok = (*i)->Paginate(page);
     return ok;

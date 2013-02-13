@@ -199,6 +199,8 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
+    void                CachesInfoFrom(Drawing *d)      { caches.push_back(d); }
+
     // Used to optimize away texturing and programs if in Identify
     static bool         InIdentify()    { return inIdentify; }
 

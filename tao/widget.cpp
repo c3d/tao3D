@@ -1187,7 +1187,6 @@ void Widget::runProgramOnce()
     IFTRACE(justify)
         std::cerr << "--Widget::runProgramOnce Clears layout "
                   << space << std::endl;
-    space->ClearCaches();
     space->Clear();
 
     // Evaluate the program

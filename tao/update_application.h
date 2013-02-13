@@ -66,6 +66,7 @@ private:
     QString  remoteVer();
     void     connectSignals(QNetworkReply *reply);
     void     setLastChecked(QDateTime when);
+    QString  userAgent();
 
 public slots:
     void     cancel();

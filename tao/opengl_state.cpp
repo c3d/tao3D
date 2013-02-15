@@ -1500,6 +1500,8 @@ void OpenGLState::Enable(GLenum cap)
     {
         TextureUnitState &st = ActiveTextureUnit();
         st.Set(cap, true);
+        uint unit = activeTexture - GL_TEXTURE0;
+        textureUnits.active |= (1ULL << unit);
         break;
     }
     case GL_LIGHT0:
@@ -1541,6 +1543,17 @@ void OpenGLState::Disable(GLenum cap)
     {
         TextureUnitState &st = ActiveTextureUnit();
         st.Set(cap, false);
+
+        // Don't update active flag if there is always a target enabled
+        if (st.tex1D || st.tex2D || st.tex3D || st.texCube)
+            break;
+
+        // Otherwise update active flag if needed
+        uint unit = activeTexture - GL_TEXTURE0;
+        uint active =  1ULL << unit;
+        if(textureUnits.active & active)
+            textureUnits.active ^= active;
+
         break;
     }
     case GL_LIGHT0:
@@ -2202,15 +2215,18 @@ void OpenGLState::ActivateTextureUnits(uint64 mask)
 //   Activate textures marked in the mask
 // ----------------------------------------------------------------------------
 {
-    uint64 todo = mask ^ currentTextureUnits.active;
+    uint64 todo = mask ^ ActiveTextureUnits();
     uint unit = 0;
     while(todo)
     {
         if (todo & (1ULL << unit))
         {
-            Q_ASSERT(unit < currentTextureUnits.units.size());
-            TextureUnitState &tus = currentTextureUnits.units[unit];
-            tus.Set(tus.target, (mask & (1ULL << unit)) ? true : false);
+            ActiveTexture(GL_TEXTURE0 + unit);
+            TextureUnitState &tu = ActiveTextureUnit();
+            if(mask & (1ULL << unit))
+                Enable(tu.target);
+            else
+                Disable(tu.target);
             todo &= ~(1ULL << unit);
         }
         unit++;
@@ -2233,7 +2249,7 @@ uint OpenGLState::ActiveTextureUnitsCount()
 // ----------------------------------------------------------------------------
 {
     // OK, it's a bit dirty to use a GCC-specific thing, but C ought to have it
-    return __builtin_popcount(currentTextureUnits.active);
+    return __builtin_popcount(textureUnits.active);
 }
 
 
@@ -2242,7 +2258,7 @@ uint64 OpenGLState::ActiveTextureUnits()
 //   Return the mask of active textures in the current state     
 // ----------------------------------------------------------------------------
 {
-    return currentTextureUnits.active;
+    return textureUnits.active;
 }
 
 
@@ -2580,9 +2596,6 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
     if (tdirty == 0 && ndirty == 0 && max == nmax)
         return false;
 
-    // Reset count of active texture units
-    active = 0;
-
     // Synchronize all texture units that are common between the two states
     uint umax = max < nmax ? max : nmax;
     for (uint u = 0; u < umax; u++)
@@ -2601,9 +2614,6 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
             // Synchronise textures
             ot.Sync(nt, false); // REVISIT: Need sync ?
         }
-
-        if (us.tex1D || us.tex2D || us.tex3D || us.texCube)
-            active |= 1ULL << u;
     }
 
     // Check if number of texture units changed
@@ -2647,11 +2657,11 @@ bool TextureUnitsState::Sync(TexturesState &nts, TexturesState &ots, TextureUnit
 
             // Synchronise textures
             ot.Sync(ts, true);
-
-            if (us.tex1D || us.tex2D || us.tex3D || us.texCube)
-                active |= 1ULL << u;
         }
     }
+
+    // Update active flag
+    active = ns.active;
 
     // We are done with current texture changes
     dirty = ns.dirty = 0;

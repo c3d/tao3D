@@ -714,14 +714,14 @@ menu_item "menu:insert > shape > arrow", tr "Arrow",
         shape
             color "fill"
             line_color "fill"
-            arrow 0, 0, 100, 100, 44, 32%
+            arrow 0, 0, 100, 100, 44, 0.32
 menu_item_status "menu:insert > shape > arrow"
 menu_item "menu:insert > shape > double arrow", tr "Double Arrow",
     insert tr "Insert double arrow",
         shape
             color "fill"
             line_color "fill"
-            double_arrow 0, 0, 100, 100, 44, 32%
+            double_arrow 0, 0, 100, 100, 44, 0.32
 menu_item_status "menu:insert > shape > double arrow"
 menu_item "menu:insert > shape > diamond", tr "Diamond",
     insert tr "Insert diamond",
@@ -749,7 +749,7 @@ menu_item "menu:insert > shape > star", tr "Star",
         shape
             color "fill"
             line_color "fill"
-            star 0, 0, 100, 100, 5, 50%
+            star 0, 0, 100, 100, 5, 0.5
 menu_item_status "menu:insert > shape > star"
 menu_item "menu:insert > shape > polygon", tr "Polygon",
     insert tr "Insert polygon",

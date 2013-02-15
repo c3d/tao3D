@@ -58,6 +58,8 @@ struct Drawing
     virtual Tree *      Source();
 
     virtual bool        Paginate(PageLayout *page);
+    virtual void        Clear();
+    virtual void        ClearCaches();
     virtual scale       TrailingSpaceSize(Layout *);
     virtual bool        IsAttribute();
 

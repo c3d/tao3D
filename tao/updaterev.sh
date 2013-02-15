@@ -51,9 +51,6 @@ echo "#define GITREV \"$GITREV\"" >> .version.new
 echo "#define GITSHA1 \"$GITSHA1\"" >> .version.new
 if [ "$1" ] ; then
   echo "#define TAO_EDITION \"$1\"" >> .version.new
-  echo "#define TAO_LICENCE_STR \"Tao Presentations $1 $GITREV\"" >> .version.new
-else
-  echo "#define TAO_LICENCE_STR \"Tao Presentations $GITREV\"" >> .version.new
 fi
 diff .version.new version.h > .version.diff 2>&1
 if [ -s .version.diff ] ; then

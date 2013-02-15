@@ -10,7 +10,7 @@
 !include "version.nsh"
 
 ; The name of the installer
-Name "Tao Presentations ${VERSION}"
+Name "Tao Presentations${MAYBE_PLAYER} ${VERSION}"
 
 ; The file to write
 !ifndef OUTFILE
@@ -19,11 +19,11 @@ Name "Tao Presentations ${VERSION}"
 OutFile ${OUTFILE}
 
 ; The default installation directory
-InstallDir "$PROGRAMFILES\Taodyne\Tao Presentations"
+InstallDir "$PROGRAMFILES\Taodyne\Tao Presentations${MAYBE_PLAYER}"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\Taodyne\Tao Presentations" "Install_Dir"
+InstallDirRegKey HKLM "Software\Taodyne\Tao Presentations${MAYBE_PLAYER}" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -35,7 +35,7 @@ RequestExecutionLevel admin
 
 ; Remember the installer language
 !define MUI_LANGDLL_REGISTRY_ROOT "HKCU"
-!define MUI_LANGDLL_REGISTRY_KEY "Software\Taodyne\Tao Presentations"
+!define MUI_LANGDLL_REGISTRY_KEY "Software\Taodyne\Tao Presentations${MAYBE_PLAYER}"
 !define MUI_LANGDLL_REGISTRY_VALUENAME "Installer Language"
 
 ;--------------------------------
@@ -87,7 +87,7 @@ RequestExecutionLevel admin
 !insertmacro MUI_LANGUAGE "French"
 
 ; Language strings - English
-LangString sec_tao       ${LANG_ENGLISH} "Tao Presentations (required)"
+LangString sec_tao       ${LANG_ENGLISH} "Tao Presentations${MAYBE_PLAYER} (required)"
 LangString sec_shortcuts ${LANG_ENGLISH} "Start Menu Shortcuts"
 LangString sec_register  ${LANG_ENGLISH} "Register Tao links and .ddd extension"
 LangString tao_document  ${LANG_ENGLISH} "Tao Presentations Document"
@@ -100,7 +100,7 @@ LangString create_dshortcut ${LANG_ENGLISH} "Create desktop shortcut"
 LangString create_qlaunch ${LANG_ENGLISH} "Create quick launch shortcut"
 
 ; Language strings - French
-LangString sec_tao       ${LANG_FRENCH} "Tao Presentations (requis)"
+LangString sec_tao       ${LANG_FRENCH} "Tao Presentations${MAYBE_PLAYER} (requis)"
 LangString sec_shortcuts ${LANG_FRENCH} "Raccourcis du menu Démarrer"
 LangString sec_register  ${LANG_FRENCH} "Liens Tao et extension .ddd"
 LangString tao_document  ${LANG_FRENCH} "Document Tao Presentations"
@@ -130,16 +130,16 @@ Section $(sec_tao) SectionTao
   File /r "build_root\*.*"
   
   ; Write the installation path into the registry
-  WriteRegStr HKLM "SOFTWARE\Taodyne\Tao Presentations" "Install_Dir" "$INSTDIR"
+  WriteRegStr HKLM "SOFTWARE\Taodyne\Tao Presentations${MAYBE_PLAYER}" "Install_Dir" "$INSTDIR"
   
   ; Write the uninstall keys for Windows
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayName" "Tao Presentations"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayVersion" "${VERSION}"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "UninstallString" '"$INSTDIR\uninstall.exe"'
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "DisplayIcon" "$INSTDIR\\Tao.exe,0"
-  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "Publisher" "Taodyne"
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "NoModify" 1
-  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations" "NoRepair" 1
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "DisplayName" "Tao Presentations${MAYBE_PLAYER}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "DisplayVersion" "${VERSION}"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "UninstallString" '"$INSTDIR\uninstall.exe"'
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "DisplayIcon" "$INSTDIR\\Tao.exe,0"
+  WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "Publisher" "Taodyne"
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "NoModify" 1
+  WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}" "NoRepair" 1
   WriteUninstaller "uninstall.exe"
   
 SectionEnd
@@ -148,8 +148,8 @@ SectionEnd
 Section $(sec_shortcuts) SectionShortcuts
 
   SetShellVarContext all
-  CreateDirectory "$SMPROGRAMS\Tao Presentations"
-  CreateShortCut "$SMPROGRAMS\Tao Presentations\Tao Presentations.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
+  CreateDirectory "$SMPROGRAMS\Tao Presentations${MAYBE_PLAYER}"
+  CreateShortCut "$SMPROGRAMS\Tao Presentations${MAYBE_PLAYER}\Tao Presentations${MAYBE_PLAYER}.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
   
 SectionEnd
 
@@ -170,13 +170,13 @@ SectionEnd
 
 ; English
 LangString DESC_SectionTao       ${LANG_ENGLISH} "The main application. This component is required."
-LangString DESC_SectionShortcuts ${LANG_ENGLISH} "Adds a Tao Presentation entry to the start menu."
-LangString DESC_SectionRegister  ${LANG_ENGLISH} "Associates the .ddd file extension to Tao Presentations and registers the tao:// and taos:// URI schemes."
+LangString DESC_SectionShortcuts ${LANG_ENGLISH} "Adds a Tao Presentation${MAYBE_PLAYER} entry to the start menu."
+LangString DESC_SectionRegister  ${LANG_ENGLISH} "Associates the .ddd file extension to Tao Presentations${MAYBE_PLAYER} and registers the tao:// and taos:// URI schemes."
 
 ; French
 LangString DESC_SectionTao       ${LANG_FRENCH} "L'application principale. Ce composant est nécessaire."
-LangString DESC_SectionShortcuts ${LANG_FRENCH} "Ajoute Tao Presentations au menu Démarrer."
-LangString DESC_SectionRegister  ${LANG_FRENCH} "Associe l'extension .ddd à Tao Presentations et enregistre les schémas d'URI tao:// et taos://."
+LangString DESC_SectionShortcuts ${LANG_FRENCH} "Ajoute Tao Presentations${MAYBE_PLAYER} au menu Démarrer."
+LangString DESC_SectionRegister  ${LANG_FRENCH} "Associe l'extension .ddd à Tao Presentations${MAYBE_PLAYER} et enregistre les schémas d'URI tao:// et taos://."
 
 ; Set the component descriptions
 !insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
@@ -239,13 +239,13 @@ FunctionEnd
 
 Function CreateDesktopShortcut
 
-  CreateShortCut "$DESKTOP\Tao Presentations.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
+  CreateShortCut "$DESKTOP\Tao Presentations${MAYBE_PLAYER}.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
 
 FunctionEnd
 
 Function CreateQuickLaunchShortcut
 
-  CreateShortCut "$QUICKLAUNCH\Tao Presentations.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
+  CreateShortCut "$QUICKLAUNCH\Tao Presentations${MAYBE_PLAYER}.lnk" "$INSTDIR\Tao.exe" "" "$INSTDIR\Tao.exe" 0
 
 FunctionEnd
 
@@ -266,14 +266,14 @@ Section "Uninstall"
   call un.RefreshShellIcons
 
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations"
-;  DeleteRegKey HKLM "SOFTWARE\Taodyne\Tao Presentations"
-  DeleteRegValue HKCU "Software\Taodyne\Tao Presentations" "Installer Language"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\Tao Presentations${MAYBE_PLAYER}"
+;  DeleteRegKey HKLM "SOFTWARE\Taodyne\Tao Presentations${MAYBE_PLAYER}"
+  DeleteRegValue HKCU "Software\Taodyne\Tao Presentations${MAYBE_PLAYER}" "Installer Language"
 
   ; Remove shortcuts
   SetShellVarContext all
-  Delete "$SMPROGRAMS\Tao Presentations\*.*"
-  RMDir  "$SMPROGRAMS\Tao Presentations"
+  Delete "$SMPROGRAMS\Tao Presentations${MAYBE_PLAYER}\*.*"
+  RMDir  "$SMPROGRAMS\Tao Presentations${MAYBE_PLAYER}"
 
   ; Validate $INSTDIR before recursively deleting it (better safe than sorry)
   IfFileExists "$INSTDIR\*.*" 0 +2

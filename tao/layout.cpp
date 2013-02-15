@@ -93,7 +93,7 @@ LayoutState::LayoutState(const LayoutState &o)
         hasTextureMatrix(o.hasTextureMatrix),
         printing(o.printing),
         hasPixelBlur(o.hasPixelBlur), hasMatrix(o.hasMatrix), has3D(o.has3D),
-        hasAttributes(o.hasAttributes), 
+        hasAttributes(o.hasAttributes),
         hasLighting(false),
         hasBlending(false),
         hasTransform(o.hasTransform), hasMaterial(false), hasDepthAttr(false),
@@ -172,7 +172,12 @@ Layout::Layout(Widget *widget)
       id(0), charId(0),
       items(), display(widget), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(0)
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "<-> Layout::Layout ["<< this << "] parent widget is "
+                      << widget << " layout is "
+                      << widget->layout <<"\n";
+}
 
 
 Layout::Layout(const Layout &o)
@@ -182,7 +187,11 @@ Layout::Layout(const Layout &o)
     : Drawing(o), LayoutState(o), id(0), charId(0),
       items(), display(o.display), idx(-1),
       refreshEvents(), nextRefresh(DBL_MAX), lastRefresh(o.lastRefresh)
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "<-> Layout::Layout ["<< this << "] parent layout is "
+                      << &o <<"\n";
+}
 
 
 Layout::~Layout()
@@ -190,7 +199,11 @@ Layout::~Layout()
 //   Destroy a layout
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "-> Layout::~Layout ["<< this << "] \n";
     Clear();
+    IFTRACE(justify)
+            std::cerr << "<- Layout::~Layout ["<< this << "] \n";
 }
 
 
@@ -203,6 +216,7 @@ Layout *Layout::AddChild(uint childId,
 {
     IFTRACE(layoutevents)
         std::cerr << "Adding child id " << childId << " to " << id << "\n";
+
     Layout *result = child ? child : NewChild();
     Add(result);
     result->idx = items.size();
@@ -218,8 +232,24 @@ void Layout::Clear()
 //   Reset the layout (mostly) to the initial setup
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "-> Layout::Clear ["<< this << "] \n";
+
+    // Clear caches before
+    ClearCaches();
+
+    // When clearing, we should have no cached information left anywhere
+    assert(caches.size() == 0);
+    
+    // Remove items now that they are no longer referenced elsewhere
     for (Drawings::iterator i = items.begin(); i != items.end(); i++)
+    {
+        IFTRACE(justify)
+            std::cerr << "-- Layout::Clear ["<< this << "] delete drawing "
+                      << (void*) *i << " of type "
+                      << demangle(typeid(**i).name()) << std::endl;
         delete *i;
+    }
     items.clear();
 
     // Initial state has no rotation or attribute changes
@@ -228,6 +258,41 @@ void Layout::Clear()
     refreshEvents.clear();
     nextRefresh = DBL_MAX;
     // lastRefresh is NOT reset on purpose
+    IFTRACE(justify)
+        std::cerr << "<- Layout::Clear ["<< this << "] \n";
+}
+
+
+void Layout::ClearCaches()
+// ----------------------------------------------------------------------------
+//   Clear all cached information related to this layout
+// ----------------------------------------------------------------------------
+{
+    // Clear all pages we may have sent data to
+    IFTRACE(justify)
+        std::cerr << "Layout::ClearCaches ["<< this << "]\n";
+
+    // Remove cached references
+    Drawings ch = caches;
+    caches.clear();
+    for (Drawings::iterator d = ch.begin(); d != ch.end(); d++)
+    {
+        IFTRACE(justify)
+            std::cerr << "[" << this << "]  cache "
+                      << demangle(typeid(**d).name())
+                      << "@" << (void*) *d << "\n";
+        (*d)->ClearCaches();
+    }
+
+    // Remove cached information from children
+    for (Drawings::iterator d = items.begin(); d != items.end(); d++)
+    {
+        IFTRACE(justify)
+            std::cerr << "[" << this << "]  child "
+                      << demangle(typeid(**d).name())
+                      << "@" << (void*) *d << "\n";
+        (*d)->ClearCaches();
+    }
 }
 
 
@@ -341,12 +406,20 @@ Box3 Layout::Space(Layout *layout)
 }
 
 
-bool  Layout::Paginate(PageLayout *page)
+bool Layout::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   Paginate all the items in the given page
 // ----------------------------------------------------------------------------
 {
     bool ok = true;
+
+    // Layouts are the basic unit for refresh. Since this layout may
+    // be placed in a text flow and refresh independently from the page,
+    // we need each to refresh when the other does. This causes
+    // the page to re-compute its entire layout if we get refreshed.
+    this->CachesInfoFrom(page);
+    page->CachesInfoFrom(this);
+
     for (Drawings::iterator i = items.begin(); ok && i != items.end(); i++)
         ok = (*i)->Paginate(page);
     return ok;
@@ -358,6 +431,11 @@ void Layout::Add(Drawing *d)
 //   Add a drawing to the items, return true if item fits in layout
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "<->Layout::Add[" << this << "] drawing is "
+                  << d << ":"
+                  << demangle(typeid(*d).name()) << std::endl;
+
     items.push_back(d);
     d->Evaluate(this);
 }
@@ -442,6 +520,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
 //   Re-compute layout on event, return true if self or child changed
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "->Layout::Refresh[" << this << "]  \n";
     bool changed = false;
     if (!e)
         return false;
@@ -469,6 +549,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         // Check if we can evaluate locally
         if (ctx && body)
         {
+            IFTRACE(justify)
+                    std::cerr << "--Layout::Refresh[" << this << "] clears itself \n";
             // Clear old contents of the layout, drop all children
             Clear();
 
@@ -505,6 +587,8 @@ bool Layout::Refresh(QEvent *e, double now, Layout *parent, QString dbg)
         // Forward event to all child layouts
         changed |= RefreshChildren(e, now, dbg);
     }
+    IFTRACE(justify)
+            std::cerr << "<-Layout::Refresh[" << this << "]  \n";
 
     return changed;
 }
@@ -779,9 +863,9 @@ double Layout::PrinterScaling()
 
 
 // ============================================================================
-// 
+//
 //    Stereo layout
-// 
+//
 // ============================================================================
 
 bool StereoLayout::Valid(Layout *where)

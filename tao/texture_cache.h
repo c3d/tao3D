@@ -131,10 +131,7 @@ public:
 
     GLuint          bind();
 
-    bool            loaded()
-    {
-        return (image.compressed || !image.raw.isNull());
-    }
+    bool            loaded() { return !image.isNull(); }
     bool            transferred() { return (GLsize != 0); }
 
     void            reload();

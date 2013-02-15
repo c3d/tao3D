@@ -112,6 +112,7 @@ struct Justifier
     bool        AddItem(Item item, uint count = 1,
                         bool pack = true, bool forceBreak = false,
                         scale size = 0, coord offset = 0, scale lastSpace = 0);
+    void        RemoveItem(Item item);
     void        EndLayout(float *perSolid, float *perBreak);
 
     // Adding items to the layout
@@ -213,10 +214,15 @@ void Justifier<Item>::Clear()
 //   Delete the elements we have moved in places
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->Justifier<Item>::Clear()[" << this << "]\n";
+
     PurgeItems();
     places.clear();
     delete data;
     data = NULL;
+    IFTRACE(justify)
+        std::cerr << "<-Justifier<Item>::Clear()[" << this << "]\n";
 }
 
 
@@ -235,7 +241,7 @@ void Justifier<Item>::PopItem()
 template<class Item>
 void Justifier<Item>::BeginLayout(coord start, coord end, Justification &j)
 // ----------------------------------------------------------------------------
-//   Create data for the given 
+//   Create data for the given
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
@@ -255,13 +261,13 @@ bool Justifier<Item>::AddItem(Item item, uint count,
 // ----------------------------------------------------------------------------
 {
     // Quick exit if we are already full
-    if (!data->hasRoom)
+    if (!HasRoom())
         return false;
 
     IFTRACE(justify)
         std::cerr << "Justifier[" << this << "]::AddItem "
                   << item << ":" << demangle(typeid(*item).name())
-                  << " * " << count 
+                  << " * " << count
                   << (solid ? " solid " : " break ")
                   << size << " + " << offset << " "
                   << (forceBreak ? "force-break\n" : "\n");
@@ -340,6 +346,21 @@ bool Justifier<Item>::AddItem(Item item, uint count,
 
 
 template<class Item>
+void Justifier<Item>::RemoveItem (Item item)
+// ----------------------------------------------------------------------------
+//   Remove item from the places - It's supposed to be the last one
+// ----------------------------------------------------------------------------
+{
+    if (places.size() > 0)
+    {
+        Place &last = places.back();
+        if (last.item == item)
+            places.pop_back();
+    }
+}
+
+
+template<class Item>
 void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
 // ----------------------------------------------------------------------------
 //   Final positioning of items after we processed all of them
@@ -401,9 +422,9 @@ void Justifier<Item>::EndLayout(float *perSolid, float *perBreak)
         Place &place = *p;
         place.position += offset;
         IFTRACE(justify)
-            std::cerr << "Justifier<Item>::Adjust Place.position change by "
-                      << offset << " to "
-                      << place.position << std::endl;
+                std::cerr << "Justifier<Item>::Adjust Place.position change by "
+                          << offset << " to "
+                          << place.position << std::endl;
 
         if (place.size > 0)
         {

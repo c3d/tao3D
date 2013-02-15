@@ -75,7 +75,13 @@ LayoutLine::~LayoutLine()
 // ----------------------------------------------------------------------------
 //    The real work happens in the LineJustifier's destructor
 // ----------------------------------------------------------------------------
-{}
+{
+    IFTRACE(justify)
+            std::cerr << "->LayoutLine::~LayoutLine["<< this << "]\n";
+    line.Clear();
+    IFTRACE(justify)
+            std::cerr << "<-LayoutLine::~LayoutLine["<< this << "]\n";
+}
 
 
 void LayoutLine::Draw(Layout *where)
@@ -217,7 +223,8 @@ PageLayout::PageLayout(Widget *widget)
       space(), bounds(), page(), currentFlow(NULL), selectId(0)
 {
     IFTRACE(justify)
-        std::cerr << "PageLayout::PageLayout " << this << std::endl;
+        std::cerr << "<->PageLayout::PageLayout [" << this
+                  << "] from widget " << widget << std::endl;
 }
 
 
@@ -229,7 +236,8 @@ PageLayout::PageLayout(const PageLayout &o)
       page(), currentFlow(NULL), selectId(0)
 {
     IFTRACE(justify)
-        std::cerr << "PageLayout::PageLayout copy " << this << std::endl;
+            std::cerr << "<->PageLayout::PageLayout[" << this
+                      <<  "] from layout " << &o <<std::endl;
     space |= Point(0,0);
 }
 
@@ -240,8 +248,10 @@ PageLayout::~PageLayout()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-        std::cerr << "PageLayout::~PageLayout " << this << std::endl;
+        std::cerr << "->PageLayout::~PageLayout " << this << std::endl;
     Clear();
+    IFTRACE(justify)
+        std::cerr << "<-PageLayout::~PageLayout " << this << std::endl;
 }
 
 
@@ -486,6 +496,12 @@ bool PageLayout::Paginate(PageLayout *page)
 //   Paginate a text box inside a text box
 // ----------------------------------------------------------------------------
 {
+    // There is a possibility for this page to be in a text flow and refresh
+    // independently from the page it is paginated in. So we need to ensure
+    // that each page gets refreshed whenever the other is
+    this->CachesInfoFrom(page);
+    page->CachesInfoFrom(this);
+
     // We will treat the text box as a complete rectangular entity
     return page->PaginateItem(this);
 }
@@ -523,9 +539,21 @@ void PageLayout::Clear()
 //   When we clear a page layout, we need to also clear placed items
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "-- PageLayout::Clear ["<< this << "] \n";
+    Layout::Clear();
+    assert(page.Empty() || !"PageLayout::Clear called with dirty cache");
+}
+
+
+void PageLayout::ClearCaches()
+// ----------------------------------------------------------------------------
+//   Drop references to objects we don't own (e.g. drawings in text flows)
+// ----------------------------------------------------------------------------
+{
     page.Clear();
     bounds = Box();
-    Layout::Clear();
+    Layout::ClearCaches();
 }
 
 
@@ -534,6 +562,9 @@ void PageLayout::Compute(Layout *where)
 //   Layout all elements on the page, preserving layout state
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
+
     // Get attributes from surrounding context
     Inherit(where);
 
@@ -546,9 +577,6 @@ void PageLayout::Compute(Layout *where)
     coord bottom = space.Bottom() + this->bottom;
     if (top <= bottom)
         return;
-
-    IFTRACE(justify)
-        std::cerr << "->PageLayout::Compute ["<< this <<"]\n";
 
     // Begin pagination
     page.BeginLayout(top, bottom, alongY);
@@ -566,11 +594,12 @@ void PageLayout::Compute(Layout *where)
         PaginateLastLine(NoBreak);
     page.EndLayout(&alongY.perSolid, &alongY.perBreak);
 
+    // Restore state as it was at the beginning of the layout
+    Inherit(where);
+
     IFTRACE(justify)
         page.Dump("<-PageLayout::Compute");
 
-    // Restore state as it was at the beginning of the layout
-    Inherit(where);
 }
 
 
@@ -650,7 +679,7 @@ bool PageLayout::PaginateItem(Drawing *drawing, BreakOrder order, uint count)
         }
 
         Justifier<Drawing *> &lj = line->line;
-        bool fits = 
+        bool fits =
             (forceBreak && size==0) ||
             lj.AddItem(drawing, count, pack, forceBreak, size, offset, spc);
         if (fits)
@@ -693,6 +722,7 @@ bool PageLayout::PaginateLastLine(BreakOrder order)
     {
         if (currentFlow)
             currentFlow->Transfer(line);
+        page.RemoveItem(line);
         delete line;
     }
     return lfits;
@@ -736,7 +766,8 @@ TextFlow::TextFlow(Layout *layout, text flowName)
 {
     IFTRACE(justify)
         std::cerr << "TextFlow::TextFlow[" << this
-                  << "] flowname " << flowName << std::endl;
+                  << "] flowname " << flowName
+                  << " Layout to copy " << layout << std::endl;
 }
 
 
@@ -745,8 +776,15 @@ TextFlow::~TextFlow()
 //    Make sure that the widget drops references to this flow
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->TextFlow::~TextFlow[" << this
+                  << "] flowname " << flowName << std::endl;
     Clear();
     display->eraseFlow(flowName);
+    IFTRACE(justify)
+        std::cerr << "<-TextFlow::~TextFlow[" << this
+                  << "] flowname " << flowName << std::endl;
+
 }
 
 
@@ -789,12 +827,50 @@ void TextFlow::Clear()
 //   Reset the text flow to the initial setup
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "-> TextFlow::Clear ["<< this << "] " << flowName <<" \n";
+
+    Layout::Clear();
+
+    assert(reject.size() == 0 || !"TextFlow::Clear called with dirty 'reject'");
+    assert(!lastSplit || !"TextFlow::Clear called with dirty 'lastSplit'");
+
     charId = 0;
     current = 0;
-    lastSplit = NULL;
     textBoxIds.clear();
     reject.clear();
-    Layout::Clear();
+    IFTRACE(justify)
+        std::cerr << "<- TextFlow::Clear ["<< this << "]  \n";
+}
+
+
+void TextFlow::ClearCaches()
+// ----------------------------------------------------------------------------
+//   Drop all cached references to other drawings from this text flow
+// ----------------------------------------------------------------------------
+{
+    IFTRACE(justify)
+        std::cerr << "-> TextFlow::ClearCaches ["<<this<<"] "<<flowName<<" \n";
+
+    // Clear caches from rejects
+    Drawings r = reject;
+    reject.clear();
+    for (Drawings::iterator d = reject.begin(); d != reject.end(); d++)
+        (*d)->ClearCaches();
+
+    // Clear splits
+    if (Drawing *ls = lastSplit)
+    {
+        lastSplit = NULL;
+        ls->ClearCaches();
+    }
+
+    // We need to restart from the beginning
+    current = 0;
+    Layout::ClearCaches();
+
+    IFTRACE(justify)
+        std::cerr << "<- TextFlow::ClearCaches ["<<this<<"] "<<flowName<<" \n";
 }
 
 
@@ -804,30 +880,50 @@ bool TextFlow::Paginate(PageLayout *page)
 // ----------------------------------------------------------------------------
 //   This scenario happens if you put a text box definition inside a text flow
 {
+    IFTRACE(justify)
+        std::cerr << "-> TextFlow::Paginate ["<< this << "] pageLayout "
+                  << page <<  "\n";
+
     XL::Save<TextFlow *> saveFlow(page->currentFlow, this);
-    page->RefreshOn(this);
+
+    // Since text flows and pages can refresh independently, each one need
+    // to notify the other if it is refreshed, in order to clear cached data
+    // that may be deleted by the refresh.
+    this->CachesInfoFrom(page);
+    page->CachesInfoFrom(this);
 
     bool ok = true;
 
     // First try to playback items that were rejected before
-    Drawings::iterator d, good = reject.begin();
-    for (d = good; ok && d != reject.end(); d++)
+    Drawings rej = reject;
+    reject.clear();
+
+    Drawings::iterator d;
+    for (d = rej.begin(); ok && d != rej.end(); d++)
     {
         Drawing *child = *d;
+        IFTRACE(justify)
+            std::cerr << "-- TextFlow::Paginate [" << this
+                      << "] repaginating reject " << child <<  "\n";
         ok = child->Paginate(page);
-        if (ok)
-            good = d;
     }
-    reject.erase(reject.begin(), good);
+    reject.insert(reject.end(), d, rej.end());
 
     uint max = items.size();
     while (ok && current < max)
     {
         Drawing *child = items[current];
+        IFTRACE(justify)
+            std::cerr << "-- TextFlow::Paginate ["<< this
+                      << "] paginating #" << current
+                      << " child " << child <<  "\n";
         ok = child->Paginate(page);
         if (ok)
             current++;
     }
+    IFTRACE(justify)
+        std::cerr << "<- TextFlow::Paginate ["<< this << "] pageLayout "
+                  << page <<  "\n";
     return ok;
 }
 
@@ -840,8 +936,23 @@ void TextFlow::Transfer(LayoutLine *line)
     typedef Justifier<Drawing *> DJ;
     DJ::Places &places = line->line.places;
     for(DJ::PlacesIterator p = places.begin(); p != places.end(); p++)
+    {
+        IFTRACE(justify)
+            std::cerr << "-- TextFlow::Transfer ["<< this
+                      << "] added to reject "
+                      << (*p).item <<  "\n";
         reject.push_back((*p).item);
+    }
     places.clear();
+}
+
+
+void TextFlow::SetLastSplit(TextSplit *split)
+// ----------------------------------------------------------------------------
+//   Set last paginated split
+// ----------------------------------------------------------------------------
+{
+    lastSplit = split;
 }
 
 
@@ -992,7 +1103,6 @@ bool TextSpan::Paginate(PageLayout *page)
         restore = new Restore(save);
     }
 
-    page->RefreshOn(this);
     bool ok = (page->PaginateItem(save) &&
                Layout::Paginate(page) &&
                page->PaginateItem(restore));
@@ -1033,22 +1143,34 @@ AnchorLayout::AnchorLayout(Widget *widget, bool abs)
 //   Create an anchor layout
 // ----------------------------------------------------------------------------
     : Layout(widget), absolute(abs)
-{}
+{
+    IFTRACE(justify)
+        std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
+                  << "] Widget " << widget << "\n";
+}
 
 
 AnchorLayout::AnchorLayout(const AnchorLayout &o)
 // ----------------------------------------------------------------------------
 //   Create a copy of an anchor layout
 // ----------------------------------------------------------------------------
-    : Layout(o)
-{}
+    : Layout(o), absolute(false)
+{
+    IFTRACE(justify)
+        std::cerr << "<->AnchorLayout::AnchorLayout ["<< this
+                  << "] layout " << &o << "\n";
+}
 
 
 AnchorLayout::~AnchorLayout()
 // ----------------------------------------------------------------------------
 //   Delete the layout
 // ----------------------------------------------------------------------------
-{}
+{
+    IFTRACE(justify)
+        std::cerr << "<->AnchorLayout::~AnchorLayout ["<< this
+                  << "]\n";
+}
 
 
 void AnchorLayout::Draw(Layout *where)
@@ -1106,6 +1228,12 @@ bool AnchorLayout::Paginate(PageLayout *page)
 //    Since the anchor layout is floating, do not paginate its contents
 // ----------------------------------------------------------------------------
 {
+    // Like any layout, an anchor layout may refresh at its own pace.
+    // If the anchor layout is inside a text flow, we need to ensure that
+    // the page gets refreshed when the text flow or anchor layout is.
+    page->CachesInfoFrom(this);
+    this->CachesInfoFrom(page);
+
     return page->PaginateItem(this);
 }
 

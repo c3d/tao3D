@@ -34,6 +34,7 @@
 #include "text_edit.h"
 #include "tao_gl.h"
 #include "tree-walk.h"
+#include "demangle.h"
 
 #include <QPainterPath>
 #include <QFont>
@@ -73,7 +74,18 @@ TextSplit::~TextSplit()
 // ----------------------------------------------------------------------------
 {
     IFTRACE(justify)
-        std::cerr << "<->TextSplit::~TextSplit[" << this << "]\n";
+        std::cerr << "->TextSplit::~TextSplit[" << this << "]\n";
+    Clear();
+    IFTRACE(justify)
+        std::cerr << "<-TextSplit::~TextSplit[" << this << "]\n";
+}
+
+
+void TextSplit::Clear()
+// ----------------------------------------------------------------------------
+//    Clean a text unit
+// ----------------------------------------------------------------------------
+{
     source = NULL;
 }
 
@@ -1119,9 +1131,9 @@ std::ostream &operator<<(std::ostream &out, TextSplit &ts)
 
 
 // ============================================================================
-// 
+//
 //   TextUnit class
-// 
+//
 // ============================================================================
 
 TextUnit::TextUnit(Text *source, uint start, uint end)
@@ -1142,7 +1154,7 @@ TextUnit::~TextUnit()
 {
     IFTRACE(justify)
         std::cerr << "<->TextUnit::~TextUnit[" << this << "]\n";
-    ClearSplits();
+    Clear();
 }
 
 
@@ -1151,6 +1163,9 @@ bool TextUnit::Paginate(PageLayout *page)
 //   If the text span contains a word or line break, cut there
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+        std::cerr << "->TextUnit::Paginate[" << this << "] nb splits :"
+                  << splits.size() <<"\n";
     text str = source->value;
     uint i, max = str.length();
     bool ok = true;
@@ -1158,9 +1173,11 @@ bool TextUnit::Paginate(PageLayout *page)
     uint last = start;
     uint first = start;
 
-    // Remove all text splits we generated during previous pagination
-    ClearSplits();
-
+    // Record that we are referenced by the given page
+    // If we are invalidated, we need to drop references to text splits we
+    // created from the justifiers in the page layout
+    caches.push_back(page);
+    
     // Case where we replayed a line from a text flow : we played text splits
     // that we would otherwise emit here (resulting in duplicated text)
     if (TextSplit *lastSplit = page->LastSplit())
@@ -1203,20 +1220,51 @@ bool TextUnit::Paginate(PageLayout *page)
         splits.push_back(split);
         ok = page->PaginateItem(split, NoBreak, size);
     }
+    IFTRACE(justify)
+        std::cerr << "<-TextUnit::Paginate[" << this << "] nb splits :"
+                     << splits.size() <<"\n";
 
     return ok;
 }
 
 
-void TextUnit::ClearSplits()
+void TextUnit::ClearCaches()
+// ----------------------------------------------------------------------------
+//   Drop all references to this text unit and its text splits from caches
+// ----------------------------------------------------------------------------
+{
+    // Loop on all items that may hold this split in the cache
+    Drawings ch = caches;
+    caches.clear();
+    for (Drawings::iterator d = ch.begin(); d != ch.end(); d++)
+        (*d)->ClearCaches();
+
+    // Probably useless for now, but clear caches in the splits as well
+    for (TextSplits::iterator t = splits.begin(); t != splits.end(); t++)
+        (*t)->ClearCaches();
+}
+
+
+void TextUnit::Clear()
 // ----------------------------------------------------------------------------
 //   Delete all split text units we created
 // ----------------------------------------------------------------------------
 {
+    IFTRACE(justify)
+            std::cerr << "-> TextUnit::ClearSplits["<< this << "]\n";
+
+    // Make sure we cleared the caches before
+    ClearCaches();
+    assert(caches.size() == 0 || !"TextUnit::Clear called with dirty cache");
+
+    // Clear splits
     uint i, max = splits.size();
     for (i = 0; i < max; i++)
         delete splits[i];
     splits.clear();
+
+    IFTRACE(justify)
+        std::cerr << "<- TextUnit::ClearSplits["<< this << "]\n";
 }
 
 

@@ -52,7 +52,9 @@ struct ShaderProgramInfo : XL::Info, InfoTrashCan
     virtual void Delete() { trash.push_back(this); }
     typedef QGLShaderProgram *data_t;
     operator data_t() { return program; }
+    enum { SHADER_TYPES = 3 };
     QGLShaderProgram *program;
+    text shaderSource[SHADER_TYPES];
 };
 
 

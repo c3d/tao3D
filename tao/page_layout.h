@@ -88,6 +88,7 @@ public:
 
     virtual void        Add(Drawing *child);
     virtual void        Clear();
+    virtual void        ClearCaches();
     virtual Layout *    NewChild();
 
     virtual void        Compute(Layout *where);
@@ -114,7 +115,7 @@ public:
 
 struct TextFlow : Layout
 // ----------------------------------------------------------------------------
-//    Record drawings that can later be displayed in a page 
+//    Record drawings that can later be displayed in a page
 // ----------------------------------------------------------------------------
 {
     TextFlow(Layout *l, text flowName);
@@ -126,10 +127,11 @@ public:
     virtual void        Identify(Layout *l);
     virtual void        Clear();
     virtual bool        Paginate(PageLayout *page);
+    virtual void        ClearCaches();
 
     void                Transfer(LayoutLine *line);
     TextSplit *         LastSplit()                     { return lastSplit; }
-    void                SetLastSplit(TextSplit *split)  { lastSplit = split; }
+    void                SetLastSplit(TextSplit *split);
 
 public:
     text                flowName;
@@ -177,7 +179,12 @@ struct TextSpan : Layout
             std::cerr << "<->TextSpan::TextSpan ["<< this
                       << "] from TextSpan " << &o << "\n";
     }
-    ~TextSpan()         { delete restore;}
+    ~TextSpan()         {
+        IFTRACE(justify)
+            std::cerr << "<->TextSpan::~TextSpan ["<< this
+                      << "] \n";
+        delete restore;
+    }
 
     virtual void        Draw(Layout *where);
     virtual void        DrawSelection(Layout *);

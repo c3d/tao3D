@@ -86,6 +86,7 @@ struct CoordinatesInfo;
 struct MouseFocusTracker;
 struct DisplayDriver;
 struct OpenGLState;
+struct ShaderProgramInfo;
 
 // ----------------------------------------------------------------------------
 // Name of fixed menu.
@@ -944,7 +945,7 @@ private:
     double                transitionStartTime, transitionDurationValue;
     Tree_p                currentShape;
     QGridLayout *         currentGridLayout;
-    QGLShaderProgram *    currentShaderProgram;
+    ShaderProgramInfo *   currentShaderProgram;
     GroupInfo   *         currentGroup;
     GlyphCache            glyphCache;
     FontFileManager *     fontFileMgr;

@@ -40,6 +40,7 @@
 
 TAO_BEGIN
 struct Widget;
+struct Layout;
 
 struct LayoutState
 // ----------------------------------------------------------------------------
@@ -103,13 +104,13 @@ public:
 };
 
 
+typedef std::vector<Layout *> Layouts;
+
 struct Layout : Drawing, LayoutState
 // ----------------------------------------------------------------------------
 //   A layout is responsible for laying out Drawing objects in 2D or 3D space
 // ----------------------------------------------------------------------------
 {
-    typedef std::vector<Layout *>       Layouts;
-
 public:
                         Layout(Widget *display);
                         Layout(const Layout &o);
@@ -131,6 +132,7 @@ public:
                                  Tree_p body = 0, Context_p ctx = 0,
                                  Layout *child = NULL);
     virtual void        Clear();
+    virtual void        ClearCaches();
     virtual Widget *    Display()        { return display; }
     virtual void        PolygonOffset();
     virtual void        ClearPolygonOffset();
@@ -157,9 +159,11 @@ public:
     double              PrinterScaling();
     text                PrettyId();
 
+    void                CachesInfoFrom(Drawing *d)      { caches.push_back(d); }
+
     // Used to optimize away texturing and programs if in Identify
     static bool         InIdentify()    { return inIdentify; }
-    
+
 public:
     // OpenGL identification for that shape and for characters within
     uint                id;
@@ -185,6 +189,8 @@ protected:
     Widget *            display;
     // Debug: index in parent items (-1 = root layout)
     int                 idx;
+    Drawings            caches;  // Drawings that may reference us
+    friend struct TextFlow;
 
 public:
     qevent_ids          refreshEvents;

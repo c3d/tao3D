@@ -408,49 +408,49 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
 // 
 // ============================================================================
 
-*T:text -> bullet 1, T
+*T -> bullet 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level bullet
 // ----------------------------------------------------------------------------
 
 
-**T:text -> bullet 2, T
+**T -> bullet 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level bullet
 // ----------------------------------------------------------------------------
 
 
-***T:text -> bullet 3, T
+***T -> bullet 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level bullet
 // ----------------------------------------------------------------------------
 
 
-****T:text -> bullet 4, T
+****T -> bullet 4, T
 // ----------------------------------------------------------------------------
 //   Display a fourth-level bullet
 // ----------------------------------------------------------------------------
 
 
--T:text -> text_item 1, T
+-T -> text_item 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level text without bullet
 // ----------------------------------------------------------------------------
 
 
---T:text -> text_item 2, T
+--T -> text_item 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level text without bullet
 // ----------------------------------------------------------------------------
 
 
----T:text -> text_item 3, T
+---T -> text_item 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
 
 
-----T:text -> text_item 4, T
+----T -> text_item 4, T
 // ----------------------------------------------------------------------------
 //   Display a third-level text without bullet
 // ----------------------------------------------------------------------------
@@ -463,49 +463,73 @@ flows X:real, Y:real, W:real, H:real, Flow1:text, Flow2:text ->
 // ----------------------------------------------------------------------------
 
 
-+T:text -> numbered_item 1, T
++T -> numbered_item 1, T
 // ----------------------------------------------------------------------------
 //   Display a first-level numbered text
 // ----------------------------------------------------------------------------
 
 
-++T:text -> numbered_item 2, T
+++T -> numbered_item 2, T
 // ----------------------------------------------------------------------------
 //   Display a second-level numbered text
 // ----------------------------------------------------------------------------
 
 
-+++T:text -> numbered_item 3, T
++++T -> numbered_item 3, T
 // ----------------------------------------------------------------------------
 //   Display a third-level numbered text
 // ----------------------------------------------------------------------------
 
 
-++++T:text -> numbered_item 4, T
+++++T -> numbered_item 4, T
 // ----------------------------------------------------------------------------
 //   Display a third-level numbered text
 // ----------------------------------------------------------------------------
+
+
+bullet Level:integer, Block:block ->
+// ----------------------------------------------------------------------------
+//   Draw a bullet point with a given block (e.g. drawings)
+// ----------------------------------------------------------------------------
+    theme_bullet theme, slide_master, Level, Block
 
 
 bullet Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a bullet point with a given text
 // ----------------------------------------------------------------------------
-    theme_bullet theme, slide_master, Level, Text
+    theme_bullet theme, slide_master, Level,
+        text Text
+
+
+text_item Level:integer, Block:block ->
+// ----------------------------------------------------------------------------
+//   Draw a given text without bullet point
+// ----------------------------------------------------------------------------
+    theme_item theme, slide_master, Level, Block
 
 
 text_item Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a given text without bullet point
 // ----------------------------------------------------------------------------
-    theme_item theme, slide_master, Level, Text
+    theme_item theme, slide_master, Level,
+        text Text
+
+
+numbered_item Level:integer, Block:block ->
+// ----------------------------------------------------------------------------
+//   Draw a given text without bullet point
+// ----------------------------------------------------------------------------
+    theme_numbered_item theme, slide_master, Level, Block
 
 
 numbered_item Level:integer, Text:text ->
 // ----------------------------------------------------------------------------
 //   Draw a given text without bullet point
 // ----------------------------------------------------------------------------
-    theme_numbered_item theme, slide_master, Level, Text
+    theme_numbered_item theme, slide_master, Level,
+        text Text
 
 
 data item_number

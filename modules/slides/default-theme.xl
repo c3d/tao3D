@@ -68,13 +68,13 @@ theme_background Theme:text,Master:text         -> clear_color 1, 1, 1, 1
 
 theme_color Theme:text,Master:text,"picture"    -> color "white"
 theme_color Theme:text,Master:text,"story"      -> color "black"
-theme_color Theme:text,Master:text,"story",N    -> theme_color Theme,Master,"story"
+theme_color Theme:text,Master:text,"story",N    -> false
 theme_color Theme:text,Master:text,Style:text   -> theme_color Theme,Master,"story"
 theme_color Theme:text,Master:text,Style:text,N -> theme_color Theme,Master,"story",N
 
 theme_font Theme:text,Master:text,"story"       -> font "Ubuntu", "TeX Gyre Adventor", "Arial"
 theme_font Theme:text,Master:text,Style:text    -> theme_font Theme,Master,"story"
-theme_font Theme:text,Master:text,"story",N     -> theme_font Theme,Master,"story"
+theme_font Theme:text,Master:text,"story",N     -> false
 theme_font Theme:text,Master:text,Style:text,N  -> theme_font Theme,Master,"story",N
 
 theme_size Theme:text,Master:text,"story"       -> 52

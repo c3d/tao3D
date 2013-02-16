@@ -327,10 +327,11 @@ struct DisplayListInfo : XL::Info, InfoTrashCan
 //    Store information about a display list
 // ----------------------------------------------------------------------------
 {
-    DisplayListInfo(): displayListID(glGenLists(1)) {}
+    DisplayListInfo(): displayListID(glGenLists(1)), version(0.0) {}
     ~DisplayListInfo() { glDeleteLists(displayListID, 1); }
     virtual void Delete() { trash.push_back(this); }
     GLuint      displayListID;
+    double      version;
 };
 
 
@@ -9988,7 +9989,8 @@ Integer* Widget::frameTexture(Context *context, Tree_p self,
 }
 
 
-Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
+Tree* Widget::drawingCache(Context *context, Tree_p self,
+                           double version, Tree_p prog)
 // ----------------------------------------------------------------------------
 //   Create a compiled display list out of the program's result
 // ----------------------------------------------------------------------------
@@ -10002,6 +10004,11 @@ Tree* Widget::drawingCache(Context *context, Tree_p self, Tree_p prog)
         // First drawing: draw the hard way
         info = new DisplayListInfo();
         self->SetInfo<DisplayListInfo>(info);
+        info->version = version - 1;
+    }
+    if (info->version != version)
+    {
+        info->version = version;
 
         Layout *parent = layout;
         GLAllStateKeeper saveGL;

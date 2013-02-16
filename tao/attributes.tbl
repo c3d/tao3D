@@ -154,8 +154,9 @@ PREFIX(FillColorGradient,  tree, "gradient_color",
        DESCRIPTION("")
        RETURNS(tree, ""))
 PREFIX(CachedDrawing, tree, "cached",
+       PARM(version, real, "Version")
        PARM(body, code, "Code to cache"),
-       RTAO(drawingCache(context, self, body)),
+       RTAO(drawingCache(context, self, version, body)),
        GROUP(graph:attribute)
        SYNOPSIS("Cache some drawings for faster execution"))
 PREFIX(FillTextureUnit,  integer,  "texture_unit",

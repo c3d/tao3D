@@ -55,6 +55,19 @@ scale (x:real, y:real, z:real);
 
 /**
  * @~english
+ * Scales along the three axes with the same value.
+ * Equivalent to:
+ * @~french
+ * Redimensionne la scène selon les trois axes avec la même valeur.
+ * Équivalent à :
+ * @~
+ * @code scale xyz, xyz, xyz @endcode
+ * @image html scale.png
+ */
+scale (xyz:really);
+
+/**
+ * @~english
  * Scales along the X axis.
  * Equivalent to:
  * @~french

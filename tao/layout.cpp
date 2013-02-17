@@ -223,6 +223,7 @@ Layout *Layout::AddChild(uint childId,
     result->id = childId;
     result->body = body;
     result->ctx = ctx;
+    result->lastRefresh = lastRefresh;
     return result;
 }
 

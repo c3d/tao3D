@@ -8907,13 +8907,12 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 {
     ADJUST_CONTEXT_FOR_INTERPRETER(context);
     PageLayout *tbox = new PageLayout(this);
+    tbox->lastRefresh = layout->lastRefresh;
     tbox->space = Box(x - w/2, y-h/2, w, h);
     tbox->id = shapeId();
     tbox->body = body;
     tbox->ctx = context;
     layout->Add(tbox);
-    layout->lastRefresh = CurrentTime();
-
     if (currentShape)
     {
         tbox->selectId = layout->id;
@@ -8922,6 +8921,7 @@ Tree_p  Widget::textBox(Context *context, Tree_p self,
 
     XL::Save<Layout *> save(layout, tbox);
     Tree_p result = context->Evaluate(body);
+    layout->lastRefresh = CurrentTime();
     return result;
 }
 
